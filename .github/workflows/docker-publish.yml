@@ -16,6 +16,7 @@ jobs:
   test-and-build:
     name: Test, Build and Release Image
     runs-on: ubuntu-latest
+    timeout-minutes: 30
     permissions:
       contents: write # 允许创建和发布 GitHub Release
       packages: write # 允许推送容器镜像到 GitHub Packages (GHCR)
