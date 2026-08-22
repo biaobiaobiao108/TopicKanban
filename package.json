@@ -3,6 +3,7 @@
   "private": true,
   "version": "1.0.0",
   "type": "module",
+  "packageManager": "pnpm@11.22.0",
   "scripts": {
     "dev": "concurrently -k -n web,server \"pnpm dev:web\" \"pnpm dev:server\"",
     "dev:web": "vite --port 3000",
