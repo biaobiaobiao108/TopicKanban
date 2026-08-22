@@ -163,9 +163,11 @@ export function initializeSqliteDatabase(dbFilePath: string, schemaDir?: string)
   }
 
   const sqlite = new Database(dbFilePath);
-  // Enable WAL and foreign keys
+  // Enable WAL, foreign keys, busy timeout, and synchronous NORMAL
   sqlite.pragma('journal_mode = WAL');
   sqlite.pragma('foreign_keys = ON');
+  sqlite.pragma('busy_timeout = 5000');
+  sqlite.pragma('synchronous = NORMAL');
 
   // Check if tables already exist
   const tableCheck = sqlite.prepare("SELECT count(*) as count FROM sqlite_master WHERE type='table' AND name='topics'").get() as { count: number };

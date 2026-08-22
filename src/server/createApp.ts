@@ -95,10 +95,10 @@ export function createApp() {
 
   app.use('*', async (c, next) => {
     const path = c.req.path;
-    if (path.endsWith('/auth/login')) return next();
-    if (path.endsWith('/health') || path === '/api/health') return next();
-    if (path.includes('/public/')) return next();
-    if (path.endsWith('/inbox/quick-drop') || path === '/api/inbox/quick-drop') {
+    if (path === '/api/auth/login' || path === '/auth/login') return next();
+    if (path === '/api/health' || path === '/health') return next();
+    if (path.startsWith('/api/public/') || path.startsWith('/public/')) return next();
+    if (path === '/api/inbox/quick-drop' || path === '/inbox/quick-drop') {
       const dropToken = c.req.header('X-Quick-Drop-Token');
       if (dropToken) {
         const credential = verifyQuickDropCredential(dropToken, c.env.QUICK_DROP_TOKEN);

@@ -38,15 +38,53 @@ async function getKvSettings(kv?: KVNamespace, defaultPublicBaseUrl?: string): P
   return { ...DEFAULT_APP_SETTINGS, public_base_url: defaultPublicBaseUrl || '' };
 }
 
+const failedLoginAttempts = new Map<string, { count: number; resetAt: number }>();
+
+function checkLoginRateLimit(ip: string): boolean {
+  const now = Date.now();
+  const record = failedLoginAttempts.get(ip);
+  if (!record || record.resetAt <= now) {
+    return true;
+  }
+  return record.count < 10;
+}
+
+function recordFailedLogin(ip: string): void {
+  const now = Date.now();
+  const record = failedLoginAttempts.get(ip);
+  if (!record || record.resetAt <= now) {
+    failedLoginAttempts.set(ip, { count: 1, resetAt: now + 60_000 });
+  } else {
+    record.count += 1;
+  }
+}
+
+function resetFailedLogin(ip: string): void {
+  failedLoginAttempts.delete(ip);
+}
+
 export function registerSystemRoutes(app: Hono<{ Bindings: ApiBindings }>): void {
   app.post('/auth/login', async (c) => {
     try {
+      const clientIp = c.req.header('cf-connecting-ip')
+        || c.req.header('x-forwarded-for')?.split(',')[0]?.trim()
+        || c.req.header('x-real-ip')
+        || 'unknown';
+
+      if (!checkLoginRateLimit(clientIp)) {
+        return c.json({ success: false, message: '登录尝试过于频繁，请 1 分钟后再试' }, 429);
+      }
+
       const { password } = await c.req.json<{ password?: string }>();
       const correctPassword = c.env.APP_PASSWORD;
       if (!correctPassword) {
         return c.json({ success: false, message: '云端访问密码尚未配置，请设置 APP_PASSWORD' }, 503);
       }
-      if (password !== correctPassword) return c.json({ success: false, message: '密码错误' }, 401);
+      if (password !== correctPassword) {
+        recordFailedLogin(clientIp);
+        return c.json({ success: false, message: '密码错误' }, 401);
+      }
+      resetFailedLogin(clientIp);
       return c.json({ success: true, token: await createToken(correctPassword) });
     } catch (error) {
       return jsonError(c, error, 400);

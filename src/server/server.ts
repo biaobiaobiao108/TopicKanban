@@ -42,6 +42,14 @@ mainApp.use('*', async (c, next) => {
   await next();
 });
 
+// Security headers middleware
+mainApp.use('*', async (c, next) => {
+  await next();
+  c.header('X-Content-Type-Options', 'nosniff');
+  c.header('X-Frame-Options', 'SAMEORIGIN');
+  c.header('Referrer-Policy', 'strict-origin-when-cross-origin');
+});
+
 // Mount API routes
 const apiApp = createApp();
 mainApp.route('/', apiApp);
@@ -51,7 +59,7 @@ const distPath = path.resolve(process.cwd(), 'dist');
 if (fs.existsSync(distPath)) {
   console.log(`[Kanban Server] Serving static files from: ${distPath}`);
   
-  // Serve static assets
+  // Serve static assets with immutable cache
   mainApp.use('/assets/*', serveStatic({ root: './dist' }));
   mainApp.use('/favicon.ico', serveStatic({ path: './dist/favicon.ico' }));
   mainApp.use('/_headers', serveStatic({ path: './dist/_headers' }));
@@ -64,6 +72,9 @@ if (fs.existsSync(distPath)) {
     const indexPath = path.join(distPath, 'index.html');
     if (fs.existsSync(indexPath)) {
       const html = fs.readFileSync(indexPath, 'utf-8');
+      c.header('Cache-Control', 'no-cache, no-store, must-revalidate');
+      c.header('Pragma', 'no-cache');
+      c.header('Expires', '0');
       return c.html(html);
     }
     return c.text('Topic Kanban Studio - Build files not found. Please run pnpm build.', 404);
@@ -73,7 +84,7 @@ if (fs.existsSync(distPath)) {
   mainApp.get('/', (c) => c.text('Topic Kanban API Server is running. Frontend dist not built yet.'));
 }
 
-serve({
+const server = serve({
   fetch: mainApp.fetch,
   port,
 }, (info) => {
@@ -89,3 +100,31 @@ serve({
   }
   console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
 });
+
+// Graceful shutdown on SIGTERM / SIGINT
+let isShuttingDown = false;
+const handleShutdown = (signal: string) => {
+  if (isShuttingDown) return;
+  isShuttingDown = true;
+  console.log(`\n[Kanban Server] 接收到 ${signal} 信号，正在平滑关闭服务...`);
+  
+  server.close(() => {
+    try {
+      sqlite.pragma('wal_checkpoint(TRUNCATE)');
+      sqlite.close();
+      console.log('[Kanban Server] SQLite 数据已安全检查点并关闭连接。');
+    } catch (err) {
+      console.error('[Kanban Server] 关闭 SQLite 时出错:', err);
+    }
+    process.exit(0);
+  });
+
+  // Force close if graceful shutdown takes too long (5s)
+  setTimeout(() => {
+    console.error('[Kanban Server] 平滑关闭超时，强制退出。');
+    process.exit(1);
+  }, 5000).unref();
+};
+
+process.on('SIGTERM', () => handleShutdown('SIGTERM'));
+process.on('SIGINT', () => handleShutdown('SIGINT'));
