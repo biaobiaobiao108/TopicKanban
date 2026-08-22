@@ -2,12 +2,9 @@ name: Build and Publish Container Image
 
 on:
   push:
-    branches:
-      - main
-      - master
     tags:
-      - 'v*'
-  workflow_dispatch: # 支持在 GitHub 网页上随时手动一键触发构建
+      - 'v*' # 仅在推送版本标签（例如 v1.0.0, v1.0.1 等）时自动触发打包
+  workflow_dispatch: # 依然保留在 GitHub 网页上手动一键触发的能力
 
 env:
   REGISTRY: ghcr.io
@@ -74,11 +71,10 @@ jobs:
         with:
           images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
           tags: |
-            type=raw,value=latest,enable={{is_default_branch}}
-            type=ref,event=branch
             type=semver,pattern={{version}}
             type=semver,pattern={{major}}.{{minor}}
-            type=sha,format=short
+            type=semver,pattern={{major}}
+            type=raw,value=latest
 
       - name: Build and push Docker image
         uses: docker/build-push-action@v6
