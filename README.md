@@ -76,11 +76,21 @@ services:
 
 启动命令：
 ```bash
-# Docker:
+# 方式 A：基于本地源码构建并拉起
 docker compose up -d --build
-
-# Podman:
+# 或 Podman:
 podman compose up -d --build
+
+# 方式 B：直接拉取 GitHub Actions 自动构建好的预编译镜像 (免本地安装依赖与构建)
+docker run -d \
+  --name topic-kanban \
+  --restart unless-stopped \
+  -p 3000:3000 \
+  -e APP_PASSWORD="your_secure_password" \
+  -e QUICK_DROP_TOKEN="your_quick_drop_token" \
+  -e PUBLIC_BASE_URL="https://kanban.yourdomain.com" \
+  -v ./data:/app/data \
+  ghcr.io/<你的GitHub用户名>/kanbancontainer:latest
 ```
 
 访问 `http://localhost:3000` 即可开始使用。
