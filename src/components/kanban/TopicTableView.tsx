@@ -699,9 +699,9 @@ export const TopicTableView: React.FC<TopicTableViewProps> = ({
 
               {isColumnVisible('priority') && <th
                 onClick={() => handleHeaderClick('priority')}
-                className="py-3 px-3 w-24 cursor-pointer group hover:bg-stone-100/80 dark:hover:bg-stone-800 transition-colors"
+                className="py-3 px-3 w-20 text-center cursor-pointer group hover:bg-stone-100/80 dark:hover:bg-stone-800 transition-colors"
               >
-                <div className="flex items-center gap-1.5">
+                <div className="flex items-center justify-center gap-1">
                   <span>优先级</span>
                   {renderSortIndicator('priority')}
                 </div>
@@ -887,8 +887,10 @@ export const TopicTableView: React.FC<TopicTableViewProps> = ({
                   </td>}
 
                   {/* 4. Priority */}
-                  {isColumnVisible('priority') && <td className={`${rowPadding} px-3`}>
-                    <PriorityBadge priority={topic.priority} />
+                  {isColumnVisible('priority') && <td className={`${rowPadding} px-3 text-center`}>
+                    <div className="flex items-center justify-center">
+                      <PriorityBadge priority={topic.priority} />
+                    </div>
                   </td>}
 
                   {/* 5. Next Action */}
