@@ -68,7 +68,7 @@ services:
       - PORT=3000
       - APP_PASSWORD=your_secure_password      # 工作台访问密码
       - QUICK_DROP_TOKEN=your_quick_drop_token  # 手机快捷指令独立Token
-      - PUBLIC_BASE_URL=https://kanban.yourdomain.com # 反向代理公网域名 (局域网使用可留空)
+      - PUBLIC_BASE_URL=https://kanban.yourdomain.com # 反向代理公网域名 (注意：必须包含 https:// 或 http:// 协议前缀，局域网使用可留空)
       - DATA_DIR=/app/data
     volumes:
       - ./data:/app/data
@@ -93,6 +93,9 @@ docker run -d \
   ghcr.io/<你的GitHub用户名>/kanbancontainer:latest
 ```
 
+> ⚠️ **重要提示（关于 `PUBLIC_BASE_URL` 域名前缀）**：
+> 配置 `PUBLIC_BASE_URL` 时**必须包含完整的协议前缀**（如 `https://kanban.yourdomain.com` 或 `http://192.168.1.100:3000`），**切勿仅填写裸域名**（如 `kanban.yourdomain.com`）。若缺少协议头，浏览器会将生成的审稿链接解析为相对路径，导致新标签页预览或跳转异常。
+
 访问 `http://localhost:3000` 即可开始使用。
 
 ---
@@ -100,6 +103,8 @@ docker run -d \
 ### 2. 反向代理（Reverse Proxy）配置
 
 当通过反向代理（Nginx / Caddy / NPM / Cloudflare Tunnel）对外提供服务时，工作台会自动识别 `X-Forwarded-*` 请求头或采用配置的 `PUBLIC_BASE_URL`，确保生成的审稿链接在公网有效。
+
+> 💡 如果您通过反代域名访问，推荐在工作台「偏好设置」->「选题生产流与外部审稿偏好」中填入带协议的公网地址（如 `https://kanban.yourdomain.com`）。
 
 #### Nginx 配置样例：
 ```nginx

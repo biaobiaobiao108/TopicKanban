@@ -158,9 +158,11 @@ kanban.yourdomain.com {
 | `DATA_DIR` | 否 | `/app/data` | 数据持久化目录（存放 `kanban.db`） |
 | `APP_PASSWORD` | 建议 | 空 | 工作台访问密码 |
 | `QUICK_DROP_TOKEN` | 建议 | 空 | 手机/快捷指令灵感快投独立鉴权 Token |
-| `PUBLIC_BASE_URL` | 否 | 空 | 反向代理的公网基准域名（例如 `https://kanban.example.com`） |
+| `PUBLIC_BASE_URL` | 否 | 空 | 反向代理的公网基准域名（**必须包含协议头**，例如 `https://kanban.example.com`） |
 
-> **提示**：`PUBLIC_BASE_URL` 也可以在进入工作台后，在**「偏好设置」->「选题生产流与外部审稿偏好」**中直接图形化填写和修改。
+> **提示**：
+> 1. `PUBLIC_BASE_URL` **必须包含完整的 `https://` 或 `http://` 协议前缀**（切勿填成裸域名 `kanban.example.com`），否则浏览器会将其误判为相对路径导致审稿外链跳转失效。
+> 2. `PUBLIC_BASE_URL` 也可以在进入工作台后，在**「偏好设置」->「选题生产流与外部审稿偏好」**中直接图形化填写和修改。
 
 ---
 
