@@ -1,0 +1,880 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+.script-citation {
+  border-bottom: 2px solid rgb(251 113 133 / 0.55);
+  background: rgb(255 241 242 / 0.8);
+  border-radius: 0.2rem;
+}
+
+html.dark .script-citation {
+  background: rgb(244 63 94 / 0.15);
+  border-bottom-color: rgb(244 63 94 / 0.7);
+}
+
+html.theme-warm-paper .script-citation {
+  background: rgba(107, 95, 181, 0.12);
+  border-bottom-color: rgba(107, 95, 181, 0.65);
+}
+
+.script-citation::after {
+  content: "〔" attr(data-reference-title) "〕";
+  margin-left: 0.2rem;
+  color: rgb(190 24 93);
+  font-size: 0.68em;
+  font-weight: 700;
+  vertical-align: super;
+}
+
+html.dark .script-citation::after {
+  color: rgb(251 113 133);
+}
+
+html.theme-warm-paper .script-citation::after {
+  color: #6b5fb5;
+}
+
+@layer base {
+  :root {
+    --bg-primary: #fafaf9;
+    --bg-surface: #ffffff;
+    --text-primary: #1c1917;
+    --text-secondary: #78716c;
+    --border-subtle: #e7e5e4;
+    color-scheme: light;
+  }
+
+  html.theme-warm-paper {
+    --bg-primary: #f6f3ed;
+    --bg-surface: #fdfcf9;
+    --text-primary: #2d2b29;
+    --text-secondary: #8c857b;
+    --border-subtle: #eae5dc;
+    color-scheme: light;
+  }
+
+  html.dark {
+    --bg-primary: #0c0a09;
+    --bg-surface: #1c1917;
+    --text-primary: #f5f5f4;
+    --text-secondary: #a8a29e;
+    --border-subtle: #292524;
+    color-scheme: dark;
+  }
+
+  body {
+    background-color: var(--bg-primary);
+    color: var(--text-primary);
+    font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+    -webkit-tap-highlight-color: transparent;
+    transition: background-color 0.15s ease, color 0.15s ease;
+  }
+}
+
+/* Hide scrollbar for tabs on mobile */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+/* Custom smooth subtle scrollbars */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #d6d3d1;
+  border-radius: 9999px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #a8a29e;
+}
+
+html.dark ::-webkit-scrollbar-thumb {
+  background: #44403c;
+}
+
+html.dark ::-webkit-scrollbar-thumb:hover {
+  background: #57534e;
+}
+
+/* Tiptap editor styling - Editorial & high legibility with dynamic variable support */
+.tiptap {
+  outline: none;
+  font-size: var(--script-editor-font-size, 16px);
+  line-height: var(--script-editor-line-height, 1.8);
+  color: #292524;
+}
+
+.tiptap p {
+  font-size: var(--script-editor-font-size, 16px) !important;
+  line-height: var(--script-editor-line-height, 1.8) !important;
+  margin-top: 0.6em;
+  margin-bottom: 0.6em;
+}
+
+html.dark .tiptap {
+  color: #f5f5f4;
+}
+
+.tiptap p.is-editor-empty:first-child::before {
+  color: #a8a29e;
+  content: attr(data-placeholder);
+  float: left;
+  height: 0;
+  pointer-events: none;
+}
+
+html.dark .tiptap p.is-editor-empty:first-child::before {
+  color: #57534e;
+}
+
+.tiptap h1 {
+  font-size: 1.625rem;
+  font-weight: 700;
+  line-height: 1.3;
+  margin-top: 1.5rem;
+  margin-bottom: 0.75rem;
+  color: #1c1917;
+  letter-spacing: -0.015em;
+}
+
+html.dark .tiptap h1 {
+  color: #fafaf9;
+}
+
+.tiptap h2 {
+  font-size: 1.375rem;
+  font-weight: 600;
+  line-height: 1.35;
+  margin-top: 1.25rem;
+  margin-bottom: 0.5rem;
+  color: #292524;
+}
+
+html.dark .tiptap h2 {
+  color: #f5f5f4;
+}
+
+.tiptap h3 {
+  font-size: 1.125rem;
+  font-weight: 600;
+  margin-top: 1rem;
+  margin-bottom: 0.25rem;
+  color: #44403c;
+}
+
+html.dark .tiptap h3 {
+  color: #e7e5e4;
+}
+
+.tiptap p {
+  margin-top: 0.625rem;
+  margin-bottom: 0.625rem;
+}
+
+.tiptap blockquote {
+  border-left: 3px solid #e11d48;
+  padding-left: 1rem;
+  margin-top: 1rem;
+  margin-bottom: 1rem;
+  font-style: italic;
+  color: #57534e;
+  background: #fff1f2/40;
+  border-radius: 0 0.375rem 0.375rem 0;
+  padding: 0.5rem 1rem;
+}
+
+html.dark .tiptap blockquote {
+  border-left-color: #f43f5e;
+  background: rgba(244, 63, 94, 0.08);
+  color: #e7e5e4;
+}
+
+.tiptap ul {
+  list-style-type: disc;
+  padding-left: 1.5rem;
+  margin-top: 0.5rem;
+  margin-bottom: 0.5rem;
+}
+
+.tiptap ol {
+  list-style-type: decimal;
+  padding-left: 1.5rem;
+  margin-top: 0.5rem;
+  margin-bottom: 0.5rem;
+}
+
+.tiptap hr {
+  border: none;
+  border-top: 1px solid #e7e5e4;
+  margin: 1.5rem 0;
+}
+
+html.dark .tiptap hr {
+  border-top-color: #292524;
+}
+
+/* ==========================================================================
+   Warm Paper (暖沙纸境) - Oatmeal Cream & Muted Subtle Hierarchy System
+   ========================================================================== */
+
+/* 1. Main Workspace Canvas (象牙微暖白：明亮、通透、纯净，彻底告别暗沉土黄) */
+html.theme-warm-paper body,
+html.theme-warm-paper #root,
+html.theme-warm-paper main,
+html.theme-warm-paper .bg-\[\#fafaf9\],
+html.theme-warm-paper .bg-stone-50 {
+  background-color: #faf7f2 !important;
+}
+
+/* 2. All Common White Surfaces (主体卡片、数据面板：纯净纸白 + 微纸影) */
+html.theme-warm-paper .bg-white,
+html.theme-warm-paper .bg-white\/50,
+html.theme-warm-paper .bg-white\/60,
+html.theme-warm-paper .bg-white\/70,
+html.theme-warm-paper .bg-white\/80,
+html.theme-warm-paper .bg-white\/85,
+html.theme-warm-paper .bg-white\/90,
+html.theme-warm-paper .bg-white\/95,
+html.theme-warm-paper .kanban-column-container .bg-white,
+html.theme-warm-paper .today-spotlight-card,
+html.theme-warm-paper .today-priority-item,
+html.theme-warm-paper .today-recent-updates-panel {
+  background-color: #ffffff !important;
+  border-color: #eae3d8 !important;
+}
+
+html.theme-warm-paper .kanban-column-container .bg-white,
+html.theme-warm-paper .today-priority-item,
+html.theme-warm-paper .today-spotlight-card {
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03), 0 1px 2px rgba(0, 0, 0, 0.02) !important;
+}
+
+html.theme-warm-paper .kanban-column-container .bg-white:hover,
+html.theme-warm-paper .today-priority-item:hover {
+  background-color: #ffffff !important;
+  border-color: #ded6cb !important;
+  box-shadow: 0 4px 12px rgba(60, 45, 30, 0.06) !important;
+}
+
+/* 3. Kanban Board & 4 Columns (极雅致低饱和莫兰迪微淡彩，与象牙底板自然交融) */
+
+/* Inbox (收集箱) - 淡雅杏粉奶白 */
+html.theme-warm-paper .kanban-column-container[data-column-status="inbox"] {
+  background-color: #fbf3ec !important;
+  border-color: #ede0d4 !important;
+  border-top-color: #e8d5c5 !important;
+}
+html.theme-warm-paper .kanban-column-container[data-column-status="inbox"] .font-mono {
+  background-color: #f5e4d5 !important;
+  color: #7b471c !important;
+}
+
+/* Approved (已立项) - 淡雅鼠尾草绿奶白 */
+html.theme-warm-paper .kanban-column-container[data-column-status="approved"] {
+  background-color: #f1f6f2 !important;
+  border-color: #dbe8dc !important;
+  border-top-color: #cce0ce !important;
+}
+html.theme-warm-paper .kanban-column-container[data-column-status="approved"] .font-mono {
+  background-color: #e2efe4 !important;
+  color: #205630 !important;
+}
+
+/* Scripting (写稿中) - 淡雅香芋紫奶白 */
+html.theme-warm-paper .kanban-column-container[data-column-status="scripting"] {
+  background-color: #f5f1f8 !important;
+  border-color: #e5dcee !important;
+  border-top-color: #ded1eb !important;
+}
+html.theme-warm-paper .kanban-column-container[data-column-status="scripting"] .font-mono {
+  background-color: #ebe2f4 !important;
+  color: #493674 !important;
+}
+
+/* Production (待制作) - 淡雅天青雾蓝奶白 */
+html.theme-warm-paper .kanban-column-container[data-column-status="production"] {
+  background-color: #f0f4f7 !important;
+  border-color: #dbe5eb !important;
+  border-top-color: #cde0eb !important;
+}
+html.theme-warm-paper .kanban-column-container[data-column-status="production"] .font-mono {
+  background-color: #e1ecf2 !important;
+  color: #1d4f66 !important;
+}
+
+/* 4. Detail Subtabs Navigation */
+html.theme-warm-paper .detail-subtabs-container {
+  background-color: #faf7f2 !important;
+  border-bottom-color: #e3dbd0 !important;
+  padding-top: 0.25rem !important;
+  padding-bottom: 0.25rem !important;
+}
+
+html.theme-warm-paper .detail-subtabs-container button.border-rose-600 {
+  background-color: #ffffff !important;
+  border: 1px solid #e2dbd0 !important;
+  border-bottom: 1px solid #e2dbd0 !important;
+  border-radius: 0.6rem !important;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04) !important;
+  color: #1f1c19 !important;
+  font-weight: 700 !important;
+}
+
+html.theme-warm-paper .detail-subtabs-container button:not(.border-rose-600) {
+  border-color: transparent !important;
+  color: #787066 !important;
+}
+
+/* Card Next Action Bar in Warm Paper */
+html.theme-warm-paper .bg-rose-50\/80 {
+  background-color: rgba(222, 91, 109, 0.08) !important;
+  border-color: rgba(222, 91, 109, 0.22) !important;
+  color: #a82e40 !important;
+}
+
+/* 5. Outer Framework (最高特异性置后覆盖：浅燕麦砂色 #f0ebe4，比主体稍深，但色差柔和不突兀) */
+html.theme-warm-paper aside,
+html.theme-warm-paper aside.sidebar-container,
+html.theme-warm-paper .sidebar-container,
+html.theme-warm-paper header,
+html.theme-warm-paper header.navbar-container,
+html.theme-warm-paper .navbar-container,
+html.theme-warm-paper .mobile-drawer-container,
+html.theme-warm-paper .mobile-nav-container,
+html.theme-warm-paper .tags-sidebar-panel,
+html.theme-warm-paper .script-editor-toolbar,
+html.theme-warm-paper .script-reference-drawer,
+html.theme-warm-paper .script-outline-panel {
+  background-color: #f0ebe4 !important;
+  border-color: #e3dbd0 !important;
+}
+
+html.theme-warm-paper .sidebar-brand-logo {
+  background-color: #de5b6d !important; /* 草莓玫瑰红胶囊 (截图 1 同款) */
+  border-radius: 0.65rem !important;
+  box-shadow: 0 2px 6px rgba(222, 91, 109, 0.25) !important;
+}
+
+html.theme-warm-paper .mobile-fab-create-button {
+  background-color: #de5b6d !important;
+}
+
+/* 6. Active navigation item card (在 #f0ebe4 燕麦底色中精致浮起的纯白高光小卡片) */
+html.theme-warm-paper aside.sidebar-container nav button.bg-stone-100,
+html.theme-warm-paper aside nav button.bg-stone-100,
+html.theme-warm-paper .mobile-drawer-container nav button.bg-stone-100,
+html.theme-warm-paper .tags-sidebar-panel .tag-menu-item.is-selected {
+  background-color: #ffffff !important;
+  border: 1px solid #e2dbd0 !important;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04) !important;
+  color: #1f1c19 !important;
+  font-weight: 700 !important;
+}
+
+/* Outer Canvas Container */
+html.theme-warm-paper .script-editor-canvas-container {
+  background-color: #faf7f2 !important;
+}
+
+@media (min-width: 1280px) {
+  html.theme-warm-paper .script-outline-panel {
+    background-image: linear-gradient(to right, #f0ebe4 0%, rgba(240, 235, 228, 0.98) 82%, transparent 100%) !important;
+  }
+}
+
+/* ==========================================================================
+   Tags & Genres View (标签与创作赛道 - 层次分明的指标卡与面板)
+   ========================================================================== */
+
+/* Top header banner (与全局纯净主画布融合) */
+html.theme-warm-paper .tags-header-banner {
+  background-color: #faf7f2 !important;
+  border-bottom-color: #e3dbd0 !important;
+}
+
+html.theme-warm-paper .tags-sidebar-panel input {
+  background-color: #ffffff !important;
+  border-color: #e2dbd0 !important;
+  color: #1f1c19 !important;
+}
+
+/* Four Metrics Cards in TagsView (极浅马卡龙淡彩纸片，清爽雅致) */
+html.theme-warm-paper .tags-metrics-container .metric-tag-total {
+  background-color: #fbf3ec !important;
+  border-color: #ede0d4 !important;
+}
+html.theme-warm-paper .tags-metrics-container .metric-tag-coverage {
+  background-color: #f1f6f2 !important;
+  border-color: #dbe8dc !important;
+}
+html.theme-warm-paper .tags-metrics-container .metric-tag-richest {
+  background-color: #fdf0f3 !important;
+  border-color: #f9d8de !important;
+}
+html.theme-warm-paper .tags-metrics-container .metric-tag-writing {
+  background-color: #f5f1f8 !important;
+  border-color: #e5dcee !important;
+}
+
+/* ==========================================================================
+   Topic Table View (多维表格视图)
+   ========================================================================== */
+
+html.theme-warm-paper .table-scope-tabs-container {
+  background-color: #faf7f2 !important;
+  border-bottom-color: #e3dbd0 !important;
+}
+
+html.theme-warm-paper .table-scope-tabs-container button.is-active {
+  background-color: #ffffff !important;
+  border: 1px solid #e2dbd0 !important;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04) !important;
+  color: #1f1c19 !important;
+  font-weight: 700 !important;
+}
+
+html.theme-warm-paper .topic-table-container thead.table-header-row,
+html.theme-warm-paper .topic-table-container thead.table-header-row th {
+  background-color: #eae4dc !important;
+  border-bottom-color: #e3dbd0 !important;
+  color: #38342f !important;
+  font-weight: 700 !important;
+}
+
+html.theme-warm-paper .topic-table-container tbody tr:hover {
+  background-color: #f5f0e9 !important;
+}
+
+html.theme-warm-paper .topic-table-container tbody td {
+  border-bottom-color: #eae3d8 !important;
+}
+
+/* ==========================================================================
+   Modals & Form Controls (弹窗与表单控件)
+   ========================================================================== */
+html.theme-warm-paper .shadow-modal {
+  background-color: #ffffff !important;
+  border: 1px solid #e3dbd0 !important;
+  border-radius: 1rem !important;
+  box-shadow: 0 20px 35px -5px rgba(60, 45, 30, 0.12), 0 8px 12px -6px rgba(60, 45, 30, 0.06) !important;
+}
+
+/* Form Inputs, Textarea, Selects */
+html.theme-warm-paper input[type="text"],
+html.theme-warm-paper input[type="number"],
+html.theme-warm-paper input[type="search"],
+html.theme-warm-paper textarea,
+html.theme-warm-paper select {
+  background-color: #ffffff !important;
+  border-color: #e2dbd0 !important;
+  color: #1f1c19 !important;
+}
+
+html.theme-warm-paper input[type="text"]:focus,
+html.theme-warm-paper input[type="number"]:focus,
+html.theme-warm-paper input[type="search"]:focus,
+html.theme-warm-paper textarea:focus,
+html.theme-warm-paper select:focus {
+  border-color: #6b5fb5 !important;
+  box-shadow: 0 0 0 2px rgba(107, 95, 181, 0.18) !important;
+}
+
+/* Switch & Checkbox */
+html.theme-warm-paper input[type="checkbox"]:checked {
+  background-color: #4d8b61 !important;
+  border-color: #4d8b61 !important;
+}
+
+/* Primary CTA Buttons */
+html.theme-warm-paper .bg-rose-600 {
+  background-color: #de5b6d !important;
+}
+html.theme-warm-paper .hover\:bg-rose-700:hover {
+  background-color: #cb4a5c !important;
+}
+html.theme-warm-paper .text-rose-600 {
+  color: #de5b6d !important;
+}
+html.theme-warm-paper .border-rose-500,
+html.theme-warm-paper .border-rose-600 {
+  border-color: #de5b6d !important;
+}
+html.theme-warm-paper .ring-rose-400,
+html.theme-warm-paper .ring-rose-500 {
+  --tw-ring-color: rgba(222, 91, 109, 0.4) !important;
+}
+
+/* TipTap Heading & Typography Styles */
+html.theme-warm-paper .tiptap {
+  color: #2b2723;
+}
+
+html.theme-warm-paper .tiptap h1 {
+  color: #6b5fb5; /* Morandi Soft Violet */
+}
+
+html.theme-warm-paper .tiptap h2 {
+  color: #327c94; /* Morandi Lake Blue */
+}
+
+html.theme-warm-paper .tiptap h3 {
+  color: #3b8ca7; /* Morandi Soft Teal */
+}
+
+html.theme-warm-paper .tiptap blockquote {
+  border-left-color: #6b5fb5;
+  background: rgba(107, 95, 181, 0.06);
+  color: #5c554e;
+}
+
+html.theme-warm-paper .tiptap hr {
+  border-top-color: #e3dbd0;
+}
+
+html.theme-warm-paper ::-webkit-scrollbar-thumb {
+  background: #d6cfc4;
+}
+
+html.theme-warm-paper ::-webkit-scrollbar-thumb:hover {
+  background: #beb6ab;
+}
+
+/* ==========================================================================
+   Nordic Frost (北欧冷杉 / 极简雾青) - Linear & Craft Inspired Cool Minimal
+   ========================================================================== */
+
+/* 1. Main Workspace Canvas */
+html.theme-nordic-frost body,
+html.theme-nordic-frost #root,
+html.theme-nordic-frost main,
+html.theme-nordic-frost .bg-\[\#fafaf9\],
+html.theme-nordic-frost .bg-stone-50 {
+  background-color: #f8fafb !important;
+}
+
+/* 2. All Common White Surfaces */
+html.theme-nordic-frost .bg-white,
+html.theme-nordic-frost .bg-white\/50,
+html.theme-nordic-frost .bg-white\/60,
+html.theme-nordic-frost .bg-white\/70,
+html.theme-nordic-frost .bg-white\/80,
+html.theme-nordic-frost .bg-white\/85,
+html.theme-nordic-frost .bg-white\/90,
+html.theme-nordic-frost .bg-white\/95,
+html.theme-nordic-frost .kanban-column-container .bg-white,
+html.theme-nordic-frost .today-spotlight-card,
+html.theme-nordic-frost .today-priority-item,
+html.theme-nordic-frost .today-recent-updates-panel {
+  background-color: #ffffff !important;
+  border-color: #e2ebeb !important;
+}
+
+html.theme-nordic-frost .kanban-column-container .bg-white,
+html.theme-nordic-frost .today-priority-item,
+html.theme-nordic-frost .today-spotlight-card {
+  box-shadow: 0 1px 3px rgba(15, 35, 35, 0.04), 0 1px 2px rgba(15, 35, 35, 0.02) !important;
+}
+
+html.theme-nordic-frost .kanban-column-container .bg-white:hover,
+html.theme-nordic-frost .today-priority-item:hover {
+  background-color: #ffffff !important;
+  border-color: #ccdcdc !important;
+  box-shadow: 0 4px 14px rgba(20, 45, 45, 0.07) !important;
+}
+
+/* 3. Kanban 4 Columns */
+html.theme-nordic-frost .kanban-column-container[data-column-status="inbox"] {
+  background-color: #edf3f5 !important;
+  border-color: #d8e5e9 !important;
+  border-top-color: #cfe0e5 !important;
+}
+html.theme-nordic-frost .kanban-column-container[data-column-status="inbox"] .font-mono {
+  background-color: #dfebf0 !important;
+  color: #335766 !important;
+}
+
+html.theme-nordic-frost .kanban-column-container[data-column-status="approved"] {
+  background-color: #eaf4ed !important;
+  border-color: #d0e7d7 !important;
+  border-top-color: #c2e2cb !important;
+}
+html.theme-nordic-frost .kanban-column-container[data-column-status="approved"] .font-mono {
+  background-color: #d4ebd8 !important;
+  color: #1c5c36 !important;
+}
+
+html.theme-nordic-frost .kanban-column-container[data-column-status="scripting"] {
+  background-color: #f0f1f8 !important;
+  border-color: #dee0f2 !important;
+  border-top-color: #d4d7f0 !important;
+}
+html.theme-nordic-frost .kanban-column-container[data-column-status="scripting"] .font-mono {
+  background-color: #e2e4f5 !important;
+  color: #3d4677 !important;
+}
+
+html.theme-nordic-frost .kanban-column-container[data-column-status="production"] {
+  background-color: #e8f2f7 !important;
+  border-color: #cde4f0 !important;
+  border-top-color: #bfe0ef !important;
+}
+html.theme-nordic-frost .kanban-column-container[data-column-status="production"] .font-mono {
+  background-color: #d2e7f2 !important;
+  color: #1c4b60 !important;
+}
+
+/* 4. Subtabs & Banners */
+html.theme-nordic-frost .detail-subtabs-container,
+html.theme-nordic-frost .tags-header-banner,
+html.theme-nordic-frost .table-scope-tabs-container,
+html.theme-nordic-frost .script-editor-canvas-container {
+  background-color: #f8fafb !important;
+  border-bottom-color: #dce5e5 !important;
+}
+
+html.theme-nordic-frost .detail-subtabs-container button.border-rose-600,
+html.theme-nordic-frost .table-scope-tabs-container button.is-active {
+  background-color: #ffffff !important;
+  border: 1px solid #d8e2e2 !important;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04) !important;
+  color: #1a2424 !important;
+  font-weight: 700 !important;
+}
+
+/* 5. Outer Framework */
+html.theme-nordic-frost aside,
+html.theme-nordic-frost aside.sidebar-container,
+html.theme-nordic-frost .sidebar-container,
+html.theme-nordic-frost header,
+html.theme-nordic-frost header.navbar-container,
+html.theme-nordic-frost .navbar-container,
+html.theme-nordic-frost .mobile-drawer-container,
+html.theme-nordic-frost .mobile-nav-container,
+html.theme-nordic-frost .tags-sidebar-panel,
+html.theme-nordic-frost .script-editor-toolbar,
+html.theme-nordic-frost .script-reference-drawer,
+html.theme-nordic-frost .script-outline-panel {
+  background-color: #edf2f2 !important;
+  border-color: #dce5e5 !important;
+}
+
+html.theme-nordic-frost .sidebar-brand-logo,
+html.theme-nordic-frost .mobile-fab-create-button {
+  background-color: #2d7a64 !important; /* 冷杉青绿 */
+  box-shadow: 0 2px 6px rgba(45, 122, 100, 0.25) !important;
+}
+
+html.theme-nordic-frost aside.sidebar-container nav button.bg-stone-100,
+html.theme-nordic-frost .tags-sidebar-panel .tag-menu-item.is-selected {
+  background-color: #ffffff !important;
+  border: 1px solid #d8e2e2 !important;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04) !important;
+  color: #1a2424 !important;
+  font-weight: 700 !important;
+}
+
+/* Controls & TipTap */
+html.theme-nordic-frost input[type="text"],
+html.theme-nordic-frost textarea,
+html.theme-nordic-frost select,
+html.theme-nordic-frost .shadow-modal {
+  background-color: #ffffff !important;
+  border-color: #d8e2e2 !important;
+  color: #1a2424 !important;
+}
+
+html.theme-nordic-frost input[type="checkbox"]:checked {
+  background-color: #2d7a64 !important;
+  border-color: #2d7a64 !important;
+}
+
+html.theme-nordic-frost .tiptap h1 { color: #2d7a64; }
+html.theme-nordic-frost .tiptap h2 { color: #0284c7; }
+html.theme-nordic-frost .tiptap h3 { color: #0f766e; }
+
+/* ==========================================================================
+   Parisian Dawn (巴黎晨光 / 燕麦生椰) - French Editorial Warmth
+   ========================================================================== */
+
+html.theme-parisian-dawn body,
+html.theme-parisian-dawn #root,
+html.theme-parisian-dawn main,
+html.theme-parisian-dawn .bg-\[\#fafaf9\],
+html.theme-parisian-dawn .bg-stone-50 {
+  background-color: #faf8f5 !important;
+}
+
+html.theme-parisian-dawn .bg-white,
+html.theme-parisian-dawn .bg-white\/50,
+html.theme-parisian-dawn .bg-white\/70,
+html.theme-parisian-dawn .bg-white\/90,
+html.theme-parisian-dawn .bg-white\/95,
+html.theme-parisian-dawn .kanban-column-container .bg-white,
+html.theme-parisian-dawn .today-spotlight-card,
+html.theme-parisian-dawn .today-priority-item,
+html.theme-parisian-dawn .today-recent-updates-panel {
+  background-color: #ffffff !important;
+  border-color: #e8e1d7 !important;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03) !important;
+}
+
+html.theme-parisian-dawn .kanban-column-container[data-column-status="inbox"] {
+  background-color: #fbf2eb !important;
+  border-color: #ebd7c8 !important;
+}
+html.theme-parisian-dawn .kanban-column-container[data-column-status="approved"] {
+  background-color: #f1f6f2 !important;
+  border-color: #d4e5d7 !important;
+}
+html.theme-parisian-dawn .kanban-column-container[data-column-status="scripting"] {
+  background-color: #f5f1f8 !important;
+  border-color: #decfe9 !important;
+}
+html.theme-parisian-dawn .kanban-column-container[data-column-status="production"] {
+  background-color: #f0f4f7 !important;
+  border-color: #d0e0eb !important;
+}
+
+html.theme-parisian-dawn aside,
+html.theme-parisian-dawn aside.sidebar-container,
+html.theme-parisian-dawn header,
+html.theme-parisian-dawn .script-editor-toolbar,
+html.theme-parisian-dawn .tags-sidebar-panel {
+  background-color: #ece7e1 !important;
+  border-color: #ded7ce !important;
+}
+
+html.theme-parisian-dawn .sidebar-brand-logo {
+  background-color: #c84b5b !important; /* 波尔多草莓红 */
+}
+
+/* ==========================================================================
+   Midnight Obsidian (深海星图 / 极夜流光) - Raycast Pro Dark Aesthetic
+   ========================================================================== */
+
+html.theme-midnight-obsidian body,
+html.theme-midnight-obsidian #root,
+html.theme-midnight-obsidian main,
+html.theme-midnight-obsidian .bg-\[\#fafaf9\],
+html.theme-midnight-obsidian .bg-stone-50 {
+  background-color: #151921 !important;
+}
+
+html.theme-midnight-obsidian .bg-white,
+html.theme-midnight-obsidian .bg-white\/50,
+html.theme-midnight-obsidian .bg-white\/70,
+html.theme-midnight-obsidian .bg-white\/90,
+html.theme-midnight-obsidian .bg-white\/95,
+html.theme-midnight-obsidian .kanban-column-container .bg-white,
+html.theme-midnight-obsidian .today-spotlight-card,
+html.theme-midnight-obsidian .today-priority-item,
+html.theme-midnight-obsidian .today-recent-updates-panel {
+  background-color: #1c212c !important;
+  border-color: rgba(255, 255, 255, 0.09) !important;
+  color: #f1f5f9 !important;
+}
+
+html.theme-midnight-obsidian .kanban-column-container[data-column-status="inbox"] {
+  background-color: #191c22 !important;
+  border-color: rgba(234, 179, 8, 0.2) !important;
+  border-top-color: #eab308 !important;
+}
+html.theme-midnight-obsidian .kanban-column-container[data-column-status="approved"] {
+  background-color: #13201a !important;
+  border-color: rgba(34, 197, 94, 0.2) !important;
+  border-top-color: #22c55e !important;
+}
+html.theme-midnight-obsidian .kanban-column-container[data-column-status="scripting"] {
+  background-color: #1b1726 !important;
+  border-color: rgba(168, 85, 247, 0.2) !important;
+  border-top-color: #a855f7 !important;
+}
+html.theme-midnight-obsidian .kanban-column-container[data-column-status="production"] {
+  background-color: #131d27 !important;
+  border-color: rgba(14, 165, 233, 0.2) !important;
+  border-top-color: #0ea5e9 !important;
+}
+
+html.theme-midnight-obsidian aside,
+html.theme-midnight-obsidian aside.sidebar-container,
+html.theme-midnight-obsidian header,
+html.theme-midnight-obsidian .script-editor-toolbar,
+html.theme-midnight-obsidian .tags-sidebar-panel {
+  background-color: #0f1217 !important;
+  border-color: rgba(255, 255, 255, 0.08) !important;
+}
+
+html.theme-midnight-obsidian aside.sidebar-container nav button.bg-stone-100 {
+  background-color: #1c212c !important;
+  border: 1px solid rgba(255, 255, 255, 0.15) !important;
+  color: #ffffff !important;
+}
+
+/* ==========================================================================
+   Kyoto Zen (京都茶席 / 抹茶素竹) - Japanese Zen Harmony
+   ========================================================================== */
+
+html.theme-kyoto-zen body,
+html.theme-kyoto-zen #root,
+html.theme-kyoto-zen main,
+html.theme-kyoto-zen .bg-\[\#fafaf9\],
+html.theme-kyoto-zen .bg-stone-50 {
+  background-color: #f8faf7 !important;
+}
+
+html.theme-kyoto-zen .bg-white,
+html.theme-kyoto-zen .bg-white\/50,
+html.theme-kyoto-zen .bg-white\/70,
+html.theme-kyoto-zen .bg-white\/90,
+html.theme-kyoto-zen .bg-white\/95,
+html.theme-kyoto-zen .kanban-column-container .bg-white,
+html.theme-kyoto-zen .today-spotlight-card,
+html.theme-kyoto-zen .today-priority-item,
+html.theme-kyoto-zen .today-recent-updates-panel {
+  background-color: #ffffff !important;
+  border-color: #dee4d9 !important;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03) !important;
+}
+
+html.theme-kyoto-zen .kanban-column-container[data-column-status="inbox"] {
+  background-color: #f6f3eb !important;
+  border-color: #dfd8c4 !important;
+}
+html.theme-kyoto-zen .kanban-column-container[data-column-status="approved"] {
+  background-color: #edf4ed !important;
+  border-color: #cce0ce !important;
+}
+html.theme-kyoto-zen .kanban-column-container[data-column-status="scripting"] {
+  background-color: #f4f0f6 !important;
+  border-color: #ddcede !important;
+}
+html.theme-kyoto-zen .kanban-column-container[data-column-status="production"] {
+  background-color: #edf3f5 !important;
+  border-color: #c8dadf !important;
+}
+
+html.theme-kyoto-zen aside,
+html.theme-kyoto-zen aside.sidebar-container,
+html.theme-kyoto-zen header,
+html.theme-kyoto-zen .script-editor-toolbar,
+html.theme-kyoto-zen .tags-sidebar-panel {
+  background-color: #ebeee7 !important;
+  border-color: #dadfd5 !important;
+}
+
+html.theme-kyoto-zen .sidebar-brand-logo {
+  background-color: #3d6b4f !important; /* 宇治浓抹茶绿 */
+}
+

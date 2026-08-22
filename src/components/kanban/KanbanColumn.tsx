@@ -1,0 +1,139 @@
+import React, { useState } from 'react';
+import { useDroppable } from '@dnd-kit/core';
+import { SortableContext, verticalListSortingStrategy } from '@dnd-kit/sortable';
+import { Topic, TopicStatus } from '../../types';
+import { KanbanCard } from './KanbanCard';
+import { Plus, ChevronDown, ChevronUp } from 'lucide-react';
+
+interface KanbanColumnProps {
+  status: TopicStatus;
+  label: string;
+  description: string;
+  topics: Topic[];
+  onOpenDetail: (topicId: string) => void;
+  onDeleteTopic: (topicId: string) => void;
+  onTogglePin: (topicId: string) => void;
+  onQuickAddTopic: (status: TopicStatus) => void;
+  onUpdateStatus?: (topicId: string, status: TopicStatus) => void;
+  sortableDisabled?: boolean;
+  staleThresholdDays?: number;
+}
+
+const DEFAULT_LIMIT = 8;
+
+const columnHeaders: Record<TopicStatus, { dot: string; topBorder: string }> = {
+  inbox: { dot: 'bg-stone-400', topBorder: 'border-t-stone-300' },
+  approved: { dot: 'bg-emerald-500', topBorder: 'border-t-emerald-300' },
+  scripting: { dot: 'bg-indigo-500', topBorder: 'border-t-indigo-300' },
+  production: { dot: 'bg-purple-500', topBorder: 'border-t-purple-300' },
+  published: { dot: 'bg-teal-500', topBorder: 'border-t-teal-300' },
+  icebox: { dot: 'bg-stone-300', topBorder: 'border-t-stone-200' },
+};
+
+export const KanbanColumn: React.FC<KanbanColumnProps> = ({
+  status,
+  label,
+  description,
+  topics,
+  onOpenDetail,
+  onDeleteTopic,
+  onTogglePin,
+  onQuickAddTopic,
+  onUpdateStatus,
+  sortableDisabled,
+  staleThresholdDays = 5,
+}) => {
+  const [isExpanded, setIsExpanded] = useState(false);
+
+  const { setNodeRef, isOver } = useDroppable({
+    id: status,
+    data: {
+      type: 'column',
+      status,
+    },
+  });
+
+  const c = columnHeaders[status] || columnHeaders.inbox;
+
+  // Apply display limit
+  const visibleTopics = isExpanded ? topics : topics.slice(0, DEFAULT_LIMIT);
+  const hiddenCount = topics.length - DEFAULT_LIMIT;
+
+  return (
+    <div
+      ref={setNodeRef}
+      data-column-status={status}
+      className={`kanban-column-container w-full rounded-2xl p-3.5 flex flex-col min-h-[220px] border border-t-2 transition-[background-color,border-color,box-shadow] duration-200 ${
+        isOver
+          ? 'border-rose-400 border-t-rose-500 ring-2 ring-rose-400/40 bg-rose-50/60 dark:bg-rose-950/40 shadow-md'
+          : `border-stone-200 dark:border-stone-800 ${c.topBorder} bg-stone-100/75 dark:bg-stone-900/60 [@media(hover:hover)]:hover:border-x-stone-300 dark:[@media(hover:hover)]:hover:border-x-stone-700 [@media(hover:hover)]:hover:border-b-stone-300 dark:[@media(hover:hover)]:hover:border-b-stone-700 [@media(hover:hover)]:hover:bg-white/90 dark:[@media(hover:hover)]:hover:bg-stone-900/90 [@media(hover:hover)]:hover:shadow-sm`
+      }`}
+    >
+      {/* Column Header */}
+      <div className="flex items-center justify-between px-1 py-1.5 mb-2.5 border-b border-stone-200/60 dark:border-stone-800 pb-2">
+        <div className="flex items-center gap-2">
+          <span className={`w-2.5 h-2.5 rounded-full ${c.dot}`} />
+          <h3 className="text-sm font-bold text-stone-800 dark:text-stone-100 tracking-tight">{label}</h3>
+          <span className="text-xs bg-stone-200/90 dark:bg-stone-800 text-stone-700 dark:text-stone-300 font-bold px-2 py-0.5 rounded-full font-mono">
+            {topics.length}
+          </span>
+        </div>
+
+        <button
+          onClick={() => onQuickAddTopic(status)}
+          title={`在${label}中快速建卡`}
+          className="p-1 text-stone-400 dark:text-stone-500 hover:text-stone-700 dark:hover:text-stone-200 hover:bg-stone-200 dark:hover:bg-stone-800 rounded-md transition-colors cursor-pointer"
+        >
+          <Plus className="w-4 h-4" />
+        </button>
+      </div>
+
+      {/* Cards Area */}
+      <div className="space-y-3 min-h-[140px] flex-1">
+        <SortableContext items={visibleTopics.map((t) => t.id)} strategy={verticalListSortingStrategy}>
+          {visibleTopics.map((topic) => (
+            <KanbanCard
+              key={topic.id}
+              topic={topic}
+              onOpenDetail={onOpenDetail}
+              onDeleteTopic={onDeleteTopic}
+              onTogglePin={onTogglePin}
+              onUpdateStatus={onUpdateStatus}
+              sortableDisabled={sortableDisabled}
+              staleThresholdDays={staleThresholdDays}
+            />
+          ))}
+        </SortableContext>
+
+        {topics.length === 0 && (
+          <div className="h-28 flex flex-col items-center justify-center border-2 border-dashed border-stone-300/80 dark:border-stone-800 rounded-xl text-xs text-stone-400 dark:text-stone-500 p-3 text-center transition-colors">
+            <span>暂无选题</span>
+            <span className="text-[11px] text-stone-400/80 dark:text-stone-500 mt-0.5">拖拽卡片至此可快速变更状态</span>
+          </div>
+        )}
+      </div>
+
+      {/* Expand / Collapse Button if exceeding limit */}
+      {hiddenCount > 0 && (
+        <div className="pt-2 mt-2 border-t border-stone-200/70 dark:border-stone-800">
+          <button
+            onClick={() => setIsExpanded((prev) => !prev)}
+            className="w-full flex items-center justify-center gap-1.5 py-1.5 px-3 bg-white/80 dark:bg-stone-800 hover:bg-white dark:hover:bg-stone-700 text-stone-600 dark:text-stone-300 hover:text-stone-900 dark:hover:text-stone-100 rounded-lg text-xs font-semibold border border-stone-200 dark:border-stone-700 transition-all shadow-2xs cursor-pointer"
+          >
+            {isExpanded ? (
+              <>
+                <ChevronUp className="w-3.5 h-3.5" />
+                <span>收起多余卡片 (显示前 {DEFAULT_LIMIT} 个)</span>
+              </>
+            ) : (
+              <>
+                <ChevronDown className="w-3.5 h-3.5" />
+                <span>展开更多 (+{hiddenCount} 个选题)</span>
+              </>
+            )}
+          </button>
+        </div>
+      )}
+    </div>
+  );
+};

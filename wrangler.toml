@@ -1,0 +1,14 @@
+name = "topic-kanban"
+compatibility_date = "2024-09-23"
+pages_build_output_dir = "dist"
+
+# Cloudflare D1 Database Binding
+[[d1_databases]]
+binding = "DB"
+database_name = "kanban"
+database_id = "4f856d94-b07a-4aa1-9ab0-74effa88e2f1"
+
+# Cloudflare KV Binding
+[[kv_namespaces]]
+binding = "KV"
+id = "a5fc04df3c19446f8e3aae3e7a41e1bc"

@@ -1,0 +1,1107 @@
+import React, { useEffect, useState, useMemo } from 'react';
+import { useQuery } from '@tanstack/react-query';
+import { Topic, TopicStatus, Priority } from '../../types';
+import { StatusBadge, PriorityBadge } from '../ui/Badge';
+import { COLUMNS } from './columns';
+import { fetchTopicPage } from '../../lib/storage';
+import {
+  Pin,
+  ArrowUpDown,
+  ArrowUp,
+  ArrowDown,
+  ArrowRight,
+  Trash2,
+  Sparkles,
+  ChevronDown,
+  Archive,
+  RotateCcw,
+  Columns3,
+  Rows3,
+  Bookmark,
+  CheckSquare,
+} from 'lucide-react';
+
+interface TopicTableViewProps {
+  topics: Topic[];
+  onOpenDetail: (topicId: string) => void;
+  onTogglePin: (topicId: string) => void;
+  onUpdateTopicStatus: (topicId: string, status: TopicStatus) => Promise<void>;
+  onDeleteTopic: (topicId: string) => void;
+  trashedTopics: Topic[];
+  onRestoreTopic: (topicId: string) => Promise<void>;
+  onPermanentlyDeleteTopic: (topicId: string) => Promise<void>;
+  onPermanentlyDeleteTopicsBatch?: (ids: string[]) => Promise<void>;
+  onEmptyTrash?: () => Promise<void>;
+  readingSpeed?: number;
+  searchTerm?: string;
+}
+
+type SortCol = 'title' | 'status' | 'priority' | 'score' | 'words' | 'updated_at' | 'created_at';
+type ArchiveScope = 'all' | 'active' | 'archived' | 'trash';
+type Density = 'compact' | 'comfortable';
+type ColumnKey = 'status' | 'priority' | 'next_action' | 'tags' | 'people' | 'score' | 'words' | 'updated_at';
+
+interface TableViewPreferences {
+  archiveScope: ArchiveScope;
+  sortCol: SortCol;
+  sortDir: 'asc' | 'desc';
+  density: Density;
+  visibleColumns: ColumnKey[];
+}
+
+const TABLE_VIEW_KEY = 'topic_kanban_table_view_v1';
+const ALL_COLUMN_KEYS: ColumnKey[] = ['status', 'priority', 'next_action', 'tags', 'people', 'score', 'words', 'updated_at'];
+const COLUMN_LABELS: Record<ColumnKey, string> = {
+  status: '阶段状态', priority: '优先级', next_action: '下一步行动', tags: '分类标签',
+  people: '关联人物', score: '故事评分', words: '字数 / 时长', updated_at: '更新时间',
+};
+
+function readTablePreferences(): TableViewPreferences {
+  try {
+    const saved = JSON.parse(localStorage.getItem(TABLE_VIEW_KEY) || '{}') as Partial<TableViewPreferences>;
+    return {
+      archiveScope: saved.archiveScope || 'active',
+      sortCol: saved.sortCol || 'updated_at',
+      sortDir: saved.sortDir || 'desc',
+      density: saved.density || 'comfortable',
+      visibleColumns: saved.visibleColumns?.filter((column): column is ColumnKey => ALL_COLUMN_KEYS.includes(column as ColumnKey)) || ALL_COLUMN_KEYS,
+    };
+  } catch {
+    return { archiveScope: 'active', sortCol: 'updated_at', sortDir: 'desc', density: 'comfortable', visibleColumns: ALL_COLUMN_KEYS };
+  }
+}
+
+const PRIORITY_ORDER: Record<Priority, number> = {
+  high: 4,
+  medium: 3,
+  low: 2,
+  none: 1,
+};
+
+const STATUS_ORDER: Record<TopicStatus, number> = {
+  inbox: 1,
+  approved: 2,
+  scripting: 3,
+  production: 4,
+  published: 5,
+  icebox: 6,
+};
+
+export const TopicTableView: React.FC<TopicTableViewProps> = ({
+  topics,
+  onOpenDetail,
+  onTogglePin,
+  onUpdateTopicStatus,
+  onDeleteTopic,
+  trashedTopics,
+  onRestoreTopic,
+  onPermanentlyDeleteTopic,
+  onPermanentlyDeleteTopicsBatch,
+  onEmptyTrash,
+  readingSpeed = 280,
+  searchTerm = '',
+}) => {
+  const initialPreferences = useMemo(readTablePreferences, []);
+  const [archiveScope, setArchiveScope] = useState<ArchiveScope>(initialPreferences.archiveScope);
+  const [sortCol, setSortCol] = useState<SortCol>(initialPreferences.sortCol);
+  const [sortDir, setSortDir] = useState<'asc' | 'desc'>(initialPreferences.sortDir);
+  const [density, setDensity] = useState<Density>(initialPreferences.density);
+  const [visibleColumns, setVisibleColumns] = useState<ColumnKey[]>(initialPreferences.visibleColumns);
+  const [isColumnMenuOpen, setIsColumnMenuOpen] = useState(false);
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  const [bulkStatus, setBulkStatus] = useState<TopicStatus>('approved');
+  const [isBulkUpdating, setIsBulkUpdating] = useState(false);
+  const [viewSaved, setViewSaved] = useState(false);
+  const [activeStatusMenuId, setActiveStatusMenuId] = useState<string | null>(null);
+  const [archiveTopicId, setArchiveTopicId] = useState<string | null>(null);
+  const [page, setPage] = useState(1);
+  const isColumnVisible = (column: ColumnKey) => visibleColumns.includes(column);
+  const rowPadding = density === 'compact' ? 'py-1.5' : 'py-3';
+
+  const saveCurrentView = () => {
+    localStorage.setItem(TABLE_VIEW_KEY, JSON.stringify({ archiveScope, sortCol, sortDir, density, visibleColumns }));
+    setViewSaved(true);
+    window.setTimeout(() => setViewSaved(false), 1600);
+  };
+
+  useEffect(() => {
+    if (!archiveTopicId) return;
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') setArchiveTopicId(null);
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [archiveTopicId]);
+
+  const activeCount = useMemo(() => {
+    return topics.filter((t) => t.status !== 'published' && t.status !== 'icebox').length;
+  }, [topics]);
+
+  const archivedCount = useMemo(() => {
+    return topics.filter((t) => t.status === 'published' || t.status === 'icebox').length;
+  }, [topics]);
+  const trashCount = trashedTopics.length;
+
+  useEffect(() => setPage(1), [archiveScope, searchTerm, sortCol, sortDir]);
+  useEffect(() => setSelectedIds(new Set()), [archiveScope, page, searchTerm, sortCol, sortDir]);
+  const pageQuery = useQuery({
+    queryKey: ['topics-page', archiveScope, page, searchTerm, sortCol, sortDir],
+    queryFn: () => fetchTopicPage({
+      scope: archiveScope, page, page_size: 50, q: searchTerm,
+      sort: sortCol, direction: sortDir,
+    }),
+  });
+  useEffect(() => {
+    void pageQuery.refetch();
+  }, [topics, trashedTopics]);
+
+  const handleHeaderClick = (col: SortCol) => {
+    if (sortCol === col) {
+      setSortDir((prev) => (prev === 'asc' ? 'desc' : 'asc'));
+    } else {
+      setSortCol(col);
+      setSortDir('desc');
+    }
+  };
+
+  // 1. Scoped topics pre-sorted and paginated by D1 database
+  const scopedTopics = useMemo(() => {
+    return pageQuery.data?.items || [];
+  }, [pageQuery.data]);
+
+  // Directly use the backend sorted topics to avoid double sorting
+  const sortedTopics = scopedTopics;
+  const allVisibleSelected = sortedTopics.length > 0 && sortedTopics.every((topic) => selectedIds.has(topic.id));
+
+  const toggleSelectAll = () => {
+    setSelectedIds((previous) => {
+      const next = new Set(previous);
+      if (allVisibleSelected) sortedTopics.forEach((topic) => next.delete(topic.id));
+      else sortedTopics.forEach((topic) => next.add(topic.id));
+      return next;
+    });
+  };
+
+  const applyBulkStatus = async () => {
+    if (selectedIds.size === 0) return;
+    setIsBulkUpdating(true);
+    try {
+      await Promise.all([...selectedIds].map((topicId) => onUpdateTopicStatus(topicId, bulkStatus)));
+      setSelectedIds(new Set());
+    } finally {
+      setIsBulkUpdating(false);
+    }
+  };
+
+  const handleBulkRestore = async () => {
+    if (selectedIds.size === 0) return;
+    setIsBulkUpdating(true);
+    try {
+      const ids = [...selectedIds];
+      for (const id of ids) {
+        await onRestoreTopic(id);
+      }
+      setSelectedIds(new Set());
+    } finally {
+      setIsBulkUpdating(false);
+    }
+  };
+
+  const handleBulkPermanentDelete = async () => {
+    if (selectedIds.size === 0) return;
+    const count = selectedIds.size;
+    if (!window.confirm(`确定要永久删除选中的 ${count} 个选题吗？\n\n全部关联资料、时间线与草稿将一并删除，且无法撤销！`)) {
+      return;
+    }
+    setIsBulkUpdating(true);
+    try {
+      const ids = [...selectedIds];
+      if (onPermanentlyDeleteTopicsBatch) {
+        await onPermanentlyDeleteTopicsBatch(ids);
+      } else {
+        for (const id of ids) {
+          await onPermanentlyDeleteTopic(id);
+        }
+      }
+      setSelectedIds(new Set());
+    } finally {
+      setIsBulkUpdating(false);
+    }
+  };
+
+  const handleEmptyTrash = async () => {
+    if (trashCount === 0) return;
+    if (!window.confirm(`确定要清空回收站吗？\n\n将永久删除回收站内的全部 ${trashCount} 个选题，此操作无法撤销！`)) {
+      return;
+    }
+    setIsBulkUpdating(true);
+    try {
+      if (onEmptyTrash) {
+        await onEmptyTrash();
+      } else {
+        const ids = trashedTopics.map((t) => t.id);
+        for (const id of ids) {
+          await onPermanentlyDeleteTopic(id);
+        }
+      }
+      setSelectedIds(new Set());
+    } finally {
+      setIsBulkUpdating(false);
+    }
+  };
+
+  const renderSortIndicator = (col: SortCol) => {
+    if (sortCol !== col) {
+      return <ArrowUpDown className="w-3 h-3 text-stone-300 opacity-0 group-hover:opacity-100 transition-opacity" />;
+    }
+    return sortDir === 'asc' ? (
+      <ArrowUp className="w-3 h-3 text-rose-600" />
+    ) : (
+      <ArrowDown className="w-3 h-3 text-rose-600" />
+    );
+  };
+
+  const formatRelativeTime = (iso: string) => {
+    try {
+      const d = new Date(iso);
+      const now = new Date();
+      const diffMs = now.getTime() - d.getTime();
+      const diffMins = Math.floor(diffMs / (1000 * 60));
+      const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
+      const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+
+      if (diffMins < 5) return '刚刚';
+      if (diffMins < 60) return `${diffMins}分钟前`;
+      if (diffHours < 24) return `${diffHours}小时前`;
+      if (diffDays < 7) return `${diffDays}天前`;
+      return iso.slice(5, 10);
+    } catch {
+      return iso.slice(0, 10);
+    }
+  };
+
+  // Global summary stats computed from current scope
+  const currentScopeTopics = useMemo(() => {
+    if (archiveScope === 'trash') return trashedTopics;
+    if (archiveScope === 'active') return topics.filter((t) => t.status !== 'icebox' && t.status !== 'published');
+    if (archiveScope === 'archived') return topics.filter((t) => t.status === 'icebox' || t.status === 'published');
+    return topics;
+  }, [archiveScope, topics, trashedTopics]);
+
+  const totalWords = useMemo(() => {
+    return currentScopeTopics.reduce((acc, t) => acc + (t.draft_word_count || 0), 0);
+  }, [currentScopeTopics]);
+
+  const inScriptingCount = useMemo(() => {
+    return currentScopeTopics.filter((t) => t.status === 'scripting' || t.status === 'production').length;
+  }, [currentScopeTopics]);
+
+  return (
+    <div className="flex-1 flex flex-col bg-white dark:bg-stone-900 rounded-xl border border-stone-200 dark:border-stone-800 overflow-hidden shadow-subtle min-h-0 transition-colors">
+      {/* Scope Filter Header */}
+      <div className="table-scope-tabs-container px-4 py-2.5 bg-stone-50/70 dark:bg-stone-900/90 border-b border-stone-200 dark:border-stone-800 flex items-center justify-between flex-wrap gap-2 shrink-0">
+        <div className="flex items-center gap-1 bg-stone-200/70 dark:bg-stone-800 p-0.5 rounded-lg text-xs font-semibold">
+          <button
+            onClick={() => setArchiveScope('active')}
+            className={`px-3 py-1 rounded-md transition-all cursor-pointer flex items-center gap-1.5 ${
+              archiveScope === 'active'
+                ? 'bg-white dark:bg-stone-700 text-stone-900 dark:text-stone-100 shadow-2xs'
+                : 'text-stone-600 dark:text-stone-400 hover:text-stone-900 dark:hover:text-stone-100'
+            }`}
+          >
+            <span>🔥 活跃推进中</span>
+            <span className="text-[10px] font-mono bg-rose-100 dark:bg-rose-950/60 text-rose-700 dark:text-rose-300 px-1.5 py-0.2 rounded-full">
+              {activeCount}
+            </span>
+          </button>
+
+          <button
+            onClick={() => setArchiveScope('archived')}
+            className={`px-3 py-1 rounded-md transition-all cursor-pointer flex items-center gap-1.5 ${
+              archiveScope === 'archived'
+                ? 'bg-white dark:bg-stone-700 text-stone-900 dark:text-stone-100 shadow-2xs'
+                : 'text-stone-600 dark:text-stone-400 hover:text-stone-900 dark:hover:text-stone-100'
+            }`}
+          >
+            <span>📦 归档</span>
+            <span className="text-[10px] font-mono bg-stone-300 dark:bg-stone-700 text-stone-700 dark:text-stone-300 px-1.5 py-0.2 rounded-full">
+              {archivedCount}
+            </span>
+          </button>
+
+          <button
+            onClick={() => setArchiveScope('all')}
+            className={`px-3 py-1 rounded-md transition-all cursor-pointer flex items-center gap-1.5 ${
+              archiveScope === 'all'
+                ? 'bg-white dark:bg-stone-700 text-stone-900 dark:text-stone-100 shadow-2xs'
+                : 'text-stone-600 dark:text-stone-400 hover:text-stone-900 dark:hover:text-stone-100'
+            }`}
+          >
+            <span>全部选题</span>
+            <span className="text-[10px] font-mono bg-stone-300 dark:bg-stone-700 text-stone-700 dark:text-stone-300 px-1.5 py-0.2 rounded-full">
+              {topics.length}
+            </span>
+          </button>
+
+          <button
+            onClick={() => setArchiveScope('trash')}
+            className={`px-3 py-1 rounded-md transition-all cursor-pointer flex items-center gap-1.5 ${
+              archiveScope === 'trash'
+                ? 'bg-white dark:bg-stone-700 text-red-700 dark:text-red-400 shadow-2xs'
+                : 'text-stone-600 dark:text-stone-400 hover:text-red-700 dark:hover:text-red-400'
+            }`}
+          >
+            <span>🗑 回收站</span>
+            {trashCount > 0 && (
+              <span className="text-[10px] font-mono bg-red-100 dark:bg-red-950/60 text-red-700 dark:text-red-300 px-1.5 py-0.2 rounded-full">
+                {trashCount}
+              </span>
+            )}
+          </button>
+        </div>
+
+        <div className="relative flex items-center gap-1.5 flex-wrap">
+          {archiveScope === 'trash' && trashCount > 0 && (
+            <button
+              type="button"
+              onClick={() => void handleEmptyTrash()}
+              disabled={isBulkUpdating}
+              className="flex min-h-9 items-center gap-1.5 rounded-lg border border-red-200 dark:border-red-900/60 bg-red-50 dark:bg-red-950/40 hover:bg-red-100 dark:hover:bg-red-950/70 px-2.5 text-[11px] font-bold text-red-700 dark:text-red-300 transition-colors cursor-pointer disabled:opacity-50"
+              title="彻底永久删除回收站内的全部选题"
+            >
+              <Trash2 className="h-3.5 w-3.5 text-red-600 dark:text-red-400" />
+              <span>清空回收站 ({trashCount})</span>
+            </button>
+          )}
+
+          <div className="hidden items-center gap-1.5 md:flex">
+            <button
+              type="button"
+              onClick={() => setDensity((previous) => previous === 'compact' ? 'comfortable' : 'compact')}
+              className="flex min-h-9 items-center gap-1.5 rounded-lg border border-stone-200 dark:border-stone-700 bg-white dark:bg-stone-800 px-2.5 text-[11px] font-semibold text-stone-600 dark:text-stone-300 hover:bg-stone-100 dark:hover:bg-stone-700 cursor-pointer"
+              title="切换表格行密度"
+            >
+              <Rows3 className="h-3.5 w-3.5" /> {density === 'compact' ? '紧凑' : '舒适'}
+            </button>
+            <button
+              type="button"
+              onClick={() => setIsColumnMenuOpen((previous) => !previous)}
+              className="flex min-h-9 items-center gap-1.5 rounded-lg border border-stone-200 dark:border-stone-700 bg-white dark:bg-stone-800 px-2.5 text-[11px] font-semibold text-stone-600 dark:text-stone-300 hover:bg-stone-100 dark:hover:bg-stone-700 cursor-pointer"
+            >
+              <Columns3 className="h-3.5 w-3.5" /> 显示列
+            </button>
+            <button
+              type="button"
+              onClick={saveCurrentView}
+              className="flex min-h-9 items-center gap-1.5 rounded-lg bg-stone-900 dark:bg-rose-600 hover:bg-stone-800 dark:hover:bg-rose-700 px-2.5 text-[11px] font-semibold text-white cursor-pointer"
+            >
+              <Bookmark className="h-3.5 w-3.5" /> {viewSaved ? '已保存' : '保存当前视图'}
+            </button>
+          </div>
+
+          {isColumnMenuOpen && (
+            <div className="absolute right-0 top-11 z-40 w-48 rounded-xl border border-stone-200 dark:border-stone-800 bg-white dark:bg-stone-900 p-2 shadow-modal">
+              <div className="px-2 pb-1 text-[10px] font-bold text-stone-400 dark:text-stone-500">标题列始终显示并冻结</div>
+              {ALL_COLUMN_KEYS.map((column) => (
+                <label key={column} className="flex min-h-9 cursor-pointer items-center gap-2 rounded-lg px-2 text-xs text-stone-700 dark:text-stone-300 hover:bg-stone-50 dark:hover:bg-stone-800">
+                  <input
+                    type="checkbox"
+                    checked={isColumnVisible(column)}
+                    onChange={() => setVisibleColumns((previous) => previous.includes(column)
+                      ? previous.filter((item) => item !== column)
+                      : [...previous, column])}
+                    className="accent-rose-600"
+                  />
+                  {COLUMN_LABELS[column]}
+                </label>
+              ))}
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* 1. Bulk action bar for active / archived scopes */}
+      {selectedIds.size > 0 && archiveScope !== 'trash' && (
+        <div className="shrink-0 flex items-center justify-between gap-2 border-b border-rose-200 dark:border-rose-900/60 bg-rose-50 dark:bg-rose-950/40 px-4 py-2 flex-wrap text-xs">
+          <div className="flex items-center gap-1.5 font-bold text-rose-900 dark:text-rose-200">
+            <CheckSquare className="h-4 w-4 text-rose-700 dark:text-rose-400 shrink-0" />
+            <span>已选择 {selectedIds.size} 个选题</span>
+          </div>
+          <div className="flex items-center gap-2 ml-auto flex-wrap">
+            <select
+              value={bulkStatus}
+              onChange={(event) => setBulkStatus(event.target.value as TopicStatus)}
+              className="min-h-9 rounded-lg border border-rose-200 dark:border-rose-800 bg-white dark:bg-stone-800 px-2 text-xs font-semibold text-stone-700 dark:text-stone-300"
+            >
+              {COLUMNS.map((column) => <option key={column.status} value={column.status}>{column.label}</option>)}
+            </select>
+            <button
+              type="button"
+              onClick={() => void applyBulkStatus()}
+              disabled={isBulkUpdating}
+              className="min-h-9 rounded-lg bg-rose-600 px-3 text-xs font-bold text-white hover:bg-rose-700 disabled:opacity-50 transition-colors shadow-2xs cursor-pointer"
+            >
+              {isBulkUpdating ? '更新中…' : '批量修改阶段'}
+            </button>
+            <button type="button" onClick={() => setSelectedIds(new Set())} className="min-h-9 px-2 text-xs font-semibold text-stone-500 dark:text-stone-400 hover:text-stone-800 dark:hover:text-stone-200 cursor-pointer">取消</button>
+          </div>
+        </div>
+      )}
+
+      {/* 2. Bulk action bar for TRASH scope */}
+      {selectedIds.size > 0 && archiveScope === 'trash' && (
+        <div className="shrink-0 flex items-center justify-between gap-2 border-b border-red-200 dark:border-red-900/60 bg-red-50 dark:bg-red-950/40 px-4 py-2 flex-wrap text-xs">
+          <div className="flex items-center gap-1.5 font-bold text-red-900 dark:text-red-200">
+            <CheckSquare className="h-4 w-4 text-red-700 dark:text-red-400 shrink-0" />
+            <span>已选择 {selectedIds.size} 个回收站选题</span>
+          </div>
+          <div className="flex items-center gap-2 ml-auto flex-wrap">
+            <button
+              type="button"
+              onClick={() => void handleBulkRestore()}
+              disabled={isBulkUpdating}
+              className="flex items-center gap-1 min-h-9 rounded-lg bg-emerald-600 px-3 text-xs font-bold text-white hover:bg-emerald-700 disabled:opacity-50 transition-colors shadow-2xs cursor-pointer"
+            >
+              <RotateCcw className="h-3.5 w-3.5" />
+              <span>{isBulkUpdating ? '恢复中…' : '批量恢复'}</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => void handleBulkPermanentDelete()}
+              disabled={isBulkUpdating}
+              className="flex items-center gap-1 min-h-9 rounded-lg bg-red-600 px-3 text-xs font-bold text-white hover:bg-red-700 disabled:opacity-50 transition-colors shadow-2xs cursor-pointer"
+            >
+              <Trash2 className="h-3.5 w-3.5" />
+              <span>{isBulkUpdating ? '删除中…' : '批量永久删除'}</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => setSelectedIds(new Set())}
+              className="min-h-9 px-2 text-xs font-semibold text-stone-500 dark:text-stone-400 hover:text-stone-800 dark:hover:text-stone-200 cursor-pointer"
+            >
+              取消
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Mobile Card List */}
+      <div className="flex-1 min-h-0 overflow-y-auto md:hidden">
+        <div className="space-y-3 p-3 pb-[calc(5rem+env(safe-area-inset-bottom))]">
+          {sortedTopics.map((topic) => {
+            const totalScore =
+              (topic.score_character || 0) +
+              (topic.score_conflict || 0) +
+              (topic.score_contrast || 0) +
+              (topic.score_material || 0) +
+              (topic.score_story || 0);
+            const minutes = topic.draft_word_count
+              ? (topic.draft_word_count / readingSpeed).toFixed(1)
+              : '0';
+            const isArchived = topic.status === 'published' || topic.status === 'icebox';
+
+            return (
+              <article key={topic.id} className="rounded-2xl border border-stone-200 bg-white p-4 shadow-subtle">
+                <div className="flex items-start justify-between gap-3">
+                  <div className="flex items-start gap-2.5 min-w-0 flex-1">
+                    <input
+                      type="checkbox"
+                      checked={selectedIds.has(topic.id)}
+                      onChange={(event) => {
+                        event.stopPropagation();
+                        setSelectedIds((previous) => {
+                          const next = new Set(previous);
+                          if (next.has(topic.id)) next.delete(topic.id);
+                          else next.add(topic.id);
+                          return next;
+                        });
+                      }}
+                      className="mt-1 h-4 w-4 rounded border-stone-300 accent-rose-600 shrink-0 cursor-pointer"
+                      aria-label={`选择选题「${topic.title}」`}
+                    />
+                    <button
+                      onClick={() => archiveScope !== 'trash' && onOpenDetail(topic.id)}
+                      className="min-w-0 flex-1 text-left"
+                    >
+                      <span className="block truncate text-base font-bold text-stone-900">{topic.title}</span>
+                      {(topic.summary || topic.hook) && (
+                        <span className="mt-1 block line-clamp-2 text-xs leading-relaxed text-stone-500">
+                          {topic.summary || topic.hook}
+                        </span>
+                      )}
+                    </button>
+                  </div>
+                  <button
+                    onClick={() => onTogglePin(topic.id)}
+                    disabled={archiveScope === 'trash'}
+                    className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border transition-colors ${
+                      topic.is_pinned
+                        ? 'border-rose-200 bg-rose-50 text-rose-600'
+                        : 'border-stone-200 text-stone-400'
+                    }`}
+                    title={topic.is_pinned ? '取消置顶' : '置顶选题'}
+                  >
+                    <Pin className={`h-4 w-4 ${topic.is_pinned ? 'fill-rose-600' : ''}`} />
+                  </button>
+                </div>
+
+                <div className="mt-3 flex items-center gap-2">
+                  <select
+                    aria-label={`更新「${topic.title}」阶段`}
+                    value={topic.status}
+                    onChange={(event) => void onUpdateTopicStatus(topic.id, event.target.value as TopicStatus)}
+                    className="min-h-10 rounded-xl border border-stone-200 dark:border-stone-700 bg-stone-50 dark:bg-stone-800 px-3 text-xs font-semibold text-stone-700 dark:text-stone-200 outline-none focus:border-stone-400 dark:focus:border-stone-500 shadow-2xs"
+                  >
+                    {COLUMNS.map((column) => (
+                      <option key={column.status} value={column.status} className="dark:bg-stone-800 dark:text-stone-200">{column.label}</option>
+                    ))}
+                  </select>
+                  <PriorityBadge priority={topic.priority} />
+                  <span className="ml-auto text-[11px] text-stone-400">{formatRelativeTime(topic.updated_at)}</span>
+                </div>
+
+                <div className="mt-3 rounded-xl border border-rose-100 bg-rose-50/60 px-3 py-2 text-xs text-stone-700">
+                  <span className="font-semibold text-rose-700">下一步：</span>
+                  {topic.next_action || '尚未设置具体行动'}
+                </div>
+
+                {(topic.tags?.length || topic.people?.length) ? (
+                  <div className="mt-3 flex flex-wrap gap-1.5">
+                    {topic.tags?.slice(0, 3).map((tag) => (
+                      <span key={tag.id || tag.name} className="rounded-md border border-stone-200 bg-stone-50 px-2 py-1 text-[10px] text-stone-600">
+                        #{tag.name}
+                      </span>
+                    ))}
+                    {topic.people?.slice(0, 2).map((person) => (
+                      <span key={person.id} className="rounded-md border border-stone-200 bg-stone-50 px-2 py-1 text-[10px] text-stone-600">
+                        👤 {person.name}
+                      </span>
+                    ))}
+                  </div>
+                ) : null}
+
+                <div className="mt-3 grid grid-cols-3 divide-x divide-stone-100 rounded-xl bg-stone-50 py-2 text-center">
+                  <div>
+                    <div className="text-[10px] text-stone-400">故事评分</div>
+                    <div className="mt-0.5 font-mono text-xs font-bold text-stone-800">{totalScore || '—'}{totalScore ? '/10' : ''}</div>
+                  </div>
+                  <div>
+                    <div className="text-[10px] text-stone-400">文案字数</div>
+                    <div className="mt-0.5 font-mono text-xs font-bold text-stone-800">{(topic.draft_word_count || 0).toLocaleString()}</div>
+                  </div>
+                  <div>
+                    <div className="text-[10px] text-stone-400">预估时长</div>
+                    <div className="mt-0.5 font-mono text-xs font-bold text-stone-800">{minutes} 分钟</div>
+                  </div>
+                </div>
+
+                <div className="mt-3 flex items-center justify-end gap-2 border-t border-stone-100 pt-3">
+                  {archiveScope === 'trash' ? (
+                    <>
+                      <button
+                        onClick={() => void onRestoreTopic(topic.id)}
+                        className="flex min-h-10 items-center gap-1.5 rounded-xl border border-emerald-200 px-3 text-xs font-semibold text-emerald-700"
+                      >
+                        <RotateCcw className="h-4 w-4" /> 恢复选题
+                      </button>
+                      <button
+                        onClick={() => {
+                          if (window.confirm(`确定要永久删除选题「${topic.title}」吗？\n\n全部关联数据将一并删除，且无法恢复。`)) {
+                            void onPermanentlyDeleteTopic(topic.id);
+                          }
+                        }}
+                        className="flex min-h-10 items-center gap-1.5 rounded-xl border border-red-200 px-3 text-xs font-semibold text-red-600"
+                      >
+                        <Trash2 className="h-4 w-4" /> 永久删除
+                      </button>
+                    </>
+                  ) : isArchived ? (
+                    <button
+                      onClick={() => void onUpdateTopicStatus(topic.id, 'approved')}
+                      className="flex min-h-10 items-center gap-1.5 rounded-xl border border-emerald-200 px-3 text-xs font-semibold text-emerald-700"
+                    >
+                      <RotateCcw className="h-4 w-4" /> 恢复立项
+                    </button>
+                  ) : (
+                    <button
+                      onClick={() => setArchiveTopicId(topic.id)}
+                      className="flex min-h-10 items-center gap-1.5 rounded-xl border border-stone-200 px-3 text-xs font-semibold text-stone-600"
+                    >
+                      <Archive className="h-4 w-4" /> 归档
+                    </button>
+                  )}
+                  {archiveScope !== 'trash' && <button
+                    onClick={() => onOpenDetail(topic.id)}
+                    className="flex min-h-10 items-center gap-1.5 rounded-xl bg-stone-900 px-3 text-xs font-semibold text-white"
+                  >
+                    打开工作台 <ArrowRight className="h-4 w-4" />
+                  </button>}
+                  {archiveScope !== 'trash' && <button
+                    onClick={() => {
+                      if (window.confirm(`确定要将选题「${topic.title}」移入回收站吗？`)) {
+                        onDeleteTopic(topic.id);
+                      }
+                    }}
+                    className="flex h-10 w-10 items-center justify-center rounded-xl border border-red-100 text-red-500"
+                    title="移入回收站"
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </button>}
+                </div>
+              </article>
+            );
+          })}
+
+          {sortedTopics.length === 0 && (
+            <div className="py-16 text-center text-sm text-stone-400">
+              {archiveScope === 'trash' ? '回收站为空' : archiveScope === 'archived' ? '归档库暂无已发布或搁置的选题' : '暂无匹配的选题数据'}
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* Table Scroll Container */}
+      <div className="topic-table-container hidden flex-1 overflow-x-auto overflow-y-auto min-h-0 md:block">
+        <table className="w-full text-left border-collapse text-xs">
+          {/* Table Header */}
+          <thead className="table-header-row bg-stone-50/90 dark:bg-stone-900/95 backdrop-blur-xs sticky top-0 z-10 border-b border-stone-200 dark:border-stone-800 text-stone-600 dark:text-stone-300 font-semibold select-none">
+            <tr>
+              <th className="w-10 px-3 py-3 text-center">
+                <input
+                  type="checkbox"
+                  aria-label="选择当前页全部选题"
+                  checked={allVisibleSelected}
+                  onChange={toggleSelectAll}
+                  className="accent-rose-600"
+                />
+              </th>
+              <th className="py-3 px-3 w-10 text-center">📌</th>
+
+              <th
+                onClick={() => handleHeaderClick('title')}
+                className="sticky left-0 z-20 min-w-[240px] cursor-pointer bg-stone-50 dark:bg-stone-900 px-3 py-3 transition-colors hover:bg-stone-100 dark:hover:bg-stone-800"
+              >
+                <div className="flex items-center gap-1.5">
+                  <span>选题标题与核心看点</span>
+                  {renderSortIndicator('title')}
+                </div>
+              </th>
+
+              {isColumnVisible('status') && <th
+                onClick={() => handleHeaderClick('status')}
+                className="py-3 px-3 w-28 cursor-pointer group hover:bg-stone-100/80 dark:hover:bg-stone-800 transition-colors"
+              >
+                <div className="flex items-center gap-1.5">
+                  <span>阶段状态</span>
+                  {renderSortIndicator('status')}
+                </div>
+              </th>}
+
+              {isColumnVisible('priority') && <th
+                onClick={() => handleHeaderClick('priority')}
+                className="py-3 px-3 w-24 cursor-pointer group hover:bg-stone-100/80 dark:hover:bg-stone-800 transition-colors"
+              >
+                <div className="flex items-center gap-1.5">
+                  <span>优先级</span>
+                  {renderSortIndicator('priority')}
+                </div>
+              </th>}
+
+              {isColumnVisible('next_action') && <th className="py-3 px-3 min-w-[180px]">
+                <span>下一步行动 (Next Action)</span>
+              </th>}
+
+              {isColumnVisible('tags') && <th className="py-3 px-3 min-w-[130px]">
+                <span>分类标签</span>
+              </th>}
+
+              {isColumnVisible('people') && <th className="py-3 px-3 min-w-[120px]">
+                <span>关联人物</span>
+              </th>}
+
+              {isColumnVisible('score') && <th
+                onClick={() => handleHeaderClick('score')}
+                className="py-3 px-3 w-24 text-center cursor-pointer group hover:bg-stone-100/80 dark:hover:bg-stone-800 transition-colors"
+              >
+                <div className="flex items-center justify-center gap-1">
+                  <span>故事评分</span>
+                  {renderSortIndicator('score')}
+                </div>
+              </th>}
+
+              {isColumnVisible('words') && <th
+                onClick={() => handleHeaderClick('words')}
+                className="py-3 px-3 w-28 text-right cursor-pointer group hover:bg-stone-100/80 dark:hover:bg-stone-800 transition-colors"
+              >
+                <div className="flex items-center justify-end gap-1">
+                  <span>字数 / 预估时长</span>
+                  {renderSortIndicator('words')}
+                </div>
+              </th>}
+
+              {isColumnVisible('updated_at') && <th
+                onClick={() => handleHeaderClick('updated_at')}
+                className="py-3 px-3 w-24 text-right cursor-pointer group hover:bg-stone-100/80 dark:hover:bg-stone-800 transition-colors"
+              >
+                <div className="flex items-center justify-end gap-1">
+                  <span>更新时间</span>
+                  {renderSortIndicator('updated_at')}
+                </div>
+              </th>}
+
+              <th className="py-3 px-3 w-28 text-center">操作</th>
+            </tr>
+          </thead>
+
+          {/* Table Body */}
+          <tbody className="divide-y divide-stone-100 dark:divide-stone-800">
+            {sortedTopics.map((topic) => {
+              const totalScore =
+                (topic.score_character || 0) +
+                (topic.score_conflict || 0) +
+                (topic.score_contrast || 0) +
+                (topic.score_material || 0) +
+                (topic.score_story || 0);
+
+              const minutes = topic.draft_word_count
+                ? (topic.draft_word_count / readingSpeed).toFixed(1)
+                : '0';
+
+              const isMenuOpen = activeStatusMenuId === topic.id;
+              const isArchived = topic.status === 'published' || topic.status === 'icebox';
+
+              return (
+                <tr
+                  key={topic.id}
+                  onClick={() => archiveScope !== 'trash' && onOpenDetail(topic.id)}
+                  className={`transition-colors group ${archiveScope === 'trash' ? '' : 'cursor-pointer'} ${selectedIds.has(topic.id) ? 'bg-rose-50/60 dark:bg-rose-950/30' : 'hover:bg-stone-50/80 dark:hover:bg-stone-800/60'}`}
+                >
+                  <td onClick={(event) => event.stopPropagation()} className={`${rowPadding} px-3 text-center`}>
+                    <input
+                      type="checkbox"
+                      aria-label={`选择「${topic.title}」`}
+                      checked={selectedIds.has(topic.id)}
+                      onChange={() => setSelectedIds((previous) => {
+                        const next = new Set(previous);
+                        if (next.has(topic.id)) next.delete(topic.id);
+                        else next.add(topic.id);
+                        return next;
+                      })}
+                      className="accent-rose-600"
+                    />
+                  </td>
+                  {/* 1. Pin / Index */}
+                  <td
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      if (archiveScope !== 'trash') onTogglePin(topic.id);
+                    }}
+                    className={`${rowPadding} px-3 text-center`}
+                  >
+                    <button
+                      title={topic.is_pinned ? '取消置顶' : '置顶选题'}
+                      className={`p-1 rounded transition-colors cursor-pointer ${
+                        topic.is_pinned
+                          ? 'text-rose-600 dark:text-rose-400 hover:text-stone-400'
+                          : 'text-stone-300 dark:text-stone-600 hover:text-stone-600 dark:hover:text-stone-300 opacity-0 group-hover:opacity-100'
+                      }`}
+                    >
+                      <Pin className={`w-3.5 h-3.5 ${topic.is_pinned ? 'fill-rose-600 dark:fill-rose-400' : ''}`} />
+                    </button>
+                  </td>
+
+                  {/* 2. Title & Hook */}
+                  <td className={`sticky left-0 z-[5] bg-white dark:bg-stone-900 px-3 ${rowPadding} group-hover:bg-stone-50 dark:group-hover:bg-stone-800/80`}>
+                    <div className="space-y-0.5">
+                      <div className="font-bold text-stone-900 dark:text-stone-100 text-sm group-hover:text-rose-600 dark:group-hover:text-rose-400 transition-colors line-clamp-1 flex items-center gap-1.5">
+                        {topic.is_pinned ? (
+                          <span className="text-[10px] bg-rose-50 dark:bg-rose-950/60 text-rose-600 dark:text-rose-300 border border-rose-200 dark:border-rose-900/60 px-1 py-0.2 rounded font-semibold">
+                            置顶
+                          </span>
+                        ) : null}
+                        <span>{topic.title}</span>
+                      </div>
+                      {topic.summary ? (
+                        <p className="text-[11px] text-stone-400 dark:text-stone-500 line-clamp-1">
+                          {topic.summary}
+                        </p>
+                      ) : topic.hook ? (
+                        <p className="text-[11px] text-stone-400 dark:text-stone-500 italic line-clamp-1">
+                          Hook: {topic.hook}
+                        </p>
+                      ) : null}
+                    </div>
+                  </td>
+
+                  {/* 3. Status (With Dropdown Streamlining) */}
+                  {isColumnVisible('status') && <td
+                    onClick={(e) => e.stopPropagation()}
+                    className={`${rowPadding} px-3 relative`}
+                  >
+                    <button
+                      onClick={() => setActiveStatusMenuId(isMenuOpen ? null : topic.id)}
+                      className="flex items-center gap-1 hover:opacity-80 transition-opacity cursor-pointer"
+                    >
+                      <StatusBadge status={topic.status} />
+                      <ChevronDown className="w-3 h-3 text-stone-400 dark:text-stone-500" />
+                    </button>
+
+                    {/* Status Dropdown Menu */}
+                    {isMenuOpen && (
+                      <div
+                        className="absolute top-10 left-3 z-30 bg-white dark:bg-stone-900 rounded-xl shadow-modal border border-stone-200 dark:border-stone-800 p-1.5 space-y-0.5 w-32 animate-in fade-in zoom-in-95 duration-100"
+                        onMouseLeave={() => setActiveStatusMenuId(null)}
+                      >
+                        {COLUMNS.map((col) => (
+                          <button
+                            key={col.status}
+                            onClick={async () => {
+                              setActiveStatusMenuId(null);
+                              await onUpdateTopicStatus(topic.id, col.status);
+                            }}
+                            className={`w-full text-left px-2 py-1.5 rounded-lg text-xs font-medium flex items-center justify-between transition-colors cursor-pointer ${
+                              topic.status === col.status
+                                ? 'bg-stone-100 dark:bg-stone-800 text-stone-900 dark:text-stone-100 font-bold'
+                                : 'text-stone-600 dark:text-stone-400 hover:bg-stone-50 dark:hover:bg-stone-800 hover:text-stone-900 dark:hover:text-stone-100'
+                            }`}
+                          >
+                            <span>{col.label}</span>
+                            {topic.status === col.status && <span className="text-rose-600 dark:text-rose-400">✓</span>}
+                          </button>
+                        ))}
+                      </div>
+                    )}
+                  </td>}
+
+                  {/* 4. Priority */}
+                  {isColumnVisible('priority') && <td className={`${rowPadding} px-3`}>
+                    <PriorityBadge priority={topic.priority} />
+                  </td>}
+
+                  {/* 5. Next Action */}
+                  {isColumnVisible('next_action') && <td className={`${rowPadding} px-3`}>
+                    {topic.next_action ? (
+                      <span className="inline-flex items-center gap-1 text-[11px] text-stone-800 dark:text-stone-200 bg-rose-50/60 dark:bg-rose-950/30 border border-rose-200/50 dark:border-rose-900/40 px-2 py-0.5 rounded-md font-medium max-w-[220px] truncate">
+                        <span className="text-rose-600 dark:text-rose-400 font-bold">⚡</span>
+                        <span className="truncate">{topic.next_action}</span>
+                      </span>
+                    ) : (
+                      <span className="text-stone-300 dark:text-stone-600 italic text-[11px]">-</span>
+                    )}
+                  </td>}
+
+                  {/* 6. Tags */}
+                  {isColumnVisible('tags') && <td className={`${rowPadding} px-3`}>
+                    <div className="flex flex-wrap gap-1 max-w-[160px]">
+                      {topic.tags && topic.tags.length > 0 ? (
+                        topic.tags.slice(0, 2).map((tag) => (
+                          <span
+                            key={tag.id || tag.name}
+                            className="inline-flex items-center text-[10px] font-medium bg-stone-100 dark:bg-stone-800 text-stone-600 dark:text-stone-300 px-1.5 py-0.2 rounded border border-stone-200 dark:border-stone-700"
+                          >
+                            #{tag.name}
+                          </span>
+                        ))
+                      ) : (
+                        <span className="text-stone-300 dark:text-stone-600 italic text-[11px]">-</span>
+                      )}
+                      {topic.tags && topic.tags.length > 2 && (
+                        <span className="text-[10px] text-stone-400 dark:text-stone-500">+{topic.tags.length - 2}</span>
+                      )}
+                    </div>
+                  </td>}
+
+                  {/* 7. People */}
+                  {isColumnVisible('people') && <td className={`${rowPadding} px-3`}>
+                    <div className="flex flex-wrap gap-1 max-w-[140px]">
+                      {topic.people && topic.people.length > 0 ? (
+                        topic.people.slice(0, 2).map((person) => (
+                          <span
+                            key={person.id}
+                            className="inline-flex items-center text-[10px] font-medium bg-stone-50 dark:bg-stone-800 text-stone-700 dark:text-stone-300 px-1.5 py-0.2 rounded border border-stone-200 dark:border-stone-700"
+                          >
+                            👤 {person.name}
+                          </span>
+                        ))
+                      ) : (
+                        <span className="text-stone-300 dark:text-stone-600 italic text-[11px]">-</span>
+                      )}
+                    </div>
+                  </td>}
+
+                  {/* 8. Story Rating Score */}
+                  {isColumnVisible('score') && <td className={`${rowPadding} px-3 text-center`}>
+                    {totalScore > 0 ? (
+                      <div className="inline-flex items-center gap-1 font-mono font-bold text-xs bg-stone-100 dark:bg-stone-800 text-stone-800 dark:text-stone-200 px-2 py-0.5 rounded-full border border-stone-200 dark:border-stone-700">
+                        <Sparkles className="w-3 h-3 text-amber-500" />
+                        <span>{totalScore}</span>
+                        <span className="text-[10px] text-stone-400 dark:text-stone-500 font-normal">/10</span>
+                      </div>
+                    ) : (
+                      <span className="text-stone-300 dark:text-stone-600 text-[11px] font-mono">未评分</span>
+                    )}
+                  </td>}
+
+                  {/* 9. Word Count & Estimated Duration */}
+                  {isColumnVisible('words') && <td className={`${rowPadding} px-3 text-right font-mono`}>
+                    {topic.draft_word_count ? (
+                      <div>
+                        <div className="font-bold text-stone-800 dark:text-stone-200">{topic.draft_word_count.toLocaleString()} 字</div>
+                        <div className="text-[10px] text-stone-400 dark:text-stone-500">~{minutes} 分钟</div>
+                      </div>
+                    ) : (
+                      <span className="text-stone-300 dark:text-stone-600 text-[11px]">0 字</span>
+                    )}
+                  </td>}
+
+                  {/* 10. Updated Time */}
+                  {isColumnVisible('updated_at') && <td className={`${rowPadding} px-3 text-right text-stone-400 dark:text-stone-500 font-mono text-[11px]`}>
+                    {formatRelativeTime(topic.updated_at)}
+                  </td>}
+
+                  {/* 11. Actions */}
+                  <td
+                    onClick={(e) => e.stopPropagation()}
+                    className={`${rowPadding} px-3 text-center`}
+                  >
+                    <div className="flex items-center justify-center gap-1">
+                      {/* Archive / Restore action */}
+                      {archiveScope === 'trash' ? (
+                        <>
+                          <button
+                            onClick={() => void onRestoreTopic(topic.id)}
+                            className="p-1.5 text-emerald-600 dark:text-emerald-400 hover:text-emerald-800 dark:hover:text-emerald-300 hover:bg-emerald-50 dark:hover:bg-emerald-950/40 rounded-lg transition-colors cursor-pointer"
+                            title="恢复选题"
+                          >
+                            <RotateCcw className="w-3.5 h-3.5" />
+                          </button>
+                          <button
+                            onClick={() => {
+                              if (window.confirm(`确定要永久删除选题「${topic.title}」吗？\n\n全部关联数据将一并删除，且无法恢复。`)) {
+                                void onPermanentlyDeleteTopic(topic.id);
+                              }
+                            }}
+                            className="p-1.5 text-red-500 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300 hover:bg-red-50 dark:hover:bg-red-950/40 rounded-lg transition-colors cursor-pointer"
+                            title="永久删除"
+                          >
+                            <Trash2 className="w-3.5 h-3.5" />
+                          </button>
+                        </>
+                      ) : isArchived ? (
+                        <button
+                          onClick={() => onUpdateTopicStatus(topic.id, 'approved')}
+                          className="p-1.5 text-emerald-600 dark:text-emerald-400 hover:text-emerald-800 dark:hover:text-emerald-300 hover:bg-emerald-50 dark:hover:bg-emerald-950/40 rounded-lg transition-colors cursor-pointer"
+                          title="从归档中恢复至已立项（重返全景看板）"
+                        >
+                          <RotateCcw className="w-3.5 h-3.5" />
+                        </button>
+                      ) : (
+                        <button
+                          onClick={() => setArchiveTopicId(topic.id)}
+                          className="p-1.5 text-stone-400 dark:text-stone-500 hover:text-stone-800 dark:hover:text-stone-200 hover:bg-stone-100 dark:hover:bg-stone-800 rounded-lg transition-colors cursor-pointer"
+                          title="归档此选题"
+                        >
+                          <Archive className="w-3.5 h-3.5" />
+                        </button>
+                      )}
+
+
+                      {archiveScope !== 'trash' && <button
+                        onClick={() => {
+                          if (window.confirm(`确定要将选题「${topic.title}」移入回收站吗？`)) {
+                            onDeleteTopic(topic.id);
+                          }
+                        }}
+                        className="p-1.5 text-stone-300 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors cursor-pointer"
+                        title="移入回收站"
+                      >
+                        <Trash2 className="w-3.5 h-3.5" />
+                      </button>}
+                    </div>
+                  </td>
+                </tr>
+              );
+            })}
+
+            {sortedTopics.length === 0 && (
+              <tr>
+                <td colSpan={4 + visibleColumns.length} className="py-16 text-center text-stone-400 text-sm">
+                  {archiveScope === 'trash' ? '回收站为空' : archiveScope === 'archived' ? '归档库暂无已发布或搁置的选题' : '暂无匹配的选题数据'}
+                </td>
+              </tr>
+            )}
+          </tbody>
+        </table>
+      </div>
+
+      {/* Table Summary Footer */}
+      <div className="hidden p-3.5 bg-stone-50 border-t border-stone-200 md:flex items-center justify-between text-xs text-stone-500 font-medium shrink-0 flex-wrap gap-2">
+        <div className="flex items-center gap-4">
+          <span>当前页：<strong className="text-stone-900 font-mono">{sortedTopics.length}</strong> 个选题</span>
+          <span>•</span>
+          <span>全库活跃生产：<strong className="text-indigo-700 font-mono">{inScriptingCount}</strong> 篇</span>
+          <span>•</span>
+          <span>全库累计文案：<strong className="text-stone-900 font-mono">{totalWords.toLocaleString()}</strong> 字</span>
+        </div>
+
+        <div className="flex items-center gap-2">
+          <button type="button" disabled={page <= 1 || pageQuery.isFetching} onClick={() => setPage((value) => Math.max(1, value - 1))} className="rounded-lg border border-stone-200 bg-white px-2.5 py-1.5 disabled:opacity-40">上一页</button>
+          <span className="font-mono">{page} / {Math.max(1, pageQuery.data?.total_pages || 1)} · 共 {pageQuery.data?.total || 0} 条</span>
+          <button type="button" disabled={page >= (pageQuery.data?.total_pages || 1) || pageQuery.isFetching} onClick={() => setPage((value) => value + 1)} className="rounded-lg border border-stone-200 bg-white px-2.5 py-1.5 disabled:opacity-40">下一页</button>
+        </div>
+      </div>
+
+      <div className="flex items-center justify-center gap-2 border-t border-stone-200 bg-stone-50 p-3 text-xs md:hidden">
+        <button type="button" disabled={page <= 1 || pageQuery.isFetching} onClick={() => setPage((value) => Math.max(1, value - 1))} className="rounded-lg border border-stone-200 bg-white px-3 py-2 disabled:opacity-40">上一页</button>
+        <span className="font-mono text-stone-500">{page} / {Math.max(1, pageQuery.data?.total_pages || 1)}</span>
+        <button type="button" disabled={page >= (pageQuery.data?.total_pages || 1) || pageQuery.isFetching} onClick={() => setPage((value) => value + 1)} className="rounded-lg border border-stone-200 bg-white px-3 py-2 disabled:opacity-40">下一页</button>
+      </div>
+
+      {archiveTopicId && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-stone-900/25 px-4 backdrop-blur-xs"
+          onClick={() => setArchiveTopicId(null)}
+        >
+          <div
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="archive-dialog-title"
+            className="w-full max-w-sm rounded-2xl border border-stone-200 bg-white p-5 shadow-modal"
+            onClick={(event) => event.stopPropagation()}
+          >
+            <h3 id="archive-dialog-title" className="text-base font-bold text-stone-900">归档选题</h3>
+            <p className="mt-1 text-xs leading-relaxed text-stone-500">请选择归档状态；取消不会修改当前选题。</p>
+            <div className="mt-4 grid grid-cols-2 gap-2">
+              <button
+                onClick={() => {
+                  const topicId = archiveTopicId;
+                  setArchiveTopicId(null);
+                  void onUpdateTopicStatus(topicId, 'published');
+                }}
+                className="rounded-xl bg-emerald-600 px-3 py-2 text-sm font-semibold text-white transition-colors hover:bg-emerald-700"
+              >
+                已发布
+              </button>
+              <button
+                onClick={() => {
+                  const topicId = archiveTopicId;
+                  setArchiveTopicId(null);
+                  void onUpdateTopicStatus(topicId, 'icebox');
+                }}
+                className="rounded-xl bg-stone-800 px-3 py-2 text-sm font-semibold text-white transition-colors hover:bg-stone-900"
+              >
+                搁置
+              </button>
+            </div>
+            <button
+              onClick={() => setArchiveTopicId(null)}
+              className="mt-2 w-full rounded-xl border border-stone-200 px-3 py-2 text-sm font-semibold text-stone-600 transition-colors hover:bg-stone-50"
+            >
+              取消
+            </button>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};
