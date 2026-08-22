@@ -1,10 +1,12 @@
-name: Build and Publish Container Image
+name: Build, Publish and Release Container Image
 
 on:
   push:
     tags:
-      - 'v*' # 仅在推送版本标签（例如 v1.0.0, v1.0.1 等）时自动触发打包
-  workflow_dispatch: # 依然保留在 GitHub 网页上手动一键触发的能力
+      - 'v*' # 仅在推送版本标签（例如 v1.0.0, v1.0.1 等）时自动触发
+  release:
+    types: [published] # 在 GitHub 网页发布 Release 时也能自动触发
+  workflow_dispatch: # 支持在 GitHub 网页上手动一键触发
 
 env:
   REGISTRY: ghcr.io
@@ -12,15 +14,17 @@ env:
 
 jobs:
   test-and-build:
-    name: Test and Build Container Image
+    name: Test, Build and Release Image
     runs-on: ubuntu-latest
     permissions:
-      contents: read
-      packages: write
+      contents: write # 允许创建和发布 GitHub Release
+      packages: write # 允许推送容器镜像到 GitHub Packages (GHCR)
 
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # 获取完整 Git 历史用于自动生成 Release Changelog
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
@@ -87,3 +91,31 @@ jobs:
           labels: ${{ steps.meta.outputs.labels }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
+
+      - name: Create or Update GitHub Release
+        if: startsWith(github.ref, 'refs/tags/v')
+        uses: softprops/action-gh-release@v2
+        with:
+          name: Release ${{ github.ref_name }}
+          generate_release_notes: true
+          body: |
+            ### 🎬 选题生产工作台 (Topic Kanban Studio) ${{ github.ref_name }}
+
+            多架构极简容器镜像（`linux/amd64` + `linux/arm64`）已自动构建并推送到 GitHub Container Registry。
+
+            #### 🐳 快速拉取与运行命令：
+            ```bash
+            # 拉取当前版本镜像
+            docker pull ghcr.io/${{ github.repository }}:${{ github.ref_name }}
+
+            # 启动容器 (数据持久化保存在当前目录下的 ./data)
+            docker run -d \
+              --name topic-kanban \
+              --restart unless-stopped \
+              -p 3000:3000 \
+              -e APP_PASSWORD="your_secure_password" \
+              -e QUICK_DROP_TOKEN="your_quick_drop_token" \
+              -e PUBLIC_BASE_URL="https://kanban.yourdomain.com" \
+              -v ./data:/app/data \
+              ghcr.io/${{ github.repository }}:${{ github.ref_name }}
+            ```
