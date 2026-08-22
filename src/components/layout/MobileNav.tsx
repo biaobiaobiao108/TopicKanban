@@ -122,8 +122,8 @@ export const MobileDrawer: React.FC<MobileDrawerProps> = ({
           {/* Header */}
           <div className="flex items-center justify-between pb-4 border-b border-stone-100">
             <div className="flex items-center gap-2.5">
-              <div className="sidebar-brand-logo w-8 h-8 rounded-lg bg-rose-600 flex items-center justify-center text-white font-bold text-lg shadow-sm">
-                🎬
+              <div className="sidebar-brand-logo w-8 h-8 rounded-lg flex items-center justify-center overflow-hidden shadow-sm shrink-0">
+                <img src="/icon.png" alt="工作台 Logo" className="w-full h-full object-cover rounded-lg" />
               </div>
               <div>
                 <h2 className="font-bold text-stone-900 text-sm leading-tight">选题生产工作台</h2>

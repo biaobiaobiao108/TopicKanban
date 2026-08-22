@@ -37,8 +37,8 @@ export const LoginView: React.FC<LoginViewProps> = ({ onLoginSuccess }) => {
       <div className="w-full max-w-md bg-white rounded-2xl border border-stone-200/90 shadow-card p-7 sm:p-9 space-y-6 animate-in fade-in zoom-in-95 duration-200">
         {/* Brand Header */}
         <div className="text-center space-y-2">
-          <div className="w-12 h-12 rounded-2xl bg-rose-600 text-white flex items-center justify-center font-bold text-2xl mx-auto shadow-sm">
-            🎬
+          <div className="w-12 h-12 rounded-2xl flex items-center justify-center overflow-hidden mx-auto shadow-sm">
+            <img src="/icon.png" alt="工作台 Logo" className="w-full h-full object-cover rounded-2xl" />
           </div>
           <h1 className="text-xl font-bold text-stone-900 tracking-tight">选题生产工作台</h1>
           <p className="text-xs text-stone-500">

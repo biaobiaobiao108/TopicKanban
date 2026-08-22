@@ -61,6 +61,8 @@ if (fs.existsSync(distPath)) {
   
   // Serve static assets with immutable cache
   mainApp.use('/assets/*', serveStatic({ root: './dist' }));
+  mainApp.use('/icon.png', serveStatic({ path: './dist/icon.png' }));
+  mainApp.use('/apple-touch-icon.png', serveStatic({ path: './dist/apple-touch-icon.png' }));
   mainApp.use('/favicon.ico', serveStatic({ path: './dist/favicon.ico' }));
   mainApp.use('/_headers', serveStatic({ path: './dist/_headers' }));
 
