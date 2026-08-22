@@ -679,7 +679,7 @@ export const TopicTableView: React.FC<TopicTableViewProps> = ({
 
               <th
                 onClick={() => handleHeaderClick('title')}
-                className="sticky left-0 z-20 min-w-[240px] cursor-pointer bg-stone-50 dark:bg-stone-900 px-3 py-3 transition-colors hover:bg-stone-100 dark:hover:bg-stone-800"
+                className="min-w-[240px] px-3 py-3 cursor-pointer group hover:bg-stone-100/80 dark:hover:bg-stone-800 transition-colors"
               >
                 <div className="flex items-center gap-1.5">
                   <span>选题标题与核心看点</span>
@@ -774,9 +774,22 @@ export const TopicTableView: React.FC<TopicTableViewProps> = ({
                 <tr
                   key={topic.id}
                   onClick={() => archiveScope !== 'trash' && onOpenDetail(topic.id)}
-                  className={`transition-colors group ${archiveScope === 'trash' ? '' : 'cursor-pointer'} ${selectedIds.has(topic.id) ? 'bg-rose-50/60 dark:bg-rose-950/30' : 'hover:bg-stone-50/80 dark:hover:bg-stone-800/60'}`}
+                  className={`transition-all duration-150 ease-out group ${
+                    archiveScope === 'trash' ? '' : 'cursor-pointer'
+                  } ${
+                    selectedIds.has(topic.id)
+                      ? 'bg-rose-50/70 hover:bg-rose-100/60 dark:bg-rose-950/35 dark:hover:bg-rose-900/40'
+                      : 'hover:bg-stone-100/70 dark:hover:bg-stone-800/60'
+                  }`}
                 >
-                  <td onClick={(event) => event.stopPropagation()} className={`${rowPadding} px-3 text-center`}>
+                  <td
+                    onClick={(event) => event.stopPropagation()}
+                    className={`${rowPadding} px-3 text-center border-l-2 transition-colors ${
+                      selectedIds.has(topic.id)
+                        ? 'border-rose-600 dark:border-rose-400'
+                        : 'border-transparent group-hover:border-rose-400 dark:group-hover:border-rose-500'
+                    }`}
+                  >
                     <input
                       type="checkbox"
                       aria-label={`选择「${topic.title}」`}
@@ -787,7 +800,7 @@ export const TopicTableView: React.FC<TopicTableViewProps> = ({
                         else next.add(topic.id);
                         return next;
                       })}
-                      className="accent-rose-600"
+                      className="accent-rose-600 cursor-pointer"
                     />
                   </td>
                   {/* 1. Pin / Index */}
@@ -811,7 +824,7 @@ export const TopicTableView: React.FC<TopicTableViewProps> = ({
                   </td>
 
                   {/* 2. Title & Hook */}
-                  <td className={`sticky left-0 z-[5] bg-white dark:bg-stone-900 px-3 ${rowPadding} group-hover:bg-stone-50 dark:group-hover:bg-stone-800/80`}>
+                  <td className={`px-3 ${rowPadding}`}>
                     <div className="space-y-0.5">
                       <div className="font-bold text-stone-900 dark:text-stone-100 text-sm group-hover:text-rose-600 dark:group-hover:text-rose-400 transition-colors line-clamp-1 flex items-center gap-1.5">
                         {topic.is_pinned ? (
@@ -822,11 +835,11 @@ export const TopicTableView: React.FC<TopicTableViewProps> = ({
                         <span>{topic.title}</span>
                       </div>
                       {topic.summary ? (
-                        <p className="text-[11px] text-stone-400 dark:text-stone-500 line-clamp-1">
+                        <p className="text-[11px] text-stone-400 dark:text-stone-500 line-clamp-1 group-hover:text-stone-500 dark:group-hover:text-stone-400 transition-colors">
                           {topic.summary}
                         </p>
                       ) : topic.hook ? (
-                        <p className="text-[11px] text-stone-400 dark:text-stone-500 italic line-clamp-1">
+                        <p className="text-[11px] text-stone-400 dark:text-stone-500 italic line-clamp-1 group-hover:text-stone-500 dark:group-hover:text-stone-400 transition-colors">
                           Hook: {topic.hook}
                         </p>
                       ) : null}
@@ -964,7 +977,7 @@ export const TopicTableView: React.FC<TopicTableViewProps> = ({
                     onClick={(e) => e.stopPropagation()}
                     className={`${rowPadding} px-3 text-center`}
                   >
-                    <div className="flex items-center justify-center gap-1">
+                    <div className="flex items-center justify-center gap-1 opacity-70 group-hover:opacity-100 transition-opacity">
                       {/* Archive / Restore action */}
                       {archiveScope === 'trash' ? (
                         <>
