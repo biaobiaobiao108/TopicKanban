@@ -39,6 +39,7 @@ import {
 } from 'lucide-react';
 import { CitationMark } from './CitationMark';
 import { getCitationHealth } from '../../lib/citations';
+import { resolvePublicUrl } from '../../lib/publicUrl';
 import {
   createShareSnapshot,
   deleteShareSnapshot,
@@ -228,7 +229,7 @@ export const ScriptEditorTab: React.FC<ScriptEditorTabProps> = ({
       const defaultDays = settings?.default_share_ttl_days || 3;
       const ttlSeconds = defaultDays * 86400;
       const result = await createShareSnapshot(topicId, ttlSeconds);
-      const fullUrl = `${window.location.origin}${result.url}`;
+      const fullUrl = resolvePublicUrl(result.url, settings?.public_base_url) || (result as { full_url?: string }).full_url || `${window.location.origin}${result.url}`;
       setCurrentShare({ token: result.token, url: fullUrl, expires_at: result.expires_at });
       setIsShareModalOpen(true);
 

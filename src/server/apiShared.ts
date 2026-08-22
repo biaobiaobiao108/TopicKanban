@@ -5,6 +5,7 @@ export type ApiBindings = {
   KV?: KVNamespace;
   APP_PASSWORD?: string;
   QUICK_DROP_TOKEN?: string;
+  PUBLIC_BASE_URL?: string;
 };
 
 const TOKEN_TTL_SECONDS = 60 * 60 * 24 * 7;

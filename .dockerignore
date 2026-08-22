@@ -1,0 +1,8 @@
+node_modules
+.git
+.wrangler
+.github
+tests
+*.log
+.DS_Store
+data

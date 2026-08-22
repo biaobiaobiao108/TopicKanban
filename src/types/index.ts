@@ -225,6 +225,7 @@ export interface AppSettings {
   stale_action_days?: number;
   default_share_ttl_days?: number;
   reviewer_branding?: string;
+  public_base_url?: string; // Reverse proxy or custom public domain e.g. "https://kanban.example.com"
 }
 
 export const DEFAULT_APP_SETTINGS: AppSettings = {
@@ -236,6 +237,7 @@ export const DEFAULT_APP_SETTINGS: AppSettings = {
   stale_action_days: 5,
   default_share_ttl_days: 3,
   reviewer_branding: '',
+  public_base_url: '',
 };
 
 export interface BootstrapData {

@@ -11,6 +11,7 @@ import { validateBackupData } from '../../lib/backupValidation';
 import { exportBackupData, importBackupData, exportScriptsMarkdown } from '../../lib/storage';
 import { authenticatedFetch } from '../../lib/auth';
 import { applyTheme } from '../../lib/theme';
+import { resolvePublicUrl } from '../../lib/publicUrl';
 import {
   Settings,
   Download,
@@ -51,6 +52,7 @@ import {
   Share2,
   FileText,
   Eye,
+  Globe,
 } from 'lucide-react';
 
 interface SettingsViewProps {
@@ -62,7 +64,7 @@ interface SettingsViewProps {
 
 interface CloudflareStatus {
   isChecking: boolean;
-  environment: 'local_vite' | 'cloudflare_pages' | 'unknown';
+  environment: 'local_vite' | 'cloudflare_pages' | 'node_container' | 'unknown';
   d1Connected: boolean;
   d1Message: string;
   d1Tables?: number;
@@ -72,6 +74,8 @@ interface CloudflareStatus {
 }
 
 interface HealthResponse {
+  environment?: 'local_vite' | 'cloudflare_pages' | 'node_container';
+  public_base_url?: string;
   d1?: { connected?: boolean; message?: string; tables?: number };
   kv?: { connected?: boolean; message?: string };
 }
@@ -94,6 +98,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
   const [staleActionDays, setStaleActionDays] = useState<number>(settings.stale_action_days || DEFAULT_APP_SETTINGS.stale_action_days || 5);
   const [defaultShareTtl, setDefaultShareTtl] = useState<number>(settings.default_share_ttl_days || DEFAULT_APP_SETTINGS.default_share_ttl_days || 3);
   const [reviewerBranding, setReviewerBranding] = useState<string>(settings.reviewer_branding || '');
+  const [publicBaseUrl, setPublicBaseUrl] = useState<string>(settings.public_base_url || '');
 
   const [savedSuccess, setSavedSuccess] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
@@ -115,6 +120,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
     setStaleActionDays(settings.stale_action_days || 5);
     setDefaultShareTtl(settings.default_share_ttl_days || 3);
     setReviewerBranding(settings.reviewer_branding || '');
+    setPublicBaseUrl(settings.public_base_url || '');
   }, [settings]);
 
   const schedule = useCallback((callback: () => void, delay: number) => {
@@ -150,9 +156,9 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
         if (!isMountedRef.current) return;
         setCfStatus({
           isChecking: false,
-          environment: 'cloudflare_pages',
+          environment: data.environment || 'cloudflare_pages',
           d1Connected: data.d1?.connected || false,
-          d1Message: data.d1?.message || 'D1 状态未知',
+          d1Message: data.d1?.message || '数据库状态未知',
           d1Tables: data.d1?.tables,
           kvConnected: data.kv?.connected || false,
           kvMessage: data.kv?.message || 'KV 状态未知',
@@ -167,9 +173,9 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
         isChecking: false,
         environment: 'local_vite',
         d1Connected: false,
-        d1Message: '当前为本地单机开发模式，数据由浏览器本地持久化（未连接 Cloudflare D1 边缘后端）',
+        d1Message: '当前为本地单机开发模式，数据由浏览器本地持久化（未连接后端服务）',
         kvConnected: false,
-        kvMessage: '未接入 Cloudflare KV 命名空间',
+        kvMessage: '未接入 KV 命名空间',
         lastChecked: new Date().toLocaleTimeString(),
       });
     } finally {
@@ -204,6 +210,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
         stale_action_days: Number(staleActionDays),
         default_share_ttl_days: Number(defaultShareTtl),
         reviewer_branding: reviewerBranding.trim(),
+        public_base_url: publicBaseUrl.trim().replace(/\/+$/, ''),
       };
       await onSaveSettings(payload);
       setSavedSuccess(true);
@@ -763,6 +770,31 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
               className="w-full px-3.5 py-2 rounded-xl bg-stone-50 dark:bg-stone-800 border border-stone-300 dark:border-stone-700 text-xs sm:text-sm text-stone-900 dark:text-stone-100 placeholder:text-stone-400 dark:placeholder:text-stone-500 focus:bg-white dark:focus:bg-stone-800 focus:outline-none"
             />
           </div>
+
+          {/* Public Base URL (Reverse Proxy Support) */}
+          <div className="space-y-2 pt-2 border-t border-stone-100 dark:border-stone-800">
+            <div className="flex items-center justify-between">
+              <label className="text-xs sm:text-sm font-bold text-stone-800 dark:text-stone-200 flex items-center gap-1.5">
+                <Globe className="w-4 h-4 text-rose-500" />
+                <span>公开访问基准域名 (Public Base URL / 反代域名)</span>
+              </label>
+              {publicBaseUrl && (
+                <span className="text-[10px] font-mono text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/60 px-2 py-0.5 rounded border border-emerald-200 dark:border-emerald-800">
+                  已配置公网适配
+                </span>
+              )}
+            </div>
+            <p className="text-[11px] text-stone-400 dark:text-stone-500">
+              配置反向代理的公网域名（例如：<code>https://kanban.example.com</code>）。配置后，无论在本地内网还是远程写稿，生成的审稿链接与快投箱 Webhook 都将自动采用此公网域名。
+            </p>
+            <input
+              type="url"
+              placeholder="例如：https://kanban.example.com (留空则自动跟随当前访问地址)"
+              value={publicBaseUrl}
+              onChange={(e) => setPublicBaseUrl(e.target.value)}
+              className="w-full px-3.5 py-2 rounded-xl bg-stone-50 dark:bg-stone-800 border border-stone-300 dark:border-stone-700 text-xs sm:text-sm text-stone-900 dark:text-stone-100 placeholder:text-stone-400 dark:placeholder:text-stone-500 focus:bg-white dark:focus:bg-stone-800 focus:outline-none font-mono"
+            />
+          </div>
         </div>
 
         {/* 4. Security & Infrastructure Status */}
@@ -785,16 +817,16 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
               )}
             </div>
             <p className="text-xs text-stone-500 dark:text-stone-400 leading-relaxed">
-              云端访问密码由 Cloudflare 的 <code className="bg-stone-100 dark:bg-stone-800 px-1 py-0.5 rounded font-mono text-stone-800 dark:text-stone-200">APP_PASSWORD</code> 统一管理；无状态 HMAC Token 自动维持 7 天免密。
+              访问密码由环境变量 <code className="bg-stone-100 dark:bg-stone-800 px-1 py-0.5 rounded font-mono text-stone-800 dark:text-stone-200">APP_PASSWORD</code> 统一管理；无状态 HMAC Token 自动维持 7 天免密。
             </p>
           </div>
 
-          {/* Cloudflare Storage Status */}
+          {/* Infrastructure Storage Status */}
           <div className="bg-white dark:bg-stone-900 rounded-2xl border border-stone-200 dark:border-stone-800 p-5 space-y-3 shadow-subtle transition-colors">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
-                <Cloud className="w-4 h-4 text-blue-600 dark:text-blue-400" />
-                <h3 className="text-sm font-bold text-stone-900 dark:text-stone-100">Cloudflare 存储实时探测</h3>
+                <Database className="w-4 h-4 text-blue-600 dark:text-blue-400" />
+                <h3 className="text-sm font-bold text-stone-900 dark:text-stone-100">数据库与存储实时探测</h3>
               </div>
               <button
                 onClick={checkCloudflareStatus}
@@ -808,7 +840,9 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
             <div className="flex items-center gap-2">
               <span className={`w-2 h-2 rounded-full ${cfStatus.d1Connected ? 'bg-emerald-500' : 'bg-amber-500'}`} />
               <span className="text-xs font-semibold text-stone-700 dark:text-stone-300">
-                {cfStatus.d1Connected ? 'D1 (SQLite) 与 KV 已双双连通' : '本地单机模式运行中'}
+                {cfStatus.environment === 'node_container'
+                  ? '本地 SQLite 容器服务正常运行中'
+                  : cfStatus.d1Connected ? 'D1 (SQLite) 与 KV 已双双连通' : '本地开发模式运行中'}
               </span>
             </div>
             <p className="text-[11px] text-stone-400 dark:text-stone-500 truncate">
@@ -817,14 +851,14 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
           </div>
         </div>
 
-        {/* 5. Quick Drop Ingestion Configuration (KV) */}
+        {/* 5. Quick Drop Ingestion Configuration */}
         <div className="bg-white dark:bg-stone-900 rounded-2xl border border-stone-200 dark:border-stone-800 p-5 sm:p-6 space-y-4 shadow-subtle transition-colors">
           <div className="flex items-center gap-2">
             <Smartphone className="w-5 h-5 text-rose-600 dark:text-rose-500" />
             <h3 className="text-base font-bold text-stone-900 dark:text-stone-100">手机快捷指令 · 灵感碎片快投配置</h3>
           </div>
           <p className="text-xs text-stone-500 dark:text-stone-400 leading-relaxed">
-            在手机刷 B站、微博或抖音时，通过 iOS 快捷指令或分享菜单将看到的事件、链接与想法一秒投递到工作台，暂存至 Workers KV 中（保留 7 天）。
+            在手机刷 B站、微博或抖音时，通过 iOS 快捷指令或分享菜单将看到的事件、链接与想法一秒投递到工作台，暂存至快投箱中（保留 7 天）。
           </p>
 
           <div className="p-4 bg-stone-50 dark:bg-stone-800/60 rounded-xl border border-stone-200 dark:border-stone-700 space-y-3 text-xs">
@@ -833,7 +867,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
               <button
                 type="button"
                 onClick={async () => {
-                  const url = `${window.location.origin}/api/inbox/quick-drop`;
+                  const url = resolvePublicUrl('/api/inbox/quick-drop', publicBaseUrl);
                   await navigator.clipboard.writeText(url);
                   setIsCopiedDropUrl(true);
                   setTimeout(() => setIsCopiedDropUrl(false), 2000);
@@ -846,7 +880,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
             </div>
 
             <div className="p-2.5 bg-white dark:bg-stone-900 rounded-lg border border-stone-200 dark:border-stone-700 font-mono text-[11px] text-stone-700 dark:text-stone-300 select-all break-all">
-              {typeof window !== 'undefined' ? `${window.location.origin}/api/inbox/quick-drop` : '/api/inbox/quick-drop'}
+              {resolvePublicUrl('/api/inbox/quick-drop', publicBaseUrl)}
             </div>
 
             <div className="space-y-1.5 pt-1 text-[11px] text-stone-500 dark:text-stone-400">
@@ -854,7 +888,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
               <ul className="list-disc list-inside space-y-1 pl-1 text-stone-600 dark:text-stone-300">
                 <li>请求方法：<code className="bg-stone-200/70 dark:bg-stone-700 px-1 py-0.5 rounded font-mono text-stone-800 dark:text-stone-200">POST</code></li>
                 <li>请求头：<code className="bg-stone-200/70 dark:bg-stone-700 px-1 py-0.5 rounded font-mono text-stone-800 dark:text-stone-200">X-Quick-Drop-Token: 你的独立快投 Token</code></li>
-                <li>快投 Token 由 Cloudflare Secret <code className="bg-stone-200/70 dark:bg-stone-700 px-1 py-0.5 rounded font-mono text-stone-800 dark:text-stone-200">QUICK_DROP_TOKEN</code> 配置，不再接受工作台主密码。</li>
+                <li>快投 Token 由环境变量 <code className="bg-stone-200/70 dark:bg-stone-700 px-1 py-0.5 rounded font-mono text-stone-800 dark:text-stone-200">QUICK_DROP_TOKEN</code> 配置，独立于工作台主密码。</li>
                 <li>请求体 JSON：<code className="bg-stone-200/70 dark:bg-stone-700 px-1 py-0.5 rounded font-mono text-stone-800 dark:text-stone-200">&#123; "content": "分享内容", "url": "网页链接" &#125;</code></li>
               </ul>
             </div>
