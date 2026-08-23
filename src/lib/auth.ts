@@ -38,8 +38,11 @@ export async function login(password: string): Promise<{ success: boolean; messa
       }
       return { success: false, message: data?.message || '访问密码错误，请重新输入' };
     }
+    if (res.status === 404 || contentType.includes('text/html')) {
+      return { success: false, message: '后端 API 服务未响应或代理未就绪，请确认本地开发服务正常运行' };
+    }
   } catch {
-    return { success: false, message: '服务暂时不可用，请确认本地 Pages 服务或云端部署正常' };
+    return { success: false, message: '网络连接失败，请确认本地开发服务或云端部署正常' };
   }
 
   return { success: false, message: '服务响应异常，请稍后重试' };
