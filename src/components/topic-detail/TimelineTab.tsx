@@ -1,20 +1,34 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
+import {
+  DndContext,
+  closestCenter,
+  KeyboardSensor,
+  PointerSensor,
+  useSensor,
+  useSensors,
+  DragEndEvent,
+} from '@dnd-kit/core';
+import {
+  arrayMove,
+  SortableContext,
+  sortableKeyboardCoordinates,
+  verticalListSortingStrategy,
+  useSortable,
+} from '@dnd-kit/sortable';
+import { CSS } from '@dnd-kit/utilities';
 import { TimelineEvent, DatePrecision, VerificationStatus } from '../../types';
 import { VerificationBadge } from '../ui/Badge';
 import { Modal } from '../ui/Modal';
 import {
   Plus,
-  Calendar,
   Trash2,
   Edit2,
-  ArrowDown,
-  ArrowUp,
   Clock,
-  CheckCircle2,
-  AlertCircle,
-  Zap,
-  Sparkles,
-  Activity,
+  GripVertical,
+  ArrowDownUp,
+  ArrowDownWideNarrow,
+  ArrowUpNarrowWide,
+  SlidersHorizontal,
 } from 'lucide-react';
 import { CustomSelect } from '../ui/CustomSelect';
 
@@ -29,6 +43,8 @@ const CONTRAST_PRESETS = [
   '情绪低谷',
 ];
 
+type TimelineSortMode = 'custom' | 'time_desc' | 'time_asc';
+
 interface TimelineTabProps {
   topicId: string;
   timeline: TimelineEvent[];
@@ -36,6 +52,153 @@ interface TimelineTabProps {
   onDeleteEvent: (eventId: string) => Promise<void>;
   onReorder: (topicId: string, events: TimelineEvent[]) => Promise<void>;
 }
+
+function inferDatePrecision(dateStr: string): DatePrecision {
+  const trimmed = dateStr.trim();
+  if (!trimmed || trimmed === '待考证' || trimmed === '未知') return 'unknown';
+  if (/^\d{4}-\d{1,2}-\d{1,2}$/.test(trimmed)) return 'exact';
+  if (/^\d{4}-\d{1,2}$/.test(trimmed)) return 'year_month';
+  if (/^\d{4}$/.test(trimmed)) return 'year';
+  return 'exact';
+}
+
+function formatEventDate(dateStr: string, precision: DatePrecision): string {
+  const trimmed = dateStr.trim();
+  if (precision === 'unknown' || !trimmed || trimmed === '待考证' || trimmed === '未知') {
+    return '待考证';
+  }
+  if (precision === 'year' || /^\d{4}$/.test(trimmed)) return `${trimmed} 年`;
+  if (precision === 'year_month' || /^\d{4}-\d{1,2}$/.test(trimmed)) return `${trimmed} 月`;
+  return trimmed;
+}
+
+function compareEventsByDate(a: TimelineEvent, b: TimelineEvent, direction: 'asc' | 'desc'): number {
+  const dateA = a.event_date?.trim() || '';
+  const dateB = b.event_date?.trim() || '';
+  const isAValid = Boolean(dateA && a.date_precision !== 'unknown' && dateA !== '待考证' && dateA !== '未知');
+  const isBValid = Boolean(dateB && b.date_precision !== 'unknown' && dateB !== '待考证' && dateB !== '未知');
+
+  if (!isAValid && !isBValid) return 0;
+  if (!isAValid) return 1;
+  if (!isBValid) return -1;
+
+  const result = dateA.localeCompare(dateB);
+  return direction === 'asc' ? result : -result;
+}
+
+interface SortableTimelineCardProps {
+  event: TimelineEvent;
+  index: number;
+  onEdit: (evt: TimelineEvent) => void;
+  onDelete: (id: string) => void;
+}
+
+const SortableTimelineCard: React.FC<SortableTimelineCardProps> = ({
+  event,
+  index,
+  onEdit,
+  onDelete,
+}) => {
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({ id: event.id });
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+  };
+
+  const isUnknownDate = event.date_precision === 'unknown' || !event.event_date || event.event_date === '待考证';
+
+  return (
+    <div
+      ref={setNodeRef}
+      style={style}
+      className={`relative group ${isDragging ? 'opacity-50 z-30 scale-[1.01]' : 'opacity-100'}`}
+    >
+      {/* Timeline Node Dot on Left Axis */}
+      <div className="absolute -left-6 sm:-left-8 top-3.5 w-6 h-6 rounded-full bg-white dark:bg-stone-900 border-2 border-rose-600 dark:border-rose-500 flex items-center justify-center text-[10px] font-bold text-rose-700 dark:text-rose-400 shadow-xs z-10 select-none">
+        {index + 1}
+      </div>
+
+      {/* Event Main Card */}
+      <div className="bg-white dark:bg-stone-900 rounded-xl border border-stone-200 dark:border-stone-800 p-4 sm:p-5 shadow-subtle hover:shadow-card transition-all space-y-2.5">
+        <div className="flex items-center justify-between gap-2 flex-wrap">
+          <div className="flex items-center gap-2 flex-wrap">
+            {/* Drag Handle */}
+            <button
+              type="button"
+              {...attributes}
+              {...listeners}
+              className="p-1 -ml-1 text-stone-400 dark:text-stone-500 hover:text-stone-700 dark:hover:text-stone-200 cursor-grab active:cursor-grabbing rounded hover:bg-stone-100 dark:hover:bg-stone-800 transition-colors"
+              title="按住拖拽调整顺序"
+            >
+              <GripVertical className="w-4 h-4" />
+            </button>
+
+            {/* Date Badge */}
+            <span
+              className={`text-xs font-mono font-bold px-2 py-0.5 rounded border inline-flex items-center gap-1 ${
+                isUnknownDate
+                  ? 'bg-stone-100 dark:bg-stone-800 text-stone-600 dark:text-stone-400 border-stone-200 dark:border-stone-700'
+                  : 'bg-rose-50 dark:bg-rose-950/60 text-rose-700 dark:text-rose-300 border-rose-200 dark:border-rose-900/60'
+              }`}
+            >
+              📅 {formatEventDate(event.event_date, event.date_precision)}
+            </span>
+
+            {/* Verification Badge */}
+            <VerificationBadge status={event.verification_status} />
+
+            {/* Contrast Tag (if marked) */}
+            {event.contrast_tag && (
+              <span className="text-xs font-bold text-amber-800 dark:text-amber-300 bg-amber-50 dark:bg-amber-950/60 border border-amber-300 dark:border-amber-800/80 px-2 py-0.5 rounded-full inline-flex items-center gap-1 shadow-2xs">
+                ⚡ {event.contrast_tag}
+              </span>
+            )}
+          </div>
+
+          {/* Edit and Delete Actions */}
+          <div className="flex items-center gap-1">
+            <button
+              type="button"
+              onClick={() => onEdit(event)}
+              className="p-1.5 text-stone-400 dark:text-stone-500 hover:text-stone-700 dark:hover:text-stone-200 hover:bg-stone-100 dark:hover:bg-stone-800 rounded-lg cursor-pointer transition-colors"
+              title="编辑时间节点"
+            >
+              <Edit2 className="w-3.5 h-3.5" />
+            </button>
+            <button
+              type="button"
+              onClick={() => onDelete(event.id)}
+              className="p-1.5 text-stone-400 dark:text-stone-500 hover:text-red-600 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/40 rounded-lg cursor-pointer transition-colors"
+              title="删除时间节点"
+            >
+              <Trash2 className="w-3.5 h-3.5" />
+            </button>
+          </div>
+        </div>
+
+        {/* Event Title */}
+        <h4 className="text-sm sm:text-base font-bold text-stone-900 dark:text-stone-100 leading-snug">
+          {event.title}
+        </h4>
+
+        {/* Detailed Description */}
+        {event.description && (
+          <p className="text-xs sm:text-sm text-stone-600 dark:text-stone-300 leading-relaxed bg-stone-50 dark:bg-stone-800/60 p-3 rounded-lg border border-stone-100 dark:border-stone-800 whitespace-pre-wrap">
+            {event.description}
+          </p>
+        )}
+      </div>
+    </div>
+  );
+};
 
 export const TimelineTab: React.FC<TimelineTabProps> = ({
   topicId,
@@ -51,16 +214,82 @@ export const TimelineTab: React.FC<TimelineTabProps> = ({
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [eventDate, setEventDate] = useState('');
-  const [datePrecision, setDatePrecision] = useState<DatePrecision>('exact');
   const [verificationStatus, setVerificationStatus] = useState<VerificationStatus>('confirmed');
   const [contrastTag, setContrastTag] = useState('');
+
+  // Sorting Mode State with Independent Persistence
+  const storageKey = `timeline_sort_mode_${topicId}`;
+  const [sortMode, setSortMode] = useState<TimelineSortMode>(() => {
+    if (typeof window === 'undefined') return 'custom';
+    const saved = localStorage.getItem(storageKey);
+    return (saved === 'time_desc' || saved === 'time_asc' || saved === 'custom') ? saved : 'custom';
+  });
+
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem(storageKey);
+      if (saved === 'time_desc' || saved === 'time_asc' || saved === 'custom') {
+        setSortMode(saved);
+      }
+    } catch {
+      // ignore
+    }
+  }, [storageKey]);
+
+  const handleSortModeChange = (mode: TimelineSortMode) => {
+    setSortMode(mode);
+    try {
+      localStorage.setItem(storageKey, mode);
+    } catch {
+      // ignore
+    }
+  };
+
+  // Derived Display Items
+  const displayEvents = useMemo(() => {
+    if (sortMode === 'time_desc') {
+      return [...timeline].sort((a, b) => compareEventsByDate(a, b, 'desc'));
+    }
+    if (sortMode === 'time_asc') {
+      return [...timeline].sort((a, b) => compareEventsByDate(a, b, 'asc'));
+    }
+    return timeline;
+  }, [timeline, sortMode]);
+
+  // DnD Sensors
+  const sensors = useSensors(
+    useSensor(PointerSensor, {
+      activationConstraint: {
+        distance: 4,
+      },
+    }),
+    useSensor(KeyboardSensor, {
+      coordinateGetter: sortableKeyboardCoordinates,
+    })
+  );
+
+  const handleDragEnd = async (event: DragEndEvent) => {
+    const { active, over } = event;
+    if (!over || active.id === over.id) return;
+
+    const oldIndex = displayEvents.findIndex((item) => item.id === active.id);
+    const newIndex = displayEvents.findIndex((item) => item.id === over.id);
+    if (oldIndex === -1 || newIndex === -1) return;
+
+    const newItems = arrayMove(displayEvents, oldIndex, newIndex);
+
+    // If dragging while in time-sorted mode, automatically switch to custom mode
+    if (sortMode !== 'custom') {
+      handleSortModeChange('custom');
+    }
+    await onReorder(topicId, newItems);
+  };
 
   const openAddModal = () => {
     setEditingEvent(null);
     setTitle('');
     setDescription('');
     setEventDate('');
-    setDatePrecision('exact');
     setVerificationStatus('confirmed');
     setContrastTag('');
     setIsModalOpen(true);
@@ -71,7 +300,6 @@ export const TimelineTab: React.FC<TimelineTabProps> = ({
     setTitle(evt.title);
     setDescription(evt.description);
     setEventDate(evt.event_date);
-    setDatePrecision(evt.date_precision);
     setVerificationStatus(evt.verification_status);
     setContrastTag(evt.contrast_tag || '');
     setIsModalOpen(true);
@@ -81,13 +309,16 @@ export const TimelineTab: React.FC<TimelineTabProps> = ({
     e.preventDefault();
     if (!title.trim()) return;
 
+    const cleanDate = eventDate.trim();
+    const precision = inferDatePrecision(cleanDate);
+
     await onSaveEvent({
       id: editingEvent?.id,
       topic_id: topicId,
       title: title.trim(),
       description: description.trim(),
-      event_date: eventDate.trim(),
-      date_precision: datePrecision,
+      event_date: cleanDate,
+      date_precision: precision,
       verification_status: verificationStatus,
       contrast_tag: contrastTag.trim() || undefined,
     });
@@ -95,192 +326,119 @@ export const TimelineTab: React.FC<TimelineTabProps> = ({
     setIsModalOpen(false);
   };
 
-  const moveUp = async (index: number) => {
-    if (index === 0) return;
-    const newItems = [...timeline];
-    const temp = newItems[index];
-    newItems[index] = newItems[index - 1];
-    newItems[index - 1] = temp;
-    await onReorder(topicId, newItems);
-  };
-
-  const moveDown = async (index: number) => {
-    if (index === timeline.length - 1) return;
-    const newItems = [...timeline];
-    const temp = newItems[index];
-    newItems[index] = newItems[index + 1];
-    newItems[index + 1] = temp;
-    await onReorder(topicId, newItems);
-  };
-
-  const formatEventDate = (dateStr: string, precision: DatePrecision) => {
-    if (precision === 'unknown' || !dateStr) return '时间未知 / 待考证';
-    if (precision === 'year') return `${dateStr} 年`;
-    if (precision === 'year_month') return `${dateStr} 月`;
-    return dateStr;
-  };
-
   return (
-    <div className="py-6 space-y-6 max-w-4xl mx-auto">
-      {/* Header action */}
-      <div className="flex items-center justify-between bg-white dark:bg-stone-900 p-5 rounded-xl border border-stone-200 dark:border-stone-800 shadow-subtle transition-colors">
-        <div>
-          <h3 className="text-base font-bold text-stone-900 dark:text-stone-100 flex items-center gap-2">
+    <div className="py-4 space-y-4 max-w-4xl mx-auto">
+      {/* Top Header & Sort Controls Bar */}
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 bg-white dark:bg-stone-900 p-4 sm:p-4.5 rounded-xl border border-stone-200 dark:border-stone-800 shadow-subtle transition-colors">
+        <div className="space-y-0.5">
+          <h3 className="text-sm sm:text-base font-bold text-stone-900 dark:text-stone-100 flex items-center gap-2">
             <Clock className="w-4 h-4 text-rose-600 dark:text-rose-500" />
-            <span>事件故事时间线 (Chronological Timeline)</span>
+            <span>事件故事时间线</span>
+            <span className="text-xs font-mono font-bold bg-stone-100 dark:bg-stone-800 text-stone-600 dark:text-stone-300 px-2 py-0.5 rounded-full">
+              {timeline.length}
+            </span>
           </h3>
-          <p className="text-xs text-stone-500 dark:text-stone-400 mt-0.5">
-            将复杂事件按因果与时序组织为清晰的故事链条，自由标记荒诞反差与戏剧张力
+          <p className="text-xs text-stone-500 dark:text-stone-400">
+            按时序梳理因果脉络，支持拖拽自定义排序与一键时间排序
           </p>
         </div>
 
-        <button
-          onClick={openAddModal}
-          className="flex items-center gap-1.5 bg-stone-900 dark:bg-rose-600 hover:bg-stone-800 dark:hover:bg-rose-700 text-white px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-colors shadow-sm cursor-pointer"
-        >
-          <Plus className="w-4 h-4" />
-          <span>添加时间节点</span>
-        </button>
-      </div>
-
-      {/* 1. Narrative Rhythm & Contrast Corridor */}
-      {timeline.length > 0 && (
-        <div className="bg-white dark:bg-stone-900 rounded-xl border border-stone-200 dark:border-stone-800 p-4 space-y-3 shadow-subtle">
-          <div className="flex items-center justify-between">
-            <h4 className="text-xs font-bold text-stone-800 dark:text-stone-200 flex items-center gap-1.5">
-              <Activity className="w-3.5 h-3.5 text-rose-500" />
-              <span>叙事反差与情绪节奏走廊 (Rhythm Corridor)</span>
-            </h4>
-            <span className="text-[10px] text-stone-400 font-mono">共 {timeline.length} 个节点</span>
+        <div className="flex items-center gap-2 w-full sm:w-auto justify-between sm:justify-end flex-wrap">
+          {/* Sort Mode Segmented Control */}
+          <div className="inline-flex items-center rounded-lg bg-stone-100 dark:bg-stone-800 p-0.5 border border-stone-200/80 dark:border-stone-700 text-xs font-semibold">
+            <button
+              type="button"
+              onClick={() => handleSortModeChange('custom')}
+              className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-md transition-all cursor-pointer ${
+                sortMode === 'custom'
+                  ? 'bg-white dark:bg-stone-700 text-stone-900 dark:text-stone-100 shadow-2xs'
+                  : 'text-stone-500 dark:text-stone-400 hover:text-stone-800 dark:hover:text-stone-200'
+              }`}
+              title="按自定义拖拽顺序排列（可自由拖拽）"
+            >
+              <SlidersHorizontal className="w-3.5 h-3.5" />
+              <span>自定义排序</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => handleSortModeChange('time_desc')}
+              className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-md transition-all cursor-pointer ${
+                sortMode === 'time_desc'
+                  ? 'bg-white dark:bg-stone-700 text-stone-900 dark:text-stone-100 shadow-2xs'
+                  : 'text-stone-500 dark:text-stone-400 hover:text-stone-800 dark:hover:text-stone-200'
+              }`}
+              title="按时间从新到旧排列 (最新在前)"
+            >
+              <ArrowDownWideNarrow className="w-3.5 h-3.5" />
+              <span>时间从大到小</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => handleSortModeChange('time_asc')}
+              className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-md transition-all cursor-pointer ${
+                sortMode === 'time_asc'
+                  ? 'bg-white dark:bg-stone-700 text-stone-900 dark:text-stone-100 shadow-2xs'
+                  : 'text-stone-500 dark:text-stone-400 hover:text-stone-800 dark:hover:text-stone-200'
+              }`}
+              title="按时间从旧到新排列 (最早在前)"
+            >
+              <ArrowUpNarrowWide className="w-3.5 h-3.5" />
+              <span>时间从小到大</span>
+            </button>
           </div>
 
-          {/* Horizontal scrollable rhythm track */}
-          <div className="flex items-center gap-2 overflow-x-auto pb-2 pt-1" style={{ scrollbarWidth: 'thin' }}>
-            {timeline.map((evt, idx) => {
-              const hasContrast = Boolean(evt.contrast_tag);
-              return (
-                <div key={`corridor-${evt.id}`} className="flex items-center shrink-0">
-                  <div
-                    className={`flex flex-col p-2.5 rounded-xl border transition-all min-w-[130px] max-w-[170px] ${
-                      hasContrast
-                        ? 'bg-amber-50/60 dark:bg-amber-950/30 border-amber-300 dark:border-amber-800/80 shadow-2xs'
-                        : 'bg-stone-50 dark:bg-stone-800/60 border-stone-200 dark:border-stone-700'
-                    }`}
-                  >
-                    <div className="flex items-center justify-between gap-1 mb-1">
-                      <span className="w-4 h-4 rounded-full bg-rose-600 text-white text-[9px] font-bold flex items-center justify-center">
-                        {idx + 1}
-                      </span>
-                      <span className="text-[10px] font-mono text-stone-400 truncate">
-                        {formatEventDate(evt.event_date, evt.date_precision)}
-                      </span>
-                    </div>
-                    <div className="text-xs font-bold text-stone-900 dark:text-stone-100 truncate" title={evt.title}>
-                      {evt.title}
-                    </div>
-                    {evt.contrast_tag && (
-                      <span className="mt-1 text-[10px] font-bold text-amber-800 dark:text-amber-300 bg-amber-100 dark:bg-amber-900/60 px-1.5 py-0.5 rounded truncate">
-                        ⚡ {evt.contrast_tag}
-                      </span>
-                    )}
-                  </div>
-
-                  {idx < timeline.length - 1 && (
-                    <div className="w-3 border-t-2 border-dashed border-stone-300 dark:border-stone-700 mx-1 shrink-0" />
-                  )}
-                </div>
-              );
-            })}
-          </div>
+          {/* Add Node Button */}
+          <button
+            type="button"
+            onClick={openAddModal}
+            className="flex items-center gap-1 bg-stone-900 dark:bg-rose-600 hover:bg-stone-800 dark:hover:bg-rose-700 text-white px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors shadow-2xs cursor-pointer shrink-0"
+          >
+            <Plus className="w-4 h-4" />
+            <span>添加节点</span>
+          </button>
         </div>
-      )}
-
-      {/* 2. Vertical Timeline */}
-      <div className="relative pl-6 sm:pl-8 space-y-6 before:absolute before:left-3 before:top-4 before:bottom-4 before:w-0.5 before:bg-stone-200 dark:before:bg-stone-800">
-        {timeline.map((evt, idx) => (
-          <div key={evt.id} className="relative group">
-            {/* Timeline node dot */}
-            <div className="absolute -left-6 sm:-left-8 top-3.5 w-6 h-6 rounded-full bg-white dark:bg-stone-900 border-2 border-rose-600 dark:border-rose-500 flex items-center justify-center text-[10px] font-bold text-rose-700 dark:text-rose-400 shadow-xs z-10">
-              {idx + 1}
-            </div>
-
-            {/* Event Card */}
-            <div className="bg-white dark:bg-stone-900 rounded-xl border border-stone-200 dark:border-stone-800 p-5 shadow-subtle hover:shadow-card transition-all space-y-2">
-              <div className="flex items-center justify-between gap-2 flex-wrap">
-                <div className="flex items-center gap-2 flex-wrap">
-                  <span className="text-xs font-mono font-bold text-rose-700 dark:text-rose-300 bg-rose-50 dark:bg-rose-950/60 border border-rose-200 dark:border-rose-900/60 px-2 py-0.5 rounded">
-                    📅 {formatEventDate(evt.event_date, evt.date_precision)}
-                  </span>
-                  <VerificationBadge status={evt.verification_status} />
-                  {evt.contrast_tag && (
-                    <span className="text-xs font-bold text-amber-800 dark:text-amber-300 bg-amber-50 dark:bg-amber-950/60 border border-amber-300 dark:border-amber-800/80 px-2 py-0.5 rounded-full inline-flex items-center gap-1 shadow-2xs">
-                      ⚡ {evt.contrast_tag}
-                    </span>
-                  )}
-                </div>
-
-                {/* Move & Edit Actions */}
-                <div className="flex items-center gap-1 opacity-80 group-hover:opacity-100">
-                  <button
-                    onClick={() => moveUp(idx)}
-                    disabled={idx === 0}
-                    className="p-1 text-stone-400 dark:text-stone-500 hover:text-stone-700 dark:hover:text-stone-300 disabled:opacity-20 rounded cursor-pointer"
-                    title="上移"
-                  >
-                    <ArrowUp className="w-3.5 h-3.5" />
-                  </button>
-                  <button
-                    onClick={() => moveDown(idx)}
-                    disabled={idx === timeline.length - 1}
-                    className="p-1 text-stone-400 dark:text-stone-500 hover:text-stone-700 dark:hover:text-stone-300 disabled:opacity-20 rounded cursor-pointer"
-                    title="下移"
-                  >
-                    <ArrowDown className="w-3.5 h-3.5" />
-                  </button>
-                  <div className="w-px h-3 bg-stone-200 dark:bg-stone-700 mx-1" />
-                  <button
-                    onClick={() => openEditModal(evt)}
-                    className="p-1 text-stone-400 dark:text-stone-500 hover:text-stone-700 dark:hover:text-stone-300 rounded cursor-pointer transition-colors"
-                    title="编辑"
-                  >
-                    <Edit2 className="w-3.5 h-3.5" />
-                  </button>
-                  <button
-                    onClick={() => onDeleteEvent(evt.id)}
-                    className="p-1 text-stone-400 dark:text-stone-500 hover:text-red-600 dark:hover:text-red-400 rounded cursor-pointer transition-colors"
-                    title="删除"
-                  >
-                    <Trash2 className="w-3.5 h-3.5" />
-                  </button>
-                </div>
-              </div>
-
-              {/* Event Title */}
-              <h4 className="text-base font-bold text-stone-900 dark:text-stone-100 leading-snug">{evt.title}</h4>
-
-              {/* Description */}
-              {evt.description && (
-                <p className="text-sm text-stone-600 dark:text-stone-300 leading-relaxed bg-stone-50 dark:bg-stone-800/60 p-3 rounded-lg border border-stone-100 dark:border-stone-800">
-                  {evt.description}
-                </p>
-              )}
-            </div>
-          </div>
-        ))}
-
-        {timeline.length === 0 && (
-          <div className="p-12 text-center border-2 border-dashed border-stone-200 dark:border-stone-800 rounded-xl bg-white dark:bg-stone-900 text-stone-400 dark:text-stone-500">
-            暂无时间线节点，点击上方按钮按发生顺序添加事件节点！
-          </div>
-        )}
       </div>
 
-      {/* Modal: Add/Edit Event */}
+      {/* Main Vertical Timeline List with DnD */}
+      <DndContext
+        sensors={sensors}
+        collisionDetection={closestCenter}
+        onDragEnd={handleDragEnd}
+      >
+        <SortableContext
+          items={displayEvents.map((evt) => evt.id)}
+          strategy={verticalListSortingStrategy}
+        >
+          <div className="relative pl-6 sm:pl-8 space-y-4 before:absolute before:left-3 before:top-3 before:bottom-3 before:w-0.5 before:bg-stone-200 dark:before:bg-stone-800 transition-colors">
+            {displayEvents.map((evt, idx) => (
+              <SortableTimelineCard
+                key={evt.id}
+                event={evt}
+                index={idx}
+                onEdit={openEditModal}
+                onDelete={onDeleteEvent}
+              />
+            ))}
+
+            {displayEvents.length === 0 && (
+              <div className="p-12 text-center border-2 border-dashed border-stone-200 dark:border-stone-800 rounded-xl bg-white dark:bg-stone-900 text-stone-400 dark:text-stone-500 space-y-2">
+                <Clock className="w-8 h-8 mx-auto text-stone-300 dark:text-stone-600 stroke-[1.5]" />
+                <div className="text-sm font-medium">暂无故事时间节点</div>
+                <p className="text-xs text-stone-400 dark:text-stone-500">
+                  点击上方「添加节点」记录事件发生的时间、起因、经过与反差转折
+                </p>
+              </div>
+            )}
+          </div>
+        </SortableContext>
+      </DndContext>
+
+      {/* Simplified Modal: Add / Edit Timeline Node */}
       <Modal
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
         title={editingEvent ? '编辑时间节点' : '添加时间节点'}
-        subtitle="支持多种日期精度，可随时拖动或上下调整因果先后顺序"
+        subtitle="规范输入日期，支持随时拖拽手柄调整故事顺序"
         maxWidth="md"
       >
         <form onSubmit={handleSubmit} className="space-y-4">
@@ -291,19 +449,21 @@ export const TimelineTab: React.FC<TimelineTabProps> = ({
             <input
               type="text"
               required
-              placeholder="例如：首次入驻华哥训练基地并签署军令状"
+              placeholder="例如：首次入驻训练基地并立下誓言"
               value={title}
               onChange={(e) => setTitle(e.target.value)}
               className="w-full px-3 py-2 bg-stone-50 dark:bg-stone-800 border border-stone-300 dark:border-stone-700 rounded-lg text-sm text-stone-900 dark:text-stone-100 placeholder:text-stone-400 dark:placeholder:text-stone-500 focus:bg-white dark:focus:bg-stone-800 focus:outline-none"
             />
           </div>
 
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
-              <label className="block text-xs font-semibold text-stone-700 dark:text-stone-300 mb-1">日期 / 时间</label>
+              <label className="block text-xs font-semibold text-stone-700 dark:text-stone-300 mb-1">
+                发生日期 (支持 YYYY-MM-DD / YYYY-MM / YYYY / 待考证)
+              </label>
               <input
                 type="text"
-                placeholder="2026-07-28 / 2026-05 / 2025"
+                placeholder="2026-07-28 或 2026-05 或 待考证"
                 value={eventDate}
                 onChange={(e) => setEventDate(e.target.value)}
                 className="w-full px-3 py-2 bg-stone-50 dark:bg-stone-800 border border-stone-300 dark:border-stone-700 rounded-lg text-sm text-stone-900 dark:text-stone-100 placeholder:text-stone-400 dark:placeholder:text-stone-500 focus:bg-white dark:focus:bg-stone-800 focus:outline-none"
@@ -311,24 +471,27 @@ export const TimelineTab: React.FC<TimelineTabProps> = ({
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-stone-700 dark:text-stone-300 mb-1">时间精度</label>
+              <label className="block text-xs font-semibold text-stone-700 dark:text-stone-300 mb-1">
+                可信度状态
+              </label>
               <CustomSelect
-                value={datePrecision}
-                onChange={(val) => setDatePrecision(val as DatePrecision)}
+                value={verificationStatus}
+                onChange={(val) => setVerificationStatus(val as VerificationStatus)}
                 className="w-full"
                 buttonClassName="w-full justify-between py-2 text-sm bg-stone-50 dark:bg-stone-800 border-stone-300 dark:border-stone-700 rounded-lg"
                 options={[
-                  { value: 'exact', label: '精确日期 (年月日)' },
-                  { value: 'year_month', label: '年月 (如 2026-05)' },
-                  { value: 'year', label: '年份 (如 2025)' },
-                  { value: 'unknown', label: '时间未知 / 待考证' },
+                  { value: 'confirmed', label: '已确认 (多方可靠来源)', dot: 'bg-emerald-500' },
+                  { value: 'unverified', label: '待核实 (信息不足)', dot: 'bg-amber-500' },
+                  { value: 'rejected', label: '不采用 (已证伪)', dot: 'bg-stone-400' },
                 ]}
               />
             </div>
           </div>
 
           <div>
-            <label className="block text-xs font-semibold text-stone-700 dark:text-stone-300 mb-1">自由反差与情绪标记 (选填)</label>
+            <label className="block text-xs font-semibold text-stone-700 dark:text-stone-300 mb-1">
+              反差与情绪标记 (选填)
+            </label>
             <input
               type="text"
               placeholder="例如：荒诞反差、人物张力、高潮爆发、伏笔呼应"
@@ -356,22 +519,9 @@ export const TimelineTab: React.FC<TimelineTabProps> = ({
           </div>
 
           <div>
-            <label className="block text-xs font-semibold text-stone-700 dark:text-stone-300 mb-1">可信度状态</label>
-            <CustomSelect
-              value={verificationStatus}
-              onChange={(val) => setVerificationStatus(val as VerificationStatus)}
-              className="w-full"
-              buttonClassName="w-full justify-between py-2 text-sm bg-stone-50 dark:bg-stone-800 border-stone-300 dark:border-stone-700 rounded-lg"
-              options={[
-                { value: 'confirmed', label: '已确认 (多方可靠来源)', dot: 'bg-emerald-500' },
-                { value: 'unverified', label: '待核实 (信息不足)', dot: 'bg-amber-500' },
-                { value: 'rejected', label: '不采用 (已证伪)', dot: 'bg-stone-400' },
-              ]}
-            />
-          </div>
-
-          <div>
-            <label className="block text-xs font-semibold text-stone-700 dark:text-stone-300 mb-1">事件详细经过与说明</label>
+            <label className="block text-xs font-semibold text-stone-700 dark:text-stone-300 mb-1">
+              事件详细经过与说明
+            </label>
             <textarea
               rows={3}
               placeholder="详细记录发生了什么、谁参与了、产生了什么后果..."
