@@ -190,9 +190,9 @@ export const PublishedView: React.FC<PublishedViewProps> = ({
   };
 
   // Auto extract and fetch Bilibili data in modal
-  const handleFetchBiliData = async () => {
-    const rawInput = bvid || url;
-    if (!rawInput.trim()) {
+  const handleFetchBiliData = async (overrideInput?: string) => {
+    const rawInput = (overrideInput ?? (bvid || url)).trim();
+    if (!rawInput) {
       setFetchError('请先输入 BV 号或视频链接（例如：BV1xx411c7xx 或完整 B 站播放页链接）');
       return;
     }
@@ -846,21 +846,35 @@ export const PublishedView: React.FC<PublishedViewProps> = ({
                   type="text"
                   placeholder="例如：BV1xx411c7xx 或粘贴 B站播放链接"
                   value={bvid}
+                  onPaste={(e) => {
+                    const pasted = e.clipboardData.getData('text');
+                    if (pasted) {
+                      setBvid(pasted);
+                      const clean = extractBvid(pasted);
+                      if (clean) {
+                        setUrl(`https://www.bilibili.com/video/${clean}`);
+                        void handleFetchBiliData(pasted);
+                      }
+                    }
+                  }}
                   onChange={(e) => {
                     const val = e.target.value;
                     setBvid(val);
                     const clean = extractBvid(val);
-                    if (clean && !url) {
+                    if (clean) {
                       setUrl(`https://www.bilibili.com/video/${clean}`);
+                      if (val.trim().length === 12 && val.trim().startsWith('BV')) {
+                        void handleFetchBiliData(val.trim());
+                      }
                     }
                   }}
                   className="flex-1 px-3 py-1.5 bg-white dark:bg-stone-900 border border-stone-300 dark:border-stone-700 rounded-lg text-xs sm:text-sm text-stone-900 dark:text-stone-100 placeholder:text-stone-400 dark:placeholder:text-stone-500 focus:border-rose-500 dark:focus:border-rose-500 focus:outline-none font-mono"
                 />
                 <button
                   type="button"
-                  onClick={handleFetchBiliData}
+                  onClick={() => void handleFetchBiliData()}
                   disabled={isFetchingBili || !bvid.trim()}
-                  className="flex items-center gap-1.5 bg-rose-600 hover:bg-rose-700 disabled:bg-rose-400 dark:disabled:bg-rose-900 text-white px-3 py-1.5 rounded-lg text-xs font-medium transition-colors shrink-0 shadow-2xs cursor-pointer"
+                  className="flex items-center gap-1.5 bg-rose-600 hover:bg-rose-700 disabled:bg-rose-400 dark:disabled:bg-rose-900 text-white px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors shrink-0 shadow-2xs cursor-pointer"
                 >
                   {isFetchingBili ? (
                     <Loader2 className="w-3.5 h-3.5 animate-spin" />
