@@ -1,6 +1,6 @@
 import type { Hono } from 'hono';
 import type { AppSettings } from '../types';
-import { DEFAULT_APP_SETTINGS } from '../types';
+import { DEFAULT_APP_SETTINGS, DEFAULT_VOICEOVER_CUES } from '../types';
 import {
   BackupImportLimitError,
   exportAllData,
@@ -19,6 +19,9 @@ async function getKvSettings(kv?: KVNamespace, defaultPublicBaseUrl?: string): P
       const validThemes = ['light', 'dark', 'warm_paper', 'system'];
       const validFontSizes = ['compact', 'standard', 'large'];
       const validLineHeights = ['normal', 'relaxed', 'loose'];
+      const voiceoverCues = Array.isArray(settings.voiceover_cues)
+        ? settings.voiceover_cues
+        : (DEFAULT_APP_SETTINGS.voiceover_cues || DEFAULT_VOICEOVER_CUES);
 
       return {
         reading_speed: settings.reading_speed > 0 ? settings.reading_speed : DEFAULT_APP_SETTINGS.reading_speed,
@@ -30,6 +33,7 @@ async function getKvSettings(kv?: KVNamespace, defaultPublicBaseUrl?: string): P
         default_share_ttl_days: Number.isFinite(settings.default_share_ttl_days) && (settings.default_share_ttl_days as number) > 0 ? settings.default_share_ttl_days : DEFAULT_APP_SETTINGS.default_share_ttl_days,
         reviewer_branding: typeof settings.reviewer_branding === 'string' ? settings.reviewer_branding : DEFAULT_APP_SETTINGS.reviewer_branding,
         public_base_url: typeof settings.public_base_url === 'string' && settings.public_base_url.trim() ? settings.public_base_url.trim().replace(/\/+$/, '') : (defaultPublicBaseUrl || ''),
+        voiceover_cues: voiceoverCues,
       };
     }
   } catch {
@@ -207,6 +211,9 @@ function detectEnvironment(c: { env: ApiBindings }): 'node_container' | 'cloudfl
       const defaultShareTtlDays = Number.isFinite(ttlDays) && ttlDays > 0 && ttlDays <= 365 ? ttlDays : DEFAULT_APP_SETTINGS.default_share_ttl_days;
       const reviewerBranding = typeof settings.reviewer_branding === 'string' ? settings.reviewer_branding.slice(0, 100).trim() : DEFAULT_APP_SETTINGS.reviewer_branding;
       const publicBaseUrl = typeof settings.public_base_url === 'string' ? settings.public_base_url.slice(0, 200).trim().replace(/\/+$/, '') : '';
+      const voiceoverCues = Array.isArray(settings.voiceover_cues)
+        ? settings.voiceover_cues.map((s) => String(s).slice(0, 50).trim()).filter(Boolean)
+        : (DEFAULT_APP_SETTINGS.voiceover_cues || DEFAULT_VOICEOVER_CUES);
 
       const updatedSettings: AppSettings = {
         reading_speed: speed,
@@ -218,6 +225,7 @@ function detectEnvironment(c: { env: ApiBindings }): 'node_container' | 'cloudfl
         default_share_ttl_days: defaultShareTtlDays,
         reviewer_branding: reviewerBranding,
         public_base_url: publicBaseUrl,
+        voiceover_cues: voiceoverCues,
       };
 
       if (c.env.KV) {

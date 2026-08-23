@@ -158,6 +158,32 @@ describe('Node.js Server Integration (Local SQLite & API)', () => {
     const dropList = await listDropsRes.json() as { items: Array<{ content: string }> };
     expect(dropList.items.length).toBe(1);
     expect(dropList.items[0].content).toBe('某网红停播后续新料');
+
+    // 8. Settings Update & Persistence (including voiceover_cues)
+    const customCues = ['停顿 3s', '高能预警', '压低声线'];
+    const updateSettingsRes = await app.request('/api/settings', {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${authToken}`,
+      },
+      body: JSON.stringify({
+        reading_speed: 300,
+        theme: 'dark',
+        voiceover_cues: customCues,
+      }),
+    });
+    expect(updateSettingsRes.status).toBe(200);
+    const updatedSettings = await updateSettingsRes.json() as { reading_speed: number; voiceover_cues: string[] };
+    expect(updatedSettings.voiceover_cues).toEqual(customCues);
+
+    // Fetch settings again to ensure KV persistence
+    const getSettingsRes = await app.request('/api/settings', {
+      headers: { Authorization: `Bearer ${authToken}` },
+    });
+    expect(getSettingsRes.status).toBe(200);
+    const fetchedSettings = await getSettingsRes.json() as { reading_speed: number; voiceover_cues: string[] };
+    expect(fetchedSettings.voiceover_cues).toEqual(customCues);
   });
 
   it('correctly identifies Cloudflare Pages environment when ENVIRONMENT is cloudflare_pages or simulating D1/KV', async () => {

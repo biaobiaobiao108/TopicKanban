@@ -456,19 +456,17 @@ export const SourcesTab: React.FC<SourcesTabProps> = ({
         <form onSubmit={handleSubmit} className="space-y-4">
           {/* Smart Paste / Parse helper */}
           {!editingSource && (
-            <div className="p-3.5 bg-rose-50/70 dark:bg-rose-950/30 rounded-xl border border-rose-200 dark:border-rose-900/50 space-y-2">
+            <div className="p-3 bg-rose-50/60 dark:bg-rose-950/30 rounded-xl border border-rose-200/80 dark:border-rose-900/50 space-y-2">
               <div className="flex items-center justify-between text-xs">
                 <span className="font-bold text-rose-900 dark:text-rose-200 flex items-center gap-1.5">
                   <Sparkles className="w-3.5 h-3.5 text-rose-500" />
-                  <span>智能粘贴识别（自动拉取视频/网页标题、UP主与简介）</span>
+                  <span>Bilibili / YouTube 智能识别</span>
                 </span>
-                {isParsingUrl ? (
+                {isParsingUrl && (
                   <span className="text-[11px] text-rose-600 dark:text-rose-400 font-medium flex items-center gap-1">
                     <RefreshCw className="w-3 h-3 animate-spin" />
                     <span>正在解析元数据...</span>
                   </span>
-                ) : (
-                  <span className="text-[10px] text-stone-500 dark:text-stone-400">支持 B站/抖音/快手/微博/知乎/公众号等</span>
                 )}
               </div>
               <div className="flex items-center gap-2">
@@ -486,7 +484,7 @@ export const SourcesTab: React.FC<SourcesTabProps> = ({
                       handleSmartParse(pasted);
                     }
                   }}
-                  placeholder="直接粘贴含链接的整段分享文本或 URL，将自动抓取并填入下方字段..."
+                  placeholder="粘贴 B站（含 b23.tv）或 YouTube 链接，自动拉取标题、UP主与简介..."
                   className="flex-1 px-3 py-1.5 bg-white dark:bg-stone-900 border border-stone-300 dark:border-stone-700 rounded-lg text-xs text-stone-900 dark:text-stone-100 placeholder:text-stone-400 focus:outline-none focus:border-rose-500"
                 />
                 {smartPasteInput && (
