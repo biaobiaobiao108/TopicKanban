@@ -966,49 +966,35 @@ export const ScriptEditorTab: React.FC<ScriptEditorTabProps> = ({
       {/* Floating Zen Controls */}
       {isZenMode && (
         <>
-          {/* Top-Left: Floating Outline Drawer Toggle */}
-          <div className="fixed left-5 sm:left-8 top-5 sm:top-7 z-40 animate-in fade-in zoom-in-95 duration-200">
-            <button
-              type="button"
-              onClick={toggleOutlinePanel}
-              aria-label="展开/收起文案大纲"
-              aria-pressed={isOutlineOpen}
-              className={`flex items-center gap-1.5 rounded-xl border px-3 py-1.5 text-xs font-semibold backdrop-blur-md shadow-lg transition-all cursor-pointer hover:scale-[1.03] active:scale-[0.98] ${
-                isOutlineOpen
-                  ? 'bg-rose-600 text-white border-rose-600 shadow-rose-600/25'
-                  : 'bg-white/90 dark:bg-stone-900/90 border-stone-200/90 dark:border-stone-700/80 text-stone-700 dark:text-stone-200 hover:bg-white dark:hover:bg-stone-850'
-              }`}
-              title="大纲章节快速定位 (Esc 收起)"
-            >
-              <PanelLeftOpen className="h-3.5 w-3.5 text-rose-500" />
-              <span>大纲</span>
-              {outline.flatItems.length > 0 && (
-                <span
-                  className={`rounded-full px-1.5 text-[10px] font-bold font-mono ${
-                    isOutlineOpen
-                      ? 'bg-white/20 text-white'
-                      : 'bg-rose-100 dark:bg-rose-900/60 text-rose-800 dark:text-rose-200'
-                  }`}
-                >
-                  {outline.flatItems.length}
-                </span>
-              )}
-            </button>
-          </div>
+          {/* Top-Left: Floating Outline Drawer Toggle (Hidden when outline drawer is open) */}
+          {!isOutlineOpen && (
+            <div className="fixed left-5 sm:left-8 top-5 sm:top-7 z-40 animate-in fade-in zoom-in-95 duration-200">
+              <button
+                type="button"
+                onClick={toggleOutlinePanel}
+                aria-label="展开/收起文案大纲"
+                className="flex items-center gap-1.5 rounded-xl border px-3 py-1.5 text-xs font-semibold backdrop-blur-md shadow-lg transition-all cursor-pointer hover:scale-[1.03] active:scale-[0.98] bg-white/90 dark:bg-stone-900/90 border-stone-200/90 dark:border-stone-700/80 text-stone-700 dark:text-stone-200 hover:bg-white dark:hover:bg-stone-850"
+                title="大纲章节快速定位"
+              >
+                <PanelLeftOpen className="h-3.5 w-3.5 text-rose-500" />
+                <span>大纲</span>
+                {outline.flatItems.length > 0 && (
+                  <span className="rounded-full px-1.5 text-[10px] font-bold font-mono bg-rose-100 dark:bg-rose-900/60 text-rose-800 dark:text-rose-200">
+                    {outline.flatItems.length}
+                  </span>
+                )}
+              </button>
+            </div>
+          )}
 
-          {/* Top-Right: Floating Reference Drawer Toggle & Exit Button */}
-          <div className="fixed right-5 sm:right-8 top-5 sm:top-7 z-40 flex items-center gap-2 animate-in fade-in zoom-in-95 duration-200">
-            {topic && (
+          {/* Top-Right: Floating Reference Drawer Toggle & Exit Button (Adapts position when reference drawer is open) */}
+          <div className={`fixed right-5 sm:right-8 top-5 sm:top-7 z-40 flex items-center gap-2 transition-all duration-200 ${isReferenceOpen ? 'mr-80 sm:mr-96' : ''}`}>
+            {!isReferenceOpen && topic && (
               <button
                 type="button"
                 onClick={toggleReferencePanel}
                 aria-label="展开/收起事实参考"
-                aria-pressed={isReferenceOpen}
-                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold border backdrop-blur-md shadow-lg transition-all cursor-pointer hover:scale-[1.03] active:scale-[0.98] ${
-                  isReferenceOpen
-                    ? 'bg-rose-600 text-white border-rose-600 shadow-rose-600/25'
-                    : 'bg-white/90 dark:bg-stone-900/90 border-stone-200/90 dark:border-stone-700/80 text-stone-700 dark:text-stone-200 hover:bg-white dark:hover:bg-stone-850'
-                }`}
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold border backdrop-blur-md shadow-lg transition-all cursor-pointer hover:scale-[1.03] active:scale-[0.98] bg-white/90 dark:bg-stone-900/90 border-stone-200/90 dark:border-stone-700/80 text-stone-700 dark:text-stone-200 hover:bg-white dark:hover:bg-stone-850"
                 title="展开/收起边写边看事实参考抽屉"
               >
                 <BookOpen className="w-3.5 h-3.5 text-rose-500" />
@@ -1033,42 +1019,42 @@ export const ScriptEditorTab: React.FC<ScriptEditorTabProps> = ({
             </button>
           </div>
 
-          {/* Bottom-Right: Floating Stats Capsule */}
-          <div className="fixed right-5 sm:right-8 bottom-5 sm:bottom-7 z-40 flex items-center gap-2.5 bg-stone-900/90 dark:bg-stone-850/95 backdrop-blur-md border border-stone-700/80 text-stone-100 px-4 py-2 rounded-full text-xs font-mono shadow-2xl animate-in fade-in zoom-in-95 duration-200 select-none">
-            <span className="font-bold text-white font-mono">
-              {charCount.toLocaleString()} <span className="font-normal text-stone-400 text-[11px]">字</span>
+          {/* Bottom-Right: Floating Stats Capsule (Theme Adaptive & Responsive) */}
+          <div className={`fixed right-5 sm:right-8 bottom-5 sm:bottom-7 z-40 flex items-center gap-2.5 bg-white/95 dark:bg-stone-900/95 backdrop-blur-md border border-stone-200/90 dark:border-stone-700/80 text-stone-800 dark:text-stone-100 px-4 py-2 rounded-full text-xs font-mono shadow-xl transition-all duration-200 select-none ${isReferenceOpen ? 'mr-80 sm:mr-96' : ''}`}>
+            <span className="font-bold text-stone-900 dark:text-stone-100 font-mono">
+              {charCount.toLocaleString()} <span className="font-normal text-stone-400 dark:text-stone-500 text-[11px]">字</span>
             </span>
-            <span className="text-stone-600">·</span>
+            <span className="text-stone-300 dark:text-stone-700">·</span>
             <span
-              className="flex items-center gap-1 text-rose-400 font-semibold font-mono text-[11px]"
+              className="flex items-center gap-1 text-rose-600 dark:text-rose-400 font-bold font-mono text-[11px]"
               title={`预估时长（按 ${effectiveSpeed} 字/分钟计算）`}
             >
-              <Clock className="w-3 h-3 text-rose-400 shrink-0" />
+              <Clock className="w-3 h-3 text-rose-500 shrink-0" />
               <span>{estMinutes}分{estSeconds}秒</span>
             </span>
-            <span className="text-stone-600">·</span>
-            <div className="flex items-center gap-1 text-[10px] text-stone-400">
+            <span className="text-stone-300 dark:text-stone-700">·</span>
+            <div className="flex items-center gap-1 text-[10px] text-stone-500 dark:text-stone-400 font-medium">
               {saveStatus === 'saving' && (
-                <span className="flex items-center gap-1 text-amber-400" title="正在同步至云端...">
-                  <span className="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse" />
+                <span className="flex items-center gap-1 text-amber-600 dark:text-amber-400" title="正在同步至云端...">
+                  <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse" />
                   <span className="hidden sm:inline">同步中</span>
                 </span>
               )}
               {saveStatus === 'saved' && (
-                <span className="flex items-center gap-1 text-emerald-400" title="云端已同步">
-                  <CheckCircle2 className="w-3 h-3 text-emerald-400" />
+                <span className="flex items-center gap-1 text-emerald-600 dark:text-emerald-400 font-semibold" title="云端已同步">
+                  <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500" />
                   <span className="hidden sm:inline">已同步</span>
                 </span>
               )}
               {(saveStatus === 'local' || saveStatus === 'unsaved' || saveStatus === 'pending') && (
-                <span className="flex items-center gap-1 text-stone-300" title="本地已安全暂存">
-                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-400/80" />
+                <span className="flex items-center gap-1 text-stone-600 dark:text-stone-400" title="本地已安全暂存">
+                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-500/80" />
                   <span className="hidden sm:inline">已暂存</span>
                 </span>
               )}
               {saveStatus === 'conflict' && (
-                <span className="flex items-center gap-1 text-red-400" title="版本冲突">
-                  <AlertTriangle className="w-3 h-3 text-red-400" />
+                <span className="flex items-center gap-1 text-red-600 dark:text-red-400 font-semibold" title="版本冲突">
+                  <AlertTriangle className="w-3.5 h-3.5 text-red-500" />
                   <span className="hidden sm:inline">冲突</span>
                 </span>
               )}

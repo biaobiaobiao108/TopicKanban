@@ -77,7 +77,7 @@ export const ScriptReferenceDrawer: React.FC<ScriptReferenceDrawerProps> = ({
           : hasOutlineContent || filteredTimeline.length > 0 || filteredPeople.length > 0 || filteredSources.length > 0;
 
   return (
-    <div className="script-reference-drawer fixed inset-0 z-50 flex h-[100dvh] w-full flex-col bg-white/95 dark:bg-stone-900/95 backdrop-blur-md pb-[env(safe-area-inset-bottom)] pt-[env(safe-area-inset-top)] animate-in fade-in duration-150 lg:absolute lg:inset-y-0 lg:right-0 lg:z-30 lg:h-full lg:w-80 xl:w-96 lg:bg-white/90 lg:dark:bg-stone-900/90 lg:border-l lg:border-stone-200/50 lg:dark:border-stone-800/50 lg:shadow-subtle lg:animate-in lg:slide-in-from-right lg:duration-200 lg:pb-0 lg:pt-0">
+    <div className="script-reference-drawer absolute inset-y-0 right-0 z-30 flex h-full w-80 sm:w-96 flex-col bg-white/95 dark:bg-stone-900/95 backdrop-blur-md border-l border-stone-200/50 dark:border-stone-800/50 shadow-subtle animate-in slide-in-from-right duration-200">
       {/* Header */}
       <div className="flex shrink-0 items-center justify-between gap-2 h-14 px-4 border-b border-stone-100/80 dark:border-stone-800/80">
         <div className="flex items-center gap-2 min-w-0">

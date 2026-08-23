@@ -126,7 +126,7 @@ export const ScriptOutlinePanel: React.FC<ScriptOutlinePanelProps> = ({
   };
 
   return (
-    <aside className="script-outline-panel fixed inset-0 z-50 flex h-[100dvh] w-full flex-col bg-white/95 dark:bg-stone-900/95 backdrop-blur-md pb-[env(safe-area-inset-bottom)] pt-[env(safe-area-inset-top)] animate-in fade-in duration-150 lg:absolute lg:inset-y-0 lg:left-0 lg:z-30 lg:h-full lg:w-72 xl:w-80 lg:bg-white/90 lg:dark:bg-stone-900/90 lg:border-r lg:border-stone-200/50 lg:dark:border-stone-800/50 lg:shadow-subtle lg:animate-in lg:slide-in-from-left lg:duration-200 lg:pb-0 lg:pt-0">
+    <aside className="script-outline-panel absolute inset-y-0 left-0 z-30 flex h-full w-72 sm:w-80 flex-col bg-white/95 dark:bg-stone-900/95 backdrop-blur-md border-r border-stone-200/50 dark:border-stone-800/50 shadow-subtle animate-in slide-in-from-left duration-200">
       <div className="flex shrink-0 items-center justify-between gap-2 h-14 px-4 border-b border-stone-100/80 dark:border-stone-800/80">
         <div className="flex items-center gap-2 min-w-0">
           <ListOrdered className="h-4 w-4 shrink-0 text-rose-600 dark:text-rose-500" />

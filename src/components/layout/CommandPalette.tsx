@@ -743,15 +743,15 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
         </div>
 
         {/* Mode Quick Filter Chips */}
-        <div className="px-4 py-1.5 bg-stone-50/90 dark:bg-stone-850/80 border-b border-stone-100 dark:border-stone-800/80 flex items-center gap-1.5 overflow-x-auto text-[11px] font-semibold text-stone-500 dark:text-stone-400">
-          <span className="text-stone-400 dark:text-stone-500 text-[10px] uppercase font-bold tracking-wider mr-1 shrink-0">模式:</span>
+        <div className="px-4 py-2 bg-stone-100/70 dark:bg-stone-800/60 border-b border-stone-200/60 dark:border-stone-700/60 flex items-center gap-1.5 overflow-x-auto no-scrollbar text-xs font-semibold transition-colors">
+          <span className="text-stone-500 dark:text-stone-400 text-[10px] uppercase font-bold tracking-wider mr-1 shrink-0">模式:</span>
           <button
             type="button"
             onClick={() => handleSetPrefix('')}
-            className={`px-2 py-0.5 rounded-md transition-colors cursor-pointer shrink-0 ${
+            className={`px-2.5 py-1 rounded-lg transition-all cursor-pointer shrink-0 ${
               mode === 'all' && !query
-                ? 'bg-rose-600 text-white shadow-2xs'
-                : 'hover:bg-stone-200/60 dark:hover:bg-stone-700 text-stone-600 dark:text-stone-300'
+                ? 'bg-rose-600 text-white shadow-2xs font-bold'
+                : 'bg-stone-200/60 dark:bg-stone-700/60 hover:bg-stone-200 dark:hover:bg-stone-600 text-stone-800 dark:text-stone-100 font-medium'
             }`}
           >
             全部
@@ -759,10 +759,10 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
           <button
             type="button"
             onClick={() => handleSetPrefix('> ')}
-            className={`px-2 py-0.5 rounded-md transition-colors cursor-pointer shrink-0 font-mono ${
+            className={`px-2.5 py-1 rounded-lg transition-all cursor-pointer shrink-0 font-mono ${
               mode === 'action'
-                ? 'bg-rose-600 text-white shadow-2xs'
-                : 'hover:bg-stone-200/60 dark:hover:bg-stone-700 text-stone-600 dark:text-stone-300'
+                ? 'bg-rose-600 text-white shadow-2xs font-bold'
+                : 'bg-stone-200/60 dark:bg-stone-700/60 hover:bg-stone-200 dark:hover:bg-stone-600 text-stone-800 dark:text-stone-100 font-medium'
             }`}
           >
             &gt; 快捷动作
@@ -770,10 +770,10 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
           <button
             type="button"
             onClick={() => handleSetPrefix('# ')}
-            className={`px-2 py-0.5 rounded-md transition-colors cursor-pointer shrink-0 font-mono ${
+            className={`px-2.5 py-1 rounded-lg transition-all cursor-pointer shrink-0 font-mono ${
               mode === 'tag'
-                ? 'bg-rose-600 text-white shadow-2xs'
-                : 'hover:bg-stone-200/60 dark:hover:bg-stone-700 text-stone-600 dark:text-stone-300'
+                ? 'bg-rose-600 text-white shadow-2xs font-bold'
+                : 'bg-stone-200/60 dark:bg-stone-700/60 hover:bg-stone-200 dark:hover:bg-stone-600 text-stone-800 dark:text-stone-100 font-medium'
             }`}
           >
             # 赛道标签
@@ -781,10 +781,10 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
           <button
             type="button"
             onClick={() => handleSetPrefix('@ ')}
-            className={`px-2 py-0.5 rounded-md transition-colors cursor-pointer shrink-0 font-mono ${
+            className={`px-2.5 py-1 rounded-lg transition-all cursor-pointer shrink-0 font-mono ${
               mode === 'person'
-                ? 'bg-rose-600 text-white shadow-2xs'
-                : 'hover:bg-stone-200/60 dark:hover:bg-stone-700 text-stone-600 dark:text-stone-300'
+                ? 'bg-rose-600 text-white shadow-2xs font-bold'
+                : 'bg-stone-200/60 dark:bg-stone-700/60 hover:bg-stone-200 dark:hover:bg-stone-600 text-stone-800 dark:text-stone-100 font-medium'
             }`}
           >
             @ 人物库
@@ -792,10 +792,10 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
           <button
             type="button"
             onClick={() => handleSetPrefix('? ')}
-            className={`px-2 py-0.5 rounded-md transition-colors cursor-pointer shrink-0 font-mono ${
+            className={`px-2.5 py-1 rounded-lg transition-all cursor-pointer shrink-0 font-mono ${
               mode === 'help'
-                ? 'bg-rose-600 text-white shadow-2xs'
-                : 'hover:bg-stone-200/60 dark:hover:bg-stone-700 text-stone-600 dark:text-stone-300'
+                ? 'bg-rose-600 text-white shadow-2xs font-bold'
+                : 'bg-stone-200/60 dark:bg-stone-700/60 hover:bg-stone-200 dark:hover:bg-stone-600 text-stone-800 dark:text-stone-100 font-medium'
             }`}
           >
             ? 快捷键大全
