@@ -7,27 +7,14 @@ import { CitationInput, Draft, DraftCitation, Topic, TimelineEvent, Source, AppS
 import { ScriptReferenceDrawer } from './ScriptReferenceDrawer';
 import { ScriptOutlinePanel } from './ScriptOutlinePanel';
 import {
-  Bold,
-  Italic,
-  Heading1,
-  Heading2,
-  Heading3,
-  Quote,
-  List,
-  ListOrdered,
-  Undo,
-  Redo,
   Clock,
   CheckCircle2,
-  FileText,
   Copy,
   Check,
   Maximize2,
   Minimize2,
   AlignCenter,
   BookOpen,
-  PanelRightClose,
-  PanelRightOpen,
   PanelLeftOpen,
   AlertTriangle,
   Mic,
@@ -322,7 +309,7 @@ export const ScriptEditorTab: React.FC<ScriptEditorTabProps> = ({
         },
       }),
       Placeholder.configure({
-        placeholder: '在此撰写视频解说文案... 可使用上方工具栏、Markdown 语法或右侧事实参考。',
+        placeholder: '在此撰写视频解说文案... 支持标准 Markdown 语法（# 标题，**加粗**，> 引用），可通过右侧抽屉插入事实参考。',
       }),
       CharacterCount,
       CitationMark,
@@ -686,13 +673,13 @@ export const ScriptEditorTab: React.FC<ScriptEditorTabProps> = ({
       }
     >
       {/* Top Floating / Fixed Toolbar */}
-      <div className="script-editor-toolbar bg-white/95 dark:bg-stone-900/95 backdrop-blur-xs border-b border-stone-200 dark:border-stone-800 px-3 sm:px-6 py-2.5 flex items-center justify-between flex-wrap gap-2 shrink-0 z-30 shadow-2xs transition-colors">
-        {/* Left: Outline & Formatting buttons */}
-        <div className="flex items-center gap-1.5 flex-wrap">
+      <div className="script-editor-toolbar bg-white/95 dark:bg-stone-900/95 backdrop-blur-xs border-b border-stone-200 dark:border-stone-800 px-3 sm:px-6 py-2 flex items-center justify-between flex-wrap gap-2 shrink-0 z-30 shadow-2xs transition-colors">
+        {/* Left: Outline, Reference Drawer, and Status Indicator */}
+        <div className="flex items-center gap-2 flex-wrap">
           {/* Zen mode topic title pill */}
           {isZenMode && (
             <div className="flex items-center gap-2 mr-1 pr-2.5 border-r border-stone-200 dark:border-stone-700">
-              <span className="font-bold text-stone-900 dark:text-stone-100 text-sm truncate max-w-xs sm:max-w-md">
+              <span className="font-bold text-stone-900 dark:text-stone-100 text-xs sm:text-sm truncate max-w-xs sm:max-w-md">
                 ✍️ {topicTitle}
               </span>
             </div>
@@ -700,151 +687,129 @@ export const ScriptEditorTab: React.FC<ScriptEditorTabProps> = ({
 
           {/* Outline Toggle */}
           <button
+            type="button"
             onClick={toggleOutlinePanel}
-            aria-label="展开/收起文案大纲与篇幅占比"
+            aria-label="展开/收起文案大纲与章节定位"
             aria-pressed={isOutlineOpen}
-            className={`flex items-center gap-1 rounded-lg border px-2.5 py-1 text-xs font-semibold transition-all cursor-pointer ${
+            className={`flex items-center gap-1.5 rounded-lg border px-2.5 py-1 text-xs font-semibold transition-all cursor-pointer ${
               isOutlineOpen
                 ? 'border-rose-300 dark:border-rose-800 bg-rose-50 dark:bg-rose-950/50 text-rose-700 dark:text-rose-300 shadow-2xs'
-                : 'border-stone-300 dark:border-stone-700 bg-white dark:bg-stone-800 text-stone-700 dark:text-stone-300 hover:bg-stone-50 dark:hover:bg-stone-700/80 shadow-2xs'
+                : 'border-stone-200 dark:border-stone-700 bg-white dark:bg-stone-800 text-stone-700 dark:text-stone-300 hover:bg-stone-50 dark:hover:bg-stone-700/80 shadow-2xs'
             }`}
-            title="展开/收起文案大纲与篇幅占比"
+            title="展开/收起文案大纲与章节定位 (Esc 收起)"
           >
             <PanelLeftOpen className="h-3.5 w-3.5 text-rose-500" />
             <span className="hidden sm:inline">大纲</span>
             {outline.flatItems.length > 0 && (
-              <span className="rounded-full bg-rose-100 dark:bg-rose-900/60 px-1.5 text-[10px] font-bold text-rose-800 dark:text-rose-200">
+              <span className="rounded-full bg-rose-100 dark:bg-rose-900/60 px-1.5 text-[10px] font-bold text-rose-800 dark:text-rose-200 font-mono">
                 {outline.flatItems.length}
               </span>
             )}
           </button>
 
-          <div className="w-px h-4 bg-stone-200 dark:bg-stone-700 mx-0.5 hidden sm:block" />
+          {/* Side Reference Toggle */}
+          {topic && (
+            <button
+              type="button"
+              onClick={toggleReferencePanel}
+              className={`flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-semibold border transition-all cursor-pointer ${
+                isReferenceOpen
+                  ? 'bg-rose-50 dark:bg-rose-950/50 text-rose-700 dark:text-rose-300 border-rose-300 dark:border-rose-800 shadow-2xs'
+                  : 'bg-white dark:bg-stone-800 text-stone-700 dark:text-stone-300 border-stone-200 dark:border-stone-700 hover:bg-stone-50 dark:hover:bg-stone-700/80 shadow-2xs'
+              }`}
+              title="展开/收起边写边看事实参考抽屉"
+            >
+              <BookOpen className="w-3.5 h-3.5 text-rose-500" />
+              <span className="hidden sm:inline">事实参考</span>
+              {citationHealth && citationHealth.unverifiedCount > 0 && (
+                <span className="rounded-full bg-amber-100 dark:bg-amber-950/60 px-1.5 text-[10px] text-amber-800 dark:text-amber-300 font-mono font-bold">
+                  {citationHealth.unverifiedCount}
+                </span>
+              )}
+            </button>
+          )}
 
-          <div className="flex items-center gap-0.5 bg-stone-100/80 dark:bg-stone-800 p-0.5 rounded-lg border border-stone-200/60 dark:border-stone-700/80">
-            <button
-              onClick={() => editor.chain().focus().toggleHeading({ level: 1 }).run()}
-              className={`px-2 py-1 rounded-md text-xs font-bold transition-colors cursor-pointer ${
-                editor.isActive('heading', { level: 1 })
-                  ? 'bg-stone-900 dark:bg-rose-600 text-white shadow-2xs'
-                  : 'text-stone-600 dark:text-stone-300 hover:bg-stone-200/80 dark:hover:bg-stone-700'
-              }`}
-              title="一级标题 (H1)"
-            >
-              H1
-            </button>
-            <button
-              onClick={() => editor.chain().focus().toggleHeading({ level: 2 }).run()}
-              className={`px-2 py-1 rounded-md text-xs font-bold transition-colors cursor-pointer ${
-                editor.isActive('heading', { level: 2 })
-                  ? 'bg-stone-900 dark:bg-rose-600 text-white shadow-2xs'
-                  : 'text-stone-600 dark:text-stone-300 hover:bg-stone-200/80 dark:hover:bg-stone-700'
-              }`}
-              title="章节标题 (H2)"
-            >
-              H2
-            </button>
-            <button
-              onClick={() => editor.chain().focus().toggleHeading({ level: 3 }).run()}
-              className={`px-2 py-1 rounded-md text-xs font-bold transition-colors cursor-pointer ${
-                editor.isActive('heading', { level: 3 })
-                  ? 'bg-stone-900 dark:bg-rose-600 text-white shadow-2xs'
-                  : 'text-stone-600 dark:text-stone-300 hover:bg-stone-200/80 dark:hover:bg-stone-700'
-              }`}
-              title="小标题 (H3)"
-            >
-              H3
-            </button>
+          {/* Auto save indicator (clean & gentle) */}
+          <div className="flex items-center text-[11px] font-medium transition-all ml-1">
+            {saveStatus === 'saving' && (
+              <span className="flex items-center gap-1 text-amber-700 dark:text-amber-300 bg-amber-50 dark:bg-amber-950/50 border border-amber-200/80 dark:border-amber-900/60 px-2 py-0.5 rounded-md text-[10px]">
+                <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-ping" />
+                <span className="hidden sm:inline">保存中...</span>
+              </span>
+            )}
+            {saveStatus === 'saved' && (
+              <span className="flex items-center gap-1 text-emerald-600 dark:text-emerald-400 text-[10px] opacity-75" title="云端已保存同步">
+                <CheckCircle2 className="w-3 h-3" />
+                <span className="hidden sm:inline">已同步</span>
+              </span>
+            )}
+            {saveStatus === 'local' && (
+              <span className="flex items-center gap-1.5 text-blue-700 dark:text-blue-300 bg-blue-50 dark:bg-blue-950/40 border border-blue-200/80 dark:border-blue-900/50 px-2 py-0.5 rounded-md text-[10px]" title="本地离线草稿已安全暂存">
+                <span className="w-1.5 h-1.5 rounded-full bg-blue-500" />
+                <span className="hidden sm:inline">本地暂存</span>
+              </span>
+            )}
+            {saveStatus === 'pending' && (
+              <span className="flex items-center gap-1.5 text-stone-400 dark:text-stone-500 text-[10px]">
+                <span className="w-1.5 h-1.5 rounded-full bg-amber-400" />
+                <span className="hidden sm:inline">待同步</span>
+              </span>
+            )}
+            {saveStatus === 'conflict' && (
+              <span className="flex items-center gap-1 text-red-700 dark:text-red-400 bg-red-50 dark:bg-red-950/50 border border-red-200 dark:border-red-900 px-2 py-0.5 rounded-md font-bold text-[10px]">
+                <AlertTriangle className="w-3 h-3 text-red-600 dark:text-red-400" />
+                <span>版本冲突</span>
+              </span>
+            )}
           </div>
+        </div>
 
-          <div className="w-px h-4 bg-stone-200 dark:bg-stone-700 mx-1 hidden sm:block" />
-
-          <div className="flex items-center gap-0.5">
-            <button
-              onClick={() => editor.chain().focus().toggleBold().run()}
-              className={`p-1.5 rounded-md text-xs font-bold transition-colors cursor-pointer ${
-                editor.isActive('bold')
-                  ? 'bg-stone-900 dark:bg-stone-800 text-white dark:text-stone-100 shadow-2xs'
-                  : 'text-stone-600 dark:text-stone-400 hover:bg-stone-100 dark:hover:bg-stone-800'
-              }`}
-              title="加粗 (Cmd+B)"
+        {/* Right: Metrics, Voiceover Cues, Utilities & Primary Actions */}
+        <div className="flex items-center gap-2 flex-wrap">
+          {/* Word count & Estimated duration pill */}
+          <div className="flex items-center gap-1.5 bg-stone-100/90 dark:bg-stone-800/80 border border-stone-200/80 dark:border-stone-700 px-2.5 py-1 rounded-lg text-xs">
+            <span className="font-mono text-stone-800 dark:text-stone-200 font-bold px-0.5">
+              {charCount.toLocaleString()} <span className="font-normal text-stone-500 dark:text-stone-400 text-[11px]">字</span>
+            </span>
+            <span className="text-stone-300 dark:text-stone-600">·</span>
+            <span
+              className="flex items-center gap-1 text-rose-700 dark:text-rose-400 font-semibold font-mono text-[11px]"
+              title={`预估时长（按偏好设置 ${effectiveSpeed} 字/分钟计算）`}
             >
-              <Bold className="w-3.5 h-3.5" />
-            </button>
-            <button
-              onClick={() => editor.chain().focus().toggleItalic().run()}
-              className={`p-1.5 rounded-md text-xs font-bold transition-colors cursor-pointer ${
-                editor.isActive('italic')
-                  ? 'bg-stone-900 dark:bg-stone-800 text-white dark:text-stone-100 shadow-2xs'
-                  : 'text-stone-600 dark:text-stone-400 hover:bg-stone-100 dark:hover:bg-stone-800'
-              }`}
-              title="斜体 (Cmd+I)"
-            >
-              <Italic className="w-3.5 h-3.5" />
-            </button>
-            <button
-              onClick={() => editor.chain().focus().toggleBlockquote().run()}
-              className={`p-1.5 rounded-md text-xs font-bold transition-colors cursor-pointer ${
-                editor.isActive('blockquote')
-                  ? 'bg-stone-900 dark:bg-stone-800 text-white dark:text-stone-100 shadow-2xs'
-                  : 'text-stone-600 dark:text-stone-400 hover:bg-stone-100 dark:hover:bg-stone-800'
-              }`}
-              title="引用金句"
-            >
-              <Quote className="w-3.5 h-3.5" />
-            </button>
-            <button
-              onClick={() => editor.chain().focus().toggleBulletList().run()}
-              className={`p-1.5 rounded-md text-xs font-bold transition-colors cursor-pointer ${
-                editor.isActive('bulletList')
-                  ? 'bg-stone-900 dark:bg-stone-800 text-white dark:text-stone-100 shadow-2xs'
-                  : 'text-stone-600 dark:text-stone-400 hover:bg-stone-100 dark:hover:bg-stone-800'
-              }`}
-              title="无序列表"
-            >
-              <List className="w-3.5 h-3.5" />
-            </button>
-            <button
-              onClick={() => editor.chain().focus().toggleOrderedList().run()}
-              className={`p-1.5 rounded-md text-xs font-bold transition-colors cursor-pointer ${
-                editor.isActive('orderedList')
-                  ? 'bg-stone-900 dark:bg-stone-800 text-white dark:text-stone-100 shadow-2xs'
-                  : 'text-stone-600 dark:text-stone-400 hover:bg-stone-100 dark:hover:bg-stone-800'
-              }`}
-              title="有序列表"
-            >
-              <ListOrdered className="w-3.5 h-3.5" />
-            </button>
+              <Clock className="w-3 h-3 text-rose-500 shrink-0" />
+              <span>{estMinutes}分{estSeconds}秒</span>
+            </span>
           </div>
-
-          <div className="w-px h-4 bg-stone-200 dark:bg-stone-700 mx-1 hidden sm:block" />
 
           {/* Voiceover Cue Dropdown */}
           <div className="relative">
             <button
+              type="button"
               onClick={() => setIsCueMenuOpen((prev) => !prev)}
-              className={`flex items-center gap-1 px-2 py-1 rounded-md text-xs font-semibold border transition-all cursor-pointer ${
+              className={`flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-semibold border transition-all cursor-pointer ${
                 isCueMenuOpen
                   ? 'bg-rose-50 dark:bg-rose-950/60 border-rose-300 dark:border-rose-800 text-rose-700 dark:text-rose-300 shadow-2xs'
                   : 'bg-white dark:bg-stone-800 border-stone-200 dark:border-stone-700 text-stone-700 dark:text-stone-300 hover:bg-stone-50 dark:hover:bg-stone-700/80 shadow-2xs'
               }`}
-              title="快速插入演播配音气口标记"
+              title="插入演播配音气口标记（也可直接手打 [停顿 1s] 等）"
             >
-              <Mic className="w-3 h-3 text-rose-500" />
-              <span>气口</span>
+              <Mic className="w-3.5 h-3.5 text-rose-500" />
+              <span className="hidden sm:inline">气口</span>
             </button>
 
             {isCueMenuOpen && (
-              <div className="absolute left-0 top-full mt-1.5 w-44 bg-white dark:bg-stone-850 rounded-xl border border-stone-200 dark:border-stone-700 p-1.5 shadow-xl z-50 animate-in fade-in zoom-in-95 duration-100">
-                <div className="text-[10px] font-bold text-stone-400 dark:text-stone-500 px-2 py-1 uppercase tracking-wider">
-                  插入演播气口
+              <div className="absolute right-0 top-full mt-1.5 w-48 bg-white dark:bg-stone-850 rounded-xl border border-stone-200 dark:border-stone-700 p-1.5 shadow-xl z-50 animate-in fade-in zoom-in-95 duration-100 font-sans">
+                <div className="flex items-center justify-between text-[10px] font-bold text-stone-400 dark:text-stone-500 px-2 py-1 uppercase tracking-wider border-b border-stone-100 dark:border-stone-800 pb-1 mb-1">
+                  <span>插入演播气口</span>
+                  <span className="font-mono text-[9px] text-rose-500">[气口] 语法</span>
                 </div>
-                <div className="space-y-0.5 max-h-48 overflow-y-auto">
+                <div className="space-y-0.5 max-h-52 overflow-y-auto">
                   {(settings?.voiceover_cues?.length ? settings.voiceover_cues : DEFAULT_VOICEOVER_CUES).map((cue) => (
                     <button
                       key={cue}
+                      type="button"
                       onClick={() => {
-                        const cleanCue = cue.replace(/^\[|\]$/g, '').trim();
+                        const cleanCue = cue.replace(/^\[+|\]+$/g, '').trim();
                         editor.chain().focus().insertContent({
                           type: 'voiceoverCue',
                           attrs: { cue: cleanCue },
@@ -853,7 +818,7 @@ export const ScriptEditorTab: React.FC<ScriptEditorTabProps> = ({
                       }}
                       className="w-full text-left px-2.5 py-1.5 rounded-lg text-xs font-medium text-stone-700 dark:text-stone-200 hover:bg-rose-50 dark:hover:bg-rose-950/50 hover:text-rose-600 dark:hover:text-rose-300 flex items-center justify-between group transition-colors cursor-pointer"
                     >
-                      <div className="flex items-center gap-1.5">
+                      <div className="flex items-center gap-1.5 truncate">
                         <span className="text-[11px] px-1.5 py-0.5 rounded bg-rose-100 dark:bg-rose-950 text-rose-700 dark:text-rose-300 font-mono font-semibold">🎙️ {cue}</span>
                       </div>
                       <span className="text-[10px] text-stone-400 group-hover:text-rose-500 opacity-0 group-hover:opacity-100 font-mono">插入</span>
@@ -864,125 +829,59 @@ export const ScriptEditorTab: React.FC<ScriptEditorTabProps> = ({
             )}
           </div>
 
-          <div className="w-px h-4 bg-stone-200 dark:bg-stone-700 mx-1 hidden sm:block" />
-
-          <div className="flex items-center gap-0.5">
-            <button
-              onClick={() => editor.chain().focus().undo().run()}
-              disabled={!editor.can().undo()}
-              className="p-1.5 rounded-md text-stone-600 dark:text-stone-400 hover:bg-stone-100 dark:hover:bg-stone-800 disabled:opacity-30 cursor-pointer"
-              title="撤销 (Cmd+Z)"
-            >
-              <Undo className="w-3.5 h-3.5" />
-            </button>
-            <button
-              onClick={() => editor.chain().focus().redo().run()}
-              disabled={!editor.can().redo()}
-              className="p-1.5 rounded-md text-stone-600 dark:text-stone-400 hover:bg-stone-100 dark:hover:bg-stone-800 disabled:opacity-30 cursor-pointer"
-              title="重做 (Cmd+Shift+Z)"
-            >
-              <Redo className="w-3.5 h-3.5" />
-            </button>
-          </div>
-        </div>
-
-        {/* Right: Actions, Stats, Width & Zen Toggle */}
-        <div className="flex items-center gap-2.5 flex-wrap">
-          {/* Word count & Estimated duration pill */}
-          <div className="flex items-center gap-1.5 bg-stone-100/90 dark:bg-stone-800 border border-stone-200/80 dark:border-stone-700 px-2.5 py-1 rounded-lg text-xs">
-            <span className="font-mono text-stone-900 dark:text-stone-100 font-bold px-0.5">
-              {charCount.toLocaleString()} <span className="font-normal text-stone-500 dark:text-stone-400">字</span>
-            </span>
-            <span className="text-stone-300 dark:text-stone-600">|</span>
-            <span
-              className="flex items-center gap-1 text-rose-700 dark:text-rose-400 font-semibold font-mono"
-              title={`预估时长（按偏好设置 ${effectiveSpeed} 字/分钟计算）`}
-            >
-              <Clock className="w-3 h-3 text-rose-500 shrink-0" />
-              <span>{estMinutes}分{estSeconds}秒</span>
-            </span>
-          </div>
-
-          {/* Side Reference Toggle */}
-          {topic && (
-            <button
-              onClick={toggleReferencePanel}
-              className={`flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-semibold border transition-all cursor-pointer ${
-                isReferenceOpen
-                  ? 'bg-rose-50 dark:bg-rose-950/50 text-rose-700 dark:text-rose-300 border-rose-300 dark:border-rose-800 shadow-2xs'
-                  : 'bg-white dark:bg-stone-800 text-stone-700 dark:text-stone-300 border-stone-300 dark:border-stone-700 hover:bg-stone-50 dark:hover:bg-stone-700/80'
-              }`}
-              title="展开/收起边写边看事实参考抽屉"
-            >
-              <BookOpen className="w-3.5 h-3.5 text-rose-500" />
-              <span className="hidden sm:inline">事实参考</span>
-              {citationHealth && citationHealth.unverifiedCount > 0 && (
-                <span className="rounded-full bg-amber-100 dark:bg-amber-950/60 px-1.5 text-[10px] text-amber-800 dark:text-amber-300">
-                  {citationHealth.unverifiedCount}
-                </span>
-              )}
-            </button>
-          )}
-
           {/* Typewriter Mode Toggle */}
           <button
+            type="button"
             onClick={() => setIsTypewriterMode((current) => !current)}
-            className={`flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-semibold border transition-all cursor-pointer ${
+            className={`p-1.5 rounded-lg text-xs font-semibold border transition-all cursor-pointer ${
               isTypewriterMode
                 ? 'bg-rose-50 dark:bg-rose-950/50 text-rose-700 dark:text-rose-300 border-rose-300 dark:border-rose-800 shadow-2xs'
-                : 'bg-white dark:bg-stone-800 text-stone-700 dark:text-stone-300 border-stone-300 dark:border-stone-700 hover:bg-stone-50 dark:hover:bg-stone-700/80 shadow-2xs'
+                : 'bg-white dark:bg-stone-800 text-stone-700 dark:text-stone-300 border-stone-200 dark:border-stone-700 hover:bg-stone-50 dark:hover:bg-stone-700/80 shadow-2xs'
             }`}
             title={isTypewriterMode ? '关闭打字机模式' : '开启打字机模式（当前编辑行保持居中）'}
           >
             <AlignCenter className="w-3.5 h-3.5 text-rose-500" />
-            <span className="hidden sm:inline">打字机</span>
-          </button>
-
-          {/* Zen Fullscreen Toggle */}
-          <button
-            onClick={() => setIsZenMode(!isZenMode)}
-            className={`flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-semibold border transition-all cursor-pointer ${
-              isZenMode
-                ? 'bg-stone-900 dark:bg-rose-600 text-white border-stone-900 dark:border-rose-600 shadow-xs'
-                : 'bg-white dark:bg-stone-800 text-stone-700 dark:text-stone-300 border-stone-300 dark:border-stone-700 hover:bg-stone-50 dark:hover:bg-stone-700/80 shadow-2xs'
-            }`}
-            title={isZenMode ? '退出专注全屏 (Esc)' : '开启沉浸专注全屏 (Cmd+Shift+F)'}
-          >
-            {isZenMode ? (
-              <>
-                <Minimize2 className="w-3.5 h-3.5" />
-                <span>退出专注</span>
-              </>
-            ) : (
-              <>
-                <Maximize2 className="w-3.5 h-3.5" />
-                <span>专注全屏</span>
-              </>
-            )}
           </button>
 
           {/* Public Review Share Button */}
           <button
+            type="button"
             onClick={handleShareReviewClick}
             disabled={isGeneratingShare}
-            className="flex items-center gap-1.5 text-xs font-semibold bg-white dark:bg-stone-800 hover:bg-stone-50 dark:hover:bg-stone-700 text-stone-700 dark:text-stone-300 border border-stone-300 dark:border-stone-700 px-2.5 py-1 rounded-lg shadow-2xs transition-colors cursor-pointer disabled:opacity-60"
+            className="flex items-center gap-1.5 text-xs font-semibold bg-white dark:bg-stone-800 hover:bg-stone-50 dark:hover:bg-stone-700 text-stone-700 dark:text-stone-300 border border-stone-200 dark:border-stone-700 px-2.5 py-1 rounded-lg shadow-2xs transition-colors cursor-pointer disabled:opacity-60"
             title="一键生成免登录外部审稿快照并自动复制链接"
           >
             <Share2 className={`w-3.5 h-3.5 text-rose-500 ${isGeneratingShare ? 'animate-spin' : ''}`} />
-            <span className="hidden sm:inline">{isGeneratingShare ? '生成中…' : '分享审稿'}</span>
+            <span className="hidden sm:inline">{isGeneratingShare ? '生成中…' : '分享'}</span>
           </button>
 
           {/* Copy Full Script */}
           <button
+            type="button"
             onClick={copyFullScript}
-            className="flex items-center gap-1 text-xs font-semibold bg-white dark:bg-stone-800 hover:bg-stone-50 dark:hover:bg-stone-700 text-stone-700 dark:text-stone-300 border border-stone-300 dark:border-stone-700 px-2.5 py-1 rounded-lg shadow-2xs transition-colors cursor-pointer"
+            className="p-1.5 rounded-lg text-xs font-semibold bg-white dark:bg-stone-800 hover:bg-stone-50 dark:hover:bg-stone-700 text-stone-700 dark:text-stone-300 border border-stone-200 dark:border-stone-700 shadow-2xs transition-colors cursor-pointer"
+            title="复制文案全文"
           >
             {copied ? <Check className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
-            <span className="hidden sm:inline">{copied ? '已复制' : '复制'}</span>
+          </button>
+
+          {/* Zen Fullscreen Toggle */}
+          <button
+            type="button"
+            onClick={() => setIsZenMode(!isZenMode)}
+            className={`p-1.5 rounded-lg text-xs font-semibold border transition-all cursor-pointer ${
+              isZenMode
+                ? 'bg-stone-900 dark:bg-rose-600 text-white border-stone-900 dark:border-rose-600 shadow-xs'
+                : 'bg-white dark:bg-stone-800 text-stone-700 dark:text-stone-300 border-stone-200 dark:border-stone-700 hover:bg-stone-50 dark:hover:bg-stone-700/80 shadow-2xs'
+            }`}
+            title={isZenMode ? '退出专注全屏 (Esc)' : '开启沉浸专注全屏 (Cmd+Shift+F)'}
+          >
+            {isZenMode ? <Minimize2 className="w-3.5 h-3.5" /> : <Maximize2 className="w-3.5 h-3.5" />}
           </button>
 
           {/* Teleprompter Fullscreen Button */}
           <button
+            type="button"
             onClick={() => setIsTeleprompterOpen(true)}
             className="flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-bold bg-rose-600 hover:bg-rose-700 active:scale-95 text-white shadow-2xs transition-all cursor-pointer"
             title="开启全屏沉浸录音提词器 (Cmd/Ctrl + Shift + P)"
@@ -990,49 +889,6 @@ export const ScriptEditorTab: React.FC<ScriptEditorTabProps> = ({
             <Mic className="w-3.5 h-3.5" />
             <span>录音提词</span>
           </button>
-
-          {/* Auto save indicator */}
-          <div className="flex items-center text-[11px] font-medium transition-all">
-            {saveStatus === 'saving' && (
-              <span className="flex items-center gap-1.5 text-amber-700 dark:text-amber-300 bg-amber-50 dark:bg-amber-950/50 border border-amber-200/80 dark:border-amber-900/60 px-2 py-0.5 rounded-md">
-                <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-ping" />
-                <span className="hidden sm:inline">云端保存中...</span>
-                <span className="sm:hidden">保存中</span>
-              </span>
-            )}
-            {saveStatus === 'saved' && (
-              <span className="flex items-center gap-1 text-emerald-700 dark:text-emerald-300 bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200/60 dark:border-emerald-900/50 px-2 py-0.5 rounded-md shadow-2xs">
-                <CheckCircle2 className="w-3 h-3 text-emerald-600 dark:text-emerald-400" />
-                <span className="hidden sm:inline">云端已同步</span>
-                <span className="sm:hidden">已存</span>
-              </span>
-            )}
-            {saveStatus === 'local' && (
-              <span className="flex items-center gap-1.5 text-blue-700 dark:text-blue-300 bg-blue-50 dark:bg-blue-950/40 border border-blue-200/80 dark:border-blue-900/50 px-2 py-0.5 rounded-md" title="本地离线草稿已安全暂存，网络恢复后将自动同步至云端">
-                <span className="w-1.5 h-1.5 rounded-full bg-blue-500" />
-                <span className="hidden sm:inline">本地已暂存 · 待同步</span>
-                <span className="sm:hidden">本地已存</span>
-              </span>
-            )}
-            {saveStatus === 'unsaved' && (
-              <span className="text-stone-400 dark:text-stone-500 px-1">
-                <span className="hidden sm:inline">尚未保存</span>
-              </span>
-            )}
-            {saveStatus === 'pending' && (
-              <span className="flex items-center gap-1.5 text-amber-800 dark:text-amber-300 bg-amber-50/80 dark:bg-amber-950/40 border border-amber-200/60 dark:border-amber-900/50 px-2 py-0.5 rounded-md">
-                <span className="w-1.5 h-1.5 rounded-full bg-amber-400" />
-                <span className="hidden sm:inline">准备同步...</span>
-                <span className="sm:hidden">待同步</span>
-              </span>
-            )}
-            {saveStatus === 'conflict' && (
-              <span className="flex items-center gap-1 text-red-700 dark:text-red-400 bg-red-50 dark:bg-red-950/50 border border-red-200 dark:border-red-900 px-2 py-0.5 rounded-md font-bold">
-                <AlertTriangle className="w-3 h-3 text-red-600 dark:text-red-400" />
-                <span>版本冲突</span>
-              </span>
-            )}
-          </div>
         </div>
       </div>
 
@@ -1091,10 +947,10 @@ export const ScriptEditorTab: React.FC<ScriptEditorTabProps> = ({
           className="script-editor-canvas-container flex-1 overflow-y-auto bg-white dark:bg-stone-900 flex justify-center cursor-text transition-colors"
         >
           <div
-            className={`w-full max-w-5xl px-4 transition-all sm:px-10 md:px-12 ${
+            className={`w-full max-w-4xl px-6 sm:px-12 md:px-16 transition-all ${
               isTypewriterMode
-                ? 'pt-6 sm:pt-10'
-                : 'pt-6 pb-32 sm:pt-10 sm:pb-48'
+                ? 'pt-8 sm:pt-12'
+                : 'pt-8 pb-36 sm:pt-12 sm:pb-48'
             }`}
           >
             <EditorContent
