@@ -27,6 +27,8 @@ import {
   saveTag,
   deleteTag,
   saveSettings,
+  exportBackupData,
+  exportScriptsMarkdown,
 } from './lib/storage';
 import { isAuthenticated, logout } from './lib/auth';
 import { LoginView } from './components/auth/LoginView';
@@ -467,6 +469,36 @@ function WorkspaceApp({ isAuth, setIsAuth }: WorkspaceAppProps) {
     setAppSettings(saved);
   };
 
+  const handleExportBackup = async () => {
+    try {
+      const jsonStr = await exportBackupData();
+      const blob = new Blob([jsonStr], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `bilibili-kanban-backup-${new Date().toISOString().slice(0, 10)}.json`;
+      a.click();
+      URL.revokeObjectURL(url);
+    } catch {
+      alert('导出备份失败');
+    }
+  };
+
+  const handleExportMarkdown = async () => {
+    try {
+      const mdContent = await exportScriptsMarkdown();
+      const blob = new Blob([mdContent], { type: 'text/markdown;charset=utf-8' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `bilibili-scripts-archive-${new Date().toISOString().slice(0, 10)}.md`;
+      a.click();
+      URL.revokeObjectURL(url);
+    } catch {
+      alert('导出文案失败');
+    }
+  };
+
   // If not authenticated, show login view
   if (!isAuth) {
     return <LoginView onLoginSuccess={() => setIsAuth(true)} />;
@@ -697,6 +729,13 @@ function WorkspaceApp({ isAuth, setIsAuth }: WorkspaceAppProps) {
           setQuickCreateInitialTags([]);
           setQuickCreateStatus('inbox');
           setIsQuickCreateOpen(true);
+        }}
+        onOpenQuickDrops={() => setIsQuickDropDrawerOpen(true)}
+        onSelectTheme={(theme) => void handleSaveSettings({ ...settings, theme })}
+        onExportBackup={handleExportBackup}
+        onExportMarkdown={handleExportMarkdown}
+        onFilterStatus={(_status) => {
+          navigate('/kanban');
         }}
       />
 
