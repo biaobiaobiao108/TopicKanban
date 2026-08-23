@@ -327,16 +327,16 @@ export const TopicDetailView: React.FC<TopicDetailViewProps> = ({
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id)}
                 aria-current={isActive ? 'page' : undefined}
-                className={`flex min-h-11 items-center gap-1.5 border-b-2 px-2.5 text-xs font-semibold transition-all cursor-pointer touch-manipulation sm:gap-2 sm:px-3.5 sm:text-sm ${
+                className={`flex min-h-9 sm:min-h-10 items-center gap-1.5 border-b-2 px-2.5 sm:px-3 text-xs sm:text-[13px] font-semibold transition-all cursor-pointer touch-manipulation ${
                   isActive
                     ? 'border-rose-600 text-rose-600 dark:text-rose-400 bg-rose-50/30 dark:bg-rose-950/20'
                     : 'border-transparent text-stone-500 dark:text-stone-400 hover:text-stone-900 dark:hover:text-stone-100 hover:border-stone-300 dark:hover:border-stone-700'
                 }`}
               >
-                <Icon className={`w-3.5 sm:w-4 h-3.5 sm:h-4 ${isActive ? 'text-rose-600 dark:text-rose-400' : 'text-stone-400 dark:text-stone-500'}`} />
+                <Icon className={`w-3.5 h-3.5 sm:w-4 sm:h-4 ${isActive ? 'text-rose-600 dark:text-rose-400' : 'text-stone-400 dark:text-stone-500'}`} />
                 <span>{tab.label}</span>
                 {typeof tab.count === 'number' && tab.count > 0 && (
-                  <span className="text-[11px] bg-stone-100 dark:bg-stone-800 text-stone-600 dark:text-stone-300 px-1.5 py-0.2 rounded-full font-mono">
+                  <span className="text-[10px] sm:text-[11px] bg-stone-100 dark:bg-stone-800 text-stone-600 dark:text-stone-300 px-1.5 py-0.2 rounded-full font-mono">
                     {tab.count}
                   </span>
                 )}

@@ -23,21 +23,21 @@ export const Navbar: React.FC<NavbarProps> = ({
   searchTerm,
   onSearchChange,
 }) => {
-  const titles: Record<NavView, { title: string; desc: string }> = {
-    today: { title: '今日聚焦', desc: '推进当前重点选题，减少选择焦虑' },
-    kanban: { title: '选题全景看板', desc: '4 个活跃阶段 + 2 个归档状态' },
-    tags: { title: '标签与创作赛道', desc: '分类赛道沉淀与选题资产盘点' },
-    people: { title: '人物档案与关系库', desc: '沉淀网红与事件当事人数据库' },
-    published: { title: '已发布视频复盘', desc: '归档成片与 B 站数据沉淀' },
-    database: { title: '选题库', desc: '全量选题多维表格与全生命周期资产沉淀' },
-    settings: { title: '偏好与数据备份', desc: '语速设置与数据备份' },
-    'topic-detail': { title: '选题生产工作台', desc: '深度资料挖掘与文案创作' },
+  const titles: Record<NavView, string> = {
+    today: '今日聚焦',
+    kanban: '选题全景看板',
+    tags: '标签与创作赛道',
+    people: '人物档案与关系库',
+    published: '已发布视频复盘',
+    database: '选题库',
+    settings: '偏好与数据备份',
+    'topic-detail': '选题生产工作台',
   };
 
-  const current = titles[currentView] || titles.kanban;
+  const currentTitle = titles[currentView] || titles.kanban;
 
   return (
-    <header className="navbar-container h-14 sm:h-16 bg-white/85 dark:bg-stone-900/90 backdrop-blur-md border-b border-stone-200 dark:border-stone-800 px-4 sm:px-6 flex items-center justify-between sticky top-0 z-20 shrink-0 transition-colors">
+    <header className="navbar-container h-12 sm:h-13 bg-white/85 dark:bg-stone-900/90 backdrop-blur-md border-b border-stone-200 dark:border-stone-800 px-4 sm:px-6 flex items-center justify-between sticky top-0 z-20 shrink-0 transition-colors">
       {/* Left: Mobile Menu button & Title */}
       <div className="flex items-center gap-2.5 min-w-0">
         {onOpenMobileDrawer && (
@@ -50,12 +50,9 @@ export const Navbar: React.FC<NavbarProps> = ({
           </button>
         )}
 
-        <div className="truncate">
-          <h2 className="text-sm sm:text-base font-bold text-stone-900 dark:text-stone-100 leading-tight truncate">
-            {current.title}
-          </h2>
-          <p className="text-[11px] sm:text-xs text-stone-500 dark:text-stone-400 hidden sm:block truncate">{current.desc}</p>
-        </div>
+        <h2 className="text-sm sm:text-base font-bold text-stone-900 dark:text-stone-100 tracking-tight truncate">
+          {currentTitle}
+        </h2>
       </div>
 
       {/* Right Controls */}
