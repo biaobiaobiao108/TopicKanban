@@ -72,7 +72,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
             className="w-full flex items-center gap-2 bg-stone-50 dark:bg-stone-800/70 hover:bg-stone-100 dark:hover:bg-stone-800 text-stone-600 dark:text-stone-300 px-3 py-1.5 rounded-lg text-xs font-medium border border-stone-200/80 dark:border-stone-700 transition-colors cursor-pointer"
           >
             <Search className="w-3.5 h-3.5 text-stone-400" />
-            <span>全局搜索与命令</span>
+            <span>全局搜索与指令</span>
             <kbd className="ml-auto text-[10px] bg-stone-200/70 dark:bg-stone-700 text-stone-500 dark:text-stone-400 px-1.5 py-0.5 rounded font-mono">Ctrl+P</kbd>
           </button>
         </div>

@@ -715,6 +715,7 @@ function WorkspaceApp({ isAuth, setIsAuth }: WorkspaceAppProps) {
         topics={topics}
         people={people}
         tags={tags}
+        currentTheme={settings.theme}
         onSelectTopic={handleOpenDetail}
         onSelectPerson={(_personId) => {
           navigate('/people');

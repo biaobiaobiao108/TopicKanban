@@ -94,16 +94,6 @@ export const Navbar: React.FC<NavbarProps> = ({
           </button>
         )}
 
-        {/* Global Shortcut Trigger (Desktop only) */}
-        <button
-          onClick={onOpenCommandPalette}
-          title="打开全局命令菜单 (Ctrl/Cmd + P)"
-          className="hidden md:flex items-center gap-1.5 px-2.5 py-1.5 text-xs text-stone-600 dark:text-stone-300 bg-stone-100 dark:bg-stone-800 hover:bg-stone-200/80 dark:hover:bg-stone-700 rounded-lg border border-stone-200 dark:border-stone-700 font-medium transition-colors cursor-pointer"
-        >
-          <span>指令</span>
-          <kbd className="text-[10px] font-mono bg-white dark:bg-stone-700 px-1 rounded shadow-xs text-stone-500 dark:text-stone-300 border border-stone-200/60 dark:border-stone-600">Ctrl+P</kbd>
-        </button>
-
         {/* Quick Create Button */}
         <button
           onClick={onOpenQuickCreate}
