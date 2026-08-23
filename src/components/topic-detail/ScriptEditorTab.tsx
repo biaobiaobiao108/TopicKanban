@@ -756,34 +756,34 @@ export const ScriptEditorTab: React.FC<ScriptEditorTabProps> = ({
             </button>
           )}
 
-          {/* Auto save indicator (clean & gentle) */}
-          <div className="flex items-center text-[11px] font-medium transition-all ml-1">
+          {/* Auto save indicator (Quiet background protection, zero layout shift) */}
+          <div className="flex items-center text-[10px] font-medium transition-all ml-1.5 select-none shrink-0">
             {saveStatus === 'saving' && (
-              <span className="flex items-center gap-1 text-amber-700 dark:text-amber-300 bg-amber-50 dark:bg-amber-950/50 border border-amber-200/80 dark:border-amber-900/60 px-2 py-0.5 rounded-md text-[10px]">
-                <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-ping" />
-                <span className="hidden sm:inline">保存中...</span>
-              </span>
+              <div className="flex items-center gap-1.5 text-amber-600 dark:text-amber-400" title="正在同步至云端...">
+                <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse" />
+                <span className="hidden sm:inline text-stone-500 dark:text-stone-400">同步中</span>
+              </div>
             )}
             {saveStatus === 'saved' && (
-              <span className="flex items-center gap-1 text-emerald-600 dark:text-emerald-400 text-[10px] opacity-75" title="云端已保存同步">
-                <CheckCircle2 className="w-3 h-3" />
+              <div
+                className="flex items-center gap-1 text-stone-400 dark:text-stone-500 hover:text-stone-600 dark:hover:text-stone-300 transition-colors"
+                title={`云端已同步${lastSavedTime ? ` · ${lastSavedTime}` : ''}`}
+              >
+                <CheckCircle2 className="w-3 h-3 text-emerald-600/80 dark:text-emerald-400/80" />
                 <span className="hidden sm:inline">已同步</span>
-              </span>
+              </div>
             )}
-            {saveStatus === 'local' && (
-              <span className="flex items-center gap-1.5 text-blue-700 dark:text-blue-300 bg-blue-50 dark:bg-blue-950/40 border border-blue-200/80 dark:border-blue-900/50 px-2 py-0.5 rounded-md text-[10px]" title="本地离线草稿已安全暂存">
-                <span className="w-1.5 h-1.5 rounded-full bg-blue-500" />
-                <span className="hidden sm:inline">本地暂存</span>
-              </span>
-            )}
-            {saveStatus === 'pending' && (
-              <span className="flex items-center gap-1.5 text-stone-400 dark:text-stone-500 text-[10px]">
-                <span className="w-1.5 h-1.5 rounded-full bg-amber-400" />
-                <span className="hidden sm:inline">待同步</span>
-              </span>
+            {(saveStatus === 'local' || saveStatus === 'unsaved' || saveStatus === 'pending') && (
+              <div
+                className="flex items-center gap-1 text-stone-400 dark:text-stone-500 hover:text-stone-600 dark:hover:text-stone-300 transition-colors"
+                title="本地草稿已实时安全暂存防丢"
+              >
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500/70" />
+                <span className="hidden sm:inline">已暂存</span>
+              </div>
             )}
             {saveStatus === 'conflict' && (
-              <span className="flex items-center gap-1 text-red-700 dark:text-red-400 bg-red-50 dark:bg-red-950/50 border border-red-200 dark:border-red-900 px-2 py-0.5 rounded-md font-bold text-[10px]">
+              <span className="flex items-center gap-1 text-red-700 dark:text-red-400 bg-red-50 dark:bg-red-950/50 border border-red-200 dark:border-red-900 px-2 py-0.5 rounded-md font-bold">
                 <AlertTriangle className="w-3 h-3 text-red-600 dark:text-red-400" />
                 <span>版本冲突</span>
               </span>
