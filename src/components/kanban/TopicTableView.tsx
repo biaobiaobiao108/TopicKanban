@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useMemo } from 'react';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { Topic, TopicStatus, Priority } from '../../types';
 import { StatusBadge, PriorityBadge } from '../ui/Badge';
 import { COLUMNS } from './columns';
@@ -105,6 +105,7 @@ export const TopicTableView: React.FC<TopicTableViewProps> = ({
   readingSpeed = 280,
   searchTerm = '',
 }) => {
+  const queryClient = useQueryClient();
   const initialPreferences = useMemo(readTablePreferences, []);
   const [archiveScope, setArchiveScope] = useState<ArchiveScope>(initialPreferences.archiveScope);
   const [sortCol, setSortCol] = useState<SortCol>(initialPreferences.sortCol);
@@ -159,8 +160,8 @@ export const TopicTableView: React.FC<TopicTableViewProps> = ({
     }),
   });
   useEffect(() => {
-    void pageQuery.refetch();
-  }, [topics, trashedTopics]);
+    void queryClient.invalidateQueries({ queryKey: ['topics-page'], refetchType: 'active' });
+  }, [topics, trashedTopics, queryClient]);
 
   const handleHeaderClick = (col: SortCol) => {
     if (sortCol === col) {
