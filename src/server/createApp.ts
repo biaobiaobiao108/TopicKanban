@@ -522,7 +522,7 @@ export function createApp() {
     return c.json({ success: true });
   });
 
-  app.get('/people', async (c) => c.json((await loadBootstrap(requireDb(c))).people));
+  app.get('/people', async (c) => c.json((await loadBootstrap(requireDb(c), undefined, { includeTopics: false, includePeople: true, includeRelationships: false, includePublished: false, includeTags: false })).people));
 
   app.post('/people', async (c) => {
     try {
@@ -577,7 +577,7 @@ export function createApp() {
     return c.json({ success: true });
   });
 
-  app.get('/relationships', async (c) => c.json((await loadBootstrap(requireDb(c))).relationships));
+  app.get('/relationships', async (c) => c.json((await loadBootstrap(requireDb(c), undefined, { includeTopics: false, includePeople: false, includeRelationships: true, includePublished: false, includeTags: false })).relationships));
 
   app.post('/relationships', async (c) => {
     try {
@@ -735,7 +735,7 @@ export function createApp() {
     return c.json({ success: true });
   });
 
-  app.get('/tags', async (c) => c.json((await loadBootstrap(requireDb(c))).tags));
+  app.get('/tags', async (c) => c.json((await loadBootstrap(requireDb(c), undefined, { includeTopics: false, includePeople: false, includeRelationships: false, includePublished: false, includeTags: true })).tags));
 
   app.post('/tags', async (c) => {
     try {
@@ -785,7 +785,7 @@ export function createApp() {
     return c.json({ success: true });
   });
 
-  app.get('/published', async (c) => c.json((await loadBootstrap(requireDb(c))).published));
+  app.get('/published', async (c) => c.json((await loadBootstrap(requireDb(c), undefined, { includeTopics: false, includePeople: false, includeRelationships: false, includePublished: true, includeTags: false })).published));
 
   app.post('/published', async (c) => {
     try {

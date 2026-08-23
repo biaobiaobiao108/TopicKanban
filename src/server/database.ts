@@ -242,6 +242,7 @@ export async function loadTopicPage(db: D1Database, options: TopicPageOptions): 
 }
 
 export interface BootstrapLoadOptions {
+  includeTopics?: boolean;
   includePeople?: boolean;
   includeRelationships?: boolean;
   includePublished?: boolean;
@@ -249,6 +250,7 @@ export interface BootstrapLoadOptions {
 }
 
 export async function loadBootstrap(db: D1Database, kvSettings?: AppSettings, options: BootstrapLoadOptions = {}): Promise<BootstrapData> {
+  const includeTopics = options.includeTopics !== false;
   const includePeople = options.includePeople !== false;
   const includeRelationships = options.includeRelationships !== false;
   const includePublished = options.includePublished !== false;
@@ -272,7 +274,7 @@ export async function loadBootstrap(db: D1Database, kvSettings?: AppSettings, op
   }
 
   const [topics, otherResults] = await Promise.all([
-    loadTopics(db, 'active'),
+    includeTopics ? loadTopics(db, 'active') : Promise.resolve([] as Topic[]),
     db.batch(queries),
   ]);
 
