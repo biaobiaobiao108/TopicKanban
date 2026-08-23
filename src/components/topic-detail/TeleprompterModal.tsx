@@ -65,6 +65,7 @@ export const TeleprompterModal: React.FC<TeleprompterModalProps> = ({
   const [scrollProgress, setScrollProgress] = useState(0);
   const [activeBlockIndex, setActiveBlockIndex] = useState(0);
   const [isFullscreen, setIsFullscreen] = useState(false);
+  const positionStorageKey = `teleprompter-position:${topicTitle}`;
 
   const containerRef = useRef<HTMLDivElement | null>(null);
   const scrollableRef = useRef<HTMLDivElement | null>(null);
@@ -238,9 +239,34 @@ export const TeleprompterModal: React.FC<TeleprompterModalProps> = ({
   const handleManualScroll = useCallback(() => {
     if (scrollableRef.current) {
       preciseScrollTopRef.current = scrollableRef.current.scrollTop;
+      try {
+        localStorage.setItem(positionStorageKey, String(Math.round(scrollableRef.current.scrollTop)));
+      } catch {
+        // localStorage may be unavailable in private browsing.
+      }
       updateScrollProgress();
     }
-  }, [updateScrollProgress]);
+  }, [positionStorageKey, updateScrollProgress]);
+
+  useEffect(() => {
+    if (!isOpen) return;
+    let frame = 0;
+    frame = requestAnimationFrame(() => {
+      const container = scrollableRef.current;
+      if (!container) return;
+      try {
+        const saved = Number(localStorage.getItem(positionStorageKey) || 0);
+        if (Number.isFinite(saved) && saved > 0) {
+          container.scrollTop = Math.min(saved, Math.max(0, container.scrollHeight - container.clientHeight));
+          preciseScrollTopRef.current = container.scrollTop;
+        }
+      } catch {
+        // localStorage may be unavailable in private browsing.
+      }
+      updateScrollProgress();
+    });
+    return () => cancelAnimationFrame(frame);
+  }, [isOpen, positionStorageKey, updateScrollProgress]);
 
   // Auto-scrolling pure physics engine via requestAnimationFrame (constant velocity)
   const stepScroll = useCallback((timestamp: number) => {

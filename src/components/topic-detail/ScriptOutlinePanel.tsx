@@ -92,6 +92,9 @@ const OutlineBranch: React.FC<OutlineBranchProps> = ({
                   >
                     {item.percentage}%
                   </span>
+                  <span className="block font-mono text-[10px] leading-none text-stone-400 dark:text-stone-500">
+                    {formatOutlineDuration(item.durationSeconds)}
+                  </span>
                   <OutlineProgress percentage={item.percentage} active={isActive} />
                 </span>
               </div>

@@ -618,6 +618,7 @@ export const ScriptEditorTab: React.FC<ScriptEditorTabProps> = ({
   const currentHtml = editor?.getHTML() || initialDraft?.content_html || '';
   const activeCitations = citations.filter((citation) => currentHtml.includes(`data-citation-id=\"${citation.id}\"`));
   const citationHealth = topic ? getCitationHealth(activeCitations, { topic, sources, timeline }) : null;
+  const citationCoverageWarning = sources.length > 0 && activeCitations.length === 0;
 
   const toggleOutlinePanel = () => {
     if (!isOutlineOpen && !canKeepBothSidePanelsOpen()) setIsReferenceOpen(false);
@@ -986,6 +987,11 @@ export const ScriptEditorTab: React.FC<ScriptEditorTabProps> = ({
         </div>
       )}
 
+      {!isZenMode && citationCoverageWarning && (
+        <div className="mx-3 mt-2 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-xs font-medium text-amber-900 dark:border-amber-900/60 dark:bg-amber-950/30 dark:text-amber-200">
+          引用提醒：当前文案还没有插入资料引用，进入制作前建议为关键事实补充来源。
+        </div>
+      )}
       {!isZenMode && citationHealth && (citationHealth.staleCount > 0 || citationHealth.unverifiedCount > 0) && (
         <button
           type="button"
