@@ -17,6 +17,8 @@ import {
 } from 'lucide-react';
 import { CustomSelect } from '../ui/CustomSelect';
 import { parseUrlMetadataApi } from '../../lib/remoteStorage';
+import { fetchBilibiliVideoData, extractBvid } from '../../lib/bilibili';
+import { fetchYoutubeVideoData, isYoutubeUrl } from '../../lib/youtube';
 import { useToast } from '../ui/Toast';
 
 interface SourcesTabProps {
@@ -131,16 +133,63 @@ export const SourcesTab: React.FC<SourcesTabProps> = ({
       setUrl(extractedUrl);
 
       // Local quick fallback platform detection
-      if (/bilibili\.com|b23\.tv/i.test(extractedUrl) || bvMatch) setPlatform('bilibili');
+      const bvid = bvMatch ? bvMatch[1] : extractBvid(extractedUrl);
+      const isBili = /bilibili\.com|b23\.tv/i.test(extractedUrl) || Boolean(bvid);
+      const isYt = isYoutubeUrl(extractedUrl);
+
+      if (isBili) setPlatform('bilibili');
       else if (/douyin\.com|iesdouyin\.com/i.test(extractedUrl)) setPlatform('douyin');
       else if (/kuaishou\.com/i.test(extractedUrl)) setPlatform('kuaishou');
       else if (/weibo\.com|weibo\.cn/i.test(extractedUrl)) setPlatform('weibo');
       else if (/xiaohongshu\.com|xhslink\.com/i.test(extractedUrl)) setPlatform('xiaohongshu');
       else if (/weixin\.qq\.com|mp\.weixin/i.test(extractedUrl)) setPlatform('wechat');
       else if (/zhihu\.com/i.test(extractedUrl)) setPlatform('zhihu');
-      else if (/youtube\.com|youtu\.be/i.test(extractedUrl)) setPlatform('youtube');
+      else if (isYt) setPlatform('youtube');
 
       setIsParsingUrl(true);
+
+      // 1. Client-First: Direct JSONP for Bilibili (uses user's clean residential IP, 100% bypasses Cloudflare datacenter blocking)
+      if (bvid) {
+        try {
+          const biliMeta = await fetchBilibiliVideoData(bvid);
+          if (biliMeta && biliMeta.title) {
+            setTitle(biliMeta.title);
+            if (biliMeta.author) setAuthor(biliMeta.author);
+            const cleanDesc = (biliMeta.desc || '').trim();
+            const fallbackContent = cleanDesc && cleanDesc !== '-' && cleanDesc.length > 3
+              ? cleanDesc
+              : `【Bilibili 视频】${biliMeta.title}${biliMeta.author ? ` · UP主：${biliMeta.author}` : ''}${biliMeta.published_at ? ` · 发布于 ${biliMeta.published_at}` : ''}`;
+            setContent(fallbackContent);
+            if (biliMeta.published_at) setPublishedAt(biliMeta.published_at);
+            setPlatform('bilibili');
+            setUrl(biliMeta.url);
+            setIsParsingUrl(false);
+            return;
+          }
+        } catch {
+          // fallback to server parser below
+        }
+      }
+
+      // 2. Client-First: Direct CORS oEmbed for YouTube
+      if (isYt) {
+        try {
+          const ytMeta = await fetchYoutubeVideoData(extractedUrl);
+          if (ytMeta && ytMeta.title) {
+            setTitle(ytMeta.title);
+            if (ytMeta.author) setAuthor(ytMeta.author);
+            setContent(`【YouTube 视频】${ytMeta.title}${ytMeta.author ? ` · 频道：${ytMeta.author}` : ''}`);
+            setPlatform('youtube');
+            setUrl(ytMeta.url);
+            setIsParsingUrl(false);
+            return;
+          }
+        } catch {
+          // fallback to server parser below
+        }
+      }
+
+      // 3. Server Fallback for general web pages
       try {
         const meta = await parseUrlMetadataApi(extractedUrl);
         if (meta) {

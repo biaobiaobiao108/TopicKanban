@@ -76,6 +76,13 @@
 * **反向代理 (`PUBLIC_BASE_URL`)**：当容器部署在反向代理（Nginx / Caddy / NPM / CF Tunnel）后方时，外部审稿分享链接与灵感快投 Webhook 地址必须自适应公网域名。
 * 解析优先级：`settings.public_base_url` > `env.PUBLIC_BASE_URL` > `X-Forwarded-*` 标头 > `window.location.origin`。
 
+### 4. 外部音视频平台链接智能识别架构（客户端直连优先原则 Client-First Direct Scraping）
+* **背景与风控考量**：Cloudflare Workers / 海外云厂商数据中心 IP 极易被 Bilibili 等国内音视频与社交媒体平台判定为机房爬虫流量而遭遇 412/403 反爬拦截；相反，用户本人的原生浏览器网络（家庭/移动宽带原生 IP）干净度与信任度极高。
+* **分工规范**：
+  1. **Bilibili 视频**：前端优先在客户端通过原生 JSONP（`fetchBilibiliVideoData`）直连 B 站 open API，零风控、毫秒级获取视频真实标题、UP主、简介、发布日期、封面图以及播放/点赞/投币/收藏等全套互动数据；
+  2. **YouTube 视频**：前端优先在客户端通过官方 oEmbed CORS（`fetchYoutubeVideoData`）直连拉取标题、频道作者与封面；
+  3. **通用未知网站**：才走服务端 `/api/sources/parse-url` 抓取通用 OpenGraph / HTML Meta 元数据作为兜底。
+
 ---
 
 ## 🎨 四、UI/UX 与交互准则 (Design & Usability)

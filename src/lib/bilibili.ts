@@ -12,6 +12,8 @@ export const formatBilibiliDate = (timestamp: number = Date.now()): string => {
 export interface BilibiliVideoMeta {
   bvid: string;
   title: string;
+  author?: string;
+  desc?: string;
   cover_url?: string;
   published_at: string;
   views: number;
@@ -25,6 +27,11 @@ export interface BilibiliVideoMeta {
 type BilibiliRawVideoData = {
   bvid?: string;
   title?: string;
+  desc?: string;
+  owner?: {
+    name?: string;
+    mid?: number;
+  };
   pic?: string;
   pubdate?: number;
   stat?: {
@@ -49,6 +56,8 @@ const normalizeBilibiliVideo = (raw: BilibiliRawVideoData, bvid: string): Bilibi
   return {
     bvid: raw.bvid || bvid,
     title: raw.title || '',
+    author: raw.owner?.name || '',
+    desc: raw.desc || '',
     cover_url: raw.pic || '',
     published_at: raw.pubdate
       ? formatBilibiliDate(raw.pubdate * 1000)
