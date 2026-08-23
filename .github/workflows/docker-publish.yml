@@ -30,19 +30,16 @@ jobs:
         run: |
           echo "IMAGE_NAME=${GITHUB_REPOSITORY,,}" >> $GITHUB_ENV
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
         with:
-          node-version: 22
-
-      - name: Install pnpm
-        run: npm install -g pnpm@11.22.0
+          bun-version: 1.4.0
 
       - name: Install dependencies
-        run: pnpm install --frozen-lockfile
+        run: bun install --frozen-lockfile
 
       - name: Run unit & integration tests
-        run: pnpm test:run
+        run: bun run test:run
 
       - name: Set up QEMU (Multi-platform support)
         uses: docker/setup-qemu-action@v3
