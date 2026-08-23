@@ -40,6 +40,45 @@ function decodeHtmlEntities(str: string): string {
     .trim();
 }
 
+export function isLocalPrivateOrLoopbackIp(ip: string): boolean {
+  const cleanIp = ip.replace(/^\[|\]$/g, '').trim().toLowerCase();
+
+  // IPv4-mapped IPv6 e.g. ::ffff:127.0.0.1
+  if (cleanIp.startsWith('::ffff:')) {
+    const v4Part = cleanIp.slice(7);
+    return isLocalPrivateOrLoopbackIp(v4Part);
+  }
+
+  // IPv4 Check
+  const v4Match = cleanIp.match(/^(\d{1,3})\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})$/);
+  if (v4Match) {
+    const octets = v4Match.slice(1, 5).map(Number);
+    if (octets.some((o) => o > 255 || Number.isNaN(o))) return true;
+
+    // 0.0.0.0/8 (Current network)
+    if (octets[0] === 0) return true;
+    // 10.0.0.0/8 (Private LAN)
+    if (octets[0] === 10) return true;
+    // 127.0.0.0/8 (Loopback)
+    if (octets[0] === 127) return true;
+    // 169.254.0.0/16 (Link-local / Cloud metadata e.g. 169.254.169.254)
+    if (octets[0] === 169 && octets[1] === 254) return true;
+    // 172.16.0.0/12 (Private LAN, 172.16.0.0 - 172.31.255.255)
+    if (octets[0] === 172 && octets[1] >= 16 && octets[1] <= 31) return true;
+    // 192.168.0.0/16 (Private LAN)
+    if (octets[0] === 192 && octets[1] === 168) return true;
+
+    return false;
+  }
+
+  // IPv6 Check
+  if (cleanIp === '::1' || cleanIp === '::') return true;
+  // Link-Local fe80::/10 (fe80:: - febf::)
+  if (/^fe[89ab]/i.test(cleanIp)) return true;
+
+  return false;
+}
+
 /**
  * Check whether an IP string is private, loopback, link-local, or reserved
  */
@@ -167,7 +206,8 @@ async function isSafePublicRequestUrl(urlStr: string): Promise<boolean> {
     const addresses: Array<{ address: string }> | null = await Promise.race([lookupPromise, timeoutPromise]);
     if (timeoutHandle) clearTimeout(timeoutHandle);
     if (!addresses) return false;
-    return addresses.length > 0 && addresses.every(({ address }) => !isPrivateOrReservedIp(address));
+    // Guard against DNS rebinding to real LAN private / loopback addresses
+    return addresses.length > 0 && addresses.every(({ address }) => !isLocalPrivateOrLoopbackIp(address));
   } catch {
     return false;
   }
@@ -296,10 +336,17 @@ async function parseBilibiliVideo(urlStr: string, bvid?: string, aid?: string): 
     if (json.code === 0 && json.data) {
       const d = json.data;
       const publishedAt = d.pubdate ? new Date(d.pubdate * 1000).toISOString().slice(0, 10) : '';
+      const cleanDesc = decodeHtmlEntities(d.desc || '').trim();
+      const cleanTitle = decodeHtmlEntities(d.title || '').trim();
+      const authorName = d.owner?.name || '';
+      const content = cleanDesc && cleanDesc !== '-' && cleanDesc.length > 3
+        ? cleanDesc
+        : `【Bilibili 视频】${cleanTitle}${authorName ? ` · UP主：${authorName}` : ''}${publishedAt ? ` · 发布于 ${publishedAt}` : ''}`;
+
       return {
-        title: decodeHtmlEntities(d.title || ''),
-        author: d.owner?.name || '',
-        content: decodeHtmlEntities(d.desc || ''),
+        title: cleanTitle,
+        author: authorName,
+        content,
         published_at: publishedAt,
         platform: 'bilibili',
         url: `https://www.bilibili.com/video/${d.bvid || bvid || urlStr}`,
@@ -483,8 +530,29 @@ async function parseGeneralWebUrl(urlStr: string, alreadyValidated = false): Pro
  */
 export async function parseUrlMetadata(rawInput: string): Promise<ParsedUrlMetadata> {
   const trimmed = rawInput.trim();
-  const urlMatch = trimmed.match(/https?:\/\/[^\s]+/i);
-  const targetUrl = urlMatch ? urlMatch[0] : trimmed;
+  let targetUrl = trimmed;
+
+  // 1. Check if raw input is pure BV ID
+  const bvMatch = trimmed.match(/^(BV[a-zA-Z0-9]{10})$/i);
+  if (bvMatch) {
+    targetUrl = `https://www.bilibili.com/video/${bvMatch[1]}`;
+  } else {
+    const urlMatch = trimmed.match(/https?:\/\/[^\s]+/i);
+    if (urlMatch) {
+      targetUrl = urlMatch[0];
+    } else if (
+      trimmed.includes('bilibili.com') ||
+      trimmed.includes('b23.tv') ||
+      trimmed.includes('youtube.com') ||
+      trimmed.includes('youtu.be') ||
+      trimmed.includes('douyin.com') ||
+      trimmed.includes('xiaohongshu.com') ||
+      trimmed.includes('zhihu.com') ||
+      trimmed.includes('weibo.com')
+    ) {
+      targetUrl = `https://${trimmed.replace(/^\/+/, '')}`;
+    }
+  }
 
   // SSRF Check: if not safe, return safe fallback directly without fetching
   if (!(await isSafePublicRequestUrl(targetUrl))) {

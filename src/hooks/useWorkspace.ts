@@ -33,23 +33,28 @@ export function useWorkspace(enabled: boolean, view: string = 'today') {
     queryClient.setQueryData<BootstrapData>(['workspace'], (current) => current ? updater(current) : current);
   }, [queryClient]);
 
-  const createEntitySetter = useCallback(<T,>(key: keyof BootstrapData) => (
+  const createEntitySetter = useCallback(<T,>(key: keyof BootstrapData, queryKey?: string[]) => (
     updater: SetStateAction<T[]>
   ) => {
+    if (queryKey) {
+      queryClient.setQueryData<T[]>(queryKey, (current = []) => (
+        typeof updater === 'function' ? updater(current) : updater
+      ));
+    }
     updateWorkspace((current) => {
-      const values = current[key] as T[];
+      const values = (current[key] as T[]) || [];
       return {
         ...current,
         [key]: typeof updater === 'function' ? updater(values) : updater,
       };
     });
-  }, [updateWorkspace]);
+  }, [queryClient, updateWorkspace]);
 
   const setTopics = createEntitySetter<Topic>('topics');
-  const setPeople = createEntitySetter<Person>('people');
-  const setRelationships = createEntitySetter<PersonRelationship>('relationships');
-  const setPublishedList = createEntitySetter<PublishedVideo>('published');
-  const setTags = createEntitySetter<Tag>('tags');
+  const setPeople = createEntitySetter<Person>('people', ['people']);
+  const setRelationships = createEntitySetter<PersonRelationship>('relationships', ['relationships']);
+  const setPublishedList = createEntitySetter<PublishedVideo>('published', ['published']);
+  const setTags = createEntitySetter<Tag>('tags', ['tags']);
   const setTrashedTopics = useCallback((updater: SetStateAction<Topic[]>) => {
     queryClient.setQueryData<Topic[]>(['topics', 'trash'], (current = []) => (
       typeof updater === 'function' ? updater(current) : updater
@@ -57,11 +62,19 @@ export function useWorkspace(enabled: boolean, view: string = 'today') {
   }, [queryClient]);
 
   useEffect(() => {
-    if (peopleQuery.data) setPeople(peopleQuery.data);
-    if (relationshipsQuery.data) setRelationships(relationshipsQuery.data);
-    if (tagsQuery.data) setTags(tagsQuery.data);
-    if (publishedQuery.data) setPublishedList(publishedQuery.data);
-  }, [peopleQuery.data, relationshipsQuery.data, tagsQuery.data, publishedQuery.data]);
+    if (peopleQuery.data) {
+      updateWorkspace((current) => ({ ...current, people: peopleQuery.data }));
+    }
+    if (relationshipsQuery.data) {
+      updateWorkspace((current) => ({ ...current, relationships: relationshipsQuery.data }));
+    }
+    if (tagsQuery.data) {
+      updateWorkspace((current) => ({ ...current, tags: tagsQuery.data }));
+    }
+    if (publishedQuery.data) {
+      updateWorkspace((current) => ({ ...current, published: publishedQuery.data }));
+    }
+  }, [peopleQuery.data, relationshipsQuery.data, tagsQuery.data, publishedQuery.data, updateWorkspace]);
   const setSettings = useCallback((settings: AppSettings) => {
     updateWorkspace((current) => ({ ...current, settings }));
   }, [updateWorkspace]);

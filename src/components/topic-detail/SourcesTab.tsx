@@ -70,6 +70,7 @@ export const SourcesTab: React.FC<SourcesTabProps> = ({
   const [publishedAt, setPublishedAt] = useState('');
   const [verificationStatus, setVerificationStatus] = useState<VerificationStatus>('confirmed');
   const [notes, setNotes] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const openAddModal = () => {
     setEditingSource(null);
@@ -102,17 +103,35 @@ export const SourcesTab: React.FC<SourcesTabProps> = ({
   const handleSmartParse = async (rawText: string) => {
     const trimmed = rawText.trim();
     if (!trimmed) return;
-    const urlMatch = trimmed.match(/https?:\/\/[^\s]+/i);
+
     let extractedUrl = '';
     let cleanText = trimmed;
+
+    // Check if input contains BV ID or standard URL or short link
+    const bvMatch = trimmed.match(/(BV[a-zA-Z0-9]{10})/i);
+    const urlMatch = trimmed.match(/https?:\/\/[^\s]+/i);
 
     if (urlMatch) {
       extractedUrl = urlMatch[0];
       cleanText = trimmed.replace(extractedUrl, '').trim();
+    } else if (bvMatch) {
+      extractedUrl = `https://www.bilibili.com/video/${bvMatch[1]}`;
+      cleanText = trimmed.replace(bvMatch[0], '').trim();
+    } else if (
+      trimmed.includes('b23.tv') ||
+      trimmed.includes('bilibili.com') ||
+      trimmed.includes('youtube.com') ||
+      trimmed.includes('youtu.be')
+    ) {
+      extractedUrl = `https://${trimmed.replace(/^https?:\/\//i, '').replace(/^\/+/, '')}`;
+      cleanText = '';
+    }
+
+    if (extractedUrl) {
       setUrl(extractedUrl);
 
       // Local quick fallback platform detection
-      if (/bilibili\.com|b23\.tv/i.test(extractedUrl)) setPlatform('bilibili');
+      if (/bilibili\.com|b23\.tv/i.test(extractedUrl) || bvMatch) setPlatform('bilibili');
       else if (/douyin\.com|iesdouyin\.com/i.test(extractedUrl)) setPlatform('douyin');
       else if (/kuaishou\.com/i.test(extractedUrl)) setPlatform('kuaishou');
       else if (/weibo\.com|weibo\.cn/i.test(extractedUrl)) setPlatform('weibo');
@@ -121,7 +140,6 @@ export const SourcesTab: React.FC<SourcesTabProps> = ({
       else if (/zhihu\.com/i.test(extractedUrl)) setPlatform('zhihu');
       else if (/youtube\.com|youtu\.be/i.test(extractedUrl)) setPlatform('youtube');
 
-      // Fetch accurate metadata from server (Bilibili open API / OpenGraph)
       setIsParsingUrl(true);
       try {
         const meta = await parseUrlMetadataApi(extractedUrl);
@@ -136,7 +154,7 @@ export const SourcesTab: React.FC<SourcesTabProps> = ({
           return;
         }
       } catch {
-        // Fallback to local text parsing below
+        // Fallback
       } finally {
         setIsParsingUrl(false);
       }
@@ -178,21 +196,27 @@ export const SourcesTab: React.FC<SourcesTabProps> = ({
     ));
     if (duplicate) showToast({ message: `检测到可能重复的素材：「${duplicate.title}」，仍会继续保存`, tone: 'info' });
 
-    await onSaveSource({
-      id: editingSource?.id,
-      topic_id: topicId,
-      title: title.trim(),
-      type: 'material',
-      content: content.trim(),
-      url: url.trim(),
-      platform,
-      author: author.trim(),
-      published_at: publishedAt.trim(),
-      verification_status: verificationStatus,
-      notes: notes.trim(),
-    });
-
-    setIsModalOpen(false);
+    setIsSubmitting(true);
+    try {
+      await onSaveSource({
+        id: editingSource?.id,
+        topic_id: topicId,
+        title: title.trim(),
+        type: 'material',
+        content: content.trim(),
+        url: url.trim(),
+        platform,
+        author: author.trim(),
+        published_at: publishedAt.trim(),
+        verification_status: verificationStatus,
+        notes: notes.trim(),
+      });
+      setIsModalOpen(false);
+    } catch {
+      // ignore
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const toggleSelected = (id: string) => setSelectedIds((current) => {
@@ -202,10 +226,12 @@ export const SourcesTab: React.FC<SourcesTabProps> = ({
   });
 
   const deleteSelected = async () => {
-    const ids = [...selectedIds];
-    await Promise.all(ids.map((id) => onDeleteSource(id)));
+    if (selectedIds.size === 0) return;
+    if (!window.confirm(`确定要删除选中的 ${selectedIds.size} 条素材资料吗？`)) return;
+    for (const id of selectedIds) {
+      await onDeleteSource(id);
+    }
     setSelectedIds(new Set());
-    showToast({ message: `已删除 ${ids.length} 条素材` });
   };
 
   const copyUrl = (id: string, link: string) => {
@@ -283,14 +309,19 @@ export const SourcesTab: React.FC<SourcesTabProps> = ({
 
         <button
           onClick={openAddModal}
-          className="flex items-center gap-1.5 bg-stone-900 dark:bg-rose-600 hover:bg-stone-800 dark:hover:bg-rose-700 text-white px-3.5 py-1.8 rounded-xl text-xs font-bold transition-all shadow-sm hover:scale-[1.02] active:scale-[0.98] cursor-pointer shrink-0"
+          className="flex items-center gap-1 bg-stone-900 dark:bg-rose-600 hover:bg-stone-800 dark:hover:bg-rose-700 text-white px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors shadow-2xs cursor-pointer shrink-0"
         >
           <Plus className="w-4 h-4" />
           <span>添加素材</span>
         </button>
         {selectedIds.size > 0 && (
-          <button type="button" onClick={() => void deleteSelected()} className="flex items-center gap-1.5 rounded-xl border border-red-200 bg-red-50 px-3.5 py-1.8 text-xs font-bold text-red-700 hover:bg-red-100">
-            <Trash2 className="h-4 w-4" /> 删除选中 ({selectedIds.size})
+          <button
+            type="button"
+            onClick={() => void deleteSelected()}
+            className="flex items-center gap-1 rounded-lg border border-red-200 bg-red-50 px-3 py-1.5 text-xs font-semibold text-red-700 hover:bg-red-100 cursor-pointer shrink-0"
+          >
+            <Trash2 className="w-4 h-4" />
+            <span>删除选中 ({selectedIds.size})</span>
           </button>
         )}
       </div>
@@ -543,6 +574,12 @@ export const SourcesTab: React.FC<SourcesTabProps> = ({
                 placeholder="https://www.bilibili.com/video/..."
                 value={url}
                 onChange={(e) => setUrl(e.target.value)}
+                onPaste={(e) => {
+                  const pasted = e.clipboardData.getData('text');
+                  if (pasted && !title.trim()) {
+                    void handleSmartParse(pasted);
+                  }
+                }}
                 className="w-full px-3 py-2 bg-stone-50 dark:bg-stone-800 border border-stone-300 dark:border-stone-700 rounded-lg text-sm text-stone-900 dark:text-stone-100 placeholder:text-stone-400 dark:placeholder:text-stone-500 focus:bg-white dark:focus:bg-stone-800 focus:outline-none"
               />
             </div>
