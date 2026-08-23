@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useState } from 'react';
 import { PublishedVideo, Topic } from '../../types';
 import {
   calculateChannelOverview,
@@ -27,6 +27,7 @@ import {
   ArrowUpRight,
   HelpCircle
 } from 'lucide-react';
+import { CustomSelect } from '../ui/CustomSelect';
 
 interface AnalyticsDashboardProps {
   publishedList: PublishedVideo[];
@@ -39,17 +40,27 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({
   topics,
   onSelectTopic,
 }) => {
+  const [range, setRange] = useState<'all' | '90d' | 'year'>('all');
   const topicMap = useMemo(() => new Map(topics.map((t) => [t.id, t])), [topics]);
+  const filteredVideos = useMemo(() => {
+    if (range === 'all') return publishedList;
+    const cutoff = new Date();
+    cutoff.setDate(cutoff.getDate() - (range === '90d' ? 90 : 365));
+    return publishedList.filter((video) => {
+      const publishedAt = video.published_at ? new Date(video.published_at) : null;
+      return publishedAt && !Number.isNaN(publishedAt.getTime()) && publishedAt >= cutoff;
+    });
+  }, [publishedList, range]);
 
-  const overview = useMemo(() => calculateChannelOverview(publishedList, topics), [publishedList, topics]);
-  const correlation = useMemo(() => analyzeTopicModelCorrelation(publishedList, topics), [publishedList, topics]);
-  const peoplePerf = useMemo(() => analyzePeoplePerformance(publishedList, topics), [publishedList, topics]);
-  const tagPerf = useMemo(() => analyzeTagPerformance(publishedList, topics), [publishedList, topics]);
-  const insights = useMemo(() => generateAnalyticsInsights(publishedList, topics), [publishedList, topics]);
+  const overview = useMemo(() => calculateChannelOverview(filteredVideos, topics), [filteredVideos, topics]);
+  const correlation = useMemo(() => analyzeTopicModelCorrelation(filteredVideos, topics), [filteredVideos, topics]);
+  const peoplePerf = useMemo(() => analyzePeoplePerformance(filteredVideos, topics), [filteredVideos, topics]);
+  const tagPerf = useMemo(() => analyzeTagPerformance(filteredVideos, topics), [filteredVideos, topics]);
+  const insights = useMemo(() => generateAnalyticsInsights(filteredVideos, topics), [filteredVideos, topics]);
 
   // Video ranking list with deep metrics
   const videoTableData = useMemo(() => {
-    return publishedList
+    return filteredVideos
       .map((video) => {
         const topic = video.topic_id ? topicMap.get(video.topic_id) : undefined;
         const deepMetrics = calculateDeepMetrics(video, topic);
@@ -69,7 +80,7 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({
         };
       })
       .sort((a, b) => (b.video.views || 0) - (a.video.views || 0));
-  }, [publishedList, topicMap]);
+  }, [filteredVideos, topicMap]);
 
   if (publishedList.length === 0) {
     return (
@@ -99,6 +110,32 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({
 
   return (
     <div className="space-y-8 animate-fadeIn">
+      <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-stone-200 bg-white px-4 py-3 shadow-2xs">
+        <div>
+          <div className="text-sm font-bold text-stone-900">复盘范围</div>
+          <div className="text-xs text-stone-500">按发布时间筛选，帮助把洞察转成近期行动。</div>
+        </div>
+        <CustomSelect
+          value={range}
+          onChange={(value) => setRange(value as 'all' | '90d' | 'year')}
+          size="sm"
+          options={[
+            { value: 'all', label: '全部视频' },
+            { value: '90d', label: '最近 90 天' },
+            { value: 'year', label: '最近 1 年' },
+          ]}
+        />
+      </div>
+      {filteredVideos.length === 0 && (
+        <div className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900">
+          当前时间范围没有带有效发布日期的视频，请切换范围或补充发布日期后再复盘。
+        </div>
+      )}
+      {filteredVideos.length > 0 && filteredVideos.length < 3 && (
+        <div className="rounded-xl border border-stone-200 bg-stone-50 px-4 py-3 text-xs text-stone-600">
+          当前只有 {filteredVideos.length} 期视频，趋势和人物/标签对比仅供参考，积累更多数据后再做结论。
+        </div>
+      )}
       {/* 1. Channel KPI Overview Cards */}
       <section>
         <div className="flex items-center justify-between mb-3">
