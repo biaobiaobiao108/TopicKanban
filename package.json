@@ -16,8 +16,8 @@
     "build:server": "bun build src/server/server.ts --target=bun --format=esm --outfile=dist/server.js",
     "start": "bun dist/server.js",
     "preview": "vite preview",
-    "test": "bun test tests/*.test.ts",
-    "test:run": "bun test tests/*.test.ts",
+    "test": "bun test",
+    "test:run": "bun test",
     "test:e2e": "playwright test"
   },
   "dependencies": {
