@@ -468,13 +468,13 @@ function renderScriptTextWithCues(text: string, isDark: boolean): React.ReactNod
   return (
     <div
       ref={containerRef}
-      className={`fixed inset-0 z-50 flex flex-col select-none transition-colors duration-300 ${
-        isDark ? 'dark bg-[#0c0a09] text-[#f5f5f4]' : 'bg-[#fafaf9] text-stone-900'
+      className={`teleprompter-modal-root fixed inset-0 z-50 flex flex-col select-none transition-colors duration-300 ${
+        isDark ? 'dark is-dark bg-[#0c0a09] text-[#f5f5f4]' : 'is-light bg-[#fafaf9] text-stone-900'
       }`}
     >
       {/* 1. Top Control Bar (Solid high-contrast surface in both modes) */}
       <header
-        className={`shrink-0 flex items-center justify-between px-4 sm:px-8 py-3 border-b transition-colors z-20 shadow-xs ${
+        className={`teleprompter-header shrink-0 flex items-center justify-between px-4 sm:px-8 py-3 border-b transition-colors z-20 shadow-xs ${
           isDark
             ? 'bg-[#141210] border-stone-800 text-stone-100'
             : 'bg-[#fafaf9] border-stone-200 text-stone-800'
@@ -489,7 +489,9 @@ function renderScriptTextWithCues(text: string, isDark: boolean): React.ReactNod
               )}
               <span className={`relative inline-flex rounded-full h-2.5 w-2.5 ${isPlaying ? 'bg-rose-500' : 'bg-stone-500'}`}></span>
             </span>
-            <h2 className="text-sm sm:text-base font-bold truncate max-w-[200px] sm:max-w-[320px]">
+            <h2 className={`text-sm sm:text-base font-bold truncate max-w-[200px] sm:max-w-[320px] ${
+              isDark ? 'text-stone-100' : 'text-stone-900'
+            }`}>
               {topicTitle}
             </h2>
           </div>

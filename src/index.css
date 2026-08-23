@@ -430,10 +430,8 @@ html.theme-warm-paper .detail-subtabs-container button:not(.border-rose-600) {
 }
 
 /* 5. Outer Framework */
-html.theme-warm-paper aside,
 html.theme-warm-paper aside.sidebar-container,
 html.theme-warm-paper .sidebar-container,
-html.theme-warm-paper header,
 html.theme-warm-paper header.navbar-container,
 html.theme-warm-paper .navbar-container,
 html.theme-warm-paper .mobile-drawer-container,
@@ -676,10 +674,8 @@ html.theme-nordic-frost .detail-subtabs-container button:not(.border-rose-600) {
 }
 
 /* 5. Outer Framework */
-html.theme-nordic-frost aside,
 html.theme-nordic-frost aside.sidebar-container,
 html.theme-nordic-frost .sidebar-container,
-html.theme-nordic-frost header,
 html.theme-nordic-frost header.navbar-container,
 html.theme-nordic-frost .navbar-container,
 html.theme-nordic-frost .mobile-drawer-container,
@@ -918,10 +914,8 @@ html.theme-parisian-dawn .detail-subtabs-container button:not(.border-rose-600) 
 }
 
 /* 5. Outer Framework */
-html.theme-parisian-dawn aside,
 html.theme-parisian-dawn aside.sidebar-container,
 html.theme-parisian-dawn .sidebar-container,
-html.theme-parisian-dawn header,
 html.theme-parisian-dawn header.navbar-container,
 html.theme-parisian-dawn .navbar-container,
 html.theme-parisian-dawn .mobile-drawer-container,
@@ -1155,10 +1149,8 @@ html.theme-midnight-obsidian .detail-subtabs-container button:not(.border-rose-6
 }
 
 /* 5. Outer Framework */
-html.theme-midnight-obsidian aside,
 html.theme-midnight-obsidian aside.sidebar-container,
 html.theme-midnight-obsidian .sidebar-container,
-html.theme-midnight-obsidian header,
 html.theme-midnight-obsidian header.navbar-container,
 html.theme-midnight-obsidian .navbar-container,
 html.theme-midnight-obsidian .mobile-drawer-container,
@@ -1403,10 +1395,8 @@ html.theme-kyoto-zen .detail-subtabs-container button:not(.border-rose-600) {
 }
 
 /* 5. Outer Framework */
-html.theme-kyoto-zen aside,
 html.theme-kyoto-zen aside.sidebar-container,
 html.theme-kyoto-zen .sidebar-container,
-html.theme-kyoto-zen header,
 html.theme-kyoto-zen header.navbar-container,
 html.theme-kyoto-zen .navbar-container,
 html.theme-kyoto-zen .mobile-drawer-container,
@@ -1535,5 +1525,25 @@ html.theme-kyoto-zen .tiptap blockquote {
 html.theme-kyoto-zen .tiptap hr { border-top-color: #dadfd5; }
 html.theme-kyoto-zen ::-webkit-scrollbar-thumb { background: #d0d6cc; }
 html.theme-kyoto-zen ::-webkit-scrollbar-thumb:hover { background: #b5bfae; }
+
+/* ==========================================================================
+   Teleprompter Modal Isolation & High Contrast Mode Rules
+   ========================================================================== */
+.teleprompter-modal-root {
+  isolation: isolate;
+}
+
+.teleprompter-modal-root.is-dark header.teleprompter-header {
+  background-color: #141210 !important;
+  border-color: #292524 !important;
+  color: #f5f5f4 !important;
+}
+
+.teleprompter-modal-root.is-light header.teleprompter-header {
+  background-color: #fafaf9 !important;
+  border-color: #e7e5e4 !important;
+  color: #1c1917 !important;
+}
+
 
 
