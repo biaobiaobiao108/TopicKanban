@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { useSearchParams } from 'react-router-dom';
 import { CitationInput, Topic, Source, TimelineEvent, Person, PersonRelationship, Draft, DraftCitation, DraftRecoveryConflict, Tag, AppSettings } from '../../types';
 import { TopicDetailHeader } from './TopicDetailHeader';
 import { OverviewTab } from './OverviewTab';
@@ -66,11 +67,25 @@ export const TopicDetailView: React.FC<TopicDetailViewProps> = ({
   onDraftWordCountChange,
   onTopicMetricsChange,
 }) => {
-  const [activeTab, setActiveTab] = useState<DetailTab>('overview');
-  const [sources, setSources] = useState<Source[]>([]);
-  const [timeline, setTimeline] = useState<TimelineEvent[]>([]);
-  const [draft, setDraft] = useState<Draft | null>(null);
-  const [citations, setCitations] = useState<DraftCitation[]>([]);
+  const queryClient = useQueryClient();
+  const [searchParams, setSearchParams] = useSearchParams();
+  const rawTab = searchParams.get('tab');
+  const activeTab: DetailTab = (rawTab && ['overview', 'sources', 'timeline', 'people', 'script'].includes(rawTab))
+    ? (rawTab as DetailTab)
+    : 'overview';
+
+  const setActiveTab = (tab: DetailTab) => {
+    setSearchParams((prev) => {
+      const next = new URLSearchParams(prev);
+      if (tab === 'overview') {
+        next.delete('tab');
+      } else {
+        next.set('tab', tab);
+      }
+      return next;
+    }, { replace: true });
+  };
+
   const [draftRecovery, setDraftRecovery] = useState<DraftRecoveryConflict | null>(null);
   const [isResolvingDraft, setIsResolvingDraft] = useState(false);
   const [isActionDialogOpen, setIsActionDialogOpen] = useState(false);
@@ -100,26 +115,40 @@ export const TopicDetailView: React.FC<TopicDetailViewProps> = ({
     queryFn: () => fetchDraftCitations(topic.id),
     enabled: activeTab === 'script',
   });
+
+  const sources: Source[] = sourcesQuery.data || [];
+  const timeline: TimelineEvent[] = timelineQuery.data || [];
+  const citations: DraftCitation[] = citationsQuery.data || [];
+  const draft: Draft | null = draftQuery.data?.draft || null;
+
+  useEffect(() => {
+    if (draftQuery.data?.conflict) {
+      setDraftRecovery(draftQuery.data.conflict);
+    }
+  }, [draftQuery.data?.conflict]);
+
   const loading = (activeTab === 'sources' && sourcesQuery.isLoading)
     || (activeTab === 'timeline' && timelineQuery.isLoading)
     || (activeTab === 'script' && (draftQuery.isLoading || citationsQuery.isLoading || sourcesQuery.isLoading || timelineQuery.isLoading));
 
   useEffect(() => {
-    if (sourcesQuery.data) setSources(sourcesQuery.data);
-    if (timelineQuery.data) setTimeline(timelineQuery.data);
-    if (draftQuery.data) {
-      setDraft(draftQuery.data.draft);
-      setDraftRecovery(draftQuery.data.conflict);
+    if (sourcesQuery.data) {
+      onTopicMetricsChangeRef.current(topic.id, {
+        sources_count: sourcesQuery.data.length,
+        verified_facts_count: sourcesQuery.data.filter((source) => source.type === 'fact' && source.verification_status === 'confirmed').length,
+        materials_count: sourcesQuery.data.filter((source) => source.type === 'material').length,
+        unverified_facts_count: sourcesQuery.data.filter((source) => source.type === 'fact' && source.verification_status === 'unverified').length,
+      });
     }
-    if (citationsQuery.data) setCitations(citationsQuery.data);
-    onTopicMetricsChangeRef.current(topic.id, {
-      sources_count: sourcesQuery.data?.length ?? sources.length,
-      verified_facts_count: (sourcesQuery.data || sources).filter((source) => source.type === 'fact' && source.verification_status === 'confirmed').length,
-      materials_count: (sourcesQuery.data || sources).filter((source) => source.type === 'material').length,
-      unverified_facts_count: (sourcesQuery.data || sources).filter((source) => source.type === 'fact' && source.verification_status === 'unverified').length,
-      draft_word_count: draftQuery.data?.draft?.word_count ?? draft?.word_count ?? 0,
-    });
-  }, [sourcesQuery.data, timelineQuery.data, draftQuery.data, citationsQuery.data, topic.id, sources, draft]);
+  }, [sourcesQuery.data, topic.id]);
+
+  useEffect(() => {
+    if (draftQuery.data?.draft) {
+      onTopicMetricsChangeRef.current(topic.id, {
+        draft_word_count: draftQuery.data.draft.word_count,
+      });
+    }
+  }, [draftQuery.data?.draft, topic.id]);
 
   useEffect(() => {
     const error = sourcesQuery.error || timelineQuery.error || draftQuery.error || citationsQuery.error;
@@ -132,7 +161,7 @@ export const TopicDetailView: React.FC<TopicDetailViewProps> = ({
     try {
       await saveSource(sourceData);
       const updated = await fetchSourcesByTopicId(topic.id);
-      setSources(updated);
+      queryClient.setQueryData(['topic-sources', topic.id], updated);
       onTopicMetricsChange(topic.id, {
         sources_count: updated.length,
         verified_facts_count: updated.filter((source) => source.type === 'fact' && source.verification_status === 'confirmed').length,
@@ -141,6 +170,7 @@ export const TopicDetailView: React.FC<TopicDetailViewProps> = ({
       });
     } catch (error) {
       setOperationError(error instanceof Error ? `保存资料失败：${error.message}` : '保存资料失败');
+      throw error;
     }
   };
 
@@ -148,7 +178,7 @@ export const TopicDetailView: React.FC<TopicDetailViewProps> = ({
     try {
       await deleteSource(sourceId);
       const updated = await fetchSourcesByTopicId(topic.id);
-      setSources(updated);
+      queryClient.setQueryData(['topic-sources', topic.id], updated);
       onTopicMetricsChange(topic.id, {
         sources_count: updated.length,
         verified_facts_count: updated.filter((source) => source.type === 'fact' && source.verification_status === 'confirmed').length,
@@ -157,33 +187,39 @@ export const TopicDetailView: React.FC<TopicDetailViewProps> = ({
       });
     } catch (error) {
       setOperationError(error instanceof Error ? `删除资料失败：${error.message}` : '删除资料失败');
+      throw error;
     }
   };
 
   const handleSaveTimelineEvent = async (eventData: Partial<TimelineEvent> & { topic_id: string; title: string }) => {
     try {
       await saveTimelineEvent(eventData);
-      setTimeline(await fetchTimelineByTopicId(topic.id));
+      const updated = await fetchTimelineByTopicId(topic.id);
+      queryClient.setQueryData(['topic-timeline', topic.id], updated);
     } catch (error) {
       setOperationError(error instanceof Error ? `保存时间线失败：${error.message}` : '保存时间线失败');
+      throw error;
     }
   };
 
   const handleDeleteTimelineEvent = async (eventId: string) => {
     try {
       await deleteTimelineEvent(eventId);
-      setTimeline(await fetchTimelineByTopicId(topic.id));
+      const updated = await fetchTimelineByTopicId(topic.id);
+      queryClient.setQueryData(['topic-timeline', topic.id], updated);
     } catch (error) {
       setOperationError(error instanceof Error ? `删除时间线失败：${error.message}` : '删除时间线失败');
+      throw error;
     }
   };
 
   const handleReorderTimeline = async (topicId: string, events: TimelineEvent[]) => {
     try {
+      queryClient.setQueryData(['topic-timeline', topic.id], events);
       await reorderTimelineEvents(events);
-      setTimeline(events);
     } catch (error) {
       setOperationError(error instanceof Error ? `调整时间线失败：${error.message}` : '调整时间线失败');
+      throw error;
     }
   };
 
@@ -195,7 +231,7 @@ export const TopicDetailView: React.FC<TopicDetailViewProps> = ({
   ) => {
     try {
       const updated = await saveDraft(topicId, contentHtml, contentJson, wordCount, topic.title);
-      setDraft(updated);
+      queryClient.setQueryData(['topic-draft', topicId], { draft: updated, conflict: null });
       onDraftWordCountChange(topicId, wordCount);
     } catch (error) {
       setOperationError(error instanceof Error ? `保存草稿失败：${error.message}` : '保存草稿失败');
@@ -206,7 +242,7 @@ export const TopicDetailView: React.FC<TopicDetailViewProps> = ({
   const handleSaveCitation = async (input: CitationInput) => {
     try {
       const citation = await saveDraftCitation(topic.id, input);
-      setCitations((previous) => [citation, ...previous]);
+      queryClient.setQueryData<DraftCitation[]>(['topic-citations', topic.id], (prev = []) => [citation, ...prev]);
       return citation;
     } catch (error) {
       setOperationError(error instanceof Error ? `插入引用失败：${error.message}` : '插入引用失败');
@@ -220,7 +256,7 @@ export const TopicDetailView: React.FC<TopicDetailViewProps> = ({
     setOperationError(null);
     try {
       const resolved = await resolveDraftRecovery(topic.id, draftRecovery, choice);
-      setDraft(resolved);
+      queryClient.setQueryData(['topic-draft', topic.id], { draft: resolved, conflict: null });
       setDraftRecovery(null);
       onDraftWordCountChange(topic.id, resolved?.word_count || 0);
     } catch (error) {
@@ -272,7 +308,7 @@ export const TopicDetailView: React.FC<TopicDetailViewProps> = ({
         verification_status: source.verification_status,
       });
       const updated = await fetchTimelineByTopicId(topic.id);
-      setTimeline(updated);
+      queryClient.setQueryData(['topic-timeline', topic.id], updated);
     } catch (err) {
       setOperationError(err instanceof Error ? `流转时间线事件失败：${err.message}` : '流转时间线事件失败');
     }
@@ -423,12 +459,18 @@ export const TopicDetailView: React.FC<TopicDetailViewProps> = ({
             onSaveCitation={handleSaveCitation}
             onCacheDraftLocally={(contentHtml, contentJson, wordCount) => {
               const cached = cacheDraftLocally(topic.id, contentHtml, contentJson, wordCount, topic.title);
-              setDraft(cached);
+              queryClient.setQueryData(['topic-draft', topic.id], (prev?: { draft: Draft | null; conflict: DraftRecoveryConflict | null }) => ({
+                draft: cached,
+                conflict: prev?.conflict || null,
+              }));
               onDraftWordCountChange(topic.id, wordCount);
             }}
             onSaveDraftImmediately={(contentHtml, contentJson, wordCount) => {
               const updated = saveDraftImmediately(topic.id, contentHtml, contentJson, wordCount, topic.title);
-              setDraft(updated);
+              queryClient.setQueryData(['topic-draft', topic.id], (prev?: { draft: Draft | null; conflict: DraftRecoveryConflict | null }) => ({
+                draft: updated,
+                conflict: prev?.conflict || null,
+              }));
               onDraftWordCountChange(topic.id, wordCount);
             }}
           />
