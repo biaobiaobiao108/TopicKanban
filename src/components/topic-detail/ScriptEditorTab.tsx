@@ -103,7 +103,7 @@ interface ScriptEditorTabProps {
 }
 
 const canKeepBothSidePanelsOpen = () =>
-  typeof window !== 'undefined' && window.matchMedia('(min-width: 1536px)').matches;
+  typeof window !== 'undefined' && window.matchMedia('(min-width: 1024px)').matches;
 
 const isMobileEditor = () =>
   typeof window !== 'undefined' && window.matchMedia('(max-width: 767px)').matches;

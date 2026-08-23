@@ -126,22 +126,26 @@ export const ScriptOutlinePanel: React.FC<ScriptOutlinePanelProps> = ({
   };
 
   return (
-    <aside className="script-outline-panel fixed inset-0 z-50 flex h-[100dvh] w-full flex-col bg-white/95 dark:bg-stone-900/95 backdrop-blur-md pb-[env(safe-area-inset-bottom)] pt-[env(safe-area-inset-top)] animate-in fade-in duration-150 xl:absolute xl:inset-y-0 xl:left-0 xl:z-40 xl:h-full xl:w-[280px] xl:bg-transparent xl:bg-[linear-gradient(to_right,rgba(255,255,255,0.96)_0%,rgba(255,255,255,0.85)_75%,transparent_100%)] xl:dark:bg-[linear-gradient(to_right,rgba(12,10,9,0.96)_0%,rgba(12,10,9,0.85)_75%,transparent_100%)] xl:pb-0 xl:pt-0 min-[1600px]:w-80">
-      <div className="flex shrink-0 items-center gap-2 px-4 pt-5 pb-3 xl:pr-9">
-        <ListOrdered className="h-4 w-4 shrink-0 text-rose-600 dark:text-rose-500" />
-        <h3 className="shrink-0 text-sm font-bold tracking-wide text-stone-800 dark:text-stone-100">文案大纲</h3>
-        <span className="ml-auto truncate font-mono text-[11px] tabular-nums text-stone-400 dark:text-stone-500">
-          {outline.totalCharCount.toLocaleString()} 字 · {formatOutlineDuration(outline.totalDurationSeconds)}
-        </span>
-        <button
-          type="button"
-          aria-label="收起文案大纲"
-          onClick={onClose}
-          className="shrink-0 p-2 text-stone-400 dark:text-stone-500 transition-colors hover:text-stone-800 dark:hover:text-stone-200 rounded-lg hover:bg-stone-100 dark:hover:bg-stone-800 xl:p-1 cursor-pointer"
-          title="收起文案大纲"
-        >
-          <X className="h-4 w-4" />
-        </button>
+    <aside className="script-outline-panel fixed inset-0 z-50 flex h-[100dvh] w-full flex-col bg-white/95 dark:bg-stone-900/95 backdrop-blur-md pb-[env(safe-area-inset-bottom)] pt-[env(safe-area-inset-top)] animate-in fade-in duration-150 lg:absolute lg:inset-y-0 lg:left-0 lg:z-30 lg:h-full lg:w-72 xl:w-80 lg:bg-white/90 lg:dark:bg-stone-900/90 lg:border-r lg:border-stone-200/50 lg:dark:border-stone-800/50 lg:shadow-subtle lg:animate-in lg:slide-in-from-left lg:duration-200 lg:pb-0 lg:pt-0">
+      <div className="flex shrink-0 items-center justify-between gap-2 h-14 px-4 border-b border-stone-100/80 dark:border-stone-800/80">
+        <div className="flex items-center gap-2 min-w-0">
+          <ListOrdered className="h-4 w-4 shrink-0 text-rose-600 dark:text-rose-500" />
+          <h3 className="shrink-0 text-sm font-bold tracking-wide text-stone-800 dark:text-stone-100">文案大纲</h3>
+        </div>
+        <div className="flex items-center gap-2 shrink-0">
+          <span className="truncate font-mono text-[11px] tabular-nums text-stone-400 dark:text-stone-500">
+            {outline.totalCharCount.toLocaleString()} 字 · {formatOutlineDuration(outline.totalDurationSeconds)}
+          </span>
+          <button
+            type="button"
+            aria-label="收起文案大纲"
+            onClick={onClose}
+            className="p-1.5 text-stone-400 dark:text-stone-500 transition-colors hover:text-stone-800 dark:hover:text-stone-200 rounded-lg hover:bg-stone-100 dark:hover:bg-stone-800 cursor-pointer"
+            title="收起文案大纲"
+          >
+            <X className="h-4 w-4" />
+          </button>
+        </div>
       </div>
 
       <div className="no-scrollbar flex-1 overflow-y-auto px-4 pb-8 xl:pr-9">

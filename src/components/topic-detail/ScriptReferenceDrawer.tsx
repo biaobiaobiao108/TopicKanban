@@ -77,16 +77,16 @@ export const ScriptReferenceDrawer: React.FC<ScriptReferenceDrawerProps> = ({
           : hasOutlineContent || filteredTimeline.length > 0 || filteredPeople.length > 0 || filteredSources.length > 0;
 
   return (
-    <div className="script-reference-drawer fixed inset-0 z-50 flex h-[100dvh] w-full flex-col bg-white/95 dark:bg-stone-900/95 backdrop-blur-md pb-[env(safe-area-inset-bottom)] pt-[env(safe-area-inset-top)] animate-in fade-in duration-150 xl:absolute xl:inset-y-0 xl:right-0 xl:z-40 xl:h-full xl:w-96 xl:bg-transparent xl:bg-[linear-gradient(to_left,rgba(255,255,255,0.96)_0%,rgba(255,255,255,0.85)_75%,transparent_100%)] xl:dark:bg-[linear-gradient(to_left,rgba(12,10,9,0.96)_0%,rgba(12,10,9,0.85)_75%,transparent_100%)] xl:pb-0 xl:pt-0">
+    <div className="script-reference-drawer fixed inset-0 z-50 flex h-[100dvh] w-full flex-col bg-white/95 dark:bg-stone-900/95 backdrop-blur-md pb-[env(safe-area-inset-bottom)] pt-[env(safe-area-inset-top)] animate-in fade-in duration-150 lg:absolute lg:inset-y-0 lg:right-0 lg:z-30 lg:h-full lg:w-80 xl:w-96 lg:bg-white/90 lg:dark:bg-stone-900/90 lg:border-l lg:border-stone-200/50 lg:dark:border-stone-800/50 lg:shadow-subtle lg:animate-in lg:slide-in-from-right lg:duration-200 lg:pb-0 lg:pt-0">
       {/* Header */}
-      <div className="flex shrink-0 items-center justify-between gap-2 px-4 pt-5 pb-2">
-        <div className="flex items-center gap-2">
-          <Sparkles className="w-4 h-4 text-rose-500" />
-          <h3 className="text-sm font-bold tracking-wide text-stone-800 dark:text-stone-100">事实参考</h3>
+      <div className="flex shrink-0 items-center justify-between gap-2 h-14 px-4 border-b border-stone-100/80 dark:border-stone-800/80">
+        <div className="flex items-center gap-2 min-w-0">
+          <Sparkles className="w-4 h-4 shrink-0 text-rose-500" />
+          <h3 className="shrink-0 text-sm font-bold tracking-wide text-stone-800 dark:text-stone-100">事实参考</h3>
         </div>
         <button
           onClick={onClose}
-          className="p-2 text-stone-400 dark:text-stone-500 hover:text-stone-800 dark:hover:text-stone-200 rounded-lg hover:bg-stone-100 dark:hover:bg-stone-800 xl:p-1 cursor-pointer transition-colors"
+          className="p-1.5 text-stone-400 dark:text-stone-500 hover:text-stone-800 dark:hover:text-stone-200 rounded-lg hover:bg-stone-100 dark:hover:bg-stone-800 cursor-pointer transition-colors"
           title="收起资料参考"
         >
           <X className="w-4 h-4" />
