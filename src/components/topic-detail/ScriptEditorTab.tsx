@@ -174,18 +174,6 @@ export const ScriptEditorTab: React.FC<ScriptEditorTabProps> = ({
   const [isGeneratingShare, setIsGeneratingShare] = useState(false);
   const [shareCopied, setShareCopied] = useState(false);
 
-  // Handle clicking outside cue menu
-  useEffect(() => {
-    if (!isCueMenuOpen) return;
-    const handleClickOutside = (e: MouseEvent) => {
-      if (cueMenuContainerRef.current && !cueMenuContainerRef.current.contains(e.target as HTMLElement)) {
-        setIsCueMenuOpen(false);
-      }
-    };
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, [isCueMenuOpen]);
-
   // Presence Heartbeat Effect
   useEffect(() => {
     const { clientId, deviceName } = getDeviceIdentifier();

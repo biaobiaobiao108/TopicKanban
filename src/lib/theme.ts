@@ -69,3 +69,63 @@ export function applyTheme(theme: AppTheme = 'light'): void {
     mediaQueryList.addEventListener('change', systemThemeListener);
   }
 }
+
+export interface ThemeConfig {
+  id: AppTheme;
+  title: string;
+  desc: string;
+  tag?: string;
+  colors?: string[];
+}
+
+export const THEME_CONFIG_LIST: ThemeConfig[] = [
+  {
+    id: 'nordic_frost',
+    title: '北欧冷杉',
+    desc: 'Craft / Linear 极简冷雾青与冷杉青绿，通透冷静',
+    tag: '推荐',
+    colors: ['#f8fafb', '#edf2f2', '#2d7a64', '#0ea5e9'],
+  },
+  {
+    id: 'parisian_dawn',
+    title: '巴黎晨光',
+    desc: '生椰浅灰麦色与波尔多复古红，法式编辑部调性',
+    colors: ['#faf8f5', '#ece7e1', '#c84b5b', '#b87e43'],
+  },
+  {
+    id: 'midnight_obsidian',
+    title: '深海星图',
+    desc: 'Raycast 曜石黑与极光电光蓝，极客夜间沉浸写稿',
+    tag: '极客',
+    colors: ['#151921', '#1c212c', '#0ea5e9', '#a855f7'],
+  },
+  {
+    id: 'kyoto_zen',
+    title: '京都茶席',
+    desc: '素竹青砂与宇治浓抹茶绿，禅意宁静专注',
+    colors: ['#f8faf7', '#ebeee7', '#3d6b4f', '#c2413b'],
+  },
+  {
+    id: 'warm_paper',
+    title: '暖沙纸境',
+    desc: '温润燕麦暖纸与莫兰迪暖红，治愈护眼书卷手感',
+    colors: ['#faf7f2', '#f0ebe4', '#de5b6d', '#6b5fb5'],
+  },
+  {
+    id: 'light',
+    title: '经典浅色',
+    desc: '瑞士杂志编辑部调性 (Stone 灰阶 + Rose 强调色)',
+    colors: ['#fafaf9', '#ffffff', '#e11d48', '#78716c'],
+  },
+  {
+    id: 'dark',
+    title: '深色专注',
+    desc: '低照度暗黑风，沉浸夜间码字与写稿',
+    colors: ['#0c0a09', '#1c1917', '#f43f5e', '#a8a29e'],
+  },
+  {
+    id: 'system',
+    title: '跟随系统',
+    desc: '自动跟随操作系统的深浅色模式切换',
+  },
+];
