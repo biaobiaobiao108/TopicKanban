@@ -1,17 +1,10 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Topic, TopicStatus, Priority } from '../../types';
-import { StatusBadge, PriorityBadge } from '../ui/Badge';
 import { COLUMNS } from '../kanban/columns';
 import {
   ArrowLeft,
   Pin,
   Trash2,
-  Save,
-  Clock,
-  Sparkles,
-  CheckCircle2,
-  Flame,
-  Check,
   Edit2,
   ChevronDown,
   FileDown,
@@ -60,6 +53,10 @@ export const TopicDetailHeader: React.FC<TopicDetailHeaderProps> = ({
   const priorityMenuRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
+    setTitle(topic.title);
+  }, [topic.title]);
+
+  useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
       if (statusMenuRef.current && !statusMenuRef.current.contains(e.target as Node)) {
         setIsStatusMenuOpen(false);
@@ -89,6 +86,7 @@ export const TopicDetailHeader: React.FC<TopicDetailHeaderProps> = ({
     (topic.score_material || 0) +
     (topic.score_story || 0);
   const statusLabel = COLUMNS.find((column) => column.status === topic.status)?.label || topic.status;
+  const warning = getNextActionWarning(topic);
 
   const handleSaveTitle = async () => {
     if (title.trim() && title !== topic.title) {
@@ -98,34 +96,235 @@ export const TopicDetailHeader: React.FC<TopicDetailHeaderProps> = ({
   };
 
   return (
-    <div className="bg-white dark:bg-stone-900 border-b border-stone-200 dark:border-stone-800 px-4 sm:px-8 py-3.5 sm:py-5 shrink-0 space-y-3 sm:space-y-4 transition-colors">
-      {/* Top action row */}
-      <div className="flex items-center justify-between">
-        <button
-          onClick={onBack}
-          className="flex items-center gap-1.5 text-xs sm:text-sm text-stone-600 dark:text-stone-300 hover:text-stone-900 dark:hover:text-stone-100 font-medium px-2 py-1 rounded-lg hover:bg-stone-100 dark:hover:bg-stone-800 transition-colors cursor-pointer"
-        >
-          <ArrowLeft className="w-4 h-4" />
-          <span>返回</span>
-        </button>
+    <div className="bg-white dark:bg-stone-900 border-b border-stone-200 dark:border-stone-800 px-4 sm:px-8 py-2.5 sm:py-3 shrink-0 space-y-2 transition-colors">
+      {/* Top Row: Back + Title + Status/Priority Badges + Actions Toolbar */}
+      <div className="flex items-center justify-between gap-3">
+        {/* Left group: Back button + Title & Inline Editor + Status & Priority */}
+        <div className="flex items-center gap-2 sm:gap-3 flex-1 min-w-0">
+          <button
+            type="button"
+            onClick={onBack}
+            className="flex items-center gap-1 text-xs text-stone-600 dark:text-stone-300 hover:text-stone-900 dark:hover:text-stone-100 font-semibold px-2 py-1 rounded-lg hover:bg-stone-100 dark:hover:bg-stone-800 transition-colors cursor-pointer shrink-0"
+            title="返回全景看板"
+          >
+            <ArrowLeft className="w-4 h-4" />
+            <span className="hidden sm:inline">返回</span>
+          </button>
 
-        <div className="flex items-center gap-2">
+          <span className="text-stone-300 dark:text-stone-700 hidden sm:inline select-none">|</span>
+
+          {/* Title area & Inline Editor */}
+          <div className="flex-1 min-w-0 flex items-center gap-2 flex-wrap sm:flex-nowrap">
+            {isEditingTitle ? (
+              <div className="flex items-center gap-2 w-full max-w-lg">
+                <input
+                  type="text"
+                  autoFocus
+                  value={title}
+                  onChange={(e) => setTitle(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') handleSaveTitle();
+                    if (e.key === 'Escape') {
+                      setTitle(topic.title);
+                      setIsEditingTitle(false);
+                    }
+                  }}
+                  className="text-sm sm:text-base font-bold text-stone-900 dark:text-stone-100 border-b-2 border-rose-500 bg-transparent outline-none pb-0.5 w-full"
+                />
+                <button
+                  type="button"
+                  onClick={handleSaveTitle}
+                  className="px-2.5 py-1 bg-rose-600 hover:bg-rose-700 text-white rounded text-xs font-semibold shrink-0 cursor-pointer shadow-2xs"
+                >
+                  保存
+                </button>
+              </div>
+            ) : (
+              <div className="flex items-center gap-1.5 min-w-0 group">
+                <h1
+                  onClick={() => setIsEditingTitle(true)}
+                  className="text-sm sm:text-base font-bold text-stone-900 dark:text-stone-100 tracking-tight truncate cursor-pointer hover:text-rose-600 dark:hover:text-rose-400 transition-colors"
+                  title="点击编辑标题"
+                >
+                  {topic.title}
+                </h1>
+                <button
+                  type="button"
+                  onClick={() => setIsEditingTitle(true)}
+                  className="opacity-60 sm:opacity-0 group-hover:opacity-100 text-stone-400 dark:text-stone-500 hover:text-stone-700 dark:hover:text-stone-300 p-0.5 rounded transition-opacity cursor-pointer shrink-0"
+                  title="修改标题"
+                >
+                  <Edit2 className="w-3 h-3" />
+                </button>
+              </div>
+            )}
+
+            {/* Status Dropdown Trigger (Compact Capsule) */}
+            <div className="relative shrink-0" ref={statusMenuRef}>
+              <button
+                type="button"
+                onClick={() => {
+                  setIsStatusMenuOpen(!isStatusMenuOpen);
+                  setIsPriorityMenuOpen(false);
+                }}
+                className="inline-flex items-center gap-1 text-[11px] font-semibold text-stone-700 dark:text-stone-200 bg-stone-100 dark:bg-stone-800 hover:bg-stone-200/80 dark:hover:bg-stone-700 border border-stone-200/80 dark:border-stone-700 px-2 py-0.5 rounded-full transition-colors cursor-pointer"
+                title="修改选题生产阶段"
+              >
+                <span className={`w-1.5 h-1.5 rounded-full ${statusDots[topic.status] || 'bg-stone-400'}`} />
+                <span>{statusLabel}</span>
+                <ChevronDown className="w-3 h-3 text-stone-400 dark:text-stone-500" />
+              </button>
+
+              {isStatusMenuOpen && (
+                <div
+                  className="absolute left-0 top-7 z-50 w-44 bg-white dark:bg-stone-900 rounded-xl shadow-modal border border-stone-200 dark:border-stone-800 p-1.5 space-y-0.5 animate-in fade-in zoom-in-95 duration-100"
+                >
+                  <div className="px-2 py-1 text-[10px] font-bold uppercase tracking-wider text-stone-400 dark:text-stone-500">
+                    活跃生产阶段
+                  </div>
+                  {COLUMNS.filter((c) => c.status !== 'published' && c.status !== 'icebox').map((c) => (
+                    <button
+                      key={c.status}
+                      type="button"
+                      onClick={() => {
+                        setIsStatusMenuOpen(false);
+                        void onUpdateTopic({ status: c.status });
+                      }}
+                      className={`w-full text-left px-2 py-1.5 rounded-lg text-xs font-medium flex items-center justify-between transition-colors cursor-pointer ${
+                        topic.status === c.status
+                          ? 'bg-stone-100 dark:bg-stone-800 text-stone-900 dark:text-stone-100 font-bold'
+                          : 'text-stone-600 dark:text-stone-400 hover:bg-stone-50 dark:hover:bg-stone-800 hover:text-stone-900 dark:hover:text-stone-100'
+                      }`}
+                    >
+                      <div className="flex items-center gap-2">
+                        <span className={`w-2 h-2 rounded-full ${statusDots[c.status]}`} />
+                        <span>{c.label}</span>
+                      </div>
+                      {topic.status === c.status && <span className="text-rose-600 dark:text-rose-400 text-xs">✓</span>}
+                    </button>
+                  ))}
+
+                  <div className="my-1 border-t border-stone-100 dark:border-stone-800" />
+                  <div className="px-2 py-1 text-[10px] font-bold uppercase tracking-wider text-stone-400 dark:text-stone-500">
+                    归档状态
+                  </div>
+
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setIsStatusMenuOpen(false);
+                      void onUpdateTopic({ status: 'published' });
+                    }}
+                    className={`w-full text-left px-2 py-1.5 rounded-lg text-xs font-medium flex items-center justify-between transition-colors cursor-pointer ${
+                      topic.status === 'published'
+                        ? 'bg-stone-100 dark:bg-stone-800 text-stone-900 dark:text-stone-100 font-bold'
+                        : 'text-stone-600 dark:text-stone-400 hover:bg-emerald-50 dark:hover:bg-emerald-950/40 hover:text-emerald-800 dark:hover:text-emerald-300'
+                    }`}
+                  >
+                    <div className="flex items-center gap-2">
+                      <span className="w-2 h-2 rounded-full bg-teal-500" />
+                      <span>已发布</span>
+                    </div>
+                    {topic.status === 'published' && <span className="text-emerald-600 dark:text-emerald-400 text-xs">✓</span>}
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setIsStatusMenuOpen(false);
+                      void onUpdateTopic({ status: 'icebox' });
+                    }}
+                    className={`w-full text-left px-2 py-1.5 rounded-lg text-xs font-medium flex items-center justify-between transition-colors cursor-pointer ${
+                      topic.status === 'icebox'
+                        ? 'bg-stone-100 dark:bg-stone-800 text-stone-900 dark:text-stone-100 font-bold'
+                        : 'text-stone-600 dark:text-stone-400 hover:bg-stone-100 dark:hover:bg-stone-800 hover:text-stone-900 dark:hover:text-stone-100'
+                    }`}
+                  >
+                    <div className="flex items-center gap-2">
+                      <span className="w-2 h-2 rounded-full bg-stone-300 dark:bg-stone-600" />
+                      <span>搁置</span>
+                    </div>
+                    {topic.status === 'icebox' && <span className="text-stone-600 dark:text-stone-400 text-xs">✓</span>}
+                  </button>
+                </div>
+              )}
+            </div>
+
+            {/* Priority Dropdown Trigger (Compact Capsule) */}
+            <div className="relative shrink-0" ref={priorityMenuRef}>
+              <button
+                type="button"
+                onClick={() => {
+                  setIsPriorityMenuOpen(!isPriorityMenuOpen);
+                  setIsStatusMenuOpen(false);
+                }}
+                className="inline-flex items-center gap-1 text-[11px] font-semibold text-stone-700 dark:text-stone-200 bg-stone-100 dark:bg-stone-800 hover:bg-stone-200/80 dark:hover:bg-stone-700 border border-stone-200/80 dark:border-stone-700 px-2 py-0.5 rounded-full transition-colors cursor-pointer"
+                title="设置选题优先级"
+              >
+                <span className={`w-1.5 h-1.5 rounded-full ${priorityConfig[topic.priority]?.dot || 'bg-stone-300'}`} />
+                <span>{priorityConfig[topic.priority]?.label || '未设'}</span>
+                <ChevronDown className="w-3 h-3 text-stone-400 dark:text-stone-500" />
+              </button>
+
+              {isPriorityMenuOpen && (
+                <div
+                  className="absolute left-0 top-7 z-50 w-40 bg-white dark:bg-stone-900 rounded-xl shadow-modal border border-stone-200 dark:border-stone-800 p-1.5 space-y-0.5 animate-in fade-in zoom-in-95 duration-100"
+                >
+                  <div className="px-2 py-1 text-[10px] font-bold uppercase tracking-wider text-stone-400 dark:text-stone-500">
+                    优先级设定
+                  </div>
+                  {(['high', 'medium', 'low', 'none'] as Priority[]).map((p) => {
+                    const cfg = priorityConfig[p];
+                    const isSelected = topic.priority === p;
+                    return (
+                      <button
+                        key={p}
+                        type="button"
+                        onClick={() => {
+                          setIsPriorityMenuOpen(false);
+                          void onUpdateTopic({ priority: p });
+                        }}
+                        className={`w-full text-left px-2 py-1.5 rounded-lg text-xs font-medium flex items-center justify-between transition-colors cursor-pointer ${
+                          isSelected
+                            ? 'bg-stone-100 dark:bg-stone-800 text-stone-900 dark:text-stone-100 font-bold'
+                            : 'text-stone-600 dark:text-stone-400 hover:bg-stone-50 dark:hover:bg-stone-800 hover:text-stone-900 dark:hover:text-stone-100'
+                        }`}
+                      >
+                        <div className="flex items-center gap-2">
+                          <span className={`w-2 h-2 rounded-full ${cfg.dot}`} />
+                          <span>{cfg.label}</span>
+                          <span className="text-[10px] text-stone-400 font-normal">({cfg.desc})</span>
+                        </div>
+                        {isSelected && <span className="text-rose-600 dark:text-rose-400 text-xs">✓</span>}
+                      </button>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+
+        {/* Right group: Actions Toolbar */}
+        <div className="flex items-center gap-1 sm:gap-1.5 shrink-0">
           {/* Archive / Restore toggle */}
           {topic.status === 'published' || topic.status === 'icebox' ? (
             <button
+              type="button"
               onClick={() => onUpdateTopic({ status: 'approved' })}
-              className="flex items-center gap-1 px-2.5 sm:px-3 py-1.5 rounded-lg text-xs font-semibold bg-emerald-50 dark:bg-emerald-950/40 text-emerald-800 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-800 hover:bg-emerald-100 dark:hover:bg-emerald-950/70 transition-colors cursor-pointer"
+              className="flex items-center gap-1 px-2 py-1 rounded-md text-xs font-semibold bg-emerald-50 dark:bg-emerald-950/40 text-emerald-800 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-800 hover:bg-emerald-100 dark:hover:bg-emerald-950/70 transition-colors cursor-pointer"
               title="从归档中恢复至已立项（重返全景看板）"
             >
-              <span>↩ 恢复立项</span>
+              <span>↩ 恢复</span>
             </button>
           ) : (
             <button
+              type="button"
               onClick={() => {
                 const choice = window.confirm('点击【确定】归档为「已发布成片」，点击【取消】归档为「搁置库」');
                 onUpdateTopic({ status: choice ? 'published' : 'icebox' });
               }}
-              className="flex items-center gap-1 px-2.5 sm:px-3 py-1.5 rounded-lg text-xs font-semibold bg-stone-100 dark:bg-stone-800 text-stone-700 dark:text-stone-300 border border-stone-200 dark:border-stone-700 hover:bg-stone-200/80 dark:hover:bg-stone-700 transition-colors cursor-pointer"
+              className="flex items-center gap-1 px-2 py-1 rounded-md text-xs font-semibold bg-stone-100 dark:bg-stone-800 text-stone-700 dark:text-stone-300 border border-stone-200 dark:border-stone-700 hover:bg-stone-200/80 dark:hover:bg-stone-700 transition-colors cursor-pointer"
               title="将此选题移入归档库（将从全景看板中移出）"
             >
               <span>📦 归档</span>
@@ -135,270 +334,101 @@ export const TopicDetailHeader: React.FC<TopicDetailHeaderProps> = ({
           {/* Export single topic markdown */}
           {onExportMarkdown && (
             <button
+              type="button"
               onClick={onExportMarkdown}
-              className="flex items-center gap-1 px-2.5 sm:px-3 py-1.5 rounded-lg text-xs font-semibold bg-stone-50 dark:bg-stone-800 text-stone-700 dark:text-stone-300 border border-stone-200 dark:border-stone-700 hover:bg-stone-100 dark:hover:bg-stone-700 transition-colors cursor-pointer"
-              title="导出包含立项设定、故事评估、事实证据链、时间线与完整文案的 Markdown 档案"
+              className="flex items-center gap-1 px-2 py-1 rounded-md text-xs font-semibold bg-stone-50 dark:bg-stone-800 text-stone-700 dark:text-stone-300 border border-stone-200 dark:border-stone-700 hover:bg-stone-100 dark:hover:bg-stone-700 transition-colors cursor-pointer"
+              title="导出包含设定、事实链、时间线与文案的 Markdown 档案"
             >
               <FileDown className="w-3.5 h-3.5 text-stone-500 dark:text-stone-400" />
-              <span>导出 MD</span>
+              <span className="hidden sm:inline">导出</span>
             </button>
           )}
 
           {/* Pin toggle */}
           <button
+            type="button"
             onClick={() => onUpdateTopic({ is_pinned: topic.is_pinned ? 0 : 1 })}
-            className={`flex items-center gap-1 px-2.5 sm:px-3 py-1.5 rounded-lg text-xs font-semibold border transition-all cursor-pointer ${
+            className={`flex items-center gap-1 px-2 py-1 rounded-md text-xs font-semibold border transition-all cursor-pointer ${
               topic.is_pinned
                 ? 'bg-amber-50 dark:bg-amber-950/40 text-amber-800 dark:text-amber-300 border-amber-300 dark:border-amber-800'
                 : 'bg-stone-50 dark:bg-stone-800 text-stone-600 dark:text-stone-300 border-stone-200 dark:border-stone-700 hover:bg-stone-100 dark:hover:bg-stone-700'
             }`}
+            title={topic.is_pinned ? '取消置顶' : '置顶选题'}
           >
             <Pin className={`w-3.5 h-3.5 ${topic.is_pinned ? 'fill-amber-600 dark:fill-amber-400 text-amber-600 dark:text-amber-400' : ''}`} />
-            <span>{topic.is_pinned ? '已置顶' : '置顶'}</span>
+            <span className="hidden sm:inline">{topic.is_pinned ? '已置顶' : '置顶'}</span>
           </button>
 
           {/* Delete topic */}
           <button
+            type="button"
             onClick={async () => {
               if (window.confirm(`确定要将选题「${topic.title}」移入回收站吗？\n\n之后可以在选题库的回收站中恢复。`)) {
                 await onDeleteTopic(topic.id);
                 onBack();
               }
             }}
-            className="flex items-center gap-1 px-2 py-1.5 text-xs text-stone-400 dark:text-stone-500 hover:text-red-600 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/40 rounded-lg transition-colors cursor-pointer"
+            className="flex items-center gap-1 px-2 py-1 text-xs text-stone-400 dark:text-stone-500 hover:text-red-600 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/40 rounded-md transition-colors cursor-pointer"
             title="移入回收站"
           >
             <Trash2 className="w-3.5 h-3.5" />
-            <span>删除</span>
           </button>
         </div>
       </div>
 
-      {/* Main Title & Status Row */}
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-        <div className="space-y-1 flex-1 min-w-0 w-full">
-          {isEditingTitle ? (
-            <div className="flex items-center gap-2">
-              <input
-                type="text"
-                autoFocus
-                value={title}
-                onChange={(e) => setTitle(e.target.value)}
-                onKeyDown={(e) => e.key === 'Enter' && handleSaveTitle()}
-                className="text-lg sm:text-2xl font-bold text-stone-900 dark:text-stone-100 border-b-2 border-stone-900 dark:border-rose-500 bg-transparent outline-none pb-1 w-full"
-              />
-              <button
-                onClick={handleSaveTitle}
-                className="px-3 py-1 bg-stone-900 dark:bg-rose-600 hover:bg-stone-800 dark:hover:bg-rose-700 text-white rounded text-xs font-medium shrink-0 cursor-pointer"
-              >
-                保存
-              </button>
-            </div>
-          ) : (
-            <div className="flex items-center gap-2 group">
-              <h1 className="text-lg sm:text-2xl font-extrabold text-stone-900 dark:text-stone-100 tracking-tight leading-snug break-words">
-                {topic.title}
-              </h1>
-              <button
-                onClick={() => setIsEditingTitle(true)}
-                className="opacity-60 sm:opacity-0 group-hover:opacity-100 text-stone-400 dark:text-stone-500 hover:text-stone-700 dark:hover:text-stone-300 p-1 rounded transition-opacity cursor-pointer"
-              >
-                <Edit2 className="w-3.5 h-3.5" />
-              </button>
-            </div>
-          )}
-
-          <div className="flex items-center gap-2.5 text-xs text-stone-500 dark:text-stone-400 font-medium flex-wrap">
-            <span>最后修改于 {new Date(topic.updated_at).toLocaleDateString()}</span>
-            {totalScore > 0 && (
-              <span className="font-mono text-emerald-700 dark:text-emerald-300 font-bold bg-emerald-50 dark:bg-emerald-950/40 px-2 py-0.5 rounded border border-emerald-200 dark:border-emerald-800 text-[11px]">
-                综合评分: {totalScore} / 10
-              </span>
-            )}
-            <span className="hidden text-stone-300 dark:text-stone-600 sm:inline">|</span>
-            <span className="font-semibold text-stone-700 dark:text-stone-300">{statusLabel}</span>
-            <ReadinessBadge topic={topic} />
-            <span>{topic.verified_facts_count || 0} 条已核实事实</span>
-            <span>{topic.materials_count || 0} 条素材</span>
-            <span>{topic.draft_word_count || 0} 字</span>
-          </div>
-        </div>
-
-        {/* Controls: Status & Priority Popovers */}
-        <div className="flex items-center gap-2 self-start sm:self-auto flex-wrap">
-          {/* Status Switcher Popover */}
-          <div className="relative" ref={statusMenuRef}>
-            <button
-              type="button"
-              onClick={() => {
-                setIsStatusMenuOpen(!isStatusMenuOpen);
-                setIsPriorityMenuOpen(false);
-              }}
-              className="inline-flex items-center gap-1.5 text-xs font-semibold text-stone-700 dark:text-stone-200 bg-stone-100/90 dark:bg-stone-800 hover:bg-stone-200/80 dark:hover:bg-stone-700 border border-stone-200/90 dark:border-stone-700 px-2.5 py-1.5 rounded-lg shadow-2xs transition-colors cursor-pointer"
-              title="修改选题阶段"
-            >
-              <span className={`w-2 h-2 rounded-full ${statusDots[topic.status] || 'bg-stone-400'}`} />
-              <span className="text-[11px] text-stone-400 dark:text-stone-400 font-normal">阶段:</span>
-              <span>{statusLabel}</span>
-              <ChevronDown className="w-3 h-3 text-stone-400 dark:text-stone-500" />
-            </button>
-
-            {isStatusMenuOpen && (
-              <div
-                className="absolute right-0 top-9 z-50 w-44 bg-white dark:bg-stone-900 rounded-xl shadow-modal border border-stone-200 dark:border-stone-800 p-1.5 space-y-0.5 animate-in fade-in zoom-in-95 duration-100"
-              >
-                <div className="px-2 py-1 text-[10px] font-bold uppercase tracking-wider text-stone-400 dark:text-stone-500">
-                  活跃生产阶段
-                </div>
-                {COLUMNS.filter((c) => c.status !== 'published' && c.status !== 'icebox').map((c) => (
-                  <button
-                    key={c.status}
-                    type="button"
-                    onClick={() => {
-                      setIsStatusMenuOpen(false);
-                      void onUpdateTopic({ status: c.status });
-                    }}
-                    className={`w-full text-left px-2 py-1.5 rounded-lg text-xs font-medium flex items-center justify-between transition-colors cursor-pointer ${
-                      topic.status === c.status
-                        ? 'bg-stone-100 dark:bg-stone-800 text-stone-900 dark:text-stone-100 font-bold'
-                        : 'text-stone-600 dark:text-stone-400 hover:bg-stone-50 dark:hover:bg-stone-800 hover:text-stone-900 dark:hover:text-stone-100'
-                    }`}
-                  >
-                    <div className="flex items-center gap-2">
-                      <span className={`w-2 h-2 rounded-full ${statusDots[c.status]}`} />
-                      <span>{c.label}</span>
-                    </div>
-                    {topic.status === c.status && <span className="text-rose-600 dark:text-rose-400 text-xs">✓</span>}
-                  </button>
-                ))}
-
-                <div className="my-1 border-t border-stone-100 dark:border-stone-800" />
-                <div className="px-2 py-1 text-[10px] font-bold uppercase tracking-wider text-stone-400 dark:text-stone-500">
-                  归档状态
-                </div>
-
-                <button
-                  type="button"
-                  onClick={() => {
-                    setIsStatusMenuOpen(false);
-                    void onUpdateTopic({ status: 'published' });
-                  }}
-                  className={`w-full text-left px-2 py-1.5 rounded-lg text-xs font-medium flex items-center justify-between transition-colors cursor-pointer ${
-                    topic.status === 'published'
-                      ? 'bg-stone-100 dark:bg-stone-800 text-stone-900 dark:text-stone-100 font-bold'
-                      : 'text-stone-600 dark:text-stone-400 hover:bg-emerald-50 dark:hover:bg-emerald-950/40 hover:text-emerald-800 dark:hover:text-emerald-300'
-                  }`}
-                >
-                  <div className="flex items-center gap-2">
-                    <span className="w-2 h-2 rounded-full bg-teal-500" />
-                    <span>已发布</span>
-                  </div>
-                  {topic.status === 'published' && <span className="text-emerald-600 dark:text-emerald-400 text-xs">✓</span>}
-                </button>
-
-                <button
-                  type="button"
-                  onClick={() => {
-                    setIsStatusMenuOpen(false);
-                    void onUpdateTopic({ status: 'icebox' });
-                  }}
-                  className={`w-full text-left px-2 py-1.5 rounded-lg text-xs font-medium flex items-center justify-between transition-colors cursor-pointer ${
-                    topic.status === 'icebox'
-                      ? 'bg-stone-100 dark:bg-stone-800 text-stone-900 dark:text-stone-100 font-bold'
-                      : 'text-stone-600 dark:text-stone-400 hover:bg-stone-100 dark:hover:bg-stone-800 hover:text-stone-900 dark:hover:text-stone-100'
-                  }`}
-                >
-                  <div className="flex items-center gap-2">
-                    <span className="w-2 h-2 rounded-full bg-stone-300 dark:bg-stone-600" />
-                    <span>搁置</span>
-                  </div>
-                  {topic.status === 'icebox' && <span className="text-stone-600 dark:text-stone-400 text-xs">✓</span>}
-                </button>
-              </div>
-            )}
-          </div>
-
-          {/* Priority Switcher Popover */}
-          <div className="relative" ref={priorityMenuRef}>
-            <button
-              type="button"
-              onClick={() => {
-                setIsPriorityMenuOpen(!isPriorityMenuOpen);
-                setIsStatusMenuOpen(false);
-              }}
-              className="inline-flex items-center gap-1.5 text-xs font-semibold text-stone-700 dark:text-stone-200 bg-stone-100/90 dark:bg-stone-800 hover:bg-stone-200/80 dark:hover:bg-stone-700 border border-stone-200/90 dark:border-stone-700 px-2.5 py-1.5 rounded-lg shadow-2xs transition-colors cursor-pointer"
-              title="设置选题优先级"
-            >
-              <span className={`w-2 h-2 rounded-full ${priorityConfig[topic.priority]?.dot || 'bg-stone-300'}`} />
-              <span className="text-[11px] text-stone-400 dark:text-stone-400 font-normal">优先级:</span>
-              <span>{priorityConfig[topic.priority]?.label || '未设'}</span>
-              <ChevronDown className="w-3 h-3 text-stone-400 dark:text-stone-500" />
-            </button>
-
-            {isPriorityMenuOpen && (
-              <div
-                className="absolute right-0 top-9 z-50 w-40 bg-white dark:bg-stone-900 rounded-xl shadow-modal border border-stone-200 dark:border-stone-800 p-1.5 space-y-0.5 animate-in fade-in zoom-in-95 duration-100"
-              >
-                <div className="px-2 py-1 text-[10px] font-bold uppercase tracking-wider text-stone-400 dark:text-stone-500">
-                  优先级设定
-                </div>
-                {(['high', 'medium', 'low', 'none'] as Priority[]).map((p) => {
-                  const cfg = priorityConfig[p];
-                  const isSelected = topic.priority === p;
-                  return (
-                    <button
-                      key={p}
-                      type="button"
-                      onClick={() => {
-                        setIsPriorityMenuOpen(false);
-                        void onUpdateTopic({ priority: p });
-                      }}
-                      className={`w-full text-left px-2 py-1.5 rounded-lg text-xs font-medium flex items-center justify-between transition-colors cursor-pointer ${
-                        isSelected
-                          ? 'bg-stone-100 dark:bg-stone-800 text-stone-900 dark:text-stone-100 font-bold'
-                          : 'text-stone-600 dark:text-stone-400 hover:bg-stone-50 dark:hover:bg-stone-800 hover:text-stone-900 dark:hover:text-stone-100'
-                      }`}
-                    >
-                      <div className="flex items-center gap-2">
-                        <span className={`w-2 h-2 rounded-full ${cfg.dot}`} />
-                        <span>{cfg.label}</span>
-                        <span className="text-[10px] text-stone-400 font-normal">({cfg.desc})</span>
-                      </div>
-                      {isSelected && <span className="text-rose-600 dark:text-rose-400 text-xs">✓</span>}
-                    </button>
-                  );
-                })}
-              </div>
-            )}
-          </div>
-        </div>
-      </div>
-
-      {/* Next Action Interactive Bar */}
-      <div className="bg-rose-50/80 dark:bg-rose-950/30 border border-rose-200 dark:border-rose-900/50 rounded-xl p-3.5 flex items-center justify-between gap-3">
-        <div className="flex items-center gap-2 flex-1 min-w-0">
-          <span className="w-2 h-2 rounded-full bg-rose-600 dark:bg-rose-500 shrink-0" />
-          <span className="text-xs font-bold text-rose-800 dark:text-rose-300 shrink-0">下一步行动:</span>
-          <span className="text-sm font-bold text-stone-900 dark:text-stone-100 truncate flex-1">
-            {topic.next_action || '尚未设置明确的下一步行动'}
-          </span>
-          {topic.next_action && (
-            <span className="hidden text-[11px] font-medium text-stone-500 dark:text-stone-400 sm:inline">
-              已持续 {getNextActionAgeDays(topic)} 天
+      {/* Bottom Row: Metadata Stream (Left) + Integrated Next Action Capsule (Right) */}
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 pt-0.5">
+        {/* Left: Metadata Stream */}
+        <div className="flex items-center gap-2 text-[11px] sm:text-xs text-stone-500 dark:text-stone-400 font-medium flex-wrap">
+          {totalScore > 0 && (
+            <span className="font-mono text-emerald-700 dark:text-emerald-300 font-bold bg-emerald-50 dark:bg-emerald-950/40 px-1.5 py-0.2 rounded border border-emerald-200 dark:border-emerald-800 text-[11px]">
+              评分 {totalScore}/10
             </span>
           )}
+          <ReadinessBadge topic={topic} />
+          <span className="text-stone-300 dark:text-stone-700">·</span>
+          <span>{topic.verified_facts_count || 0} 条事实</span>
+          <span className="text-stone-300 dark:text-stone-700">·</span>
+          <span>{topic.materials_count || 0} 条素材</span>
+          <span className="text-stone-300 dark:text-stone-700">·</span>
+          <span>{topic.draft_word_count || 0} 字</span>
+          <span className="hidden md:inline text-stone-300 dark:text-stone-700">·</span>
+          <span className="hidden md:inline">更新于 {new Date(topic.updated_at).toLocaleDateString()}</span>
         </div>
 
-        <button
-          onClick={() => setIsActionDialogOpen(true)}
-          className="min-h-10 text-xs text-white bg-rose-600 hover:bg-rose-700 font-semibold px-3 py-1 rounded-lg transition-colors shrink-0 cursor-pointer shadow-2xs"
-        >
-          {topic.next_action ? '完成 / 续接' : '设置行动'}
-        </button>
+        {/* Right: Integrated Next Action Capsule */}
+        <div className="flex items-center gap-1.5 w-full sm:w-auto justify-between sm:justify-end">
+          {warning && (
+            <span className="text-[11px] font-bold text-amber-600 dark:text-amber-400 flex items-center gap-0.5 shrink-0" title={warning}>
+              ⚠ <span className="hidden lg:inline">{warning}</span>
+            </span>
+          )}
+          <button
+            type="button"
+            onClick={() => setIsActionDialogOpen(true)}
+            className={`flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-semibold transition-all cursor-pointer shadow-2xs border text-left max-w-full sm:max-w-md truncate ${
+              warning
+                ? 'bg-amber-50 dark:bg-amber-950/40 text-amber-900 dark:text-amber-200 border-amber-300 dark:border-amber-800/80 hover:bg-amber-100 dark:hover:bg-amber-900/60'
+                : topic.next_action
+                  ? 'bg-rose-50 dark:bg-rose-950/40 text-rose-900 dark:text-rose-200 border-rose-200 dark:border-rose-900/60 hover:bg-rose-100 dark:hover:bg-rose-900/60'
+                  : 'bg-stone-100 dark:bg-stone-800 text-stone-700 dark:text-stone-300 border-stone-200 dark:border-stone-700 hover:bg-stone-200/80 dark:hover:bg-stone-700'
+            }`}
+            title={topic.next_action ? `下一步行动：${topic.next_action} (已持续 ${getNextActionAgeDays(topic)} 天) - 点击完成或更新` : '点击设置明确的下一步行动'}
+          >
+            <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${warning ? 'bg-amber-500' : 'bg-rose-600 dark:bg-rose-400'}`} />
+            <span className="text-[10px] font-bold uppercase tracking-wider text-rose-700 dark:text-rose-400 shrink-0">下一步:</span>
+            <span className="truncate flex-1 font-bold">
+              {topic.next_action || '未设置行动 (点击添加)'}
+            </span>
+            {topic.next_action && (
+              <span className="text-[10px] font-mono opacity-70 shrink-0">
+                {getNextActionAgeDays(topic)}d
+              </span>
+            )}
+          </button>
+        </div>
       </div>
-      {getNextActionWarning(topic) && (
-        <div className="text-xs font-semibold text-amber-700 dark:text-amber-300">⚠ {getNextActionWarning(topic)}</div>
-      )}
+
       <NextActionDialog
         isOpen={isActionDialogOpen}
         topic={topic}

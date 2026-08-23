@@ -307,9 +307,9 @@ export const TopicDetailView: React.FC<TopicDetailViewProps> = ({
               <button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id)}
-                className={`flex items-center gap-2 px-3 sm:px-4 py-3 sm:py-3.5 text-xs sm:text-sm font-semibold border-b-2 transition-all cursor-pointer ${
+                className={`flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-3.5 py-2 sm:py-2.5 text-xs sm:text-sm font-semibold border-b-2 transition-all cursor-pointer ${
                   isActive
-                    ? 'border-rose-600 text-rose-600 dark:text-rose-400 bg-rose-50/20 dark:bg-rose-950/20'
+                    ? 'border-rose-600 text-rose-600 dark:text-rose-400 bg-rose-50/30 dark:bg-rose-950/20'
                     : 'border-transparent text-stone-500 dark:text-stone-400 hover:text-stone-900 dark:hover:text-stone-100 hover:border-stone-300 dark:hover:border-stone-700'
                 }`}
               >

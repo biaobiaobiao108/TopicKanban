@@ -146,11 +146,11 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({
   };
 
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 py-6">
+    <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 py-4">
       {/* Left Column: Core Narrative Components (8 Cols) */}
-      <div className="lg:col-span-8 space-y-6">
+      <div className="lg:col-span-8 space-y-4">
         {/* 1. 一句话选题 */}
-        <div className="bg-white dark:bg-stone-900 rounded-xl border border-stone-200 dark:border-stone-800 p-5 space-y-2 shadow-subtle transition-colors">
+        <div className="bg-white dark:bg-stone-900 rounded-xl border border-stone-200 dark:border-stone-800 p-4 sm:p-4.5 space-y-2 shadow-subtle transition-colors">
           <div className="flex items-center justify-between">
             <label className="text-sm font-bold text-stone-900 dark:text-stone-100 flex items-center gap-1.5">
               <Lightbulb className="w-4 h-4 text-amber-500" />
@@ -168,7 +168,7 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({
         </div>
 
         {/* 2. 观众为什么看 (Hook / 荒诞反差) */}
-        <div className="bg-white dark:bg-stone-900 rounded-xl border border-stone-200 dark:border-stone-800 p-5 space-y-2 shadow-subtle transition-colors">
+        <div className="bg-white dark:bg-stone-900 rounded-xl border border-stone-200 dark:border-stone-800 p-4 sm:p-4.5 space-y-2 shadow-subtle transition-colors">
           <div className="flex items-center justify-between">
             <label className="text-sm font-bold text-stone-900 dark:text-stone-100 flex items-center gap-1.5">
               <Sparkles className="w-4 h-4 text-rose-600 dark:text-rose-500" />
@@ -186,7 +186,7 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({
         </div>
 
         {/* 3. 为什么现在做 (Why Now / 时机) */}
-        <div className="bg-white dark:bg-stone-900 rounded-xl border border-stone-200 dark:border-stone-800 p-5 space-y-2 shadow-subtle transition-colors">
+        <div className="bg-white dark:bg-stone-900 rounded-xl border border-stone-200 dark:border-stone-800 p-4 sm:p-4.5 space-y-2 shadow-subtle transition-colors">
           <div className="flex items-center justify-between">
             <label className="text-sm font-bold text-stone-900 dark:text-stone-100 flex items-center gap-1.5">
               <Clock className="w-4 h-4 text-blue-600 dark:text-blue-400" />
@@ -204,7 +204,7 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({
         </div>
 
         {/* 4. 故事主线流程 (Storyline) */}
-        <div className="bg-white dark:bg-stone-900 rounded-xl border border-stone-200 dark:border-stone-800 p-5 space-y-3 shadow-subtle transition-colors">
+        <div className="bg-white dark:bg-stone-900 rounded-xl border border-stone-200 dark:border-stone-800 p-4 sm:p-4.5 space-y-3 shadow-subtle transition-colors">
           <div className="flex items-center justify-between">
             <label className="text-sm font-bold text-stone-900 dark:text-stone-100 flex items-center gap-1.5">
               <ListOrdered className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
@@ -240,8 +240,8 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({
       </div>
 
       {/* Right Column: Score Rating Dial & People & Tags (4 Cols) */}
-      <div className="lg:col-span-4 space-y-6">
-        <div className="rounded-xl border border-stone-200 dark:border-stone-800 bg-white dark:bg-stone-900 p-5 shadow-subtle transition-colors">
+      <div className="lg:col-span-4 space-y-4">
+        <div className="rounded-xl border border-stone-200 dark:border-stone-800 bg-white dark:bg-stone-900 p-4 sm:p-4.5 shadow-subtle transition-colors">
           <div className="mb-4 flex items-start justify-between gap-3">
             <div>
               <h4 className="text-sm font-bold text-stone-900 dark:text-stone-100">开工准备度</h4>
@@ -277,7 +277,7 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({
         <ScoreRatingDial topic={topic} onUpdateScores={onUpdateTopic} />
 
         {/* 关联人物 Entity Selector */}
-        <div className="bg-white dark:bg-stone-900 rounded-xl border border-stone-200 dark:border-stone-800 p-5 space-y-4 shadow-subtle transition-colors">
+        <div className="bg-white dark:bg-stone-900 rounded-xl border border-stone-200 dark:border-stone-800 p-4 sm:p-4.5 space-y-4 shadow-subtle transition-colors">
           <div className="flex items-center justify-between">
             <h4 className="text-sm font-bold text-stone-900 dark:text-stone-100 flex items-center gap-1.5">
               <User className="w-4 h-4 text-stone-700 dark:text-stone-300" />
