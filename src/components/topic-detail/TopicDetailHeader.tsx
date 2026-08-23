@@ -97,7 +97,7 @@ export const TopicDetailHeader: React.FC<TopicDetailHeaderProps> = ({
   };
 
   return (
-    <div className="bg-white dark:bg-stone-900 border-b border-stone-200 dark:border-stone-800 px-4 sm:px-8 py-2 sm:py-2.5 shrink-0 space-y-1.5 transition-colors">
+    <div className="bg-white dark:bg-stone-900 border-b border-stone-200 dark:border-stone-800 px-4 sm:px-8 py-2.5 sm:py-3 shrink-0 space-y-2 sm:space-y-2.5 transition-colors">
       {/* Top Row: Back + Title + Status/Priority Badges + Actions Toolbar */}
       <div className="flex items-center justify-between gap-3">
         {/* Left group: Back button + Title & Inline Editor + Status & Priority */}
@@ -378,11 +378,11 @@ export const TopicDetailHeader: React.FC<TopicDetailHeaderProps> = ({
       </div>
 
       {/* Bottom Row: 3-Column Balanced Layout (Left: Metrics, Center: Next Action, Right: Timestamp) */}
-      <div className="flex items-center justify-between gap-3 pt-0.5 text-[11px] sm:text-xs">
+      <div className="flex items-center justify-between gap-3 py-1 text-xs min-h-[36px]">
         {/* Left: Production Metrics Stream */}
         <div className="flex items-center gap-1.5 sm:gap-2 text-stone-500 dark:text-stone-400 font-medium shrink-0">
           {totalScore > 0 && (
-            <span className="font-mono text-emerald-700 dark:text-emerald-300 font-bold bg-emerald-50 dark:bg-emerald-950/40 px-1.5 py-0.2 rounded border border-emerald-200 dark:border-emerald-800 text-[11px]">
+            <span className="font-mono text-emerald-700 dark:text-emerald-300 font-bold bg-emerald-50 dark:bg-emerald-950/40 px-2 py-0.5 rounded-md border border-emerald-200 dark:border-emerald-800 text-[11px]">
               评分 {totalScore}/10
             </span>
           )}
@@ -397,22 +397,22 @@ export const TopicDetailHeader: React.FC<TopicDetailHeaderProps> = ({
             <button
               type="button"
               onClick={() => setIsActionDialogOpen(true)}
-              className={`group inline-flex items-center gap-1.5 px-3 py-1 rounded-xl text-xs font-bold transition-all cursor-pointer border shadow-2xs hover:scale-[1.02] active:scale-[0.98] max-w-full truncate ${
+              className={`group inline-flex items-center gap-2 px-3.5 py-1.5 rounded-xl text-xs sm:text-[13px] font-bold transition-all cursor-pointer border shadow-2xs hover:scale-[1.02] active:scale-[0.98] max-w-full truncate ${
                 warning
                   ? 'bg-amber-50/95 dark:bg-amber-950/70 border-amber-300 dark:border-amber-700 text-amber-950 dark:text-amber-100 hover:border-amber-400'
                   : 'bg-rose-50/90 dark:bg-rose-950/50 border-rose-200 dark:border-rose-900/70 text-stone-900 dark:text-stone-100 hover:border-rose-300'
               }`}
               title={`下一步核心行动：${topic.next_action} (已持续 ${getNextActionAgeDays(topic)} 天) - 点击更新或完成`}
             >
-              <Zap className={`w-3.5 h-3.5 shrink-0 ${warning ? 'text-amber-500 fill-amber-500' : 'text-rose-600 dark:text-rose-400 fill-rose-600/30'}`} />
+              <Zap className={`w-4 h-4 shrink-0 ${warning ? 'text-amber-500 fill-amber-500' : 'text-rose-600 dark:text-rose-400 fill-rose-600/30'}`} />
               <span className="truncate font-extrabold">{topic.next_action}</span>
               {warning && (
-                <span className="text-[10px] font-bold text-amber-800 dark:text-amber-300 bg-amber-200/80 dark:bg-amber-900/80 px-1.5 py-0.2 rounded shrink-0">
+                <span className="text-[10px] sm:text-[11px] font-bold text-amber-800 dark:text-amber-300 bg-amber-200/80 dark:bg-amber-900/80 px-1.5 py-0.5 rounded shrink-0">
                   {warning}
                 </span>
               )}
               <span
-                className={`text-[10px] font-mono font-bold px-1.5 py-0.2 rounded shrink-0 ${
+                className={`text-[10px] sm:text-[11px] font-mono font-bold px-1.5 py-0.5 rounded shrink-0 ${
                   warning
                     ? 'bg-amber-200/70 dark:bg-amber-900/60 text-amber-900 dark:text-amber-200'
                     : 'bg-rose-100/90 dark:bg-rose-900/70 text-rose-800 dark:text-rose-200'
@@ -425,17 +425,17 @@ export const TopicDetailHeader: React.FC<TopicDetailHeaderProps> = ({
             <button
               type="button"
               onClick={() => setIsActionDialogOpen(true)}
-              className="inline-flex items-center gap-1.5 px-3 py-1 rounded-xl bg-amber-100/90 dark:bg-amber-950/70 border border-amber-300/90 dark:border-amber-700 hover:bg-amber-200/80 dark:hover:bg-amber-900 text-amber-950 dark:text-amber-100 text-xs font-bold transition-all cursor-pointer shadow-2xs hover:scale-[1.02] active:scale-[0.98]"
+              className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-xl bg-amber-100/90 dark:bg-amber-950/70 border border-amber-300/90 dark:border-amber-700 hover:bg-amber-200/80 dark:hover:bg-amber-900 text-amber-950 dark:text-amber-100 text-xs sm:text-[13px] font-bold transition-all cursor-pointer shadow-2xs hover:scale-[1.02] active:scale-[0.98]"
               title="当前选题缺少明确的下一步行动，点击快速添加"
             >
-              <AlertTriangle className="w-3.5 h-3.5 text-amber-600 dark:text-amber-400 fill-amber-500/20 shrink-0 animate-pulse" />
+              <AlertTriangle className="w-4 h-4 text-amber-600 dark:text-amber-400 fill-amber-500/20 shrink-0 animate-pulse" />
               <span className="font-extrabold">缺少下一步行动 (点击设定)</span>
             </button>
           )}
         </div>
 
         {/* Right: Updated Timestamp */}
-        <div className="shrink-0 text-stone-400 dark:text-stone-500 font-mono text-[11px] hidden sm:block">
+        <div className="shrink-0 text-stone-400 dark:text-stone-500 font-mono text-[11px] sm:text-xs hidden sm:block">
           更新于 {new Date(topic.updated_at).toLocaleDateString()}
         </div>
       </div>
