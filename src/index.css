@@ -18,6 +18,26 @@ html.theme-warm-paper .script-citation {
   border-bottom-color: rgba(107, 95, 181, 0.65);
 }
 
+html.theme-nordic-frost .script-citation {
+  background: rgba(45, 122, 100, 0.12);
+  border-bottom-color: rgba(45, 122, 100, 0.65);
+}
+
+html.theme-parisian-dawn .script-citation {
+  background: rgba(200, 75, 91, 0.12);
+  border-bottom-color: rgba(200, 75, 91, 0.65);
+}
+
+html.theme-midnight-obsidian .script-citation {
+  background: rgba(14, 165, 233, 0.16);
+  border-bottom-color: rgba(14, 165, 233, 0.7);
+}
+
+html.theme-kyoto-zen .script-citation {
+  background: rgba(61, 107, 79, 0.12);
+  border-bottom-color: rgba(61, 107, 79, 0.65);
+}
+
 .script-citation::after {
   content: "〔" attr(data-reference-title) "〕";
   margin-left: 0.2rem;
@@ -33,6 +53,22 @@ html.dark .script-citation::after {
 
 html.theme-warm-paper .script-citation::after {
   color: #6b5fb5;
+}
+
+html.theme-nordic-frost .script-citation::after {
+  color: #2d7a64;
+}
+
+html.theme-parisian-dawn .script-citation::after {
+  color: #c84b5b;
+}
+
+html.theme-midnight-obsidian .script-citation::after {
+  color: #38bdf8;
+}
+
+html.theme-kyoto-zen .script-citation::after {
+  color: #3d6b4f;
 }
 
 @layer base {
@@ -51,6 +87,42 @@ html.theme-warm-paper .script-citation::after {
     --text-primary: #2d2b29;
     --text-secondary: #8c857b;
     --border-subtle: #eae5dc;
+    color-scheme: light;
+  }
+
+  html.theme-nordic-frost {
+    --bg-primary: #f8fafb;
+    --bg-surface: #ffffff;
+    --text-primary: #1a2424;
+    --text-secondary: #5f7474;
+    --border-subtle: #dce5e5;
+    color-scheme: light;
+  }
+
+  html.theme-parisian-dawn {
+    --bg-primary: #faf8f5;
+    --bg-surface: #ffffff;
+    --text-primary: #2b2520;
+    --text-secondary: #7f746c;
+    --border-subtle: #ded7ce;
+    color-scheme: light;
+  }
+
+  html.theme-midnight-obsidian {
+    --bg-primary: #151921;
+    --bg-surface: #1c212c;
+    --text-primary: #f1f5f9;
+    --text-secondary: #94a3b8;
+    --border-subtle: rgba(255, 255, 255, 0.09);
+    color-scheme: dark;
+  }
+
+  html.theme-kyoto-zen {
+    --bg-primary: #f8faf7;
+    --bg-surface: #ffffff;
+    --text-primary: #232a24;
+    --text-secondary: #6e7a71;
+    --border-subtle: #dadfd5;
     color-scheme: light;
   }
 
@@ -226,10 +298,10 @@ html.dark .tiptap hr {
 }
 
 /* ==========================================================================
-   Warm Paper (暖沙纸境) - Oatmeal Cream & Muted Subtle Hierarchy System
+   1. Warm Paper (暖沙纸境) - Morandi Strawberry & Oatmeal Cream System
    ========================================================================== */
 
-/* 1. Main Workspace Canvas (象牙微暖白：明亮、通透、纯净，彻底告别暗沉土黄) */
+/* 1. Main Workspace Canvas */
 html.theme-warm-paper body,
 html.theme-warm-paper #root,
 html.theme-warm-paper main,
@@ -238,7 +310,7 @@ html.theme-warm-paper .bg-stone-50 {
   background-color: #faf7f2 !important;
 }
 
-/* 2. All Common White Surfaces (主体卡片、数据面板：纯净纸白 + 微纸影) */
+/* 2. All Common White Surfaces */
 html.theme-warm-paper .bg-white,
 html.theme-warm-paper .bg-white\/50,
 html.theme-warm-paper .bg-white\/60,
@@ -268,9 +340,7 @@ html.theme-warm-paper .today-priority-item:hover {
   box-shadow: 0 4px 12px rgba(60, 45, 30, 0.06) !important;
 }
 
-/* 3. Kanban Board & 4 Columns (极雅致低饱和莫兰迪微淡彩，与象牙底板自然交融) */
-
-/* Inbox (收集箱) - 淡雅杏粉奶白 */
+/* 3. Kanban Board & 4 Columns */
 html.theme-warm-paper .kanban-column-container[data-column-status="inbox"] {
   background-color: #fbf3ec !important;
   border-color: #ede0d4 !important;
@@ -281,7 +351,6 @@ html.theme-warm-paper .kanban-column-container[data-column-status="inbox"] .font
   color: #7b471c !important;
 }
 
-/* Approved (已立项) - 淡雅鼠尾草绿奶白 */
 html.theme-warm-paper .kanban-column-container[data-column-status="approved"] {
   background-color: #f1f6f2 !important;
   border-color: #dbe8dc !important;
@@ -292,7 +361,6 @@ html.theme-warm-paper .kanban-column-container[data-column-status="approved"] .f
   color: #205630 !important;
 }
 
-/* Scripting (写稿中) - 淡雅香芋紫奶白 */
 html.theme-warm-paper .kanban-column-container[data-column-status="scripting"] {
   background-color: #f5f1f8 !important;
   border-color: #e5dcee !important;
@@ -303,7 +371,6 @@ html.theme-warm-paper .kanban-column-container[data-column-status="scripting"] .
   color: #493674 !important;
 }
 
-/* Production (待制作) - 淡雅天青雾蓝奶白 */
 html.theme-warm-paper .kanban-column-container[data-column-status="production"] {
   background-color: #f0f4f7 !important;
   border-color: #dbe5eb !important;
@@ -314,19 +381,19 @@ html.theme-warm-paper .kanban-column-container[data-column-status="production"] 
   color: #1d4f66 !important;
 }
 
-/* 4. Detail Subtabs Navigation */
-html.theme-warm-paper .detail-subtabs-container {
+/* 4. Subtabs & Scope Navigation */
+html.theme-warm-paper .detail-subtabs-container,
+html.theme-warm-paper .table-scope-tabs-container,
+html.theme-warm-paper .tags-header-banner,
+html.theme-warm-paper .script-editor-canvas-container {
   background-color: #faf7f2 !important;
   border-bottom-color: #e3dbd0 !important;
-  padding-top: 0.25rem !important;
-  padding-bottom: 0.25rem !important;
 }
 
-html.theme-warm-paper .detail-subtabs-container button.border-rose-600 {
+html.theme-warm-paper .detail-subtabs-container button.border-rose-600,
+html.theme-warm-paper .table-scope-tabs-container button.is-active {
   background-color: #ffffff !important;
   border: 1px solid #e2dbd0 !important;
-  border-bottom: 1px solid #e2dbd0 !important;
-  border-radius: 0.6rem !important;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04) !important;
   color: #1f1c19 !important;
   font-weight: 700 !important;
@@ -337,14 +404,7 @@ html.theme-warm-paper .detail-subtabs-container button:not(.border-rose-600) {
   color: #787066 !important;
 }
 
-/* Card Next Action Bar in Warm Paper */
-html.theme-warm-paper .bg-rose-50\/80 {
-  background-color: rgba(222, 91, 109, 0.08) !important;
-  border-color: rgba(222, 91, 109, 0.22) !important;
-  color: #a82e40 !important;
-}
-
-/* 5. Outer Framework (最高特异性置后覆盖：浅燕麦砂色 #f0ebe4，比主体稍深，但色差柔和不突兀) */
+/* 5. Outer Framework */
 html.theme-warm-paper aside,
 html.theme-warm-paper aside.sidebar-container,
 html.theme-warm-paper .sidebar-container,
@@ -361,17 +421,12 @@ html.theme-warm-paper .script-outline-panel {
   border-color: #e3dbd0 !important;
 }
 
-html.theme-warm-paper .sidebar-brand-logo {
-  background-color: #de5b6d !important; /* 草莓玫瑰红胶囊 (截图 1 同款) */
-  border-radius: 0.65rem !important;
+html.theme-warm-paper .sidebar-brand-logo,
+html.theme-warm-paper .mobile-fab-create-button {
+  background-color: #de5b6d !important;
   box-shadow: 0 2px 6px rgba(222, 91, 109, 0.25) !important;
 }
 
-html.theme-warm-paper .mobile-fab-create-button {
-  background-color: #de5b6d !important;
-}
-
-/* 6. Active navigation item card (在 #f0ebe4 燕麦底色中精致浮起的纯白高光小卡片) */
 html.theme-warm-paper aside.sidebar-container nav button.bg-stone-100,
 html.theme-warm-paper aside nav button.bg-stone-100,
 html.theme-warm-paper .mobile-drawer-container nav button.bg-stone-100,
@@ -383,95 +438,74 @@ html.theme-warm-paper .tags-sidebar-panel .tag-menu-item.is-selected {
   font-weight: 700 !important;
 }
 
-/* Outer Canvas Container */
-html.theme-warm-paper .script-editor-canvas-container {
-  background-color: #faf7f2 !important;
+/* 6. Primary Action Buttons & CTA */
+html.theme-warm-paper .bg-rose-600,
+html.theme-warm-paper .bg-rose-500,
+html.theme-warm-paper aside.sidebar-container button.bg-stone-900,
+html.theme-warm-paper .mobile-drawer-container button.bg-stone-900 {
+  background-color: #de5b6d !important;
+  color: #ffffff !important;
+}
+html.theme-warm-paper .hover\:bg-rose-700:hover,
+html.theme-warm-paper aside.sidebar-container button.bg-stone-900:hover,
+html.theme-warm-paper .mobile-drawer-container button.bg-stone-900:hover {
+  background-color: #cb4a5c !important;
+}
+html.theme-warm-paper .active\:bg-rose-800:active {
+  background-color: #b53a4b !important;
 }
 
-@media (min-width: 1280px) {
-  html.theme-warm-paper .script-outline-panel {
-    background-image: linear-gradient(to right, #f0ebe4 0%, rgba(240, 235, 228, 0.98) 82%, transparent 100%) !important;
-  }
+/* 7. Accent Highlights, Badges & Next Action */
+html.theme-warm-paper .text-rose-600,
+html.theme-warm-paper .text-rose-700,
+html.theme-warm-paper .text-rose-500,
+html.theme-warm-paper .text-rose-400,
+html.theme-warm-paper .group-hover\:text-rose-600 {
+  color: #de5b6d !important;
+}
+html.theme-warm-paper .text-rose-900,
+html.theme-warm-paper .text-rose-800 {
+  color: #a82e40 !important;
+}
+html.theme-warm-paper .border-rose-600,
+html.theme-warm-paper .border-rose-500,
+html.theme-warm-paper .border-rose-400 {
+  border-color: #de5b6d !important;
+}
+html.theme-warm-paper .border-rose-300,
+html.theme-warm-paper .border-rose-200,
+html.theme-warm-paper .border-rose-100,
+html.theme-warm-paper .border-rose-200\/60,
+html.theme-warm-paper .border-rose-200\/70 {
+  border-color: rgba(222, 91, 109, 0.25) !important;
+}
+html.theme-warm-paper .bg-rose-50,
+html.theme-warm-paper .bg-rose-100,
+html.theme-warm-paper .bg-rose-50\/60,
+html.theme-warm-paper .bg-rose-50\/70,
+html.theme-warm-paper .bg-rose-50\/80,
+html.theme-warm-paper .bg-rose-100\/60 {
+  background-color: rgba(222, 91, 109, 0.08) !important;
+}
+html.theme-warm-paper .ring-rose-400,
+html.theme-warm-paper .ring-rose-500,
+html.theme-warm-paper .ring-rose-600 {
+  --tw-ring-color: rgba(222, 91, 109, 0.35) !important;
+}
+html.theme-warm-paper .accent-rose-600 {
+  accent-color: #de5b6d !important;
+}
+html.theme-warm-paper .fill-rose-600,
+html.theme-warm-paper .fill-rose-400 {
+  fill: #de5b6d !important;
 }
 
-/* ==========================================================================
-   Tags & Genres View (标签与创作赛道 - 层次分明的指标卡与面板)
-   ========================================================================== */
-
-/* Top header banner (与全局纯净主画布融合) */
-html.theme-warm-paper .tags-header-banner {
-  background-color: #faf7f2 !important;
-  border-bottom-color: #e3dbd0 !important;
-}
-
-html.theme-warm-paper .tags-sidebar-panel input {
-  background-color: #ffffff !important;
-  border-color: #e2dbd0 !important;
-  color: #1f1c19 !important;
-}
-
-/* Four Metrics Cards in TagsView (极浅马卡龙淡彩纸片，清爽雅致) */
-html.theme-warm-paper .tags-metrics-container .metric-tag-total {
-  background-color: #fbf3ec !important;
-  border-color: #ede0d4 !important;
-}
-html.theme-warm-paper .tags-metrics-container .metric-tag-coverage {
-  background-color: #f1f6f2 !important;
-  border-color: #dbe8dc !important;
-}
-html.theme-warm-paper .tags-metrics-container .metric-tag-richest {
-  background-color: #fdf0f3 !important;
-  border-color: #f9d8de !important;
-}
-html.theme-warm-paper .tags-metrics-container .metric-tag-writing {
-  background-color: #f5f1f8 !important;
-  border-color: #e5dcee !important;
-}
-
-/* ==========================================================================
-   Topic Table View (多维表格视图)
-   ========================================================================== */
-
-html.theme-warm-paper .table-scope-tabs-container {
-  background-color: #faf7f2 !important;
-  border-bottom-color: #e3dbd0 !important;
-}
-
-html.theme-warm-paper .table-scope-tabs-container button.is-active {
-  background-color: #ffffff !important;
-  border: 1px solid #e2dbd0 !important;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04) !important;
-  color: #1f1c19 !important;
-  font-weight: 700 !important;
-}
-
-html.theme-warm-paper .topic-table-container thead.table-header-row,
-html.theme-warm-paper .topic-table-container thead.table-header-row th {
-  background-color: #eae4dc !important;
-  border-bottom-color: #e3dbd0 !important;
-  color: #38342f !important;
-  font-weight: 700 !important;
-}
-
-html.theme-warm-paper .topic-table-container tbody tr:hover {
-  background-color: #f5f0e9 !important;
-}
-
-html.theme-warm-paper .topic-table-container tbody td {
-  border-bottom-color: #eae3d8 !important;
-}
-
-/* ==========================================================================
-   Modals & Form Controls (弹窗与表单控件)
-   ========================================================================== */
+/* 8. Controls & Modals */
 html.theme-warm-paper .shadow-modal {
   background-color: #ffffff !important;
   border: 1px solid #e3dbd0 !important;
-  border-radius: 1rem !important;
   box-shadow: 0 20px 35px -5px rgba(60, 45, 30, 0.12), 0 8px 12px -6px rgba(60, 45, 30, 0.06) !important;
 }
-
-/* Form Inputs, Textarea, Selects */
 html.theme-warm-paper input[type="text"],
 html.theme-warm-paper input[type="number"],
 html.theme-warm-paper input[type="search"],
@@ -481,7 +515,6 @@ html.theme-warm-paper select {
   border-color: #e2dbd0 !important;
   color: #1f1c19 !important;
 }
-
 html.theme-warm-paper input[type="text"]:focus,
 html.theme-warm-paper input[type="number"]:focus,
 html.theme-warm-paper input[type="search"]:focus,
@@ -490,69 +523,28 @@ html.theme-warm-paper select:focus {
   border-color: #6b5fb5 !important;
   box-shadow: 0 0 0 2px rgba(107, 95, 181, 0.18) !important;
 }
-
-/* Switch & Checkbox */
 html.theme-warm-paper input[type="checkbox"]:checked {
   background-color: #4d8b61 !important;
   border-color: #4d8b61 !important;
 }
 
-/* Primary CTA Buttons */
-html.theme-warm-paper .bg-rose-600 {
-  background-color: #de5b6d !important;
-}
-html.theme-warm-paper .hover\:bg-rose-700:hover {
-  background-color: #cb4a5c !important;
-}
-html.theme-warm-paper .text-rose-600 {
-  color: #de5b6d !important;
-}
-html.theme-warm-paper .border-rose-500,
-html.theme-warm-paper .border-rose-600 {
-  border-color: #de5b6d !important;
-}
-html.theme-warm-paper .ring-rose-400,
-html.theme-warm-paper .ring-rose-500 {
-  --tw-ring-color: rgba(222, 91, 109, 0.4) !important;
-}
-
-/* TipTap Heading & Typography Styles */
-html.theme-warm-paper .tiptap {
-  color: #2b2723;
-}
-
-html.theme-warm-paper .tiptap h1 {
-  color: #6b5fb5; /* Morandi Soft Violet */
-}
-
-html.theme-warm-paper .tiptap h2 {
-  color: #327c94; /* Morandi Lake Blue */
-}
-
-html.theme-warm-paper .tiptap h3 {
-  color: #3b8ca7; /* Morandi Soft Teal */
-}
-
+/* 9. TipTap & Scrollbars */
+html.theme-warm-paper .tiptap { color: #2b2723; }
+html.theme-warm-paper .tiptap h1 { color: #6b5fb5; }
+html.theme-warm-paper .tiptap h2 { color: #327c94; }
+html.theme-warm-paper .tiptap h3 { color: #3b8ca7; }
 html.theme-warm-paper .tiptap blockquote {
   border-left-color: #6b5fb5;
   background: rgba(107, 95, 181, 0.06);
   color: #5c554e;
 }
+html.theme-warm-paper .tiptap hr { border-top-color: #e3dbd0; }
+html.theme-warm-paper ::-webkit-scrollbar-thumb { background: #d6cfc4; }
+html.theme-warm-paper ::-webkit-scrollbar-thumb:hover { background: #beb6ab; }
 
-html.theme-warm-paper .tiptap hr {
-  border-top-color: #e3dbd0;
-}
-
-html.theme-warm-paper ::-webkit-scrollbar-thumb {
-  background: #d6cfc4;
-}
-
-html.theme-warm-paper ::-webkit-scrollbar-thumb:hover {
-  background: #beb6ab;
-}
 
 /* ==========================================================================
-   Nordic Frost (北欧冷杉 / 极简雾青) - Linear & Craft Inspired Cool Minimal
+   2. Nordic Frost (北欧冷杉 / 极简雾青) - Linear & Craft Cool Minimal System
    ========================================================================== */
 
 /* 1. Main Workspace Canvas */
@@ -635,7 +627,7 @@ html.theme-nordic-frost .kanban-column-container[data-column-status="production"
   color: #1c4b60 !important;
 }
 
-/* 4. Subtabs & Banners */
+/* 4. Subtabs & Scope Navigation */
 html.theme-nordic-frost .detail-subtabs-container,
 html.theme-nordic-frost .tags-header-banner,
 html.theme-nordic-frost .table-scope-tabs-container,
@@ -651,6 +643,11 @@ html.theme-nordic-frost .table-scope-tabs-container button.is-active {
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04) !important;
   color: #1a2424 !important;
   font-weight: 700 !important;
+}
+
+html.theme-nordic-frost .detail-subtabs-container button:not(.border-rose-600) {
+  border-color: transparent !important;
+  color: #5f7474 !important;
 }
 
 /* 5. Outer Framework */
@@ -677,6 +674,8 @@ html.theme-nordic-frost .mobile-fab-create-button {
 }
 
 html.theme-nordic-frost aside.sidebar-container nav button.bg-stone-100,
+html.theme-nordic-frost aside nav button.bg-stone-100,
+html.theme-nordic-frost .mobile-drawer-container nav button.bg-stone-100,
 html.theme-nordic-frost .tags-sidebar-panel .tag-menu-item.is-selected {
   background-color: #ffffff !important;
   border: 1px solid #d8e2e2 !important;
@@ -685,8 +684,72 @@ html.theme-nordic-frost .tags-sidebar-panel .tag-menu-item.is-selected {
   font-weight: 700 !important;
 }
 
-/* Controls & TipTap */
+/* 6. Primary Action Buttons & CTA (Spruce Teal #2d7a64) */
+html.theme-nordic-frost .bg-rose-600,
+html.theme-nordic-frost .bg-rose-500,
+html.theme-nordic-frost aside.sidebar-container button.bg-stone-900,
+html.theme-nordic-frost .mobile-drawer-container button.bg-stone-900 {
+  background-color: #2d7a64 !important;
+  color: #ffffff !important;
+}
+html.theme-nordic-frost .hover\:bg-rose-700:hover,
+html.theme-nordic-frost aside.sidebar-container button.bg-stone-900:hover,
+html.theme-nordic-frost .mobile-drawer-container button.bg-stone-900:hover {
+  background-color: #236351 !important;
+}
+html.theme-nordic-frost .active\:bg-rose-800:active {
+  background-color: #1c4f40 !important;
+}
+
+/* 7. Accent Highlights, Badges & Next Action */
+html.theme-nordic-frost .text-rose-600,
+html.theme-nordic-frost .text-rose-700,
+html.theme-nordic-frost .text-rose-500,
+html.theme-nordic-frost .text-rose-400,
+html.theme-nordic-frost .group-hover\:text-rose-600 {
+  color: #2d7a64 !important;
+}
+html.theme-nordic-frost .text-rose-900,
+html.theme-nordic-frost .text-rose-800 {
+  color: #1c5c36 !important;
+}
+html.theme-nordic-frost .border-rose-600,
+html.theme-nordic-frost .border-rose-500,
+html.theme-nordic-frost .border-rose-400 {
+  border-color: #2d7a64 !important;
+}
+html.theme-nordic-frost .border-rose-300,
+html.theme-nordic-frost .border-rose-200,
+html.theme-nordic-frost .border-rose-100,
+html.theme-nordic-frost .border-rose-200\/60,
+html.theme-nordic-frost .border-rose-200\/70 {
+  border-color: #c2e2cb !important;
+}
+html.theme-nordic-frost .bg-rose-50,
+html.theme-nordic-frost .bg-rose-100,
+html.theme-nordic-frost .bg-rose-50\/60,
+html.theme-nordic-frost .bg-rose-50\/70,
+html.theme-nordic-frost .bg-rose-50\/80,
+html.theme-nordic-frost .bg-rose-100\/60 {
+  background-color: #eaf4ed !important;
+}
+html.theme-nordic-frost .ring-rose-400,
+html.theme-nordic-frost .ring-rose-500,
+html.theme-nordic-frost .ring-rose-600 {
+  --tw-ring-color: rgba(45, 122, 100, 0.35) !important;
+}
+html.theme-nordic-frost .accent-rose-600 {
+  accent-color: #2d7a64 !important;
+}
+html.theme-nordic-frost .fill-rose-600,
+html.theme-nordic-frost .fill-rose-400 {
+  fill: #2d7a64 !important;
+}
+
+/* 8. Controls & Modals */
 html.theme-nordic-frost input[type="text"],
+html.theme-nordic-frost input[type="number"],
+html.theme-nordic-frost input[type="search"],
 html.theme-nordic-frost textarea,
 html.theme-nordic-frost select,
 html.theme-nordic-frost .shadow-modal {
@@ -694,20 +757,39 @@ html.theme-nordic-frost .shadow-modal {
   border-color: #d8e2e2 !important;
   color: #1a2424 !important;
 }
-
+html.theme-nordic-frost input[type="text"]:focus,
+html.theme-nordic-frost input[type="number"]:focus,
+html.theme-nordic-frost input[type="search"]:focus,
+html.theme-nordic-frost textarea:focus,
+html.theme-nordic-frost select:focus {
+  border-color: #2d7a64 !important;
+  box-shadow: 0 0 0 2px rgba(45, 122, 100, 0.18) !important;
+}
 html.theme-nordic-frost input[type="checkbox"]:checked {
   background-color: #2d7a64 !important;
   border-color: #2d7a64 !important;
 }
 
+/* 9. TipTap & Scrollbars */
+html.theme-nordic-frost .tiptap { color: #1a2424; }
 html.theme-nordic-frost .tiptap h1 { color: #2d7a64; }
 html.theme-nordic-frost .tiptap h2 { color: #0284c7; }
 html.theme-nordic-frost .tiptap h3 { color: #0f766e; }
+html.theme-nordic-frost .tiptap blockquote {
+  border-left-color: #2d7a64;
+  background: rgba(45, 122, 100, 0.07);
+  color: #1c3b32;
+}
+html.theme-nordic-frost .tiptap hr { border-top-color: #dce5e5; }
+html.theme-nordic-frost ::-webkit-scrollbar-thumb { background: #cbdcdc; }
+html.theme-nordic-frost ::-webkit-scrollbar-thumb:hover { background: #adc2c2; }
+
 
 /* ==========================================================================
-   Parisian Dawn (巴黎晨光 / 燕麦生椰) - French Editorial Warmth
+   3. Parisian Dawn (巴黎晨光 / 燕麦生椰) - French Editorial Warmth System
    ========================================================================== */
 
+/* 1. Main Workspace Canvas */
 html.theme-parisian-dawn body,
 html.theme-parisian-dawn #root,
 html.theme-parisian-dawn main,
@@ -716,9 +798,13 @@ html.theme-parisian-dawn .bg-stone-50 {
   background-color: #faf8f5 !important;
 }
 
+/* 2. All Common White Surfaces */
 html.theme-parisian-dawn .bg-white,
 html.theme-parisian-dawn .bg-white\/50,
+html.theme-parisian-dawn .bg-white\/60,
 html.theme-parisian-dawn .bg-white\/70,
+html.theme-parisian-dawn .bg-white\/80,
+html.theme-parisian-dawn .bg-white\/85,
 html.theme-parisian-dawn .bg-white\/90,
 html.theme-parisian-dawn .bg-white\/95,
 html.theme-parisian-dawn .kanban-column-container .bg-white,
@@ -727,43 +813,225 @@ html.theme-parisian-dawn .today-priority-item,
 html.theme-parisian-dawn .today-recent-updates-panel {
   background-color: #ffffff !important;
   border-color: #e8e1d7 !important;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03) !important;
 }
 
+html.theme-parisian-dawn .kanban-column-container .bg-white,
+html.theme-parisian-dawn .today-priority-item,
+html.theme-parisian-dawn .today-spotlight-card {
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03), 0 1px 2px rgba(0, 0, 0, 0.02) !important;
+}
+
+html.theme-parisian-dawn .kanban-column-container .bg-white:hover,
+html.theme-parisian-dawn .today-priority-item:hover {
+  background-color: #ffffff !important;
+  border-color: #ded7ce !important;
+  box-shadow: 0 4px 12px rgba(60, 45, 30, 0.06) !important;
+}
+
+/* 3. Kanban 4 Columns */
 html.theme-parisian-dawn .kanban-column-container[data-column-status="inbox"] {
   background-color: #fbf2eb !important;
   border-color: #ebd7c8 !important;
+  border-top-color: #e4ccbb !important;
 }
+html.theme-parisian-dawn .kanban-column-container[data-column-status="inbox"] .font-mono {
+  background-color: #f5dfcf !important;
+  color: #7a4923 !important;
+}
+
 html.theme-parisian-dawn .kanban-column-container[data-column-status="approved"] {
   background-color: #f1f6f2 !important;
   border-color: #d4e5d7 !important;
+  border-top-color: #c5dcc9 !important;
 }
+html.theme-parisian-dawn .kanban-column-container[data-column-status="approved"] .font-mono {
+  background-color: #dbe8dc !important;
+  color: #225832 !important;
+}
+
 html.theme-parisian-dawn .kanban-column-container[data-column-status="scripting"] {
   background-color: #f5f1f8 !important;
   border-color: #decfe9 !important;
+  border-top-color: #d2bfdf !important;
 }
+html.theme-parisian-dawn .kanban-column-container[data-column-status="scripting"] .font-mono {
+  background-color: #ebdfee !important;
+  color: #4c3b6f !important;
+}
+
 html.theme-parisian-dawn .kanban-column-container[data-column-status="production"] {
   background-color: #f0f4f7 !important;
   border-color: #d0e0eb !important;
+  border-top-color: #c1d7e5 !important;
+}
+html.theme-parisian-dawn .kanban-column-container[data-column-status="production"] .font-mono {
+  background-color: #d9e6f0 !important;
+  color: #1f4f66 !important;
 }
 
+/* 4. Subtabs & Scope Navigation */
+html.theme-parisian-dawn .detail-subtabs-container,
+html.theme-parisian-dawn .tags-header-banner,
+html.theme-parisian-dawn .table-scope-tabs-container,
+html.theme-parisian-dawn .script-editor-canvas-container {
+  background-color: #faf8f5 !important;
+  border-bottom-color: #ded7ce !important;
+}
+
+html.theme-parisian-dawn .detail-subtabs-container button.border-rose-600,
+html.theme-parisian-dawn .table-scope-tabs-container button.is-active {
+  background-color: #ffffff !important;
+  border: 1px solid #ded7ce !important;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04) !important;
+  color: #2b2520 !important;
+  font-weight: 700 !important;
+}
+
+html.theme-parisian-dawn .detail-subtabs-container button:not(.border-rose-600) {
+  border-color: transparent !important;
+  color: #7f746c !important;
+}
+
+/* 5. Outer Framework */
 html.theme-parisian-dawn aside,
 html.theme-parisian-dawn aside.sidebar-container,
+html.theme-parisian-dawn .sidebar-container,
 html.theme-parisian-dawn header,
+html.theme-parisian-dawn header.navbar-container,
+html.theme-parisian-dawn .navbar-container,
+html.theme-parisian-dawn .mobile-drawer-container,
+html.theme-parisian-dawn .mobile-nav-container,
+html.theme-parisian-dawn .tags-sidebar-panel,
 html.theme-parisian-dawn .script-editor-toolbar,
-html.theme-parisian-dawn .tags-sidebar-panel {
+html.theme-parisian-dawn .script-reference-drawer,
+html.theme-parisian-dawn .script-outline-panel {
   background-color: #ece7e1 !important;
   border-color: #ded7ce !important;
 }
 
-html.theme-parisian-dawn .sidebar-brand-logo {
-  background-color: #c84b5b !important; /* 波尔多草莓红 */
+html.theme-parisian-dawn .sidebar-brand-logo,
+html.theme-parisian-dawn .mobile-fab-create-button {
+  background-color: #c84b5b !important; /* 波尔多复古红 */
+  box-shadow: 0 2px 6px rgba(200, 75, 91, 0.25) !important;
 }
 
+html.theme-parisian-dawn aside.sidebar-container nav button.bg-stone-100,
+html.theme-parisian-dawn aside nav button.bg-stone-100,
+html.theme-parisian-dawn .mobile-drawer-container nav button.bg-stone-100,
+html.theme-parisian-dawn .tags-sidebar-panel .tag-menu-item.is-selected {
+  background-color: #ffffff !important;
+  border: 1px solid #ded7ce !important;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04) !important;
+  color: #2b2520 !important;
+  font-weight: 700 !important;
+}
+
+/* 6. Primary Action Buttons & CTA (Bordeaux Berry #c84b5b) */
+html.theme-parisian-dawn .bg-rose-600,
+html.theme-parisian-dawn .bg-rose-500,
+html.theme-parisian-dawn aside.sidebar-container button.bg-stone-900,
+html.theme-parisian-dawn .mobile-drawer-container button.bg-stone-900 {
+  background-color: #c84b5b !important;
+  color: #ffffff !important;
+}
+html.theme-parisian-dawn .hover\:bg-rose-700:hover,
+html.theme-parisian-dawn aside.sidebar-container button.bg-stone-900:hover,
+html.theme-parisian-dawn .mobile-drawer-container button.bg-stone-900:hover {
+  background-color: #b33c4b !important;
+}
+html.theme-parisian-dawn .active\:bg-rose-800:active {
+  background-color: #9c2e3c !important;
+}
+
+/* 7. Accent Highlights, Badges & Next Action */
+html.theme-parisian-dawn .text-rose-600,
+html.theme-parisian-dawn .text-rose-700,
+html.theme-parisian-dawn .text-rose-500,
+html.theme-parisian-dawn .text-rose-400,
+html.theme-parisian-dawn .group-hover\:text-rose-600 {
+  color: #c84b5b !important;
+}
+html.theme-parisian-dawn .text-rose-900,
+html.theme-parisian-dawn .text-rose-800 {
+  color: #9c2e3c !important;
+}
+html.theme-parisian-dawn .border-rose-600,
+html.theme-parisian-dawn .border-rose-500,
+html.theme-parisian-dawn .border-rose-400 {
+  border-color: #c84b5b !important;
+}
+html.theme-parisian-dawn .border-rose-300,
+html.theme-parisian-dawn .border-rose-200,
+html.theme-parisian-dawn .border-rose-100,
+html.theme-parisian-dawn .border-rose-200\/60,
+html.theme-parisian-dawn .border-rose-200\/70 {
+  border-color: #f5ccd2 !important;
+}
+html.theme-parisian-dawn .bg-rose-50,
+html.theme-parisian-dawn .bg-rose-100,
+html.theme-parisian-dawn .bg-rose-50\/60,
+html.theme-parisian-dawn .bg-rose-50\/70,
+html.theme-parisian-dawn .bg-rose-50\/80,
+html.theme-parisian-dawn .bg-rose-100\/60 {
+  background-color: #fdf0f2 !important;
+}
+html.theme-parisian-dawn .ring-rose-400,
+html.theme-parisian-dawn .ring-rose-500,
+html.theme-parisian-dawn .ring-rose-600 {
+  --tw-ring-color: rgba(200, 75, 91, 0.35) !important;
+}
+html.theme-parisian-dawn .accent-rose-600 {
+  accent-color: #c84b5b !important;
+}
+html.theme-parisian-dawn .fill-rose-600,
+html.theme-parisian-dawn .fill-rose-400 {
+  fill: #c84b5b !important;
+}
+
+/* 8. Controls & Modals */
+html.theme-parisian-dawn input[type="text"],
+html.theme-parisian-dawn input[type="number"],
+html.theme-parisian-dawn input[type="search"],
+html.theme-parisian-dawn textarea,
+html.theme-parisian-dawn select,
+html.theme-parisian-dawn .shadow-modal {
+  background-color: #ffffff !important;
+  border-color: #ded7ce !important;
+  color: #2b2520 !important;
+}
+html.theme-parisian-dawn input[type="text"]:focus,
+html.theme-parisian-dawn input[type="number"]:focus,
+html.theme-parisian-dawn input[type="search"]:focus,
+html.theme-parisian-dawn textarea:focus,
+html.theme-parisian-dawn select:focus {
+  border-color: #c84b5b !important;
+  box-shadow: 0 0 0 2px rgba(200, 75, 91, 0.18) !important;
+}
+html.theme-parisian-dawn input[type="checkbox"]:checked {
+  background-color: #c84b5b !important;
+  border-color: #c84b5b !important;
+}
+
+/* 9. TipTap & Scrollbars */
+html.theme-parisian-dawn .tiptap { color: #2b2520; }
+html.theme-parisian-dawn .tiptap h1 { color: #c84b5b; }
+html.theme-parisian-dawn .tiptap h2 { color: #b87e43; }
+html.theme-parisian-dawn .tiptap h3 { color: #8f5c2c; }
+html.theme-parisian-dawn .tiptap blockquote {
+  border-left-color: #c84b5b;
+  background: rgba(200, 75, 91, 0.06);
+  color: #5c4a45;
+}
+html.theme-parisian-dawn .tiptap hr { border-top-color: #ded7ce; }
+html.theme-parisian-dawn ::-webkit-scrollbar-thumb { background: #d7cebf; }
+html.theme-parisian-dawn ::-webkit-scrollbar-thumb:hover { background: #beb3a1; }
+
+
 /* ==========================================================================
-   Midnight Obsidian (深海星图 / 极夜流光) - Raycast Pro Dark Aesthetic
+   4. Midnight Obsidian (深海星图 / 极夜流光) - Raycast Pro Dark & Electric Sky
    ========================================================================== */
 
+/* 1. Main Workspace Canvas */
 html.theme-midnight-obsidian body,
 html.theme-midnight-obsidian #root,
 html.theme-midnight-obsidian main,
@@ -772,9 +1040,13 @@ html.theme-midnight-obsidian .bg-stone-50 {
   background-color: #151921 !important;
 }
 
+/* 2. All Common Dark Surfaces */
 html.theme-midnight-obsidian .bg-white,
 html.theme-midnight-obsidian .bg-white\/50,
+html.theme-midnight-obsidian .bg-white\/60,
 html.theme-midnight-obsidian .bg-white\/70,
+html.theme-midnight-obsidian .bg-white\/80,
+html.theme-midnight-obsidian .bg-white\/85,
 html.theme-midnight-obsidian .bg-white\/90,
 html.theme-midnight-obsidian .bg-white\/95,
 html.theme-midnight-obsidian .kanban-column-container .bg-white,
@@ -786,46 +1058,223 @@ html.theme-midnight-obsidian .today-recent-updates-panel {
   color: #f1f5f9 !important;
 }
 
+html.theme-midnight-obsidian .kanban-column-container .bg-white:hover,
+html.theme-midnight-obsidian .today-priority-item:hover {
+  background-color: #212734 !important;
+  border-color: rgba(255, 255, 255, 0.16) !important;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.4) !important;
+}
+
+/* 3. Kanban 4 Columns */
 html.theme-midnight-obsidian .kanban-column-container[data-column-status="inbox"] {
   background-color: #191c22 !important;
   border-color: rgba(234, 179, 8, 0.2) !important;
   border-top-color: #eab308 !important;
 }
+html.theme-midnight-obsidian .kanban-column-container[data-column-status="inbox"] .font-mono {
+  background-color: rgba(234, 179, 8, 0.15) !important;
+  color: #facc15 !important;
+}
+
 html.theme-midnight-obsidian .kanban-column-container[data-column-status="approved"] {
   background-color: #13201a !important;
   border-color: rgba(34, 197, 94, 0.2) !important;
   border-top-color: #22c55e !important;
 }
+html.theme-midnight-obsidian .kanban-column-container[data-column-status="approved"] .font-mono {
+  background-color: rgba(34, 197, 94, 0.15) !important;
+  color: #4ade80 !important;
+}
+
 html.theme-midnight-obsidian .kanban-column-container[data-column-status="scripting"] {
   background-color: #1b1726 !important;
   border-color: rgba(168, 85, 247, 0.2) !important;
   border-top-color: #a855f7 !important;
 }
+html.theme-midnight-obsidian .kanban-column-container[data-column-status="scripting"] .font-mono {
+  background-color: rgba(168, 85, 247, 0.15) !important;
+  color: #c084fc !important;
+}
+
 html.theme-midnight-obsidian .kanban-column-container[data-column-status="production"] {
   background-color: #131d27 !important;
   border-color: rgba(14, 165, 233, 0.2) !important;
   border-top-color: #0ea5e9 !important;
 }
+html.theme-midnight-obsidian .kanban-column-container[data-column-status="production"] .font-mono {
+  background-color: rgba(14, 165, 233, 0.15) !important;
+  color: #38bdf8 !important;
+}
 
+/* 4. Subtabs & Scope Navigation */
+html.theme-midnight-obsidian .detail-subtabs-container,
+html.theme-midnight-obsidian .tags-header-banner,
+html.theme-midnight-obsidian .table-scope-tabs-container,
+html.theme-midnight-obsidian .script-editor-canvas-container {
+  background-color: #151921 !important;
+  border-bottom-color: rgba(255, 255, 255, 0.08) !important;
+}
+
+html.theme-midnight-obsidian .detail-subtabs-container button.border-rose-600,
+html.theme-midnight-obsidian .table-scope-tabs-container button.is-active {
+  background-color: #1c212c !important;
+  border: 1px solid rgba(255, 255, 255, 0.16) !important;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3) !important;
+  color: #ffffff !important;
+  font-weight: 700 !important;
+}
+
+html.theme-midnight-obsidian .detail-subtabs-container button:not(.border-rose-600) {
+  border-color: transparent !important;
+  color: #94a3b8 !important;
+}
+
+/* 5. Outer Framework */
 html.theme-midnight-obsidian aside,
 html.theme-midnight-obsidian aside.sidebar-container,
+html.theme-midnight-obsidian .sidebar-container,
 html.theme-midnight-obsidian header,
+html.theme-midnight-obsidian header.navbar-container,
+html.theme-midnight-obsidian .navbar-container,
+html.theme-midnight-obsidian .mobile-drawer-container,
+html.theme-midnight-obsidian .mobile-nav-container,
+html.theme-midnight-obsidian .tags-sidebar-panel,
 html.theme-midnight-obsidian .script-editor-toolbar,
-html.theme-midnight-obsidian .tags-sidebar-panel {
+html.theme-midnight-obsidian .script-reference-drawer,
+html.theme-midnight-obsidian .script-outline-panel {
   background-color: #0f1217 !important;
   border-color: rgba(255, 255, 255, 0.08) !important;
 }
 
-html.theme-midnight-obsidian aside.sidebar-container nav button.bg-stone-100 {
+html.theme-midnight-obsidian .sidebar-brand-logo,
+html.theme-midnight-obsidian .mobile-fab-create-button {
+  background-color: #0ea5e9 !important; /* 电光极光蓝 */
+  box-shadow: 0 2px 10px rgba(14, 165, 233, 0.35) !important;
+}
+
+html.theme-midnight-obsidian aside.sidebar-container nav button.bg-stone-100,
+html.theme-midnight-obsidian aside nav button.bg-stone-100,
+html.theme-midnight-obsidian .mobile-drawer-container nav button.bg-stone-100,
+html.theme-midnight-obsidian .tags-sidebar-panel .tag-menu-item.is-selected {
   background-color: #1c212c !important;
   border: 1px solid rgba(255, 255, 255, 0.15) !important;
   color: #ffffff !important;
+  font-weight: 700 !important;
 }
 
+/* 6. Primary Action Buttons & CTA (Cyber Sky #0ea5e9) */
+html.theme-midnight-obsidian .bg-rose-600,
+html.theme-midnight-obsidian .dark\:bg-rose-600,
+html.theme-midnight-obsidian aside.sidebar-container button.bg-stone-900,
+html.theme-midnight-obsidian .mobile-drawer-container button.bg-stone-900 {
+  background-color: #0ea5e9 !important;
+  color: #ffffff !important;
+}
+html.theme-midnight-obsidian .hover\:bg-rose-700:hover,
+html.theme-midnight-obsidian .dark\:hover\:bg-rose-700:hover,
+html.theme-midnight-obsidian aside.sidebar-container button.bg-stone-900:hover,
+html.theme-midnight-obsidian .mobile-drawer-container button.bg-stone-900:hover {
+  background-color: #0284c7 !important;
+}
+html.theme-midnight-obsidian .active\:bg-rose-800:active {
+  background-color: #0369a1 !important;
+}
+
+/* 7. Accent Highlights, Badges & Next Action */
+html.theme-midnight-obsidian .text-rose-600,
+html.theme-midnight-obsidian .text-rose-700,
+html.theme-midnight-obsidian .text-rose-500,
+html.theme-midnight-obsidian .text-rose-400,
+html.theme-midnight-obsidian .dark\:text-rose-400,
+html.theme-midnight-obsidian .dark\:text-rose-300,
+html.theme-midnight-obsidian .dark\:text-rose-200,
+html.theme-midnight-obsidian .group-hover\:text-rose-600 {
+  color: #38bdf8 !important;
+}
+html.theme-midnight-obsidian .border-rose-600,
+html.theme-midnight-obsidian .border-rose-500,
+html.theme-midnight-obsidian .border-rose-400 {
+  border-color: #0ea5e9 !important;
+}
+html.theme-midnight-obsidian .border-rose-300,
+html.theme-midnight-obsidian .border-rose-200,
+html.theme-midnight-obsidian .border-rose-100,
+html.theme-midnight-obsidian .border-rose-800,
+html.theme-midnight-obsidian .border-rose-900,
+html.theme-midnight-obsidian .dark\:border-rose-800,
+html.theme-midnight-obsidian .dark\:border-rose-900\/60 {
+  border-color: rgba(14, 165, 233, 0.35) !important;
+}
+html.theme-midnight-obsidian .bg-rose-50,
+html.theme-midnight-obsidian .bg-rose-100,
+html.theme-midnight-obsidian .bg-rose-950\/30,
+html.theme-midnight-obsidian .bg-rose-950\/40,
+html.theme-midnight-obsidian .bg-rose-950\/50,
+html.theme-midnight-obsidian .bg-rose-950\/60,
+html.theme-midnight-obsidian .dark\:bg-rose-950\/30,
+html.theme-midnight-obsidian .dark\:bg-rose-950\/40,
+html.theme-midnight-obsidian .dark\:bg-rose-950\/50,
+html.theme-midnight-obsidian .dark\:bg-rose-950\/60 {
+  background-color: rgba(14, 165, 233, 0.16) !important;
+}
+html.theme-midnight-obsidian .ring-rose-400,
+html.theme-midnight-obsidian .ring-rose-500,
+html.theme-midnight-obsidian .ring-rose-600,
+html.theme-midnight-obsidian .dark\:ring-rose-500\/50 {
+  --tw-ring-color: rgba(14, 165, 233, 0.45) !important;
+}
+html.theme-midnight-obsidian .accent-rose-600 {
+  accent-color: #0ea5e9 !important;
+}
+html.theme-midnight-obsidian .fill-rose-600,
+html.theme-midnight-obsidian .fill-rose-400 {
+  fill: #38bdf8 !important;
+}
+
+/* 8. Controls & Modals */
+html.theme-midnight-obsidian input[type="text"],
+html.theme-midnight-obsidian input[type="number"],
+html.theme-midnight-obsidian input[type="search"],
+html.theme-midnight-obsidian textarea,
+html.theme-midnight-obsidian select,
+html.theme-midnight-obsidian .shadow-modal {
+  background-color: #1c212c !important;
+  border-color: rgba(255, 255, 255, 0.12) !important;
+  color: #f1f5f9 !important;
+}
+html.theme-midnight-obsidian input[type="text"]:focus,
+html.theme-midnight-obsidian input[type="number"]:focus,
+html.theme-midnight-obsidian input[type="search"]:focus,
+html.theme-midnight-obsidian textarea:focus,
+html.theme-midnight-obsidian select:focus {
+  border-color: #0ea5e9 !important;
+  box-shadow: 0 0 0 2px rgba(14, 165, 233, 0.25) !important;
+}
+html.theme-midnight-obsidian input[type="checkbox"]:checked {
+  background-color: #0ea5e9 !important;
+  border-color: #0ea5e9 !important;
+}
+
+/* 9. TipTap & Scrollbars */
+html.theme-midnight-obsidian .tiptap { color: #f1f5f9; }
+html.theme-midnight-obsidian .tiptap h1 { color: #38bdf8; }
+html.theme-midnight-obsidian .tiptap h2 { color: #a855f7; }
+html.theme-midnight-obsidian .tiptap h3 { color: #34d399; }
+html.theme-midnight-obsidian .tiptap blockquote {
+  border-left-color: #0ea5e9;
+  background: rgba(14, 165, 233, 0.1);
+  color: #cbd5e1;
+}
+html.theme-midnight-obsidian .tiptap hr { border-top-color: rgba(255, 255, 255, 0.1); }
+html.theme-midnight-obsidian ::-webkit-scrollbar-thumb { background: #2a3444; }
+html.theme-midnight-obsidian ::-webkit-scrollbar-thumb:hover { background: #3d4d65; }
+
+
 /* ==========================================================================
-   Kyoto Zen (京都茶席 / 抹茶素竹) - Japanese Zen Harmony
+   5. Kyoto Zen (京都茶席 / 抹茶素竹) - Japanese Zen & Forest Harmony System
    ========================================================================== */
 
+/* 1. Main Workspace Canvas */
 html.theme-kyoto-zen body,
 html.theme-kyoto-zen #root,
 html.theme-kyoto-zen main,
@@ -834,9 +1283,13 @@ html.theme-kyoto-zen .bg-stone-50 {
   background-color: #f8faf7 !important;
 }
 
+/* 2. All Common White Surfaces */
 html.theme-kyoto-zen .bg-white,
 html.theme-kyoto-zen .bg-white\/50,
+html.theme-kyoto-zen .bg-white\/60,
 html.theme-kyoto-zen .bg-white\/70,
+html.theme-kyoto-zen .bg-white\/80,
+html.theme-kyoto-zen .bg-white\/85,
 html.theme-kyoto-zen .bg-white\/90,
 html.theme-kyoto-zen .bg-white\/95,
 html.theme-kyoto-zen .kanban-column-container .bg-white,
@@ -845,36 +1298,217 @@ html.theme-kyoto-zen .today-priority-item,
 html.theme-kyoto-zen .today-recent-updates-panel {
   background-color: #ffffff !important;
   border-color: #dee4d9 !important;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03) !important;
 }
 
+html.theme-kyoto-zen .kanban-column-container .bg-white,
+html.theme-kyoto-zen .today-priority-item,
+html.theme-kyoto-zen .today-spotlight-card {
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03), 0 1px 2px rgba(0, 0, 0, 0.02) !important;
+}
+
+html.theme-kyoto-zen .kanban-column-container .bg-white:hover,
+html.theme-kyoto-zen .today-priority-item:hover {
+  background-color: #ffffff !important;
+  border-color: #ccd4c5 !important;
+  box-shadow: 0 4px 12px rgba(45, 60, 45, 0.06) !important;
+}
+
+/* 3. Kanban 4 Columns */
 html.theme-kyoto-zen .kanban-column-container[data-column-status="inbox"] {
   background-color: #f6f3eb !important;
   border-color: #dfd8c4 !important;
+  border-top-color: #d6cbaf !important;
 }
+html.theme-kyoto-zen .kanban-column-container[data-column-status="inbox"] .font-mono {
+  background-color: #ebd7c0 !important;
+  color: #6e4a21 !important;
+}
+
 html.theme-kyoto-zen .kanban-column-container[data-column-status="approved"] {
   background-color: #edf4ed !important;
   border-color: #cce0ce !important;
+  border-top-color: #bdd6bf !important;
 }
+html.theme-kyoto-zen .kanban-column-container[data-column-status="approved"] .font-mono {
+  background-color: #d5ebd6 !important;
+  color: #225832 !important;
+}
+
 html.theme-kyoto-zen .kanban-column-container[data-column-status="scripting"] {
   background-color: #f4f0f6 !important;
   border-color: #ddcede !important;
+  border-top-color: #d1bdd2 !important;
 }
+html.theme-kyoto-zen .kanban-column-container[data-column-status="scripting"] .font-mono {
+  background-color: #e9dcee !important;
+  color: #4a386c !important;
+}
+
 html.theme-kyoto-zen .kanban-column-container[data-column-status="production"] {
   background-color: #edf3f5 !important;
   border-color: #c8dadf !important;
+  border-top-color: #b7cfd5 !important;
+}
+html.theme-kyoto-zen .kanban-column-container[data-column-status="production"] .font-mono {
+  background-color: #d7e6ec !important;
+  color: #1c4f64 !important;
 }
 
+/* 4. Subtabs & Scope Navigation */
+html.theme-kyoto-zen .detail-subtabs-container,
+html.theme-kyoto-zen .tags-header-banner,
+html.theme-kyoto-zen .table-scope-tabs-container,
+html.theme-kyoto-zen .script-editor-canvas-container {
+  background-color: #f8faf7 !important;
+  border-bottom-color: #dadfd5 !important;
+}
+
+html.theme-kyoto-zen .detail-subtabs-container button.border-rose-600,
+html.theme-kyoto-zen .table-scope-tabs-container button.is-active {
+  background-color: #ffffff !important;
+  border: 1px solid #dadfd5 !important;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04) !important;
+  color: #232a24 !important;
+  font-weight: 700 !important;
+}
+
+html.theme-kyoto-zen .detail-subtabs-container button:not(.border-rose-600) {
+  border-color: transparent !important;
+  color: #6e7a71 !important;
+}
+
+/* 5. Outer Framework */
 html.theme-kyoto-zen aside,
 html.theme-kyoto-zen aside.sidebar-container,
+html.theme-kyoto-zen .sidebar-container,
 html.theme-kyoto-zen header,
+html.theme-kyoto-zen header.navbar-container,
+html.theme-kyoto-zen .navbar-container,
+html.theme-kyoto-zen .mobile-drawer-container,
+html.theme-kyoto-zen .mobile-nav-container,
+html.theme-kyoto-zen .tags-sidebar-panel,
 html.theme-kyoto-zen .script-editor-toolbar,
-html.theme-kyoto-zen .tags-sidebar-panel {
+html.theme-kyoto-zen .script-reference-drawer,
+html.theme-kyoto-zen .script-outline-panel {
   background-color: #ebeee7 !important;
   border-color: #dadfd5 !important;
 }
 
-html.theme-kyoto-zen .sidebar-brand-logo {
+html.theme-kyoto-zen .sidebar-brand-logo,
+html.theme-kyoto-zen .mobile-fab-create-button {
   background-color: #3d6b4f !important; /* 宇治浓抹茶绿 */
+  box-shadow: 0 2px 6px rgba(61, 107, 79, 0.25) !important;
 }
+
+html.theme-kyoto-zen aside.sidebar-container nav button.bg-stone-100,
+html.theme-kyoto-zen aside nav button.bg-stone-100,
+html.theme-kyoto-zen .mobile-drawer-container nav button.bg-stone-100,
+html.theme-kyoto-zen .tags-sidebar-panel .tag-menu-item.is-selected {
+  background-color: #ffffff !important;
+  border: 1px solid #dadfd5 !important;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04) !important;
+  color: #232a24 !important;
+  font-weight: 700 !important;
+}
+
+/* 6. Primary Action Buttons & CTA (Matcha Forest #3d6b4f) */
+html.theme-kyoto-zen .bg-rose-600,
+html.theme-kyoto-zen .bg-rose-500,
+html.theme-kyoto-zen aside.sidebar-container button.bg-stone-900,
+html.theme-kyoto-zen .mobile-drawer-container button.bg-stone-900 {
+  background-color: #3d6b4f !important;
+  color: #ffffff !important;
+}
+html.theme-kyoto-zen .hover\:bg-rose-700:hover,
+html.theme-kyoto-zen aside.sidebar-container button.bg-stone-900:hover,
+html.theme-kyoto-zen .mobile-drawer-container button.bg-stone-900:hover {
+  background-color: #315740 !important;
+}
+html.theme-kyoto-zen .active\:bg-rose-800:active {
+  background-color: #264431 !important;
+}
+
+/* 7. Accent Highlights, Badges & Next Action */
+html.theme-kyoto-zen .text-rose-600,
+html.theme-kyoto-zen .text-rose-700,
+html.theme-kyoto-zen .text-rose-500,
+html.theme-kyoto-zen .text-rose-400,
+html.theme-kyoto-zen .group-hover\:text-rose-600 {
+  color: #3d6b4f !important;
+}
+html.theme-kyoto-zen .text-rose-900,
+html.theme-kyoto-zen .text-rose-800 {
+  color: #244b34 !important;
+}
+html.theme-kyoto-zen .border-rose-600,
+html.theme-kyoto-zen .border-rose-500,
+html.theme-kyoto-zen .border-rose-400 {
+  border-color: #3d6b4f !important;
+}
+html.theme-kyoto-zen .border-rose-300,
+html.theme-kyoto-zen .border-rose-200,
+html.theme-kyoto-zen .border-rose-100,
+html.theme-kyoto-zen .border-rose-200\/60,
+html.theme-kyoto-zen .border-rose-200\/70 {
+  border-color: #c7ded0 !important;
+}
+html.theme-kyoto-zen .bg-rose-50,
+html.theme-kyoto-zen .bg-rose-100,
+html.theme-kyoto-zen .bg-rose-50\/60,
+html.theme-kyoto-zen .bg-rose-50\/70,
+html.theme-kyoto-zen .bg-rose-50\/80,
+html.theme-kyoto-zen .bg-rose-100\/60 {
+  background-color: #eff6f1 !important;
+}
+html.theme-kyoto-zen .ring-rose-400,
+html.theme-kyoto-zen .ring-rose-500,
+html.theme-kyoto-zen .ring-rose-600 {
+  --tw-ring-color: rgba(61, 107, 79, 0.35) !important;
+}
+html.theme-kyoto-zen .accent-rose-600 {
+  accent-color: #3d6b4f !important;
+}
+html.theme-kyoto-zen .fill-rose-600,
+html.theme-kyoto-zen .fill-rose-400 {
+  fill: #3d6b4f !important;
+}
+
+/* 8. Controls & Modals */
+html.theme-kyoto-zen input[type="text"],
+html.theme-kyoto-zen input[type="number"],
+html.theme-kyoto-zen input[type="search"],
+html.theme-kyoto-zen textarea,
+html.theme-kyoto-zen select,
+html.theme-kyoto-zen .shadow-modal {
+  background-color: #ffffff !important;
+  border-color: #dadfd5 !important;
+  color: #232a24 !important;
+}
+html.theme-kyoto-zen input[type="text"]:focus,
+html.theme-kyoto-zen input[type="number"]:focus,
+html.theme-kyoto-zen input[type="search"]:focus,
+html.theme-kyoto-zen textarea:focus,
+html.theme-kyoto-zen select:focus {
+  border-color: #3d6b4f !important;
+  box-shadow: 0 0 0 2px rgba(61, 107, 79, 0.18) !important;
+}
+html.theme-kyoto-zen input[type="checkbox"]:checked {
+  background-color: #3d6b4f !important;
+  border-color: #3d6b4f !important;
+}
+
+/* 9. TipTap & Scrollbars */
+html.theme-kyoto-zen .tiptap { color: #232a24; }
+html.theme-kyoto-zen .tiptap h1 { color: #3d6b4f; }
+html.theme-kyoto-zen .tiptap h2 { color: #c2413b; }
+html.theme-kyoto-zen .tiptap h3 { color: #527d65; }
+html.theme-kyoto-zen .tiptap blockquote {
+  border-left-color: #3d6b4f;
+  background: rgba(61, 107, 79, 0.07);
+  color: #354a3e;
+}
+html.theme-kyoto-zen .tiptap hr { border-top-color: #dadfd5; }
+html.theme-kyoto-zen ::-webkit-scrollbar-thumb { background: #d0d6cc; }
+html.theme-kyoto-zen ::-webkit-scrollbar-thumb:hover { background: #b5bfae; }
+
 
