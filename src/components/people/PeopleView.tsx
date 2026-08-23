@@ -13,6 +13,7 @@ import {
   UserCheck,
   Link2
 } from 'lucide-react';
+import { CustomSelect } from '../ui/CustomSelect';
 
 interface PeopleViewProps {
   people: Person[];
@@ -439,32 +440,24 @@ export const PeopleView: React.FC<PeopleViewProps> = ({
           <div className="grid grid-cols-2 gap-3">
             <div>
               <label className="block text-xs font-semibold text-stone-700 dark:text-stone-300 mb-1">人物 A</label>
-              <select
+              <CustomSelect
                 value={relPersonA}
-                onChange={(e) => setRelPersonA(e.target.value)}
-                className="w-full px-3 py-2 bg-stone-50 dark:bg-stone-800 border border-stone-300 dark:border-stone-700 rounded-lg text-sm text-stone-900 dark:text-stone-100 focus:bg-white dark:focus:bg-stone-800 focus:outline-none"
-              >
-                {people.map((p) => (
-                  <option key={p.id} value={p.id}>
-                    {p.name}
-                  </option>
-                ))}
-              </select>
+                onChange={(val) => setRelPersonA(val)}
+                className="w-full"
+                buttonClassName="w-full justify-between py-2 text-sm bg-stone-50 dark:bg-stone-800 border-stone-300 dark:border-stone-700 rounded-lg"
+                options={people.map((p) => ({ value: p.id, label: p.name }))}
+              />
             </div>
 
             <div>
               <label className="block text-xs font-semibold text-stone-700 dark:text-stone-300 mb-1">人物 B</label>
-              <select
+              <CustomSelect
                 value={relPersonB}
-                onChange={(e) => setRelPersonB(e.target.value)}
-                className="w-full px-3 py-2 bg-stone-50 dark:bg-stone-800 border border-stone-300 dark:border-stone-700 rounded-lg text-sm text-stone-900 dark:text-stone-100 focus:bg-white dark:focus:bg-stone-800 focus:outline-none"
-              >
-                {people.map((p) => (
-                  <option key={p.id} value={p.id}>
-                    {p.name}
-                  </option>
-                ))}
-              </select>
+                onChange={(val) => setRelPersonB(val)}
+                className="w-full"
+                buttonClassName="w-full justify-between py-2 text-sm bg-stone-50 dark:bg-stone-800 border-stone-300 dark:border-stone-700 rounded-lg"
+                options={people.map((p) => ({ value: p.id, label: p.name }))}
+              />
             </div>
           </div>
 

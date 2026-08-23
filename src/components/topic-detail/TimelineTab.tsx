@@ -16,6 +16,7 @@ import {
   Sparkles,
   Activity,
 } from 'lucide-react';
+import { CustomSelect } from '../ui/CustomSelect';
 
 const CONTRAST_PRESETS = [
   '荒诞反差',
@@ -311,16 +312,18 @@ export const TimelineTab: React.FC<TimelineTabProps> = ({
 
             <div>
               <label className="block text-xs font-semibold text-stone-700 dark:text-stone-300 mb-1">时间精度</label>
-              <select
+              <CustomSelect
                 value={datePrecision}
-                onChange={(e) => setDatePrecision(e.target.value as DatePrecision)}
-                className="w-full px-3 py-2 bg-stone-50 dark:bg-stone-800 border border-stone-300 dark:border-stone-700 rounded-lg text-sm text-stone-900 dark:text-stone-100 focus:bg-white dark:focus:bg-stone-800 focus:outline-none"
-              >
-                <option value="exact">精确日期 (年月日)</option>
-                <option value="year_month">年月 (如 2026-05)</option>
-                <option value="year">年份 (如 2025)</option>
-                <option value="unknown">时间未知 / 待考证</option>
-              </select>
+                onChange={(val) => setDatePrecision(val as DatePrecision)}
+                className="w-full"
+                buttonClassName="w-full justify-between py-2 text-sm bg-stone-50 dark:bg-stone-800 border-stone-300 dark:border-stone-700 rounded-lg"
+                options={[
+                  { value: 'exact', label: '精确日期 (年月日)' },
+                  { value: 'year_month', label: '年月 (如 2026-05)' },
+                  { value: 'year', label: '年份 (如 2025)' },
+                  { value: 'unknown', label: '时间未知 / 待考证' },
+                ]}
+              />
             </div>
           </div>
 
@@ -354,15 +357,17 @@ export const TimelineTab: React.FC<TimelineTabProps> = ({
 
           <div>
             <label className="block text-xs font-semibold text-stone-700 dark:text-stone-300 mb-1">可信度状态</label>
-            <select
+            <CustomSelect
               value={verificationStatus}
-              onChange={(e) => setVerificationStatus(e.target.value as VerificationStatus)}
-              className="w-full px-3 py-2 bg-stone-50 dark:bg-stone-800 border border-stone-300 dark:border-stone-700 rounded-lg text-sm text-stone-900 dark:text-stone-100 focus:bg-white dark:focus:bg-stone-800 focus:outline-none"
-            >
-              <option value="confirmed">已确认 (多方可靠来源)</option>
-              <option value="unverified">待核实 (信息不足)</option>
-              <option value="rejected">不采用 (已证伪)</option>
-            </select>
+              onChange={(val) => setVerificationStatus(val as VerificationStatus)}
+              className="w-full"
+              buttonClassName="w-full justify-between py-2 text-sm bg-stone-50 dark:bg-stone-800 border-stone-300 dark:border-stone-700 rounded-lg"
+              options={[
+                { value: 'confirmed', label: '已确认 (多方可靠来源)', dot: 'bg-emerald-500' },
+                { value: 'unverified', label: '待核实 (信息不足)', dot: 'bg-amber-500' },
+                { value: 'rejected', label: '不采用 (已证伪)', dot: 'bg-stone-400' },
+              ]}
+            />
           </div>
 
           <div>

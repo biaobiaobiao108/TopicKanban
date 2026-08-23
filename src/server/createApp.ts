@@ -44,6 +44,7 @@ import {
 } from './apiShared';
 import { registerSystemRoutes } from './systemRoutes';
 import { resolveServerPublicUrl } from '../lib/publicUrl';
+import { parseUrlMetadata } from './urlParser';
 
 async function loadTimelineEvents(db: D1Database, topicId: string): Promise<TimelineEvent[]> {
   const [eventResult, personResult] = await db.batch([
@@ -405,6 +406,19 @@ export function createApp() {
   app.delete('/sources/:id', async (c) => {
     await requireDb(c).prepare('DELETE FROM sources WHERE id = ?').bind(c.req.param('id')).run();
     return c.json({ success: true });
+  });
+
+  app.get('/sources/parse-url', async (c) => {
+    try {
+      const urlQuery = c.req.query('url');
+      if (!urlQuery?.trim()) {
+        return c.json({ error: 'url parameter is required' }, 400);
+      }
+      const parsed = await parseUrlMetadata(urlQuery.trim());
+      return c.json({ success: true, data: parsed });
+    } catch (error) {
+      return jsonError(c, error, 400);
+    }
   });
 
   app.get('/topics/:id/timeline', async (c) => {

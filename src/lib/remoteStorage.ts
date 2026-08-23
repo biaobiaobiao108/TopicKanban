@@ -185,6 +185,27 @@ export async function deleteSource(id: string): Promise<void> {
   invalidateBootstrap();
 }
 
+export async function parseUrlMetadataApi(url: string): Promise<{
+  title: string;
+  author: string;
+  content: string;
+  published_at: string;
+  platform: Source['platform'];
+  url: string;
+  cover_url?: string;
+}> {
+  const res = await apiRequest<{ success: boolean; data: {
+    title: string;
+    author: string;
+    content: string;
+    published_at: string;
+    platform: Source['platform'];
+    url: string;
+    cover_url?: string;
+  } }>(`/api/sources/parse-url?url=${encodeURIComponent(url)}`);
+  return res.data;
+}
+
 export function fetchTimelineByTopicId(topicId: string): Promise<TimelineEvent[]> {
   return apiRequest(`/api/topics/${encodeURIComponent(topicId)}/timeline`);
 }

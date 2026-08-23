@@ -1,6 +1,7 @@
 import React from 'react';
 import { Priority, Tag, Person } from '../../types';
 import { Filter, ArrowUpDown, X } from 'lucide-react';
+import { CustomSelect } from '../ui/CustomSelect';
 
 export type SortField = 'sort_order' | 'updated_at' | 'created_at' | 'priority' | 'score';
 
@@ -42,46 +43,41 @@ export const KanbanFilters: React.FC<KanbanFiltersProps> = ({
         </span>
 
         {/* Priority Filter */}
-        <select
+        <CustomSelect
           value={priorityFilter}
-          onChange={(e) => onPriorityFilterChange(e.target.value as Priority | 'all')}
-          className="bg-white dark:bg-stone-800 border border-stone-200 dark:border-stone-700 text-stone-700 dark:text-stone-200 rounded-lg px-2.5 py-1.5 font-medium focus:outline-none focus:border-stone-400 dark:focus:border-stone-500 shadow-2xs transition-colors cursor-pointer"
-        >
-          <option value="all" className="dark:bg-stone-800 dark:text-stone-200">所有优先级</option>
-          <option value="high" className="dark:bg-stone-800 dark:text-stone-200">🔥 高优先级</option>
-          <option value="medium" className="dark:bg-stone-800 dark:text-stone-200">⚡ 中优先级</option>
-          <option value="low" className="dark:bg-stone-800 dark:text-stone-200">🌱 低优先级</option>
-          <option value="none" className="dark:bg-stone-800 dark:text-stone-200">无优先级</option>
-        </select>
+          onChange={(val) => onPriorityFilterChange(val as Priority | 'all')}
+          size="sm"
+          options={[
+            { value: 'all', label: '所有优先级' },
+            { value: 'high', label: '高优', dot: 'bg-rose-500', description: '重点攻坚' },
+            { value: 'medium', label: '中优', dot: 'bg-amber-500', description: '标准节奏' },
+            { value: 'low', label: '低优', dot: 'bg-blue-500', description: '空闲跟进' },
+            { value: 'none', label: '无优先级', dot: 'bg-stone-300 dark:bg-stone-600', description: '未设定' },
+          ]}
+        />
 
         {/* Tag Filter */}
-        <select
+        <CustomSelect
           value={selectedTagId}
-          onChange={(e) => onTagFilterChange(e.target.value)}
-          className="bg-white dark:bg-stone-800 border border-stone-200 dark:border-stone-700 text-stone-700 dark:text-stone-200 rounded-lg px-2.5 py-1.5 font-medium focus:outline-none focus:border-stone-400 dark:focus:border-stone-500 shadow-2xs transition-colors cursor-pointer"
-        >
-          <option value="all" className="dark:bg-stone-800 dark:text-stone-200">所有标签</option>
-          {availableTags.map((t) => (
-            <option key={t.id} value={t.id} className="dark:bg-stone-800 dark:text-stone-200">
-              #{t.name}
-            </option>
-          ))}
-        </select>
+          onChange={(val) => onTagFilterChange(val)}
+          size="sm"
+          options={[
+            { value: 'all', label: '所有标签' },
+            ...availableTags.map((t) => ({ value: t.id, label: `#${t.name}` })),
+          ]}
+        />
 
         {/* Person Filter */}
         {availablePeople.length > 0 && (
-          <select
+          <CustomSelect
             value={selectedPersonId}
-            onChange={(e) => onPersonFilterChange(e.target.value)}
-            className="bg-white dark:bg-stone-800 border border-stone-200 dark:border-stone-700 text-stone-700 dark:text-stone-200 rounded-lg px-2.5 py-1.5 font-medium focus:outline-none focus:border-stone-400 dark:focus:border-stone-500 shadow-2xs transition-colors cursor-pointer"
-          >
-            <option value="all" className="dark:bg-stone-800 dark:text-stone-200">所有关联人物</option>
-            {availablePeople.map((p) => (
-              <option key={p.id} value={p.id} className="dark:bg-stone-800 dark:text-stone-200">
-                👤 {p.name}
-              </option>
-            ))}
-          </select>
+            onChange={(val) => onPersonFilterChange(val)}
+            size="sm"
+            options={[
+              { value: 'all', label: '所有关联人物' },
+              ...availablePeople.map((p) => ({ value: p.id, label: `👤 ${p.name}` })),
+            ]}
+          />
         )}
 
         {hasActiveFilters && (
@@ -101,17 +97,19 @@ export const KanbanFilters: React.FC<KanbanFiltersProps> = ({
           <ArrowUpDown className="w-3.5 h-3.5" />
           排序:
         </span>
-        <select
+        <CustomSelect
           value={sortBy}
-          onChange={(e) => onSortByChange(e.target.value as SortField)}
-          className="bg-white dark:bg-stone-800 border border-stone-200 dark:border-stone-700 text-stone-700 dark:text-stone-200 rounded-lg px-2.5 py-1.5 font-medium focus:outline-none focus:border-stone-400 dark:focus:border-stone-500 shadow-2xs transition-colors cursor-pointer"
-        >
-          <option value="sort_order" className="dark:bg-stone-800 dark:text-stone-200">看板自定义排序</option>
-          <option value="updated_at" className="dark:bg-stone-800 dark:text-stone-200">最近更新时间</option>
-          <option value="created_at" className="dark:bg-stone-800 dark:text-stone-200">创建时间</option>
-          <option value="priority" className="dark:bg-stone-800 dark:text-stone-200">优先级最高</option>
-          <option value="score" className="dark:bg-stone-800 dark:text-stone-200">综合评分最高</option>
-        </select>
+          onChange={(val) => onSortByChange(val as SortField)}
+          size="sm"
+          align="right"
+          options={[
+            { value: 'sort_order', label: '看板自定义排序' },
+            { value: 'updated_at', label: '最近更新时间' },
+            { value: 'created_at', label: '创建时间' },
+            { value: 'priority', label: '优先级最高' },
+            { value: 'score', label: '综合评分最高' },
+          ]}
+        />
       </div>
     </div>
   );

@@ -38,6 +38,7 @@ import {
   ShieldAlert,
 } from 'lucide-react';
 import { CitationMark } from './CitationMark';
+import { VoiceoverCueNode } from './VoiceoverCueNode';
 import { getCitationHealth } from '../../lib/citations';
 import { resolvePublicUrl } from '../../lib/publicUrl';
 import {
@@ -325,6 +326,7 @@ export const ScriptEditorTab: React.FC<ScriptEditorTabProps> = ({
       }),
       CharacterCount,
       CitationMark,
+      VoiceoverCueNode,
     ],
     content: initialDraft?.content_html || `<h1>【开场】${topicTitle}</h1><p></p>`,
     editorProps: {
@@ -842,12 +844,18 @@ export const ScriptEditorTab: React.FC<ScriptEditorTabProps> = ({
                     <button
                       key={cue}
                       onClick={() => {
-                        editor.chain().focus().insertContent(` [${cue}] `).run();
+                        const cleanCue = cue.replace(/^\[|\]$/g, '').trim();
+                        editor.chain().focus().insertContent({
+                          type: 'voiceoverCue',
+                          attrs: { cue: cleanCue },
+                        }).insertContent(' ').run();
                         setIsCueMenuOpen(false);
                       }}
                       className="w-full text-left px-2.5 py-1.5 rounded-lg text-xs font-medium text-stone-700 dark:text-stone-200 hover:bg-rose-50 dark:hover:bg-rose-950/50 hover:text-rose-600 dark:hover:text-rose-300 flex items-center justify-between group transition-colors cursor-pointer"
                     >
-                      <span>[{cue}]</span>
+                      <div className="flex items-center gap-1.5">
+                        <span className="text-[11px] px-1.5 py-0.5 rounded bg-rose-100 dark:bg-rose-950 text-rose-700 dark:text-rose-300 font-mono font-semibold">🎙️ {cue}</span>
+                      </div>
                       <span className="text-[10px] text-stone-400 group-hover:text-rose-500 opacity-0 group-hover:opacity-100 font-mono">插入</span>
                     </button>
                   ))}

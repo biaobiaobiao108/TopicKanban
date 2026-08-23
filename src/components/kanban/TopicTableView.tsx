@@ -20,6 +20,7 @@ import {
   Bookmark,
   CheckSquare,
 } from 'lucide-react';
+import { CustomSelect } from '../ui/CustomSelect';
 
 interface TopicTableViewProps {
   topics: Topic[];
@@ -428,13 +429,12 @@ export const TopicTableView: React.FC<TopicTableViewProps> = ({
             <span>已选择 {selectedIds.size} 个选题</span>
           </div>
           <div className="flex items-center gap-2 ml-auto flex-wrap">
-            <select
+            <CustomSelect
               value={bulkStatus}
-              onChange={(event) => setBulkStatus(event.target.value as TopicStatus)}
-              className="min-h-9 rounded-lg border border-rose-200 dark:border-rose-800 bg-white dark:bg-stone-800 px-2 text-xs font-semibold text-stone-700 dark:text-stone-300"
-            >
-              {COLUMNS.map((column) => <option key={column.status} value={column.status}>{column.label}</option>)}
-            </select>
+              onChange={(val) => setBulkStatus(val as TopicStatus)}
+              size="sm"
+              options={COLUMNS.map((column) => ({ value: column.status, label: column.label }))}
+            />
             <button
               type="button"
               onClick={() => void applyBulkStatus()}
@@ -546,16 +546,12 @@ export const TopicTableView: React.FC<TopicTableViewProps> = ({
                 </div>
 
                 <div className="mt-3 flex items-center gap-2">
-                  <select
-                    aria-label={`更新「${topic.title}」阶段`}
+                  <CustomSelect
                     value={topic.status}
-                    onChange={(event) => void onUpdateTopicStatus(topic.id, event.target.value as TopicStatus)}
-                    className="min-h-10 rounded-xl border border-stone-200 dark:border-stone-700 bg-stone-50 dark:bg-stone-800 px-3 text-xs font-semibold text-stone-700 dark:text-stone-200 outline-none focus:border-stone-400 dark:focus:border-stone-500 shadow-2xs"
-                  >
-                    {COLUMNS.map((column) => (
-                      <option key={column.status} value={column.status} className="dark:bg-stone-800 dark:text-stone-200">{column.label}</option>
-                    ))}
-                  </select>
+                    onChange={(val) => void onUpdateTopicStatus(topic.id, val as TopicStatus)}
+                    size="sm"
+                    options={COLUMNS.map((column) => ({ value: column.status, label: column.label }))}
+                  />
                   <PriorityBadge priority={topic.priority} />
                   <span className="ml-auto text-[11px] text-stone-400">{formatRelativeTime(topic.updated_at)}</span>
                 </div>

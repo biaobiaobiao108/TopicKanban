@@ -20,7 +20,10 @@ import {
   ArrowRight,
   X,
   HelpCircle,
+  RefreshCw,
 } from 'lucide-react';
+import { CustomSelect, SelectOption } from '../ui/CustomSelect';
+import { parseUrlMetadataApi } from '../../lib/remoteStorage';
 
 interface SourcesTabProps {
   topicId: string;
@@ -45,6 +48,7 @@ export const SourcesTab: React.FC<SourcesTabProps> = ({
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const [timelineConvertedId, setTimelineConvertedId] = useState<string | null>(null);
   const [smartPasteInput, setSmartPasteInput] = useState('');
+  const [isParsingUrl, setIsParsingUrl] = useState(false);
 
   // Form State
   const [title, setTitle] = useState('');
@@ -87,16 +91,19 @@ export const SourcesTab: React.FC<SourcesTabProps> = ({
     setIsModalOpen(true);
   };
 
-  const handleSmartParse = (rawText: string) => {
-    if (!rawText.trim()) return;
-    const urlMatch = rawText.match(/https?:\/\/[^\s]+/i);
+  const handleSmartParse = async (rawText: string) => {
+    const trimmed = rawText.trim();
+    if (!trimmed) return;
+    const urlMatch = trimmed.match(/https?:\/\/[^\s]+/i);
     let extractedUrl = '';
-    let cleanText = rawText;
+    let cleanText = trimmed;
+
     if (urlMatch) {
       extractedUrl = urlMatch[0];
-      cleanText = rawText.replace(extractedUrl, '').trim();
+      cleanText = trimmed.replace(extractedUrl, '').trim();
       setUrl(extractedUrl);
 
+      // Local quick fallback platform detection
       if (/bilibili\.com|b23\.tv/i.test(extractedUrl)) setPlatform('bilibili');
       else if (/douyin\.com|iesdouyin\.com/i.test(extractedUrl)) setPlatform('douyin');
       else if (/kuaishou\.com/i.test(extractedUrl)) setPlatform('kuaishou');
@@ -105,6 +112,26 @@ export const SourcesTab: React.FC<SourcesTabProps> = ({
       else if (/weixin\.qq\.com|mp\.weixin/i.test(extractedUrl)) setPlatform('wechat');
       else if (/zhihu\.com/i.test(extractedUrl)) setPlatform('zhihu');
       else if (/youtube\.com|youtu\.be/i.test(extractedUrl)) setPlatform('youtube');
+
+      // Fetch accurate metadata from server (Bilibili open API / OpenGraph)
+      setIsParsingUrl(true);
+      try {
+        const meta = await parseUrlMetadataApi(extractedUrl);
+        if (meta) {
+          if (meta.title && meta.title !== extractedUrl) setTitle(meta.title);
+          if (meta.author) setAuthor(meta.author);
+          if (meta.content) setContent(meta.content);
+          if (meta.published_at) setPublishedAt(meta.published_at);
+          if (meta.platform) setPlatform(meta.platform as PlatformType);
+          if (meta.url) setUrl(meta.url);
+          setIsParsingUrl(false);
+          return;
+        }
+      } catch {
+        // Fallback to local text parsing below
+      } finally {
+        setIsParsingUrl(false);
+      }
     }
 
     const cleanTitleCandidate = cleanText.replace(/^[【\[(（]?.*? [】\])）]?/, '').trim() || cleanText;
@@ -259,16 +286,17 @@ export const SourcesTab: React.FC<SourcesTabProps> = ({
           <div className="h-5 w-px bg-stone-200 dark:bg-stone-700 mx-0.5 hidden sm:block" />
 
           {/* Verification Status Filter */}
-          <select
+          <CustomSelect
             value={filterStatus}
-            onChange={(e) => setFilterStatus(e.target.value as VerificationStatus | 'all')}
-            className="bg-white dark:bg-stone-800 border border-stone-200 dark:border-stone-700 text-xs font-semibold text-stone-700 dark:text-stone-300 rounded-lg px-2.5 py-1.5 focus:outline-none focus:border-stone-400 dark:focus:border-stone-500 shadow-2xs transition-colors cursor-pointer"
-          >
-            <option value="all" className="dark:bg-stone-800 dark:text-stone-200">所有核实状态</option>
-            <option value="confirmed" className="dark:bg-stone-800 dark:text-stone-200">✓ 已确认</option>
-            <option value="unverified" className="dark:bg-stone-800 dark:text-stone-200">? 待核实</option>
-            <option value="rejected" className="dark:bg-stone-800 dark:text-stone-200">✕ 不采用</option>
-          </select>
+            onChange={(val) => setFilterStatus(val as VerificationStatus | 'all')}
+            size="sm"
+            options={[
+              { value: 'all', label: '所有核实状态' },
+              { value: 'confirmed', label: '已确认', dot: 'bg-emerald-500' },
+              { value: 'unverified', label: '待核实', dot: 'bg-amber-500' },
+              { value: 'rejected', label: '不采用', dot: 'bg-stone-400' },
+            ]}
+          />
         </div>
 
         <button
@@ -428,24 +456,52 @@ export const SourcesTab: React.FC<SourcesTabProps> = ({
         <form onSubmit={handleSubmit} className="space-y-4">
           {/* Smart Paste / Parse helper */}
           {!editingSource && (
-            <div className="p-3 bg-rose-50/60 dark:bg-rose-950/30 rounded-xl border border-rose-200 dark:border-rose-900/50 space-y-1.5">
+            <div className="p-3.5 bg-rose-50/70 dark:bg-rose-950/30 rounded-xl border border-rose-200 dark:border-rose-900/50 space-y-2">
               <div className="flex items-center justify-between text-xs">
                 <span className="font-bold text-rose-900 dark:text-rose-200 flex items-center gap-1.5">
                   <Sparkles className="w-3.5 h-3.5 text-rose-500" />
-                  <span>智能粘贴识别（快速解析链接与标题）</span>
+                  <span>智能粘贴识别（自动拉取视频/网页标题、UP主与简介）</span>
                 </span>
-                <span className="text-[10px] text-stone-500 dark:text-stone-400">支持 B站/抖音/快手/微博/知乎/公众号等</span>
+                {isParsingUrl ? (
+                  <span className="text-[11px] text-rose-600 dark:text-rose-400 font-medium flex items-center gap-1">
+                    <RefreshCw className="w-3 h-3 animate-spin" />
+                    <span>正在解析元数据...</span>
+                  </span>
+                ) : (
+                  <span className="text-[10px] text-stone-500 dark:text-stone-400">支持 B站/抖音/快手/微博/知乎/公众号等</span>
+                )}
               </div>
-              <input
-                type="text"
-                value={smartPasteInput}
-                onChange={(e) => {
-                  setSmartPasteInput(e.target.value);
-                  handleSmartParse(e.target.value);
-                }}
-                placeholder="直接粘贴含链接的整段分享文本或 URL，将自动填入下方字段..."
-                className="w-full px-3 py-1.5 bg-white dark:bg-stone-900 border border-stone-300 dark:border-stone-700 rounded-lg text-xs text-stone-900 dark:text-stone-100 placeholder:text-stone-400 focus:outline-none focus:border-rose-500"
-              />
+              <div className="flex items-center gap-2">
+                <input
+                  type="text"
+                  value={smartPasteInput}
+                  onChange={(e) => {
+                    setSmartPasteInput(e.target.value);
+                    handleSmartParse(e.target.value);
+                  }}
+                  onPaste={(e) => {
+                    const pasted = e.clipboardData.getData('text');
+                    if (pasted) {
+                      setSmartPasteInput(pasted);
+                      handleSmartParse(pasted);
+                    }
+                  }}
+                  placeholder="直接粘贴含链接的整段分享文本或 URL，将自动抓取并填入下方字段..."
+                  className="flex-1 px-3 py-1.5 bg-white dark:bg-stone-900 border border-stone-300 dark:border-stone-700 rounded-lg text-xs text-stone-900 dark:text-stone-100 placeholder:text-stone-400 focus:outline-none focus:border-rose-500"
+                />
+                {smartPasteInput && (
+                  <button
+                    type="button"
+                    onClick={() => handleSmartParse(smartPasteInput)}
+                    disabled={isParsingUrl}
+                    className="px-2.5 py-1.5 bg-rose-600 hover:bg-rose-700 text-white rounded-lg text-xs font-semibold flex items-center gap-1 transition-colors shrink-0 disabled:opacity-50 cursor-pointer shadow-2xs"
+                    title="重新识别抓取"
+                  >
+                    <RefreshCw className={`w-3 h-3 ${isParsingUrl ? 'animate-spin' : ''}`} />
+                    <span>识别</span>
+                  </button>
+                )}
+              </div>
             </div>
           )}
 
@@ -466,51 +522,57 @@ export const SourcesTab: React.FC<SourcesTabProps> = ({
           <div className="grid grid-cols-2 gap-3">
             <div>
               <label className="block text-xs font-semibold text-stone-700 dark:text-stone-300 mb-1">资料类型</label>
-              <select
+              <CustomSelect
                 value={type}
-                onChange={(e) => setType(e.target.value as SourceType)}
-                className="w-full px-3 py-2 bg-stone-50 dark:bg-stone-800 border border-stone-300 dark:border-stone-700 rounded-lg text-sm text-stone-900 dark:text-stone-100 focus:bg-white dark:focus:bg-stone-800 focus:outline-none"
-              >
-                <option value="fact">✓ 事实 (已找到确切证据)</option>
-                <option value="clue">? 线索 (尚待验证的信息)</option>
-                <option value="material">🎬 素材 (原视频/直播切片/截图)</option>
-              </select>
+                onChange={(val) => setType(val as SourceType)}
+                className="w-full"
+                buttonClassName="w-full justify-between py-2 text-sm bg-stone-50 dark:bg-stone-800 border-stone-300 dark:border-stone-700 rounded-lg"
+                options={[
+                  { value: 'fact', label: '✓ 事实 (已找到确切证据)', dot: 'bg-emerald-500', description: '确凿事实与一手证据' },
+                  { value: 'clue', label: '? 线索 (尚待验证的信息)', dot: 'bg-amber-500', description: '传闻或未证实线索' },
+                  { value: 'material', label: '🎬 素材 (原视频/切片/截图)', dot: 'bg-blue-500', description: '视频片段、录播或原画' },
+                ]}
+              />
             </div>
 
             <div>
               <label className="block text-xs font-semibold text-stone-700 dark:text-stone-300 mb-1">可信度状态</label>
-              <select
+              <CustomSelect
                 value={verificationStatus}
-                onChange={(e) => setVerificationStatus(e.target.value as VerificationStatus)}
-                className="w-full px-3 py-2 bg-stone-50 dark:bg-stone-800 border border-stone-300 dark:border-stone-700 rounded-lg text-sm text-stone-900 dark:text-stone-100 focus:bg-white dark:focus:bg-stone-800 focus:outline-none"
-              >
-                <option value="confirmed">已确认 (多方可靠来源)</option>
-                <option value="unverified">待核实 (信息不足)</option>
-                <option value="rejected">不采用 (已证伪或无价值)</option>
-              </select>
+                onChange={(val) => setVerificationStatus(val as VerificationStatus)}
+                className="w-full"
+                buttonClassName="w-full justify-between py-2 text-sm bg-stone-50 dark:bg-stone-800 border-stone-300 dark:border-stone-700 rounded-lg"
+                options={[
+                  { value: 'confirmed', label: '已确认 (多方可靠来源)', dot: 'bg-emerald-500' },
+                  { value: 'unverified', label: '待核实 (信息不足)', dot: 'bg-amber-500' },
+                  { value: 'rejected', label: '不采用 (已证伪或无价值)', dot: 'bg-stone-400' },
+                ]}
+              />
             </div>
           </div>
 
           <div className="grid grid-cols-2 gap-3">
             <div>
               <label className="block text-xs font-semibold text-stone-700 dark:text-stone-300 mb-1">来源平台</label>
-              <select
+              <CustomSelect
                 value={platform}
-                onChange={(e) => setPlatform(e.target.value as PlatformType)}
-                className="w-full px-3 py-2 bg-stone-50 dark:bg-stone-800 border border-stone-300 dark:border-stone-700 rounded-lg text-sm text-stone-900 dark:text-stone-100 focus:bg-white dark:focus:bg-stone-800 focus:outline-none"
-              >
-                <option value="bilibili">Bilibili</option>
-                <option value="douyin">抖音</option>
-                <option value="kuaishou">快手</option>
-                <option value="weibo">微博</option>
-                <option value="xiaohongshu">小红书</option>
-                <option value="wechat">微信公众号</option>
-                <option value="zhihu">知乎</option>
-                <option value="youtube">YouTube</option>
-                <option value="news">新闻媒体</option>
-                <option value="live">直播切片</option>
-                <option value="other">其他</option>
-              </select>
+                onChange={(val) => setPlatform(val as PlatformType)}
+                className="w-full"
+                buttonClassName="w-full justify-between py-2 text-sm bg-stone-50 dark:bg-stone-800 border-stone-300 dark:border-stone-700 rounded-lg"
+                options={[
+                  { value: 'bilibili', label: 'Bilibili' },
+                  { value: 'douyin', label: '抖音' },
+                  { value: 'kuaishou', label: '快手' },
+                  { value: 'weibo', label: '微博' },
+                  { value: 'xiaohongshu', label: '小红书' },
+                  { value: 'wechat', label: '微信公众号' },
+                  { value: 'zhihu', label: '知乎' },
+                  { value: 'youtube', label: 'YouTube' },
+                  { value: 'news', label: '新闻媒体' },
+                  { value: 'live', label: '直播切片' },
+                  { value: 'other', label: '其他' },
+                ]}
+              />
             </div>
 
             <div>
