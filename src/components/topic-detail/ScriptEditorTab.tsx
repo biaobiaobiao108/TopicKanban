@@ -138,6 +138,9 @@ export const ScriptEditorTab: React.FC<ScriptEditorTabProps> = ({
   const [activeOutlineItemId, setActiveOutlineItemId] = useState<string | null>(null);
   const [isTeleprompterOpen, setIsTeleprompterOpen] = useState(false);
   const [isCueMenuOpen, setIsCueMenuOpen] = useState(false);
+  const [lastInsertedCue, setLastInsertedCue] = useState<string | null>(null);
+  const lastInsertedTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const cueMenuContainerRef = useRef<HTMLDivElement | null>(null);
 
   const scrollContainerRef = useRef<HTMLDivElement | null>(null);
   const typewriterBottomSpacerRef = useRef<HTMLDivElement | null>(null);
@@ -170,6 +173,18 @@ export const ScriptEditorTab: React.FC<ScriptEditorTabProps> = ({
   const [currentShare, setCurrentShare] = useState<{ token: string; url: string; expires_at: string } | null>(null);
   const [isGeneratingShare, setIsGeneratingShare] = useState(false);
   const [shareCopied, setShareCopied] = useState(false);
+
+  // Handle clicking outside cue menu
+  useEffect(() => {
+    if (!isCueMenuOpen) return;
+    const handleClickOutside = (e: MouseEvent) => {
+      if (cueMenuContainerRef.current && !cueMenuContainerRef.current.contains(e.target as HTMLElement)) {
+        setIsCueMenuOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [isCueMenuOpen]);
 
   // Presence Heartbeat Effect
   useEffect(() => {
@@ -285,20 +300,27 @@ export const ScriptEditorTab: React.FC<ScriptEditorTabProps> = ({
         setIsZenMode((prev) => !prev);
         return;
       }
-      if (e.key === 'Escape' && isOutlineOpen) {
-        e.preventDefault();
-        setIsOutlineOpen(false);
-      } else if (e.key === 'Escape' && isReferenceOpen) {
-        e.preventDefault();
-        setIsReferenceOpen(false);
-      } else if (e.key === 'Escape' && isZenMode) {
-        e.preventDefault();
-        setIsZenMode(false);
+      if (e.key === 'Escape') {
+        if (isCueMenuOpen) {
+          e.preventDefault();
+          setIsCueMenuOpen(false);
+          return;
+        }
+        if (isOutlineOpen) {
+          e.preventDefault();
+          setIsOutlineOpen(false);
+        } else if (isReferenceOpen) {
+          e.preventDefault();
+          setIsReferenceOpen(false);
+        } else if (isZenMode) {
+          e.preventDefault();
+          setIsZenMode(false);
+        }
       }
     };
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [isOutlineOpen, isReferenceOpen, isZenMode]);
+  }, [isOutlineOpen, isReferenceOpen, isZenMode, isCueMenuOpen]);
 
   // Initialize Tiptap
   const editor = useEditor({
@@ -662,6 +684,23 @@ export const ScriptEditorTab: React.FC<ScriptEditorTabProps> = ({
     copyFeedbackTimeoutRef.current = setTimeout(() => setCopied(false), 2000);
   };
 
+  const handleInsertVoiceoverCue = (cue: string) => {
+    if (!editor) return;
+    const cleanCue = cue.replace(/^\[+|\]+$/g, '').trim();
+    editor
+      .chain()
+      .focus()
+      .insertContent({
+        type: 'voiceoverCue',
+        attrs: { cue: cleanCue },
+      })
+      .insertContent(' ')
+      .run();
+    setLastInsertedCue(cleanCue);
+    if (lastInsertedTimeoutRef.current) clearTimeout(lastInsertedTimeoutRef.current);
+    lastInsertedTimeoutRef.current = setTimeout(() => setLastInsertedCue(null), 1500);
+  };
+
   if (!editor) return null;
 
   return (
@@ -781,8 +820,8 @@ export const ScriptEditorTab: React.FC<ScriptEditorTabProps> = ({
             </span>
           </div>
 
-          {/* Voiceover Cue Dropdown */}
-          <div className="relative">
+          {/* Voiceover Cue Dropdown (Sticky continuous insertion) */}
+          <div ref={cueMenuContainerRef} className="relative">
             <button
               type="button"
               onClick={() => setIsCueMenuOpen((prev) => !prev)}
@@ -791,39 +830,58 @@ export const ScriptEditorTab: React.FC<ScriptEditorTabProps> = ({
                   ? 'bg-rose-50 dark:bg-rose-950/60 border-rose-300 dark:border-rose-800 text-rose-700 dark:text-rose-300 shadow-2xs'
                   : 'bg-white dark:bg-stone-800 border-stone-200 dark:border-stone-700 text-stone-700 dark:text-stone-300 hover:bg-stone-50 dark:hover:bg-stone-700/80 shadow-2xs'
               }`}
-              title="插入演播配音气口标记（也可直接手打 [停顿 1s] 等）"
+              title="插入演播配音气口标记（展开后常驻，可连续打标）"
             >
               <Mic className="w-3.5 h-3.5 text-rose-500" />
               <span className="hidden sm:inline">气口</span>
             </button>
 
             {isCueMenuOpen && (
-              <div className="absolute right-0 top-full mt-1.5 w-48 bg-white dark:bg-stone-850 rounded-xl border border-stone-200 dark:border-stone-700 p-1.5 shadow-xl z-50 animate-in fade-in zoom-in-95 duration-100 font-sans">
-                <div className="flex items-center justify-between text-[10px] font-bold text-stone-400 dark:text-stone-500 px-2 py-1 uppercase tracking-wider border-b border-stone-100 dark:border-stone-800 pb-1 mb-1">
-                  <span>插入演播气口</span>
-                  <span className="font-mono text-[9px] text-rose-500">[气口] 语法</span>
-                </div>
-                <div className="space-y-0.5 max-h-52 overflow-y-auto">
-                  {(settings?.voiceover_cues?.length ? settings.voiceover_cues : DEFAULT_VOICEOVER_CUES).map((cue) => (
+              <div className="absolute right-0 top-full mt-1.5 w-56 bg-white dark:bg-stone-850 rounded-xl border border-stone-200 dark:border-stone-700 p-2 shadow-xl z-50 animate-in fade-in zoom-in-95 duration-100 font-sans">
+                <div className="flex items-center justify-between text-[10px] font-bold text-stone-400 dark:text-stone-500 px-1 py-0.5 uppercase tracking-wider border-b border-stone-100 dark:border-stone-800 pb-1.5 mb-1.5">
+                  <div className="flex items-center gap-1 text-rose-600 dark:text-rose-400">
+                    <Mic className="w-3 h-3" />
+                    <span>气口库 · 连续打标</span>
+                  </div>
+                  <div className="flex items-center gap-1.5">
+                    {lastInsertedCue && (
+                      <span className="text-[9px] text-emerald-600 dark:text-emerald-400 font-bold animate-in fade-in">
+                        已插入 [{lastInsertedCue}] ✓
+                      </span>
+                    )}
                     <button
-                      key={cue}
                       type="button"
-                      onClick={() => {
-                        const cleanCue = cue.replace(/^\[+|\]+$/g, '').trim();
-                        editor.chain().focus().insertContent({
-                          type: 'voiceoverCue',
-                          attrs: { cue: cleanCue },
-                        }).insertContent(' ').run();
-                        setIsCueMenuOpen(false);
-                      }}
-                      className="w-full text-left px-2.5 py-1.5 rounded-lg text-xs font-medium text-stone-700 dark:text-stone-200 hover:bg-rose-50 dark:hover:bg-rose-950/50 hover:text-rose-600 dark:hover:text-rose-300 flex items-center justify-between group transition-colors cursor-pointer"
+                      onClick={() => setIsCueMenuOpen(false)}
+                      className="text-stone-400 hover:text-stone-700 dark:hover:text-stone-200 p-0.5 rounded cursor-pointer transition-colors"
+                      title="关闭选单 (Esc)"
                     >
-                      <div className="flex items-center gap-1.5 truncate">
-                        <span className="text-[11px] px-1.5 py-0.5 rounded bg-rose-100 dark:bg-rose-950 text-rose-700 dark:text-rose-300 font-mono font-semibold">🎙️ {cue}</span>
-                      </div>
-                      <span className="text-[10px] text-stone-400 group-hover:text-rose-500 opacity-0 group-hover:opacity-100 font-mono">插入</span>
+                      <X className="w-3 h-3" />
                     </button>
-                  ))}
+                  </div>
+                </div>
+                <div className="space-y-0.5 max-h-56 overflow-y-auto pr-0.5">
+                  {(settings?.voiceover_cues?.length ? settings.voiceover_cues : DEFAULT_VOICEOVER_CUES).map((cue) => {
+                    const isJustInserted = lastInsertedCue === cue.replace(/^\[+|\]+$/g, '').trim();
+                    return (
+                      <button
+                        key={cue}
+                        type="button"
+                        onClick={() => handleInsertVoiceoverCue(cue)}
+                        className={`w-full text-left px-2.5 py-1.5 rounded-lg text-xs font-medium flex items-center justify-between group transition-colors cursor-pointer ${
+                          isJustInserted
+                            ? 'bg-emerald-50 dark:bg-emerald-950/40 text-emerald-800 dark:text-emerald-300'
+                            : 'text-stone-700 dark:text-stone-200 hover:bg-rose-50 dark:hover:bg-rose-950/50 hover:text-rose-600 dark:hover:text-rose-300'
+                        }`}
+                      >
+                        <div className="flex items-center gap-1.5 truncate">
+                          <span className="text-[11px] px-1.5 py-0.5 rounded bg-rose-100 dark:bg-rose-950 text-rose-700 dark:text-rose-300 font-mono font-semibold">🎙️ {cue}</span>
+                        </div>
+                        <span className="text-[10px] text-stone-400 group-hover:text-rose-500 opacity-0 group-hover:opacity-100 font-mono">
+                          {isJustInserted ? '已加' : '插入'}
+                        </span>
+                      </button>
+                    );
+                  })}
                 </div>
               </div>
             )}
