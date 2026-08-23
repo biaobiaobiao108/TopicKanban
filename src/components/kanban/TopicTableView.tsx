@@ -21,12 +21,14 @@ import {
   CheckSquare,
 } from 'lucide-react';
 import { CustomSelect } from '../ui/CustomSelect';
+import { useToast } from '../ui/Toast';
 
 interface TopicTableViewProps {
   topics: Topic[];
   onOpenDetail: (topicId: string) => void;
   onTogglePin: (topicId: string) => void;
   onUpdateTopicStatus: (topicId: string, status: TopicStatus) => Promise<void>;
+  onUpdateTopic?: (topicId: string, updates: Partial<Topic>) => Promise<void>;
   onDeleteTopic: (topicId: string) => void;
   trashedTopics: Topic[];
   onRestoreTopic: (topicId: string) => Promise<void>;
@@ -93,6 +95,7 @@ export const TopicTableView: React.FC<TopicTableViewProps> = ({
   onOpenDetail,
   onTogglePin,
   onUpdateTopicStatus,
+  onUpdateTopic,
   onDeleteTopic,
   trashedTopics,
   onRestoreTopic,
@@ -114,6 +117,9 @@ export const TopicTableView: React.FC<TopicTableViewProps> = ({
   const [isBulkUpdating, setIsBulkUpdating] = useState(false);
   const [viewSaved, setViewSaved] = useState(false);
   const [activeStatusMenuId, setActiveStatusMenuId] = useState<string | null>(null);
+  const [editingActionId, setEditingActionId] = useState<string | null>(null);
+  const [editingAction, setEditingAction] = useState('');
+  const { showToast } = useToast();
   const [archiveTopicId, setArchiveTopicId] = useState<string | null>(null);
   const [page, setPage] = useState(1);
   const isColumnVisible = (column: ColumnKey) => visibleColumns.includes(column);
@@ -162,6 +168,21 @@ export const TopicTableView: React.FC<TopicTableViewProps> = ({
     } else {
       setSortCol(col);
       setSortDir('desc');
+    }
+  };
+
+  const saveInlineAction = async (topic: Topic) => {
+    if (!onUpdateTopic) return;
+    try {
+      await onUpdateTopic(topic.id, {
+        next_action: editingAction.trim(),
+        next_action_updated_at: new Date().toISOString(),
+        next_action_deferred_until: null,
+      });
+      setEditingActionId(null);
+      showToast({ message: '下一步行动已更新' });
+    } catch (error) {
+      showToast({ message: error instanceof Error ? error.message : '更新下一步行动失败', tone: 'error' });
     }
   };
 
@@ -891,13 +912,37 @@ export const TopicTableView: React.FC<TopicTableViewProps> = ({
 
                   {/* 5. Next Action */}
                   {isColumnVisible('next_action') && <td className={`${rowPadding} px-3`}>
-                    {topic.next_action ? (
-                      <span className="inline-flex items-center gap-1 text-[11px] text-stone-800 dark:text-stone-200 bg-rose-50/60 dark:bg-rose-950/30 border border-rose-200/50 dark:border-rose-900/40 px-2 py-0.5 rounded-md font-medium max-w-[220px] truncate">
-                        <span className="text-rose-600 dark:text-rose-400 font-bold">⚡</span>
+                    {editingActionId === topic.id && onUpdateTopic ? (
+                      <form className="flex min-w-[180px] items-center gap-1" onSubmit={(event) => { event.preventDefault(); void saveInlineAction(topic); }}>
+                        <input
+                          autoFocus
+                          value={editingAction}
+                          onChange={(event) => setEditingAction(event.target.value)}
+                          onKeyDown={(event) => { if (event.key === 'Escape') setEditingActionId(null); }}
+                          className="min-w-0 flex-1 rounded-md border border-rose-300 bg-white px-2 py-1 text-[11px] text-stone-800 outline-none focus:ring-2 focus:ring-rose-100"
+                          aria-label={`编辑「${topic.title}」的下一步行动`}
+                        />
+                        <button type="submit" className="rounded px-1.5 py-1 text-[10px] font-bold text-rose-700 hover:bg-rose-50">保存</button>
+                      </form>
+                    ) : topic.next_action ? (
+                      <button
+                        type="button"
+                        onClick={() => { setEditingActionId(topic.id); setEditingAction(topic.next_action || ''); }}
+                        className="inline-flex max-w-[220px] items-center gap-1 truncate rounded-md border border-rose-200/50 bg-rose-50/60 px-2 py-0.5 text-left text-[11px] font-medium text-stone-800 hover:border-rose-300 dark:border-rose-900/40 dark:bg-rose-950/30 dark:text-stone-200"
+                        title="点击直接编辑下一步行动"
+                      >
+                        <span className="font-bold text-rose-600 dark:text-rose-400">⚡</span>
                         <span className="truncate">{topic.next_action}</span>
-                      </span>
+                      </button>
                     ) : (
-                      <span className="text-stone-300 dark:text-stone-600 italic text-[11px]">-</span>
+                      <button
+                        type="button"
+                        onClick={() => { if (onUpdateTopic) { setEditingActionId(topic.id); setEditingAction(''); } }}
+                        className="text-[11px] italic text-stone-300 hover:text-rose-600 dark:text-stone-600"
+                        title="点击添加下一步行动"
+                      >
+                        + 添加行动
+                      </button>
                     )}
                   </td>}
 

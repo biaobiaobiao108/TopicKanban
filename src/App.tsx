@@ -663,6 +663,7 @@ function WorkspaceApp({ isAuth, setIsAuth }: WorkspaceAppProps) {
                 onOpenDetail={handleOpenDetail}
                 onTogglePin={handleTogglePin}
                 onUpdateTopicStatus={handleUpdateTopicStatus}
+                onUpdateTopic={handleUpdateTopicById}
                 onDeleteTopic={handleDeleteTopic}
                 trashedTopics={trashedTopics}
                 onRestoreTopic={handleRestoreTopic}
