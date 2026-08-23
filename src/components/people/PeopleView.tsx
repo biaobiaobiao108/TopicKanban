@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Person, PersonRelationship, Topic } from '../../types';
 import { Modal } from '../ui/Modal';
+import { useToast } from '../ui/Toast';
 import {
   Users,
   Plus,
@@ -36,6 +37,7 @@ export const PeopleView: React.FC<PeopleViewProps> = ({
   onDeleteRelationship,
   onSelectTopic,
 }) => {
+  const { showToast } = useToast();
   const [searchTerm, setSearchTerm] = useState('');
   const [isPersonModalOpen, setIsPersonModalOpen] = useState(false);
   const [editingPerson, setEditingPerson] = useState<Person | null>(null);
@@ -146,7 +148,7 @@ export const PeopleView: React.FC<PeopleViewProps> = ({
           <button
             onClick={() => {
               if (people.length < 2) {
-                alert('请先创建至少2位人物以建立关系');
+                showToast({ message: '请先创建至少2位人物以建立关系', tone: 'info' });
                 return;
               }
               setRelPersonA(people[0]?.id || '');

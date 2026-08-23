@@ -1,6 +1,7 @@
 import React, { useState, useRef, useMemo, useEffect } from 'react';
 import { PublishedVideo, Topic } from '../../types';
 import { Modal } from '../ui/Modal';
+import { useToast } from '../ui/Toast';
 import { StatusBadge, PriorityBadge } from '../ui/Badge';
 import { extractBvid, fetchBilibiliVideoData } from '../../lib/bilibili';
 import {
@@ -51,6 +52,7 @@ export const PublishedView: React.FC<PublishedViewProps> = ({
   onDeletePublished,
   onSelectTopic,
 }) => {
+  const { showToast } = useToast();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingVideo, setEditingVideo] = useState<PublishedVideo | null>(null);
   const [viewMode, setViewMode] = useState<'cards' | 'analytics'>('cards');
@@ -264,7 +266,7 @@ export const PublishedView: React.FC<PublishedViewProps> = ({
   const handleSyncSingleVideo = async (video: PublishedVideo) => {
     const cleanBvid = extractBvid(video.bvid || video.url);
     if (!cleanBvid) {
-      alert('该视频未填写有效 BV 号，无法自动同步');
+      showToast({ message: '该视频未填写有效 BV 号，无法自动同步', tone: 'info' });
       return;
     }
 
@@ -286,7 +288,7 @@ export const PublishedView: React.FC<PublishedViewProps> = ({
         updated_at: new Date().toISOString(),
       });
     } catch (err) {
-      alert(`同步「${video.title}」失败: ${err instanceof Error ? err.message : '未知错误'}`);
+      showToast({ message: `同步「${video.title}」失败: ${err instanceof Error ? err.message : '未知错误'}`, tone: 'error' });
     } finally {
       setSyncingId(null);
     }
@@ -296,7 +298,7 @@ export const PublishedView: React.FC<PublishedViewProps> = ({
   const handleBulkSyncAll = async () => {
     const syncable = publishedList.filter((v) => extractBvid(v.bvid || v.url));
     if (syncable.length === 0) {
-      alert('没有找到包含有效 BV 号的已发布视频');
+      showToast({ message: '没有找到包含有效 BV 号的已发布视频', tone: 'info' });
       return;
     }
 

@@ -7,6 +7,7 @@ import { CitationInput, Draft, DraftCitation, Topic, TimelineEvent, Source, AppS
 import { ScriptReferenceDrawer } from './ScriptReferenceDrawer';
 import { ScriptOutlinePanel } from './ScriptOutlinePanel';
 import { Modal } from '../ui/Modal';
+import { useToast } from '../ui/Toast';
 import {
   Clock,
   CheckCircle2,
@@ -124,6 +125,7 @@ export const ScriptEditorTab: React.FC<ScriptEditorTabProps> = ({
   onSaveDraftImmediately,
   onSaveCitation,
 }) => {
+  const { showToast } = useToast();
   const [saveStatus, setSaveStatus] = useState<'saved' | 'saving' | 'unsaved' | 'local' | 'pending' | 'conflict'>('saved');
   const [draftConflict, setDraftConflict] = useState<Draft | null>(null);
   const [lastSavedTime, setLastSavedTime] = useState<string>(
@@ -235,7 +237,7 @@ export const ScriptEditorTab: React.FC<ScriptEditorTabProps> = ({
         // clipboard write may need manual copy fallback
       }
     } catch (err) {
-      alert(err instanceof Error ? err.message : '生成审稿链接失败');
+      showToast({ message: err instanceof Error ? err.message : '生成审稿链接失败', tone: 'error' });
     } finally {
       setIsGeneratingShare(false);
     }

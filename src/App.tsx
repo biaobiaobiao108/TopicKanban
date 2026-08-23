@@ -45,6 +45,7 @@ import { applyTheme } from './lib/theme';
 import { matchPath, useLocation, useNavigate } from 'react-router-dom';
 import { useWorkspace } from './hooks/useWorkspace';
 import { lazyWithReload } from './lib/lazyWithReload';
+import { useToast } from './components/ui/Toast';
 
 const VIEW_PATHS: Record<Exclude<NavView, 'topic-detail'>, string> = {
   today: '/today',
@@ -98,6 +99,7 @@ function WorkspaceApp({ isAuth, setIsAuth }: WorkspaceAppProps) {
   const location = useLocation();
   const navigate = useNavigate();
   const currentView = getViewFromPath(location.pathname);
+  const { showToast } = useToast();
   const topicMatch = matchPath('/topics/:topicId', location.pathname);
   const activeTopicId = topicMatch?.params.topicId || null;
 
@@ -291,6 +293,7 @@ function WorkspaceApp({ isAuth, setIsAuth }: WorkspaceAppProps) {
   };
 
   const handleDeleteTopic = async (topicId: string) => {
+    const deleted = topics.find((topic) => topic.id === topicId);
     await deleteTopic(topicId);
     setTopics((prev) => {
       const deleted = prev.find((topic) => topic.id === topicId);
@@ -301,6 +304,18 @@ function WorkspaceApp({ isAuth, setIsAuth }: WorkspaceAppProps) {
     });
     if (activeTopicId === topicId) {
       navigate('/kanban');
+    }
+    if (deleted) {
+      showToast({
+        message: `已将「${deleted.title}」移入回收站`,
+        actionLabel: '撤销',
+        duration: 7000,
+        onAction: async () => {
+          const restored = await restoreTopic(topicId);
+          setTrashedTopics((prev) => prev.filter((topic) => topic.id !== topicId));
+          setTopics((prev) => [restored, ...prev]);
+        },
+      });
     }
   };
 
@@ -479,7 +494,7 @@ function WorkspaceApp({ isAuth, setIsAuth }: WorkspaceAppProps) {
       a.click();
       URL.revokeObjectURL(url);
     } catch {
-      alert('导出备份失败');
+      showToast({ message: '导出备份失败', tone: 'error' });
     }
   };
 
@@ -494,7 +509,7 @@ function WorkspaceApp({ isAuth, setIsAuth }: WorkspaceAppProps) {
       a.click();
       URL.revokeObjectURL(url);
     } catch {
-      alert('导出文案失败');
+      showToast({ message: '导出文案失败', tone: 'error' });
     }
   };
 
