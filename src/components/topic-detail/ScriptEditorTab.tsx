@@ -695,251 +695,241 @@ export const ScriptEditorTab: React.FC<ScriptEditorTabProps> = ({
     <div
       className={
         isZenMode
-          ? 'fixed inset-0 z-50 bg-[#fafaf9] dark:bg-[#0c0a09] flex flex-col animate-in fade-in duration-150'
+          ? 'fixed inset-0 z-50 bg-[#fafaf9] dark:bg-[#0c0a09] flex flex-col transition-all duration-300 ease-in-out'
           : 'w-full h-full flex flex-col'
       }
     >
-      {/* Top Floating / Fixed Toolbar */}
-      <div className="script-editor-toolbar bg-white/95 dark:bg-stone-900/95 backdrop-blur-xs border-b border-stone-200 dark:border-stone-800 px-3 sm:px-6 py-2 flex items-center justify-between flex-wrap gap-2 shrink-0 z-30 shadow-2xs transition-colors">
-        {/* Left: Outline, Reference Drawer, and Status Indicator */}
-        <div className="flex items-center gap-2 flex-wrap">
-          {/* Zen mode topic title pill */}
-          {isZenMode && (
-            <div className="flex items-center gap-2 mr-1 pr-2.5 border-r border-stone-200 dark:border-stone-700">
-              <span className="font-bold text-stone-900 dark:text-stone-100 text-xs sm:text-sm truncate max-w-xs sm:max-w-md">
-                ✍️ {topicTitle}
-              </span>
-            </div>
-          )}
-
-          {/* Outline Toggle */}
-          <button
-            type="button"
-            onClick={toggleOutlinePanel}
-            aria-label="展开/收起文案大纲与章节定位"
-            aria-pressed={isOutlineOpen}
-            className={`flex items-center gap-1.5 rounded-lg border px-2.5 py-1 text-xs font-semibold transition-all cursor-pointer ${
-              isOutlineOpen
-                ? 'border-rose-300 dark:border-rose-800 bg-rose-50 dark:bg-rose-950/50 text-rose-700 dark:text-rose-300 shadow-2xs'
-                : 'border-stone-200 dark:border-stone-700 bg-white dark:bg-stone-800 text-stone-700 dark:text-stone-300 hover:bg-stone-50 dark:hover:bg-stone-700/80 shadow-2xs'
-            }`}
-            title="展开/收起文案大纲与章节定位 (Esc 收起)"
-          >
-            <PanelLeftOpen className="h-3.5 w-3.5 text-rose-500" />
-            <span className="hidden sm:inline">大纲</span>
-            {outline.flatItems.length > 0 && (
-              <span className="rounded-full bg-rose-100 dark:bg-rose-900/60 px-1.5 text-[10px] font-bold text-rose-800 dark:text-rose-200 font-mono">
-                {outline.flatItems.length}
-              </span>
-            )}
-          </button>
-
-          {/* Side Reference Toggle */}
-          {topic && (
+      {/* Top Floating / Fixed Toolbar (Hidden in Zen Mode) */}
+      {!isZenMode && (
+        <div className="script-editor-toolbar bg-white/95 dark:bg-stone-900/95 backdrop-blur-xs border-b border-stone-200 dark:border-stone-800 px-3 sm:px-6 py-2 flex items-center justify-between flex-wrap gap-2 shrink-0 z-30 shadow-2xs transition-colors">
+          {/* Left: Outline, Reference Drawer, and Status Indicator */}
+          <div className="flex items-center gap-2 flex-wrap">
+            {/* Outline Toggle */}
             <button
               type="button"
-              onClick={toggleReferencePanel}
-              className={`flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-semibold border transition-all cursor-pointer ${
-                isReferenceOpen
-                  ? 'bg-rose-50 dark:bg-rose-950/50 text-rose-700 dark:text-rose-300 border-rose-300 dark:border-rose-800 shadow-2xs'
-                  : 'bg-white dark:bg-stone-800 text-stone-700 dark:text-stone-300 border-stone-200 dark:border-stone-700 hover:bg-stone-50 dark:hover:bg-stone-700/80 shadow-2xs'
+              onClick={toggleOutlinePanel}
+              aria-label="展开/收起文案大纲与章节定位"
+              aria-pressed={isOutlineOpen}
+              className={`flex items-center gap-1.5 rounded-lg border px-2.5 py-1 text-xs font-semibold transition-all cursor-pointer ${
+                isOutlineOpen
+                  ? 'border-rose-300 dark:border-rose-800 bg-rose-50 dark:bg-rose-950/50 text-rose-700 dark:text-rose-300 shadow-2xs'
+                  : 'border-stone-200 dark:border-stone-700 bg-white dark:bg-stone-800 text-stone-700 dark:text-stone-300 hover:bg-stone-50 dark:hover:bg-stone-700/80 shadow-2xs'
               }`}
-              title="展开/收起边写边看事实参考抽屉"
+              title="展开/收起文案大纲与章节定位 (Esc 收起)"
             >
-              <BookOpen className="w-3.5 h-3.5 text-rose-500" />
-              <span className="hidden sm:inline">事实参考</span>
-              {citationHealth && citationHealth.unverifiedCount > 0 && (
-                <span className="rounded-full bg-amber-100 dark:bg-amber-950/60 px-1.5 text-[10px] text-amber-800 dark:text-amber-300 font-mono font-bold">
-                  {citationHealth.unverifiedCount}
+              <PanelLeftOpen className="h-3.5 w-3.5 text-rose-500" />
+              <span className="hidden sm:inline">大纲</span>
+              {outline.flatItems.length > 0 && (
+                <span className="rounded-full bg-rose-100 dark:bg-rose-900/60 px-1.5 text-[10px] font-bold text-rose-800 dark:text-rose-200 font-mono">
+                  {outline.flatItems.length}
                 </span>
               )}
             </button>
-          )}
 
-          {/* Auto save indicator (Quiet background protection, zero layout shift) */}
-          <div className="flex items-center text-[10px] font-medium transition-all ml-1.5 select-none shrink-0">
-            {saveStatus === 'saving' && (
-              <div className="flex items-center gap-1.5 text-amber-600 dark:text-amber-400" title="正在同步至云端...">
-                <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse" />
-                <span className="hidden sm:inline text-stone-500 dark:text-stone-400">同步中</span>
-              </div>
-            )}
-            {saveStatus === 'saved' && (
-              <div
-                className="flex items-center gap-1 text-stone-400 dark:text-stone-500 hover:text-stone-600 dark:hover:text-stone-300 transition-colors"
-                title={`云端已同步${lastSavedTime ? ` · ${lastSavedTime}` : ''}`}
+            {/* Side Reference Toggle */}
+            {topic && (
+              <button
+                type="button"
+                onClick={toggleReferencePanel}
+                className={`flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-semibold border transition-all cursor-pointer ${
+                  isReferenceOpen
+                    ? 'bg-rose-50 dark:bg-rose-950/50 text-rose-700 dark:text-rose-300 border-rose-300 dark:border-rose-800 shadow-2xs'
+                    : 'bg-white dark:bg-stone-800 text-stone-700 dark:text-stone-300 border-stone-200 dark:border-stone-700 hover:bg-stone-50 dark:hover:bg-stone-700/80 shadow-2xs'
+                }`}
+                title="展开/收起边写边看事实参考抽屉"
               >
-                <CheckCircle2 className="w-3 h-3 text-emerald-600/80 dark:text-emerald-400/80" />
-                <span className="hidden sm:inline">已同步</span>
-              </div>
+                <BookOpen className="w-3.5 h-3.5 text-rose-500" />
+                <span className="hidden sm:inline">事实参考</span>
+                {citationHealth && citationHealth.unverifiedCount > 0 && (
+                  <span className="rounded-full bg-amber-100 dark:bg-amber-950/60 px-1.5 text-[10px] text-amber-800 dark:text-amber-300 font-mono font-bold">
+                    {citationHealth.unverifiedCount}
+                  </span>
+                )}
+              </button>
             )}
-            {(saveStatus === 'local' || saveStatus === 'unsaved' || saveStatus === 'pending') && (
-              <div
-                className="flex items-center gap-1 text-stone-400 dark:text-stone-500 hover:text-stone-600 dark:hover:text-stone-300 transition-colors"
-                title="本地草稿已实时安全暂存防丢"
-              >
-                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500/70" />
-                <span className="hidden sm:inline">已暂存</span>
-              </div>
-            )}
-            {saveStatus === 'conflict' && (
-              <span className="flex items-center gap-1 text-red-700 dark:text-red-400 bg-red-50 dark:bg-red-950/50 border border-red-200 dark:border-red-900 px-2 py-0.5 rounded-md font-bold">
-                <AlertTriangle className="w-3 h-3 text-red-600 dark:text-red-400" />
-                <span>版本冲突</span>
+
+            {/* Auto save indicator */}
+            <div className="flex items-center text-[10px] font-medium transition-all ml-1.5 select-none shrink-0">
+              {saveStatus === 'saving' && (
+                <div className="flex items-center gap-1.5 text-amber-600 dark:text-amber-400" title="正在同步至云端...">
+                  <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse" />
+                  <span className="hidden sm:inline text-stone-500 dark:text-stone-400">同步中</span>
+                </div>
+              )}
+              {saveStatus === 'saved' && (
+                <div
+                  className="flex items-center gap-1 text-stone-400 dark:text-stone-500 hover:text-stone-600 dark:hover:text-stone-300 transition-colors"
+                  title={`云端已同步${lastSavedTime ? ` · ${lastSavedTime}` : ''}`}
+                >
+                  <CheckCircle2 className="w-3 h-3 text-emerald-600/80 dark:text-emerald-400/80" />
+                  <span className="hidden sm:inline">已同步</span>
+                </div>
+              )}
+              {(saveStatus === 'local' || saveStatus === 'unsaved' || saveStatus === 'pending') && (
+                <div
+                  className="flex items-center gap-1 text-stone-400 dark:text-stone-500 hover:text-stone-600 dark:hover:text-stone-300 transition-colors"
+                  title="本地草稿已实时安全暂存防丢"
+                >
+                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-500/70" />
+                  <span className="hidden sm:inline">已暂存</span>
+                </div>
+              )}
+              {saveStatus === 'conflict' && (
+                <span className="flex items-center gap-1 text-red-700 dark:text-red-400 bg-red-50 dark:bg-red-950/50 border border-red-200 dark:border-red-900 px-2 py-0.5 rounded-md font-bold">
+                  <AlertTriangle className="w-3 h-3 text-red-600 dark:text-red-400" />
+                  <span>版本冲突</span>
+                </span>
+              )}
+            </div>
+          </div>
+
+          {/* Right: Metrics, Voiceover Cues, Utilities & Primary Actions */}
+          <div className="flex items-center gap-2 flex-wrap">
+            {/* Word count & Estimated duration pill */}
+            <div className="flex items-center gap-1.5 bg-stone-100/90 dark:bg-stone-800/80 border border-stone-200/80 dark:border-stone-700 px-2.5 py-1 rounded-lg text-xs">
+              <span className="font-mono text-stone-800 dark:text-stone-200 font-bold px-0.5">
+                {charCount.toLocaleString()} <span className="font-normal text-stone-500 dark:text-stone-400 text-[11px]">字</span>
               </span>
-            )}
-          </div>
-        </div>
+              <span className="text-stone-300 dark:text-stone-600">·</span>
+              <span
+                className="flex items-center gap-1 text-rose-700 dark:text-rose-400 font-semibold font-mono text-[11px]"
+                title={`预估时长（按偏好设置 ${effectiveSpeed} 字/分钟计算）`}
+              >
+                <Clock className="w-3 h-3 text-rose-500 shrink-0" />
+                <span>{estMinutes}分{estSeconds}秒</span>
+              </span>
+            </div>
 
-        {/* Right: Metrics, Voiceover Cues, Utilities & Primary Actions */}
-        <div className="flex items-center gap-2 flex-wrap">
-          {/* Word count & Estimated duration pill */}
-          <div className="flex items-center gap-1.5 bg-stone-100/90 dark:bg-stone-800/80 border border-stone-200/80 dark:border-stone-700 px-2.5 py-1 rounded-lg text-xs">
-            <span className="font-mono text-stone-800 dark:text-stone-200 font-bold px-0.5">
-              {charCount.toLocaleString()} <span className="font-normal text-stone-500 dark:text-stone-400 text-[11px]">字</span>
-            </span>
-            <span className="text-stone-300 dark:text-stone-600">·</span>
-            <span
-              className="flex items-center gap-1 text-rose-700 dark:text-rose-400 font-semibold font-mono text-[11px]"
-              title={`预估时长（按偏好设置 ${effectiveSpeed} 字/分钟计算）`}
-            >
-              <Clock className="w-3 h-3 text-rose-500 shrink-0" />
-              <span>{estMinutes}分{estSeconds}秒</span>
-            </span>
-          </div>
+            {/* Voiceover Cue Dropdown (Sticky continuous insertion) */}
+            <div ref={cueMenuContainerRef} className="relative">
+              <button
+                type="button"
+                onClick={() => setIsCueMenuOpen((prev) => !prev)}
+                className={`flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-semibold border transition-all cursor-pointer ${
+                  isCueMenuOpen
+                    ? 'bg-rose-50 dark:bg-rose-950/60 border-rose-300 dark:border-rose-800 text-rose-700 dark:text-rose-300 shadow-2xs'
+                    : 'bg-white dark:bg-stone-800 border-stone-200 dark:border-stone-700 text-stone-700 dark:text-stone-300 hover:bg-stone-50 dark:hover:bg-stone-700/80 shadow-2xs'
+                }`}
+                title="插入演播配音气口标记（展开后常驻，可连续打标）"
+              >
+                <Mic className="w-3.5 h-3.5 text-rose-500" />
+                <span className="hidden sm:inline">气口</span>
+              </button>
 
-          {/* Voiceover Cue Dropdown (Sticky continuous insertion) */}
-          <div ref={cueMenuContainerRef} className="relative">
+              {isCueMenuOpen && (
+                <div className="absolute right-0 top-full mt-1.5 w-56 bg-white dark:bg-stone-850 rounded-xl border border-stone-200 dark:border-stone-700 p-2 shadow-xl z-50 animate-in fade-in zoom-in-95 duration-100 font-sans">
+                  <div className="flex items-center justify-between text-[10px] font-bold text-stone-400 dark:text-stone-500 px-1 py-0.5 uppercase tracking-wider border-b border-stone-100 dark:border-stone-800 pb-1.5 mb-1.5">
+                    <div className="flex items-center gap-1 text-rose-600 dark:text-rose-400">
+                      <Mic className="w-3 h-3" />
+                      <span>气口库 · 连续打标</span>
+                    </div>
+                    <div className="flex items-center gap-1.5">
+                      {lastInsertedCue && (
+                        <span className="text-[9px] text-emerald-600 dark:text-emerald-400 font-bold animate-in fade-in">
+                          已插入 [{lastInsertedCue}] ✓
+                        </span>
+                      )}
+                      <button
+                        type="button"
+                        onClick={() => setIsCueMenuOpen(false)}
+                        className="text-stone-400 hover:text-stone-700 dark:hover:text-stone-200 p-0.5 rounded cursor-pointer transition-colors"
+                        title="关闭选单 (Esc)"
+                      >
+                        <X className="w-3 h-3" />
+                      </button>
+                    </div>
+                  </div>
+                  <div className="space-y-0.5 max-h-56 overflow-y-auto pr-0.5">
+                    {(settings?.voiceover_cues?.length ? settings.voiceover_cues : DEFAULT_VOICEOVER_CUES).map((cue) => {
+                      const isJustInserted = lastInsertedCue === cue.replace(/^\[+|\]+$/g, '').trim();
+                      return (
+                        <button
+                          key={cue}
+                          type="button"
+                          onClick={() => handleInsertVoiceoverCue(cue)}
+                          className={`w-full text-left px-2.5 py-1.5 rounded-lg text-xs font-medium flex items-center justify-between group transition-colors cursor-pointer ${
+                            isJustInserted
+                              ? 'bg-emerald-50 dark:bg-emerald-950/40 text-emerald-800 dark:text-emerald-300'
+                              : 'text-stone-700 dark:text-stone-200 hover:bg-rose-50 dark:hover:bg-rose-950/50 hover:text-rose-600 dark:hover:text-rose-300'
+                          }`}
+                        >
+                          <div className="flex items-center gap-1.5 truncate">
+                            <span className="text-[11px] px-1.5 py-0.5 rounded bg-rose-100 dark:bg-rose-950 text-rose-700 dark:text-rose-300 font-mono font-semibold">🎙️ {cue}</span>
+                          </div>
+                          <span className="text-[10px] text-stone-400 group-hover:text-rose-500 opacity-0 group-hover:opacity-100 font-mono">
+                            {isJustInserted ? '已加' : '插入'}
+                          </span>
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Typewriter Mode Toggle */}
             <button
               type="button"
-              onClick={() => setIsCueMenuOpen((prev) => !prev)}
-              className={`flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-semibold border transition-all cursor-pointer ${
-                isCueMenuOpen
-                  ? 'bg-rose-50 dark:bg-rose-950/60 border-rose-300 dark:border-rose-800 text-rose-700 dark:text-rose-300 shadow-2xs'
-                  : 'bg-white dark:bg-stone-800 border-stone-200 dark:border-stone-700 text-stone-700 dark:text-stone-300 hover:bg-stone-50 dark:hover:bg-stone-700/80 shadow-2xs'
+              onClick={() => setIsTypewriterMode((current) => !current)}
+              className={`p-1.5 rounded-lg text-xs font-semibold border transition-all cursor-pointer ${
+                isTypewriterMode
+                  ? 'bg-rose-50 dark:bg-rose-950/50 text-rose-700 dark:text-rose-300 border-rose-300 dark:border-rose-800 shadow-2xs'
+                  : 'bg-white dark:bg-stone-800 text-stone-700 dark:text-stone-300 border-stone-200 dark:border-stone-700 hover:bg-stone-50 dark:hover:bg-stone-700/80 shadow-2xs'
               }`}
-              title="插入演播配音气口标记（展开后常驻，可连续打标）"
+              title={isTypewriterMode ? '关闭打字机模式' : '开启打字机模式（当前编辑行保持居中）'}
             >
-              <Mic className="w-3.5 h-3.5 text-rose-500" />
-              <span className="hidden sm:inline">气口</span>
+              <AlignCenter className="w-3.5 h-3.5 text-rose-500" />
             </button>
 
-            {isCueMenuOpen && (
-              <div className="absolute right-0 top-full mt-1.5 w-56 bg-white dark:bg-stone-850 rounded-xl border border-stone-200 dark:border-stone-700 p-2 shadow-xl z-50 animate-in fade-in zoom-in-95 duration-100 font-sans">
-                <div className="flex items-center justify-between text-[10px] font-bold text-stone-400 dark:text-stone-500 px-1 py-0.5 uppercase tracking-wider border-b border-stone-100 dark:border-stone-800 pb-1.5 mb-1.5">
-                  <div className="flex items-center gap-1 text-rose-600 dark:text-rose-400">
-                    <Mic className="w-3 h-3" />
-                    <span>气口库 · 连续打标</span>
-                  </div>
-                  <div className="flex items-center gap-1.5">
-                    {lastInsertedCue && (
-                      <span className="text-[9px] text-emerald-600 dark:text-emerald-400 font-bold animate-in fade-in">
-                        已插入 [{lastInsertedCue}] ✓
-                      </span>
-                    )}
-                    <button
-                      type="button"
-                      onClick={() => setIsCueMenuOpen(false)}
-                      className="text-stone-400 hover:text-stone-700 dark:hover:text-stone-200 p-0.5 rounded cursor-pointer transition-colors"
-                      title="关闭选单 (Esc)"
-                    >
-                      <X className="w-3 h-3" />
-                    </button>
-                  </div>
-                </div>
-                <div className="space-y-0.5 max-h-56 overflow-y-auto pr-0.5">
-                  {(settings?.voiceover_cues?.length ? settings.voiceover_cues : DEFAULT_VOICEOVER_CUES).map((cue) => {
-                    const isJustInserted = lastInsertedCue === cue.replace(/^\[+|\]+$/g, '').trim();
-                    return (
-                      <button
-                        key={cue}
-                        type="button"
-                        onClick={() => handleInsertVoiceoverCue(cue)}
-                        className={`w-full text-left px-2.5 py-1.5 rounded-lg text-xs font-medium flex items-center justify-between group transition-colors cursor-pointer ${
-                          isJustInserted
-                            ? 'bg-emerald-50 dark:bg-emerald-950/40 text-emerald-800 dark:text-emerald-300'
-                            : 'text-stone-700 dark:text-stone-200 hover:bg-rose-50 dark:hover:bg-rose-950/50 hover:text-rose-600 dark:hover:text-rose-300'
-                        }`}
-                      >
-                        <div className="flex items-center gap-1.5 truncate">
-                          <span className="text-[11px] px-1.5 py-0.5 rounded bg-rose-100 dark:bg-rose-950 text-rose-700 dark:text-rose-300 font-mono font-semibold">🎙️ {cue}</span>
-                        </div>
-                        <span className="text-[10px] text-stone-400 group-hover:text-rose-500 opacity-0 group-hover:opacity-100 font-mono">
-                          {isJustInserted ? '已加' : '插入'}
-                        </span>
-                      </button>
-                    );
-                  })}
-                </div>
-              </div>
-            )}
+            {/* Public Review Share Button */}
+            <button
+              type="button"
+              onClick={handleShareReviewClick}
+              disabled={isGeneratingShare}
+              className="flex items-center gap-1.5 text-xs font-semibold bg-white dark:bg-stone-800 hover:bg-stone-50 dark:hover:bg-stone-700 text-stone-700 dark:text-stone-300 border border-stone-200 dark:border-stone-700 px-2.5 py-1 rounded-lg shadow-2xs transition-colors cursor-pointer disabled:opacity-60"
+              title="一键生成免登录外部审稿快照并自动复制链接"
+            >
+              <Share2 className={`w-3.5 h-3.5 text-rose-500 ${isGeneratingShare ? 'animate-spin' : ''}`} />
+              <span className="hidden sm:inline">{isGeneratingShare ? '生成中…' : '分享'}</span>
+            </button>
+
+            {/* Copy Full Script */}
+            <button
+              type="button"
+              onClick={copyFullScript}
+              className="p-1.5 rounded-lg text-xs font-semibold bg-white dark:bg-stone-800 hover:bg-stone-50 dark:hover:bg-stone-700 text-stone-700 dark:text-stone-300 border border-stone-200 dark:border-stone-700 shadow-2xs transition-colors cursor-pointer"
+              title="复制文案全文"
+            >
+              {copied ? <Check className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
+            </button>
+
+            {/* Immersive Writing Mode (Zen Mode) Toggle */}
+            <button
+              type="button"
+              onClick={() => setIsZenMode(true)}
+              className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-semibold bg-white dark:bg-stone-800 text-stone-700 dark:text-stone-300 border border-stone-200 dark:border-stone-700 hover:bg-stone-50 dark:hover:bg-stone-700/80 shadow-2xs transition-all cursor-pointer"
+              title="开启沉浸写作模式 (Cmd/Ctrl + Shift + F)"
+            >
+              <Maximize2 className="w-3.5 h-3.5 text-rose-500" />
+              <span className="hidden sm:inline">沉浸写作</span>
+            </button>
+
+            {/* Teleprompter Fullscreen Button */}
+            <button
+              type="button"
+              onClick={() => setIsTeleprompterOpen(true)}
+              className="flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-bold bg-rose-600 hover:bg-rose-700 active:scale-95 text-white shadow-2xs transition-all cursor-pointer"
+              title="开启全屏沉浸录音提词器 (Cmd/Ctrl + Shift + P)"
+            >
+              <Mic className="w-3.5 h-3.5" />
+              <span>录音提词</span>
+            </button>
           </div>
-
-          {/* Typewriter Mode Toggle */}
-          <button
-            type="button"
-            onClick={() => setIsTypewriterMode((current) => !current)}
-            className={`p-1.5 rounded-lg text-xs font-semibold border transition-all cursor-pointer ${
-              isTypewriterMode
-                ? 'bg-rose-50 dark:bg-rose-950/50 text-rose-700 dark:text-rose-300 border-rose-300 dark:border-rose-800 shadow-2xs'
-                : 'bg-white dark:bg-stone-800 text-stone-700 dark:text-stone-300 border-stone-200 dark:border-stone-700 hover:bg-stone-50 dark:hover:bg-stone-700/80 shadow-2xs'
-            }`}
-            title={isTypewriterMode ? '关闭打字机模式' : '开启打字机模式（当前编辑行保持居中）'}
-          >
-            <AlignCenter className="w-3.5 h-3.5 text-rose-500" />
-          </button>
-
-          {/* Public Review Share Button */}
-          <button
-            type="button"
-            onClick={handleShareReviewClick}
-            disabled={isGeneratingShare}
-            className="flex items-center gap-1.5 text-xs font-semibold bg-white dark:bg-stone-800 hover:bg-stone-50 dark:hover:bg-stone-700 text-stone-700 dark:text-stone-300 border border-stone-200 dark:border-stone-700 px-2.5 py-1 rounded-lg shadow-2xs transition-colors cursor-pointer disabled:opacity-60"
-            title="一键生成免登录外部审稿快照并自动复制链接"
-          >
-            <Share2 className={`w-3.5 h-3.5 text-rose-500 ${isGeneratingShare ? 'animate-spin' : ''}`} />
-            <span className="hidden sm:inline">{isGeneratingShare ? '生成中…' : '分享'}</span>
-          </button>
-
-          {/* Copy Full Script */}
-          <button
-            type="button"
-            onClick={copyFullScript}
-            className="p-1.5 rounded-lg text-xs font-semibold bg-white dark:bg-stone-800 hover:bg-stone-50 dark:hover:bg-stone-700 text-stone-700 dark:text-stone-300 border border-stone-200 dark:border-stone-700 shadow-2xs transition-colors cursor-pointer"
-            title="复制文案全文"
-          >
-            {copied ? <Check className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
-          </button>
-
-          {/* Zen Fullscreen Toggle */}
-          <button
-            type="button"
-            onClick={() => setIsZenMode(!isZenMode)}
-            className={`p-1.5 rounded-lg text-xs font-semibold border transition-all cursor-pointer ${
-              isZenMode
-                ? 'bg-stone-900 dark:bg-rose-600 text-white border-stone-900 dark:border-rose-600 shadow-xs'
-                : 'bg-white dark:bg-stone-800 text-stone-700 dark:text-stone-300 border-stone-200 dark:border-stone-700 hover:bg-stone-50 dark:hover:bg-stone-700/80 shadow-2xs'
-            }`}
-            title={isZenMode ? '退出专注全屏 (Esc)' : '开启沉浸专注全屏 (Cmd+Shift+F)'}
-          >
-            {isZenMode ? <Minimize2 className="w-3.5 h-3.5" /> : <Maximize2 className="w-3.5 h-3.5" />}
-          </button>
-
-          {/* Teleprompter Fullscreen Button */}
-          <button
-            type="button"
-            onClick={() => setIsTeleprompterOpen(true)}
-            className="flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-bold bg-rose-600 hover:bg-rose-700 active:scale-95 text-white shadow-2xs transition-all cursor-pointer"
-            title="开启全屏沉浸录音提词器 (Cmd/Ctrl + Shift + P)"
-          >
-            <Mic className="w-3.5 h-3.5" />
-            <span>录音提词</span>
-          </button>
         </div>
-      </div>
+      )}
 
-      {/* Multi-device Presence Lock Conflict Alert Banner */}
-      {presenceState.is_locked && !dismissLockBanner && (
+      {/* Multi-device Presence Lock Conflict Alert Banner (Hidden in Zen Mode) */}
+      {!isZenMode && presenceState.is_locked && !dismissLockBanner && (
         <div className="flex shrink-0 items-center justify-between gap-2 border-b border-amber-300 dark:border-amber-800 bg-amber-50 dark:bg-amber-950/60 px-3 py-2 text-xs font-semibold text-amber-900 dark:text-amber-200 sm:px-6 animate-in fade-in duration-200">
           <div className="flex items-center gap-2 min-w-0">
             <ShieldAlert className="h-4 w-4 text-amber-600 dark:text-amber-400 shrink-0" />
@@ -958,7 +948,7 @@ export const ScriptEditorTab: React.FC<ScriptEditorTabProps> = ({
         </div>
       )}
 
-      {citationHealth && (citationHealth.staleCount > 0 || citationHealth.unverifiedCount > 0) && (
+      {!isZenMode && citationHealth && (citationHealth.staleCount > 0 || citationHealth.unverifiedCount > 0) && (
         <button
           type="button"
           onClick={openReferencePanel}
@@ -971,6 +961,120 @@ export const ScriptEditorTab: React.FC<ScriptEditorTabProps> = ({
           </span>
           <span className="ml-auto text-[11px] text-amber-700 dark:text-amber-400">查看资料 →</span>
         </button>
+      )}
+
+      {/* Floating Zen Controls */}
+      {isZenMode && (
+        <>
+          {/* Top-Left: Floating Outline Drawer Toggle */}
+          <div className="fixed left-5 sm:left-8 top-5 sm:top-7 z-40 animate-in fade-in zoom-in-95 duration-200">
+            <button
+              type="button"
+              onClick={toggleOutlinePanel}
+              aria-label="展开/收起文案大纲"
+              aria-pressed={isOutlineOpen}
+              className={`flex items-center gap-1.5 rounded-xl border px-3 py-1.5 text-xs font-semibold backdrop-blur-md shadow-lg transition-all cursor-pointer hover:scale-[1.03] active:scale-[0.98] ${
+                isOutlineOpen
+                  ? 'bg-rose-600 text-white border-rose-600 shadow-rose-600/25'
+                  : 'bg-white/90 dark:bg-stone-900/90 border-stone-200/90 dark:border-stone-700/80 text-stone-700 dark:text-stone-200 hover:bg-white dark:hover:bg-stone-850'
+              }`}
+              title="大纲章节快速定位 (Esc 收起)"
+            >
+              <PanelLeftOpen className="h-3.5 w-3.5 text-rose-500" />
+              <span>大纲</span>
+              {outline.flatItems.length > 0 && (
+                <span
+                  className={`rounded-full px-1.5 text-[10px] font-bold font-mono ${
+                    isOutlineOpen
+                      ? 'bg-white/20 text-white'
+                      : 'bg-rose-100 dark:bg-rose-900/60 text-rose-800 dark:text-rose-200'
+                  }`}
+                >
+                  {outline.flatItems.length}
+                </span>
+              )}
+            </button>
+          </div>
+
+          {/* Top-Right: Floating Reference Drawer Toggle & Exit Button */}
+          <div className="fixed right-5 sm:right-8 top-5 sm:top-7 z-40 flex items-center gap-2 animate-in fade-in zoom-in-95 duration-200">
+            {topic && (
+              <button
+                type="button"
+                onClick={toggleReferencePanel}
+                aria-label="展开/收起事实参考"
+                aria-pressed={isReferenceOpen}
+                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold border backdrop-blur-md shadow-lg transition-all cursor-pointer hover:scale-[1.03] active:scale-[0.98] ${
+                  isReferenceOpen
+                    ? 'bg-rose-600 text-white border-rose-600 shadow-rose-600/25'
+                    : 'bg-white/90 dark:bg-stone-900/90 border-stone-200/90 dark:border-stone-700/80 text-stone-700 dark:text-stone-200 hover:bg-white dark:hover:bg-stone-850'
+                }`}
+                title="展开/收起边写边看事实参考抽屉"
+              >
+                <BookOpen className="w-3.5 h-3.5 text-rose-500" />
+                <span className="hidden sm:inline">事实参考</span>
+                {citationHealth && citationHealth.unverifiedCount > 0 && (
+                  <span className="rounded-full bg-amber-100 dark:bg-amber-950/60 px-1.5 text-[10px] text-amber-800 dark:text-amber-300 font-mono font-bold">
+                    {citationHealth.unverifiedCount}
+                  </span>
+                )}
+              </button>
+            )}
+
+            <button
+              type="button"
+              onClick={() => setIsZenMode(false)}
+              className="flex items-center gap-1 px-3 py-1.5 rounded-xl text-xs font-semibold border bg-stone-900/90 dark:bg-stone-800/90 hover:bg-stone-900 dark:hover:bg-stone-700 text-white border-stone-700/80 backdrop-blur-md shadow-lg transition-all cursor-pointer hover:scale-[1.03] active:scale-[0.98]"
+              title="退出沉浸写作模式 (Esc)"
+            >
+              <Minimize2 className="w-3.5 h-3.5" />
+              <span className="hidden sm:inline">退出沉浸</span>
+              <kbd className="text-[10px] font-mono bg-white/20 px-1 py-0.2 rounded text-white/90 ml-0.5">Esc</kbd>
+            </button>
+          </div>
+
+          {/* Bottom-Right: Floating Stats Capsule */}
+          <div className="fixed right-5 sm:right-8 bottom-5 sm:bottom-7 z-40 flex items-center gap-2.5 bg-stone-900/90 dark:bg-stone-850/95 backdrop-blur-md border border-stone-700/80 text-stone-100 px-4 py-2 rounded-full text-xs font-mono shadow-2xl animate-in fade-in zoom-in-95 duration-200 select-none">
+            <span className="font-bold text-white font-mono">
+              {charCount.toLocaleString()} <span className="font-normal text-stone-400 text-[11px]">字</span>
+            </span>
+            <span className="text-stone-600">·</span>
+            <span
+              className="flex items-center gap-1 text-rose-400 font-semibold font-mono text-[11px]"
+              title={`预估时长（按 ${effectiveSpeed} 字/分钟计算）`}
+            >
+              <Clock className="w-3 h-3 text-rose-400 shrink-0" />
+              <span>{estMinutes}分{estSeconds}秒</span>
+            </span>
+            <span className="text-stone-600">·</span>
+            <div className="flex items-center gap-1 text-[10px] text-stone-400">
+              {saveStatus === 'saving' && (
+                <span className="flex items-center gap-1 text-amber-400" title="正在同步至云端...">
+                  <span className="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse" />
+                  <span className="hidden sm:inline">同步中</span>
+                </span>
+              )}
+              {saveStatus === 'saved' && (
+                <span className="flex items-center gap-1 text-emerald-400" title="云端已同步">
+                  <CheckCircle2 className="w-3 h-3 text-emerald-400" />
+                  <span className="hidden sm:inline">已同步</span>
+                </span>
+              )}
+              {(saveStatus === 'local' || saveStatus === 'unsaved' || saveStatus === 'pending') && (
+                <span className="flex items-center gap-1 text-stone-300" title="本地已安全暂存">
+                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-400/80" />
+                  <span className="hidden sm:inline">已暂存</span>
+                </span>
+              )}
+              {saveStatus === 'conflict' && (
+                <span className="flex items-center gap-1 text-red-400" title="版本冲突">
+                  <AlertTriangle className="w-3 h-3 text-red-400" />
+                  <span className="hidden sm:inline">冲突</span>
+                </span>
+              )}
+            </div>
+          </div>
+        </>
       )}
 
       {/* Writing Canvas & Side Drawer Split Area */}

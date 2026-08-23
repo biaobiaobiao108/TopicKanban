@@ -8,6 +8,8 @@ import {
   Edit2,
   ChevronDown,
   FileDown,
+  Zap,
+  AlertTriangle,
 } from 'lucide-react';
 import { NextActionDialog } from './NextActionDialog';
 import { getNextActionAgeDays, getNextActionWarning } from '../../lib/topicMetrics';
@@ -396,32 +398,56 @@ export const TopicDetailHeader: React.FC<TopicDetailHeaderProps> = ({
           <span className="hidden md:inline">更新于 {new Date(topic.updated_at).toLocaleDateString()}</span>
         </div>
 
-        {/* Right: Integrated Next Action Capsule */}
-        <div className="flex items-center gap-1.5 w-full sm:w-auto justify-between sm:justify-end">
+        {/* Right: Prominent Next Action Card */}
+        <div className="flex items-center gap-2 w-full sm:w-auto justify-between sm:justify-end">
           {warning && (
-            <span className="text-[11px] font-bold text-amber-600 dark:text-amber-400 flex items-center gap-0.5 shrink-0" title={warning}>
-              ⚠ <span className="hidden lg:inline">{warning}</span>
+            <span
+              className="text-xs font-bold text-amber-700 dark:text-amber-300 bg-amber-100/80 dark:bg-amber-950/70 border border-amber-300 dark:border-amber-800 px-2 py-0.5 rounded-lg flex items-center gap-1 shrink-0 shadow-2xs"
+              title={warning}
+            >
+              <AlertTriangle className="w-3.5 h-3.5 text-amber-600 dark:text-amber-400 shrink-0" />
+              <span className="hidden lg:inline">{warning}</span>
             </span>
           )}
           <button
             type="button"
             onClick={() => setIsActionDialogOpen(true)}
-            className={`flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-semibold transition-all cursor-pointer shadow-2xs border text-left max-w-full sm:max-w-md truncate ${
+            className={`group flex items-center gap-2 px-3 py-1.5 rounded-xl text-xs sm:text-sm font-semibold transition-all cursor-pointer border text-left max-w-full sm:max-w-md truncate shadow-2xs hover:shadow-card hover:scale-[1.01] active:scale-[0.99] ${
               warning
-                ? 'bg-amber-50 dark:bg-amber-950/40 text-amber-900 dark:text-amber-200 border-amber-300 dark:border-amber-800/80 hover:bg-amber-100 dark:hover:bg-amber-900/60'
+                ? 'bg-amber-50/90 dark:bg-amber-950/60 text-amber-950 dark:text-amber-100 border-amber-300 dark:border-amber-700 hover:border-amber-400 dark:hover:border-amber-600'
                 : topic.next_action
-                  ? 'bg-rose-50 dark:bg-rose-950/40 text-rose-900 dark:text-rose-200 border-rose-200 dark:border-rose-900/60 hover:bg-rose-100 dark:hover:bg-rose-900/60'
-                  : 'bg-stone-100 dark:bg-stone-800 text-stone-700 dark:text-stone-300 border-stone-200 dark:border-stone-700 hover:bg-stone-200/80 dark:hover:bg-stone-700'
+                  ? 'bg-rose-50/70 dark:bg-rose-950/40 text-stone-900 dark:text-stone-100 border-rose-200 dark:border-rose-900/70 hover:border-rose-300 dark:hover:border-rose-700'
+                  : 'bg-stone-50 dark:bg-stone-800/80 text-stone-700 dark:text-stone-300 border-dashed border-stone-300 dark:border-stone-700 hover:bg-stone-100 dark:hover:bg-stone-700'
             }`}
-            title={topic.next_action ? `下一步行动：${topic.next_action} (已持续 ${getNextActionAgeDays(topic)} 天) - 点击完成或更新` : '点击设置明确的下一步行动'}
+            title={
+              topic.next_action
+                ? `下一步核心行动：${topic.next_action} (已持续 ${getNextActionAgeDays(topic)} 天) - 点击更新或完成`
+                : '点击设定当前选题唯一的下一步具体行动'
+            }
           >
-            <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${warning ? 'bg-amber-500' : 'bg-rose-600 dark:bg-rose-400'}`} />
-            <span className="text-[10px] font-bold uppercase tracking-wider text-rose-700 dark:text-rose-400 shrink-0">下一步:</span>
-            <span className="truncate flex-1 font-bold">
-              {topic.next_action || '未设置行动 (点击添加)'}
+            <div className="flex items-center gap-1 shrink-0 font-bold text-xs">
+              <Zap className={`w-3.5 h-3.5 ${warning ? 'text-amber-500 fill-amber-500' : 'text-rose-600 dark:text-rose-400 fill-rose-600/20'}`} />
+              <span className={warning ? 'text-amber-800 dark:text-amber-300' : 'text-rose-700 dark:text-rose-400'}>
+                下一步
+              </span>
+            </div>
+
+            <span className="truncate flex-1 font-bold text-stone-900 dark:text-stone-100">
+              {topic.next_action || (
+                <span className="text-stone-400 dark:text-stone-500 font-normal">
+                  + 点击明确下一步行动
+                </span>
+              )}
             </span>
+
             {topic.next_action && (
-              <span className="text-[10px] font-mono opacity-70 shrink-0">
+              <span
+                className={`text-[11px] font-mono font-bold px-1.5 py-0.2 rounded-md shrink-0 ${
+                  warning
+                    ? 'bg-amber-200/70 dark:bg-amber-900/60 text-amber-900 dark:text-amber-200'
+                    : 'bg-rose-100/80 dark:bg-rose-900/60 text-rose-800 dark:text-rose-200'
+                }`}
+              >
                 {getNextActionAgeDays(topic)}d
               </span>
             )}
