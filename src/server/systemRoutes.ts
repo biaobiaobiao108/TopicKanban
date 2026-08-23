@@ -1,6 +1,6 @@
 import type { Hono } from 'hono';
 import type { AppSettings } from '../types';
-import { DEFAULT_APP_SETTINGS, DEFAULT_VOICEOVER_CUES } from '../types';
+import { DEFAULT_APP_SETTINGS, DEFAULT_VOICEOVER_CUES, APP_THEMES, type AppTheme } from '../types';
 import {
   BackupImportLimitError,
   exportAllData,
@@ -16,7 +16,6 @@ async function getKvSettings(kv?: KVNamespace, defaultPublicBaseUrl?: string): P
   try {
     const settings = await kv.get<AppSettings>('app_settings', 'json');
     if (settings && Number.isFinite(settings.reading_speed)) {
-      const validThemes = ['light', 'dark', 'warm_paper', 'system'];
       const validFontSizes = ['compact', 'standard', 'large'];
       const validLineHeights = ['normal', 'relaxed', 'loose'];
       const voiceoverCues = Array.isArray(settings.voiceover_cues)
@@ -25,7 +24,7 @@ async function getKvSettings(kv?: KVNamespace, defaultPublicBaseUrl?: string): P
 
       return {
         reading_speed: settings.reading_speed > 0 ? settings.reading_speed : DEFAULT_APP_SETTINGS.reading_speed,
-        theme: validThemes.includes(settings.theme) ? settings.theme : DEFAULT_APP_SETTINGS.theme,
+        theme: APP_THEMES.includes(settings.theme) ? settings.theme : DEFAULT_APP_SETTINGS.theme,
         editor_font_size: validFontSizes.includes(settings.editor_font_size as string) ? settings.editor_font_size : DEFAULT_APP_SETTINGS.editor_font_size,
         editor_line_height: validLineHeights.includes(settings.editor_line_height as string) ? settings.editor_line_height : DEFAULT_APP_SETTINGS.editor_line_height,
         typewriter_mode_default: typeof settings.typewriter_mode_default === 'boolean' ? settings.typewriter_mode_default : DEFAULT_APP_SETTINGS.typewriter_mode_default,
@@ -198,8 +197,7 @@ function detectEnvironment(c: { env: ApiBindings }): 'node_container' | 'cloudfl
       if (!Number.isFinite(speed) || speed <= 0 || speed > 1000) {
         return c.json({ error: 'reading_speed must be between 1 and 1000' }, 400);
       }
-      const validThemes = ['light', 'dark', 'warm_paper', 'system'];
-      const theme = validThemes.includes(settings.theme) ? settings.theme : DEFAULT_APP_SETTINGS.theme;
+      const theme = APP_THEMES.includes(settings.theme) ? settings.theme : DEFAULT_APP_SETTINGS.theme;
       const validFontSizes = ['compact', 'standard', 'large'];
       const editorFontSize = validFontSizes.includes(settings.editor_font_size as string) ? settings.editor_font_size : DEFAULT_APP_SETTINGS.editor_font_size;
       const validLineHeights = ['normal', 'relaxed', 'loose'];

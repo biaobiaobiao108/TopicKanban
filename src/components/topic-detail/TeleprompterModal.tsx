@@ -82,6 +82,15 @@ export const TeleprompterModal: React.FC<TeleprompterModalProps> = ({
 
     const parser = new DOMParser();
     const doc = parser.parseFromString(contentHtml, 'text/html');
+
+    // Normalize voiceover cue elements into canonical bracket format e.g. [停顿 1s]
+    doc.querySelectorAll('span[data-cue], span.inline-voiceover-cue').forEach((el) => {
+      const cue = el.getAttribute('data-cue') || el.textContent?.replace(/^🎙️\s*/, '').replace(/^\[|\]$/g, '').trim() || '';
+      if (cue) {
+        el.textContent = `[${cue}]`;
+      }
+    });
+
     const nodes = Array.from(doc.body.childNodes);
     const blocks: ParsedBlock[] = [];
     let currentChapter = '';

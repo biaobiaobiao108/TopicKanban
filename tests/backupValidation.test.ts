@@ -89,4 +89,31 @@ describe('backup schema validation', () => {
       expect(result.error).toContain('不是合法 JSON');
     }
   });
+
+  it('accepts timeline events with contrast_tag and theme presets', () => {
+    const topic = createTopic('topic-1');
+    const result = validateBackupData(createBackup({
+      topics: [topic],
+      timeline: [{
+        id: 'time-1',
+        topic_id: topic.id,
+        title: '关键反转',
+        description: '情节反转描述',
+        event_date: '2026-05-01',
+        date_precision: 'exact',
+        verification_status: 'confirmed',
+        sort_order: 1,
+        contrast_tag: '荒诞反差',
+        created_at: '2026-05-01T00:00:00.000Z',
+        updated_at: '2026-05-01T00:00:00.000Z',
+      }],
+      settings: {
+        reading_speed: 300,
+        theme: 'nordic_frost',
+        reviewer_branding: '老编辑审稿',
+      },
+    }));
+
+    expect(result.success).toBe(true);
+  });
 });

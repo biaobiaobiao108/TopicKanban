@@ -419,7 +419,7 @@ export const TopicDetailView: React.FC<TopicDetailViewProps> = ({
         )}
       </div>
 
-      <div className="fixed inset-x-0 bottom-0 z-40 border-t border-stone-200 bg-white/95 px-2 pt-2 pb-[max(0.5rem,env(safe-area-inset-bottom))] backdrop-blur-md md:hidden">
+      <div className="fixed inset-x-0 bottom-0 z-40 border-t border-stone-200 dark:border-stone-800 bg-white/95 dark:bg-stone-900/95 px-2 pt-2 pb-[max(0.5rem,env(safe-area-inset-bottom))] backdrop-blur-md md:hidden transition-colors">
         {(isStageMenuOpen || isMoreMenuOpen) && (
           <button
             type="button"
@@ -432,8 +432,8 @@ export const TopicDetailView: React.FC<TopicDetailViewProps> = ({
           />
         )}
         {isStageMenuOpen && (
-          <div className="absolute bottom-full left-2 right-2 mb-2 rounded-xl border border-stone-200 bg-white p-2 shadow-modal">
-            <div className="px-2 pb-1 text-[11px] font-bold text-stone-400">切换生产阶段</div>
+          <div className="absolute bottom-full left-2 right-2 mb-2 rounded-xl border border-stone-200 dark:border-stone-800 bg-white dark:bg-stone-900 p-2 shadow-modal animate-in fade-in zoom-in-95 duration-100">
+            <div className="px-2 pb-1 text-[11px] font-bold text-stone-400 dark:text-stone-500">切换生产阶段</div>
             <div className="grid grid-cols-3 gap-1.5">
               {COLUMNS.map((column) => (
                 <button
@@ -443,10 +443,10 @@ export const TopicDetailView: React.FC<TopicDetailViewProps> = ({
                     void onUpdateTopic({ status: column.status });
                     setIsStageMenuOpen(false);
                   }}
-                  className={`min-h-11 rounded-lg border px-2 text-xs font-semibold ${
+                  className={`min-h-11 rounded-lg border px-2 text-xs font-semibold cursor-pointer transition-colors ${
                     topic.status === column.status
-                      ? 'border-rose-300 bg-rose-50 text-rose-700'
-                      : 'border-stone-200 bg-stone-50 text-stone-700'
+                      ? 'border-rose-300 dark:border-rose-800 bg-rose-50 dark:bg-rose-950/60 text-rose-700 dark:text-rose-300'
+                      : 'border-stone-200 dark:border-stone-700 bg-stone-50 dark:bg-stone-800 text-stone-700 dark:text-stone-300 hover:bg-stone-100 dark:hover:bg-stone-700'
                   }`}
                 >
                   {column.label}
@@ -456,7 +456,7 @@ export const TopicDetailView: React.FC<TopicDetailViewProps> = ({
           </div>
         )}
         {isMoreMenuOpen && (
-          <div className="absolute bottom-full right-2 mb-2 w-52 rounded-xl border border-stone-200 bg-white p-2 shadow-modal">
+          <div className="absolute bottom-full right-2 mb-2 w-52 rounded-xl border border-stone-200 dark:border-stone-800 bg-white dark:bg-stone-900 p-2 shadow-modal animate-in fade-in zoom-in-95 duration-100">
             {tabs.filter((tab) => tab.id !== 'script').map((tab) => (
               <button
                 key={tab.id}
@@ -465,9 +465,9 @@ export const TopicDetailView: React.FC<TopicDetailViewProps> = ({
                   setActiveTab(tab.id);
                   setIsMoreMenuOpen(false);
                 }}
-                className="flex min-h-11 w-full items-center gap-2 rounded-lg px-3 text-left text-xs font-semibold text-stone-700 hover:bg-stone-100"
+                className="flex min-h-11 w-full items-center gap-2 rounded-lg px-3 text-left text-xs font-semibold text-stone-700 dark:text-stone-300 hover:bg-stone-100 dark:hover:bg-stone-800 cursor-pointer transition-colors"
               >
-                <tab.icon className="h-4 w-4 text-stone-400" /> {tab.label}
+                <tab.icon className="h-4 w-4 text-stone-400 dark:text-stone-500" /> {tab.label}
               </button>
             ))}
           </div>
@@ -476,7 +476,7 @@ export const TopicDetailView: React.FC<TopicDetailViewProps> = ({
           <button
             type="button"
             onClick={() => setIsActionDialogOpen(true)}
-            className="flex min-h-12 flex-col items-center justify-center gap-0.5 rounded-xl bg-rose-600 px-1 text-[10px] font-bold text-white"
+            className="flex min-h-12 flex-col items-center justify-center gap-0.5 rounded-xl bg-rose-600 hover:bg-rose-700 px-1 text-[10px] font-bold text-white cursor-pointer shadow-2xs"
           >
             <CheckCircle2 className="h-4 w-4" /> 下一步
           </button>
@@ -486,15 +486,17 @@ export const TopicDetailView: React.FC<TopicDetailViewProps> = ({
               setIsStageMenuOpen((previous) => !previous);
               setIsMoreMenuOpen(false);
             }}
-            className="flex min-h-12 flex-col items-center justify-center gap-0.5 rounded-xl px-1 text-[10px] font-semibold text-stone-600 hover:bg-stone-100"
+            className="flex min-h-12 flex-col items-center justify-center gap-0.5 rounded-xl px-1 text-[10px] font-semibold text-stone-600 dark:text-stone-400 hover:bg-stone-100 dark:hover:bg-stone-800 cursor-pointer transition-colors"
           >
             <GitBranch className="h-4 w-4" /> 改阶段
           </button>
           <button
             type="button"
             onClick={() => setActiveTab('script')}
-            className={`flex min-h-12 flex-col items-center justify-center gap-0.5 rounded-xl px-1 text-[10px] font-semibold ${
-              activeTab === 'script' ? 'bg-stone-900 text-white' : 'text-stone-600 hover:bg-stone-100'
+            className={`flex min-h-12 flex-col items-center justify-center gap-0.5 rounded-xl px-1 text-[10px] font-semibold cursor-pointer transition-colors ${
+              activeTab === 'script'
+                ? 'bg-stone-900 dark:bg-stone-100 text-white dark:text-stone-900 shadow-2xs'
+                : 'text-stone-600 dark:text-stone-400 hover:bg-stone-100 dark:hover:bg-stone-800'
             }`}
           >
             <PenTool className="h-4 w-4" /> 写文案
@@ -505,7 +507,7 @@ export const TopicDetailView: React.FC<TopicDetailViewProps> = ({
               setIsMoreMenuOpen((previous) => !previous);
               setIsStageMenuOpen(false);
             }}
-            className="flex min-h-12 flex-col items-center justify-center gap-0.5 rounded-xl px-1 text-[10px] font-semibold text-stone-600 hover:bg-stone-100"
+            className="flex min-h-12 flex-col items-center justify-center gap-0.5 rounded-xl px-1 text-[10px] font-semibold text-stone-600 dark:text-stone-400 hover:bg-stone-100 dark:hover:bg-stone-800 cursor-pointer transition-colors"
           >
             <MoreHorizontal className="h-4 w-4" /> 更多
           </button>

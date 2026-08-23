@@ -12,8 +12,9 @@ import type {
   TimelineEvent,
   Topic,
   PaginatedTopics,
+  AppTheme,
 } from '../types';
-import { isTopicStatus } from '../types';
+import { isTopicStatus, APP_THEMES } from '../types';
 
 export const MAX_IMPORT_STATEMENTS = 500;
 export const MAX_IMPORT_BYTES = 5 * 1024 * 1024;
@@ -79,8 +80,8 @@ export function parseSettings(rows?: Array<{ key: string; value: string }>): App
   }
   const values = new Map(rows.map((row) => [row.key, row.value]));
   const speed = Number(values.get('reading_speed'));
-  const rawTheme = values.get('theme');
-  const theme = rawTheme === 'dark' || rawTheme === 'warm_paper' || rawTheme === 'system' ? rawTheme : 'light';
+  const rawTheme = values.get('theme') as AppTheme;
+  const theme = APP_THEMES.includes(rawTheme) ? rawTheme : 'light';
   return {
     reading_speed: Number.isFinite(speed) && speed > 0 ? speed : 280,
     theme,
@@ -343,10 +344,10 @@ function sourceStatement(db: D1Database, source: Source): D1PreparedStatement {
 function timelineStatement(db: D1Database, event: TimelineEvent): D1PreparedStatement {
   return bind(db, `INSERT INTO timeline_events (
     id, topic_id, title, description, event_date, date_precision, verification_status,
-    sort_order, created_at, updated_at
-  ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`, [
+    sort_order, contrast_tag, created_at, updated_at
+  ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`, [
     event.id, event.topic_id, event.title, event.description, event.event_date, event.date_precision,
-    event.verification_status, event.sort_order, event.created_at, event.updated_at,
+    event.verification_status, event.sort_order, event.contrast_tag ?? '', event.created_at, event.updated_at,
   ]);
 }
 

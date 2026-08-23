@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import type { BackupData } from '../types';
+import { type BackupData, APP_THEMES } from '../types';
 
 const id = z.string().trim().min(1, 'ID 不能为空').max(200, 'ID 不能超过 200 字符');
 const shortText = z.string().max(200);
@@ -81,6 +81,7 @@ const timelineSchema = z.object({
   date_precision: z.enum(['exact', 'year_month', 'year', 'unknown']),
   verification_status: verificationStatus,
   sort_order: z.number().int().nonnegative(),
+  contrast_tag: z.string().max(100).optional(),
   created_at: timestamp,
   updated_at: timestamp,
   person_ids: z.array(id).optional(),
@@ -93,6 +94,8 @@ const relationshipSchema = z.object({
   relationship: shortText.trim().min(1),
   description: longText,
   created_at: timestamp,
+  person_a_name: z.string().max(200).optional(),
+  person_b_name: z.string().max(200).optional(),
 }).passthrough();
 
 const draftSchema = z.object({
@@ -142,11 +145,12 @@ const publishedSchema = z.object({
   comments: z.number().int().nonnegative(),
   notes: longText,
   updated_at: timestamp,
+  topic_title: z.string().max(200).nullable().optional(),
 }).passthrough();
 
 const settingsSchema = z.object({
   reading_speed: z.number().positive().max(1_000),
-  theme: z.enum(['light', 'dark', 'warm_paper', 'system']),
+  theme: z.enum(APP_THEMES),
   editor_font_size: z.enum(['compact', 'standard', 'large']).optional(),
   editor_line_height: z.enum(['normal', 'relaxed', 'loose']).optional(),
   typewriter_mode_default: z.boolean().optional(),

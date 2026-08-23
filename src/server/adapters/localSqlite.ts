@@ -180,6 +180,16 @@ export function initializeSqliteDatabase(dbFilePath: string, schemaDir?: string)
       const sql = fs.readFileSync(schemaFile, 'utf-8');
       sqlite.exec(sql);
     }
+  } else {
+    // Ensure contrast_tag column exists on existing timeline_events table
+    try {
+      const timelineColumns = sqlite.prepare("PRAGMA table_info(timeline_events)").all() as Array<{ name: string }>;
+      if (!timelineColumns.some((col) => col.name === 'contrast_tag')) {
+        sqlite.exec("ALTER TABLE timeline_events ADD COLUMN contrast_tag TEXT NOT NULL DEFAULT ''");
+      }
+    } catch {
+      // ignore
+    }
   }
 
   // Ensure _kv_store table exists for local KV adapter

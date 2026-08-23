@@ -38,6 +38,31 @@ html.theme-kyoto-zen .script-citation {
   border-bottom-color: rgba(61, 107, 79, 0.65);
 }
 
+.inline-voiceover-cue {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  margin-left: 0.25rem;
+  margin-right: 0.25rem;
+  padding: 0.1rem 0.5rem;
+  border-radius: 9999px;
+  font-size: 0.75rem;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-weight: 700;
+  vertical-align: baseline;
+  user-select: none;
+  cursor: default;
+  background-color: #ffe4e6;
+  color: #9f1239;
+  border: 1px solid #fda4af;
+}
+
+html.dark .inline-voiceover-cue {
+  background-color: rgba(76, 5, 25, 0.8);
+  color: #fda4af;
+  border-color: rgba(159, 18, 57, 0.8);
+}
+
 .script-citation::after {
   content: "〔" attr(data-reference-title) "〕";
   margin-left: 0.2rem;

@@ -31,13 +31,25 @@ describe('Settings KV Model and Parser', () => {
     expect(settings.theme).toBe('light');
   });
 
-  it('should accept system theme', () => {
-    const rows = [
-      { key: 'reading_speed', value: '260' },
-      { key: 'theme', value: 'system' },
+  it('should accept system theme and all editorial theme presets', () => {
+    const themes = [
+      'nordic_frost',
+      'parisian_dawn',
+      'midnight_obsidian',
+      'kyoto_zen',
+      'warm_paper',
+      'light',
+      'dark',
+      'system',
     ];
-    const settings = parseSettings(rows);
-    expect(settings.reading_speed).toBe(260);
-    expect(settings.theme).toBe('system');
+    for (const theme of themes) {
+      const rows = [
+        { key: 'reading_speed', value: '260' },
+        { key: 'theme', value: theme },
+      ];
+      const settings = parseSettings(rows);
+      expect(settings.reading_speed).toBe(260);
+      expect(settings.theme).toBe(theme);
+    }
   });
 });

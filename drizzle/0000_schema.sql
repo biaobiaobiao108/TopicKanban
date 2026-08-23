@@ -51,6 +51,7 @@ CREATE TABLE timeline_events (
   date_precision TEXT NOT NULL DEFAULT 'exact' CHECK (date_precision IN ('exact', 'year_month', 'year', 'unknown')),
   verification_status TEXT NOT NULL DEFAULT 'confirmed' CHECK (verification_status IN ('confirmed', 'unverified', 'rejected')),
   sort_order INTEGER NOT NULL DEFAULT 0 CHECK (sort_order >= 0),
+  contrast_tag TEXT NOT NULL DEFAULT '',
   created_at TEXT NOT NULL,
   updated_at TEXT NOT NULL,
   FOREIGN KEY (topic_id) REFERENCES topics(id) ON DELETE CASCADE

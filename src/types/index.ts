@@ -205,15 +205,18 @@ export interface PublishedVideo {
   topic_title?: string | null;
 }
 
-export type AppTheme =
-  | 'nordic_frost'
-  | 'parisian_dawn'
-  | 'midnight_obsidian'
-  | 'kyoto_zen'
-  | 'warm_paper'
-  | 'light'
-  | 'dark'
-  | 'system';
+export const APP_THEMES = [
+  'nordic_frost',
+  'parisian_dawn',
+  'midnight_obsidian',
+  'kyoto_zen',
+  'warm_paper',
+  'light',
+  'dark',
+  'system',
+] as const;
+
+export type AppTheme = typeof APP_THEMES[number];
 export type EditorFontSize = 'compact' | 'standard' | 'large';
 export type EditorLineHeight = 'normal' | 'relaxed' | 'loose';
 

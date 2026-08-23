@@ -431,7 +431,7 @@ export function createApp() {
       const body = await c.req.json<Partial<TimelineEvent>>();
       if (!body.topic_id || !body.title?.trim()) return c.json({ error: 'topic_id and title are required' }, 400);
       const textError = validateTextFields(body as Record<string, unknown>, {
-        title: [200, true], description: [20000], event_date: [50],
+        title: [200, true], description: [20000], event_date: [50], contrast_tag: [100],
       });
       if (textError) return c.json({ error: textError }, 400);
       if (body.date_precision !== undefined && !isOneOf(body.date_precision, DATE_PRECISIONS)) return c.json({ error: 'Invalid date precision' }, 400);
@@ -446,7 +446,9 @@ export function createApp() {
         id: body.id || createId('time'), topic_id: body.topic_id, title: body.title.trim(),
         description: body.description || '', event_date: body.event_date || '',
         date_precision: body.date_precision || 'exact', verification_status: body.verification_status || 'confirmed',
-        sort_order: body.sort_order ?? ((max?.value || 0) + 1), created_at: body.created_at || now, updated_at: now,
+        sort_order: body.sort_order ?? ((max?.value || 0) + 1),
+        contrast_tag: body.contrast_tag || '',
+        created_at: body.created_at || now, updated_at: now,
         person_ids: body.person_ids,
       };
       await db.batch([
@@ -463,7 +465,7 @@ export function createApp() {
     try {
       const db = requireDb(c);
       const body = await c.req.json<Record<string, unknown>>();
-      const textError = validateTextFields(body, { title: [200, true], description: [20000], event_date: [50] });
+      const textError = validateTextFields(body, { title: [200, true], description: [20000], event_date: [50], contrast_tag: [100] });
       if (textError) return c.json({ error: textError }, 400);
       if (hasInvalidValue(body, 'date_precision', (value) => isOneOf(value, DATE_PRECISIONS))) return c.json({ error: 'Invalid date precision' }, 400);
       if (hasInvalidValue(body, 'verification_status', (value) => isOneOf(value, VERIFICATION_STATUSES))) {
@@ -472,7 +474,7 @@ export function createApp() {
       if (hasInvalidValue(body, 'sort_order', isNonNegativeInteger)) return c.json({ error: 'Invalid sort order' }, 400);
       const id = c.req.param('id');
       await patchRow(db, 'timeline_events', id, body,
-        ['title', 'description', 'event_date', 'date_precision', 'verification_status', 'sort_order']);
+        ['title', 'description', 'event_date', 'date_precision', 'verification_status', 'sort_order', 'contrast_tag']);
       if (Array.isArray(body.person_ids)) {
         await db.batch(replaceTimelinePeopleStatements(
           db,
