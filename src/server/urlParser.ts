@@ -11,6 +11,7 @@ export interface ParsedUrlMetadata {
 }
 
 export const MAX_METADATA_HTML_BYTES = 1 * 1024 * 1024;
+export const DNS_LOOKUP_TIMEOUT_MS = 1500;
 const MAX_SAFE_REDIRECTS = 3;
 const REDIRECT_STATUS_CODES = new Set([301, 302, 303, 307, 308]);
 
@@ -158,7 +159,14 @@ async function isSafePublicRequestUrl(urlStr: string): Promise<boolean> {
       return dynamicImport('node:dns/promises');
     })();
     const hostname = new URL(urlStr).hostname;
-    const addresses = await dns.lookup(hostname, { all: true });
+    const lookupPromise = dns.lookup(hostname, { all: true }).catch(() => []);
+    let timeoutHandle: ReturnType<typeof setTimeout> | undefined;
+    const timeoutPromise = new Promise<null>((resolve) => {
+      timeoutHandle = setTimeout(() => resolve(null), DNS_LOOKUP_TIMEOUT_MS);
+    });
+    const addresses = await Promise.race([lookupPromise, timeoutPromise]);
+    if (timeoutHandle) clearTimeout(timeoutHandle);
+    if (!addresses) return false;
     return addresses.length > 0 && addresses.every(({ address }) => !isPrivateOrReservedIp(address));
   } catch {
     return false;
@@ -168,11 +176,12 @@ async function isSafePublicRequestUrl(urlStr: string): Promise<boolean> {
 async function fetchWithSafeRedirects(
   urlStr: string,
   init: RequestInit,
-  maxRedirects = MAX_SAFE_REDIRECTS
+  maxRedirects = MAX_SAFE_REDIRECTS,
+  initialUrlAlreadyValidated = false
 ): Promise<Response | null> {
   let target = urlStr;
   for (let redirectCount = 0; redirectCount <= maxRedirects; redirectCount += 1) {
-    if (!(await isSafePublicRequestUrl(target))) return null;
+    if (!(initialUrlAlreadyValidated && redirectCount === 0) && !(await isSafePublicRequestUrl(target))) return null;
     const response = await fetch(target, { ...init, redirect: 'manual' });
     if (!REDIRECT_STATUS_CODES.has(response.status)) return response;
     const location = response.headers.get('location');
@@ -352,7 +361,7 @@ async function parseYoutubeOembed(urlStr: string): Promise<ParsedUrlMetadata | n
 /**
  * Fetch and parse HTML OpenGraph / Twitter Cards / Meta tags from general web URL
  */
-async function parseGeneralWebUrl(urlStr: string): Promise<ParsedUrlMetadata> {
+async function parseGeneralWebUrl(urlStr: string, alreadyValidated = false): Promise<ParsedUrlMetadata> {
   const platform = detectPlatformFromUrl(urlStr);
   let title = '';
   let author = '';
@@ -360,7 +369,7 @@ async function parseGeneralWebUrl(urlStr: string): Promise<ParsedUrlMetadata> {
   let published_at = '';
   let cover_url = '';
 
-  if (!(await isSafePublicRequestUrl(urlStr))) {
+  if (!alreadyValidated && !(await isSafePublicRequestUrl(urlStr))) {
     return {
       title: urlStr,
       author: '',
@@ -381,7 +390,7 @@ async function parseGeneralWebUrl(urlStr: string): Promise<ParsedUrlMetadata> {
         'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
       },
       signal: controller.signal,
-    }, MAX_SAFE_REDIRECTS);
+    }, MAX_SAFE_REDIRECTS, alreadyValidated);
     if (res?.ok) {
       const html = await readResponseTextLimited(res, MAX_METADATA_HTML_BYTES);
       clearTimeout(timeoutId);
@@ -533,7 +542,7 @@ export async function parseUrlMetadata(rawInput: string): Promise<ParsedUrlMetad
 
   // 3. Generic Web URL parser
   if (targetUrl.startsWith('http://') || targetUrl.startsWith('https://')) {
-    return parseGeneralWebUrl(targetUrl);
+    return parseGeneralWebUrl(targetUrl, true);
   }
 
   return {

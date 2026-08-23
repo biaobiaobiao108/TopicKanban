@@ -121,18 +121,33 @@ describe('URL Parser & Platform Detection', () => {
   });
 
   it('handles generic public URLs gracefully', async () => {
-    const zhihu = await parseUrlMetadata('https://www.zhihu.com/question/123456');
-    expect(zhihu.platform).toBe('zhihu');
-    expect(zhihu.url).toBe('https://www.zhihu.com/question/123456');
+    const originalGetBuiltinModule = process.getBuiltinModule;
+    const dnsSpy = vi.spyOn(process, 'getBuiltinModule').mockImplementation((id: string) => (
+      id === 'node:dns/promises'
+        ? { lookup: async () => [{ address: '93.184.216.34' }] }
+        : originalGetBuiltinModule(id)
+    ));
+    const fetchSpy = vi.spyOn(globalThis, 'fetch').mockImplementation(async () => new Response(
+      '<html><head><title>Fixture page</title></head><body>Fixture</body></html>',
+      { status: 200, headers: { 'content-type': 'text/html' } }
+    ));
+    try {
+      const zhihu = await parseUrlMetadata('https://www.zhihu.com/question/123456');
+      expect(zhihu.platform).toBe('zhihu');
+      expect(zhihu.url).toBe('https://www.zhihu.com/question/123456');
 
-    const weibo = await parseUrlMetadata('https://weibo.com/123456/abcdef');
-    expect(weibo.platform).toBe('weibo');
+      const weibo = await parseUrlMetadata('https://weibo.com/123456/abcdef');
+      expect(weibo.platform).toBe('weibo');
 
-    const wechat = await parseUrlMetadata('https://mp.weixin.qq.com/s/abcdef');
-    expect(wechat.platform).toBe('wechat');
+      const wechat = await parseUrlMetadata('https://mp.weixin.qq.com/s/abcdef');
+      expect(wechat.platform).toBe('wechat');
 
-    const douyin = await parseUrlMetadata('https://www.douyin.com/video/123456');
-    expect(douyin.platform).toBe('douyin');
+      const douyin = await parseUrlMetadata('https://www.douyin.com/video/123456');
+      expect(douyin.platform).toBe('douyin');
+    } finally {
+      fetchSpy.mockRestore();
+      dnsSpy.mockRestore();
+    }
   });
 
   it('does not follow a redirect into a private address', async () => {
