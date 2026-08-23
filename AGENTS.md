@@ -76,12 +76,15 @@
 * **反向代理 (`PUBLIC_BASE_URL`)**：当容器部署在反向代理（Nginx / Caddy / NPM / CF Tunnel）后方时，外部审稿分享链接与灵感快投 Webhook 地址必须自适应公网域名。
 * 解析优先级：`settings.public_base_url` > `env.PUBLIC_BASE_URL` > `X-Forwarded-*` 标头 > `window.location.origin`。
 
-### 4. 外部音视频平台链接智能识别架构（客户端直连优先原则 Client-First Direct Scraping）
-* **背景与风控考量**：Cloudflare Workers / 海外云厂商数据中心 IP 极易被 Bilibili 等国内音视频与社交媒体平台判定为机房爬虫流量而遭遇 412/403 反爬拦截；相反，用户本人的原生浏览器网络（家庭/移动宽带原生 IP）干净度与信任度极高。
-* **分工规范**：
-  1. **Bilibili 视频**：前端优先在客户端通过原生 JSONP（`fetchBilibiliVideoData`）直连 B 站 open API，零风控、毫秒级获取视频真实标题、UP主、简介、发布日期、封面图以及播放/点赞/投币/收藏等全套互动数据；
-  2. **YouTube 视频**：前端优先在客户端通过官方 oEmbed CORS（`fetchYoutubeVideoData`）直连拉取标题、频道作者与封面；
-  3. **通用未知网站**：才走服务端 `/api/sources/parse-url` 抓取通用 OpenGraph / HTML Meta 元数据作为兜底。
+### 4. 外部音视频与社交平台链接智能识别架构（全量客户端直连原则 All Client-Side Direct Parsing）
+* **背景与风控考量**：本项目收集的资料均来自国内各大视频与社交媒体网站（Bilibili、抖音、小红书、微博、知乎、微信公众号、快手等）。各大平台对海外机房 / Cloudflare Workers 数据中心 IP 会执行 100% 反爬风控拦截（412/403/验证码），服务端抓取基本全部失效；相反，用户本人的原生浏览器网络（家庭/移动宽带原生 IP）干净度与信任度极高。
+* **架构铁律**：
+  1. **严禁服务端抓取**：严禁将国内视频与社交媒体链接交给服务端/Cloudflare 边缘节点代理抓取；
+  2. **统一客户端引擎**：全站所有链接解析与分享文本处理必须通过 `src/lib/clientUrlParser.ts` 在客户端本地执行；
+  3. **分平台直连机制**：
+     * **Bilibili**：客户端原生 JSONP（`fetchBilibiliVideoData`）直连 B 站 open API，零风控、毫秒级获取视频真实标题、UP主、完整简介、发布日期、封面图以及播放/点赞/投币/收藏等全套互动数据；
+     * **YouTube**：客户端官方 oEmbed CORS（`fetchYoutubeVideoData`）直连拉取标题、频道作者与封面；
+     * **抖音 / 快手 / 小红书 / 微博 / 微信 / 知乎**：客户端内置语义提取器，自动剥离移动端复杂的 App 复制口令与尾缀，精准提取作者、纯净标题与内容摘要。
 
 ---
 

@@ -16,9 +16,7 @@ import {
   RefreshCw,
 } from 'lucide-react';
 import { CustomSelect } from '../ui/CustomSelect';
-import { parseUrlMetadataApi } from '../../lib/remoteStorage';
-import { fetchBilibiliVideoData, extractBvid } from '../../lib/bilibili';
-import { fetchYoutubeVideoData, isYoutubeUrl } from '../../lib/youtube';
+import { parseClientMetadata } from '../../lib/clientUrlParser';
 import { useToast } from '../ui/Toast';
 
 interface SourcesTabProps {
@@ -106,115 +104,19 @@ export const SourcesTab: React.FC<SourcesTabProps> = ({
     const trimmed = rawText.trim();
     if (!trimmed) return;
 
-    let extractedUrl = '';
-    let cleanText = trimmed;
-
-    // Check if input contains BV ID or standard URL or short link
-    const bvMatch = trimmed.match(/(BV[a-zA-Z0-9]{10})/i);
-    const urlMatch = trimmed.match(/https?:\/\/[^\s]+/i);
-
-    if (urlMatch) {
-      extractedUrl = urlMatch[0];
-      cleanText = trimmed.replace(extractedUrl, '').trim();
-    } else if (bvMatch) {
-      extractedUrl = `https://www.bilibili.com/video/${bvMatch[1]}`;
-      cleanText = trimmed.replace(bvMatch[0], '').trim();
-    } else if (
-      trimmed.includes('b23.tv') ||
-      trimmed.includes('bilibili.com') ||
-      trimmed.includes('youtube.com') ||
-      trimmed.includes('youtu.be')
-    ) {
-      extractedUrl = `https://${trimmed.replace(/^https?:\/\//i, '').replace(/^\/+/, '')}`;
-      cleanText = '';
-    }
-
-    if (extractedUrl) {
-      setUrl(extractedUrl);
-
-      // Local quick fallback platform detection
-      const bvid = bvMatch ? bvMatch[1] : extractBvid(extractedUrl);
-      const isBili = /bilibili\.com|b23\.tv/i.test(extractedUrl) || Boolean(bvid);
-      const isYt = isYoutubeUrl(extractedUrl);
-
-      if (isBili) setPlatform('bilibili');
-      else if (/douyin\.com|iesdouyin\.com/i.test(extractedUrl)) setPlatform('douyin');
-      else if (/kuaishou\.com/i.test(extractedUrl)) setPlatform('kuaishou');
-      else if (/weibo\.com|weibo\.cn/i.test(extractedUrl)) setPlatform('weibo');
-      else if (/xiaohongshu\.com|xhslink\.com/i.test(extractedUrl)) setPlatform('xiaohongshu');
-      else if (/weixin\.qq\.com|mp\.weixin/i.test(extractedUrl)) setPlatform('wechat');
-      else if (/zhihu\.com/i.test(extractedUrl)) setPlatform('zhihu');
-      else if (isYt) setPlatform('youtube');
-
-      setIsParsingUrl(true);
-
-      // 1. Client-First: Direct JSONP for Bilibili (uses user's clean residential IP, 100% bypasses Cloudflare datacenter blocking)
-      if (bvid) {
-        try {
-          const biliMeta = await fetchBilibiliVideoData(bvid);
-          if (biliMeta && biliMeta.title) {
-            setTitle(biliMeta.title);
-            if (biliMeta.author) setAuthor(biliMeta.author);
-            const cleanDesc = (biliMeta.desc || '').trim();
-            const fallbackContent = cleanDesc && cleanDesc !== '-' && cleanDesc.length > 3
-              ? cleanDesc
-              : `【Bilibili 视频】${biliMeta.title}${biliMeta.author ? ` · UP主：${biliMeta.author}` : ''}${biliMeta.published_at ? ` · 发布于 ${biliMeta.published_at}` : ''}`;
-            setContent(fallbackContent);
-            if (biliMeta.published_at) setPublishedAt(biliMeta.published_at);
-            setPlatform('bilibili');
-            setUrl(biliMeta.url);
-            setIsParsingUrl(false);
-            return;
-          }
-        } catch {
-          // fallback to server parser below
-        }
-      }
-
-      // 2. Client-First: Direct CORS oEmbed for YouTube
-      if (isYt) {
-        try {
-          const ytMeta = await fetchYoutubeVideoData(extractedUrl);
-          if (ytMeta && ytMeta.title) {
-            setTitle(ytMeta.title);
-            if (ytMeta.author) setAuthor(ytMeta.author);
-            setContent(`【YouTube 视频】${ytMeta.title}${ytMeta.author ? ` · 频道：${ytMeta.author}` : ''}`);
-            setPlatform('youtube');
-            setUrl(ytMeta.url);
-            setIsParsingUrl(false);
-            return;
-          }
-        } catch {
-          // fallback to server parser below
-        }
-      }
-
-      // 3. Server Fallback for general web pages
-      try {
-        const meta = await parseUrlMetadataApi(extractedUrl);
-        if (meta) {
-          if (meta.title && meta.title !== extractedUrl) setTitle(meta.title);
-          if (meta.author) setAuthor(meta.author);
-          if (meta.content) setContent(meta.content);
-          if (meta.published_at) setPublishedAt(meta.published_at);
-          if (meta.platform) setPlatform(meta.platform as PlatformType);
-          if (meta.url) setUrl(meta.url);
-          setIsParsingUrl(false);
-          return;
-        }
-      } catch {
-        // Fallback
-      } finally {
-        setIsParsingUrl(false);
-      }
-    }
-
-    const cleanTitleCandidate = cleanText.replace(/^[【\[(（]?.*? [】\])）]?/, '').trim() || cleanText;
-    if (cleanTitleCandidate) {
-      setTitle(cleanTitleCandidate.slice(0, 80));
-    }
-    if (cleanText.length > 30) {
-      setContent(cleanText);
+    setIsParsingUrl(true);
+    try {
+      const meta = await parseClientMetadata(trimmed);
+      if (meta.title) setTitle(meta.title);
+      if (meta.author) setAuthor(meta.author);
+      if (meta.content) setContent(meta.content);
+      if (meta.published_at) setPublishedAt(meta.published_at);
+      if (meta.platform) setPlatform(meta.platform);
+      if (meta.url) setUrl(meta.url);
+    } catch {
+      // ignore
+    } finally {
+      setIsParsingUrl(false);
     }
   };
 
