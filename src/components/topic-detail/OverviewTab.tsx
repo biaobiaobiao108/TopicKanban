@@ -144,29 +144,29 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({
   };
 
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 py-4">
-      {/* Left Column: Core Narrative Components (8 Cols) */}
-      <div className="lg:col-span-8 space-y-4">
+    <div className="grid grid-cols-1 lg:grid-cols-2 gap-5 py-4">
+      {/* Left Column: Core Narrative Components (1/2) */}
+      <div className="space-y-4">
         {/* 1. 一句话选题 */}
-        <div className="bg-white dark:bg-stone-900 rounded-xl border border-stone-200 dark:border-stone-800 p-4 sm:p-4.5 space-y-2 shadow-subtle transition-colors">
+        <div className="bg-white dark:bg-stone-900 rounded-2xl border border-stone-200 dark:border-stone-800 p-4 sm:p-5 space-y-2.5 shadow-subtle transition-colors">
           <div className="flex items-center justify-between">
             <label className="text-sm font-bold text-stone-900 dark:text-stone-100 flex items-center gap-1.5">
               <Lightbulb className="w-4 h-4 text-amber-500" />
               一句话选题 (Core Concept)
             </label>
-            <span className="text-xs text-stone-400 dark:text-stone-500">用一句话讲清这期视频的核心看点与反转</span>
+            <span className="text-xs text-stone-400 dark:text-stone-500">核心看点与反转</span>
           </div>
           <textarea
             rows={2}
             value={summary}
             onChange={(e) => setSummary(e.target.value)}
             placeholder="例如：一个屡次减肥失败的网红，再一次试图证明自己，最后却被峨眉山滑竿抬了下来。"
-            className="w-full text-sm text-stone-800 dark:text-stone-100 bg-stone-50 dark:bg-stone-800 border border-stone-200 dark:border-stone-700 rounded-lg p-3 placeholder:text-stone-400 dark:placeholder:text-stone-500 focus:bg-white dark:focus:bg-stone-800 focus:border-stone-400 dark:focus:border-stone-600 focus:outline-none transition-colors"
+            className="w-full text-sm text-stone-800 dark:text-stone-100 bg-stone-50 dark:bg-stone-800/80 border border-stone-200 dark:border-stone-700 rounded-xl p-3 placeholder:text-stone-400 dark:placeholder:text-stone-500 focus:bg-white dark:focus:bg-stone-800 focus:border-rose-500 dark:focus:border-rose-500 focus:outline-none transition-colors"
           />
         </div>
 
         {/* 2. 观众为什么看 (Hook / 荒诞反差) */}
-        <div className="bg-white dark:bg-stone-900 rounded-xl border border-stone-200 dark:border-stone-800 p-4 sm:p-4.5 space-y-2 shadow-subtle transition-colors">
+        <div className="bg-white dark:bg-stone-900 rounded-2xl border border-stone-200 dark:border-stone-800 p-4 sm:p-5 space-y-2.5 shadow-subtle transition-colors">
           <div className="flex items-center justify-between">
             <label className="text-sm font-bold text-stone-900 dark:text-stone-100 flex items-center gap-1.5">
               <Sparkles className="w-4 h-4 text-rose-600 dark:text-rose-500" />
@@ -179,48 +179,48 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({
             value={hook}
             onChange={(e) => setHook(e.target.value)}
             placeholder="观众预期 vs 实际现实：前期的豪言壮语与结尾躺在滑竿上的巨大反差，揭示流量时代的浮躁人设..."
-            className="w-full text-sm text-stone-800 dark:text-stone-100 bg-stone-50 dark:bg-stone-800 border border-stone-200 dark:border-stone-700 rounded-lg p-3 placeholder:text-stone-400 dark:placeholder:text-stone-500 focus:bg-white dark:focus:bg-stone-800 focus:border-stone-400 dark:focus:border-stone-600 focus:outline-none transition-colors"
+            className="w-full text-sm text-stone-800 dark:text-stone-100 bg-stone-50 dark:bg-stone-800/80 border border-stone-200 dark:border-stone-700 rounded-xl p-3 placeholder:text-stone-400 dark:placeholder:text-stone-500 focus:bg-white dark:focus:bg-stone-800 focus:border-rose-500 dark:focus:border-rose-500 focus:outline-none transition-colors"
           />
         </div>
 
         {/* 3. 为什么现在做 (Why Now / 时机) */}
-        <div className="bg-white dark:bg-stone-900 rounded-xl border border-stone-200 dark:border-stone-800 p-4 sm:p-4.5 space-y-2 shadow-subtle transition-colors">
+        <div className="bg-white dark:bg-stone-900 rounded-2xl border border-stone-200 dark:border-stone-800 p-4 sm:p-5 space-y-2.5 shadow-subtle transition-colors">
           <div className="flex items-center justify-between">
             <label className="text-sm font-bold text-stone-900 dark:text-stone-100 flex items-center gap-1.5">
               <Clock className="w-4 h-4 text-blue-600 dark:text-blue-400" />
               为什么现在做 (Why Now / 选题时机)
             </label>
-            <span className="text-xs text-stone-400 dark:text-stone-500">热点发酵度、全网讨论周期与独特解构视角</span>
+            <span className="text-xs text-stone-400 dark:text-stone-500">热点时机与独特视角</span>
           </div>
           <textarea
             rows={2}
             value={whyNow}
             onChange={(e) => setWhyNow(e.target.value)}
             placeholder="事件发酵已达高潮，评论区开始出现深度解构声音，急需一部完整叙事长视频进行系统梳理..."
-            className="w-full text-sm text-stone-800 dark:text-stone-100 bg-stone-50 dark:bg-stone-800 border border-stone-200 dark:border-stone-700 rounded-lg p-3 placeholder:text-stone-400 dark:placeholder:text-stone-500 focus:bg-white dark:focus:bg-stone-800 focus:border-stone-400 dark:focus:border-stone-600 focus:outline-none transition-colors"
+            className="w-full text-sm text-stone-800 dark:text-stone-100 bg-stone-50 dark:bg-stone-800/80 border border-stone-200 dark:border-stone-700 rounded-xl p-3 placeholder:text-stone-400 dark:placeholder:text-stone-500 focus:bg-white dark:focus:bg-stone-800 focus:border-rose-500 dark:focus:border-rose-500 focus:outline-none transition-colors"
           />
         </div>
 
         {/* 4. 故事主线流程 (Storyline) */}
-        <div className="bg-white dark:bg-stone-900 rounded-xl border border-stone-200 dark:border-stone-800 p-4 sm:p-4.5 space-y-3 shadow-subtle transition-colors">
+        <div className="bg-white dark:bg-stone-900 rounded-2xl border border-stone-200 dark:border-stone-800 p-4 sm:p-5 space-y-2.5 shadow-subtle transition-colors">
           <div className="flex items-center justify-between">
             <label className="text-sm font-bold text-stone-900 dark:text-stone-100 flex items-center gap-1.5">
               <ListOrdered className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
               故事主线与阶段推演 (Storyline)
             </label>
-            <span className="text-xs text-stone-400 dark:text-stone-500">用箭头 "→" 或换行分隔各阶段因果递进关系</span>
+            <span className="text-xs text-stone-400 dark:text-stone-500">用箭头 "→" 分隔阶段因果</span>
           </div>
           <textarea
             rows={4}
             value={storyline}
             onChange={(e) => setStoryline(e.target.value)}
             placeholder="起因：立下誓言，豪言壮语 → 发展：直播登山，渐露疲态 → 高潮：体力透支，滑竿出场 → 结尾：网络狂欢与荒诞反思"
-            className="w-full text-sm text-stone-800 dark:text-stone-100 bg-stone-50 dark:bg-stone-800 border border-stone-200 dark:border-stone-700 rounded-lg p-3 font-mono placeholder:text-stone-400 dark:placeholder:text-stone-500 focus:bg-white dark:focus:bg-stone-800 focus:border-stone-400 dark:focus:border-stone-600 focus:outline-none transition-colors"
+            className="w-full text-sm text-stone-800 dark:text-stone-100 bg-stone-50 dark:bg-stone-800/80 border border-stone-200 dark:border-stone-700 rounded-xl p-3 font-mono placeholder:text-stone-400 dark:placeholder:text-stone-500 focus:bg-white dark:focus:bg-stone-800 focus:border-rose-500 dark:focus:border-rose-500 focus:outline-none transition-colors"
           />
         </div>
 
         {/* Save Button */}
-        <div className="flex items-center justify-end gap-3 pt-2">
+        <div className="flex items-center justify-end gap-3 pt-1">
           {savedSuccess && (
             <span className="text-xs font-semibold text-emerald-600 dark:text-emerald-400 flex items-center gap-1">
               <Check className="w-4 h-4" /> 概览设定已保存
@@ -229,7 +229,7 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({
           <button
             onClick={handleSave}
             disabled={isSaving}
-            className="px-5 py-2.5 bg-stone-900 dark:bg-rose-600 hover:bg-stone-800 dark:hover:bg-rose-700 text-white rounded-lg text-sm font-semibold transition-colors flex items-center gap-1.5 shadow-sm disabled:opacity-50 cursor-pointer"
+            className="px-5 py-2.5 bg-stone-900 dark:bg-rose-600 hover:bg-stone-800 dark:hover:bg-rose-700 text-white rounded-xl text-sm font-bold transition-all flex items-center gap-1.5 shadow-sm hover:scale-[1.01] active:scale-[0.99] disabled:opacity-50 cursor-pointer"
           >
             <Save className="w-4 h-4" />
             <span>{isSaving ? '正在保存...' : '保存概览设定'}</span>
@@ -237,13 +237,13 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({
         </div>
       </div>
 
-      {/* Right Column: Score Rating Dial & People & Tags (4 Cols) */}
-      <div className="lg:col-span-4 space-y-4">
+      {/* Right Column: Score Rating Dial & People & Tags (1/2) */}
+      <div className="space-y-4">
         {/* 5-Dimension Score Dial */}
         <ScoreRatingDial topic={topic} onUpdateScores={onUpdateTopic} />
 
         {/* 关联人物 Entity Selector */}
-        <div className="bg-white dark:bg-stone-900 rounded-xl border border-stone-200 dark:border-stone-800 p-4 sm:p-4.5 space-y-4 shadow-subtle transition-colors">
+        <div className="bg-white dark:bg-stone-900 rounded-2xl border border-stone-200 dark:border-stone-800 p-4 sm:p-5 space-y-4 shadow-subtle transition-colors">
           <div className="flex items-center justify-between">
             <h4 className="text-sm font-bold text-stone-900 dark:text-stone-100 flex items-center gap-1.5">
               <User className="w-4 h-4 text-stone-700 dark:text-stone-300" />
@@ -332,7 +332,7 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({
         </div>
 
         {/* 分类标签 Tag Selector & Editor */}
-        <div className="bg-white dark:bg-stone-900 rounded-xl border border-stone-200 dark:border-stone-800 p-5 space-y-4 shadow-subtle transition-colors">
+        <div className="bg-white dark:bg-stone-900 rounded-2xl border border-stone-200 dark:border-stone-800 p-4 sm:p-5 space-y-4 shadow-subtle transition-colors">
           <div className="flex items-center justify-between">
             <h4 className="text-sm font-bold text-stone-900 dark:text-stone-100 flex items-center gap-1.5">
               <TagIcon className="w-4 h-4 text-stone-700 dark:text-stone-300" />

@@ -267,17 +267,17 @@ export const SourcesTab: React.FC<SourcesTabProps> = ({
         </button>
       </div>
 
-      {/* Sources Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      {/* Sources Grid: 3-Column Responsive Layout */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3.5 sm:gap-4">
         {filteredSources.map((s) => (
           <div
             key={s.id}
-            className="bg-white dark:bg-stone-900 rounded-2xl border border-stone-200 dark:border-stone-800 p-4 sm:p-5 space-y-3 shadow-subtle hover:shadow-card transition-all flex flex-col justify-between"
+            className="bg-white dark:bg-stone-900 rounded-xl border border-stone-200 dark:border-stone-800 p-3.5 sm:p-4 space-y-2.5 shadow-2xs hover:shadow-subtle transition-all flex flex-col justify-between"
           >
-            <div className="space-y-2.5">
+            <div className="space-y-2">
               {/* Badges row & Quick actions */}
-              <div className="flex items-center justify-between gap-2 flex-wrap">
-                <div className="flex items-center gap-2 flex-wrap">
+              <div className="flex items-center justify-between gap-1.5 flex-wrap">
+                <div className="flex items-center gap-1.5 flex-wrap">
                   <PlatformBadge platform={s.platform} />
                   <button
                     type="button"
@@ -288,17 +288,17 @@ export const SourcesTab: React.FC<SourcesTabProps> = ({
                     <VerificationBadge status={s.verification_status} />
                   </button>
                 </div>
-                <div className="flex items-center gap-1">
+                <div className="flex items-center gap-0.5">
                   <button
                     onClick={() => openEditModal(s)}
-                    className="p-1 text-stone-400 dark:text-stone-500 hover:text-stone-700 dark:hover:text-stone-300 rounded-lg hover:bg-stone-100 dark:hover:bg-stone-800 cursor-pointer transition-colors"
+                    className="p-1 text-stone-400 dark:text-stone-500 hover:text-stone-700 dark:hover:text-stone-300 rounded hover:bg-stone-100 dark:hover:bg-stone-800 cursor-pointer transition-colors"
                     title="编辑素材"
                   >
                     <Edit2 className="w-3.5 h-3.5" />
                   </button>
                   <button
                     onClick={() => onDeleteSource(s.id)}
-                    className="p-1 text-stone-400 dark:text-stone-500 hover:text-red-600 dark:hover:text-red-400 rounded-lg hover:bg-red-50 dark:hover:bg-red-950/40 cursor-pointer transition-colors"
+                    className="p-1 text-stone-400 dark:text-stone-500 hover:text-red-600 dark:hover:text-red-400 rounded hover:bg-red-50 dark:hover:bg-red-950/40 cursor-pointer transition-colors"
                     title="删除素材"
                   >
                     <Trash2 className="w-3.5 h-3.5" />
@@ -307,30 +307,30 @@ export const SourcesTab: React.FC<SourcesTabProps> = ({
               </div>
 
               {/* Title */}
-              <h4 className="text-sm sm:text-base font-bold text-stone-900 dark:text-stone-100 leading-snug">
+              <h4 className="text-sm font-bold text-stone-900 dark:text-stone-100 leading-snug line-clamp-2" title={s.title}>
                 {s.title}
               </h4>
 
               {/* Content / Summary */}
               {s.content && (
-                <p className="text-xs text-stone-600 dark:text-stone-300 leading-relaxed bg-stone-50 dark:bg-stone-800/60 p-3 rounded-xl border border-stone-100 dark:border-stone-800">
+                <p className="text-xs text-stone-600 dark:text-stone-300 leading-relaxed bg-stone-50/90 dark:bg-stone-800/60 p-2.5 rounded-lg border border-stone-100 dark:border-stone-800/80 line-clamp-3">
                   {s.content}
                 </p>
               )}
 
               {/* Notes / Tips */}
               {s.notes && (
-                <div className="text-xs text-stone-600 dark:text-stone-400 bg-amber-50/60 dark:bg-amber-950/30 p-2.5 rounded-lg border border-amber-200/60 dark:border-amber-900/50">
-                  💡 备忘：{s.notes}
+                <div className="text-[11px] text-stone-600 dark:text-stone-400 bg-amber-50/60 dark:bg-amber-950/30 px-2 py-1 rounded border border-amber-200/50 dark:border-amber-900/40 truncate" title={`备忘：${s.notes}`}>
+                  💡 {s.notes}
                 </div>
               )}
             </div>
 
             {/* Bottom Meta & Action buttons */}
-            <div className="pt-3 border-t border-stone-100 dark:border-stone-800 flex items-center justify-between flex-wrap gap-2 text-xs text-stone-400 dark:text-stone-500">
-              <div className="flex items-center gap-3">
-                {s.author && <span>作者: {s.author}</span>}
-                {s.published_at && <span>发布: {s.published_at}</span>}
+            <div className="pt-2.5 border-t border-stone-100 dark:border-stone-800 flex items-center justify-between flex-wrap gap-1.5 text-[11px] text-stone-400 dark:text-stone-500">
+              <div className="flex items-center gap-2 truncate">
+                {s.author && <span className="truncate max-w-[90px]" title={s.author}>@{s.author}</span>}
+                {s.published_at && <span>{s.published_at}</span>}
 
                 {/* Convert to Timeline Event Button */}
                 {onConvertToTimeline && (
@@ -340,18 +340,18 @@ export const SourcesTab: React.FC<SourcesTabProps> = ({
                       setTimelineConvertedId(s.id);
                       setTimeout(() => setTimelineConvertedId(null), 2000);
                     }}
-                    className="inline-flex items-center gap-1 text-[11px] font-medium text-stone-500 dark:text-stone-400 hover:text-rose-600 dark:hover:text-rose-400 transition-colors cursor-pointer"
+                    className="inline-flex items-center gap-0.5 text-[10px] font-medium text-stone-500 dark:text-stone-400 hover:text-rose-600 dark:hover:text-rose-400 transition-colors cursor-pointer"
                     title="一键将本条素材沉淀为故事时间线事件"
                   >
                     {timelineConvertedId === s.id ? (
                       <>
-                        <Check className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
-                        <span className="text-emerald-600 dark:text-emerald-400 font-semibold">已转入时间线</span>
+                        <Check className="w-3 h-3 text-emerald-600 dark:text-emerald-400" />
+                        <span className="text-emerald-600 dark:text-emerald-400 font-semibold">已入线</span>
                       </>
                     ) : (
                       <>
-                        <Calendar className="w-3.5 h-3.5" />
-                        <span>转为时间线</span>
+                        <Calendar className="w-3 h-3" />
+                        <span>转时间线</span>
                       </>
                     )}
                   </button>
@@ -359,26 +359,26 @@ export const SourcesTab: React.FC<SourcesTabProps> = ({
               </div>
 
               {s.url && (
-                <div className="flex items-center gap-1.5">
+                <div className="flex items-center gap-1 shrink-0">
                   <button
                     onClick={() => copyUrl(s.id, s.url)}
-                    className="hover:text-stone-700 dark:hover:text-stone-300 p-1 cursor-pointer"
+                    className="hover:text-stone-700 dark:hover:text-stone-300 p-0.5 cursor-pointer"
                     title="复制链接"
                   >
                     {copiedId === s.id ? (
-                      <Check className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
+                      <Check className="w-3 h-3 text-emerald-600 dark:text-emerald-400" />
                     ) : (
-                      <Copy className="w-3.5 h-3.5" />
+                      <Copy className="w-3 h-3" />
                     )}
                   </button>
                   <a
                     href={s.url}
                     target="_blank"
                     rel="noreferrer"
-                    className="flex items-center gap-1 text-rose-600 dark:text-rose-400 hover:text-rose-700 dark:hover:text-rose-300 font-semibold hover:underline"
+                    className="flex items-center gap-0.5 text-rose-600 dark:text-rose-400 hover:text-rose-700 dark:hover:text-rose-300 font-semibold hover:underline"
                   >
-                    <span>打开来源</span>
-                    <ExternalLink className="w-3.5 h-3.5" />
+                    <span>来源</span>
+                    <ExternalLink className="w-3 h-3" />
                   </a>
                 </div>
               )}
