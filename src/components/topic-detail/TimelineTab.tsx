@@ -91,6 +91,8 @@ interface SortableTimelineCardProps {
   index: number;
   onEdit: (evt: TimelineEvent) => void;
   onDelete: (id: string) => void;
+  selected: boolean;
+  onToggle: (id: string) => void;
 }
 
 const SortableTimelineCard: React.FC<SortableTimelineCardProps> = ({
@@ -98,6 +100,8 @@ const SortableTimelineCard: React.FC<SortableTimelineCardProps> = ({
   index,
   onEdit,
   onDelete,
+  selected,
+  onToggle,
 }) => {
   const {
     attributes,
@@ -129,7 +133,8 @@ const SortableTimelineCard: React.FC<SortableTimelineCardProps> = ({
       {/* Event Main Card */}
       <div className="bg-white dark:bg-stone-900 rounded-xl border border-stone-200 dark:border-stone-800 p-4 sm:p-5 shadow-subtle hover:shadow-card transition-all space-y-2.5">
         <div className="flex items-center justify-between gap-2 flex-wrap">
-          <div className="flex items-center gap-2 flex-wrap">
+            <div className="flex items-center gap-2 flex-wrap">
+            <input type="checkbox" checked={selected} onChange={() => onToggle(event.id)} aria-label={`选择时间节点「${event.title}」`} className="h-4 w-4 accent-rose-600" />
             {/* Drag Handle */}
             <button
               type="button"
@@ -224,6 +229,7 @@ export const TimelineTab: React.FC<TimelineTabProps> = ({
     const saved = localStorage.getItem(storageKey);
     return (saved === 'time_desc' || saved === 'time_asc' || saved === 'custom') ? saved : 'custom';
   });
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
 
   useEffect(() => {
     try {
@@ -255,6 +261,12 @@ export const TimelineTab: React.FC<TimelineTabProps> = ({
     }
     return timeline;
   }, [timeline, sortMode]);
+
+  const deleteSelected = async () => {
+    const ids = [...selectedIds];
+    await Promise.all(ids.map((id) => onDeleteEvent(id)));
+    setSelectedIds(new Set());
+  };
 
   // DnD Sensors
   const sensors = useSensors(
@@ -396,6 +408,11 @@ export const TimelineTab: React.FC<TimelineTabProps> = ({
             <Plus className="w-4 h-4" />
             <span>添加节点</span>
           </button>
+          {selectedIds.size > 0 && (
+            <button type="button" onClick={() => void deleteSelected()} className="flex items-center gap-1 rounded-lg border border-red-200 bg-red-50 px-3 py-1.5 text-xs font-semibold text-red-700 hover:bg-red-100">
+              <Trash2 className="h-4 w-4" /> 删除选中 ({selectedIds.size})
+            </button>
+          )}
         </div>
       </div>
 
@@ -417,6 +434,12 @@ export const TimelineTab: React.FC<TimelineTabProps> = ({
                 index={idx}
                 onEdit={openEditModal}
                 onDelete={onDeleteEvent}
+                selected={selectedIds.has(evt.id)}
+                onToggle={(id) => setSelectedIds((current) => {
+                  const next = new Set(current);
+                  if (next.has(id)) next.delete(id); else next.add(id);
+                  return next;
+                })}
               />
             ))}
 

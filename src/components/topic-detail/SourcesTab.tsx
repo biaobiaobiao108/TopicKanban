@@ -17,6 +17,7 @@ import {
 } from 'lucide-react';
 import { CustomSelect } from '../ui/CustomSelect';
 import { parseUrlMetadataApi } from '../../lib/remoteStorage';
+import { useToast } from '../ui/Toast';
 
 interface SourcesTabProps {
   topicId: string;
@@ -57,6 +58,8 @@ export const SourcesTab: React.FC<SourcesTabProps> = ({
   const [timelineConvertedId, setTimelineConvertedId] = useState<string | null>(null);
   const [smartPasteInput, setSmartPasteInput] = useState('');
   const [isParsingUrl, setIsParsingUrl] = useState(false);
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  const { showToast } = useToast();
 
   // Form State
   const [title, setTitle] = useState('');
@@ -168,6 +171,13 @@ export const SourcesTab: React.FC<SourcesTabProps> = ({
     e.preventDefault();
     if (!title.trim()) return;
 
+    const normalizedUrl = url.trim().toLowerCase().replace(/\/$/, '');
+    const duplicate = sources.find((source) => source.id !== editingSource?.id && (
+      (normalizedUrl && source.url.trim().toLowerCase().replace(/\/$/, '') === normalizedUrl)
+      || source.title.trim().toLowerCase() === title.trim().toLowerCase()
+    ));
+    if (duplicate) showToast({ message: `检测到可能重复的素材：「${duplicate.title}」，仍会继续保存`, tone: 'info' });
+
     await onSaveSource({
       id: editingSource?.id,
       topic_id: topicId,
@@ -183,6 +193,19 @@ export const SourcesTab: React.FC<SourcesTabProps> = ({
     });
 
     setIsModalOpen(false);
+  };
+
+  const toggleSelected = (id: string) => setSelectedIds((current) => {
+    const next = new Set(current);
+    if (next.has(id)) next.delete(id); else next.add(id);
+    return next;
+  });
+
+  const deleteSelected = async () => {
+    const ids = [...selectedIds];
+    await Promise.all(ids.map((id) => onDeleteSource(id)));
+    setSelectedIds(new Set());
+    showToast({ message: `已删除 ${ids.length} 条素材` });
   };
 
   const copyUrl = (id: string, link: string) => {
@@ -265,6 +288,11 @@ export const SourcesTab: React.FC<SourcesTabProps> = ({
           <Plus className="w-4 h-4" />
           <span>添加素材</span>
         </button>
+        {selectedIds.size > 0 && (
+          <button type="button" onClick={() => void deleteSelected()} className="flex items-center gap-1.5 rounded-xl border border-red-200 bg-red-50 px-3.5 py-1.8 text-xs font-bold text-red-700 hover:bg-red-100">
+            <Trash2 className="h-4 w-4" /> 删除选中 ({selectedIds.size})
+          </button>
+        )}
       </div>
 
       {/* Sources Grid: 3-Column Responsive Layout */}
@@ -278,6 +306,7 @@ export const SourcesTab: React.FC<SourcesTabProps> = ({
               {/* Badges row & Quick actions */}
               <div className="flex items-center justify-between gap-1.5 flex-wrap">
                 <div className="flex items-center gap-1.5 flex-wrap">
+                  <input type="checkbox" checked={selectedIds.has(s.id)} onChange={() => toggleSelected(s.id)} aria-label={`选择素材「${s.title}」`} className="h-4 w-4 accent-rose-600" />
                   <PlatformBadge platform={s.platform} />
                   <button
                     type="button"
