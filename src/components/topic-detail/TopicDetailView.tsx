@@ -17,7 +17,8 @@ import {
   saveTimelineEvent,
   deleteTimelineEvent,
   reorderTimelineEvents,
-  fetchTopicWorkspace,
+  fetchDraftByTopicId,
+  fetchDraftCitations,
   saveDraft,
   cacheDraftLocally,
   saveDraftImmediately,
@@ -79,35 +80,53 @@ export const TopicDetailView: React.FC<TopicDetailViewProps> = ({
   const onTopicMetricsChangeRef = useRef(onTopicMetricsChange);
   onTopicMetricsChangeRef.current = onTopicMetricsChange;
 
-  const detailQuery = useQuery({
-    queryKey: ['topic-workspace', topic.id],
-    queryFn: () => fetchTopicWorkspace(topic.id),
-    staleTime: 0,
+  const sourcesQuery = useQuery({
+    queryKey: ['topic-sources', topic.id],
+    queryFn: () => fetchSourcesByTopicId(topic.id),
+    enabled: activeTab === 'sources' || activeTab === 'script',
   });
-  const loading = detailQuery.isLoading;
+  const timelineQuery = useQuery({
+    queryKey: ['topic-timeline', topic.id],
+    queryFn: () => fetchTimelineByTopicId(topic.id),
+    enabled: activeTab === 'timeline' || activeTab === 'script',
+  });
+  const draftQuery = useQuery({
+    queryKey: ['topic-draft', topic.id],
+    queryFn: () => fetchDraftByTopicId(topic.id),
+    enabled: activeTab === 'script',
+  });
+  const citationsQuery = useQuery({
+    queryKey: ['topic-citations', topic.id],
+    queryFn: () => fetchDraftCitations(topic.id),
+    enabled: activeTab === 'script',
+  });
+  const loading = (activeTab === 'sources' && sourcesQuery.isLoading)
+    || (activeTab === 'timeline' && timelineQuery.isLoading)
+    || (activeTab === 'script' && (draftQuery.isLoading || citationsQuery.isLoading || sourcesQuery.isLoading || timelineQuery.isLoading));
 
   useEffect(() => {
-    const data = detailQuery.data;
-    if (!data) return;
-    setSources(data.sources);
-    setTimeline(data.timeline);
-    setDraft(data.draft.draft);
-    setDraftRecovery(data.draft.conflict);
-    setCitations(data.citations);
+    if (sourcesQuery.data) setSources(sourcesQuery.data);
+    if (timelineQuery.data) setTimeline(timelineQuery.data);
+    if (draftQuery.data) {
+      setDraft(draftQuery.data.draft);
+      setDraftRecovery(draftQuery.data.conflict);
+    }
+    if (citationsQuery.data) setCitations(citationsQuery.data);
     onTopicMetricsChangeRef.current(topic.id, {
-      sources_count: data.sources.length,
-      verified_facts_count: data.sources.filter((source) => source.type === 'fact' && source.verification_status === 'confirmed').length,
-      materials_count: data.sources.filter((source) => source.type === 'material').length,
-      unverified_facts_count: data.sources.filter((source) => source.type === 'fact' && source.verification_status === 'unverified').length,
-      draft_word_count: data.draft.draft?.word_count || 0,
+      sources_count: sourcesQuery.data?.length ?? sources.length,
+      verified_facts_count: (sourcesQuery.data || sources).filter((source) => source.type === 'fact' && source.verification_status === 'confirmed').length,
+      materials_count: (sourcesQuery.data || sources).filter((source) => source.type === 'material').length,
+      unverified_facts_count: (sourcesQuery.data || sources).filter((source) => source.type === 'fact' && source.verification_status === 'unverified').length,
+      draft_word_count: draftQuery.data?.draft?.word_count ?? draft?.word_count ?? 0,
     });
-  }, [detailQuery.data, topic.id]);
+  }, [sourcesQuery.data, timelineQuery.data, draftQuery.data, citationsQuery.data, topic.id, sources, draft]);
 
   useEffect(() => {
-    if (!detailQuery.error) return;
-    console.error(detailQuery.error);
-    setOperationError(detailQuery.error instanceof Error ? `加载选题资料失败：${detailQuery.error.message}` : '加载选题资料失败');
-  }, [detailQuery.error]);
+    const error = sourcesQuery.error || timelineQuery.error || draftQuery.error || citationsQuery.error;
+    if (!error) return;
+    console.error(error);
+    setOperationError(error instanceof Error ? `加载选题资料失败：${error.message}` : '加载选题资料失败');
+  }, [sourcesQuery.error, timelineQuery.error, draftQuery.error, citationsQuery.error]);
 
   const handleSaveSource = async (sourceData: Partial<Source> & { topic_id: string; title: string }) => {
     try {
