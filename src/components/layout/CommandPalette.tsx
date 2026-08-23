@@ -274,7 +274,7 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-start justify-center pt-16 sm:pt-20 p-4 sm:p-6">
+    <div className="fixed inset-0 z-[100] flex items-start justify-center pt-16 sm:pt-20 p-4 sm:p-6">
       {/* Backdrop */}
       <div className="fixed inset-0 bg-stone-900/40 backdrop-blur-xs transition-opacity" onClick={onClose} />
 
