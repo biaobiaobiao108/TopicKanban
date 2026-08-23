@@ -91,22 +91,50 @@ export function registerSystemRoutes(app: Hono<{ Bindings: ApiBindings }>): void
     }
   });
 
+function detectEnvironment(c: { env: ApiBindings }): 'node_container' | 'cloudflare_pages' {
+  if (c.env.ENVIRONMENT === 'node_container') return 'node_container';
+  if (c.env.ENVIRONMENT === 'cloudflare_pages') return 'cloudflare_pages';
+
+  // Check whether DB or KV is using local better-sqlite3 adapters
+  const isLocalAdapter = Boolean((c.env.DB as unknown as { sqlite?: unknown })?.sqlite || (c.env.KV as unknown as { sqlite?: unknown })?.sqlite);
+  if (isLocalAdapter) return 'node_container';
+
+  // Check Cloudflare Workers / Pages environment indicators
+  const isCloudflare = (typeof navigator !== 'undefined' && navigator.userAgent === 'Cloudflare-Workers')
+    || typeof WebSocketPair !== 'undefined'
+    || Boolean((globalThis as unknown as { caches?: { default?: unknown } }).caches?.default);
+  if (isCloudflare) return 'cloudflare_pages';
+
+  return 'cloudflare_pages';
+}
+
   app.get('/health', async (c) => {
     try {
       const db = requireDb(c);
       const tableCheck = await db.prepare("SELECT count(*) AS count FROM sqlite_master WHERE type='table'")
         .first<{ count: number }>();
       const kvSettings = await getKvSettings(c.env.KV, c.env.PUBLIC_BASE_URL);
-      const isNode = typeof process !== 'undefined' && Boolean(process.versions?.node);
+      const environment = detectEnvironment(c);
+      const tablesCount = tableCheck?.count || 0;
       return c.json({
         status: 'online',
         timestamp: new Date().toISOString(),
-        environment: isNode ? 'node_container' : 'cloudflare_pages',
+        environment,
         public_base_url: kvSettings.public_base_url || c.env.PUBLIC_BASE_URL || '',
-        d1: { connected: true, tables: tableCheck?.count || 0, message: `数据库连接正常 (已检测到 ${tableCheck?.count || 0} 张数据表)` },
+        d1: {
+          connected: true,
+          tables: tablesCount,
+          message: environment === 'node_container'
+            ? `本地 SQLite 数据库连接正常 (已检测到 ${tablesCount} 张数据表)`
+            : `Cloudflare D1 (SQLite) 数据库连接正常 (已检测到 ${tablesCount} 张数据表)`,
+        },
         kv: {
           connected: !!c.env.KV,
-          message: c.env.KV ? 'KV 已绑定（用于全局偏好设置与轻量持久交互）' : 'KV 未绑定',
+          message: c.env.KV
+            ? (environment === 'node_container'
+                ? '本地 SQLite KV 存储已就绪（用于全局偏好设置与轻量持久交互）'
+                : 'Cloudflare KV 命名空间已绑定（用于全局偏好设置与轻量持久交互）')
+            : 'KV 未绑定',
         },
         quick_drop: {
           configured: !!c.env.QUICK_DROP_TOKEN,

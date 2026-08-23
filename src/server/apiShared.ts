@@ -6,6 +6,7 @@ export type ApiBindings = {
   APP_PASSWORD?: string;
   QUICK_DROP_TOKEN?: string;
   PUBLIC_BASE_URL?: string;
+  ENVIRONMENT?: 'node_container' | 'cloudflare_pages';
 };
 
 const TOKEN_TTL_SECONDS = 60 * 60 * 24 * 7;

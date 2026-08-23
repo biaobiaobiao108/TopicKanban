@@ -47,13 +47,22 @@ describe('Node.js Server Integration (Local SQLite & API)', () => {
   });
 
   it('runs full authentication, health check, topic CRUD and share flow', async () => {
-    // 1. Health check
+    // 1. Health check (Node container)
     const healthRes = await app.request('/api/health');
     expect(healthRes.status).toBe(200);
-    const healthData = await healthRes.json() as { status: string; public_base_url: string; d1: { tables: number } };
+    const healthData = await healthRes.json() as {
+      status: string;
+      environment: string;
+      public_base_url: string;
+      d1: { tables: number; message: string };
+      kv: { connected: boolean; message: string };
+    };
     expect(healthData.status).toBe('online');
+    expect(healthData.environment).toBe('node_container');
     expect(healthData.public_base_url).toBe(publicBaseUrl);
     expect(healthData.d1.tables).toBeGreaterThan(0);
+    expect(healthData.d1.message).toContain('本地 SQLite');
+    expect(healthData.kv.message).toContain('本地 SQLite');
 
     // 2. Login
     const loginRes = await app.request('/api/auth/login', {
@@ -149,5 +158,46 @@ describe('Node.js Server Integration (Local SQLite & API)', () => {
     const dropList = await listDropsRes.json() as { items: Array<{ content: string }> };
     expect(dropList.items.length).toBe(1);
     expect(dropList.items[0].content).toBe('某网红停播后续新料');
+  });
+
+  it('correctly identifies Cloudflare Pages environment when ENVIRONMENT is cloudflare_pages or simulating D1/KV', async () => {
+    const cfApp = new Hono();
+    // Simulate Cloudflare environment without local sqlite adapter attachments
+    const mockD1 = {
+      prepare: (query: string) => ({
+        bind: () => mockD1.prepare(query),
+        first: async () => ({ count: 5 }),
+        run: async () => ({ success: true, meta: { changes: 1 } }),
+        all: async () => ({ results: [], success: true }),
+      }),
+    };
+    const mockKv = {
+      get: async () => null,
+      put: async () => {},
+      delete: async () => {},
+      list: async () => ({ keys: [] }),
+    };
+
+    cfApp.use('*', async (c, next) => {
+      c.env = {
+        DB: mockD1 as unknown as D1Database,
+        KV: mockKv as unknown as KVNamespace,
+        ENVIRONMENT: 'cloudflare_pages',
+      };
+      await next();
+    });
+    cfApp.route('/', createApp());
+
+    const res = await cfApp.request('/api/health');
+    expect(res.status).toBe(200);
+    const data = await res.json() as {
+      status: string;
+      environment: string;
+      d1: { connected: boolean; message: string };
+      kv: { connected: boolean; message: string };
+    };
+    expect(data.environment).toBe('cloudflare_pages');
+    expect(data.d1.message).toContain('Cloudflare D1');
+    expect(data.kv.message).toContain('Cloudflare KV');
   });
 });

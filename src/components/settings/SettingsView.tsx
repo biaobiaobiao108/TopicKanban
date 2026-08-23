@@ -842,7 +842,15 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
               <span className="text-xs font-semibold text-stone-700 dark:text-stone-300">
                 {cfStatus.environment === 'node_container'
                   ? '本地 SQLite 容器服务正常运行中'
-                  : cfStatus.d1Connected ? 'D1 (SQLite) 与 KV 已双双连通' : '本地开发模式运行中'}
+                  : cfStatus.environment === 'cloudflare_pages'
+                    ? (cfStatus.d1Connected && cfStatus.kvConnected
+                        ? 'D1 与 KV 服务正常运行中'
+                        : cfStatus.d1Connected
+                          ? 'D1 (SQLite) 数据库连接正常 (KV 未绑定)'
+                          : 'Cloudflare 服务未连通')
+                    : cfStatus.d1Connected
+                      ? 'D1 与 KV 服务正常运行中'
+                      : '本地开发模式运行中'}
               </span>
             </div>
             <p className="text-[11px] text-stone-400 dark:text-stone-500 truncate">

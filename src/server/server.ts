@@ -27,6 +27,7 @@ const serverBindings: ApiBindings = {
   APP_PASSWORD: appPassword,
   QUICK_DROP_TOKEN: quickDropToken,
   PUBLIC_BASE_URL: publicBaseUrl,
+  ENVIRONMENT: 'node_container',
 };
 
 // Root Hono App
