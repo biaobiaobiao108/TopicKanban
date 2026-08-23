@@ -421,6 +421,32 @@ export const TeleprompterModal: React.FC<TeleprompterModalProps> = ({
 
   if (!isOpen) return null;
 
+function renderScriptTextWithCues(text: string, isDark: boolean): React.ReactNode {
+  if (!text) return null;
+  // Match bracketed voiceover cues e.g. [停顿 1s], [重音], [反讽语气], [BGM 起]
+  const parts = text.split(/(\[[^\]\n]+\])/g);
+  if (parts.length === 1) return text;
+
+  return parts.map((part, index) => {
+    if (part.startsWith('[') && part.endsWith(']')) {
+      const cueContent = part.slice(1, -1).trim();
+      return (
+        <span
+          key={`cue-${index}`}
+          className={`inline-flex items-center gap-1 mx-1.5 px-2.5 py-0.5 rounded-full text-xs font-mono font-bold tracking-wide uppercase align-middle select-none transition-all shadow-xs ${
+            isDark
+              ? 'bg-rose-950/80 text-rose-300 border border-rose-600/60 ring-1 ring-rose-500/20'
+              : 'bg-rose-100 text-rose-800 border border-rose-300 ring-1 ring-rose-400/20'
+          }`}
+        >
+          🎙️ {cueContent}
+        </span>
+      );
+    }
+    return part;
+  });
+}
+
   const activeFont = FONT_SIZES.find((f) => f.level === fontLevel) || FONT_SIZES[1];
   const isDark = theme === 'dark';
 
@@ -434,15 +460,15 @@ export const TeleprompterModal: React.FC<TeleprompterModalProps> = ({
     <div
       ref={containerRef}
       className={`fixed inset-0 z-50 flex flex-col select-none transition-colors duration-300 ${
-        isDark ? 'bg-[#0c0a09] text-[#f5f5f4]' : 'bg-[#fafaf9] text-stone-900'
+        isDark ? 'dark bg-[#0c0a09] text-[#f5f5f4]' : 'bg-[#fafaf9] text-stone-900'
       }`}
     >
-      {/* 1. Top Control Bar (Auto subtle / Translucent) */}
+      {/* 1. Top Control Bar (Solid high-contrast surface in both modes) */}
       <header
-        className={`shrink-0 flex items-center justify-between px-4 sm:px-8 py-3 border-b backdrop-blur-md transition-colors z-20 ${
+        className={`shrink-0 flex items-center justify-between px-4 sm:px-8 py-3 border-b transition-colors z-20 shadow-xs ${
           isDark
-            ? 'bg-[#0c0a09]/90 border-stone-800/80 text-stone-200'
-            : 'bg-[#fafaf9]/90 border-stone-200/80 text-stone-800'
+            ? 'bg-[#141210] border-stone-800 text-stone-100'
+            : 'bg-[#fafaf9] border-stone-200 text-stone-800'
         }`}
       >
         {/* Left: Title & Chapter status */}
@@ -462,11 +488,11 @@ export const TeleprompterModal: React.FC<TeleprompterModalProps> = ({
           {outline.flatItems.length > 0 && (
             <button
               onClick={() => setIsOutlineOpen((prev) => !prev)}
-              className={`flex items-center gap-1.5 text-xs font-semibold px-2.5 py-1 rounded-lg border transition-all ${
+              className={`flex items-center gap-1.5 text-xs font-semibold px-2.5 py-1 rounded-lg border transition-all cursor-pointer ${
                 isOutlineOpen
                   ? 'bg-rose-600 border-rose-600 text-white shadow-xs'
                   : isDark
-                  ? 'bg-stone-900/80 border-stone-700 text-stone-300 hover:bg-stone-800'
+                  ? 'bg-stone-900 border-stone-700/80 text-stone-200 hover:bg-stone-800 hover:text-white'
                   : 'bg-white border-stone-300 text-stone-700 hover:bg-stone-100'
               }`}
             >
@@ -480,32 +506,34 @@ export const TeleprompterModal: React.FC<TeleprompterModalProps> = ({
         <div className="hidden md:flex items-center gap-4 text-xs font-mono">
           <div className="flex items-center gap-1.5">
             <Clock className="w-3.5 h-3.5 text-rose-500" />
-            <span className="font-bold text-sm">{formatTimer(elapsedSeconds)}</span>
-            <span className="text-stone-500">/ {formatTimer(estimatedTotalSeconds)}</span>
+            <span className="font-bold text-sm text-rose-500">{formatTimer(elapsedSeconds)}</span>
+            <span className={isDark ? 'text-stone-400' : 'text-stone-500'}>/ {formatTimer(estimatedTotalSeconds)}</span>
           </div>
 
-          <div className="w-px h-3.5 bg-stone-700/50" />
+          <div className={`w-px h-3.5 ${isDark ? 'bg-stone-700' : 'bg-stone-300'}`} />
 
-          <div className="flex items-center gap-1.5 text-stone-400">
-            <span>进度:</span>
-            <span className="font-bold text-stone-200">{scrollProgress}%</span>
+          <div className="flex items-center gap-1.5">
+            <span className={isDark ? 'text-stone-300' : 'text-stone-500'}>进度:</span>
+            <span className={`font-bold ${isDark ? 'text-stone-100' : 'text-stone-900'}`}>{scrollProgress}%</span>
           </div>
 
-          <div className="w-px h-3.5 bg-stone-700/50" />
+          <div className={`w-px h-3.5 ${isDark ? 'bg-stone-700' : 'bg-stone-300'}`} />
 
-          <div className="text-stone-400">
-            语速: <span className="font-semibold text-stone-200">{readingSpeed} 字/分</span>
+          <div className={isDark ? 'text-stone-300' : 'text-stone-500'}>
+            语速: <span className={`font-semibold ${isDark ? 'text-stone-100' : 'text-stone-900'}`}>{readingSpeed} 字/分</span>
           </div>
         </div>
 
         {/* Right: Actions & Tools */}
         <div className="flex items-center gap-2">
           {/* Speed Multiplier Pill */}
-          <div className="flex items-center gap-1 rounded-lg border px-1.5 py-0.5 text-xs font-mono">
-            <Gauge className="w-3.5 h-3.5 text-stone-400 ml-0.5" />
+          <div className={`flex items-center gap-1 rounded-lg border px-1.5 py-0.5 text-xs font-mono transition-colors ${
+            isDark ? 'bg-stone-900 border-stone-700/80 text-stone-200' : 'bg-white border-stone-300 text-stone-700'
+          }`}>
+            <Gauge className={`w-3.5 h-3.5 ml-0.5 ${isDark ? 'text-stone-300' : 'text-stone-400'}`} />
             <button
               onClick={() => setSpeedMultiplier((prev) => Math.max(0.4, Math.round((prev - 0.2) * 10) / 10))}
-              className="px-1 hover:text-rose-500 font-bold"
+              className={`px-1 font-bold cursor-pointer ${isDark ? 'hover:text-rose-400 text-stone-200' : 'hover:text-rose-500 text-stone-700'}`}
               title="减速 (快捷键: -)"
             >
               -
@@ -513,7 +541,7 @@ export const TeleprompterModal: React.FC<TeleprompterModalProps> = ({
             <span className="font-bold text-rose-500 px-0.5">{speedMultiplier.toFixed(1)}x</span>
             <button
               onClick={() => setSpeedMultiplier((prev) => Math.min(3.0, Math.round((prev + 0.2) * 10) / 10))}
-              className="px-1 hover:text-rose-500 font-bold"
+              className={`px-1 font-bold cursor-pointer ${isDark ? 'hover:text-rose-400 text-stone-200' : 'hover:text-rose-500 text-stone-700'}`}
               title="加速 (快捷键: +)"
             >
               +
@@ -521,18 +549,20 @@ export const TeleprompterModal: React.FC<TeleprompterModalProps> = ({
           </div>
 
           {/* Font Size Preset */}
-          <div className="hidden sm:flex items-center gap-0.5 rounded-lg border p-0.5 text-xs">
-            <Type className="w-3.5 h-3.5 text-stone-400 mx-1" />
+          <div className={`hidden sm:flex items-center gap-0.5 rounded-lg border p-0.5 text-xs transition-colors ${
+            isDark ? 'bg-stone-900 border-stone-700/80' : 'bg-white border-stone-300'
+          }`}>
+            <Type className={`w-3.5 h-3.5 mx-1 ${isDark ? 'text-stone-300' : 'text-stone-400'}`} />
             {FONT_SIZES.map((f) => (
               <button
                 key={f.level}
                 onClick={() => setFontLevel(f.level)}
-                className={`px-1.5 py-0.5 rounded text-[11px] font-bold transition-colors ${
+                className={`px-1.5 py-0.5 rounded text-[11px] font-bold transition-colors cursor-pointer ${
                   fontLevel === f.level
-                    ? 'bg-rose-600 text-white'
+                    ? 'bg-rose-600 text-white shadow-xs'
                     : isDark
-                    ? 'text-stone-400 hover:text-white'
-                    : 'text-stone-600 hover:text-stone-900'
+                    ? 'text-stone-300 hover:text-white hover:bg-stone-800'
+                    : 'text-stone-600 hover:text-stone-900 hover:bg-stone-100'
                 }`}
                 title={`字号 ${f.label} (快捷键: ${f.level})`}
               >
@@ -544,12 +574,12 @@ export const TeleprompterModal: React.FC<TeleprompterModalProps> = ({
           {/* Mirror Flip Mode (For Teleprompter Glass) */}
           <button
             onClick={() => setIsMirror((prev) => !prev)}
-            className={`p-1.5 rounded-lg border transition-colors ${
+            className={`p-1.5 rounded-lg border transition-colors cursor-pointer ${
               isMirror
-                ? 'bg-amber-600 border-amber-600 text-white'
+                ? 'bg-amber-600 border-amber-600 text-white shadow-xs'
                 : isDark
-                ? 'border-stone-700 hover:bg-stone-800 text-stone-400'
-                : 'border-stone-300 hover:bg-stone-100 text-stone-600'
+                ? 'bg-stone-900 border-stone-700/80 hover:bg-stone-800 text-stone-200 hover:text-white'
+                : 'bg-white border-stone-300 hover:bg-stone-100 text-stone-700'
             }`}
             title={isMirror ? '取消镜像翻转' : '开启镜像模式 (外接分光镜提词板专用，快捷键: M)'}
           >
@@ -559,10 +589,10 @@ export const TeleprompterModal: React.FC<TeleprompterModalProps> = ({
           {/* Theme Switcher */}
           <button
             onClick={() => setTheme((prev) => (prev === 'dark' ? 'light' : 'dark'))}
-            className={`p-1.5 rounded-lg border transition-colors ${
+            className={`p-1.5 rounded-lg border transition-colors cursor-pointer ${
               isDark
-                ? 'border-stone-700 hover:bg-stone-800 text-stone-300'
-                : 'border-stone-300 hover:bg-stone-100 text-stone-700'
+                ? 'bg-stone-900 border-stone-700/80 hover:bg-stone-800 text-stone-200 hover:text-white'
+                : 'bg-white border-stone-300 hover:bg-stone-100 text-stone-700'
             }`}
             title="切换暗黑/浅色主题 (快捷键: T)"
           >
@@ -572,10 +602,10 @@ export const TeleprompterModal: React.FC<TeleprompterModalProps> = ({
           {/* Fullscreen Toggle */}
           <button
             onClick={toggleFullscreen}
-            className={`p-1.5 rounded-lg border transition-colors ${
+            className={`p-1.5 rounded-lg border transition-colors cursor-pointer ${
               isDark
-                ? 'border-stone-700 hover:bg-stone-800 text-stone-300'
-                : 'border-stone-300 hover:bg-stone-100 text-stone-700'
+                ? 'bg-stone-900 border-stone-700/80 hover:bg-stone-800 text-stone-200 hover:text-white'
+                : 'bg-white border-stone-300 hover:bg-stone-100 text-stone-700'
             }`}
             title="切换全屏 (快捷键: F)"
           >
@@ -585,12 +615,12 @@ export const TeleprompterModal: React.FC<TeleprompterModalProps> = ({
           {/* Help Button */}
           <button
             onClick={() => setShowKeyboardHelp((prev) => !prev)}
-            className={`p-1.5 rounded-lg border transition-colors ${
+            className={`p-1.5 rounded-lg border transition-colors cursor-pointer ${
               showKeyboardHelp
-                ? 'bg-rose-600 border-rose-600 text-white'
+                ? 'bg-rose-600 border-rose-600 text-white shadow-xs'
                 : isDark
-                ? 'border-stone-700 hover:bg-stone-800 text-stone-400'
-                : 'border-stone-300 hover:bg-stone-100 text-stone-600'
+                ? 'bg-stone-900 border-stone-700/80 hover:bg-stone-800 text-stone-200 hover:text-white'
+                : 'bg-white border-stone-300 hover:bg-stone-100 text-stone-700'
             }`}
             title="快捷键指南 (快捷键: ?)"
           >
@@ -600,7 +630,11 @@ export const TeleprompterModal: React.FC<TeleprompterModalProps> = ({
           {/* Exit Button */}
           <button
             onClick={onClose}
-            className="p-1.5 rounded-lg bg-stone-800/80 hover:bg-rose-600 text-stone-300 hover:text-white transition-colors ml-1"
+            className={`p-1.5 rounded-lg border transition-colors ml-1 cursor-pointer ${
+              isDark
+                ? 'bg-stone-900 border-stone-700/80 hover:bg-rose-600 hover:border-rose-600 text-stone-200 hover:text-white'
+                : 'bg-stone-100 border-stone-300 hover:bg-rose-600 hover:border-rose-600 text-stone-700 hover:text-white'
+            }`}
             title="退出提词模式 (Esc)"
           >
             <X className="w-4 h-4" />
@@ -662,18 +696,22 @@ export const TeleprompterModal: React.FC<TeleprompterModalProps> = ({
                         className={`font-black tracking-tight ${
                           block.type === 'h1'
                             ? 'text-3xl sm:text-5xl text-rose-500'
-                            : 'text-2xl sm:text-4xl text-stone-200'
+                            : isDark
+                            ? 'text-2xl sm:text-4xl text-stone-100'
+                            : 'text-2xl sm:text-4xl text-stone-800'
                         }`}
                       >
-                        {block.text}
+                        {renderScriptTextWithCues(block.text, isDark)}
                       </h3>
                     </div>
                   ) : block.type === 'quote' ? (
                     <blockquote className="border-l-4 border-amber-500 pl-4 sm:pl-6 italic text-amber-200/90">
-                      <p className={activeFont.sizeClass}>{block.text}</p>
+                      <p className={activeFont.sizeClass}>{renderScriptTextWithCues(block.text, isDark)}</p>
                     </blockquote>
                   ) : (
-                    <p className={`${activeFont.sizeClass} tracking-normal`}>{block.text}</p>
+                    <p className={`${activeFont.sizeClass} tracking-normal`}>
+                      {renderScriptTextWithCues(block.text, isDark)}
+                    </p>
                   )}
                 </div>
               );
@@ -697,18 +735,18 @@ export const TeleprompterModal: React.FC<TeleprompterModalProps> = ({
         {/* 3. Floating Chapter Outline Drawer */}
         {isOutlineOpen && (
           <aside
-            className={`absolute left-0 top-0 bottom-0 w-80 max-w-[85vw] border-r backdrop-blur-xl p-5 overflow-y-auto shadow-2xl z-30 transition-all ${
-              isDark ? 'bg-[#141210]/95 border-stone-800 text-stone-200' : 'bg-white/95 border-stone-200 text-stone-900'
+            className={`absolute left-0 top-0 bottom-0 w-80 max-w-[85vw] border-r p-5 overflow-y-auto shadow-2xl z-30 transition-all ${
+              isDark ? 'bg-[#141210] border-stone-800 text-stone-100' : 'bg-white border-stone-200 text-stone-900'
             }`}
           >
-            <div className="flex items-center justify-between pb-4 border-b border-stone-800 mb-4">
+            <div className={`flex items-center justify-between pb-4 border-b mb-4 ${isDark ? 'border-stone-800' : 'border-stone-200'}`}>
               <h3 className="font-bold text-sm flex items-center gap-2">
                 <Menu className="w-4 h-4 text-rose-500" />
                 <span>章节大纲快速跳转</span>
               </h3>
               <button
                 onClick={() => setIsOutlineOpen(false)}
-                className="p-1 rounded hover:bg-stone-800/60 text-stone-400 hover:text-stone-200"
+                className={`p-1 rounded cursor-pointer ${isDark ? 'text-stone-400 hover:text-stone-100 hover:bg-stone-800' : 'text-stone-500 hover:text-stone-800 hover:bg-stone-100'}`}
               >
                 <X className="w-4 h-4" />
               </button>
@@ -719,15 +757,15 @@ export const TeleprompterModal: React.FC<TeleprompterModalProps> = ({
                 <button
                   key={item.id}
                   onClick={() => handleJumpToChapter(item)}
-                  className={`w-full text-left p-2.5 rounded-lg font-medium transition-colors flex items-center justify-between group ${
-                    isDark ? 'hover:bg-stone-800/80 text-stone-300' : 'hover:bg-stone-100 text-stone-700'
+                  className={`w-full text-left p-2.5 rounded-lg font-medium transition-colors flex items-center justify-between group cursor-pointer ${
+                    isDark ? 'hover:bg-stone-800 text-stone-200 hover:text-white' : 'hover:bg-stone-100 text-stone-700'
                   }`}
                 >
                   <div className="truncate pr-2">
                     <span className="text-rose-500 font-bold mr-1.5">H{item.level}</span>
                     <span>{item.title}</span>
                   </div>
-                  <span className="font-mono text-[10px] text-stone-500 shrink-0">
+                  <span className={`font-mono text-[10px] shrink-0 ${isDark ? 'text-stone-400' : 'text-stone-500'}`}>
                     {formatOutlineDuration(item.durationSeconds)}
                   </span>
                 </button>
@@ -741,51 +779,51 @@ export const TeleprompterModal: React.FC<TeleprompterModalProps> = ({
           <div className="absolute inset-0 bg-black/70 backdrop-blur-sm z-40 flex items-center justify-center p-4">
             <div
               className={`max-w-md w-full rounded-2xl border p-6 shadow-2xl space-y-4 ${
-                isDark ? 'bg-[#1c1917] border-stone-800 text-stone-200' : 'bg-white border-stone-200 text-stone-900'
+                isDark ? 'bg-[#1c1917] border-stone-800 text-stone-100' : 'bg-white border-stone-200 text-stone-900'
               }`}
             >
-              <div className="flex items-center justify-between border-b pb-3 border-stone-700">
+              <div className={`flex items-center justify-between border-b pb-3 ${isDark ? 'border-stone-700' : 'border-stone-200'}`}>
                 <h4 className="font-bold flex items-center gap-2 text-base">
                   <Keyboard className="w-5 h-5 text-rose-500" />
                   <span>提词器快捷键指南</span>
                 </h4>
-                <button onClick={() => setShowKeyboardHelp(false)} className="p-1 text-stone-400 hover:text-stone-200">
+                <button onClick={() => setShowKeyboardHelp(false)} className={`p-1 cursor-pointer ${isDark ? 'text-stone-400 hover:text-stone-100' : 'text-stone-500 hover:text-stone-800'}`}>
                   <X className="w-4 h-4" />
                 </button>
               </div>
 
               <div className="grid grid-cols-2 gap-3 text-xs">
-                <div className="flex items-center justify-between p-2 rounded bg-stone-800/50">
-                  <span className="text-stone-400">开始 / 暂停</span>
-                  <kbd className="px-2 py-0.5 rounded bg-stone-900 font-mono font-bold text-rose-400">Space</kbd>
+                <div className={`flex items-center justify-between p-2 rounded ${isDark ? 'bg-stone-800/70 border border-stone-700/50' : 'bg-stone-100'}`}>
+                  <span className={isDark ? 'text-stone-300' : 'text-stone-600'}>开始 / 暂停</span>
+                  <kbd className={`px-2 py-0.5 rounded font-mono font-bold ${isDark ? 'bg-stone-900 text-rose-400 border border-stone-700' : 'bg-white text-rose-600 border border-stone-300'}`}>Space</kbd>
                 </div>
-                <div className="flex items-center justify-between p-2 rounded bg-stone-800/50">
-                  <span className="text-stone-400">微调滚动</span>
-                  <kbd className="px-2 py-0.5 rounded bg-stone-900 font-mono font-bold text-rose-400">↑ / ↓</kbd>
+                <div className={`flex items-center justify-between p-2 rounded ${isDark ? 'bg-stone-800/70 border border-stone-700/50' : 'bg-stone-100'}`}>
+                  <span className={isDark ? 'text-stone-300' : 'text-stone-600'}>微调滚动</span>
+                  <kbd className={`px-2 py-0.5 rounded font-mono font-bold ${isDark ? 'bg-stone-900 text-rose-400 border border-stone-700' : 'bg-white text-rose-600 border border-stone-300'}`}>↑ / ↓</kbd>
                 </div>
-                <div className="flex items-center justify-between p-2 rounded bg-stone-800/50">
-                  <span className="text-stone-400">滚屏加/减速</span>
-                  <kbd className="px-2 py-0.5 rounded bg-stone-900 font-mono font-bold text-rose-400">+ / -</kbd>
+                <div className={`flex items-center justify-between p-2 rounded ${isDark ? 'bg-stone-800/70 border border-stone-700/50' : 'bg-stone-100'}`}>
+                  <span className={isDark ? 'text-stone-300' : 'text-stone-600'}>滚屏加/减速</span>
+                  <kbd className={`px-2 py-0.5 rounded font-mono font-bold ${isDark ? 'bg-stone-900 text-rose-400 border border-stone-700' : 'bg-white text-rose-600 border border-stone-300'}`}>+ / -</kbd>
                 </div>
-                <div className="flex items-center justify-between p-2 rounded bg-stone-800/50">
-                  <span className="text-stone-400">切换字号</span>
-                  <kbd className="px-2 py-0.5 rounded bg-stone-900 font-mono font-bold text-rose-400">1 ~ 4</kbd>
+                <div className={`flex items-center justify-between p-2 rounded ${isDark ? 'bg-stone-800/70 border border-stone-700/50' : 'bg-stone-100'}`}>
+                  <span className={isDark ? 'text-stone-300' : 'text-stone-600'}>切换字号</span>
+                  <kbd className={`px-2 py-0.5 rounded font-mono font-bold ${isDark ? 'bg-stone-900 text-rose-400 border border-stone-700' : 'bg-white text-rose-600 border border-stone-300'}`}>1 ~ 4</kbd>
                 </div>
-                <div className="flex items-center justify-between p-2 rounded bg-stone-800/50">
-                  <span className="text-stone-400">重置回起点</span>
-                  <kbd className="px-2 py-0.5 rounded bg-stone-900 font-mono font-bold text-rose-400">R</kbd>
+                <div className={`flex items-center justify-between p-2 rounded ${isDark ? 'bg-stone-800/70 border border-stone-700/50' : 'bg-stone-100'}`}>
+                  <span className={isDark ? 'text-stone-300' : 'text-stone-600'}>重置回起点</span>
+                  <kbd className={`px-2 py-0.5 rounded font-mono font-bold ${isDark ? 'bg-stone-900 text-rose-400 border border-stone-700' : 'bg-white text-rose-600 border border-stone-300'}`}>R</kbd>
                 </div>
-                <div className="flex items-center justify-between p-2 rounded bg-stone-800/50">
-                  <span className="text-stone-400">深浅主题</span>
-                  <kbd className="px-2 py-0.5 rounded bg-stone-900 font-mono font-bold text-rose-400">T</kbd>
+                <div className={`flex items-center justify-between p-2 rounded ${isDark ? 'bg-stone-800/70 border border-stone-700/50' : 'bg-stone-100'}`}>
+                  <span className={isDark ? 'text-stone-300' : 'text-stone-600'}>深浅主题</span>
+                  <kbd className={`px-2 py-0.5 rounded font-mono font-bold ${isDark ? 'bg-stone-900 text-rose-400 border border-stone-700' : 'bg-white text-rose-600 border border-stone-300'}`}>T</kbd>
                 </div>
-                <div className="flex items-center justify-between p-2 rounded bg-stone-800/50">
-                  <span className="text-stone-400">镜像翻转</span>
-                  <kbd className="px-2 py-0.5 rounded bg-stone-900 font-mono font-bold text-rose-400">M</kbd>
+                <div className={`flex items-center justify-between p-2 rounded ${isDark ? 'bg-stone-800/70 border border-stone-700/50' : 'bg-stone-100'}`}>
+                  <span className={isDark ? 'text-stone-300' : 'text-stone-600'}>镜像翻转</span>
+                  <kbd className={`px-2 py-0.5 rounded font-mono font-bold ${isDark ? 'bg-stone-900 text-rose-400 border border-stone-700' : 'bg-white text-rose-600 border border-stone-300'}`}>M</kbd>
                 </div>
-                <div className="flex items-center justify-between p-2 rounded bg-stone-800/50">
-                  <span className="text-stone-400">退出提词器</span>
-                  <kbd className="px-2 py-0.5 rounded bg-stone-900 font-mono font-bold text-rose-400">Esc</kbd>
+                <div className={`flex items-center justify-between p-2 rounded ${isDark ? 'bg-stone-800/70 border border-stone-700/50' : 'bg-stone-100'}`}>
+                  <span className={isDark ? 'text-stone-300' : 'text-stone-600'}>退出提词器</span>
+                  <kbd className={`px-2 py-0.5 rounded font-mono font-bold ${isDark ? 'bg-stone-900 text-rose-400 border border-stone-700' : 'bg-white text-rose-600 border border-stone-300'}`}>Esc</kbd>
                 </div>
               </div>
 

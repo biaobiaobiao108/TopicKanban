@@ -11,8 +11,22 @@ import {
   ArrowUp,
   Clock,
   CheckCircle2,
-  AlertCircle
+  AlertCircle,
+  Zap,
+  Sparkles,
+  Activity,
 } from 'lucide-react';
+
+const CONTRAST_PRESETS = [
+  '荒诞反差',
+  '人物张力',
+  '伏笔呼应',
+  '高潮爆发',
+  '唏嘘切片',
+  '剧情反转',
+  '社会讽刺',
+  '情绪低谷',
+];
 
 interface TimelineTabProps {
   topicId: string;
@@ -38,6 +52,7 @@ export const TimelineTab: React.FC<TimelineTabProps> = ({
   const [eventDate, setEventDate] = useState('');
   const [datePrecision, setDatePrecision] = useState<DatePrecision>('exact');
   const [verificationStatus, setVerificationStatus] = useState<VerificationStatus>('confirmed');
+  const [contrastTag, setContrastTag] = useState('');
 
   const openAddModal = () => {
     setEditingEvent(null);
@@ -46,6 +61,7 @@ export const TimelineTab: React.FC<TimelineTabProps> = ({
     setEventDate('');
     setDatePrecision('exact');
     setVerificationStatus('confirmed');
+    setContrastTag('');
     setIsModalOpen(true);
   };
 
@@ -56,6 +72,7 @@ export const TimelineTab: React.FC<TimelineTabProps> = ({
     setEventDate(evt.event_date);
     setDatePrecision(evt.date_precision);
     setVerificationStatus(evt.verification_status);
+    setContrastTag(evt.contrast_tag || '');
     setIsModalOpen(true);
   };
 
@@ -71,6 +88,7 @@ export const TimelineTab: React.FC<TimelineTabProps> = ({
       event_date: eventDate.trim(),
       date_precision: datePrecision,
       verification_status: verificationStatus,
+      contrast_tag: contrastTag.trim() || undefined,
     });
 
     setIsModalOpen(false);
@@ -111,7 +129,7 @@ export const TimelineTab: React.FC<TimelineTabProps> = ({
             <span>事件故事时间线 (Chronological Timeline)</span>
           </h3>
           <p className="text-xs text-stone-500 dark:text-stone-400 mt-0.5">
-            将复杂事件按因果与时序组织为清晰的故事链条
+            将复杂事件按因果与时序组织为清晰的故事链条，自由标记荒诞反差与戏剧张力
           </p>
         </div>
 
@@ -124,7 +142,59 @@ export const TimelineTab: React.FC<TimelineTabProps> = ({
         </button>
       </div>
 
-      {/* Vertical Timeline */}
+      {/* 1. Narrative Rhythm & Contrast Corridor */}
+      {timeline.length > 0 && (
+        <div className="bg-white dark:bg-stone-900 rounded-xl border border-stone-200 dark:border-stone-800 p-4 space-y-3 shadow-subtle">
+          <div className="flex items-center justify-between">
+            <h4 className="text-xs font-bold text-stone-800 dark:text-stone-200 flex items-center gap-1.5">
+              <Activity className="w-3.5 h-3.5 text-rose-500" />
+              <span>叙事反差与情绪节奏走廊 (Rhythm Corridor)</span>
+            </h4>
+            <span className="text-[10px] text-stone-400 font-mono">共 {timeline.length} 个节点</span>
+          </div>
+
+          {/* Horizontal scrollable rhythm track */}
+          <div className="flex items-center gap-2 overflow-x-auto pb-2 pt-1" style={{ scrollbarWidth: 'thin' }}>
+            {timeline.map((evt, idx) => {
+              const hasContrast = Boolean(evt.contrast_tag);
+              return (
+                <div key={`corridor-${evt.id}`} className="flex items-center shrink-0">
+                  <div
+                    className={`flex flex-col p-2.5 rounded-xl border transition-all min-w-[130px] max-w-[170px] ${
+                      hasContrast
+                        ? 'bg-amber-50/60 dark:bg-amber-950/30 border-amber-300 dark:border-amber-800/80 shadow-2xs'
+                        : 'bg-stone-50 dark:bg-stone-800/60 border-stone-200 dark:border-stone-700'
+                    }`}
+                  >
+                    <div className="flex items-center justify-between gap-1 mb-1">
+                      <span className="w-4 h-4 rounded-full bg-rose-600 text-white text-[9px] font-bold flex items-center justify-center">
+                        {idx + 1}
+                      </span>
+                      <span className="text-[10px] font-mono text-stone-400 truncate">
+                        {formatEventDate(evt.event_date, evt.date_precision)}
+                      </span>
+                    </div>
+                    <div className="text-xs font-bold text-stone-900 dark:text-stone-100 truncate" title={evt.title}>
+                      {evt.title}
+                    </div>
+                    {evt.contrast_tag && (
+                      <span className="mt-1 text-[10px] font-bold text-amber-800 dark:text-amber-300 bg-amber-100 dark:bg-amber-900/60 px-1.5 py-0.5 rounded truncate">
+                        ⚡ {evt.contrast_tag}
+                      </span>
+                    )}
+                  </div>
+
+                  {idx < timeline.length - 1 && (
+                    <div className="w-3 border-t-2 border-dashed border-stone-300 dark:border-stone-700 mx-1 shrink-0" />
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
+      {/* 2. Vertical Timeline */}
       <div className="relative pl-6 sm:pl-8 space-y-6 before:absolute before:left-3 before:top-4 before:bottom-4 before:w-0.5 before:bg-stone-200 dark:before:bg-stone-800">
         {timeline.map((evt, idx) => (
           <div key={evt.id} className="relative group">
@@ -136,11 +206,16 @@ export const TimelineTab: React.FC<TimelineTabProps> = ({
             {/* Event Card */}
             <div className="bg-white dark:bg-stone-900 rounded-xl border border-stone-200 dark:border-stone-800 p-5 shadow-subtle hover:shadow-card transition-all space-y-2">
               <div className="flex items-center justify-between gap-2 flex-wrap">
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-2 flex-wrap">
                   <span className="text-xs font-mono font-bold text-rose-700 dark:text-rose-300 bg-rose-50 dark:bg-rose-950/60 border border-rose-200 dark:border-rose-900/60 px-2 py-0.5 rounded">
                     📅 {formatEventDate(evt.event_date, evt.date_precision)}
                   </span>
                   <VerificationBadge status={evt.verification_status} />
+                  {evt.contrast_tag && (
+                    <span className="text-xs font-bold text-amber-800 dark:text-amber-300 bg-amber-50 dark:bg-amber-950/60 border border-amber-300 dark:border-amber-800/80 px-2 py-0.5 rounded-full inline-flex items-center gap-1 shadow-2xs">
+                      ⚡ {evt.contrast_tag}
+                    </span>
+                  )}
                 </div>
 
                 {/* Move & Edit Actions */}
@@ -246,6 +321,34 @@ export const TimelineTab: React.FC<TimelineTabProps> = ({
                 <option value="year">年份 (如 2025)</option>
                 <option value="unknown">时间未知 / 待考证</option>
               </select>
+            </div>
+          </div>
+
+          <div>
+            <label className="block text-xs font-semibold text-stone-700 dark:text-stone-300 mb-1">自由反差与情绪标记 (选填)</label>
+            <input
+              type="text"
+              placeholder="例如：荒诞反差、人物张力、高潮爆发、伏笔呼应"
+              value={contrastTag}
+              onChange={(e) => setContrastTag(e.target.value)}
+              className="w-full px-3 py-2 bg-stone-50 dark:bg-stone-800 border border-stone-300 dark:border-stone-700 rounded-lg text-sm text-stone-900 dark:text-stone-100 placeholder:text-stone-400 dark:placeholder:text-stone-500 focus:bg-white dark:focus:bg-stone-800 focus:outline-none mb-2"
+            />
+            {/* Quick preset chips */}
+            <div className="flex flex-wrap gap-1.5">
+              {CONTRAST_PRESETS.map((preset) => (
+                <button
+                  key={preset}
+                  type="button"
+                  onClick={() => setContrastTag(contrastTag === preset ? '' : preset)}
+                  className={`text-[11px] font-semibold px-2 py-0.5 rounded-md border transition-colors cursor-pointer ${
+                    contrastTag === preset
+                      ? 'bg-amber-600 text-white border-amber-600'
+                      : 'bg-stone-100 dark:bg-stone-800 text-stone-600 dark:text-stone-300 border-stone-200 dark:border-stone-700 hover:bg-stone-200 dark:hover:bg-stone-700'
+                  }`}
+                >
+                  ⚡ {preset}
+                </button>
+              ))}
             </div>
           </div>
 

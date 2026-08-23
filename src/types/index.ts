@@ -97,6 +97,7 @@ export interface TimelineEvent {
   created_at: string;
   updated_at: string;
   person_ids?: string[];
+  contrast_tag?: string;
 }
 
 export interface Person {
@@ -216,6 +217,17 @@ export type AppTheme =
 export type EditorFontSize = 'compact' | 'standard' | 'large';
 export type EditorLineHeight = 'normal' | 'relaxed' | 'loose';
 
+export const DEFAULT_VOICEOVER_CUES: string[] = [
+  '停顿 1s',
+  '停顿 2s',
+  '重音强调',
+  '反讽语气',
+  '激昂加速',
+  '低沉缓速',
+  'BGM 起',
+  'BGM 停',
+];
+
 export interface AppSettings {
   reading_speed: number; // characters per minute (default 280)
   theme: AppTheme;
@@ -226,6 +238,7 @@ export interface AppSettings {
   default_share_ttl_days?: number;
   reviewer_branding?: string;
   public_base_url?: string; // Reverse proxy or custom public domain e.g. "https://kanban.example.com"
+  voiceover_cues?: string[]; // Custom cue tags for voiceover teleprompter
 }
 
 export const DEFAULT_APP_SETTINGS: AppSettings = {
@@ -238,6 +251,7 @@ export const DEFAULT_APP_SETTINGS: AppSettings = {
   default_share_ttl_days: 3,
   reviewer_branding: '',
   public_base_url: '',
+  voiceover_cues: DEFAULT_VOICEOVER_CUES,
 };
 
 export interface BootstrapData {

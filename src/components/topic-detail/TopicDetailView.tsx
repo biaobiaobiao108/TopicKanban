@@ -242,6 +242,23 @@ export const TopicDetailView: React.FC<TopicDetailViewProps> = ({
     URL.revokeObjectURL(url);
   };
 
+  const handleConvertSourceToTimeline = async (source: Source) => {
+    try {
+      await saveTimelineEvent({
+        topic_id: topic.id,
+        title: source.title,
+        description: source.content || (source.notes ? `【备注】${source.notes}` : ''),
+        event_date: source.published_at || '',
+        date_precision: source.published_at ? (source.published_at.length >= 10 ? 'exact' : 'year_month') : 'unknown',
+        verification_status: source.verification_status,
+      });
+      const updated = await fetchTimelineByTopicId(topic.id);
+      setTimeline(updated);
+    } catch (err) {
+      setOperationError(err instanceof Error ? `流转时间线事件失败：${err.message}` : '流转时间线事件失败');
+    }
+  };
+
   return (
     <div className="flex-1 flex flex-col h-full overflow-hidden bg-[#fafaf9] dark:bg-[#0c0a09] transition-colors">
       <Modal
@@ -341,6 +358,7 @@ export const TopicDetailView: React.FC<TopicDetailViewProps> = ({
             sources={sources}
             onSaveSource={handleSaveSource}
             onDeleteSource={handleDeleteSource}
+            onConvertToTimeline={handleConvertSourceToTimeline}
           />
         )}
 

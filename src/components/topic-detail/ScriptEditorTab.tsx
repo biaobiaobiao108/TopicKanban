@@ -3,7 +3,7 @@ import { useEditor, EditorContent } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
 import Placeholder from '@tiptap/extension-placeholder';
 import CharacterCount from '@tiptap/extension-character-count';
-import { CitationInput, Draft, DraftCitation, Topic, TimelineEvent, Source, AppSettings, EditorFontSize, EditorLineHeight } from '../../types';
+import { CitationInput, Draft, DraftCitation, Topic, TimelineEvent, Source, AppSettings, EditorFontSize, EditorLineHeight, DEFAULT_VOICEOVER_CUES } from '../../types';
 import { ScriptReferenceDrawer } from './ScriptReferenceDrawer';
 import { ScriptOutlinePanel } from './ScriptOutlinePanel';
 import {
@@ -149,6 +149,7 @@ export const ScriptEditorTab: React.FC<ScriptEditorTabProps> = ({
   const [outline, setOutline] = useState(EMPTY_SCRIPT_OUTLINE);
   const [activeOutlineItemId, setActiveOutlineItemId] = useState<string | null>(null);
   const [isTeleprompterOpen, setIsTeleprompterOpen] = useState(false);
+  const [isCueMenuOpen, setIsCueMenuOpen] = useState(false);
 
   const scrollContainerRef = useRef<HTMLDivElement | null>(null);
   const typewriterBottomSpacerRef = useRef<HTMLDivElement | null>(null);
@@ -812,6 +813,47 @@ export const ScriptEditorTab: React.FC<ScriptEditorTabProps> = ({
             >
               <ListOrdered className="w-3.5 h-3.5" />
             </button>
+          </div>
+
+          <div className="w-px h-4 bg-stone-200 dark:bg-stone-700 mx-1 hidden sm:block" />
+
+          {/* Voiceover Cue Dropdown */}
+          <div className="relative">
+            <button
+              onClick={() => setIsCueMenuOpen((prev) => !prev)}
+              className={`flex items-center gap-1 px-2 py-1 rounded-md text-xs font-semibold border transition-all cursor-pointer ${
+                isCueMenuOpen
+                  ? 'bg-rose-50 dark:bg-rose-950/60 border-rose-300 dark:border-rose-800 text-rose-700 dark:text-rose-300 shadow-2xs'
+                  : 'bg-white dark:bg-stone-800 border-stone-200 dark:border-stone-700 text-stone-700 dark:text-stone-300 hover:bg-stone-50 dark:hover:bg-stone-700/80 shadow-2xs'
+              }`}
+              title="快速插入演播配音气口标记"
+            >
+              <Mic className="w-3 h-3 text-rose-500" />
+              <span>气口</span>
+            </button>
+
+            {isCueMenuOpen && (
+              <div className="absolute left-0 top-full mt-1.5 w-44 bg-white dark:bg-stone-850 rounded-xl border border-stone-200 dark:border-stone-700 p-1.5 shadow-xl z-50 animate-in fade-in zoom-in-95 duration-100">
+                <div className="text-[10px] font-bold text-stone-400 dark:text-stone-500 px-2 py-1 uppercase tracking-wider">
+                  插入演播气口
+                </div>
+                <div className="space-y-0.5 max-h-48 overflow-y-auto">
+                  {(settings?.voiceover_cues?.length ? settings.voiceover_cues : DEFAULT_VOICEOVER_CUES).map((cue) => (
+                    <button
+                      key={cue}
+                      onClick={() => {
+                        editor.chain().focus().insertContent(` [${cue}] `).run();
+                        setIsCueMenuOpen(false);
+                      }}
+                      className="w-full text-left px-2.5 py-1.5 rounded-lg text-xs font-medium text-stone-700 dark:text-stone-200 hover:bg-rose-50 dark:hover:bg-rose-950/50 hover:text-rose-600 dark:hover:text-rose-300 flex items-center justify-between group transition-colors cursor-pointer"
+                    >
+                      <span>[{cue}]</span>
+                      <span className="text-[10px] text-stone-400 group-hover:text-rose-500 opacity-0 group-hover:opacity-100 font-mono">插入</span>
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
 
           <div className="w-px h-4 bg-stone-200 dark:bg-stone-700 mx-1 hidden sm:block" />

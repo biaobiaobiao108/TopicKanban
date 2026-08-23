@@ -6,6 +6,7 @@ import {
   EditorLineHeight,
   BackupData,
   DEFAULT_APP_SETTINGS,
+  DEFAULT_VOICEOVER_CUES,
 } from '../../types';
 import { validateBackupData } from '../../lib/backupValidation';
 import { exportBackupData, importBackupData, exportScriptsMarkdown } from '../../lib/storage';
@@ -53,6 +54,9 @@ import {
   FileText,
   Eye,
   Globe,
+  Plus,
+  X,
+  Trash2,
 } from 'lucide-react';
 
 interface SettingsViewProps {
@@ -99,6 +103,8 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
   const [defaultShareTtl, setDefaultShareTtl] = useState<number>(settings.default_share_ttl_days || DEFAULT_APP_SETTINGS.default_share_ttl_days || 3);
   const [reviewerBranding, setReviewerBranding] = useState<string>(settings.reviewer_branding || '');
   const [publicBaseUrl, setPublicBaseUrl] = useState<string>(settings.public_base_url || '');
+  const [voiceoverCues, setVoiceoverCues] = useState<string[]>(settings.voiceover_cues || DEFAULT_VOICEOVER_CUES);
+  const [newCueInput, setNewCueInput] = useState('');
 
   const [savedSuccess, setSavedSuccess] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
@@ -121,6 +127,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
     setDefaultShareTtl(settings.default_share_ttl_days || 3);
     setReviewerBranding(settings.reviewer_branding || '');
     setPublicBaseUrl(settings.public_base_url || '');
+    setVoiceoverCues(settings.voiceover_cues || DEFAULT_VOICEOVER_CUES);
   }, [settings]);
 
   const schedule = useCallback((callback: () => void, delay: number) => {
@@ -198,6 +205,26 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
     applyTheme(theme);
   };
 
+  const handleAddVoiceoverCue = (e: React.FormEvent) => {
+    e.preventDefault();
+    const trimmed = newCueInput.trim().replace(/^\[+|\]+$/g, '');
+    if (!trimmed) return;
+    if (voiceoverCues.includes(trimmed)) {
+      setNewCueInput('');
+      return;
+    }
+    setVoiceoverCues((prev) => [...prev, trimmed]);
+    setNewCueInput('');
+  };
+
+  const handleRemoveVoiceoverCue = (cueToRemove: string) => {
+    setVoiceoverCues((prev) => prev.filter((c) => c !== cueToRemove));
+  };
+
+  const handleResetVoiceoverCues = () => {
+    setVoiceoverCues(DEFAULT_VOICEOVER_CUES);
+  };
+
   const handleSaveAllPreferences = async () => {
     setIsSaving(true);
     try {
@@ -211,6 +238,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
         default_share_ttl_days: Number(defaultShareTtl),
         reviewer_branding: reviewerBranding.trim(),
         public_base_url: publicBaseUrl.trim().replace(/\/+$/, ''),
+        voiceover_cues: voiceoverCues,
       };
       await onSaveSettings(payload);
       setSavedSuccess(true);
@@ -597,6 +625,67 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                 }`}
               />
             </button>
+          </div>
+
+          {/* Voiceover Cue Management */}
+          <div className="p-4 sm:p-5 bg-stone-50 dark:bg-stone-800/60 rounded-xl border border-stone-200 dark:border-stone-700 space-y-3.5">
+            <div className="flex items-center justify-between flex-wrap gap-2">
+              <div className="flex items-center gap-2">
+                <Mic className="w-4 h-4 text-rose-600 dark:text-rose-400" />
+                <div>
+                  <h4 className="text-xs sm:text-sm font-bold text-stone-900 dark:text-stone-100">录音提词 · 演播气口标记库</h4>
+                  <p className="text-[11px] text-stone-400 dark:text-stone-500">
+                    在写稿与提词演播时快捷插入的配音提示词（如 [停顿 1s]、[重音]、[反讽语气]），提词器中将高亮呈现
+                  </p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={handleResetVoiceoverCues}
+                className="text-[11px] text-stone-500 dark:text-stone-400 hover:text-stone-800 dark:hover:text-stone-200 underline cursor-pointer"
+              >
+                恢复默认气口
+              </button>
+            </div>
+
+            {/* Cue badges list */}
+            <div className="flex flex-wrap gap-2 pt-1">
+              {voiceoverCues.map((cue) => (
+                <span
+                  key={cue}
+                  className="inline-flex items-center gap-1.5 bg-white dark:bg-stone-900 text-stone-800 dark:text-stone-200 px-3 py-1 rounded-full text-xs font-mono font-semibold border border-stone-200 dark:border-stone-700 shadow-2xs group"
+                >
+                  <span className="text-rose-600 dark:text-rose-400 font-bold">[{cue}]</span>
+                  <button
+                    type="button"
+                    onClick={() => handleRemoveVoiceoverCue(cue)}
+                    className="text-stone-400 hover:text-red-500 p-0.5 rounded-full transition-colors cursor-pointer"
+                    title={`删除 [${cue}] 气口`}
+                  >
+                    <X className="w-3 h-3" />
+                  </button>
+                </span>
+              ))}
+            </div>
+
+            {/* Add new cue form */}
+            <form onSubmit={handleAddVoiceoverCue} className="flex items-center gap-2 pt-2">
+              <input
+                type="text"
+                value={newCueInput}
+                onChange={(e) => setNewCueInput(e.target.value)}
+                placeholder="输入新气口标记，如：高潮配乐、叹气、深吸气"
+                className="flex-1 px-3 py-1.5 bg-white dark:bg-stone-900 border border-stone-300 dark:border-stone-700 rounded-lg text-xs text-stone-900 dark:text-stone-100 placeholder:text-stone-400 focus:outline-none focus:border-rose-500"
+              />
+              <button
+                type="submit"
+                disabled={!newCueInput.trim()}
+                className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg bg-stone-900 dark:bg-rose-600 hover:bg-stone-800 dark:hover:bg-rose-700 text-white text-xs font-semibold disabled:opacity-40 transition-colors cursor-pointer"
+              >
+                <Plus className="w-3.5 h-3.5" />
+                <span>添加气口</span>
+              </button>
+            </form>
           </div>
 
           {/* Speech Speed Configuration + Presets */}

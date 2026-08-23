@@ -14,7 +14,12 @@ import {
   FileCheck,
   Search,
   Copy,
-  Check
+  Check,
+  Calendar,
+  Sparkles,
+  ArrowRight,
+  X,
+  HelpCircle,
 } from 'lucide-react';
 
 interface SourcesTabProps {
@@ -22,6 +27,7 @@ interface SourcesTabProps {
   sources: Source[];
   onSaveSource: (source: Partial<Source> & { topic_id: string; title: string }) => Promise<void>;
   onDeleteSource: (sourceId: string) => Promise<void>;
+  onConvertToTimeline?: (source: Source) => Promise<void>;
 }
 
 export const SourcesTab: React.FC<SourcesTabProps> = ({
@@ -29,12 +35,16 @@ export const SourcesTab: React.FC<SourcesTabProps> = ({
   sources,
   onSaveSource,
   onDeleteSource,
+  onConvertToTimeline,
 }) => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingSource, setEditingSource] = useState<Source | null>(null);
   const [filterType, setFilterType] = useState<SourceType | 'all'>('all');
   const [filterStatus, setFilterStatus] = useState<VerificationStatus | 'all'>('all');
+  const [searchQuery, setSearchQuery] = useState('');
   const [copiedId, setCopiedId] = useState<string | null>(null);
+  const [timelineConvertedId, setTimelineConvertedId] = useState<string | null>(null);
+  const [smartPasteInput, setSmartPasteInput] = useState('');
 
   // Form State
   const [title, setTitle] = useState('');
@@ -58,6 +68,7 @@ export const SourcesTab: React.FC<SourcesTabProps> = ({
     setPublishedAt('');
     setVerificationStatus('confirmed');
     setNotes('');
+    setSmartPasteInput('');
     setIsModalOpen(true);
   };
 
@@ -72,7 +83,62 @@ export const SourcesTab: React.FC<SourcesTabProps> = ({
     setPublishedAt(s.published_at);
     setVerificationStatus(s.verification_status);
     setNotes(s.notes);
+    setSmartPasteInput('');
     setIsModalOpen(true);
+  };
+
+  const handleSmartParse = (rawText: string) => {
+    if (!rawText.trim()) return;
+    const urlMatch = rawText.match(/https?:\/\/[^\s]+/i);
+    let extractedUrl = '';
+    let cleanText = rawText;
+    if (urlMatch) {
+      extractedUrl = urlMatch[0];
+      cleanText = rawText.replace(extractedUrl, '').trim();
+      setUrl(extractedUrl);
+
+      if (/bilibili\.com|b23\.tv/i.test(extractedUrl)) setPlatform('bilibili');
+      else if (/douyin\.com|iesdouyin\.com/i.test(extractedUrl)) setPlatform('douyin');
+      else if (/kuaishou\.com/i.test(extractedUrl)) setPlatform('kuaishou');
+      else if (/weibo\.com|weibo\.cn/i.test(extractedUrl)) setPlatform('weibo');
+      else if (/xiaohongshu\.com|xhslink\.com/i.test(extractedUrl)) setPlatform('xiaohongshu');
+      else if (/weixin\.qq\.com|mp\.weixin/i.test(extractedUrl)) setPlatform('wechat');
+      else if (/zhihu\.com/i.test(extractedUrl)) setPlatform('zhihu');
+      else if (/youtube\.com|youtu\.be/i.test(extractedUrl)) setPlatform('youtube');
+    }
+
+    const cleanTitleCandidate = cleanText.replace(/^[【\[(（]?.*? [】\])）]?/, '').trim() || cleanText;
+    if (cleanTitleCandidate) {
+      setTitle(cleanTitleCandidate.slice(0, 80));
+    }
+    if (cleanText.length > 30) {
+      setContent(cleanText);
+    }
+  };
+
+  const handleQuickUpgradeToFact = async (s: Source) => {
+    await onSaveSource({
+      id: s.id,
+      topic_id: topicId,
+      title: s.title,
+      type: 'fact',
+      verification_status: 'confirmed',
+    });
+  };
+
+  const handleCycleVerification = async (s: Source) => {
+    const nextStatus: VerificationStatus =
+      s.verification_status === 'confirmed'
+        ? 'unverified'
+        : s.verification_status === 'unverified'
+        ? 'rejected'
+        : 'confirmed';
+    await onSaveSource({
+      id: s.id,
+      topic_id: topicId,
+      title: s.title,
+      verification_status: nextStatus,
+    });
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -102,9 +168,18 @@ export const SourcesTab: React.FC<SourcesTabProps> = ({
     setTimeout(() => setCopiedId(null), 1500);
   };
 
+  const q = searchQuery.toLowerCase().trim();
   const filteredSources = sources.filter((s) => {
     if (filterType !== 'all' && s.type !== filterType) return false;
     if (filterStatus !== 'all' && s.verification_status !== filterStatus) return false;
+    if (q) {
+      const matchTitle = s.title.toLowerCase().includes(q);
+      const matchContent = (s.content || '').toLowerCase().includes(q);
+      const matchAuthor = (s.author || '').toLowerCase().includes(q);
+      const matchNotes = (s.notes || '').toLowerCase().includes(q);
+      const matchUrl = (s.url || '').toLowerCase().includes(q);
+      if (!matchTitle && !matchContent && !matchAuthor && !matchNotes && !matchUrl) return false;
+    }
     return true;
   });
 
@@ -116,7 +191,29 @@ export const SourcesTab: React.FC<SourcesTabProps> = ({
     <div className="py-6 space-y-6">
       {/* Header & Filter Bar */}
       <div className="flex items-center justify-between flex-wrap gap-4 bg-white dark:bg-stone-900 p-5 rounded-xl border border-stone-200 dark:border-stone-800 shadow-subtle transition-colors">
-        <div className="flex items-center gap-3 flex-wrap">
+        <div className="flex items-center gap-3 flex-wrap flex-1">
+          {/* Real-time Search Input */}
+          <div className="relative min-w-[200px] max-w-xs flex-1">
+            <Search className="w-3.5 h-3.5 absolute left-2.5 top-2.5 text-stone-400 dark:text-stone-500" />
+            <input
+              type="text"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder="即时搜索标题、内容、备忘..."
+              className="w-full pl-8 pr-7 py-1.5 bg-stone-50 dark:bg-stone-800 border border-stone-200 dark:border-stone-700 rounded-lg text-xs text-stone-900 dark:text-stone-100 placeholder:text-stone-400 focus:bg-white dark:focus:bg-stone-800 focus:outline-none focus:border-rose-500 transition-colors"
+            />
+            {searchQuery && (
+              <button
+                onClick={() => setSearchQuery('')}
+                className="absolute right-2 top-2 text-stone-400 hover:text-stone-600 dark:hover:text-stone-200 cursor-pointer"
+              >
+                <X className="w-3.5 h-3.5" />
+              </button>
+            )}
+          </div>
+
+          <div className="h-5 w-px bg-stone-200 dark:bg-stone-700 mx-0.5 hidden sm:block" />
+
           {/* Quick type pills */}
           <button
             onClick={() => setFilterType('all')}
@@ -126,7 +223,7 @@ export const SourcesTab: React.FC<SourcesTabProps> = ({
                 : 'bg-stone-50 dark:bg-stone-800 text-stone-600 dark:text-stone-300 border-stone-200 dark:border-stone-700 hover:bg-stone-100 dark:hover:bg-stone-700'
             }`}
           >
-            全部资料 ({sources.length})
+            全部 ({sources.length})
           </button>
           <button
             onClick={() => setFilterType('fact')}
@@ -159,7 +256,7 @@ export const SourcesTab: React.FC<SourcesTabProps> = ({
             🎬 素材 ({materialCount})
           </button>
 
-          <div className="h-5 w-px bg-stone-200 dark:bg-stone-700 mx-1 hidden sm:block" />
+          <div className="h-5 w-px bg-stone-200 dark:bg-stone-700 mx-0.5 hidden sm:block" />
 
           {/* Verification Status Filter */}
           <select
@@ -176,7 +273,7 @@ export const SourcesTab: React.FC<SourcesTabProps> = ({
 
         <button
           onClick={openAddModal}
-          className="flex items-center gap-1.5 bg-stone-900 dark:bg-rose-600 hover:bg-stone-800 dark:hover:bg-rose-700 text-white px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-colors shadow-sm cursor-pointer"
+          className="flex items-center gap-1.5 bg-stone-900 dark:bg-rose-600 hover:bg-stone-800 dark:hover:bg-rose-700 text-white px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-colors shadow-sm cursor-pointer shrink-0"
         >
           <Plus className="w-4 h-4" />
           <span>添加资料 / 素材</span>
@@ -191,14 +288,33 @@ export const SourcesTab: React.FC<SourcesTabProps> = ({
             className="bg-white dark:bg-stone-900 rounded-xl border border-stone-200 dark:border-stone-800 p-5 space-y-3 shadow-subtle hover:shadow-card transition-all flex flex-col justify-between"
           >
             <div className="space-y-2.5">
-              {/* Badges row */}
-              <div className="flex items-center justify-between gap-2">
+              {/* Badges row & Quick actions */}
+              <div className="flex items-center justify-between gap-2 flex-wrap">
                 <div className="flex items-center gap-2 flex-wrap">
                   <SourceTypeBadge type={s.type} />
-                  <VerificationBadge status={s.verification_status} />
+                  <button
+                    type="button"
+                    onClick={() => handleCycleVerification(s)}
+                    className="cursor-pointer transition-transform active:scale-95"
+                    title="点击快捷切换核实状态 (已确认 -> 待核实 -> 不采用)"
+                  >
+                    <VerificationBadge status={s.verification_status} />
+                  </button>
                   <PlatformBadge platform={s.platform} />
                 </div>
                 <div className="flex items-center gap-1">
+                  {/* Quick Upgrade for Clues */}
+                  {s.type === 'clue' && (
+                    <button
+                      onClick={() => handleQuickUpgradeToFact(s)}
+                      className="inline-flex items-center gap-1 text-[11px] font-semibold text-emerald-700 dark:text-emerald-300 bg-emerald-50 dark:bg-emerald-950/60 hover:bg-emerald-100 dark:hover:bg-emerald-900/60 px-2 py-0.5 rounded border border-emerald-300 dark:border-emerald-800 transition-colors cursor-pointer mr-1"
+                      title="线索已考证完毕，一键无弹窗升级为已核实事实"
+                    >
+                      <CheckCircle2 className="w-3 h-3 text-emerald-600 dark:text-emerald-400" />
+                      <span>升级事实</span>
+                    </button>
+                  )}
+
                   <button
                     onClick={() => openEditModal(s)}
                     className="p-1 text-stone-400 dark:text-stone-500 hover:text-stone-700 dark:hover:text-stone-300 rounded hover:bg-stone-100 dark:hover:bg-stone-800 cursor-pointer transition-colors"
@@ -234,11 +350,36 @@ export const SourcesTab: React.FC<SourcesTabProps> = ({
               )}
             </div>
 
-            {/* Bottom Meta & URL link */}
-            <div className="pt-3 border-t border-stone-100 dark:border-stone-800 flex items-center justify-between text-xs text-stone-400 dark:text-stone-500">
-              <div className="flex items-center gap-2">
+            {/* Bottom Meta & Action buttons */}
+            <div className="pt-3 border-t border-stone-100 dark:border-stone-800 flex items-center justify-between flex-wrap gap-2 text-xs text-stone-400 dark:text-stone-500">
+              <div className="flex items-center gap-3">
                 {s.author && <span>作者: {s.author}</span>}
                 {s.published_at && <span>发布: {s.published_at}</span>}
+
+                {/* Convert to Timeline Event Button */}
+                {onConvertToTimeline && (
+                  <button
+                    onClick={() => {
+                      onConvertToTimeline(s);
+                      setTimelineConvertedId(s.id);
+                      setTimeout(() => setTimelineConvertedId(null), 2000);
+                    }}
+                    className="inline-flex items-center gap-1 text-[11px] font-medium text-stone-500 dark:text-stone-400 hover:text-rose-600 dark:hover:text-rose-400 transition-colors cursor-pointer"
+                    title="一键将本条资料沉淀为故事时间线事件"
+                  >
+                    {timelineConvertedId === s.id ? (
+                      <>
+                        <Check className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
+                        <span className="text-emerald-600 dark:text-emerald-400 font-semibold">已转入时间线</span>
+                      </>
+                    ) : (
+                      <>
+                        <Calendar className="w-3.5 h-3.5" />
+                        <span>转为时间线</span>
+                      </>
+                    )}
+                  </button>
+                )}
               </div>
 
               {s.url && (
@@ -271,7 +412,7 @@ export const SourcesTab: React.FC<SourcesTabProps> = ({
 
         {filteredSources.length === 0 && (
           <div className="col-span-full p-12 text-center border-2 border-dashed border-stone-200 dark:border-stone-800 rounded-xl bg-white dark:bg-stone-900 text-stone-400 dark:text-stone-500">
-            暂无匹配的资料记录，点击右上角「添加资料」开始搜集证据与素材！
+            {searchQuery ? `未找到包含「${searchQuery}」的资料记录` : '暂无匹配的资料记录，点击右上角「添加资料」开始搜集证据与素材！'}
           </div>
         )}
       </div>
@@ -285,6 +426,29 @@ export const SourcesTab: React.FC<SourcesTabProps> = ({
         maxWidth="lg"
       >
         <form onSubmit={handleSubmit} className="space-y-4">
+          {/* Smart Paste / Parse helper */}
+          {!editingSource && (
+            <div className="p-3 bg-rose-50/60 dark:bg-rose-950/30 rounded-xl border border-rose-200 dark:border-rose-900/50 space-y-1.5">
+              <div className="flex items-center justify-between text-xs">
+                <span className="font-bold text-rose-900 dark:text-rose-200 flex items-center gap-1.5">
+                  <Sparkles className="w-3.5 h-3.5 text-rose-500" />
+                  <span>智能粘贴识别（快速解析链接与标题）</span>
+                </span>
+                <span className="text-[10px] text-stone-500 dark:text-stone-400">支持 B站/抖音/快手/微博/知乎/公众号等</span>
+              </div>
+              <input
+                type="text"
+                value={smartPasteInput}
+                onChange={(e) => {
+                  setSmartPasteInput(e.target.value);
+                  handleSmartParse(e.target.value);
+                }}
+                placeholder="直接粘贴含链接的整段分享文本或 URL，将自动填入下方字段..."
+                className="w-full px-3 py-1.5 bg-white dark:bg-stone-900 border border-stone-300 dark:border-stone-700 rounded-lg text-xs text-stone-900 dark:text-stone-100 placeholder:text-stone-400 focus:outline-none focus:border-rose-500"
+              />
+            </div>
+          )}
+
           <div>
             <label className="block text-xs font-semibold text-stone-700 dark:text-stone-300 mb-1">
               资料标题 <span className="text-rose-600">*</span>
