@@ -438,12 +438,12 @@ export const TimelineTab: React.FC<TimelineTabProps> = ({
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
         title={editingEvent ? '编辑时间节点' : '添加时间节点'}
-        subtitle="规范输入日期，支持随时拖拽手柄调整故事顺序"
+        subtitle="记录事件时间、起因经过与关键转折，支持随时拖拽排序"
         maxWidth="md"
       >
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label className="block text-xs font-semibold text-stone-700 dark:text-stone-300 mb-1">
+            <label className="block text-xs font-semibold text-stone-700 dark:text-stone-300 mb-1.5">
               事件标题 <span className="text-rose-600">*</span>
             </label>
             <input
@@ -456,29 +456,29 @@ export const TimelineTab: React.FC<TimelineTabProps> = ({
             />
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
             <div>
-              <label className="block text-xs font-semibold text-stone-700 dark:text-stone-300 mb-1">
-                发生日期 (支持 YYYY-MM-DD / YYYY-MM / YYYY / 待考证)
+              <label className="block text-xs font-semibold text-stone-700 dark:text-stone-300 mb-1.5">
+                发生日期
               </label>
               <input
                 type="text"
-                placeholder="2026-07-28 或 2026-05 或 待考证"
+                placeholder="2026-07-28 / 2026-05 / 待考证"
                 value={eventDate}
                 onChange={(e) => setEventDate(e.target.value)}
-                className="w-full px-3 py-2 bg-stone-50 dark:bg-stone-800 border border-stone-300 dark:border-stone-700 rounded-lg text-sm text-stone-900 dark:text-stone-100 placeholder:text-stone-400 dark:placeholder:text-stone-500 focus:bg-white dark:focus:bg-stone-800 focus:outline-none"
+                className="w-full h-[38px] px-3 py-2 bg-stone-50 dark:bg-stone-800 border border-stone-300 dark:border-stone-700 rounded-lg text-sm text-stone-900 dark:text-stone-100 placeholder:text-stone-400 dark:placeholder:text-stone-500 focus:bg-white dark:focus:bg-stone-800 focus:outline-none"
               />
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-stone-700 dark:text-stone-300 mb-1">
+              <label className="block text-xs font-semibold text-stone-700 dark:text-stone-300 mb-1.5">
                 可信度状态
               </label>
               <CustomSelect
                 value={verificationStatus}
                 onChange={(val) => setVerificationStatus(val as VerificationStatus)}
                 className="w-full"
-                buttonClassName="w-full justify-between py-2 text-sm bg-stone-50 dark:bg-stone-800 border-stone-300 dark:border-stone-700 rounded-lg"
+                buttonClassName="w-full h-[38px] justify-between py-2 text-sm bg-stone-50 dark:bg-stone-800 border-stone-300 dark:border-stone-700 rounded-lg"
                 options={[
                   { value: 'confirmed', label: '已确认 (多方可靠来源)', dot: 'bg-emerald-500' },
                   { value: 'unverified', label: '待核实 (信息不足)', dot: 'bg-amber-500' },
@@ -489,7 +489,7 @@ export const TimelineTab: React.FC<TimelineTabProps> = ({
           </div>
 
           <div>
-            <label className="block text-xs font-semibold text-stone-700 dark:text-stone-300 mb-1">
+            <label className="block text-xs font-semibold text-stone-700 dark:text-stone-300 mb-1.5">
               反差与情绪标记 (选填)
             </label>
             <input
