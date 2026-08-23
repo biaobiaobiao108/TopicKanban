@@ -172,6 +172,13 @@ export function initializeSqliteDatabase(dbFilePath: string, schemaDir?: string)
   // Check if tables already exist
   const tableCheck = sqlite.prepare("SELECT count(*) as count FROM sqlite_master WHERE type='table' AND name='topics'").get() as { count: number };
 
+  sqlite.exec(`
+    CREATE TABLE IF NOT EXISTS _schema_migrations (
+      name TEXT PRIMARY KEY,
+      applied_at TEXT NOT NULL
+    );
+  `);
+
   if (tableCheck.count === 0) {
     // Run schema migrations
     const resolvedSchemaDir = schemaDir || path.resolve(process.cwd(), 'drizzle');
@@ -180,17 +187,24 @@ export function initializeSqliteDatabase(dbFilePath: string, schemaDir?: string)
       const sql = fs.readFileSync(schemaFile, 'utf-8');
       sqlite.exec(sql);
     }
-  } else {
-    // Ensure contrast_tag column exists on existing timeline_events table
-    try {
-      const timelineColumns = sqlite.prepare("PRAGMA table_info(timeline_events)").all() as Array<{ name: string }>;
-      if (!timelineColumns.some((col) => col.name === 'contrast_tag')) {
-        sqlite.exec("ALTER TABLE timeline_events ADD COLUMN contrast_tag TEXT NOT NULL DEFAULT ''");
-      }
-    } catch {
-      // ignore
-    }
   }
+
+  const appliedAt = new Date().toISOString();
+  sqlite.prepare('INSERT OR IGNORE INTO _schema_migrations (name, applied_at) VALUES (?, ?)')
+    .run('0000_schema.sql', appliedAt);
+
+  // 0001 is structurally represented by the current baseline. Keep it
+  // recorded so local instances have an explicit migration history.
+  sqlite.prepare('INSERT OR IGNORE INTO _schema_migrations (name, applied_at) VALUES (?, ?)')
+    .run('0001_optional_published_topic.sql', appliedAt);
+
+  // Apply the only additive migration that older local databases may lack.
+  const timelineColumns = sqlite.prepare("PRAGMA table_info(timeline_events)").all() as Array<{ name: string }>;
+  if (!timelineColumns.some((col) => col.name === 'contrast_tag')) {
+    sqlite.exec("ALTER TABLE timeline_events ADD COLUMN contrast_tag TEXT NOT NULL DEFAULT ''");
+  }
+  sqlite.prepare('INSERT OR IGNORE INTO _schema_migrations (name, applied_at) VALUES (?, ?)')
+    .run('0002_add_timeline_contrast_tag.sql', appliedAt);
 
   // Ensure _kv_store table exists for local KV adapter
   sqlite.exec(`

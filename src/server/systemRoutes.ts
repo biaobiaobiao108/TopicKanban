@@ -1,4 +1,5 @@
 import type { Hono } from 'hono';
+import { bodyLimit } from 'hono/body-limit';
 import type { AppSettings } from '../types';
 import { DEFAULT_APP_SETTINGS, DEFAULT_VOICEOVER_CUES, APP_THEMES, type AppTheme } from '../types';
 import {
@@ -9,7 +10,13 @@ import {
 } from './database';
 import { validateBackupData } from '../lib/backupValidation';
 import type { ApiBindings } from './apiShared';
-import { createToken, jsonError, requireDb } from './apiShared';
+import {
+  MAX_BACKUP_REQUEST_BYTES,
+  MAX_LOGIN_REQUEST_BYTES,
+  createToken,
+  jsonError,
+  requireDb,
+} from './apiShared';
 
 async function getKvSettings(kv?: KVNamespace, defaultPublicBaseUrl?: string): Promise<AppSettings> {
   if (!kv) return { ...DEFAULT_APP_SETTINGS, public_base_url: defaultPublicBaseUrl || '' };
@@ -42,9 +49,22 @@ async function getKvSettings(kv?: KVNamespace, defaultPublicBaseUrl?: string): P
 }
 
 const failedLoginAttempts = new Map<string, { count: number; resetAt: number }>();
+const MAX_LOGIN_RECORDS = 10_000;
+
+function pruneLoginAttempts(now: number): void {
+  for (const [ip, record] of failedLoginAttempts) {
+    if (record.resetAt <= now) failedLoginAttempts.delete(ip);
+  }
+  while (failedLoginAttempts.size > MAX_LOGIN_RECORDS) {
+    const first = failedLoginAttempts.keys().next().value as string | undefined;
+    if (!first) break;
+    failedLoginAttempts.delete(first);
+  }
+}
 
 function checkLoginRateLimit(ip: string): boolean {
   const now = Date.now();
+  pruneLoginAttempts(now);
   const record = failedLoginAttempts.get(ip);
   if (!record || record.resetAt <= now) {
     return true;
@@ -67,12 +87,15 @@ function resetFailedLogin(ip: string): void {
 }
 
 export function registerSystemRoutes(app: Hono<{ Bindings: ApiBindings }>): void {
-  app.post('/auth/login', async (c) => {
+  app.post('/auth/login', bodyLimit({
+    maxSize: MAX_LOGIN_REQUEST_BYTES,
+    onError: (c) => c.json({ success: false, message: '请求体过大' }, 413),
+  }), async (c) => {
     try {
-      const clientIp = c.req.header('cf-connecting-ip')
-        || c.req.header('x-forwarded-for')?.split(',')[0]?.trim()
-        || c.req.header('x-real-ip')
-        || 'unknown';
+      const clientIp = c.env.CLIENT_IP
+        || (c.env.ENVIRONMENT === 'cloudflare_pages'
+          ? c.req.header('cf-connecting-ip') || 'unknown'
+          : 'unknown');
 
       if (!checkLoginRateLimit(clientIp)) {
         return c.json({ success: false, message: '登录尝试过于频繁，请 1 分钟后再试' }, 429);
@@ -170,7 +193,10 @@ function detectEnvironment(c: { env: ApiBindings }): 'node_container' | 'cloudfl
     }
   });
 
-  app.put('/backup', async (c) => {
+  app.put('/backup', bodyLimit({
+    maxSize: MAX_BACKUP_REQUEST_BYTES,
+    onError: (c) => c.json({ error: 'Backup request body is too large' }, 413),
+  }), async (c) => {
     try {
       const { data } = await c.req.json<{ data?: unknown }>();
       const validation = validateBackupData(data);

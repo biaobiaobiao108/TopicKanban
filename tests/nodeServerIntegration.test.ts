@@ -226,4 +226,58 @@ describe('Node.js Server Integration (Local SQLite & API)', () => {
     expect(data.d1.message).toContain('Cloudflare D1');
     expect(data.kv.message).toContain('Cloudflare KV');
   });
+
+  it('rejects oversized unauthenticated login and quick-drop requests', async () => {
+    const loginRes = await app.request('/api/auth/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ password: 'x'.repeat(20_000) }),
+    });
+    expect(loginRes.status).toBe(413);
+
+    const dropRes = await app.request('/api/inbox/quick-drop', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-Quick-Drop-Token': testDropToken,
+      },
+      body: JSON.stringify({ content: 'x'.repeat(70_000) }),
+    });
+    expect(dropRes.status).toBe(413);
+  });
+
+  it('keeps the first active presence lease when another client reports', async () => {
+    const first = await app.request('/api/topics/topic-1/presence', {
+      method: 'POST',
+      headers: { Authorization: 'Bearer invalid' },
+      body: JSON.stringify({ client_id: 'client-a', device_name: 'A' }),
+    });
+    expect(first.status).toBe(401);
+
+    const loginRes = await app.request('/api/auth/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ password: testPassword }),
+    });
+    const { token } = await loginRes.json() as { token: string };
+    const headers = { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' };
+
+    const a = await app.request('/api/topics/topic-1/presence', {
+      method: 'POST', headers, body: JSON.stringify({ client_id: 'client-a', device_name: 'A' }),
+    });
+    expect((await a.json() as { is_locked: boolean }).is_locked).toBe(false);
+
+    const b = await app.request('/api/topics/topic-1/presence', {
+      method: 'POST', headers, body: JSON.stringify({ client_id: 'client-b', device_name: 'B' }),
+    });
+    const bData = await b.json() as { is_locked: boolean; active_editor?: { client_id: string } };
+    expect(bData.is_locked).toBe(true);
+    expect(bData.active_editor?.client_id).toBe('client-a');
+
+    const aAgain = await app.request('/api/topics/topic-1/presence', {
+      method: 'POST', headers, body: JSON.stringify({ client_id: 'client-a', device_name: 'A' }),
+    });
+    const aData = await aAgain.json() as { is_locked: boolean };
+    expect(aData.is_locked).toBe(false);
+  });
 });

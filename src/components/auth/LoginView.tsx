@@ -49,12 +49,13 @@ export const LoginView: React.FC<LoginViewProps> = ({ onLoginSuccess }) => {
         {/* Form */}
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-1.5">
-            <label className="block text-xs font-semibold text-stone-700">
+            <label htmlFor="workspace-password" className="block text-xs font-semibold text-stone-700">
               工作台访问密码
             </label>
             <div className="relative">
               <input
                 type={showPassword ? 'text' : 'password'}
+                id="workspace-password"
                 name="password"
                 autoComplete="current-password"
                 autoFocus

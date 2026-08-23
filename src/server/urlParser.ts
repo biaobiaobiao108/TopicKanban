@@ -10,6 +10,10 @@ export interface ParsedUrlMetadata {
   cover_url?: string;
 }
 
+export const MAX_METADATA_HTML_BYTES = 1 * 1024 * 1024;
+const MAX_SAFE_REDIRECTS = 3;
+const REDIRECT_STATUS_CODES = new Set([301, 302, 303, 307, 308]);
+
 function decodeHtmlEntities(str: string): string {
   return str
     .replace(/&amp;/g, '&')
@@ -132,6 +136,86 @@ export function isSafePublicUrl(urlStr: string): boolean {
   } catch {
     return false;
   }
+}
+
+async function isSafePublicRequestUrl(urlStr: string): Promise<boolean> {
+  if (!isSafePublicUrl(urlStr)) return false;
+
+  // Cloudflare Workers cannot perform arbitrary DNS lookups. Its fetch runtime
+  // still enforces outbound network policy, while Node performs an explicit
+  // post-resolution check to prevent DNS rebinding to private addresses.
+  if (typeof process === 'undefined' || !process.versions?.node) return true;
+
+  try {
+    type DnsModule = { lookup: (hostname: string, options: { all: true }) => Promise<Array<{ address: string }>> };
+    const processWithBuiltin = process as typeof process & {
+      getBuiltinModule?: (id: string) => DnsModule | undefined;
+    };
+    const dns = processWithBuiltin.getBuiltinModule?.('node:dns/promises') || await (async () => {
+      const dynamicImport = new Function('specifier', 'return import(specifier)') as (
+        specifier: string
+      ) => Promise<DnsModule>;
+      return dynamicImport('node:dns/promises');
+    })();
+    const hostname = new URL(urlStr).hostname;
+    const addresses = await dns.lookup(hostname, { all: true });
+    return addresses.length > 0 && addresses.every(({ address }) => !isPrivateOrReservedIp(address));
+  } catch {
+    return false;
+  }
+}
+
+async function fetchWithSafeRedirects(
+  urlStr: string,
+  init: RequestInit,
+  maxRedirects = MAX_SAFE_REDIRECTS
+): Promise<Response | null> {
+  let target = urlStr;
+  for (let redirectCount = 0; redirectCount <= maxRedirects; redirectCount += 1) {
+    if (!(await isSafePublicRequestUrl(target))) return null;
+    const response = await fetch(target, { ...init, redirect: 'manual' });
+    if (!REDIRECT_STATUS_CODES.has(response.status)) return response;
+    const location = response.headers.get('location');
+    if (!location || redirectCount === maxRedirects) return null;
+    try {
+      target = new URL(location, target).toString();
+    } catch {
+      return null;
+    }
+  }
+  return null;
+}
+
+async function readResponseTextLimited(response: Response, maxBytes: number): Promise<string | null> {
+  const contentLength = Number(response.headers.get('content-length') || 0);
+  if (contentLength > maxBytes) return null;
+  if (!response.body) return response.text();
+
+  const reader = response.body.getReader();
+  const chunks: Uint8Array[] = [];
+  let totalBytes = 0;
+  try {
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      totalBytes += value.byteLength;
+      if (totalBytes > maxBytes) {
+        await reader.cancel();
+        return null;
+      }
+      chunks.push(value);
+    }
+  } finally {
+    reader.releaseLock();
+  }
+
+  const bytes = new Uint8Array(totalBytes);
+  let offset = 0;
+  chunks.forEach((chunk) => {
+    bytes.set(chunk, offset);
+    offset += chunk.byteLength;
+  });
+  return new TextDecoder().decode(bytes);
 }
 
 export function detectPlatformFromUrl(urlStr: string): PlatformType {
@@ -276,7 +360,7 @@ async function parseGeneralWebUrl(urlStr: string): Promise<ParsedUrlMetadata> {
   let published_at = '';
   let cover_url = '';
 
-  if (!isSafePublicUrl(urlStr)) {
+  if (!(await isSafePublicRequestUrl(urlStr))) {
     return {
       title: urlStr,
       author: '',
@@ -291,17 +375,24 @@ async function parseGeneralWebUrl(urlStr: string): Promise<ParsedUrlMetadata> {
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), 6000);
 
-    const res = await fetch(urlStr, {
+    const res = await fetchWithSafeRedirects(urlStr, {
       headers: {
         'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
         'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
       },
       signal: controller.signal,
-    });
-    clearTimeout(timeoutId);
-
-    if (res.ok) {
-      const html = await res.text();
+    }, MAX_SAFE_REDIRECTS);
+    if (res?.ok) {
+      const html = await readResponseTextLimited(res, MAX_METADATA_HTML_BYTES);
+      clearTimeout(timeoutId);
+      if (html === null) return {
+        title: urlStr,
+        author: '',
+        content: '',
+        published_at: '',
+        platform,
+        url: urlStr,
+      };
 
       // Extract Title: og:title -> twitter:title -> <title>
       const ogTitleMatch = html.match(/<meta[^>]+property=["']og:title["'][^>]+content=["']([^"']+)["']/i)
@@ -362,6 +453,7 @@ async function parseGeneralWebUrl(urlStr: string): Promise<ParsedUrlMetadata> {
         }
       }
     }
+    clearTimeout(timeoutId);
   } catch {
     // Ignore fetch timeout/abort errors
   }
@@ -386,7 +478,7 @@ export async function parseUrlMetadata(rawInput: string): Promise<ParsedUrlMetad
   const targetUrl = urlMatch ? urlMatch[0] : trimmed;
 
   // SSRF Check: if not safe, return safe fallback directly without fetching
-  if (!isSafePublicUrl(targetUrl)) {
+  if (!(await isSafePublicRequestUrl(targetUrl))) {
     return {
       title: targetUrl,
       author: '',
@@ -405,9 +497,8 @@ export async function parseUrlMetadata(rawInput: string): Promise<ParsedUrlMetad
       try {
         const controller = new AbortController();
         const timeoutId = setTimeout(() => controller.abort(), 5000);
-        const res = await fetch(targetUrl, {
+        const res = await fetchWithSafeRedirects(targetUrl, {
           method: 'HEAD',
-          redirect: 'follow',
           headers: {
             'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)',
           },
@@ -415,7 +506,7 @@ export async function parseUrlMetadata(rawInput: string): Promise<ParsedUrlMetad
         });
         clearTimeout(timeoutId);
         // Verify resolved URL is safe before proceeding
-        if (res.url && isSafePublicUrl(res.url)) {
+        if (res?.url && await isSafePublicRequestUrl(res.url)) {
           resolvedUrl = res.url;
         }
       } catch {

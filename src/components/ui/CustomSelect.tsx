@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useId } from 'react';
 import { ChevronDown, Check } from 'lucide-react';
 
 export interface SelectOption {
@@ -35,9 +35,21 @@ export const CustomSelect: React.FC<CustomSelectProps> = ({
   align = 'left',
 }) => {
   const [isOpen, setIsOpen] = useState(false);
+  const [focusedIndex, setFocusedIndex] = useState(() => Math.max(0, options.findIndex((opt) => opt.value === value)));
   const containerRef = useRef<HTMLDivElement>(null);
+  const buttonRef = useRef<HTMLButtonElement>(null);
+  const optionRefs = useRef<Array<HTMLButtonElement | null>>([]);
+  const listboxId = useId();
 
   const selectedOption = options.find((opt) => opt.value === value);
+
+  useEffect(() => {
+    if (!isOpen) return;
+    const selectedIndex = options.findIndex((option) => option.value === value);
+    const nextIndex = selectedIndex >= 0 ? selectedIndex : 0;
+    setFocusedIndex(nextIndex);
+    requestAnimationFrame(() => optionRefs.current[nextIndex]?.focus());
+  }, [isOpen, value]);
 
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
@@ -61,6 +73,54 @@ export const CustomSelect: React.FC<CustomSelectProps> = ({
     };
   }, [isOpen]);
 
+  const close = () => {
+    setIsOpen(false);
+    buttonRef.current?.focus();
+  };
+
+  const selectFocused = (index: number) => {
+    const option = options[index];
+    if (!option) return;
+    onChange(option.value);
+    close();
+  };
+
+  const handleButtonKeyDown = (event: React.KeyboardEvent<HTMLButtonElement>) => {
+    if (disabled) return;
+    if (event.key === 'Enter' || event.key === ' ' || event.key === 'ArrowDown') {
+      event.preventDefault();
+      setIsOpen(true);
+    } else if (event.key === 'ArrowUp') {
+      event.preventDefault();
+      setFocusedIndex(Math.max(0, options.findIndex((option) => option.value === value)));
+      setIsOpen(true);
+    } else if (event.key === 'Escape' && isOpen) {
+      event.preventDefault();
+      close();
+    }
+  };
+
+  const handleOptionKeyDown = (event: React.KeyboardEvent<HTMLButtonElement>) => {
+    if (event.key === 'ArrowDown' || event.key === 'ArrowUp') {
+      event.preventDefault();
+      const delta = event.key === 'ArrowDown' ? 1 : -1;
+      const nextIndex = (focusedIndex + delta + options.length) % options.length;
+      setFocusedIndex(nextIndex);
+      optionRefs.current[nextIndex]?.focus();
+    } else if (event.key === 'Home' || event.key === 'End') {
+      event.preventDefault();
+      const nextIndex = event.key === 'Home' ? 0 : options.length - 1;
+      setFocusedIndex(nextIndex);
+      optionRefs.current[nextIndex]?.focus();
+    } else if (event.key === 'Enter' || event.key === ' ') {
+      event.preventDefault();
+      selectFocused(focusedIndex);
+    } else if (event.key === 'Escape') {
+      event.preventDefault();
+      close();
+    }
+  };
+
   const sizeClasses = {
     xs: 'px-2 py-1 text-[11px] rounded-lg gap-1.5',
     sm: 'px-2.5 py-1.5 text-xs rounded-xl gap-2',
@@ -76,9 +136,15 @@ export const CustomSelect: React.FC<CustomSelectProps> = ({
   return (
     <div className={`relative inline-block ${className}`} ref={containerRef}>
       <button
+        ref={buttonRef}
         type="button"
+        role="combobox"
+        aria-haspopup="listbox"
+        aria-expanded={isOpen}
+        aria-controls={isOpen ? listboxId : undefined}
         disabled={disabled}
-        onClick={() => !disabled && setIsOpen(!isOpen)}
+        onClick={() => !disabled && (isOpen ? close() : setIsOpen(true))}
+        onKeyDown={handleButtonKeyDown}
         className={`flex items-center justify-between font-medium transition-all cursor-pointer ${
           sizeClasses[size]
         } ${
@@ -107,19 +173,32 @@ export const CustomSelect: React.FC<CustomSelectProps> = ({
 
       {isOpen && (
         <div
+          id={listboxId}
+          role="listbox"
+          aria-label={placeholder}
+          tabIndex={-1}
+          onKeyDown={(event) => {
+            if (event.target === event.currentTarget && event.key === 'Escape') close();
+          }}
           className={`absolute z-50 mt-1 min-w-[160px] max-h-64 overflow-y-auto bg-white dark:bg-stone-900 border border-stone-200 dark:border-stone-800 rounded-xl shadow-modal p-1 space-y-0.5 animate-in fade-in zoom-in-95 duration-100 ${
             align === 'right' ? 'right-0' : 'left-0'
           } ${popoverClassName}`}
         >
-          {options.map((option) => {
+          {options.map((option, index) => {
             const isSelected = option.value === value;
             return (
               <button
+                ref={(element) => { optionRefs.current[index] = element; }}
                 key={option.value}
                 type="button"
+                role="option"
+                aria-selected={isSelected}
+                tabIndex={focusedIndex === index ? 0 : -1}
+                onFocus={() => setFocusedIndex(index)}
+                onKeyDown={handleOptionKeyDown}
                 onClick={() => {
                   onChange(option.value);
-                  setIsOpen(false);
+                  close();
                 }}
                 className={`w-full text-left px-2.5 py-1.5 rounded-lg text-xs font-medium flex items-center justify-between transition-colors cursor-pointer ${
                   isSelected

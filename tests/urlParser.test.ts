@@ -1,6 +1,7 @@
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
 import {
   extractBilibiliId,
+  MAX_METADATA_HTML_BYTES,
   parseUrlMetadata,
   isPrivateOrReservedIp,
   isSafePublicUrl,
@@ -132,5 +133,34 @@ describe('URL Parser & Platform Detection', () => {
 
     const douyin = await parseUrlMetadata('https://www.douyin.com/video/123456');
     expect(douyin.platform).toBe('douyin');
+  });
+
+  it('does not follow a redirect into a private address', async () => {
+    const fetchSpy = vi.spyOn(globalThis, 'fetch').mockResolvedValueOnce(
+      new Response(null, { status: 302, headers: { location: 'http://127.0.0.1:8787/admin' } })
+    );
+    try {
+      const result = await parseUrlMetadata('https://8.8.8.8/article');
+      expect(result.title).toBe('https://8.8.8.8/article');
+      expect(fetchSpy).toHaveBeenCalledTimes(1);
+    } finally {
+      fetchSpy.mockRestore();
+    }
+  });
+
+  it('does not read HTML responses beyond the configured limit', async () => {
+    const fetchSpy = vi.spyOn(globalThis, 'fetch').mockResolvedValueOnce(
+      new Response('x'.repeat(MAX_METADATA_HTML_BYTES + 1), {
+        status: 200,
+        headers: { 'content-length': String(MAX_METADATA_HTML_BYTES + 1) },
+      })
+    );
+    try {
+      const result = await parseUrlMetadata('https://8.8.8.8/large');
+      expect(result.title).toBe('https://8.8.8.8/large');
+      expect(result.content).toBe('');
+    } finally {
+      fetchSpy.mockRestore();
+    }
   });
 });

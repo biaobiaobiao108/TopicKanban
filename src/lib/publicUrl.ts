@@ -6,8 +6,14 @@ export function normalizeBaseUrl(url?: string): string {
   if (!url || typeof url !== 'string') return '';
   const trimmed = url.trim();
   if (!trimmed) return '';
-  // Strip trailing slashes
-  return trimmed.replace(/\/+$/, '');
+  try {
+    const parsed = new URL(trimmed);
+    if ((parsed.protocol !== 'http:' && parsed.protocol !== 'https:') || !parsed.hostname) return '';
+    if (parsed.username || parsed.password) return '';
+    return trimmed.replace(/\/+$/, '');
+  } catch {
+    return '';
+  }
 }
 
 export function resolvePublicUrl(path: string, publicBaseUrl?: string): string {
@@ -36,10 +42,10 @@ export function resolveServerPublicUrl(path: string, options: ServerUrlOptions =
     return `${configured}${normalizedPath}`;
   }
 
-  const proto = (options.forwardedProto || 'http').split(',')[0].trim();
+  const proto = (options.forwardedProto || 'http').split(',')[0].trim().toLowerCase();
   const host = (options.forwardedHost || options.host || '').split(',')[0].trim();
 
-  if (host) {
+  if (host && (proto === 'http' || proto === 'https') && !/[\s/@]/.test(host)) {
     return `${proto}://${host}${normalizedPath}`;
   }
 

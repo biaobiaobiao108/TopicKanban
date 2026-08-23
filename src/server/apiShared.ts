@@ -7,12 +7,17 @@ export type ApiBindings = {
   QUICK_DROP_TOKEN?: string;
   PUBLIC_BASE_URL?: string;
   ENVIRONMENT?: 'node_container' | 'cloudflare_pages';
+  CLIENT_IP?: string;
 };
 
 const TOKEN_TTL_SECONDS = 60 * 60 * 24 * 7;
 const PRIORITIES = ['high', 'medium', 'low', 'none'] as const;
 export const MAX_DRAFT_BYTES = 2 * 1024 * 1024;
 export const MAX_BATCH_SIZE = 200;
+export const MAX_REQUEST_BYTES = 10 * 1024 * 1024;
+export const MAX_LOGIN_REQUEST_BYTES = 16 * 1024;
+export const MAX_QUICK_DROP_REQUEST_BYTES = 64 * 1024;
+export const MAX_BACKUP_REQUEST_BYTES = 6 * 1024 * 1024;
 
 export const SOURCE_TYPES = ['fact', 'clue', 'material'] as const;
 export const VERIFICATION_STATUSES = ['confirmed', 'unverified', 'rejected'] as const;

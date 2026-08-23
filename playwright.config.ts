@@ -5,7 +5,7 @@ export default defineConfig({
   fullyParallel: true,
   reporter: 'line',
   use: {
-    baseURL: 'http://localhost:8798',
+    baseURL: 'http://localhost:3000',
     trace: 'retain-on-failure',
     screenshot: 'only-on-failure',
   },
@@ -14,7 +14,7 @@ export default defineConfig({
   ],
   webServer: {
     command: 'pnpm dev',
-    url: 'http://localhost:8798',
+    url: 'http://localhost:3000',
     reuseExistingServer: true,
     timeout: 120_000,
   },

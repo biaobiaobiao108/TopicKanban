@@ -1,4 +1,5 @@
 import { Hono } from 'hono';
+import { bodyLimit } from 'hono/body-limit';
 import type {
   Draft,
   DraftCitation,
@@ -30,6 +31,8 @@ import {
   PLATFORM_TYPES,
   MAX_BATCH_SIZE,
   MAX_DRAFT_BYTES,
+  MAX_QUICK_DROP_REQUEST_BYTES,
+  MAX_REQUEST_BYTES,
   createId,
   hasInvalidValue,
   isNonNegativeInteger,
@@ -93,6 +96,11 @@ async function loadRelationship(db: D1Database, id: string): Promise<PersonRelat
 
 export function createApp() {
   const app = new Hono<{ Bindings: ApiBindings }>().basePath('/api');
+
+  app.use('*', bodyLimit({
+    maxSize: MAX_REQUEST_BYTES,
+    onError: (c) => c.json({ error: 'Request body is too large' }, 413),
+  }));
 
   app.use('*', async (c, next) => {
     const path = c.req.path;
@@ -946,12 +954,15 @@ export function createApp() {
       const currentLock = await kv.get<{ client_id: string; device_name: string; updated_at: string }>(`lock:${topicId}`, 'json');
       const isLockedByOther = !!currentLock && currentLock.client_id !== clientId;
 
-      // 刷新当前客户端的在线租约 (30秒 TTL)
-      await kv.put(`lock:${topicId}`, JSON.stringify({
-        client_id: clientId,
-        device_name: deviceName,
-        updated_at: now,
-      }), { expirationTtl: 30 });
+      // Only refresh our own lease. A live editor must not be overwritten by
+      // another browser merely because it sent a later heartbeat.
+      if (!isLockedByOther) {
+        await kv.put(`lock:${topicId}`, JSON.stringify({
+          client_id: clientId,
+          device_name: deviceName,
+          updated_at: now,
+        }), { expirationTtl: 30 });
+      }
 
       return c.json({
         is_locked: isLockedByOther,
@@ -984,7 +995,10 @@ export function createApp() {
      ========================================================================= */
 
   // 1. 投递碎片灵感 (支持 X-Quick-Drop-Token 或 Bearer 鉴权)
-  app.post('/inbox/quick-drop', async (c) => {
+  app.post('/inbox/quick-drop', bodyLimit({
+    maxSize: MAX_QUICK_DROP_REQUEST_BYTES,
+    onError: (c) => c.json({ error: 'Quick drop request body is too large' }, 413),
+  }), async (c) => {
     try {
       const kv = c.env.KV;
       if (!kv) return c.json({ error: 'KV is not configured' }, 503);

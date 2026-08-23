@@ -2,6 +2,8 @@ import { describe, expect, it } from 'vitest';
 import {
   MAX_BATCH_SIZE,
   MAX_DRAFT_BYTES,
+  MAX_LOGIN_REQUEST_BYTES,
+  MAX_QUICK_DROP_REQUEST_BYTES,
   validateTextFields,
   validateTopicFields,
   verifyQuickDropCredential,
@@ -17,6 +19,8 @@ describe('API validation boundaries', () => {
     expect(validateTextFields({ title: 'x'.repeat(200) }, { title: [200, true] })).toBeNull();
     expect(MAX_DRAFT_BYTES).toBe(2 * 1024 * 1024);
     expect(MAX_BATCH_SIZE).toBe(200);
+    expect(MAX_LOGIN_REQUEST_BYTES).toBe(16 * 1024);
+    expect(MAX_QUICK_DROP_REQUEST_BYTES).toBe(64 * 1024);
   });
 
   it('rejects invalid score and sort values', () => {

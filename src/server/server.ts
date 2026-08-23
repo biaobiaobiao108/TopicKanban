@@ -1,4 +1,5 @@
 import { serve } from '@hono/node-server';
+import { getConnInfo } from '@hono/node-server/conninfo';
 import { serveStatic } from '@hono/node-server/serve-static';
 import { Hono } from 'hono';
 import fs from 'node:fs';
@@ -38,9 +39,11 @@ const mainApp = new Hono<{ Bindings: ApiBindings }>();
 // Attach environment bindings
 mainApp.use('*', async (c, next) => {
   const existing = (c.env || {}) as Partial<ApiBindings>;
+  const remoteAddress = getConnInfo(c).remote.address;
   c.env = {
     ...existing,
     ...serverBindings,
+    CLIENT_IP: remoteAddress || 'unknown',
   };
   await next();
 });
@@ -49,8 +52,9 @@ mainApp.use('*', async (c, next) => {
 mainApp.use('*', async (c, next) => {
   await next();
   c.header('X-Content-Type-Options', 'nosniff');
-  c.header('X-Frame-Options', 'SAMEORIGIN');
+  c.header('X-Frame-Options', 'DENY');
   c.header('Referrer-Policy', 'strict-origin-when-cross-origin');
+  c.header('Content-Security-Policy', "default-src 'self'; script-src 'self' https://api.bilibili.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: blob: https:; connect-src 'self' https://api.bilibili.com; object-src 'none'; base-uri 'self'; frame-ancestors 'none'; form-action 'self'");
 });
 
 // Mount API routes

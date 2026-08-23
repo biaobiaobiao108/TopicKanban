@@ -175,15 +175,6 @@ function WorkspaceApp({ isAuth, setIsAuth }: WorkspaceAppProps) {
   // Global Keyboard Shortcuts: Ctrl+P / Cmd+P / / and N
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      // 1. Universal Ctrl+P / Cmd+P to toggle Command Palette (works everywhere, including inputs & Zen mode)
-      if ((e.ctrlKey || e.metaKey) && !e.shiftKey && (e.key === 'p' || e.key === 'P')) {
-        e.preventDefault();
-        e.stopPropagation();
-        setIsCommandPaletteOpen((prev) => !prev);
-        return;
-      }
-
-      // Don't trigger single-key shortcuts if typing inside input / textarea / contenteditable
       const target = e.target as HTMLElement;
       const isInput =
         target.tagName === 'INPUT' ||
@@ -191,6 +182,14 @@ function WorkspaceApp({ isAuth, setIsAuth }: WorkspaceAppProps) {
         target.isContentEditable;
 
       if (isInput) return;
+
+      // 1. Ctrl+P / Cmd+P to toggle Command Palette outside editable controls
+      if ((e.ctrlKey || e.metaKey) && !e.shiftKey && (e.key === 'p' || e.key === 'P')) {
+        e.preventDefault();
+        e.stopPropagation();
+        setIsCommandPaletteOpen((prev) => !prev);
+        return;
+      }
 
       // Prevent triggering global single-key shortcuts if a modal is already open
       const hasActiveModal =
