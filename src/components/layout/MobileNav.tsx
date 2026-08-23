@@ -47,7 +47,8 @@ export const MobileBottomNav: React.FC<MobileBottomNavProps> = ({
           <button
             key={item.id}
             onClick={() => onNavigate(item.id)}
-            className={`relative flex flex-col items-center justify-center py-1 px-2.5 rounded-lg transition-colors ${
+            aria-current={isActive ? 'page' : undefined}
+            className={`relative flex min-h-11 min-w-11 touch-manipulation flex-col items-center justify-center rounded-lg px-1.5 py-1 transition-colors ${
               isActive ? 'text-rose-600 font-bold' : 'text-stone-500 hover:text-stone-800'
             }`}
           >
@@ -65,7 +66,8 @@ export const MobileBottomNav: React.FC<MobileBottomNavProps> = ({
       {/* Floating Create Button */}
       <button
         onClick={onOpenQuickCreate}
-        className="mobile-fab-create-button flex items-center justify-center w-10 h-10 rounded-full bg-stone-900 text-white shadow-md active:scale-95 transition-transform ml-1"
+        aria-label="新建选题"
+        className="mobile-fab-create-button ml-1 flex h-11 w-11 shrink-0 touch-manipulation items-center justify-center rounded-full bg-stone-900 text-white shadow-md transition-transform active:scale-95"
         title="新建选题"
       >
         <Plus className="w-5 h-5 stroke-[2.5]" />
@@ -130,7 +132,7 @@ export const MobileDrawer: React.FC<MobileDrawerProps> = ({
                 <p className="text-[11px] text-stone-500">B站叙事类UP主专属</p>
               </div>
             </div>
-            <button onClick={onClose} className="p-1 text-stone-400 hover:text-stone-700">
+            <button onClick={onClose} aria-label="关闭导航菜单" className="flex min-h-11 min-w-11 items-center justify-center rounded-lg text-stone-400 hover:text-stone-700">
               <X className="w-5 h-5" />
             </button>
           </div>
@@ -198,7 +200,8 @@ export const MobileDrawer: React.FC<MobileDrawerProps> = ({
                     onNavigate(item.id);
                     onClose();
                   }}
-                  className={`w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-sm font-medium transition-colors ${
+                  aria-current={isActive ? 'page' : undefined}
+                  className={`w-full min-h-11 touch-manipulation flex items-center justify-between px-3 py-2.5 rounded-xl text-sm font-medium transition-colors ${
                     isActive
                       ? 'bg-stone-100 text-stone-900 font-bold'
                       : 'text-stone-600 hover:bg-stone-50'
