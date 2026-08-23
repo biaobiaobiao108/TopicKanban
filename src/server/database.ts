@@ -241,19 +241,31 @@ export async function loadTopicPage(db: D1Database, options: TopicPageOptions): 
   return { items: rows, page: options.page, page_size: options.pageSize, total, total_pages: Math.ceil(total / options.pageSize) };
 }
 
-export async function loadBootstrap(db: D1Database, kvSettings?: AppSettings): Promise<BootstrapData> {
+export interface BootstrapLoadOptions {
+  includePeople?: boolean;
+  includeRelationships?: boolean;
+  includePublished?: boolean;
+  includeTags?: boolean;
+}
+
+export async function loadBootstrap(db: D1Database, kvSettings?: AppSettings, options: BootstrapLoadOptions = {}): Promise<BootstrapData> {
+  const includePeople = options.includePeople !== false;
+  const includeRelationships = options.includeRelationships !== false;
+  const includePublished = options.includePublished !== false;
+  const includeTags = options.includeTags !== false;
   const queries: D1PreparedStatement[] = [
-    db.prepare(`SELECT p.*,
+    includePeople ? db.prepare(`SELECT p.*,
       (SELECT COUNT(*) FROM topic_people tp WHERE tp.person_id = p.id) AS related_topics_count
-      FROM people p ORDER BY p.updated_at DESC`),
-    db.prepare(`SELECT r.*, a.name AS person_a_name, b.name AS person_b_name
+      FROM people p ORDER BY p.updated_at DESC`) : db.prepare('SELECT NULL WHERE 1 = 0'),
+    includeRelationships ? db.prepare(`SELECT r.*, a.name AS person_a_name, b.name AS person_b_name
       FROM person_relationships r
       LEFT JOIN people a ON a.id = r.person_a_id
       LEFT JOIN people b ON b.id = r.person_b_id
-      ORDER BY r.created_at DESC`),
-    db.prepare(`SELECT v.*, t.title AS topic_title FROM published_videos v
-      LEFT JOIN topics t ON t.id = v.topic_id ORDER BY v.published_at DESC, v.updated_at DESC`),
-    db.prepare('SELECT id, name, color FROM tags ORDER BY name ASC'),
+      ORDER BY r.created_at DESC`) : db.prepare('SELECT NULL WHERE 1 = 0'),
+    includePublished ? db.prepare(`SELECT v.*, t.title AS topic_title FROM published_videos v
+      LEFT JOIN topics t ON t.id = v.topic_id ORDER BY v.published_at DESC, v.updated_at DESC`)
+      : db.prepare('SELECT NULL WHERE 1 = 0'),
+    includeTags ? db.prepare('SELECT id, name, color FROM tags ORDER BY name ASC') : db.prepare('SELECT NULL WHERE 1 = 0'),
   ];
   if (!kvSettings) {
     queries.push(db.prepare('SELECT key, value FROM settings'));

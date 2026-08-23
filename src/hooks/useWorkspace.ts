@@ -1,4 +1,4 @@
-import { useCallback, type SetStateAction } from 'react';
+import { useCallback, useEffect, type SetStateAction } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import type {
   AppSettings,
@@ -9,15 +9,19 @@ import type {
   Tag,
   Topic,
 } from '../types';
-import { fetchBootstrap, fetchTrashedTopics, invalidateBootstrap } from '../lib/storage';
+import { fetchBootstrap, fetchPeople, fetchRelationships, fetchTags, fetchPublishedVideos, fetchTrashedTopics, invalidateBootstrap } from '../lib/storage';
 
-export function useWorkspace(enabled: boolean) {
+export function useWorkspace(enabled: boolean, view: string = 'today') {
   const queryClient = useQueryClient();
   const workspaceQuery = useQuery({
     queryKey: ['workspace'],
-    queryFn: fetchBootstrap,
+    queryFn: () => fetchBootstrap('core'),
     enabled,
   });
+  const peopleQuery = useQuery({ queryKey: ['people'], queryFn: fetchPeople, enabled: enabled && ['today', 'kanban', 'people', 'topic-detail'].includes(view) });
+  const relationshipsQuery = useQuery({ queryKey: ['relationships'], queryFn: fetchRelationships, enabled: enabled && ['people', 'topic-detail'].includes(view) });
+  const tagsQuery = useQuery({ queryKey: ['tags'], queryFn: fetchTags, enabled: enabled && ['kanban', 'tags', 'topic-detail'].includes(view) });
+  const publishedQuery = useQuery({ queryKey: ['published'], queryFn: fetchPublishedVideos, enabled: enabled && view === 'published' });
   const trashQuery = useQuery({
     queryKey: ['topics', 'trash'],
     queryFn: fetchTrashedTopics,
@@ -51,24 +55,34 @@ export function useWorkspace(enabled: boolean) {
       typeof updater === 'function' ? updater(current) : updater
     ));
   }, [queryClient]);
+
+  useEffect(() => {
+    if (peopleQuery.data) setPeople(peopleQuery.data);
+    if (relationshipsQuery.data) setRelationships(relationshipsQuery.data);
+    if (tagsQuery.data) setTags(tagsQuery.data);
+    if (publishedQuery.data) setPublishedList(publishedQuery.data);
+  }, [peopleQuery.data, relationshipsQuery.data, tagsQuery.data, publishedQuery.data]);
   const setSettings = useCallback((settings: AppSettings) => {
     updateWorkspace((current) => ({ ...current, settings }));
   }, [updateWorkspace]);
   const reload = useCallback(async () => {
     invalidateBootstrap();
-    await Promise.all([workspaceQuery.refetch(), trashQuery.refetch()]);
-  }, [workspaceQuery.refetch, trashQuery.refetch]);
+    await Promise.all([
+      workspaceQuery.refetch(), trashQuery.refetch(), peopleQuery.refetch(), relationshipsQuery.refetch(),
+      tagsQuery.refetch(), publishedQuery.refetch(),
+    ]);
+  }, [workspaceQuery.refetch, trashQuery.refetch, peopleQuery.refetch, relationshipsQuery.refetch, tagsQuery.refetch, publishedQuery.refetch]);
 
-  const errorValue = workspaceQuery.error || trashQuery.error;
+  const errorValue = workspaceQuery.error || trashQuery.error || peopleQuery.error || relationshipsQuery.error || tagsQuery.error || publishedQuery.error;
   return {
     topics: workspace?.topics || [],
     trashedTopics: trashQuery.data || [],
-    people: workspace?.people || [],
-    relationships: workspace?.relationships || [],
-    publishedList: workspace?.published || [],
-    tags: workspace?.tags || [],
+    people: peopleQuery.data || workspace?.people || [],
+    relationships: relationshipsQuery.data || workspace?.relationships || [],
+    publishedList: publishedQuery.data || workspace?.published || [],
+    tags: tagsQuery.data || workspace?.tags || [],
     settings: workspace?.settings || { reading_speed: 280, theme: 'light' },
-    isLoading: workspaceQuery.isLoading || trashQuery.isLoading,
+    isLoading: workspaceQuery.isLoading || trashQuery.isLoading || peopleQuery.isLoading || relationshipsQuery.isLoading || tagsQuery.isLoading || publishedQuery.isLoading,
     error: errorValue instanceof Error ? errorValue.message : errorValue ? '工作台数据加载失败' : null,
     reload,
     clear: () => queryClient.clear(),

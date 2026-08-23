@@ -74,14 +74,15 @@ export function invalidateBootstrap(): void {
   bootstrapPromise = null;
 }
 
-export function fetchBootstrap(): Promise<BootstrapData> {
+export function fetchBootstrap(scope: 'full' | 'core' = 'full'): Promise<BootstrapData> {
+  const cacheKey = `${getAuthToken() || ''}:${scope}`;
   const token = getAuthToken();
-  if (token !== bootstrapToken) {
-    bootstrapToken = token;
+  if (cacheKey !== bootstrapToken) {
+    bootstrapToken = cacheKey;
     bootstrapPromise = null;
   }
   if (!bootstrapPromise) {
-    bootstrapPromise = apiRequest<BootstrapData>('/api/bootstrap').catch((error) => {
+    bootstrapPromise = apiRequest<BootstrapData>(scope === 'core' ? '/api/bootstrap?scope=core' : '/api/bootstrap').catch((error) => {
       bootstrapPromise = null;
       throw error;
     });
@@ -231,7 +232,7 @@ export async function deleteTimelineEvent(id: string): Promise<void> {
 }
 
 export async function fetchPeople(): Promise<Person[]> {
-  return (await fetchBootstrap()).people;
+  return apiRequest<Person[]>('/api/people');
 }
 
 export async function fetchPersonById(id: string): Promise<Person | null> {
@@ -252,7 +253,7 @@ export async function deletePerson(id: string): Promise<void> {
 }
 
 export async function fetchRelationships(): Promise<PersonRelationship[]> {
-  return (await fetchBootstrap()).relationships;
+  return apiRequest<PersonRelationship[]>('/api/relationships');
 }
 
 export async function saveRelationship(
@@ -492,7 +493,7 @@ export function saveDraftImmediately(
 }
 
 export async function fetchTags(): Promise<Tag[]> {
-  return (await fetchBootstrap()).tags;
+  return apiRequest<Tag[]>('/api/tags');
 }
 
 export async function saveTag(data: Omit<Tag, 'id'> & { id?: string }): Promise<Tag> {
@@ -509,7 +510,7 @@ export async function deleteTag(id: string): Promise<void> {
 }
 
 export async function fetchPublishedVideos(): Promise<PublishedVideo[]> {
-  return (await fetchBootstrap()).published;
+  return apiRequest<PublishedVideo[]>('/api/published');
 }
 
 export async function savePublishedVideo(

@@ -174,11 +174,14 @@ function detectEnvironment(c: { env: ApiBindings }): 'node_container' | 'cloudfl
 
   app.get('/bootstrap', async (c) => {
     try {
+      const scope = c.req.query('scope');
       const [kvSettings, db] = await Promise.all([
         getKvSettings(c.env.KV, c.env.PUBLIC_BASE_URL),
         Promise.resolve(requireDb(c)),
       ]);
-      return c.json(await loadBootstrap(db, kvSettings));
+      return c.json(await loadBootstrap(db, kvSettings, scope === 'core'
+        ? { includePeople: false, includeRelationships: false, includePublished: false, includeTags: false }
+        : undefined));
     } catch (error) {
       return jsonError(c, error);
     }

@@ -122,7 +122,7 @@ function WorkspaceApp({ isAuth, setIsAuth }: WorkspaceAppProps) {
     setPublishedList,
     setTags,
     setSettings: setAppSettings,
-  } = useWorkspace(isAuth);
+  } = useWorkspace(isAuth, currentView);
 
   // Apply visual theme
   useEffect(() => {
