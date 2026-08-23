@@ -6,6 +6,7 @@ import CharacterCount from '@tiptap/extension-character-count';
 import { CitationInput, Draft, DraftCitation, Topic, TimelineEvent, Source, AppSettings, EditorFontSize, EditorLineHeight, DEFAULT_VOICEOVER_CUES } from '../../types';
 import { ScriptReferenceDrawer } from './ScriptReferenceDrawer';
 import { ScriptOutlinePanel } from './ScriptOutlinePanel';
+import { Modal } from '../ui/Modal';
 import {
   Clock,
   CheckCircle2,
@@ -124,6 +125,7 @@ export const ScriptEditorTab: React.FC<ScriptEditorTabProps> = ({
   onSaveCitation,
 }) => {
   const [saveStatus, setSaveStatus] = useState<'saved' | 'saving' | 'unsaved' | 'local' | 'pending' | 'conflict'>('saved');
+  const [draftConflict, setDraftConflict] = useState<Draft | null>(null);
   const [lastSavedTime, setLastSavedTime] = useState<string>(
     initialDraft?.updated_at ? new Date(initialDraft.updated_at).toLocaleTimeString() : '刚刚'
   );
@@ -376,7 +378,7 @@ export const ScriptEditorTab: React.FC<ScriptEditorTabProps> = ({
         setSaveStatus('local');
       }, 1500);
 
-      // Cloudflare write: only after the editor has been idle for 45 seconds.
+      // Cloudflare write: only after the editor has been idle for 20 seconds.
       saveTimeoutRef.current = setTimeout(async () => {
         setSaveStatus('saving');
         const latest = latestContentRef.current;
@@ -396,28 +398,7 @@ export const ScriptEditorTab: React.FC<ScriptEditorTabProps> = ({
           console.error(error);
           if (error instanceof DraftConflictError) {
             setSaveStatus('conflict');
-            const keepLocal = window.confirm('云端文案已有更新。\n\n点击“确定”使用当前本地文案覆盖云端；点击“取消”载入云端版本。');
-            if (keepLocal) {
-              try {
-                await onSaveDraft(topicId, latest.html, latest.json, latest.wordCount);
-                hasUnsavedChangesRef.current = false;
-                setSaveStatus('saved');
-                setLastSavedTime(new Date().toLocaleTimeString());
-              } catch (retryError) {
-                console.error(retryError);
-                setSaveStatus('pending');
-              }
-            } else if (error.current) {
-              editor.commands.setContent(error.current.content_html || '', false);
-              latestContentRef.current = {
-                html: error.current.content_html,
-                json: error.current.content_json,
-                wordCount: error.current.word_count,
-              };
-              hasUnsavedChangesRef.current = false;
-              setSaveStatus('saved');
-              setLastSavedTime(new Date(error.current.updated_at).toLocaleTimeString());
-            }
+            setDraftConflict(error.current);
           } else {
             setSaveStatus('pending');
           }
@@ -442,6 +423,35 @@ export const ScriptEditorTab: React.FC<ScriptEditorTabProps> = ({
   const estimatedDuration = calculateEstimatedDuration(charCount, effectiveSpeed);
   const estMinutes = estimatedDuration.minutes;
   const estSeconds = estimatedDuration.seconds;
+
+  const resolveDraftConflict = async (choice: 'local' | 'remote') => {
+    if (!draftConflict || !latestContentRef.current) return;
+    if (choice === 'local') {
+      try {
+        const latest = latestContentRef.current;
+        setSaveStatus('saving');
+        await onSaveDraft(topicId, latest.html, latest.json, latest.wordCount);
+        hasUnsavedChangesRef.current = false;
+        setSaveStatus('saved');
+        setLastSavedTime(new Date().toLocaleTimeString());
+        setDraftConflict(null);
+      } catch (error) {
+        console.error(error);
+        setSaveStatus('pending');
+      }
+      return;
+    }
+    editor?.commands.setContent(draftConflict.content_html || '', false);
+    latestContentRef.current = {
+      html: draftConflict.content_html,
+      json: draftConflict.content_json,
+      wordCount: draftConflict.word_count,
+    };
+    hasUnsavedChangesRef.current = false;
+    setSaveStatus('saved');
+    setLastSavedTime(new Date(draftConflict.updated_at).toLocaleTimeString());
+    setDraftConflict(null);
+  };
 
   // Flush pending content synchronously before leaving
   useEffect(() => {
@@ -699,6 +709,32 @@ export const ScriptEditorTab: React.FC<ScriptEditorTabProps> = ({
           : 'w-full h-full flex flex-col'
       }
     >
+      <Modal
+        isOpen={Boolean(draftConflict)}
+        onClose={() => undefined}
+        title="云端文案已有更新"
+        subtitle="请选择要保留的版本，避免覆盖其他设备的编辑。"
+        maxWidth="md"
+      >
+        {draftConflict && (
+          <div className="space-y-4">
+            <div className="grid gap-3 sm:grid-cols-2">
+              <div className="rounded-xl border border-rose-200 bg-rose-50 p-4">
+                <div className="font-semibold text-rose-900">当前本地文案</div>
+                <div className="mt-2 text-xs text-stone-600">{latestContentRef.current?.wordCount || 0} 字 · 尚未同步</div>
+              </div>
+              <div className="rounded-xl border border-stone-200 bg-stone-50 p-4">
+                <div className="font-semibold text-stone-900">云端最新版本</div>
+                <div className="mt-2 text-xs text-stone-600">{draftConflict.word_count} 字 · {new Date(draftConflict.updated_at).toLocaleString()}</div>
+              </div>
+            </div>
+            <div className="flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
+              <button type="button" onClick={() => void resolveDraftConflict('remote')} className="min-h-11 rounded-lg border border-stone-300 bg-white px-4 py-2 text-sm font-semibold text-stone-700 hover:bg-stone-50">使用云端版本</button>
+              <button type="button" onClick={() => void resolveDraftConflict('local')} className="min-h-11 rounded-lg bg-rose-600 px-4 py-2 text-sm font-semibold text-white hover:bg-rose-700">保留本地文案</button>
+            </div>
+          </div>
+        )}
+      </Modal>
       {/* Top Floating / Fixed Toolbar (Hidden in Zen Mode) */}
       {!isZenMode && (
         <div className="script-editor-toolbar bg-white/95 dark:bg-stone-900/95 backdrop-blur-xs border-b border-stone-200 dark:border-stone-800 px-3 sm:px-6 py-2 flex items-center justify-between flex-wrap gap-2 shrink-0 z-30 shadow-2xs transition-colors">
