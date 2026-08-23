@@ -77,38 +77,38 @@ export const ScriptReferenceDrawer: React.FC<ScriptReferenceDrawerProps> = ({
           : hasOutlineContent || filteredTimeline.length > 0 || filteredPeople.length > 0 || filteredSources.length > 0;
 
   return (
-    <div className="script-reference-drawer absolute inset-y-0 right-0 z-40 flex h-full w-full flex-col bg-white dark:bg-stone-900 shadow-lg animate-in slide-in-from-right duration-150 md:w-96 md:border-l md:border-stone-200 dark:md:border-stone-800 transition-colors">
+    <div className="script-reference-drawer fixed inset-0 z-50 flex h-[100dvh] w-full flex-col bg-white/95 dark:bg-stone-900/95 backdrop-blur-md pb-[env(safe-area-inset-bottom)] pt-[env(safe-area-inset-top)] animate-in fade-in duration-150 xl:absolute xl:inset-y-0 xl:right-0 xl:z-40 xl:h-full xl:w-96 xl:bg-transparent xl:bg-[linear-gradient(to_left,rgba(255,255,255,0.96)_0%,rgba(255,255,255,0.85)_75%,transparent_100%)] xl:dark:bg-[linear-gradient(to_left,rgba(12,10,9,0.96)_0%,rgba(12,10,9,0.85)_75%,transparent_100%)] xl:pb-0 xl:pt-0">
       {/* Header */}
-      <div className="p-3.5 border-b border-stone-200 dark:border-stone-800 bg-stone-50/80 dark:bg-stone-900/90 flex items-center justify-between">
+      <div className="flex shrink-0 items-center justify-between gap-2 px-4 pt-5 pb-2">
         <div className="flex items-center gap-2">
           <Sparkles className="w-4 h-4 text-rose-500" />
-          <h3 className="text-sm font-bold text-stone-900 dark:text-stone-100">写作事实资料参考</h3>
+          <h3 className="text-sm font-bold tracking-wide text-stone-800 dark:text-stone-100">事实参考</h3>
         </div>
         <button
           onClick={onClose}
-          className="p-1 text-stone-400 dark:text-stone-500 hover:text-stone-700 dark:hover:text-stone-300 rounded-lg hover:bg-stone-200/60 dark:hover:bg-stone-800 transition-colors cursor-pointer"
+          className="p-2 text-stone-400 dark:text-stone-500 hover:text-stone-800 dark:hover:text-stone-200 rounded-lg hover:bg-stone-100 dark:hover:bg-stone-800 xl:p-1 cursor-pointer transition-colors"
           title="收起资料参考"
         >
           <X className="w-4 h-4" />
         </button>
       </div>
 
-      {/* Search Input */}
-      <div className="p-2.5 border-b border-stone-100 dark:border-stone-800 bg-white dark:bg-stone-900">
+      {/* Search Input (Pill Capsule) */}
+      <div className="px-4 py-1.5 shrink-0">
         <div className="relative">
-          <Search className="w-3.5 h-3.5 absolute left-2.5 top-2.5 text-stone-400 dark:text-stone-500" />
+          <Search className="w-3.5 h-3.5 absolute left-3 top-2.5 text-stone-400 dark:text-stone-500" />
           <input
             type="text"
             placeholder="搜索时间线、人物语录、素材..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full pl-8 pr-3 py-1.5 bg-stone-50 dark:bg-stone-800 border border-stone-200 dark:border-stone-700 rounded-lg text-xs text-stone-800 dark:text-stone-100 placeholder:text-stone-400 dark:placeholder:text-stone-500 focus:bg-white dark:focus:bg-stone-800 focus:outline-none focus:border-stone-400 dark:focus:border-stone-600"
+            className="w-full pl-8 pr-3 py-1.5 bg-stone-100/80 dark:bg-stone-800/80 border border-stone-200/50 dark:border-stone-700/50 rounded-xl text-xs text-stone-800 dark:text-stone-100 placeholder:text-stone-400 dark:placeholder:text-stone-500 focus:bg-white dark:focus:bg-stone-800 focus:outline-none focus:border-rose-500 transition-colors"
           />
         </div>
       </div>
 
-      {/* Tabs */}
-      <div className="flex items-center gap-1 p-2 border-b border-stone-100 dark:border-stone-800 bg-stone-50/40 dark:bg-stone-900/50 text-xs overflow-x-auto no-scrollbar">
+      {/* Tabs (Capsules) */}
+      <div className="flex items-center gap-1 px-4 py-1.5 text-xs overflow-x-auto no-scrollbar shrink-0">
         {[
           { id: 'all', label: '全部' },
           { id: 'timeline', label: `时间线 (${timeline.length})` },
@@ -119,10 +119,10 @@ export const ScriptReferenceDrawer: React.FC<ScriptReferenceDrawerProps> = ({
           <button
             key={tab.id}
             onClick={() => setActiveTab(tab.id as RefTab)}
-            className={`px-2.5 py-1 rounded-md shrink-0 font-medium transition-colors cursor-pointer ${
+            className={`px-2.5 py-1 rounded-lg shrink-0 text-xs font-semibold transition-all cursor-pointer ${
               activeTab === tab.id
-                ? 'bg-stone-900 dark:bg-rose-600 text-white shadow-2xs'
-                : 'text-stone-600 dark:text-stone-400 hover:bg-stone-200/70 dark:hover:bg-stone-800'
+                ? 'bg-rose-500 text-white shadow-2xs'
+                : 'text-stone-600 dark:text-stone-400 hover:bg-black/5 dark:hover:bg-white/5'
             }`}
           >
             {tab.label}
@@ -131,7 +131,7 @@ export const ScriptReferenceDrawer: React.FC<ScriptReferenceDrawerProps> = ({
       </div>
 
       {/* Content Stream */}
-      <div className="flex-1 overflow-y-auto p-3 space-y-4 text-xs">
+      <div className="no-scrollbar flex-1 overflow-y-auto px-4 pb-8 pt-2 space-y-4 text-xs">
         {/* 1. Outline & Hook */}
         {(activeTab === 'all' || activeTab === 'outline') && hasOutlineContent && (
           <div className="space-y-2.5">
@@ -141,7 +141,7 @@ export const ScriptReferenceDrawer: React.FC<ScriptReferenceDrawerProps> = ({
             </div>
 
             {showHook && topic.hook && (
-              <div className="bg-rose-50/50 dark:bg-rose-950/30 border border-rose-200/70 dark:border-rose-900/50 p-2.5 rounded-xl space-y-1.5">
+              <div className="bg-rose-50/70 dark:bg-rose-950/40 border border-rose-200/60 dark:border-rose-900/40 p-2.5 rounded-xl space-y-1.5 backdrop-blur-xs">
                 <div className="flex items-center justify-between text-rose-900 dark:text-rose-200 font-bold">
                   <span>🎯 黄金 3 秒 Hook</span>
                   <button
@@ -149,7 +149,7 @@ export const ScriptReferenceDrawer: React.FC<ScriptReferenceDrawerProps> = ({
                       reference_type: 'outline', reference_id: 'hook', reference_title: '核心 Hook',
                       reference_snapshot: topic.hook, quoted_text: topic.hook, verification_status: 'confirmed',
                     })}
-                    className="text-[10px] bg-white dark:bg-stone-800 border border-rose-200 dark:border-rose-800 hover:bg-rose-100 dark:hover:bg-rose-950/40 text-rose-700 dark:text-rose-300 px-1.5 py-0.5 rounded flex items-center gap-0.5 cursor-pointer"
+                    className="text-[10px] bg-white dark:bg-stone-800 border border-rose-200 dark:border-rose-800 hover:bg-rose-100 dark:hover:bg-rose-950/40 text-rose-700 dark:text-rose-300 px-1.5 py-0.5 rounded-lg flex items-center gap-0.5 cursor-pointer"
                   >
                     {insertedId === 'hook' ? <Check className="w-2.5 h-2.5 text-emerald-600 dark:text-emerald-400" /> : <Plus className="w-2.5 h-2.5" />}
                     <span>插入</span>
@@ -160,7 +160,7 @@ export const ScriptReferenceDrawer: React.FC<ScriptReferenceDrawerProps> = ({
             )}
 
             {showStoryline && topic.storyline && (
-              <div className="bg-stone-50 dark:bg-stone-800/60 border border-stone-200/80 dark:border-stone-700 p-2.5 rounded-xl space-y-1.5">
+              <div className="bg-white/80 dark:bg-stone-850/80 border border-stone-200/60 dark:border-stone-800/60 p-2.5 rounded-xl space-y-1.5 backdrop-blur-xs">
                 <div className="flex items-center justify-between text-stone-900 dark:text-stone-100 font-bold">
                   <span>📖 故事主线阶段</span>
                   <button
@@ -168,7 +168,7 @@ export const ScriptReferenceDrawer: React.FC<ScriptReferenceDrawerProps> = ({
                       reference_type: 'outline', reference_id: 'storyline', reference_title: '故事主线',
                       reference_snapshot: topic.storyline, quoted_text: topic.storyline, verification_status: 'confirmed',
                     })}
-                    className="text-[10px] bg-white dark:bg-stone-800 border border-stone-200 dark:border-stone-700 hover:bg-stone-100 dark:hover:bg-stone-700 text-stone-700 dark:text-stone-300 px-1.5 py-0.5 rounded flex items-center gap-0.5 cursor-pointer"
+                    className="text-[10px] bg-white dark:bg-stone-800 border border-stone-200 dark:border-stone-700 hover:bg-stone-100 dark:hover:bg-stone-700 text-stone-700 dark:text-stone-300 px-1.5 py-0.5 rounded-lg flex items-center gap-0.5 cursor-pointer"
                   >
                     {insertedId === 'storyline' ? <Check className="w-2.5 h-2.5 text-emerald-600 dark:text-emerald-400" /> : <Plus className="w-2.5 h-2.5" />}
                     <span>插入</span>
@@ -189,12 +189,12 @@ export const ScriptReferenceDrawer: React.FC<ScriptReferenceDrawerProps> = ({
             </div>
 
             {filteredPeople.map((person) => (
-              <div key={person.id} className="bg-stone-50 dark:bg-stone-800/60 border border-stone-200/80 dark:border-stone-700 p-2.5 rounded-xl space-y-2">
+              <div key={person.id} className="bg-white/80 dark:bg-stone-850/80 border border-stone-200/60 dark:border-stone-800/60 p-2.5 rounded-xl space-y-2 backdrop-blur-xs">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-1.5">
                     <span className="font-bold text-stone-900 dark:text-stone-100">{person.name}</span>
                     {person.identity && (
-                      <span className="text-[10px] bg-stone-200/70 dark:bg-stone-700 text-stone-700 dark:text-stone-300 px-1.5 py-0.2 rounded font-medium">
+                      <span className="text-[10px] bg-stone-100 dark:bg-stone-800 text-stone-700 dark:text-stone-300 px-1.5 py-0.2 rounded font-medium">
                         {person.identity}
                       </span>
                     )}
@@ -202,7 +202,7 @@ export const ScriptReferenceDrawer: React.FC<ScriptReferenceDrawerProps> = ({
                 </div>
 
                 {person.quotes ? (
-                  <div className="bg-white dark:bg-stone-800 p-2 rounded-lg border border-stone-200/60 dark:border-stone-700 space-y-1">
+                  <div className="bg-stone-50 dark:bg-stone-900/60 p-2 rounded-lg border border-stone-200/50 dark:border-stone-800 space-y-1">
                     <div className="flex items-center justify-between text-rose-700 dark:text-rose-400 font-semibold text-[11px]">
                       <span className="flex items-center gap-1">
                         <Quote className="w-2.5 h-2.5" /> 经典原话
@@ -213,7 +213,7 @@ export const ScriptReferenceDrawer: React.FC<ScriptReferenceDrawerProps> = ({
                           reference_snapshot: `“${person.quotes}” —— ${person.name}`,
                           quoted_text: `“${person.quotes}” —— ${person.name}`, verification_status: 'confirmed',
                         })}
-                        className="text-[10px] bg-rose-50 dark:bg-rose-950/50 border border-rose-200 dark:border-rose-800 hover:bg-rose-100 dark:hover:bg-rose-900/60 text-rose-800 dark:text-rose-200 px-1.5 py-0.5 rounded flex items-center gap-0.5 cursor-pointer"
+                        className="text-[10px] bg-rose-50 dark:bg-rose-950/50 border border-rose-200 dark:border-rose-800 hover:bg-rose-100 dark:hover:bg-rose-900/60 text-rose-800 dark:text-rose-200 px-1.5 py-0.5 rounded-lg flex items-center gap-0.5 cursor-pointer"
                       >
                         {insertedId === `quote-${person.id}` ? <Check className="w-2.5 h-2.5 text-emerald-600 dark:text-emerald-400" /> : <Plus className="w-2.5 h-2.5" />}
                         <span>插入引用</span>
@@ -237,11 +237,11 @@ export const ScriptReferenceDrawer: React.FC<ScriptReferenceDrawerProps> = ({
               <span>故事时间线 ({filteredTimeline.length})</span>
             </div>
 
-            <div className="space-y-2 border-l-2 border-stone-200 dark:border-stone-800 ml-2 pl-3">
+            <div className="space-y-2 border-l-2 border-stone-200/70 dark:border-stone-800 ml-2 pl-3">
               {filteredTimeline.map((item) => (
-                <div key={item.id} className="relative group bg-white dark:bg-stone-800 p-2.5 rounded-xl border border-stone-200/80 dark:border-stone-700 space-y-1">
+                <div key={item.id} className="relative group bg-white/80 dark:bg-stone-850/80 p-2.5 rounded-xl border border-stone-200/60 dark:border-stone-800/60 space-y-1 backdrop-blur-xs">
                   <div className="flex items-center justify-between">
-                    <span className="font-mono font-bold text-stone-900 dark:text-stone-100 bg-stone-100 dark:bg-stone-700 px-1.5 py-0.5 rounded text-[10px]">
+                    <span className="font-mono font-bold text-stone-900 dark:text-stone-100 bg-stone-100 dark:bg-stone-800 px-1.5 py-0.5 rounded text-[10px]">
                       {item.event_date}
                     </span>
                     <button
@@ -251,7 +251,7 @@ export const ScriptReferenceDrawer: React.FC<ScriptReferenceDrawerProps> = ({
                         quoted_text: `【${item.event_date}】${item.title}：${item.description || ''}`,
                         verification_status: item.verification_status,
                       })}
-                      className="text-[10px] bg-stone-50 dark:bg-stone-700 border border-stone-200 dark:border-stone-600 hover:bg-stone-100 dark:hover:bg-stone-600 text-stone-700 dark:text-stone-200 px-1.5 py-0.5 rounded flex items-center gap-0.5 opacity-80 group-hover:opacity-100 cursor-pointer"
+                      className="text-[10px] bg-stone-50 dark:bg-stone-800 border border-stone-200 dark:border-stone-700 hover:bg-stone-100 dark:hover:bg-stone-700 text-stone-700 dark:text-stone-200 px-1.5 py-0.5 rounded-lg flex items-center gap-0.5 opacity-80 group-hover:opacity-100 cursor-pointer"
                     >
                       {insertedId === `time-${item.id}` ? <Check className="w-2.5 h-2.5 text-emerald-600 dark:text-emerald-400" /> : <Plus className="w-2.5 h-2.5" />}
                       <span>引用</span>
@@ -282,7 +282,7 @@ export const ScriptReferenceDrawer: React.FC<ScriptReferenceDrawerProps> = ({
             </div>
 
             {filteredSources.map((source) => (
-              <div key={source.id} className="bg-stone-50 dark:bg-stone-800/60 border border-stone-200/80 dark:border-stone-700 p-2.5 rounded-xl space-y-1.5">
+              <div key={source.id} className="bg-white/80 dark:bg-stone-850/80 border border-stone-200/60 dark:border-stone-800/60 p-2.5 rounded-xl space-y-1.5 backdrop-blur-xs">
                 <div className="flex items-start justify-between gap-1">
                   <div className="font-bold text-stone-900 dark:text-stone-100 text-xs truncate">{source.title}</div>
                   <button
@@ -291,14 +291,14 @@ export const ScriptReferenceDrawer: React.FC<ScriptReferenceDrawerProps> = ({
                       reference_snapshot: source.content || source.title, quoted_text: source.content || source.title,
                       verification_status: source.verification_status,
                     })}
-                    className="text-[10px] bg-white dark:bg-stone-800 border border-stone-200 dark:border-stone-700 hover:bg-stone-100 dark:hover:bg-stone-700 text-stone-700 dark:text-stone-300 px-1.5 py-0.5 rounded shrink-0 flex items-center gap-0.5 cursor-pointer"
+                    className="text-[10px] bg-white dark:bg-stone-800 border border-stone-200 dark:border-stone-700 hover:bg-stone-100 dark:hover:bg-stone-700 text-stone-700 dark:text-stone-300 px-1.5 py-0.5 rounded-lg shrink-0 flex items-center gap-0.5 cursor-pointer"
                   >
                     {insertedId === `src-${source.id}` ? <Check className="w-2.5 h-2.5 text-emerald-600 dark:text-emerald-400" /> : <Plus className="w-2.5 h-2.5" />}
                     <span>插入</span>
                   </button>
                 </div>
                 {source.content && (
-                  <p className="text-stone-600 dark:text-stone-300 line-clamp-3 text-[11px] bg-white dark:bg-stone-800 p-2 rounded border border-stone-200/50 dark:border-stone-700">
+                  <p className="text-stone-600 dark:text-stone-300 line-clamp-3 text-[11px] bg-stone-50 dark:bg-stone-900/60 p-2 rounded-lg border border-stone-200/50 dark:border-stone-800">
                     {source.content}
                   </p>
                 )}

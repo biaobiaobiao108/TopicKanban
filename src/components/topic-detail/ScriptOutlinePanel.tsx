@@ -57,14 +57,14 @@ const OutlineBranch: React.FC<OutlineBranchProps> = ({
             aria-current={isActive ? 'location' : undefined}
             onMouseDown={(event) => event.preventDefault()}
             onClick={() => onSelectHeading(item)}
-            className={`group relative w-full rounded-sm py-3 pr-2 text-left transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-rose-400/70 xl:py-2.5 cursor-pointer ${
-              isActive ? 'bg-rose-50/70 dark:bg-rose-950/40' : 'hover:bg-white/55 dark:hover:bg-stone-800/50'
+            className={`group relative w-full rounded-lg py-2.5 pr-2 text-left transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-rose-400/70 xl:py-2 cursor-pointer ${
+              isActive ? 'bg-rose-500/10 dark:bg-rose-500/15' : 'hover:bg-black/5 dark:hover:bg-white/5'
             }`}
           >
             {isActive && (
               <span
                 aria-hidden="true"
-                className="absolute inset-y-2 left-0 w-0.5 bg-rose-500"
+                className="absolute inset-y-1.5 left-0 w-0.5 rounded-full bg-rose-500"
               />
             )}
             <div className={LEVEL_INDENT[item.level]}>
@@ -126,10 +126,10 @@ export const ScriptOutlinePanel: React.FC<ScriptOutlinePanelProps> = ({
   };
 
   return (
-    <aside className="script-outline-panel fixed inset-0 z-50 flex h-[100dvh] w-full flex-col bg-white dark:bg-stone-900 pb-[env(safe-area-inset-bottom)] pt-[env(safe-area-inset-top)] animate-in fade-in duration-150 xl:absolute xl:inset-y-0 xl:left-0 xl:z-40 xl:h-full xl:w-[280px] xl:bg-transparent xl:bg-[linear-gradient(to_right,white_0%,rgba(255,255,255,0.98)_82%,transparent_100%)] xl:dark:bg-[linear-gradient(to_right,#0c0a09_0%,rgba(12,10,9,0.98)_82%,transparent_100%)] xl:pb-0 xl:pt-0 min-[1600px]:w-80">
-      <div className="flex shrink-0 items-center gap-2.5 px-4 pb-4 pt-5 xl:pr-9">
+    <aside className="script-outline-panel fixed inset-0 z-50 flex h-[100dvh] w-full flex-col bg-white/95 dark:bg-stone-900/95 backdrop-blur-md pb-[env(safe-area-inset-bottom)] pt-[env(safe-area-inset-top)] animate-in fade-in duration-150 xl:absolute xl:inset-y-0 xl:left-0 xl:z-40 xl:h-full xl:w-[280px] xl:bg-transparent xl:bg-[linear-gradient(to_right,rgba(255,255,255,0.96)_0%,rgba(255,255,255,0.85)_75%,transparent_100%)] xl:dark:bg-[linear-gradient(to_right,rgba(12,10,9,0.96)_0%,rgba(12,10,9,0.85)_75%,transparent_100%)] xl:pb-0 xl:pt-0 min-[1600px]:w-80">
+      <div className="flex shrink-0 items-center gap-2 px-4 pt-5 pb-3 xl:pr-9">
         <ListOrdered className="h-4 w-4 shrink-0 text-rose-600 dark:text-rose-500" />
-        <h3 className="shrink-0 text-[15px] font-bold tracking-wide text-stone-800 dark:text-stone-100">文案大纲</h3>
+        <h3 className="shrink-0 text-sm font-bold tracking-wide text-stone-800 dark:text-stone-100">文案大纲</h3>
         <span className="ml-auto truncate font-mono text-[11px] tabular-nums text-stone-400 dark:text-stone-500">
           {outline.totalCharCount.toLocaleString()} 字 · {formatOutlineDuration(outline.totalDurationSeconds)}
         </span>
@@ -137,7 +137,7 @@ export const ScriptOutlinePanel: React.FC<ScriptOutlinePanelProps> = ({
           type="button"
           aria-label="收起文案大纲"
           onClick={onClose}
-          className="shrink-0 p-3.5 text-stone-400 dark:text-stone-500 transition-colors hover:text-stone-800 dark:hover:text-stone-200 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-rose-400/70 xl:p-1.5 cursor-pointer"
+          className="shrink-0 p-2 text-stone-400 dark:text-stone-500 transition-colors hover:text-stone-800 dark:hover:text-stone-200 rounded-lg hover:bg-stone-100 dark:hover:bg-stone-800 xl:p-1 cursor-pointer"
           title="收起文案大纲"
         >
           <X className="h-4 w-4" />
