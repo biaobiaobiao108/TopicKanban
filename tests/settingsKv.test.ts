@@ -1,4 +1,4 @@
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect } from 'bun:test';
 import { DEFAULT_APP_SETTINGS, type AppSettings } from '../src/types';
 import { parseSettings } from '../src/server/database';
 

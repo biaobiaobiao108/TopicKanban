@@ -1,9 +1,9 @@
-import { describe, it, expect, beforeEach, afterEach } from 'vitest';
-import Database from 'better-sqlite3';
+import { describe, it, expect, beforeEach, afterEach } from 'bun:test';
+import { Database } from 'bun:sqlite';
 import { LocalD1Database } from '../src/server/adapters/localSqlite';
 
 describe('LocalD1Database (SQLite Adapter)', () => {
-  let sqlite: Database.Database;
+  let sqlite: Database;
   let db: LocalD1Database;
 
   beforeEach(() => {

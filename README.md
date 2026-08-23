@@ -32,11 +32,11 @@
 - **前端框架**：React 18、TypeScript、Vite 6、Tailwind CSS 3
 - **路由与状态**：React Router 7、TanStack Query 5
 - **富文本与交互**：Tiptap 2、`@dnd-kit`
-- **服务端**：Hono 4 + `@hono/node-server`
+- **服务端**：Hono 4 + Bun 原生 HTTP Server
 - **数据库**：
-  - **本地模式**：本地 SQLite（`better-sqlite3` + WAL 模式高性能事务）
+  - **本地模式**：本地 SQLite（`bun:sqlite` + WAL 模式高性能事务）
   - **云端模式**：Cloudflare D1 (SQLite) + Cloudflare Workers KV
-- **测试框架**：Vitest 4
+- **运行与测试工具链**：Bun（包管理、运行时、构建与 `bun:test`）
 
 ```text
 创作者浏览器 (Web / Mobile Safari)
@@ -50,7 +50,7 @@
 
 ## 🐳 一、本地 Podman / Docker 容器部署（推荐）
 
-工作台采用**单容器一体化架构（All-in-One Container）**，由 Node.js 服务端统一托管前端静态网页与 `/api` 接口，数据保存在挂载目录的单个 `kanban.db` 文件中。
+工作台采用**单容器一体化架构（All-in-One Container）**，由 Bun 服务端统一托管前端静态网页与 `/api` 接口，数据保存在挂载目录的单个 `kanban.db` 文件中。
 
 ### 1. 快速拉起 (Docker Compose / Podman Compose)
 
@@ -170,37 +170,37 @@ kanban.yourdomain.com {
 使用本地 wrangler CLI 将基础 SQL 导入远程 D1：
 ```bash
 # 执行数据库基线初始化
-npx wrangler d1 execute kanban --remote --file=./drizzle/0000_schema.sql
+bunx wrangler d1 execute kanban --remote --file=./drizzle/0000_schema.sql
 ```
 
 ### 4. 构建与发布
-- 构建命令：`pnpm build`
+- 构建命令：`bun run build`
 - 输出目录：`dist`
 
 ---
 
 ## 💻 三、本地开发工作流
 
-要求：Node.js 20+、pnpm 9+。
+要求：Bun 1.4+。
 
 ```bash
 # 1. 安装依赖
-pnpm install
+bun install
 
 # 2. 启动本地开发 (同时启动 Vite 前端 3000 端口与本地 Node 后端 8787 端口)
-pnpm dev
+bun run dev
 
 # 3. 访问 http://localhost:3000
 # 本地开发默认口令为：admin (若需自定义可在 .env 中设置 APP_PASSWORD)
 
 # 4. 运行全量测试
-pnpm test:run
+bun run test:run
 
-# 5. 生产构建打包 (编译 SPA 前端 + Bundle Node 服务端)
-pnpm build
+# 5. 生产构建打包 (编译 SPA 前端 + Bundle Bun 服务端)
+bun run build
 
 # 6. 生产单机预览运行
-pnpm start
+bun run start
 ```
 
 ---
@@ -222,16 +222,16 @@ kanban/
 │   │   └── auth.ts                      # 无状态 HMAC Token 鉴权
 │   ├── server/
 │   │   ├── createApp.ts                 # Hono 核心路由定义 (跨运行时共享)
-│   │   ├── server.ts                    # Node.js 独立服务端入口 (静态托管 + API)
+│   │   ├── server.ts                    # Bun 独立服务端入口 (静态托管 + API)
 │   │   ├── database.ts                  # SQL 业务持久层与备份导入导出
 │   │   ├── systemRoutes.ts              # 系统、健康检查、设置与备份路由
 │   │   └── adapters/
-│   │       ├── localSqlite.ts           # 本地 SQLite (better-sqlite3) D1 兼容适配层
+│   │       ├── localSqlite.ts           # 本地 SQLite (bun:sqlite) D1 兼容适配层
 │   │       └── localKv.ts               # 本地 SQLite KV 表适配层 (含 TTL 过期支持)
 │   ├── types/index.ts                   # 领域模型与 TypeScript 契约
 │   ├── App.tsx                          # 主应用路由入口
 │   └── main.tsx                         # React DOM 挂载入口
-├── tests/                               # Vitest 自动化单元与集成测试套件
+├── tests/                               # bun:test 自动化单元与集成测试套件
 ├── docs/
 │   └── CONTAINER_DEPLOY.md              # 容器部署与反向代理深度配置指南
 ├── Dockerfile                           # 多阶段构建 Dockerfile

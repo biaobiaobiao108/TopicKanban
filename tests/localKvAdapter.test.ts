@@ -1,9 +1,9 @@
-import { describe, it, expect, beforeEach, afterEach } from 'vitest';
-import Database from 'better-sqlite3';
+import { describe, it, expect, beforeEach, afterEach } from 'bun:test';
+import { Database } from 'bun:sqlite';
 import { LocalKVNamespace } from '../src/server/adapters/localKv';
 
 describe('LocalKVNamespace (SQLite KV Adapter)', () => {
-  let sqlite: Database.Database;
+  let sqlite: Database;
   let kv: LocalKVNamespace;
 
   beforeEach(() => {
@@ -40,7 +40,7 @@ describe('LocalKVNamespace (SQLite KV Adapter)', () => {
     expect(await kv.get('short_lived')).toBe('expires soon');
 
     // Simulate expiration by manually updating expires_at in db
-    sqlite.prepare('UPDATE _kv_store SET expires_at = ? WHERE key = ?').run(Date.now() - 1000, 'short_lived');
+    sqlite.query('UPDATE _kv_store SET expires_at = ? WHERE key = ?').run(Date.now() - 1000, 'short_lived');
 
     const expiredVal = await kv.get('short_lived');
     expect(expiredVal).toBeNull();

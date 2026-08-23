@@ -1,6 +1,21 @@
-import Database from 'better-sqlite3';
+import { Database } from 'bun:sqlite';
 import fs from 'node:fs';
 import path from 'node:path';
+
+export interface BunSqliteStatement {
+  get(...params: unknown[]): unknown;
+  all(...params: unknown[]): unknown[];
+  values(...params: unknown[]): unknown[][];
+  columns(): Array<{ name: string }>;
+  run(...params: unknown[]): { changes: number; lastInsertRowid: number | bigint };
+}
+
+export interface BunSqliteDatabase {
+  query(query: string): BunSqliteStatement;
+  exec(query: string): void;
+  transaction<T>(callback: (statements: D1PreparedStatement[]) => T): (statements: D1PreparedStatement[]) => T;
+  close(): void;
+}
 
 export interface LocalD1Result<T = unknown> {
   results: T[];
@@ -13,11 +28,11 @@ export interface LocalD1Result<T = unknown> {
 }
 
 export class LocalPreparedStatement implements D1PreparedStatement {
-  private stmt: Database.Statement;
+  private stmt: BunSqliteStatement;
   private boundValues: unknown[];
   private query: string;
 
-  constructor(stmt: Database.Statement, query: string, boundValues: unknown[] = []) {
+  constructor(stmt: BunSqliteStatement, query: string, boundValues: unknown[] = []) {
     this.stmt = stmt;
     this.query = query;
     this.boundValues = boundValues;
@@ -44,7 +59,7 @@ export class LocalPreparedStatement implements D1PreparedStatement {
         changes: info.changes,
         last_row_id: Number(info.lastInsertRowid),
         duration: performance.now() - start,
-        served_by: 'local-better-sqlite3',
+        served_by: 'local-bun-sqlite',
         rows_read: 0,
         rows_written: info.changes,
         size_after: 0,
@@ -62,7 +77,7 @@ export class LocalPreparedStatement implements D1PreparedStatement {
         changes: 0,
         last_row_id: 0,
         duration: performance.now() - start,
-        served_by: 'local-better-sqlite3',
+        served_by: 'local-bun-sqlite',
         rows_read: rows.length,
         rows_written: 0,
         size_after: 0,
@@ -71,7 +86,7 @@ export class LocalPreparedStatement implements D1PreparedStatement {
   }
 
   async raw<T = unknown[]>(options?: { columnNames?: boolean }): Promise<any> {
-    const rows = this.stmt.raw(true).all(...this.boundValues) as T[];
+    const rows = this.stmt.values(...this.boundValues) as T[];
     if (options?.columnNames) {
       const colNames = this.stmt.columns().map((c) => c.name);
       return [colNames, ...rows];
@@ -103,14 +118,14 @@ export class LocalPreparedStatement implements D1PreparedStatement {
 }
 
 export class LocalD1Database implements D1Database {
-  public sqlite: Database.Database;
+  public sqlite: BunSqliteDatabase;
 
-  constructor(sqlite: Database.Database) {
+  constructor(sqlite: BunSqliteDatabase) {
     this.sqlite = sqlite;
   }
 
   prepare(query: string): D1PreparedStatement {
-    const stmt = this.sqlite.prepare(query);
+    const stmt = this.sqlite.query(query);
     return new LocalPreparedStatement(stmt, query) as unknown as D1PreparedStatement;
   }
 
@@ -124,7 +139,7 @@ export class LocalD1Database implements D1Database {
             success: true,
             meta: {
               ...res.meta,
-              served_by: 'local-better-sqlite3',
+              served_by: 'local-bun-sqlite',
               rows_read: res.results.length,
               rows_written: res.meta.changes,
               size_after: 0,
@@ -156,21 +171,23 @@ export class LocalD1Database implements D1Database {
   }
 }
 
-export function initializeSqliteDatabase(dbFilePath: string, schemaDir?: string): { d1: D1Database; sqlite: Database.Database } {
+export function initializeSqliteDatabase(dbFilePath: string, schemaDir?: string): { d1: D1Database; sqlite: BunSqliteDatabase } {
   const dir = path.dirname(dbFilePath);
   if (!fs.existsSync(dir)) {
     fs.mkdirSync(dir, { recursive: true });
   }
 
-  const sqlite = new Database(dbFilePath);
+  const sqlite = new Database(dbFilePath) as unknown as BunSqliteDatabase;
   // Enable WAL, foreign keys, busy timeout, and synchronous NORMAL
-  sqlite.pragma('journal_mode = WAL');
-  sqlite.pragma('foreign_keys = ON');
-  sqlite.pragma('busy_timeout = 5000');
-  sqlite.pragma('synchronous = NORMAL');
+  sqlite.exec(`
+    PRAGMA journal_mode = WAL;
+    PRAGMA foreign_keys = ON;
+    PRAGMA busy_timeout = 5000;
+    PRAGMA synchronous = NORMAL;
+  `);
 
   // Check if tables already exist
-  const tableCheck = sqlite.prepare("SELECT count(*) as count FROM sqlite_master WHERE type='table' AND name='topics'").get() as { count: number };
+  const tableCheck = sqlite.query("SELECT count(*) as count FROM sqlite_master WHERE type='table' AND name='topics'").get() as { count: number };
 
   sqlite.exec(`
     CREATE TABLE IF NOT EXISTS _schema_migrations (
@@ -190,20 +207,20 @@ export function initializeSqliteDatabase(dbFilePath: string, schemaDir?: string)
   }
 
   const appliedAt = new Date().toISOString();
-  sqlite.prepare('INSERT OR IGNORE INTO _schema_migrations (name, applied_at) VALUES (?, ?)')
+  sqlite.query('INSERT OR IGNORE INTO _schema_migrations (name, applied_at) VALUES (?, ?)')
     .run('0000_schema.sql', appliedAt);
 
   // 0001 is structurally represented by the current baseline. Keep it
   // recorded so local instances have an explicit migration history.
-  sqlite.prepare('INSERT OR IGNORE INTO _schema_migrations (name, applied_at) VALUES (?, ?)')
+  sqlite.query('INSERT OR IGNORE INTO _schema_migrations (name, applied_at) VALUES (?, ?)')
     .run('0001_optional_published_topic.sql', appliedAt);
 
   // Apply the only additive migration that older local databases may lack.
-  const timelineColumns = sqlite.prepare("PRAGMA table_info(timeline_events)").all() as Array<{ name: string }>;
+  const timelineColumns = sqlite.query("PRAGMA table_info(timeline_events)").all() as Array<{ name: string }>;
   if (!timelineColumns.some((col) => col.name === 'contrast_tag')) {
     sqlite.exec("ALTER TABLE timeline_events ADD COLUMN contrast_tag TEXT NOT NULL DEFAULT ''");
   }
-  sqlite.prepare('INSERT OR IGNORE INTO _schema_migrations (name, applied_at) VALUES (?, ?)')
+  sqlite.query('INSERT OR IGNORE INTO _schema_migrations (name, applied_at) VALUES (?, ?)')
     .run('0002_add_timeline_contrast_tag.sql', appliedAt);
 
   // Ensure _kv_store table exists for local KV adapter

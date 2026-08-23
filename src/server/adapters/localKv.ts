@@ -1,4 +1,4 @@
-import type Database from 'better-sqlite3';
+import type { BunSqliteDatabase, BunSqliteStatement } from './localSqlite';
 
 interface KvRow {
   key: string;
@@ -7,14 +7,14 @@ interface KvRow {
 }
 
 export class LocalKVNamespace {
-  private sqlite: Database.Database;
-  private getStmt: Database.Statement;
-  private putStmt: Database.Statement;
-  private deleteStmt: Database.Statement;
-  private listStmt: Database.Statement;
-  private cleanupStmt: Database.Statement;
+  private sqlite: BunSqliteDatabase;
+  private getStmt: BunSqliteStatement;
+  private putStmt: BunSqliteStatement;
+  private deleteStmt: BunSqliteStatement;
+  private listStmt: BunSqliteStatement;
+  private cleanupStmt: BunSqliteStatement;
 
-  constructor(sqlite: Database.Database) {
+  constructor(sqlite: BunSqliteDatabase) {
     this.sqlite = sqlite;
 
     // Ensure _kv_store table exists
@@ -27,15 +27,15 @@ export class LocalKVNamespace {
       CREATE INDEX IF NOT EXISTS idx_kv_expires_at ON _kv_store(expires_at);
     `);
 
-    this.getStmt = this.sqlite.prepare('SELECT value, expires_at FROM _kv_store WHERE key = ?');
-    this.putStmt = this.sqlite.prepare(`
+    this.getStmt = this.sqlite.query('SELECT value, expires_at FROM _kv_store WHERE key = ?');
+    this.putStmt = this.sqlite.query(`
       INSERT INTO _kv_store (key, value, expires_at)
       VALUES (?, ?, ?)
       ON CONFLICT(key) DO UPDATE SET value = excluded.value, expires_at = excluded.expires_at
     `);
-    this.deleteStmt = this.sqlite.prepare('DELETE FROM _kv_store WHERE key = ?');
-    this.listStmt = this.sqlite.prepare('SELECT key, expires_at FROM _kv_store WHERE key LIKE ? ORDER BY key ASC LIMIT ?');
-    this.cleanupStmt = this.sqlite.prepare('DELETE FROM _kv_store WHERE expires_at IS NOT NULL AND expires_at <= ?');
+    this.deleteStmt = this.sqlite.query('DELETE FROM _kv_store WHERE key = ?');
+    this.listStmt = this.sqlite.query('SELECT key, expires_at FROM _kv_store WHERE key LIKE ? ORDER BY key ASC LIMIT ?');
+    this.cleanupStmt = this.sqlite.query('DELETE FROM _kv_store WHERE expires_at IS NOT NULL AND expires_at <= ?');
   }
 
   private cleanExpired() {
@@ -131,6 +131,6 @@ export class LocalKVNamespace {
   }
 }
 
-export function createLocalKVNamespace(sqlite: Database.Database): KVNamespace {
+export function createLocalKVNamespace(sqlite: BunSqliteDatabase): KVNamespace {
   return new LocalKVNamespace(sqlite) as unknown as KVNamespace;
 }

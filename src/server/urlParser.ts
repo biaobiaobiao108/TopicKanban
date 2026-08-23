@@ -164,7 +164,7 @@ async function isSafePublicRequestUrl(urlStr: string): Promise<boolean> {
     const timeoutPromise = new Promise<null>((resolve) => {
       timeoutHandle = setTimeout(() => resolve(null), DNS_LOOKUP_TIMEOUT_MS);
     });
-    const addresses = await Promise.race([lookupPromise, timeoutPromise]);
+    const addresses: Array<{ address: string }> | null = await Promise.race([lookupPromise, timeoutPromise]);
     if (timeoutHandle) clearTimeout(timeoutHandle);
     if (!addresses) return false;
     return addresses.length > 0 && addresses.every(({ address }) => !isPrivateOrReservedIp(address));

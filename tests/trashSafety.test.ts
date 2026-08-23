@@ -1,4 +1,4 @@
-import { describe, expect, it, vi } from 'vitest';
+import { describe, expect, it, vi } from 'bun:test';
 import {
   loadTrashedTopics,
   permanentlyDeleteTrashedTopics,
@@ -41,7 +41,7 @@ describe('trash safety', () => {
     const result = await loadTrashedTopics(db);
 
     expect(result).toHaveLength(101);
-    const firstBatch = (db.batch as ReturnType<typeof vi.fn>).mock.calls[0][0] as FakeStatement[];
+    const firstBatch = (db.batch as { mock: { calls: unknown[][] } }).mock.calls[0][0] as FakeStatement[];
     expect(firstBatch[0].sql).toContain('WHERE t.deleted_at IS NOT NULL');
   });
 

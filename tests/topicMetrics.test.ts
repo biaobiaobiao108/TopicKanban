@@ -1,4 +1,4 @@
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect } from 'bun:test';
 import { isNextActionDeferred, getNextActionWarning } from '../src/lib/topicMetrics';
 import type { Topic } from '../src/types';
 

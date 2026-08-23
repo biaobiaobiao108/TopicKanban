@@ -121,7 +121,7 @@ function detectEnvironment(c: { env: ApiBindings }): 'node_container' | 'cloudfl
   if (c.env.ENVIRONMENT === 'node_container') return 'node_container';
   if (c.env.ENVIRONMENT === 'cloudflare_pages') return 'cloudflare_pages';
 
-  // Check whether DB or KV is using local better-sqlite3 adapters
+  // Check whether DB or KV is using the local Bun SQLite adapters
   const isLocalAdapter = Boolean((c.env.DB as unknown as { sqlite?: unknown })?.sqlite || (c.env.KV as unknown as { sqlite?: unknown })?.sqlite);
   if (isLocalAdapter) return 'node_container';
 

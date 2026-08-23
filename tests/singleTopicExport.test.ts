@@ -1,4 +1,4 @@
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect } from 'bun:test';
 import { exportSingleTopicMarkdown, htmlToCleanMarkdown } from '../src/lib/remoteStorage';
 import type { Topic, Source, TimelineEvent, Draft } from '../src/types';
 

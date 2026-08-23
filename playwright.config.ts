@@ -13,7 +13,7 @@ export default defineConfig({
     { name: 'chrome', use: { ...devices['Desktop Chrome'], channel: 'chrome' } },
   ],
   webServer: {
-    command: 'pnpm dev',
+    command: 'bun run dev',
     url: 'http://localhost:3000',
     reuseExistingServer: true,
     timeout: 120_000,

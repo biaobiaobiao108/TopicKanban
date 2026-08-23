@@ -3,9 +3,9 @@
 ## 📌 一、铁律规则 (Ironclad Rules)
 
 1. **代码修改后自动提交 Git**：
-   * 每次完成代码修改、写完一个新功能或 Bug 修复，并通过全量测试（`pnpm test:run`）与生产构建测试（`pnpm build`）后，必须立即自动执行一次规范清晰的本地 `git commit`。严格执行原子提交。
+   * 每次完成代码修改、写完一个新功能或 Bug 修复，并通过全量测试（`bun run test:run`）与生产构建测试（`bun run build`）后，必须立即自动执行一次规范清晰的本地 `git commit`。严格执行原子提交。
 2. **包管理器优先**：
-   * 必须优先使用 `pnpm` 进行依赖安装与脚本执行，`npm` 仅作极端情况兜底。
+   * 必须使用 Bun 进行依赖安装与脚本执行，`npm` 仅作极端情况兜底。
 3. **安全操作**：
    * 运行任何破坏性命令（包括但不限于删除关键文件、重置数据库结构、强制清空存储等）前，必须向用户明确说明风险并获得确认。删除文件优先使用安全机制（`trash` > `rm`）。
 4. **最小改动原则**：
@@ -59,7 +59,7 @@
 
 | 运行时环境 | 服务端入口 | 主关系数据库 (`DB`) | 键值与临时存储 (`KV`) | 静态文件托管 |
 | :--- | :--- | :--- | :--- | :--- |
-| **本地容器 / Node.js** (主力) | `src/server/server.ts` (`@hono/node-server`) | 本地 SQLite (`better-sqlite3` + WAL 模式，文件 `./data/kanban.db`) | 本地 SQLite `_kv_store` 表 (`LocalKVNamespace`) | Node.js 独立托管 SPA `dist/` |
+| **本地容器 / Bun** (主力) | `src/server/server.ts` (Bun 原生 HTTP Server) | 本地 SQLite (`bun:sqlite` + WAL 模式，文件 `./data/kanban.db`) | 本地 SQLite `_kv_store` 表 (`LocalKVNamespace`) | Bun 独立托管 SPA `dist/` |
 | **Cloudflare Pages** (云端) | `functions/api/[[route]].ts` (Pages Functions) | Cloudflare D1 (SQLite) | Cloudflare Workers KV | Cloudflare Pages CDN |
 
 #### 存储分工原则：
@@ -72,7 +72,7 @@
 * **开发约束**：新增任何用户个性化配置项，一律扩展至 `app_settings`，避免污染主业务关系表。
 
 ### 3. 本地开发与反代公网域名规范 (Dev Proxy & Public Base URL)
-* **本地开发 (`pnpm dev`)**：Vite 开发服务器运行于 3000 端口，配置 `/api` 代理转发至后端 8787 端口；本地开发默认密码为 `admin`。
+* **本地开发 (`bun run dev`)**：Vite 开发服务器运行于 3000 端口，配置 `/api` 代理转发至 Bun 后端 8787 端口；本地开发默认密码为 `admin`。
 * **反向代理 (`PUBLIC_BASE_URL`)**：当容器部署在反向代理（Nginx / Caddy / NPM / CF Tunnel）后方时，外部审稿分享链接与灵感快投 Webhook 地址必须自适应公网域名。
 * 解析优先级：`settings.public_base_url` > `env.PUBLIC_BASE_URL` > `X-Forwarded-*` 标头 > `window.location.origin`。
 
@@ -102,10 +102,10 @@
 
 ## 🚀 五、常用工作流与命令 (Verification Workflow)
 
-* **本地开发**：`pnpm dev`（启动 Vite 前端热重载与本地 Node API）
-* **运行全量自动化测试**：`pnpm test:run`（Vitest，修改后必跑）
-* **类型检查与生产构建**：`pnpm build`（包含前端 SPA 构建与服务端 `build:server`）
-* **本地单机生产运行**：`pnpm start`
+* **本地开发**：`bun run dev`（启动 Vite 前端热重载与本地 Bun API）
+* **运行全量自动化测试**：`bun run test:run`（Bun Test，修改后必跑）
+* **类型检查与生产构建**：`bun run build`（包含前端 SPA 构建与 Bun 服务端 `build:server`）
+* **本地单机生产运行**：`bun run start`
 * **Podman / Docker 容器构建与编排**：
   * 构建本地镜像：`podman build -t topic-kanban:latest .`
   * 启动容器服务：`podman compose up -d` 或 `docker compose up -d`

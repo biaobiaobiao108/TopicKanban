@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it } from 'bun:test';
 import type { BackupData, Topic } from '../src/types';
 import { validateBackupData } from '../src/lib/backupValidation';
 

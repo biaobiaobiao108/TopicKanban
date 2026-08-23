@@ -1,6 +1,4 @@
-import { serve } from '@hono/node-server';
-import { getConnInfo } from '@hono/node-server/conninfo';
-import { serveStatic } from '@hono/node-server/serve-static';
+import { getConnInfo, serveStatic } from 'hono/bun';
 import { Hono } from 'hono';
 import fs from 'node:fs';
 import path from 'node:path';
@@ -86,31 +84,31 @@ if (fs.existsSync(distPath)) {
       c.header('Expires', '0');
       return c.html(html);
     }
-    return c.text('Topic Kanban Studio - Build files not found. Please run pnpm build.', 404);
+    return c.text('Topic Kanban Studio - Build files not found. Please run bun run build.', 404);
   });
 } else {
   console.log(`[Kanban Server] dist directory not found at ${distPath}. Running in API-only mode.`);
   mainApp.get('/', (c) => c.text('Topic Kanban API Server is running. Frontend dist not built yet.'));
 }
 
-const server = serve({
+const server = Bun.serve({
   fetch: mainApp.fetch,
   port,
-}, (info) => {
-  console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
-  console.log(`🎬 叙事类视频选题生产工作台 (Topic Kanban Studio)`);
-  console.log(`🚀 服务已启动: http://localhost:${info.port}`);
-  if (publicBaseUrl) {
-    console.log(`🌐 反代公开域名: ${publicBaseUrl}`);
-  }
-  console.log(`🗄️  本地 SQLite: ${dbFilePath}`);
-  if (appPassword) {
-    console.log(`🔑 访问密码: ${process.env.APP_PASSWORD ? '已自定义配置' : 'admin (本地开发默认密码)'}`);
-  } else {
-    console.log(`⚠️  警告: APP_PASSWORD 未配置，登录可能受限。建议设置 APP_PASSWORD 环境变量。`);
-  }
-  console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
 });
+
+console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+console.log(`🎬 叙事类视频选题生产工作台 (Topic Kanban Studio)`);
+console.log(`🚀 服务已启动: http://localhost:${server.port}`);
+if (publicBaseUrl) {
+  console.log(`🌐 反代公开域名: ${publicBaseUrl}`);
+}
+console.log(`🗄️  本地 SQLite: ${dbFilePath}`);
+if (appPassword) {
+  console.log(`🔑 访问密码: ${process.env.APP_PASSWORD ? '已自定义配置' : 'admin (本地开发默认密码)'}`);
+} else {
+  console.log(`⚠️  警告: APP_PASSWORD 未配置，登录可能受限。建议设置 APP_PASSWORD 环境变量。`);
+}
+console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
 
 // Graceful shutdown on SIGTERM / SIGINT
 let isShuttingDown = false;
@@ -119,9 +117,9 @@ const handleShutdown = (signal: string) => {
   isShuttingDown = true;
   console.log(`\n[Kanban Server] 接收到 ${signal} 信号，正在平滑关闭服务...`);
   
-  server.close(() => {
+  server.stop().then(() => {
     try {
-      sqlite.pragma('wal_checkpoint(TRUNCATE)');
+      sqlite.exec('PRAGMA wal_checkpoint(TRUNCATE)');
       sqlite.close();
       console.log('[Kanban Server] SQLite 数据已安全检查点并关闭连接。');
     } catch (err) {

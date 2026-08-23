@@ -1,4 +1,4 @@
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect } from 'bun:test';
 import { normalizeBaseUrl, resolvePublicUrl, resolveServerPublicUrl } from '../src/lib/publicUrl';
 
 describe('Public Base URL & Reverse Proxy Resolution', () => {

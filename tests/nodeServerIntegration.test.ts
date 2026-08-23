@@ -1,5 +1,5 @@
-import { describe, it, expect, beforeEach, afterEach } from 'vitest';
-import Database from 'better-sqlite3';
+import { describe, it, expect, beforeEach, afterEach } from 'bun:test';
+import { Database } from 'bun:sqlite';
 import fs from 'node:fs';
 import path from 'node:path';
 import { Hono } from 'hono';
@@ -8,8 +8,8 @@ import { LocalD1Database } from '../src/server/adapters/localSqlite';
 import { LocalKVNamespace } from '../src/server/adapters/localKv';
 import type { ApiBindings } from '../src/server/apiShared';
 
-describe('Node.js Server Integration (Local SQLite & API)', () => {
-  let sqlite: Database.Database;
+describe('Bun Server Integration (Local SQLite & API)', () => {
+  let sqlite: Database;
   let app: Hono;
   const testPassword = 'test_secret_pass';
   const testDropToken = 'test_drop_token';
@@ -47,7 +47,7 @@ describe('Node.js Server Integration (Local SQLite & API)', () => {
   });
 
   it('runs full authentication, health check, topic CRUD and share flow', async () => {
-    // 1. Health check (Node container)
+    // 1. Health check (Bun container)
     const healthRes = await app.request('/api/health');
     expect(healthRes.status).toBe(200);
     const healthData = await healthRes.json() as {
