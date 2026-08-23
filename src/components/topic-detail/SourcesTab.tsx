@@ -1,28 +1,21 @@
 import React, { useState } from 'react';
-import { Source, SourceType, VerificationStatus, PlatformType } from '../../types';
-import { SourceTypeBadge, VerificationBadge, PlatformBadge } from '../ui/Badge';
+import { Source, VerificationStatus, PlatformType } from '../../types';
+import { VerificationBadge, PlatformBadge } from '../ui/Badge';
 import { Modal } from '../ui/Modal';
 import {
   Plus,
   ExternalLink,
   Trash2,
   Edit2,
-  Filter,
-  CheckCircle2,
-  AlertCircle,
-  Video,
-  FileCheck,
   Search,
   Copy,
   Check,
   Calendar,
   Sparkles,
-  ArrowRight,
   X,
-  HelpCircle,
   RefreshCw,
 } from 'lucide-react';
-import { CustomSelect, SelectOption } from '../ui/CustomSelect';
+import { CustomSelect } from '../ui/CustomSelect';
 import { parseUrlMetadataApi } from '../../lib/remoteStorage';
 
 interface SourcesTabProps {
@@ -33,6 +26,21 @@ interface SourcesTabProps {
   onConvertToTimeline?: (source: Source) => Promise<void>;
 }
 
+const PLATFORM_OPTIONS: { value: PlatformType | 'all'; label: string }[] = [
+  { value: 'all', label: '全部平台' },
+  { value: 'bilibili', label: 'Bilibili' },
+  { value: 'douyin', label: '抖音' },
+  { value: 'weibo', label: '微博' },
+  { value: 'youtube', label: 'YouTube' },
+  { value: 'xiaohongshu', label: '小红书' },
+  { value: 'zhihu', label: '知乎' },
+  { value: 'wechat', label: '微信' },
+  { value: 'kuaishou', label: '快手' },
+  { value: 'news', label: '新闻媒体' },
+  { value: 'live', label: '直播切片' },
+  { value: 'other', label: '其他' },
+];
+
 export const SourcesTab: React.FC<SourcesTabProps> = ({
   topicId,
   sources,
@@ -42,7 +50,7 @@ export const SourcesTab: React.FC<SourcesTabProps> = ({
 }) => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingSource, setEditingSource] = useState<Source | null>(null);
-  const [filterType, setFilterType] = useState<SourceType | 'all'>('all');
+  const [filterPlatform, setFilterPlatform] = useState<PlatformType | 'all'>('all');
   const [filterStatus, setFilterStatus] = useState<VerificationStatus | 'all'>('all');
   const [searchQuery, setSearchQuery] = useState('');
   const [copiedId, setCopiedId] = useState<string | null>(null);
@@ -52,7 +60,6 @@ export const SourcesTab: React.FC<SourcesTabProps> = ({
 
   // Form State
   const [title, setTitle] = useState('');
-  const [type, setType] = useState<SourceType>('fact');
   const [content, setContent] = useState('');
   const [url, setUrl] = useState('');
   const [platform, setPlatform] = useState<PlatformType>('bilibili');
@@ -64,7 +71,6 @@ export const SourcesTab: React.FC<SourcesTabProps> = ({
   const openAddModal = () => {
     setEditingSource(null);
     setTitle('');
-    setType('fact');
     setContent('');
     setUrl('');
     setPlatform('bilibili');
@@ -79,7 +85,6 @@ export const SourcesTab: React.FC<SourcesTabProps> = ({
   const openEditModal = (s: Source) => {
     setEditingSource(s);
     setTitle(s.title);
-    setType(s.type);
     setContent(s.content);
     setUrl(s.url);
     setPlatform(s.platform);
@@ -143,16 +148,6 @@ export const SourcesTab: React.FC<SourcesTabProps> = ({
     }
   };
 
-  const handleQuickUpgradeToFact = async (s: Source) => {
-    await onSaveSource({
-      id: s.id,
-      topic_id: topicId,
-      title: s.title,
-      type: 'fact',
-      verification_status: 'confirmed',
-    });
-  };
-
   const handleCycleVerification = async (s: Source) => {
     const nextStatus: VerificationStatus =
       s.verification_status === 'confirmed'
@@ -164,6 +159,7 @@ export const SourcesTab: React.FC<SourcesTabProps> = ({
       id: s.id,
       topic_id: topicId,
       title: s.title,
+      type: 'material',
       verification_status: nextStatus,
     });
   };
@@ -176,7 +172,7 @@ export const SourcesTab: React.FC<SourcesTabProps> = ({
       id: editingSource?.id,
       topic_id: topicId,
       title: title.trim(),
-      type,
+      type: 'material',
       content: content.trim(),
       url: url.trim(),
       platform,
@@ -197,7 +193,7 @@ export const SourcesTab: React.FC<SourcesTabProps> = ({
 
   const q = searchQuery.toLowerCase().trim();
   const filteredSources = sources.filter((s) => {
-    if (filterType !== 'all' && s.type !== filterType) return false;
+    if (filterPlatform !== 'all' && s.platform !== filterPlatform) return false;
     if (filterStatus !== 'all' && s.verification_status !== filterStatus) return false;
     if (q) {
       const matchTitle = s.title.toLowerCase().includes(q);
@@ -210,15 +206,11 @@ export const SourcesTab: React.FC<SourcesTabProps> = ({
     return true;
   });
 
-  const factCount = sources.filter((s) => s.type === 'fact').length;
-  const clueCount = sources.filter((s) => s.type === 'clue').length;
-  const materialCount = sources.filter((s) => s.type === 'material').length;
-
   return (
-    <div className="py-6 space-y-6">
+    <div className="py-4 sm:py-6 space-y-5">
       {/* Header & Filter Bar */}
-      <div className="flex items-center justify-between flex-wrap gap-4 bg-white dark:bg-stone-900 p-5 rounded-xl border border-stone-200 dark:border-stone-800 shadow-subtle transition-colors">
-        <div className="flex items-center gap-3 flex-wrap flex-1">
+      <div className="flex items-center justify-between flex-wrap gap-3 bg-white dark:bg-stone-900 p-4 sm:p-5 rounded-2xl border border-stone-200 dark:border-stone-800 shadow-subtle transition-colors">
+        <div className="flex items-center gap-2.5 flex-wrap flex-1">
           {/* Real-time Search Input */}
           <div className="relative min-w-[200px] max-w-xs flex-1">
             <Search className="w-3.5 h-3.5 absolute left-2.5 top-2.5 text-stone-400 dark:text-stone-500" />
@@ -226,7 +218,7 @@ export const SourcesTab: React.FC<SourcesTabProps> = ({
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="即时搜索标题、内容、备忘..."
+              placeholder="搜索素材标题、内容、备忘..."
               className="w-full pl-8 pr-7 py-1.5 bg-stone-50 dark:bg-stone-800 border border-stone-200 dark:border-stone-700 rounded-lg text-xs text-stone-900 dark:text-stone-100 placeholder:text-stone-400 focus:bg-white dark:focus:bg-stone-800 focus:outline-none focus:border-rose-500 transition-colors"
             />
             {searchQuery && (
@@ -241,49 +233,16 @@ export const SourcesTab: React.FC<SourcesTabProps> = ({
 
           <div className="h-5 w-px bg-stone-200 dark:bg-stone-700 mx-0.5 hidden sm:block" />
 
-          {/* Quick type pills */}
-          <button
-            onClick={() => setFilterType('all')}
-            className={`px-3 py-1.5 rounded-lg text-xs font-semibold border transition-all cursor-pointer ${
-              filterType === 'all'
-                ? 'bg-stone-900 dark:bg-rose-600 text-white border-stone-900 dark:border-rose-600'
-                : 'bg-stone-50 dark:bg-stone-800 text-stone-600 dark:text-stone-300 border-stone-200 dark:border-stone-700 hover:bg-stone-100 dark:hover:bg-stone-700'
-            }`}
-          >
-            全部 ({sources.length})
-          </button>
-          <button
-            onClick={() => setFilterType('fact')}
-            className={`px-3 py-1.5 rounded-lg text-xs font-semibold border transition-all cursor-pointer ${
-              filterType === 'fact'
-                ? 'bg-emerald-700 dark:bg-emerald-600 text-white border-emerald-700 dark:border-emerald-600'
-                : 'bg-emerald-50 dark:bg-emerald-950/40 text-emerald-800 dark:text-emerald-300 border-emerald-200 dark:border-emerald-900/60 hover:bg-emerald-100 dark:hover:bg-emerald-950/70'
-            }`}
-          >
-            ✓ 事实 ({factCount})
-          </button>
-          <button
-            onClick={() => setFilterType('clue')}
-            className={`px-3 py-1.5 rounded-lg text-xs font-semibold border transition-all cursor-pointer ${
-              filterType === 'clue'
-                ? 'bg-amber-600 dark:bg-amber-600 text-white border-amber-600'
-                : 'bg-amber-50 dark:bg-amber-950/40 text-amber-800 dark:text-amber-300 border-amber-200 dark:border-amber-900/60 hover:bg-amber-100 dark:hover:bg-amber-950/70'
-            }`}
-          >
-            ? 线索 ({clueCount})
-          </button>
-          <button
-            onClick={() => setFilterType('material')}
-            className={`px-3 py-1.5 rounded-lg text-xs font-semibold border transition-all cursor-pointer ${
-              filterType === 'material'
-                ? 'bg-blue-700 dark:bg-blue-600 text-white border-blue-700 dark:border-blue-600'
-                : 'bg-blue-50 dark:bg-blue-950/40 text-blue-800 dark:text-blue-300 border-blue-200 dark:border-blue-900/60 hover:bg-blue-100 dark:hover:bg-blue-950/70'
-            }`}
-          >
-            🎬 素材 ({materialCount})
-          </button>
-
-          <div className="h-5 w-px bg-stone-200 dark:bg-stone-700 mx-0.5 hidden sm:block" />
+          {/* Platform Filter */}
+          <CustomSelect
+            value={filterPlatform}
+            onChange={(val) => setFilterPlatform(val as PlatformType | 'all')}
+            size="sm"
+            options={PLATFORM_OPTIONS.map((opt) => ({
+              value: opt.value,
+              label: opt.value === 'all' ? `全部平台 (${sources.length})` : opt.label,
+            }))}
+          />
 
           {/* Verification Status Filter */}
           <CustomSelect
@@ -301,10 +260,10 @@ export const SourcesTab: React.FC<SourcesTabProps> = ({
 
         <button
           onClick={openAddModal}
-          className="flex items-center gap-1.5 bg-stone-900 dark:bg-rose-600 hover:bg-stone-800 dark:hover:bg-rose-700 text-white px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-colors shadow-sm cursor-pointer shrink-0"
+          className="flex items-center gap-1.5 bg-stone-900 dark:bg-rose-600 hover:bg-stone-800 dark:hover:bg-rose-700 text-white px-3.5 py-1.8 rounded-xl text-xs font-bold transition-all shadow-sm hover:scale-[1.02] active:scale-[0.98] cursor-pointer shrink-0"
         >
           <Plus className="w-4 h-4" />
-          <span>添加资料 / 素材</span>
+          <span>添加素材</span>
         </button>
       </div>
 
@@ -313,13 +272,13 @@ export const SourcesTab: React.FC<SourcesTabProps> = ({
         {filteredSources.map((s) => (
           <div
             key={s.id}
-            className="bg-white dark:bg-stone-900 rounded-xl border border-stone-200 dark:border-stone-800 p-5 space-y-3 shadow-subtle hover:shadow-card transition-all flex flex-col justify-between"
+            className="bg-white dark:bg-stone-900 rounded-2xl border border-stone-200 dark:border-stone-800 p-4 sm:p-5 space-y-3 shadow-subtle hover:shadow-card transition-all flex flex-col justify-between"
           >
             <div className="space-y-2.5">
               {/* Badges row & Quick actions */}
               <div className="flex items-center justify-between gap-2 flex-wrap">
                 <div className="flex items-center gap-2 flex-wrap">
-                  <SourceTypeBadge type={s.type} />
+                  <PlatformBadge platform={s.platform} />
                   <button
                     type="button"
                     onClick={() => handleCycleVerification(s)}
@@ -328,32 +287,19 @@ export const SourcesTab: React.FC<SourcesTabProps> = ({
                   >
                     <VerificationBadge status={s.verification_status} />
                   </button>
-                  <PlatformBadge platform={s.platform} />
                 </div>
                 <div className="flex items-center gap-1">
-                  {/* Quick Upgrade for Clues */}
-                  {s.type === 'clue' && (
-                    <button
-                      onClick={() => handleQuickUpgradeToFact(s)}
-                      className="inline-flex items-center gap-1 text-[11px] font-semibold text-emerald-700 dark:text-emerald-300 bg-emerald-50 dark:bg-emerald-950/60 hover:bg-emerald-100 dark:hover:bg-emerald-900/60 px-2 py-0.5 rounded border border-emerald-300 dark:border-emerald-800 transition-colors cursor-pointer mr-1"
-                      title="线索已考证完毕，一键无弹窗升级为已核实事实"
-                    >
-                      <CheckCircle2 className="w-3 h-3 text-emerald-600 dark:text-emerald-400" />
-                      <span>升级事实</span>
-                    </button>
-                  )}
-
                   <button
                     onClick={() => openEditModal(s)}
-                    className="p-1 text-stone-400 dark:text-stone-500 hover:text-stone-700 dark:hover:text-stone-300 rounded hover:bg-stone-100 dark:hover:bg-stone-800 cursor-pointer transition-colors"
-                    title="编辑资料"
+                    className="p-1 text-stone-400 dark:text-stone-500 hover:text-stone-700 dark:hover:text-stone-300 rounded-lg hover:bg-stone-100 dark:hover:bg-stone-800 cursor-pointer transition-colors"
+                    title="编辑素材"
                   >
                     <Edit2 className="w-3.5 h-3.5" />
                   </button>
                   <button
                     onClick={() => onDeleteSource(s.id)}
-                    className="p-1 text-stone-400 dark:text-stone-500 hover:text-red-600 dark:hover:text-red-400 rounded hover:bg-red-50 dark:hover:bg-red-950/40 cursor-pointer transition-colors"
-                    title="删除资料"
+                    className="p-1 text-stone-400 dark:text-stone-500 hover:text-red-600 dark:hover:text-red-400 rounded-lg hover:bg-red-50 dark:hover:bg-red-950/40 cursor-pointer transition-colors"
+                    title="删除素材"
                   >
                     <Trash2 className="w-3.5 h-3.5" />
                   </button>
@@ -361,18 +307,20 @@ export const SourcesTab: React.FC<SourcesTabProps> = ({
               </div>
 
               {/* Title */}
-              <h4 className="text-base font-bold text-stone-900 dark:text-stone-100 leading-snug">{s.title}</h4>
+              <h4 className="text-sm sm:text-base font-bold text-stone-900 dark:text-stone-100 leading-snug">
+                {s.title}
+              </h4>
 
               {/* Content / Summary */}
               {s.content && (
-                <p className="text-xs text-stone-600 dark:text-stone-300 leading-relaxed bg-stone-50 dark:bg-stone-800/60 p-2.5 rounded-lg border border-stone-100 dark:border-stone-800">
+                <p className="text-xs text-stone-600 dark:text-stone-300 leading-relaxed bg-stone-50 dark:bg-stone-800/60 p-3 rounded-xl border border-stone-100 dark:border-stone-800">
                   {s.content}
                 </p>
               )}
 
               {/* Notes / Tips */}
               {s.notes && (
-                <div className="text-xs text-stone-500 dark:text-stone-400 italic bg-amber-50/40 dark:bg-amber-950/20 p-2 rounded border border-amber-200/50 dark:border-amber-900/40">
+                <div className="text-xs text-stone-600 dark:text-stone-400 bg-amber-50/60 dark:bg-amber-950/30 p-2.5 rounded-lg border border-amber-200/60 dark:border-amber-900/50">
                   💡 备忘：{s.notes}
                 </div>
               )}
@@ -393,7 +341,7 @@ export const SourcesTab: React.FC<SourcesTabProps> = ({
                       setTimeout(() => setTimelineConvertedId(null), 2000);
                     }}
                     className="inline-flex items-center gap-1 text-[11px] font-medium text-stone-500 dark:text-stone-400 hover:text-rose-600 dark:hover:text-rose-400 transition-colors cursor-pointer"
-                    title="一键将本条资料沉淀为故事时间线事件"
+                    title="一键将本条素材沉淀为故事时间线事件"
                   >
                     {timelineConvertedId === s.id ? (
                       <>
@@ -427,7 +375,7 @@ export const SourcesTab: React.FC<SourcesTabProps> = ({
                     href={s.url}
                     target="_blank"
                     rel="noreferrer"
-                    className="flex items-center gap-1 text-rose-600 dark:text-rose-400 hover:text-rose-700 dark:hover:text-rose-300 font-medium hover:underline"
+                    className="flex items-center gap-1 text-rose-600 dark:text-rose-400 hover:text-rose-700 dark:hover:text-rose-300 font-semibold hover:underline"
                   >
                     <span>打开来源</span>
                     <ExternalLink className="w-3.5 h-3.5" />
@@ -439,8 +387,13 @@ export const SourcesTab: React.FC<SourcesTabProps> = ({
         ))}
 
         {filteredSources.length === 0 && (
-          <div className="col-span-full p-12 text-center border-2 border-dashed border-stone-200 dark:border-stone-800 rounded-xl bg-white dark:bg-stone-900 text-stone-400 dark:text-stone-500">
-            {searchQuery ? `未找到包含「${searchQuery}」的资料记录` : '暂无匹配的资料记录，点击右上角「添加资料」开始搜集证据与素材！'}
+          <div className="col-span-full p-12 text-center border-2 border-dashed border-stone-200 dark:border-stone-800 rounded-2xl bg-white dark:bg-stone-900 text-stone-400 dark:text-stone-500 space-y-2">
+            <p className="text-sm font-semibold text-stone-600 dark:text-stone-400">
+              {searchQuery ? `未找到包含「${searchQuery}」的素材记录` : '暂无素材记录'}
+            </p>
+            <p className="text-xs text-stone-400 dark:text-stone-500">
+              点击右上角「+ 添加素材」，支持一键智能抓取 B站/YouTube 视频信息
+            </p>
           </div>
         )}
       </div>
@@ -449,8 +402,8 @@ export const SourcesTab: React.FC<SourcesTabProps> = ({
       <Modal
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
-        title={editingSource ? '编辑资料 / 素材' : '录入新资料 / 素材'}
-        subtitle="明确区分事实、线索与素材，避免后期写稿将传闻与证据混淆"
+        title={editingSource ? '编辑素材资料' : '录入新素材'}
+        subtitle="搜集并沉淀一手视频切片、文本记录与参考资料"
         maxWidth="lg"
       >
         <form onSubmit={handleSubmit} className="space-y-4">
@@ -505,7 +458,7 @@ export const SourcesTab: React.FC<SourcesTabProps> = ({
 
           <div>
             <label className="block text-xs font-semibold text-stone-700 dark:text-stone-300 mb-1">
-              资料标题 <span className="text-rose-600">*</span>
+              素材标题 <span className="text-rose-600">*</span>
             </label>
             <input
               type="text"
@@ -515,38 +468,6 @@ export const SourcesTab: React.FC<SourcesTabProps> = ({
               onChange={(e) => setTitle(e.target.value)}
               className="w-full px-3 py-2 bg-stone-50 dark:bg-stone-800 border border-stone-300 dark:border-stone-700 rounded-lg text-sm text-stone-900 dark:text-stone-100 placeholder:text-stone-400 dark:placeholder:text-stone-500 focus:bg-white dark:focus:bg-stone-800 focus:outline-none"
             />
-          </div>
-
-          <div className="grid grid-cols-2 gap-3">
-            <div>
-              <label className="block text-xs font-semibold text-stone-700 dark:text-stone-300 mb-1">资料类型</label>
-              <CustomSelect
-                value={type}
-                onChange={(val) => setType(val as SourceType)}
-                className="w-full"
-                buttonClassName="w-full justify-between py-2 text-sm bg-stone-50 dark:bg-stone-800 border-stone-300 dark:border-stone-700 rounded-lg"
-                options={[
-                  { value: 'fact', label: '✓ 事实 (已找到确切证据)', dot: 'bg-emerald-500', description: '确凿事实与一手证据' },
-                  { value: 'clue', label: '? 线索 (尚待验证的信息)', dot: 'bg-amber-500', description: '传闻或未证实线索' },
-                  { value: 'material', label: '🎬 素材 (原视频/切片/截图)', dot: 'bg-blue-500', description: '视频片段、录播或原画' },
-                ]}
-              />
-            </div>
-
-            <div>
-              <label className="block text-xs font-semibold text-stone-700 dark:text-stone-300 mb-1">可信度状态</label>
-              <CustomSelect
-                value={verificationStatus}
-                onChange={(val) => setVerificationStatus(val as VerificationStatus)}
-                className="w-full"
-                buttonClassName="w-full justify-between py-2 text-sm bg-stone-50 dark:bg-stone-800 border-stone-300 dark:border-stone-700 rounded-lg"
-                options={[
-                  { value: 'confirmed', label: '已确认 (多方可靠来源)', dot: 'bg-emerald-500' },
-                  { value: 'unverified', label: '待核实 (信息不足)', dot: 'bg-amber-500' },
-                  { value: 'rejected', label: '不采用 (已证伪或无价值)', dot: 'bg-stone-400' },
-                ]}
-              />
-            </div>
           </div>
 
           <div className="grid grid-cols-2 gap-3">
@@ -585,15 +506,32 @@ export const SourcesTab: React.FC<SourcesTabProps> = ({
             </div>
           </div>
 
-          <div>
-            <label className="block text-xs font-semibold text-stone-700 dark:text-stone-300 mb-1">来源 URL 链接</label>
-            <input
-              type="url"
-              placeholder="https://www.bilibili.com/video/..."
-              value={url}
-              onChange={(e) => setUrl(e.target.value)}
-              className="w-full px-3 py-2 bg-stone-50 dark:bg-stone-800 border border-stone-300 dark:border-stone-700 rounded-lg text-sm text-stone-900 dark:text-stone-100 placeholder:text-stone-400 dark:placeholder:text-stone-500 focus:bg-white dark:focus:bg-stone-800 focus:outline-none"
-            />
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="block text-xs font-semibold text-stone-700 dark:text-stone-300 mb-1">来源 URL 链接</label>
+              <input
+                type="url"
+                placeholder="https://www.bilibili.com/video/..."
+                value={url}
+                onChange={(e) => setUrl(e.target.value)}
+                className="w-full px-3 py-2 bg-stone-50 dark:bg-stone-800 border border-stone-300 dark:border-stone-700 rounded-lg text-sm text-stone-900 dark:text-stone-100 placeholder:text-stone-400 dark:placeholder:text-stone-500 focus:bg-white dark:focus:bg-stone-800 focus:outline-none"
+              />
+            </div>
+
+            <div>
+              <label className="block text-xs font-semibold text-stone-700 dark:text-stone-300 mb-1">可信度状态</label>
+              <CustomSelect
+                value={verificationStatus}
+                onChange={(val) => setVerificationStatus(val as VerificationStatus)}
+                className="w-full"
+                buttonClassName="w-full justify-between py-2 text-sm bg-stone-50 dark:bg-stone-800 border-stone-300 dark:border-stone-700 rounded-lg"
+                options={[
+                  { value: 'confirmed', label: '已确认 (多方可靠来源)', dot: 'bg-emerald-500' },
+                  { value: 'unverified', label: '待核实 (信息不足)', dot: 'bg-amber-500' },
+                  { value: 'rejected', label: '不采用 (已证伪或无价值)', dot: 'bg-stone-400' },
+                ]}
+              />
+            </div>
           </div>
 
           <div>
@@ -630,7 +568,7 @@ export const SourcesTab: React.FC<SourcesTabProps> = ({
               type="submit"
               className="px-5 py-2 text-sm bg-stone-900 dark:bg-rose-600 hover:bg-stone-800 dark:hover:bg-rose-700 text-white rounded-lg font-medium cursor-pointer transition-colors"
             >
-              {editingSource ? '更新资料' : '添加资料'}
+              {editingSource ? '更新素材' : '添加素材'}
             </button>
           </div>
         </form>

@@ -13,7 +13,6 @@ import {
 } from 'lucide-react';
 import { NextActionDialog } from './NextActionDialog';
 import { getNextActionAgeDays, getNextActionWarning } from '../../lib/topicMetrics';
-import { ReadinessBadge } from '../ui/ReadinessBadge';
 
 const statusDots: Record<TopicStatus, string> = {
   inbox: 'bg-stone-400',
@@ -387,11 +386,7 @@ export const TopicDetailHeader: React.FC<TopicDetailHeaderProps> = ({
               评分 {totalScore}/10
             </span>
           )}
-          <ReadinessBadge topic={topic} />
-          <span className="text-stone-300 dark:text-stone-700">·</span>
-          <span>{topic.verified_facts_count || 0} 事实</span>
-          <span className="text-stone-300 dark:text-stone-700">·</span>
-          <span>{topic.materials_count || 0} 素材</span>
+          <span>{topic.materials_count || topic.sources_count || 0} 素材</span>
           <span className="text-stone-300 dark:text-stone-700">·</span>
           <span>{topic.draft_word_count || 0} 字</span>
         </div>

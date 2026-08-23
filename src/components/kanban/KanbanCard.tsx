@@ -8,7 +8,6 @@ import {
   Pin,
   ChevronDown,
 } from 'lucide-react';
-import { ReadinessBadge } from '../ui/ReadinessBadge';
 import { getNextActionAgeDays, getNextActionWarning } from '../../lib/topicMetrics';
 
 interface KanbanCardProps {
@@ -199,9 +198,13 @@ const KanbanCardComponent: React.FC<KanbanCardProps> = ({
         <span className={actionWarning ? 'font-semibold text-amber-700 dark:text-amber-400' : 'text-stone-400 dark:text-stone-500'}>
           {actionWarning || `行动持续 ${getNextActionAgeDays(topic)} 天`}
         </span>
-        <div className="flex items-center gap-1.5">
-          <ReadinessBadge topic={topic} showLabel={false} />
-          <span className="font-mono font-semibold text-stone-500 dark:text-stone-400">{topic.draft_word_count || 0}字</span>
+        <div className="flex items-center gap-1.5 font-mono text-stone-500 dark:text-stone-400">
+          {(topic.materials_count || topic.sources_count || 0) > 0 && (
+            <span>{topic.materials_count || topic.sources_count}素材</span>
+          )}
+          {(topic.draft_word_count || 0) > 0 && (
+            <span>{topic.draft_word_count}字</span>
+          )}
         </div>
       </div>
 

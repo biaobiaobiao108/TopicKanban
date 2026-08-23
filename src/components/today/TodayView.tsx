@@ -14,7 +14,6 @@ import {
 } from 'lucide-react';
 import { NextActionDialog } from '../topic-detail/NextActionDialog';
 import { getNextActionAgeDays, getNextActionWarning } from '../../lib/topicMetrics';
-import { ReadinessBadge } from '../ui/ReadinessBadge';
 
 const FOCUS_PRIORITY = { high: 3, medium: 2, low: 1, none: 0 };
 const ACTIVE_FOCUS_STATUSES = new Set(['approved', 'scripting', 'production']);
@@ -107,7 +106,6 @@ export const TodayView: React.FC<TodayViewProps> = ({
                   </span>
                   <StatusBadge status={focusTopic.status} />
                   <PriorityBadge priority={focusTopic.priority} />
-                  <ReadinessBadge topic={focusTopic} />
                   {focusTopic.is_pinned === 1 && (
                     <span className="inline-flex items-center gap-1 text-xs font-semibold text-amber-800 dark:text-amber-300 bg-amber-100 dark:bg-amber-950/40 px-2 py-0.5 rounded-md border border-amber-200 dark:border-amber-900/60">
                       <Pin className="w-3 h-3 fill-amber-600 dark:fill-amber-400" />
@@ -237,7 +235,6 @@ export const TodayView: React.FC<TodayViewProps> = ({
                     <div className="flex items-center gap-1.5">
                       <StatusBadge status={t.status} />
                       <PriorityBadge priority={t.priority} />
-                      <ReadinessBadge topic={t} showLabel={false} />
                     </div>
                     {t.is_pinned === 1 && (
                       <Pin className="w-3.5 h-3.5 fill-amber-500 text-amber-500" />

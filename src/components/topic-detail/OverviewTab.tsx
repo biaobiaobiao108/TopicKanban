@@ -16,7 +16,6 @@ import {
   X,
   UserPlus
 } from 'lucide-react';
-import { getTopicReadiness } from '../../lib/topicMetrics';
 
 interface OverviewTabProps {
   topic: Topic;
@@ -37,7 +36,6 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({
   onSaveTag,
   onDeleteTag,
 }) => {
-  const readiness = getTopicReadiness(topic);
   const [summary, setSummary] = useState(topic.summary || '');
   const [hook, setHook] = useState(topic.hook || '');
   const [whyNow, setWhyNow] = useState(topic.why_now || '');
@@ -241,38 +239,6 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({
 
       {/* Right Column: Score Rating Dial & People & Tags (4 Cols) */}
       <div className="lg:col-span-4 space-y-4">
-        <div className="rounded-xl border border-stone-200 dark:border-stone-800 bg-white dark:bg-stone-900 p-4 sm:p-4.5 shadow-subtle transition-colors">
-          <div className="mb-4 flex items-start justify-between gap-3">
-            <div>
-              <h4 className="text-sm font-bold text-stone-900 dark:text-stone-100">开工准备度</h4>
-              <p className="mt-1 text-xs text-stone-500 dark:text-stone-400">
-                {readiness.nextGap ? `下一项建议：补齐${readiness.nextGap}` : '关键开工条件已经齐备'}
-              </p>
-            </div>
-            <span className="font-mono text-2xl font-black text-stone-900 dark:text-stone-100">{readiness.score}%</span>
-          </div>
-          <div className="mb-4 h-2 overflow-hidden rounded-full bg-stone-100 dark:bg-stone-800">
-            <div
-              className="h-full rounded-full bg-rose-600 transition-all"
-              style={{ width: `${readiness.score}%` }}
-            />
-          </div>
-          <div className="grid grid-cols-2 gap-2">
-            {readiness.items.map((item) => (
-              <div
-                key={item.id}
-                className={`rounded-lg border px-2.5 py-2 ${item.ready ? 'border-emerald-200 dark:border-emerald-900/60 bg-emerald-50 dark:bg-emerald-950/40' : 'border-stone-200 dark:border-stone-800 bg-stone-50 dark:bg-stone-800/60'}`}
-              >
-                <div className={`flex items-center gap-1 text-xs font-bold ${item.ready ? 'text-emerald-700 dark:text-emerald-300' : 'text-stone-600 dark:text-stone-400'}`}>
-                  <span>{item.ready ? '✓' : '○'}</span>
-                  <span>{item.label}</span>
-                </div>
-                <div className="mt-0.5 text-[10px] text-stone-500 dark:text-stone-400">{item.ready ? '已就绪' : item.detail}</div>
-              </div>
-            ))}
-          </div>
-        </div>
-
         {/* 5-Dimension Score Dial */}
         <ScoreRatingDial topic={topic} onUpdateScores={onUpdateTopic} />
 
