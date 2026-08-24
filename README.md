@@ -92,7 +92,7 @@ docker run -d \
   -e QUICK_DROP_TOKEN="your_quick_drop_token" \
   -e PUBLIC_BASE_URL="https://kanban.yourdomain.com" \
   -v ./data:/app/data \
-  ghcr.io/<你的GitHub用户名>/kanbancontainer:latest
+  ghcr.io/biaobiaobiao108/topickanban:latest
 ```
 
 > ⚠️ **重要提示（关于 `PUBLIC_BASE_URL` 域名前缀）**：
