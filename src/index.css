@@ -128,16 +128,15 @@ html.theme-kyoto-zen .script-citation::after {
   will-change: transform, opacity;
 }
 
-/* Script Editor Focus Mode (仅在沉浸写作中开启，0ms 原生高亮，非编辑段落保持温和暗化) */
+/* Script Editor Focus Mode (沉浸写作专注模式：丝滑温润呼吸过渡，暗化段落 30% 纯 GPU 加速透明度渐变，无闪烁) */
 .script-editor-focus-mode .tiptap > * {
-  opacity: 0.24;
-  filter: blur(0.1px);
-  transition: opacity 0.18s cubic-bezier(0.16, 1, 0.3, 1), filter 0.18s cubic-bezier(0.16, 1, 0.3, 1);
+  opacity: 0.3;
+  transition: opacity 320ms cubic-bezier(0.4, 0, 0.2, 1);
+  will-change: opacity;
 }
 
 .script-editor-focus-mode .tiptap > .is-focused-paragraph {
   opacity: 1 !important;
-  filter: none !important;
 }
 
 @layer base {
