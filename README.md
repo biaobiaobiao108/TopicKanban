@@ -74,6 +74,7 @@ services:
       - DATA_DIR=/app/data
     volumes:
       - ./data:/app/data
+  image: ghcr.io/biaobiaobiao108/topickanban:latest
 ```
 
 启动命令：
