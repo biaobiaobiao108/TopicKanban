@@ -159,6 +159,7 @@ function permanentDeleteStatements(db: D1Database, id: string): D1PreparedStatem
 }
 
 export async function permanentlyDeleteTrashedTopics(db: D1Database, ids: string[]): Promise<void> {
+  if (ids.length === 0) return;
   const placeholders = ids.map(() => '?').join(', ');
   const result = await bind(db,
     `SELECT id FROM topics WHERE deleted_at IS NOT NULL AND id IN (${placeholders})`, ids
@@ -166,7 +167,12 @@ export async function permanentlyDeleteTrashedTopics(db: D1Database, ids: string
   if (result.results.length !== ids.length) {
     throw new TopicNotInTrashError('All topics must be in trash before permanent deletion');
   }
-  await db.batch(ids.flatMap((id) => permanentDeleteStatements(db, id)));
+
+  const CHUNK_SIZE = 25;
+  for (let i = 0; i < ids.length; i += CHUNK_SIZE) {
+    const chunkIds = ids.slice(i, i + CHUNK_SIZE);
+    await db.batch(chunkIds.flatMap((id) => permanentDeleteStatements(db, id)));
+  }
 }
 
 export interface TopicPageOptions {
@@ -269,16 +275,18 @@ export async function loadBootstrap(db: D1Database, kvSettings?: AppSettings, op
       : db.prepare('SELECT NULL WHERE 1 = 0'),
     includeTags ? db.prepare('SELECT id, name, color FROM tags ORDER BY name ASC') : db.prepare('SELECT NULL WHERE 1 = 0'),
   ];
-  if (!kvSettings) {
-    queries.push(db.prepare('SELECT key, value FROM settings'));
-  }
 
-  const [topics, otherResults] = await Promise.all([
+  const settingsPromise = kvSettings
+    ? Promise.resolve(kvSettings)
+    : db.prepare('SELECT key, value FROM settings').all<{ key: string; value: string }>()
+        .then((res) => parseSettings(res.results))
+        .catch(() => parseSettings());
+
+  const [topics, otherResults, settings] = await Promise.all([
     includeTopics ? loadTopics(db, 'active') : Promise.resolve([] as Topic[]),
     db.batch(queries),
+    settingsPromise,
   ]);
-
-  const settings = kvSettings || parseSettings(otherResults[4]?.results as unknown as Array<{ key: string; value: string }>);
 
   return {
     topics,

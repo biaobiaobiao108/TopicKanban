@@ -280,4 +280,66 @@ describe('Bun Server Integration (Local SQLite & API)', () => {
     const aData = await aAgain.json() as { is_locked: boolean };
     expect(aData.is_locked).toBe(false);
   });
+
+  it('handles batch permanent deletion across multiple chunk sizes correctly', async () => {
+    const loginRes = await app.request('/api/auth/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ password: testPassword }),
+    });
+    const { token } = await loginRes.json() as { token: string };
+    const headers = { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' };
+
+    // Create 30 topics (more than chunk size of 25)
+    const topicIds: string[] = [];
+    for (let i = 0; i < 30; i++) {
+      const createRes = await app.request('/api/topics', {
+        method: 'POST',
+        headers,
+        body: JSON.stringify({ title: `批量删除测试主题 ${i + 1}` }),
+      });
+      const topic = await createRes.json() as { id: string };
+      topicIds.push(topic.id);
+      // Soft delete it
+      await app.request(`/api/topics/${topic.id}`, { method: 'DELETE', headers });
+    }
+
+    // Permanently delete all 30 topics in batch
+    const batchDeleteRes = await app.request('/api/topics/batch/permanent', {
+      method: 'POST',
+      headers,
+      body: JSON.stringify({ ids: topicIds }),
+    });
+    expect(batchDeleteRes.status).toBe(200);
+    const batchData = await batchDeleteRes.json() as { success: boolean; count: number };
+    expect(batchData.success).toBe(true);
+    expect(batchData.count).toBe(30);
+
+    // Verify trash is now empty
+    const trashRes = await app.request('/api/topics/trash', { headers });
+    const trashList = await trashRes.json() as unknown[];
+    expect(trashList.length).toBe(0);
+  });
+
+  it('safely handles resource DELETE endpoints idempotently', async () => {
+    const loginRes = await app.request('/api/auth/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ password: testPassword }),
+    });
+    const { token } = await loginRes.json() as { token: string };
+    const headers = { Authorization: `Bearer ${token}` };
+
+    const deleteNonExistentSource = await app.request('/api/sources/non-existent-src-id', {
+      method: 'DELETE',
+      headers,
+    });
+    expect(deleteNonExistentSource.status).toBe(200);
+
+    const deleteNonExistentTimeline = await app.request('/api/timeline/non-existent-time-id', {
+      method: 'DELETE',
+      headers,
+    });
+    expect(deleteNonExistentTimeline.status).toBe(200);
+  });
 });

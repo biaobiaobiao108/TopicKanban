@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { Topic } from '../../types';
 import { StatusBadge, PriorityBadge, TagPill } from '../ui/Badge';
 import {
@@ -36,32 +36,38 @@ export const TodayView: React.FC<TodayViewProps> = ({
   const [showAllActivity, setShowAllActivity] = useState(false);
 
   // Main focus: pinned first, then production stage, priority and recent activity.
-  const focusTopic = [...topics]
-    .filter((topic) => topic.status !== 'published' && topic.status !== 'icebox')
-    .sort((a, b) => {
-      if (a.is_pinned !== b.is_pinned) return (b.is_pinned || 0) - (a.is_pinned || 0);
-      const activeDiff = Number(ACTIVE_FOCUS_STATUSES.has(b.status)) - Number(ACTIVE_FOCUS_STATUSES.has(a.status));
-      if (activeDiff !== 0) return activeDiff;
-      if (FOCUS_PRIORITY[a.priority] !== FOCUS_PRIORITY[b.priority]) {
-        return FOCUS_PRIORITY[b.priority] - FOCUS_PRIORITY[a.priority];
-      }
-      return new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime();
-    })[0] || null;
+  const focusTopic = useMemo(() => {
+    return [...topics]
+      .filter((topic) => topic.status !== 'published' && topic.status !== 'icebox')
+      .sort((a, b) => {
+        if (a.is_pinned !== b.is_pinned) return (b.is_pinned || 0) - (a.is_pinned || 0);
+        const activeDiff = Number(ACTIVE_FOCUS_STATUSES.has(b.status)) - Number(ACTIVE_FOCUS_STATUSES.has(a.status));
+        if (activeDiff !== 0) return activeDiff;
+        if (FOCUS_PRIORITY[a.priority] !== FOCUS_PRIORITY[b.priority]) {
+          return FOCUS_PRIORITY[b.priority] - FOCUS_PRIORITY[a.priority];
+        }
+        return new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime();
+      })[0] || null;
+  }, [topics]);
 
   // Top 3~5 today priority items
-  const priorityList = [...topics]
-    .filter((t) => t.id !== focusTopic?.id && t.status !== 'published' && t.status !== 'icebox')
-    .sort((a, b) => {
-      if (a.is_pinned !== b.is_pinned) return (b.is_pinned || 0) - (a.is_pinned || 0);
-      if (FOCUS_PRIORITY[a.priority] !== FOCUS_PRIORITY[b.priority]) return FOCUS_PRIORITY[b.priority] - FOCUS_PRIORITY[a.priority];
-      return new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime();
-    })
-    .slice(0, 4);
+  const priorityList = useMemo(() => {
+    return [...topics]
+      .filter((t) => t.id !== focusTopic?.id && t.status !== 'published' && t.status !== 'icebox')
+      .sort((a, b) => {
+        if (a.is_pinned !== b.is_pinned) return (b.is_pinned || 0) - (a.is_pinned || 0);
+        if (FOCUS_PRIORITY[a.priority] !== FOCUS_PRIORITY[b.priority]) return FOCUS_PRIORITY[b.priority] - FOCUS_PRIORITY[a.priority];
+        return new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime();
+      })
+      .slice(0, 4);
+  }, [topics, focusTopic?.id]);
 
   // Recently updated stream
-  const recentUpdates = [...topics]
-    .sort((a, b) => new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime())
-    .slice(0, 8);
+  const recentUpdates = useMemo(() => {
+    return [...topics]
+      .sort((a, b) => new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime())
+      .slice(0, 8);
+  }, [topics]);
   const visibleRecentUpdates = showAllActivity ? recentUpdates : recentUpdates.slice(0, 3);
 
   return (

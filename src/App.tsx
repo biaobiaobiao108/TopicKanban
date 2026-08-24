@@ -296,9 +296,9 @@ function WorkspaceApp({ isAuth, setIsAuth }: WorkspaceAppProps) {
     const deleted = topics.find((topic) => topic.id === topicId);
     await deleteTopic(topicId);
     setTopics((prev) => {
-      const deleted = prev.find((topic) => topic.id === topicId);
-      if (deleted) {
-        setTrashedTopics((trash) => [{ ...deleted, deleted_at: new Date().toISOString() }, ...trash]);
+      const trashedTopicItem = prev.find((topic) => topic.id === topicId);
+      if (trashedTopicItem) {
+        setTrashedTopics((trash) => [{ ...trashedTopicItem, deleted_at: new Date().toISOString() }, ...trash]);
       }
       return prev.filter((t) => t.id !== topicId);
     });

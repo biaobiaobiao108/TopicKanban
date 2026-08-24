@@ -88,7 +88,7 @@ const fetchBilibiliWithJsonp = (bvid: string): Promise<BilibiliVideoMeta> => new
 
   jsonpWindow[callbackName] = (payload) => {
     cleanup();
-    if (payload.code !== 0 || !payload.data || 'views' in payload.data) {
+    if (payload.code !== 0 || !payload.data || !payload.data.title) {
       reject(new Error(payload.message || 'B站直连数据异常'));
       return;
     }

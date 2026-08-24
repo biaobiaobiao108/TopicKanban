@@ -135,14 +135,29 @@ export function createId(prefix: string): string {
   return `${prefix}-${Date.now()}-${crypto.randomUUID().slice(0, 8)}`;
 }
 
+const ALLOWED_PATCH_TABLES = [
+  'topics',
+  'sources',
+  'timeline_events',
+  'people',
+  'person_relationships',
+  'tags',
+  'published_videos',
+] as const;
+
+export type AllowedPatchTable = typeof ALLOWED_PATCH_TABLES[number];
+
 export async function patchRow(
   db: D1Database,
-  table: string,
+  table: AllowedPatchTable | string,
   id: string,
   body: Record<string, unknown>,
   allowedFields: string[],
   touchUpdatedAt = true
 ): Promise<void> {
+  if (!ALLOWED_PATCH_TABLES.includes(table as AllowedPatchTable)) {
+    throw new Error(`Invalid table for patchRow: ${table}`);
+  }
   const fields = allowedFields.filter((field) => Object.prototype.hasOwnProperty.call(body, field));
   if (touchUpdatedAt) {
     fields.push('updated_at');

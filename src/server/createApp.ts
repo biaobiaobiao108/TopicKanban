@@ -412,8 +412,12 @@ export function createApp() {
   });
 
   app.delete('/sources/:id', async (c) => {
-    await requireDb(c).prepare('DELETE FROM sources WHERE id = ?').bind(c.req.param('id')).run();
-    return c.json({ success: true });
+    try {
+      await requireDb(c).prepare('DELETE FROM sources WHERE id = ?').bind(c.req.param('id')).run();
+      return c.json({ success: true });
+    } catch (error) {
+      return jsonError(c, error);
+    }
   });
 
   app.get('/sources/parse-url', async (c) => {
@@ -430,7 +434,11 @@ export function createApp() {
   });
 
   app.get('/topics/:id/timeline', async (c) => {
-    return c.json(await loadTimelineEvents(requireDb(c), c.req.param('id')));
+    try {
+      return c.json(await loadTimelineEvents(requireDb(c), c.req.param('id')));
+    } catch (error) {
+      return jsonError(c, error);
+    }
   });
 
   app.post('/timeline', async (c) => {
@@ -518,8 +526,12 @@ export function createApp() {
   });
 
   app.delete('/timeline/:id', async (c) => {
-    await requireDb(c).prepare('DELETE FROM timeline_events WHERE id = ?').bind(c.req.param('id')).run();
-    return c.json({ success: true });
+    try {
+      await requireDb(c).prepare('DELETE FROM timeline_events WHERE id = ?').bind(c.req.param('id')).run();
+      return c.json({ success: true });
+    } catch (error) {
+      return jsonError(c, error);
+    }
   });
 
   app.get('/people', async (c) => c.json((await loadBootstrap(requireDb(c), undefined, { includeTopics: false, includePeople: true, includeRelationships: false, includePublished: false, includeTags: false })).people));
@@ -567,14 +579,18 @@ export function createApp() {
   });
 
   app.delete('/people/:id', async (c) => {
-    const db = requireDb(c);
-    const id = c.req.param('id');
-    await db.batch([
-      statements.bind(db, 'DELETE FROM topic_people WHERE person_id = ?', [id]),
-      statements.bind(db, 'DELETE FROM person_relationships WHERE person_a_id = ? OR person_b_id = ?', [id, id]),
-      statements.bind(db, 'DELETE FROM people WHERE id = ?', [id]),
-    ]);
-    return c.json({ success: true });
+    try {
+      const db = requireDb(c);
+      const id = c.req.param('id');
+      await db.batch([
+        statements.bind(db, 'DELETE FROM topic_people WHERE person_id = ?', [id]),
+        statements.bind(db, 'DELETE FROM person_relationships WHERE person_a_id = ? OR person_b_id = ?', [id, id]),
+        statements.bind(db, 'DELETE FROM people WHERE id = ?', [id]),
+      ]);
+      return c.json({ success: true });
+    } catch (error) {
+      return jsonError(c, error);
+    }
   });
 
   app.get('/relationships', async (c) => c.json((await loadBootstrap(requireDb(c), undefined, { includeTopics: false, includePeople: false, includeRelationships: true, includePublished: false, includeTags: false })).relationships));
@@ -618,14 +634,22 @@ export function createApp() {
   });
 
   app.delete('/relationships/:id', async (c) => {
-    await requireDb(c).prepare('DELETE FROM person_relationships WHERE id = ?').bind(c.req.param('id')).run();
-    return c.json({ success: true });
+    try {
+      await requireDb(c).prepare('DELETE FROM person_relationships WHERE id = ?').bind(c.req.param('id')).run();
+      return c.json({ success: true });
+    } catch (error) {
+      return jsonError(c, error);
+    }
   });
 
   app.get('/topics/:id/draft', async (c) => {
-    const row = await requireDb(c).prepare('SELECT * FROM drafts WHERE topic_id = ?')
-      .bind(c.req.param('id')).first<Draft>();
-    return c.json(row || null);
+    try {
+      const row = await requireDb(c).prepare('SELECT * FROM drafts WHERE topic_id = ?')
+        .bind(c.req.param('id')).first<Draft>();
+      return c.json(row || null);
+    } catch (error) {
+      return jsonError(c, error);
+    }
   });
 
   app.put('/topics/:id/draft', async (c) => {
@@ -676,10 +700,14 @@ export function createApp() {
   });
 
   app.get('/topics/:id/citations', async (c) => {
-    const result = await requireDb(c).prepare(
-      'SELECT * FROM draft_citations WHERE topic_id = ? ORDER BY created_at DESC'
-    ).bind(c.req.param('id')).all<DraftCitation>();
-    return c.json(result.results);
+    try {
+      const result = await requireDb(c).prepare(
+        'SELECT * FROM draft_citations WHERE topic_id = ? ORDER BY created_at DESC'
+      ).bind(c.req.param('id')).all<DraftCitation>();
+      return c.json(result.results);
+    } catch (error) {
+      return jsonError(c, error);
+    }
   });
 
   app.post('/topics/:id/citations', async (c) => {
@@ -731,8 +759,12 @@ export function createApp() {
   });
 
   app.delete('/citations/:id', async (c) => {
-    await requireDb(c).prepare('DELETE FROM draft_citations WHERE id = ?').bind(c.req.param('id')).run();
-    return c.json({ success: true });
+    try {
+      await requireDb(c).prepare('DELETE FROM draft_citations WHERE id = ?').bind(c.req.param('id')).run();
+      return c.json({ success: true });
+    } catch (error) {
+      return jsonError(c, error);
+    }
   });
 
   app.get('/tags', async (c) => c.json((await loadBootstrap(requireDb(c), undefined, { includeTopics: false, includePeople: false, includeRelationships: false, includePublished: false, includeTags: true })).tags));
@@ -776,13 +808,17 @@ export function createApp() {
   });
 
   app.delete('/tags/:id', async (c) => {
-    const db = requireDb(c);
-    const id = c.req.param('id');
-    await db.batch([
-      statements.bind(db, 'DELETE FROM topic_tags WHERE tag_id = ?', [id]),
-      statements.bind(db, 'DELETE FROM tags WHERE id = ?', [id]),
-    ]);
-    return c.json({ success: true });
+    try {
+      const db = requireDb(c);
+      const id = c.req.param('id');
+      await db.batch([
+        statements.bind(db, 'DELETE FROM topic_tags WHERE tag_id = ?', [id]),
+        statements.bind(db, 'DELETE FROM tags WHERE id = ?', [id]),
+      ]);
+      return c.json({ success: true });
+    } catch (error) {
+      return jsonError(c, error);
+    }
   });
 
   app.get('/published', async (c) => c.json((await loadBootstrap(requireDb(c), undefined, { includeTopics: false, includePeople: false, includeRelationships: false, includePublished: true, includeTags: false })).published));
@@ -848,8 +884,12 @@ export function createApp() {
   });
 
   app.delete('/published/:id', async (c) => {
-    await requireDb(c).prepare('DELETE FROM published_videos WHERE id = ?').bind(c.req.param('id')).run();
-    return c.json({ success: true });
+    try {
+      await requireDb(c).prepare('DELETE FROM published_videos WHERE id = ?').bind(c.req.param('id')).run();
+      return c.json({ success: true });
+    } catch (error) {
+      return jsonError(c, error);
+    }
   });
 
   /* =========================================================================

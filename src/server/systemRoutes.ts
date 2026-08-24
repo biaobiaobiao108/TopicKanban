@@ -18,34 +18,107 @@ import {
   requireDb,
 } from './apiShared';
 
+export function sanitizeAppSettings(
+  settings?: Partial<AppSettings> | null,
+  defaultPublicBaseUrl?: string
+): AppSettings {
+  if (!settings || typeof settings !== 'object') {
+    return {
+      ...DEFAULT_APP_SETTINGS,
+      public_base_url: typeof defaultPublicBaseUrl === 'string' && defaultPublicBaseUrl.trim()
+        ? defaultPublicBaseUrl.trim().replace(/\/+$/, '')
+        : '',
+    };
+  }
+
+  const validFontSizes = ['compact', 'standard', 'large'];
+  const validLineHeights = ['normal', 'relaxed', 'loose'];
+
+  const speed = Number(settings.reading_speed);
+  const readingSpeed = Number.isFinite(speed) && speed > 0 && speed <= 1000
+    ? speed
+    : DEFAULT_APP_SETTINGS.reading_speed;
+
+  const theme = settings.theme && APP_THEMES.includes(settings.theme)
+    ? settings.theme
+    : DEFAULT_APP_SETTINGS.theme;
+
+  const editorFontSize = typeof settings.editor_font_size === 'string' && validFontSizes.includes(settings.editor_font_size)
+    ? settings.editor_font_size
+    : DEFAULT_APP_SETTINGS.editor_font_size;
+
+  const editorLineHeight = typeof settings.editor_line_height === 'string' && validLineHeights.includes(settings.editor_line_height)
+    ? settings.editor_line_height
+    : DEFAULT_APP_SETTINGS.editor_line_height;
+
+  const typewriterModeDefault = typeof settings.typewriter_mode_default === 'boolean'
+    ? settings.typewriter_mode_default
+    : DEFAULT_APP_SETTINGS.typewriter_mode_default;
+
+  const staleDays = Number(settings.stale_action_days);
+  const staleActionDays = Number.isFinite(staleDays) && staleDays > 0 && staleDays <= 30
+    ? staleDays
+    : DEFAULT_APP_SETTINGS.stale_action_days;
+
+  const ttlDays = Number(settings.default_share_ttl_days);
+  const defaultShareTtlDays = Number.isFinite(ttlDays) && ttlDays > 0 && ttlDays <= 365
+    ? ttlDays
+    : DEFAULT_APP_SETTINGS.default_share_ttl_days;
+
+  const reviewerBranding = typeof settings.reviewer_branding === 'string'
+    ? settings.reviewer_branding.slice(0, 100).trim()
+    : DEFAULT_APP_SETTINGS.reviewer_branding;
+
+  const publicBaseUrl = typeof settings.public_base_url === 'string' && settings.public_base_url.trim()
+    ? settings.public_base_url.trim().replace(/\/+$/, '')
+    : (defaultPublicBaseUrl?.trim().replace(/\/+$/, '') || '');
+
+  const voiceoverCues = Array.isArray(settings.voiceover_cues)
+    ? settings.voiceover_cues.map((s) => String(s).slice(0, 50).trim()).filter(Boolean)
+    : (DEFAULT_APP_SETTINGS.voiceover_cues || DEFAULT_VOICEOVER_CUES);
+
+  return {
+    reading_speed: readingSpeed,
+    theme,
+    editor_font_size: editorFontSize,
+    editor_line_height: editorLineHeight,
+    typewriter_mode_default: typewriterModeDefault,
+    stale_action_days: staleActionDays,
+    default_share_ttl_days: defaultShareTtlDays,
+    reviewer_branding: reviewerBranding,
+    public_base_url: publicBaseUrl,
+    voiceover_cues: voiceoverCues,
+  };
+}
+
 async function getKvSettings(kv?: KVNamespace, defaultPublicBaseUrl?: string): Promise<AppSettings> {
-  if (!kv) return { ...DEFAULT_APP_SETTINGS, public_base_url: defaultPublicBaseUrl || '' };
+  if (!kv) return sanitizeAppSettings(null, defaultPublicBaseUrl);
   try {
     const settings = await kv.get<AppSettings>('app_settings', 'json');
-    if (settings && Number.isFinite(settings.reading_speed)) {
-      const validFontSizes = ['compact', 'standard', 'large'];
-      const validLineHeights = ['normal', 'relaxed', 'loose'];
-      const voiceoverCues = Array.isArray(settings.voiceover_cues)
-        ? settings.voiceover_cues
-        : (DEFAULT_APP_SETTINGS.voiceover_cues || DEFAULT_VOICEOVER_CUES);
-
-      return {
-        reading_speed: settings.reading_speed > 0 ? settings.reading_speed : DEFAULT_APP_SETTINGS.reading_speed,
-        theme: APP_THEMES.includes(settings.theme) ? settings.theme : DEFAULT_APP_SETTINGS.theme,
-        editor_font_size: validFontSizes.includes(settings.editor_font_size as string) ? settings.editor_font_size : DEFAULT_APP_SETTINGS.editor_font_size,
-        editor_line_height: validLineHeights.includes(settings.editor_line_height as string) ? settings.editor_line_height : DEFAULT_APP_SETTINGS.editor_line_height,
-        typewriter_mode_default: typeof settings.typewriter_mode_default === 'boolean' ? settings.typewriter_mode_default : DEFAULT_APP_SETTINGS.typewriter_mode_default,
-        stale_action_days: Number.isFinite(settings.stale_action_days) && (settings.stale_action_days as number) > 0 ? settings.stale_action_days : DEFAULT_APP_SETTINGS.stale_action_days,
-        default_share_ttl_days: Number.isFinite(settings.default_share_ttl_days) && (settings.default_share_ttl_days as number) > 0 ? settings.default_share_ttl_days : DEFAULT_APP_SETTINGS.default_share_ttl_days,
-        reviewer_branding: typeof settings.reviewer_branding === 'string' ? settings.reviewer_branding : DEFAULT_APP_SETTINGS.reviewer_branding,
-        public_base_url: typeof settings.public_base_url === 'string' && settings.public_base_url.trim() ? settings.public_base_url.trim().replace(/\/+$/, '') : (defaultPublicBaseUrl || ''),
-        voiceover_cues: voiceoverCues,
-      };
+    if (settings) {
+      return sanitizeAppSettings(settings, defaultPublicBaseUrl);
     }
   } catch {
     // fallback to default
   }
-  return { ...DEFAULT_APP_SETTINGS, public_base_url: defaultPublicBaseUrl || '' };
+  return sanitizeAppSettings(null, defaultPublicBaseUrl);
+}
+
+export function detectEnvironment(c: { env: ApiBindings }): 'node_container' | 'cloudflare_pages' {
+  if (c.env.ENVIRONMENT === 'node_container') return 'node_container';
+  if (c.env.ENVIRONMENT === 'cloudflare_pages') return 'cloudflare_pages';
+
+  // Check whether DB or KV is using the local Bun SQLite adapters
+  const isLocalAdapter = Boolean((c.env.DB as unknown as { sqlite?: unknown })?.sqlite || (c.env.KV as unknown as { sqlite?: unknown })?.sqlite);
+  if (isLocalAdapter) return 'node_container';
+
+  // Check Cloudflare Workers / Pages environment indicators
+  const isCloudflare = (typeof navigator !== 'undefined' && navigator.userAgent === 'Cloudflare-Workers')
+    || typeof WebSocketPair !== 'undefined'
+    || Boolean((globalThis as unknown as { caches?: { default?: unknown } }).caches?.default);
+  if (isCloudflare) return 'cloudflare_pages';
+
+  return 'cloudflare_pages';
 }
 
 const failedLoginAttempts = new Map<string, { count: number; resetAt: number }>();
@@ -116,23 +189,6 @@ export function registerSystemRoutes(app: Hono<{ Bindings: ApiBindings }>): void
       return jsonError(c, error, 400);
     }
   });
-
-function detectEnvironment(c: { env: ApiBindings }): 'node_container' | 'cloudflare_pages' {
-  if (c.env.ENVIRONMENT === 'node_container') return 'node_container';
-  if (c.env.ENVIRONMENT === 'cloudflare_pages') return 'cloudflare_pages';
-
-  // Check whether DB or KV is using the local Bun SQLite adapters
-  const isLocalAdapter = Boolean((c.env.DB as unknown as { sqlite?: unknown })?.sqlite || (c.env.KV as unknown as { sqlite?: unknown })?.sqlite);
-  if (isLocalAdapter) return 'node_container';
-
-  // Check Cloudflare Workers / Pages environment indicators
-  const isCloudflare = (typeof navigator !== 'undefined' && navigator.userAgent === 'Cloudflare-Workers')
-    || typeof WebSocketPair !== 'undefined'
-    || Boolean((globalThis as unknown as { caches?: { default?: unknown } }).caches?.default);
-  if (isCloudflare) return 'cloudflare_pages';
-
-  return 'cloudflare_pages';
-}
 
   app.get('/health', async (c) => {
     try {
@@ -221,39 +277,8 @@ function detectEnvironment(c: { env: ApiBindings }): 'node_container' | 'cloudfl
 
   app.put('/settings', async (c) => {
     try {
-      const settings = await c.req.json<AppSettings>();
-      const speed = Number(settings.reading_speed);
-      if (!Number.isFinite(speed) || speed <= 0 || speed > 1000) {
-        return c.json({ error: 'reading_speed must be between 1 and 1000' }, 400);
-      }
-      const theme = APP_THEMES.includes(settings.theme) ? settings.theme : DEFAULT_APP_SETTINGS.theme;
-      const validFontSizes = ['compact', 'standard', 'large'];
-      const editorFontSize = validFontSizes.includes(settings.editor_font_size as string) ? settings.editor_font_size : DEFAULT_APP_SETTINGS.editor_font_size;
-      const validLineHeights = ['normal', 'relaxed', 'loose'];
-      const editorLineHeight = validLineHeights.includes(settings.editor_line_height as string) ? settings.editor_line_height : DEFAULT_APP_SETTINGS.editor_line_height;
-      const typewriterModeDefault = typeof settings.typewriter_mode_default === 'boolean' ? settings.typewriter_mode_default : DEFAULT_APP_SETTINGS.typewriter_mode_default;
-      const staleDays = Number(settings.stale_action_days);
-      const staleActionDays = Number.isFinite(staleDays) && staleDays > 0 && staleDays <= 30 ? staleDays : DEFAULT_APP_SETTINGS.stale_action_days;
-      const ttlDays = Number(settings.default_share_ttl_days);
-      const defaultShareTtlDays = Number.isFinite(ttlDays) && ttlDays > 0 && ttlDays <= 365 ? ttlDays : DEFAULT_APP_SETTINGS.default_share_ttl_days;
-      const reviewerBranding = typeof settings.reviewer_branding === 'string' ? settings.reviewer_branding.slice(0, 100).trim() : DEFAULT_APP_SETTINGS.reviewer_branding;
-      const publicBaseUrl = typeof settings.public_base_url === 'string' ? settings.public_base_url.slice(0, 200).trim().replace(/\/+$/, '') : '';
-      const voiceoverCues = Array.isArray(settings.voiceover_cues)
-        ? settings.voiceover_cues.map((s) => String(s).slice(0, 50).trim()).filter(Boolean)
-        : (DEFAULT_APP_SETTINGS.voiceover_cues || DEFAULT_VOICEOVER_CUES);
-
-      const updatedSettings: AppSettings = {
-        reading_speed: speed,
-        theme,
-        editor_font_size: editorFontSize,
-        editor_line_height: editorLineHeight,
-        typewriter_mode_default: typewriterModeDefault,
-        stale_action_days: staleActionDays,
-        default_share_ttl_days: defaultShareTtlDays,
-        reviewer_branding: reviewerBranding,
-        public_base_url: publicBaseUrl,
-        voiceover_cues: voiceoverCues,
-      };
+      const raw = await c.req.json<Partial<AppSettings>>();
+      const updatedSettings = sanitizeAppSettings(raw, c.env.PUBLIC_BASE_URL);
 
       if (c.env.KV) {
         await c.env.KV.put('app_settings', JSON.stringify(updatedSettings));
