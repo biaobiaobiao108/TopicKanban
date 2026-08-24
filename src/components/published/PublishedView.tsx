@@ -634,7 +634,7 @@ export const PublishedView: React.FC<PublishedViewProps> = ({
                 )}
               </div>
 
-              <div className="relative">
+              <div className="flex items-center gap-2">
                 <CustomSelect
                   value={topicId}
                   onChange={(nextTopicId) => {
@@ -654,8 +654,8 @@ export const PublishedView: React.FC<PublishedViewProps> = ({
                   searchValue={topicSearchQuery}
                   onSearchChange={setTopicSearchQuery}
                   placeholder="请选择关联选题"
-                  className="w-full"
-                  buttonClassName="w-full min-h-[42px] px-3 py-2 bg-stone-50 dark:bg-stone-800 border-stone-300 dark:border-stone-700 rounded-lg text-sm pr-16"
+                  className="min-w-0 flex-1"
+                  buttonClassName="w-full min-h-[42px] px-3 py-2 bg-stone-50 dark:bg-stone-800 border-stone-300 dark:border-stone-700 rounded-lg text-sm pr-10"
                   popoverClassName="w-full"
                   renderValue={() => {
                     const selectedTopic = topicMap.get(topicId);
@@ -690,7 +690,17 @@ export const PublishedView: React.FC<PublishedViewProps> = ({
                     <div className="py-6 text-center text-xs text-stone-400 dark:text-stone-500">未找到匹配「{topicSearchQuery}」的可用选题</div>
                   )}
                 />
-                {topicId && <button type="button" onClick={() => setTopicId('')} aria-label="取消关联选题" title="取消关联选题" className="absolute right-11 top-1/2 -translate-y-1/2 z-10 p-1 text-stone-400 hover:text-red-600 dark:hover:text-red-400 rounded-md"><X className="w-3.5 h-3.5" /></button>}
+                <button
+                  type="button"
+                  onClick={() => setTopicId('')}
+                  aria-label="取消关联选题"
+                  title="取消关联选题"
+                  aria-hidden={!topicId}
+                  tabIndex={topicId ? 0 : -1}
+                  className={`flex h-[42px] w-[42px] shrink-0 items-center justify-center rounded-lg border border-stone-300 bg-stone-50 text-stone-400 transition-colors hover:border-red-300 hover:bg-red-50 hover:text-red-600 focus:outline-none focus:ring-2 focus:ring-rose-500/20 dark:border-stone-700 dark:bg-stone-800 dark:hover:border-red-800 dark:hover:bg-red-950/40 dark:hover:text-red-400 ${topicId ? '' : 'invisible pointer-events-none'}`}
+                >
+                  <X className="h-4 w-4" aria-hidden="true" />
+                </button>
               </div>
             </div>
 
