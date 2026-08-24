@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useRef, useState } from 'react';
 import { Source, VerificationStatus, PlatformType } from '../../types';
 import { VerificationBadge, PlatformBadge } from '../ui/Badge';
 import { Modal } from '../ui/Modal';
@@ -58,6 +58,7 @@ export const SourcesTab: React.FC<SourcesTabProps> = ({
   const [timelineConvertedId, setTimelineConvertedId] = useState<string | null>(null);
   const [smartPasteInput, setSmartPasteInput] = useState('');
   const [isParsingUrl, setIsParsingUrl] = useState(false);
+  const parseRequestIdRef = useRef(0);
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const { showToast } = useToast();
 
@@ -104,9 +105,11 @@ export const SourcesTab: React.FC<SourcesTabProps> = ({
     const trimmed = rawText.trim();
     if (!trimmed) return;
 
+    const requestId = ++parseRequestIdRef.current;
     setIsParsingUrl(true);
     try {
       const meta = await parseClientMetadata(trimmed);
+      if (requestId !== parseRequestIdRef.current) return;
       if (meta.title) setTitle(meta.title);
       if (meta.author) setAuthor(meta.author);
       if (meta.content) setContent(meta.content);
@@ -116,7 +119,7 @@ export const SourcesTab: React.FC<SourcesTabProps> = ({
     } catch {
       // ignore
     } finally {
-      setIsParsingUrl(false);
+      if (requestId === parseRequestIdRef.current) setIsParsingUrl(false);
     }
   };
 
@@ -131,7 +134,6 @@ export const SourcesTab: React.FC<SourcesTabProps> = ({
       id: s.id,
       topic_id: topicId,
       title: s.title,
-      type: 'material',
       verification_status: nextStatus,
     });
   };
@@ -153,7 +155,6 @@ export const SourcesTab: React.FC<SourcesTabProps> = ({
         id: editingSource?.id,
         topic_id: topicId,
         title: title.trim(),
-        type: 'material',
         content: content.trim(),
         url: url.trim(),
         platform,
@@ -439,15 +440,12 @@ export const SourcesTab: React.FC<SourcesTabProps> = ({
                 <input
                   type="text"
                   value={smartPasteInput}
-                  onChange={(e) => {
-                    setSmartPasteInput(e.target.value);
-                    handleSmartParse(e.target.value);
-                  }}
+                  onChange={(e) => setSmartPasteInput(e.target.value)}
                   onPaste={(e) => {
                     const pasted = e.clipboardData.getData('text');
                     if (pasted) {
                       setSmartPasteInput(pasted);
-                      handleSmartParse(pasted);
+                      void handleSmartParse(pasted);
                     }
                   }}
                   placeholder="粘贴 B站（含 b23.tv）或 YouTube 链接，自动拉取标题、UP主与简介..."
@@ -456,7 +454,7 @@ export const SourcesTab: React.FC<SourcesTabProps> = ({
                 {smartPasteInput && (
                   <button
                     type="button"
-                    onClick={() => handleSmartParse(smartPasteInput)}
+                    onClick={() => void handleSmartParse(smartPasteInput)}
                     disabled={isParsingUrl}
                     className="px-2.5 py-1.5 bg-rose-600 hover:bg-rose-700 text-white rounded-lg text-xs font-semibold flex items-center gap-1 transition-colors shrink-0 disabled:opacity-50 cursor-pointer shadow-2xs"
                     title="重新识别抓取"

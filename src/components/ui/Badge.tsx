@@ -1,5 +1,5 @@
 import React from 'react';
-import { Priority, TopicStatus, SourceType, VerificationStatus, PlatformType } from '../../types';
+import { Priority, TopicStatus, VerificationStatus, PlatformType } from '../../types';
 
 export const StatusBadge: React.FC<{ status: TopicStatus; size?: 'sm' | 'md' }> = ({ status, size = 'sm' }) => {
   const configs: Record<TopicStatus, { label: string; bg: string; text: string; dot: string }> = {
@@ -82,33 +82,6 @@ export const PriorityBadge: React.FC<{ priority: Priority; showLabel?: boolean }
     <span className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-xs whitespace-nowrap select-none ${c.bg}`}>
       <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${c.dot}`} />
       {showLabel && <span>{c.label}</span>}
-    </span>
-  );
-};
-
-export const SourceTypeBadge: React.FC<{ type: SourceType }> = ({ type }) => {
-  const configs: Record<SourceType, { label: string; bg: string; text: string }> = {
-    fact: {
-      label: '事实',
-      bg: 'bg-emerald-500/10 dark:bg-emerald-950/40',
-      text: 'text-emerald-700 dark:text-emerald-300 font-semibold',
-    },
-    clue: {
-      label: '线索',
-      bg: 'bg-amber-500/10 dark:bg-amber-950/40',
-      text: 'text-amber-700 dark:text-amber-300 font-semibold',
-    },
-    material: {
-      label: '素材',
-      bg: 'bg-blue-500/10 dark:bg-blue-950/40',
-      text: 'text-blue-700 dark:text-blue-300 font-semibold',
-    },
-  };
-
-  const c = configs[type] || configs.fact;
-  return (
-    <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs select-none ${c.bg} ${c.text}`}>
-      {c.label}
     </span>
   );
 };

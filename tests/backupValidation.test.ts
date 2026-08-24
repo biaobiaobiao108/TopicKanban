@@ -61,7 +61,7 @@ describe('backup schema validation', () => {
   it('rejects references to topics that are not present', () => {
     const backup = createBackup({
       sources: [{
-        id: 'source-1', topic_id: 'missing-topic', title: '资料', type: 'fact', content: '', url: '',
+        id: 'source-1', topic_id: 'missing-topic', title: '资料', content: '', url: '',
         platform: 'bilibili', author: '', published_at: '', verification_status: 'confirmed', notes: '',
         created_at: '', updated_at: '',
       }],

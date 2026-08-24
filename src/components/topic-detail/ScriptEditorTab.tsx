@@ -120,6 +120,8 @@ interface ScriptEditorTabProps {
   sources?: Source[];
   citations: DraftCitation[];
   initialDraft: Draft | null;
+  pendingOutlineHtml?: string | null;
+  onOutlineInjected?: () => void;
   readingSpeed: number; // default ~280 chars/min
   settings?: AppSettings;
   onSaveDraft: (
@@ -147,6 +149,8 @@ export const ScriptEditorTab: React.FC<ScriptEditorTabProps> = ({
   sources = [],
   citations,
   initialDraft,
+  pendingOutlineHtml,
+  onOutlineInjected,
   readingSpeed,
   settings,
   onSaveDraft,
@@ -202,6 +206,7 @@ export const ScriptEditorTab: React.FC<ScriptEditorTabProps> = ({
   const readingSpeedRef = useRef(effectiveSpeed);
   const outlineDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const copyFeedbackTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const lastInjectedOutlineRef = useRef<string | null>(null);
 
   // Presence & Multi-device lock state
   const [presenceState, setPresenceState] = useState<PresenceState>({ is_locked: false });
@@ -382,19 +387,6 @@ export const ScriptEditorTab: React.FC<ScriptEditorTabProps> = ({
       },
       handleScrollToSelection: () => isTypewriterActiveRef.current,
     },
-    onCreate: ({ editor }) => {
-      const nextOutline = extractScriptOutline(editor, readingSpeedRef.current);
-      outlineRef.current = nextOutline;
-      setOutline(nextOutline);
-      setActiveOutlineItemId(
-        findActiveOutlineItem(nextOutline, editor.state.selection.from)?.id || null
-      );
-    },
-    onSelectionUpdate: ({ editor }) => {
-      setActiveOutlineItemId(
-        findActiveOutlineItem(outlineRef.current, editor.state.selection.from)?.id || null
-      );
-    },
     onUpdate: ({ editor }) => {
       // Trigger Zen ambient respiration fade
       setIsTypingZen(true);
@@ -469,6 +461,38 @@ export const ScriptEditorTab: React.FC<ScriptEditorTabProps> = ({
       findActiveOutlineItem(nextOutline, editor.state.selection.from)?.id || null
     );
   }, [editor, effectiveSpeed]);
+
+  useEffect(() => {
+    if (!editor) return;
+    const handleSelectionUpdate = () => {
+      setActiveOutlineItemId(
+        findActiveOutlineItem(outlineRef.current, editor.state.selection.from)?.id || null
+      );
+    };
+    editor.on('selectionUpdate', handleSelectionUpdate);
+    return () => {
+      editor.off('selectionUpdate', handleSelectionUpdate);
+    };
+  }, [editor]);
+
+  useEffect(() => {
+    if (!editor || !pendingOutlineHtml || lastInjectedOutlineRef.current === pendingOutlineHtml) return;
+    lastInjectedOutlineRef.current = pendingOutlineHtml;
+    const currentText = editor.getText().trim();
+    if (!currentText || currentText === `【开场】${topicTitle}`) {
+      editor.commands.setContent(pendingOutlineHtml);
+    } else {
+      editor.commands.insertContent(`<hr/>${pendingOutlineHtml}`);
+    }
+    const text = editor.getText();
+    const html = editor.getHTML();
+    const json = JSON.stringify(editor.getJSON());
+    const wordCount = text.replace(/\s+/g, '').length;
+    latestContentRef.current = { html, json, wordCount };
+    onSaveDraftImmediately(html, json, wordCount);
+    onOutlineInjected?.();
+    showToast({ message: '已将四幕大纲注入文案编辑器', tone: 'success' });
+  }, [editor, onOutlineInjected, onSaveDraftImmediately, pendingOutlineHtml, showToast, topicTitle]);
 
   // Calculate stats
   const textContent = editor?.getText() || '';

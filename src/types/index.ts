@@ -15,8 +15,6 @@ export function isTopicStatus(value: unknown): value is TopicStatus {
 
 export type Priority = 'high' | 'medium' | 'low' | 'none';
 
-export type SourceType = 'fact' | 'clue' | 'material';
-
 export type VerificationStatus = 'confirmed' | 'unverified' | 'rejected';
 
 export type DatePrecision = 'exact' | 'year_month' | 'year' | 'unknown';
@@ -62,9 +60,7 @@ export interface Topic {
   tags?: Tag[];
   people?: Person[];
   sources_count?: number;
-  verified_facts_count?: number;
-  materials_count?: number;
-  unverified_facts_count?: number;
+  verified_sources_count?: number;
   timeline_count?: number;
   draft_word_count?: number;
 }
@@ -73,7 +69,6 @@ export interface Source {
   id: string;
   topic_id: string;
   title: string;
-  type: SourceType;
   content: string;
   url: string;
   platform: PlatformType;

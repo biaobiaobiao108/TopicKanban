@@ -223,6 +223,14 @@ export function initializeSqliteDatabase(dbFilePath: string, schemaDir?: string)
   sqlite.query('INSERT OR IGNORE INTO _schema_migrations (name, applied_at) VALUES (?, ?)')
     .run('0002_add_timeline_contrast_tag.sql', appliedAt);
 
+  // Remove the deprecated source type column from older local databases.
+  const sourceColumns = sqlite.query("PRAGMA table_info(sources)").all() as Array<{ name: string }>;
+  if (sourceColumns.some((column) => column.name === 'type')) {
+    sqlite.exec('ALTER TABLE sources DROP COLUMN type');
+  }
+  sqlite.query('INSERT OR IGNORE INTO _schema_migrations (name, applied_at) VALUES (?, ?)')
+    .run('0003_remove_source_type.sql', appliedAt);
+
   // Ensure _kv_store table exists for local KV adapter
   sqlite.exec(`
     CREATE TABLE IF NOT EXISTS _kv_store (

@@ -108,7 +108,7 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({
   const [storyline, setStoryline] = useState(topic.storyline || '');
   const [acts, setActs] = useState<FourActs>(() => parseStorylineToActs(topic.storyline || ''));
   
-  const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'saved'>('idle');
+  const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle');
   const [storylineMode, setStorylineMode] = useState<'acts' | 'raw'>('acts');
   const [isWhyNowExpanded, setIsWhyNowExpanded] = useState(Boolean(topic.why_now));
   const [isActionDialogOpen, setIsActionDialogOpen] = useState(false);
@@ -126,8 +126,13 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({
   const [newPersonAccounts, setNewPersonAccounts] = useState('');
   const [newPersonDesc, setNewPersonDesc] = useState('');
 
-  const debounceTimerRef = useRef<NodeJS.Timeout | null>(null);
-  const isInitialMount = useRef(true);
+  const debounceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const statusTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(() => () => {
+    if (debounceTimerRef.current) clearTimeout(debounceTimerRef.current);
+    if (statusTimerRef.current) clearTimeout(statusTimerRef.current);
+  }, []);
 
   const actionDays = getNextActionAgeDays(topic);
   const actionWarning = getNextActionWarning(topic);
@@ -146,11 +151,16 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({
     if (debounceTimerRef.current) {
       clearTimeout(debounceTimerRef.current);
     }
+    if (statusTimerRef.current) clearTimeout(statusTimerRef.current);
     setSaveStatus('saving');
     debounceTimerRef.current = setTimeout(async () => {
-      await onUpdateTopic(updates);
-      setSaveStatus('saved');
-      setTimeout(() => setSaveStatus('idle'), 2500);
+      try {
+        await onUpdateTopic(updates);
+        setSaveStatus('saved');
+        statusTimerRef.current = setTimeout(() => setSaveStatus('idle'), 2500);
+      } catch {
+        setSaveStatus('error');
+      }
     }, 800);
   };
 
@@ -183,15 +193,20 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({
   // Immediate save on blur or shortcut
   const handleImmediateSave = async () => {
     if (debounceTimerRef.current) clearTimeout(debounceTimerRef.current);
+    if (statusTimerRef.current) clearTimeout(statusTimerRef.current);
     setSaveStatus('saving');
-    await onUpdateTopic({
-      summary: summary.trim(),
-      hook: hook.trim(),
-      why_now: whyNow.trim(),
-      storyline: storyline.trim(),
-    });
-    setSaveStatus('saved');
-    setTimeout(() => setSaveStatus('idle'), 2500);
+    try {
+      await onUpdateTopic({
+        summary: summary.trim(),
+        hook: hook.trim(),
+        why_now: whyNow.trim(),
+        storyline: storyline.trim(),
+      });
+      setSaveStatus('saved');
+      statusTimerRef.current = setTimeout(() => setSaveStatus('idle'), 2500);
+    } catch {
+      setSaveStatus('error');
+    }
   };
 
   useEffect(() => {
@@ -379,6 +394,9 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({
               )}
               {saveStatus === 'idle' && (
                 <span className="text-stone-400 dark:text-stone-500">自动保存已就绪</span>
+              )}
+              {saveStatus === 'error' && (
+                <span className="text-red-600 dark:text-red-400">保存失败，请重试</span>
               )}
             </div>
           </div>

@@ -522,7 +522,7 @@ function WorkspaceApp({ isAuth, setIsAuth }: WorkspaceAppProps) {
   const activeTopic = topics.find((t) => t.id === activeTopicId);
 
   return (
-    <div className="flex h-screen w-screen bg-[#fafaf9] dark:bg-[#0c0a09] text-stone-900 dark:text-stone-100 overflow-hidden font-sans select-none transition-colors">
+    <div className="flex h-screen w-screen bg-[#fafaf9] dark:bg-[#0c0a09] text-stone-900 dark:text-stone-100 overflow-hidden font-sans transition-colors">
       {/* Desktop Sidebar (Hidden on mobile) */}
       <Sidebar
         currentView={currentView}

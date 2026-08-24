@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useRef } from 'react';
 import {
   Calendar,
   KanbanSquare,
@@ -101,6 +101,48 @@ export const MobileDrawer: React.FC<MobileDrawerProps> = ({
   topicCount,
   quickDropCount = 0,
 }) => {
+  const drawerRef = useRef<HTMLDivElement>(null);
+  const closeButtonRef = useRef<HTMLButtonElement>(null);
+
+  useEffect(() => {
+    if (!isOpen) return;
+    const previousActiveElement = document.activeElement as HTMLElement | null;
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+
+    const focusDrawer = () => closeButtonRef.current?.focus();
+    requestAnimationFrame(focusDrawer);
+
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        event.preventDefault();
+        onClose();
+        return;
+      }
+      if (event.key !== 'Tab' || !drawerRef.current) return;
+      const focusable = Array.from(drawerRef.current.querySelectorAll<HTMLElement>(
+        'button:not([disabled]), a[href], input:not([disabled]), [tabindex]:not([tabindex="-1"])'
+      ));
+      if (focusable.length === 0) return;
+      const first = focusable[0];
+      const last = focusable[focusable.length - 1];
+      if (event.shiftKey && document.activeElement === first) {
+        event.preventDefault();
+        last.focus();
+      } else if (!event.shiftKey && document.activeElement === last) {
+        event.preventDefault();
+        first.focus();
+      }
+    };
+
+    document.addEventListener('keydown', handleKeyDown);
+    return () => {
+      document.removeEventListener('keydown', handleKeyDown);
+      document.body.style.overflow = previousOverflow;
+      requestAnimationFrame(() => previousActiveElement?.focus());
+    };
+  }, [isOpen, onClose]);
+
   if (!isOpen) return null;
 
   const navItems = [
@@ -119,7 +161,7 @@ export const MobileDrawer: React.FC<MobileDrawerProps> = ({
       <div className="fixed inset-0 bg-stone-900/40 backdrop-blur-xs" onClick={onClose} />
 
       {/* Drawer */}
-      <div className="mobile-drawer-container relative w-4/5 max-w-xs bg-white h-full shadow-2xl flex flex-col justify-between p-5 z-10 animate-in slide-in-from-left duration-200">
+      <div ref={drawerRef} role="dialog" aria-modal="true" aria-label="移动端导航菜单" className="mobile-drawer-container relative w-4/5 max-w-xs bg-white h-full shadow-2xl flex flex-col justify-between p-5 z-10 animate-in slide-in-from-left duration-200">
         <div className="space-y-5">
           {/* Header */}
           <div className="flex items-center justify-between pb-4 border-b border-stone-100">
@@ -132,7 +174,7 @@ export const MobileDrawer: React.FC<MobileDrawerProps> = ({
                 <p className="text-[11px] text-stone-500">B站叙事类UP主专属</p>
               </div>
             </div>
-            <button onClick={onClose} aria-label="关闭导航菜单" className="flex min-h-11 min-w-11 items-center justify-center rounded-lg text-stone-400 hover:text-stone-700">
+            <button ref={closeButtonRef} onClick={onClose} aria-label="关闭导航菜单" className="flex min-h-11 min-w-11 items-center justify-center rounded-lg text-stone-400 hover:text-stone-700">
               <X className="w-5 h-5" />
             </button>
           </div>

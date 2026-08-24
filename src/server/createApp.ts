@@ -25,7 +25,6 @@ import {
 } from './database';
 import {
   type ApiBindings,
-  SOURCE_TYPES,
   VERIFICATION_STATUSES,
   DATE_PRECISIONS,
   PLATFORM_TYPES,
@@ -369,7 +368,6 @@ export function createApp() {
         title: [200, true], content: [20000], url: [2048], author: [200], published_at: [50], notes: [20000],
       });
       if (textError) return c.json({ error: textError }, 400);
-      if (body.type !== undefined && !isOneOf(body.type, SOURCE_TYPES)) return c.json({ error: 'Invalid source type' }, 400);
       if (body.platform !== undefined && !isOneOf(body.platform, PLATFORM_TYPES)) return c.json({ error: 'Invalid source platform' }, 400);
       if (body.verification_status !== undefined && !isOneOf(body.verification_status, VERIFICATION_STATUSES)) {
         return c.json({ error: 'Invalid verification status' }, 400);
@@ -377,7 +375,7 @@ export function createApp() {
       const now = new Date().toISOString();
       const source: Source = {
         id: body.id || createId('src'), topic_id: body.topic_id, title: body.title.trim(),
-        type: body.type || 'fact', content: body.content || '', url: body.url || '',
+        content: body.content || '', url: body.url || '',
         platform: body.platform || 'bilibili', author: body.author || '', published_at: body.published_at || '',
         verification_status: body.verification_status || 'unverified', notes: body.notes || '',
         created_at: body.created_at || now, updated_at: now,
@@ -397,13 +395,12 @@ export function createApp() {
         title: [200, true], content: [20000], url: [2048], author: [200], published_at: [50], notes: [20000],
       });
       if (textError) return c.json({ error: textError }, 400);
-      if (hasInvalidValue(body, 'type', (value) => isOneOf(value, SOURCE_TYPES))) return c.json({ error: 'Invalid source type' }, 400);
       if (hasInvalidValue(body, 'platform', (value) => isOneOf(value, PLATFORM_TYPES))) return c.json({ error: 'Invalid source platform' }, 400);
       if (hasInvalidValue(body, 'verification_status', (value) => isOneOf(value, VERIFICATION_STATUSES))) {
         return c.json({ error: 'Invalid verification status' }, 400);
       }
       await patchRow(db, 'sources', c.req.param('id'), body,
-        ['title', 'type', 'content', 'url', 'platform', 'author', 'published_at', 'verification_status', 'notes']);
+        ['title', 'content', 'url', 'platform', 'author', 'published_at', 'verification_status', 'notes']);
       const row = await db.prepare('SELECT * FROM sources WHERE id = ?').bind(c.req.param('id')).first<Source>();
       return row ? c.json(row) : c.json({ error: 'Not found' }, 404);
     } catch (error) {

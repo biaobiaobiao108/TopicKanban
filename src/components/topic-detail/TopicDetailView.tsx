@@ -7,7 +7,6 @@ import { OverviewTab } from './OverviewTab';
 import { SourcesTab } from './SourcesTab';
 import { TimelineTab } from './TimelineTab';
 import { PeopleTab } from './PeopleTab';
-import { ScriptEditorTab } from './ScriptEditorTab';
 import { NextActionDialog } from './NextActionDialog';
 import { COLUMNS } from '../kanban/columns';
 import {
@@ -50,6 +49,10 @@ interface TopicDetailViewProps {
 
 type DetailTab = 'overview' | 'sources' | 'timeline' | 'people' | 'script';
 
+const ScriptEditorTab = React.lazy(() =>
+  import('./ScriptEditorTab').then((module) => ({ default: module.ScriptEditorTab }))
+);
+
 export const TopicDetailView: React.FC<TopicDetailViewProps> = ({
   topic,
   onBack,
@@ -68,6 +71,7 @@ export const TopicDetailView: React.FC<TopicDetailViewProps> = ({
   onTopicMetricsChange,
 }) => {
   const queryClient = useQueryClient();
+  const [pendingOutlineHtml, setPendingOutlineHtml] = useState<string | null>(null);
   const [searchParams, setSearchParams] = useSearchParams();
   const rawTab = searchParams.get('tab');
   const activeTab: DetailTab = (rawTab && ['overview', 'sources', 'timeline', 'people', 'script'].includes(rawTab))
@@ -135,9 +139,7 @@ export const TopicDetailView: React.FC<TopicDetailViewProps> = ({
     if (sourcesQuery.data) {
       onTopicMetricsChangeRef.current(topic.id, {
         sources_count: sourcesQuery.data.length,
-        verified_facts_count: sourcesQuery.data.filter((source) => source.type === 'fact' && source.verification_status === 'confirmed').length,
-        materials_count: sourcesQuery.data.filter((source) => source.type === 'material').length,
-        unverified_facts_count: sourcesQuery.data.filter((source) => source.type === 'fact' && source.verification_status === 'unverified').length,
+        verified_sources_count: sourcesQuery.data.filter((source) => source.verification_status === 'confirmed').length,
       });
     }
   }, [sourcesQuery.data, topic.id]);
@@ -164,9 +166,7 @@ export const TopicDetailView: React.FC<TopicDetailViewProps> = ({
       queryClient.setQueryData(['topic-sources', topic.id], updated);
       onTopicMetricsChange(topic.id, {
         sources_count: updated.length,
-        verified_facts_count: updated.filter((source) => source.type === 'fact' && source.verification_status === 'confirmed').length,
-        materials_count: updated.filter((source) => source.type === 'material').length,
-        unverified_facts_count: updated.filter((source) => source.type === 'fact' && source.verification_status === 'unverified').length,
+        verified_sources_count: updated.filter((source) => source.verification_status === 'confirmed').length,
       });
     } catch (error) {
       setOperationError(error instanceof Error ? `保存资料失败：${error.message}` : '保存资料失败');
@@ -181,9 +181,7 @@ export const TopicDetailView: React.FC<TopicDetailViewProps> = ({
       queryClient.setQueryData(['topic-sources', topic.id], updated);
       onTopicMetricsChange(topic.id, {
         sources_count: updated.length,
-        verified_facts_count: updated.filter((source) => source.type === 'fact' && source.verification_status === 'confirmed').length,
-        materials_count: updated.filter((source) => source.type === 'material').length,
-        unverified_facts_count: updated.filter((source) => source.type === 'fact' && source.verification_status === 'unverified').length,
+        verified_sources_count: updated.filter((source) => source.verification_status === 'confirmed').length,
       });
     } catch (error) {
       setOperationError(error instanceof Error ? `删除资料失败：${error.message}` : '删除资料失败');
@@ -276,9 +274,7 @@ export const TopicDetailView: React.FC<TopicDetailViewProps> = ({
   const metricTopic: Topic = {
     ...topic,
     sources_count: sources.length,
-    verified_facts_count: sources.filter((source) => source.type === 'fact' && source.verification_status === 'confirmed').length,
-    materials_count: sources.filter((source) => source.type === 'material').length,
-    unverified_facts_count: sources.filter((source) => source.type === 'fact' && source.verification_status === 'unverified').length,
+    verified_sources_count: sources.filter((source) => source.verification_status === 'confirmed').length,
     draft_word_count: draft?.word_count || topic.draft_word_count || 0,
   };
 
@@ -317,11 +313,8 @@ export const TopicDetailView: React.FC<TopicDetailViewProps> = ({
   const handleInjectOutlineIntoDraft = async (outlineHtml: string) => {
     try {
       const existing = await fetchDraftByTopicId(topic.id);
-      const prevHtml = existing.draft?.content_html || '';
-      const combinedHtml = prevHtml.trim()
-        ? `${prevHtml}<hr/>${outlineHtml}`
-        : outlineHtml;
-      await handleSaveDraft(topic.id, combinedHtml, JSON.stringify({}), 0);
+      queryClient.setQueryData(['topic-draft', topic.id], existing);
+      setPendingOutlineHtml(outlineHtml);
       setActiveTab('script');
     } catch (err) {
       setOperationError(err instanceof Error ? `注入文案草稿失败：${err.message}` : '注入文案草稿失败');
@@ -481,35 +474,39 @@ export const TopicDetailView: React.FC<TopicDetailViewProps> = ({
         )}
 
         {activeTab === 'script' && !loading && (
-          <ScriptEditorTab
-            topicId={topic.id}
-            topicTitle={topic.title}
-            topic={topic}
-            timeline={timeline}
-            sources={sources}
-            initialDraft={draft}
-            citations={citations}
-            readingSpeed={readingSpeed}
-            settings={settings}
-            onSaveDraft={handleSaveDraft}
-            onSaveCitation={handleSaveCitation}
-            onCacheDraftLocally={(contentHtml, contentJson, wordCount) => {
-              const cached = cacheDraftLocally(topic.id, contentHtml, contentJson, wordCount, topic.title);
-              queryClient.setQueryData(['topic-draft', topic.id], (prev?: { draft: Draft | null; conflict: DraftRecoveryConflict | null }) => ({
-                draft: cached,
-                conflict: prev?.conflict || null,
-              }));
-              onDraftWordCountChange(topic.id, wordCount);
-            }}
-            onSaveDraftImmediately={(contentHtml, contentJson, wordCount) => {
-              const updated = saveDraftImmediately(topic.id, contentHtml, contentJson, wordCount, topic.title);
-              queryClient.setQueryData(['topic-draft', topic.id], (prev?: { draft: Draft | null; conflict: DraftRecoveryConflict | null }) => ({
-                draft: updated,
-                conflict: prev?.conflict || null,
-              }));
-              onDraftWordCountChange(topic.id, wordCount);
-            }}
-          />
+          <React.Suspense fallback={<div className="py-16 text-center text-sm text-stone-500">正在加载文案编辑器...</div>}>
+            <ScriptEditorTab
+              topicId={topic.id}
+              topicTitle={topic.title}
+              topic={topic}
+              timeline={timeline}
+              sources={sources}
+              initialDraft={draft}
+              pendingOutlineHtml={pendingOutlineHtml}
+              onOutlineInjected={() => setPendingOutlineHtml(null)}
+              citations={citations}
+              readingSpeed={readingSpeed}
+              settings={settings}
+              onSaveDraft={handleSaveDraft}
+              onSaveCitation={handleSaveCitation}
+              onCacheDraftLocally={(contentHtml, contentJson, wordCount) => {
+                const cached = cacheDraftLocally(topic.id, contentHtml, contentJson, wordCount, topic.title);
+                queryClient.setQueryData(['topic-draft', topic.id], (prev?: { draft: Draft | null; conflict: DraftRecoveryConflict | null }) => ({
+                  draft: cached,
+                  conflict: prev?.conflict || null,
+                }));
+                onDraftWordCountChange(topic.id, wordCount);
+              }}
+              onSaveDraftImmediately={(contentHtml, contentJson, wordCount) => {
+                const updated = saveDraftImmediately(topic.id, contentHtml, contentJson, wordCount, topic.title);
+                queryClient.setQueryData(['topic-draft', topic.id], (prev?: { draft: Draft | null; conflict: DraftRecoveryConflict | null }) => ({
+                  draft: updated,
+                  conflict: prev?.conflict || null,
+                }));
+                onDraftWordCountChange(topic.id, wordCount);
+              }}
+            />
+          </React.Suspense>
         )}
 
         {activeTab === 'script' && loading && (

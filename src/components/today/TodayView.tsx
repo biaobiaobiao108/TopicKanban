@@ -201,8 +201,8 @@ export const TodayView: React.FC<TodayViewProps> = ({
                       文案: {focusTopic.draft_word_count} 字
                     </span>
                   ) : null}
-                  <span>{focusTopic.verified_facts_count || 0} 条已核实事实</span>
-                  <span>{focusTopic.materials_count || 0} 条素材</span>
+                  <span>{focusTopic.verified_sources_count || 0} 条已确认资料</span>
+                  <span>{focusTopic.sources_count || 0} 条资料</span>
                 </div>
               </div>
             </div>

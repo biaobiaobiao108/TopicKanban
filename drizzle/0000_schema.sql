@@ -29,7 +29,6 @@ CREATE TABLE sources (
   id TEXT PRIMARY KEY,
   topic_id TEXT NOT NULL,
   title TEXT NOT NULL,
-  type TEXT NOT NULL DEFAULT 'fact' CHECK (type IN ('fact', 'clue', 'material')),
   content TEXT NOT NULL DEFAULT '',
   url TEXT NOT NULL DEFAULT '',
   platform TEXT NOT NULL DEFAULT 'bilibili',

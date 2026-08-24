@@ -680,11 +680,10 @@ export function exportSingleTopicMarkdown(
   // 4. 资料与素材证据链
   const sources = workspaceData.sources || [];
   if (sources.length > 0) {
-    lines.push(`## 四、事实与素材证据链 (${sources.length} 条资料)`);
+    lines.push(`## 四、资料证据链 (${sources.length} 条资料)`);
     sources.forEach((src, index) => {
-      const typeBadge = src.type === 'fact' ? '[事实 Fact]' : src.type === 'clue' ? '[线索 Clue]' : '[素材 Material]';
       const statusStr = src.verification_status === 'confirmed' ? '已核实' : src.verification_status === 'rejected' ? '存疑/被推翻' : '待考证';
-      lines.push(`### ${index + 1}. ${typeBadge} ${src.title} (${statusStr})`);
+      lines.push(`### ${index + 1}. ${src.title} (${statusStr})`);
       if (src.platform || src.author) {
         lines.push(`- **来源平台/作者**：${src.platform} ${src.author ? `@${src.author}` : ''}`);
       }

@@ -60,7 +60,6 @@ const sourceSchema = z.object({
   id,
   topic_id: id,
   title: shortText.trim().min(1),
-  type: z.enum(['fact', 'clue', 'material']),
   content: longText,
   url: z.string().max(2_048),
   platform: z.enum(['bilibili', 'douyin', 'kuaishou', 'weibo', 'xiaohongshu', 'wechat', 'zhihu', 'youtube', 'news', 'live', 'other']),

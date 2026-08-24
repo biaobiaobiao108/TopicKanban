@@ -11,9 +11,17 @@ interface NextActionDialogProps {
   onUpdate: (updates: Partial<Topic>) => Promise<void>;
 }
 
-function toDateInputValue(date: Date): string {
-  const offset = date.getTimezoneOffset() * 60_000;
-  return new Date(date.getTime() - offset).toISOString().slice(0, 10);
+function toBeijingDateInputValue(date = new Date(), dayOffset = 0): string {
+  const parts = new Intl.DateTimeFormat('en-US', {
+    timeZone: 'Asia/Shanghai',
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+  }).formatToParts(date);
+  const values = Object.fromEntries(parts.map((part) => [part.type, part.value]));
+  return new Date(Date.UTC(Number(values.year), Number(values.month) - 1, Number(values.day) + dayOffset))
+    .toISOString()
+    .slice(0, 10);
 }
 
 export const NextActionDialog: React.FC<NextActionDialogProps> = ({ isOpen, topic, onClose, onUpdate }) => {
@@ -69,9 +77,7 @@ export const NextActionDialog: React.FC<NextActionDialogProps> = ({ isOpen, topi
   };
 
   const deferToTomorrow = () => {
-    const tomorrow = new Date();
-    tomorrow.setDate(tomorrow.getDate() + 1);
-    void save({ next_action_deferred_until: toDateInputValue(tomorrow) });
+    void save({ next_action_deferred_until: toBeijingDateInputValue(new Date(), 1) });
   };
 
   // 1. Scenario: When topic has NO action set yet
@@ -123,7 +129,7 @@ export const NextActionDialog: React.FC<NextActionDialogProps> = ({ isOpen, topi
               <input
                 type="date"
                 value={deferredUntil}
-                min={toDateInputValue(new Date())}
+                min={toBeijingDateInputValue()}
                 onChange={(event) => setDeferredUntil(event.target.value)}
                 className="min-h-10 flex-1 rounded-xl border border-stone-300/80 dark:border-stone-700 bg-white dark:bg-stone-800 px-3 text-xs text-stone-700 dark:text-stone-300 outline-none focus:border-rose-500"
               />
@@ -322,7 +328,7 @@ export const NextActionDialog: React.FC<NextActionDialogProps> = ({ isOpen, topi
             <input
               type="date"
               value={deferredUntil}
-              min={toDateInputValue(new Date())}
+              min={toBeijingDateInputValue()}
               onChange={(event) => setDeferredUntil(event.target.value)}
               className="min-h-10 flex-1 rounded-xl border border-stone-300/80 dark:border-stone-700 bg-white dark:bg-stone-800 px-3 text-xs text-stone-700 dark:text-stone-300 outline-none focus:border-rose-500"
             />

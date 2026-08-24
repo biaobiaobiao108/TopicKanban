@@ -19,7 +19,6 @@ export const MAX_LOGIN_REQUEST_BYTES = 16 * 1024;
 export const MAX_QUICK_DROP_REQUEST_BYTES = 64 * 1024;
 export const MAX_BACKUP_REQUEST_BYTES = 6 * 1024 * 1024;
 
-export const SOURCE_TYPES = ['fact', 'clue', 'material'] as const;
 export const VERIFICATION_STATUSES = ['confirmed', 'unverified', 'rejected'] as const;
 export const DATE_PRECISIONS = ['exact', 'year_month', 'year', 'unknown'] as const;
 export const PLATFORM_TYPES = ['bilibili', 'douyin', 'kuaishou', 'weibo', 'xiaohongshu', 'wechat', 'zhihu', 'youtube', 'news', 'live', 'other'] as const;

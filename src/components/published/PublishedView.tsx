@@ -3,6 +3,7 @@ import { PublishedVideo, Topic } from '../../types';
 import { Modal } from '../ui/Modal';
 import { useToast } from '../ui/Toast';
 import { StatusBadge, PriorityBadge } from '../ui/Badge';
+import { CustomSelect } from '../ui/CustomSelect';
 import { extractBvid, fetchBilibiliVideoData } from '../../lib/bilibili';
 import {
   Film,
@@ -22,11 +23,7 @@ import {
   AlertCircle,
   CheckCircle2,
   Zap,
-  ChevronDown,
-  Search,
-  Check,
   X,
-  FileText,
   BarChart2,
   TrendingUp,
   Award
@@ -72,35 +69,7 @@ export const PublishedView: React.FC<PublishedViewProps> = ({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
 
-  // Custom Topic Dropdown State
-  const [isTopicDropdownOpen, setIsTopicDropdownOpen] = useState(false);
   const [topicSearchQuery, setTopicSearchQuery] = useState('');
-  const topicDropdownRef = useRef<HTMLDivElement>(null);
-
-  // Close topic dropdown on outside click or escape
-  useEffect(() => {
-    const handleClickOutside = (e: MouseEvent | TouchEvent) => {
-      if (topicDropdownRef.current && !topicDropdownRef.current.contains(e.target as Node)) {
-        setIsTopicDropdownOpen(false);
-      }
-    };
-    const handleEsc = (e: KeyboardEvent) => {
-      if (e.key === 'Escape' && isTopicDropdownOpen) {
-        setIsTopicDropdownOpen(false);
-      }
-    };
-
-    if (isTopicDropdownOpen) {
-      document.addEventListener('mousedown', handleClickOutside);
-      document.addEventListener('touchstart', handleClickOutside);
-      document.addEventListener('keydown', handleEsc);
-    }
-    return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
-      document.removeEventListener('touchstart', handleClickOutside);
-      document.removeEventListener('keydown', handleEsc);
-    };
-  }, [isTopicDropdownOpen]);
 
   // Fetch & Sync State
   const [isFetchingBili, setIsFetchingBili] = useState(false);
@@ -163,7 +132,6 @@ export const PublishedView: React.FC<PublishedViewProps> = ({
     setFetchError(null);
     setFetchSuccessTip(null);
     setSubmitError(null);
-    setIsTopicDropdownOpen(false);
     setTopicSearchQuery('');
     setIsModalOpen(true);
   };
@@ -184,7 +152,6 @@ export const PublishedView: React.FC<PublishedViewProps> = ({
     setFetchError(null);
     setFetchSuccessTip(null);
     setSubmitError(null);
-    setIsTopicDropdownOpen(false);
     setTopicSearchQuery('');
     setIsModalOpen(true);
   };
@@ -654,8 +621,8 @@ export const PublishedView: React.FC<PublishedViewProps> = ({
           maxWidth="md"
         >
           <form onSubmit={handleSubmit} className="space-y-4">
-            {/* Topic Select (Custom Editorial Dropdown) */}
-            <div className="relative" ref={topicDropdownRef}>
+            {/* Topic Select */}
+            <div>
               <div className="flex items-center justify-between mb-1">
                 <label className="block text-xs font-semibold text-stone-700 dark:text-stone-300">
                   对应选题 <span className="text-stone-400 dark:text-stone-500 font-normal">（自动过滤已关联选题）</span>
@@ -667,175 +634,64 @@ export const PublishedView: React.FC<PublishedViewProps> = ({
                 )}
               </div>
 
-              {/* Trigger Button */}
-              {(() => {
-                const selectedTopic = topics.find((t) => t.id === topicId);
-                return (
-                  <div
-                    onClick={() => setIsTopicDropdownOpen((prev) => !prev)}
-                    role="button"
-                    tabIndex={0}
-                    onKeyDown={(e) => {
-                      if (e.key === 'Enter' || e.key === ' ') {
-                        e.preventDefault();
-                        setIsTopicDropdownOpen((prev) => !prev);
-                      }
-                    }}
-                    className={`w-full min-h-[42px] px-3 py-2 bg-stone-50 dark:bg-stone-800 border rounded-lg text-sm text-stone-900 dark:text-stone-100 transition-all cursor-pointer flex items-center justify-between gap-2 select-none ${
-                      isTopicDropdownOpen
-                        ? 'border-stone-800 dark:border-stone-500 bg-white dark:bg-stone-800 ring-2 ring-stone-900/10 dark:ring-stone-400/20 shadow-xs'
-                        : 'border-stone-300 dark:border-stone-700 hover:border-stone-400 dark:hover:border-stone-600 hover:bg-stone-100/60 dark:hover:bg-stone-700/60'
-                    }`}
-                  >
-                    {selectedTopic ? (
-                      <div className="flex items-center gap-2 min-w-0 flex-1">
-                        <span className="font-semibold text-stone-900 dark:text-stone-100 truncate text-xs sm:text-sm">
-                          {selectedTopic.title}
-                        </span>
-                        {selectedTopic.priority && selectedTopic.priority !== 'none' && (
-                          <span className="hidden sm:inline-flex shrink-0">
-                            <PriorityBadge priority={selectedTopic.priority} showLabel={false} />
-                          </span>
-                        )}
+              <div className="relative">
+                <CustomSelect
+                  value={topicId}
+                  onChange={(nextTopicId) => {
+                    setTopicId(nextTopicId);
+                    if (nextTopicId) {
+                      const selectedTopic = topicMap.get(nextTopicId);
+                      if (selectedTopic && (!title.trim() || !editingVideo)) setTitle(selectedTopic.title);
+                    }
+                    setTopicSearchQuery('');
+                  }}
+                  options={[
+                    { value: '', label: '不关联任何选题（独立归档视频）' },
+                    ...filteredSelectableTopics.map((topic) => ({ value: topic.id, label: topic.title })),
+                  ]}
+                  searchable
+                  searchPlaceholder="搜索选题标题、看点、赛道标签..."
+                  searchValue={topicSearchQuery}
+                  onSearchChange={setTopicSearchQuery}
+                  placeholder="请选择关联选题"
+                  className="w-full"
+                  buttonClassName="w-full min-h-[42px] px-3 py-2 bg-stone-50 dark:bg-stone-800 border-stone-300 dark:border-stone-700 rounded-lg text-sm pr-10"
+                  popoverClassName="w-full"
+                  renderValue={() => {
+                    const selectedTopic = topicMap.get(topicId);
+                    return selectedTopic ? (
+                      <div className="flex items-center gap-2 min-w-0">
+                        <span className="font-semibold text-stone-900 dark:text-stone-100 truncate text-xs sm:text-sm">{selectedTopic.title}</span>
+                        {selectedTopic.priority !== 'none' && <span className="hidden sm:inline-flex shrink-0"><PriorityBadge priority={selectedTopic.priority} showLabel={false} /></span>}
                       </div>
                     ) : (
-                      <span className="text-xs sm:text-sm text-stone-400 dark:text-stone-500 italic flex items-center gap-1.5">
-                        <FileText className="w-3.5 h-3.5" />
-                        <span>独立归档视频（未关联选题）</span>
-                      </span>
-                    )}
-
-                    <div className="flex items-center gap-1 shrink-0 text-stone-400 dark:text-stone-500">
-                      {selectedTopic && (
-                        <span
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            setTopicId('');
-                          }}
-                          className="p-1 hover:text-red-600 dark:hover:text-red-400 hover:bg-stone-200/60 dark:hover:bg-stone-700 rounded-md transition-colors cursor-pointer"
-                          title="取消关联选题"
-                        >
-                          <X className="w-3.5 h-3.5" />
-                        </span>
-                      )}
-                      <ChevronDown
-                        className={`w-4 h-4 transition-transform duration-200 ${
-                          isTopicDropdownOpen ? 'rotate-180 text-stone-800 dark:text-stone-200' : 'text-stone-400 dark:text-stone-500'
-                        }`}
-                      />
-                    </div>
-                  </div>
-                );
-              })()}
-
-              {/* Dropdown Menu */}
-              {isTopicDropdownOpen && (
-                <div className="absolute top-full left-0 right-0 mt-1.5 bg-white dark:bg-stone-900 border border-stone-200 dark:border-stone-800 rounded-xl shadow-xl shadow-stone-900/10 z-30 overflow-hidden animate-in fade-in zoom-in-95 duration-100 flex flex-col max-h-72">
-                  {/* Search Filter Input inside Dropdown */}
-                  <div className="p-2 border-b border-stone-100 dark:border-stone-800 bg-stone-50/70 dark:bg-stone-800/80 flex items-center gap-2">
-                    <Search className="w-3.5 h-3.5 text-stone-400 dark:text-stone-500 ml-1 shrink-0" />
-                    <input
-                      type="text"
-                      autoFocus
-                      placeholder="搜索选题标题、看点、赛道标签..."
-                      value={topicSearchQuery}
-                      onChange={(e) => setTopicSearchQuery(e.target.value)}
-                      className="w-full text-xs bg-transparent outline-none placeholder:text-stone-400 dark:placeholder:text-stone-500 text-stone-900 dark:text-stone-100 font-medium"
-                    />
-                    {topicSearchQuery && (
-                      <button
-                        type="button"
-                        onClick={() => setTopicSearchQuery('')}
-                        className="p-0.5 text-stone-400 dark:text-stone-500 hover:text-stone-600 dark:hover:text-stone-300 rounded cursor-pointer"
-                      >
-                        <X className="w-3 h-3" />
-                      </button>
-                    )}
-                  </div>
-
-                  {/* Options List */}
-                  <div className="overflow-y-auto p-1.5 space-y-1">
-                    {/* Option: Independent video (No topic attached) */}
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setTopicId('');
-                        setIsTopicDropdownOpen(false);
-                        setTopicSearchQuery('');
-                      }}
-                      className={`w-full flex items-center justify-between px-3 py-2 rounded-lg text-left text-xs transition-colors cursor-pointer ${
-                        !topicId
-                          ? 'bg-stone-100 dark:bg-stone-800 text-stone-900 dark:text-stone-100 font-bold border border-stone-200 dark:border-stone-700'
-                          : 'text-stone-500 dark:text-stone-400 hover:bg-stone-50 dark:hover:bg-stone-800 hover:text-stone-800 dark:hover:text-stone-200'
-                      }`}
-                    >
-                      <span className="flex items-center gap-1.5">
-                        <span className="text-stone-400 dark:text-stone-500 font-normal">✕</span>
-                        <span>不关联任何选题（独立归档视频）</span>
-                      </span>
-                      {!topicId && <Check className="w-3.5 h-3.5 text-stone-700 dark:text-stone-300" />}
-                    </button>
-
-                    {filteredSelectableTopics.map((t) => {
-                      const isSelected = t.id === topicId;
-                      return (
-                        <button
-                          type="button"
-                          key={t.id}
-                          onClick={() => {
-                            setTopicId(t.id);
-                            if (!title.trim() || !editingVideo) {
-                              setTitle(t.title);
-                            }
-                            setIsTopicDropdownOpen(false);
-                            setTopicSearchQuery('');
-                          }}
-                          className={`w-full flex items-center justify-between p-2.5 rounded-lg text-left transition-all cursor-pointer group ${
-                            isSelected
-                              ? 'bg-rose-50/80 dark:bg-rose-950/60 border border-rose-200 dark:border-rose-800 text-rose-950 dark:text-rose-200 shadow-2xs font-semibold'
-                              : 'hover:bg-stone-50 dark:hover:bg-stone-800/80 text-stone-800 dark:text-stone-200 border border-transparent hover:border-stone-200/70 dark:hover:border-stone-700'
-                          }`}
-                        >
-                          <div className="flex-1 min-w-0 pr-2 space-y-0.5">
-                            <div className="flex items-center gap-1.5 flex-wrap">
-                              <span className="text-xs sm:text-sm font-semibold truncate leading-tight">
-                                {t.title}
-                              </span>
-                            </div>
-                            {(t.summary || t.next_action) && (
-                              <div className="text-[11px] text-stone-400 dark:text-stone-500 truncate group-hover:text-stone-500 dark:group-hover:text-stone-400">
-                                {t.next_action ? `下一步: ${t.next_action}` : t.summary}
-                              </div>
-                            )}
-                          </div>
-
-                          <div className="flex items-center gap-1.5 shrink-0">
-                            <StatusBadge status={t.status} size="sm" />
-                            {isSelected && (
-                              <Check className="w-4 h-4 text-rose-600 dark:text-rose-400 shrink-0 ml-1" />
-                            )}
-                          </div>
-                        </button>
-                      );
-                    })}
-
-                    {filteredSelectableTopics.length === 0 && (
-                      <div className="py-6 text-center text-xs text-stone-400 dark:text-stone-500 space-y-1">
-                        {selectableTopics.length === 0 ? (
-                          <>
-                            <p className="font-semibold text-stone-600 dark:text-stone-400">所有选题均已关联视频</p>
-                            <p className="text-[11px]">可选择「不关联任何选题」或前往看板新建选题</p>
-                          </>
-                        ) : (
-                          <>
-                            <p>未找到匹配「{topicSearchQuery}」的可用选题</p>
-                          </>
-                        )}
+                      <span className="text-xs sm:text-sm text-stone-400 dark:text-stone-500 italic">独立归档视频（未关联选题）</span>
+                    );
+                  }}
+                  renderOption={(option, state) => {
+                    if (!option.value) {
+                      return <span className="flex items-center gap-1.5"><span className="text-stone-400 dark:text-stone-500">✕</span><span>不关联任何选题（独立归档视频）</span>{state.selected && <span className="ml-auto">✓</span>}</span>;
+                    }
+                    const topic = topicMap.get(option.value);
+                    if (!topic) return option.label;
+                    return (
+                      <div className="flex items-center justify-between gap-2 w-full min-w-0">
+                        <div className="min-w-0 pr-2 space-y-0.5">
+                          <div className="text-xs sm:text-sm font-semibold truncate leading-tight">{topic.title}</div>
+                          {(topic.summary || topic.next_action) && <div className="text-[11px] text-stone-400 dark:text-stone-500 truncate">{topic.next_action ? `下一步: ${topic.next_action}` : topic.summary}</div>}
+                        </div>
+                        <div className="flex items-center gap-1.5 shrink-0"><StatusBadge status={topic.status} size="sm" />{state.selected && <span className="text-rose-600 dark:text-rose-400">✓</span>}</div>
                       </div>
-                    )}
-                  </div>
-                </div>
-              )}
+                    );
+                  }}
+                  emptyState={selectableTopics.length === 0 ? (
+                    <div className="py-6 text-center text-xs text-stone-400 dark:text-stone-500 space-y-1"><p className="font-semibold text-stone-600 dark:text-stone-400">所有选题均已关联视频</p><p className="text-[11px]">可选择「不关联任何选题」或前往看板新建选题</p></div>
+                  ) : (
+                    <div className="py-6 text-center text-xs text-stone-400 dark:text-stone-500">未找到匹配「{topicSearchQuery}」的可用选题</div>
+                  )}
+                />
+                {topicId && <button type="button" onClick={() => setTopicId('')} aria-label="取消关联选题" title="取消关联选题" className="absolute right-8 top-1/2 -translate-y-1/2 z-10 p-1 text-stone-400 hover:text-red-600 dark:hover:text-red-400 rounded-md"><X className="w-3.5 h-3.5" /></button>}
+              </div>
             </div>
 
             {/* Quick Fetch Box */}

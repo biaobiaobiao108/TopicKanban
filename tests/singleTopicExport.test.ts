@@ -31,7 +31,6 @@ describe('exportSingleTopicMarkdown utility', () => {
       id: 'src-1',
       topic_id: 'topic-demo',
       title: '官方裁判文书公示',
-      type: 'fact',
       content: '公开裁决书显示被告存在隐瞒事实行为。',
       url: 'https://example.com/law',
       platform: 'news',
@@ -91,7 +90,7 @@ describe('exportSingleTopicMarkdown utility', () => {
     expect(exported).toContain('## 二、5 维故事评估 (总分：9/10)');
     expect(exported).toContain('## 三、故事时间线 (1 个关键节点)');
     expect(exported).toContain('首次爆出虚假宣传');
-    expect(exported).toContain('## 四、事实与素材证据链 (1 条资料)');
+    expect(exported).toContain('## 四、资料证据链 (1 条资料)');
     expect(exported).toContain('官方裁判文书公示');
     expect(exported).toContain('## 五、解说文案草稿正文');
     expect(exported).toContain('# 开场');

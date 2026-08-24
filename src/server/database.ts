@@ -97,9 +97,7 @@ async function loadTopics(db: D1Database, scope: 'active' | 'trash' | 'all' = 'a
   const results = await db.batch([
     db.prepare(`SELECT t.*,
       (SELECT COUNT(*) FROM sources s WHERE s.topic_id = t.id) AS sources_count,
-      (SELECT COUNT(*) FROM sources s WHERE s.topic_id = t.id AND s.type = 'fact' AND s.verification_status = 'confirmed') AS verified_facts_count,
-      (SELECT COUNT(*) FROM sources s WHERE s.topic_id = t.id AND s.type = 'material') AS materials_count,
-      (SELECT COUNT(*) FROM sources s WHERE s.topic_id = t.id AND s.type = 'fact' AND s.verification_status = 'unverified') AS unverified_facts_count,
+      (SELECT COUNT(*) FROM sources s WHERE s.topic_id = t.id AND s.verification_status = 'confirmed') AS verified_sources_count,
       (SELECT COUNT(*) FROM timeline_events e WHERE e.topic_id = t.id) AS timeline_count,
       COALESCE((SELECT word_count FROM drafts d WHERE d.topic_id = t.id LIMIT 1), 0) AS draft_word_count
       FROM topics t ${topicFilter}
@@ -223,9 +221,7 @@ export async function loadTopicPage(db: D1Database, options: TopicPageOptions): 
     bind(db, `SELECT COUNT(*) AS count FROM topics t ${where}`, values),
     bind(db, `SELECT t.*,
       (SELECT COUNT(*) FROM sources s WHERE s.topic_id = t.id) AS sources_count,
-      (SELECT COUNT(*) FROM sources s WHERE s.topic_id = t.id AND s.type = 'fact' AND s.verification_status = 'confirmed') AS verified_facts_count,
-      (SELECT COUNT(*) FROM sources s WHERE s.topic_id = t.id AND s.type = 'material') AS materials_count,
-      (SELECT COUNT(*) FROM sources s WHERE s.topic_id = t.id AND s.type = 'fact' AND s.verification_status = 'unverified') AS unverified_facts_count,
+      (SELECT COUNT(*) FROM sources s WHERE s.topic_id = t.id AND s.verification_status = 'confirmed') AS verified_sources_count,
       (SELECT COUNT(*) FROM timeline_events e WHERE e.topic_id = t.id) AS timeline_count,
       COALESCE((SELECT word_count FROM drafts d WHERE d.topic_id = t.id LIMIT 1), 0) AS draft_word_count
       FROM topics t ${where} ORDER BY ${sort} ${direction}, t.id ASC LIMIT ? OFFSET ?`, [...values, options.pageSize, offset]),
@@ -302,9 +298,7 @@ export async function loadTopic(db: D1Database, id: string): Promise<Topic | nul
   const results = await db.batch([
     bind(db, `SELECT t.*,
       (SELECT COUNT(*) FROM sources s WHERE s.topic_id = t.id) AS sources_count,
-      (SELECT COUNT(*) FROM sources s WHERE s.topic_id = t.id AND s.type = 'fact' AND s.verification_status = 'confirmed') AS verified_facts_count,
-      (SELECT COUNT(*) FROM sources s WHERE s.topic_id = t.id AND s.type = 'material') AS materials_count,
-      (SELECT COUNT(*) FROM sources s WHERE s.topic_id = t.id AND s.type = 'fact' AND s.verification_status = 'unverified') AS unverified_facts_count,
+      (SELECT COUNT(*) FROM sources s WHERE s.topic_id = t.id AND s.verification_status = 'confirmed') AS verified_sources_count,
       (SELECT COUNT(*) FROM timeline_events e WHERE e.topic_id = t.id) AS timeline_count,
       COALESCE((SELECT word_count FROM drafts d WHERE d.topic_id = t.id LIMIT 1), 0) AS draft_word_count
       FROM topics t WHERE t.id = ? AND t.deleted_at IS NULL LIMIT 1`, [id]),
@@ -354,10 +348,10 @@ function topicStatement(db: D1Database, topic: Partial<Topic> & { id: string; ti
 
 function sourceStatement(db: D1Database, source: Source): D1PreparedStatement {
   return bind(db, `INSERT INTO sources (
-    id, topic_id, title, type, content, url, platform, author, published_at,
+    id, topic_id, title, content, url, platform, author, published_at,
     verification_status, notes, created_at, updated_at
-  ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`, [
-    source.id, source.topic_id, source.title, source.type, source.content, source.url, source.platform,
+  ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`, [
+    source.id, source.topic_id, source.title, source.content, source.url, source.platform,
     source.author, source.published_at, source.verification_status, source.notes,
     source.created_at, source.updated_at,
   ]);
