@@ -257,13 +257,12 @@ export function registerSystemRoutes(app: Hono<{ Bindings: ApiBindings }>): void
     onError: (c) => c.json({ error: 'Backup request body is too large' }, 413),
   }), async (c) => {
     try {
+      if (!c.env.KV) return c.json({ error: 'KV is not configured' }, 503);
       const { data } = await c.req.json<{ data?: unknown }>();
       const validation = validateBackupData(data);
       if (!validation.success) return c.json({ error: validation.error }, 400);
       await replaceAllData(requireDb(c), validation.data);
-      if (c.env.KV && validation.data.settings) {
-        await c.env.KV.put('app_settings', JSON.stringify(validation.data.settings));
-      }
+      await c.env.KV.put('app_settings', JSON.stringify(validation.data.settings));
       return c.json({ success: true });
     } catch (error) {
       if (error instanceof BackupImportLimitError) return jsonError(c, error, 413);
@@ -272,17 +271,17 @@ export function registerSystemRoutes(app: Hono<{ Bindings: ApiBindings }>): void
   });
 
   app.get('/settings', async (c) => {
+    if (!c.env.KV) return c.json({ error: 'KV is not configured' }, 503);
     return c.json(await getKvSettings(c.env.KV, c.env.PUBLIC_BASE_URL));
   });
 
   app.put('/settings', async (c) => {
     try {
+      if (!c.env.KV) return c.json({ error: 'KV is not configured' }, 503);
       const raw = await c.req.json<Partial<AppSettings>>();
       const updatedSettings = sanitizeAppSettings(raw, c.env.PUBLIC_BASE_URL);
 
-      if (c.env.KV) {
-        await c.env.KV.put('app_settings', JSON.stringify(updatedSettings));
-      }
+      await c.env.KV.put('app_settings', JSON.stringify(updatedSettings));
       return c.json(updatedSettings);
     } catch (error) {
       return jsonError(c, error, 400);

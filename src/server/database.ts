@@ -12,9 +12,8 @@ import type {
   TimelineEvent,
   Topic,
   PaginatedTopics,
-  AppTheme,
 } from '../types';
-import { isTopicStatus, APP_THEMES } from '../types';
+import { DEFAULT_APP_SETTINGS, isTopicStatus } from '../types';
 
 export const MAX_IMPORT_STATEMENTS = 500;
 export const MAX_IMPORT_BYTES = 5 * 1024 * 1024;
@@ -39,7 +38,7 @@ export function getBackupImportSummary(data: BackupData): BackupImportSummary {
     (count, topic) => count + (topic.tags?.length || 0) + (topic.people?.length || 0),
     0
   );
-  const statements = 15 + data.tags.length + data.people.length + data.topics.length + topicRelations
+  const statements = 12 + data.tags.length + data.people.length + data.topics.length + topicRelations
     + data.sources.length + data.timeline.length
     + data.timeline.reduce((count, event) => count + (event.person_ids?.length || 0), 0)
     + data.drafts.length + data.citations.length
@@ -72,20 +71,6 @@ export function assertBackupImportWithinLimits(data: BackupData): BackupImportSu
 
 function bind(db: D1Database, sql: string, values: unknown[] = []): D1PreparedStatement {
   return db.prepare(sql).bind(...values);
-}
-
-export function parseSettings(rows?: Array<{ key: string; value: string }>): AppSettings {
-  if (!rows || rows.length === 0) {
-    return { reading_speed: 280, theme: 'light' };
-  }
-  const values = new Map(rows.map((row) => [row.key, row.value]));
-  const speed = Number(values.get('reading_speed'));
-  const rawTheme = values.get('theme') as AppTheme;
-  const theme = APP_THEMES.includes(rawTheme) ? rawTheme : 'light';
-  return {
-    reading_speed: Number.isFinite(speed) && speed > 0 ? speed : 280,
-    theme,
-  };
 }
 
 async function loadTopics(db: D1Database, scope: 'active' | 'trash' | 'all' = 'active'): Promise<Topic[]> {
@@ -272,16 +257,11 @@ export async function loadBootstrap(db: D1Database, kvSettings?: AppSettings, op
     includeTags ? db.prepare('SELECT id, name, color FROM tags ORDER BY name ASC') : db.prepare('SELECT NULL WHERE 1 = 0'),
   ];
 
-  const settingsPromise = kvSettings
-    ? Promise.resolve(kvSettings)
-    : db.prepare('SELECT key, value FROM settings').all<{ key: string; value: string }>()
-        .then((res) => parseSettings(res.results))
-        .catch(() => parseSettings());
+  const settings = kvSettings || DEFAULT_APP_SETTINGS;
 
-  const [topics, otherResults, settings] = await Promise.all([
+  const [topics, otherResults] = await Promise.all([
     includeTopics ? loadTopics(db, 'active') : Promise.resolve([] as Topic[]),
     db.batch(queries),
-    settingsPromise,
   ]);
 
   return {
@@ -422,7 +402,7 @@ export async function replaceAllData(db: D1Database, data: BackupData): Promise<
     db.prepare('DELETE FROM sources'), db.prepare('DELETE FROM timeline_events'),
     db.prepare('DELETE FROM draft_citations'), db.prepare('DELETE FROM drafts'), db.prepare('DELETE FROM person_relationships'),
     db.prepare('DELETE FROM published_videos'), db.prepare('DELETE FROM topics'),
-    db.prepare('DELETE FROM people'), db.prepare('DELETE FROM tags'), db.prepare('DELETE FROM settings'),
+    db.prepare('DELETE FROM people'), db.prepare('DELETE FROM tags'),
   ];
 
   data.tags.forEach((tag) => statements.push(bind(db,
@@ -453,11 +433,6 @@ export async function replaceAllData(db: D1Database, data: BackupData): Promise<
   data.citations.forEach((citation) => statements.push(citationStatement(db, citation)));
   data.relationships.forEach((relationship) => statements.push(relationshipStatement(db, relationship)));
   data.published.forEach((video) => statements.push(publishedStatement(db, video)));
-  statements.push(bind(db, 'INSERT INTO settings (key, value) VALUES (?, ?)',
-    ['reading_speed', String(data.settings.reading_speed)]));
-  statements.push(bind(db, 'INSERT INTO settings (key, value) VALUES (?, ?)',
-    ['theme', data.settings.theme]));
-
   await db.batch(statements);
 }
 

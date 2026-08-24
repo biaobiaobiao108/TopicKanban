@@ -156,11 +156,6 @@ CREATE TABLE published_videos (
   FOREIGN KEY (topic_id) REFERENCES topics(id) ON DELETE CASCADE
 );
 
-CREATE TABLE settings (
-  key TEXT PRIMARY KEY,
-  value TEXT NOT NULL
-);
-
 CREATE INDEX idx_topics_status_sort ON topics(status, sort_order);
 CREATE INDEX idx_topics_updated_at ON topics(updated_at);
 CREATE INDEX idx_topics_deleted_at ON topics(deleted_at);
@@ -178,6 +173,3 @@ CREATE UNIQUE INDEX idx_topic_people_unique ON topic_people(topic_id, person_id)
 CREATE INDEX idx_topic_people_person_id ON topic_people(person_id);
 CREATE INDEX idx_relationships_people ON person_relationships(person_a_id, person_b_id);
 CREATE INDEX idx_published_topic_id ON published_videos(topic_id);
-
-INSERT INTO settings (key, value) VALUES ('reading_speed', '280');
-INSERT INTO settings (key, value) VALUES ('theme', 'light');

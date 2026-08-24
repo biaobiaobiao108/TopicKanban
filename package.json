@@ -14,6 +14,8 @@
     "db:upgrade:published:remote": "wrangler d1 execute DB --remote --file=./drizzle/0001_optional_published_topic.sql",
     "db:upgrade:source-type:local": "wrangler d1 execute DB --local --file=./drizzle/0003_remove_source_type.sql",
     "db:upgrade:source-type:remote": "wrangler d1 execute DB --remote --file=./drizzle/0003_remove_source_type.sql",
+    "db:upgrade:settings:local": "wrangler d1 execute DB --local --file=./drizzle/0004_remove_settings_table.sql",
+    "db:upgrade:settings:remote": "wrangler d1 execute DB --remote --file=./drizzle/0004_remove_settings_table.sql",
     "build": "tsc && vite build && bun run build:server",
     "build:server": "bun build src/server/server.ts --target=bun --format=esm --outfile=dist/server.js",
     "start": "bun dist/server.js",

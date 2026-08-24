@@ -184,6 +184,49 @@ describe('Bun Server Integration (Local SQLite & API)', () => {
     expect(getSettingsRes.status).toBe(200);
     const fetchedSettings = await getSettingsRes.json() as { reading_speed: number; voiceover_cues: string[] };
     expect(fetchedSettings.voiceover_cues).toEqual(customCues);
+
+    // 9. Backup restore persists settings through KV without a relational settings table
+    const backupRes = await app.request('/api/backup', {
+      headers: { Authorization: `Bearer ${authToken}` },
+    });
+    expect(backupRes.status).toBe(200);
+    const backupPayload = await backupRes.json() as { data: { settings: Record<string, unknown> } };
+    const restoreRes = await app.request('/api/backup', {
+      method: 'PUT',
+      headers: { Authorization: `Bearer ${authToken}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        data: {
+          ...backupPayload.data,
+          settings: { ...backupPayload.data.settings, reading_speed: 333 },
+        },
+      }),
+    });
+    expect(restoreRes.status).toBe(200);
+    const restoredSettingsRes = await app.request('/api/settings', {
+      headers: { Authorization: `Bearer ${authToken}` },
+    });
+    expect((await restoredSettingsRes.json() as { reading_speed: number }).reading_speed).toBe(333);
+    expect(sqlite.query("SELECT name FROM sqlite_master WHERE type = 'table' AND name = 'settings'").get()).toBeNull();
+  });
+
+  it('fails explicitly when settings persistence has no KV binding', async () => {
+    const noKvApp = new Hono();
+    noKvApp.use('*', async (c, next) => {
+      c.env = { DB: new LocalD1Database(sqlite), APP_PASSWORD: testPassword };
+      await next();
+    });
+    noKvApp.route('/', createApp());
+
+    const loginRes = await noKvApp.request('/api/auth/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ password: testPassword }),
+    });
+    const { token } = await loginRes.json() as { token: string };
+    const settingsRes = await noKvApp.request('/api/settings', {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    expect(settingsRes.status).toBe(503);
   });
 
   it('correctly identifies Cloudflare Pages environment when ENVIRONMENT is cloudflare_pages or simulating D1/KV', async () => {

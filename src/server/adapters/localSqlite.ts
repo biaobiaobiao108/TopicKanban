@@ -231,6 +231,15 @@ export function initializeSqliteDatabase(dbFilePath: string, schemaDir?: string)
   sqlite.query('INSERT OR IGNORE INTO _schema_migrations (name, applied_at) VALUES (?, ?)')
     .run('0003_remove_source_type.sql', appliedAt);
 
+  // Remove the deprecated relational settings table. App settings are stored
+  // in the local KV adapter (_kv_store), matching the Cloudflare KV path.
+  const settingsTable = sqlite.query("SELECT name FROM sqlite_master WHERE type='table' AND name='settings'").get() as { name?: string } | null;
+  if (settingsTable?.name === 'settings') {
+    sqlite.exec('DROP TABLE settings');
+  }
+  sqlite.query('INSERT OR IGNORE INTO _schema_migrations (name, applied_at) VALUES (?, ?)')
+    .run('0004_remove_settings_table.sql', appliedAt);
+
   // Ensure _kv_store table exists for local KV adapter
   sqlite.exec(`
     CREATE TABLE IF NOT EXISTS _kv_store (
