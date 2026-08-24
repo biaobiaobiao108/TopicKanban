@@ -110,11 +110,13 @@ export const PeopleTab: React.FC<PeopleTabProps> = ({
       <div className="space-y-4">
         <div className="flex items-center justify-between flex-wrap gap-3">
           <div>
-            <h3 className="text-base font-bold text-stone-900 flex items-center gap-2">
-              <User className="w-4 h-4 text-rose-600" />
+            <h3 className="text-base font-bold text-stone-900 dark:text-stone-100 flex items-center gap-2">
+              <span className="p-1.5 rounded-xl bg-rose-500/10 text-rose-600 dark:text-rose-400">
+                <User className="w-4 h-4" />
+              </span>
               <span>本期视频核心出场人物 ({topicPeople.length})</span>
             </h3>
-            <p className="text-xs text-stone-500 mt-0.5">
+            <p className="text-xs text-stone-500 dark:text-stone-400 mt-0.5">
               人物是叙事类视频的核心灵魂，可在此直接编辑档案或引入新人物
             </p>
           </div>
@@ -122,7 +124,7 @@ export const PeopleTab: React.FC<PeopleTabProps> = ({
           <div className="flex items-center gap-2">
             <button
               onClick={openCreateModal}
-              className="flex items-center gap-1.5 text-xs font-semibold text-white bg-stone-900 hover:bg-stone-800 px-3 py-1.5 rounded-lg shadow-sm transition-colors"
+              className="flex items-center gap-1.5 text-xs font-bold text-white bg-rose-600 hover:bg-rose-700 active:scale-[0.98] px-3.5 py-2 rounded-xl shadow-2xs transition-all cursor-pointer"
             >
               <UserPlus className="w-3.5 h-3.5" />
               <span>新建人物档案</span>
@@ -130,7 +132,7 @@ export const PeopleTab: React.FC<PeopleTabProps> = ({
 
             <button
               onClick={onNavigateToPeople}
-              className="flex items-center gap-1.5 text-xs font-semibold text-stone-700 bg-stone-100 hover:bg-stone-200/80 px-3 py-1.5 rounded-lg border border-stone-200 transition-colors"
+              className="flex items-center gap-1.5 text-xs font-semibold text-stone-700 dark:text-stone-300 bg-stone-100/80 dark:bg-stone-800 hover:bg-stone-200/80 dark:hover:bg-stone-700 px-3.5 py-2 rounded-xl border border-stone-200/70 dark:border-stone-700 transition-colors cursor-pointer"
             >
               <span>全局人物档案库</span>
               <ArrowRight className="w-3.5 h-3.5" />
@@ -142,7 +144,7 @@ export const PeopleTab: React.FC<PeopleTabProps> = ({
           {topicPeople.map((person) => (
             <div
               key={person.id}
-              className="bg-white rounded-xl border border-stone-200 p-5 space-y-3 shadow-subtle flex flex-col justify-between hover:border-stone-400/80 transition-all"
+              className="bg-white dark:bg-stone-900 rounded-2xl border border-stone-200/70 dark:border-stone-800 p-5 space-y-3 shadow-2xs flex flex-col justify-between hover:shadow-card hover:-translate-y-0.5 transition-all"
             >
               <div className="space-y-2.5">
                 <div className="flex items-start justify-between gap-2">
@@ -151,17 +153,17 @@ export const PeopleTab: React.FC<PeopleTabProps> = ({
                       <img
                         src={person.avatar_url}
                         alt={person.name}
-                        className="w-10 h-10 rounded-full object-cover border border-stone-200"
+                        className="w-10 h-10 rounded-full object-cover border border-stone-200 dark:border-stone-700"
                       />
                     ) : (
-                      <div className="w-10 h-10 rounded-full bg-stone-100 flex items-center justify-center font-bold text-stone-700 border border-stone-200 text-sm">
+                      <div className="w-10 h-10 rounded-full bg-stone-100 dark:bg-stone-800 flex items-center justify-center font-bold text-stone-700 dark:text-stone-300 border border-stone-200/80 dark:border-stone-700 text-sm">
                         {person.name.slice(0, 1)}
                       </div>
                     )}
                     <div>
-                      <h4 className="text-base font-bold text-stone-900 leading-tight">{person.name}</h4>
+                      <h4 className="text-base font-bold text-stone-900 dark:text-stone-100 leading-tight">{person.name}</h4>
                       {person.identity && (
-                        <span className="text-xs text-rose-700 font-semibold bg-rose-50 px-1.5 py-0.5 rounded border border-rose-200/70 inline-block mt-0.5">
+                        <span className="text-xs text-rose-700 dark:text-rose-300 font-semibold bg-rose-500/10 px-2 py-0.5 rounded-full inline-block mt-0.5">
                           {person.identity}
                         </span>
                       )}
@@ -170,7 +172,7 @@ export const PeopleTab: React.FC<PeopleTabProps> = ({
 
                   <button
                     onClick={() => openEditModal(person)}
-                    className="p-1.5 text-stone-400 hover:text-stone-700 hover:bg-stone-100 rounded-lg transition-colors"
+                    className="p-1.5 text-stone-400 dark:text-stone-500 hover:text-stone-700 dark:hover:text-stone-300 hover:bg-stone-100 dark:hover:bg-stone-800 rounded-lg transition-colors cursor-pointer"
                     title="编辑人物档案"
                   >
                     <Edit2 className="w-3.5 h-3.5" />
@@ -178,34 +180,34 @@ export const PeopleTab: React.FC<PeopleTabProps> = ({
                 </div>
 
                 {person.aliases && (
-                  <p className="text-xs text-stone-500">
-                    <span className="font-semibold text-stone-400">别名/外号:</span> {person.aliases}
+                  <p className="text-xs text-stone-500 dark:text-stone-400">
+                    <span className="font-semibold text-stone-400 dark:text-stone-500">别名/外号:</span> {person.aliases}
                   </p>
                 )}
 
                 {person.description && (
-                  <p className="text-xs text-stone-600 leading-relaxed bg-stone-50 p-2.5 rounded-lg border border-stone-100">
+                  <p className="text-xs text-stone-600 dark:text-stone-300 leading-relaxed bg-stone-500/[0.03] dark:bg-stone-800/60 p-2.5 rounded-xl border border-stone-200/50 dark:border-stone-800 line-clamp-3">
                     {person.description}
                   </p>
                 )}
 
                 {person.quotes && (
-                  <div className="text-xs text-stone-700 italic border-l-2 border-rose-500 pl-2.5 py-1 bg-rose-50/40 rounded-r">
+                  <div className="text-xs text-stone-700 dark:text-stone-300 italic border-l-2 border-rose-500 pl-2.5 py-1 bg-rose-500/[0.05] rounded-r-lg">
                     "{person.quotes}"
                   </div>
                 )}
 
                 {person.platform_accounts && (
-                  <div className="text-[11px] text-stone-500 bg-stone-50 px-2 py-1 rounded border border-stone-100 font-mono truncate">
+                  <div className="text-[11px] text-stone-500 dark:text-stone-400 bg-stone-500/[0.03] dark:bg-stone-800/60 px-2.5 py-1 rounded-lg border border-stone-200/50 dark:border-stone-800 font-mono truncate">
                     {person.platform_accounts}
                   </div>
                 )}
               </div>
 
-              <div className="pt-3 border-t border-stone-100 flex items-center justify-between">
+              <div className="pt-3 border-t border-stone-100 dark:border-stone-800 flex items-center justify-between">
                 <button
                   onClick={() => openEditModal(person)}
-                  className="text-xs text-stone-600 hover:text-stone-900 font-medium flex items-center gap-1"
+                  className="text-xs text-stone-600 dark:text-stone-400 hover:text-stone-900 dark:hover:text-stone-200 font-medium flex items-center gap-1 cursor-pointer"
                 >
                   <Edit2 className="w-3 h-3" />
                   <span>编辑资料</span>
@@ -213,7 +215,7 @@ export const PeopleTab: React.FC<PeopleTabProps> = ({
 
                 <button
                   onClick={() => onToggleTopicPerson(person)}
-                  className="text-xs text-red-500 hover:text-red-700 hover:bg-red-50 px-2 py-0.5 rounded transition-colors"
+                  className="text-xs text-red-500 hover:text-red-700 dark:hover:text-red-400 bg-red-500/10 px-2.5 py-1 rounded-lg transition-colors cursor-pointer"
                 >
                   移出本期
                 </button>
@@ -222,11 +224,11 @@ export const PeopleTab: React.FC<PeopleTabProps> = ({
           ))}
 
           {topicPeople.length === 0 && (
-            <div className="col-span-full p-8 text-center border-2 border-dashed border-stone-200 rounded-xl bg-white text-stone-400 space-y-2">
+            <div className="col-span-full p-8 text-center border-2 border-dashed border-stone-200 dark:border-stone-800 rounded-2xl bg-white dark:bg-stone-900 text-stone-400 dark:text-stone-500 space-y-2">
               <div>当前尚未关联人物</div>
               <button
                 onClick={openCreateModal}
-                className="inline-flex items-center gap-1.5 text-xs font-semibold text-rose-600 bg-rose-50 hover:bg-rose-100 px-3 py-1.5 rounded-lg border border-rose-200 transition-colors"
+                className="inline-flex items-center gap-1.5 text-xs font-semibold text-rose-600 dark:text-rose-400 bg-rose-500/10 hover:bg-rose-500/20 px-3.5 py-2 rounded-xl transition-colors cursor-pointer"
               >
                 <Plus className="w-3.5 h-3.5" />
                 <span>立即新建并引入人物</span>
@@ -238,31 +240,31 @@ export const PeopleTab: React.FC<PeopleTabProps> = ({
 
       {/* 2. Quick Attach from Global People Library */}
       {unattachedPeople.length > 0 && (
-        <div className="bg-white rounded-2xl border border-stone-200 p-5 space-y-3 shadow-subtle">
+        <div className="bg-white dark:bg-stone-900 rounded-2xl border border-stone-200/70 dark:border-stone-800 p-5 space-y-3 shadow-2xs transition-colors">
           <div className="flex items-center justify-between">
-            <h4 className="text-sm font-bold text-stone-900 flex items-center gap-1.5">
+            <h4 className="text-sm font-bold text-stone-900 dark:text-stone-100 flex items-center gap-1.5">
               <span>从全局人物库快速引入</span>
-              <span className="text-xs text-stone-400 font-normal">（点击直接关联至本选题）</span>
+              <span className="text-xs text-stone-400 dark:text-stone-500 font-normal">（点击直接关联至本选题）</span>
             </h4>
-            <span className="text-xs text-stone-400 font-mono">未关联 {unattachedPeople.length} 人</span>
+            <span className="text-xs text-stone-400 dark:text-stone-500 font-mono">未关联 {unattachedPeople.length} 人</span>
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2.5">
             {unattachedPeople.map((person) => (
               <div
                 key={person.id}
-                className="p-3 rounded-xl border border-stone-200 bg-stone-50/50 hover:bg-white hover:border-stone-300 flex items-center justify-between gap-2 transition-all"
+                className="p-3 rounded-xl border border-stone-200/70 dark:border-stone-800 bg-stone-500/[0.02] dark:bg-stone-800/40 hover:bg-stone-500/[0.05] dark:hover:bg-stone-800 flex items-center justify-between gap-2 transition-all"
               >
                 <div className="min-w-0">
-                  <div className="font-bold text-xs text-stone-900 truncate">👤 {person.name}</div>
+                  <div className="font-bold text-xs text-stone-900 dark:text-stone-100 truncate">👤 {person.name}</div>
                   {person.identity && (
-                    <div className="text-[10px] text-stone-500 truncate">{person.identity}</div>
+                    <div className="text-[10px] text-stone-500 dark:text-stone-400 truncate">{person.identity}</div>
                   )}
                 </div>
 
                 <button
                   onClick={() => onToggleTopicPerson(person)}
-                  className="shrink-0 flex items-center gap-1 text-xs font-semibold text-rose-700 bg-rose-50 hover:bg-rose-100 px-2.5 py-1 rounded-lg border border-rose-200 transition-colors"
+                  className="shrink-0 flex items-center gap-1 text-xs font-semibold text-rose-700 dark:text-rose-300 bg-rose-500/10 hover:bg-rose-500/20 px-2.5 py-1 rounded-xl transition-colors cursor-pointer"
                 >
                   <Plus className="w-3 h-3" />
                   <span>引入</span>
@@ -276,33 +278,33 @@ export const PeopleTab: React.FC<PeopleTabProps> = ({
       {/* 3. Character Relationships */}
       <div className="space-y-4">
         <div className="flex items-center justify-between">
-          <h4 className="text-base font-bold text-stone-900">本期人物关系网 (Relationships)</h4>
-          <span className="text-xs text-stone-400">自动匹配本期出场人物之间的既有关系</span>
+          <h4 className="text-base font-bold text-stone-900 dark:text-stone-100">本期人物关系网 (Relationships)</h4>
+          <span className="text-xs text-stone-400 dark:text-stone-500">自动匹配本期出场人物之间的既有关系</span>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
           {relevantRelationships.map((rel) => (
             <div
               key={rel.id}
-              className="bg-white rounded-xl border border-stone-200 p-4 flex items-center justify-between shadow-subtle"
+              className="bg-white dark:bg-stone-900 rounded-2xl border border-stone-200/70 dark:border-stone-800 p-4 flex items-center justify-between shadow-2xs"
             >
               <div className="space-y-1">
-                <div className="flex items-center gap-2 text-sm font-bold text-stone-900">
+                <div className="flex items-center gap-2 text-sm font-bold text-stone-900 dark:text-stone-100">
                   <span>{rel.person_a_name || '人物A'}</span>
-                  <span className="text-xs bg-rose-50 text-rose-700 font-semibold px-2 py-0.5 rounded border border-rose-200">
+                  <span className="text-xs bg-rose-500/10 text-rose-700 dark:text-rose-300 font-semibold px-2.5 py-0.5 rounded-full">
                     {rel.relationship}
                   </span>
                   <span>{rel.person_b_name || '人物B'}</span>
                 </div>
                 {rel.description && (
-                  <p className="text-xs text-stone-500">{rel.description}</p>
+                  <p className="text-xs text-stone-500 dark:text-stone-400">{rel.description}</p>
                 )}
               </div>
             </div>
           ))}
 
           {relevantRelationships.length === 0 && (
-            <div className="col-span-full p-5 text-center text-xs text-stone-400 bg-white border border-stone-200 rounded-xl">
+            <div className="col-span-full p-5 text-center text-xs text-stone-400 dark:text-stone-500 bg-white dark:bg-stone-900 border border-stone-200/70 dark:border-stone-800 rounded-2xl">
               暂无已记录的本期人物关联关系（可在「人物档案与关系库」中统一配置网状关系）
             </div>
           )}
@@ -318,7 +320,7 @@ export const PeopleTab: React.FC<PeopleTabProps> = ({
       >
         <form onSubmit={handleSavePersonSubmit} className="space-y-4">
           <div className="space-y-1.5">
-            <label className="block text-xs font-bold text-stone-800">
+            <label className="block text-xs font-bold text-stone-800 dark:text-stone-200">
               人物姓名 / 核心昵称 <span className="text-rose-500">*</span>
             </label>
             <input
@@ -328,79 +330,79 @@ export const PeopleTab: React.FC<PeopleTabProps> = ({
               placeholder="例如：大胃袋良子"
               value={name}
               onChange={(e) => setName(e.target.value)}
-              className="w-full px-3 py-2 bg-stone-50 border border-stone-300 rounded-lg text-sm focus:bg-white focus:border-stone-900 focus:outline-none"
+              className="w-full px-3.5 py-2 bg-stone-500/[0.03] dark:bg-stone-800 border border-stone-200/80 dark:border-stone-700 rounded-xl text-sm text-stone-900 dark:text-stone-100 placeholder:text-stone-400 focus:bg-white dark:focus:bg-stone-800 focus:border-rose-500 focus:outline-none"
             />
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div className="space-y-1.5">
-              <label className="block text-xs font-bold text-stone-800">核心身份 / 标签</label>
+              <label className="block text-xs font-bold text-stone-800 dark:text-stone-200">核心身份 / 标签</label>
               <input
                 type="text"
                 placeholder="例如：吃播网红 / 探店博主"
                 value={identity}
                 onChange={(e) => setIdentity(e.target.value)}
-                className="w-full px-3 py-2 bg-stone-50 border border-stone-300 rounded-lg text-sm focus:bg-white focus:border-stone-900 focus:outline-none"
+                className="w-full px-3.5 py-2 bg-stone-500/[0.03] dark:bg-stone-800 border border-stone-200/80 dark:border-stone-700 rounded-xl text-sm text-stone-900 dark:text-stone-100 placeholder:text-stone-400 focus:bg-white dark:focus:bg-stone-800 focus:border-rose-500 focus:outline-none"
               />
             </div>
 
             <div className="space-y-1.5">
-              <label className="block text-xs font-bold text-stone-800">别名 / 外号</label>
+              <label className="block text-xs font-bold text-stone-800 dark:text-stone-200">别名 / 外号</label>
               <input
                 type="text"
                 placeholder="例如：良子、峨眉山战神"
                 value={aliases}
                 onChange={(e) => setAliases(e.target.value)}
-                className="w-full px-3 py-2 bg-stone-50 border border-stone-300 rounded-lg text-sm focus:bg-white focus:border-stone-900 focus:outline-none"
+                className="w-full px-3.5 py-2 bg-stone-500/[0.03] dark:bg-stone-800 border border-stone-200/80 dark:border-stone-700 rounded-xl text-sm text-stone-900 dark:text-stone-100 placeholder:text-stone-400 focus:bg-white dark:focus:bg-stone-800 focus:border-rose-500 focus:outline-none"
               />
             </div>
           </div>
 
           <div className="space-y-1.5">
-            <label className="block text-xs font-bold text-stone-800">主要平台账号 / 粉丝量</label>
+            <label className="block text-xs font-bold text-stone-800 dark:text-stone-200">主要平台账号 / 粉丝量</label>
             <input
               type="text"
               placeholder="例如：抖音 @大胃袋良子 (120w)、B站同名"
               value={platformAccounts}
               onChange={(e) => setPlatformAccounts(e.target.value)}
-              className="w-full px-3 py-2 bg-stone-50 border border-stone-300 rounded-lg text-sm focus:bg-white focus:border-stone-900 focus:outline-none"
+              className="w-full px-3.5 py-2 bg-stone-500/[0.03] dark:bg-stone-800 border border-stone-200/80 dark:border-stone-700 rounded-xl text-sm text-stone-900 dark:text-stone-100 placeholder:text-stone-400 focus:bg-white dark:focus:bg-stone-800 focus:border-rose-500 focus:outline-none"
             />
           </div>
 
           <div className="space-y-1.5">
-            <label className="block text-xs font-bold text-stone-800">经典语录 / 名言口癖</label>
+            <label className="block text-xs font-bold text-stone-800 dark:text-stone-200">经典语录 / 名言口癖</label>
             <input
               type="text"
               placeholder="例如：“今天这顿必须拿下！”"
               value={quotes}
               onChange={(e) => setQuotes(e.target.value)}
-              className="w-full px-3 py-2 bg-stone-50 border border-stone-300 rounded-lg text-sm focus:bg-white focus:border-stone-900 focus:outline-none"
+              className="w-full px-3.5 py-2 bg-stone-500/[0.03] dark:bg-stone-800 border border-stone-200/80 dark:border-stone-700 rounded-xl text-sm text-stone-900 dark:text-stone-100 placeholder:text-stone-400 focus:bg-white dark:focus:bg-stone-800 focus:border-rose-500 focus:outline-none"
             />
           </div>
 
           <div className="space-y-1.5">
-            <label className="block text-xs font-bold text-stone-800">人物背景简介 / 特质分析</label>
+            <label className="block text-xs font-bold text-stone-800 dark:text-stone-200">人物背景简介 / 特质分析</label>
             <textarea
               rows={3}
               placeholder="简要概括该人物的生平经历、公共事件、人设演变..."
               value={description}
               onChange={(e) => setDescription(e.target.value)}
-              className="w-full px-3 py-2 bg-stone-50 border border-stone-300 rounded-lg text-sm focus:bg-white focus:border-stone-900 focus:outline-none"
+              className="w-full px-3.5 py-2 bg-stone-500/[0.03] dark:bg-stone-800 border border-stone-200/80 dark:border-stone-700 rounded-xl text-sm text-stone-900 dark:text-stone-100 placeholder:text-stone-400 focus:bg-white dark:focus:bg-stone-800 focus:border-rose-500 focus:outline-none"
             />
           </div>
 
-          <div className="flex items-center justify-end gap-3 pt-3 border-t border-stone-200">
+          <div className="flex items-center justify-end gap-3 pt-3 border-t border-stone-100 dark:border-stone-800">
             <button
               type="button"
               onClick={() => setIsModalOpen(false)}
-              className="px-4 py-2 text-sm text-stone-600 hover:bg-stone-100 rounded-lg"
+              className="px-4 py-2 text-xs font-semibold text-stone-600 dark:text-stone-400 hover:bg-stone-100 dark:hover:bg-stone-800 rounded-xl transition-colors cursor-pointer"
             >
               取消
             </button>
             <button
               type="submit"
               disabled={!name.trim()}
-              className="px-5 py-2 text-sm bg-stone-900 hover:bg-stone-800 text-white rounded-lg font-semibold disabled:opacity-50"
+              className="px-5 py-2 text-xs bg-rose-600 hover:bg-rose-700 text-white rounded-xl font-bold disabled:opacity-50 transition-all shadow-2xs cursor-pointer"
             >
               {editingPerson ? '保存修改' : '创建并引入本期'}
             </button>

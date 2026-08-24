@@ -82,15 +82,15 @@ export const QuickDropDrawer: React.FC<QuickDropDrawerProps> = ({
       {/* Drawer Body */}
       <div className="relative w-full max-w-md bg-white dark:bg-stone-900 h-full shadow-2xl flex flex-col z-10 animate-in slide-in-from-right duration-200 transition-colors">
         {/* Header */}
-        <div className="p-4 border-b border-stone-200 dark:border-stone-800 bg-stone-50/80 dark:bg-stone-900/90 flex items-center justify-between">
+        <div className="p-4 border-b border-stone-200/70 dark:border-stone-800 bg-stone-50/80 dark:bg-stone-900/90 flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <div className="p-2 bg-rose-100 dark:bg-rose-950/60 text-rose-700 dark:text-rose-300 rounded-xl border border-rose-200 dark:border-rose-900/60">
+            <div className="p-2 bg-rose-500/10 text-rose-600 dark:text-rose-400 rounded-xl">
               <Smartphone className="w-4 h-4" />
             </div>
             <div>
               <h2 className="text-sm font-bold text-stone-900 dark:text-stone-100 flex items-center gap-2">
                 <span>手机快投灵感箱</span>
-                <span className="text-[10px] font-mono bg-rose-100 dark:bg-rose-950/60 text-rose-700 dark:text-rose-300 px-1.5 py-0.2 rounded-full font-bold border border-rose-200/60 dark:border-rose-800">
+                <span className="text-[10px] font-mono bg-rose-500/10 text-rose-700 dark:text-rose-300 px-2 py-0.5 rounded-full font-bold">
                   {drops.length}
                 </span>
               </h2>
@@ -103,7 +103,7 @@ export const QuickDropDrawer: React.FC<QuickDropDrawerProps> = ({
               type="button"
               onClick={loadDrops}
               disabled={isLoading}
-              className="p-2 rounded-lg text-stone-400 dark:text-stone-500 hover:text-stone-700 dark:hover:text-stone-300 hover:bg-stone-100 dark:hover:bg-stone-800 transition-colors cursor-pointer"
+              className="p-2 rounded-xl text-stone-400 dark:text-stone-500 hover:text-stone-700 dark:hover:text-stone-300 hover:bg-stone-100 dark:hover:bg-stone-800 transition-colors cursor-pointer"
               title="刷新列表"
             >
               <RefreshCw className={`w-4 h-4 ${isLoading ? 'animate-spin' : ''}`} />
@@ -111,7 +111,7 @@ export const QuickDropDrawer: React.FC<QuickDropDrawerProps> = ({
             <button
               type="button"
               onClick={onClose}
-              className="p-2 rounded-lg text-stone-400 dark:text-stone-500 hover:text-stone-700 dark:hover:text-stone-300 hover:bg-stone-100 dark:hover:bg-stone-800 transition-colors cursor-pointer"
+              className="p-2 rounded-xl text-stone-400 dark:text-stone-500 hover:text-stone-700 dark:hover:text-stone-300 hover:bg-stone-100 dark:hover:bg-stone-800 transition-colors cursor-pointer"
             >
               <X className="w-4 h-4" />
             </button>
@@ -134,10 +134,10 @@ export const QuickDropDrawer: React.FC<QuickDropDrawerProps> = ({
             drops.map((item) => (
               <div
                 key={item.id}
-                className="p-4 rounded-xl border border-stone-200 dark:border-stone-800 bg-stone-50/50 dark:bg-stone-800/50 hover:bg-white dark:hover:bg-stone-800 hover:shadow-subtle transition-all space-y-2.5"
+                className="p-4 rounded-2xl border border-stone-200/70 dark:border-stone-800 bg-white dark:bg-stone-800/80 hover:shadow-card hover:-translate-y-0.5 transition-all space-y-2.5 shadow-2xs"
               >
                 <div className="flex items-start justify-between gap-2">
-                  <span className="text-[10px] font-bold text-stone-500 dark:text-stone-400 bg-stone-200/60 dark:bg-stone-700 px-1.5 py-0.5 rounded">
+                  <span className="text-[10px] font-bold text-stone-600 dark:text-stone-300 bg-stone-500/10 px-2 py-0.5 rounded-full">
                     {item.source || '快捷指令'}
                   </span>
                   <span className="text-[10px] font-mono text-stone-400 dark:text-stone-500 flex items-center gap-1">
@@ -168,9 +168,9 @@ export const QuickDropDrawer: React.FC<QuickDropDrawerProps> = ({
                   <button
                     type="button"
                     onClick={() => handleConvert(item)}
-                    className="flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-bold bg-rose-600 hover:bg-rose-700 active:scale-95 text-white transition-colors cursor-pointer shadow-2xs"
+                    className="flex items-center gap-1 px-3.5 py-1.5 rounded-xl text-xs font-bold bg-rose-600 hover:bg-rose-700 active:scale-[0.98] text-white transition-all cursor-pointer shadow-2xs"
                   >
-                    <Plus className="w-3.5 h-3.5" />
+                    <Plus className="w-3.5 h-3.5 stroke-[2.5]" />
                     <span>转为收集箱选题</span>
                   </button>
 
@@ -190,7 +190,7 @@ export const QuickDropDrawer: React.FC<QuickDropDrawerProps> = ({
         </div>
 
         {/* Footer info */}
-        <div className="p-3 border-t border-stone-200 dark:border-stone-800 bg-stone-50 dark:bg-stone-900/90 text-[11px] text-stone-400 dark:text-stone-500 text-center">
+        <div className="p-3 border-t border-stone-200/70 dark:border-stone-800 bg-stone-50 dark:bg-stone-900/90 text-[11px] text-stone-400 dark:text-stone-500 text-center">
           快投碎片将在 Workers KV 中暂存 7 天，到期后自动销毁。
         </div>
       </div>

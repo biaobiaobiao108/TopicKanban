@@ -19,7 +19,8 @@ import {
   CheckCircle2,
   PenTool,
   Film,
-  Compass
+  Compass,
+  Zap
 } from 'lucide-react';
 
 interface TagsViewProps {
@@ -177,30 +178,32 @@ export const TagsView: React.FC<TagsViewProps> = ({
   return (
     <div className="flex-1 flex flex-col h-full bg-[#fafaf9] dark:bg-[#0c0a09] overflow-hidden transition-colors">
       {/* 1. Header & Metric Cards */}
-      <div className="tags-header-banner px-6 py-5 border-b border-stone-200 dark:border-stone-800 bg-white/70 dark:bg-stone-900/80 backdrop-blur-xs shrink-0">
+      <div className="tags-header-banner px-4 sm:px-8 py-5 border-b border-stone-200/70 dark:border-stone-800 bg-white/80 dark:bg-stone-900/90 backdrop-blur-sm shrink-0">
         <div className="flex items-center justify-between flex-wrap gap-4 mb-4">
           <div>
             <h2 className="text-xl font-bold text-stone-900 dark:text-stone-100 flex items-center gap-2">
-              <Hash className="w-5 h-5 text-rose-600 dark:text-rose-500" />
-              <span>标签与创作赛道资产 (Tags & Genres)</span>
+              <span className="p-1 rounded-lg bg-rose-500/10 text-rose-600 dark:text-rose-400">
+                <Hash className="w-5 h-5" />
+              </span>
+              <span>标签与创作赛道资产</span>
             </h2>
             <p className="text-xs text-stone-500 dark:text-stone-400 mt-0.5">
-              沉淀 Bilibili 叙事视频的各大核心内容赛道，盘点各类型选题储备与产出
+              沉淀 Bilibili 叙事视频各大核心内容赛道，盘点各类型选题储备与产出
             </p>
           </div>
 
           <button
             onClick={openCreateModal}
-            className="flex items-center gap-1.5 px-3.5 py-2 bg-stone-900 dark:bg-rose-600 hover:bg-stone-800 dark:hover:bg-rose-700 text-white rounded-lg text-xs font-semibold shadow-xs transition-colors cursor-pointer"
+            className="flex items-center gap-1.5 px-4 py-2 bg-rose-600 hover:bg-rose-700 active:scale-[0.98] text-white rounded-xl text-xs sm:text-sm font-semibold shadow-2xs hover:shadow-xs transition-all cursor-pointer"
           >
-            <Plus className="w-4 h-4" />
+            <Plus className="w-4 h-4 stroke-[2.5]" />
             <span>新建赛道标签</span>
           </button>
         </div>
 
         {/* Metric Cards */}
         <div className="tags-metrics-container grid grid-cols-2 sm:grid-cols-4 gap-3">
-          <div className="metric-card metric-tag-total bg-stone-50 dark:bg-stone-800/60 border border-stone-200/80 dark:border-stone-700 rounded-xl p-3.5">
+          <div className="bg-white dark:bg-stone-800/80 border border-stone-200/70 dark:border-stone-700/80 rounded-2xl p-3.5 shadow-2xs">
             <div className="text-[11px] font-semibold text-stone-500 dark:text-stone-400 uppercase flex items-center gap-1">
               <Layers className="w-3.5 h-3.5 text-stone-400 dark:text-stone-500" />
               <span>赛道标签总数</span>
@@ -208,7 +211,7 @@ export const TagsView: React.FC<TagsViewProps> = ({
             <div className="text-xl font-bold text-stone-900 dark:text-stone-100 mt-1 font-mono">{tags.length} 个</div>
           </div>
 
-          <div className="metric-card metric-tag-coverage bg-stone-50 dark:bg-stone-800/60 border border-stone-200/80 dark:border-stone-700 rounded-xl p-3.5">
+          <div className="bg-white dark:bg-stone-800/80 border border-stone-200/70 dark:border-stone-700/80 rounded-2xl p-3.5 shadow-2xs">
             <div className="text-[11px] font-semibold text-stone-500 dark:text-stone-400 uppercase flex items-center gap-1">
               <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500" />
               <span>打标覆盖率</span>
@@ -218,7 +221,7 @@ export const TagsView: React.FC<TagsViewProps> = ({
             </div>
           </div>
 
-          <div className="metric-card metric-tag-richest bg-stone-50 dark:bg-stone-800/60 border border-stone-200/80 dark:border-stone-700 rounded-xl p-3.5">
+          <div className="bg-white dark:bg-stone-800/80 border border-stone-200/70 dark:border-stone-700/80 rounded-2xl p-3.5 shadow-2xs">
             <div className="text-[11px] font-semibold text-stone-500 dark:text-stone-400 uppercase flex items-center gap-1">
               <TrendingUp className="w-3.5 h-3.5 text-rose-500" />
               <span>储备最丰富赛道</span>
@@ -230,7 +233,7 @@ export const TagsView: React.FC<TagsViewProps> = ({
             </div>
           </div>
 
-          <div className="metric-card metric-tag-writing bg-stone-50 dark:bg-stone-800/60 border border-stone-200/80 dark:border-stone-700 rounded-xl p-3.5">
+          <div className="bg-white dark:bg-stone-800/80 border border-stone-200/70 dark:border-stone-700/80 rounded-2xl p-3.5 shadow-2xs">
             <div className="text-[11px] font-semibold text-stone-500 dark:text-stone-400 uppercase flex items-center gap-1">
               <PenTool className="w-3.5 h-3.5 text-indigo-500 dark:text-indigo-400" />
               <span>在写稿赛道数</span>
@@ -245,7 +248,7 @@ export const TagsView: React.FC<TagsViewProps> = ({
       {/* 2. Main Content Grid (Master-Detail Split) */}
       <div className="flex-1 flex flex-col md:flex-row overflow-y-auto md:overflow-hidden min-h-0">
         {/* Left / Tag Selector List Panel (w-80) */}
-        <div className="tags-sidebar-panel w-full md:w-80 border-r border-stone-200 dark:border-stone-800 bg-white dark:bg-stone-900 flex flex-col shrink-0 h-64 md:h-full overflow-hidden">
+        <div className="tags-sidebar-panel w-full md:w-80 border-r border-stone-200/70 dark:border-stone-800 bg-white dark:bg-stone-900 flex flex-col shrink-0 h-64 md:h-full overflow-hidden">
           {/* Search Box */}
           <div className="p-3 border-b border-stone-100 dark:border-stone-800">
             <div className="relative">
@@ -255,7 +258,7 @@ export const TagsView: React.FC<TagsViewProps> = ({
                 placeholder="搜索标签名称..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full pl-9 pr-3 py-1.5 bg-stone-50 dark:bg-stone-800 border border-stone-200 dark:border-stone-700 rounded-lg text-xs text-stone-900 dark:text-stone-100 placeholder:text-stone-400 dark:placeholder:text-stone-500 focus:bg-white dark:focus:bg-stone-800 focus:outline-none focus:border-stone-900 dark:focus:border-stone-500"
+                className="w-full pl-9 pr-3 py-1.5 bg-stone-500/[0.03] dark:bg-stone-800 border border-stone-200/70 dark:border-stone-700 rounded-xl text-xs text-stone-900 dark:text-stone-100 placeholder:text-stone-400 dark:placeholder:text-stone-500 focus:bg-white dark:focus:bg-stone-800 focus:outline-none focus:border-rose-500"
               />
             </div>
           </div>
@@ -274,8 +277,8 @@ export const TagsView: React.FC<TagsViewProps> = ({
                   onClick={() => setSelectedTagId(tag.id)}
                   className={`tag-menu-item group relative flex items-center justify-between p-3 rounded-xl border transition-all cursor-pointer ${
                     isSelected
-                      ? 'is-selected bg-rose-50/60 dark:bg-rose-950/40 border-rose-300 dark:border-rose-800 text-stone-900 dark:text-stone-100 shadow-2xs'
-                      : 'bg-white dark:bg-stone-900 border-transparent hover:bg-stone-50 dark:hover:bg-stone-800/60 text-stone-700 dark:text-stone-300'
+                      ? 'is-selected bg-rose-500/10 dark:bg-rose-950/40 border-rose-500/20 text-stone-900 dark:text-stone-100 shadow-2xs font-semibold'
+                      : 'bg-white dark:bg-stone-900 border-transparent hover:bg-stone-100/70 dark:hover:bg-stone-800/60 text-stone-700 dark:text-stone-300'
                   }`}
                 >
                   <div className="flex items-center gap-2.5 min-w-0">
@@ -287,7 +290,7 @@ export const TagsView: React.FC<TagsViewProps> = ({
                       <div className="text-[11px] text-stone-400 dark:text-stone-500 flex items-center gap-2 mt-0.5">
                         <span>{count} 选题</span>
                         {stats && stats.inProgressCount > 0 && (
-                          <span className="text-indigo-600 dark:text-indigo-400 font-semibold">{stats.inProgressCount} 写稿中</span>
+                          <span className="text-indigo-600 dark:text-indigo-400 font-semibold">{stats.inProgressCount} 写稿</span>
                         )}
                         {stats && stats.publishedCount > 0 && (
                           <span className="text-emerald-600 dark:text-emerald-400 font-semibold">{stats.publishedCount} 已发布</span>
@@ -309,7 +312,7 @@ export const TagsView: React.FC<TagsViewProps> = ({
                         e.stopPropagation();
                         openEditModal(tag);
                       }}
-                      className="opacity-100 md:opacity-0 md:group-hover:opacity-100 p-1 text-stone-400 dark:text-stone-500 hover:text-stone-700 dark:hover:text-stone-300 rounded transition-opacity cursor-pointer"
+                      className="opacity-100 md:opacity-0 md:group-hover:opacity-100 p-1 text-stone-400 dark:text-stone-500 hover:text-stone-700 dark:hover:text-stone-300 rounded-lg transition-opacity cursor-pointer"
                       title="编辑标签"
                     >
                       <Edit2 className="w-3.5 h-3.5" />
@@ -320,7 +323,7 @@ export const TagsView: React.FC<TagsViewProps> = ({
                         e.stopPropagation();
                         setDeletingTag(tag);
                       }}
-                      className="opacity-100 md:opacity-0 md:group-hover:opacity-100 p-1 text-stone-400 dark:text-stone-500 hover:text-red-600 dark:hover:text-red-400 rounded transition-opacity cursor-pointer"
+                      className="opacity-100 md:opacity-0 md:group-hover:opacity-100 p-1 text-stone-400 dark:text-stone-500 hover:text-red-600 dark:hover:text-red-400 rounded-lg transition-opacity cursor-pointer"
                       title="删除标签"
                     >
                       <Trash2 className="w-3.5 h-3.5" />
@@ -343,28 +346,28 @@ export const TagsView: React.FC<TagsViewProps> = ({
           {activeTag ? (
             <>
               {/* Tag Header Banner */}
-              <div className="p-6 border-b border-stone-200 dark:border-stone-800 bg-white dark:bg-stone-900 flex items-center justify-between flex-wrap gap-4 shrink-0">
+              <div className="p-6 border-b border-stone-200/70 dark:border-stone-800 bg-white dark:bg-stone-900 flex items-center justify-between flex-wrap gap-4 shrink-0 shadow-2xs">
                 <div className="space-y-1">
                   <div className="flex items-center gap-2.5">
                     <span className="text-2xl font-black text-stone-900 dark:text-stone-100 flex items-center gap-1">
                       <Hash className="w-6 h-6 text-rose-600 dark:text-rose-500" />
                       {activeTag.name}
                     </span>
-                    <span className="text-xs bg-stone-100 dark:bg-stone-800 text-stone-700 dark:text-stone-300 font-bold px-2 py-0.5 rounded-md border border-stone-200 dark:border-stone-700">
+                    <span className="text-xs bg-stone-100 dark:bg-stone-800 text-stone-700 dark:text-stone-300 font-bold px-2.5 py-0.5 rounded-full font-mono">
                       共 {activeStats?.count || 0} 个选题
                     </span>
                   </div>
                   <div className="text-xs text-stone-500 dark:text-stone-400 flex items-center gap-3">
-                    <span>累计产出文案：<strong className="text-stone-800 dark:text-stone-200">{activeStats?.wordsTotal || 0} 字</strong></span>
+                    <span>累计产出文案：<strong className="text-stone-800 dark:text-stone-200 font-mono">{activeStats?.wordsTotal || 0} 字</strong></span>
                     <span>•</span>
-                    <span>平均故事评分：<strong className="text-stone-800 dark:text-stone-200">{activeStats?.avgScore || 0} / 10分</strong></span>
+                    <span>平均故事评分：<strong className="text-stone-800 dark:text-stone-200 font-mono">{activeStats?.avgScore || 0} / 10分</strong></span>
                   </div>
                 </div>
 
                 <div className="flex items-center gap-2">
                   <button
                     onClick={() => openEditModal(activeTag)}
-                    className="flex items-center gap-1 text-xs font-semibold text-stone-700 dark:text-stone-300 bg-stone-100 dark:bg-stone-800 hover:bg-stone-200/80 dark:hover:bg-stone-700 px-3 py-1.5 rounded-lg border border-stone-200 dark:border-stone-700 transition-colors cursor-pointer"
+                    className="flex items-center gap-1 text-xs font-semibold text-stone-700 dark:text-stone-300 bg-stone-100 dark:bg-stone-800 hover:bg-stone-200/80 dark:hover:bg-stone-700 px-3 py-1.5 rounded-xl transition-colors cursor-pointer"
                   >
                     <Edit2 className="w-3.5 h-3.5" />
                     <span>编辑标签</span>
@@ -372,7 +375,7 @@ export const TagsView: React.FC<TagsViewProps> = ({
 
                   <button
                     onClick={() => onQuickCreateTopicInTag(activeTag.name)}
-                    className="flex items-center gap-1.5 text-xs font-semibold text-white bg-stone-900 dark:bg-rose-600 hover:bg-stone-800 dark:hover:bg-rose-700 px-3.5 py-1.5 rounded-lg shadow-xs transition-colors cursor-pointer"
+                    className="flex items-center gap-1.5 text-xs font-semibold text-white bg-rose-600 hover:bg-rose-700 px-3.5 py-1.5 rounded-xl shadow-2xs transition-colors cursor-pointer"
                   >
                     <Plus className="w-3.5 h-3.5" />
                     <span>为此赛道新建选题</span>
@@ -381,7 +384,7 @@ export const TagsView: React.FC<TagsViewProps> = ({
               </div>
 
               {/* Status Filter Tabs */}
-              <div className="px-6 py-3 border-b border-stone-200 dark:border-stone-800 bg-stone-50 dark:bg-stone-900/90 flex items-center gap-2 shrink-0 overflow-x-auto">
+              <div className="px-6 py-3 border-b border-stone-200/70 dark:border-stone-800 bg-stone-50/80 dark:bg-stone-900/90 flex items-center gap-2 shrink-0 overflow-x-auto">
                 <span className="text-xs font-semibold text-stone-400 dark:text-stone-500 mr-2">阶段筛选：</span>
                 {([
                   { id: 'all', label: '全部' },
@@ -392,10 +395,10 @@ export const TagsView: React.FC<TagsViewProps> = ({
                   <button
                     key={tab.id}
                     onClick={() => setTopicStatusFilter(tab.id)}
-                    className={`px-3 py-1 rounded-lg text-xs font-medium transition-all cursor-pointer ${
+                    className={`px-3 py-1 rounded-xl text-xs font-medium transition-all cursor-pointer ${
                       topicStatusFilter === tab.id
-                        ? 'bg-stone-900 dark:bg-rose-600 text-white font-semibold shadow-xs'
-                        : 'bg-white dark:bg-stone-800 text-stone-600 dark:text-stone-300 border border-stone-200 dark:border-stone-700 hover:bg-stone-100 dark:hover:bg-stone-700'
+                        ? 'bg-stone-900 dark:bg-rose-600 text-white font-bold shadow-2xs'
+                        : 'bg-white dark:bg-stone-800 text-stone-600 dark:text-stone-300 border border-stone-200/70 dark:border-stone-700 hover:bg-stone-100 dark:hover:bg-stone-700'
                     }`}
                   >
                     {tab.label}
@@ -410,7 +413,7 @@ export const TagsView: React.FC<TagsViewProps> = ({
                     <div
                       key={topic.id}
                       onClick={() => onSelectTopic(topic.id)}
-                      className="bg-white dark:bg-stone-900 rounded-xl border border-stone-200 dark:border-stone-800 p-5 space-y-3 shadow-subtle hover:border-stone-400/80 dark:hover:border-stone-600 transition-all cursor-pointer flex flex-col justify-between group"
+                      className="bg-white dark:bg-stone-900 rounded-2xl border border-stone-200/70 dark:border-stone-800 p-5 space-y-3 shadow-2xs hover:shadow-card hover:-translate-y-0.5 transition-all cursor-pointer flex flex-col justify-between group"
                     >
                       <div className="space-y-2.5">
                         {/* Status & Priority */}
@@ -426,15 +429,15 @@ export const TagsView: React.FC<TagsViewProps> = ({
 
                         {/* Summary */}
                         {topic.summary && (
-                          <p className="text-xs text-stone-600 dark:text-stone-300 line-clamp-2 leading-relaxed bg-stone-50 dark:bg-stone-800/60 p-2.5 rounded-lg border border-stone-100 dark:border-stone-800">
+                          <p className="text-xs text-stone-600 dark:text-stone-300 line-clamp-2 leading-relaxed bg-stone-500/[0.03] dark:bg-stone-800/60 p-2.5 rounded-xl border border-stone-200/50 dark:border-stone-800">
                             {topic.summary}
                           </p>
                         )}
 
                         {/* Next Action */}
                         {topic.next_action && (
-                          <div className="text-xs text-rose-700 dark:text-rose-300 bg-rose-50/70 dark:bg-rose-950/40 px-2.5 py-1 rounded-md border border-rose-200/60 dark:border-rose-900/60 flex items-center gap-1.5 font-medium truncate">
-                            <span className="shrink-0 font-bold">下一步:</span>
+                          <div className="text-xs text-rose-950 dark:text-rose-200 bg-rose-500/10 dark:bg-rose-950/40 px-2.5 py-1 rounded-lg flex items-center gap-1.5 font-medium truncate">
+                            <span className="shrink-0 font-bold text-rose-600 dark:text-rose-400">⚡ 下一步:</span>
                             <span className="truncate">{topic.next_action}</span>
                           </div>
                         )}
@@ -451,131 +454,113 @@ export const TagsView: React.FC<TagsViewProps> = ({
                   ))}
 
                   {activeTagTopics.length === 0 && (
-                    <div className="col-span-full py-16 text-center border-2 border-dashed border-stone-200 dark:border-stone-800 rounded-2xl bg-white dark:bg-stone-900 space-y-3">
-                      <FolderKanban className="w-10 h-10 text-stone-300 dark:text-stone-600 mx-auto" />
-                      <div className="text-sm font-bold text-stone-700 dark:text-stone-300">该赛道下暂无选题</div>
-                      <p className="text-xs text-stone-400 dark:text-stone-500 max-w-sm mx-auto">
-                        点击下方按钮立即为此赛道创建第一个叙事选题
-                      </p>
-                      <button
-                        onClick={() => onQuickCreateTopicInTag(activeTag.name)}
-                        className="inline-flex items-center gap-1.5 text-xs font-semibold text-rose-600 dark:text-rose-400 bg-rose-50 dark:bg-rose-950/40 hover:bg-rose-100 dark:hover:bg-rose-950/70 px-3.5 py-2 rounded-lg border border-rose-200 dark:border-rose-900/60 transition-colors cursor-pointer"
-                      >
-                        <Plus className="w-4 h-4" />
-                        <span>立即新建选题</span>
-                      </button>
+                    <div className="col-span-full py-16 text-center border-2 border-dashed border-stone-200/80 dark:border-stone-800 rounded-2xl bg-white dark:bg-stone-900 text-stone-400 dark:text-stone-500">
+                      当前赛道在所选筛选条件下暂无选题
                     </div>
                   )}
                 </div>
               </div>
             </>
           ) : (
-            <div className="flex-1 flex flex-col items-center justify-center p-8 text-center text-stone-400 dark:text-stone-500 space-y-3">
-              <Compass className="w-12 h-12 text-stone-300 dark:text-stone-600" />
-              <div className="text-base font-bold text-stone-700 dark:text-stone-300">暂无选中的赛道标签</div>
-              <button
-                onClick={openCreateModal}
-                className="px-4 py-2 bg-stone-900 dark:bg-rose-600 text-white rounded-lg text-xs font-semibold cursor-pointer"
-              >
-                创建第一个标签
-              </button>
+            <div className="flex-1 flex items-center justify-center p-12 text-stone-400 text-sm">
+              请选择或创建一个赛道标签
             </div>
           )}
         </div>
       </div>
 
-      {/* Edit / Create Tag Modal */}
+      {/* Modal: Create / Edit Tag */}
       <Modal
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
-        title={editingTag ? `编辑标签：#${editingTag.name}` : '新建创作赛道标签'}
-        subtitle="为叙事类视频分类，沉淀同一赛道的选题资产"
+        title={editingTag ? '编辑赛道标签' : '新建赛道标签'}
+        subtitle="标签代表长期深耕的内容领域，如社会纪实、网红打假、商战博弈等"
         maxWidth="sm"
       >
         <form onSubmit={handleSaveTagSubmit} className="space-y-4">
-          <div className="space-y-1.5">
-            <label className="block text-xs font-bold text-stone-800 dark:text-stone-200">
-              标签名称 <span className="text-rose-500">*</span>
+          <div>
+            <label className="block text-xs font-bold text-stone-800 dark:text-stone-200 mb-1">
+              标签名称 <span className="text-rose-600">*</span>
             </label>
             <div className="relative">
-              <span className="absolute left-3 top-2 text-stone-400 dark:text-stone-500 font-bold">#</span>
+              <span className="absolute left-3 top-2.5 text-stone-400 font-bold">#</span>
               <input
                 type="text"
                 required
                 autoFocus
-                placeholder="例如：网红翻车、荒诞事件、主播纪实..."
+                placeholder="例如：网红打假"
                 value={tagNameInput}
                 onChange={(e) => setTagNameInput(e.target.value)}
-                className="w-full pl-7 pr-3 py-2 bg-stone-50 dark:bg-stone-800 border border-stone-300 dark:border-stone-700 rounded-lg text-sm text-stone-900 dark:text-stone-100 placeholder:text-stone-400 dark:placeholder:text-stone-500 focus:bg-white dark:focus:bg-stone-800 focus:border-stone-900 dark:focus:border-stone-500 focus:outline-none"
+                className="w-full pl-7 pr-3.5 py-2.5 bg-stone-500/[0.03] dark:bg-stone-800 border border-stone-200/80 dark:border-stone-700 rounded-xl text-sm text-stone-900 dark:text-stone-100 placeholder:text-stone-400 dark:placeholder:text-stone-500 focus:bg-white dark:focus:bg-stone-800 focus:border-rose-500 focus:outline-none"
               />
             </div>
           </div>
 
-          <div className="space-y-1.5">
-            <label className="block text-xs font-bold text-stone-800 dark:text-stone-200">主题色彩</label>
+          <div>
+            <label className="block text-xs font-bold text-stone-800 dark:text-stone-200 mb-1.5">
+              赛道标识色
+            </label>
             <div className="grid grid-cols-3 gap-2">
               {TAG_COLOR_OPTIONS.map((c) => (
                 <button
-                  type="button"
                   key={c.id}
+                  type="button"
                   onClick={() => setTagColorInput(c.id)}
-                  className={`p-2 rounded-lg border text-xs font-medium flex items-center gap-2 transition-all cursor-pointer ${
+                  className={`flex items-center gap-1.5 p-2 rounded-xl border text-xs font-medium transition-all cursor-pointer ${
                     tagColorInput === c.id
-                      ? `${c.bg} ${c.border} font-bold ring-2 ring-stone-900/20 dark:ring-stone-400/40`
-                      : 'bg-white dark:bg-stone-800 border-stone-200 dark:border-stone-700 hover:bg-stone-50 dark:hover:bg-stone-700'
+                      ? 'border-rose-500 bg-rose-500/10 text-rose-800 dark:text-rose-200 font-bold'
+                      : 'border-stone-200/70 dark:border-stone-700 bg-stone-500/[0.03] dark:bg-stone-800 text-stone-700 dark:text-stone-300 hover:bg-stone-100'
                   }`}
                 >
-                  <span className={`w-3 h-3 rounded-full ${c.dot}`} />
-                  <span className="text-stone-800 dark:text-stone-200">{c.name}</span>
+                  <span className={`w-2.5 h-2.5 rounded-full ${c.dot}`} />
+                  <span>{c.name}</span>
                 </button>
               ))}
             </div>
           </div>
 
-          <div className="flex items-center justify-end gap-2.5 pt-3 border-t border-stone-200 dark:border-stone-800">
+          <div className="flex items-center justify-end gap-2.5 pt-3 border-t border-stone-200/70 dark:border-stone-800">
             <button
               type="button"
               onClick={() => setIsModalOpen(false)}
-              className="px-4 py-2 text-xs text-stone-600 dark:text-stone-400 hover:bg-stone-100 dark:hover:bg-stone-800 rounded-lg cursor-pointer transition-colors"
+              className="px-4 py-2 text-xs sm:text-sm font-semibold text-stone-600 dark:text-stone-400 hover:bg-stone-100 dark:hover:bg-stone-800 rounded-xl cursor-pointer transition-colors"
             >
               取消
             </button>
             <button
               type="submit"
-              disabled={!tagNameInput.trim()}
-              className="px-4 py-2 text-xs bg-stone-900 dark:bg-rose-600 hover:bg-stone-800 dark:hover:bg-rose-700 text-white rounded-lg font-semibold disabled:opacity-50 cursor-pointer transition-colors"
+              className="px-5 py-2 text-xs sm:text-sm bg-rose-600 hover:bg-rose-700 text-white rounded-xl font-bold cursor-pointer transition-all shadow-2xs"
             >
-              {editingTag ? '保存修改' : '创建标签'}
+              {editingTag ? '更新标签' : '保存标签'}
             </button>
           </div>
         </form>
       </Modal>
 
-      {/* Delete Confirmation Modal */}
+      {/* Modal: Delete Confirm */}
       <Modal
-        isOpen={!!deletingTag}
+        isOpen={Boolean(deletingTag)}
         onClose={() => setDeletingTag(null)}
-        title="确认删除赛道标签？"
-        subtitle={`将从全局标签库中移除 #${deletingTag?.name}`}
+        title="确认删除此赛道标签？"
         maxWidth="sm"
       >
         <div className="space-y-4">
-          <p className="text-xs text-stone-600 dark:text-stone-300 leading-relaxed bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-900/60 p-3 rounded-lg">
-            ⚠️ 删除标签不会删除关联的选题卡片，但会从所有打了该标签的选题中解除该标签关联。
+          <p className="text-xs sm:text-sm text-stone-600 dark:text-stone-300 leading-relaxed">
+            删除标签 <strong className="text-stone-900 dark:text-stone-100">#{deletingTag?.name}</strong> 将仅移除标签本身，关联选题不会被删除。
           </p>
 
-          <div className="flex items-center justify-end gap-2.5 pt-2">
+          <div className="flex items-center justify-end gap-2.5 pt-3 border-t border-stone-200/70 dark:border-stone-800">
             <button
               type="button"
               onClick={() => setDeletingTag(null)}
-              className="px-4 py-2 text-xs text-stone-600 dark:text-stone-400 hover:bg-stone-100 dark:hover:bg-stone-800 rounded-lg cursor-pointer transition-colors"
+              className="px-4 py-2 text-xs sm:text-sm font-semibold text-stone-600 dark:text-stone-400 hover:bg-stone-100 dark:hover:bg-stone-800 rounded-xl cursor-pointer"
             >
               取消
             </button>
             <button
               type="button"
               onClick={handleConfirmDelete}
-              className="px-4 py-2 text-xs bg-red-600 hover:bg-red-700 text-white rounded-lg font-semibold shadow-xs cursor-pointer transition-colors"
+              className="px-5 py-2 text-xs sm:text-sm bg-red-600 hover:bg-red-700 text-white rounded-xl font-bold cursor-pointer transition-all shadow-2xs"
             >
               确认删除
             </button>

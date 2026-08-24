@@ -717,11 +717,11 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
 
       {/* Palette Modal */}
       <div
-        className="relative w-full max-w-2xl bg-white dark:bg-stone-900 rounded-2xl shadow-modal border border-stone-200 dark:border-stone-800 overflow-hidden flex flex-col z-10 animate-in fade-in zoom-in-95 duration-100 transition-colors max-h-[85vh]"
+        className="relative w-full max-w-2xl bg-white dark:bg-stone-900 rounded-2xl shadow-modal border border-stone-200/70 dark:border-stone-800 overflow-hidden flex flex-col z-10 animate-in fade-in zoom-in-95 duration-100 transition-colors max-h-[85vh]"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Search Input Header */}
-        <div className="flex items-center px-4 py-3.5 border-b border-stone-200 dark:border-stone-800 bg-stone-50/50 dark:bg-stone-900/90">
+        <div className="flex items-center px-4 py-3.5 border-b border-stone-200/70 dark:border-stone-800 bg-stone-50/50 dark:bg-stone-900/90">
           <Search className="w-5 h-5 text-stone-400 dark:text-stone-500 mr-3 shrink-0" />
           <input
             ref={inputRef}
@@ -733,25 +733,25 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
             className="w-full text-sm sm:text-base bg-transparent border-none outline-none text-stone-900 dark:text-stone-100 placeholder:text-stone-400 dark:placeholder:text-stone-500 font-medium"
           />
           {mode !== 'all' && (
-            <span className="mr-2 px-2 py-0.5 rounded text-xs font-semibold bg-rose-50 dark:bg-rose-950/60 text-rose-700 dark:text-rose-300 border border-rose-200 dark:border-rose-800 shrink-0 font-mono">
+            <span className="mr-2 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-rose-500/10 text-rose-700 dark:text-rose-300 shrink-0 font-mono">
               {mode === 'tag' ? '# 赛道模式' : mode === 'person' ? '@ 人物模式' : mode === 'help' ? '? 快捷键模式' : '> 动作模式'}
             </span>
           )}
-          <kbd className="text-xs bg-stone-100 dark:bg-stone-800 text-stone-500 dark:text-stone-400 px-1.5 py-0.5 rounded border border-stone-200 dark:border-stone-700 font-mono shrink-0">
+          <kbd className="text-xs bg-stone-100 dark:bg-stone-800 text-stone-500 dark:text-stone-400 px-2 py-0.5 rounded-lg border border-stone-200/70 dark:border-stone-700 font-mono shrink-0 shadow-2xs">
             ESC
           </kbd>
         </div>
 
         {/* Mode Quick Filter Chips */}
-        <div className="px-4 py-2 bg-stone-100/70 dark:bg-stone-800/60 border-b border-stone-200/60 dark:border-stone-700/60 flex items-center gap-1.5 overflow-x-auto no-scrollbar text-xs font-semibold transition-colors">
-          <span className="text-stone-500 dark:text-stone-400 text-[10px] uppercase font-bold tracking-wider mr-1 shrink-0">模式:</span>
+        <div className="px-4 py-2 bg-stone-500/[0.03] dark:bg-stone-800/60 border-b border-stone-200/60 dark:border-stone-700/60 flex items-center gap-1.5 overflow-x-auto no-scrollbar text-xs font-semibold transition-colors">
+          <span className="text-stone-400 dark:text-stone-500 text-[10px] uppercase font-bold tracking-wider mr-1 shrink-0">模式:</span>
           <button
             type="button"
             onClick={() => handleSetPrefix('')}
-            className={`px-2.5 py-1 rounded-lg transition-all cursor-pointer shrink-0 ${
+            className={`px-3 py-1 rounded-xl transition-all cursor-pointer shrink-0 ${
               mode === 'all' && !query
                 ? 'bg-rose-600 text-white shadow-2xs font-bold'
-                : 'bg-stone-200/60 dark:bg-stone-700/60 hover:bg-stone-200 dark:hover:bg-stone-600 text-stone-800 dark:text-stone-100 font-medium'
+                : 'bg-stone-500/[0.05] dark:bg-stone-700/60 hover:bg-stone-500/[0.1] dark:hover:bg-stone-600 text-stone-800 dark:text-stone-100 font-medium'
             }`}
           >
             全部
@@ -759,10 +759,10 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
           <button
             type="button"
             onClick={() => handleSetPrefix('> ')}
-            className={`px-2.5 py-1 rounded-lg transition-all cursor-pointer shrink-0 font-mono ${
+            className={`px-3 py-1 rounded-xl transition-all cursor-pointer shrink-0 font-mono ${
               mode === 'action'
                 ? 'bg-rose-600 text-white shadow-2xs font-bold'
-                : 'bg-stone-200/60 dark:bg-stone-700/60 hover:bg-stone-200 dark:hover:bg-stone-600 text-stone-800 dark:text-stone-100 font-medium'
+                : 'bg-stone-500/[0.05] dark:bg-stone-700/60 hover:bg-stone-500/[0.1] dark:hover:bg-stone-600 text-stone-800 dark:text-stone-100 font-medium'
             }`}
           >
             &gt; 快捷动作
@@ -770,10 +770,10 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
           <button
             type="button"
             onClick={() => handleSetPrefix('# ')}
-            className={`px-2.5 py-1 rounded-lg transition-all cursor-pointer shrink-0 font-mono ${
+            className={`px-3 py-1 rounded-xl transition-all cursor-pointer shrink-0 font-mono ${
               mode === 'tag'
                 ? 'bg-rose-600 text-white shadow-2xs font-bold'
-                : 'bg-stone-200/60 dark:bg-stone-700/60 hover:bg-stone-200 dark:hover:bg-stone-600 text-stone-800 dark:text-stone-100 font-medium'
+                : 'bg-stone-500/[0.05] dark:bg-stone-700/60 hover:bg-stone-500/[0.1] dark:hover:bg-stone-600 text-stone-800 dark:text-stone-100 font-medium'
             }`}
           >
             # 赛道标签
@@ -781,10 +781,10 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
           <button
             type="button"
             onClick={() => handleSetPrefix('@ ')}
-            className={`px-2.5 py-1 rounded-lg transition-all cursor-pointer shrink-0 font-mono ${
+            className={`px-3 py-1 rounded-xl transition-all cursor-pointer shrink-0 font-mono ${
               mode === 'person'
                 ? 'bg-rose-600 text-white shadow-2xs font-bold'
-                : 'bg-stone-200/60 dark:bg-stone-700/60 hover:bg-stone-200 dark:hover:bg-stone-600 text-stone-800 dark:text-stone-100 font-medium'
+                : 'bg-stone-500/[0.05] dark:bg-stone-700/60 hover:bg-stone-500/[0.1] dark:hover:bg-stone-600 text-stone-800 dark:text-stone-100 font-medium'
             }`}
           >
             @ 人物库
@@ -792,10 +792,10 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
           <button
             type="button"
             onClick={() => handleSetPrefix('? ')}
-            className={`px-2.5 py-1 rounded-lg transition-all cursor-pointer shrink-0 font-mono ${
+            className={`px-3 py-1 rounded-xl transition-all cursor-pointer shrink-0 font-mono ${
               mode === 'help'
                 ? 'bg-rose-600 text-white shadow-2xs font-bold'
-                : 'bg-stone-200/60 dark:bg-stone-700/60 hover:bg-stone-200 dark:hover:bg-stone-600 text-stone-800 dark:text-stone-100 font-medium'
+                : 'bg-stone-500/[0.05] dark:bg-stone-700/60 hover:bg-stone-500/[0.1] dark:hover:bg-stone-600 text-stone-800 dark:text-stone-100 font-medium'
             }`}
           >
             ? 快捷键大全

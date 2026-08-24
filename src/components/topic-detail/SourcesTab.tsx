@@ -209,22 +209,22 @@ export const SourcesTab: React.FC<SourcesTabProps> = ({
   return (
     <div className="py-4 sm:py-6 space-y-5">
       {/* Header & Filter Bar */}
-      <div className="flex items-center justify-between flex-wrap gap-3 bg-white dark:bg-stone-900 p-4 sm:p-5 rounded-2xl border border-stone-200 dark:border-stone-800 shadow-subtle transition-colors">
+      <div className="flex items-center justify-between flex-wrap gap-3 bg-white dark:bg-stone-900 p-4 sm:p-5 rounded-2xl border border-stone-200/70 dark:border-stone-800 shadow-2xs transition-colors">
         <div className="flex items-center gap-2.5 flex-wrap flex-1">
           {/* Real-time Search Input */}
           <div className="relative min-w-[200px] max-w-xs flex-1">
-            <Search className="w-3.5 h-3.5 absolute left-2.5 top-2.5 text-stone-400 dark:text-stone-500" />
+            <Search className="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-stone-400 dark:text-stone-500" />
             <input
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="搜索素材标题、内容、备忘..."
-              className="w-full pl-8 pr-7 py-1.5 bg-stone-50 dark:bg-stone-800 border border-stone-200 dark:border-stone-700 rounded-lg text-xs text-stone-900 dark:text-stone-100 placeholder:text-stone-400 focus:bg-white dark:focus:bg-stone-800 focus:outline-none focus:border-rose-500 transition-colors"
+              className="w-full pl-9 pr-7 py-2 bg-stone-500/[0.03] dark:bg-stone-800 border border-stone-200/70 dark:border-stone-700 rounded-xl text-xs text-stone-900 dark:text-stone-100 placeholder:text-stone-400 focus:bg-white dark:focus:bg-stone-800 focus:outline-none focus:border-rose-500 transition-colors"
             />
             {searchQuery && (
               <button
                 onClick={() => setSearchQuery('')}
-                className="absolute right-2 top-2 text-stone-400 hover:text-stone-600 dark:hover:text-stone-200 cursor-pointer"
+                className="absolute right-2.5 top-1/2 -translate-y-1/2 text-stone-400 hover:text-stone-600 dark:hover:text-stone-200 cursor-pointer"
               >
                 <X className="w-3.5 h-3.5" />
               </button>
@@ -258,23 +258,25 @@ export const SourcesTab: React.FC<SourcesTabProps> = ({
           />
         </div>
 
-        <button
-          onClick={openAddModal}
-          className="flex items-center gap-1 bg-stone-900 dark:bg-rose-600 hover:bg-stone-800 dark:hover:bg-rose-700 text-white px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors shadow-2xs cursor-pointer shrink-0"
-        >
-          <Plus className="w-4 h-4" />
-          <span>添加素材</span>
-        </button>
-        {selectedIds.size > 0 && (
+        <div className="flex items-center gap-2">
           <button
-            type="button"
-            onClick={() => void deleteSelected()}
-            className="flex items-center gap-1 rounded-lg border border-red-200 bg-red-50 px-3 py-1.5 text-xs font-semibold text-red-700 hover:bg-red-100 cursor-pointer shrink-0"
+            onClick={openAddModal}
+            className="flex items-center gap-1.5 bg-rose-600 hover:bg-rose-700 active:scale-[0.98] text-white px-3.5 py-2 rounded-xl text-xs font-bold transition-all shadow-2xs cursor-pointer shrink-0"
           >
-            <Trash2 className="w-4 h-4" />
-            <span>删除选中 ({selectedIds.size})</span>
+            <Plus className="w-4 h-4 stroke-[2.5]" />
+            <span>添加素材</span>
           </button>
-        )}
+          {selectedIds.size > 0 && (
+            <button
+              type="button"
+              onClick={() => void deleteSelected()}
+              className="flex items-center gap-1 rounded-xl bg-red-500/10 hover:bg-red-500/20 px-3 py-2 text-xs font-semibold text-red-700 dark:text-red-300 transition-colors cursor-pointer shrink-0"
+            >
+              <Trash2 className="w-4 h-4" />
+              <span>删除选中 ({selectedIds.size})</span>
+            </button>
+          )}
+        </div>
       </div>
 
       {/* Sources Grid: 3-Column Responsive Layout */}
@@ -282,13 +284,13 @@ export const SourcesTab: React.FC<SourcesTabProps> = ({
         {filteredSources.map((s) => (
           <div
             key={s.id}
-            className="bg-white dark:bg-stone-900 rounded-xl border border-stone-200 dark:border-stone-800 p-3.5 sm:p-4 space-y-2.5 shadow-2xs hover:shadow-subtle transition-all flex flex-col justify-between"
+            className="bg-white dark:bg-stone-900 rounded-2xl border border-stone-200/70 dark:border-stone-800 p-4 space-y-3 shadow-2xs hover:shadow-card hover:-translate-y-0.5 transition-all flex flex-col justify-between"
           >
-            <div className="space-y-2">
+            <div className="space-y-2.5">
               {/* Badges row & Quick actions */}
               <div className="flex items-center justify-between gap-1.5 flex-wrap">
                 <div className="flex items-center gap-1.5 flex-wrap">
-                  <input type="checkbox" checked={selectedIds.has(s.id)} onChange={() => toggleSelected(s.id)} aria-label={`选择素材「${s.title}」`} className="h-4 w-4 accent-rose-600" />
+                  <input type="checkbox" checked={selectedIds.has(s.id)} onChange={() => toggleSelected(s.id)} aria-label={`选择素材「${s.title}」`} className="h-4 w-4 rounded accent-rose-600 cursor-pointer" />
                   <PlatformBadge platform={s.platform} />
                   <button
                     type="button"
@@ -302,14 +304,14 @@ export const SourcesTab: React.FC<SourcesTabProps> = ({
                 <div className="flex items-center gap-0.5">
                   <button
                     onClick={() => openEditModal(s)}
-                    className="p-1 text-stone-400 dark:text-stone-500 hover:text-stone-700 dark:hover:text-stone-300 rounded hover:bg-stone-100 dark:hover:bg-stone-800 cursor-pointer transition-colors"
+                    className="p-1 text-stone-400 dark:text-stone-500 hover:text-stone-700 dark:hover:text-stone-300 rounded-lg hover:bg-stone-100 dark:hover:bg-stone-800 cursor-pointer transition-colors"
                     title="编辑素材"
                   >
                     <Edit2 className="w-3.5 h-3.5" />
                   </button>
                   <button
                     onClick={() => onDeleteSource(s.id)}
-                    className="p-1 text-stone-400 dark:text-stone-500 hover:text-red-600 dark:hover:text-red-400 rounded hover:bg-red-50 dark:hover:bg-red-950/40 cursor-pointer transition-colors"
+                    className="p-1 text-stone-400 dark:text-stone-500 hover:text-red-600 dark:hover:text-red-400 rounded-lg hover:bg-red-50 dark:hover:bg-red-950/40 cursor-pointer transition-colors"
                     title="删除素材"
                   >
                     <Trash2 className="w-3.5 h-3.5" />
@@ -324,14 +326,14 @@ export const SourcesTab: React.FC<SourcesTabProps> = ({
 
               {/* Content / Summary */}
               {s.content && (
-                <p className="text-xs text-stone-600 dark:text-stone-300 leading-relaxed bg-stone-50/90 dark:bg-stone-800/60 p-2.5 rounded-lg border border-stone-100 dark:border-stone-800/80 line-clamp-3">
+                <p className="text-xs text-stone-600 dark:text-stone-300 leading-relaxed bg-stone-500/[0.03] dark:bg-stone-800/60 p-2.5 rounded-xl border border-stone-200/50 dark:border-stone-800/80 line-clamp-3">
                   {s.content}
                 </p>
               )}
 
               {/* Notes / Tips */}
               {s.notes && (
-                <div className="text-[11px] text-stone-600 dark:text-stone-400 bg-amber-50/60 dark:bg-amber-950/30 px-2 py-1 rounded border border-amber-200/50 dark:border-amber-900/40 truncate" title={`备忘：${s.notes}`}>
+                <div className="text-[11px] text-stone-600 dark:text-stone-400 bg-amber-500/[0.04] dark:bg-amber-950/30 px-2.5 py-1 rounded-lg border border-amber-500/20 truncate" title={`备忘：${s.notes}`}>
                   💡 {s.notes}
                 </div>
               )}
@@ -340,7 +342,7 @@ export const SourcesTab: React.FC<SourcesTabProps> = ({
             {/* Bottom Meta & Action buttons */}
             <div className="pt-2.5 border-t border-stone-100 dark:border-stone-800 flex items-center justify-between flex-wrap gap-1.5 text-[11px] text-stone-400 dark:text-stone-500">
               <div className="flex items-center gap-2 truncate">
-                {s.author && <span className="truncate max-w-[90px]" title={s.author}>@{s.author}</span>}
+                {s.author && <span className="truncate max-w-[90px] font-semibold" title={s.author}>@{s.author}</span>}
                 {s.published_at && <span>{s.published_at}</span>}
 
                 {/* Convert to Timeline Event Button */}
@@ -351,7 +353,7 @@ export const SourcesTab: React.FC<SourcesTabProps> = ({
                       setTimelineConvertedId(s.id);
                       setTimeout(() => setTimelineConvertedId(null), 2000);
                     }}
-                    className="inline-flex items-center gap-0.5 text-[10px] font-medium text-stone-500 dark:text-stone-400 hover:text-rose-600 dark:hover:text-rose-400 transition-colors cursor-pointer"
+                    className="inline-flex items-center gap-0.5 text-[10px] font-semibold text-stone-500 dark:text-stone-400 hover:text-rose-600 dark:hover:text-rose-400 transition-colors cursor-pointer"
                     title="一键将本条素材沉淀为故事时间线事件"
                   >
                     {timelineConvertedId === s.id ? (
@@ -386,7 +388,7 @@ export const SourcesTab: React.FC<SourcesTabProps> = ({
                     href={s.url}
                     target="_blank"
                     rel="noreferrer"
-                    className="flex items-center gap-0.5 text-rose-600 dark:text-rose-400 hover:text-rose-700 dark:hover:text-rose-300 font-semibold hover:underline"
+                    className="flex items-center gap-0.5 text-rose-600 dark:text-rose-400 hover:text-rose-700 dark:hover:text-rose-300 font-semibold"
                   >
                     <span>来源</span>
                     <ExternalLink className="w-3 h-3" />
