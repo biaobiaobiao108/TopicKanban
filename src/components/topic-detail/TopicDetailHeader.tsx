@@ -82,6 +82,7 @@ export const TopicDetailHeader: React.FC<TopicDetailHeaderProps> = ({
 
   const statusLabel = COLUMNS.find((column) => column.status === topic.status)?.label || topic.status;
   const warning = getNextActionWarning(topic);
+  const actionDays = getNextActionAgeDays(topic);
 
   const handleSaveTitle = async () => {
     if (title.trim() && title !== topic.title) {
@@ -297,46 +298,44 @@ export const TopicDetailHeader: React.FC<TopicDetailHeaderProps> = ({
           )}
         </div>
 
-        {/* Next Action Capsule integrated into the top row */}
-        <div className="shrink-0 min-w-0 max-w-[200px] sm:max-w-xs lg:max-w-md">
+        {/* Next Action Capsule: Highly Prominent Hero Pill */}
+        <div className="shrink-0 min-w-0 max-w-[220px] sm:max-w-sm lg:max-w-lg">
           {topic.next_action ? (
             <button
               type="button"
               onClick={() => setIsActionDialogOpen(true)}
-              className={`group inline-flex items-center gap-2 px-3 py-1 sm:py-1.5 rounded-full text-xs sm:text-[13px] font-bold transition-all cursor-pointer shadow-2xs hover:shadow-xs active:scale-[0.98] max-w-full truncate ${
+              className={`group inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full text-xs sm:text-[13px] font-bold transition-all cursor-pointer shadow-xs hover:shadow-subtle active:scale-[0.98] max-w-full truncate ${
                 warning
-                  ? 'bg-amber-500/15 text-amber-950 dark:text-amber-100 hover:bg-amber-500/25'
-                  : 'bg-rose-500/10 dark:bg-rose-500/15 text-stone-900 dark:text-stone-100 hover:bg-rose-500/20'
+                  ? 'bg-amber-500 hover:bg-amber-600 text-amber-950 dark:bg-amber-600 dark:hover:bg-amber-500 dark:text-white'
+                  : 'bg-stone-900 hover:bg-stone-800 text-white dark:bg-rose-600 dark:hover:bg-rose-700'
               }`}
-              title={`下一步核心行动：${topic.next_action} (已持续 ${getNextActionAgeDays(topic)} 天) - 点击更新或完成`}
+              title={`当前核心行动：${topic.next_action} (已持续 ${actionDays} 天) - 点击完成或续接下一步`}
             >
-              <Zap className={`w-3.5 h-3.5 sm:w-4 sm:h-4 shrink-0 ${warning ? 'text-amber-500 fill-amber-500' : 'text-rose-600 dark:text-rose-400 fill-rose-600/30'}`} />
-              <span className="truncate font-bold">{topic.next_action}</span>
+              <Zap className={`w-3.5 h-3.5 sm:w-4 sm:h-4 shrink-0 ${warning ? 'text-amber-950 dark:text-amber-200 fill-current' : 'text-amber-300 fill-amber-300 animate-pulse'}`} />
+              <span className="truncate">{topic.next_action}</span>
               {warning && (
-                <span className="text-[10px] sm:text-[11px] font-bold text-amber-800 dark:text-amber-300 bg-amber-500/20 px-1.5 py-0.2 rounded-full shrink-0">
+                <span className="text-[10px] font-extrabold bg-black/20 dark:bg-black/30 text-white px-1.5 py-0.5 rounded-full shrink-0">
                   {warning}
                 </span>
               )}
-              <span
-                className={`text-[10px] sm:text-[11px] font-mono font-bold px-1.5 py-0.2 rounded-full shrink-0 ${
-                  warning
-                    ? 'bg-amber-500/20 text-amber-900 dark:text-amber-200'
-                    : 'bg-rose-500/15 text-rose-800 dark:text-rose-200'
-                }`}
-              >
-                {getNextActionAgeDays(topic)}d
+              <span className="text-[10px] sm:text-[11px] font-mono font-bold bg-white/20 dark:bg-black/20 px-2 py-0.5 rounded-full shrink-0">
+                {actionDays}d
               </span>
             </button>
           ) : (
             <button
               type="button"
               onClick={() => setIsActionDialogOpen(true)}
-              className="inline-flex items-center gap-1.5 px-3 py-1 sm:py-1.5 rounded-full bg-amber-500/15 text-amber-950 dark:text-amber-100 text-xs sm:text-[13px] font-bold transition-all cursor-pointer shadow-2xs hover:bg-amber-500/25 active:scale-[0.98]"
-              title="当前选题缺少明确的下一步行动，点击快速添加"
+              className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-rose-600 hover:bg-rose-700 active:scale-[0.98] text-white text-xs sm:text-[13px] font-bold transition-all cursor-pointer shadow-xs"
+              title="当前选题尚未明确下一步行动，点击立即设定！"
             >
-              <AlertTriangle className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-amber-600 dark:text-amber-400 fill-amber-500/20 shrink-0 animate-pulse" />
-              <span className="font-extrabold hidden sm:inline">设定下一步行动</span>
-              <span className="font-extrabold sm:hidden">加行动</span>
+              <span className="relative flex h-2 w-2 shrink-0">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-300 opacity-75" />
+                <span className="relative inline-flex rounded-full h-2 w-2 bg-amber-300" />
+              </span>
+              <Zap className="w-3.5 h-3.5 text-amber-300 fill-amber-300" />
+              <span className="hidden sm:inline">设定下一步行动</span>
+              <span className="sm:hidden">加行动</span>
             </button>
           )}
         </div>

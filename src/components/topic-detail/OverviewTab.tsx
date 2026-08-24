@@ -1,7 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { Topic, Person, Tag } from '../../types';
 import { ScoreRatingDial } from './ScoreRatingDial';
+import { NextActionDialog } from './NextActionDialog';
 import { Modal } from '../ui/Modal';
+import { getNextActionAgeDays, getNextActionWarning } from '../../lib/topicMetrics';
 import {
   Save,
   Sparkles,
@@ -16,7 +18,9 @@ import {
   X,
   UserPlus,
   Eye,
-  Edit3
+  Edit3,
+  Zap,
+  CheckCircle2
 } from 'lucide-react';
 
 interface OverviewTabProps {
@@ -45,6 +49,7 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({
   const [isSaving, setIsSaving] = useState(false);
   const [savedSuccess, setSavedSuccess] = useState(false);
   const [storylineViewMode, setStorylineViewMode] = useState<'visual' | 'edit'>('visual');
+  const [isActionDialogOpen, setIsActionDialogOpen] = useState(false);
 
   // Tag creation state
   const [newTagName, setNewTagName] = useState('');
@@ -57,6 +62,9 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({
   const [newPersonAliases, setNewPersonAliases] = useState('');
   const [newPersonAccounts, setNewPersonAccounts] = useState('');
   const [newPersonDesc, setNewPersonDesc] = useState('');
+
+  const actionDays = getNextActionAgeDays(topic);
+  const actionWarning = getNextActionWarning(topic);
 
   useEffect(() => {
     setSummary(topic.summary || '');
@@ -169,6 +177,42 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-2 gap-5 py-4">
+      {/* 0. Hero Next Action Callout Tile (Full Width at Top) */}
+      <div className="col-span-1 lg:col-span-2 bg-gradient-to-r from-rose-500/[0.08] via-rose-500/[0.04] to-amber-500/[0.08] dark:from-rose-950/40 dark:via-stone-900/40 dark:to-amber-950/30 rounded-2xl border border-rose-200/60 dark:border-rose-900/50 p-4 sm:p-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 shadow-2xs">
+        <div className="space-y-1 flex-1 min-w-0">
+          <div className="flex items-center gap-2 text-xs font-bold text-rose-700 dark:text-rose-400 uppercase tracking-wider">
+            <span className="relative flex h-2 w-2 shrink-0">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-rose-400 opacity-75" />
+              <span className="relative inline-flex rounded-full h-2 w-2 bg-rose-600 dark:bg-rose-500" />
+            </span>
+            <Zap className="w-3.5 h-3.5 fill-rose-500/20" />
+            <span>当前核心行动 (Next Action)</span>
+            {topic.next_action && (
+              <span className="font-mono font-bold bg-rose-500/15 dark:bg-rose-900/50 text-rose-800 dark:text-rose-200 px-2 py-0.5 rounded-full text-[10px]">
+                已持续 {actionDays} 天
+              </span>
+            )}
+            {actionWarning && (
+              <span className="text-[10px] text-amber-700 dark:text-amber-300 font-bold bg-amber-500/15 px-2 py-0.5 rounded-full">
+                ⚠ {actionWarning}
+              </span>
+            )}
+          </div>
+          <div className="text-base sm:text-lg font-bold text-stone-900 dark:text-stone-100 leading-snug">
+            {topic.next_action || '尚未设置具体下一步，点击立即规划！'}
+          </div>
+        </div>
+
+        <button
+          type="button"
+          onClick={() => setIsActionDialogOpen(true)}
+          className="shrink-0 flex items-center gap-2 bg-rose-600 hover:bg-rose-700 active:scale-[0.98] text-white px-4 py-2 rounded-xl text-xs sm:text-sm font-semibold transition-all shadow-2xs cursor-pointer"
+        >
+          <CheckCircle2 className="w-4 h-4" />
+          <span>{topic.next_action ? '完成 / 更新行动' : '设置下一步行动'}</span>
+        </button>
+      </div>
+
       {/* Left Column: Story Blueprint Cards & Tags (1/2) */}
       <div className="space-y-4">
         {/* 1. 一句话选题 (Core Concept) */}
@@ -611,6 +655,14 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({
           </div>
         </form>
       </Modal>
+
+      {/* Next Action Dialog */}
+      <NextActionDialog
+        isOpen={isActionDialogOpen}
+        topic={topic}
+        onClose={() => setIsActionDialogOpen(false)}
+        onUpdate={onUpdateTopic}
+      />
     </div>
   );
 };
