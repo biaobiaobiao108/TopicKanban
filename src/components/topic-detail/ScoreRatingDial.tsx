@@ -1,6 +1,6 @@
 import React from 'react';
 import { Topic } from '../../types';
-import { Sparkles, HelpCircle } from 'lucide-react';
+import { Sparkles } from 'lucide-react';
 
 interface ScoreRatingDialProps {
   topic: Topic;
@@ -44,21 +44,21 @@ export const ScoreRatingDial: React.FC<ScoreRatingDialProps> = ({ topic, onUpdat
     (topic.score_story || 0);
 
   const getScoreAssessment = (score: number) => {
-    if (score >= 9) return { text: 'S级 绝佳爆款相，立刻写稿！', color: 'text-emerald-700 dark:text-emerald-300 bg-emerald-50 dark:bg-emerald-950/40 border-emerald-200 dark:border-emerald-900/50' };
-    if (score >= 7) return { text: 'A级 优质选题，故事闭环完整', color: 'text-blue-700 dark:text-blue-300 bg-blue-50 dark:bg-blue-950/40 border-blue-200 dark:border-blue-900/50' };
-    if (score >= 5) return { text: 'B级 尚有短板，建议深挖素材', color: 'text-amber-700 dark:text-amber-300 bg-amber-50 dark:bg-amber-950/40 border-amber-200 dark:border-amber-900/50' };
-    return { text: 'C级 风险较大，需补齐人物或冲突', color: 'text-stone-600 dark:text-stone-300 bg-stone-100 dark:bg-stone-800 border-stone-200 dark:border-stone-700' };
+    if (score >= 9) return { text: 'S级 绝佳爆款相，立刻写稿！', color: 'text-emerald-700 dark:text-emerald-300 bg-emerald-500/10' };
+    if (score >= 7) return { text: 'A级 优质选题，故事闭环完整', color: 'text-blue-700 dark:text-blue-300 bg-blue-500/10' };
+    if (score >= 5) return { text: 'B级 尚有短板，建议深挖素材', color: 'text-amber-700 dark:text-amber-300 bg-amber-500/10' };
+    return { text: 'C级 风险较大，需补齐人物或冲突', color: 'text-stone-600 dark:text-stone-400 bg-stone-500/10' };
   };
 
   const assessment = getScoreAssessment(currentScore);
 
   return (
-    <div className="bg-white dark:bg-stone-900 rounded-xl border border-stone-200 dark:border-stone-800 p-5 space-y-4 shadow-subtle transition-colors">
+    <div className="bg-white dark:bg-stone-900 rounded-2xl border border-stone-200/70 dark:border-stone-800 p-5 space-y-4 shadow-2xs transition-colors">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-1.5">
           <Sparkles className="w-4 h-4 text-amber-500" />
-          <h4 className="text-sm font-bold text-stone-900 dark:text-stone-100">选题5维评估评分</h4>
+          <h4 className="text-sm font-bold text-stone-900 dark:text-stone-100">选题 5 维评估评分</h4>
         </div>
         <div className="flex items-center gap-1.5">
           <span className="text-xl font-mono font-extrabold text-stone-900 dark:text-stone-100">{currentScore}</span>
@@ -67,7 +67,7 @@ export const ScoreRatingDial: React.FC<ScoreRatingDialProps> = ({ topic, onUpdat
       </div>
 
       {/* Assessment Pill */}
-      <div className={`p-2 rounded-lg text-xs font-semibold border text-center ${assessment.color}`}>
+      <div className={`p-2.5 rounded-xl text-xs font-semibold text-center select-none ${assessment.color}`}>
         {assessment.text}
       </div>
 
@@ -88,10 +88,10 @@ export const ScoreRatingDial: React.FC<ScoreRatingDialProps> = ({ topic, onUpdat
                     key={opt}
                     type="button"
                     onClick={() => onUpdateScores({ [dim.key]: opt })}
-                    className={`py-1 rounded text-xs font-bold font-mono transition-all border cursor-pointer ${
+                    className={`py-1.5 rounded-lg text-xs font-bold font-mono transition-all cursor-pointer ${
                       val === opt
-                        ? 'bg-stone-900 dark:bg-rose-600 text-white border-stone-900 dark:border-rose-600 shadow-xs'
-                        : 'bg-stone-50 dark:bg-stone-800 hover:bg-stone-100 dark:hover:bg-stone-700 text-stone-600 dark:text-stone-300 border-stone-200 dark:border-stone-700'
+                        ? 'bg-stone-900 dark:bg-rose-600 text-white shadow-2xs'
+                        : 'bg-stone-100/80 dark:bg-stone-800 hover:bg-stone-200/70 dark:hover:bg-stone-700 text-stone-600 dark:text-stone-300'
                     }`}
                   >
                     {opt} 分

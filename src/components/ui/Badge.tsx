@@ -1,58 +1,53 @@
 import React from 'react';
 import { Priority, TopicStatus, SourceType, VerificationStatus, PlatformType } from '../../types';
 
-interface BadgeProps {
-  children?: React.ReactNode;
-  variant?: 'default' | 'outline' | 'subtle' | 'pill';
-  className?: string;
-}
-
 export const StatusBadge: React.FC<{ status: TopicStatus; size?: 'sm' | 'md' }> = ({ status, size = 'sm' }) => {
-  const configs: Record<TopicStatus, { label: string; bg: string; text: string; border: string }> = {
+  const configs: Record<TopicStatus, { label: string; bg: string; text: string; dot: string }> = {
     inbox: {
       label: '收集箱',
-      bg: 'bg-stone-100 dark:bg-stone-800/80',
+      bg: 'bg-stone-500/10 dark:bg-stone-800/80',
       text: 'text-stone-700 dark:text-stone-300',
-      border: 'border-stone-200 dark:border-stone-700',
+      dot: 'bg-stone-400 dark:bg-stone-500',
     },
     approved: {
       label: '已立项',
-      bg: 'bg-emerald-50 dark:bg-emerald-950/40',
-      text: 'text-emerald-800 dark:text-emerald-300',
-      border: 'border-emerald-200 dark:border-emerald-800/60',
+      bg: 'bg-emerald-500/10 dark:bg-emerald-950/40',
+      text: 'text-emerald-700 dark:text-emerald-300',
+      dot: 'bg-emerald-500 dark:bg-emerald-400',
     },
     scripting: {
       label: '写稿中',
-      bg: 'bg-indigo-50 dark:bg-indigo-950/40',
-      text: 'text-indigo-800 dark:text-indigo-300',
-      border: 'border-indigo-200 dark:border-indigo-800/60',
+      bg: 'bg-indigo-500/10 dark:bg-indigo-950/40',
+      text: 'text-indigo-700 dark:text-indigo-300',
+      dot: 'bg-indigo-500 dark:bg-indigo-400',
     },
     production: {
       label: '待制作',
-      bg: 'bg-purple-50 dark:bg-purple-950/40',
-      text: 'text-purple-800 dark:text-purple-300',
-      border: 'border-purple-200 dark:border-purple-800/60',
+      bg: 'bg-purple-500/10 dark:bg-purple-950/40',
+      text: 'text-purple-700 dark:text-purple-300',
+      dot: 'bg-purple-500 dark:bg-purple-400',
     },
     published: {
       label: '已发布',
-      bg: 'bg-teal-50 dark:bg-teal-950/40',
-      text: 'text-teal-800 dark:text-teal-300',
-      border: 'border-teal-200 dark:border-teal-800/60',
+      bg: 'bg-teal-500/10 dark:bg-teal-950/40',
+      text: 'text-teal-700 dark:text-teal-300',
+      dot: 'bg-teal-500 dark:bg-teal-400',
     },
     icebox: {
       label: '搁置',
-      bg: 'bg-stone-100 dark:bg-stone-800/50',
+      bg: 'bg-stone-500/10 dark:bg-stone-800/50',
       text: 'text-stone-500 dark:text-stone-400',
-      border: 'border-stone-200 dark:border-stone-700',
+      dot: 'bg-stone-300 dark:bg-stone-600',
     },
   };
 
   const c = configs[status] || configs.inbox;
-  const padding = size === 'sm' ? 'px-2 py-0.5 text-xs' : 'px-2.5 py-1 text-sm font-medium';
+  const padding = size === 'sm' ? 'px-2 py-0.5 text-xs' : 'px-2.5 py-1 text-sm';
 
   return (
-    <span className={`inline-flex items-center rounded-md border font-medium ${c.bg} ${c.text} ${c.border} ${padding}`}>
-      {c.label}
+    <span className={`inline-flex items-center gap-1.5 rounded-full font-medium select-none ${c.bg} ${c.text} ${padding}`}>
+      <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${c.dot}`} />
+      <span>{c.label}</span>
     </span>
   );
 };
@@ -61,22 +56,22 @@ export const PriorityBadge: React.FC<{ priority: Priority; showLabel?: boolean }
   const configs: Record<Priority, { label: string; bg: string; dot: string }> = {
     high: {
       label: '高',
-      bg: 'bg-rose-50 dark:bg-rose-950/40 border-rose-200 dark:border-rose-900/60 text-rose-700 dark:text-rose-300',
+      bg: 'bg-rose-500/10 dark:bg-rose-950/40 text-rose-700 dark:text-rose-300 font-semibold',
       dot: 'bg-rose-500 dark:bg-rose-400',
     },
     medium: {
       label: '中',
-      bg: 'bg-amber-50 dark:bg-amber-950/40 border-amber-200 dark:border-amber-900/60 text-amber-700 dark:text-amber-300',
+      bg: 'bg-amber-500/10 dark:bg-amber-950/40 text-amber-700 dark:text-amber-300 font-medium',
       dot: 'bg-amber-500 dark:bg-amber-400',
     },
     low: {
       label: '低',
-      bg: 'bg-stone-100 dark:bg-stone-800/70 border-stone-200 dark:border-stone-700 text-stone-600 dark:text-stone-300',
+      bg: 'bg-stone-500/10 dark:bg-stone-800/70 text-stone-600 dark:text-stone-300 font-medium',
       dot: 'bg-stone-400 dark:bg-stone-500',
     },
     none: {
       label: '无',
-      bg: 'bg-stone-50 dark:bg-stone-800/40 border-stone-200 dark:border-stone-700/60 text-stone-400 dark:text-stone-500',
+      bg: 'bg-stone-500/5 dark:bg-stone-800/40 text-stone-400 dark:text-stone-500 font-normal',
       dot: 'bg-stone-300 dark:bg-stone-600',
     },
   };
@@ -84,38 +79,35 @@ export const PriorityBadge: React.FC<{ priority: Priority; showLabel?: boolean }
   const c = configs[priority] || configs.none;
 
   return (
-    <span className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-xs font-medium border whitespace-nowrap select-none ${c.bg}`}>
+    <span className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-xs whitespace-nowrap select-none ${c.bg}`}>
       <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${c.dot}`} />
-      {showLabel && c.label}
+      {showLabel && <span>{c.label}</span>}
     </span>
   );
 };
 
 export const SourceTypeBadge: React.FC<{ type: SourceType }> = ({ type }) => {
-  const configs: Record<SourceType, { label: string; bg: string; text: string; border: string }> = {
+  const configs: Record<SourceType, { label: string; bg: string; text: string }> = {
     fact: {
       label: '事实',
-      bg: 'bg-emerald-50 dark:bg-emerald-950/40',
-      text: 'text-emerald-700 dark:text-emerald-300',
-      border: 'border-emerald-200 dark:border-emerald-800/60',
+      bg: 'bg-emerald-500/10 dark:bg-emerald-950/40',
+      text: 'text-emerald-700 dark:text-emerald-300 font-semibold',
     },
     clue: {
       label: '线索',
-      bg: 'bg-amber-50 dark:bg-amber-950/40',
-      text: 'text-amber-700 dark:text-amber-300',
-      border: 'border-amber-200 dark:border-amber-800/60',
+      bg: 'bg-amber-500/10 dark:bg-amber-950/40',
+      text: 'text-amber-700 dark:text-amber-300 font-semibold',
     },
     material: {
       label: '素材',
-      bg: 'bg-blue-50 dark:bg-blue-950/40',
-      text: 'text-blue-700 dark:text-blue-300',
-      border: 'border-blue-200 dark:border-blue-800/60',
+      bg: 'bg-blue-500/10 dark:bg-blue-950/40',
+      text: 'text-blue-700 dark:text-blue-300 font-semibold',
     },
   };
 
   const c = configs[type] || configs.fact;
   return (
-    <span className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-semibold border ${c.bg} ${c.text} ${c.border}`}>
+    <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs select-none ${c.bg} ${c.text}`}>
       {c.label}
     </span>
   );
@@ -125,26 +117,26 @@ export const VerificationBadge: React.FC<{ status: VerificationStatus }> = ({ st
   const configs: Record<VerificationStatus, { label: string; bg: string; icon: string }> = {
     confirmed: {
       label: '已确认',
-      bg: 'bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 border-emerald-200 dark:border-emerald-800/60',
+      bg: 'bg-emerald-500/10 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 font-medium',
       icon: '✓',
     },
     unverified: {
       label: '待核实',
-      bg: 'bg-amber-50 dark:bg-amber-950/40 text-amber-700 dark:text-amber-300 border-amber-200 dark:border-amber-800/60',
+      bg: 'bg-amber-500/10 dark:bg-amber-950/40 text-amber-700 dark:text-amber-300 font-medium',
       icon: '?',
     },
     rejected: {
       label: '不采用',
-      bg: 'bg-stone-100 dark:bg-stone-800/60 text-stone-500 dark:text-stone-400 border-stone-200 dark:border-stone-700 line-through',
+      bg: 'bg-stone-500/10 dark:bg-stone-800/60 text-stone-400 dark:text-stone-500 line-through font-normal',
       icon: '✕',
     },
   };
 
   const c = configs[status] || configs.unverified;
   return (
-    <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-medium border ${c.bg}`}>
-      <span className="font-bold">{c.icon}</span>
-      {c.label}
+    <span className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs select-none ${c.bg}`}>
+      <span className="font-bold text-[11px]">{c.icon}</span>
+      <span>{c.label}</span>
     </span>
   );
 };
@@ -165,14 +157,14 @@ export const PlatformBadge: React.FC<{ platform: PlatformType }> = ({ platform }
   };
 
   return (
-    <span className="inline-flex items-center px-2 py-0.5 rounded bg-stone-100 dark:bg-stone-800 text-stone-700 dark:text-stone-300 text-xs font-medium border border-stone-200 dark:border-stone-700">
+    <span className="inline-flex items-center px-2 py-0.5 rounded-md bg-stone-100 dark:bg-stone-800 text-stone-600 dark:text-stone-300 text-xs font-medium select-none">
       {names[platform] || platform}
     </span>
   );
 };
 
 export const TagPill: React.FC<{ name: string; onRemove?: () => void }> = ({ name, onRemove }) => (
-  <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-stone-100 dark:bg-stone-800 text-stone-700 dark:text-stone-300 border border-stone-200/80 dark:border-stone-700 rounded-md text-xs font-medium">
+  <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-stone-100/90 dark:bg-stone-800/90 text-stone-600 dark:text-stone-300 rounded-md text-xs font-medium select-none transition-colors">
     #{name}
     {onRemove && (
       <button

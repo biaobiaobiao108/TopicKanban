@@ -149,8 +149,8 @@ export const CustomSelect: React.FC<CustomSelectProps> = ({
           sizeClasses[size]
         } ${
           disabled
-            ? 'opacity-50 cursor-not-allowed bg-stone-100 dark:bg-stone-800 text-stone-400 border border-stone-200 dark:border-stone-700'
-            : 'bg-white dark:bg-stone-850 hover:bg-stone-50 dark:hover:bg-stone-800 text-stone-800 dark:text-stone-200 border border-stone-200 dark:border-stone-700/80 shadow-2xs focus:outline-none focus:ring-1 focus:ring-rose-500/40'
+            ? 'opacity-50 cursor-not-allowed bg-stone-100 dark:bg-stone-800 text-stone-400 border border-stone-200/60 dark:border-stone-700/60'
+            : 'bg-white dark:bg-stone-850 hover:bg-stone-50 dark:hover:bg-stone-800 text-stone-800 dark:text-stone-200 border border-stone-200/70 dark:border-stone-700/60 shadow-2xs hover:shadow-xs focus:outline-none focus:ring-2 focus:ring-rose-500/20'
         } ${buttonClassName}`}
       >
         <div className="flex items-center gap-1.5 truncate">
@@ -180,7 +180,7 @@ export const CustomSelect: React.FC<CustomSelectProps> = ({
           onKeyDown={(event) => {
             if (event.target === event.currentTarget && event.key === 'Escape') close();
           }}
-          className={`absolute z-50 mt-1 min-w-[160px] max-h-64 overflow-y-auto bg-white dark:bg-stone-900 border border-stone-200 dark:border-stone-800 rounded-xl shadow-modal p-1 space-y-0.5 animate-in fade-in zoom-in-95 duration-100 ${
+          className={`absolute z-50 mt-1.5 min-w-[160px] max-h-64 overflow-y-auto bg-white/95 dark:bg-stone-900/95 backdrop-blur-md border border-stone-200/80 dark:border-stone-800 rounded-2xl shadow-modal p-1.5 space-y-0.5 animate-in fade-in zoom-in-95 duration-100 ${
             align === 'right' ? 'right-0' : 'left-0'
           } ${popoverClassName}`}
         >
@@ -200,7 +200,7 @@ export const CustomSelect: React.FC<CustomSelectProps> = ({
                   onChange(option.value);
                   close();
                 }}
-                className={`w-full text-left px-2.5 py-1.5 rounded-lg text-xs font-medium flex items-center justify-between transition-colors cursor-pointer ${
+                className={`w-full text-left px-2.5 py-1.5 rounded-xl text-xs font-medium flex items-center justify-between transition-colors cursor-pointer ${
                   isSelected
                     ? 'bg-rose-50 dark:bg-rose-950/40 text-rose-900 dark:text-rose-200 font-semibold'
                     : 'text-stone-700 dark:text-stone-300 hover:bg-stone-100/80 dark:hover:bg-stone-800'

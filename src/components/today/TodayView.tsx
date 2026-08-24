@@ -6,11 +6,10 @@ import {
   ArrowRight,
   Clock,
   CheckCircle2,
-  FileText,
   User,
-  Plus,
   Sparkles,
-  Pin
+  Pin,
+  Zap
 } from 'lucide-react';
 import { NextActionDialog } from '../topic-detail/NextActionDialog';
 import { getNextActionAgeDays, getNextActionWarning } from '../../lib/topicMetrics';
@@ -35,6 +34,7 @@ export const TodayView: React.FC<TodayViewProps> = ({
 }) => {
   const [actionTopic, setActionTopic] = useState<Topic | null>(null);
   const [showAllActivity, setShowAllActivity] = useState(false);
+
   // Main focus: pinned first, then production stage, priority and recent activity.
   const focusTopic = [...topics]
     .filter((topic) => topic.status !== 'published' && topic.status !== 'icebox')
@@ -70,44 +70,44 @@ export const TodayView: React.FC<TodayViewProps> = ({
         {/* Top Header */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           <div>
-            <div className="flex items-center gap-2">
-              <h2 className="text-xl sm:text-2xl font-bold text-stone-900 tracking-tight">今日生产聚焦</h2>
-              <span className="text-xs bg-rose-100 text-rose-800 font-semibold px-2 py-0.5 rounded-full">
+            <div className="flex items-center gap-2.5">
+              <h2 className="text-xl sm:text-2xl font-bold text-stone-900 dark:text-stone-100 tracking-tight">今日生产聚焦</h2>
+              <span className="text-xs bg-rose-500/10 text-rose-700 dark:text-rose-300 font-semibold px-2.5 py-0.5 rounded-full select-none">
                 专注当下
               </span>
             </div>
-            <p className="text-xs sm:text-sm text-stone-500 mt-1">
-              清晰锁定当前最高价值的视频项目，杜绝多选题犹豫。
+            <p className="text-xs sm:text-sm text-stone-500 dark:text-stone-400 mt-1">
+              清晰锁定当前最高价值的视频项目，主线明确，杜绝多任务犹豫。
             </p>
           </div>
 
           <button
             onClick={onOpenQuickCreate}
-            className="self-start sm:self-auto flex items-center gap-2 bg-stone-900 hover:bg-stone-800 text-white px-3.5 py-2 rounded-xl text-xs sm:text-sm font-semibold transition-colors shadow-sm"
+            className="self-start sm:self-auto flex items-center gap-2 bg-stone-900 dark:bg-rose-600 hover:bg-stone-800 dark:hover:bg-rose-700 text-white px-4 py-2 rounded-xl text-xs sm:text-sm font-semibold transition-all shadow-2xs hover:shadow-xs cursor-pointer"
           >
             <Sparkles className="w-4 h-4 text-amber-300" />
             <span>记录新灵感</span>
           </button>
         </div>
 
-        {/* 1. Spotlight Feature Topic Card */}
+        {/* 1. Spotlight Feature Topic Card (Editorial Hero Spotlight) */}
         {focusTopic ? (
-          <div className="today-spotlight-card relative bg-white dark:bg-stone-900 rounded-2xl border-2 border-stone-900/80 dark:border-stone-700 p-5 sm:p-8 shadow-card overflow-hidden transition-all">
-            {/* Subtle background glow */}
-            <div className="absolute -right-8 -top-8 w-40 h-40 bg-rose-50 dark:bg-rose-950/20 rounded-full blur-2xl pointer-events-none" />
+          <div className="today-spotlight-card relative bg-gradient-to-br from-white via-white to-rose-50/20 dark:from-stone-900 dark:via-stone-900 dark:to-rose-950/20 rounded-3xl border border-stone-200/70 dark:border-stone-800 p-6 sm:p-8 shadow-card ring-1 ring-stone-900/5 dark:ring-white/5 overflow-hidden transition-all">
+            {/* Subtle atmospheric glow */}
+            <div className="absolute -right-12 -top-12 w-48 h-48 bg-rose-500/5 dark:bg-rose-500/10 rounded-full blur-3xl pointer-events-none" />
 
             <div className="relative space-y-5 sm:space-y-6">
               {/* Header Badges & Pin */}
               <div className="flex items-center justify-between gap-2 flex-wrap">
                 <div className="flex items-center gap-2 flex-wrap">
-                  <span className="inline-flex items-center gap-1 text-xs font-bold text-white bg-rose-600 px-2.5 py-1 rounded-md shadow-xs">
+                  <span className="inline-flex items-center gap-1 text-xs font-bold text-white bg-rose-600 px-3 py-1 rounded-full shadow-2xs">
                     <Flame className="w-3.5 h-3.5" />
-                    当前主推选题
+                    <span>主推选题</span>
                   </span>
                   <StatusBadge status={focusTopic.status} />
                   <PriorityBadge priority={focusTopic.priority} />
                   {focusTopic.is_pinned === 1 && (
-                    <span className="inline-flex items-center gap-1 text-xs font-semibold text-amber-800 dark:text-amber-300 bg-amber-100 dark:bg-amber-950/40 px-2 py-0.5 rounded-md border border-amber-200 dark:border-amber-900/60">
+                    <span className="inline-flex items-center gap-1 text-xs font-semibold text-amber-700 dark:text-amber-300 bg-amber-500/10 px-2.5 py-0.5 rounded-full">
                       <Pin className="w-3 h-3 fill-amber-600 dark:fill-amber-400" />
                       置顶
                     </span>
@@ -123,58 +123,60 @@ export const TodayView: React.FC<TodayViewProps> = ({
               <div>
                 <h3
                   onClick={() => onOpenDetail(focusTopic.id)}
-                  className="text-xl sm:text-2xl font-bold text-stone-900 dark:text-stone-100 hover:text-rose-600 dark:hover:text-rose-400 transition-colors cursor-pointer leading-tight"
+                  className="text-xl sm:text-2xl lg:text-3xl font-bold text-stone-900 dark:text-stone-100 hover:text-rose-600 dark:hover:text-rose-400 transition-colors cursor-pointer leading-tight"
                 >
                   {focusTopic.title}
                 </h3>
                 {focusTopic.summary && (
-                  <p className="text-sm sm:text-base text-stone-600 dark:text-stone-300 mt-2 leading-relaxed max-w-3xl">
+                  <p className="text-sm sm:text-base text-stone-600 dark:text-stone-300 mt-2.5 leading-relaxed max-w-4xl">
                     {focusTopic.summary}
                   </p>
                 )}
               </div>
 
-              {/* Next Action Callout (The core highlight) */}
-              <div className="bg-rose-50/80 dark:bg-rose-950/30 border border-rose-200 dark:border-rose-900/50 rounded-xl p-4 sm:p-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+              {/* Next Action Callout (Editorial Action Hero Tile) */}
+              <div className="bg-rose-500/[0.07] dark:bg-rose-500/[0.12] rounded-2xl p-5 sm:p-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 transition-colors">
                 <div className="space-y-1.5 flex-1 min-w-0">
                   <div className="text-xs font-bold uppercase tracking-wider text-rose-700 dark:text-rose-400 flex items-center gap-2">
                     <span className="relative flex h-2 w-2 shrink-0">
                       <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-rose-400 opacity-75"></span>
                       <span className="relative inline-flex rounded-full h-2 w-2 bg-rose-600 dark:bg-rose-500"></span>
                     </span>
+                    <Zap className="w-3.5 h-3.5 fill-rose-500/20" />
                     <span>当前核心行动 (Next Action)</span>
                   </div>
-                  <div className="text-sm sm:text-base font-bold text-rose-950 dark:text-rose-200 leading-snug">
-                    {focusTopic.next_action || '尚未设置具体下一步，点击进入工作台规划！'}
+                  <div className="text-base sm:text-lg font-bold text-stone-900 dark:text-stone-100 leading-snug">
+                    {focusTopic.next_action || '尚未设置具体下一步，点击立即规划！'}
                   </div>
                 </div>
 
-                <div className="flex w-full shrink-0 flex-col gap-2 sm:w-auto sm:flex-row">
-                <button
-                  onClick={() => setActionTopic(focusTopic)}
-                  className="w-full sm:w-auto shrink-0 flex items-center justify-center gap-2 bg-rose-600 hover:bg-rose-700 text-white px-5 py-2.5 rounded-lg text-sm font-semibold transition-colors shadow-sm cursor-pointer"
-                >
-                  <CheckCircle2 className="w-4 h-4" />
-                  <span>{focusTopic.next_action ? '完成当前行动' : '设置下一步'}</span>
-                </button>
-                <button
-                  onClick={() => onOpenDetail(focusTopic.id)}
-                  className="w-full sm:w-auto shrink-0 flex items-center justify-center gap-2 border border-rose-300 dark:border-rose-800 bg-white dark:bg-stone-800 text-rose-700 dark:text-rose-300 hover:bg-rose-50 dark:hover:bg-rose-950/40 px-4 py-2.5 rounded-lg text-sm font-semibold transition-colors cursor-pointer"
-                >
-                  <span>进入工作台</span>
-                  <ArrowRight className="w-4 h-4" />
-                </button>
+                <div className="flex w-full shrink-0 flex-col gap-2.5 sm:w-auto sm:flex-row">
+                  <button
+                    onClick={() => setActionTopic(focusTopic)}
+                    className="w-full sm:w-auto shrink-0 flex items-center justify-center gap-2 bg-rose-600 hover:bg-rose-700 text-white px-5 py-2.5 rounded-xl text-sm font-semibold transition-all shadow-2xs hover:shadow-xs active:scale-[0.98] cursor-pointer"
+                  >
+                    <CheckCircle2 className="w-4 h-4" />
+                    <span>{focusTopic.next_action ? '完成当前行动' : '设置下一步'}</span>
+                  </button>
+                  <button
+                    onClick={() => onOpenDetail(focusTopic.id)}
+                    className="w-full sm:w-auto shrink-0 flex items-center justify-center gap-2 bg-white dark:bg-stone-800 hover:bg-stone-50 dark:hover:bg-stone-700/80 text-stone-800 dark:text-stone-200 px-4 py-2.5 rounded-xl text-sm font-semibold transition-all shadow-2xs hover:shadow-xs active:scale-[0.98] cursor-pointer"
+                  >
+                    <span>进入工作台</span>
+                    <ArrowRight className="w-4 h-4" />
+                  </button>
                 </div>
               </div>
 
               {getNextActionWarning(focusTopic) && (
-                <div className="-mt-3 text-xs font-semibold text-amber-700 dark:text-amber-400">
-                  ⚠ {getNextActionWarning(focusTopic)}
+                <div className="-mt-3 text-xs font-semibold text-amber-700 dark:text-amber-400 flex items-center gap-1.5">
+                  <span>⚠</span>
+                  <span>{getNextActionWarning(focusTopic)}</span>
                 </div>
               )}
 
               {/* Bottom Meta */}
-              <div className="flex items-center justify-between pt-2 border-t border-stone-200/60 dark:border-stone-800 text-xs text-stone-500 dark:text-stone-400">
+              <div className="flex items-center justify-between pt-3 border-t border-stone-200/60 dark:border-stone-800 text-xs text-stone-500 dark:text-stone-400">
                 <div className="flex items-center gap-2 flex-wrap">
                   {focusTopic.people && focusTopic.people.length > 0 && (
                     <span className="flex items-center gap-1 font-medium text-stone-700 dark:text-stone-300">
@@ -190,7 +192,7 @@ export const TodayView: React.FC<TodayViewProps> = ({
                 <div className="flex items-center gap-3">
                   {focusTopic.draft_word_count ? (
                     <span className="font-mono text-stone-700 dark:text-stone-300 font-medium">
-                      文案已写: {focusTopic.draft_word_count} 字
+                      文案: {focusTopic.draft_word_count} 字
                     </span>
                   ) : null}
                   <span>{focusTopic.verified_facts_count || 0} 条已核实事实</span>
@@ -200,11 +202,11 @@ export const TodayView: React.FC<TodayViewProps> = ({
             </div>
           </div>
         ) : (
-          <div className="p-12 text-center border-2 border-dashed border-stone-300 dark:border-stone-700 rounded-2xl bg-white dark:bg-stone-900">
-            <p className="text-stone-500 dark:text-stone-400">当前没有选题，立即创建一个开启今日视频制作！</p>
+          <div className="p-12 text-center border-2 border-dashed border-stone-300/70 dark:border-stone-800 rounded-3xl bg-white dark:bg-stone-900">
+            <p className="text-stone-500 dark:text-stone-400">当前没有活跃选题，立即创建一个开启今日视频制作！</p>
             <button
               onClick={onOpenQuickCreate}
-              className="mt-4 px-4 py-2 bg-rose-600 hover:bg-rose-700 text-white rounded-lg text-sm font-medium cursor-pointer"
+              className="mt-4 px-5 py-2.5 bg-rose-600 hover:bg-rose-700 text-white rounded-xl text-sm font-semibold transition-all shadow-2xs cursor-pointer"
             >
               + 新建选题
             </button>
@@ -214,22 +216,22 @@ export const TodayView: React.FC<TodayViewProps> = ({
         {/* 2-Column Section: Top Priorities & Recent Activity */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {/* Left: Top Priorities */}
-          <div className="space-y-3">
+          <div className="space-y-3.5">
             <div className="flex items-center justify-between">
               <h4 className="text-base font-bold text-stone-900 dark:text-stone-100 flex items-center gap-2">
                 <span>今日优先选题</span>
-                <span className="text-xs bg-stone-100 dark:bg-stone-800 text-stone-600 dark:text-stone-300 px-2 py-0.5 rounded-full font-mono font-semibold">
+                <span className="text-xs bg-stone-200/60 dark:bg-stone-800 text-stone-700 dark:text-stone-300 px-2 py-0.5 rounded-full font-mono font-bold">
                   {priorityList.length}
                 </span>
               </h4>
             </div>
 
-            <div className="space-y-2.5">
+            <div className="space-y-3">
               {priorityList.map((t) => (
                 <div
                   key={t.id}
                   onClick={() => onOpenDetail(t.id)}
-                  className="today-priority-item bg-white dark:bg-stone-900 rounded-xl border border-stone-200/90 dark:border-stone-800 hover:border-stone-400 dark:hover:border-stone-600 p-4 shadow-subtle hover:shadow-card-hover transition-all cursor-pointer flex flex-col gap-2 group"
+                  className="today-priority-item bg-white dark:bg-stone-900 rounded-2xl border border-stone-200/70 dark:border-stone-800 hover:border-stone-300 dark:hover:border-stone-700 p-4 sm:p-5 shadow-2xs hover:shadow-card-hover hover:-translate-y-0.5 transition-all cursor-pointer flex flex-col gap-2.5 group"
                 >
                   <div className="flex items-center justify-between gap-2">
                     <div className="flex items-center gap-1.5">
@@ -245,15 +247,16 @@ export const TodayView: React.FC<TodayViewProps> = ({
                     {t.title}
                   </h5>
 
-                  <div className={`text-xs border p-2 rounded-md ${
+                  <div className={`text-xs p-2.5 rounded-xl ${
                     t.next_action
-                      ? 'bg-stone-50 dark:bg-stone-800/60 border-stone-100 dark:border-stone-700/80 text-stone-700 dark:text-stone-300'
-                      : 'bg-amber-50 dark:bg-amber-950/40 border-amber-200 dark:border-amber-900/60 text-amber-800 dark:text-amber-300'
+                      ? 'bg-stone-500/5 dark:bg-stone-800/50 text-stone-700 dark:text-stone-300'
+                      : 'bg-amber-500/10 text-amber-800 dark:text-amber-300'
                   }`}>
                     <strong className="text-rose-700 dark:text-rose-400">下一步：</strong>
                     {t.next_action || '尚未设置'}
                   </div>
-                  <div className="flex items-center justify-between gap-2">
+
+                  <div className="flex items-center justify-between gap-2 pt-1">
                     <span className={`text-[11px] ${getNextActionWarning(t) ? 'font-semibold text-amber-700 dark:text-amber-400' : 'text-stone-400 dark:text-stone-500'}`}>
                       {getNextActionWarning(t) || `行动持续 ${getNextActionAgeDays(t)} 天`}
                     </span>
@@ -263,7 +266,7 @@ export const TodayView: React.FC<TodayViewProps> = ({
                         event.stopPropagation();
                         setActionTopic(t);
                       }}
-                      className="min-h-9 rounded-lg bg-rose-600 px-3 text-[11px] font-bold text-white hover:bg-rose-700 cursor-pointer"
+                      className="min-h-8 rounded-lg bg-rose-600 px-3 text-[11px] font-bold text-white hover:bg-rose-700 transition-colors cursor-pointer shadow-2xs"
                     >
                       {t.next_action ? '完成行动' : '设置行动'}
                     </button>
@@ -272,7 +275,7 @@ export const TodayView: React.FC<TodayViewProps> = ({
               ))}
 
               {priorityList.length === 0 && (
-                <div className="p-6 text-center text-xs text-stone-400 dark:text-stone-500 border border-stone-200 dark:border-stone-800 rounded-xl bg-white dark:bg-stone-900">
+                <div className="p-8 text-center text-xs text-stone-400 dark:text-stone-500 border border-stone-200/70 dark:border-stone-800 rounded-2xl bg-white dark:bg-stone-900">
                   暂无其他优先选题
                 </div>
               )}
@@ -280,7 +283,7 @@ export const TodayView: React.FC<TodayViewProps> = ({
           </div>
 
           {/* Right: Recent Activity / Worklog */}
-          <div className="space-y-3">
+          <div className="space-y-3.5">
             <div className="flex items-center justify-between">
               <h4 className="text-base font-bold text-stone-900 dark:text-stone-100 flex items-center gap-2">
                 <Clock className="w-4 h-4 text-stone-500 dark:text-stone-400" />
@@ -288,7 +291,7 @@ export const TodayView: React.FC<TodayViewProps> = ({
               </h4>
             </div>
 
-            <div className="today-recent-updates-panel bg-white/70 dark:bg-stone-900/70 rounded-xl border border-stone-200 dark:border-stone-800 divide-y divide-stone-100 dark:divide-stone-800">
+            <div className="today-recent-updates-panel bg-white/80 dark:bg-stone-900/80 rounded-2xl border border-stone-200/70 dark:border-stone-800 divide-y divide-stone-100 dark:divide-stone-800/70 shadow-2xs overflow-hidden">
               {visibleRecentUpdates.map((t) => (
                 <div
                   key={t.id}
@@ -318,7 +321,7 @@ export const TodayView: React.FC<TodayViewProps> = ({
                 <button
                   type="button"
                   onClick={() => setShowAllActivity((previous) => !previous)}
-                  className="w-full px-3 py-2.5 text-xs font-semibold text-stone-500 dark:text-stone-400 hover:bg-white dark:hover:bg-stone-800 hover:text-stone-900 dark:hover:text-stone-100 cursor-pointer"
+                  className="w-full px-3 py-2.5 text-xs font-semibold text-stone-500 dark:text-stone-400 hover:bg-white dark:hover:bg-stone-800 hover:text-stone-900 dark:hover:text-stone-100 cursor-pointer transition-colors"
                 >
                   {showAllActivity ? '收起近期轨迹' : `展开另外 ${recentUpdates.length - 3} 条`}
                 </button>
@@ -327,6 +330,7 @@ export const TodayView: React.FC<TodayViewProps> = ({
           </div>
         </div>
       </div>
+
       {actionTopic && (
         <NextActionDialog
           isOpen

@@ -21,13 +21,13 @@ interface KanbanColumnProps {
 
 const DEFAULT_LIMIT = 8;
 
-const columnHeaders: Record<TopicStatus, { dot: string; topBorder: string }> = {
-  inbox: { dot: 'bg-stone-400', topBorder: 'border-t-stone-300' },
-  approved: { dot: 'bg-emerald-500', topBorder: 'border-t-emerald-300' },
-  scripting: { dot: 'bg-indigo-500', topBorder: 'border-t-indigo-300' },
-  production: { dot: 'bg-purple-500', topBorder: 'border-t-purple-300' },
-  published: { dot: 'bg-teal-500', topBorder: 'border-t-teal-300' },
-  icebox: { dot: 'bg-stone-300', topBorder: 'border-t-stone-200' },
+const columnHeaders: Record<TopicStatus, { dot: string }> = {
+  inbox: { dot: 'bg-stone-400 dark:bg-stone-500' },
+  approved: { dot: 'bg-emerald-500 dark:bg-emerald-400' },
+  scripting: { dot: 'bg-indigo-500 dark:bg-indigo-400' },
+  production: { dot: 'bg-purple-500 dark:bg-purple-400' },
+  published: { dot: 'bg-teal-500 dark:bg-teal-400' },
+  icebox: { dot: 'bg-stone-300 dark:bg-stone-600' },
 };
 
 export const KanbanColumn: React.FC<KanbanColumnProps> = ({
@@ -63,18 +63,18 @@ export const KanbanColumn: React.FC<KanbanColumnProps> = ({
     <div
       ref={setNodeRef}
       data-column-status={status}
-      className={`kanban-column-container w-full rounded-2xl p-3.5 flex flex-col min-h-[220px] border border-t-2 transition-[background-color,border-color,box-shadow] duration-200 ${
+      className={`kanban-column-container w-full rounded-3xl p-3.5 flex flex-col min-h-[220px] border transition-all duration-200 ${
         isOver
-          ? 'border-rose-400 border-t-rose-500 ring-2 ring-rose-400/40 bg-rose-50/60 dark:bg-rose-950/40 shadow-md'
-          : `border-stone-200 dark:border-stone-800 ${c.topBorder} bg-stone-100/75 dark:bg-stone-900/60 [@media(hover:hover)]:hover:border-x-stone-300 dark:[@media(hover:hover)]:hover:border-x-stone-700 [@media(hover:hover)]:hover:border-b-stone-300 dark:[@media(hover:hover)]:hover:border-b-stone-700 [@media(hover:hover)]:hover:bg-white/90 dark:[@media(hover:hover)]:hover:bg-stone-900/90 [@media(hover:hover)]:hover:shadow-sm`
+          ? 'border-rose-400/80 ring-2 ring-rose-400/30 bg-rose-50/60 dark:bg-rose-950/40 shadow-card'
+          : 'border-stone-200/70 dark:border-stone-800/70 bg-stone-100/60 dark:bg-stone-900/50 hover:bg-stone-100/80 dark:hover:bg-stone-900/70'
       }`}
     >
       {/* Column Header */}
-      <div className="flex items-center justify-between px-1 py-1.5 mb-2.5 border-b border-stone-200/60 dark:border-stone-800 pb-2">
+      <div className="flex items-center justify-between px-1.5 py-1 mb-2.5">
         <div className="flex items-center gap-2">
           <span className={`w-2.5 h-2.5 rounded-full ${c.dot}`} />
           <h3 className="text-sm font-bold text-stone-800 dark:text-stone-100 tracking-tight">{label}</h3>
-          <span className="text-xs bg-stone-200/90 dark:bg-stone-800 text-stone-700 dark:text-stone-300 font-bold px-2 py-0.5 rounded-full font-mono">
+          <span className="text-xs bg-stone-200/70 dark:bg-stone-800 text-stone-700 dark:text-stone-300 font-bold px-2 py-0.5 rounded-full font-mono">
             {topics.length}
           </span>
         </div>
@@ -82,7 +82,7 @@ export const KanbanColumn: React.FC<KanbanColumnProps> = ({
         <button
           onClick={() => onQuickAddTopic(status)}
           title={`在${label}中快速建卡`}
-          className="p-1 text-stone-400 dark:text-stone-500 hover:text-stone-700 dark:hover:text-stone-200 hover:bg-stone-200 dark:hover:bg-stone-800 rounded-md transition-colors cursor-pointer"
+          className="p-1.5 text-stone-400 dark:text-stone-500 hover:text-stone-700 dark:hover:text-stone-200 hover:bg-stone-200/60 dark:hover:bg-stone-800 rounded-lg transition-colors cursor-pointer"
         >
           <Plus className="w-4 h-4" />
         </button>
@@ -107,10 +107,10 @@ export const KanbanColumn: React.FC<KanbanColumnProps> = ({
 
         {topics.length === 0 && (
           <div
-            className={`h-28 flex flex-col items-center justify-center border-2 border-dashed rounded-xl text-xs p-3 text-center transition-[border-color,background-color] duration-150 ${
+            className={`h-28 flex flex-col items-center justify-center border-2 border-dashed rounded-2xl text-xs p-3 text-center transition-all duration-150 ${
               isOver
                 ? 'border-rose-400 dark:border-rose-600 bg-rose-50/60 dark:bg-rose-950/30 text-rose-600 dark:text-rose-400'
-                : 'border-stone-300/80 dark:border-stone-800 text-stone-400 dark:text-stone-500'
+                : 'border-stone-200/80 dark:border-stone-800 text-stone-400 dark:text-stone-500'
             }`}
           >
             <span className="font-semibold">{isOver ? '松开以移入此阶段' : '暂无选题'}</span>
@@ -123,10 +123,10 @@ export const KanbanColumn: React.FC<KanbanColumnProps> = ({
 
       {/* Expand / Collapse Button if exceeding limit */}
       {hiddenCount > 0 && (
-        <div className="pt-2 mt-2 border-t border-stone-200/70 dark:border-stone-800">
+        <div className="pt-2 mt-2 border-t border-stone-200/60 dark:border-stone-800">
           <button
             onClick={() => setIsExpanded((prev) => !prev)}
-            className="w-full flex items-center justify-center gap-1.5 py-1.5 px-3 bg-white/80 dark:bg-stone-800 hover:bg-white dark:hover:bg-stone-700 text-stone-600 dark:text-stone-300 hover:text-stone-900 dark:hover:text-stone-100 rounded-lg text-xs font-semibold border border-stone-200 dark:border-stone-700 transition-all shadow-2xs cursor-pointer"
+            className="w-full flex items-center justify-center gap-1.5 py-1.5 px-3 bg-white/80 dark:bg-stone-800 hover:bg-white dark:hover:bg-stone-700 text-stone-600 dark:text-stone-300 hover:text-stone-900 dark:hover:text-stone-100 rounded-xl text-xs font-semibold transition-all shadow-2xs cursor-pointer"
           >
             {isExpanded ? (
               <>

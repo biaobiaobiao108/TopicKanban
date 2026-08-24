@@ -320,27 +320,27 @@ export const TopicTableView: React.FC<TopicTableViewProps> = ({
   }, [currentScopeTopics]);
 
   return (
-    <div className="flex-1 flex flex-col bg-white dark:bg-stone-900 rounded-xl border border-stone-200 dark:border-stone-800 overflow-hidden shadow-subtle min-h-0 transition-colors">
+    <div className="flex-1 flex flex-col bg-white dark:bg-stone-900 rounded-2xl border border-stone-200/70 dark:border-stone-800 overflow-hidden shadow-2xs min-h-0 transition-colors">
       {/* Scope Filter Header */}
-      <div className="table-scope-tabs-container px-4 py-2.5 bg-stone-50/70 dark:bg-stone-900/90 border-b border-stone-200 dark:border-stone-800 flex items-center justify-between flex-wrap gap-2 shrink-0">
-        <div className="flex items-center gap-1 bg-stone-200/70 dark:bg-stone-800 p-0.5 rounded-lg text-xs font-semibold">
+      <div className="table-scope-tabs-container px-4 py-2.5 bg-stone-50/70 dark:bg-stone-900/90 border-b border-stone-200/70 dark:border-stone-800 flex items-center justify-between flex-wrap gap-2 shrink-0">
+        <div className="flex items-center gap-1 bg-stone-200/60 dark:bg-stone-800 p-0.5 rounded-xl text-xs font-semibold">
           <button
             onClick={() => setArchiveScope('active')}
-            className={`px-3 py-1 rounded-md transition-all cursor-pointer flex items-center gap-1.5 ${
+            className={`px-3 py-1 rounded-lg transition-all cursor-pointer flex items-center gap-1.5 ${
               archiveScope === 'active'
                 ? 'bg-white dark:bg-stone-700 text-stone-900 dark:text-stone-100 shadow-2xs'
                 : 'text-stone-600 dark:text-stone-400 hover:text-stone-900 dark:hover:text-stone-100'
             }`}
           >
             <span>🔥 活跃推进中</span>
-            <span className="text-[10px] font-mono bg-rose-100 dark:bg-rose-950/60 text-rose-700 dark:text-rose-300 px-1.5 py-0.2 rounded-full">
+            <span className="text-[10px] font-mono bg-rose-500/10 text-rose-700 dark:text-rose-300 px-1.5 py-0.2 rounded-full font-bold">
               {activeCount}
             </span>
           </button>
 
           <button
             onClick={() => setArchiveScope('archived')}
-            className={`px-3 py-1 rounded-md transition-all cursor-pointer flex items-center gap-1.5 ${
+            className={`px-3 py-1 rounded-lg transition-all cursor-pointer flex items-center gap-1.5 ${
               archiveScope === 'archived'
                 ? 'bg-white dark:bg-stone-700 text-stone-900 dark:text-stone-100 shadow-2xs'
                 : 'text-stone-600 dark:text-stone-400 hover:text-stone-900 dark:hover:text-stone-100'
@@ -929,17 +929,17 @@ export const TopicTableView: React.FC<TopicTableViewProps> = ({
                       <button
                         type="button"
                         onClick={() => { setEditingActionId(topic.id); setEditingAction(topic.next_action || ''); }}
-                        className="inline-flex max-w-[220px] items-center gap-1 truncate rounded-md border border-rose-200/50 bg-rose-50/60 px-2 py-0.5 text-left text-[11px] font-medium text-stone-800 hover:border-rose-300 dark:border-rose-900/40 dark:bg-rose-950/30 dark:text-stone-200"
+                        className="inline-flex max-w-[220px] items-center gap-1.5 truncate rounded-lg bg-rose-500/10 dark:bg-rose-500/15 px-2.5 py-1 text-left text-[11px] font-semibold text-rose-950 dark:text-rose-200 hover:bg-rose-500/20 transition-colors"
                         title="点击直接编辑下一步行动"
                       >
-                        <span className="font-bold text-rose-600 dark:text-rose-400">⚡</span>
+                        <span className="text-rose-600 dark:text-rose-400">⚡</span>
                         <span className="truncate">{topic.next_action}</span>
                       </button>
                     ) : (
                       <button
                         type="button"
                         onClick={() => { if (onUpdateTopic) { setEditingActionId(topic.id); setEditingAction(''); } }}
-                        className="text-[11px] italic text-stone-300 hover:text-rose-600 dark:text-stone-600"
+                        className="text-[11px] italic text-stone-300 hover:text-rose-600 dark:text-stone-600 cursor-pointer"
                         title="点击添加下一步行动"
                       >
                         + 添加行动
@@ -954,7 +954,7 @@ export const TopicTableView: React.FC<TopicTableViewProps> = ({
                         topic.tags.slice(0, 2).map((tag) => (
                           <span
                             key={tag.id || tag.name}
-                            className="inline-flex items-center text-[10px] font-medium bg-stone-100 dark:bg-stone-800 text-stone-600 dark:text-stone-300 px-1.5 py-0.2 rounded border border-stone-200 dark:border-stone-700"
+                            className="inline-flex items-center text-[10px] font-medium bg-stone-100 dark:bg-stone-800 text-stone-600 dark:text-stone-300 px-2 py-0.5 rounded-md select-none"
                           >
                             #{tag.name}
                           </span>
@@ -963,7 +963,7 @@ export const TopicTableView: React.FC<TopicTableViewProps> = ({
                         <span className="text-stone-300 dark:text-stone-600 italic text-[11px]">-</span>
                       )}
                       {topic.tags && topic.tags.length > 2 && (
-                        <span className="text-[10px] text-stone-400 dark:text-stone-500">+{topic.tags.length - 2}</span>
+                        <span className="text-[10px] text-stone-400 dark:text-stone-500 font-mono">+{topic.tags.length - 2}</span>
                       )}
                     </div>
                   </td>}
@@ -975,7 +975,7 @@ export const TopicTableView: React.FC<TopicTableViewProps> = ({
                         topic.people.slice(0, 2).map((person) => (
                           <span
                             key={person.id}
-                            className="inline-flex items-center text-[10px] font-medium bg-stone-50 dark:bg-stone-800 text-stone-700 dark:text-stone-300 px-1.5 py-0.2 rounded border border-stone-200 dark:border-stone-700"
+                            className="inline-flex items-center text-[10px] font-medium bg-stone-100 dark:bg-stone-800 text-stone-700 dark:text-stone-300 px-2 py-0.5 rounded-md select-none"
                           >
                             👤 {person.name}
                           </span>
@@ -989,10 +989,10 @@ export const TopicTableView: React.FC<TopicTableViewProps> = ({
                   {/* 8. Story Rating Score */}
                   {isColumnVisible('score') && <td className={`${rowPadding} px-3 text-center`}>
                     {totalScore > 0 ? (
-                      <div className="inline-flex items-center gap-1 font-mono font-bold text-xs bg-stone-100 dark:bg-stone-800 text-stone-800 dark:text-stone-200 px-2 py-0.5 rounded-full border border-stone-200 dark:border-stone-700">
+                      <div className="inline-flex items-center gap-1 font-mono font-bold text-xs bg-amber-500/10 text-amber-900 dark:text-amber-300 px-2.5 py-0.5 rounded-full select-none">
                         <Sparkles className="w-3 h-3 text-amber-500" />
                         <span>{totalScore}</span>
-                        <span className="text-[10px] text-stone-400 dark:text-stone-500 font-normal">/10</span>
+                        <span className="text-[10px] text-amber-600/70 dark:text-amber-400/70 font-normal">/10</span>
                       </div>
                     ) : (
                       <span className="text-stone-300 dark:text-stone-600 text-[11px] font-mono">未评分</span>

@@ -54,14 +54,6 @@ const KanbanCardComponent: React.FC<KanbanCardProps> = ({
     zIndex: isDragging ? 50 : 1,
   };
 
-  const statusAccent: Record<TopicStatus, string> = {
-    inbox: 'border-l-stone-400',
-    approved: 'border-l-emerald-500',
-    scripting: 'border-l-indigo-500',
-    production: 'border-l-purple-500',
-    published: 'border-l-teal-500',
-    icebox: 'border-l-stone-300',
-  };
   const actionWarning = getNextActionWarning(topic, new Date(), staleThresholdDays);
 
   // If this card is currently being dragged, show the elegant ghost outline placeholder
@@ -70,10 +62,10 @@ const KanbanCardComponent: React.FC<KanbanCardProps> = ({
       <div
         ref={setNodeRef}
         style={style}
-        className="w-full rounded-xl border-2 border-dashed border-rose-300 dark:border-rose-700/80 bg-rose-50/50 dark:bg-rose-950/25 p-3 min-h-[96px] flex items-center justify-center pointer-events-none select-none transition-[border-color,background-color] duration-150"
+        className="w-full rounded-2xl border-2 border-dashed border-rose-300 dark:border-rose-700/80 bg-rose-50/40 dark:bg-rose-950/20 p-3.5 min-h-[104px] flex items-center justify-center pointer-events-none select-none transition-all duration-150"
       >
-        <div className="flex items-center gap-1.5 text-xs font-semibold text-rose-500/80 dark:text-rose-400/80">
-          <span className="w-1.5 h-1.5 rounded-full bg-rose-400 animate-pulse" />
+        <div className="flex items-center gap-2 text-xs font-semibold text-rose-500 dark:text-rose-400">
+          <span className="w-2 h-2 rounded-full bg-rose-400 animate-pulse" />
           <span>放置于此</span>
         </div>
       </div>
@@ -84,13 +76,13 @@ const KanbanCardComponent: React.FC<KanbanCardProps> = ({
   if (isOverlay) {
     return (
       <div
-        className={`relative bg-white dark:bg-stone-900 rounded-xl border border-l-4 ${statusAccent[topic.status]} border-rose-300 dark:border-rose-700 p-3 shadow-modal ring-1 ring-rose-500/20 scale-[1.02] rotate-[1.5deg] opacity-95 cursor-grabbing flex flex-col gap-2 select-none pointer-events-none w-full`}
+        className="relative bg-white dark:bg-stone-900 rounded-2xl border border-rose-300 dark:border-rose-700 p-3.5 shadow-modal ring-2 ring-rose-500/20 scale-[1.02] rotate-[1.2deg] opacity-95 cursor-grabbing flex flex-col gap-2.5 select-none pointer-events-none w-full"
       >
         {/* Top row: Priority & Pin */}
         <div className="flex items-center justify-between gap-1.5 flex-wrap">
           <div className="flex items-center gap-1.5 flex-wrap">
             {topic.is_pinned === 1 && (
-              <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-amber-700 dark:text-amber-300 bg-amber-100/70 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-900/60 px-1.5 py-0.5 rounded">
+              <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-amber-700 dark:text-amber-300 bg-amber-500/10 px-2 py-0.5 rounded-full">
                 <Pin className="w-3 h-3 fill-amber-600 dark:fill-amber-400" />
                 置顶
               </span>
@@ -106,7 +98,7 @@ const KanbanCardComponent: React.FC<KanbanCardProps> = ({
 
         {/* Next Action Highlight Bar */}
         {topic.next_action ? (
-          <div className="bg-rose-50/80 dark:bg-rose-950/30 border border-rose-200/70 dark:border-rose-900/50 rounded-lg p-2 flex items-start gap-2 text-xs text-rose-900 dark:text-rose-200">
+          <div className="bg-rose-500/[0.08] dark:bg-rose-500/[0.14] rounded-xl p-2.5 flex items-start gap-2 text-xs text-rose-950 dark:text-rose-200">
             <div className="w-1.5 h-1.5 rounded-full bg-rose-500 dark:bg-rose-400 mt-1.5 shrink-0" />
             <div className="flex-1 min-w-0">
               <span className="font-semibold text-rose-700 dark:text-rose-400 mr-1">下一步:</span>
@@ -140,15 +132,15 @@ const KanbanCardComponent: React.FC<KanbanCardProps> = ({
       {...attributes}
       {...listeners}
       onClick={() => onOpenDetail(topic.id)}
-      className={`group relative bg-white dark:bg-stone-900 rounded-xl border border-l-4 ${statusAccent[topic.status]} border-stone-200/90 dark:border-stone-800 hover:border-stone-400 dark:hover:border-stone-600 p-3 shadow-subtle hover:shadow-card-hover transition-[background-color,border-color,box-shadow,opacity] duration-150 ${sortableDisabled ? 'cursor-default' : 'cursor-grab active:cursor-grabbing'} flex flex-col gap-2 select-none touch-manipulation ${
-        topic.is_pinned ? 'ring-1 ring-amber-400/60 bg-amber-50/15 dark:bg-amber-950/20' : ''
+      className={`group relative bg-white dark:bg-stone-900 rounded-2xl border border-stone-200/70 dark:border-stone-800 hover:border-stone-300 dark:hover:border-stone-700 p-3.5 shadow-2xs hover:shadow-card-hover hover:-translate-y-0.5 transition-all duration-150 ${sortableDisabled ? 'cursor-default' : 'cursor-grab active:cursor-grabbing'} flex flex-col gap-2.5 select-none touch-manipulation ${
+        topic.is_pinned ? 'ring-1 ring-amber-400/40 bg-amber-50/[0.08] dark:bg-amber-950/10' : ''
       }`}
     >
       {/* Top row: Priority, Pin & Quick Stage */}
       <div className="flex items-center justify-between gap-1.5 flex-wrap">
         <div className="flex items-center gap-1.5 flex-wrap">
           {topic.is_pinned === 1 && (
-            <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-amber-700 dark:text-amber-300 bg-amber-100/70 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-900/60 px-1.5 py-0.5 rounded">
+            <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-amber-700 dark:text-amber-300 bg-amber-500/10 px-2 py-0.5 rounded-full">
               <Pin className="w-3 h-3 fill-amber-600 dark:fill-amber-400" />
               置顶
             </span>
@@ -166,7 +158,7 @@ const KanbanCardComponent: React.FC<KanbanCardProps> = ({
                   e.stopPropagation();
                   setIsStatusMenuOpen(!isStatusMenuOpen);
                 }}
-                className="inline-flex items-center gap-1 text-[11px] font-medium text-stone-600 dark:text-stone-300 hover:text-stone-900 dark:hover:text-stone-100 bg-stone-100/90 dark:bg-stone-800 hover:bg-stone-200/80 dark:hover:bg-stone-700 border border-stone-200/80 dark:border-stone-700 px-2 py-0.5 rounded-md transition-colors cursor-pointer"
+                className="inline-flex items-center gap-1 text-[11px] font-medium text-stone-600 dark:text-stone-300 hover:text-stone-900 dark:hover:text-stone-100 bg-stone-100 dark:bg-stone-800 hover:bg-stone-200/80 dark:hover:bg-stone-700 px-2 py-0.5 rounded-full transition-colors cursor-pointer"
                 title="快速流转阶段"
               >
                 <span>流转</span>
@@ -177,9 +169,9 @@ const KanbanCardComponent: React.FC<KanbanCardProps> = ({
                 <div
                   onClick={(e) => e.stopPropagation()}
                   onMouseLeave={() => setIsStatusMenuOpen(false)}
-                  className="absolute right-0 top-7 z-40 w-36 bg-white dark:bg-stone-900 rounded-xl shadow-modal border border-stone-200 dark:border-stone-800 p-1.5 space-y-0.5 animate-in fade-in zoom-in-95 duration-100"
+                  className="absolute right-0 top-7 z-40 w-36 bg-white/95 dark:bg-stone-900/95 backdrop-blur-md rounded-2xl shadow-modal border border-stone-200/80 dark:border-stone-800 p-1.5 space-y-0.5 animate-in fade-in zoom-in-95 duration-100"
                 >
-                  <div className="px-2 py-1 text-[10px] font-bold uppercase tracking-wider text-stone-400 dark:text-stone-500">
+                  <div className="px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider text-stone-400 dark:text-stone-500">
                     活跃生产阶段
                   </div>
                   {COLUMNS.filter((c) => c.status !== 'published' && c.status !== 'icebox').map((c) => (
@@ -190,7 +182,7 @@ const KanbanCardComponent: React.FC<KanbanCardProps> = ({
                         setIsStatusMenuOpen(false);
                         onUpdateStatus(topic.id, c.status);
                       }}
-                      className={`w-full text-left px-2 py-1.5 rounded-lg text-xs font-medium flex items-center justify-between transition-colors cursor-pointer ${
+                      className={`w-full text-left px-2.5 py-1.5 rounded-xl text-xs font-medium flex items-center justify-between transition-colors cursor-pointer ${
                         topic.status === c.status
                           ? 'bg-stone-100 dark:bg-stone-800 text-stone-900 dark:text-stone-100 font-bold'
                           : 'text-stone-600 dark:text-stone-400 hover:bg-stone-50 dark:hover:bg-stone-800 hover:text-stone-900 dark:hover:text-stone-100'
@@ -202,7 +194,7 @@ const KanbanCardComponent: React.FC<KanbanCardProps> = ({
                   ))}
 
                   <div className="my-1 border-t border-stone-100 dark:border-stone-800" />
-                  <div className="px-2 py-1 text-[10px] font-bold uppercase tracking-wider text-stone-400 dark:text-stone-500">
+                  <div className="px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider text-stone-400 dark:text-stone-500">
                     归档状态
                   </div>
 
@@ -212,7 +204,7 @@ const KanbanCardComponent: React.FC<KanbanCardProps> = ({
                       setIsStatusMenuOpen(false);
                       onUpdateStatus(topic.id, 'published');
                     }}
-                    className={`w-full text-left px-2 py-1.5 rounded-lg text-xs font-medium flex items-center justify-between transition-colors cursor-pointer ${
+                    className={`w-full text-left px-2.5 py-1.5 rounded-xl text-xs font-medium flex items-center justify-between transition-colors cursor-pointer ${
                       topic.status === 'published'
                         ? 'bg-stone-100 dark:bg-stone-800 text-stone-900 dark:text-stone-100 font-bold'
                         : 'text-stone-600 dark:text-stone-400 hover:bg-emerald-50 dark:hover:bg-emerald-950/40 hover:text-emerald-800 dark:hover:text-emerald-300'
@@ -228,7 +220,7 @@ const KanbanCardComponent: React.FC<KanbanCardProps> = ({
                       setIsStatusMenuOpen(false);
                       onUpdateStatus(topic.id, 'icebox');
                     }}
-                    className={`w-full text-left px-2 py-1.5 rounded-lg text-xs font-medium flex items-center justify-between transition-colors cursor-pointer ${
+                    className={`w-full text-left px-2.5 py-1.5 rounded-xl text-xs font-medium flex items-center justify-between transition-colors cursor-pointer ${
                       topic.status === 'icebox'
                         ? 'bg-stone-100 dark:bg-stone-800 text-stone-900 dark:text-stone-100 font-bold'
                         : 'text-stone-600 dark:text-stone-400 hover:bg-stone-100 dark:hover:bg-stone-800 hover:text-stone-900 dark:hover:text-stone-100'
@@ -251,7 +243,7 @@ const KanbanCardComponent: React.FC<KanbanCardProps> = ({
 
       {/* Next Action Highlight Bar */}
       {topic.next_action ? (
-        <div className="bg-rose-50/80 dark:bg-rose-950/30 border border-rose-200/70 dark:border-rose-900/50 hover:border-rose-300 dark:hover:border-rose-700 rounded-lg p-2 flex items-start gap-2 text-xs text-rose-900 dark:text-rose-200 transition-colors">
+        <div className="bg-rose-500/[0.06] dark:bg-rose-500/[0.12] rounded-xl p-2.5 flex items-start gap-2 text-xs text-rose-950 dark:text-rose-200 transition-colors">
           <div className="w-1.5 h-1.5 rounded-full bg-rose-500 dark:bg-rose-400 mt-1.5 shrink-0 animate-pulse" />
           <div className="flex-1 min-w-0">
             <span className="font-semibold text-rose-700 dark:text-rose-400 mr-1">下一步:</span>
@@ -259,7 +251,7 @@ const KanbanCardComponent: React.FC<KanbanCardProps> = ({
           </div>
         </div>
       ) : (
-        <div className="border border-dashed border-stone-200 dark:border-stone-800 rounded-lg p-1 text-[11px] text-stone-400 dark:text-stone-500 text-center">
+        <div className="rounded-xl p-2 text-[11px] text-stone-400 dark:text-stone-500 text-center bg-stone-500/[0.03] dark:bg-stone-800/30">
           未设置下一步行动
         </div>
       )}
@@ -279,20 +271,20 @@ const KanbanCardComponent: React.FC<KanbanCardProps> = ({
       </div>
 
       {/* Secondary context */}
-      <div className="flex items-center justify-between pt-1 border-t border-stone-100 dark:border-stone-800 text-[11px] text-stone-400 dark:text-stone-500">
+      <div className="flex items-center justify-between pt-2 border-t border-stone-100 dark:border-stone-800/80 text-[11px] text-stone-400 dark:text-stone-500">
         <div className="min-w-0 truncate pr-2">
           {topic.people?.slice(0, 2).map((person) => person.name).join(' / ') || '未关联人物'}
           {topic.tags?.length ? ` · ${topic.tags.slice(0, 2).map((tag) => `#${tag.name}`).join(' ')}` : ''}
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-1">
           <button
             onClick={(e) => {
               e.stopPropagation();
               onTogglePin(topic.id);
             }}
             title={topic.is_pinned ? '取消置顶' : '置顶'}
-            className="p-1 hover:text-amber-600 dark:hover:text-amber-400 rounded cursor-pointer"
+            className="p-1 hover:text-amber-600 dark:hover:text-amber-400 rounded-lg cursor-pointer transition-colors"
           >
             <Pin className={`w-3.5 h-3.5 ${topic.is_pinned ? 'fill-amber-500 text-amber-500' : 'text-stone-300 dark:text-stone-600 hover:text-stone-500'}`} />
           </button>
