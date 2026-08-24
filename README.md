@@ -1,60 +1,94 @@
 # 🎬 选题生产工作台 (Topic Kanban Studio)
 
-面向 Bilibili 人物、网红争议、主播事件和社会纪实类视频创作者的专属生产工作台。系统围绕“下一步最该做什么”，覆盖线索收集、资料核验、故事梳理、文案写作、成片发布与数据复盘。
+面向 **Bilibili 叙事类视频（互联网人物、网红主播、荒诞事件、社会纪实）** 创作者量身打造的专属选题与文案生产工作台。
 
-支持 **本地 Podman / Docker 单容器部署（内置本地 SQLite 与反代适配）** 与 **Cloudflare 边缘部署** 两种模式。
+系统围绕**「下一步最该做什么（Next Action）」**与**「起承转合叙事引擎」**，全流程覆盖线索收集、一手资料核验、故事时间线梳理、四幕大纲提炼、分段文案写作、演播提词录制、成片发布与 5D 深度复盘。
 
----
-
-## ✨ 核心能力
-
-- **选题生命周期**：`inbox`（收集箱）→ `approved`（已立项）→ `scripting`（写稿中）→ `production`（待制作），以及 `published`（已发布）和 `icebox`（搁置）。
-- **今日聚焦**：结合置顶、优先级、阶段和更新时间生成今日工作列表，并提示停滞选题。
-- **看板与选题库**：拖拽流转、服务端分页/排序/搜索、标签/人物筛选、全站统一高质感自定义下拉交互 (`CustomSelect`)、快捷建卡、归档和回收站批量处理。
-- **选题详情**：概览、5 维故事评分、资料库、时间线、人物档案网和文案工作区。
-- **资料分层与智能识别**：区分 `fact`（事实）、`clue`（线索）、`material`（素材），支持一键无弹窗核实轮转与线索升级；内置 **Bilibili / YouTube 智能识别**（自动拉取视频真实标题、UP主/作者、简介与发布日期）。
-- **故事时间线与节奏走廊**：精确/模糊时间精度混排；支持打上自由反差与情绪标记（`荒诞反差`、`人物张力`、`高潮爆发` 等），顶部连线呈现水平流动的「叙事反差与情绪节奏走廊 (Rhythm Corridor)」。
-- **人物档案网**：维护别名、平台主页、语录、关联选题和人物关系；故事时间线支持关联多个人物。
-- **文案编辑与演播气口**：Tiptap 富文本、分段大纲、证据链引用、字数/片长智能换算（默认 280 字/分）；支持快捷插入演播气口标记（`[停顿 1s]`、`[重音]` 等），编辑器内部采用原子胶囊徽章呈现，并在偏好设置中支持自定义管理与 KV 持久化。
-- **录音播音提词器**：全屏自适应镜像提词、大纲节点快速锚定跳转、高对比度独立深浅色模式、智能识别高亮演播气口胶囊。
-- **文案防丢**：1.5 秒本地恢复缓存；离开或切台即时同步；原子版本号防止并发冲突覆盖。
-- **外部审稿快照分享**：支持一键生成免登录只读审稿快照链接（可设 1~30 天 TTL），外部配音/剪辑/画师免密码直接查阅，到期后自动物理销毁。
-- **反代公网域名适配 (Public Base URL)**：无论在局域网还是本地写稿，生成的审稿链接与快投接口自动使用反代配置的公网域名。
-- **多端在线感知锁**：在写稿界面维持心跳租约（30s TTL），当另一设备打开同选题时顶部弹出防冲突横幅。
-- **手机灵感快投箱**：提供极速 Webhook 接口，支持 iOS 快捷指令或手机分享菜单一秒直投碎片文字与链接，顶栏红点提醒并支持一键转入收集箱。
-- **发布复盘**：记录 BVID、链接、发布日期、当前播放与互动指标（直连 B站 API）。
-- **全量备份与迁移**：支持导出与导入包含全部业务实体的 JSON 备份，以及导出全量 Markdown 文案合辑。
+支持 **本地 Podman / Docker 单容器一体化部署（内置 SQLite 与反代适配）** 与 **Cloudflare 边缘网络部署** 双环境无缝切换。
 
 ---
 
-## 🏗️ 技术架构
+## ✨ 核心能力与工作流体系
 
-- **前端框架**：React 18、TypeScript、Vite 6、Tailwind CSS 3
-- **路由与状态**：React Router 7、TanStack Query 5
-- **富文本与交互**：Tiptap 2、`@dnd-kit`
-- **服务端**：Hono 4 + Bun 原生 HTTP Server
-- **数据库**：
-  - **本地模式**：本地 SQLite（`bun:sqlite` + WAL 模式高性能事务）
-  - **云端模式**：Cloudflare D1 (SQLite) + Cloudflare Workers KV
-- **运行与测试工具链**：Bun（包管理、运行时、构建与 `bun:test`）
+### 1. 🚀 下一步行动治理 (Next Action Engine)
+* **行动聚焦与抗拖延**：每个选题必须明确当前唯一最该推进的具体动作，消除多选题切换时的选择焦虑。
+* **智能推迟与自动唤醒**：支持「稍后/今日稍后/明日再议」推迟处理，采用北京时间（UTC+8）跨天自动解除推迟状态。
+* **停滞预警**：在「偏好设置」中支持配置停滞阈值（3天/5天/7天），超期未更新行动的选题在今日聚焦与看板中醒目标红预警。
 
-```text
-创作者浏览器 (Web / Mobile Safari)
-  ├─ React Router + TanStack Query
-  ├─ LocalStorage（登录 Token、UI 偏好、文案恢复缓存）
-  └─ /api/* ──┬─→ [本地容器] Hono Server ──→ 本地 SQLite (kanban.db) & 本地 KV 表
-              └─→ [云端边缘] Hono Pages  ──→ Cloudflare D1 & Workers KV
-```
+### 2. 🧭 起承转合四幕叙事蓝图与 5D 诊断罗盘 (Story Engine & Diagnostic Dial)
+* **四幕叙事结构化蓝图**：
+  * 提炼 **黄金 3 秒 Hook**、**为什么是现在 (Why Now)** 与 **核心一句话 Pitch**；
+  * 内置 **【起·破题引人】、【承·反转升级】、【转·荒诞高潮】、【合·价值落地】** 四幕卡片结构，支持与原始 Markdown 文本一秒无损双向切换，800ms 防抖实时自动暂存。
+* **叙事流水线一键贯通**：
+  * **注入文案区**：一键将四幕大纲作为分段 H2 标题自动注入正文草稿区；
+  * **沉淀时间线**：一键将四幕核心转折点转化为故事时间线关键事件。
+* **5 维故事健康度罗盘**：
+  * 人物张力、戏剧冲突、荒诞反差、素材完整度、主线成立度 5 维诊断；
+  * 自动计算综合故事力（0~100 分），智能定位内容短板并支持**一键生成针对性的下一步行动**。
+
+### 3. 📑 资料素材 3 级分层与客户端直连解析
+* **资料严格 3 级分层**：清晰划分 `fact`（已核实事实）、`clue`（待考证线索）、`material`（背景素材），支持一键无弹窗核实状态轮转与线索升级。
+* **客户端原生直连解析 (Zero Server Scraping)**：
+  * **Bilibili**：客户端原生 JSONP 直连 B 站开放 API，零风控、毫秒级获取视频真实标题、UP主/作者、简介、发布日期、封面及播放/点赞/投币/收藏等全套互动数据；
+  * **YouTube**：客户端官方 oEmbed CORS 直连拉取标题、作者与封面；
+  * **抖音 / 快手 / 小红书 / 微博 / 微信 / 知乎**：内置语义智能提取器，自动剥离移动端 App 复制口令与分享尾缀，精准提取作者、纯净标题与内容摘要。
+
+### 4. ⏳ 故事时间线与叙事节奏走廊 (Timeline & Rhythm Corridor)
+* **时序与自定义混排**：支持精确（年/月/日）与模糊时间精度（年/月、年份、待考证）；支持拖拽自由排序与一键时间从新到旧/从旧到新排列。
+* **叙事反差打标**：为关键转折打上反差标签（`荒诞反差`、`人物张力`、`高潮爆发` 等），顶部以水平流动连线呈现「叙事反差与情绪节奏走廊」。
+
+### 5. 👥 人物档案与网状关系库 (People Archive & Relations)
+* **独立人物库**：维护网红与当事人别名外号、核心人设标签、平台主页、粉丝量、经典语录与背景简介。
+* **人物关系网**：支持定义人物间双向/网状关联（合作、对立、背叛、师徒、师友等），在选题内自动关联出场人物关系。
+
+### 6. ✍️ 沉浸写稿工作台、演播气口与录音提词器 (Studio & Teleprompter)
+* **Tiptap 富文本编辑器**：支持大纲目录、实时字数统计与片长换算（默认 280 字/分钟，可自由调节 180~420 字/分）。
+* **演播气口标记库 (Voiceover Cues)**：
+  * 支持快捷插入配音提示词（`[停顿 1s]`、`[重音]`、`[反讽语气]` 等），编辑器内以原子胶囊徽章呈现，并在设置中支持自定义增删与 KV 持久化。
+* **高对比度录音提词器 (`Cmd/Ctrl + Shift + P`)**：
+  * 支持全屏自适应镜像翻转、可调滚动语速、大纲锚点跳转；
+  * 自动将演播气口渲染为醒目导播指示灯，录音读错率直降。
+* **文案专注模式 (`Cmd/Ctrl + Shift + F`)**：纯净无干扰全屏写作，支持打字机居中模式。
+* **三重文案防丢保障**：1.5 秒本地防抖缓存，切台/页面隐藏即时同步，携带 `base_version` 原子校验防并发覆盖。
+
+### 7. 📤 外部免密审稿快照与多端协作
+* **免登录审稿链接**：一键生成只读审稿快照（支持设置 1/3/7/30 天 TTL），外部配音/剪辑/画师无需密码直接查阅，到期后物理自动销毁。
+* **多端编辑在线感知防踩踏**：写稿维持 30s TTL 租约心跳，当其他设备同时打开同选题时顶部弹出防冲突横幅。
+* **手机快捷指令碎片快投箱**：提供独立 Webhook 接口与独立 Token，刷手机时通过 iOS 快捷指令一秒直投碎片灵感，工作台顶栏红点提示并支持一键转为收集箱选题。
+
+### 8. 📊 已发布视频复盘与 5D 数据罗盘 (Published Analytics)
+* **成片指标追踪**：记录 BVID 与成片链接，一键同步 B 站最新播放量、弹幕、评论、点赞、投币、收藏与分享数据。
+* **深度复盘罗盘**：自动生成 5D 故事评估与成片播放量的关联双柱图，智能提炼爆款选题的决定性因子。
+
+### 9. 🎨 温润编辑部设计系统与主题生态 (Editorial Design System)
+* **温润微质感**：基于 Stone 灰度与 Rose 玫瑰红强调色打造，采用大圆角（`rounded-2xl`）、微投影（`shadow-2xs`）与透底色药丸（Tinted Pills）。
+* **8 套主题随心换**：北欧冷杉（推荐）、巴黎晨光、深海星图（极客夜间）、京都茶席、暖沙纸境、经典浅色、深色专注、跟随系统。
+* **全局指令搜索面板 (`Cmd/Ctrl + P` 或 `/`)**：支持全拼搜索，并通过 `#` 查赛道、`@` 查人物、`>` 执行快捷动作、`?` 调出快捷键大全。
 
 ---
 
-## 🐳 一、本地 Podman / Docker 容器部署（推荐）
+## 🛠️ 技术架构
 
-工作台采用**单容器一体化架构（All-in-One Container）**，由 Bun 服务端统一托管前端静态网页与 `/api` 接口，数据保存在挂载目录的单个 `kanban.db` 文件中。
+| 层级 | 技术选型 | 说明 |
+| :--- | :--- | :--- |
+| **前端核心** | React 18 + TypeScript + Vite 6 + TailwindCSS 3 | 模块化 SPA，秒级热重载 |
+| **路由与状态** | React Router 7 + TanStack Query 5 | 服务端状态缓存与乐观更新 |
+| **富文本编辑** | Tiptap 2 + StarterKit + 自定义原子气口扩展 | 支持演播气口节点与字数计算 |
+| **看板与拖拽** | `@dnd-kit/core` + `@dnd-kit/sortable` | 丝滑拖拽流转与时序排序 |
+| **服务端** | Hono 4 + Bun 原生 HTTP Server | 跨运行时统一路由，启动 < 30ms |
+| **主业务持久库** | 本地 SQLite (`bun:sqlite` + WAL) / Cloudflare D1 | 8 张强关系型业务核心表 |
+| **键值与临时库** | 本地 `_kv_store` 表 (`LocalKVNamespace`) / Cloudflare KV | 全局偏好、审稿快照、在线锁、快投箱 |
+| **测试与构建** | Bun (`bun test` + `bun build`) | 54 项全量测试，毫秒级运行 |
 
-### 1. 快速拉起 (Docker Compose / Podman Compose)
+---
 
-在项目目录下准备 `docker-compose.yml`：
+## 🐳 一、本地 Podman / Docker 一体化容器部署（推荐）
+
+工作台采用**单容器一体化架构（All-in-One Container）**，由 Bun 服务端统一托管前端编译资产与 `/api` 接口，全部数据保存在挂载目录的单个 `kanban.db` 文件中。
+
+### 1. 使用 Docker Compose / Podman Compose
+
+在项目根目录创建 `docker-compose.yml`：
 
 ```yaml
 services:
@@ -69,45 +103,28 @@ services:
       - NODE_ENV=production
       - PORT=3000
       - APP_PASSWORD=your_secure_password      # 工作台访问密码
-      - QUICK_DROP_TOKEN=your_quick_drop_token  # 手机快捷指令独立Token
-      - PUBLIC_BASE_URL=https://kanban.yourdomain.com # 反向代理公网域名 (注意：必须包含 https:// 或 http:// 协议前缀，局域网使用可留空)
+      - QUICK_DROP_TOKEN=your_quick_drop_token  # 手机快捷指令快投独立 Token
+      - PUBLIC_BASE_URL=https://kanban.yourdomain.com # 反向代理公网域名（包含 https:// 协议头）
       - DATA_DIR=/app/data
     volumes:
       - ./data:/app/data
-  image: ghcr.io/biaobiaobiao108/topickanban:latest
 ```
 
 启动命令：
 ```bash
-# 方式 A：基于本地源码构建并拉起
+# 本地构建并拉起容器服务
 docker compose up -d --build
-# 或 Podman:
+# 或使用 Podman:
 podman compose up -d --build
-
-# 方式 B：直接拉取 GitHub Actions 自动构建好的预编译镜像 (免本地安装依赖与构建)
-docker run -d \
-  --name topic-kanban \
-  --restart unless-stopped \
-  -p 3000:3000 \
-  -e APP_PASSWORD="your_secure_password" \
-  -e QUICK_DROP_TOKEN="your_quick_drop_token" \
-  -e PUBLIC_BASE_URL="https://kanban.yourdomain.com" \
-  -v ./data:/app/data \
-  ghcr.io/biaobiaobiao108/topickanban:latest
 ```
 
-> ⚠️ **重要提示（关于 `PUBLIC_BASE_URL` 域名前缀）**：
-> 配置 `PUBLIC_BASE_URL` 时**必须包含完整的协议前缀**（如 `https://kanban.yourdomain.com` 或 `http://192.168.1.100:3000`），**切勿仅填写裸域名**（如 `kanban.yourdomain.com`）。若缺少协议头，浏览器会将生成的审稿链接解析为相对路径，导致新标签页预览或跳转异常。
-
-访问 `http://localhost:3000` 即可开始使用。
+访问 `http://localhost:3000` 即可开始使用。本地开发与容器默认密码为 `admin`（可通过 `APP_PASSWORD` 自定义）。
 
 ---
 
 ### 2. 反向代理（Reverse Proxy）配置
 
-当通过反向代理（Nginx / Caddy / NPM / Cloudflare Tunnel）对外提供服务时，工作台会自动识别 `X-Forwarded-*` 请求头或采用配置的 `PUBLIC_BASE_URL`，确保生成的审稿链接在公网有效。
-
-> 💡 如果您通过反代域名访问，推荐在工作台「偏好设置」->「选题生产流与外部审稿偏好」中填入带协议的公网地址（如 `https://kanban.yourdomain.com`）。
+当容器部署在 Nginx / Caddy / NPM / Cloudflare Tunnel 后方时，工作台会自动识别 `X-Forwarded-*` 请求头或采用配置的 `PUBLIC_BASE_URL`，确保生成的审稿链接与快投接口在公网环境完美访问。
 
 #### Nginx 配置样例：
 ```nginx
@@ -118,7 +135,7 @@ server {
     ssl_certificate /path/to/fullchain.pem;
     ssl_certificate_key /path/to/privkey.pem;
 
-    client_max_body_size 10M;
+    client_max_body_size 20M;
 
     location / {
         proxy_pass http://127.0.0.1:3000;
@@ -138,69 +155,55 @@ kanban.yourdomain.com {
 }
 ```
 
-更详细的容器化配置请参阅 [docs/CONTAINER_DEPLOY.md](docs/CONTAINER_DEPLOY.md)。
+详细容器化部署说明请参阅 [docs/CONTAINER_DEPLOY.md](docs/CONTAINER_DEPLOY.md)。
 
 ---
 
 ## ☁️ 二、Cloudflare Pages 部署流程
 
-如果您希望直接托管在 Cloudflare 边缘网络上，可以通过 Cloudflare 控制台进行无代码环境部署：
+如果您希望直接托管在 Cloudflare 全球边缘网络上：
 
-### 1. 在 Cloudflare 控制台准备资源
-1. **创建 D1 数据库**：
-   - 进入 Cloudflare Dashboard → **Workers & Pages** → **D1 SQL Database** → 点击 **Create Database**。
-   - 数据库命名为 `kanban`。
-2. **创建 KV 命名空间**：
-   - 进入 Cloudflare Dashboard → **Workers & Pages** → **KV** → 点击 **Create a Namespace**。
-   - 命名空间命名为 `kanban-kv`。
+### 1. 准备 Cloudflare 资源
+1. **创建 D1 数据库**：进入 Cloudflare Dashboard → **Workers & Pages** → **D1 SQL Database** → 点击 **Create Database**，命名为 `kanban`。
+2. **创建 KV 命名空间**：进入 Cloudflare Dashboard → **Workers & Pages** → **KV** → 点击 **Create a Namespace**，命名为 `kanban-kv`。
 
-### 2. 在 Cloudflare Pages 中绑定变量
-1. 将本仓库连接到 **Cloudflare Pages**（或通过 CLI 上传）。
-2. 在 Pages 项目的 **Settings** → **Functions** → **Bindings** 中添加：
-   - **D1 Database Bindings**：
-     - Variable name: `DB`
-     - D1 Database: 选择刚才创建的 `kanban`
-   - **KV Namespace Bindings**：
-     - Variable name: `KV`
-     - KV namespace: 选择刚才创建的 `kanban-kv`
-   - **Environment Variables (Secrets)**：
-     - `APP_PASSWORD`: 设置您的工作台访问密码
-     - `QUICK_DROP_TOKEN`: 设置手机快捷指令快投独立 Token
+### 2. 绑定 Pages 项目环境变量
+在 Cloudflare Pages 项目的 **Settings** → **Functions** → **Bindings** 中绑定：
+* **D1 Database Bindings**：变量名 `DB` → 绑定刚才创建的 `kanban` 数据库；
+* **KV Namespace Bindings**：变量名 `KV` → 绑定刚才创建的 `kanban-kv` 命名空间；
+* **Environment Variables**：
+  * `APP_PASSWORD`: 设置工作台访问密码；
+  * `QUICK_DROP_TOKEN`: 设置手机快捷指令快投独立 Token。
 
 ### 3. 初始化远程数据库表结构
-使用本地 wrangler CLI 将基础 SQL 导入远程 D1：
 ```bash
-# 执行数据库基线初始化
 bunx wrangler d1 execute kanban --remote --file=./drizzle/0000_schema.sql
 ```
 
 ### 4. 构建与发布
-- 构建命令：`bun run build`
-- 输出目录：`dist`
+* 构建命令：`bun run build`
+* 输出目录：`dist`
 
 ---
 
-## 💻 三、本地开发工作流
+## 💻 三、本地开发与验证工作流
 
-要求：Bun 1.4+。
+系统推荐使用 **Bun 1.4+** 进行依赖管理与开发测试：
 
 ```bash
 # 1. 安装依赖
 bun install
 
-# 2. 启动本地开发 (同时启动 Vite 前端 3000 端口与本地 Node 后端 8787 端口)
+# 2. 启动本地全栈开发环境 (Vite 前端 3000 端口 + Bun API 8787 端口)
 bun run dev
 
-# 3. 访问 http://localhost:3000
-# 本地开发默认口令为：admin (若需自定义可在 .env 中设置 APP_PASSWORD)
-
-# 4. 运行全量测试
+# 3. 运行全量自动化测试套件 (54 项单元与集成测试)
 bun run test:run
 
-# 5. 生产构建打包 (编译 SPA 前端 + Bundle Bun 服务端)
+# 4. 生产构建打包 (Vite 前端打包 + Bun 服务端 Bundle)
 bun run build
 
-# 6. 生产单机预览运行
+# 5. 本地生产单机运行
 bun run start
 ```
 
@@ -215,38 +218,57 @@ kanban/
 │   └── 0001_optional_published_topic.sql # 结构升级迁移 SQL
 ├── functions/api/[[route]].ts           # Cloudflare Pages Functions API 入口
 ├── src/
-│   ├── components/                      # 业务功能组件 (kanban/topic-detail/settings/etc.)
-│   ├── hooks/useWorkspace.ts            # 工作区查询缓存与实体更新
+│   ├── components/
+│   │   ├── auth/                        # 登录鉴权组件
+│   │   ├── inbox/                       # 灵感快投抽屉组件
+│   │   ├── layout/                      # 顶栏、侧边栏、全局指令面板、快速新建弹窗
+│   │   ├── people/                      # 人物档案库与关系网组件
+│   │   ├── published/                   # 已发布视频复盘与 5D 分析罗盘
+│   │   ├── settings/                    # 偏好设置、排版预览、演播气口库与存储探测
+│   │   ├── tags/                        # 标签与赛道沉淀视图
+│   │   ├── today/                       # 今日聚焦与停滞推进看板
+│   │   ├── topic-detail/                # 选题详情（起承转合蓝图、5D罗盘、素材库、时间线、人物网、写稿区、提词器）
+│   │   ├── topic-list/                  # 选题全景看板与数据表格视图
+│   │   └── ui/                          # CustomSelect、Modal、Badge、ConfirmDialog
+│   ├── hooks/useWorkspace.ts            # 全局工作区查询缓存与乐观更新
 │   ├── lib/
+│   │   ├── clientUrlParser.ts           # 全站客户端直连解析（Bilibili JSONP / YouTube CORS）
 │   │   ├── publicUrl.ts                 # 反代公网域名推导与规范化
-│   │   ├── remoteStorage.ts             # API 数据通信门面
-│   │   └── auth.ts                      # 无状态 HMAC Token 鉴权
+│   │   ├── remoteStorage.ts             # REST API 通信门面
+│   │   ├── theme.ts                     # 8 套温润编辑部主题调色板配置
+│   │   └── auth.ts                      # Web Crypto HMAC-SHA256 Token 鉴权
 │   ├── server/
-│   │   ├── createApp.ts                 # Hono 核心路由定义 (跨运行时共享)
+│   │   ├── createApp.ts                 # Hono 核心 REST API 路由定义 (跨运行时共享)
 │   │   ├── server.ts                    # Bun 独立服务端入口 (静态托管 + API)
 │   │   ├── database.ts                  # SQL 业务持久层与备份导入导出
-│   │   ├── systemRoutes.ts              # 系统、健康检查、设置与备份路由
+│   │   ├── systemRoutes.ts              # 系统探测、设置与备份路由
 │   │   └── adapters/
 │   │       ├── localSqlite.ts           # 本地 SQLite (bun:sqlite) D1 兼容适配层
 │   │       └── localKv.ts               # 本地 SQLite KV 表适配层 (含 TTL 过期支持)
 │   ├── types/index.ts                   # 领域模型与 TypeScript 契约
-│   ├── App.tsx                          # 主应用路由入口
-│   └── main.tsx                         # React DOM 挂载入口
-├── tests/                               # bun:test 自动化单元与集成测试套件
-├── docs/
-│   └── CONTAINER_DEPLOY.md              # 容器部署与反向代理深度配置指南
+│   ├── App.tsx                          # 路由分发入口
+│   └── main.tsx                         # DOM 挂载入口
+├── tests/                               # 54 项 bun:test 自动化单元与集成测试套件
+├── docs/                                # 部署配置与反代说明文档
 ├── Dockerfile                           # 多阶段构建 Dockerfile
-├── docker-compose.yml                   # Docker / Podman 一键编排配置
+├── docker-compose.yml                   # 一键容器编排配置
 └── package.json
 ```
 
 ---
 
-## ⌨️ 常用快捷键
+## ⌨️ 常用快捷键速查
 
-| 快捷键 | 功能 |
-| --- | --- |
-| `N` | 非输入状态下快速新建选题 |
-| `Ctrl / Cmd + P` 或 `/` | 打开全局指令搜索面板 |
-| `Esc` | 关闭弹窗或浮层 |
-| `Cmd / Ctrl + Shift + F` | 进入文案沉浸专注模式 |
+| 快捷键 | 作用场景 | 功能说明 |
+| :--- | :--- | :--- |
+| `Ctrl / Cmd + P` 或 `/` | 全局任意界面 | 打开全局指令搜索面板（支持 `#` 赛道、`@` 人物、`>` 动作、`?` 快捷键） |
+| `N` | 看板或非输入状态 | 快速呼出 10 秒新建选题弹窗 |
+| `Esc` | 任意弹窗 / 浮层 | 快速关闭当前弹窗、抽屉或退出专注模式 |
+| `Cmd / Ctrl + Shift + F` | 文案编辑器中 | 一键开启 / 退出文案全屏沉浸专注模式 |
+| `Cmd / Ctrl + Shift + P` | 文案编辑器中 | 一键开启高对比度全屏录音播音提词器 |
+
+---
+
+## 📄 开源许可证
+
+本项目基于 [MIT License](LICENSE) 开源。
