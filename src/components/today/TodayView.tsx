@@ -156,7 +156,7 @@ export const TodayView: React.FC<TodayViewProps> = ({
                     className="w-full sm:w-auto shrink-0 flex items-center justify-center gap-2 bg-rose-600 hover:bg-rose-700 text-white px-5 py-2.5 rounded-xl text-sm font-semibold transition-all shadow-2xs hover:shadow-xs active:scale-[0.98] cursor-pointer"
                   >
                     <CheckCircle2 className="w-4 h-4" />
-                    <span>{focusTopic.next_action ? '完成当前行动' : '设置下一步'}</span>
+                    <span>{focusTopic.next_action ? '推进 / 完成行动' : '设置下一步'}</span>
                   </button>
                   <button
                     onClick={() => onOpenDetail(focusTopic.id)}
