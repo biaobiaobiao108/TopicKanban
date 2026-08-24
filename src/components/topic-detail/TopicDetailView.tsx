@@ -314,6 +314,39 @@ export const TopicDetailView: React.FC<TopicDetailViewProps> = ({
     }
   };
 
+  const handleInjectOutlineIntoDraft = async (outlineHtml: string) => {
+    try {
+      const existing = await fetchDraftByTopicId(topic.id);
+      const prevHtml = existing.draft?.content_html || '';
+      const combinedHtml = prevHtml.trim()
+        ? `${prevHtml}<hr/>${outlineHtml}`
+        : outlineHtml;
+      await handleSaveDraft(topic.id, combinedHtml, JSON.stringify({}), 0);
+      setActiveTab('script');
+    } catch (err) {
+      setOperationError(err instanceof Error ? `注入文案草稿失败：${err.message}` : '注入文案草稿失败');
+    }
+  };
+
+  const handleConvertStorylineToTimeline = async (steps: Array<{ title: string; desc: string }>) => {
+    try {
+      for (const step of steps) {
+        await saveTimelineEvent({
+          topic_id: topic.id,
+          title: step.title,
+          description: step.desc,
+          date_precision: 'unknown',
+          verification_status: 'confirmed',
+        });
+      }
+      const updated = await fetchTimelineByTopicId(topic.id);
+      queryClient.setQueryData(['topic-timeline', topic.id], updated);
+      setActiveTab('timeline');
+    } catch (err) {
+      setOperationError(err instanceof Error ? `流转时间线失败：${err.message}` : '流转时间线失败');
+    }
+  };
+
   return (
     <div className="flex-1 flex flex-col h-full overflow-hidden bg-[#fafaf9] dark:bg-[#0c0a09] transition-colors">
       <Modal
@@ -405,6 +438,9 @@ export const TopicDetailView: React.FC<TopicDetailViewProps> = ({
             onSavePerson={onSavePerson}
             onSaveTag={onSaveTag}
             onDeleteTag={onDeleteTag}
+            onNavigateToTab={(tab) => setActiveTab(tab)}
+            onInjectOutlineIntoDraft={handleInjectOutlineIntoDraft}
+            onConvertStorylineToTimeline={handleConvertStorylineToTimeline}
           />
         )}
 
