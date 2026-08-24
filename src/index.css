@@ -96,36 +96,84 @@ html.theme-kyoto-zen .script-citation::after {
   color: #3d6b4f;
 }
 
-@keyframes slideInFromLeft {
+@keyframes floatInFromLeft {
   from {
-    transform: translate3d(-100%, 0, 0);
-    opacity: 0.7;
+    transform: translate3d(-16px, 0, 0) scale(0.98);
+    opacity: 0;
   }
   to {
-    transform: translate3d(0, 0, 0);
+    transform: translate3d(0, 0, 0) scale(1);
     opacity: 1;
   }
 }
 
-@keyframes slideInFromRight {
+@keyframes floatInFromRight {
   from {
-    transform: translate3d(100%, 0, 0);
-    opacity: 0.7;
+    transform: translate3d(16px, 0, 0) scale(0.98);
+    opacity: 0;
   }
   to {
-    transform: translate3d(0, 0, 0);
+    transform: translate3d(0, 0, 0) scale(1);
     opacity: 1;
   }
 }
 
 .script-outline-panel {
-  animation: slideInFromLeft 220ms cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  animation: floatInFromLeft 200ms cubic-bezier(0.16, 1, 0.3, 1) forwards;
   will-change: transform, opacity;
 }
 
 .script-reference-drawer {
-  animation: slideInFromRight 220ms cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  animation: floatInFromRight 200ms cubic-bezier(0.16, 1, 0.3, 1) forwards;
   will-change: transform, opacity;
+}
+
+/* Script Editor Focus Mode */
+.script-editor-focus-mode .tiptap > * {
+  opacity: 0.35;
+  filter: blur(0.15px);
+  transition: opacity 0.2s cubic-bezier(0.16, 1, 0.3, 1), filter 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.script-editor-focus-mode .tiptap > .is-focused-paragraph,
+.script-editor-focus-mode .tiptap > *:hover,
+.script-editor-focus-mode .tiptap > *:focus-within {
+  opacity: 1 !important;
+  filter: none !important;
+}
+
+/* Selection Quick Bubble */
+.script-selection-bubble {
+  box-shadow: 0 12px 28px -6px rgba(0, 0, 0, 0.12), 0 6px 12px -4px rgba(0, 0, 0, 0.08);
+}
+
+html.dark .script-selection-bubble {
+  box-shadow: 0 12px 28px -6px rgba(0, 0, 0, 0.45), 0 6px 12px -4px rgba(0, 0, 0, 0.3);
+}
+
+html.theme-warm-paper .script-selection-bubble {
+  background-color: #ffffff !important;
+  border-color: #eae3d8 !important;
+}
+
+html.theme-nordic-frost .script-selection-bubble {
+  background-color: #ffffff !important;
+  border-color: #dce5e5 !important;
+}
+
+html.theme-parisian-dawn .script-selection-bubble {
+  background-color: #ffffff !important;
+  border-color: #ded7ce !important;
+}
+
+html.theme-midnight-obsidian .script-selection-bubble {
+  background-color: #1c212c !important;
+  border-color: rgba(255, 255, 255, 0.14) !important;
+}
+
+html.theme-kyoto-zen .script-selection-bubble {
+  background-color: #ffffff !important;
+  border-color: #dadfd5 !important;
 }
 
 @layer base {

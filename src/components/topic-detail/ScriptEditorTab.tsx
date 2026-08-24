@@ -17,7 +17,7 @@ import {
   Minimize2,
   AlignCenter,
   BookOpen,
-  PanelLeftOpen,
+  Compass,
   AlertTriangle,
   Mic,
   Share2,
@@ -25,6 +25,11 @@ import {
   X,
   ExternalLink,
   ShieldAlert,
+  Target,
+  Bold,
+  Quote,
+  Heading2,
+  Heading1,
 } from 'lucide-react';
 import { CitationMark } from './CitationMark';
 import { VoiceoverCueNode } from './VoiceoverCueNode';
@@ -37,7 +42,7 @@ import {
   releasePresenceHeartbeat,
 } from '../../lib/storage';
 import { countValidCharacters, calculateEstimatedDuration } from '../../lib/textMetrics';
-import type { PresenceState, ShareSnapshot } from '../../types';
+import type { PresenceState } from '../../types';
 
 const TeleprompterModal = React.lazy(() =>
   import('./TeleprompterModal').then((m) => ({ default: m.TeleprompterModal }))
@@ -136,6 +141,7 @@ export const ScriptEditorTab: React.FC<ScriptEditorTabProps> = ({
   const [isTypewriterMode, setIsTypewriterMode] = useState(
     settings?.typewriter_mode_default ?? false
   );
+  const [isFocusMode, setIsFocusMode] = useState(false);
   const [isReferenceOpen, setIsReferenceOpen] = useState(false);
   const [isOutlineOpen, setIsOutlineOpen] = useState(false);
   const [outline, setOutline] = useState(EMPTY_SCRIPT_OUTLINE);
@@ -146,9 +152,17 @@ export const ScriptEditorTab: React.FC<ScriptEditorTabProps> = ({
   const lastInsertedTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const cueMenuContainerRef = useRef<HTMLDivElement | null>(null);
 
+  // Selection Bubble State
+  const [selectionBubble, setSelectionBubble] = useState<{ visible: boolean; x: number; y: number } | null>(null);
+
+  // Zen Mode Ambient Dynamic Respiration State
+  const [isTypingZen, setIsTypingZen] = useState(false);
+  const zenTypingTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
   const scrollContainerRef = useRef<HTMLDivElement | null>(null);
   const typewriterBottomSpacerRef = useRef<HTMLDivElement | null>(null);
   const isTypewriterModeRef = useRef(isTypewriterMode);
+  const isFocusModeRef = useRef(isFocusMode);
   const scrollTargetRef = useRef<number | null>(null);
   const scrollAnimationFrameRef = useRef<number | null>(null);
   const scrollMeasureFrameRef = useRef<number | null>(null);
@@ -266,6 +280,7 @@ export const ScriptEditorTab: React.FC<ScriptEditorTabProps> = ({
   };
 
   isTypewriterModeRef.current = isTypewriterMode;
+  isFocusModeRef.current = isFocusMode;
   readingSpeedRef.current = effectiveSpeed;
 
   useEffect(() => {
@@ -275,6 +290,16 @@ export const ScriptEditorTab: React.FC<ScriptEditorTabProps> = ({
   useEffect(() => {
     localCacheRef.current = onCacheDraftLocally;
   }, [onCacheDraftLocally]);
+
+  // Ambient Respiration on Zen Mode: wake on mouse movement
+  useEffect(() => {
+    if (!isZenMode) return;
+    const handleMouseMove = () => {
+      setIsTypingZen(false);
+    };
+    window.addEventListener('mousemove', handleMouseMove, { passive: true });
+    return () => window.removeEventListener('mousemove', handleMouseMove);
+  }, [isZenMode]);
 
   // Global hotkeys for Zen mode & Teleprompter
   useEffect(() => {
@@ -314,6 +339,48 @@ export const ScriptEditorTab: React.FC<ScriptEditorTabProps> = ({
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [isOutlineOpen, isReferenceOpen, isZenMode, isCueMenuOpen]);
 
+  const updateFocusParagraphHighlight = useCallback((targetEditor: typeof editor) => {
+    if (!targetEditor || !isFocusModeRef.current) return;
+    try {
+      const { $from } = targetEditor.state.selection;
+      if ($from.depth >= 1) {
+        const startPos = $from.start(1);
+        const nodeDom = targetEditor.view.nodeDOM(startPos - 1) as HTMLElement | null;
+        targetEditor.view.dom.querySelectorAll('.is-focused-paragraph').forEach((el) => {
+          el.classList.remove('is-focused-paragraph');
+        });
+        if (nodeDom && nodeDom.classList) {
+          nodeDom.classList.add('is-focused-paragraph');
+        }
+      }
+    } catch {
+      // ignore transient PM states
+    }
+  }, []);
+
+  const updateSelectionBubblePosition = useCallback((targetEditor: typeof editor) => {
+    if (!targetEditor) return;
+    const { from, to, empty } = targetEditor.state.selection;
+    if (empty || from === to) {
+      setSelectionBubble(null);
+      return;
+    }
+
+    try {
+      const startCoords = targetEditor.view.coordsAtPos(from);
+      const endCoords = targetEditor.view.coordsAtPos(to);
+      const centerX = (startCoords.left + endCoords.right) / 2;
+      const topY = Math.min(startCoords.top, endCoords.top) - 44;
+      setSelectionBubble({
+        visible: true,
+        x: Math.max(12, Math.min(window.innerWidth - 300, centerX - 130)),
+        y: Math.max(8, topY),
+      });
+    } catch {
+      setSelectionBubble(null);
+    }
+  }, []);
+
   // Initialize Tiptap
   const editor = useEditor({
     extensions: [
@@ -343,13 +410,21 @@ export const ScriptEditorTab: React.FC<ScriptEditorTabProps> = ({
       setActiveOutlineItemId(
         findActiveOutlineItem(nextOutline, editor.state.selection.from)?.id || null
       );
+      updateFocusParagraphHighlight(editor);
     },
     onSelectionUpdate: ({ editor }) => {
       setActiveOutlineItemId(
         findActiveOutlineItem(outlineRef.current, editor.state.selection.from)?.id || null
       );
+      updateSelectionBubblePosition(editor);
+      updateFocusParagraphHighlight(editor);
     },
     onUpdate: ({ editor }) => {
+      // Trigger Zen ambient respiration fade
+      setIsTypingZen(true);
+      if (zenTypingTimeoutRef.current) clearTimeout(zenTypingTimeoutRef.current);
+      zenTypingTimeoutRef.current = setTimeout(() => setIsTypingZen(false), 1400);
+
       // Debounce outline computation for typing smoothness
       if (outlineDebounceRef.current) clearTimeout(outlineDebounceRef.current);
       outlineDebounceRef.current = setTimeout(() => {
@@ -360,6 +435,8 @@ export const ScriptEditorTab: React.FC<ScriptEditorTabProps> = ({
           findActiveOutlineItem(nextOutline, editor.state.selection.from)?.id || null
         );
       }, 250);
+
+      updateFocusParagraphHighlight(editor);
 
       editVersionRef.current += 1;
       const text = editor.getText();
@@ -418,6 +495,12 @@ export const ScriptEditorTab: React.FC<ScriptEditorTabProps> = ({
       findActiveOutlineItem(nextOutline, editor.state.selection.from)?.id || null
     );
   }, [editor, effectiveSpeed]);
+
+  useEffect(() => {
+    if (editor) {
+      updateFocusParagraphHighlight(editor);
+    }
+  }, [isFocusMode, editor, updateFocusParagraphHighlight]);
 
   // Calculate stats
   const textContent = editor?.getText() || '';
@@ -654,11 +737,11 @@ export const ScriptEditorTab: React.FC<ScriptEditorTabProps> = ({
           [
             {
               backgroundColor: 'rgb(255 241 242 / 0.95)',
-              boxShadow: 'inset 3px 0 0 rgb(225 29 72 / 0.75)',
+              boxShadow: 'inset 4px 0 0 rgb(225 29 72 / 0.85)',
             },
             {
               backgroundColor: 'transparent',
-              boxShadow: 'inset 3px 0 0 rgb(225 29 72 / 0)',
+              boxShadow: 'inset 4px 0 0 rgb(225 29 72 / 0)',
             },
           ],
           { duration: 1200, easing: 'ease-out' }
@@ -671,9 +754,23 @@ export const ScriptEditorTab: React.FC<ScriptEditorTabProps> = ({
     }
   };
 
+  const handleInjectFourActOutline = () => {
+    if (!editor) return;
+    const hookText = topic?.hook || '在此写下抓住观众前 3 秒注意力的核心反差与悬念...';
+    const template = `<h1>【黄金Hook】${topicTitle}</h1><p>${hookText}</p><h2>【起·破题引人】初见端倪与反常现象</h2><p>交代故事起点、主角初始人设与打破平静的关键事件...</p><h2>【承·反转升级】冲突加剧与多方交锋</h2><p>揭露深层矛盾，展现荒诞发展与意料之外的戏剧性转折...</p><h2>【转·荒诞高潮】戏剧性崩塌与真相大白</h2><p>到达全篇情绪最高潮，核心谜底揭晓或局势彻底失控...</p><h2>【合·价值落地】荒诞复盘与现实回响</h2><p>跳出个体事件，提炼社会纪实价值与留给观众的回味思考...</p>`;
+    const currentText = editor.getText().trim();
+    if (!currentText || currentText === `【开场】${topicTitle}`) {
+      editor.commands.setContent(template);
+    } else {
+      editor.commands.insertContent(template);
+    }
+    showToast({ message: '已成功注入【起承转合】四幕大纲模版', tone: 'success' });
+  };
+
   useEffect(() => () => {
     outlineHighlightAnimationRef.current?.cancel();
     if (copyFeedbackTimeoutRef.current) clearTimeout(copyFeedbackTimeoutRef.current);
+    if (zenTypingTimeoutRef.current) clearTimeout(zenTypingTimeoutRef.current);
   }, []);
 
   const copyFullScript = () => {
@@ -700,6 +797,7 @@ export const ScriptEditorTab: React.FC<ScriptEditorTabProps> = ({
     setLastInsertedCue(cleanCue);
     if (lastInsertedTimeoutRef.current) clearTimeout(lastInsertedTimeoutRef.current);
     lastInsertedTimeoutRef.current = setTimeout(() => setLastInsertedCue(null), 1500);
+    setSelectionBubble(null);
   };
 
   if (!editor) return null;
@@ -738,26 +836,27 @@ export const ScriptEditorTab: React.FC<ScriptEditorTabProps> = ({
           </div>
         )}
       </Modal>
-      {/* Top Floating / Fixed Toolbar (Hidden in Zen Mode) */}
+
+      {/* Top Floating / Fixed Toolbar (左右空间对称排布) */}
       {!isZenMode && (
-        <div className="script-editor-toolbar bg-white/95 dark:bg-stone-900/95 backdrop-blur-xs border-b border-stone-200 dark:border-stone-800 px-3 sm:px-6 py-2 flex items-center justify-between flex-wrap gap-2 shrink-0 z-30 shadow-2xs transition-colors">
-          {/* Left: Outline, Reference Drawer, and Status Indicator */}
-          <div className="flex items-center gap-2 flex-wrap">
-            {/* Outline Toggle */}
+        <div className="script-editor-toolbar bg-white/95 dark:bg-stone-900/95 backdrop-blur-md border-b border-stone-200/80 dark:border-stone-800 px-3 sm:px-6 py-2 flex items-center justify-between flex-wrap gap-2 shrink-0 z-30 shadow-2xs transition-colors">
+          {/* Left: Outline trigger & Auto save status */}
+          <div className="flex items-center gap-2.5">
+            {/* Outline Toggle (左侧触发) */}
             <button
               type="button"
               onClick={toggleOutlinePanel}
               aria-label="展开/收起文案大纲与章节定位"
               aria-pressed={isOutlineOpen}
-              className={`flex items-center gap-1.5 rounded-lg border px-2.5 py-1 text-xs font-semibold transition-all cursor-pointer ${
+              className={`flex items-center gap-1.5 rounded-xl border px-3 py-1 text-xs font-semibold transition-all cursor-pointer ${
                 isOutlineOpen
-                  ? 'border-rose-300 dark:border-rose-800 bg-rose-50 dark:bg-rose-950/50 text-rose-700 dark:text-rose-300 shadow-2xs'
+                  ? 'border-rose-300 dark:border-rose-800 bg-rose-50 dark:bg-rose-950/60 text-rose-700 dark:text-rose-300 shadow-2xs'
                   : 'border-stone-200 dark:border-stone-700 bg-white dark:bg-stone-800 text-stone-700 dark:text-stone-300 hover:bg-stone-50 dark:hover:bg-stone-700/80 shadow-2xs'
               }`}
               title="展开/收起文案大纲与章节定位 (Esc 收起)"
             >
-              <PanelLeftOpen className="h-3.5 w-3.5 text-rose-500" />
-              <span className="hidden sm:inline">大纲</span>
+              <Compass className="h-3.5 w-3.5 text-rose-500" />
+              <span>大纲</span>
               {outline.flatItems.length > 0 && (
                 <span className="rounded-full bg-rose-100 dark:bg-rose-900/60 px-1.5 text-[10px] font-bold text-rose-800 dark:text-rose-200 font-mono">
                   {outline.flatItems.length}
@@ -765,30 +864,8 @@ export const ScriptEditorTab: React.FC<ScriptEditorTabProps> = ({
               )}
             </button>
 
-            {/* Side Reference Toggle */}
-            {topic && (
-              <button
-                type="button"
-                onClick={toggleReferencePanel}
-                className={`flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-semibold border transition-all cursor-pointer ${
-                  isReferenceOpen
-                    ? 'bg-rose-50 dark:bg-rose-950/50 text-rose-700 dark:text-rose-300 border-rose-300 dark:border-rose-800 shadow-2xs'
-                    : 'bg-white dark:bg-stone-800 text-stone-700 dark:text-stone-300 border-stone-200 dark:border-stone-700 hover:bg-stone-50 dark:hover:bg-stone-700/80 shadow-2xs'
-                }`}
-                title="展开/收起边写边看事实参考抽屉"
-              >
-                <BookOpen className="w-3.5 h-3.5 text-rose-500" />
-                <span className="hidden sm:inline">事实参考</span>
-                {citationHealth && citationHealth.unverifiedCount > 0 && (
-                  <span className="rounded-full bg-amber-100 dark:bg-amber-950/60 px-1.5 text-[10px] text-amber-800 dark:text-amber-300 font-mono font-bold">
-                    {citationHealth.unverifiedCount}
-                  </span>
-                )}
-              </button>
-            )}
-
             {/* Auto save indicator */}
-            <div className="flex items-center text-[10px] font-medium transition-all ml-1.5 select-none shrink-0">
+            <div className="flex items-center text-[11px] font-medium transition-all select-none shrink-0 pl-1">
               {saveStatus === 'saving' && (
                 <div className="flex items-center gap-1.5 text-amber-600 dark:text-amber-400" title="正在同步至云端...">
                   <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse" />
@@ -800,7 +877,7 @@ export const ScriptEditorTab: React.FC<ScriptEditorTabProps> = ({
                   className="flex items-center gap-1 text-stone-400 dark:text-stone-500 hover:text-stone-600 dark:hover:text-stone-300 transition-colors"
                   title={`云端已同步${lastSavedTime ? ` · ${lastSavedTime}` : ''}`}
                 >
-                  <CheckCircle2 className="w-3 h-3 text-emerald-600/80 dark:text-emerald-400/80" />
+                  <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600/80 dark:text-emerald-400/80" />
                   <span className="hidden sm:inline">已同步</span>
                 </div>
               )}
@@ -815,17 +892,17 @@ export const ScriptEditorTab: React.FC<ScriptEditorTabProps> = ({
               )}
               {saveStatus === 'conflict' && (
                 <span className="flex items-center gap-1 text-red-700 dark:text-red-400 bg-red-50 dark:bg-red-950/50 border border-red-200 dark:border-red-900 px-2 py-0.5 rounded-md font-bold">
-                  <AlertTriangle className="w-3 h-3 text-red-600 dark:text-red-400" />
+                  <AlertTriangle className="w-3.5 h-3.5 text-red-600 dark:text-red-400" />
                   <span>版本冲突</span>
                 </span>
               )}
             </div>
           </div>
 
-          {/* Right: Metrics, Voiceover Cues, Utilities & Primary Actions */}
+          {/* Right: Reference trigger, Metrics, Voiceover Cues & Utilities */}
           <div className="flex items-center gap-2 flex-wrap">
             {/* Word count & Estimated duration pill */}
-            <div className="flex items-center gap-1.5 bg-stone-100/90 dark:bg-stone-800/80 border border-stone-200/80 dark:border-stone-700 px-2.5 py-1 rounded-lg text-xs">
+            <div className="flex items-center gap-1.5 bg-stone-100/90 dark:bg-stone-800/80 border border-stone-200/80 dark:border-stone-700 px-2.5 py-1 rounded-xl text-xs">
               <span className="font-mono text-stone-800 dark:text-stone-200 font-bold px-0.5">
                 {charCount.toLocaleString()} <span className="font-normal text-stone-500 dark:text-stone-400 text-[11px]">字</span>
               </span>
@@ -839,12 +916,34 @@ export const ScriptEditorTab: React.FC<ScriptEditorTabProps> = ({
               </span>
             </div>
 
-            {/* Voiceover Cue Dropdown (Sticky continuous insertion) */}
+            {/* Side Reference Toggle (右侧触发，与右侧抽屉完全呼应) */}
+            {topic && (
+              <button
+                type="button"
+                onClick={toggleReferencePanel}
+                className={`flex items-center gap-1.5 px-3 py-1 rounded-xl text-xs font-semibold border transition-all cursor-pointer ${
+                  isReferenceOpen
+                    ? 'bg-rose-50 dark:bg-rose-950/60 text-rose-700 dark:text-rose-300 border-rose-300 dark:border-rose-800 shadow-2xs'
+                    : 'bg-white dark:bg-stone-800 text-stone-700 dark:text-stone-300 border-stone-200 dark:border-stone-700 hover:bg-stone-50 dark:hover:bg-stone-700/80 shadow-2xs'
+                }`}
+                title="展开/收起右侧事实参考资料抽屉"
+              >
+                <BookOpen className="w-3.5 h-3.5 text-rose-500" />
+                <span className="hidden sm:inline">事实参考</span>
+                {citationHealth && citationHealth.unverifiedCount > 0 && (
+                  <span className="rounded-full bg-amber-100 dark:bg-amber-950/60 px-1.5 text-[10px] text-amber-800 dark:text-amber-300 font-mono font-bold">
+                    {citationHealth.unverifiedCount}
+                  </span>
+                )}
+              </button>
+            )}
+
+            {/* Voiceover Cue Dropdown */}
             <div ref={cueMenuContainerRef} className="relative">
               <button
                 type="button"
                 onClick={() => setIsCueMenuOpen((prev) => !prev)}
-                className={`flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-semibold border transition-all cursor-pointer ${
+                className={`flex items-center gap-1 px-2.5 py-1 rounded-xl text-xs font-semibold border transition-all cursor-pointer ${
                   isCueMenuOpen
                     ? 'bg-rose-50 dark:bg-rose-950/60 border-rose-300 dark:border-rose-800 text-rose-700 dark:text-rose-300 shadow-2xs'
                     : 'bg-white dark:bg-stone-800 border-stone-200 dark:border-stone-700 text-stone-700 dark:text-stone-300 hover:bg-stone-50 dark:hover:bg-stone-700/80 shadow-2xs'
@@ -856,7 +955,7 @@ export const ScriptEditorTab: React.FC<ScriptEditorTabProps> = ({
               </button>
 
               {isCueMenuOpen && (
-                <div className="absolute right-0 top-full mt-1.5 w-56 bg-white dark:bg-stone-850 rounded-xl border border-stone-200 dark:border-stone-700 p-2 shadow-xl z-50 animate-in fade-in zoom-in-95 duration-100 font-sans">
+                <div className="absolute right-0 top-full mt-1.5 w-56 bg-white dark:bg-stone-850 rounded-2xl border border-stone-200 dark:border-stone-700 p-2.5 shadow-xl z-50 animate-in fade-in zoom-in-95 duration-100 font-sans">
                   <div className="flex items-center justify-between text-[10px] font-bold text-stone-400 dark:text-stone-500 px-1 py-0.5 uppercase tracking-wider border-b border-stone-100 dark:border-stone-800 pb-1.5 mb-1.5">
                     <div className="flex items-center gap-1 text-rose-600 dark:text-rose-400">
                       <Mic className="w-3 h-3" />
@@ -906,13 +1005,27 @@ export const ScriptEditorTab: React.FC<ScriptEditorTabProps> = ({
               )}
             </div>
 
+            {/* Focus Mode Toggle */}
+            <button
+              type="button"
+              onClick={() => setIsFocusMode((current) => !current)}
+              className={`p-1.5 rounded-xl text-xs font-semibold border transition-all cursor-pointer ${
+                isFocusMode
+                  ? 'bg-rose-50 dark:bg-rose-950/60 text-rose-700 dark:text-rose-300 border-rose-300 dark:border-rose-800 shadow-2xs'
+                  : 'bg-white dark:bg-stone-800 text-stone-700 dark:text-stone-300 border-stone-200 dark:border-stone-700 hover:bg-stone-50 dark:hover:bg-stone-700/80 shadow-2xs'
+              }`}
+              title={isFocusMode ? '关闭段落专注模式' : '开启段落专注模式（聚焦当前段落，柔和暗化其余部分）'}
+            >
+              <Target className="w-3.5 h-3.5 text-rose-500" />
+            </button>
+
             {/* Typewriter Mode Toggle */}
             <button
               type="button"
               onClick={() => setIsTypewriterMode((current) => !current)}
-              className={`p-1.5 rounded-lg text-xs font-semibold border transition-all cursor-pointer ${
+              className={`p-1.5 rounded-xl text-xs font-semibold border transition-all cursor-pointer ${
                 isTypewriterMode
-                  ? 'bg-rose-50 dark:bg-rose-950/50 text-rose-700 dark:text-rose-300 border-rose-300 dark:border-rose-800 shadow-2xs'
+                  ? 'bg-rose-50 dark:bg-rose-950/60 text-rose-700 dark:text-rose-300 border-rose-300 dark:border-rose-800 shadow-2xs'
                   : 'bg-white dark:bg-stone-800 text-stone-700 dark:text-stone-300 border-stone-200 dark:border-stone-700 hover:bg-stone-50 dark:hover:bg-stone-700/80 shadow-2xs'
               }`}
               title={isTypewriterMode ? '关闭打字机模式' : '开启打字机模式（当前编辑行保持居中）'}
@@ -925,7 +1038,7 @@ export const ScriptEditorTab: React.FC<ScriptEditorTabProps> = ({
               type="button"
               onClick={handleShareReviewClick}
               disabled={isGeneratingShare}
-              className="flex items-center gap-1.5 text-xs font-semibold bg-white dark:bg-stone-800 hover:bg-stone-50 dark:hover:bg-stone-700 text-stone-700 dark:text-stone-300 border border-stone-200 dark:border-stone-700 px-2.5 py-1 rounded-lg shadow-2xs transition-colors cursor-pointer disabled:opacity-60"
+              className="flex items-center gap-1.5 text-xs font-semibold bg-white dark:bg-stone-800 hover:bg-stone-50 dark:hover:bg-stone-700 text-stone-700 dark:text-stone-300 border border-stone-200 dark:border-stone-700 px-2.5 py-1 rounded-xl shadow-2xs transition-colors cursor-pointer disabled:opacity-60"
               title="一键生成免登录外部审稿快照并自动复制链接"
             >
               <Share2 className={`w-3.5 h-3.5 text-rose-500 ${isGeneratingShare ? 'animate-spin' : ''}`} />
@@ -936,7 +1049,7 @@ export const ScriptEditorTab: React.FC<ScriptEditorTabProps> = ({
             <button
               type="button"
               onClick={copyFullScript}
-              className="p-1.5 rounded-lg text-xs font-semibold bg-white dark:bg-stone-800 hover:bg-stone-50 dark:hover:bg-stone-700 text-stone-700 dark:text-stone-300 border border-stone-200 dark:border-stone-700 shadow-2xs transition-colors cursor-pointer"
+              className="p-1.5 rounded-xl text-xs font-semibold bg-white dark:bg-stone-800 hover:bg-stone-50 dark:hover:bg-stone-700 text-stone-700 dark:text-stone-300 border border-stone-200 dark:border-stone-700 shadow-2xs transition-colors cursor-pointer"
               title="复制文案全文"
             >
               {copied ? <Check className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
@@ -946,7 +1059,7 @@ export const ScriptEditorTab: React.FC<ScriptEditorTabProps> = ({
             <button
               type="button"
               onClick={() => setIsZenMode(true)}
-              className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-semibold bg-white dark:bg-stone-800 text-stone-700 dark:text-stone-300 border border-stone-200 dark:border-stone-700 hover:bg-stone-50 dark:hover:bg-stone-700/80 shadow-2xs transition-all cursor-pointer"
+              className="flex items-center gap-1.5 px-3 py-1 rounded-xl text-xs font-semibold bg-white dark:bg-stone-800 text-stone-700 dark:text-stone-300 border border-stone-200 dark:border-stone-700 hover:bg-stone-50 dark:hover:bg-stone-700/80 shadow-2xs transition-all cursor-pointer"
               title="开启沉浸写作模式 (Cmd/Ctrl + Shift + F)"
             >
               <Maximize2 className="w-3.5 h-3.5 text-rose-500" />
@@ -957,7 +1070,7 @@ export const ScriptEditorTab: React.FC<ScriptEditorTabProps> = ({
             <button
               type="button"
               onClick={() => setIsTeleprompterOpen(true)}
-              className="flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-bold bg-rose-600 hover:bg-rose-700 active:scale-95 text-white shadow-2xs transition-all cursor-pointer"
+              className="flex items-center gap-1.5 px-3.5 py-1 rounded-xl text-xs font-bold bg-rose-600 hover:bg-rose-700 active:scale-95 text-white shadow-2xs transition-all cursor-pointer"
               title="开启全屏沉浸录音提词器 (Cmd/Ctrl + Shift + P)"
             >
               <Mic className="w-3.5 h-3.5" />
@@ -988,7 +1101,7 @@ export const ScriptEditorTab: React.FC<ScriptEditorTabProps> = ({
       )}
 
       {!isZenMode && citationCoverageWarning && (
-        <div className="mx-3 mt-2 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-xs font-medium text-amber-900 dark:border-amber-900/60 dark:bg-amber-950/30 dark:text-amber-200">
+        <div className="mx-3 mt-2 rounded-xl border border-amber-200 bg-amber-50 px-3.5 py-2 text-xs font-medium text-amber-900 dark:border-amber-900/60 dark:bg-amber-950/30 dark:text-amber-200">
           引用提醒：当前文案还没有插入资料引用，进入制作前建议为关键事实补充来源。
         </div>
       )}
@@ -1007,20 +1120,20 @@ export const ScriptEditorTab: React.FC<ScriptEditorTabProps> = ({
         </button>
       )}
 
-      {/* Floating Zen Controls */}
+      {/* Floating Zen Controls (Ambient Dynamic Respiration HUD) */}
       {isZenMode && (
         <>
-          {/* Top-Left: Floating Outline Drawer Toggle (Hidden when outline drawer is open) */}
+          {/* Top-Left: Floating Outline Drawer Toggle */}
           {!isOutlineOpen && (
-            <div className="fixed left-5 sm:left-8 top-5 sm:top-7 z-40 animate-in fade-in zoom-in-95 duration-200">
+            <div className={`fixed left-5 sm:left-8 top-5 sm:top-7 z-40 transition-opacity duration-300 ${isTypingZen ? 'opacity-25 hover:opacity-100' : 'opacity-100'}`}>
               <button
                 type="button"
                 onClick={toggleOutlinePanel}
                 aria-label="展开/收起文案大纲"
-                className="flex items-center gap-1.5 rounded-xl border px-3 py-1.5 text-xs font-semibold backdrop-blur-md shadow-lg transition-all cursor-pointer hover:scale-[1.03] active:scale-[0.98] bg-white/90 dark:bg-stone-900/90 border-stone-200/90 dark:border-stone-700/80 text-stone-700 dark:text-stone-200 hover:bg-white dark:hover:bg-stone-850"
+                className="flex items-center gap-1.5 rounded-2xl border px-3.5 py-2 text-xs font-semibold backdrop-blur-xl shadow-lg transition-all cursor-pointer hover:scale-[1.03] active:scale-[0.98] bg-white/90 dark:bg-stone-900/90 border-stone-200/80 dark:border-stone-700/80 text-stone-700 dark:text-stone-200 hover:bg-white dark:hover:bg-stone-850"
                 title="大纲章节快速定位"
               >
-                <PanelLeftOpen className="h-3.5 w-3.5 text-rose-500" />
+                <Compass className="h-4 w-4 text-rose-500" />
                 <span>大纲</span>
                 {outline.flatItems.length > 0 && (
                   <span className="rounded-full px-1.5 text-[10px] font-bold font-mono bg-rose-100 dark:bg-rose-900/60 text-rose-800 dark:text-rose-200">
@@ -1031,14 +1144,44 @@ export const ScriptEditorTab: React.FC<ScriptEditorTabProps> = ({
             </div>
           )}
 
-          {/* Top-Right: Floating Reference Drawer Toggle & Exit Button (Adapts position when reference drawer is open) */}
-          <div className={`fixed right-5 sm:right-8 top-5 sm:top-7 z-40 flex items-center gap-2 transition-all duration-200 ${isReferenceOpen ? 'mr-80 sm:mr-96' : ''}`}>
+          {/* Top-Right: Floating Controls & Exit Button */}
+          <div className={`fixed right-5 sm:right-8 top-5 sm:top-7 z-40 flex items-center gap-2.5 transition-all duration-300 ${isReferenceOpen ? 'mr-80 sm:mr-96' : ''} ${isTypingZen ? 'opacity-25 hover:opacity-100' : 'opacity-100'}`}>
+            {/* Focus mode in Zen */}
+            <button
+              type="button"
+              onClick={() => setIsFocusMode((prev) => !prev)}
+              className={`flex items-center gap-1 px-3 py-2 rounded-2xl text-xs font-semibold border backdrop-blur-xl shadow-lg transition-all cursor-pointer hover:scale-[1.03] active:scale-[0.98] ${
+                isFocusMode
+                  ? 'bg-rose-50/90 dark:bg-rose-950/80 text-rose-700 dark:text-rose-300 border-rose-300 dark:border-rose-800'
+                  : 'bg-white/90 dark:bg-stone-900/90 border-stone-200/80 dark:border-stone-700/80 text-stone-700 dark:text-stone-200'
+              }`}
+              title={isFocusMode ? '关闭段落专注' : '开启段落专注模式'}
+            >
+              <Target className="w-3.5 h-3.5 text-rose-500" />
+              <span className="hidden sm:inline">专注</span>
+            </button>
+
+            {/* Typewriter mode in Zen */}
+            <button
+              type="button"
+              onClick={() => setIsTypewriterMode((prev) => !prev)}
+              className={`flex items-center gap-1 px-3 py-2 rounded-2xl text-xs font-semibold border backdrop-blur-xl shadow-lg transition-all cursor-pointer hover:scale-[1.03] active:scale-[0.98] ${
+                isTypewriterMode
+                  ? 'bg-rose-50/90 dark:bg-rose-950/80 text-rose-700 dark:text-rose-300 border-rose-300 dark:border-rose-800'
+                  : 'bg-white/90 dark:bg-stone-900/90 border-stone-200/80 dark:border-stone-700/80 text-stone-700 dark:text-stone-200'
+              }`}
+              title={isTypewriterMode ? '关闭打字机模式' : '开启打字机居中模式'}
+            >
+              <AlignCenter className="w-3.5 h-3.5 text-rose-500" />
+              <span className="hidden sm:inline">居中</span>
+            </button>
+
             {!isReferenceOpen && topic && (
               <button
                 type="button"
                 onClick={toggleReferencePanel}
                 aria-label="展开/收起事实参考"
-                className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold border backdrop-blur-md shadow-lg transition-all cursor-pointer hover:scale-[1.03] active:scale-[0.98] bg-white/90 dark:bg-stone-900/90 border-stone-200/90 dark:border-stone-700/80 text-stone-700 dark:text-stone-200 hover:bg-white dark:hover:bg-stone-850"
+                className="flex items-center gap-1.5 px-3.5 py-2 rounded-2xl text-xs font-semibold border backdrop-blur-xl shadow-lg transition-all cursor-pointer hover:scale-[1.03] active:scale-[0.98] bg-white/90 dark:bg-stone-900/90 border-stone-200/80 dark:border-stone-700/80 text-stone-700 dark:text-stone-200 hover:bg-white dark:hover:bg-stone-850"
                 title="展开/收起边写边看事实参考抽屉"
               >
                 <BookOpen className="w-3.5 h-3.5 text-rose-500" />
@@ -1054,7 +1197,7 @@ export const ScriptEditorTab: React.FC<ScriptEditorTabProps> = ({
             <button
               type="button"
               onClick={() => setIsZenMode(false)}
-              className="flex items-center gap-1 px-3 py-1.5 rounded-xl text-xs font-semibold border bg-stone-900/90 dark:bg-stone-800/90 hover:bg-stone-900 dark:hover:bg-stone-700 text-white border-stone-700/80 backdrop-blur-md shadow-lg transition-all cursor-pointer hover:scale-[1.03] active:scale-[0.98]"
+              className="flex items-center gap-1 px-3.5 py-2 rounded-2xl text-xs font-semibold border bg-stone-900/90 dark:bg-stone-800/90 hover:bg-stone-900 dark:hover:bg-stone-700 text-white border-stone-700/80 backdrop-blur-xl shadow-lg transition-all cursor-pointer hover:scale-[1.03] active:scale-[0.98]"
               title="退出沉浸写作模式 (Esc)"
             >
               <Minimize2 className="w-3.5 h-3.5" />
@@ -1063,8 +1206,8 @@ export const ScriptEditorTab: React.FC<ScriptEditorTabProps> = ({
             </button>
           </div>
 
-          {/* Bottom-Right: Floating Stats Capsule (Theme Adaptive & Responsive) */}
-          <div className={`fixed right-5 sm:right-8 bottom-5 sm:bottom-7 z-40 flex items-center gap-2.5 bg-white/95 dark:bg-stone-900/95 backdrop-blur-md border border-stone-200/90 dark:border-stone-700/80 text-stone-800 dark:text-stone-100 px-4 py-2 rounded-full text-xs font-mono shadow-xl transition-all duration-200 select-none ${isReferenceOpen ? 'mr-80 sm:mr-96' : ''}`}>
+          {/* Bottom-Right: Floating Stats Capsule */}
+          <div className={`fixed right-5 sm:right-8 bottom-5 sm:bottom-7 z-40 flex items-center gap-2.5 bg-white/95 dark:bg-stone-900/95 backdrop-blur-xl border border-stone-200/90 dark:border-stone-700/80 text-stone-800 dark:text-stone-100 px-4 py-2 rounded-full text-xs font-mono shadow-xl transition-all duration-300 select-none ${isReferenceOpen ? 'mr-80 sm:mr-96' : ''} ${isTypingZen ? 'opacity-25 hover:opacity-100' : 'opacity-100'}`}>
             <span className="font-bold text-stone-900 dark:text-stone-100 font-mono">
               {charCount.toLocaleString()} <span className="font-normal text-stone-400 dark:text-stone-500 text-[11px]">字</span>
             </span>
@@ -1107,6 +1250,113 @@ export const ScriptEditorTab: React.FC<ScriptEditorTabProps> = ({
         </>
       )}
 
+      {/* Floating Selection Quick Bubble Toolbar */}
+      {selectionBubble && selectionBubble.visible && (
+        <div
+          style={{
+            position: 'fixed',
+            left: `${selectionBubble.x}px`,
+            top: `${selectionBubble.y}px`,
+            zIndex: 60,
+          }}
+          className="script-selection-bubble flex items-center gap-1 bg-white/95 dark:bg-stone-850/95 backdrop-blur-xl border border-stone-200/90 dark:border-stone-700 px-2 py-1 rounded-2xl shadow-xl animate-in fade-in zoom-in-95 duration-150 select-none text-xs"
+        >
+          {/* Quick Voiceover Cues */}
+          <button
+            type="button"
+            onMouseDown={(e) => {
+              e.preventDefault();
+              handleInsertVoiceoverCue('重音');
+            }}
+            className="px-2 py-0.5 rounded-xl bg-rose-50 dark:bg-rose-950/60 text-rose-700 dark:text-rose-300 hover:bg-rose-100 dark:hover:bg-rose-900/60 text-[11px] font-bold font-mono transition-colors cursor-pointer"
+            title="插入 [重音] 气口"
+          >
+            🎙️ 重音
+          </button>
+          <button
+            type="button"
+            onMouseDown={(e) => {
+              e.preventDefault();
+              handleInsertVoiceoverCue('停顿 1s');
+            }}
+            className="px-2 py-0.5 rounded-xl bg-rose-50 dark:bg-rose-950/60 text-rose-700 dark:text-rose-300 hover:bg-rose-100 dark:hover:bg-rose-900/60 text-[11px] font-bold font-mono transition-colors cursor-pointer"
+            title="插入 [停顿 1s] 气口"
+          >
+            ⏱️ 停顿
+          </button>
+          <button
+            type="button"
+            onMouseDown={(e) => {
+              e.preventDefault();
+              handleInsertVoiceoverCue('反讽语气');
+            }}
+            className="px-2 py-0.5 rounded-xl bg-rose-50 dark:bg-rose-950/60 text-rose-700 dark:text-rose-300 hover:bg-rose-100 dark:hover:bg-rose-900/60 text-[11px] font-bold font-mono transition-colors cursor-pointer"
+            title="插入 [反讽语气] 气口"
+          >
+            🎭 反讽
+          </button>
+
+          <div className="w-px h-3.5 bg-stone-200 dark:bg-stone-700 mx-0.5" />
+
+          {/* Quick Formatting */}
+          <button
+            type="button"
+            onMouseDown={(e) => {
+              e.preventDefault();
+              editor.chain().focus().toggleBold().run();
+            }}
+            className={`p-1 rounded-lg text-stone-600 dark:text-stone-300 hover:bg-stone-100 dark:hover:bg-stone-700 transition-colors cursor-pointer ${
+              editor.isActive('bold') ? 'bg-stone-200/80 dark:bg-stone-700 text-stone-900 dark:text-stone-100 font-bold' : ''
+            }`}
+            title="加粗"
+          >
+            <Bold className="w-3.5 h-3.5" />
+          </button>
+
+          <button
+            type="button"
+            onMouseDown={(e) => {
+              e.preventDefault();
+              editor.chain().focus().toggleHeading({ level: 1 }).run();
+            }}
+            className={`p-1 rounded-lg text-stone-600 dark:text-stone-300 hover:bg-stone-100 dark:hover:bg-stone-700 transition-colors cursor-pointer ${
+              editor.isActive('heading', { level: 1 }) ? 'bg-stone-200/80 dark:bg-stone-700 text-stone-900 dark:text-stone-100 font-bold' : ''
+            }`}
+            title="设为 H1 章节主标题"
+          >
+            <Heading1 className="w-3.5 h-3.5" />
+          </button>
+
+          <button
+            type="button"
+            onMouseDown={(e) => {
+              e.preventDefault();
+              editor.chain().focus().toggleHeading({ level: 2 }).run();
+            }}
+            className={`p-1 rounded-lg text-stone-600 dark:text-stone-300 hover:bg-stone-100 dark:hover:bg-stone-700 transition-colors cursor-pointer ${
+              editor.isActive('heading', { level: 2 }) ? 'bg-stone-200/80 dark:bg-stone-700 text-stone-900 dark:text-stone-100 font-bold' : ''
+            }`}
+            title="设为 H2 分段小标题"
+          >
+            <Heading2 className="w-3.5 h-3.5" />
+          </button>
+
+          <button
+            type="button"
+            onMouseDown={(e) => {
+              e.preventDefault();
+              editor.chain().focus().toggleBlockquote().run();
+            }}
+            className={`p-1 rounded-lg text-stone-600 dark:text-stone-300 hover:bg-stone-100 dark:hover:bg-stone-700 transition-colors cursor-pointer ${
+              editor.isActive('blockquote') ? 'bg-stone-200/80 dark:bg-stone-700 text-stone-900 dark:text-stone-100 font-bold' : ''
+            }`}
+            title="引用块"
+          >
+            <Quote className="w-3.5 h-3.5" />
+          </button>
+        </div>
+      )}
+
       {/* Writing Canvas & Side Drawer Split Area */}
       <div className="flex-1 flex overflow-hidden relative">
         <ScriptOutlinePanel
@@ -1115,6 +1365,7 @@ export const ScriptEditorTab: React.FC<ScriptEditorTabProps> = ({
           activeItemId={activeOutlineItemId}
           onClose={() => setIsOutlineOpen(false)}
           onSelectHeading={handleSelectOutlineItem}
+          onInjectFourActOutline={handleInjectFourActOutline}
         />
 
         {/* Main Writing Canvas */}
@@ -1124,7 +1375,9 @@ export const ScriptEditorTab: React.FC<ScriptEditorTabProps> = ({
             ['--script-editor-font-size' as string]: FONT_SIZE_MAP[settings?.editor_font_size || 'standard'],
             ['--script-editor-line-height' as string]: LINE_HEIGHT_MAP[settings?.editor_line_height || 'relaxed'],
           }}
-          className="script-editor-canvas-container flex-1 overflow-y-auto bg-white dark:bg-stone-900 flex justify-center cursor-text transition-colors"
+          className={`script-editor-canvas-container flex-1 overflow-y-auto bg-white dark:bg-stone-900 flex justify-center cursor-text transition-colors ${
+            isFocusMode ? 'script-editor-focus-mode' : ''
+          }`}
         >
           <div
             className={`w-full max-w-4xl px-6 sm:px-12 md:px-16 transition-all ${
