@@ -18,6 +18,7 @@ interface KanbanCardProps {
   onUpdateStatus?: (topicId: string, status: TopicStatus) => void;
   sortableDisabled?: boolean;
   staleThresholdDays?: number;
+  isOverlay?: boolean;
 }
 
 const KanbanCardComponent: React.FC<KanbanCardProps> = ({
@@ -28,6 +29,7 @@ const KanbanCardComponent: React.FC<KanbanCardProps> = ({
   onUpdateStatus,
   sortableDisabled = false,
   staleThresholdDays = 5,
+  isOverlay = false,
 }) => {
   const [isStatusMenuOpen, setIsStatusMenuOpen] = useState(false);
   const {
@@ -39,7 +41,7 @@ const KanbanCardComponent: React.FC<KanbanCardProps> = ({
     isDragging,
   } = useSortable({
     id: topic.id,
-    disabled: sortableDisabled,
+    disabled: sortableDisabled || isOverlay,
     data: {
       type: 'topic',
       topic,
@@ -48,8 +50,7 @@ const KanbanCardComponent: React.FC<KanbanCardProps> = ({
 
   const style = {
     transform: CSS.Translate.toString(transform),
-    transition,
-    opacity: isDragging ? 0.3 : 1,
+    transition: transition || undefined,
     zIndex: isDragging ? 50 : 1,
   };
 
@@ -63,14 +64,83 @@ const KanbanCardComponent: React.FC<KanbanCardProps> = ({
   };
   const actionWarning = getNextActionWarning(topic, new Date(), staleThresholdDays);
 
+  // If this card is currently being dragged, show the elegant ghost outline placeholder
+  if (isDragging && !isOverlay) {
+    return (
+      <div
+        ref={setNodeRef}
+        style={style}
+        className="w-full rounded-xl border-2 border-dashed border-rose-300 dark:border-rose-700/80 bg-rose-50/50 dark:bg-rose-950/25 p-3 min-h-[96px] flex items-center justify-center pointer-events-none select-none transition-[border-color,background-color] duration-150"
+      >
+        <div className="flex items-center gap-1.5 text-xs font-semibold text-rose-500/80 dark:text-rose-400/80">
+          <span className="w-1.5 h-1.5 rounded-full bg-rose-400 animate-pulse" />
+          <span>放置于此</span>
+        </div>
+      </div>
+    );
+  }
+
+  // Floating Overlay State (inside DragOverlay)
+  if (isOverlay) {
+    return (
+      <div
+        className={`relative bg-white dark:bg-stone-900 rounded-xl border border-l-4 ${statusAccent[topic.status]} border-rose-300 dark:border-rose-700 p-3 shadow-modal ring-1 ring-rose-500/20 scale-[1.02] rotate-[1.5deg] opacity-95 cursor-grabbing flex flex-col gap-2 select-none pointer-events-none w-full`}
+      >
+        {/* Top row: Priority & Pin */}
+        <div className="flex items-center justify-between gap-1.5 flex-wrap">
+          <div className="flex items-center gap-1.5 flex-wrap">
+            {topic.is_pinned === 1 && (
+              <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-amber-700 dark:text-amber-300 bg-amber-100/70 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-900/60 px-1.5 py-0.5 rounded">
+                <Pin className="w-3 h-3 fill-amber-600 dark:fill-amber-400" />
+                置顶
+              </span>
+            )}
+            <PriorityBadge priority={topic.priority} />
+          </div>
+        </div>
+
+        {/* Main Title */}
+        <h4 className="text-[15px] font-bold text-stone-900 dark:text-stone-100 leading-snug tracking-tight line-clamp-2">
+          {topic.title}
+        </h4>
+
+        {/* Next Action Highlight Bar */}
+        {topic.next_action ? (
+          <div className="bg-rose-50/80 dark:bg-rose-950/30 border border-rose-200/70 dark:border-rose-900/50 rounded-lg p-2 flex items-start gap-2 text-xs text-rose-900 dark:text-rose-200">
+            <div className="w-1.5 h-1.5 rounded-full bg-rose-500 dark:bg-rose-400 mt-1.5 shrink-0" />
+            <div className="flex-1 min-w-0">
+              <span className="font-semibold text-rose-700 dark:text-rose-400 mr-1">下一步:</span>
+              <span className="font-medium">{topic.next_action}</span>
+            </div>
+          </div>
+        ) : null}
+
+        <div className="flex items-center justify-between gap-2 text-[11px]">
+          <span className={actionWarning ? 'font-semibold text-amber-700 dark:text-amber-400' : 'text-stone-400 dark:text-stone-500'}>
+            {actionWarning || `行动持续 ${getNextActionAgeDays(topic)} 天`}
+          </span>
+          <div className="flex items-center gap-1.5 font-mono text-stone-500 dark:text-stone-400">
+            {(topic.materials_count || topic.sources_count || 0) > 0 && (
+              <span>{topic.materials_count || topic.sources_count}素材</span>
+            )}
+            {(topic.draft_word_count || 0) > 0 && (
+              <span>{topic.draft_word_count}字</span>
+            )}
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div
       ref={setNodeRef}
+      data-topic-id={topic.id}
       style={style}
       {...attributes}
       {...listeners}
       onClick={() => onOpenDetail(topic.id)}
-      className={`group relative bg-white dark:bg-stone-900 rounded-xl border border-l-4 ${statusAccent[topic.status]} border-stone-200/90 dark:border-stone-800 hover:border-stone-400 dark:hover:border-stone-600 p-3 shadow-subtle hover:shadow-card-hover transition-all ${sortableDisabled ? 'cursor-default' : 'cursor-grab active:cursor-grabbing'} flex flex-col gap-2 select-none ${
+      className={`group relative bg-white dark:bg-stone-900 rounded-xl border border-l-4 ${statusAccent[topic.status]} border-stone-200/90 dark:border-stone-800 hover:border-stone-400 dark:hover:border-stone-600 p-3 shadow-subtle hover:shadow-card-hover transition-[background-color,border-color,box-shadow,opacity] duration-150 ${sortableDisabled ? 'cursor-default' : 'cursor-grab active:cursor-grabbing'} flex flex-col gap-2 select-none touch-manipulation ${
         topic.is_pinned ? 'ring-1 ring-amber-400/60 bg-amber-50/15 dark:bg-amber-950/20' : ''
       }`}
     >

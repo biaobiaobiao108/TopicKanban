@@ -106,9 +106,17 @@ export const KanbanColumn: React.FC<KanbanColumnProps> = ({
         </SortableContext>
 
         {topics.length === 0 && (
-          <div className="h-28 flex flex-col items-center justify-center border-2 border-dashed border-stone-300/80 dark:border-stone-800 rounded-xl text-xs text-stone-400 dark:text-stone-500 p-3 text-center transition-colors">
-            <span>暂无选题</span>
-            <span className="text-[11px] text-stone-400/80 dark:text-stone-500 mt-0.5">拖拽卡片至此可快速变更状态</span>
+          <div
+            className={`h-28 flex flex-col items-center justify-center border-2 border-dashed rounded-xl text-xs p-3 text-center transition-[border-color,background-color] duration-150 ${
+              isOver
+                ? 'border-rose-400 dark:border-rose-600 bg-rose-50/60 dark:bg-rose-950/30 text-rose-600 dark:text-rose-400'
+                : 'border-stone-300/80 dark:border-stone-800 text-stone-400 dark:text-stone-500'
+            }`}
+          >
+            <span className="font-semibold">{isOver ? '松开以移入此阶段' : '暂无选题'}</span>
+            <span className="text-[11px] opacity-80 mt-0.5">
+              {isOver ? `将卡片归入「${label}」` : '拖拽卡片至此可快速变更状态'}
+            </span>
           </div>
         )}
       </div>
