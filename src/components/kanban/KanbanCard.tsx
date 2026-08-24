@@ -16,6 +16,7 @@ interface KanbanCardProps {
   onDeleteTopic: (topicId: string) => void;
   onTogglePin: (topicId: string) => void;
   onUpdateStatus?: (topicId: string, status: TopicStatus) => void;
+  onKeyboardMove?: (topic: Topic, direction: -1 | 1) => void;
   sortableDisabled?: boolean;
   staleThresholdDays?: number;
   isOverlay?: boolean;
@@ -27,6 +28,7 @@ const KanbanCardComponent: React.FC<KanbanCardProps> = ({
   onDeleteTopic,
   onTogglePin,
   onUpdateStatus,
+  onKeyboardMove,
   sortableDisabled = false,
   staleThresholdDays = 5,
   isOverlay = false,
@@ -49,34 +51,18 @@ const KanbanCardComponent: React.FC<KanbanCardProps> = ({
   });
 
   const style = {
-    transform: CSS.Translate.toString(transform),
+    transform: CSS.Transform.toString(transform),
     transition: transition || undefined,
     zIndex: isDragging ? 50 : 1,
   };
 
   const actionWarning = getNextActionWarning(topic, new Date(), staleThresholdDays);
 
-  // If this card is currently being dragged, show the elegant ghost outline placeholder
-  if (isDragging && !isOverlay) {
-    return (
-      <div
-        ref={setNodeRef}
-        style={style}
-        className="w-full rounded-2xl border-2 border-dashed border-rose-300 dark:border-rose-700/80 bg-rose-50/40 dark:bg-rose-950/20 p-3.5 min-h-[104px] flex items-center justify-center pointer-events-none select-none transition-all duration-150"
-      >
-        <div className="flex items-center gap-2 text-xs font-semibold text-rose-500 dark:text-rose-400">
-          <span className="w-2 h-2 rounded-full bg-rose-400 animate-pulse" />
-          <span>放置于此</span>
-        </div>
-      </div>
-    );
-  }
-
   // Floating Overlay State (inside DragOverlay)
   if (isOverlay) {
     return (
       <div
-        className="relative bg-white dark:bg-stone-900 rounded-2xl border border-rose-300 dark:border-rose-700 p-3.5 shadow-modal ring-2 ring-rose-500/20 scale-[1.02] rotate-[1.2deg] opacity-95 cursor-grabbing flex flex-col gap-2.5 select-none pointer-events-none w-full"
+        className="relative bg-white dark:bg-stone-900 rounded-2xl border-2 border-rose-400 dark:border-rose-600 p-3.5 shadow-modal ring-4 ring-rose-500/20 scale-[1.02] rotate-[1.5deg] opacity-98 cursor-grabbing flex flex-col gap-2.5 select-none pointer-events-none w-full transition-transform duration-75"
       >
         {/* Top row: Priority & Pin */}
         <div className="flex items-center justify-between gap-1.5 flex-wrap">
@@ -131,9 +117,34 @@ const KanbanCardComponent: React.FC<KanbanCardProps> = ({
       style={style}
       {...attributes}
       {...listeners}
-      onClick={() => onOpenDetail(topic.id)}
-      className={`group relative bg-white dark:bg-stone-900 rounded-2xl border border-stone-200/70 dark:border-stone-800 hover:border-stone-300 dark:hover:border-stone-700 p-3.5 shadow-2xs hover:shadow-card-hover hover:-translate-y-0.5 transition-all duration-150 ${sortableDisabled ? 'cursor-default' : 'cursor-grab active:cursor-grabbing'} flex flex-col gap-2.5 select-none touch-manipulation ${
-        topic.is_pinned ? 'ring-1 ring-amber-400/40 bg-amber-50/[0.08] dark:bg-amber-950/10' : ''
+      tabIndex={sortableDisabled ? -1 : 0}
+      role="button"
+      aria-label={`${topic.title}，${topic.status}`}
+      onKeyDown={(event) => {
+        if (event.key === 'ArrowLeft' && onKeyboardMove) {
+          event.preventDefault();
+          onKeyboardMove(topic, -1);
+        } else if (event.key === 'ArrowRight' && onKeyboardMove) {
+          event.preventDefault();
+          onKeyboardMove(topic, 1);
+        } else if (event.key === 'Enter' && !isDragging) {
+          event.preventDefault();
+          onOpenDetail(topic.id);
+        }
+      }}
+      onClick={() => {
+        if (!isDragging) {
+          onOpenDetail(topic.id);
+        }
+      }}
+      className={`group relative bg-white dark:bg-stone-900 rounded-2xl border p-3.5 shadow-2xs transition-all duration-150 flex flex-col gap-2.5 select-none touch-manipulation focus:outline-none focus-visible:ring-2 focus-visible:ring-rose-500 ${
+        isDragging
+          ? 'opacity-35 scale-[0.98] border-dashed border-rose-400 dark:border-rose-600 bg-rose-50/30 dark:bg-rose-950/20 shadow-none pointer-events-none'
+          : sortableDisabled
+            ? 'border-stone-200/70 dark:border-stone-800 cursor-default'
+            : 'border-stone-200/70 dark:border-stone-800 hover:border-stone-300 dark:hover:border-stone-700 hover:shadow-card-hover hover:-translate-y-0.5 cursor-grab active:cursor-grabbing'
+      } ${
+        topic.is_pinned && !isDragging ? 'ring-1 ring-amber-400/40 bg-amber-50/[0.08] dark:bg-amber-950/10' : ''
       }`}
     >
       {/* Top row: Priority, Pin & Quick Stage */}

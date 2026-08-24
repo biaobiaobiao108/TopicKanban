@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useMemo } from 'react';
 import {
   DndContext,
   DragOverlay,
@@ -10,14 +10,11 @@ import {
   DragStartEvent,
   DragOverEvent,
   DragEndEvent,
-  CollisionDetection,
-  pointerWithin,
-  rectIntersection,
   closestCorners,
   defaultDropAnimationSideEffects,
   DropAnimation,
 } from '@dnd-kit/core';
-import { sortableKeyboardCoordinates } from '@dnd-kit/sortable';
+import { arrayMove, sortableKeyboardCoordinates } from '@dnd-kit/sortable';
 import { Topic, TopicStatus, Priority, Tag, Person } from '../../types';
 import { KanbanColumn } from './KanbanColumn';
 import { KanbanCard } from './KanbanCard';
@@ -25,6 +22,54 @@ import { KanbanFilters, SortField } from './KanbanFilters';
 import { ACTIVE_COLUMNS } from './columns';
 import { AlertTriangle } from 'lucide-react';
 import { getNextActionAgeDays, isActiveTopic, isNextActionDeferred } from '../../lib/topicMetrics';
+
+const activeStatuses: TopicStatus[] = ['inbox', 'approved', 'scripting', 'production'];
+
+type BoardColumns = Record<TopicStatus, string[]>;
+type TopicMap = Record<string, Topic>;
+type BoardSnapshot = { columns: BoardColumns; topics: TopicMap };
+
+function createColumns(topics: Topic[]): BoardColumns {
+  return activeStatuses.reduce((result, status) => {
+    result[status] = topics
+      .filter((topic) => topic.status === status)
+      .sort((a, b) => (a.sort_order || 0) - (b.sort_order || 0))
+      .map((topic) => topic.id);
+    return result;
+  }, {} as BoardColumns);
+}
+
+function createTopicMap(topics: Topic[]): TopicMap {
+  return Object.fromEntries(topics.map((topic) => [topic.id, topic]));
+}
+
+function findContainer(columns: BoardColumns, id: string): TopicStatus | undefined {
+  return activeStatuses.find((status) => status === id || (columns[status] && columns[status].includes(id)));
+}
+
+function cloneBoard(columns: BoardColumns, topics: TopicMap): BoardSnapshot {
+  return {
+    columns: Object.fromEntries(activeStatuses.map((status) => [status, [...(columns[status] || [])]])) as BoardColumns,
+    topics: { ...topics },
+  };
+}
+
+function moveBetweenColumns(
+  columns: BoardColumns,
+  activeId: string,
+  overId: string,
+  target: TopicStatus
+): BoardColumns {
+  const next = cloneBoard(columns, {}).columns;
+  const source = findContainer(columns, activeId);
+  if (!source) return columns;
+
+  next[source] = (next[source] || []).filter((id) => id !== activeId);
+  if (!next[target]) next[target] = [];
+  const overIndex = overId === target ? next[target].length : next[target].indexOf(overId);
+  next[target].splice(overIndex < 0 ? next[target].length : overIndex, 0, activeId);
+  return next;
+}
 
 interface KanbanBoardProps {
   topics: Topic[];
@@ -40,35 +85,17 @@ interface KanbanBoardProps {
   staleActionDays?: number;
 }
 
-// Custom collision detection combining pointerWithin, rectIntersection and closestCorners
-const customCollisionDetection: CollisionDetection = (args) => {
-  // 1. Pointer within droppable targets (highest precision during mouse/touch drag)
-  const pointerCollisions = pointerWithin(args);
-  if (pointerCollisions.length > 0) {
-    return pointerCollisions;
-  }
-
-  // 2. Intersection with droppable bounding boxes
-  const rectCollisions = rectIntersection(args);
-  if (rectCollisions.length > 0) {
-    return rectCollisions;
-  }
-
-  // 3. Fallback to closest corners
-  return closestCorners(args);
-};
-
-// Smooth drop animation configuration
+// Smooth drop animation configuration matching testkanban
 const dropAnimationConfig: DropAnimation = {
   sideEffects: defaultDropAnimationSideEffects({
     styles: {
       active: {
-        opacity: '0.4',
+        opacity: '0.35',
       },
     },
   }),
-  duration: 220,
-  easing: 'cubic-bezier(0.2, 0, 0, 1)',
+  duration: 180,
+  easing: 'cubic-bezier(0.2, 0.8, 0.2, 1)',
 };
 
 export const KanbanBoard: React.FC<KanbanBoardProps> = ({
@@ -84,9 +111,11 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
   searchTerm,
   staleActionDays = 5,
 }) => {
-  const [activeTopic, setActiveTopic] = useState<Topic | null>(null);
-  const [clonedTopics, setClonedTopics] = useState<Topic[] | null>(null);
+  const [topicsMap, setTopicsMap] = useState<TopicMap>(() => createTopicMap(topics));
+  const [columns, setColumns] = useState<BoardColumns>(() => createColumns(topics));
+  const [activeId, setActiveId] = useState<string | null>(null);
   const [activeCardWidth, setActiveCardWidth] = useState<number | null>(null);
+  const snapshotRef = useRef<BoardSnapshot | null>(null);
 
   // Filters
   const [priorityFilter, setPriorityFilter] = useState<Priority | 'all'>('all');
@@ -100,6 +129,14 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
   useEffect(() => () => {
     if (dragNoticeTimerRef.current) clearTimeout(dragNoticeTimerRef.current);
   }, []);
+
+  // Sync external topics into local state when not dragging
+  useEffect(() => {
+    if (!activeId) {
+      setTopicsMap(createTopicMap(topics));
+      setColumns(createColumns(topics));
+    }
+  }, [topics, activeId]);
 
   const sensors = useSensors(
     useSensor(PointerSensor, {
@@ -118,90 +155,73 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
     })
   );
 
-  // Determine current active list (uses transient cloned list while dragging)
-  const currentList = clonedTopics || topics;
+  // Visible topics grouped by columns, with filtering and sorting applied
+  const visibleColumnIds = useMemo(() => {
+    return activeStatuses.reduce((result, status) => {
+      const ids = (columns[status] || []).filter((id) => {
+        const topic = topicsMap[id];
+        if (!topic) return false;
+        if (searchTerm) {
+          const q = searchTerm.toLowerCase();
+          const matchTitle = topic.title.toLowerCase().includes(q);
+          const matchSummary = topic.summary?.toLowerCase().includes(q);
+          const matchHook = topic.hook?.toLowerCase().includes(q);
+          const matchAction = topic.next_action?.toLowerCase().includes(q);
+          const matchPerson = topic.people?.some((p) => p.name.toLowerCase().includes(q));
+          const matchTag = topic.tags?.some((t) => t.name.toLowerCase().includes(q));
+          if (!matchTitle && !matchSummary && !matchHook && !matchAction && !matchPerson && !matchTag) return false;
+        }
+        if (priorityFilter !== 'all' && topic.priority !== priorityFilter) return false;
+        if (selectedTagId !== 'all' && !topic.tags?.some((t) => t.id === selectedTagId)) return false;
+        if (selectedPersonId !== 'all' && !topic.people?.some((p) => p.id === selectedPersonId)) return false;
+        return true;
+      });
 
-  // Filter topics
-  const filtered = currentList.filter((topic) => {
-    // Search
-    if (searchTerm) {
-      const q = searchTerm.toLowerCase();
-      const matchTitle = topic.title.toLowerCase().includes(q);
-      const matchSummary = topic.summary?.toLowerCase().includes(q);
-      const matchHook = topic.hook?.toLowerCase().includes(q);
-      const matchAction = topic.next_action?.toLowerCase().includes(q);
-      const matchPerson = topic.people?.some((p) => p.name.toLowerCase().includes(q));
-      const matchTag = topic.tags?.some((t) => t.name.toLowerCase().includes(q));
-      if (!matchTitle && !matchSummary && !matchHook && !matchAction && !matchPerson && !matchTag) return false;
-    }
-    // Priority
-    if (priorityFilter !== 'all' && topic.priority !== priorityFilter) return false;
-    // Tag
-    if (selectedTagId !== 'all') {
-      const hasTag = topic.tags?.some((t) => t.id === selectedTagId);
-      if (!hasTag) return false;
-    }
-    // Person
-    if (selectedPersonId !== 'all') {
-      const hasPerson = topic.people?.some((p) => p.id === selectedPersonId);
-      if (!hasPerson) return false;
-    }
-    return true;
-  });
-
-  // Sort topics (when not dragging)
-  if (!activeTopic) {
-    filtered.sort((a, b) => {
-      // Pinned topics always on top in default order
-      if (a.is_pinned !== b.is_pinned && sortBy === 'sort_order') {
-        return (b.is_pinned || 0) - (a.is_pinned || 0);
+      if (!activeId && sortBy !== 'sort_order') {
+        ids.sort((a, b) => {
+          const tA = topicsMap[a];
+          const tB = topicsMap[b];
+          if (!tA || !tB) return 0;
+          if (sortBy === 'updated_at') return new Date(tB.updated_at).getTime() - new Date(tA.updated_at).getTime();
+          if (sortBy === 'created_at') return new Date(tB.created_at).getTime() - new Date(tA.created_at).getTime();
+          if (sortBy === 'priority') {
+            const pMap = { high: 3, medium: 2, low: 1, none: 0 };
+            return pMap[tB.priority] - pMap[tA.priority];
+          }
+          if (sortBy === 'score') {
+            const sA = (tA.score_character || 0) + (tA.score_conflict || 0) + (tA.score_contrast || 0) + (tA.score_material || 0) + (tA.score_story || 0);
+            const sB = (tB.score_character || 0) + (tB.score_conflict || 0) + (tB.score_contrast || 0) + (tB.score_material || 0) + (tB.score_story || 0);
+            return sB - sA;
+          }
+          return 0;
+        });
       }
 
-      if (sortBy === 'updated_at') {
-        return new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime();
-      }
-      if (sortBy === 'created_at') {
-        return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
-      }
-      if (sortBy === 'priority') {
-        const pMap = { high: 3, medium: 2, low: 1, none: 0 };
-        return pMap[b.priority] - pMap[a.priority];
-      }
-      if (sortBy === 'score') {
-        const scoreA = (a.score_character || 0) + (a.score_conflict || 0) + (a.score_contrast || 0) + (a.score_material || 0) + (a.score_story || 0);
-        const scoreB = (b.score_character || 0) + (b.score_conflict || 0) + (b.score_contrast || 0) + (b.score_material || 0) + (b.score_story || 0);
-        return scoreB - scoreA;
-      }
-      return a.sort_order - b.sort_order;
-    });
-  }
+      result[status] = ids;
+      return result;
+    }, {} as BoardColumns);
+  }, [columns, topicsMap, searchTerm, priorityFilter, selectedTagId, selectedPersonId, sortBy, activeId]);
 
-  // For Kanban Board view, we ONLY display active production topics (exclude published & icebox)
-  const activeBoardTopics = filtered.filter(
-    (t) => t.status !== 'published' && t.status !== 'icebox'
-  );
-  const approvedCount = topics.filter((topic) => topic.status === 'approved').length;
-  const scriptingCount = topics.filter((topic) => topic.status === 'scripting').length;
-  const stagnantTopics = topics
-    .filter((topic) => isActiveTopic(topic) && !isNextActionDeferred(topic) && getNextActionAgeDays(topic) >= staleActionDays)
-    .sort((a, b) => getNextActionAgeDays(b) - getNextActionAgeDays(a));
-  const wipWarnings = [
-    approvedCount > 5 ? `已立项 ${approvedCount} 个，超过建议上限 5 个` : null,
-    scriptingCount > 2 ? `写稿中 ${scriptingCount} 个，超过建议上限 2 个` : null,
-  ].filter((warning): warning is string => Boolean(warning));
+  const activeTopic = activeId ? topicsMap[activeId] : null;
+
+  const restoreSnapshot = () => {
+    if (!snapshotRef.current) return;
+    setColumns(snapshotRef.current.columns);
+    setTopicsMap(snapshotRef.current.topics);
+    snapshotRef.current = null;
+    setActiveId(null);
+    setActiveCardWidth(null);
+  };
 
   const handleDragStart = (event: DragStartEvent) => {
     const { active } = event;
-    const found = topics.find((t) => t.id === active.id);
-    if (found) {
-      setActiveTopic(found);
-      setClonedTopics(topics);
+    snapshotRef.current = cloneBoard(columns, topicsMap);
+    setActiveId(String(active.id));
 
-      // Measure current card's layout width for pixel-perfect DragOverlay
-      const cardEl = document.querySelector(`[data-topic-id="${active.id}"]`);
-      if (cardEl) {
-        setActiveCardWidth(cardEl.getBoundingClientRect().width);
-      }
+    // Measure current card's layout width for pixel-perfect DragOverlay
+    const cardEl = document.querySelector(`[data-topic-id="${active.id}"]`);
+    if (cardEl) {
+      setActiveCardWidth(cardEl.getBoundingClientRect().width);
     }
   };
 
@@ -209,142 +229,134 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
     const { active, over } = event;
     if (!over) return;
 
-    const activeId = String(active.id);
-    const overId = String(over.id);
-    if (activeId === overId) return;
+    const activeKey = String(active.id);
+    const overKey = String(over.id);
+    if (activeKey === overKey) return;
 
-    setClonedTopics((prev) => {
-      const current = prev ? [...prev] : [...topics];
-      const activeIdx = current.findIndex((t) => t.id === activeId);
-      if (activeIdx === -1) return prev || current;
+    const source = findContainer(columns, activeKey);
+    const target = findContainer(columns, overKey);
+    if (!source || !target || source === target) return;
 
-      const activeItem = current[activeIdx];
-      const activeContainer = activeItem.status;
-
-      let overContainer: TopicStatus | undefined;
-      const isOverAColumn = ACTIVE_COLUMNS.some((col) => col.status === overId);
-      if (isOverAColumn) {
-        overContainer = overId as TopicStatus;
-      } else {
-        const overItem = current.find((t) => t.id === overId);
-        overContainer = overItem?.status;
-      }
-
-      if (!overContainer || activeContainer === overContainer) {
-        return prev || current;
-      }
-
-      // Moving to a different column
-      const destTopics = current.filter((t) => t.status === overContainer && t.id !== activeId);
-      let targetIndex: number;
-
-      if (isOverAColumn) {
-        targetIndex = destTopics.length;
-      } else {
-        const overIndex = destTopics.findIndex((t) => t.id === overId);
-        if (overIndex === -1) {
-          targetIndex = destTopics.length;
-        } else {
-          const isBelow =
-            over &&
-            active.rect.current.translated &&
-            active.rect.current.translated.top > over.rect.top + over.rect.height / 2;
-          targetIndex = isBelow ? overIndex + 1 : overIndex;
-        }
-      }
-
-      const updatedActiveItem: Topic = {
-        ...activeItem,
-        status: overContainer,
-      };
-
-      const remaining = current.filter((t) => t.id !== activeId && t.status !== overContainer);
-      const updatedDest = [...destTopics];
-      updatedDest.splice(targetIndex, 0, updatedActiveItem);
-
-      return [...remaining, ...updatedDest];
+    setColumns((current) => moveBetweenColumns(current, activeKey, overKey, target));
+    setTopicsMap((current) => {
+      const item = current[activeKey];
+      if (!item) return current;
+      return { ...current, [activeKey]: { ...item, status: target } };
     });
   };
 
   const handleDragEnd = async (event: DragEndEvent) => {
     const { active, over } = event;
-    const currentCloned = clonedTopics;
-
-    setActiveTopic(null);
-    setClonedTopics(null);
     setActiveCardWidth(null);
 
-    if (!over) return;
+    const snapshot = snapshotRef.current;
+    if (!snapshot) {
+      setActiveId(null);
+      return;
+    }
+    if (!over) {
+      restoreSnapshot();
+      return;
+    }
 
-    const activeId = String(active.id);
-    const overId = String(over.id);
+    const activeKey = String(active.id);
+    const overKey = String(over.id);
+    const source = findContainer(columns, activeKey);
+    const target = findContainer(columns, overKey);
+    if (!source || !target) {
+      restoreSnapshot();
+      return;
+    }
 
-    const baseList = currentCloned || topics;
-    const draggedTopic = baseList.find((t) => t.id === activeId);
-    if (!draggedTopic) return;
+    let nextColumns = columns;
+    if (source === target && activeKey !== overKey) {
+      const oldIndex = columns[source].indexOf(activeKey);
+      const newIndex = columns[target].indexOf(overKey);
+      if (oldIndex !== -1 && newIndex !== -1) {
+        nextColumns = { ...columns, [source]: arrayMove(columns[source], oldIndex, newIndex) };
+      }
+    }
+
+    const nextTopicsMap = {
+      ...topicsMap,
+      [activeKey]: { ...topicsMap[activeKey], status: target },
+    };
+
+    setActiveId(null);
+    snapshotRef.current = null;
+    setColumns(nextColumns);
+    setTopicsMap(nextTopicsMap);
 
     if (sortBy !== 'sort_order') {
       setSortBy('sort_order');
       setDragSortNotice(true);
-      if (dragNoticeTimerRef.current) {
-        clearTimeout(dragNoticeTimerRef.current);
-      }
-      dragNoticeTimerRef.current = setTimeout(() => {
-        setDragSortNotice(false);
-      }, 3500);
+      if (dragNoticeTimerRef.current) clearTimeout(dragNoticeTimerRef.current);
+      dragNoticeTimerRef.current = setTimeout(() => setDragSortNotice(false), 3500);
     }
 
-    const isOverColumn = ACTIVE_COLUMNS.some((col) => col.status === overId);
-    const targetStatus: TopicStatus = isOverColumn
-      ? (overId as TopicStatus)
-      : (baseList.find((t) => t.id === overId)?.status || draggedTopic.status);
-
-    // Source status before drag started
-    const sourceOriginal = topics.find((t) => t.id === activeId);
-    const sourceStatus = sourceOriginal?.status || draggedTopic.status;
-
-    // Filter topics for the target column
-    const destTopics = baseList.filter((t) => t.status === targetStatus);
-    const oldIndex = destTopics.findIndex((t) => t.id === activeId);
-    let newIndex = isOverColumn
-      ? destTopics.length - 1
-      : destTopics.findIndex((t) => t.id === overId);
-
-    if (newIndex === -1) newIndex = destTopics.length - 1;
-
-    const finalReordered = [...destTopics];
-    if (oldIndex !== -1 && newIndex !== -1 && oldIndex !== newIndex) {
-      const [moved] = finalReordered.splice(oldIndex, 1);
-      finalReordered.splice(newIndex, 0, moved);
+    const updates: Array<{ id: string; status: TopicStatus; sort_order: number }> = [];
+    nextColumns[target].forEach((id, idx) => {
+      updates.push({ id, status: target, sort_order: idx + 1 });
+    });
+    if (source !== target) {
+      nextColumns[source].forEach((id, idx) => {
+        updates.push({ id, status: source, sort_order: idx + 1 });
+      });
     }
 
-    const destUpdates = finalReordered.map((topic, index) => ({
-      id: topic.id,
-      status: targetStatus,
-      sort_order: index + 1,
-    }));
-
-    // If moved to a different column, also re-index the source column
-    if (sourceStatus !== targetStatus) {
-      const sourceRemaining = topics
-        .filter((t) => t.status === sourceStatus && t.id !== activeId)
-        .sort((a, b) => a.sort_order - b.sort_order);
-      const sourceUpdates = sourceRemaining.map((t, idx) => ({
-        id: t.id,
-        status: sourceStatus,
-        sort_order: idx + 1,
-      }));
-      await onReorderTopics([...destUpdates, ...sourceUpdates]);
-    } else {
-      await onReorderTopics(destUpdates);
+    try {
+      await onReorderTopics(updates);
+    } catch {
+      restoreSnapshot();
     }
   };
 
   const handleDragCancel = () => {
-    setActiveTopic(null);
-    setClonedTopics(null);
-    setActiveCardWidth(null);
+    restoreSnapshot();
   };
+
+  const handleKeyboardMove = async (topic: Topic, direction: -1 | 1) => {
+    const currentIndex = activeStatuses.indexOf(topic.status);
+    if (currentIndex === -1) return;
+    const targetStatus = activeStatuses[currentIndex + direction];
+    if (!targetStatus) return;
+
+    const snapshot = cloneBoard(columns, topicsMap);
+    const nextColumns = moveBetweenColumns(columns, topic.id, targetStatus, targetStatus);
+    const nextTopicsMap = {
+      ...topicsMap,
+      [topic.id]: { ...topic, status: targetStatus },
+    };
+
+    setColumns(nextColumns);
+    setTopicsMap(nextTopicsMap);
+
+    const updates: Array<{ id: string; status: TopicStatus; sort_order: number }> = [];
+    nextColumns[targetStatus].forEach((id, idx) => {
+      updates.push({ id, status: targetStatus, sort_order: idx + 1 });
+    });
+    nextColumns[topic.status].forEach((id, idx) => {
+      updates.push({ id, status: topic.status, sort_order: idx + 1 });
+    });
+
+    try {
+      await onReorderTopics(updates);
+    } catch {
+      setColumns(snapshot.columns);
+      setTopicsMap(snapshot.topics);
+    }
+  };
+
+  // WIP and stale action stats
+  const approvedCount = (columns.approved || []).length;
+  const scriptingCount = (columns.scripting || []).length;
+  const stagnantTopics = topics
+    .filter((topic) => isActiveTopic(topic) && !isNextActionDeferred(topic) && getNextActionAgeDays(topic) >= staleActionDays)
+    .sort((a, b) => getNextActionAgeDays(b) - getNextActionAgeDays(a));
+  const wipWarnings = [
+    approvedCount > 5 ? `已立项 ${approvedCount} 个，超过建议上限 5 个` : null,
+    scriptingCount > 2 ? `写稿中 ${scriptingCount} 个，超过建议上限 2 个` : null,
+  ].filter((warning): warning is string => Boolean(warning));
 
   const hasActiveFilters =
     priorityFilter !== 'all' ||
@@ -359,6 +371,8 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
     setSelectedPersonId('all');
     setSortBy('sort_order');
   };
+
+  const totalActiveCount = activeStatuses.reduce((acc, status) => acc + (visibleColumnIds[status] || []).length, 0);
 
   return (
     <div className="flex-1 w-full h-full overflow-y-auto px-4 sm:px-6 py-4 space-y-4">
@@ -414,7 +428,7 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
                         key={topic.id}
                         type="button"
                         onClick={() => onOpenDetail(topic.id)}
-                        className="rounded-md border border-amber-200 bg-white px-2 py-1 text-[11px] font-semibold text-stone-700 hover:border-amber-400 hover:text-amber-900"
+                        className="rounded-md border border-amber-200 bg-white px-2 py-1 text-[11px] font-semibold text-stone-700 hover:border-amber-400 hover:text-amber-900 cursor-pointer"
                       >
                         {topic.title} · {getNextActionAgeDays(topic)} 天
                       </button>
@@ -437,10 +451,10 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
               : 'bg-stone-100 text-stone-600 hover:bg-stone-200'
           }`}
         >
-          全部活跃 ({activeBoardTopics.length})
+          全部活跃 ({totalActiveCount})
         </button>
         {ACTIVE_COLUMNS.map((col) => {
-          const count = activeBoardTopics.filter((t) => t.status === col.status).length;
+          const count = (visibleColumnIds[col.status] || []).length;
           const isActive = mobileActiveStage === col.status;
           return (
             <button
@@ -466,7 +480,7 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
       {/* DND Context & Board Grid (4 Active Columns) */}
       <DndContext
         sensors={sensors}
-        collisionDetection={customCollisionDetection}
+        collisionDetection={closestCorners}
         onDragStart={handleDragStart}
         onDragOver={handleDragOver}
         onDragEnd={handleDragEnd}
@@ -476,7 +490,8 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
         {mobileActiveStage !== 'all' ? (
           <div className="md:hidden">
             {ACTIVE_COLUMNS.filter((c) => c.status === mobileActiveStage).map((col) => {
-              const colTopics = activeBoardTopics.filter((t) => t.status === col.status);
+              const ids = visibleColumnIds[col.status] || [];
+              const colTopics = ids.map((id) => topicsMap[id]).filter(Boolean);
               return (
                 <KanbanColumn
                   key={col.status}
@@ -489,6 +504,7 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
                   onTogglePin={onTogglePin}
                   onQuickAddTopic={onQuickAddTopic}
                   onUpdateStatus={onUpdateTopicStatus}
+                  onKeyboardMove={handleKeyboardMove}
                   sortableDisabled={isDragDisabled}
                   staleThresholdDays={staleActionDays}
                 />
@@ -500,7 +516,8 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
         {/* Desktop / Full Grid View (4 Clean Columns: 收集箱, 已立项, 写稿中, 待制作) */}
         <div className={mobileActiveStage !== 'all' ? 'hidden md:grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4' : 'grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4'}>
           {ACTIVE_COLUMNS.map((col) => {
-            const colTopics = activeBoardTopics.filter((t) => t.status === col.status);
+            const ids = visibleColumnIds[col.status] || [];
+            const colTopics = ids.map((id) => topicsMap[id]).filter(Boolean);
             return (
               <KanbanColumn
                 key={col.status}
@@ -513,6 +530,7 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
                 onTogglePin={onTogglePin}
                 onQuickAddTopic={onQuickAddTopic}
                 onUpdateStatus={onUpdateTopicStatus}
+                onKeyboardMove={handleKeyboardMove}
                 sortableDisabled={isDragDisabled}
                 staleThresholdDays={staleActionDays}
               />

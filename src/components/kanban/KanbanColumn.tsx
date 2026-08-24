@@ -15,6 +15,7 @@ interface KanbanColumnProps {
   onTogglePin: (topicId: string) => void;
   onQuickAddTopic: (status: TopicStatus) => void;
   onUpdateStatus?: (topicId: string, status: TopicStatus) => void;
+  onKeyboardMove?: (topic: Topic, direction: -1 | 1) => void;
   sortableDisabled?: boolean;
   staleThresholdDays?: number;
 }
@@ -40,6 +41,7 @@ export const KanbanColumn: React.FC<KanbanColumnProps> = ({
   onTogglePin,
   onQuickAddTopic,
   onUpdateStatus,
+  onKeyboardMove,
   sortableDisabled,
   staleThresholdDays = 5,
 }) => {
@@ -99,6 +101,7 @@ export const KanbanColumn: React.FC<KanbanColumnProps> = ({
               onDeleteTopic={onDeleteTopic}
               onTogglePin={onTogglePin}
               onUpdateStatus={onUpdateStatus}
+              onKeyboardMove={onKeyboardMove}
               sortableDisabled={sortableDisabled}
               staleThresholdDays={staleThresholdDays}
             />
