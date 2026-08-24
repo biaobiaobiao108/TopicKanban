@@ -128,52 +128,16 @@ html.theme-kyoto-zen .script-citation::after {
   will-change: transform, opacity;
 }
 
-/* Script Editor Focus Mode */
+/* Script Editor Focus Mode (仅在沉浸写作中开启，0ms 原生高亮，非编辑段落保持温和暗化) */
 .script-editor-focus-mode .tiptap > * {
-  opacity: 0.35;
-  filter: blur(0.15px);
-  transition: opacity 0.2s cubic-bezier(0.16, 1, 0.3, 1), filter 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  opacity: 0.24;
+  filter: blur(0.1px);
+  transition: opacity 0.18s cubic-bezier(0.16, 1, 0.3, 1), filter 0.18s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-.script-editor-focus-mode .tiptap > .is-focused-paragraph,
-.script-editor-focus-mode .tiptap > *:hover,
-.script-editor-focus-mode .tiptap > *:focus-within {
+.script-editor-focus-mode .tiptap > .is-focused-paragraph {
   opacity: 1 !important;
   filter: none !important;
-}
-
-/* Selection Quick Bubble */
-.script-selection-bubble {
-  box-shadow: 0 12px 28px -6px rgba(0, 0, 0, 0.12), 0 6px 12px -4px rgba(0, 0, 0, 0.08);
-}
-
-html.dark .script-selection-bubble {
-  box-shadow: 0 12px 28px -6px rgba(0, 0, 0, 0.45), 0 6px 12px -4px rgba(0, 0, 0, 0.3);
-}
-
-html.theme-warm-paper .script-selection-bubble {
-  background-color: #ffffff !important;
-  border-color: #eae3d8 !important;
-}
-
-html.theme-nordic-frost .script-selection-bubble {
-  background-color: #ffffff !important;
-  border-color: #dce5e5 !important;
-}
-
-html.theme-parisian-dawn .script-selection-bubble {
-  background-color: #ffffff !important;
-  border-color: #ded7ce !important;
-}
-
-html.theme-midnight-obsidian .script-selection-bubble {
-  background-color: #1c212c !important;
-  border-color: rgba(255, 255, 255, 0.14) !important;
-}
-
-html.theme-kyoto-zen .script-selection-bubble {
-  background-color: #ffffff !important;
-  border-color: #dadfd5 !important;
 }
 
 @layer base {
