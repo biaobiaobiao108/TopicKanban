@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect, useMemo } from 'react';
+import React, { useState, useRef, useEffect, useMemo, useCallback } from 'react';
 import { keepPreviousData, useQueries, useQueryClient } from '@tanstack/react-query';
 import {
   DndContext,
@@ -16,7 +16,7 @@ import {
   DropAnimation,
 } from '@dnd-kit/core';
 import { arrayMove, sortableKeyboardCoordinates } from '@dnd-kit/sortable';
-import { Topic, TopicStatus, Priority, Tag, Person } from '../../types';
+import { Topic, TopicStatus, Priority, Tag, Person, PaginatedTopics } from '../../types';
 import { KanbanColumn } from './KanbanColumn';
 import { KanbanCard } from './KanbanCard';
 import { KanbanFilters, SortField } from './KanbanFilters';
@@ -309,6 +309,57 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
     setActiveCardWidth(null);
   };
 
+  const optimisticUpdateQueryCache = useCallback((updates: Array<{ id: string; status: TopicStatus; sort_order: number }>) => {
+    const updateMap = new Map(updates.map((u) => [u.id, u]));
+    const nowIso = new Date().toISOString();
+
+    activeStatuses.forEach((queryStatus) => {
+      queryClient.setQueriesData<PaginatedTopics>(
+        { queryKey: ['kanban-column-page', queryStatus] },
+        (oldData?: PaginatedTopics) => {
+          if (!oldData || !Array.isArray(oldData.items)) return oldData;
+
+          // Items targeted to this column
+          const additions: Topic[] = [];
+          updates.forEach((u) => {
+            if (u.status === queryStatus) {
+              const existing = topicsMap[u.id] || oldData.items.find((t: Topic) => t.id === u.id);
+              if (existing) {
+                additions.push({
+                  ...existing,
+                  status: queryStatus,
+                  sort_order: u.sort_order,
+                  updated_at: nowIso,
+                });
+              }
+            }
+          });
+
+          // Remove items that moved away to a different status
+          const keptItems = oldData.items.filter((t: Topic) => {
+            const u = updateMap.get(t.id);
+            if (u && u.status !== queryStatus) return false;
+            return true;
+          });
+
+          // Combine and deduplicate
+          const mergedMap = new Map<string, Topic>();
+          keptItems.forEach((t: Topic) => mergedMap.set(t.id, t));
+          additions.forEach((t: Topic) => mergedMap.set(t.id, t));
+
+          const newItems = Array.from(mergedMap.values()).sort((a, b) => (a.sort_order || 0) - (b.sort_order || 0));
+          const delta = (newItems.length - keptItems.length) - (oldData.items.length - keptItems.length);
+
+          return {
+            ...oldData,
+            items: newItems,
+            total: Math.max(0, oldData.total + delta),
+          };
+        }
+      );
+    });
+  }, [queryClient, topicsMap]);
+
   const handleDragStart = (event: DragStartEvent) => {
     const { active } = event;
     snapshotRef.current = cloneBoard(columns, topicsMap);
@@ -413,6 +464,8 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
       });
     }
 
+    optimisticUpdateQueryCache(updates);
+
     try {
       await onReorderTopics(updates);
       await queryClient.invalidateQueries({ queryKey: ['kanban-column-page'] });
@@ -460,6 +513,8 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
     nextColumns[topic.status].forEach((id, idx) => {
       updates.push({ id, status: topic.status, sort_order: idx + 1 });
     });
+
+    optimisticUpdateQueryCache(updates);
 
     try {
       await onReorderTopics(updates);
@@ -509,6 +564,14 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
       });
       return next;
     });
+    queryClient.setQueriesData<PaginatedTopics>(
+      { queryKey: ['kanban-column-page'] },
+      (old) => old ? {
+        ...old,
+        items: old.items.filter((t) => t.id !== topicId),
+        total: Math.max(0, old.total - (old.items.some((t) => t.id === topicId) ? 1 : 0)),
+      } : old
+    );
     void Promise.resolve(onDeleteTopic(topicId)).then(() => queryClient.invalidateQueries({ queryKey: ['kanban-column-page'] }));
   };
 
@@ -526,6 +589,7 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
       });
       return next;
     });
+    optimisticUpdateQueryCache([{ id: topicId, status, sort_order: 1 }]);
     void onUpdateTopicStatus(topicId, status).then(() => queryClient.invalidateQueries({ queryKey: ['kanban-column-page'] }));
   };
 

@@ -358,21 +358,34 @@ function WorkspaceApp({ isAuth, setIsAuth }: WorkspaceAppProps) {
     status: TopicStatus,
     sortOrder?: number
   ) => {
-    await updateTopicStatus(topicId, status, sortOrder);
+    const previousTopics = topics;
     setTopics((prev) =>
-      prev.map((t) => (t.id === topicId ? { ...t, status, sort_order: sortOrder ?? t.sort_order } : t))
+      prev.map((t) => (t.id === topicId ? { ...t, status, sort_order: sortOrder ?? t.sort_order, updated_at: new Date().toISOString() } : t))
     );
+    try {
+      await updateTopicStatus(topicId, status, sortOrder);
+    } catch (err) {
+      setTopics(previousTopics);
+      throw err;
+    }
   };
 
   const handleReorderTopics = async (
     updates: Array<{ id: string; status: TopicStatus; sort_order: number }>
   ) => {
-    await reorderTopics(updates);
+    const previousTopics = topics;
     const updateMap = new Map(updates.map((update) => [update.id, update]));
+    const nowIso = new Date().toISOString();
     setTopics((prev) => prev.map((topic) => {
       const update = updateMap.get(topic.id);
-      return update ? { ...topic, ...update, updated_at: new Date().toISOString() } : topic;
+      return update ? { ...topic, ...update, updated_at: nowIso } : topic;
     }));
+    try {
+      await reorderTopics(updates);
+    } catch (err) {
+      setTopics(previousTopics);
+      throw err;
+    }
   };
 
   const handleQuickAddInStatus = (status: TopicStatus) => {
