@@ -133,6 +133,11 @@ test('发布包可编辑、复制并导出 Markdown', async ({ page }) => {
   await expect(page.getByLabel('简体标题')).toHaveValue('文案创作标题：真正应该发布的版本');
   await expect(page.locator('input[name^="chapter_title_"]')).toHaveCount(2);
 
+  const titleCandidate = page.locator('input[name="title_candidate_1"]');
+  await titleCandidate.fill('');
+  await titleCandidate.pressSequentially('可连续输入的标题候选');
+  await expect(titleCandidate).toHaveValue('可连续输入的标题候选');
+
   await page.getByLabel('繁体标题').fill('YouTube 手动标题');
   await expect(page.getByText('手动修改')).toBeVisible();
   await page.getByLabel('简体标题').fill('新的简体文案标题');
