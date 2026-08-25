@@ -65,6 +65,24 @@
 * **8 套主题随心换**：北欧冷杉（推荐）、巴黎晨光、深海星图（极客夜间）、京都茶席、暖沙纸境、经典浅色、深色专注、跟随系统。
 * **全局指令搜索面板 (`Cmd/Ctrl + P` 或 `/`)**：支持全拼搜索，并通过 `#` 查赛道、`@` 查人物、`>` 执行快捷动作、`?` 调出快捷键大全。
 
+### 10. ⚡ Bun-first 运行时规范
+
+本项目本地开发、依赖管理、测试、构建和 CLI 工具统一优先使用 Bun。只要 Bun 已经支持对应工具，就不要改用 Node.js、npm 或 npx。
+
+对于带有 Node.js shebang 的 CLI（例如 Playwright），必须显式使用 Bun 运行：
+
+```bash
+bun run --bun playwright test
+```
+
+项目的 E2E 快捷命令已内置该设置，因此直接执行下面的命令也会让 Playwright CLI 使用 Bun 运行时：
+
+```bash
+bun run test:e2e
+```
+
+只有工具明确不兼容 Bun 时，才允许退回 Node.js，并应在相关文档或脚本中说明原因。
+
 ---
 
 ## 🛠️ 技术架构
@@ -200,10 +218,13 @@ bun run dev
 # 3. 运行全量自动化测试套件 (54 项单元与集成测试)
 bun run test:run
 
-# 4. 生产构建打包 (Vite 前端打包 + Bun 服务端 Bundle)
+# 4. 运行 Playwright E2E（Playwright CLI 使用 Bun 运行时）
+bun run test:e2e
+
+# 5. 生产构建打包 (Vite 前端打包 + Bun 服务端 Bundle)
 bun run build
 
-# 5. 本地生产单机运行
+# 6. 本地生产单机运行
 bun run start
 ```
 

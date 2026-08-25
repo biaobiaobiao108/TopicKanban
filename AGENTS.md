@@ -6,6 +6,7 @@
    * 每次完成代码修改、写完一个新功能或 Bug 修复，并通过全量测试（`bun run test:run`）与生产构建测试（`bun run build`）后，必须立即自动执行一次规范清晰的本地 `git commit`。
 2. **包管理器优先**：
    * 必须使用 Bun 进行依赖安装与脚本执行，`npm` 仅作极端情况兜底。
+   * 本项目遵循 Bun-first 运行时规范：本地开发、测试、构建及 CLI 工具只要 Bun 能够支持，就必须使用 Bun，不得用 Node.js 替代。对于带有 `#!/usr/bin/env node` 的本地 CLI，使用 `bun run --bun <command>` 或 `bunx --bun <command>` 显式让 Bun 执行；只有工具明确不兼容 Bun 时才允许使用 Node.js，并说明原因。
 3. **安全操作**：
    * 运行任何破坏性命令（包括但不限于删除关键文件、重置数据库结构、强制清空存储等）前，必须向用户明确说明风险并获得确认。删除文件优先使用安全机制（`trash` > `rm`）。
 4. **最小改动原则**：
@@ -134,6 +135,14 @@
 
 ## 🚀 五、常用工作流与命令 (Verification Workflow)
 
+本项目统一采用 Bun-first 工作流：能由 Bun 执行的依赖安装、开发服务、测试、构建和 CLI 命令都使用 Bun，不使用 Node.js/npm 作为默认运行方式。Playwright CLI 使用 Bun 显式运行：
+
+```bash
+bun run test:e2e
+```
+
+其中 `test:e2e` 已通过 `bun run --bun playwright test` 强制 Playwright 在 Bun 运行时下执行。
+
 * **本地开发**：`bun run dev`（启动 Vite 前端热重载与本地 Bun API）
 * **运行全量自动化测试**：`bun run test:run`（Bun Test，修改后必跑，当前共 54 项测试）
 * **类型检查与生产构建**：`bun run build`（包含前端 SPA 构建与 Bun 服务端 `build:server`）
@@ -141,4 +150,3 @@
 * **Podman / Docker 容器构建与编排**：
   * 构建本地镜像：`podman build -t topic-kanban:latest .`
   * 启动容器服务：`podman compose up -d` 或 `docker compose up -d`
-
