@@ -96,6 +96,167 @@ html.theme-kyoto-zen .script-citation::after {
   color: #3d6b4f;
 }
 
+/* ==========================================================================
+   Editorial Motion & GPU-Accelerated Animation Framework (温润编辑部微质感)
+   ========================================================================== */
+
+@keyframes enter {
+  from {
+    opacity: var(--tw-enter-opacity, 1);
+    transform: translate3d(var(--tw-enter-translate-x, 0), var(--tw-enter-translate-y, 0), 0)
+      scale3d(var(--tw-enter-scale, 1), var(--tw-enter-scale, 1), var(--tw-enter-scale, 1))
+      rotate(var(--tw-enter-rotate, 0));
+  }
+}
+
+@keyframes exit {
+  to {
+    opacity: var(--tw-exit-opacity, 1);
+    transform: translate3d(var(--tw-exit-translate-x, 0), var(--tw-exit-translate-y, 0), 0)
+      scale3d(var(--tw-exit-scale, 1), var(--tw-exit-scale, 1), var(--tw-exit-scale, 1))
+      rotate(var(--tw-exit-rotate, 0));
+  }
+}
+
+.animate-in {
+  animation-name: enter;
+  animation-duration: 200ms;
+  --tw-enter-opacity: initial;
+  --tw-enter-scale: initial;
+  --tw-enter-rotate: initial;
+  --tw-enter-translate-x: initial;
+  --tw-enter-translate-y: initial;
+  animation-timing-function: cubic-bezier(0.16, 1, 0.3, 1);
+  animation-fill-mode: both;
+}
+
+.animate-out {
+  animation-name: exit;
+  animation-duration: 150ms;
+  --tw-exit-opacity: initial;
+  --tw-exit-scale: initial;
+  --tw-exit-rotate: initial;
+  --tw-exit-translate-x: initial;
+  --tw-exit-translate-y: initial;
+  animation-timing-function: cubic-bezier(0.4, 0, 1, 1);
+  animation-fill-mode: both;
+}
+
+/* Opacity modifiers */
+.fade-in { --tw-enter-opacity: 0; }
+.fade-in-0 { --tw-enter-opacity: 0; }
+.fade-in-25 { --tw-enter-opacity: 0.25; }
+.fade-in-50 { --tw-enter-opacity: 0.5; }
+.fade-in-75 { --tw-enter-opacity: 0.75; }
+.fade-in-100 { --tw-enter-opacity: 1; }
+
+.fade-out { --tw-exit-opacity: 0; }
+.fade-out-0 { --tw-exit-opacity: 0; }
+.fade-out-50 { --tw-exit-opacity: 0.5; }
+.fade-out-100 { --tw-exit-opacity: 1; }
+
+/* Scale modifiers */
+.zoom-in-50 { --tw-enter-scale: 0.5; }
+.zoom-in-75 { --tw-enter-scale: 0.75; }
+.zoom-in-90 { --tw-enter-scale: 0.9; }
+.zoom-in-95 { --tw-enter-scale: 0.95; }
+.zoom-in-100 { --tw-enter-scale: 1; }
+.zoom-in-105 { --tw-enter-scale: 1.05; }
+
+.zoom-out-75 { --tw-exit-scale: 0.75; }
+.zoom-out-90 { --tw-exit-scale: 0.9; }
+.zoom-out-95 { --tw-exit-scale: 0.95; }
+.zoom-out-100 { --tw-exit-scale: 1; }
+
+/* Translate modifiers */
+.slide-in-from-top { --tw-enter-translate-y: -100%; }
+.slide-in-from-top-1 { --tw-enter-translate-y: -0.25rem; }
+.slide-in-from-top-2 { --tw-enter-translate-y: -0.5rem; }
+.slide-in-from-top-4 { --tw-enter-translate-y: -1rem; }
+.slide-in-from-top-6 { --tw-enter-translate-y: -1.5rem; }
+.slide-in-from-top-8 { --tw-enter-translate-y: -2rem; }
+
+.slide-in-from-bottom { --tw-enter-translate-y: 100%; }
+.slide-in-from-bottom-1 { --tw-enter-translate-y: 0.25rem; }
+.slide-in-from-bottom-2 { --tw-enter-translate-y: 0.5rem; }
+.slide-in-from-bottom-4 { --tw-enter-translate-y: 1rem; }
+.slide-in-from-bottom-6 { --tw-enter-translate-y: 1.5rem; }
+.slide-in-from-bottom-8 { --tw-enter-translate-y: 2rem; }
+
+.slide-in-from-left { --tw-enter-translate-x: -100%; }
+.slide-in-from-left-2 { --tw-enter-translate-x: -0.5rem; }
+.slide-in-from-left-4 { --tw-enter-translate-x: -1rem; }
+.slide-in-from-left-8 { --tw-enter-translate-x: -2rem; }
+
+.slide-in-from-right { --tw-enter-translate-x: 100%; }
+.slide-in-from-right-2 { --tw-enter-translate-x: 0.5rem; }
+.slide-in-from-right-4 { --tw-enter-translate-x: 1rem; }
+.slide-in-from-right-8 { --tw-enter-translate-x: 2rem; }
+
+.slide-out-to-top { --tw-exit-translate-y: -100%; }
+.slide-out-to-bottom { --tw-exit-translate-y: 100%; }
+.slide-out-to-left { --tw-exit-translate-x: -100%; }
+.slide-out-to-right { --tw-exit-translate-x: 100%; }
+
+/* Micro-interaction Keyframes */
+@keyframes popIn {
+  0% {
+    opacity: 0;
+    transform: scale3d(0.8, 0.8, 1);
+  }
+  60% {
+    transform: scale3d(1.06, 1.06, 1);
+  }
+  100% {
+    opacity: 1;
+    transform: scale3d(1, 1, 1);
+  }
+}
+
+.animate-pop {
+  animation: popIn 220ms cubic-bezier(0.34, 1.4, 0.64, 1) forwards;
+  will-change: transform, opacity;
+}
+
+@keyframes subtleShake {
+  0%, 100% { transform: translate3d(0, 0, 0); }
+  20%, 60% { transform: translate3d(-4px, 0, 0); }
+  40%, 80% { transform: translate3d(4px, 0, 0); }
+}
+
+.animate-shake {
+  animation: subtleShake 360ms cubic-bezier(0.36, 0.07, 0.19, 0.97) both;
+}
+
+@keyframes subtlePulse {
+  0%, 100% {
+    opacity: 1;
+    transform: scale3d(1, 1, 1);
+  }
+  50% {
+    opacity: 0.86;
+    transform: scale3d(1.02, 1.02, 1);
+  }
+}
+
+.animate-pulse-subtle {
+  animation: subtlePulse 2.4s ease-in-out infinite;
+}
+
+@keyframes shimmerSweep {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+.animate-shimmer {
+  background-size: 200% 100%;
+  animation: shimmerSweep 3.5s ease-in-out infinite;
+}
+
 @keyframes floatInFromLeft {
   from {
     transform: translate3d(-16px, 0, 0) scale(0.98);
@@ -128,6 +289,40 @@ html.theme-kyoto-zen .script-citation::after {
   will-change: transform, opacity;
 }
 
+/* Tab Fade-Slide Animation */
+@keyframes tabFadeSlide {
+  from {
+    opacity: 0;
+    transform: translate3d(0, 4px, 0);
+  }
+  to {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+  }
+}
+
+.view-tab-transition {
+  animation: tabFadeSlide 180ms cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  will-change: transform, opacity;
+}
+
+/* Toast Dynamics */
+@keyframes toastSlideIn {
+  from {
+    opacity: 0;
+    transform: translate3d(0, 14px, 0) scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+}
+
+.toast-slide-in {
+  animation: toastSlideIn 220ms cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  will-change: transform, opacity;
+}
+
 /* Script Editor Focus Mode (沉浸写作专注模式：丝滑温润呼吸过渡，暗化段落 30% 纯 GPU 加速透明度渐变，无闪烁) */
 .script-editor-focus-mode .tiptap > * {
   opacity: 0.3;
@@ -137,6 +332,18 @@ html.theme-kyoto-zen .script-citation::after {
 
 .script-editor-focus-mode .tiptap > .is-focused-paragraph {
   opacity: 1 !important;
+}
+
+/* Prefers-reduced-motion Accessibility Fallback */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  ::before,
+  ::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
 }
 
 @layer base {

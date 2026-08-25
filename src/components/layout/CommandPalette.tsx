@@ -713,11 +713,11 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
   return (
     <div className="fixed inset-0 z-[100] flex items-start justify-center pt-12 sm:pt-16 p-4 sm:p-6">
       {/* Backdrop */}
-      <div className="fixed inset-0 bg-stone-900/40 backdrop-blur-xs transition-opacity" onClick={onClose} />
+      <div className="fixed inset-0 bg-stone-900/40 backdrop-blur-xs animate-in fade-in duration-200" onClick={onClose} />
 
       {/* Palette Modal */}
       <div
-        className="relative w-full max-w-2xl bg-white dark:bg-stone-900 rounded-2xl shadow-modal border border-stone-200/70 dark:border-stone-800 overflow-hidden flex flex-col z-10 animate-in fade-in zoom-in-95 duration-100 transition-colors max-h-[85vh]"
+        className="relative w-full max-w-2xl bg-white dark:bg-stone-900 rounded-2xl shadow-modal border border-stone-200/70 dark:border-stone-800 overflow-hidden flex flex-col z-10 animate-in fade-in slide-in-from-top-2 zoom-in-95 duration-200 ease-editorial-out transition-colors max-h-[85vh]"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Search Input Header */}

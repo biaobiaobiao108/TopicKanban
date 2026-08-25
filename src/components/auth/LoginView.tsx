@@ -77,7 +77,7 @@ export const LoginView: React.FC<LoginViewProps> = ({ onLoginSuccess }) => {
           </div>
 
           {errorMsg && (
-            <div className="p-3 bg-red-500/10 border border-red-500/20 text-red-700 dark:text-red-300 rounded-xl text-xs font-semibold flex items-center gap-2">
+            <div className="p-3 bg-red-500/10 border border-red-500/20 text-red-700 dark:text-red-300 rounded-xl text-xs font-semibold flex items-center gap-2 animate-shake">
               <Lock className="w-3.5 h-3.5 shrink-0" />
               <span>{errorMsg}</span>
             </div>

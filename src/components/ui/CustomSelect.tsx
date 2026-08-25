@@ -229,11 +229,11 @@ export const CustomSelect: React.FC<CustomSelectProps> = ({
             </>
           )}
         </div>
-        <ChevronDown className={`${iconSizes[size]} text-stone-400 dark:text-stone-500 transition-transform shrink-0 ${isOpen ? 'rotate-180 text-stone-700 dark:text-stone-300' : ''}`} />
+        <ChevronDown className={`${iconSizes[size]} text-stone-400 dark:text-stone-500 transition-transform duration-200 ease-editorial-out shrink-0 ${isOpen ? 'rotate-180 text-stone-700 dark:text-stone-300' : ''}`} />
       </button>
 
       {isOpen && (
-        <div className={`absolute z-50 mt-1.5 min-w-[160px] max-h-72 overflow-hidden bg-white/95 dark:bg-stone-900/95 backdrop-blur-md border border-stone-200/80 dark:border-stone-800 rounded-2xl shadow-modal animate-in fade-in zoom-in-95 duration-100 ${align === 'right' ? 'right-0' : 'left-0'} ${popoverClassName}`}>
+        <div className={`absolute z-50 mt-1.5 min-w-[160px] max-h-72 overflow-hidden bg-white/95 dark:bg-stone-900/95 backdrop-blur-md border border-stone-200/80 dark:border-stone-800 rounded-2xl shadow-modal animate-in fade-in zoom-in-95 duration-150 ease-editorial-out ${align === 'right' ? 'right-0' : 'left-0'} ${popoverClassName}`}>
           {searchable && (
             <div className="p-2 border-b border-stone-100 dark:border-stone-800 bg-stone-50/70 dark:bg-stone-800/80 flex items-center gap-2">
               <Search className="w-3.5 h-3.5 text-stone-400 dark:text-stone-500 ml-1 shrink-0" aria-hidden="true" />

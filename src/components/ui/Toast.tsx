@@ -55,8 +55,8 @@ export const ToastProvider: React.FC<React.PropsWithChildren> = ({ children }) =
               ? 'border-stone-200 bg-white text-stone-900'
               : 'border-emerald-200 bg-emerald-50 text-emerald-900';
           return (
-            <div key={item.id} role="status" className={`pointer-events-auto flex w-full items-center gap-2 rounded-xl border px-3 py-2.5 text-sm shadow-lg backdrop-blur ${toneClass}`}>
-              <Icon className="h-4 w-4 shrink-0" />
+            <div key={item.id} role="status" className={`pointer-events-auto toast-slide-in flex w-full items-center gap-2 rounded-xl border px-3 py-2.5 text-sm shadow-card-hover backdrop-blur transition-all ${toneClass}`}>
+              <Icon className="h-4 w-4 shrink-0 animate-pop" />
               <span className="min-w-0 flex-1">{item.message}</span>
               {item.actionLabel && item.onAction && (
                 <button type="button" className="shrink-0 rounded-lg px-2 py-1 text-xs font-bold underline underline-offset-2" onClick={() => { void item.onAction?.(); dismissToast(item.id); }}>

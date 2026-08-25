@@ -137,12 +137,12 @@ const KanbanCardComponent: React.FC<KanbanCardProps> = ({
           onOpenDetail(topic.id);
         }
       }}
-      className={`group relative bg-white dark:bg-stone-900 rounded-2xl border p-3.5 shadow-2xs transition-all duration-150 flex flex-col gap-2.5 select-none touch-manipulation focus:outline-none focus-visible:ring-2 focus-visible:ring-rose-500 ${
+      className={`group relative bg-white dark:bg-stone-900 rounded-2xl border p-3.5 shadow-2xs transition-all duration-200 ease-editorial-out flex flex-col gap-2.5 select-none touch-manipulation focus:outline-none focus-visible:ring-2 focus-visible:ring-rose-500 ${
         isDragging
           ? 'opacity-35 scale-[0.98] border-dashed border-rose-400 dark:border-rose-600 bg-rose-50/30 dark:bg-rose-950/20 shadow-none pointer-events-none'
           : sortableDisabled
             ? 'border-stone-200/70 dark:border-stone-800 cursor-default'
-            : 'border-stone-200/70 dark:border-stone-800 hover:border-stone-300 dark:hover:border-stone-700 hover:shadow-card-hover hover:-translate-y-0.5 cursor-grab active:cursor-grabbing'
+            : 'border-stone-200/70 dark:border-stone-800 hover:border-stone-300 dark:hover:border-stone-700 hover:shadow-card-hover hover:-translate-y-1 cursor-grab active:cursor-grabbing'
       } ${
         topic.is_pinned && !isDragging ? 'ring-1 ring-amber-400/40 bg-amber-50/[0.08] dark:bg-amber-950/10' : ''
       }`}
@@ -180,7 +180,7 @@ const KanbanCardComponent: React.FC<KanbanCardProps> = ({
                 <div
                   onClick={(e) => e.stopPropagation()}
                   onMouseLeave={() => setIsStatusMenuOpen(false)}
-                  className="absolute right-0 top-7 z-40 w-36 bg-white/95 dark:bg-stone-900/95 backdrop-blur-md rounded-2xl shadow-modal border border-stone-200/80 dark:border-stone-800 p-1.5 space-y-0.5 animate-in fade-in zoom-in-95 duration-100"
+                  className="absolute right-0 top-7 z-40 w-36 bg-white/95 dark:bg-stone-900/95 backdrop-blur-md rounded-2xl shadow-modal border border-stone-200/80 dark:border-stone-800 p-1.5 space-y-0.5 animate-in fade-in zoom-in-95 duration-150 ease-editorial-out"
                 >
                   <div className="px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider text-stone-400 dark:text-stone-500">
                     活跃生产阶段

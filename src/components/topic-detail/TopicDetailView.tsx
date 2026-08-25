@@ -423,54 +423,62 @@ export const TopicDetailView: React.FC<TopicDetailViewProps> = ({
           </div>
         )}
         {activeTab === 'overview' && (
-          <OverviewTab
-            topic={topic}
-            onUpdateTopic={onUpdateTopic}
-            allPeople={allPeople}
-            allTags={allTags}
-            onSavePerson={onSavePerson}
-            onSaveTag={onSaveTag}
-            onDeleteTag={onDeleteTag}
-            onNavigateToTab={(tab) => setActiveTab(tab)}
-            onInjectOutlineIntoDraft={handleInjectOutlineIntoDraft}
-            onConvertStorylineToTimeline={handleConvertStorylineToTimeline}
-          />
+          <div key="overview" className="view-tab-transition">
+            <OverviewTab
+              topic={topic}
+              onUpdateTopic={onUpdateTopic}
+              allPeople={allPeople}
+              allTags={allTags}
+              onSavePerson={onSavePerson}
+              onSaveTag={onSaveTag}
+              onDeleteTag={onDeleteTag}
+              onNavigateToTab={(tab) => setActiveTab(tab)}
+              onInjectOutlineIntoDraft={handleInjectOutlineIntoDraft}
+              onConvertStorylineToTimeline={handleConvertStorylineToTimeline}
+            />
+          </div>
         )}
 
         {activeTab === 'sources' && (
-          <SourcesTab
-            topicId={topic.id}
-            sources={sources}
-            onSaveSource={handleSaveSource}
-            onDeleteSource={handleDeleteSource}
-            onConvertToTimeline={handleConvertSourceToTimeline}
-          />
+          <div key="sources" className="view-tab-transition">
+            <SourcesTab
+              topicId={topic.id}
+              sources={sources}
+              onSaveSource={handleSaveSource}
+              onDeleteSource={handleDeleteSource}
+              onConvertToTimeline={handleConvertSourceToTimeline}
+            />
+          </div>
         )}
 
         {activeTab === 'timeline' && (
-          <TimelineTab
-            topicId={topic.id}
-            timeline={timeline}
-            onSaveEvent={handleSaveTimelineEvent}
-            onDeleteEvent={handleDeleteTimelineEvent}
-            onReorder={handleReorderTimeline}
-          />
+          <div key="timeline" className="view-tab-transition">
+            <TimelineTab
+              topicId={topic.id}
+              timeline={timeline}
+              onSaveEvent={handleSaveTimelineEvent}
+              onDeleteEvent={handleDeleteTimelineEvent}
+              onReorder={handleReorderTimeline}
+            />
+          </div>
         )}
 
         {activeTab === 'people' && (
-          <PeopleTab
-            topicPeople={topic.people || []}
-            allPeople={allPeople}
-            relationships={relationships}
-            onToggleTopicPerson={async (person) => {
-              const cur = topic.people || [];
-              const exists = cur.some((p) => p.id === person.id);
-              const updated = exists ? cur.filter((p) => p.id !== person.id) : [...cur, person];
-              await onUpdateTopic({ people: updated });
-            }}
-            onSavePerson={onSavePerson}
-            onNavigateToPeople={onNavigateToPeople}
-          />
+          <div key="people" className="view-tab-transition">
+            <PeopleTab
+              topicPeople={topic.people || []}
+              allPeople={allPeople}
+              relationships={relationships}
+              onToggleTopicPerson={async (person) => {
+                const cur = topic.people || [];
+                const exists = cur.some((p) => p.id === person.id);
+                const updated = exists ? cur.filter((p) => p.id !== person.id) : [...cur, person];
+                await onUpdateTopic({ people: updated });
+              }}
+              onSavePerson={onSavePerson}
+              onNavigateToPeople={onNavigateToPeople}
+            />
+          </div>
         )}
 
         {activeTab === 'script' && !loading && (

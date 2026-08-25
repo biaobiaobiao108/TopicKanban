@@ -41,6 +41,11 @@ export default {
         card: '0 1px 3px 0 rgba(0, 0, 0, 0.04), 0 4px 12px -2px rgba(0, 0, 0, 0.03)',
         'card-hover': '0 8px 24px -4px rgba(0, 0, 0, 0.08), 0 2px 8px -2px rgba(0, 0, 0, 0.04)',
         modal: '0 24px 38px -6px rgba(0, 0, 0, 0.12), 0 10px 16px -6px rgba(0, 0, 0, 0.06)',
+      },
+      transitionTimingFunction: {
+        'editorial-out': 'cubic-bezier(0.16, 1, 0.3, 1)',
+        'editorial-in-out': 'cubic-bezier(0.4, 0, 0.2, 1)',
+        'spring': 'cubic-bezier(0.34, 1.4, 0.64, 1)',
       }
     },
   },

@@ -80,7 +80,7 @@ export const QuickDropDrawer: React.FC<QuickDropDrawerProps> = ({
       />
 
       {/* Drawer Body */}
-      <div className="relative w-full max-w-md bg-white dark:bg-stone-900 h-full shadow-2xl flex flex-col z-10 animate-in slide-in-from-right duration-200 transition-colors">
+      <div className="relative w-full max-w-md bg-white dark:bg-stone-900 h-full shadow-2xl flex flex-col z-10 animate-in slide-in-from-right duration-250 ease-editorial-out transition-colors">
         {/* Header */}
         <div className="p-4 border-b border-stone-200/70 dark:border-stone-800 bg-stone-50/80 dark:bg-stone-900/90 flex items-center justify-between">
           <div className="flex items-center gap-2">
