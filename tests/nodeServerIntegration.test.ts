@@ -552,6 +552,28 @@ describe('Bun Server Integration (Local SQLite & API)', () => {
     expect((await publishedPageOne.json() as { items: unknown[]; total: number; total_pages: number }).items).toHaveLength(30);
     expect(await publishedPageTwo.json()).toMatchObject({ page: 2, total: 31, total_pages: 2 });
 
+    const analyticsPageOne = await app.request('/api/published/analytics?page=1&page_size=30&range=all', { headers });
+    const analyticsPageTwo = await app.request('/api/published/analytics?page=2&page_size=30&range=all', { headers });
+    expect(analyticsPageOne.status).toBe(200);
+    expect(analyticsPageTwo.status).toBe(200);
+    const analyticsDataOne = await analyticsPageOne.json() as {
+      totalVideos: number;
+      ranking_total: number;
+      ranking_page: number;
+      ranking_page_size: number;
+      ranking: unknown[];
+    };
+    const analyticsDataTwo = await analyticsPageTwo.json() as { ranking: unknown[]; ranking_page: number };
+    expect(analyticsDataOne).toMatchObject({
+      totalVideos: 31,
+      ranking_total: 31,
+      ranking_page: 1,
+      ranking_page_size: 30,
+    });
+    expect(analyticsDataOne.ranking).toHaveLength(30);
+    expect(analyticsDataTwo.ranking).toHaveLength(1);
+    expect(analyticsDataTwo.ranking_page).toBe(2);
+
     const peopleSearch = await app.request('/api/people/page?page=1&page_size=30&q=人物 3', { headers });
     expect(await peopleSearch.json()).toMatchObject({ total: 2, total_pages: 1 });
 

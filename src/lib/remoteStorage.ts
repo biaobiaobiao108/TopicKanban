@@ -30,6 +30,7 @@ import type {
   QuickDropItem,
 } from '../types';
 import { authenticatedFetch, getAuthToken } from './auth';
+import type { PublishedAnalyticsPayload } from './videoAnalytics';
 
 const PENDING_DRAFTS_KEY = 'topic_kanban_pending_drafts_v3';
 const LEGACY_PENDING_DRAFTS_KEY = 'topic_kanban_pending_drafts_v2';
@@ -545,6 +546,15 @@ export async function fetchPublishedVideos(): Promise<PublishedVideo[]> {
 export function fetchPublishedVideoPage(page: number, pageSize = 30): Promise<PaginatedPublishedVideos> {
   const params = new URLSearchParams({ page: String(page), page_size: String(pageSize) });
   return apiRequest<PaginatedPublishedVideos>(`/api/published/page?${params.toString()}`);
+}
+
+export function fetchPublishedAnalytics(
+  range: 'all' | '90d' | 'year' = 'all',
+  page = 1,
+  pageSize = 30,
+): Promise<PublishedAnalyticsPayload> {
+  const params = new URLSearchParams({ range, page: String(page), page_size: String(pageSize) });
+  return apiRequest<PublishedAnalyticsPayload>(`/api/published/analytics?${params.toString()}`);
 }
 
 export async function savePublishedVideo(

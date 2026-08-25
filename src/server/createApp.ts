@@ -24,6 +24,7 @@ import {
   loadTodayFocus,
   loadPeoplePage,
   loadPublishedPage,
+  loadPublishedAnalytics,
   loadTagsPage,
   permanentlyDeleteTrashedTopics,
   statements,
@@ -1027,6 +1028,18 @@ export function createApp() {
       const page = Math.max(1, Number.parseInt(c.req.query('page') || '1', 10) || 1);
       const pageSize = Math.min(100, Math.max(1, Number.parseInt(c.req.query('page_size') || '30', 10) || 30));
       return c.json(await loadPublishedPage(requireDb(c), { page, pageSize }));
+    } catch (error) {
+      return jsonError(c, error, 400);
+    }
+  });
+
+  app.get('/published/analytics', async (c) => {
+    try {
+      const page = Math.max(1, Number.parseInt(c.req.query('page') || '1', 10) || 1);
+      const pageSize = Math.min(100, Math.max(1, Number.parseInt(c.req.query('page_size') || '30', 10) || 30));
+      const requestedRange = c.req.query('range');
+      const range = requestedRange === '90d' || requestedRange === 'year' ? requestedRange : 'all';
+      return c.json(await loadPublishedAnalytics(requireDb(c), { page, pageSize, range }));
     } catch (error) {
       return jsonError(c, error, 400);
     }

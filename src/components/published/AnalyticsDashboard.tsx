@@ -1,14 +1,7 @@
-import React, { useMemo, useState } from 'react';
-import { PublishedVideo, Topic } from '../../types';
-import {
-  calculateChannelOverview,
-  analyzeTopicModelCorrelation,
-  analyzePeoplePerformance,
-  analyzeTagPerformance,
-  generateAnalyticsInsights,
-  calculateDeepMetrics,
-  formatViewsText
-} from '../../lib/videoAnalytics';
+import React, { useEffect, useState } from 'react';
+import { keepPreviousData, useQuery } from '@tanstack/react-query';
+import { fetchPublishedAnalytics } from '../../lib/storage';
+import { formatViewsText, type PublishedAnalyticsPayload } from '../../lib/videoAnalytics';
 import {
   TrendingUp,
   Coins,
@@ -30,67 +23,48 @@ import {
 import { CustomSelect } from '../ui/CustomSelect';
 
 interface AnalyticsDashboardProps {
-  publishedList: PublishedVideo[];
-  topics: Topic[];
   onSelectTopic: (topicId: string) => void;
 }
 
 export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({
-  publishedList,
-  topics,
   onSelectTopic,
 }) => {
   const [range, setRange] = useState<'all' | '90d' | 'year'>('all');
   const [tablePage, setTablePage] = useState(1);
-  const topicMap = useMemo(() => new Map(topics.map((t) => [t.id, t])), [topics]);
-  const filteredVideos = useMemo(() => {
-    if (range === 'all') return publishedList;
-    const cutoff = new Date();
-    cutoff.setDate(cutoff.getDate() - (range === '90d' ? 90 : 365));
-    return publishedList.filter((video) => {
-      const publishedAt = video.published_at ? new Date(video.published_at) : null;
-      return publishedAt && !Number.isNaN(publishedAt.getTime()) && publishedAt >= cutoff;
-    });
-  }, [publishedList, range]);
+  const analyticsQuery = useQuery<PublishedAnalyticsPayload>({
+    queryKey: ['published-analytics', range, tablePage],
+    queryFn: () => fetchPublishedAnalytics(range, tablePage, 30),
+    placeholderData: keepPreviousData,
+  });
 
-  React.useEffect(() => {
+  useEffect(() => {
     setTablePage(1);
   }, [range]);
 
-  const overview = useMemo(() => calculateChannelOverview(filteredVideos, topics), [filteredVideos, topics]);
-  const correlation = useMemo(() => analyzeTopicModelCorrelation(filteredVideos, topics), [filteredVideos, topics]);
-  const peoplePerf = useMemo(() => analyzePeoplePerformance(filteredVideos, topics), [filteredVideos, topics]);
-  const tagPerf = useMemo(() => analyzeTagPerformance(filteredVideos, topics), [filteredVideos, topics]);
-  const insights = useMemo(() => generateAnalyticsInsights(filteredVideos, topics), [filteredVideos, topics]);
+  if (analyticsQuery.isError) {
+    return (
+      <div role="alert" className="rounded-2xl border border-rose-200 bg-rose-500/10 px-4 py-3 text-sm text-rose-800 dark:border-rose-900/60 dark:text-rose-200">
+        复盘数据加载失败，请稍后重试。
+      </div>
+    );
+  }
 
-  // Video ranking list with deep metrics
-  const videoTableData = useMemo(() => {
-    return filteredVideos
-      .map((video) => {
-        const topic = video.topic_id ? topicMap.get(video.topic_id) : undefined;
-        const deepMetrics = calculateDeepMetrics(video, topic);
-        const storyModelTotal = topic
-          ? (topic.score_character || 0) +
-            (topic.score_conflict || 0) +
-            (topic.score_contrast || 0) +
-            (topic.score_material || 0) +
-            (topic.score_story || 0)
-          : 0;
+  if (analyticsQuery.isLoading || !analyticsQuery.data) {
+    return (
+      <div className="flex items-center justify-center p-16 text-stone-400 dark:text-stone-500">
+        <BarChart3 className="w-6 h-6 animate-pulse text-rose-600 dark:text-rose-400 mr-2" />
+        <span className="text-sm">正在载入复盘数据...</span>
+      </div>
+    );
+  }
 
-        return {
-          video,
-          topic,
-          deepMetrics,
-          storyModelTotal,
-        };
-      })
-      .sort((a, b) => (b.video.views || 0) - (a.video.views || 0));
-  }, [filteredVideos, topicMap]);
+  const { overview, correlation, people: peoplePerf, tags: tagPerf, insights, ranking: videoTableData } = analyticsQuery.data;
+  const filteredVideoCount = analyticsQuery.data.totalVideos;
   const tablePageSize = 30;
-  const tablePageCount = Math.max(1, Math.ceil(videoTableData.length / tablePageSize));
-  const visibleVideoTableData = videoTableData.slice((tablePage - 1) * tablePageSize, tablePage * tablePageSize);
+  const tablePageCount = Math.max(1, Math.ceil(analyticsQuery.data.ranking_total / tablePageSize));
+  const visibleVideoTableData = videoTableData;
 
-  if (publishedList.length === 0) {
+  if (analyticsQuery.data.totalVideos === 0 && range === 'all') {
     return (
       <div className="flex flex-col items-center justify-center p-12 bg-white dark:bg-stone-900 rounded-2xl border border-stone-200/70 dark:border-stone-800 text-center space-y-3 shadow-2xs">
         <BarChart3 className="w-12 h-12 text-stone-300 dark:text-stone-600 stroke-[1.5]" />
@@ -137,15 +111,15 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({
         />
       </div>
 
-      {filteredVideos.length === 0 && (
+      {filteredVideoCount === 0 && (
         <div className="rounded-2xl border border-amber-200/60 bg-amber-500/10 px-4 py-3 text-sm text-amber-900 dark:text-amber-200">
           当前时间范围没有带有效发布日期的视频，请切换范围或补充发布日期后再复盘。
         </div>
       )}
 
-      {filteredVideos.length > 0 && filteredVideos.length < 3 && (
+      {filteredVideoCount > 0 && filteredVideoCount < 3 && (
         <div className="rounded-2xl border border-stone-200/70 dark:border-stone-800 bg-stone-500/[0.03] dark:bg-stone-800/40 px-4 py-3 text-xs text-stone-600 dark:text-stone-300">
-          当前只有 {filteredVideos.length} 期视频，趋势和人物/标签对比仅供参考，积累更多数据后再做结论。
+          当前只有 {filteredVideoCount} 期视频，趋势和人物/标签对比仅供参考，积累更多数据后再做结论。
         </div>
       )}
 
@@ -590,10 +564,10 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({
             </tbody>
           </table>
         </div>
-        {videoTableData.length > 0 && (
+        {analyticsQuery.data.ranking_total > 0 && (
           <div className="flex items-center justify-center gap-3 border-t border-stone-100 px-5 py-3 text-xs text-stone-500 dark:border-stone-800 dark:text-stone-400">
             <button type="button" disabled={tablePage <= 1} onClick={() => setTablePage((current) => Math.max(1, current - 1))} className="rounded-lg border border-stone-200 bg-white px-3 py-2 font-semibold disabled:cursor-not-allowed disabled:opacity-40 dark:border-stone-700 dark:bg-stone-900">上一页</button>
-            <span className="font-mono">{tablePage} / {tablePageCount} · 共 {videoTableData.length} 条</span>
+            <span className="font-mono">{tablePage} / {tablePageCount} · 共 {analyticsQuery.data.ranking_total} 条</span>
             <button type="button" disabled={tablePage >= tablePageCount} onClick={() => setTablePage((current) => Math.min(tablePageCount, current + 1))} className="rounded-lg border border-stone-200 bg-white px-3 py-2 font-semibold disabled:cursor-not-allowed disabled:opacity-40 dark:border-stone-700 dark:bg-stone-900">下一页</button>
           </div>
         )}

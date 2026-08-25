@@ -62,6 +62,26 @@ export interface AnalyticsInsight {
   badgeText?: string;
 }
 
+export interface VideoRankingRow {
+  video: PublishedVideo;
+  topic: Topic | null;
+  deepMetrics: VideoDeepMetrics;
+  storyModelTotal: number;
+}
+
+export interface PublishedAnalyticsPayload {
+  totalVideos: number;
+  overview: ChannelOverviewMetrics;
+  correlation: FiveDModelCorrelation;
+  people: EntityPerformance[];
+  tags: EntityPerformance[];
+  insights: AnalyticsInsight[];
+  ranking: VideoRankingRow[];
+  ranking_total: number;
+  ranking_page: number;
+  ranking_page_size: number;
+}
+
 const roundPercent = (val: number) => Math.round(val * 100) / 100;
 
 export function calculateDeepMetrics(video: PublishedVideo, topic?: Topic | null): VideoDeepMetrics {

@@ -58,8 +58,6 @@ export const PublishedView: React.FC<PublishedViewProps> = ({
   const [page, setPage] = useState(1);
   const [formPublished, setFormPublished] = useState<PublishedVideo[]>([]);
   const [topicOptions, setTopicOptions] = useState<Topic[]>(topics);
-  const [analyticsVideos, setAnalyticsVideos] = useState<PublishedVideo[] | null>(null);
-  const [isLoadingAnalytics, setIsLoadingAnalytics] = useState(false);
   const pageQuery = useQuery({
     queryKey: ['published-page', page],
     queryFn: () => fetchPublishedVideoPage(page, 30),
@@ -67,26 +65,6 @@ export const PublishedView: React.FC<PublishedViewProps> = ({
   });
   const pageItems = pageQuery.data?.items || [];
   const totalPublished = pageQuery.data?.total || 0;
-
-  useEffect(() => {
-    if (viewMode !== 'analytics' || analyticsVideos) return;
-    let active = true;
-    setIsLoadingAnalytics(true);
-    void Promise.all([
-      fetchPublishedVideos(),
-      fetchTopicPage({ scope: 'all', page: 1, page_size: 100, q: '' }),
-    ])
-      .then(([videos, topicPage]) => {
-        if (active) {
-          setAnalyticsVideos(videos);
-          setTopicOptions(topicPage.items);
-        }
-      })
-      .finally(() => {
-        if (active) setIsLoadingAnalytics(false);
-      });
-    return () => { active = false; };
-  }, [viewMode, analyticsVideos]);
 
   // Form State
   const [topicId, setTopicId] = useState('');
@@ -121,8 +99,10 @@ export const PublishedView: React.FC<PublishedViewProps> = ({
   }, []);
 
   const refreshPublishedQueries = async () => {
-    setAnalyticsVideos(null);
-    await queryClient.invalidateQueries({ queryKey: ['published-page'] });
+    await Promise.all([
+      queryClient.invalidateQueries({ queryKey: ['published-page'] }),
+      queryClient.invalidateQueries({ queryKey: ['published-analytics'] }),
+    ]);
   };
 
   const topicMap = useMemo(() => new Map([...topics, ...topicOptions].map((t) => [t.id, t])), [topics, topicOptions]);
@@ -447,12 +427,6 @@ export const PublishedView: React.FC<PublishedViewProps> = ({
 
         {/* Conditional View: Analytics Dashboard vs Cards Grid */}
         {viewMode === 'analytics' ? (
-          isLoadingAnalytics || !analyticsVideos ? (
-            <div className="flex items-center justify-center p-16 text-stone-400 dark:text-stone-500">
-              <Loader2 className="w-6 h-6 animate-spin text-rose-600 dark:text-rose-400 mr-2" />
-              <span className="text-sm">正在载入全量复盘数据...</span>
-            </div>
-          ) : (
           <React.Suspense
             fallback={
               <div className="flex items-center justify-center p-16 text-stone-400 dark:text-stone-500">
@@ -462,12 +436,9 @@ export const PublishedView: React.FC<PublishedViewProps> = ({
             }
           >
             <AnalyticsDashboard
-              publishedList={analyticsVideos || []}
-              topics={topicOptions}
               onSelectTopic={onSelectTopic}
             />
           </React.Suspense>
-          )
         ) : (
           /* Published Cards List */
           <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5">
