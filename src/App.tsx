@@ -43,6 +43,7 @@ import { QuickDropDrawer } from './components/inbox/QuickDropDrawer';
 import { fetchQuickDrops } from './lib/storage';
 import { applyTheme } from './lib/theme';
 import { matchPath, useLocation, useNavigate } from 'react-router-dom';
+import { useQueryClient } from '@tanstack/react-query';
 import { useWorkspace } from './hooks/useWorkspace';
 import { lazyWithReload } from './lib/lazyWithReload';
 import { useToast } from './components/ui/Toast';
@@ -98,6 +99,7 @@ interface WorkspaceAppProps {
 function WorkspaceApp({ isAuth, setIsAuth }: WorkspaceAppProps) {
   const location = useLocation();
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const currentView = getViewFromPath(location.pathname);
   const { showToast } = useToast();
   const topicMatch = matchPath('/topics/:topicId', location.pathname);
@@ -279,6 +281,7 @@ function WorkspaceApp({ isAuth, setIsAuth }: WorkspaceAppProps) {
       tags: resolvedTags,
     });
     setTopics((prev) => [newTopic, ...prev]);
+    await queryClient.invalidateQueries({ queryKey: ['kanban-column-page'] });
   };
 
   const handleUpdateTopic = async (updates: Partial<Topic>) => {
