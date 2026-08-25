@@ -1795,5 +1795,33 @@ html.theme-kyoto-zen ::-webkit-scrollbar-thumb:hover { background: #b5bfae; }
   color: #1c1917 !important;
 }
 
+/* ==========================================================================
+   Published Video Card Container Query Layouts
+   ========================================================================== */
+.published-card-container {
+  container-type: inline-size;
+}
+
+.published-card-cover {
+  width: 100%;
+}
+
+@container (min-width: 460px) {
+  .published-card-inner {
+    flex-direction: row;
+    align-items: stretch;
+  }
+  .published-card-cover {
+    width: 14rem; /* 224px / 16:9 -> 126px height */
+  }
+}
+
+@container (min-width: 600px) {
+  .published-card-cover {
+    width: 15rem; /* 240px / 16:9 -> 135px height */
+  }
+}
+
+
 
 
