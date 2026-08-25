@@ -32,9 +32,15 @@ type TopicMap = Record<string, Topic>;
 type BoardSnapshot = { columns: BoardColumns; topics: TopicMap };
 
 function createColumns(topics: Topic[]): BoardColumns {
+  const seen = new Set<string>();
   return activeStatuses.reduce((result, status) => {
     result[status] = topics
-      .filter((topic) => topic.status === status)
+      .filter((topic) => {
+        if (topic.status !== status) return false;
+        if (seen.has(topic.id)) return false;
+        seen.add(topic.id);
+        return true;
+      })
       .sort((a, b) => (a.sort_order || 0) - (b.sort_order || 0))
       .map((topic) => topic.id);
     return result;
@@ -167,16 +173,42 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
         const query = columnQueries[index];
         const items = query?.isPlaceholderData ? undefined : query?.data?.items;
         if (!items) return;
-        const knownIds = new Set(current[status].map((topic) => topic.id));
-        const additions = items.filter((topic) => !knownIds.has(topic.id));
-        if (additions.length > 0) {
-          next[status] = [...current[status], ...additions];
-          changed = true;
+
+        const currentPage = columnPages[status] || 1;
+        if (currentPage === 1) {
+          const currentList = current[status] || [];
+          const currentSig = currentList.map((t) => `${t.id}-${t.status}-${t.sort_order}`).join(',');
+          const newSig = items.map((t) => `${t.id}-${t.status}-${t.sort_order}`).join(',');
+          if (currentSig !== newSig) {
+            next[status] = items;
+            changed = true;
+          }
+        } else {
+          const knownIds = new Set((current[status] || []).map((topic) => topic.id));
+          const additions = items.filter((topic) => !knownIds.has(topic.id));
+          if (additions.length > 0) {
+            next[status] = [...(current[status] || []), ...additions];
+            changed = true;
+          }
         }
       });
+
+      if (changed) {
+        // Enforce strict global uniqueness across all active columns
+        const seen = new Set<string>();
+        activeStatuses.forEach((status) => {
+          next[status] = (next[status] || []).filter((topic) => {
+            if (topic.status !== status) return false;
+            if (seen.has(topic.id)) return false;
+            seen.add(topic.id);
+            return true;
+          });
+        });
+      }
+
       return changed ? next : current;
     });
-  }, [columnQueries]);
+  }, [columnQueries, columnPages]);
 
   const pagedTopics = useMemo(
     () => activeStatuses.flatMap((status) => loadedTopicsByStatus[status] || []),
@@ -350,6 +382,19 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
     snapshotRef.current = null;
     setColumns(nextColumns);
     setTopicsMap(nextTopicsMap);
+    setLoadedTopicsByStatus((current) => {
+      const next = { ...current };
+      activeStatuses.forEach((status) => {
+        const remaining = (current[status] || []).filter((t) => t.id !== activeKey);
+        if (status === target) {
+          const item = topicsMap[activeKey] ? { ...topicsMap[activeKey], status: target } : undefined;
+          next[status] = item ? [...remaining, item] : remaining;
+        } else {
+          next[status] = remaining;
+        }
+      });
+      return next;
+    });
 
     if (sortBy !== 'sort_order') {
       setSortBy('sort_order');
@@ -395,6 +440,18 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
 
     setColumns(nextColumns);
     setTopicsMap(nextTopicsMap);
+    setLoadedTopicsByStatus((current) => {
+      const next = { ...current };
+      activeStatuses.forEach((status) => {
+        const remaining = (current[status] || []).filter((t) => t.id !== topic.id);
+        if (status === targetStatus) {
+          next[status] = [...remaining, { ...topic, status: targetStatus }];
+        } else {
+          next[status] = remaining;
+        }
+      });
+      return next;
+    });
 
     const updates: Array<{ id: string; status: TopicStatus; sort_order: number }> = [];
     nextColumns[targetStatus].forEach((id, idx) => {
@@ -445,10 +502,30 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
   };
 
   const handleColumnDelete = (topicId: string) => {
+    setLoadedTopicsByStatus((current) => {
+      const next = { ...current };
+      activeStatuses.forEach((s) => {
+        next[s] = (current[s] || []).filter((t) => t.id !== topicId);
+      });
+      return next;
+    });
     void Promise.resolve(onDeleteTopic(topicId)).then(() => queryClient.invalidateQueries({ queryKey: ['kanban-column-page'] }));
   };
 
   const handleColumnStatusUpdate = (topicId: string, status: TopicStatus) => {
+    setLoadedTopicsByStatus((current) => {
+      const next = { ...current };
+      const item = topicsMap[topicId] ? { ...topicsMap[topicId], status } : undefined;
+      activeStatuses.forEach((s) => {
+        const remaining = (current[s] || []).filter((t) => t.id !== topicId);
+        if (s === status && item) {
+          next[s] = [...remaining, item];
+        } else {
+          next[s] = remaining;
+        }
+      });
+      return next;
+    });
     void onUpdateTopicStatus(topicId, status).then(() => queryClient.invalidateQueries({ queryKey: ['kanban-column-page'] }));
   };
 
