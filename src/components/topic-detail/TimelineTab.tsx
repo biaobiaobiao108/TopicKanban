@@ -342,7 +342,7 @@ export const TimelineTab: React.FC<TimelineTabProps> = ({
     <div className="py-4 space-y-4 max-w-4xl mx-auto">
       {/* Top Header & Sort Controls Bar */}
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 bg-white dark:bg-stone-900 p-4 sm:p-5 rounded-2xl border border-stone-200/70 dark:border-stone-800 shadow-2xs transition-colors">
-        <div className="space-y-0.5">
+        <div>
           <h3 className="text-sm sm:text-base font-bold text-stone-900 dark:text-stone-100 flex items-center gap-2">
             <span className="p-1.5 rounded-xl bg-rose-500/10 text-rose-600 dark:text-rose-400">
               <Clock className="w-4 h-4" />
@@ -352,9 +352,6 @@ export const TimelineTab: React.FC<TimelineTabProps> = ({
               {timeline.length}
             </span>
           </h3>
-          <p className="text-xs text-stone-500 dark:text-stone-400">
-            按时序梳理因果脉络，支持拖拽自定义排序与一键时间排序
-          </p>
         </div>
 
         <div className="flex items-center gap-2 w-full sm:w-auto justify-between sm:justify-end flex-wrap">
@@ -463,7 +460,6 @@ export const TimelineTab: React.FC<TimelineTabProps> = ({
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
         title={editingEvent ? '编辑时间节点' : '添加时间节点'}
-        subtitle="记录事件时间、起因经过与关键转折，支持随时拖拽排序"
         maxWidth="md"
       >
         <form onSubmit={handleSubmit} className="space-y-4">

@@ -128,11 +128,13 @@ interface ScriptEditorTabProps {
     topicId: string,
     contentHtml: string,
     contentJson: string,
-    wordCount: number
+    wordCount: number,
+    title: string
   ) => Promise<void>;
-  onCacheDraftLocally: (contentHtml: string, contentJson: string, wordCount: number) => void;
-  onSaveDraftImmediately: (contentHtml: string, contentJson: string, wordCount: number) => void;
+  onCacheDraftLocally: (contentHtml: string, contentJson: string, wordCount: number, title: string) => void;
+  onSaveDraftImmediately: (contentHtml: string, contentJson: string, wordCount: number, title: string) => void;
   onSaveCitation: (input: CitationInput) => Promise<DraftCitation>;
+  onRegisterDraftFlush?: (flush: (() => Promise<void>) | null) => void;
 }
 
 const canKeepBothSidePanelsOpen = () =>
@@ -157,8 +159,11 @@ export const ScriptEditorTab: React.FC<ScriptEditorTabProps> = ({
   onCacheDraftLocally,
   onSaveDraftImmediately,
   onSaveCitation,
+  onRegisterDraftFlush,
 }) => {
   const { showToast } = useToast();
+  const initialTitle = initialDraft?.title?.trim() || topicTitle;
+  const [draftTitle, setDraftTitle] = useState(initialTitle);
   const [saveStatus, setSaveStatus] = useState<'saved' | 'saving' | 'unsaved' | 'local' | 'pending' | 'conflict'>('saved');
   const [draftConflict, setDraftConflict] = useState<Draft | null>(null);
   const [lastSavedTime, setLastSavedTime] = useState<string>(
@@ -196,7 +201,8 @@ export const ScriptEditorTab: React.FC<ScriptEditorTabProps> = ({
   const saveTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const localSaveTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const hasUnsavedChangesRef = useRef(false);
-  const latestContentRef = useRef<{ html: string; json: string; wordCount: number } | null>(null);
+  const latestContentRef = useRef<{ html: string; json: string; wordCount: number; title: string } | null>(null);
+  const draftTitleRef = useRef(initialTitle);
   const draftSavePromiseRef = useRef<Promise<void> | null>(null);
   const immediateSaveRef = useRef(onSaveDraftImmediately);
   const localCacheRef = useRef(onCacheDraftLocally);
@@ -222,7 +228,7 @@ export const ScriptEditorTab: React.FC<ScriptEditorTabProps> = ({
       const savePromise = (async () => {
         setSaveStatus('saving');
         try {
-          await onSaveDraft(topicId, latest.html, latest.json, latest.wordCount);
+          await onSaveDraft(topicId, latest.html, latest.json, latest.wordCount, latest.title);
           if (savingVersion === editVersionRef.current) {
             hasUnsavedChangesRef.current = false;
             setSaveStatus('saved');
@@ -249,6 +255,35 @@ export const ScriptEditorTab: React.FC<ScriptEditorTabProps> = ({
       }
     }
   }, [onSaveDraft, topicId]);
+
+  useEffect(() => {
+    onRegisterDraftFlush?.(persistLatestDraft);
+    return () => onRegisterDraftFlush?.(null);
+  }, [onRegisterDraftFlush, persistLatestDraft]);
+
+  const scheduleDraftPersistence = useCallback(() => {
+    if (saveTimeoutRef.current) clearTimeout(saveTimeoutRef.current);
+    if (localSaveTimeoutRef.current) clearTimeout(localSaveTimeoutRef.current);
+
+    localSaveTimeoutRef.current = setTimeout(() => {
+      const latest = latestContentRef.current;
+      if (!latest) return;
+      localCacheRef.current(latest.html, latest.json, latest.wordCount, latest.title);
+      setSaveStatus('local');
+    }, 1500);
+
+    saveTimeoutRef.current = setTimeout(() => {
+      void persistLatestDraft().catch((error) => console.error(error));
+    }, 45000);
+  }, [persistLatestDraft]);
+
+  const markDraftChanged = useCallback((content: { html: string; json: string; wordCount: number; title: string }) => {
+    editVersionRef.current += 1;
+    latestContentRef.current = content;
+    hasUnsavedChangesRef.current = true;
+    setSaveStatus('unsaved');
+    scheduleDraftPersistence();
+  }, [scheduleDraftPersistence]);
 
   // Presence & Multi-device lock state
   const [presenceState, setPresenceState] = useState<PresenceState>({ is_locked: false });
@@ -449,31 +484,34 @@ export const ScriptEditorTab: React.FC<ScriptEditorTabProps> = ({
         );
       }, 250);
 
-      editVersionRef.current += 1;
       const text = editor.getText();
-      latestContentRef.current = {
+      markDraftChanged({
         html: editor.getHTML(),
         json: JSON.stringify(editor.getJSON()),
         wordCount: text.replace(/\s+/g, '').length,
-      };
-      hasUnsavedChangesRef.current = true;
-      setSaveStatus('unsaved');
-      if (saveTimeoutRef.current) clearTimeout(saveTimeoutRef.current);
-      if (localSaveTimeoutRef.current) clearTimeout(localSaveTimeoutRef.current);
+        title: draftTitleRef.current,
+      });
+    },
+  });
 
-      localSaveTimeoutRef.current = setTimeout(() => {
-        const latest = latestContentRef.current;
-        if (!latest) return;
-        localCacheRef.current(latest.html, latest.json, latest.wordCount);
-        setSaveStatus('local');
-      }, 1500);
+  useEffect(() => {
+    if (hasUnsavedChangesRef.current) return;
+    setDraftTitle(initialTitle);
+    draftTitleRef.current = initialTitle;
+  }, [initialTitle]);
 
-      // Cloudflare write: only after the editor has been idle for 20 seconds.
-      saveTimeoutRef.current = setTimeout(() => {
-        void persistLatestDraft().catch((error) => console.error(error));
-      }, 45000);
-  },
+  const handleDraftTitleChange = (value: string) => {
+    setDraftTitle(value);
+    draftTitleRef.current = value;
+    if (!editor) return;
+    const text = editor.getText();
+    markDraftChanged({
+      html: editor.getHTML(),
+      json: JSON.stringify(editor.getJSON()),
+      wordCount: text.replace(/\s+/g, '').length,
+      title: value,
     });
+  };
 
   useEffect(() => {
     if (!editor) return;
@@ -511,8 +549,8 @@ export const ScriptEditorTab: React.FC<ScriptEditorTabProps> = ({
     const html = editor.getHTML();
     const json = JSON.stringify(editor.getJSON());
     const wordCount = text.replace(/\s+/g, '').length;
-    latestContentRef.current = { html, json, wordCount };
-    onSaveDraftImmediately(html, json, wordCount);
+    latestContentRef.current = { html, json, wordCount, title: draftTitleRef.current };
+    onSaveDraftImmediately(html, json, wordCount, draftTitleRef.current);
     onOutlineInjected?.();
     showToast({ message: '已将四幕大纲注入文案编辑器', tone: 'success' });
   }, [editor, onOutlineInjected, onSaveDraftImmediately, pendingOutlineHtml, showToast, topicTitle]);
@@ -530,7 +568,7 @@ export const ScriptEditorTab: React.FC<ScriptEditorTabProps> = ({
       try {
         const latest = latestContentRef.current;
         setSaveStatus('saving');
-        await onSaveDraft(topicId, latest.html, latest.json, latest.wordCount);
+        await onSaveDraft(topicId, latest.html, latest.json, latest.wordCount, latest.title);
         hasUnsavedChangesRef.current = false;
         setSaveStatus('saved');
         setLastSavedTime(new Date().toLocaleTimeString());
@@ -546,7 +584,10 @@ export const ScriptEditorTab: React.FC<ScriptEditorTabProps> = ({
       html: draftConflict.content_html,
       json: draftConflict.content_json,
       wordCount: draftConflict.word_count,
+      title: draftConflict.title || topicTitle,
     };
+    setDraftTitle(draftConflict.title || topicTitle);
+    draftTitleRef.current = draftConflict.title || topicTitle;
     hasUnsavedChangesRef.current = false;
     setSaveStatus('saved');
     setLastSavedTime(new Date(draftConflict.updated_at).toLocaleTimeString());
@@ -566,7 +607,7 @@ export const ScriptEditorTab: React.FC<ScriptEditorTabProps> = ({
         localSaveTimeoutRef.current = null;
       }
       const latest = latestContentRef.current;
-      immediateSaveRef.current(latest.html, latest.json, latest.wordCount);
+      immediateSaveRef.current(latest.html, latest.json, latest.wordCount, latest.title);
       hasUnsavedChangesRef.current = false;
     };
     const flushWhenHidden = () => {
@@ -830,7 +871,6 @@ export const ScriptEditorTab: React.FC<ScriptEditorTabProps> = ({
         isOpen={Boolean(draftConflict)}
         onClose={() => undefined}
         title="云端文案已有更新"
-        subtitle="请选择要保留的版本，避免覆盖其他设备的编辑。"
         maxWidth="md"
       >
         {draftConflict && (
@@ -1253,6 +1293,18 @@ export const ScriptEditorTab: React.FC<ScriptEditorTabProps> = ({
                 : 'pt-8 pb-36 sm:pt-12 sm:pb-48'
             }`}
           >
+            <div className="mb-4 border-b border-stone-200/80 pb-3 dark:border-stone-800">
+              <label htmlFor="script-draft-title" className="sr-only">文案标题</label>
+              <input
+                id="script-draft-title"
+                name="script_draft_title"
+                value={draftTitle}
+                onChange={(event) => handleDraftTitleChange(event.target.value)}
+                maxLength={200}
+                className="min-h-12 w-full border-0 bg-transparent px-0 text-2xl font-bold tracking-tight text-stone-900 outline-none placeholder:text-stone-300 focus:ring-0 dark:text-stone-100 dark:placeholder:text-stone-600 sm:text-3xl"
+                placeholder="输入这期视频的文案标题"
+              />
+            </div>
             <EditorContent
               editor={editor}
               className="min-h-[500px]"
@@ -1297,7 +1349,6 @@ export const ScriptEditorTab: React.FC<ScriptEditorTabProps> = ({
         isOpen={isShareModalOpen && Boolean(currentShare)}
         onClose={() => setIsShareModalOpen(false)}
         title="外部审稿链接已就绪"
-        subtitle={`免登录只读快照 · 有效期 ${settings?.default_share_ttl_days || 3} 天 (KV 物理自动销毁)`}
         maxWidth="md"
       >
         {currentShare && (

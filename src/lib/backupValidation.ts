@@ -147,6 +147,45 @@ const publishedSchema = z.object({
   topic_title: z.string().max(200).nullable().optional(),
 }).passthrough();
 
+const publishChapterSchema = z.object({
+  id,
+  title: shortText,
+  time: z.string().max(20),
+  start_seconds: z.number().finite().nonnegative(),
+  source: z.enum(['script-heading', 'manual']),
+});
+
+const publishPackageContentSchema = z.object({
+  title_candidates: z.array(shortText).max(3),
+  cover_text: mediumText,
+  tags: z.array(z.string().max(100)).max(100),
+  chapters: z.array(publishChapterSchema).max(200),
+  pinned_comment: longText,
+  included_source_ids: z.array(id).max(500),
+});
+
+const publishPackageSchema = z.object({
+  id,
+  topic_id: id,
+  version: z.number().int().min(1),
+  title_simplified: shortText,
+  title_traditional: shortText,
+  description_simplified: longText,
+  description_traditional: longText,
+  title_traditional_auto: z.boolean(),
+  description_traditional_auto: z.boolean(),
+  content_json: z.string().max(500_000),
+  updated_at: timestamp,
+}).superRefine((publishPackage, ctx) => {
+  try {
+    const content = JSON.parse(publishPackage.content_json) as unknown;
+    const result = publishPackageContentSchema.safeParse(content);
+    if (!result.success) ctx.addIssue({ code: 'custom', path: ['content_json'], message: '发布包公共内容格式不正确' });
+  } catch {
+    ctx.addIssue({ code: 'custom', path: ['content_json'], message: '发布包 content_json 不是合法 JSON' });
+  }
+});
+
 const settingsSchema = z.object({
   reading_speed: z.number().positive().max(1_000),
   theme: z.enum(APP_THEMES),
@@ -172,6 +211,7 @@ const backupSchema = z.object({
   citations: z.array(citationSchema),
   tags: z.array(tagSchema),
   published: z.array(publishedSchema),
+  publish_packages: z.array(publishPackageSchema).optional(),
   settings: settingsSchema,
 }).superRefine((data, ctx) => {
   const addIssue = (path: Array<string | number>, message: string) => ctx.addIssue({ code: 'custom', path, message });
@@ -187,6 +227,7 @@ const backupSchema = z.object({
     ['topics', data.topics], ['sources', data.sources], ['timeline', data.timeline],
     ['people', data.people], ['relationships', data.relationships], ['drafts', data.drafts],
     ['citations', data.citations], ['tags', data.tags], ['published', data.published],
+    ['publish_packages', data.publish_packages || []],
   ];
   collections.forEach(([key, items]) => requireUniqueIds(items, key));
 
@@ -209,6 +250,7 @@ const backupSchema = z.object({
   data.published.forEach((item, index) => {
     if (item.topic_id) requireTopic(item.topic_id, ['published', index, 'topic_id']);
   });
+  (data.publish_packages || []).forEach((item, index) => requireTopic(item.topic_id, ['publish_packages', index, 'topic_id']));
   data.relationships.forEach((item, index) => {
     if (item.person_a_id === item.person_b_id) addIssue(['relationships', index], '人物不能与自己建立关系');
     if (!personIds.has(item.person_a_id)) addIssue(['relationships', index, 'person_a_id'], `引用了不存在的人物：${item.person_a_id}`);

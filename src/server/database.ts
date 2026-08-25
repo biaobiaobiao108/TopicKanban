@@ -7,6 +7,7 @@ import type {
   Person,
   PersonRelationship,
   PublishedVideo,
+  PublishPackageRecord,
   Source,
   Tag,
   TimelineEvent,
@@ -29,6 +30,7 @@ export interface BackupImportSummary {
   citations: number;
   tags: number;
   published: number;
+  publish_packages: number;
 }
 
 export class BackupImportLimitError extends Error {}
@@ -42,7 +44,7 @@ export function getBackupImportSummary(data: BackupData): BackupImportSummary {
     + data.sources.length + data.timeline.length
     + data.timeline.reduce((count, event) => count + (event.person_ids?.length || 0), 0)
     + data.drafts.length + data.citations.length
-    + data.relationships.length + data.published.length;
+    + data.relationships.length + data.published.length + (data.publish_packages?.length || 0);
 
   return {
     bytes: new TextEncoder().encode(JSON.stringify(data)).byteLength,
@@ -55,6 +57,7 @@ export function getBackupImportSummary(data: BackupData): BackupImportSummary {
     citations: data.citations.length,
     tags: data.tags.length,
     published: data.published.length,
+    publish_packages: data.publish_packages?.length || 0,
   };
 }
 
@@ -429,6 +432,18 @@ function publishedStatement(db: D1Database, video: PublishedVideo): D1PreparedSt
   ]);
 }
 
+function publishPackageStatement(db: D1Database, publishPackage: PublishPackageRecord): D1PreparedStatement {
+  return bind(db, `INSERT INTO publish_packages (
+    id, topic_id, version, title_simplified, title_traditional, description_simplified, description_traditional,
+    title_traditional_auto, description_traditional_auto, content_json, updated_at
+  ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`, [
+    publishPackage.id, publishPackage.topic_id, publishPackage.version, publishPackage.title_simplified,
+    publishPackage.title_traditional, publishPackage.description_simplified, publishPackage.description_traditional,
+    publishPackage.title_traditional_auto ? 1 : 0, publishPackage.description_traditional_auto ? 1 : 0,
+    publishPackage.content_json, publishPackage.updated_at,
+  ]);
+}
+
 export async function replaceAllData(db: D1Database, data: BackupData): Promise<void> {
   assertBackupImportWithinLimits(data);
   const statements: D1PreparedStatement[] = [
@@ -436,7 +451,7 @@ export async function replaceAllData(db: D1Database, data: BackupData): Promise<
     db.prepare('DELETE FROM timeline_event_people'),
     db.prepare('DELETE FROM sources'), db.prepare('DELETE FROM timeline_events'),
     db.prepare('DELETE FROM draft_citations'), db.prepare('DELETE FROM drafts'), db.prepare('DELETE FROM person_relationships'),
-    db.prepare('DELETE FROM published_videos'), db.prepare('DELETE FROM topics'),
+    db.prepare('DELETE FROM publish_packages'), db.prepare('DELETE FROM published_videos'), db.prepare('DELETE FROM topics'),
     db.prepare('DELETE FROM people'), db.prepare('DELETE FROM tags'),
   ];
 
@@ -468,6 +483,7 @@ export async function replaceAllData(db: D1Database, data: BackupData): Promise<
   data.citations.forEach((citation) => statements.push(citationStatement(db, citation)));
   data.relationships.forEach((relationship) => statements.push(relationshipStatement(db, relationship)));
   data.published.forEach((video) => statements.push(publishedStatement(db, video)));
+  (data.publish_packages || []).forEach((publishPackage) => statements.push(publishPackageStatement(db, publishPackage)));
   await db.batch(statements);
 }
 
@@ -481,6 +497,7 @@ export async function exportAllData(db: D1Database, kvSettings?: AppSettings): P
       db.prepare('SELECT * FROM drafts ORDER BY updated_at DESC'),
       db.prepare('SELECT * FROM draft_citations ORDER BY created_at DESC'),
       db.prepare('SELECT timeline_event_id, person_id FROM timeline_event_people'),
+      db.prepare('SELECT * FROM publish_packages ORDER BY updated_at DESC'),
     ]),
   ]);
   const personIdsByEvent = new Map<string, string[]>();
@@ -494,6 +511,11 @@ export async function exportAllData(db: D1Database, kvSettings?: AppSettings): P
     ...event,
     person_ids: personIdsByEvent.get(event.id) || [],
   }));
+  const publishPackages = (details[5].results as unknown as Array<Record<string, unknown>>).map((row) => ({
+    ...row,
+    title_traditional_auto: Number(row.title_traditional_auto) === 1,
+    description_traditional_auto: Number(row.description_traditional_auto) === 1,
+  })) as unknown as PublishPackageRecord[];
   return {
     version: '2.0',
     export_at: new Date().toISOString(),
@@ -506,6 +528,7 @@ export async function exportAllData(db: D1Database, kvSettings?: AppSettings): P
     citations: details[3].results as unknown as DraftCitation[],
     tags: bootstrap.tags,
     published: bootstrap.published,
+    publish_packages: publishPackages,
     settings: kvSettings || bootstrap.settings,
   };
 }
@@ -520,4 +543,5 @@ export const statements = {
   draft: draftStatement,
   citation: citationStatement,
   published: publishedStatement,
+  publishPackage: publishPackageStatement,
 };

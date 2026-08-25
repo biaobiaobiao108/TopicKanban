@@ -6,6 +6,8 @@ import type {
   Person,
   PersonRelationship,
   PublishedVideo,
+  PublishPackagePersistedContent,
+  PublishPackageRecord,
   Source,
   Tag,
   TimelineEvent,
@@ -95,6 +97,70 @@ async function loadRelationship(db: D1Database, id: string): Promise<PersonRelat
     .bind(id).first<PersonRelationship>();
 }
 
+function normalizePublishPackageRecord(row: Record<string, unknown> | null): PublishPackageRecord | null {
+  if (!row) return null;
+  return {
+    id: String(row.id || ''),
+    topic_id: String(row.topic_id || ''),
+    version: Number(row.version || 1),
+    title_simplified: typeof row.title_simplified === 'string' ? row.title_simplified : '',
+    title_traditional: typeof row.title_traditional === 'string' ? row.title_traditional : '',
+    description_simplified: typeof row.description_simplified === 'string' ? row.description_simplified : '',
+    description_traditional: typeof row.description_traditional === 'string' ? row.description_traditional : '',
+    title_traditional_auto: Number(row.title_traditional_auto) === 1,
+    description_traditional_auto: Number(row.description_traditional_auto) === 1,
+    content_json: typeof row.content_json === 'string' ? row.content_json : '{}',
+    updated_at: typeof row.updated_at === 'string' ? row.updated_at : '',
+  };
+}
+
+function validatePublishPackageContent(value: unknown): value is PublishPackagePersistedContent {
+  if (!value || typeof value !== 'object') return false;
+  const content = value as Partial<PublishPackagePersistedContent>;
+  const isStringArray = (items: unknown, maxItems: number, maxLength: number) => Array.isArray(items)
+    && items.length <= maxItems
+    && items.every((item) => typeof item === 'string' && item.length <= maxLength);
+  if (!isStringArray(content.title_candidates, 3, 200)) return false;
+  if (typeof content.cover_text !== 'string' || content.cover_text.length > 2_000) return false;
+  if (!isStringArray(content.tags, 100, 100)) return false;
+  if (typeof content.pinned_comment !== 'string' || content.pinned_comment.length > 20_000) return false;
+  if (!isStringArray(content.included_source_ids, 500, 200)) return false;
+  if (!Array.isArray(content.chapters) || content.chapters.length > 200) return false;
+  return content.chapters.every((chapter) => Boolean(chapter)
+    && typeof chapter.id === 'string' && chapter.id.length <= 200
+    && typeof chapter.title === 'string' && chapter.title.length <= 200
+    && typeof chapter.time === 'string' && chapter.time.length <= 20
+    && typeof chapter.start_seconds === 'number' && Number.isFinite(chapter.start_seconds) && chapter.start_seconds >= 0
+    && (chapter.source === 'script-heading' || chapter.source === 'manual'));
+}
+
+function validatePublishPackagePayload(body: Record<string, unknown>): string | null {
+  for (const field of ['title_simplified', 'title_traditional', 'description_simplified', 'description_traditional', 'content_json']) {
+    if (typeof body[field] !== 'string') return `${field} must be a string`;
+  }
+  const textError = validateTextFields(body, {
+    title_simplified: [200],
+    title_traditional: [200],
+    description_simplified: [20_000],
+    description_traditional: [20_000],
+    content_json: [500_000, true],
+  });
+  if (textError) return textError;
+  if (body.base_version !== undefined
+    && (typeof body.base_version !== 'number' || !Number.isInteger(body.base_version) || body.base_version < 0)) {
+    return 'base_version must be a non-negative integer';
+  }
+  if (typeof body.title_traditional_auto !== 'boolean') return 'title_traditional_auto must be a boolean';
+  if (typeof body.description_traditional_auto !== 'boolean') return 'description_traditional_auto must be a boolean';
+  try {
+    const content = JSON.parse(body.content_json as string) as unknown;
+    if (!validatePublishPackageContent(content)) return 'Invalid publish package content';
+  } catch {
+    return 'content_json must be valid JSON';
+  }
+  return null;
+}
+
 export function createApp() {
   const app = new Hono<{ Bindings: ApiBindings }>().basePath('/api');
 
@@ -174,13 +240,20 @@ export function createApp() {
     try {
       const db = requireDb(c);
       const topicId = c.req.param('id');
-      const [sourcesResult, timeline, draft, citationsResult] = await Promise.all([
+      const [sourcesResult, timeline, draft, citationsResult, publishPackageResult] = await Promise.all([
         db.prepare('SELECT * FROM sources WHERE topic_id = ? ORDER BY created_at DESC').bind(topicId).all<Source>(),
         loadTimelineEvents(db, topicId),
         db.prepare('SELECT * FROM drafts WHERE topic_id = ?').bind(topicId).first<Draft>(),
         db.prepare('SELECT * FROM draft_citations WHERE topic_id = ? ORDER BY created_at DESC').bind(topicId).all<DraftCitation>(),
+        db.prepare('SELECT * FROM publish_packages WHERE topic_id = ?').bind(topicId).first<Record<string, unknown>>(),
       ]);
-      return c.json({ sources: sourcesResult.results, timeline, draft: draft || null, citations: citationsResult.results });
+      return c.json({
+        sources: sourcesResult.results,
+        timeline,
+        draft: draft || null,
+        citations: citationsResult.results,
+        publish_package: normalizePublishPackageRecord(publishPackageResult),
+      });
     } catch (error) {
       return jsonError(c, error);
     }
@@ -684,6 +757,66 @@ export function createApp() {
         return c.json({ error: 'DRAFT_CONFLICT', current: current || null }, 409);
       }
       return c.json(draft);
+    } catch (error) {
+      return jsonError(c, error, 400);
+    }
+  });
+
+  app.put('/topics/:id/publish-package', async (c) => {
+    try {
+      const db = requireDb(c);
+      const topicId = c.req.param('id');
+      const topic = await db.prepare('SELECT id FROM topics WHERE id = ? AND deleted_at IS NULL').bind(topicId).first<{ id: string }>();
+      if (!topic) return c.json({ error: 'Topic not found' }, 404);
+      const body = await c.req.json<Record<string, unknown>>();
+      const validationError = validatePublishPackagePayload(body);
+      if (validationError) return c.json({ error: validationError }, 400);
+
+      const existing = await db.prepare('SELECT * FROM publish_packages WHERE topic_id = ?')
+        .bind(topicId).first<Record<string, unknown>>();
+      const baseVersion = Number(body.base_version ?? 0);
+      const existingVersion = Number(existing?.version || 0);
+      if (baseVersion !== existingVersion) {
+        return c.json({
+          error: 'PUBLISH_PACKAGE_CONFLICT',
+          current: normalizePublishPackageRecord(existing),
+        }, 409);
+      }
+
+      const now = new Date().toISOString();
+      const contentJson = body.content_json as string;
+      const nextVersion = existingVersion + 1;
+      const values = [
+        body.title_simplified as string,
+        body.title_traditional as string,
+        body.description_simplified as string,
+        body.description_traditional as string,
+        body.title_traditional_auto ? 1 : 0,
+        body.description_traditional_auto ? 1 : 0,
+        contentJson,
+        now,
+      ];
+      const result = existing
+        ? await db.prepare(`UPDATE publish_packages SET
+            title_simplified = ?, title_traditional = ?, description_simplified = ?, description_traditional = ?,
+            title_traditional_auto = ?, description_traditional_auto = ?, content_json = ?, version = ?, updated_at = ?
+            WHERE topic_id = ? AND version = ?`)
+          .bind(...values.slice(0, 7), nextVersion, values[7], topicId, existingVersion).run()
+        : await db.prepare(`INSERT INTO publish_packages (
+            id, topic_id, version, title_simplified, title_traditional, description_simplified, description_traditional,
+            title_traditional_auto, description_traditional_auto, content_json, updated_at
+          ) VALUES (?, ?, 1, ?, ?, ?, ?, ?, ?, ?, ?)
+          ON CONFLICT(topic_id) DO NOTHING`)
+          .bind(createId('publish-package'), topicId, ...values.slice(0, 7), values[7]).run();
+
+      if ((result.meta.changes || 0) === 0) {
+        const current = await db.prepare('SELECT * FROM publish_packages WHERE topic_id = ?')
+          .bind(topicId).first<Record<string, unknown>>();
+        return c.json({ error: 'PUBLISH_PACKAGE_CONFLICT', current: normalizePublishPackageRecord(current) }, 409);
+      }
+      const saved = await db.prepare('SELECT * FROM publish_packages WHERE topic_id = ?')
+        .bind(topicId).first<Record<string, unknown>>();
+      return c.json(normalizePublishPackageRecord(saved));
     } catch (error) {
       return jsonError(c, error, 400);
     }

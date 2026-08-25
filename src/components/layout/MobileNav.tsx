@@ -171,7 +171,6 @@ export const MobileDrawer: React.FC<MobileDrawerProps> = ({
               </div>
               <div>
                 <h2 className="font-bold text-stone-900 text-sm leading-tight">选题生产工作台</h2>
-                <p className="text-[11px] text-stone-500">B站叙事类UP主专属</p>
               </div>
             </div>
             <button ref={closeButtonRef} onClick={onClose} aria-label="关闭导航菜单" className="flex min-h-11 min-w-11 items-center justify-center rounded-lg text-stone-400 hover:text-stone-700">

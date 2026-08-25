@@ -116,9 +116,6 @@ export const PeopleTab: React.FC<PeopleTabProps> = ({
               </span>
               <span>本期视频核心出场人物 ({topicPeople.length})</span>
             </h3>
-            <p className="text-xs text-stone-500 dark:text-stone-400 mt-0.5">
-              人物是叙事类视频的核心灵魂，可在此直接编辑档案或引入新人物
-            </p>
           </div>
 
           <div className="flex items-center gap-2">
@@ -316,7 +313,6 @@ export const PeopleTab: React.FC<PeopleTabProps> = ({
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
         title={editingPerson ? `编辑人物档案：${editingPerson.name}` : '新建人物实体档案'}
-        subtitle="沉淀至全局人物库，所有选题均可共享"
       >
         <form onSubmit={handleSavePersonSubmit} className="space-y-4">
           <div className="space-y-1.5">

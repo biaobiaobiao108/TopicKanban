@@ -75,6 +75,12 @@ describe('Database schema contract', () => {
 
       const publishedColumns = sqlite.query('PRAGMA table_info(published_videos)').all() as Array<{ name: string; notnull: number }>;
       expect(publishedColumns.find((column) => column.name === 'topic_id')?.notnull).toBe(0);
+      sqlite.query('INSERT INTO topics (id) VALUES (?)').run('legacy-topic');
+      sqlite.query(`INSERT INTO publish_packages
+        (id, topic_id, title_simplified, title_traditional, description_simplified, description_traditional, content_json, updated_at)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?)`)
+        .run('legacy-package', 'legacy-topic', '简体', '繁體', '', '', '{}', '2026-08-25T00:00:00.000Z');
+      expect(sqlite.query('SELECT topic_id FROM publish_packages WHERE id = ?').get('legacy-package')).toEqual({ topic_id: 'legacy-topic' });
       sqlite.query(`INSERT INTO published_videos
         (id, topic_id, title, published_at, updated_at) VALUES (?, ?, ?, ?, ?)`)
         .run('published-standalone', null, '独立归档视频', '2026-08-25', '2026-08-25T00:00:00.000Z');
@@ -85,6 +91,8 @@ describe('Database schema contract', () => {
 
       const migrations = sqlite.query('SELECT name FROM _schema_migrations ORDER BY name').all() as Array<{ name: string }>;
       expect(migrations.map((migration) => migration.name)).toContain('0004_remove_settings_table.sql');
+      expect(migrations.map((migration) => migration.name)).toContain('0005_create_publish_packages.sql');
+      expect(sqlite.query("SELECT name FROM sqlite_master WHERE type = 'table' AND name = 'publish_packages'").get()).not.toBeNull();
     } finally {
       sqlite.close();
       fs.rmSync(tempDir, { recursive: true, force: true });

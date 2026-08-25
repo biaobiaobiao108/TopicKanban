@@ -1,7 +1,7 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useSearchParams } from 'react-router-dom';
-import { CitationInput, Topic, Source, TimelineEvent, Person, PersonRelationship, Draft, DraftCitation, DraftRecoveryConflict, Tag, AppSettings } from '../../types';
+import { CitationInput, Topic, Source, TimelineEvent, Person, PersonRelationship, Draft, DraftCitation, DraftRecoveryConflict, Tag, AppSettings, PublishPackageSaveInput, PublishPackageRecord } from '../../types';
 import { TopicDetailHeader } from './TopicDetailHeader';
 import { OverviewTab } from './OverviewTab';
 import { SourcesTab } from './SourcesTab';
@@ -18,16 +18,19 @@ import {
   deleteTimelineEvent,
   reorderTimelineEvents,
   fetchDraftByTopicId,
+  fetchTopicWorkspace,
   fetchDraftCitations,
   saveDraft,
   cacheDraftLocally,
   saveDraftImmediately,
+  savePublishPackage,
+  PublishPackageConflictError,
   resolveDraftRecovery,
   saveDraftCitation,
   exportSingleTopicMarkdown,
 } from '../../lib/storage';
 import { Modal } from '../ui/Modal';
-import { LayoutDashboard, FileSearch, Clock, Users, PenTool, CheckCircle2, GitBranch, MoreHorizontal } from 'lucide-react';
+import { LayoutDashboard, FileSearch, Clock, Users, PenTool, FileText, CheckCircle2, GitBranch, MoreHorizontal } from 'lucide-react';
 
 interface TopicDetailViewProps {
   topic: Topic;
@@ -47,7 +50,11 @@ interface TopicDetailViewProps {
   onTopicMetricsChange: (topicId: string, metrics: Partial<Topic>) => void;
 }
 
-type DetailTab = 'overview' | 'sources' | 'timeline' | 'people' | 'script';
+type DetailTab = 'overview' | 'sources' | 'timeline' | 'people' | 'script' | 'publish';
+
+const PublishPackageTab = React.lazy(() =>
+  import('./PublishPackageTab').then((module) => ({ default: module.PublishPackageTab }))
+);
 
 const ScriptEditorTab = React.lazy(() =>
   import('./ScriptEditorTab').then((module) => ({ default: module.ScriptEditorTab }))
@@ -74,7 +81,7 @@ export const TopicDetailView: React.FC<TopicDetailViewProps> = ({
   const [pendingOutlineHtml, setPendingOutlineHtml] = useState<string | null>(null);
   const [searchParams, setSearchParams] = useSearchParams();
   const rawTab = searchParams.get('tab');
-  const activeTab: DetailTab = (rawTab && ['overview', 'sources', 'timeline', 'people', 'script'].includes(rawTab))
+  const activeTab: DetailTab = (rawTab && ['overview', 'sources', 'timeline', 'people', 'script', 'publish'].includes(rawTab))
     ? (rawTab as DetailTab)
     : 'overview';
 
@@ -95,7 +102,12 @@ export const TopicDetailView: React.FC<TopicDetailViewProps> = ({
   const [isActionDialogOpen, setIsActionDialogOpen] = useState(false);
   const [isStageMenuOpen, setIsStageMenuOpen] = useState(false);
   const [isMoreMenuOpen, setIsMoreMenuOpen] = useState(false);
+  const [isFlushingDraft, setIsFlushingDraft] = useState(false);
   const [operationError, setOperationError] = useState<string | null>(null);
+  const draftFlushRef = useRef<(() => Promise<void>) | null>(null);
+  const registerDraftFlush = useCallback((flush: (() => Promise<void>) | null) => {
+    draftFlushRef.current = flush;
+  }, []);
   const onTopicMetricsChangeRef = useRef(onTopicMetricsChange);
   onTopicMetricsChangeRef.current = onTopicMetricsChange;
 
@@ -119,6 +131,11 @@ export const TopicDetailView: React.FC<TopicDetailViewProps> = ({
     queryFn: () => fetchDraftCitations(topic.id),
     enabled: activeTab === 'script',
   });
+  const workspaceQuery = useQuery({
+    queryKey: ['topic-workspace', topic.id],
+    queryFn: () => fetchTopicWorkspace(topic.id),
+    enabled: activeTab === 'publish',
+  });
 
   const sources: Source[] = sourcesQuery.data || [];
   const timeline: TimelineEvent[] = timelineQuery.data || [];
@@ -133,7 +150,8 @@ export const TopicDetailView: React.FC<TopicDetailViewProps> = ({
 
   const loading = (activeTab === 'sources' && sourcesQuery.isLoading)
     || (activeTab === 'timeline' && timelineQuery.isLoading)
-    || (activeTab === 'script' && (draftQuery.isLoading || citationsQuery.isLoading || sourcesQuery.isLoading || timelineQuery.isLoading));
+    || (activeTab === 'script' && (draftQuery.isLoading || citationsQuery.isLoading || sourcesQuery.isLoading || timelineQuery.isLoading))
+    || (activeTab === 'publish' && workspaceQuery.isLoading);
 
   useEffect(() => {
     if (sourcesQuery.data) {
@@ -153,11 +171,11 @@ export const TopicDetailView: React.FC<TopicDetailViewProps> = ({
   }, [draftQuery.data?.draft, topic.id]);
 
   useEffect(() => {
-    const error = sourcesQuery.error || timelineQuery.error || draftQuery.error || citationsQuery.error;
+    const error = sourcesQuery.error || timelineQuery.error || draftQuery.error || citationsQuery.error || workspaceQuery.error;
     if (!error) return;
     console.error(error);
     setOperationError(error instanceof Error ? `加载选题资料失败：${error.message}` : '加载选题资料失败');
-  }, [sourcesQuery.error, timelineQuery.error, draftQuery.error, citationsQuery.error]);
+  }, [sourcesQuery.error, timelineQuery.error, draftQuery.error, citationsQuery.error, workspaceQuery.error]);
 
   const handleSaveSource = async (sourceData: Partial<Source> & { topic_id: string; title: string }) => {
     try {
@@ -225,14 +243,28 @@ export const TopicDetailView: React.FC<TopicDetailViewProps> = ({
     topicId: string,
     contentHtml: string,
     contentJson: string,
-    wordCount: number
+    wordCount: number,
+    title: string
   ) => {
     try {
-      const updated = await saveDraft(topicId, contentHtml, contentJson, wordCount, topic.title);
+      const updated = await saveDraft(topicId, contentHtml, contentJson, wordCount, title);
       queryClient.setQueryData(['topic-draft', topicId], { draft: updated, conflict: null });
       onDraftWordCountChange(topicId, wordCount);
     } catch (error) {
       setOperationError(error instanceof Error ? `保存草稿失败：${error.message}` : '保存草稿失败');
+      throw error;
+    }
+  };
+
+  const handleSavePublishPackage = async (input: PublishPackageSaveInput): Promise<PublishPackageRecord> => {
+    try {
+      const saved = await savePublishPackage(topic.id, input);
+      queryClient.setQueryData(['topic-workspace', topic.id], (current?: typeof workspaceQuery.data) => current
+        ? { ...current, publish_package: saved }
+        : current);
+      return saved;
+    } catch (error) {
+      setOperationError(error instanceof PublishPackageConflictError ? '发布包已在其他设备更新，请刷新后重新编辑。' : error instanceof Error ? `保存发布包失败：${error.message}` : '保存发布包失败');
       throw error;
     }
   };
@@ -264,12 +296,34 @@ export const TopicDetailView: React.FC<TopicDetailViewProps> = ({
     }
   };
 
+  const handleNavigateToTab = async (tab: DetailTab) => {
+    if (tab !== 'publish') {
+      setActiveTab(tab);
+      return;
+    }
+
+    setOperationError(null);
+    setIsFlushingDraft(true);
+    try {
+      if (activeTab === 'script' && draftFlushRef.current) {
+        await draftFlushRef.current();
+      }
+      await queryClient.invalidateQueries({ queryKey: ['topic-workspace', topic.id] });
+      setActiveTab('publish');
+    } catch (error) {
+      setOperationError(error instanceof Error ? `同步最新文案失败：${error.message}` : '同步最新文案失败，请先解决文案保存问题');
+    } finally {
+      setIsFlushingDraft(false);
+    }
+  };
+
   const tabs: { id: DetailTab; label: string; icon: React.ComponentType<{ className?: string }>; count?: number }[] = [
     { id: 'overview', label: '概览与评分', icon: LayoutDashboard },
     { id: 'sources', label: '资料与素材', icon: FileSearch, count: sources.length },
     { id: 'timeline', label: '故事时间线', icon: Clock, count: timeline.length },
     { id: 'people', label: '人物与关系', icon: Users, count: topic.people?.length || 0 },
     { id: 'script', label: '文案创作', icon: PenTool },
+    { id: 'publish', label: '发布包', icon: FileText },
   ];
   const metricTopic: Topic = {
     ...topic,
@@ -346,7 +400,6 @@ export const TopicDetailView: React.FC<TopicDetailViewProps> = ({
         isOpen={Boolean(draftRecovery)}
         onClose={() => undefined}
         title="发现两份不同的文案"
-        subtitle="为避免覆盖，请先明确选择要保留的版本"
         maxWidth="lg"
       >
         {draftRecovery && (
@@ -387,7 +440,8 @@ export const TopicDetailView: React.FC<TopicDetailViewProps> = ({
             return (
               <button
                 key={tab.id}
-                onClick={() => setActiveTab(tab.id)}
+                onClick={() => void handleNavigateToTab(tab.id)}
+                disabled={isFlushingDraft}
                 aria-current={isActive ? 'page' : undefined}
                 className={`flex min-h-9 sm:min-h-10 items-center gap-1.5 border-b-2 px-2.5 sm:px-3 text-xs sm:text-[13px] font-semibold transition-all cursor-pointer touch-manipulation ${
                   isActive
@@ -410,10 +464,10 @@ export const TopicDetailView: React.FC<TopicDetailViewProps> = ({
 
       {/* Tab Content Container */}
       <div
-        className={`flex-1 ${
+        className={`relative flex-1 ${
           activeTab === 'script'
             ? 'overflow-hidden flex flex-col'
-            : 'overflow-y-auto px-4 sm:px-8 pb-24 md:pb-12'
+            : 'overflow-y-auto overscroll-contain px-4 sm:px-8 pb-24 md:pb-12'
         }`}
       >
         {operationError && (
@@ -497,16 +551,17 @@ export const TopicDetailView: React.FC<TopicDetailViewProps> = ({
               settings={settings}
               onSaveDraft={handleSaveDraft}
               onSaveCitation={handleSaveCitation}
-              onCacheDraftLocally={(contentHtml, contentJson, wordCount) => {
-                const cached = cacheDraftLocally(topic.id, contentHtml, contentJson, wordCount, topic.title);
+              onRegisterDraftFlush={registerDraftFlush}
+              onCacheDraftLocally={(contentHtml, contentJson, wordCount, title) => {
+                const cached = cacheDraftLocally(topic.id, contentHtml, contentJson, wordCount, title);
                 queryClient.setQueryData(['topic-draft', topic.id], (prev?: { draft: Draft | null; conflict: DraftRecoveryConflict | null }) => ({
                   draft: cached,
                   conflict: prev?.conflict || null,
                 }));
                 onDraftWordCountChange(topic.id, wordCount);
               }}
-              onSaveDraftImmediately={(contentHtml, contentJson, wordCount) => {
-                const updated = saveDraftImmediately(topic.id, contentHtml, contentJson, wordCount, topic.title);
+              onSaveDraftImmediately={(contentHtml, contentJson, wordCount, title) => {
+                const updated = saveDraftImmediately(topic.id, contentHtml, contentJson, wordCount, title);
                 queryClient.setQueryData(['topic-draft', topic.id], (prev?: { draft: Draft | null; conflict: DraftRecoveryConflict | null }) => ({
                   draft: updated,
                   conflict: prev?.conflict || null,
@@ -515,6 +570,22 @@ export const TopicDetailView: React.FC<TopicDetailViewProps> = ({
               }}
             />
           </React.Suspense>
+        )}
+
+        {activeTab === 'publish' && !loading && workspaceQuery.data && (
+          <React.Suspense fallback={<div className="py-16 text-center text-sm text-stone-500">正在生成发布包...</div>}>
+            <PublishPackageTab
+              topic={topic}
+              workspace={workspaceQuery.data}
+              readingSpeed={readingSpeed}
+              onNavigateToScript={() => setActiveTab('script')}
+              onSavePublishPackage={handleSavePublishPackage}
+            />
+          </React.Suspense>
+        )}
+
+        {activeTab === 'publish' && loading && (
+          <div className="py-16 text-center text-sm text-stone-500">正在加载发布包资料...</div>
         )}
 
         {activeTab === 'script' && loading && (
@@ -565,7 +636,7 @@ export const TopicDetailView: React.FC<TopicDetailViewProps> = ({
                 key={tab.id}
                 type="button"
                 onClick={() => {
-                  setActiveTab(tab.id);
+                  void handleNavigateToTab(tab.id);
                   setIsMoreMenuOpen(false);
                 }}
                 className="flex min-h-11 w-full items-center gap-2 rounded-lg px-3 text-left text-xs font-semibold text-stone-700 dark:text-stone-300 hover:bg-stone-100 dark:hover:bg-stone-800 cursor-pointer transition-colors"

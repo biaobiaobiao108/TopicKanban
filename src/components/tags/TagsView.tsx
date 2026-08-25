@@ -179,7 +179,7 @@ export const TagsView: React.FC<TagsViewProps> = ({
     <div className="flex-1 flex flex-col h-full bg-[#fafaf9] dark:bg-[#0c0a09] overflow-hidden transition-colors">
       {/* 1. Header & Metric Cards */}
       <div className="tags-header-banner px-4 sm:px-8 py-5 border-b border-stone-200/70 dark:border-stone-800 bg-white/80 dark:bg-stone-900/90 backdrop-blur-sm shrink-0">
-        <div className="flex items-center justify-between flex-wrap gap-4 mb-4">
+        <div className="flex items-center justify-between flex-wrap gap-4 mb-3">
           <div>
             <h2 className="text-xl font-bold text-stone-900 dark:text-stone-100 flex items-center gap-2">
               <span className="p-1 rounded-lg bg-rose-500/10 text-rose-600 dark:text-rose-400">
@@ -187,9 +187,6 @@ export const TagsView: React.FC<TagsViewProps> = ({
               </span>
               <span>标签与创作赛道资产</span>
             </h2>
-            <p className="text-xs text-stone-500 dark:text-stone-400 mt-0.5">
-              沉淀 Bilibili 叙事视频各大核心内容赛道，盘点各类型选题储备与产出
-            </p>
           </div>
 
           <button
@@ -474,7 +471,6 @@ export const TagsView: React.FC<TagsViewProps> = ({
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
         title={editingTag ? '编辑赛道标签' : '新建赛道标签'}
-        subtitle="标签代表长期深耕的内容领域，如社会纪实、网红打假、商战博弈等"
         maxWidth="sm"
       >
         <form onSubmit={handleSaveTagSubmit} className="space-y-4">

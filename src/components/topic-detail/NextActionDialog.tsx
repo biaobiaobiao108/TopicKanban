@@ -87,7 +87,6 @@ export const NextActionDialog: React.FC<NextActionDialogProps> = ({ isOpen, topi
         isOpen={isOpen}
         onClose={onClose}
         title="设定下一步行动"
-        subtitle="一次只聚焦一件最具体、可落地的关键动作，杜绝多任务停滞。"
         maxWidth="md"
       >
         <form
@@ -175,7 +174,6 @@ export const NextActionDialog: React.FC<NextActionDialogProps> = ({ isOpen, topi
         isOpen={isOpen}
         onClose={onClose}
         title="完成并顺延下一步"
-        subtitle="好极了！保持创作势头，确立下一个关键动作。"
         maxWidth="md"
       >
         <form
@@ -254,7 +252,6 @@ export const NextActionDialog: React.FC<NextActionDialogProps> = ({ isOpen, topi
       isOpen={isOpen}
       onClose={onClose}
       title="推进下一步行动"
-      subtitle={`已持续推进 ${actionDays} 天 · 一次只攻坚一件具体动作`}
       maxWidth="md"
     >
       <form

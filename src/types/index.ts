@@ -155,11 +155,86 @@ export interface TopicWorkspaceData {
   timeline: TimelineEvent[];
   draft: Draft | null;
   citations: DraftCitation[];
+  publish_package: PublishPackageRecord | null;
 }
 
 export interface TopicWorkspaceLoad extends Omit<TopicWorkspaceData, 'draft'> {
   draft: DraftLoadResult;
 }
+
+export type PublishCheckLevel = 'blocker' | 'warning' | 'info';
+
+export interface PublishChapter {
+  id: string;
+  title: string;
+  time: string;
+  start_seconds: number;
+  source: 'script-heading' | 'manual';
+}
+
+export interface PublishSourceCredit {
+  id: string;
+  title: string;
+  author: string;
+  platform: PlatformType;
+  platform_label: string;
+  url: string;
+  verification_status: VerificationStatus;
+  included: boolean;
+}
+
+export interface PublishCheck {
+  id: string;
+  level: PublishCheckLevel;
+  label: string;
+  detail: string;
+}
+
+export interface PublishPackage {
+  title_simplified: string;
+  title_traditional: string;
+  description_simplified: string;
+  description_traditional: string;
+  title_traditional_auto: boolean;
+  description_traditional_auto: boolean;
+  title_candidates: string[];
+  cover_text: string;
+  tags: string[];
+  chapters: PublishChapter[];
+  pinned_comment: string;
+  source_credits: PublishSourceCredit[];
+  checks: PublishCheck[];
+  word_count: number;
+  estimated_duration_seconds: number;
+  draft_updated_at: string | null;
+}
+
+export interface PublishPackagePersistedContent {
+  title_candidates: string[];
+  cover_text: string;
+  tags: string[];
+  chapters: PublishChapter[];
+  pinned_comment: string;
+  included_source_ids: string[];
+}
+
+export interface PublishPackageRecord {
+  id: string;
+  topic_id: string;
+  version: number;
+  title_simplified: string;
+  title_traditional: string;
+  description_simplified: string;
+  description_traditional: string;
+  title_traditional_auto: boolean;
+  description_traditional_auto: boolean;
+  content_json: string;
+  updated_at: string;
+}
+
+export type PublishPackageSaveInput = Omit<PublishPackageRecord, 'id' | 'topic_id' | 'version' | 'updated_at'> & {
+  base_version?: number;
+};
 
 export type CitationReferenceType = 'source' | 'timeline' | 'person' | 'outline';
 
@@ -290,6 +365,7 @@ export interface BackupData {
   citations: DraftCitation[];
   tags: Tag[];
   published: PublishedVideo[];
+  publish_packages?: PublishPackageRecord[];
   settings: AppSettings;
 }
 

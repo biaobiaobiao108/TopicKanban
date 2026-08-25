@@ -128,7 +128,6 @@ export const QuickCreateModal: React.FC<QuickCreateModalProps> = ({
       isOpen={isOpen}
       onClose={onClose}
       title="💡 10秒快速新建选题"
-      subtitle={defaultStatus === 'inbox' ? '默认进入【收集箱】，稍后可在工作台中深挖与撰写' : '将直接创建到当前看板阶段'}
       maxWidth="md"
     >
       <form onSubmit={handleSubmit} className="space-y-4">

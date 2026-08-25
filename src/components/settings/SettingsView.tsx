@@ -333,9 +333,6 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
               <Settings className="w-5 sm:w-6 h-5 sm:h-6 text-rose-600 dark:text-rose-500" />
               <span>偏好设置与数据管理</span>
             </h2>
-            <p className="text-xs sm:text-sm text-stone-500 dark:text-stone-400 mt-1">
-              配置文案排版与录音语速、全流程生产流、外部审稿快照及 Cloudflare 边缘持久化与备份
-            </p>
           </div>
 
           <div className="flex items-center gap-2.5">
@@ -364,7 +361,6 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
               </span>
               <div>
                 <h3 className="text-base font-bold text-stone-900 dark:text-stone-100">视觉外观主题</h3>
-                <p className="text-xs text-stone-400 dark:text-stone-500">定制界面的明暗调性，支持日间浅色、深色夜间模式与跟随系统</p>
               </div>
             </div>
             <span className="text-[10px] font-mono font-bold bg-rose-500/10 text-rose-700 dark:text-rose-300 px-2.5 py-0.5 rounded-full">
@@ -503,7 +499,6 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
               </span>
               <div>
                 <h3 className="text-base font-bold text-stone-900 dark:text-stone-100">文案写作与播音录制偏好 (Studio)</h3>
-                <p className="text-xs text-stone-400 dark:text-stone-500">打造极致写稿手感与录音对照排版，降低读错率并精准预估成片时长</p>
               </div>
             </div>
           </div>
@@ -777,7 +772,6 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
               </span>
               <div>
                 <h3 className="text-base font-bold text-stone-900 dark:text-stone-100">选题生产流与外部审稿偏好</h3>
-                <p className="text-xs text-stone-400 dark:text-stone-500">监控选题推进停滞状态与配置外部审稿链接默认行为</p>
               </div>
             </div>
           </div>
@@ -962,9 +956,6 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
             </span>
             <h3 className="text-base font-bold text-stone-900 dark:text-stone-100">手机快捷指令 · 灵感碎片快投配置</h3>
           </div>
-          <p className="text-xs text-stone-500 dark:text-stone-400 leading-relaxed">
-            在手机刷 B站、微博或抖音时，通过 iOS 快捷指令或分享菜单将看到的事件、链接与想法一秒投递到工作台，暂存至快投箱中（保留 7 天）。
-          </p>
 
           <div className="p-4 bg-stone-500/[0.03] dark:bg-stone-800/60 rounded-2xl border border-stone-200/70 dark:border-stone-700 space-y-3 text-xs">
             <div className="flex items-center justify-between">
@@ -1008,9 +999,6 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
             </span>
             <h3 className="text-base font-bold text-stone-900 dark:text-stone-100">数据安全、全量备份与文案归档</h3>
           </div>
-          <p className="text-xs text-stone-500 dark:text-stone-400 leading-relaxed">
-            支持全量 JSON 格式快照（用于系统完全还原），或一键将全部文案大纲与正文打包导出为 Markdown 文件（用于 Obsidian/Notion 离线归档）。
-          </p>
 
           {importStatus && (
             <div className={`p-3.5 rounded-xl text-xs font-semibold flex items-center gap-2 border ${
