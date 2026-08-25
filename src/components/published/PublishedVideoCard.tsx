@@ -51,9 +51,9 @@ export const PublishedVideoCard: React.FC<PublishedVideoCardProps> = ({
   const displayCover = !imageError && Boolean(coverUrl);
 
   return (
-    <div className="group bg-white dark:bg-stone-900 rounded-2xl border border-stone-200/70 dark:border-stone-800 shadow-2xs hover:shadow-card hover:-translate-y-0.5 transition-all flex flex-col sm:flex-row overflow-hidden sm:h-[195px]">
-      {/* Left 16:9 Fixed Cover Area */}
-      <div className="relative w-full sm:w-48 md:w-52 lg:w-56 shrink-0 aspect-video sm:aspect-auto sm:h-full bg-stone-100 dark:bg-stone-800/70 overflow-hidden select-none border-b sm:border-b-0 sm:border-r border-stone-100 dark:border-stone-800">
+    <div className="group bg-white dark:bg-stone-900 rounded-2xl border border-stone-200/70 dark:border-stone-800 shadow-2xs hover:shadow-card hover:-translate-y-0.5 transition-all flex flex-col sm:flex-row items-stretch p-3.5 sm:p-4 gap-3.5 sm:gap-4">
+      {/* Left 16:9 Inset Cover Area with Full Rounded Corners */}
+      <div className="relative w-full sm:w-52 md:w-56 lg:w-60 aspect-video shrink-0 rounded-xl overflow-hidden select-none border border-stone-200/70 dark:border-stone-800 bg-stone-100 dark:bg-stone-800/70 shadow-2xs">
         {displayCover ? (
           <a
             href={safeUrl || '#'}
@@ -71,7 +71,7 @@ export const PublishedVideoCard: React.FC<PublishedVideoCardProps> = ({
               className="w-full h-full object-cover transition-transform duration-500 ease-out group-hover/cover:scale-105"
             />
             {/* Subtle Hover Gradient */}
-            <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-black/10 to-transparent opacity-0 group-hover/cover:opacity-100 transition-opacity duration-300 pointer-events-none" />
+            <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/10 to-transparent opacity-0 group-hover/cover:opacity-100 transition-opacity duration-300 pointer-events-none" />
 
             {/* Quick Watch Icon */}
             <div className="absolute top-2 right-2 opacity-0 group-hover/cover:opacity-100 transition-opacity duration-200 bg-black/60 hover:bg-rose-600 text-white p-1.5 rounded-lg text-xs backdrop-blur-xs flex items-center gap-1 shadow-xs font-semibold">
@@ -90,7 +90,7 @@ export const PublishedVideoCard: React.FC<PublishedVideoCardProps> = ({
       </div>
 
       {/* Right Column: Structured Fixed Slots */}
-      <div className="p-3.5 sm:p-4 flex-1 min-w-0 flex flex-col justify-between h-full space-y-2">
+      <div className="flex-1 min-w-0 flex flex-col justify-between space-y-2">
         {/* Row 1: Header Row (BV + Topic + Actions) */}
         <div className="flex items-center justify-between gap-2">
           <div className="flex items-center gap-1.5 overflow-hidden min-w-0 flex-1">
@@ -140,8 +140,8 @@ export const PublishedVideoCard: React.FC<PublishedVideoCardProps> = ({
           </div>
         </div>
 
-        {/* Row 2: Fixed 2-Line Title Slot */}
-        <div className="h-10 sm:h-11 flex items-start overflow-hidden">
+        {/* Row 2: Two-Line Title Slot without clipping */}
+        <div className="min-h-[2.75rem] h-[2.75rem] flex items-start overflow-hidden">
           <h3
             className="text-xs sm:text-sm font-bold text-stone-900 dark:text-stone-100 leading-snug break-words line-clamp-2 hover:text-rose-600 dark:hover:text-rose-400 transition-colors"
             title={video.title}
