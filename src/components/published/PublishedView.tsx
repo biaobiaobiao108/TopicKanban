@@ -437,7 +437,7 @@ export const PublishedView: React.FC<PublishedViewProps> = ({
           </React.Suspense>
         ) : (
           /* Published Cards List */
-          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5">
+          <div className="grid grid-cols-1 xl:grid-cols-2 gap-4 sm:gap-5">
             {pageItems.map((video) => {
               const matchedTopic = video.topic_id ? topicMap.get(video.topic_id) : undefined;
 
