@@ -86,8 +86,9 @@ export function useWorkspace(enabled: boolean, view: string = 'today') {
     }
   }, [peopleQuery.data, relationshipsQuery.data, tagsQuery.data, publishedQuery.data, settingsQuery.data, updateWorkspace]);
   const setSettings = useCallback((settings: AppSettings) => {
+    queryClient.setQueryData<AppSettings>(['settings'], settings);
     updateWorkspace((current) => ({ ...current, settings }));
-  }, [updateWorkspace]);
+  }, [queryClient, updateWorkspace]);
   const reload = useCallback(async () => {
     invalidateBootstrap();
     const requests: Array<Promise<unknown>> = [settingsQuery.refetch()];

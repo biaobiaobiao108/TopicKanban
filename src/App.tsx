@@ -495,8 +495,18 @@ function WorkspaceApp({ isAuth, setIsAuth }: WorkspaceAppProps) {
 
   // Handlers for Settings
   const handleSaveSettings = async (newSettings: AppSettings) => {
-    const saved = await saveSettings(newSettings);
-    setAppSettings(saved);
+    const previousSettings = settings;
+    setAppSettings(newSettings);
+    applyTheme(newSettings.theme);
+    try {
+      const saved = await saveSettings(newSettings);
+      setAppSettings(saved);
+      applyTheme(saved.theme);
+    } catch (error) {
+      setAppSettings(previousSettings);
+      applyTheme(previousSettings.theme);
+      throw error;
+    }
   };
 
   const handleExportBackup = async () => {

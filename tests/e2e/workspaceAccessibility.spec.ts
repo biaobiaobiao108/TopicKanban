@@ -50,10 +50,14 @@ test('dark theme keeps kanban selects and database pagination readable', async (
   await page.getByRole('button', { name: '进入工作台' }).click();
   await expect(page).toHaveURL(/\/today$/);
 
-  await page.goto('/settings');
-  await expect(page.getByRole('heading', { name: '偏好设置与数据管理' })).toBeVisible();
-  await page.getByRole('button', { name: /深色专注/ }).click();
-  await page.getByRole('button', { name: '保存全部偏好设置' }).click();
+  await page.getByRole('button', { name: /全局搜索与指令/ }).click();
+  const commandInput = page.getByPlaceholder(/输入指令、搜索选题/);
+  await commandInput.fill('深色专注');
+  const themeAction = page.getByRole('button', { name: /外观：深色专注/ });
+  await expect(themeAction).toBeVisible();
+  const settingsSave = page.waitForResponse((response) => response.url().includes('/api/settings') && response.request().method() === 'PUT');
+  await themeAction.click();
+  await settingsSave;
   await expect(page.locator('html')).toHaveClass(/dark/);
 
   await page.goto('/kanban');
