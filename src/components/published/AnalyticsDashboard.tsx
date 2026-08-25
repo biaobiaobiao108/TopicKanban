@@ -119,6 +119,7 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({
         <CustomSelect
           value={range}
           onChange={(value) => setRange(value as 'all' | '90d' | 'year')}
+          ariaLabel="复盘时间范围"
           size="sm"
           options={[
             { value: 'all', label: '全部视频' },

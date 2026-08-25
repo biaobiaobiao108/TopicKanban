@@ -19,6 +19,7 @@ const ACTIVE_FOCUS_STATUSES = new Set(['approved', 'scripting', 'production']);
 
 interface TodayViewProps {
   topics: Topic[];
+  staleActionDays?: number;
   onOpenDetail: (topicId: string) => void;
   onOpenQuickCreate: () => void;
   onTogglePin?: (topicId: string) => void;
@@ -27,6 +28,7 @@ interface TodayViewProps {
 
 export const TodayView: React.FC<TodayViewProps> = ({
   topics,
+  staleActionDays = 5,
   onOpenDetail,
   onOpenQuickCreate,
   onTogglePin,
@@ -174,10 +176,10 @@ export const TodayView: React.FC<TodayViewProps> = ({
                 </div>
               </div>
 
-              {getNextActionWarning(focusTopic) && (
+              {getNextActionWarning(focusTopic, new Date(), staleActionDays) && (
                 <div className="-mt-3 text-xs font-semibold text-amber-700 dark:text-amber-400 flex items-center gap-1.5">
                   <span>⚠</span>
-                  <span>{getNextActionWarning(focusTopic)}</span>
+                  <span>{getNextActionWarning(focusTopic, new Date(), staleActionDays)}</span>
                 </div>
               )}
 
@@ -263,8 +265,8 @@ export const TodayView: React.FC<TodayViewProps> = ({
                   </div>
 
                   <div className="flex items-center justify-between gap-2 pt-1">
-                    <span className={`text-[11px] ${getNextActionWarning(t) ? 'font-semibold text-amber-700 dark:text-amber-400' : 'text-stone-400 dark:text-stone-500'}`}>
-                      {getNextActionWarning(t) || `行动持续 ${getNextActionAgeDays(t)} 天`}
+                    <span className={`text-[11px] ${getNextActionWarning(t, new Date(), staleActionDays) ? 'font-semibold text-amber-700 dark:text-amber-400' : 'text-stone-400 dark:text-stone-500'}`}>
+                      {getNextActionWarning(t, new Date(), staleActionDays) || `行动持续 ${getNextActionAgeDays(t)} 天`}
                     </span>
                     <button
                       type="button"

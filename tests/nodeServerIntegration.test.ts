@@ -112,6 +112,34 @@ describe('Bun Server Integration (Local SQLite & API)', () => {
     });
     expect(draftRes.status).toBe(200);
 
+    const topicPageRes = await app.request('/api/topics?scope=all&q=测试爆款', {
+      headers: { Authorization: `Bearer ${authToken}` },
+    });
+    expect(topicPageRes.status).toBe(200);
+    const topicPage = await topicPageRes.json() as {
+      total: number;
+      summary: { total_words: number; in_scripting_count: number };
+      scope_counts: { active: number; archived: number; trash: number };
+    };
+    expect(topicPage.total).toBe(1);
+    expect(topicPage.summary.total_words).toBe(1500);
+    expect(topicPage.summary.in_scripting_count).toBe(0);
+    expect(topicPage.scope_counts.active).toBe(1);
+    expect(topicPage.scope_counts.archived).toBe(0);
+    expect(topicPage.scope_counts.trash).toBe(0);
+
+    const statusUpdateRes = await app.request(`/api/topics/${topic.id}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${authToken}` },
+      body: JSON.stringify({ status: 'scripting' }),
+    });
+    expect(statusUpdateRes.status).toBe(200);
+    const scriptingPageRes = await app.request('/api/topics?scope=all&q=测试爆款', {
+      headers: { Authorization: `Bearer ${authToken}` },
+    });
+    const scriptingPage = await scriptingPageRes.json() as { summary: { in_scripting_count: number } };
+    expect(scriptingPage.summary.in_scripting_count).toBe(1);
+
     // 5. Generate Share Review Link (Check reverse proxy public URL adaptation)
     const shareRes = await app.request(`/api/topics/${topic.id}/share`, {
       method: 'POST',
@@ -124,7 +152,8 @@ describe('Bun Server Integration (Local SQLite & API)', () => {
     expect(shareRes.status).toBe(200);
     const shareData = await shareRes.json() as { success: boolean; token: string; url: string; full_url: string };
     expect(shareData.success).toBe(true);
-    expect(shareData.token).toMatch(/^rv-/);
+    expect(shareData.token).toMatch(/^rv-[0-9a-f-]{36}$/);
+    expect(shareData.token.length).toBeGreaterThan(35);
     // Verified that full_url uses configured publicBaseUrl instead of localhost
     expect(shareData.full_url).toBe(`https://kanban.example.com/share/${shareData.token}`);
 
@@ -134,6 +163,37 @@ describe('Bun Server Integration (Local SQLite & API)', () => {
     const snapshot = await publicReviewRes.json() as { topic_title: string; word_count: number };
     expect(snapshot.topic_title).toBe('测试爆款人物解说');
     expect(snapshot.word_count).toBe(1500);
+
+    const secondShareRes = await app.request(`/api/topics/${topic.id}/share`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${authToken}`,
+      },
+      body: JSON.stringify({ ttl_seconds: 86400 }),
+    });
+    const secondShareData = await secondShareRes.json() as { token: string };
+    expect(secondShareRes.status).toBe(200);
+    expect(secondShareData.token).not.toBe(shareData.token);
+
+    const invalidSourceRes = await app.request('/api/sources', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${authToken}` },
+      body: JSON.stringify({ topic_id: topic.id, title: '恶意链接', url: 'javascript:alert(1)' }),
+    });
+    expect(invalidSourceRes.status).toBe(400);
+
+    const invalidPublishedRes = await app.request('/api/published', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${authToken}` },
+      body: JSON.stringify({ title: '恶意成片', url: 'data:text/html,<script>alert(1)</script>' }),
+    });
+    expect(invalidPublishedRes.status).toBe(400);
+
+    const removedParserRes = await app.request('/api/sources/parse-url?url=https%3A%2F%2Fexample.com', {
+      headers: { Authorization: `Bearer ${authToken}` },
+    });
+    expect(removedParserRes.status).toBe(404);
 
     // 7. Quick Drop Ingestion with token
     const dropRes = await app.request('/api/inbox/quick-drop', {
@@ -149,6 +209,16 @@ describe('Bun Server Integration (Local SQLite & API)', () => {
       }),
     });
     expect(dropRes.status).toBe(201);
+
+    const invalidDropRes = await app.request('/api/inbox/quick-drop', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-Quick-Drop-Token': testDropToken,
+      },
+      body: JSON.stringify({ content: '恶意链接', url: 'file:///etc/passwd' }),
+    });
+    expect(invalidDropRes.status).toBe(400);
 
     // Fetch quick drops with auth
     const listDropsRes = await app.request('/api/inbox/quick-drops', {

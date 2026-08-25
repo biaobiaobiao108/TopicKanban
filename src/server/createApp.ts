@@ -33,12 +33,14 @@ import {
   MAX_QUICK_DROP_REQUEST_BYTES,
   MAX_REQUEST_BYTES,
   createId,
+  createShareToken,
   hasInvalidValue,
   isNonNegativeInteger,
   isOneOf,
   jsonError,
   patchRow,
   requireDb,
+  validateExternalUrlField,
   validateTopicFields,
   validateTextFields,
   verifyToken,
@@ -46,7 +48,7 @@ import {
 } from './apiShared';
 import { registerSystemRoutes } from './systemRoutes';
 import { resolveServerPublicUrl } from '../lib/publicUrl';
-import { parseUrlMetadata } from './urlParser';
+import { isSafeExternalHttpUrl } from '../lib/urlSafety';
 
 async function loadTimelineEvents(db: D1Database, topicId: string): Promise<TimelineEvent[]> {
   const [eventResult, personResult] = await db.batch([
@@ -368,6 +370,8 @@ export function createApp() {
         title: [200, true], content: [20000], url: [2048], author: [200], published_at: [50], notes: [20000],
       });
       if (textError) return c.json({ error: textError }, 400);
+      const urlError = validateExternalUrlField(body as Record<string, unknown>, 'url');
+      if (urlError) return c.json({ error: urlError }, 400);
       if (body.platform !== undefined && !isOneOf(body.platform, PLATFORM_TYPES)) return c.json({ error: 'Invalid source platform' }, 400);
       if (body.verification_status !== undefined && !isOneOf(body.verification_status, VERIFICATION_STATUSES)) {
         return c.json({ error: 'Invalid verification status' }, 400);
@@ -395,6 +399,8 @@ export function createApp() {
         title: [200, true], content: [20000], url: [2048], author: [200], published_at: [50], notes: [20000],
       });
       if (textError) return c.json({ error: textError }, 400);
+      const urlError = validateExternalUrlField(body, 'url');
+      if (urlError) return c.json({ error: urlError }, 400);
       if (hasInvalidValue(body, 'platform', (value) => isOneOf(value, PLATFORM_TYPES))) return c.json({ error: 'Invalid source platform' }, 400);
       if (hasInvalidValue(body, 'verification_status', (value) => isOneOf(value, VERIFICATION_STATUSES))) {
         return c.json({ error: 'Invalid verification status' }, 400);
@@ -414,19 +420,6 @@ export function createApp() {
       return c.json({ success: true });
     } catch (error) {
       return jsonError(c, error);
-    }
-  });
-
-  app.get('/sources/parse-url', async (c) => {
-    try {
-      const urlQuery = c.req.query('url');
-      if (!urlQuery?.trim()) {
-        return c.json({ error: 'url parameter is required' }, 400);
-      }
-      const parsed = await parseUrlMetadata(urlQuery.trim());
-      return c.json({ success: true, data: parsed });
-    } catch (error) {
-      return jsonError(c, error, 400);
     }
   });
 
@@ -832,6 +825,8 @@ export function createApp() {
         title: [200, true], url: [2048], bvid: [20], published_at: [50], notes: [20000],
       });
       if (textError) return c.json({ error: textError }, 400);
+      const urlError = validateExternalUrlField(body as Record<string, unknown>, 'url');
+      if (urlError) return c.json({ error: urlError }, 400);
       if (body.bvid && !/^BV[a-zA-Z0-9]{10}$/i.test(body.bvid)) return c.json({ error: 'Invalid BVID' }, 400);
       for (const field of ['views', 'likes', 'coins', 'favorites', 'comments'] as const) {
         if (body[field] !== undefined && !isNonNegativeInteger(body[field])) {
@@ -865,6 +860,8 @@ export function createApp() {
       }
       const textError = validateTextFields(body, { title: [200, true], url: [2048], bvid: [20], published_at: [50], notes: [20000] });
       if (textError) return c.json({ error: textError }, 400);
+      const urlError = validateExternalUrlField(body, 'url');
+      if (urlError) return c.json({ error: urlError }, 400);
       if (typeof body.bvid === 'string' && body.bvid && !/^BV[a-zA-Z0-9]{10}$/i.test(body.bvid)) return c.json({ error: 'Invalid BVID' }, 400);
       for (const field of ['views', 'likes', 'coins', 'favorites', 'comments']) {
         if (hasInvalidValue(body, field, isNonNegativeInteger)) {
@@ -924,7 +921,7 @@ export function createApp() {
       const reviewerBranding = settings?.reviewer_branding || '';
       const publicBaseUrl = settings?.public_base_url || c.env.PUBLIC_BASE_URL;
 
-      const token = createId('rv');
+      const token = createShareToken();
       const expiresAt = new Date(Date.now() + ttl * 1000).toISOString();
 
       const snapshot = {
@@ -1046,8 +1043,8 @@ export function createApp() {
       try {
         const body = await c.req.json<{ content?: string; text?: string; url?: string; source?: string }>();
         rawContent = (body.content || body.text || '').trim();
-        rawUrl = body.url?.trim() || undefined;
-        rawSource = body.source?.trim() || rawSource;
+        rawUrl = typeof body.url === 'string' ? body.url.trim() || undefined : undefined;
+        rawSource = typeof body.source === 'string' ? body.source.trim() || rawSource : rawSource;
       } catch {
         const text = await c.req.text().catch(() => '');
         rawContent = text.trim();
@@ -1055,6 +1052,9 @@ export function createApp() {
 
       if (!rawContent && !rawUrl) {
         return c.json({ error: '内容或链接不能为空' }, 400);
+      }
+      if (rawUrl && !isSafeExternalHttpUrl(rawUrl)) {
+        return c.json({ error: 'url must be an http(s) URL' }, 400);
       }
       const id = createId('drop');
       const now = new Date().toISOString();

@@ -46,6 +46,7 @@ export const KanbanFilters: React.FC<KanbanFiltersProps> = ({
         <CustomSelect
           value={priorityFilter}
           onChange={(val) => onPriorityFilterChange(val as Priority | 'all')}
+          ariaLabel="优先级筛选"
           size="sm"
           options={[
             { value: 'all', label: '所有优先级' },
@@ -60,6 +61,7 @@ export const KanbanFilters: React.FC<KanbanFiltersProps> = ({
         <CustomSelect
           value={selectedTagId}
           onChange={(val) => onTagFilterChange(val)}
+          ariaLabel="标签筛选"
           size="sm"
           options={[
             { value: 'all', label: '所有标签' },
@@ -72,6 +74,7 @@ export const KanbanFilters: React.FC<KanbanFiltersProps> = ({
           <CustomSelect
             value={selectedPersonId}
             onChange={(val) => onPersonFilterChange(val)}
+            ariaLabel="关联人物筛选"
             size="sm"
             options={[
               { value: 'all', label: '所有关联人物' },
@@ -100,6 +103,7 @@ export const KanbanFilters: React.FC<KanbanFiltersProps> = ({
         <CustomSelect
           value={sortBy}
           onChange={(val) => onSortByChange(val as SortField)}
+          ariaLabel="看板排序方式"
           size="sm"
           align="right"
           options={[

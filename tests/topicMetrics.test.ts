@@ -46,4 +46,12 @@ describe('topicMetrics - isNextActionDeferred (Beijing Time UTC+8)', () => {
     const nextDay = new Date('2026-08-22T16:00:01.000Z');
     expect(isNextActionDeferred(baseTopic, nextDay)).toBe(false);
   });
+
+  it('applies the configured stale-action threshold', () => {
+    const now = new Date('2026-08-25T10:00:00.000Z');
+    const topic = { ...baseTopic, next_action_deferred_until: null };
+    expect(getNextActionWarning(topic, now, 3)).toBe('行动已停滞 5 天');
+    expect(getNextActionWarning(topic, now, 5)).toBe('行动已停滞 5 天');
+    expect(getNextActionWarning(topic, now, 7)).toBeNull();
+  });
 });

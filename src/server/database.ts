@@ -171,15 +171,9 @@ export interface TopicPageOptions {
   direction?: 'asc' | 'desc';
 }
 
-export async function loadTopicPage(db: D1Database, options: TopicPageOptions): Promise<PaginatedTopics> {
+function buildTopicFilterConditions(options: TopicPageOptions): { conditions: string[]; values: unknown[] } {
   const conditions: string[] = [];
   const values: unknown[] = [];
-  if (options.scope === 'trash') conditions.push('t.deleted_at IS NOT NULL');
-  else {
-    conditions.push('t.deleted_at IS NULL');
-    if (options.scope === 'active') conditions.push("t.status NOT IN ('published', 'icebox')");
-    if (options.scope === 'archived') conditions.push("t.status IN ('published', 'icebox')");
-  }
   if (options.status) { conditions.push('t.status = ?'); values.push(options.status); }
   if (options.priority) { conditions.push('t.priority = ?'); values.push(options.priority); }
   if (options.tagId) { conditions.push('EXISTS (SELECT 1 FROM topic_tags ft WHERE ft.topic_id = t.id AND ft.tag_id = ?)'); values.push(options.tagId); }
@@ -193,7 +187,22 @@ export async function loadTopicPage(db: D1Database, options: TopicPageOptions): 
         AND (spp.name LIKE ? ESCAPE '\\' OR spp.aliases LIKE ? ESCAPE '\\' OR spp.identity LIKE ? ESCAPE '\\')))`);
     values.push(pattern, pattern, pattern, pattern, pattern, pattern, pattern, pattern, pattern);
   }
+  return { conditions, values };
+}
+
+function getTopicScopeCondition(scope: TopicPageOptions['scope']): string {
+  if (scope === 'trash') return 't.deleted_at IS NOT NULL';
+  if (scope === 'active') return "t.deleted_at IS NULL AND t.status NOT IN ('published', 'icebox')";
+  if (scope === 'archived') return "t.deleted_at IS NULL AND t.status IN ('published', 'icebox')";
+  return 't.deleted_at IS NULL';
+}
+
+export async function loadTopicPage(db: D1Database, options: TopicPageOptions): Promise<PaginatedTopics> {
+  const baseFilter = buildTopicFilterConditions(options);
+  const conditions = [getTopicScopeCondition(options.scope), ...baseFilter.conditions];
+  const values = baseFilter.values;
   const where = conditions.length ? `WHERE ${conditions.join(' AND ')}` : '';
+  const baseWhere = baseFilter.conditions.length ? `WHERE ${baseFilter.conditions.join(' AND ')}` : '';
   const sortExpressions: Record<string, string> = {
     title: 't.title COLLATE NOCASE', status: 't.status', priority: "CASE t.priority WHEN 'high' THEN 4 WHEN 'medium' THEN 3 WHEN 'low' THEN 2 ELSE 1 END",
     score: '(t.score_character + t.score_conflict + t.score_contrast + t.score_material + t.score_story)',
@@ -202,8 +211,17 @@ export async function loadTopicPage(db: D1Database, options: TopicPageOptions): 
   const sort = sortExpressions[options.sort || 'updated_at'];
   const direction = options.direction === 'asc' ? 'ASC' : 'DESC';
   const offset = (options.page - 1) * options.pageSize;
-  const [countResult, rowsResult] = await db.batch([
+  const [countResult, summaryResult, scopeCountsResult, rowsResult] = await db.batch([
     bind(db, `SELECT COUNT(*) AS count FROM topics t ${where}`, values),
+    bind(db, `SELECT
+      COALESCE(SUM(COALESCE((SELECT word_count FROM drafts d WHERE d.topic_id = t.id LIMIT 1), 0)), 0) AS total_words,
+      COALESCE(SUM(CASE WHEN t.deleted_at IS NULL AND t.status IN ('scripting', 'production') THEN 1 ELSE 0 END), 0) AS in_scripting_count
+      FROM topics t ${where}`, values),
+    bind(db, `SELECT
+      COALESCE(SUM(CASE WHEN t.deleted_at IS NULL AND t.status NOT IN ('published', 'icebox') THEN 1 ELSE 0 END), 0) AS active,
+      COALESCE(SUM(CASE WHEN t.deleted_at IS NULL AND t.status IN ('published', 'icebox') THEN 1 ELSE 0 END), 0) AS archived,
+      COALESCE(SUM(CASE WHEN t.deleted_at IS NOT NULL THEN 1 ELSE 0 END), 0) AS trash
+      FROM topics t ${baseWhere}`, baseFilter.values),
     bind(db, `SELECT t.*,
       (SELECT COUNT(*) FROM sources s WHERE s.topic_id = t.id) AS sources_count,
       (SELECT COUNT(*) FROM sources s WHERE s.topic_id = t.id AND s.verification_status = 'confirmed') AS verified_sources_count,
@@ -225,7 +243,24 @@ export async function loadTopicPage(db: D1Database, options: TopicPageOptions): 
     });
   }
   const total = Number((countResult.results[0] as { count?: number } | undefined)?.count || 0);
-  return { items: rows, page: options.page, page_size: options.pageSize, total, total_pages: Math.ceil(total / options.pageSize) };
+  const summaryRow = summaryResult.results[0] as { total_words?: number; in_scripting_count?: number } | undefined;
+  const scopeCountsRow = scopeCountsResult.results[0] as { active?: number; archived?: number; trash?: number } | undefined;
+  return {
+    items: rows,
+    page: options.page,
+    page_size: options.pageSize,
+    total,
+    total_pages: Math.ceil(total / options.pageSize),
+    summary: {
+      total_words: Number(summaryRow?.total_words || 0),
+      in_scripting_count: Number(summaryRow?.in_scripting_count || 0),
+    },
+    scope_counts: {
+      active: Number(scopeCountsRow?.active || 0),
+      archived: Number(scopeCountsRow?.archived || 0),
+      trash: Number(scopeCountsRow?.trash || 0),
+    },
+  };
 }
 
 export interface BootstrapLoadOptions {

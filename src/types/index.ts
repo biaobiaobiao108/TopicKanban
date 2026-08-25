@@ -267,6 +267,15 @@ export interface PaginatedTopics {
   page_size: number;
   total: number;
   total_pages: number;
+  summary: {
+    total_words: number;
+    in_scripting_count: number;
+  };
+  scope_counts: {
+    active: number;
+    archived: number;
+    trash: number;
+  };
 }
 
 export interface BackupData {

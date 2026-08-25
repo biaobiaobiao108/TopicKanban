@@ -450,6 +450,7 @@ export const PeopleView: React.FC<PeopleViewProps> = ({
                 <CustomSelect
                   value={relPersonA}
                   onChange={(val) => setRelPersonA(val)}
+                  ariaLabel="人物 A"
                   className="w-full"
                   buttonClassName="w-full justify-between py-2 text-sm bg-stone-500/[0.03] dark:bg-stone-800 border-stone-200/80 dark:border-stone-700 rounded-xl"
                   options={people.map((p) => ({ value: p.id, label: p.name }))}
@@ -460,6 +461,7 @@ export const PeopleView: React.FC<PeopleViewProps> = ({
                 <CustomSelect
                   value={relPersonB}
                   onChange={(val) => setRelPersonB(val)}
+                  ariaLabel="人物 B"
                   className="w-full"
                   buttonClassName="w-full justify-between py-2 text-sm bg-stone-500/[0.03] dark:bg-stone-800 border-stone-200/80 dark:border-stone-700 rounded-xl"
                   options={people.map((p) => ({ value: p.id, label: p.name }))}

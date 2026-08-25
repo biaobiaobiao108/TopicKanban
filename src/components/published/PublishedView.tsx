@@ -29,6 +29,7 @@ import {
   Award
 } from 'lucide-react';
 import { calculateDeepMetrics } from '../../lib/videoAnalytics';
+import { sanitizeExternalHttpUrl } from '../../lib/urlSafety';
 
 const AnalyticsDashboard = React.lazy(() =>
   import('./AnalyticsDashboard').then((m) => ({ default: m.AnalyticsDashboard }))
@@ -419,6 +420,7 @@ export const PublishedView: React.FC<PublishedViewProps> = ({
           /* Published Cards List */
           <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
             {publishedList.map((video) => {
+              const safeUrl = sanitizeExternalHttpUrl(video.url);
               const hasBvid = !!extractBvid(video.bvid || video.url);
               const isSyncingThis = syncingId === video.id;
               const matchedTopic = video.topic_id ? topicMap.get(video.topic_id) : undefined;
@@ -588,11 +590,11 @@ export const PublishedView: React.FC<PublishedViewProps> = ({
                       发布时间: {video.published_at}
                     </span>
 
-                    {video.url && (
+                    {safeUrl && (
                       <a
-                        href={video.url}
+                        href={safeUrl}
                         target="_blank"
-                        rel="noreferrer"
+                        rel="noopener noreferrer"
                         className="flex items-center gap-1 text-rose-600 dark:text-rose-400 hover:text-rose-700 dark:hover:text-rose-300 font-semibold"
                       >
                         <span>观看成片</span>
@@ -637,6 +639,7 @@ export const PublishedView: React.FC<PublishedViewProps> = ({
               <div className="flex items-center gap-2">
                 <CustomSelect
                   value={topicId}
+                  ariaLabel="关联选题"
                   onChange={(nextTopicId) => {
                     setTopicId(nextTopicId);
                     if (nextTopicId) {

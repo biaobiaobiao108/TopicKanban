@@ -26,10 +26,10 @@ import { useToast } from '../ui/Toast';
 interface TopicTableViewProps {
   topics: Topic[];
   onOpenDetail: (topicId: string) => void;
-  onTogglePin: (topicId: string) => void;
+  onTogglePin: (topicId: string) => void | Promise<void>;
   onUpdateTopicStatus: (topicId: string, status: TopicStatus) => Promise<void>;
   onUpdateTopic?: (topicId: string, updates: Partial<Topic>) => Promise<void>;
-  onDeleteTopic: (topicId: string) => void;
+  onDeleteTopic: (topicId: string) => void | Promise<void>;
   trashedTopics: Topic[];
   onRestoreTopic: (topicId: string) => Promise<void>;
   onPermanentlyDeleteTopic: (topicId: string) => Promise<void>;
@@ -141,15 +141,6 @@ export const TopicTableView: React.FC<TopicTableViewProps> = ({
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [archiveTopicId]);
 
-  const activeCount = useMemo(() => {
-    return topics.filter((t) => t.status !== 'published' && t.status !== 'icebox').length;
-  }, [topics]);
-
-  const archivedCount = useMemo(() => {
-    return topics.filter((t) => t.status === 'published' || t.status === 'icebox').length;
-  }, [topics]);
-  const trashCount = trashedTopics.length;
-
   useEffect(() => setPage(1), [archiveScope, searchTerm, sortCol, sortDir]);
   useEffect(() => setSelectedIds(new Set()), [archiveScope, page, searchTerm, sortCol, sortDir]);
   const pageQuery = useQuery({
@@ -159,6 +150,45 @@ export const TopicTableView: React.FC<TopicTableViewProps> = ({
       sort: sortCol, direction: sortDir,
     }),
   });
+
+  const activeCount = useMemo(() => {
+    return pageQuery.data?.scope_counts?.active || 0;
+  }, [pageQuery.data]);
+
+  const archivedCount = useMemo(() => {
+    return pageQuery.data?.scope_counts?.archived || 0;
+  }, [pageQuery.data]);
+  const trashCount = pageQuery.data?.scope_counts?.trash || 0;
+
+  const refreshTopicPage = async () => {
+    await queryClient.invalidateQueries({ queryKey: ['topics-page'], refetchType: 'active' });
+  };
+
+  const updateTopicStatus = async (topicId: string, status: TopicStatus) => {
+    await onUpdateTopicStatus(topicId, status);
+    await refreshTopicPage();
+  };
+
+  const restoreTopic = async (topicId: string) => {
+    await onRestoreTopic(topicId);
+    await refreshTopicPage();
+  };
+
+  const permanentlyDeleteTopic = async (topicId: string) => {
+    await onPermanentlyDeleteTopic(topicId);
+    await refreshTopicPage();
+  };
+
+  const togglePin = async (topicId: string) => {
+    await onTogglePin(topicId);
+    await refreshTopicPage();
+  };
+
+  const deleteTopic = async (topicId: string) => {
+    await onDeleteTopic(topicId);
+    await refreshTopicPage();
+  };
+
   useEffect(() => {
     void queryClient.invalidateQueries({ queryKey: ['topics-page'], refetchType: 'active' });
   }, [topics, trashedTopics, queryClient]);
@@ -180,6 +210,7 @@ export const TopicTableView: React.FC<TopicTableViewProps> = ({
         next_action_updated_at: new Date().toISOString(),
         next_action_deferred_until: null,
       });
+      await refreshTopicPage();
       setEditingActionId(null);
       showToast({ message: '下一步行动已更新' });
     } catch (error) {
@@ -209,7 +240,7 @@ export const TopicTableView: React.FC<TopicTableViewProps> = ({
     if (selectedIds.size === 0) return;
     setIsBulkUpdating(true);
     try {
-      await Promise.all([...selectedIds].map((topicId) => onUpdateTopicStatus(topicId, bulkStatus)));
+      await Promise.all([...selectedIds].map((topicId) => updateTopicStatus(topicId, bulkStatus)));
       setSelectedIds(new Set());
     } finally {
       setIsBulkUpdating(false);
@@ -222,7 +253,7 @@ export const TopicTableView: React.FC<TopicTableViewProps> = ({
     try {
       const ids = [...selectedIds];
       for (const id of ids) {
-        await onRestoreTopic(id);
+        await restoreTopic(id);
       }
       setSelectedIds(new Set());
     } finally {
@@ -241,9 +272,10 @@ export const TopicTableView: React.FC<TopicTableViewProps> = ({
       const ids = [...selectedIds];
       if (onPermanentlyDeleteTopicsBatch) {
         await onPermanentlyDeleteTopicsBatch(ids);
+        await refreshTopicPage();
       } else {
         for (const id of ids) {
-          await onPermanentlyDeleteTopic(id);
+          await permanentlyDeleteTopic(id);
         }
       }
       setSelectedIds(new Set());
@@ -261,10 +293,11 @@ export const TopicTableView: React.FC<TopicTableViewProps> = ({
     try {
       if (onEmptyTrash) {
         await onEmptyTrash();
+        await refreshTopicPage();
       } else {
         const ids = trashedTopics.map((t) => t.id);
         for (const id of ids) {
-          await onPermanentlyDeleteTopic(id);
+          await permanentlyDeleteTopic(id);
         }
       }
       setSelectedIds(new Set());
@@ -303,21 +336,8 @@ export const TopicTableView: React.FC<TopicTableViewProps> = ({
     }
   };
 
-  // Global summary stats computed from current scope
-  const currentScopeTopics = useMemo(() => {
-    if (archiveScope === 'trash') return trashedTopics;
-    if (archiveScope === 'active') return topics.filter((t) => t.status !== 'icebox' && t.status !== 'published');
-    if (archiveScope === 'archived') return topics.filter((t) => t.status === 'icebox' || t.status === 'published');
-    return topics;
-  }, [archiveScope, topics, trashedTopics]);
-
-  const totalWords = useMemo(() => {
-    return currentScopeTopics.reduce((acc, t) => acc + (t.draft_word_count || 0), 0);
-  }, [currentScopeTopics]);
-
-  const inScriptingCount = useMemo(() => {
-    return currentScopeTopics.filter((t) => t.status === 'scripting' || t.status === 'production').length;
-  }, [currentScopeTopics]);
+  const totalWords = pageQuery.data?.summary?.total_words || 0;
+  const inScriptingCount = pageQuery.data?.summary?.in_scripting_count || 0;
 
   return (
     <div className="flex-1 flex flex-col bg-white dark:bg-stone-900 rounded-2xl border border-stone-200/70 dark:border-stone-800 overflow-hidden shadow-2xs min-h-0 transition-colors">
@@ -362,7 +382,7 @@ export const TopicTableView: React.FC<TopicTableViewProps> = ({
           >
             <span>全部选题</span>
             <span className="text-[10px] font-mono bg-stone-300 dark:bg-stone-700 text-stone-700 dark:text-stone-300 px-1.5 py-0.2 rounded-full">
-              {topics.length}
+              {activeCount + archivedCount}
             </span>
           </button>
 
@@ -454,6 +474,7 @@ export const TopicTableView: React.FC<TopicTableViewProps> = ({
             <CustomSelect
               value={bulkStatus}
               onChange={(val) => setBulkStatus(val as TopicStatus)}
+              ariaLabel="批量修改阶段"
               size="sm"
               options={COLUMNS.map((column) => ({ value: column.status, label: column.label }))}
             />
@@ -554,7 +575,7 @@ export const TopicTableView: React.FC<TopicTableViewProps> = ({
                     </button>
                   </div>
                   <button
-                    onClick={() => onTogglePin(topic.id)}
+                    onClick={() => void togglePin(topic.id)}
                     disabled={archiveScope === 'trash'}
                     className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border transition-colors ${
                       topic.is_pinned
@@ -570,7 +591,8 @@ export const TopicTableView: React.FC<TopicTableViewProps> = ({
                 <div className="mt-3 flex items-center gap-2">
                   <CustomSelect
                     value={topic.status}
-                    onChange={(val) => void onUpdateTopicStatus(topic.id, val as TopicStatus)}
+                    onChange={(val) => void updateTopicStatus(topic.id, val as TopicStatus)}
+                    ariaLabel={`修改「${topic.title}」阶段`}
                     size="sm"
                     options={COLUMNS.map((column) => ({ value: column.status, label: column.label }))}
                   />
@@ -617,7 +639,7 @@ export const TopicTableView: React.FC<TopicTableViewProps> = ({
                   {archiveScope === 'trash' ? (
                     <>
                       <button
-                        onClick={() => void onRestoreTopic(topic.id)}
+                        onClick={() => void restoreTopic(topic.id)}
                         className="flex min-h-10 items-center gap-1.5 rounded-xl border border-emerald-200 px-3 text-xs font-semibold text-emerald-700"
                       >
                         <RotateCcw className="h-4 w-4" /> 恢复选题
@@ -625,7 +647,7 @@ export const TopicTableView: React.FC<TopicTableViewProps> = ({
                       <button
                         onClick={() => {
                           if (window.confirm(`确定要永久删除选题「${topic.title}」吗？\n\n全部关联数据将一并删除，且无法恢复。`)) {
-                            void onPermanentlyDeleteTopic(topic.id);
+                            void permanentlyDeleteTopic(topic.id);
                           }
                         }}
                         className="flex min-h-10 items-center gap-1.5 rounded-xl border border-red-200 px-3 text-xs font-semibold text-red-600"
@@ -635,7 +657,7 @@ export const TopicTableView: React.FC<TopicTableViewProps> = ({
                     </>
                   ) : isArchived ? (
                     <button
-                      onClick={() => void onUpdateTopicStatus(topic.id, 'approved')}
+                      onClick={() => void updateTopicStatus(topic.id, 'approved')}
                       className="flex min-h-10 items-center gap-1.5 rounded-xl border border-emerald-200 px-3 text-xs font-semibold text-emerald-700"
                     >
                       <RotateCcw className="h-4 w-4" /> 恢复立项
@@ -657,7 +679,7 @@ export const TopicTableView: React.FC<TopicTableViewProps> = ({
                   {archiveScope !== 'trash' && <button
                     onClick={() => {
                       if (window.confirm(`确定要将选题「${topic.title}」移入回收站吗？`)) {
-                        onDeleteTopic(topic.id);
+                        void deleteTopic(topic.id);
                       }
                     }}
                     className="flex h-10 w-10 items-center justify-center rounded-xl border border-red-100 text-red-500"
@@ -825,7 +847,7 @@ export const TopicTableView: React.FC<TopicTableViewProps> = ({
                   <td
                     onClick={(e) => {
                       e.stopPropagation();
-                      if (archiveScope !== 'trash') onTogglePin(topic.id);
+                      if (archiveScope !== 'trash') void togglePin(topic.id);
                     }}
                     className={`${rowPadding} px-3 text-center`}
                   >
@@ -888,7 +910,7 @@ export const TopicTableView: React.FC<TopicTableViewProps> = ({
                             key={col.status}
                             onClick={async () => {
                               setActiveStatusMenuId(null);
-                              await onUpdateTopicStatus(topic.id, col.status);
+                              await updateTopicStatus(topic.id, col.status);
                             }}
                             className={`w-full text-left px-2 py-1.5 rounded-lg text-xs font-medium flex items-center justify-between transition-colors cursor-pointer ${
                               topic.status === col.status
@@ -1026,7 +1048,7 @@ export const TopicTableView: React.FC<TopicTableViewProps> = ({
                       {archiveScope === 'trash' ? (
                         <>
                           <button
-                            onClick={() => void onRestoreTopic(topic.id)}
+                            onClick={() => void restoreTopic(topic.id)}
                             className="p-1.5 text-emerald-600 dark:text-emerald-400 hover:text-emerald-800 dark:hover:text-emerald-300 hover:bg-emerald-50 dark:hover:bg-emerald-950/40 rounded-lg transition-colors cursor-pointer"
                             title="恢复选题"
                           >
@@ -1035,7 +1057,7 @@ export const TopicTableView: React.FC<TopicTableViewProps> = ({
                           <button
                             onClick={() => {
                               if (window.confirm(`确定要永久删除选题「${topic.title}」吗？\n\n全部关联数据将一并删除，且无法恢复。`)) {
-                                void onPermanentlyDeleteTopic(topic.id);
+                                void permanentlyDeleteTopic(topic.id);
                               }
                             }}
                             className="p-1.5 text-red-500 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300 hover:bg-red-50 dark:hover:bg-red-950/40 rounded-lg transition-colors cursor-pointer"
@@ -1046,7 +1068,7 @@ export const TopicTableView: React.FC<TopicTableViewProps> = ({
                         </>
                       ) : isArchived ? (
                         <button
-                          onClick={() => onUpdateTopicStatus(topic.id, 'approved')}
+                            onClick={() => void updateTopicStatus(topic.id, 'approved')}
                           className="p-1.5 text-emerald-600 dark:text-emerald-400 hover:text-emerald-800 dark:hover:text-emerald-300 hover:bg-emerald-50 dark:hover:bg-emerald-950/40 rounded-lg transition-colors cursor-pointer"
                           title="从归档中恢复至已立项（重返全景看板）"
                         >
@@ -1066,7 +1088,7 @@ export const TopicTableView: React.FC<TopicTableViewProps> = ({
                       {archiveScope !== 'trash' && <button
                         onClick={() => {
                           if (window.confirm(`确定要将选题「${topic.title}」移入回收站吗？`)) {
-                            onDeleteTopic(topic.id);
+                            void deleteTopic(topic.id);
                           }
                         }}
                         className="p-1.5 text-stone-300 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors cursor-pointer"
@@ -1133,7 +1155,7 @@ export const TopicTableView: React.FC<TopicTableViewProps> = ({
                 onClick={() => {
                   const topicId = archiveTopicId;
                   setArchiveTopicId(null);
-                  void onUpdateTopicStatus(topicId, 'published');
+                  void updateTopicStatus(topicId, 'published');
                 }}
                 className="rounded-xl bg-emerald-600 px-3 py-2 text-sm font-semibold text-white transition-colors hover:bg-emerald-700"
               >
@@ -1143,7 +1165,7 @@ export const TopicTableView: React.FC<TopicTableViewProps> = ({
                 onClick={() => {
                   const topicId = archiveTopicId;
                   setArchiveTopicId(null);
-                  void onUpdateTopicStatus(topicId, 'icebox');
+                  void updateTopicStatus(topicId, 'icebox');
                 }}
                 className="rounded-xl bg-stone-800 px-3 py-2 text-sm font-semibold text-white transition-colors hover:bg-stone-900"
               >

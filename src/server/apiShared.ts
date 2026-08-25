@@ -1,4 +1,5 @@
 import { isTopicStatus } from '../types';
+import { isSafeExternalHttpUrl } from '../lib/urlSafety';
 
 export type ApiBindings = {
   DB: D1Database;
@@ -80,6 +81,13 @@ export function validateTextFields(
   return null;
 }
 
+export function validateExternalUrlField(body: Record<string, unknown>, field: string): string | null {
+  if (!Object.prototype.hasOwnProperty.call(body, field)) return null;
+  if (typeof body[field] !== 'string') return `${field} must be a string`;
+  if (!isSafeExternalHttpUrl(body[field])) return `${field} must be an http(s) URL`;
+  return null;
+}
+
 function toBase64Url(bytes: Uint8Array): string {
   let binary = '';
   bytes.forEach((byte) => { binary += String.fromCharCode(byte); });
@@ -132,6 +140,10 @@ export function jsonError(c: any, error: unknown, status = 500) {
 
 export function createId(prefix: string): string {
   return `${prefix}-${Date.now()}-${crypto.randomUUID().slice(0, 8)}`;
+}
+
+export function createShareToken(): string {
+  return `rv-${crypto.randomUUID()}`;
 }
 
 const ALLOWED_PATCH_TABLES = [

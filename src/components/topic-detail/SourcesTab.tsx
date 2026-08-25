@@ -17,6 +17,7 @@ import {
 } from 'lucide-react';
 import { CustomSelect } from '../ui/CustomSelect';
 import { parseClientMetadata } from '../../lib/clientUrlParser';
+import { sanitizeExternalHttpUrl } from '../../lib/urlSafety';
 import { useToast } from '../ui/Toast';
 
 interface SourcesTabProps {
@@ -238,6 +239,7 @@ export const SourcesTab: React.FC<SourcesTabProps> = ({
           <CustomSelect
             value={filterPlatform}
             onChange={(val) => setFilterPlatform(val as PlatformType | 'all')}
+            ariaLabel="来源平台筛选"
             size="sm"
             options={PLATFORM_OPTIONS.map((opt) => ({
               value: opt.value,
@@ -249,6 +251,7 @@ export const SourcesTab: React.FC<SourcesTabProps> = ({
           <CustomSelect
             value={filterStatus}
             onChange={(val) => setFilterStatus(val as VerificationStatus | 'all')}
+            ariaLabel="核实状态筛选"
             size="sm"
             options={[
               { value: 'all', label: '所有核实状态' },
@@ -282,7 +285,9 @@ export const SourcesTab: React.FC<SourcesTabProps> = ({
 
       {/* Sources Grid: 3-Column Responsive Layout */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3.5 sm:gap-4">
-        {filteredSources.map((s) => (
+        {filteredSources.map((s) => {
+          const safeUrl = sanitizeExternalHttpUrl(s.url);
+          return (
           <div
             key={s.id}
             className="bg-white dark:bg-stone-900 rounded-2xl border border-stone-200/70 dark:border-stone-800 p-4 space-y-3 shadow-2xs hover:shadow-card hover:-translate-y-0.5 transition-all flex flex-col justify-between"
@@ -372,7 +377,7 @@ export const SourcesTab: React.FC<SourcesTabProps> = ({
                 )}
               </div>
 
-              {s.url && (
+              {safeUrl && (
                 <div className="flex items-center gap-1 shrink-0">
                   <button
                     onClick={() => copyUrl(s.id, s.url)}
@@ -386,9 +391,9 @@ export const SourcesTab: React.FC<SourcesTabProps> = ({
                     )}
                   </button>
                   <a
-                    href={s.url}
+                    href={safeUrl}
                     target="_blank"
-                    rel="noreferrer"
+                    rel="noopener noreferrer"
                     className="flex items-center gap-0.5 text-rose-600 dark:text-rose-400 hover:text-rose-700 dark:hover:text-rose-300 font-semibold"
                   >
                     <span>来源</span>
@@ -398,7 +403,8 @@ export const SourcesTab: React.FC<SourcesTabProps> = ({
               )}
             </div>
           </div>
-        ))}
+          );
+        })}
 
         {filteredSources.length === 0 && (
           <div className="col-span-full p-12 text-center border-2 border-dashed border-stone-200 dark:border-stone-800 rounded-2xl bg-white dark:bg-stone-900 text-stone-400 dark:text-stone-500 space-y-2">
@@ -487,6 +493,7 @@ export const SourcesTab: React.FC<SourcesTabProps> = ({
               <CustomSelect
                 value={platform}
                 onChange={(val) => setPlatform(val as PlatformType)}
+                ariaLabel="来源平台"
                 className="w-full"
                 buttonClassName="w-full justify-between py-2 text-sm bg-stone-50 dark:bg-stone-800 border-stone-300 dark:border-stone-700 rounded-lg"
                 options={[
@@ -540,6 +547,7 @@ export const SourcesTab: React.FC<SourcesTabProps> = ({
               <CustomSelect
                 value={verificationStatus}
                 onChange={(val) => setVerificationStatus(val as VerificationStatus)}
+                ariaLabel="可信度状态"
                 className="w-full"
                 buttonClassName="w-full justify-between py-2 text-sm bg-stone-50 dark:bg-stone-800 border-stone-300 dark:border-stone-700 rounded-lg"
                 options={[

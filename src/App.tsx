@@ -565,6 +565,7 @@ function WorkspaceApp({ isAuth, setIsAuth }: WorkspaceAppProps) {
           {currentView === 'today' && (
             <TodayView
               topics={topics}
+              staleActionDays={settings.stale_action_days || 5}
               onOpenDetail={handleOpenDetail}
               onOpenQuickCreate={openInboxQuickCreate}
               onTogglePin={handleTogglePin}

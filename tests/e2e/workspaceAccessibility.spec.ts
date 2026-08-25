@@ -13,11 +13,18 @@ test('workspace login, keyboard select and modal semantics work', async ({ page 
   await page.goto('/kanban');
   const select = page.getByRole('combobox').first();
   await expect(select).toBeVisible();
+  await expect(select).toHaveAttribute('aria-label', '优先级筛选');
   await select.press('Enter');
   await expect(page.getByRole('listbox')).toBeVisible();
   await page.keyboard.press('ArrowDown');
   await page.keyboard.press('Enter');
   await expect(page.getByRole('listbox')).toHaveCount(0);
+
+  const quickDropButton = page.getByRole('button', { name: /打开手机快投灵感箱/ });
+  await quickDropButton.click();
+  await expect(page.getByRole('dialog', { name: '手机快投灵感箱' })).toBeVisible();
+  await page.keyboard.press('Escape');
+  await expect(page.getByRole('dialog', { name: '手机快投灵感箱' })).toHaveCount(0);
 
   await page.keyboard.press('n');
   await expect(page.getByRole('dialog')).toBeVisible();

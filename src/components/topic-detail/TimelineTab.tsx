@@ -502,6 +502,7 @@ export const TimelineTab: React.FC<TimelineTabProps> = ({
               <CustomSelect
                 value={verificationStatus}
                 onChange={(val) => setVerificationStatus(val as VerificationStatus)}
+                ariaLabel="可信度状态"
                 className="w-full"
                 buttonClassName="w-full h-[38px] justify-between py-2 text-sm bg-stone-50 dark:bg-stone-800 border-stone-300 dark:border-stone-700 rounded-lg"
                 options={[

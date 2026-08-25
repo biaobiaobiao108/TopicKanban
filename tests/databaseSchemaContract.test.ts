@@ -35,7 +35,7 @@ describe('Database schema contract', () => {
     }
   });
 
-  it('removes legacy settings and source type from an existing local database', () => {
+  it('repairs legacy local schemas before recording migrations', () => {
     const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'kanban-schema-'));
     const dbPath = path.join(tempDir, 'legacy.db');
     const legacy = new Database(dbPath);
@@ -44,6 +44,21 @@ describe('Database schema contract', () => {
       CREATE TABLE sources (id TEXT PRIMARY KEY, type TEXT NOT NULL DEFAULT 'fact');
       CREATE TABLE timeline_events (id TEXT PRIMARY KEY);
       CREATE TABLE settings (key TEXT PRIMARY KEY, value TEXT NOT NULL);
+      CREATE TABLE published_videos (
+        id TEXT PRIMARY KEY,
+        topic_id TEXT NOT NULL,
+        title TEXT NOT NULL,
+        url TEXT NOT NULL DEFAULT '',
+        bvid TEXT NOT NULL DEFAULT '',
+        published_at TEXT NOT NULL DEFAULT '',
+        views INTEGER NOT NULL DEFAULT 0,
+        likes INTEGER NOT NULL DEFAULT 0,
+        coins INTEGER NOT NULL DEFAULT 0,
+        favorites INTEGER NOT NULL DEFAULT 0,
+        comments INTEGER NOT NULL DEFAULT 0,
+        notes TEXT NOT NULL DEFAULT '',
+        updated_at TEXT NOT NULL
+      );
     `);
     legacy.close();
 
@@ -57,6 +72,13 @@ describe('Database schema contract', () => {
 
       const timelineColumns = sqlite.query('PRAGMA table_info(timeline_events)').all() as Array<{ name: string }>;
       expect(timelineColumns.some((column) => column.name === 'contrast_tag')).toBe(true);
+
+      const publishedColumns = sqlite.query('PRAGMA table_info(published_videos)').all() as Array<{ name: string; notnull: number }>;
+      expect(publishedColumns.find((column) => column.name === 'topic_id')?.notnull).toBe(0);
+      sqlite.query(`INSERT INTO published_videos
+        (id, topic_id, title, published_at, updated_at) VALUES (?, ?, ?, ?, ?)`)
+        .run('published-standalone', null, '独立归档视频', '2026-08-25', '2026-08-25T00:00:00.000Z');
+      expect(sqlite.query('SELECT id FROM published_videos WHERE id = ?').get('published-standalone')).toEqual({ id: 'published-standalone' });
 
       const kvTable = sqlite.query("SELECT name FROM sqlite_master WHERE type = 'table' AND name = '_kv_store'").get();
       expect(kvTable).not.toBeNull();

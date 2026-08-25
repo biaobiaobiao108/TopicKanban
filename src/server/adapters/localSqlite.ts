@@ -196,9 +196,9 @@ export function initializeSqliteDatabase(dbFilePath: string, schemaDir?: string)
     );
   `);
 
+  const resolvedSchemaDir = schemaDir || path.resolve(process.cwd(), 'drizzle');
   if (tableCheck.count === 0) {
     // Run schema migrations
-    const resolvedSchemaDir = schemaDir || path.resolve(process.cwd(), 'drizzle');
     const schemaFile = path.join(resolvedSchemaDir, '0000_schema.sql');
     if (fs.existsSync(schemaFile)) {
       const sql = fs.readFileSync(schemaFile, 'utf-8');
@@ -210,8 +210,18 @@ export function initializeSqliteDatabase(dbFilePath: string, schemaDir?: string)
   sqlite.query('INSERT OR IGNORE INTO _schema_migrations (name, applied_at) VALUES (?, ?)')
     .run('0000_schema.sql', appliedAt);
 
-  // 0001 is structurally represented by the current baseline. Keep it
-  // recorded so local instances have an explicit migration history.
+  // Older local databases may have a NOT NULL published_videos.topic_id.
+  // Repair the actual schema before recording the migration as applied.
+  const publishedColumns = sqlite.query("PRAGMA table_info(published_videos)").all() as Array<{ name: string; notnull: number }>;
+  const publishedTopicColumn = publishedColumns.find((column) => column.name === 'topic_id');
+  if (publishedTopicColumn?.notnull === 1) {
+    const migrationFile = path.join(resolvedSchemaDir, '0001_optional_published_topic.sql');
+    if (!fs.existsSync(migrationFile)) {
+      throw new Error('Missing published_videos compatibility migration');
+    }
+    sqlite.exec(fs.readFileSync(migrationFile, 'utf-8'));
+  }
+
   sqlite.query('INSERT OR IGNORE INTO _schema_migrations (name, applied_at) VALUES (?, ?)')
     .run('0001_optional_published_topic.sql', appliedAt);
 

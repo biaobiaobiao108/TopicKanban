@@ -419,7 +419,7 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
                 <div className="text-xs font-bold text-amber-900">在制品提醒：先收尾，再开新坑</div>
                 <div className="mt-1 flex flex-wrap gap-x-4 gap-y-1 text-xs text-amber-800">
                   {wipWarnings.map((warning) => <span key={warning}>{warning}</span>)}
-                  {stagnantTopics.length > 0 && <span>{stagnantTopics.length} 个选题已停滞 7 天以上</span>}
+                  {stagnantTopics.length > 0 && <span>{stagnantTopics.length} 个选题已停滞 {staleActionDays} 天以上</span>}
                 </div>
                 {stagnantTopics.length > 0 && (
                   <div className="mt-2 flex flex-wrap gap-2">

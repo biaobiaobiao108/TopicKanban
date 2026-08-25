@@ -1,6 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { QuickDropItem } from '../../types';
 import { fetchQuickDrops, deleteQuickDrop } from '../../lib/storage';
+import { sanitizeExternalHttpUrl } from '../../lib/urlSafety';
 import {
   Inbox,
   X,
@@ -30,6 +31,11 @@ export const QuickDropDrawer: React.FC<QuickDropDrawerProps> = ({
   const [drops, setDrops] = useState<QuickDropItem[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [deletingId, setDeletingId] = useState<string | null>(null);
+  const drawerRef = useRef<HTMLDivElement>(null);
+  const closeButtonRef = useRef<HTMLButtonElement>(null);
+  const previousFocusRef = useRef<HTMLElement | null>(null);
+  const onCloseRef = useRef(onClose);
+  onCloseRef.current = onClose;
 
   const loadDrops = async () => {
     setIsLoading(true);
@@ -48,6 +54,47 @@ export const QuickDropDrawer: React.FC<QuickDropDrawerProps> = ({
     if (isOpen) {
       void loadDrops();
     }
+  }, [isOpen]);
+
+  useEffect(() => {
+    if (!isOpen) return;
+    previousFocusRef.current = document.activeElement instanceof HTMLElement ? document.activeElement : null;
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        event.preventDefault();
+        onCloseRef.current();
+        return;
+      }
+      if (event.key !== 'Tab' || !drawerRef.current) return;
+      const focusable = Array.from(drawerRef.current.querySelectorAll<HTMLElement>(
+        'button:not([disabled]), [href], input:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])'
+      ));
+      if (focusable.length === 0) {
+        event.preventDefault();
+        drawerRef.current.focus();
+        return;
+      }
+      const first = focusable[0];
+      const last = focusable[focusable.length - 1];
+      if (event.shiftKey && document.activeElement === first) {
+        event.preventDefault();
+        last.focus();
+      } else if (!event.shiftKey && document.activeElement === last) {
+        event.preventDefault();
+        first.focus();
+      }
+    };
+
+    document.addEventListener('keydown', handleKeyDown);
+    requestAnimationFrame(() => closeButtonRef.current?.focus());
+    return () => {
+      document.removeEventListener('keydown', handleKeyDown);
+      document.body.style.overflow = previousOverflow;
+      previousFocusRef.current?.focus();
+    };
   }, [isOpen]);
 
   const handleDelete = async (id: string) => {
@@ -72,15 +119,23 @@ export const QuickDropDrawer: React.FC<QuickDropDrawerProps> = ({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 overflow-hidden flex justify-end">
+    <div className="fixed inset-0 z-50 overflow-hidden flex justify-end" role="presentation">
       {/* Backdrop */}
       <div
         className="fixed inset-0 bg-stone-900/30 backdrop-blur-xs transition-opacity animate-in fade-in duration-200"
+        aria-hidden="true"
         onClick={onClose}
       />
 
       {/* Drawer Body */}
-      <div className="relative w-full max-w-md bg-white dark:bg-stone-900 h-full shadow-2xl flex flex-col z-10 animate-in slide-in-from-right duration-250 ease-editorial-out transition-colors">
+      <div
+        ref={drawerRef}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="quick-drop-title"
+        tabIndex={-1}
+        className="relative w-full max-w-md bg-white dark:bg-stone-900 h-full shadow-2xl flex flex-col z-10 animate-in slide-in-from-right duration-250 ease-editorial-out transition-colors"
+      >
         {/* Header */}
         <div className="p-4 border-b border-stone-200/70 dark:border-stone-800 bg-stone-50/80 dark:bg-stone-900/90 flex items-center justify-between">
           <div className="flex items-center gap-2">
@@ -88,7 +143,7 @@ export const QuickDropDrawer: React.FC<QuickDropDrawerProps> = ({
               <Smartphone className="w-4 h-4" />
             </div>
             <div>
-              <h2 className="text-sm font-bold text-stone-900 dark:text-stone-100 flex items-center gap-2">
+              <h2 id="quick-drop-title" className="text-sm font-bold text-stone-900 dark:text-stone-100 flex items-center gap-2">
                 <span>手机快投灵感箱</span>
                 <span className="text-[10px] font-mono bg-rose-500/10 text-rose-700 dark:text-rose-300 px-2 py-0.5 rounded-full font-bold">
                   {drops.length}
@@ -101,6 +156,7 @@ export const QuickDropDrawer: React.FC<QuickDropDrawerProps> = ({
           <div className="flex items-center gap-1">
             <button
               type="button"
+              aria-label="刷新快投列表"
               onClick={loadDrops}
               disabled={isLoading}
               className="p-2 rounded-xl text-stone-400 dark:text-stone-500 hover:text-stone-700 dark:hover:text-stone-300 hover:bg-stone-100 dark:hover:bg-stone-800 transition-colors cursor-pointer"
@@ -110,6 +166,8 @@ export const QuickDropDrawer: React.FC<QuickDropDrawerProps> = ({
             </button>
             <button
               type="button"
+              ref={closeButtonRef}
+              aria-label="关闭手机快投灵感箱"
               onClick={onClose}
               className="p-2 rounded-xl text-stone-400 dark:text-stone-500 hover:text-stone-700 dark:hover:text-stone-300 hover:bg-stone-100 dark:hover:bg-stone-800 transition-colors cursor-pointer"
             >
@@ -131,7 +189,9 @@ export const QuickDropDrawer: React.FC<QuickDropDrawerProps> = ({
               </p>
             </div>
           ) : (
-            drops.map((item) => (
+            drops.map((item) => {
+              const safeUrl = sanitizeExternalHttpUrl(item.url);
+              return (
               <div
                 key={item.id}
                 className="p-4 rounded-2xl border border-stone-200/70 dark:border-stone-800 bg-white dark:bg-stone-800/80 hover:shadow-card hover:-translate-y-0.5 transition-all space-y-2.5 shadow-2xs"
@@ -150,10 +210,10 @@ export const QuickDropDrawer: React.FC<QuickDropDrawerProps> = ({
                   {item.content}
                 </p>
 
-                {item.url && (
+                {safeUrl && (
                   <div className="pt-0.5">
                     <a
-                      href={item.url}
+                      href={safeUrl}
                       target="_blank"
                       rel="noopener noreferrer"
                       className="inline-flex items-center gap-1 text-[11px] text-rose-600 dark:text-rose-400 hover:text-rose-700 dark:hover:text-rose-300 truncate max-w-full font-mono underline"
@@ -185,7 +245,8 @@ export const QuickDropDrawer: React.FC<QuickDropDrawerProps> = ({
                   </button>
                 </div>
               </div>
-            ))
+              );
+            })
           )}
         </div>
 

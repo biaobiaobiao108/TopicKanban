@@ -19,6 +19,8 @@ interface CustomSelectProps {
   onChange: (value: string) => void;
   options: SelectOption[];
   placeholder?: string;
+  ariaLabel?: string;
+  ariaLabelledBy?: string;
   disabled?: boolean;
   className?: string;
   buttonClassName?: string;
@@ -39,6 +41,8 @@ export const CustomSelect: React.FC<CustomSelectProps> = ({
   onChange,
   options,
   placeholder = '请选择...',
+  ariaLabel,
+  ariaLabelledBy,
   disabled = false,
   className = '',
   buttonClassName = '',
@@ -210,7 +214,8 @@ export const CustomSelect: React.FC<CustomSelectProps> = ({
         aria-haspopup="listbox"
         aria-expanded={isOpen}
         aria-controls={isOpen ? listboxId : undefined}
-        aria-label={placeholder}
+        aria-label={ariaLabel || selectedOption?.label || placeholder}
+        aria-labelledby={ariaLabelledBy}
         disabled={disabled}
         onClick={() => !disabled && (isOpen ? close() : setIsOpen(true))}
         onKeyDown={handleButtonKeyDown}
@@ -252,7 +257,7 @@ export const CustomSelect: React.FC<CustomSelectProps> = ({
             </div>
           )}
 
-          <div id={listboxId} role="listbox" aria-label={placeholder} className="max-h-60 overflow-y-auto p-1.5 space-y-0.5">
+          <div id={listboxId} role="listbox" aria-label={ariaLabel || selectedOption?.label || placeholder} className="max-h-60 overflow-y-auto p-1.5 space-y-0.5">
             {options.length === 0 ? emptyState : options.map((option, index) => {
               const isSelected = option.value === value;
               const isFocused = focusedIndex === index;
