@@ -78,7 +78,7 @@ export const ScriptReferenceDrawer: React.FC<ScriptReferenceDrawerProps> = ({
   return (
     <div className="script-reference-drawer absolute right-3 sm:right-4 top-3 sm:top-4 bottom-3 sm:bottom-4 z-30 flex w-80 sm:w-96 flex-col rounded-2xl bg-white/95 dark:bg-stone-900/95 backdrop-blur-xl border border-stone-200/70 dark:border-stone-800/80 shadow-card animate-in slide-in-from-right duration-200 overflow-hidden">
       {/* Header */}
-      <div className="flex shrink-0 items-center justify-between gap-2 h-12 px-3.5 border-b border-stone-100 dark:border-stone-800/70 bg-stone-50/50 dark:bg-stone-850/50">
+      <div className="flex shrink-0 items-center justify-between gap-2 h-12 px-3.5 border-b border-stone-100 dark:border-stone-800/70 bg-stone-50/50 dark:bg-stone-800/50">
         <div className="flex items-center gap-2 min-w-0">
           <div className="p-1 rounded-lg bg-rose-50 dark:bg-rose-950/60 text-rose-600 dark:text-rose-400">
             <BookOpen className="w-3.5 h-3.5 shrink-0" />
@@ -110,7 +110,7 @@ export const ScriptReferenceDrawer: React.FC<ScriptReferenceDrawerProps> = ({
       </div>
 
       {/* Tabs (Capsules) */}
-      <div className="flex items-center gap-1 px-3.5 py-1.5 text-xs overflow-x-auto no-scrollbar shrink-0 bg-stone-50/40 dark:bg-stone-850/40">
+      <div className="flex items-center gap-1 px-3.5 py-1.5 text-xs overflow-x-auto no-scrollbar shrink-0 bg-stone-50/40 dark:bg-stone-800/40">
         {[
           { id: 'all', label: '全部' },
           { id: 'timeline', label: `时间线 (${timeline.length})` },
@@ -164,7 +164,7 @@ export const ScriptReferenceDrawer: React.FC<ScriptReferenceDrawerProps> = ({
             )}
 
             {showStoryline && topic.storyline && (
-              <div className="bg-white/80 dark:bg-stone-850/80 border border-stone-200/70 dark:border-stone-800/70 p-2.5 rounded-xl space-y-1.5 backdrop-blur-xs">
+              <div className="bg-white/80 dark:bg-stone-800/80 border border-stone-200/70 dark:border-stone-800/70 p-2.5 rounded-xl space-y-1.5 backdrop-blur-xs">
                 <div className="flex items-center justify-between text-stone-900 dark:text-stone-100 font-bold text-xs">
                   <span>📖 故事主线阶段</span>
                   <button
@@ -194,7 +194,7 @@ export const ScriptReferenceDrawer: React.FC<ScriptReferenceDrawerProps> = ({
             </div>
 
             {filteredPeople.map((person) => (
-              <div key={person.id} className="bg-white/80 dark:bg-stone-850/80 border border-stone-200/70 dark:border-stone-800/70 p-2.5 rounded-xl space-y-2 backdrop-blur-xs">
+              <div key={person.id} className="bg-white/80 dark:bg-stone-800/80 border border-stone-200/70 dark:border-stone-800/70 p-2.5 rounded-xl space-y-2 backdrop-blur-xs">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-1.5">
                     <span className="font-bold text-stone-900 dark:text-stone-100 text-xs">{person.name}</span>
@@ -245,7 +245,7 @@ export const ScriptReferenceDrawer: React.FC<ScriptReferenceDrawerProps> = ({
 
             <div className="space-y-2 border-l-2 border-stone-200/70 dark:border-stone-800 ml-1.5 pl-2.5">
               {filteredTimeline.map((item) => (
-                <div key={item.id} className="relative group bg-white/80 dark:bg-stone-850/80 p-2.5 rounded-xl border border-stone-200/70 dark:border-stone-800/70 space-y-1 backdrop-blur-xs">
+                <div key={item.id} className="relative group bg-white/80 dark:bg-stone-800/80 p-2.5 rounded-xl border border-stone-200/70 dark:border-stone-800/70 space-y-1 backdrop-blur-xs">
                   <div className="flex items-center justify-between">
                     <span className="font-mono font-bold text-stone-900 dark:text-stone-100 bg-stone-100 dark:bg-stone-800 px-1.5 py-0.5 rounded text-[10px]">
                       {item.event_date}
@@ -289,7 +289,7 @@ export const ScriptReferenceDrawer: React.FC<ScriptReferenceDrawerProps> = ({
             </div>
 
             {filteredSources.map((source) => (
-              <div key={source.id} className="bg-white/80 dark:bg-stone-850/80 border border-stone-200/70 dark:border-stone-800/70 p-2.5 rounded-xl space-y-1.5 backdrop-blur-xs">
+              <div key={source.id} className="bg-white/80 dark:bg-stone-800/80 border border-stone-200/70 dark:border-stone-800/70 p-2.5 rounded-xl space-y-1.5 backdrop-blur-xs">
                 <div className="flex items-start justify-between gap-1">
                   <div className="font-bold text-stone-900 dark:text-stone-100 text-xs truncate">{source.title}</div>
                   <button

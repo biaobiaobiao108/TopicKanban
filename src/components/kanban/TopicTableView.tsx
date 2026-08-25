@@ -544,7 +544,7 @@ export const TopicTableView: React.FC<TopicTableViewProps> = ({
             const isArchived = topic.status === 'published' || topic.status === 'icebox';
 
             return (
-              <article key={topic.id} className="rounded-2xl border border-stone-200 bg-white p-4 shadow-subtle">
+              <article key={topic.id} className="rounded-2xl border border-stone-200 dark:border-stone-800 bg-white dark:bg-stone-900 p-4 shadow-subtle">
                 <div className="flex items-start justify-between gap-3">
                   <div className="flex items-start gap-2.5 min-w-0 flex-1">
                     <input
@@ -566,9 +566,9 @@ export const TopicTableView: React.FC<TopicTableViewProps> = ({
                       onClick={() => archiveScope !== 'trash' && onOpenDetail(topic.id)}
                       className="min-w-0 flex-1 text-left"
                     >
-                      <span className="block truncate text-base font-bold text-stone-900">{topic.title}</span>
+                      <span className="block truncate text-base font-bold text-stone-900 dark:text-stone-100">{topic.title}</span>
                       {(topic.summary || topic.hook) && (
-                        <span className="mt-1 block line-clamp-2 text-xs leading-relaxed text-stone-500">
+                        <span className="mt-1 block line-clamp-2 text-xs leading-relaxed text-stone-500 dark:text-stone-400">
                           {topic.summary || topic.hook}
                         </span>
                       )}
@@ -579,8 +579,8 @@ export const TopicTableView: React.FC<TopicTableViewProps> = ({
                     disabled={archiveScope === 'trash'}
                     className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border transition-colors ${
                       topic.is_pinned
-                        ? 'border-rose-200 bg-rose-50 text-rose-600'
-                        : 'border-stone-200 text-stone-400'
+                        ? 'border-rose-200 dark:border-rose-800 bg-rose-50 dark:bg-rose-950/40 text-rose-600 dark:text-rose-400'
+                        : 'border-stone-200 dark:border-stone-700 text-stone-400 dark:text-stone-500'
                     }`}
                     title={topic.is_pinned ? '取消置顶' : '置顶选题'}
                   >
@@ -597,50 +597,50 @@ export const TopicTableView: React.FC<TopicTableViewProps> = ({
                     options={COLUMNS.map((column) => ({ value: column.status, label: column.label }))}
                   />
                   <PriorityBadge priority={topic.priority} />
-                  <span className="ml-auto text-[11px] text-stone-400">{formatRelativeTime(topic.updated_at)}</span>
+                  <span className="ml-auto text-[11px] text-stone-400 dark:text-stone-500">{formatRelativeTime(topic.updated_at)}</span>
                 </div>
 
-                <div className="mt-3 rounded-xl border border-rose-100 bg-rose-50/60 px-3 py-2 text-xs text-stone-700">
-                  <span className="font-semibold text-rose-700">下一步：</span>
+                <div className="mt-3 rounded-xl border border-rose-100 dark:border-rose-900/60 bg-rose-50/60 dark:bg-rose-950/40 px-3 py-2 text-xs text-stone-700 dark:text-stone-300">
+                  <span className="font-semibold text-rose-700 dark:text-rose-300">下一步：</span>
                   {topic.next_action || '尚未设置具体行动'}
                 </div>
 
                 {(topic.tags?.length || topic.people?.length) ? (
                   <div className="mt-3 flex flex-wrap gap-1.5">
                     {topic.tags?.slice(0, 3).map((tag) => (
-                      <span key={tag.id || tag.name} className="rounded-md border border-stone-200 bg-stone-50 px-2 py-1 text-[10px] text-stone-600">
+                      <span key={tag.id || tag.name} className="rounded-md border border-stone-200 dark:border-stone-700 bg-stone-50 dark:bg-stone-800 px-2 py-1 text-[10px] text-stone-600 dark:text-stone-300">
                         #{tag.name}
                       </span>
                     ))}
                     {topic.people?.slice(0, 2).map((person) => (
-                      <span key={person.id} className="rounded-md border border-stone-200 bg-stone-50 px-2 py-1 text-[10px] text-stone-600">
+                      <span key={person.id} className="rounded-md border border-stone-200 dark:border-stone-700 bg-stone-50 dark:bg-stone-800 px-2 py-1 text-[10px] text-stone-600 dark:text-stone-300">
                         👤 {person.name}
                       </span>
                     ))}
                   </div>
                 ) : null}
 
-                <div className="mt-3 grid grid-cols-3 divide-x divide-stone-100 rounded-xl bg-stone-50 py-2 text-center">
+                <div className="mt-3 grid grid-cols-3 divide-x divide-stone-100 dark:divide-stone-700 rounded-xl bg-stone-50 dark:bg-stone-800/60 py-2 text-center">
                   <div>
-                    <div className="text-[10px] text-stone-400">故事评分</div>
-                    <div className="mt-0.5 font-mono text-xs font-bold text-stone-800">{totalScore || '—'}{totalScore ? '/10' : ''}</div>
+                    <div className="text-[10px] text-stone-400 dark:text-stone-500">故事评分</div>
+                    <div className="mt-0.5 font-mono text-xs font-bold text-stone-800 dark:text-stone-200">{totalScore || '—'}{totalScore ? '/10' : ''}</div>
                   </div>
                   <div>
-                    <div className="text-[10px] text-stone-400">文案字数</div>
-                    <div className="mt-0.5 font-mono text-xs font-bold text-stone-800">{(topic.draft_word_count || 0).toLocaleString()}</div>
+                    <div className="text-[10px] text-stone-400 dark:text-stone-500">文案字数</div>
+                    <div className="mt-0.5 font-mono text-xs font-bold text-stone-800 dark:text-stone-200">{(topic.draft_word_count || 0).toLocaleString()}</div>
                   </div>
                   <div>
-                    <div className="text-[10px] text-stone-400">预估时长</div>
-                    <div className="mt-0.5 font-mono text-xs font-bold text-stone-800">{minutes} 分钟</div>
+                    <div className="text-[10px] text-stone-400 dark:text-stone-500">预估时长</div>
+                    <div className="mt-0.5 font-mono text-xs font-bold text-stone-800 dark:text-stone-200">{minutes} 分钟</div>
                   </div>
                 </div>
 
-                <div className="mt-3 flex items-center justify-end gap-2 border-t border-stone-100 pt-3">
+                <div className="mt-3 flex items-center justify-end gap-2 border-t border-stone-100 dark:border-stone-800 pt-3">
                   {archiveScope === 'trash' ? (
                     <>
                       <button
                         onClick={() => void restoreTopic(topic.id)}
-                        className="flex min-h-10 items-center gap-1.5 rounded-xl border border-emerald-200 px-3 text-xs font-semibold text-emerald-700"
+                        className="flex min-h-10 items-center gap-1.5 rounded-xl border border-emerald-200 dark:border-emerald-800 px-3 text-xs font-semibold text-emerald-700 dark:text-emerald-300"
                       >
                         <RotateCcw className="h-4 w-4" /> 恢复选题
                       </button>
@@ -650,7 +650,7 @@ export const TopicTableView: React.FC<TopicTableViewProps> = ({
                             void permanentlyDeleteTopic(topic.id);
                           }
                         }}
-                        className="flex min-h-10 items-center gap-1.5 rounded-xl border border-red-200 px-3 text-xs font-semibold text-red-600"
+                        className="flex min-h-10 items-center gap-1.5 rounded-xl border border-red-200 dark:border-red-800 px-3 text-xs font-semibold text-red-600 dark:text-red-300"
                       >
                         <Trash2 className="h-4 w-4" /> 永久删除
                       </button>
@@ -658,14 +658,14 @@ export const TopicTableView: React.FC<TopicTableViewProps> = ({
                   ) : isArchived ? (
                     <button
                       onClick={() => void updateTopicStatus(topic.id, 'approved')}
-                      className="flex min-h-10 items-center gap-1.5 rounded-xl border border-emerald-200 px-3 text-xs font-semibold text-emerald-700"
+                      className="flex min-h-10 items-center gap-1.5 rounded-xl border border-emerald-200 dark:border-emerald-800 px-3 text-xs font-semibold text-emerald-700 dark:text-emerald-300"
                     >
                       <RotateCcw className="h-4 w-4" /> 恢复立项
                     </button>
                   ) : (
                     <button
                       onClick={() => setArchiveTopicId(topic.id)}
-                      className="flex min-h-10 items-center gap-1.5 rounded-xl border border-stone-200 px-3 text-xs font-semibold text-stone-600"
+                      className="flex min-h-10 items-center gap-1.5 rounded-xl border border-stone-200 dark:border-stone-700 px-3 text-xs font-semibold text-stone-600 dark:text-stone-300"
                     >
                       <Archive className="h-4 w-4" /> 归档
                     </button>
@@ -682,7 +682,7 @@ export const TopicTableView: React.FC<TopicTableViewProps> = ({
                         void deleteTopic(topic.id);
                       }
                     }}
-                    className="flex h-10 w-10 items-center justify-center rounded-xl border border-red-100 text-red-500"
+                    className="flex h-10 w-10 items-center justify-center rounded-xl border border-red-100 dark:border-red-900/60 text-red-500 dark:text-red-400"
                     title="移入回收站"
                   >
                     <Trash2 className="h-4 w-4" />
@@ -693,7 +693,7 @@ export const TopicTableView: React.FC<TopicTableViewProps> = ({
           })}
 
           {sortedTopics.length === 0 && (
-            <div className="py-16 text-center text-sm text-stone-400">
+            <div className="py-16 text-center text-sm text-stone-400 dark:text-stone-500">
               {archiveScope === 'trash' ? '回收站为空' : archiveScope === 'archived' ? '归档库暂无已发布或搁置的选题' : '暂无匹配的选题数据'}
             </div>
           )}
@@ -942,10 +942,10 @@ export const TopicTableView: React.FC<TopicTableViewProps> = ({
                           value={editingAction}
                           onChange={(event) => setEditingAction(event.target.value)}
                           onKeyDown={(event) => { if (event.key === 'Escape') setEditingActionId(null); }}
-                          className="min-w-0 flex-1 rounded-md border border-rose-300 bg-white px-2 py-1 text-[11px] text-stone-800 outline-none focus:ring-2 focus:ring-rose-100"
+                          className="min-w-0 flex-1 rounded-md border border-rose-300 dark:border-rose-700 bg-white dark:bg-stone-800 px-2 py-1 text-[11px] text-stone-800 dark:text-stone-200 outline-none focus:ring-2 focus:ring-rose-100 dark:focus:ring-rose-900/50"
                           aria-label={`编辑「${topic.title}」的下一步行动`}
                         />
-                        <button type="submit" className="rounded px-1.5 py-1 text-[10px] font-bold text-rose-700 hover:bg-rose-50">保存</button>
+                        <button type="submit" className="rounded px-1.5 py-1 text-[10px] font-bold text-rose-700 dark:text-rose-300 hover:bg-rose-50 dark:hover:bg-rose-950/40">保存</button>
                       </form>
                     ) : topic.next_action ? (
                       <button
@@ -1104,7 +1104,7 @@ export const TopicTableView: React.FC<TopicTableViewProps> = ({
 
             {sortedTopics.length === 0 && (
               <tr>
-                <td colSpan={4 + visibleColumns.length} className="py-16 text-center text-stone-400 text-sm">
+                <td colSpan={4 + visibleColumns.length} className="py-16 text-center text-stone-400 dark:text-stone-500 text-sm">
                   {archiveScope === 'trash' ? '回收站为空' : archiveScope === 'archived' ? '归档库暂无已发布或搁置的选题' : '暂无匹配的选题数据'}
                 </td>
               </tr>
@@ -1114,26 +1114,26 @@ export const TopicTableView: React.FC<TopicTableViewProps> = ({
       </div>
 
       {/* Table Summary Footer */}
-      <div className="hidden p-3.5 bg-stone-50 border-t border-stone-200 md:flex items-center justify-between text-xs text-stone-500 font-medium shrink-0 flex-wrap gap-2">
+      <div className="hidden p-3.5 bg-stone-50 dark:bg-stone-900/90 border-t border-stone-200 dark:border-stone-800 md:flex items-center justify-between text-xs text-stone-500 dark:text-stone-400 font-medium shrink-0 flex-wrap gap-2">
         <div className="flex items-center gap-4">
-          <span>当前页：<strong className="text-stone-900 font-mono">{sortedTopics.length}</strong> 个选题</span>
+          <span>当前页：<strong className="text-stone-900 dark:text-stone-100 font-mono">{sortedTopics.length}</strong> 个选题</span>
           <span>•</span>
-          <span>全库活跃生产：<strong className="text-indigo-700 font-mono">{inScriptingCount}</strong> 篇</span>
+          <span>全库活跃生产：<strong className="text-indigo-700 dark:text-indigo-300 font-mono">{inScriptingCount}</strong> 篇</span>
           <span>•</span>
-          <span>全库累计文案：<strong className="text-stone-900 font-mono">{totalWords.toLocaleString()}</strong> 字</span>
+          <span>全库累计文案：<strong className="text-stone-900 dark:text-stone-100 font-mono">{totalWords.toLocaleString()}</strong> 字</span>
         </div>
 
         <div className="flex items-center gap-2">
-          <button type="button" disabled={page <= 1 || pageQuery.isFetching} onClick={() => setPage((value) => Math.max(1, value - 1))} className="rounded-lg border border-stone-200 bg-white px-2.5 py-1.5 disabled:opacity-40">上一页</button>
+          <button type="button" disabled={page <= 1 || pageQuery.isFetching} onClick={() => setPage((value) => Math.max(1, value - 1))} className="rounded-lg border border-stone-200 dark:border-stone-700 bg-white dark:bg-stone-800 text-stone-700 dark:text-stone-200 px-2.5 py-1.5 disabled:opacity-40">上一页</button>
           <span className="font-mono">{page} / {Math.max(1, pageQuery.data?.total_pages || 1)} · 共 {pageQuery.data?.total || 0} 条</span>
-          <button type="button" disabled={page >= (pageQuery.data?.total_pages || 1) || pageQuery.isFetching} onClick={() => setPage((value) => value + 1)} className="rounded-lg border border-stone-200 bg-white px-2.5 py-1.5 disabled:opacity-40">下一页</button>
+          <button type="button" disabled={page >= (pageQuery.data?.total_pages || 1) || pageQuery.isFetching} onClick={() => setPage((value) => value + 1)} className="rounded-lg border border-stone-200 dark:border-stone-700 bg-white dark:bg-stone-800 text-stone-700 dark:text-stone-200 px-2.5 py-1.5 disabled:opacity-40">下一页</button>
         </div>
       </div>
 
-      <div className="flex items-center justify-center gap-2 border-t border-stone-200 bg-stone-50 p-3 text-xs md:hidden">
-        <button type="button" disabled={page <= 1 || pageQuery.isFetching} onClick={() => setPage((value) => Math.max(1, value - 1))} className="rounded-lg border border-stone-200 bg-white px-3 py-2 disabled:opacity-40">上一页</button>
-        <span className="font-mono text-stone-500">{page} / {Math.max(1, pageQuery.data?.total_pages || 1)}</span>
-        <button type="button" disabled={page >= (pageQuery.data?.total_pages || 1) || pageQuery.isFetching} onClick={() => setPage((value) => value + 1)} className="rounded-lg border border-stone-200 bg-white px-3 py-2 disabled:opacity-40">下一页</button>
+      <div className="flex items-center justify-center gap-2 border-t border-stone-200 dark:border-stone-800 bg-stone-50 dark:bg-stone-900/90 p-3 text-xs md:hidden">
+        <button type="button" disabled={page <= 1 || pageQuery.isFetching} onClick={() => setPage((value) => Math.max(1, value - 1))} className="rounded-lg border border-stone-200 dark:border-stone-700 bg-white dark:bg-stone-800 text-stone-700 dark:text-stone-200 px-3 py-2 disabled:opacity-40">上一页</button>
+        <span className="font-mono text-stone-500 dark:text-stone-400">{page} / {Math.max(1, pageQuery.data?.total_pages || 1)}</span>
+        <button type="button" disabled={page >= (pageQuery.data?.total_pages || 1) || pageQuery.isFetching} onClick={() => setPage((value) => value + 1)} className="rounded-lg border border-stone-200 dark:border-stone-700 bg-white dark:bg-stone-800 text-stone-700 dark:text-stone-200 px-3 py-2 disabled:opacity-40">下一页</button>
       </div>
 
       {archiveTopicId && (
@@ -1145,11 +1145,11 @@ export const TopicTableView: React.FC<TopicTableViewProps> = ({
             role="dialog"
             aria-modal="true"
             aria-labelledby="archive-dialog-title"
-            className="w-full max-w-sm rounded-2xl border border-stone-200 bg-white p-5 shadow-modal"
+            className="w-full max-w-sm rounded-2xl border border-stone-200 dark:border-stone-800 bg-white dark:bg-stone-900 p-5 shadow-modal"
             onClick={(event) => event.stopPropagation()}
           >
-            <h3 id="archive-dialog-title" className="text-base font-bold text-stone-900">归档选题</h3>
-            <p className="mt-1 text-xs leading-relaxed text-stone-500">请选择归档状态；取消不会修改当前选题。</p>
+            <h3 id="archive-dialog-title" className="text-base font-bold text-stone-900 dark:text-stone-100">归档选题</h3>
+            <p className="mt-1 text-xs leading-relaxed text-stone-500 dark:text-stone-400">请选择归档状态；取消不会修改当前选题。</p>
             <div className="mt-4 grid grid-cols-2 gap-2">
               <button
                 onClick={() => {
@@ -1174,7 +1174,7 @@ export const TopicTableView: React.FC<TopicTableViewProps> = ({
             </div>
             <button
               onClick={() => setArchiveTopicId(null)}
-              className="mt-2 w-full rounded-xl border border-stone-200 px-3 py-2 text-sm font-semibold text-stone-600 transition-colors hover:bg-stone-50"
+              className="mt-2 w-full rounded-xl border border-stone-200 dark:border-stone-700 px-3 py-2 text-sm font-semibold text-stone-600 dark:text-stone-300 transition-colors hover:bg-stone-50 dark:hover:bg-stone-800"
             >
               取消
             </button>

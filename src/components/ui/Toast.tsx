@@ -50,10 +50,10 @@ export const ToastProvider: React.FC<React.PropsWithChildren> = ({ children }) =
         {items.map((item) => {
           const Icon = item.tone === 'error' ? XCircle : item.tone === 'info' ? Info : CheckCircle2;
           const toneClass = item.tone === 'error'
-            ? 'border-red-200 bg-red-50 text-red-900'
+            ? 'border-red-200 dark:border-red-900/60 bg-red-50 dark:bg-red-950/40 text-red-900 dark:text-red-200'
             : item.tone === 'info'
-              ? 'border-stone-200 bg-white text-stone-900'
-              : 'border-emerald-200 bg-emerald-50 text-emerald-900';
+              ? 'border-stone-200 dark:border-stone-800 bg-white dark:bg-stone-900 text-stone-900 dark:text-stone-100'
+              : 'border-emerald-200 dark:border-emerald-900/60 bg-emerald-50 dark:bg-emerald-950/40 text-emerald-900 dark:text-emerald-200';
           return (
             <div key={item.id} role="status" className={`pointer-events-auto toast-slide-in flex w-full items-center gap-2 rounded-xl border px-3 py-2.5 text-sm shadow-card-hover backdrop-blur transition-all ${toneClass}`}>
               <Icon className="h-4 w-4 shrink-0 animate-pop" />

@@ -222,7 +222,7 @@ export const CustomSelect: React.FC<CustomSelectProps> = ({
         className={`flex items-center justify-between font-medium transition-all cursor-pointer ${sizeClasses[size]} ${
           disabled
             ? 'opacity-50 cursor-not-allowed bg-stone-100 dark:bg-stone-800 text-stone-400 border border-stone-200/60 dark:border-stone-700/60'
-            : 'bg-white dark:bg-stone-850 hover:bg-stone-50 dark:hover:bg-stone-800 text-stone-800 dark:text-stone-200 border border-stone-200/70 dark:border-stone-700/60 shadow-2xs hover:shadow-xs focus:outline-none focus:ring-2 focus:ring-rose-500/20'
+            : 'bg-white dark:bg-stone-800 hover:bg-stone-50 dark:hover:bg-stone-700 text-stone-800 dark:text-stone-200 border border-stone-200/70 dark:border-stone-700/60 shadow-2xs hover:shadow-xs focus:outline-none focus:ring-2 focus:ring-rose-500/20'
         } ${buttonClassName}`}
       >
         <div className="flex items-center gap-1.5 min-w-0 truncate">

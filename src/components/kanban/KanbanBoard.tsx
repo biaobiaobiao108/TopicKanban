@@ -618,11 +618,11 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
         </div>
 
         {dragSortNotice && (
-          <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-amber-50 border border-amber-200 text-amber-800 text-xs">
+          <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-900/60 text-amber-800 dark:text-amber-200 text-xs">
             <span>已切换到「看板自定义排序」，拖拽后的位置将按卡片顺序保存</span>
             <button
               onClick={() => setDragSortNotice(false)}
-              className="ml-auto shrink-0 font-semibold hover:text-amber-950 cursor-pointer"
+              className="ml-auto shrink-0 font-semibold hover:text-amber-950 dark:hover:text-amber-100 cursor-pointer"
               aria-label="关闭提示"
             >
               知道了
@@ -631,12 +631,12 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
         )}
 
         {(wipWarnings.length > 0 || stagnantTopics.length > 0) && (
-          <div className="rounded-xl border border-amber-200 bg-amber-50 p-3 sm:p-4">
+          <div className="rounded-xl border border-amber-200 dark:border-amber-900/60 bg-amber-50 dark:bg-amber-950/40 p-3 sm:p-4">
             <div className="flex items-start gap-3">
-              <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-amber-700" />
+              <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-amber-700 dark:text-amber-300" />
               <div className="min-w-0 flex-1">
-                <div className="text-xs font-bold text-amber-900">在制品提醒：先收尾，再开新坑</div>
-                <div className="mt-1 flex flex-wrap gap-x-4 gap-y-1 text-xs text-amber-800">
+                <div className="text-xs font-bold text-amber-900 dark:text-amber-200">在制品提醒：先收尾，再开新坑</div>
+                <div className="mt-1 flex flex-wrap gap-x-4 gap-y-1 text-xs text-amber-800 dark:text-amber-200">
                   {wipWarnings.map((warning) => <span key={warning}>{warning}</span>)}
                   {stagnantTopics.length > 0 && <span>{stagnantTopics.length} 个选题已停滞 {staleActionDays} 天以上</span>}
                 </div>
@@ -647,7 +647,7 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
                         key={topic.id}
                         type="button"
                         onClick={() => onOpenDetail(topic.id)}
-                        className="rounded-md border border-amber-200 bg-white px-2 py-1 text-[11px] font-semibold text-stone-700 hover:border-amber-400 hover:text-amber-900 cursor-pointer"
+                        className="rounded-md border border-amber-200 dark:border-amber-900/60 bg-white dark:bg-stone-800 px-2 py-1 text-[11px] font-semibold text-stone-700 dark:text-stone-200 hover:border-amber-400 dark:hover:border-amber-600 hover:text-amber-900 dark:hover:text-amber-200 cursor-pointer"
                       >
                         {topic.title} · {getNextActionAgeDays(topic)} 天
                       </button>

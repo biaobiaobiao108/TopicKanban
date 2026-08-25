@@ -135,7 +135,7 @@ export const ScriptOutlinePanel: React.FC<ScriptOutlinePanelProps> = ({
   return (
     <aside className="script-outline-panel absolute left-3 sm:left-4 top-3 sm:top-4 bottom-3 sm:bottom-4 z-30 flex w-72 sm:w-80 flex-col rounded-2xl bg-white/95 dark:bg-stone-900/95 backdrop-blur-xl border border-stone-200/70 dark:border-stone-800/80 shadow-card animate-in slide-in-from-left duration-200 overflow-hidden">
       {/* Ambient Header */}
-      <div className="flex shrink-0 items-center justify-between gap-2 h-12 px-3.5 border-b border-stone-100 dark:border-stone-800/70 bg-stone-50/50 dark:bg-stone-850/50">
+      <div className="flex shrink-0 items-center justify-between gap-2 h-12 px-3.5 border-b border-stone-100 dark:border-stone-800/70 bg-stone-50/50 dark:bg-stone-800/50">
         <div className="flex items-center gap-2 min-w-0">
           <div className="p-1 rounded-lg bg-rose-50 dark:bg-rose-950/60 text-rose-600 dark:text-rose-400">
             <Compass className="h-3.5 w-3.5 shrink-0" />

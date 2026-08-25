@@ -876,17 +876,17 @@ export const ScriptEditorTab: React.FC<ScriptEditorTabProps> = ({
         {draftConflict && (
           <div className="space-y-4">
             <div className="grid gap-3 sm:grid-cols-2">
-              <div className="rounded-xl border border-rose-200 bg-rose-50 p-4">
-                <div className="font-semibold text-rose-900">当前本地文案</div>
-                <div className="mt-2 text-xs text-stone-600">{latestContentRef.current?.wordCount || 0} 字 · 尚未同步</div>
+              <div className="rounded-xl border border-rose-200 dark:border-rose-900/60 bg-rose-50 dark:bg-rose-950/40 p-4">
+                <div className="font-semibold text-rose-900 dark:text-rose-200">当前本地文案</div>
+                <div className="mt-2 text-xs text-stone-600 dark:text-stone-300">{latestContentRef.current?.wordCount || 0} 字 · 尚未同步</div>
               </div>
-              <div className="rounded-xl border border-stone-200 bg-stone-50 p-4">
-                <div className="font-semibold text-stone-900">云端最新版本</div>
-                <div className="mt-2 text-xs text-stone-600">{draftConflict.word_count} 字 · {new Date(draftConflict.updated_at).toLocaleString()}</div>
+              <div className="rounded-xl border border-stone-200 dark:border-stone-800 bg-stone-50 dark:bg-stone-800/60 p-4">
+                <div className="font-semibold text-stone-900 dark:text-stone-100">云端最新版本</div>
+                <div className="mt-2 text-xs text-stone-600 dark:text-stone-300">{draftConflict.word_count} 字 · {new Date(draftConflict.updated_at).toLocaleString()}</div>
               </div>
             </div>
             <div className="flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
-              <button type="button" onClick={() => void resolveDraftConflict('remote')} className="min-h-11 rounded-lg border border-stone-300 bg-white px-4 py-2 text-sm font-semibold text-stone-700 hover:bg-stone-50">使用云端版本</button>
+              <button type="button" onClick={() => void resolveDraftConflict('remote')} className="min-h-11 rounded-lg border border-stone-300 dark:border-stone-700 bg-white dark:bg-stone-800 px-4 py-2 text-sm font-semibold text-stone-700 dark:text-stone-200 hover:bg-stone-50 dark:hover:bg-stone-700">使用云端版本</button>
               <button type="button" onClick={() => void resolveDraftConflict('local')} className="min-h-11 rounded-lg bg-rose-600 px-4 py-2 text-sm font-semibold text-white hover:bg-rose-700">保留本地文案</button>
             </div>
           </div>
@@ -1011,7 +1011,7 @@ export const ScriptEditorTab: React.FC<ScriptEditorTabProps> = ({
               </button>
 
               {isCueMenuOpen && (
-                <div className="absolute right-0 top-full mt-1.5 w-56 bg-white dark:bg-stone-850 rounded-2xl border border-stone-200 dark:border-stone-700 p-2.5 shadow-xl z-50 animate-in fade-in zoom-in-95 duration-100 font-sans">
+                <div className="absolute right-0 top-full mt-1.5 w-56 bg-white dark:bg-stone-800 rounded-2xl border border-stone-200 dark:border-stone-700 p-2.5 shadow-xl z-50 animate-in fade-in zoom-in-95 duration-100 font-sans">
                   <div className="flex items-center justify-between text-[10px] font-bold text-stone-400 dark:text-stone-500 px-1 py-0.5 uppercase tracking-wider border-b border-stone-100 dark:border-stone-800 pb-1.5 mb-1.5">
                     <div className="flex items-center gap-1 text-rose-600 dark:text-rose-400">
                       <Mic className="w-3 h-3" />
@@ -1159,7 +1159,7 @@ export const ScriptEditorTab: React.FC<ScriptEditorTabProps> = ({
                 type="button"
                 onClick={toggleOutlinePanel}
                 aria-label="展开/收起文案大纲"
-                className="flex items-center gap-1.5 rounded-2xl border px-3.5 py-2 text-xs font-semibold backdrop-blur-xl shadow-lg transition-all cursor-pointer hover:scale-[1.03] active:scale-[0.98] bg-white/90 dark:bg-stone-900/90 border-stone-200/80 dark:border-stone-700/80 text-stone-700 dark:text-stone-200 hover:bg-white dark:hover:bg-stone-850"
+                className="flex items-center gap-1.5 rounded-2xl border px-3.5 py-2 text-xs font-semibold backdrop-blur-xl shadow-lg transition-all cursor-pointer hover:scale-[1.03] active:scale-[0.98] bg-white/90 dark:bg-stone-900/90 border-stone-200/80 dark:border-stone-700/80 text-stone-700 dark:text-stone-200 hover:bg-white dark:hover:bg-stone-800"
                 title="大纲章节快速定位"
               >
                 <Compass className="h-4 w-4 text-rose-500" />
@@ -1195,7 +1195,7 @@ export const ScriptEditorTab: React.FC<ScriptEditorTabProps> = ({
                 type="button"
                 onClick={toggleReferencePanel}
                 aria-label="展开/收起事实参考"
-                className="flex items-center gap-1.5 px-3.5 py-2 rounded-2xl text-xs font-semibold border backdrop-blur-xl shadow-lg transition-all cursor-pointer hover:scale-[1.03] active:scale-[0.98] bg-white/90 dark:bg-stone-900/90 border-stone-200/80 dark:border-stone-700/80 text-stone-700 dark:text-stone-200 hover:bg-white dark:hover:bg-stone-850"
+                className="flex items-center gap-1.5 px-3.5 py-2 rounded-2xl text-xs font-semibold border backdrop-blur-xl shadow-lg transition-all cursor-pointer hover:scale-[1.03] active:scale-[0.98] bg-white/90 dark:bg-stone-900/90 border-stone-200/80 dark:border-stone-700/80 text-stone-700 dark:text-stone-200 hover:bg-white dark:hover:bg-stone-800"
                 title="展开/收起边写边看事实参考抽屉"
               >
                 <BookOpen className="w-3.5 h-3.5 text-rose-500" />

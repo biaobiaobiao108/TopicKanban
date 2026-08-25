@@ -40,3 +40,48 @@ test('workspace login, keyboard select and modal semantics work', async ({ page 
   await page.keyboard.press('Escape');
   expect(pageErrors).toEqual([]);
 });
+
+test('dark theme keeps kanban selects and database pagination readable', async ({ page }) => {
+  const pageErrors: Error[] = [];
+  page.on('pageerror', (error) => pageErrors.push(error));
+
+  await page.goto('/');
+  await page.locator('input[name="password"]').fill('admin');
+  await page.getByRole('button', { name: '进入工作台' }).click();
+  await expect(page).toHaveURL(/\/today$/);
+
+  await page.goto('/settings');
+  await expect(page.getByRole('heading', { name: '偏好设置与数据管理' })).toBeVisible();
+  await page.getByRole('button', { name: /深色专注/ }).click();
+  await page.getByRole('button', { name: '保存全部偏好设置' }).click();
+  await expect(page.locator('html')).toHaveClass(/dark/);
+
+  await page.goto('/kanban');
+  await expect(page.getByRole('heading', { name: '选题全景看板' })).toBeVisible();
+  await expect(page.locator('html')).toHaveClass(/dark/);
+  for (const label of ['优先级筛选', '标签筛选', '看板排序方式']) {
+    const select = page.getByRole('combobox', { name: label });
+    await expect(select).toBeVisible();
+    await expect.poll(async () => select.evaluate((element) => getComputedStyle(element).backgroundColor)).not.toBe('rgb(255, 255, 255)');
+  }
+
+  const prioritySelect = page.getByRole('combobox', { name: '优先级筛选' });
+  await prioritySelect.press('Enter');
+  const listbox = page.getByRole('listbox');
+  await expect(listbox).toBeVisible();
+  await expect.poll(async () => listbox.evaluate((element) => getComputedStyle(element.parentElement || element).backgroundColor)).not.toBe('rgb(255, 255, 255)');
+  await page.keyboard.press('Escape');
+
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.goto('/database');
+  await expect(page.getByRole('heading', { name: '选题库' })).toBeVisible();
+  const mobilePaginationButton = page.getByRole('button', { name: '上一页' }).last();
+  await expect(mobilePaginationButton).toBeVisible();
+  await expect.poll(async () => mobilePaginationButton.evaluate((element) => getComputedStyle(element.parentElement || element).backgroundColor)).not.toBe('rgb(245, 245, 244)');
+  const mobileCard = page.locator('article').first();
+  if (await mobileCard.count()) {
+    await expect.poll(async () => mobileCard.evaluate((element) => getComputedStyle(element).backgroundColor)).not.toBe('rgb(255, 255, 255)');
+  }
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth)).toBe(true);
+  expect(pageErrors).toEqual([]);
+});
