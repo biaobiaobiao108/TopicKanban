@@ -181,3 +181,31 @@ test('文案标题保留可访问名称且不显示静态发布包说明', async
   await expect(page.getByLabel('文案标题')).toHaveValue('文案创作标题：真正应该发布的版本');
   await expect(page.getByText('发布包会读取这里的标题；如果留空，将回退到选题标题。')).toHaveCount(0);
 });
+
+test('发布包滚动到底部不会产生文档级溢出', async ({ page }) => {
+  await mockWorkspace(page);
+  await login(page);
+  await page.goto(`/topics/${topic.id}?tab=publish`);
+
+  await page.locator('div.relative.flex-1.overflow-y-auto').evaluate((element) => {
+    element.scrollTop = element.scrollHeight;
+  });
+  const metrics = await page.evaluate(() => {
+    const scroller = document.querySelector<HTMLElement>('div.relative.flex-1.overflow-y-auto');
+    return {
+      documentScrollHeight: document.documentElement.scrollHeight,
+      documentClientHeight: document.documentElement.clientHeight,
+      scrollY: window.scrollY,
+      scrollerScrollTop: scroller?.scrollTop || 0,
+      scrollerScrollHeight: scroller?.scrollHeight || 0,
+      scrollerClientHeight: scroller?.clientHeight || 0,
+      overscrollBehavior: scroller ? getComputedStyle(scroller).overscrollBehaviorY : '',
+    };
+  });
+
+  expect(metrics.documentScrollHeight).toBe(metrics.documentClientHeight);
+  expect(metrics.scrollY).toBe(0);
+  expect(metrics.scrollerScrollTop).toBeGreaterThan(0);
+  expect(Math.abs(metrics.scrollerScrollHeight - metrics.scrollerClientHeight - metrics.scrollerScrollTop)).toBeLessThan(2);
+  expect(metrics.overscrollBehavior).toBe('contain');
+});

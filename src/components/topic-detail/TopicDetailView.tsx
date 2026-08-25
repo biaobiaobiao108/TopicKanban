@@ -464,10 +464,10 @@ export const TopicDetailView: React.FC<TopicDetailViewProps> = ({
 
       {/* Tab Content Container */}
       <div
-        className={`flex-1 ${
+        className={`relative flex-1 ${
           activeTab === 'script'
             ? 'overflow-hidden flex flex-col'
-            : 'overflow-y-auto px-4 sm:px-8 pb-24 md:pb-12'
+            : 'overflow-y-auto overscroll-contain px-4 sm:px-8 pb-24 md:pb-12'
         }`}
       >
         {operationError && (
