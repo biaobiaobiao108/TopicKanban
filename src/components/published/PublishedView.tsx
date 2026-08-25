@@ -1,4 +1,5 @@
 import React, { useState, useRef, useMemo, useEffect } from 'react';
+import { keepPreviousData, useQuery, useQueryClient } from '@tanstack/react-query';
 import { PublishedVideo, Topic } from '../../types';
 import { Modal } from '../ui/Modal';
 import { useToast } from '../ui/Toast';
@@ -30,13 +31,13 @@ import {
 } from 'lucide-react';
 import { calculateDeepMetrics } from '../../lib/videoAnalytics';
 import { sanitizeExternalHttpUrl } from '../../lib/urlSafety';
+import { fetchPublishedVideoPage, fetchPublishedVideos, fetchTopicPage } from '../../lib/storage';
 
 const AnalyticsDashboard = React.lazy(() =>
   import('./AnalyticsDashboard').then((m) => ({ default: m.AnalyticsDashboard }))
 );
 
 interface PublishedViewProps {
-  publishedList: PublishedVideo[];
   topics: Topic[];
   onSavePublished: (videoData: Partial<PublishedVideo> & { title: string; topic_id?: string | null }) => Promise<void>;
   onDeletePublished: (id: string) => Promise<void>;
@@ -44,16 +45,48 @@ interface PublishedViewProps {
 }
 
 export const PublishedView: React.FC<PublishedViewProps> = ({
-  publishedList,
   topics,
   onSavePublished,
   onDeletePublished,
   onSelectTopic,
 }) => {
   const { showToast } = useToast();
+  const queryClient = useQueryClient();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingVideo, setEditingVideo] = useState<PublishedVideo | null>(null);
   const [viewMode, setViewMode] = useState<'cards' | 'analytics'>('cards');
+  const [page, setPage] = useState(1);
+  const [formPublished, setFormPublished] = useState<PublishedVideo[]>([]);
+  const [topicOptions, setTopicOptions] = useState<Topic[]>(topics);
+  const [analyticsVideos, setAnalyticsVideos] = useState<PublishedVideo[] | null>(null);
+  const [isLoadingAnalytics, setIsLoadingAnalytics] = useState(false);
+  const pageQuery = useQuery({
+    queryKey: ['published-page', page],
+    queryFn: () => fetchPublishedVideoPage(page, 30),
+    placeholderData: keepPreviousData,
+  });
+  const pageItems = pageQuery.data?.items || [];
+  const totalPublished = pageQuery.data?.total || 0;
+
+  useEffect(() => {
+    if (viewMode !== 'analytics' || analyticsVideos) return;
+    let active = true;
+    setIsLoadingAnalytics(true);
+    void Promise.all([
+      fetchPublishedVideos(),
+      fetchTopicPage({ scope: 'all', page: 1, page_size: 100, q: '' }),
+    ])
+      .then(([videos, topicPage]) => {
+        if (active) {
+          setAnalyticsVideos(videos);
+          setTopicOptions(topicPage.items);
+        }
+      })
+      .finally(() => {
+        if (active) setIsLoadingAnalytics(false);
+      });
+    return () => { active = false; };
+  }, [viewMode, analyticsVideos]);
 
   // Form State
   const [topicId, setTopicId] = useState('');
@@ -87,18 +120,24 @@ export const PublishedView: React.FC<PublishedViewProps> = ({
     if (bulkSyncTimerRef.current) clearTimeout(bulkSyncTimerRef.current);
   }, []);
 
-  const topicMap = useMemo(() => new Map(topics.map((t) => [t.id, t])), [topics]);
+  const refreshPublishedQueries = async () => {
+    setAnalyticsVideos(null);
+    await queryClient.invalidateQueries({ queryKey: ['published-page'] });
+  };
+
+  const topicMap = useMemo(() => new Map([...topics, ...topicOptions].map((t) => [t.id, t])), [topics, topicOptions]);
+  const availableTopics = topicOptions.length > 0 ? topicOptions : topics;
 
   // Filter out topics that are already linked to other published videos
   const selectableTopics = useMemo(() => {
     const usedTopicIds = new Set(
-      publishedList
+      formPublished
         .filter((v) => (editingVideo ? v.id !== editingVideo.id : true))
         .map((v) => v.topic_id)
         .filter(Boolean)
     );
-    return topics.filter((t) => !usedTopicIds.has(t.id));
-  }, [publishedList, editingVideo, topics]);
+    return availableTopics.filter((t) => !usedTopicIds.has(t.id));
+  }, [availableTopics, formPublished, editingVideo]);
 
   // Filter selectable topics by search query
   const filteredSelectableTopics = useMemo(() => {
@@ -113,10 +152,14 @@ export const PublishedView: React.FC<PublishedViewProps> = ({
     });
   }, [selectableTopics, topicSearchQuery]);
 
-  const openAddModal = () => {
+  const openAddModal = async () => {
     setEditingVideo(null);
-    const usedTopicIds = new Set(publishedList.map((v) => v.topic_id).filter(Boolean));
-    const available = topics.filter((t) => !usedTopicIds.has(t.id));
+    const existingPublished = await fetchPublishedVideos();
+    setFormPublished(existingPublished);
+    const usedTopicIds = new Set(existingPublished.map((v) => v.topic_id).filter(Boolean));
+    const topicPage = await fetchTopicPage({ scope: 'all', page: 1, page_size: 100, q: '' });
+    setTopicOptions(topicPage.items);
+    const available = topicPage.items.filter((t) => !usedTopicIds.has(t.id));
     const defaultTopic = available[0] || null;
 
     setTopicId(defaultTopic?.id || '');
@@ -137,7 +180,9 @@ export const PublishedView: React.FC<PublishedViewProps> = ({
     setIsModalOpen(true);
   };
 
-  const openEditModal = (v: PublishedVideo) => {
+  const openEditModal = async (v: PublishedVideo) => {
+    const topicPage = await fetchTopicPage({ scope: 'all', page: 1, page_size: 100, q: '' });
+    setTopicOptions(topicPage.items);
     setEditingVideo(v);
     setTopicId(v.topic_id || '');
     setTitle(v.title);
@@ -222,6 +267,7 @@ export const PublishedView: React.FC<PublishedViewProps> = ({
         notes: notes.trim(),
         topic_title: matchedTopic?.title || null,
       });
+      await refreshPublishedQueries();
       setIsModalOpen(false);
     } catch (error) {
       setSubmitError(error instanceof Error ? error.message : '归档失败，请稍后重试');
@@ -255,6 +301,7 @@ export const PublishedView: React.FC<PublishedViewProps> = ({
         topic_title: video.topic_title || matchedTopic?.title || '',
         updated_at: new Date().toISOString(),
       });
+      await refreshPublishedQueries();
     } catch (err) {
       showToast({ message: `同步「${video.title}」失败: ${err instanceof Error ? err.message : '未知错误'}`, tone: 'error' });
     } finally {
@@ -264,7 +311,7 @@ export const PublishedView: React.FC<PublishedViewProps> = ({
 
   // Bulk sync all videos with BV id
   const handleBulkSyncAll = async () => {
-    const syncable = publishedList.filter((v) => extractBvid(v.bvid || v.url));
+    const syncable = pageItems.filter((v) => extractBvid(v.bvid || v.url));
     if (syncable.length === 0) {
       showToast({ message: '没有找到包含有效 BV 号的已发布视频', tone: 'info' });
       return;
@@ -306,6 +353,7 @@ export const PublishedView: React.FC<PublishedViewProps> = ({
     }
 
     setIsBulkSyncing(false);
+    await refreshPublishedQueries();
     setBulkSyncMessage(`同步完成：成功 ${successCount} 个${failCount > 0 ? `，失败 ${failCount} 个` : ''}`);
     if (bulkSyncTimerRef.current) clearTimeout(bulkSyncTimerRef.current);
     bulkSyncTimerRef.current = setTimeout(() => setBulkSyncMessage(null), 4000);
@@ -318,7 +366,7 @@ export const PublishedView: React.FC<PublishedViewProps> = ({
     return num.toLocaleString();
   };
 
-  const syncableCount = publishedList.filter((v) => extractBvid(v.bvid || v.url)).length;
+  const syncableCount = pageItems.filter((v) => extractBvid(v.bvid || v.url)).length;
 
   return (
     <div className="flex-1 w-full h-full overflow-y-auto transition-colors">
@@ -369,7 +417,7 @@ export const PublishedView: React.FC<PublishedViewProps> = ({
             }`}
           >
             <Film className="w-3.5 h-3.5" />
-            <span>视频卡片流 ({publishedList.length})</span>
+            <span>视频卡片流 ({totalPublished})</span>
           </button>
           <button
             type="button"
@@ -399,6 +447,12 @@ export const PublishedView: React.FC<PublishedViewProps> = ({
 
         {/* Conditional View: Analytics Dashboard vs Cards Grid */}
         {viewMode === 'analytics' ? (
+          isLoadingAnalytics || !analyticsVideos ? (
+            <div className="flex items-center justify-center p-16 text-stone-400 dark:text-stone-500">
+              <Loader2 className="w-6 h-6 animate-spin text-rose-600 dark:text-rose-400 mr-2" />
+              <span className="text-sm">正在载入全量复盘数据...</span>
+            </div>
+          ) : (
           <React.Suspense
             fallback={
               <div className="flex items-center justify-center p-16 text-stone-400 dark:text-stone-500">
@@ -408,15 +462,16 @@ export const PublishedView: React.FC<PublishedViewProps> = ({
             }
           >
             <AnalyticsDashboard
-              publishedList={publishedList}
-              topics={topics}
+              publishedList={analyticsVideos || []}
+              topics={topicOptions}
               onSelectTopic={onSelectTopic}
             />
           </React.Suspense>
+          )
         ) : (
           /* Published Cards List */
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-            {publishedList.map((video) => {
+          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5">
+            {pageItems.map((video) => {
               const safeUrl = sanitizeExternalHttpUrl(video.url);
               const hasBvid = !!extractBvid(video.bvid || video.url);
               const isSyncingThis = syncingId === video.id;
@@ -473,9 +528,11 @@ export const PublishedView: React.FC<PublishedViewProps> = ({
                           <Edit2 className="w-4 h-4" />
                         </button>
                         <button
-                          onClick={() => {
+                          onClick={async () => {
                             if (window.confirm(`确定要删除发布归档「${video.title}」吗？`)) {
-                              onDeletePublished(video.id);
+                              await onDeletePublished(video.id);
+                              if (pageItems.length === 1 && page > 1) setPage((current) => current - 1);
+                              await refreshPublishedQueries();
                             }
                           }}
                           className="p-1.5 text-stone-400 dark:text-stone-500 hover:text-red-600 dark:hover:text-red-400 rounded-lg hover:bg-red-50 dark:hover:bg-red-950/40 cursor-pointer transition-colors"
@@ -603,11 +660,29 @@ export const PublishedView: React.FC<PublishedViewProps> = ({
               );
             })}
 
-            {publishedList.length === 0 && (
+            {totalPublished === 0 && (
               <div className="col-span-full p-12 text-center border-2 border-dashed border-stone-200 dark:border-stone-800 rounded-xl bg-white dark:bg-stone-900 text-stone-400 dark:text-stone-500">
                 暂无已发布视频归档，制作完成发布后可在此沉淀播放与互动数据！
               </div>
             )}
+          </div>
+        )}
+
+        {viewMode === 'cards' && totalPublished > 0 && (
+          <div className="flex items-center justify-center gap-3 text-xs text-stone-500 dark:text-stone-400">
+            <button
+              type="button"
+              disabled={page <= 1 || pageQuery.isFetching}
+              onClick={() => setPage((current) => Math.max(1, current - 1))}
+              className="rounded-lg border border-stone-200 bg-white px-3 py-2 font-semibold disabled:cursor-not-allowed disabled:opacity-40 dark:border-stone-700 dark:bg-stone-900"
+            >上一页</button>
+            <span className="font-mono">{page} / {Math.max(1, pageQuery.data?.total_pages || 1)} · 共 {totalPublished} 条</span>
+            <button
+              type="button"
+              disabled={page >= (pageQuery.data?.total_pages || 1) || pageQuery.isFetching}
+              onClick={() => setPage((current) => current + 1)}
+              className="rounded-lg border border-stone-200 bg-white px-3 py-2 font-semibold disabled:cursor-not-allowed disabled:opacity-40 dark:border-stone-700 dark:bg-stone-900"
+            >下一页</button>
           </div>
         )}
 

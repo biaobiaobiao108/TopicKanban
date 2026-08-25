@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect, useMemo } from 'react';
+import { keepPreviousData, useQueries, useQueryClient } from '@tanstack/react-query';
 import {
   DndContext,
   DragOverlay,
@@ -22,6 +23,7 @@ import { KanbanFilters, SortField } from './KanbanFilters';
 import { ACTIVE_COLUMNS } from './columns';
 import { AlertTriangle } from 'lucide-react';
 import { getNextActionAgeDays, isActiveTopic, isNextActionDeferred } from '../../lib/topicMetrics';
+import { fetchTopicPage } from '../../lib/storage';
 
 const activeStatuses: TopicStatus[] = ['inbox', 'approved', 'scripting', 'production'];
 
@@ -111,8 +113,15 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
   searchTerm,
   staleActionDays = 5,
 }) => {
+  const queryClient = useQueryClient();
   const [topicsMap, setTopicsMap] = useState<TopicMap>(() => createTopicMap(topics));
   const [columns, setColumns] = useState<BoardColumns>(() => createColumns(topics));
+  const [columnPages, setColumnPages] = useState<Record<TopicStatus, number>>(() => (
+    Object.fromEntries(activeStatuses.map((status) => [status, 1])) as Record<TopicStatus, number>
+  ));
+  const [loadedTopicsByStatus, setLoadedTopicsByStatus] = useState<Record<TopicStatus, Topic[]>>(() => (
+    Object.fromEntries(activeStatuses.map((status) => [status, []])) as unknown as Record<TopicStatus, Topic[]>
+  ));
   const [activeId, setActiveId] = useState<string | null>(null);
   const [activeCardWidth, setActiveCardWidth] = useState<number | null>(null);
   const snapshotRef = useRef<BoardSnapshot | null>(null);
@@ -126,6 +135,61 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
   const [dragSortNotice, setDragSortNotice] = useState(false);
   const dragNoticeTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
+  const columnQueries = useQueries({
+    queries: activeStatuses.map((status) => ({
+      queryKey: ['kanban-column-page', status, searchTerm, priorityFilter, selectedTagId, selectedPersonId, sortBy, columnPages[status]],
+      queryFn: () => fetchTopicPage({
+        scope: 'active',
+        status,
+        page: columnPages[status],
+        page_size: 30,
+        q: searchTerm,
+        priority: priorityFilter === 'all' ? undefined : priorityFilter,
+        tag_id: selectedTagId === 'all' ? undefined : selectedTagId,
+        person_id: selectedPersonId === 'all' ? undefined : selectedPersonId,
+        sort: sortBy,
+        direction: sortBy === 'sort_order' ? 'asc' : 'desc',
+      }),
+      placeholderData: keepPreviousData,
+    })),
+  });
+
+  useEffect(() => {
+    setColumnPages(Object.fromEntries(activeStatuses.map((status) => [status, 1])) as Record<TopicStatus, number>);
+    setLoadedTopicsByStatus(Object.fromEntries(activeStatuses.map((status) => [status, []])) as unknown as Record<TopicStatus, Topic[]>);
+  }, [searchTerm, priorityFilter, selectedTagId, selectedPersonId, sortBy]);
+
+  useEffect(() => {
+    setLoadedTopicsByStatus((current) => {
+      let changed = false;
+      const next = { ...current };
+      activeStatuses.forEach((status, index) => {
+        const query = columnQueries[index];
+        const items = query?.isPlaceholderData ? undefined : query?.data?.items;
+        if (!items) return;
+        const knownIds = new Set(current[status].map((topic) => topic.id));
+        const additions = items.filter((topic) => !knownIds.has(topic.id));
+        if (additions.length > 0) {
+          next[status] = [...current[status], ...additions];
+          changed = true;
+        }
+      });
+      return changed ? next : current;
+    });
+  }, [columnQueries]);
+
+  const pagedTopics = useMemo(
+    () => activeStatuses.flatMap((status) => loadedTopicsByStatus[status] || []),
+    [loadedTopicsByStatus]
+  );
+  const hasLoadedBoardData = activeStatuses.some((status) => loadedTopicsByStatus[status].length > 0)
+    || columnQueries.some((query) => Boolean(query.data));
+  const boardTopics = hasLoadedBoardData ? pagedTopics : topics;
+  const columnTotalCounts = useMemo(() => Object.fromEntries(activeStatuses.map((status, index) => [
+    status,
+    columnQueries[index]?.data?.total ?? topics.filter((topic) => topic.status === status).length,
+  ])) as Record<TopicStatus, number>, [columnQueries, topics]);
+
   useEffect(() => () => {
     if (dragNoticeTimerRef.current) clearTimeout(dragNoticeTimerRef.current);
   }, []);
@@ -133,10 +197,10 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
   // Sync external topics into local state when not dragging
   useEffect(() => {
     if (!activeId) {
-      setTopicsMap(createTopicMap(topics));
-      setColumns(createColumns(topics));
+      setTopicsMap(createTopicMap(boardTopics));
+      setColumns(createColumns(boardTopics));
     }
-  }, [topics, activeId]);
+  }, [boardTopics, activeId]);
 
   const sensors = useSensors(
     useSensor(PointerSensor, {
@@ -306,6 +370,7 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
 
     try {
       await onReorderTopics(updates);
+      await queryClient.invalidateQueries({ queryKey: ['kanban-column-page'] });
     } catch {
       restoreSnapshot();
     }
@@ -341,6 +406,7 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
 
     try {
       await onReorderTopics(updates);
+      await queryClient.invalidateQueries({ queryKey: ['kanban-column-page'] });
     } catch {
       setColumns(snapshot.columns);
       setTopicsMap(snapshot.topics);
@@ -350,7 +416,7 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
   // WIP and stale action stats
   const approvedCount = (columns.approved || []).length;
   const scriptingCount = (columns.scripting || []).length;
-  const stagnantTopics = topics
+  const stagnantTopics = boardTopics
     .filter((topic) => isActiveTopic(topic) && !isNextActionDeferred(topic) && getNextActionAgeDays(topic) >= staleActionDays)
     .sort((a, b) => getNextActionAgeDays(b) - getNextActionAgeDays(a));
   const wipWarnings = [
@@ -372,7 +438,19 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
     setSortBy('sort_order');
   };
 
-  const totalActiveCount = activeStatuses.reduce((acc, status) => acc + (visibleColumnIds[status] || []).length, 0);
+  const totalActiveCount = activeStatuses.reduce((acc, status) => acc + (columnTotalCounts[status] || 0), 0);
+
+  const loadMoreColumn = (status: TopicStatus) => {
+    setColumnPages((current) => ({ ...current, [status]: current[status] + 1 }));
+  };
+
+  const handleColumnDelete = (topicId: string) => {
+    void Promise.resolve(onDeleteTopic(topicId)).then(() => queryClient.invalidateQueries({ queryKey: ['kanban-column-page'] }));
+  };
+
+  const handleColumnStatusUpdate = (topicId: string, status: TopicStatus) => {
+    void onUpdateTopicStatus(topicId, status).then(() => queryClient.invalidateQueries({ queryKey: ['kanban-column-page'] }));
+  };
 
   return (
     <div className="flex-1 w-full h-full overflow-y-auto px-4 sm:px-6 py-4 space-y-4">
@@ -454,7 +532,7 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
           全部活跃 ({totalActiveCount})
         </button>
         {ACTIVE_COLUMNS.map((col) => {
-          const count = (visibleColumnIds[col.status] || []).length;
+          const count = columnTotalCounts[col.status] || 0;
           const isActive = mobileActiveStage === col.status;
           return (
             <button
@@ -500,10 +578,14 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
                   description={col.description}
                   topics={colTopics}
                   onOpenDetail={onOpenDetail}
-                  onDeleteTopic={onDeleteTopic}
+                  totalCount={columnTotalCounts[col.status] || 0}
+                  hasMore={(columnTotalCounts[col.status] || 0) > (loadedTopicsByStatus[col.status]?.length || colTopics.length)}
+                  isLoadingMore={columnQueries[activeStatuses.indexOf(col.status)]?.isFetching && columnPages[col.status] > 1}
+                  onLoadMore={() => loadMoreColumn(col.status)}
+                  onDeleteTopic={handleColumnDelete}
                   onTogglePin={onTogglePin}
                   onQuickAddTopic={onQuickAddTopic}
-                  onUpdateStatus={onUpdateTopicStatus}
+                  onUpdateStatus={handleColumnStatusUpdate}
                   onKeyboardMove={handleKeyboardMove}
                   sortableDisabled={isDragDisabled}
                   staleThresholdDays={staleActionDays}
@@ -526,10 +608,14 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
                 description={col.description}
                 topics={colTopics}
                 onOpenDetail={onOpenDetail}
-                onDeleteTopic={onDeleteTopic}
+                totalCount={columnTotalCounts[col.status] || 0}
+                hasMore={(columnTotalCounts[col.status] || 0) > (loadedTopicsByStatus[col.status]?.length || colTopics.length)}
+                isLoadingMore={columnQueries[activeStatuses.indexOf(col.status)]?.isFetching && columnPages[col.status] > 1}
+                onLoadMore={() => loadMoreColumn(col.status)}
+                onDeleteTopic={handleColumnDelete}
                 onTogglePin={onTogglePin}
                 onQuickAddTopic={onQuickAddTopic}
-                onUpdateStatus={onUpdateTopicStatus}
+                onUpdateStatus={handleColumnStatusUpdate}
                 onKeyboardMove={handleKeyboardMove}
                 sortableDisabled={isDragDisabled}
                 staleThresholdDays={staleActionDays}

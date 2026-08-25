@@ -21,6 +21,10 @@ import {
   loadTrashedTopics,
   loadTopic,
   loadTopicPage,
+  loadTodayFocus,
+  loadPeoplePage,
+  loadPublishedPage,
+  loadTagsPage,
   permanentlyDeleteTrashedTopics,
   statements,
   TopicNotInTrashError,
@@ -200,20 +204,29 @@ export function createApp() {
       const scopeValue = c.req.query('scope') || 'all';
       if (!isOneOf(scopeValue, ['active', 'archived', 'trash', 'all'])) return c.json({ error: 'Invalid scope' }, 400);
       const status = c.req.query('status');
-      if (status && !isTopicStatus(status)) return c.json({ error: 'Invalid topic status' }, 400);
+      const statuses = status?.split(',').map((value) => value.trim()).filter(Boolean) || [];
+      if (statuses.some((value) => !isTopicStatus(value))) return c.json({ error: 'Invalid topic status' }, 400);
       const priority = c.req.query('priority');
       if (priority && !isOneOf(priority, ['high', 'medium', 'low', 'none'])) return c.json({ error: 'Invalid priority' }, 400);
       const sortValue = c.req.query('sort') || 'updated_at';
-      if (!isOneOf(sortValue, ['title', 'status', 'priority', 'score', 'words', 'updated_at', 'created_at'])) return c.json({ error: 'Invalid sort' }, 400);
+      if (!isOneOf(sortValue, ['title', 'status', 'priority', 'score', 'words', 'updated_at', 'created_at', 'sort_order'])) return c.json({ error: 'Invalid sort' }, 400);
       const directionValue = c.req.query('direction') || 'desc';
       if (!isOneOf(directionValue, ['asc', 'desc'])) return c.json({ error: 'Invalid direction' }, 400);
       return c.json(await loadTopicPage(requireDb(c), {
         scope: scopeValue as 'active' | 'archived' | 'trash' | 'all', page, pageSize,
         query: c.req.query('q')?.slice(0, 200), status, priority,
         tagId: c.req.query('tag_id'), personId: c.req.query('person_id'),
-        sort: sortValue as 'title' | 'status' | 'priority' | 'score' | 'words' | 'updated_at' | 'created_at',
+        sort: sortValue as 'title' | 'status' | 'priority' | 'score' | 'words' | 'updated_at' | 'created_at' | 'sort_order',
         direction: directionValue as 'asc' | 'desc',
       }));
+    } catch (error) {
+      return jsonError(c, error, 400);
+    }
+  });
+
+  app.get('/today/focus', async (c) => {
+    try {
+      return c.json(await loadTodayFocus(requireDb(c)));
     } catch (error) {
       return jsonError(c, error, 400);
     }
@@ -413,10 +426,36 @@ export function createApp() {
       if (updates.some((update) => !isNonNegativeInteger(update.sort_order))) return c.json({ error: 'Invalid sort order' }, 400);
       const now = new Date().toISOString();
       if (updates.length > 0) {
-        await db.batch(updates.map((update) => statements.bind(db,
+        const affectedStatuses = Array.from(new Set(updates.map((update) => update.status)));
+        const placeholders = affectedStatuses.map(() => '?').join(',');
+        const existing = await db.prepare(`SELECT id, status FROM topics
+          WHERE deleted_at IS NULL AND status IN (${placeholders})
+          ORDER BY status ASC, sort_order ASC, id ASC`).bind(...affectedStatuses).all<{ id: string; status: TopicStatus }>();
+        const idsByStatus = new Map<TopicStatus, string[]>(affectedStatuses.map((status) => [status, []]));
+        existing.results.forEach((row) => idsByStatus.get(row.status)?.push(row.id));
+        updates.forEach((update) => {
+          idsByStatus.forEach((ids) => {
+            const index = ids.indexOf(update.id);
+            if (index >= 0) ids.splice(index, 1);
+          });
+        });
+        const updatesByTarget = new Map<TopicStatus, typeof updates>();
+        updates.forEach((update) => updatesByTarget.set(update.status, [
+          ...(updatesByTarget.get(update.status) || []), update,
+        ]));
+        updatesByTarget.forEach((targetUpdates, status) => {
+          const targetIds = idsByStatus.get(status) || [];
+          targetUpdates
+            .sort((a, b) => a.sort_order - b.sort_order || a.id.localeCompare(b.id))
+            .forEach((update) => {
+              targetIds.splice(Math.min(Math.max(0, update.sort_order - 1), targetIds.length), 0, update.id);
+            });
+        });
+        await db.batch(Array.from(idsByStatus.entries()).flatMap(([status, ids]) => ids.map((id, index) => statements.bind(
+          db,
           'UPDATE topics SET status = ?, sort_order = ?, updated_at = ? WHERE id = ?',
-          [update.status, update.sort_order, now, update.id]
-        )));
+          [status, index + 1, now, id]
+        ))));
       }
       return c.json({ success: true, updated_at: now });
     } catch (error) {
@@ -598,6 +637,29 @@ export function createApp() {
   });
 
   app.get('/people', async (c) => c.json((await loadBootstrap(requireDb(c), undefined, { includeTopics: false, includePeople: true, includeRelationships: false, includePublished: false, includeTags: false })).people));
+
+  app.get('/people/page', async (c) => {
+    try {
+      const page = Math.max(1, Number.parseInt(c.req.query('page') || '1', 10) || 1);
+      const pageSize = Math.min(100, Math.max(1, Number.parseInt(c.req.query('page_size') || '30', 10) || 30));
+      return c.json(await loadPeoplePage(requireDb(c), {
+        page,
+        pageSize,
+        query: c.req.query('q')?.slice(0, 200),
+      }));
+    } catch (error) {
+      return jsonError(c, error, 400);
+    }
+  });
+
+  app.get('/people/options', async (c) => {
+    try {
+      const result = await requireDb(c).prepare('SELECT id, name FROM people ORDER BY name COLLATE NOCASE ASC, id ASC').all<{ id: string; name: string }>();
+      return c.json(result.results);
+    } catch (error) {
+      return jsonError(c, error, 400);
+    }
+  });
 
   app.post('/people', async (c) => {
     try {
@@ -892,6 +954,20 @@ export function createApp() {
 
   app.get('/tags', async (c) => c.json((await loadBootstrap(requireDb(c), undefined, { includeTopics: false, includePeople: false, includeRelationships: false, includePublished: false, includeTags: true })).tags));
 
+  app.get('/tags/page', async (c) => {
+    try {
+      const page = Math.max(1, Number.parseInt(c.req.query('page') || '1', 10) || 1);
+      const pageSize = Math.min(100, Math.max(1, Number.parseInt(c.req.query('page_size') || '30', 10) || 30));
+      return c.json(await loadTagsPage(requireDb(c), {
+        page,
+        pageSize,
+        query: c.req.query('q')?.slice(0, 200),
+      }));
+    } catch (error) {
+      return jsonError(c, error, 400);
+    }
+  });
+
   app.post('/tags', async (c) => {
     try {
       const db = requireDb(c);
@@ -945,6 +1021,16 @@ export function createApp() {
   });
 
   app.get('/published', async (c) => c.json((await loadBootstrap(requireDb(c), undefined, { includeTopics: false, includePeople: false, includeRelationships: false, includePublished: true, includeTags: false })).published));
+
+  app.get('/published/page', async (c) => {
+    try {
+      const page = Math.max(1, Number.parseInt(c.req.query('page') || '1', 10) || 1);
+      const pageSize = Math.min(100, Math.max(1, Number.parseInt(c.req.query('page_size') || '30', 10) || 30));
+      return c.json(await loadPublishedPage(requireDb(c), { page, pageSize }));
+    } catch (error) {
+      return jsonError(c, error, 400);
+    }
+  });
 
   app.post('/published', async (c) => {
     try {

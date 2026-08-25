@@ -13,6 +13,9 @@ import type {
   TimelineEvent,
   Topic,
   PaginatedTopics,
+  PaginatedPeople,
+  PaginatedPublishedVideos,
+  PaginatedTags,
 } from '../types';
 import { DEFAULT_APP_SETTINGS, isTopicStatus } from '../types';
 
@@ -126,6 +129,33 @@ export async function loadTrashedTopics(db: D1Database): Promise<Topic[]> {
   return loadTopics(db, 'trash');
 }
 
+export async function loadTodayFocus(db: D1Database): Promise<{ topics: Topic[]; total_active: number }> {
+  const activeCondition = "t.deleted_at IS NULL AND t.status NOT IN ('published', 'icebox')";
+  const [focusResult, priorityResult, recentResult, countResult] = await db.batch([
+    db.prepare(`SELECT t.id FROM topics t WHERE ${activeCondition}
+      ORDER BY t.is_pinned DESC,
+        CASE WHEN t.status IN ('approved', 'scripting', 'production') THEN 1 ELSE 0 END DESC,
+        CASE t.priority WHEN 'high' THEN 3 WHEN 'medium' THEN 2 WHEN 'low' THEN 1 ELSE 0 END DESC,
+        t.updated_at DESC, t.id DESC LIMIT 1`),
+    db.prepare(`SELECT t.id FROM topics t WHERE ${activeCondition}
+      ORDER BY t.is_pinned DESC,
+        CASE t.priority WHEN 'high' THEN 3 WHEN 'medium' THEN 2 WHEN 'low' THEN 1 ELSE 0 END DESC,
+        t.updated_at DESC, t.id DESC LIMIT 5`),
+    db.prepare(`SELECT t.id FROM topics t WHERE t.deleted_at IS NULL ORDER BY t.updated_at DESC, t.id DESC LIMIT 8`),
+    db.prepare(`SELECT COUNT(*) AS count FROM topics t WHERE ${activeCondition}`),
+  ]);
+  const orderedIds = Array.from(new Set([
+    ...(focusResult.results as unknown as Array<{ id: string }>).map((row) => row.id),
+    ...(priorityResult.results as unknown as Array<{ id: string }>).map((row) => row.id),
+    ...(recentResult.results as unknown as Array<{ id: string }>).map((row) => row.id),
+  ]));
+  const loadedTopics = await Promise.all(orderedIds.map((id) => loadTopic(db, id)));
+  return {
+    topics: loadedTopics.filter((topic): topic is Topic => Boolean(topic)),
+    total_active: Number((countResult.results[0] as { count?: number } | undefined)?.count || 0),
+  };
+}
+
 export class TopicNotInTrashError extends Error {}
 
 function permanentDeleteStatements(db: D1Database, id: string): D1PreparedStatement[] {
@@ -170,14 +200,23 @@ export interface TopicPageOptions {
   priority?: string;
   tagId?: string;
   personId?: string;
-  sort?: 'title' | 'status' | 'priority' | 'score' | 'words' | 'updated_at' | 'created_at';
+  sort?: 'title' | 'status' | 'priority' | 'score' | 'words' | 'updated_at' | 'created_at' | 'sort_order';
   direction?: 'asc' | 'desc';
 }
 
 function buildTopicFilterConditions(options: TopicPageOptions): { conditions: string[]; values: unknown[] } {
   const conditions: string[] = [];
   const values: unknown[] = [];
-  if (options.status) { conditions.push('t.status = ?'); values.push(options.status); }
+  if (options.status) {
+    const statuses = options.status.split(',').map((status) => status.trim()).filter(Boolean);
+    if (statuses.length === 1) {
+      conditions.push('t.status = ?');
+      values.push(statuses[0]);
+    } else if (statuses.length > 1) {
+      conditions.push(`t.status IN (${statuses.map(() => '?').join(',')})`);
+      values.push(...statuses);
+    }
+  }
   if (options.priority) { conditions.push('t.priority = ?'); values.push(options.priority); }
   if (options.tagId) { conditions.push('EXISTS (SELECT 1 FROM topic_tags ft WHERE ft.topic_id = t.id AND ft.tag_id = ?)'); values.push(options.tagId); }
   if (options.personId) { conditions.push('EXISTS (SELECT 1 FROM topic_people fp WHERE fp.topic_id = t.id AND fp.person_id = ?)'); values.push(options.personId); }
@@ -209,7 +248,7 @@ export async function loadTopicPage(db: D1Database, options: TopicPageOptions): 
   const sortExpressions: Record<string, string> = {
     title: 't.title COLLATE NOCASE', status: 't.status', priority: "CASE t.priority WHEN 'high' THEN 4 WHEN 'medium' THEN 3 WHEN 'low' THEN 2 ELSE 1 END",
     score: '(t.score_character + t.score_conflict + t.score_contrast + t.score_material + t.score_story)',
-    words: 'draft_word_count', created_at: 't.created_at', updated_at: 't.updated_at',
+    words: 'draft_word_count', created_at: 't.created_at', updated_at: 't.updated_at', sort_order: 't.sort_order',
   };
   const sort = sortExpressions[options.sort || 'updated_at'];
   const direction = options.direction === 'asc' ? 'ASC' : 'DESC';
@@ -262,6 +301,141 @@ export async function loadTopicPage(db: D1Database, options: TopicPageOptions): 
       active: Number(scopeCountsRow?.active || 0),
       archived: Number(scopeCountsRow?.archived || 0),
       trash: Number(scopeCountsRow?.trash || 0),
+    },
+  };
+}
+
+interface PageOptions {
+  page: number;
+  pageSize: number;
+  query?: string;
+}
+
+export async function loadPublishedPage(db: D1Database, options: PageOptions): Promise<PaginatedPublishedVideos> {
+  const offset = (options.page - 1) * options.pageSize;
+  const [countResult, rowsResult] = await db.batch([
+    db.prepare('SELECT COUNT(*) AS count FROM published_videos'),
+    db.prepare(`SELECT v.*, t.title AS topic_title
+      FROM published_videos v
+      LEFT JOIN topics t ON t.id = v.topic_id
+      ORDER BY v.published_at DESC, v.updated_at DESC, v.id DESC
+      LIMIT ? OFFSET ?`).bind(options.pageSize, offset),
+  ]);
+  const total = Number((countResult.results[0] as { count?: number } | undefined)?.count || 0);
+  return {
+    items: rowsResult.results as unknown as PaginatedPublishedVideos['items'],
+    page: options.page,
+    page_size: options.pageSize,
+    total,
+    total_pages: Math.ceil(total / options.pageSize),
+  };
+}
+
+export async function loadPeoplePage(db: D1Database, options: PageOptions): Promise<PaginatedPeople> {
+  const conditions: string[] = [];
+  const values: unknown[] = [];
+  if (options.query?.trim()) {
+    const pattern = `%${options.query.trim().replace(/[\\%_]/g, '\\$&')}%`;
+    conditions.push(`(p.name LIKE ? ESCAPE '\\' OR p.aliases LIKE ? ESCAPE '\\'
+      OR p.identity LIKE ? ESCAPE '\\' OR p.description LIKE ? ESCAPE '\\')`);
+    values.push(pattern, pattern, pattern, pattern);
+  }
+  const where = conditions.length ? `WHERE ${conditions.join(' AND ')}` : '';
+  const offset = (options.page - 1) * options.pageSize;
+  const [countResult, rowsResult] = await db.batch([
+    bind(db, `SELECT COUNT(*) AS count FROM people p ${where}`, values),
+    bind(db, `SELECT p.*,
+      (SELECT COUNT(*) FROM topic_people tp
+        INNER JOIN topics rt ON rt.id = tp.topic_id AND rt.deleted_at IS NULL
+        WHERE tp.person_id = p.id) AS related_topics_count
+      FROM people p ${where}
+      ORDER BY p.updated_at DESC, p.id DESC LIMIT ? OFFSET ?`, [...values, options.pageSize, offset]),
+  ]);
+  const items = rowsResult.results as unknown as Array<Person & { related_topic_previews?: Array<{ id: string; title: string }> }>;
+  if (items.length > 0) {
+    const ids = items.map((person) => person.id);
+    const placeholders = ids.map(() => '?').join(',');
+    const previewResult = await bind(db, `SELECT tp.person_id, t.id, t.title
+      FROM topic_people tp INNER JOIN topics t ON t.id = tp.topic_id
+      WHERE tp.person_id IN (${placeholders}) AND t.deleted_at IS NULL
+      ORDER BY t.updated_at DESC, t.id DESC`, ids).all<{ person_id: string; id: string; title: string }>();
+    const previews = new Map<string, Array<{ id: string; title: string }>>();
+    previewResult.results.forEach((preview) => {
+      const current = previews.get(preview.person_id) || [];
+      if (current.length < 2) previews.set(preview.person_id, [...current, { id: preview.id, title: preview.title }]);
+    });
+    items.forEach((person) => {
+      person.related_topic_previews = previews.get(person.id) || [];
+    });
+  }
+  const total = Number((countResult.results[0] as { count?: number } | undefined)?.count || 0);
+  return {
+    items,
+    page: options.page,
+    page_size: options.pageSize,
+    total,
+    total_pages: Math.ceil(total / options.pageSize),
+  };
+}
+
+export async function loadTagsPage(db: D1Database, options: PageOptions): Promise<PaginatedTags> {
+  const conditions: string[] = [];
+  const values: unknown[] = [];
+  if (options.query?.trim()) {
+    const pattern = `%${options.query.trim().replace(/[\\%_]/g, '\\$&')}%`;
+    conditions.push("tg.name LIKE ? ESCAPE '\\'");
+    values.push(pattern);
+  }
+  const where = conditions.length ? `WHERE ${conditions.join(' AND ')}` : '';
+  const offset = (options.page - 1) * options.pageSize;
+  const [countResult, summaryResult, rowsResult] = await db.batch([
+    bind(db, `SELECT COUNT(*) AS count FROM tags tg ${where}`, values),
+    db.prepare(`SELECT
+      COUNT(DISTINCT CASE WHEN t.deleted_at IS NULL THEN t.id END) AS tagged_topics,
+      (SELECT COUNT(*) FROM topics WHERE deleted_at IS NULL) AS total_topics
+      FROM topic_tags tt
+      INNER JOIN topics t ON t.id = tt.topic_id`),
+    bind(db, `SELECT tg.id, tg.name, tg.color,
+      COUNT(DISTINCT CASE WHEN t.deleted_at IS NULL THEN t.id END) AS tag_count,
+      COUNT(DISTINCT CASE WHEN t.deleted_at IS NULL AND t.status IN ('approved', 'scripting', 'production') THEN t.id END) AS in_progress_count,
+      COUNT(DISTINCT CASE WHEN t.deleted_at IS NULL AND t.status = 'published' THEN t.id END) AS published_count,
+      COALESCE(SUM(CASE WHEN t.deleted_at IS NULL THEN COALESCE((SELECT word_count FROM drafts d WHERE d.topic_id = t.id LIMIT 1), 0) ELSE 0 END), 0) AS words_total,
+      COALESCE(AVG(CASE WHEN t.deleted_at IS NULL THEN
+        (t.score_character + t.score_conflict + t.score_contrast + t.score_material + t.score_story) / 5.0 END), 0) AS avg_score
+      FROM tags tg
+      LEFT JOIN topic_tags tt ON tt.tag_id = tg.id
+      LEFT JOIN topics t ON t.id = tt.topic_id
+      ${where}
+      GROUP BY tg.id, tg.name, tg.color
+      ORDER BY tg.name COLLATE NOCASE ASC, tg.id ASC LIMIT ? OFFSET ?`, [...values, options.pageSize, offset]),
+  ]);
+  const rows = rowsResult.results as unknown as Array<Tag & {
+    tag_count?: number;
+    in_progress_count?: number;
+    published_count?: number;
+    words_total?: number;
+    avg_score?: number;
+  }>;
+  const total = Number((countResult.results[0] as { count?: number } | undefined)?.count || 0);
+  const summaryRow = summaryResult.results[0] as { tagged_topics?: number; total_topics?: number } | undefined;
+  return {
+    items: rows.map(({ tag_count, in_progress_count, published_count, words_total, avg_score, ...tag }) => ({
+      ...tag,
+      stats: {
+        count: Number(tag_count || 0),
+        in_progress_count: Number(in_progress_count || 0),
+        published_count: Number(published_count || 0),
+        words_total: Number(words_total || 0),
+        avg_score: Number(Number(avg_score || 0).toFixed(1)),
+      },
+    })),
+    page: options.page,
+    page_size: options.pageSize,
+    total,
+    total_pages: Math.ceil(total / options.pageSize),
+    summary: {
+      tagged_topics: Number(summaryRow?.tagged_topics || 0),
+      total_topics: Number(summaryRow?.total_topics || 0),
     },
   };
 }

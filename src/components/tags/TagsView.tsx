@@ -1,4 +1,5 @@
 import React, { useState, useMemo } from 'react';
+import { keepPreviousData, useQuery, useQueryClient } from '@tanstack/react-query';
 import { Topic, Tag, TopicStatus } from '../../types';
 import { StatusBadge, PriorityBadge } from '../ui/Badge';
 import { Modal } from '../ui/Modal';
@@ -22,6 +23,7 @@ import {
   Compass,
   Zap
 } from 'lucide-react';
+import { fetchTagsPage, fetchTopicPage } from '../../lib/storage';
 
 interface TagsViewProps {
   tags: Tag[];
@@ -52,6 +54,26 @@ export const TagsView: React.FC<TagsViewProps> = ({
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedTagId, setSelectedTagId] = useState<string | null>(tags[0]?.id || null);
   const [topicStatusFilter, setTopicStatusFilter] = useState<'all' | 'in_progress' | 'pending' | 'published'>('all');
+  const [debouncedSearchTerm, setDebouncedSearchTerm] = useState('');
+  const [tagPage, setTagPage] = useState(1);
+  const [topicPage, setTopicPage] = useState(1);
+  const queryClient = useQueryClient();
+
+  React.useEffect(() => {
+    const timer = window.setTimeout(() => {
+      setTagPage(1);
+      setDebouncedSearchTerm(searchTerm.trim());
+    }, 250);
+    return () => window.clearTimeout(timer);
+  }, [searchTerm]);
+
+  const tagsPageQuery = useQuery({
+    queryKey: ['tags-page', tagPage, debouncedSearchTerm],
+    queryFn: () => fetchTagsPage(tagPage, 30, debouncedSearchTerm),
+    placeholderData: keepPreviousData,
+  });
+  const visibleTags = tagsPageQuery.data?.items || [];
+  const totalTags = tagsPageQuery.data?.total || 0;
 
   // Modal State
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -62,82 +84,49 @@ export const TagsView: React.FC<TagsViewProps> = ({
   // Delete Confirm State
   const [deletingTag, setDeletingTag] = useState<Tag | null>(null);
 
-  // Compute tag statistics
-  const tagStatsMap = useMemo(() => {
-    const map = new Map<string, {
-      count: number;
-      inProgressCount: number;
-      publishedCount: number;
-      wordsTotal: number;
-      avgScore: number;
-    }>();
+  const tagStatsMap = useMemo(() => new Map(visibleTags.map((tag) => [tag.id, {
+    count: tag.stats?.count || 0,
+    inProgressCount: tag.stats?.in_progress_count || 0,
+    publishedCount: tag.stats?.published_count || 0,
+    wordsTotal: tag.stats?.words_total || 0,
+    avgScore: tag.stats?.avg_score || 0,
+  }])), [visibleTags]);
 
-    tags.forEach((tag) => {
-      const related = topics.filter((t) =>
-        t.tags?.some((tg) => tg.name.toLowerCase() === tag.name.toLowerCase() || tg.id === tag.id)
-      );
-
-      const inProgress = related.filter((t) =>
-        t.status === 'approved' || t.status === 'scripting' || t.status === 'production'
-      ).length;
-
-      const published = related.filter((t) => t.status === 'published').length;
-      const words = related.reduce((acc, t) => acc + (t.draft_word_count || 0), 0);
-      
-      const totalScore = related.reduce((acc, t) => {
-        const score = (t.score_character || 0) + (t.score_conflict || 0) + (t.score_contrast || 0) + (t.score_material || 0) + (t.score_story || 0);
-        return acc + score;
-      }, 0);
-
-      const avgScore = related.length > 0 ? Number((totalScore / related.length).toFixed(1)) : 0;
-
-      map.set(tag.id, {
-        count: related.length,
-        inProgressCount: inProgress,
-        publishedCount: published,
-        wordsTotal: words,
-        avgScore,
-      });
-    });
-
-    return map;
-  }, [tags, topics]);
-
-  // Overall metrics
-  const totalTaggedTopics = useMemo(() => {
-    return topics.filter((t) => t.tags && t.tags.length > 0).length;
-  }, [topics]);
-
-  const coveragePercent = topics.length > 0 ? Math.round((totalTaggedTopics / topics.length) * 100) : 0;
-
-  // Filtered tag list
-  const filteredTags = useMemo(() => {
-    if (!searchTerm.trim()) return tags;
-    const q = searchTerm.toLowerCase().trim().replace(/^#/, '');
-    return tags.filter((t) => t.name.toLowerCase().includes(q));
-  }, [tags, searchTerm]);
+  const totalTaggedTopics = tagsPageQuery.data?.summary.tagged_topics || 0;
+  const totalTopicCount = tagsPageQuery.data?.summary.total_topics || 0;
+  const coveragePercent = totalTopicCount > 0 ? Math.round((totalTaggedTopics / totalTopicCount) * 100) : 0;
 
   // Active selected tag
-  const activeTag = tags.find((t) => t.id === selectedTagId) || tags[0] || null;
+  const activeTag = visibleTags.find((t) => t.id === selectedTagId) || visibleTags[0] || null;
+
+  React.useEffect(() => {
+    if (activeTag && activeTag.id !== selectedTagId) setSelectedTagId(activeTag.id);
+  }, [activeTag, selectedTagId]);
+
+  React.useEffect(() => {
+    setTopicPage(1);
+  }, [activeTag?.id, topicStatusFilter]);
 
   // Topics belonging to active selected tag
-  const activeTagTopics = useMemo(() => {
-    if (!activeTag) return [];
-    const raw = topics.filter((t) =>
-      t.tags?.some((tg) => tg.name.toLowerCase() === activeTag.name.toLowerCase() || tg.id === activeTag.id)
-    );
-
-    if (topicStatusFilter === 'in_progress') {
-      return raw.filter((t) => t.status === 'approved' || t.status === 'scripting' || t.status === 'production');
-    }
-    if (topicStatusFilter === 'pending') {
-      return raw.filter((t) => t.status === 'inbox');
-    }
-    if (topicStatusFilter === 'published') {
-      return raw.filter((t) => t.status === 'published' || t.status === 'icebox');
-    }
-    return raw;
-  }, [activeTag, topics, topicStatusFilter]);
+  const topicStatus = topicStatusFilter === 'in_progress'
+    ? 'approved,scripting,production'
+    : topicStatusFilter === 'pending' ? 'inbox'
+      : topicStatusFilter === 'published' ? 'published,icebox' : undefined;
+  const tagTopicsPageQuery = useQuery({
+    queryKey: ['tag-topics-page', activeTag?.id || '', topicStatusFilter, topicPage],
+    queryFn: () => fetchTopicPage({
+      scope: 'all',
+      page: topicPage,
+      page_size: 30,
+      tag_id: activeTag?.id,
+      status: topicStatus,
+      sort: 'updated_at',
+      direction: 'desc',
+    }),
+    enabled: Boolean(activeTag),
+    placeholderData: keepPreviousData,
+  });
+  const activeTagTopics = tagTopicsPageQuery.data?.items || [];
 
   const openCreateModal = () => {
     setEditingTag(null);
@@ -159,6 +148,8 @@ export const TagsView: React.FC<TagsViewProps> = ({
     if (!name) return;
 
     const saved = await onSaveTag(name, tagColorInput, editingTag?.id);
+    await queryClient.invalidateQueries({ queryKey: ['tags-page'] });
+    await queryClient.invalidateQueries({ queryKey: ['tag-topics-page'] });
     setSelectedTagId(saved.id);
     setIsModalOpen(false);
   };
@@ -167,9 +158,12 @@ export const TagsView: React.FC<TagsViewProps> = ({
     if (!deletingTag) return;
     await onDeleteTag(deletingTag.id);
     if (selectedTagId === deletingTag.id) {
-      const remaining = tags.filter((t) => t.id !== deletingTag.id);
+      const remaining = visibleTags.filter((t) => t.id !== deletingTag.id);
       setSelectedTagId(remaining[0]?.id || null);
     }
+    if (visibleTags.length === 1 && tagPage > 1) setTagPage((current) => current - 1);
+    await queryClient.invalidateQueries({ queryKey: ['tags-page'] });
+    await queryClient.invalidateQueries({ queryKey: ['tag-topics-page'] });
     setDeletingTag(null);
   };
 
@@ -205,7 +199,7 @@ export const TagsView: React.FC<TagsViewProps> = ({
               <Layers className="w-3.5 h-3.5 text-stone-400 dark:text-stone-500" />
               <span>赛道标签总数</span>
             </div>
-            <div className="text-xl font-bold text-stone-900 dark:text-stone-100 mt-1 font-mono">{tags.length} 个</div>
+            <div className="text-xl font-bold text-stone-900 dark:text-stone-100 mt-1 font-mono">{totalTags} 个</div>
           </div>
 
           <div className="bg-white dark:bg-stone-800/80 border border-stone-200/70 dark:border-stone-700/80 rounded-2xl p-3.5 shadow-2xs">
@@ -214,7 +208,7 @@ export const TagsView: React.FC<TagsViewProps> = ({
               <span>打标覆盖率</span>
             </div>
             <div className="text-xl font-bold text-emerald-700 dark:text-emerald-400 mt-1 font-mono">
-              {coveragePercent}% <span className="text-xs text-stone-400 dark:text-stone-500 font-normal">({totalTaggedTopics}/{topics.length})</span>
+              {coveragePercent}% <span className="text-xs text-stone-400 dark:text-stone-500 font-normal">({totalTaggedTopics}/{totalTopicCount})</span>
             </div>
           </div>
 
@@ -224,8 +218,8 @@ export const TagsView: React.FC<TagsViewProps> = ({
               <span>储备最丰富赛道</span>
             </div>
             <div className="text-sm font-bold text-stone-900 dark:text-stone-100 mt-1 truncate">
-              {tags.length > 0
-                ? `#${[...tags].sort((a, b) => (tagStatsMap.get(b.id)?.count || 0) - (tagStatsMap.get(a.id)?.count || 0))[0]?.name}`
+              {visibleTags.length > 0
+                ? `#${[...visibleTags].sort((a, b) => (tagStatsMap.get(b.id)?.count || 0) - (tagStatsMap.get(a.id)?.count || 0))[0]?.name}`
                 : '暂无'}
             </div>
           </div>
@@ -236,7 +230,7 @@ export const TagsView: React.FC<TagsViewProps> = ({
               <span>在写稿赛道数</span>
             </div>
             <div className="text-xl font-bold text-indigo-700 dark:text-indigo-400 mt-1 font-mono">
-              {tags.filter((t) => (tagStatsMap.get(t.id)?.inProgressCount || 0) > 0).length} 赛道
+              {visibleTags.filter((t) => (tagStatsMap.get(t.id)?.inProgressCount || 0) > 0).length} 赛道
             </div>
           </div>
         </div>
@@ -262,7 +256,7 @@ export const TagsView: React.FC<TagsViewProps> = ({
 
           {/* Tags List */}
           <div className="flex-1 overflow-y-auto p-2 space-y-1">
-            {filteredTags.map((tag) => {
+            {visibleTags.map((tag) => {
               const isSelected = activeTag?.id === tag.id;
               const stats = tagStatsMap.get(tag.id);
               const count = stats?.count || 0;
@@ -330,12 +324,19 @@ export const TagsView: React.FC<TagsViewProps> = ({
               );
             })}
 
-            {filteredTags.length === 0 && (
+            {visibleTags.length === 0 && !tagsPageQuery.isFetching && (
               <div className="py-8 text-center text-xs text-stone-400 dark:text-stone-500">
                 暂无匹配标签
               </div>
             )}
           </div>
+          {totalTags > 0 && (
+            <div className="flex shrink-0 items-center justify-center gap-2 border-t border-stone-100 px-2 py-2 text-[11px] text-stone-500 dark:border-stone-800 dark:text-stone-400">
+              <button type="button" disabled={tagPage <= 1 || tagsPageQuery.isFetching} onClick={() => setTagPage((current) => Math.max(1, current - 1))} className="rounded-lg border border-stone-200 bg-white px-2 py-1 font-semibold disabled:cursor-not-allowed disabled:opacity-40 dark:border-stone-700 dark:bg-stone-900">上一页</button>
+              <span className="font-mono">{tagPage} / {Math.max(1, tagsPageQuery.data?.total_pages || 1)}</span>
+              <button type="button" disabled={tagPage >= (tagsPageQuery.data?.total_pages || 1) || tagsPageQuery.isFetching} onClick={() => setTagPage((current) => current + 1)} className="rounded-lg border border-stone-200 bg-white px-2 py-1 font-semibold disabled:cursor-not-allowed disabled:opacity-40 dark:border-stone-700 dark:bg-stone-900">下一页</button>
+            </div>
+          )}
         </div>
 
         {/* Right / Selected Tag Deep Detail Stream (flex-1) */}
@@ -450,12 +451,19 @@ export const TagsView: React.FC<TagsViewProps> = ({
                     </div>
                   ))}
 
-                  {activeTagTopics.length === 0 && (
+                  {activeTagTopics.length === 0 && !tagTopicsPageQuery.isFetching && (
                     <div className="col-span-full py-16 text-center border-2 border-dashed border-stone-200/80 dark:border-stone-800 rounded-2xl bg-white dark:bg-stone-900 text-stone-400 dark:text-stone-500">
                       当前赛道在所选筛选条件下暂无选题
                     </div>
                   )}
                 </div>
+                {(tagTopicsPageQuery.data?.total || 0) > 0 && (
+                  <div className="mt-5 flex items-center justify-center gap-3 text-xs text-stone-500 dark:text-stone-400">
+                    <button type="button" disabled={topicPage <= 1 || tagTopicsPageQuery.isFetching} onClick={() => setTopicPage((current) => Math.max(1, current - 1))} className="rounded-lg border border-stone-200 bg-white px-3 py-2 font-semibold disabled:cursor-not-allowed disabled:opacity-40 dark:border-stone-700 dark:bg-stone-900">上一页</button>
+                    <span className="font-mono">{topicPage} / {Math.max(1, tagTopicsPageQuery.data?.total_pages || 1)} · 共 {tagTopicsPageQuery.data?.total || 0} 个选题</span>
+                    <button type="button" disabled={topicPage >= (tagTopicsPageQuery.data?.total_pages || 1) || tagTopicsPageQuery.isFetching} onClick={() => setTopicPage((current) => current + 1)} className="rounded-lg border border-stone-200 bg-white px-3 py-2 font-semibold disabled:cursor-not-allowed disabled:opacity-40 dark:border-stone-700 dark:bg-stone-900">下一页</button>
+                  </div>
+                )}
               </div>
             </>
           ) : (
@@ -464,6 +472,7 @@ export const TagsView: React.FC<TagsViewProps> = ({
             </div>
           )}
         </div>
+
       </div>
 
       {/* Modal: Create / Edit Tag */}

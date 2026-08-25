@@ -41,6 +41,7 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({
   onSelectTopic,
 }) => {
   const [range, setRange] = useState<'all' | '90d' | 'year'>('all');
+  const [tablePage, setTablePage] = useState(1);
   const topicMap = useMemo(() => new Map(topics.map((t) => [t.id, t])), [topics]);
   const filteredVideos = useMemo(() => {
     if (range === 'all') return publishedList;
@@ -51,6 +52,10 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({
       return publishedAt && !Number.isNaN(publishedAt.getTime()) && publishedAt >= cutoff;
     });
   }, [publishedList, range]);
+
+  React.useEffect(() => {
+    setTablePage(1);
+  }, [range]);
 
   const overview = useMemo(() => calculateChannelOverview(filteredVideos, topics), [filteredVideos, topics]);
   const correlation = useMemo(() => analyzeTopicModelCorrelation(filteredVideos, topics), [filteredVideos, topics]);
@@ -81,6 +86,9 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({
       })
       .sort((a, b) => (b.video.views || 0) - (a.video.views || 0));
   }, [filteredVideos, topicMap]);
+  const tablePageSize = 30;
+  const tablePageCount = Math.max(1, Math.ceil(videoTableData.length / tablePageSize));
+  const visibleVideoTableData = videoTableData.slice((tablePage - 1) * tablePageSize, tablePage * tablePageSize);
 
   if (publishedList.length === 0) {
     return (
@@ -503,13 +511,13 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({
               </tr>
             </thead>
             <tbody className="divide-y divide-stone-100 dark:divide-stone-800">
-              {videoTableData.map(({ video, topic, deepMetrics, storyModelTotal }, index) => (
+              {visibleVideoTableData.map(({ video, topic, deepMetrics, storyModelTotal }, index) => (
                 <tr key={video.id} className="hover:bg-stone-50/60 dark:hover:bg-stone-800/40 transition-colors">
                   {/* Title & Topic Link */}
                   <td className="py-3 px-4 max-w-[280px]">
                     <div className="flex items-start gap-2">
                       <span className="font-mono font-bold text-stone-400 dark:text-stone-500 text-xs shrink-0 mt-0.5">
-                        {(index + 1).toString().padStart(2, '0')}
+                        {(index + 1 + (tablePage - 1) * tablePageSize).toString().padStart(2, '0')}
                       </span>
                       <div className="min-w-0">
                         {topic ? (
@@ -582,6 +590,13 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({
             </tbody>
           </table>
         </div>
+        {videoTableData.length > 0 && (
+          <div className="flex items-center justify-center gap-3 border-t border-stone-100 px-5 py-3 text-xs text-stone-500 dark:border-stone-800 dark:text-stone-400">
+            <button type="button" disabled={tablePage <= 1} onClick={() => setTablePage((current) => Math.max(1, current - 1))} className="rounded-lg border border-stone-200 bg-white px-3 py-2 font-semibold disabled:cursor-not-allowed disabled:opacity-40 dark:border-stone-700 dark:bg-stone-900">上一页</button>
+            <span className="font-mono">{tablePage} / {tablePageCount} · 共 {videoTableData.length} 条</span>
+            <button type="button" disabled={tablePage >= tablePageCount} onClick={() => setTablePage((current) => Math.min(tablePageCount, current + 1))} className="rounded-lg border border-stone-200 bg-white px-3 py-2 font-semibold disabled:cursor-not-allowed disabled:opacity-40 dark:border-stone-700 dark:bg-stone-900">下一页</button>
+          </div>
+        )}
       </section>
     </div>
   );

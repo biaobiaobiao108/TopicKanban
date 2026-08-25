@@ -110,6 +110,11 @@ export interface Person {
   related_topics_count?: number;
 }
 
+export interface PersonOption {
+  id: string;
+  name: string;
+}
+
 export interface PersonRelationship {
   id: string;
   person_a_id: string;
@@ -351,6 +356,47 @@ export interface PaginatedTopics {
     archived: number;
     trash: number;
   };
+}
+
+export interface TodayFocusData {
+  topics: Topic[];
+  total_active: number;
+}
+
+export interface PageMeta {
+  page: number;
+  page_size: number;
+  total: number;
+  total_pages: number;
+}
+
+export interface PersonTopicPreview {
+  id: string;
+  title: string;
+}
+
+export interface PaginatedPeople extends PageMeta {
+  items: Array<Person & { related_topic_previews?: PersonTopicPreview[] }>;
+}
+
+export interface TagStats {
+  count: number;
+  in_progress_count: number;
+  published_count: number;
+  words_total: number;
+  avg_score: number;
+}
+
+export interface PaginatedTags extends PageMeta {
+  items: Array<Tag & { stats?: TagStats }>;
+  summary: {
+    tagged_topics: number;
+    total_topics: number;
+  };
+}
+
+export interface PaginatedPublishedVideos extends PageMeta {
+  items: PublishedVideo[];
 }
 
 export interface BackupData {

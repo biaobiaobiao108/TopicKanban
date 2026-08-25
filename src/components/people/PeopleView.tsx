@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { keepPreviousData, useQuery, useQueryClient } from '@tanstack/react-query';
 import { Person, PersonRelationship, Topic } from '../../types';
 import { Modal } from '../ui/Modal';
 import { useToast } from '../ui/Toast';
@@ -18,6 +19,7 @@ import {
   Layers
 } from 'lucide-react';
 import { CustomSelect } from '../ui/CustomSelect';
+import { fetchPeopleOptions, fetchPeoplePage } from '../../lib/storage';
 
 interface PeopleViewProps {
   people: Person[];
@@ -41,7 +43,10 @@ export const PeopleView: React.FC<PeopleViewProps> = ({
   onSelectTopic,
 }) => {
   const { showToast } = useToast();
+  const queryClient = useQueryClient();
   const [searchTerm, setSearchTerm] = useState('');
+  const [debouncedSearchTerm, setDebouncedSearchTerm] = useState('');
+  const [page, setPage] = useState(1);
   const [isPersonModalOpen, setIsPersonModalOpen] = useState(false);
   const [editingPerson, setEditingPerson] = useState<Person | null>(null);
 
@@ -105,6 +110,9 @@ export const PeopleView: React.FC<PeopleViewProps> = ({
       notes: notes.trim(),
     });
 
+    await queryClient.invalidateQueries({ queryKey: ['people-page'] });
+    await queryClient.invalidateQueries({ queryKey: ['people-options'] });
+
     setIsPersonModalOpen(false);
   };
 
@@ -122,15 +130,26 @@ export const PeopleView: React.FC<PeopleViewProps> = ({
     setIsRelModalOpen(false);
   };
 
-  const filteredPeople = people.filter((p) => {
-    const q = searchTerm.toLowerCase();
-    return (
-      p.name.toLowerCase().includes(q) ||
-      p.aliases?.toLowerCase().includes(q) ||
-      p.identity?.toLowerCase().includes(q) ||
-      p.description?.toLowerCase().includes(q)
-    );
+  React.useEffect(() => {
+    const timer = window.setTimeout(() => {
+      setPage(1);
+      setDebouncedSearchTerm(searchTerm.trim());
+    }, 250);
+    return () => window.clearTimeout(timer);
+  }, [searchTerm]);
+
+  const peoplePageQuery = useQuery({
+    queryKey: ['people-page', page, debouncedSearchTerm],
+    queryFn: () => fetchPeoplePage(page, 30, debouncedSearchTerm),
+    placeholderData: keepPreviousData,
   });
+  const filteredPeople = peoplePageQuery.data?.items || [];
+  const totalPeople = peoplePageQuery.data?.total || 0;
+  const peopleOptionsQuery = useQuery({
+    queryKey: ['people-options'],
+    queryFn: fetchPeopleOptions,
+  });
+  const peopleOptions = peopleOptionsQuery.data || people.map((person) => ({ id: person.id, name: person.name }));
 
   return (
     <div className="flex-1 w-full h-full overflow-y-auto">
@@ -149,12 +168,12 @@ export const PeopleView: React.FC<PeopleViewProps> = ({
           <div className="flex items-center gap-2.5 flex-wrap">
             <button
               onClick={() => {
-                if (people.length < 2) {
+                if (peopleOptions.length < 2) {
                   showToast({ message: '请先创建至少2位人物以建立关系', tone: 'info' });
                   return;
                 }
-                setRelPersonA(people[0]?.id || '');
-                setRelPersonB(people[1]?.id || '');
+                setRelPersonA(peopleOptions[0]?.id || '');
+                setRelPersonB(peopleOptions[1]?.id || '');
                 setRelName('');
                 setRelDesc('');
                 setIsRelModalOpen(true);
@@ -190,9 +209,7 @@ export const PeopleView: React.FC<PeopleViewProps> = ({
         {/* People Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
           {filteredPeople.map((person) => {
-            const relatedTopics = topics.filter((t) =>
-              t.people?.some((p) => p.id === person.id)
-            );
+            const relatedTopics = person.related_topic_previews || [];
 
             const personRels = relationships.filter(
               (r) => r.person_a_id === person.id || r.person_b_id === person.id
@@ -241,7 +258,11 @@ export const PeopleView: React.FC<PeopleViewProps> = ({
                       <button
                         onClick={() => {
                           if (window.confirm(`确定要删除人物档案「${person.name}」吗？`)) {
-                            onDeletePerson(person.id);
+                            void onDeletePerson(person.id).then(async () => {
+                              if (filteredPeople.length === 1 && page > 1) setPage((current) => current - 1);
+                              await queryClient.invalidateQueries({ queryKey: ['people-page'] });
+                              await queryClient.invalidateQueries({ queryKey: ['people-options'] });
+                            });
                           }
                         }}
                         className="p-1.5 text-stone-400 dark:text-stone-500 hover:text-red-600 dark:hover:text-red-400 rounded-lg hover:bg-red-50 dark:hover:bg-red-950/40 cursor-pointer transition-colors"
@@ -317,12 +338,20 @@ export const PeopleView: React.FC<PeopleViewProps> = ({
             );
           })}
 
-          {filteredPeople.length === 0 && (
+          {filteredPeople.length === 0 && !peoplePageQuery.isFetching && (
             <div className="col-span-full p-12 text-center border-2 border-dashed border-stone-200/80 dark:border-stone-800 rounded-2xl bg-white dark:bg-stone-900 text-stone-400 dark:text-stone-500">
               暂无人物档案记录，点击右上角新建人物！
             </div>
           )}
         </div>
+
+        {totalPeople > 0 && (
+          <div className="flex items-center justify-center gap-3 text-xs text-stone-500 dark:text-stone-400">
+            <button type="button" disabled={page <= 1 || peoplePageQuery.isFetching} onClick={() => setPage((current) => Math.max(1, current - 1))} className="rounded-lg border border-stone-200 bg-white px-3 py-2 font-semibold disabled:cursor-not-allowed disabled:opacity-40 dark:border-stone-700 dark:bg-stone-900">上一页</button>
+            <span className="font-mono">{page} / {Math.max(1, peoplePageQuery.data?.total_pages || 1)} · 共 {totalPeople} 人</span>
+            <button type="button" disabled={page >= (peoplePageQuery.data?.total_pages || 1) || peoplePageQuery.isFetching} onClick={() => setPage((current) => current + 1)} className="rounded-lg border border-stone-200 bg-white px-3 py-2 font-semibold disabled:cursor-not-allowed disabled:opacity-40 dark:border-stone-700 dark:bg-stone-900">下一页</button>
+          </div>
+        )}
 
         {/* Modal: Add/Edit Person */}
         <Modal
@@ -448,7 +477,7 @@ export const PeopleView: React.FC<PeopleViewProps> = ({
                   ariaLabel="人物 A"
                   className="w-full"
                   buttonClassName="w-full justify-between py-2 text-sm bg-stone-500/[0.03] dark:bg-stone-800 border-stone-200/80 dark:border-stone-700 rounded-xl"
-                  options={people.map((p) => ({ value: p.id, label: p.name }))}
+                  options={peopleOptions.map((p) => ({ value: p.id, label: p.name }))}
                 />
               </div>
               <div>
@@ -459,7 +488,7 @@ export const PeopleView: React.FC<PeopleViewProps> = ({
                   ariaLabel="人物 B"
                   className="w-full"
                   buttonClassName="w-full justify-between py-2 text-sm bg-stone-500/[0.03] dark:bg-stone-800 border-stone-200/80 dark:border-stone-700 rounded-xl"
-                  options={people.map((p) => ({ value: p.id, label: p.name }))}
+                  options={peopleOptions.map((p) => ({ value: p.id, label: p.name }))}
                 />
               </div>
             </div>

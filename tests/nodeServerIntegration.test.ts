@@ -519,4 +519,55 @@ describe('Bun Server Integration (Local SQLite & API)', () => {
     });
     expect(deleteNonExistentTimeline.status).toBe(200);
   });
+
+  it('returns stable paginated published, people, tag and today-focus data', async () => {
+    const loginRes = await app.request('/api/auth/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ password: testPassword }),
+    });
+    const { token } = await loginRes.json() as { token: string };
+    const headers = { Authorization: `Bearer ${token}` };
+    const now = new Date().toISOString();
+
+    for (let index = 0; index < 31; index += 1) {
+      sqlite.query(`INSERT INTO published_videos (id, title, published_at, updated_at)
+        VALUES (?, ?, ?, ?)`).run(`published-${index}`, `归档视频 ${index}`, now, now);
+      sqlite.query(`INSERT INTO people (id, name, created_at, updated_at)
+        VALUES (?, ?, ?, ?)`).run(`person-${index}`, `人物 ${index}`, now, now);
+      sqlite.query(`INSERT INTO topics (id, title, status, created_at, updated_at)
+        VALUES (?, ?, 'approved', ?, ?)`).run(`topic-${index}`, `分页选题 ${index}`, now, now);
+    }
+    sqlite.query(`INSERT INTO tags (id, name, color, created_at) VALUES (?, ?, ?, ?)`)
+      .run('tag-pagination', '分页赛道', 'rose', now);
+    for (let index = 0; index < 31; index += 1) {
+      sqlite.query(`INSERT INTO topic_tags (id, topic_id, tag_id) VALUES (?, ?, ?)`)
+        .run(`topic-tag-${index}`, `topic-${index}`, 'tag-pagination');
+    }
+
+    const publishedPageOne = await app.request('/api/published/page?page=1&page_size=30', { headers });
+    const publishedPageTwo = await app.request('/api/published/page?page=2&page_size=30', { headers });
+    expect(publishedPageOne.status).toBe(200);
+    expect(publishedPageTwo.status).toBe(200);
+    expect((await publishedPageOne.json() as { items: unknown[]; total: number; total_pages: number }).items).toHaveLength(30);
+    expect(await publishedPageTwo.json()).toMatchObject({ page: 2, total: 31, total_pages: 2 });
+
+    const peopleSearch = await app.request('/api/people/page?page=1&page_size=30&q=人物 3', { headers });
+    expect(await peopleSearch.json()).toMatchObject({ total: 2, total_pages: 1 });
+
+    const tagsPage = await app.request('/api/tags/page?page=1&page_size=1', { headers });
+    const tagsData = await tagsPage.json() as {
+      items: Array<{ stats: { count: number } }>;
+      total: number;
+      summary: { tagged_topics: number; total_topics: number };
+    };
+    expect(tagsData.total).toBe(1);
+    expect(tagsData.items[0]?.stats.count).toBe(31);
+    expect(tagsData.summary).toEqual({ tagged_topics: 31, total_topics: 31 });
+
+    const todayFocus = await app.request('/api/today/focus', { headers });
+    const todayData = await todayFocus.json() as { topics: unknown[]; total_active: number };
+    expect(todayData.total_active).toBe(31);
+    expect(todayData.topics.length).toBeLessThanOrEqual(13);
+  });
 });

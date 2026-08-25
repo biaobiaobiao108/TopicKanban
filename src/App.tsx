@@ -105,10 +105,10 @@ function WorkspaceApp({ isAuth, setIsAuth }: WorkspaceAppProps) {
 
   const {
     topics,
+    topicCount: workspaceTopicCount,
     trashedTopics,
     people,
     relationships,
-    publishedList,
     tags,
     settings,
     isLoading: isLoadingData,
@@ -518,7 +518,7 @@ function WorkspaceApp({ isAuth, setIsAuth }: WorkspaceAppProps) {
     return <LoginView onLoginSuccess={() => setIsAuth(true)} />;
   }
 
-  const topicCount = topics.length;
+  const topicCount = workspaceTopicCount;
   const activeTopic = topics.find((t) => t.id === activeTopicId);
 
   return (
@@ -649,7 +649,6 @@ function WorkspaceApp({ isAuth, setIsAuth }: WorkspaceAppProps) {
 
           {currentView === 'published' && (
             <PublishedView
-              publishedList={publishedList}
               topics={topics}
               onSavePublished={handleSavePublished}
               onDeletePublished={handleDeletePublished}

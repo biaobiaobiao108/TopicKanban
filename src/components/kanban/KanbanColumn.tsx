@@ -3,13 +3,17 @@ import { useDroppable } from '@dnd-kit/core';
 import { SortableContext, verticalListSortingStrategy } from '@dnd-kit/sortable';
 import { Topic, TopicStatus } from '../../types';
 import { KanbanCard } from './KanbanCard';
-import { Plus, ChevronDown, ChevronUp } from 'lucide-react';
+import { Plus, ChevronDown, ChevronUp, Loader2 } from 'lucide-react';
 
 interface KanbanColumnProps {
   status: TopicStatus;
   label: string;
   description: string;
   topics: Topic[];
+  totalCount?: number;
+  hasMore?: boolean;
+  isLoadingMore?: boolean;
+  onLoadMore?: () => void;
   onOpenDetail: (topicId: string) => void;
   onDeleteTopic: (topicId: string) => void;
   onTogglePin: (topicId: string) => void;
@@ -36,6 +40,10 @@ export const KanbanColumn: React.FC<KanbanColumnProps> = ({
   label,
   description,
   topics,
+  totalCount = topics.length,
+  hasMore = false,
+  isLoadingMore = false,
+  onLoadMore,
   onOpenDetail,
   onDeleteTopic,
   onTogglePin,
@@ -77,7 +85,7 @@ export const KanbanColumn: React.FC<KanbanColumnProps> = ({
           <span className={`w-2.5 h-2.5 rounded-full ${c.dot}`} />
           <h3 className="text-sm font-bold text-stone-800 dark:text-stone-100 tracking-tight">{label}</h3>
           <span className="text-xs bg-stone-200/70 dark:bg-stone-800 text-stone-700 dark:text-stone-300 font-bold px-2 py-0.5 rounded-full font-mono">
-            {topics.length}
+            {totalCount}
           </span>
         </div>
 
@@ -142,6 +150,19 @@ export const KanbanColumn: React.FC<KanbanColumnProps> = ({
                 <span>展开更多 (+{hiddenCount} 个选题)</span>
               </>
             )}
+          </button>
+        </div>
+      )}
+      {hasMore && onLoadMore && (
+        <div className="pt-2 mt-2 border-t border-stone-200/60 dark:border-stone-800">
+          <button
+            type="button"
+            onClick={onLoadMore}
+            disabled={isLoadingMore}
+            className="w-full flex items-center justify-center gap-1.5 py-1.5 px-3 bg-white/80 dark:bg-stone-800 hover:bg-white dark:hover:bg-stone-700 text-stone-600 dark:text-stone-300 hover:text-stone-900 dark:hover:text-stone-100 rounded-xl text-xs font-semibold transition-all shadow-2xs cursor-pointer disabled:cursor-wait disabled:opacity-60"
+          >
+            {isLoadingMore ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <ChevronDown className="w-3.5 h-3.5" />}
+            <span>{isLoadingMore ? '正在加载…' : `加载更多（还有 ${Math.max(0, totalCount - topics.length)} 个）`}</span>
           </button>
         </div>
       )}

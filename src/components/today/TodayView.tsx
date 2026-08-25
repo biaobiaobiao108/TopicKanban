@@ -1,4 +1,5 @@
 import React, { useState, useMemo } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
 import { Topic } from '../../types';
 import { StatusBadge, PriorityBadge, TagPill } from '../ui/Badge';
 import {
@@ -34,6 +35,7 @@ export const TodayView: React.FC<TodayViewProps> = ({
   onTogglePin,
   onUpdateTopic,
 }) => {
+  const queryClient = useQueryClient();
   const [actionTopic, setActionTopic] = useState<Topic | null>(null);
   const [showAllActivity, setShowAllActivity] = useState(false);
 
@@ -341,7 +343,10 @@ export const TodayView: React.FC<TodayViewProps> = ({
           isOpen
           topic={topics.find((topic) => topic.id === actionTopic.id) || actionTopic}
           onClose={() => setActionTopic(null)}
-          onUpdate={(updates) => onUpdateTopic(actionTopic.id, updates)}
+          onUpdate={async (updates) => {
+            await onUpdateTopic(actionTopic.id, updates);
+            await queryClient.invalidateQueries({ queryKey: ['today-focus'] });
+          }}
         />
       )}
     </div>

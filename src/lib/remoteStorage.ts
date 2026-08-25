@@ -8,7 +8,11 @@ import type {
   DraftRecoveryConflict,
   CitationInput,
   Person,
+  PersonOption,
   PersonRelationship,
+  PaginatedPeople,
+  PaginatedPublishedVideos,
+  PaginatedTags,
   PaginatedTopics,
   PublishedVideo,
   PublishPackageRecord,
@@ -20,6 +24,7 @@ import type {
   TopicStatus,
   TopicWorkspaceData,
   TopicWorkspaceLoad,
+  TodayFocusData,
   ShareSnapshot,
   PresenceState,
   QuickDropItem,
@@ -114,7 +119,7 @@ export interface TopicPageParams {
   page?: number;
   page_size?: number;
   q?: string;
-  status?: TopicStatus;
+  status?: TopicStatus | string;
   priority?: string;
   tag_id?: string;
   person_id?: string;
@@ -128,6 +133,10 @@ export function fetchTopicPage(params: TopicPageParams): Promise<PaginatedTopics
     if (value !== undefined && value !== '') query.set(key, String(value));
   });
   return apiRequest(`/api/topics?${query.toString()}`);
+}
+
+export function fetchTodayFocus(): Promise<TodayFocusData> {
+  return apiRequest<TodayFocusData>('/api/today/focus');
 }
 
 export async function saveTopic(data: Partial<Topic> & { title?: string }): Promise<Topic> {
@@ -227,6 +236,16 @@ export async function deleteTimelineEvent(id: string): Promise<void> {
 
 export async function fetchPeople(): Promise<Person[]> {
   return apiRequest<Person[]>('/api/people');
+}
+
+export function fetchPeoplePage(page: number, pageSize = 30, query = ''): Promise<PaginatedPeople> {
+  const params = new URLSearchParams({ page: String(page), page_size: String(pageSize) });
+  if (query.trim()) params.set('q', query.trim());
+  return apiRequest<PaginatedPeople>(`/api/people/page?${params.toString()}`);
+}
+
+export function fetchPeopleOptions(): Promise<PersonOption[]> {
+  return apiRequest<PersonOption[]>('/api/people/options');
 }
 
 export async function fetchPersonById(id: string): Promise<Person | null> {
@@ -500,6 +519,12 @@ export async function fetchTags(): Promise<Tag[]> {
   return apiRequest<Tag[]>('/api/tags');
 }
 
+export function fetchTagsPage(page: number, pageSize = 30, query = ''): Promise<PaginatedTags> {
+  const params = new URLSearchParams({ page: String(page), page_size: String(pageSize) });
+  if (query.trim()) params.set('q', query.trim());
+  return apiRequest<PaginatedTags>(`/api/tags/page?${params.toString()}`);
+}
+
 export async function saveTag(data: Omit<Tag, 'id'> & { id?: string }): Promise<Tag> {
   const tag = data.id
     ? await apiRequest<Tag>(`/api/tags/${encodeURIComponent(data.id)}`, jsonRequest('PATCH', data))
@@ -515,6 +540,11 @@ export async function deleteTag(id: string): Promise<void> {
 
 export async function fetchPublishedVideos(): Promise<PublishedVideo[]> {
   return apiRequest<PublishedVideo[]>('/api/published');
+}
+
+export function fetchPublishedVideoPage(page: number, pageSize = 30): Promise<PaginatedPublishedVideos> {
+  const params = new URLSearchParams({ page: String(page), page_size: String(pageSize) });
+  return apiRequest<PaginatedPublishedVideos>(`/api/published/page?${params.toString()}`);
 }
 
 export async function savePublishedVideo(
@@ -533,7 +563,7 @@ export async function deletePublishedVideo(id: string): Promise<void> {
 }
 
 export async function fetchSettings(): Promise<AppSettings> {
-  return (await fetchBootstrap()).settings;
+  return apiRequest<AppSettings>('/api/settings');
 }
 
 export async function saveSettings(settings: AppSettings): Promise<AppSettings> {
