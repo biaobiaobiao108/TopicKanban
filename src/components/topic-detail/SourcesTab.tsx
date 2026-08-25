@@ -423,7 +423,6 @@ export const SourcesTab: React.FC<SourcesTabProps> = ({
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
         title={editingSource ? '编辑素材资料' : '录入新素材'}
-        subtitle="搜集并沉淀一手视频切片、文本记录与参考资料"
         maxWidth="lg"
       >
         <form onSubmit={handleSubmit} className="space-y-4">

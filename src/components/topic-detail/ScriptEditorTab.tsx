@@ -871,7 +871,6 @@ export const ScriptEditorTab: React.FC<ScriptEditorTabProps> = ({
         isOpen={Boolean(draftConflict)}
         onClose={() => undefined}
         title="云端文案已有更新"
-        subtitle="请选择要保留的版本，避免覆盖其他设备的编辑。"
         maxWidth="md"
       >
         {draftConflict && (
@@ -1294,19 +1293,17 @@ export const ScriptEditorTab: React.FC<ScriptEditorTabProps> = ({
                 : 'pt-8 pb-36 sm:pt-12 sm:pb-48'
             }`}
           >
-            <div className="mb-6 border-b border-stone-200/80 pb-5 dark:border-stone-800">
-              <label htmlFor="script-draft-title" className="block text-xs font-bold uppercase tracking-[0.12em] text-stone-500 dark:text-stone-400">文案标题</label>
+            <div className="mb-4 border-b border-stone-200/80 pb-3 dark:border-stone-800">
+              <label htmlFor="script-draft-title" className="sr-only">文案标题</label>
               <input
                 id="script-draft-title"
                 name="script_draft_title"
                 value={draftTitle}
                 onChange={(event) => handleDraftTitleChange(event.target.value)}
                 maxLength={200}
-                aria-describedby="script-draft-title-hint"
-                className="mt-2 min-h-12 w-full border-0 bg-transparent px-0 text-2xl font-bold tracking-tight text-stone-900 outline-none placeholder:text-stone-300 focus:ring-0 dark:text-stone-100 dark:placeholder:text-stone-600 sm:text-3xl"
+                className="min-h-12 w-full border-0 bg-transparent px-0 text-2xl font-bold tracking-tight text-stone-900 outline-none placeholder:text-stone-300 focus:ring-0 dark:text-stone-100 dark:placeholder:text-stone-600 sm:text-3xl"
                 placeholder="输入这期视频的文案标题"
               />
-              <p id="script-draft-title-hint" className="mt-1 text-xs text-stone-400 dark:text-stone-500">发布包会读取这里的标题；如果留空，将回退到选题标题。</p>
             </div>
             <EditorContent
               editor={editor}
@@ -1352,7 +1349,6 @@ export const ScriptEditorTab: React.FC<ScriptEditorTabProps> = ({
         isOpen={isShareModalOpen && Boolean(currentShare)}
         onClose={() => setIsShareModalOpen(false)}
         title="外部审稿链接已就绪"
-        subtitle={`免登录只读快照 · 有效期 ${settings?.default_share_ttl_days || 3} 天 (KV 物理自动销毁)`}
         maxWidth="md"
       >
         {currentShare && (

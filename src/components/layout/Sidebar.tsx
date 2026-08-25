@@ -51,7 +51,6 @@ export const Sidebar: React.FC<SidebarProps> = ({
           </div>
           <div>
             <h1 className="font-bold text-stone-900 dark:text-stone-100 text-[15px] leading-tight">选题生产工作台</h1>
-            <p className="text-xs text-stone-500 dark:text-stone-400 font-normal">B站叙事类视频创作者专属</p>
           </div>
         </div>
 

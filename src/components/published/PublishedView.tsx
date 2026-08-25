@@ -332,9 +332,6 @@ export const PublishedView: React.FC<PublishedViewProps> = ({
               </span>
               <span>已发布视频复盘与数据沉淀</span>
             </h2>
-            <p className="text-xs sm:text-sm text-stone-500 dark:text-stone-400 mt-1">
-              记录成片上线表现与长尾收益，支持输入 BV 号一键拉取与同步 B 站播放/点赞/投币数据
-            </p>
           </div>
 
           <div className="flex items-center gap-2.5 flex-wrap">
@@ -619,7 +616,6 @@ export const PublishedView: React.FC<PublishedViewProps> = ({
           isOpen={isModalOpen}
           onClose={() => setIsModalOpen(false)}
           title={editingVideo ? '编辑已发布视频数据' : '归档已发布视频'}
-          subtitle="输入 BV 号可一键自动抓取 B 站播放量、点赞、投币与收藏互动数据"
           maxWidth="md"
         >
           <form onSubmit={handleSubmit} className="space-y-4">

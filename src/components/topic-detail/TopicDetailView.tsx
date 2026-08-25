@@ -400,7 +400,6 @@ export const TopicDetailView: React.FC<TopicDetailViewProps> = ({
         isOpen={Boolean(draftRecovery)}
         onClose={() => undefined}
         title="发现两份不同的文案"
-        subtitle="为避免覆盖，请先明确选择要保留的版本"
         maxWidth="lg"
       >
         {draftRecovery && (

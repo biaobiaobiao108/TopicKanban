@@ -84,9 +84,6 @@ export const TodayView: React.FC<TodayViewProps> = ({
                 专注当下
               </span>
             </div>
-            <p className="text-xs sm:text-sm text-stone-500 dark:text-stone-400 mt-1">
-              清晰锁定当前最高价值的视频项目，主线明确，杜绝多任务犹豫。
-            </p>
           </div>
 
           <button

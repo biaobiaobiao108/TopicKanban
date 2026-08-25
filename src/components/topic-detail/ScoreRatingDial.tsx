@@ -116,7 +116,6 @@ export const ScoreRatingDial: React.FC<ScoreRatingDialProps> = ({ topic, onUpdat
           </div>
           <div>
             <h4 className="text-sm font-bold text-stone-900 dark:text-stone-100">选题健康度与五维诊断</h4>
-            <p className="text-[11px] text-stone-400 dark:text-stone-500">辅助立项决策，精准定位制作瓶颈</p>
           </div>
         </div>
 

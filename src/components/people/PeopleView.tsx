@@ -144,9 +144,6 @@ export const PeopleView: React.FC<PeopleViewProps> = ({
               </span>
               <span>互联网人物档案与关系库</span>
             </h2>
-            <p className="text-xs sm:text-sm text-stone-500 dark:text-stone-400 mt-1">
-              沉淀网红、主播与事件当事人数据库，跨选题复用背景、人设与人物关系网
-            </p>
           </div>
 
           <div className="flex items-center gap-2.5 flex-wrap">
@@ -332,7 +329,6 @@ export const PeopleView: React.FC<PeopleViewProps> = ({
           isOpen={isPersonModalOpen}
           onClose={() => setIsPersonModalOpen(false)}
           title={editingPerson ? '编辑人物档案' : '新建人物档案'}
-          subtitle="独立实体库，便于在多个视频选题中关联与复用"
           maxWidth="md"
         >
           <form onSubmit={handlePersonSubmit} className="space-y-4">
@@ -440,7 +436,6 @@ export const PeopleView: React.FC<PeopleViewProps> = ({
           isOpen={isRelModalOpen}
           onClose={() => setIsRelModalOpen(false)}
           title="记录人物对应关系"
-          subtitle="记录两位人物之间的历史渊源与合作/冲突关系"
           maxWidth="md"
         >
           <form onSubmit={handleRelSubmit} className="space-y-4">

@@ -6,7 +6,6 @@ interface ModalProps {
   isOpen: boolean;
   onClose: () => void;
   title: string;
-  subtitle?: string;
   children: React.ReactNode;
   maxWidth?: 'sm' | 'md' | 'lg' | 'xl' | '2xl' | '3xl' | '4xl';
 }
@@ -15,7 +14,6 @@ export const Modal: React.FC<ModalProps> = ({
   isOpen,
   onClose,
   title,
-  subtitle,
   children,
   maxWidth = 'lg',
 }) => {
@@ -106,10 +104,7 @@ export const Modal: React.FC<ModalProps> = ({
       >
         {/* Header */}
         <div className="flex items-center justify-between px-6 py-4 border-b border-stone-200/70 dark:border-stone-800 bg-stone-50/70 dark:bg-stone-900/90">
-          <div>
-            <h3 id={titleId} className="text-lg font-bold text-stone-900 dark:text-stone-100 leading-none">{title}</h3>
-            {subtitle && <p className="text-xs sm:text-sm text-stone-500 dark:text-stone-400 mt-1">{subtitle}</p>}
-          </div>
+          <h3 id={titleId} className="text-lg font-bold text-stone-900 dark:text-stone-100 leading-none">{title}</h3>
           <button
             type="button"
             aria-label="关闭弹窗"

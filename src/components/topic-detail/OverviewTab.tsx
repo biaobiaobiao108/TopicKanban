@@ -374,7 +374,6 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({
               </div>
               <div>
                 <h3 className="text-sm font-bold text-stone-900 dark:text-stone-100">核心看点与戏剧反差</h3>
-                <p className="text-[11px] text-stone-400 dark:text-stone-500">一句话故事抓手与核心反差钩子</p>
               </div>
             </div>
 
@@ -481,7 +480,6 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({
               </div>
               <div>
                 <h3 className="text-sm font-bold text-stone-900 dark:text-stone-100">起承转合四幕故事骨架</h3>
-                <p className="text-[11px] text-stone-400 dark:text-stone-500">长视频叙事节奏拆解，可直接注入文案与时间线</p>
               </div>
             </div>
 
@@ -854,7 +852,6 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({
         isOpen={isAddPersonModalOpen}
         onClose={() => setIsAddPersonModalOpen(false)}
         title="新建人物档案并关联到本选题"
-        subtitle="沉淀人物信息，可在此选题及后续视频中重复使用"
       >
         <form onSubmit={handleQuickCreatePerson} className="space-y-4">
           <div className="space-y-1.5">

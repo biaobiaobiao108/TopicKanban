@@ -86,6 +86,18 @@ async function mockWorkspace(page: Page, draft = workspace.draft) {
       body: JSON.stringify({ ...workspace, draft, publish_package: savedPackage }),
     });
   });
+  await page.route(`**/api/topics/${topic.id}/draft`, async (route) => {
+    await route.fulfill({ contentType: 'application/json', body: JSON.stringify(draft) });
+  });
+  await page.route(`**/api/topics/${topic.id}/sources`, async (route) => {
+    await route.fulfill({ contentType: 'application/json', body: '[]' });
+  });
+  await page.route(`**/api/topics/${topic.id}/timeline`, async (route) => {
+    await route.fulfill({ contentType: 'application/json', body: '[]' });
+  });
+  await page.route(`**/api/topics/${topic.id}/citations`, async (route) => {
+    await route.fulfill({ contentType: 'application/json', body: '[]' });
+  });
   await page.route(`**/api/topics/${topic.id}/publish-package`, async (route) => {
     const payload = route.request().postDataJSON() as Record<string, unknown>;
     const version = Number(savedPackage?.version || 0) + 1;
@@ -158,4 +170,14 @@ test('没有草稿时阻止复制和导出发布包', async ({ page }) => {
   await expect(page.getByText('文案正文为空')).toBeVisible();
   await expect(page.getByRole('button', { name: '复制完整发布包', exact: true })).toBeDisabled();
   await expect(page.getByRole('button', { name: 'Markdown', exact: true })).toBeDisabled();
+});
+
+test('文案标题保留可访问名称且不显示静态发布包说明', async ({ page }) => {
+  await mockWorkspace(page);
+  await login(page);
+  await page.goto(`/topics/${topic.id}?tab=script`);
+
+  await expect(page.getByLabel('文案标题')).toBeVisible();
+  await expect(page.getByLabel('文案标题')).toHaveValue('文案创作标题：真正应该发布的版本');
+  await expect(page.getByText('发布包会读取这里的标题；如果留空，将回退到选题标题。')).toHaveCount(0);
 });
