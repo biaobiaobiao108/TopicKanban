@@ -133,6 +133,7 @@ interface ScriptEditorTabProps {
   onCacheDraftLocally: (contentHtml: string, contentJson: string, wordCount: number) => void;
   onSaveDraftImmediately: (contentHtml: string, contentJson: string, wordCount: number) => void;
   onSaveCitation: (input: CitationInput) => Promise<DraftCitation>;
+  onRegisterDraftFlush?: (flush: (() => Promise<void>) | null) => void;
 }
 
 const canKeepBothSidePanelsOpen = () =>
@@ -157,6 +158,7 @@ export const ScriptEditorTab: React.FC<ScriptEditorTabProps> = ({
   onCacheDraftLocally,
   onSaveDraftImmediately,
   onSaveCitation,
+  onRegisterDraftFlush,
 }) => {
   const { showToast } = useToast();
   const [saveStatus, setSaveStatus] = useState<'saved' | 'saving' | 'unsaved' | 'local' | 'pending' | 'conflict'>('saved');
@@ -249,6 +251,11 @@ export const ScriptEditorTab: React.FC<ScriptEditorTabProps> = ({
       }
     }
   }, [onSaveDraft, topicId]);
+
+  useEffect(() => {
+    onRegisterDraftFlush?.(persistLatestDraft);
+    return () => onRegisterDraftFlush?.(null);
+  }, [onRegisterDraftFlush, persistLatestDraft]);
 
   // Presence & Multi-device lock state
   const [presenceState, setPresenceState] = useState<PresenceState>({ is_locked: false });

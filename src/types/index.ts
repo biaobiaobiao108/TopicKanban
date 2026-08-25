@@ -161,6 +161,49 @@ export interface TopicWorkspaceLoad extends Omit<TopicWorkspaceData, 'draft'> {
   draft: DraftLoadResult;
 }
 
+export type PublishCheckLevel = 'blocker' | 'warning' | 'info';
+
+export interface PublishChapter {
+  id: string;
+  title: string;
+  time: string;
+  start_seconds: number;
+  source: 'script-heading' | 'manual';
+}
+
+export interface PublishSourceCredit {
+  id: string;
+  title: string;
+  author: string;
+  platform: PlatformType;
+  platform_label: string;
+  url: string;
+  verification_status: VerificationStatus;
+  included: boolean;
+}
+
+export interface PublishCheck {
+  id: string;
+  level: PublishCheckLevel;
+  label: string;
+  detail: string;
+}
+
+export interface PublishPackage {
+  title: string;
+  title_candidates: string[];
+  cover_text: string;
+  description: string;
+  tags: string[];
+  chapters: PublishChapter[];
+  pinned_comment: string;
+  source_credits: PublishSourceCredit[];
+  checks: PublishCheck[];
+  word_count: number;
+  estimated_duration_seconds: number;
+  draft_updated_at: string | null;
+}
+
 export type CitationReferenceType = 'source' | 'timeline' | 'person' | 'outline';
 
 export interface DraftCitation {
