@@ -51,14 +51,60 @@ type BilibiliApiResponse = {
 
 const pendingBilibiliRequests = new Map<string, Promise<BilibiliVideoMeta>>();
 
+export const normalizeCoverUrl = (url?: string): string => {
+  if (!url) return '';
+  const trimmed = url.trim();
+  if (trimmed.startsWith('//')) return `https:${trimmed}`;
+  if (trimmed.startsWith('http://')) return trimmed.replace(/^http:\/\//, 'https://');
+  return trimmed;
+};
+
+const COVER_CACHE_PREFIX = 'bili_cover_';
+const coverMemoryCache = new Map<string, string>();
+
+export const getBilibiliCoverFromCache = (bvid: string): string | null => {
+  if (!bvid) return null;
+  const inMemory = coverMemoryCache.get(bvid);
+  if (inMemory) return inMemory;
+  try {
+    if (typeof localStorage !== 'undefined') {
+      const stored = localStorage.getItem(`${COVER_CACHE_PREFIX}${bvid}`);
+      if (stored) {
+        coverMemoryCache.set(bvid, stored);
+        return stored;
+      }
+    }
+  } catch {
+    // Ignore quota or private mode errors
+  }
+  return null;
+};
+
+export const setBilibiliCoverToCache = (bvid: string, coverUrl: string): void => {
+  if (!bvid || !coverUrl) return;
+  coverMemoryCache.set(bvid, coverUrl);
+  try {
+    if (typeof localStorage !== 'undefined') {
+      localStorage.setItem(`${COVER_CACHE_PREFIX}${bvid}`, coverUrl);
+    }
+  } catch {
+    // Ignore quota or private mode errors
+  }
+};
+
 const normalizeBilibiliVideo = (raw: BilibiliRawVideoData, bvid: string): BilibiliVideoMeta => {
   const stat = raw.stat || {};
+  const normalizedCover = normalizeCoverUrl(raw.pic);
+  const cleanBvid = raw.bvid || bvid;
+  if (cleanBvid && normalizedCover) {
+    setBilibiliCoverToCache(cleanBvid, normalizedCover);
+  }
   return {
-    bvid: raw.bvid || bvid,
+    bvid: cleanBvid,
     title: raw.title || '',
     author: raw.owner?.name || '',
     desc: raw.desc || '',
-    cover_url: raw.pic || '',
+    cover_url: normalizedCover,
     published_at: raw.pubdate
       ? formatBilibiliDate(raw.pubdate * 1000)
       : formatBilibiliDate(),
@@ -67,7 +113,7 @@ const normalizeBilibiliVideo = (raw: BilibiliRawVideoData, bvid: string): Bilibi
     coins: Number(stat.coin || 0),
     favorites: Number(stat.favorite || 0),
     comments: Number(stat.reply || 0),
-    url: `https://www.bilibili.com/video/${raw.bvid || bvid}`,
+    url: `https://www.bilibili.com/video/${cleanBvid}`,
   };
 };
 
