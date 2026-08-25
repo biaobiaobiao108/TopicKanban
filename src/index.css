@@ -353,6 +353,8 @@ html.theme-kyoto-zen .script-citation::after {
     --text-primary: #1c1917;
     --text-secondary: #78716c;
     --border-subtle: #e7e5e4;
+    --scrollbar-thumb: #d6d3d1;
+    --scrollbar-track: transparent;
     color-scheme: light;
   }
 
@@ -362,6 +364,8 @@ html.theme-kyoto-zen .script-citation::after {
     --text-primary: #2d2b29;
     --text-secondary: #8c857b;
     --border-subtle: #eae5dc;
+    --scrollbar-thumb: #ded6cb;
+    --scrollbar-track: transparent;
     color-scheme: light;
   }
 
@@ -371,6 +375,8 @@ html.theme-kyoto-zen .script-citation::after {
     --text-primary: #1a2424;
     --text-secondary: #5f7474;
     --border-subtle: #dce5e5;
+    --scrollbar-thumb: #c8d8d8;
+    --scrollbar-track: transparent;
     color-scheme: light;
   }
 
@@ -380,6 +386,8 @@ html.theme-kyoto-zen .script-citation::after {
     --text-primary: #2b2520;
     --text-secondary: #7f746c;
     --border-subtle: #ded7ce;
+    --scrollbar-thumb: #dacfc4;
+    --scrollbar-track: transparent;
     color-scheme: light;
   }
 
@@ -389,6 +397,8 @@ html.theme-kyoto-zen .script-citation::after {
     --text-primary: #f1f5f9;
     --text-secondary: #94a3b8;
     --border-subtle: rgba(255, 255, 255, 0.09);
+    --scrollbar-thumb: #334155;
+    --scrollbar-track: transparent;
     color-scheme: dark;
   }
 
@@ -398,6 +408,8 @@ html.theme-kyoto-zen .script-citation::after {
     --text-primary: #232a24;
     --text-secondary: #6e7a71;
     --border-subtle: #dadfd5;
+    --scrollbar-thumb: #cbd5c8;
+    --scrollbar-track: transparent;
     color-scheme: light;
   }
 
@@ -407,7 +419,23 @@ html.theme-kyoto-zen .script-citation::after {
     --text-primary: #f5f5f4;
     --text-secondary: #a8a29e;
     --border-subtle: #292524;
+    --scrollbar-thumb: #44403c;
+    --scrollbar-track: transparent;
     color-scheme: dark;
+  }
+
+  @media (prefers-contrast: more) {
+    :root {
+      --scrollbar-thumb: #78716c;
+    }
+    html.dark {
+      --scrollbar-thumb: #a8a29e;
+    }
+  }
+
+  * {
+    scrollbar-color: var(--scrollbar-thumb) var(--scrollbar-track);
+    scrollbar-width: thin;
   }
 
   body {
@@ -420,39 +448,41 @@ html.theme-kyoto-zen .script-citation::after {
 }
 
 /* Hide scrollbar for tabs on mobile */
-.no-scrollbar::-webkit-scrollbar {
-  display: none;
-}
 .no-scrollbar {
   -ms-overflow-style: none;
   scrollbar-width: none;
 }
-
-/* Custom smooth subtle scrollbars */
-::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
 }
 
-::-webkit-scrollbar-track {
-  background: transparent;
-}
+/* Legacy scrollbar fallback for older WebKit engines */
+@supports not (scrollbar-color: auto) {
+  ::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
 
-::-webkit-scrollbar-thumb {
-  background: #d6d3d1;
-  border-radius: 9999px;
-}
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
 
-::-webkit-scrollbar-thumb:hover {
-  background: #a8a29e;
-}
+  ::-webkit-scrollbar-thumb {
+    background: #d6d3d1;
+    border-radius: 9999px;
+  }
 
-html.dark ::-webkit-scrollbar-thumb {
-  background: #44403c;
-}
+  ::-webkit-scrollbar-thumb:hover {
+    background: #a8a29e;
+  }
 
-html.dark ::-webkit-scrollbar-thumb:hover {
-  background: #57534e;
+  html.dark ::-webkit-scrollbar-thumb {
+    background: #44403c;
+  }
+
+  html.dark ::-webkit-scrollbar-thumb:hover {
+    background: #57534e;
+  }
 }
 
 /* Tiptap editor styling - Editorial & high legibility with dynamic variable support */

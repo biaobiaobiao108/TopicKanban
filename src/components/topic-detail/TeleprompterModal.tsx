@@ -164,20 +164,39 @@ export const TeleprompterModal: React.FC<TeleprompterModalProps> = ({
 
       // Request Screen Wake Lock to prevent sleep during recording
       let isSubscribed = true;
-      if ('wakeLock' in navigator) {
-        navigator.wakeLock.request('screen').then((lock) => {
-          if (isSubscribed) {
-            wakeLockRef.current = lock;
-            lock.addEventListener('release', () => {
-              if (wakeLockRef.current === lock) wakeLockRef.current = null;
-            });
-          } else {
-            void lock.release();
+      const requestLock = async () => {
+        if ('wakeLock' in navigator && isPlaying) {
+          try {
+            if (!wakeLockRef.current || wakeLockRef.current.released) {
+              const lock = await navigator.wakeLock.request('screen');
+              if (isSubscribed) {
+                wakeLockRef.current = lock;
+                lock.addEventListener('release', () => {
+                  if (wakeLockRef.current === lock) wakeLockRef.current = null;
+                });
+              } else {
+                void lock.release();
+              }
+            }
+          } catch {
+            // Ignore permission or power save mode errors
           }
-        }).catch(() => undefined);
-      }
+        }
+      };
+
+      void requestLock();
+
+      const handleVisibility = () => {
+        if (document.visibilityState === 'visible' && isSubscribed) {
+          void requestLock();
+        }
+      };
+
+      document.addEventListener('visibilitychange', handleVisibility);
+
       return () => {
         isSubscribed = false;
+        document.removeEventListener('visibilitychange', handleVisibility);
         if (timerIntervalRef.current) clearInterval(timerIntervalRef.current);
         if (wakeLockRef.current) {
           void wakeLockRef.current.release();

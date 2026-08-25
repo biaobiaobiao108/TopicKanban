@@ -11,6 +11,7 @@ export default defineConfig({
     },
   },
   build: {
+    chunkSizeWarningLimit: 1200,
     rollupOptions: {
       output: {
         onlyExplicitManualChunks: true,
@@ -18,6 +19,7 @@ export default defineConfig({
           if (id.includes('/node_modules/@tiptap/')) return 'tiptap';
           if (id.includes('/node_modules/@dnd-kit/')) return 'dnd';
           if (id.includes('/node_modules/lucide-react/')) return 'icons';
+          if (id.includes('/node_modules/opencc-js/')) return 'opencc';
         },
       },
     },

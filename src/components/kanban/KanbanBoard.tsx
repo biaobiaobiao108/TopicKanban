@@ -520,13 +520,13 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
       </div>
 
       {/* Mobile Stage Selector Pill Bar (iPhone Safari optimized) */}
-      <div className="md:hidden flex items-center gap-1.5 overflow-x-auto no-scrollbar py-1 -mx-4 px-4 border-b border-stone-200/60">
+      <div className="md:hidden flex items-center gap-1.5 overflow-x-auto no-scrollbar py-1 -mx-4 px-4 border-b border-stone-200/60 dark:border-stone-800 transition-colors">
         <button
           onClick={() => setMobileActiveStage('all')}
           className={`shrink-0 text-xs font-semibold px-3 py-1.5 rounded-full transition-colors cursor-pointer ${
             mobileActiveStage === 'all'
-              ? 'bg-stone-900 text-white shadow-xs'
-              : 'bg-stone-100 text-stone-600 hover:bg-stone-200'
+              ? 'bg-stone-900 dark:bg-stone-100 text-white dark:text-stone-900 shadow-2xs font-bold'
+              : 'bg-stone-100 dark:bg-stone-800 text-stone-600 dark:text-stone-300 hover:bg-stone-200/80 dark:hover:bg-stone-700'
           }`}
         >
           全部活跃 ({totalActiveCount})
@@ -540,13 +540,13 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
               onClick={() => setMobileActiveStage(col.status)}
               className={`shrink-0 text-xs font-semibold px-3 py-1.5 rounded-full flex items-center gap-1.5 transition-colors cursor-pointer ${
                 isActive
-                  ? 'bg-rose-600 text-white shadow-xs'
-                  : 'bg-stone-100 text-stone-600 hover:bg-stone-200'
+                  ? 'bg-rose-600 text-white shadow-2xs font-bold'
+                  : 'bg-stone-100 dark:bg-stone-800 text-stone-600 dark:text-stone-300 hover:bg-stone-200/80 dark:hover:bg-stone-700'
               }`}
             >
               <span>{col.label}</span>
               <span className={`text-[10px] px-1.5 py-0.2 rounded-full font-mono ${
-                isActive ? 'bg-rose-700 text-white' : 'bg-stone-200 text-stone-700'
+                isActive ? 'bg-rose-700 dark:bg-rose-800 text-white font-bold' : 'bg-stone-200 dark:bg-stone-700 text-stone-700 dark:text-stone-300'
               }`}>
                 {count}
               </span>
@@ -595,31 +595,32 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
           </div>
         ) : null}
 
-        {/* Desktop / Full Grid View (4 Clean Columns: 收集箱, 已立项, 写稿中, 待制作) */}
-        <div className={mobileActiveStage !== 'all' ? 'hidden md:grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4' : 'grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4'}>
+        {/* Desktop / Full Grid View (4 Clean Columns: 收集箱, 已立项, 写稿中, 待制作) with Mobile Scroll Snap */}
+        <div className={mobileActiveStage !== 'all' ? 'hidden md:grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4' : 'flex md:grid flex-nowrap overflow-x-auto snap-x snap-mandatory no-scrollbar md:overflow-visible grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4 pb-4 md:pb-0'}>
           {ACTIVE_COLUMNS.map((col) => {
             const ids = visibleColumnIds[col.status] || [];
             const colTopics = ids.map((id) => topicsMap[id]).filter(Boolean);
             return (
-              <KanbanColumn
-                key={col.status}
-                status={col.status}
-                label={col.label}
-                description={col.description}
-                topics={colTopics}
-                onOpenDetail={onOpenDetail}
-                totalCount={columnTotalCounts[col.status] || 0}
-                hasMore={(columnTotalCounts[col.status] || 0) > (loadedTopicsByStatus[col.status]?.length || colTopics.length)}
-                isLoadingMore={columnQueries[activeStatuses.indexOf(col.status)]?.isFetching && columnPages[col.status] > 1}
-                onLoadMore={() => loadMoreColumn(col.status)}
-                onDeleteTopic={handleColumnDelete}
-                onTogglePin={onTogglePin}
-                onQuickAddTopic={onQuickAddTopic}
-                onUpdateStatus={handleColumnStatusUpdate}
-                onKeyboardMove={handleKeyboardMove}
-                sortableDisabled={isDragDisabled}
-                staleThresholdDays={staleActionDays}
-              />
+              <div key={col.status} className={mobileActiveStage === 'all' ? 'min-w-[85vw] sm:min-w-0 snap-center shrink-0 sm:shrink flex-1' : 'flex-1'}>
+                <KanbanColumn
+                  status={col.status}
+                  label={col.label}
+                  description={col.description}
+                  topics={colTopics}
+                  onOpenDetail={onOpenDetail}
+                  totalCount={columnTotalCounts[col.status] || 0}
+                  hasMore={(columnTotalCounts[col.status] || 0) > (loadedTopicsByStatus[col.status]?.length || colTopics.length)}
+                  isLoadingMore={columnQueries[activeStatuses.indexOf(col.status)]?.isFetching && columnPages[col.status] > 1}
+                  onLoadMore={() => loadMoreColumn(col.status)}
+                  onDeleteTopic={handleColumnDelete}
+                  onTogglePin={onTogglePin}
+                  onQuickAddTopic={onQuickAddTopic}
+                  onUpdateStatus={handleColumnStatusUpdate}
+                  onKeyboardMove={handleKeyboardMove}
+                  sortableDisabled={isDragDisabled}
+                  staleThresholdDays={staleActionDays}
+                />
+              </div>
             );
           })}
         </div>
