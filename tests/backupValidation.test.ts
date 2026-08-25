@@ -116,4 +116,33 @@ describe('backup schema validation', () => {
 
     expect(result.success).toBe(true);
   });
+
+  it('accepts persisted publish packages and keeps the field shape bounded', () => {
+    const topic = createTopic('topic-1');
+    const result = validateBackupData(createBackup({
+      topics: [topic],
+      publish_packages: [{
+        id: 'package-1',
+        topic_id: topic.id,
+        version: 2,
+        title_simplified: '简体标题',
+        title_traditional: '繁體標題',
+        description_simplified: '简体简介',
+        description_traditional: '繁體簡介',
+        title_traditional_auto: true,
+        description_traditional_auto: false,
+        content_json: JSON.stringify({
+          title_candidates: ['候选标题'],
+          cover_text: '封面短句',
+          tags: ['标签'],
+          chapters: [],
+          pinned_comment: '',
+          included_source_ids: [],
+        }),
+        updated_at: topic.updated_at,
+      }],
+    }));
+
+    expect(result.success).toBe(true);
+  });
 });

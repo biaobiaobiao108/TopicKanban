@@ -21,6 +21,8 @@ describe('Bun Server Integration (Local SQLite & API)', () => {
     const schemaFile = path.resolve(process.cwd(), 'drizzle/0000_schema.sql');
     const schemaSql = fs.readFileSync(schemaFile, 'utf-8');
     sqlite.exec(schemaSql);
+    const publishPackageMigration = path.resolve(process.cwd(), 'drizzle/0005_create_publish_packages.sql');
+    sqlite.exec(fs.readFileSync(publishPackageMigration, 'utf-8'));
 
     const d1 = new LocalD1Database(sqlite);
     const kv = new LocalKVNamespace(sqlite);
@@ -103,7 +105,7 @@ describe('Bun Server Integration (Local SQLite & API)', () => {
         Authorization: `Bearer ${authToken}`,
       },
       body: JSON.stringify({
-        title: topic.title,
+        title: '文案创作独立标题',
         content_html: '<h1>第一幕</h1><p>镜头拉远……</p>',
         content_json: JSON.stringify({ type: 'doc', content: [] }),
         word_count: 1500,
@@ -111,6 +113,59 @@ describe('Bun Server Integration (Local SQLite & API)', () => {
       }),
     });
     expect(draftRes.status).toBe(200);
+    const workspaceRes = await app.request(`/api/topics/${topic.id}/workspace`, {
+      headers: { Authorization: `Bearer ${authToken}` },
+    });
+    expect(workspaceRes.status).toBe(200);
+    const initialWorkspace = await workspaceRes.json() as {
+      draft: { title: string } | null;
+      publish_package: unknown;
+    };
+    expect(initialWorkspace.draft?.title).toBe('文案创作独立标题');
+    expect(initialWorkspace.publish_package).toBeNull();
+
+    const publishPackagePayload = {
+      title_simplified: '简体发布标题',
+      title_traditional: '簡體發布標題',
+      description_simplified: '简体简介',
+      description_traditional: '簡體簡介',
+      title_traditional_auto: true,
+      description_traditional_auto: true,
+      content_json: JSON.stringify({
+        title_candidates: ['候选标题'],
+        cover_text: '封面短句',
+        tags: ['测试'],
+        chapters: [{ id: 'chapter-1', title: '开场', time: '00:00', start_seconds: 0, source: 'script-heading' }],
+        pinned_comment: '欢迎讨论',
+        included_source_ids: [],
+      }),
+      base_version: 0,
+    };
+    const publishPackageRes = await app.request(`/api/topics/${topic.id}/publish-package`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${authToken}` },
+      body: JSON.stringify(publishPackagePayload),
+    });
+    expect(publishPackageRes.status).toBe(200);
+    const savedPublishPackage = await publishPackageRes.json() as typeof publishPackagePayload & { id: string; version: number; updated_at: string };
+    expect(savedPublishPackage.version).toBe(1);
+    expect(savedPublishPackage.title_simplified).toBe('简体发布标题');
+    expect(savedPublishPackage.title_traditional_auto).toBe(true);
+
+    const packageConflictRes = await app.request(`/api/topics/${topic.id}/publish-package`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${authToken}` },
+      body: JSON.stringify({ ...publishPackagePayload, title_simplified: '过期版本' }),
+    });
+    expect(packageConflictRes.status).toBe(409);
+    expect((await packageConflictRes.json() as { error: string }).error).toBe('PUBLISH_PACKAGE_CONFLICT');
+
+    const persistedWorkspaceRes = await app.request(`/api/topics/${topic.id}/workspace`, {
+      headers: { Authorization: `Bearer ${authToken}` },
+    });
+    const persistedWorkspace = await persistedWorkspaceRes.json() as { publish_package: { version: number; title_simplified: string } };
+    expect(persistedWorkspace.publish_package.version).toBe(1);
+    expect(persistedWorkspace.publish_package.title_simplified).toBe('简体发布标题');
 
     const topicPageRes = await app.request('/api/topics?scope=all&q=测试爆款', {
       headers: { Authorization: `Bearer ${authToken}` },
@@ -261,6 +316,14 @@ describe('Bun Server Integration (Local SQLite & API)', () => {
     });
     expect(backupRes.status).toBe(200);
     const backupPayload = await backupRes.json() as { data: { settings: Record<string, unknown> } };
+    const fullBackupPayload = await (await app.request('/api/backup', {
+      headers: { Authorization: `Bearer ${authToken}` },
+    })).json() as { data: { publish_packages?: Array<{ topic_id: string; title_simplified: string; title_traditional_auto: boolean }> } };
+    expect(fullBackupPayload.data.publish_packages?.[0]).toMatchObject({
+      topic_id: topic.id,
+      title_simplified: '简体发布标题',
+      title_traditional_auto: true,
+    });
     const restoreRes = await app.request('/api/backup', {
       method: 'PUT',
       headers: { Authorization: `Bearer ${authToken}`, 'Content-Type': 'application/json' },
@@ -276,6 +339,7 @@ describe('Bun Server Integration (Local SQLite & API)', () => {
       headers: { Authorization: `Bearer ${authToken}` },
     });
     expect((await restoredSettingsRes.json() as { reading_speed: number }).reading_speed).toBe(333);
+    expect(sqlite.query('SELECT title_simplified FROM publish_packages WHERE topic_id = ?').get(topic.id)).toEqual({ title_simplified: '简体发布标题' });
     expect(sqlite.query("SELECT name FROM sqlite_master WHERE type = 'table' AND name = 'settings'").get()).toBeNull();
   });
 

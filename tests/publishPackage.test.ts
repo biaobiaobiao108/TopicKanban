@@ -1,9 +1,11 @@
 import { describe, expect, it } from 'bun:test';
-import type { Draft, Source, Topic } from '../src/types';
+import type { Draft, PublishPackageRecord, Source, Topic } from '../src/types';
 import {
   buildPublishPackage,
   formatPublishPackageMarkdown,
   formatPublishPackageText,
+  mergeSavedPublishPackage,
+  toPersistedPublishPackageContent,
 } from '../src/lib/publishPackage';
 
 const topic: Topic = {
@@ -70,13 +72,74 @@ describe('publish package generator', () => {
       readingSpeed: 280,
     });
 
-    expect(packageData.title).toBe(topic.title);
+    expect(packageData.title_simplified).toBe(topic.title);
+    expect(packageData.title_traditional).toBe('一個網紅故事的完整復盤');
     expect(packageData.cover_text).toBe(topic.hook);
-    expect(packageData.description).toContain(topic.summary);
-    expect(packageData.description).toContain(`本期人物：${topic.people?.[0].name}`);
+    expect(packageData.description_simplified).toContain(topic.summary);
+    expect(packageData.description_simplified).toContain(`本期人物：${topic.people?.[0].name}`);
+    expect(packageData.description_traditional).toContain('從爆紅到爭議');
     expect(packageData.tags).toEqual(['人物故事']);
     expect(packageData.source_credits[0].url).toBe('https://example.com/source');
     expect(packageData.draft_updated_at).toBe('2026-08-21T12:00:00.000Z');
+  });
+
+  it('uses the independent draft title and falls back to the topic title when it is blank', () => {
+    const titled = buildPublishPackage({
+      topic,
+      draft: { ...draft('{}'), title: '文案创作里的独立标题' },
+      sources: [],
+      timeline: [],
+      citations: [],
+    });
+    expect(titled.title_simplified).toBe('文案创作里的独立标题');
+
+    const blank = buildPublishPackage({
+      topic,
+      draft: { ...draft('{}'), title: '' },
+      sources: [],
+      timeline: [],
+      citations: [],
+    });
+    expect(blank.title_simplified).toBe(topic.title);
+  });
+
+  it('preserves saved public edits and manual Traditional Chinese fields', () => {
+    const generated = buildPublishPackage({
+      topic,
+      draft: draft('{}'),
+      sources: [source()],
+      timeline: [],
+      citations: [],
+    });
+    const saved: PublishPackageRecord = {
+      id: 'package-1',
+      topic_id: topic.id,
+      version: 3,
+      title_simplified: '已保存简体标题',
+      title_traditional: '手動繁體標題',
+      description_simplified: '已保存简体简介',
+      description_traditional: '手動繁體簡介',
+      title_traditional_auto: false,
+      description_traditional_auto: false,
+      content_json: JSON.stringify({
+        title_candidates: ['候选一'],
+        cover_text: '手动封面',
+        tags: ['手动标签'],
+        chapters: [],
+        pinned_comment: '手动评论',
+        included_source_ids: [],
+      }),
+      updated_at: '2026-08-25T00:00:00.000Z',
+    };
+    const merged = mergeSavedPublishPackage(generated, saved);
+    expect(merged.title_traditional).toBe('手動繁體標題');
+    expect(merged.description_traditional_auto).toBe(false);
+    expect(merged.cover_text).toBe('手动封面');
+    expect(merged.source_credits[0].included).toBe(false);
+    expect(toPersistedPublishPackageContent(merged)).toMatchObject({
+      title_candidates: ['候选一'],
+      included_source_ids: [],
+    });
   });
 
   it('extracts H1/H2 chapters and estimates timestamps using the configured speed', () => {
@@ -184,8 +247,9 @@ describe('publish package generator', () => {
     expect(text).toContain('标题：');
     expect(text).toContain('视频简介：');
     expect(text).toContain('参考资料：');
-    expect(markdown).toContain('# B站发布包');
-    expect(markdown).toContain('## 视频简介');
+    expect(markdown).toContain('# 双平台发布包');
+    expect(markdown).toContain('## Bilibili（简体）');
+    expect(markdown).toContain('## YouTube（繁体）');
     expect(markdown).toContain('公开资料');
   });
 });

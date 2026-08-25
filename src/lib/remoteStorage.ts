@@ -11,6 +11,8 @@ import type {
   PersonRelationship,
   PaginatedTopics,
   PublishedVideo,
+  PublishPackageRecord,
+  PublishPackageSaveInput,
   Source,
   Tag,
   TimelineEvent,
@@ -47,15 +49,28 @@ export class DraftConflictError extends Error {
   }
 }
 
+export class PublishPackageConflictError extends Error {
+  current: PublishPackageRecord | null;
+
+  constructor(current: PublishPackageRecord | null) {
+    super('发布包已被更新');
+    this.name = 'PublishPackageConflictError';
+    this.current = current;
+  }
+}
+
 export function isRemoteStorage(): boolean {
   return getAuthToken()?.startsWith('v1.') === true;
 }
 
 async function apiRequest<T>(path: string, init: RequestInit = {}): Promise<T> {
   const response = await authenticatedFetch(path, init);
-  const data = await response.json().catch(() => null) as (T & { error?: string; current?: Draft | null }) | null;
+  const data = await response.json().catch(() => null) as (T & { error?: string; current?: Draft | PublishPackageRecord | null }) | null;
   if (response.status === 409 && data?.error === 'DRAFT_CONFLICT') {
-    throw new DraftConflictError(data.current || null);
+    throw new DraftConflictError((data.current as Draft | null) || null);
+  }
+  if (response.status === 409 && data?.error === 'PUBLISH_PACKAGE_CONFLICT') {
+    throw new PublishPackageConflictError((data.current as PublishPackageRecord | null) || null);
   }
   if (!response.ok) throw new Error(data?.error || `请求失败 (${response.status})`);
   return data as T;
@@ -355,6 +370,16 @@ export async function fetchTopicWorkspace(topicId: string): Promise<TopicWorkspa
   const data = await apiRequest<TopicWorkspaceData>(`/api/topics/${encodeURIComponent(topicId)}/workspace`);
   knownCitationSignatures.set(topicId, data.citations.map((citation) => citation.id).sort().join(','));
   return { ...data, draft: mergePendingDraft(topicId, data.draft) };
+}
+
+export function savePublishPackage(
+  topicId: string,
+  input: PublishPackageSaveInput
+): Promise<PublishPackageRecord> {
+  return apiRequest<PublishPackageRecord>(
+    `/api/topics/${encodeURIComponent(topicId)}/publish-package`,
+    jsonRequest('PUT', input)
+  );
 }
 
 export async function resolveDraftRecovery(

@@ -27,10 +27,11 @@ const workspace = {
   sources: [],
   timeline: [],
   citations: [],
+  publish_package: null,
   draft: {
     id: 'e2e-draft',
     topic_id: topic.id,
-    title: topic.title,
+    title: '文案创作标题：真正应该发布的版本',
     content_html: '<h1>开场</h1><p>测试文案内容。</p><h2>第一次反转</h2><p>更多测试文案内容。</p>',
     content_json: JSON.stringify({
       type: 'doc',
@@ -48,6 +49,7 @@ const workspace = {
 };
 
 async function mockWorkspace(page: Page, draft = workspace.draft) {
+  let savedPackage: Record<string, unknown> | null = null;
   await page.route('**/api/bootstrap**', async (route) => {
     await route.fulfill({
       contentType: 'application/json',
@@ -81,8 +83,26 @@ async function mockWorkspace(page: Page, draft = workspace.draft) {
   await page.route(`**/api/topics/${topic.id}/workspace`, async (route) => {
     await route.fulfill({
       contentType: 'application/json',
-      body: JSON.stringify({ ...workspace, draft }),
+      body: JSON.stringify({ ...workspace, draft, publish_package: savedPackage }),
     });
+  });
+  await page.route(`**/api/topics/${topic.id}/publish-package`, async (route) => {
+    const payload = route.request().postDataJSON() as Record<string, unknown>;
+    const version = Number(savedPackage?.version || 0) + 1;
+    savedPackage = {
+      id: 'e2e-publish-package',
+      topic_id: topic.id,
+      version,
+      title_simplified: payload.title_simplified,
+      title_traditional: payload.title_traditional,
+      description_simplified: payload.description_simplified,
+      description_traditional: payload.description_traditional,
+      title_traditional_auto: payload.title_traditional_auto,
+      description_traditional_auto: payload.description_traditional_auto,
+      content_json: payload.content_json,
+      updated_at: '2026-08-25T01:00:00.000Z',
+    };
+    await route.fulfill({ contentType: 'application/json', body: JSON.stringify(savedPackage) });
   });
 }
 
@@ -97,24 +117,36 @@ test('发布包可编辑、复制并导出 Markdown', async ({ page }) => {
   await login(page);
   await page.goto(`/topics/${topic.id}?tab=publish`);
 
-  await expect(page.getByRole('heading', { name: 'B站发布包' })).toBeVisible();
-  await expect(page.getByLabel('投稿标题')).toHaveValue(topic.title);
+  await expect(page.getByRole('heading', { name: '双平台发布包' })).toBeVisible();
+  await expect(page.getByLabel('简体标题')).toHaveValue('文案创作标题：真正应该发布的版本');
   await expect(page.locator('input[name^="chapter_title_"]')).toHaveCount(2);
 
-  await page.getByLabel('视频简介').fill('这是用户临时修改后的简介。');
+  await page.getByLabel('繁体标题').fill('YouTube 手动标题');
+  await expect(page.getByText('手动修改')).toBeVisible();
+  await page.getByLabel('简体标题').fill('新的简体文案标题');
+  await expect(page.getByLabel('繁体标题')).toHaveValue('YouTube 手动标题');
+  await page.getByRole('button', { name: '恢复同步' }).first().click();
+  await expect(page.getByLabel('繁体标题')).toHaveValue('新的簡體文案標題');
+  await page.getByLabel('简体简介').fill('这是用户临时修改后的简体简介。');
+  await expect(page.getByLabel('繁体简介')).toHaveValue('這是用戶臨時修改後的簡體簡介。');
   await page.getByRole('button', { name: '手动添加章节' }).click();
   await expect(page.locator('input[name^="chapter_title_"]')).toHaveCount(3);
-  await expect(page.getByText('当前发布包有未保存的临时修改，离开页面后会丢失。')).toBeVisible();
+  await expect(page.getByText('等待保存')).toBeVisible();
+  await expect(page.getByText('已保存')).toBeVisible({ timeout: 5_000 });
+  await page.reload();
+  await expect(page.getByRole('heading', { name: '双平台发布包' })).toBeVisible();
+  await expect(page.getByLabel('简体标题')).toHaveValue('新的简体文案标题');
+  await expect(page.getByLabel('繁体简介')).toHaveValue('這是用戶臨時修改後的簡體簡介。');
 
   await page.getByRole('button', { name: '复制完整发布包', exact: true }).click();
-  await expect(page.getByRole('status').filter({ hasText: '已复制完整发布包' })).toBeVisible();
+  await expect(page.getByText('已复制完整双平台发布包')).toBeVisible();
 
   const downloadPromise = page.waitForEvent('download');
   await page.getByRole('button', { name: 'Markdown', exact: true }).click();
   const download = await downloadPromise;
-  expect(download.suggestedFilename()).toContain('B站发布包-');
+  expect(download.suggestedFilename()).toContain('双平台发布包-');
   expect(download.suggestedFilename()).toMatch(/\.md$/);
-  expect(await page.locator('body').evaluate((body) => body.textContent?.includes('B站发布包'))).toBe(true);
+  await expect(page.locator('body')).toContainText('双平台发布包');
 });
 
 test('没有草稿时阻止复制和导出发布包', async ({ page }) => {

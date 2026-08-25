@@ -250,6 +250,17 @@ export function initializeSqliteDatabase(dbFilePath: string, schemaDir?: string)
   sqlite.query('INSERT OR IGNORE INTO _schema_migrations (name, applied_at) VALUES (?, ?)')
     .run('0004_remove_settings_table.sql', appliedAt);
 
+  const publishPackagesTable = sqlite.query("SELECT name FROM sqlite_master WHERE type='table' AND name='publish_packages'").get() as { name?: string } | null;
+  if (publishPackagesTable?.name !== 'publish_packages') {
+    const migrationFile = path.join(resolvedSchemaDir, '0005_create_publish_packages.sql');
+    if (!fs.existsSync(migrationFile)) {
+      throw new Error('Missing publish package migration');
+    }
+    sqlite.exec(fs.readFileSync(migrationFile, 'utf-8'));
+  }
+  sqlite.query('INSERT OR IGNORE INTO _schema_migrations (name, applied_at) VALUES (?, ?)')
+    .run('0005_create_publish_packages.sql', appliedAt);
+
   // Ensure _kv_store table exists for local KV adapter
   sqlite.exec(`
     CREATE TABLE IF NOT EXISTS _kv_store (

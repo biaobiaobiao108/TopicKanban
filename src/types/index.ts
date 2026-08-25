@@ -155,6 +155,7 @@ export interface TopicWorkspaceData {
   timeline: TimelineEvent[];
   draft: Draft | null;
   citations: DraftCitation[];
+  publish_package: PublishPackageRecord | null;
 }
 
 export interface TopicWorkspaceLoad extends Omit<TopicWorkspaceData, 'draft'> {
@@ -190,10 +191,14 @@ export interface PublishCheck {
 }
 
 export interface PublishPackage {
-  title: string;
+  title_simplified: string;
+  title_traditional: string;
+  description_simplified: string;
+  description_traditional: string;
+  title_traditional_auto: boolean;
+  description_traditional_auto: boolean;
   title_candidates: string[];
   cover_text: string;
-  description: string;
   tags: string[];
   chapters: PublishChapter[];
   pinned_comment: string;
@@ -203,6 +208,33 @@ export interface PublishPackage {
   estimated_duration_seconds: number;
   draft_updated_at: string | null;
 }
+
+export interface PublishPackagePersistedContent {
+  title_candidates: string[];
+  cover_text: string;
+  tags: string[];
+  chapters: PublishChapter[];
+  pinned_comment: string;
+  included_source_ids: string[];
+}
+
+export interface PublishPackageRecord {
+  id: string;
+  topic_id: string;
+  version: number;
+  title_simplified: string;
+  title_traditional: string;
+  description_simplified: string;
+  description_traditional: string;
+  title_traditional_auto: boolean;
+  description_traditional_auto: boolean;
+  content_json: string;
+  updated_at: string;
+}
+
+export type PublishPackageSaveInput = Omit<PublishPackageRecord, 'id' | 'topic_id' | 'version' | 'updated_at'> & {
+  base_version?: number;
+};
 
 export type CitationReferenceType = 'source' | 'timeline' | 'person' | 'outline';
 
@@ -333,6 +365,7 @@ export interface BackupData {
   citations: DraftCitation[];
   tags: Tag[];
   published: PublishedVideo[];
+  publish_packages?: PublishPackageRecord[];
   settings: AppSettings;
 }
 
