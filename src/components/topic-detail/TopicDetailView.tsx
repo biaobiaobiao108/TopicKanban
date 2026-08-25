@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useCallback } from 'react';
+import React, { useState, useEffect, useLayoutEffect, useRef, useCallback } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useSearchParams } from 'react-router-dom';
 import { CitationInput, Topic, Source, TimelineEvent, Person, PersonRelationship, Draft, DraftCitation, DraftRecoveryConflict, Tag, AppSettings, PublishPackageSaveInput, PublishPackageRecord } from '../../types';
@@ -84,6 +84,8 @@ export const TopicDetailView: React.FC<TopicDetailViewProps> = ({
   const activeTab: DetailTab = (rawTab && ['overview', 'sources', 'timeline', 'people', 'script', 'publish'].includes(rawTab))
     ? (rawTab as DetailTab)
     : 'overview';
+  const detailSubtabsRef = useRef<HTMLDivElement | null>(null);
+  const activeSubtabRef = useRef<HTMLButtonElement | null>(null);
 
   const setActiveTab = (tab: DetailTab) => {
     setSearchParams((prev) => {
@@ -325,6 +327,24 @@ export const TopicDetailView: React.FC<TopicDetailViewProps> = ({
     { id: 'script', label: '文案创作', icon: PenTool },
     { id: 'publish', label: '发布包', icon: FileText },
   ];
+
+  useLayoutEffect(() => {
+    const container = detailSubtabsRef.current;
+    const activeButton = activeSubtabRef.current;
+
+    if (!container || !activeButton) return;
+
+    const containerRect = container.getBoundingClientRect();
+    const activeButtonRect = activeButton.getBoundingClientRect();
+    const isOutsideViewport =
+      activeButtonRect.left < containerRect.left ||
+      activeButtonRect.right > containerRect.right;
+
+    if (isOutsideViewport) {
+      activeButton.scrollIntoView({ block: 'nearest', inline: 'nearest' });
+    }
+  }, [activeTab, sources.length, timeline.length, topic.people?.length]);
+
   const metricTopic: Topic = {
     ...topic,
     sources_count: sources.length,
@@ -432,7 +452,7 @@ export const TopicDetailView: React.FC<TopicDetailViewProps> = ({
       />
 
       {/* Sub Tabs Navigation (Scrollable on mobile) */}
-      <div className="detail-subtabs-container bg-white dark:bg-stone-900 border-b border-stone-200 dark:border-stone-800 px-4 sm:px-8 shrink-0 overflow-x-auto no-scrollbar transition-colors">
+      <div ref={detailSubtabsRef} className="detail-subtabs-container bg-white dark:bg-stone-900 border-b border-stone-200 dark:border-stone-800 px-4 sm:px-8 shrink-0 overflow-x-auto no-scrollbar transition-colors">
         <div className="flex items-center gap-1 min-w-max">
           {tabs.map((tab) => {
             const Icon = tab.icon;
@@ -440,6 +460,7 @@ export const TopicDetailView: React.FC<TopicDetailViewProps> = ({
             return (
               <button
                 key={tab.id}
+                ref={isActive ? activeSubtabRef : undefined}
                 onClick={() => void handleNavigateToTab(tab.id)}
                 disabled={isFlushingDraft}
                 aria-current={isActive ? 'page' : undefined}
