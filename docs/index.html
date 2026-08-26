@@ -7,6 +7,10 @@
   <meta name="description" content="面向 Bilibili 叙事类视频（互联网人物、网红主播、荒诞事件、社会纪实）创作者量身打造的专属选题与文案生产工作台。围绕「下一步行动治理」与「起承转合四幕叙事」，全流程覆盖线索收集、素材核验、故事大纲、文案写作、演播提词与 5D 复盘。" />
   <meta name="keywords" content="选题工作台,B站创作者,UP主生产力,叙事视频,文案写作,提词器,5D故事评估,四幕叙事,Docker部署,Cloudflare" />
   
+  <!-- Favicon -->
+  <link rel="icon" type="image/png" href="./icon.png" />
+  <link rel="apple-touch-icon" href="./apple-touch-icon.png" />
+
   <!-- Google Fonts: Inter & Noto Sans SC -->
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -68,6 +72,7 @@
   </script>
 
   <style>
+    /* Custom Scrollbar */
     ::-webkit-scrollbar {
       width: 8px;
       height: 8px;
@@ -82,6 +87,8 @@
     ::-webkit-scrollbar-thumb:hover {
       background: rgba(120, 113, 108, 0.45);
     }
+
+    /* Ambient background grid */
     .bg-grid-pattern {
       background-size: 32px 32px;
       background-image: 
@@ -93,6 +100,8 @@
         linear-gradient(to right, rgba(255, 255, 255, 0.03) 1px, transparent 1px),
         linear-gradient(to bottom, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
     }
+
+    /* Range slider custom styling */
     input[type=range] {
       -webkit-appearance: none;
       background: transparent;
@@ -118,6 +127,8 @@
       background: rgba(120, 113, 108, 0.2);
       border-radius: 9999px;
     }
+
+    /* Teleprompter Mirror Mode */
     .mirror-flip {
       transform: scaleY(-1);
     }
@@ -136,9 +147,10 @@
   <!-- STICKY TOP NAVBAR -->
   <header class="sticky top-0 z-50 backdrop-blur-md bg-stone-50/85 dark:bg-stone-950/85 border-b border-stone-200/70 dark:border-stone-800/80 transition-colors duration-200">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+      <!-- Logo & Title -->
       <a href="#" class="flex items-center gap-3 group">
-        <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-rose-600 to-rose-500 flex items-center justify-center text-white shadow-md shadow-rose-500/20 group-hover:scale-105 transition-transform">
-          <i data-lucide="clapperboard" class="w-5 h-5"></i>
+        <div class="relative w-10 h-10 rounded-xl overflow-hidden shadow-md shadow-rose-500/20 group-hover:scale-105 transition-transform bg-rose-600 flex items-center justify-center p-0.5">
+          <img src="./icon.png" alt="Topic Kanban Logo" class="w-full h-full object-cover rounded-[10px]" onerror="this.src='../public/icon.png'" />
         </div>
         <div>
           <div class="flex items-center gap-2">
@@ -149,6 +161,7 @@
         </div>
       </a>
 
+      <!-- Desktop Nav Links -->
       <nav class="hidden md:flex items-center gap-6 text-sm font-medium text-stone-600 dark:text-stone-300">
         <a href="#features" class="hover:text-rose-600 dark:hover:text-rose-400 transition-colors">核心引擎</a>
         <a href="#story-dial" class="hover:text-rose-600 dark:hover:text-rose-400 transition-colors">5D 诊断罗盘</a>
@@ -158,22 +171,30 @@
         <a href="#architecture" class="hover:text-rose-600 dark:hover:text-rose-400 transition-colors">技术架构</a>
       </nav>
 
+      <!-- Right Action Area -->
       <div class="flex items-center gap-3">
+        <!-- Theme Toggle -->
         <button id="themeToggle" type="button" aria-label="切换深色/浅色模式" class="p-2 rounded-xl border border-stone-200/80 dark:border-stone-800 bg-stone-100 dark:bg-stone-900 text-stone-600 dark:text-stone-300 hover:text-rose-600 dark:hover:text-rose-400 hover:border-rose-300 transition-all">
           <i id="themeIcon" data-lucide="moon" class="w-4 h-4"></i>
         </button>
 
+        <!-- Command Palette Trigger Button -->
         <button onclick="openSearchModal()" class="hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-xl border border-stone-200/80 dark:border-stone-800 bg-stone-100/70 dark:bg-stone-900/70 text-stone-500 dark:text-stone-400 text-xs hover:border-stone-300 dark:hover:border-stone-700 transition-all">
           <i data-lucide="search" class="w-3.5 h-3.5"></i>
           <span>指令面板</span>
           <kbd class="px-1.5 py-0.5 text-[10px] font-mono rounded bg-white dark:bg-stone-800 border border-stone-200 dark:border-stone-700 text-stone-500 shadow-2xs">Ctrl P</kbd>
         </button>
 
-        <a href="https://github.com" target="_blank" rel="noopener noreferrer" class="hidden sm:inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-stone-900 hover:bg-stone-800 dark:bg-stone-100 dark:hover:bg-white text-white dark:text-stone-900 text-xs font-bold transition-all shadow-2xs active:scale-[0.98]">
-          <i data-lucide="github" class="w-4 h-4"></i>
+        <!-- GitHub Repo CTA with crisp SVG icon -->
+        <a href="https://github.com/biaobiaobiao108/TopicKanban" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl bg-stone-900 hover:bg-stone-800 dark:bg-stone-100 dark:hover:bg-white text-white dark:text-stone-900 text-xs font-bold transition-all shadow-2xs active:scale-[0.98]">
+          <svg class="w-4 h-4 fill-current" viewBox="0 0 24 24" aria-hidden="true">
+            <path fill-rule="evenodd" clip-rule="evenodd" d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.53 1.032 1.53 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z" />
+          </svg>
           <span>GitHub</span>
+          <span class="hidden sm:inline-block px-1.5 py-0.2 rounded bg-stone-700 dark:bg-stone-200 text-[10px] font-mono">Star</span>
         </a>
 
+        <!-- Primary CTA -->
         <a href="#deployment" class="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-rose-600 hover:bg-rose-700 active:scale-[0.98] text-white text-xs font-bold transition-all shadow-md shadow-rose-600/20">
           <i data-lucide="rocket" class="w-3.5 h-3.5"></i>
           <span>一键部署</span>
@@ -185,33 +206,54 @@
   <main class="relative z-10">
 
     <!-- HERO SECTION -->
-    <section class="pt-16 pb-20 md:pt-24 md:pb-32 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto text-center">
-      <div class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full border border-rose-500/20 bg-rose-500/5 dark:bg-rose-500/10 text-rose-600 dark:text-rose-300 text-xs font-semibold mb-8 shadow-2xs">
+    <section class="pt-14 pb-20 md:pt-20 md:pb-32 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto text-center">
+      <!-- App Brand Floating Icon Badge -->
+      <div class="flex justify-center mb-6">
+        <div class="relative group">
+          <div class="absolute -inset-1 rounded-3xl bg-gradient-to-r from-rose-600 via-amber-500 to-rose-600 opacity-30 blur-lg group-hover:opacity-60 transition duration-500"></div>
+          <div class="relative w-20 h-20 sm:w-24 sm:h-24 rounded-3xl p-1.5 bg-white dark:bg-stone-900 border border-stone-200/80 dark:border-stone-800 shadow-xl flex items-center justify-center">
+            <img src="./icon.png" alt="Topic Kanban App Icon" class="w-full h-full object-contain rounded-2xl" onerror="this.src='../public/icon.png'" />
+          </div>
+        </div>
+      </div>
+
+      <!-- Top announcement badge -->
+      <div class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full border border-rose-500/20 bg-rose-500/5 dark:bg-rose-500/10 text-rose-600 dark:text-rose-300 text-xs font-semibold mb-6 shadow-2xs">
         <span class="w-2 h-2 rounded-full bg-rose-500 animate-ping"></span>
         <span>专为 B 站人物/荒诞/社会纪实视频创作者打造</span>
         <i data-lucide="sparkles" class="w-3.5 h-3.5 text-rose-500"></i>
       </div>
 
+      <!-- Main Headline -->
       <h1 class="text-4xl sm:text-6xl lg:text-7xl font-black tracking-tight text-stone-950 dark:text-stone-50 max-w-4xl mx-auto leading-[1.12]">
         告别选题混乱，<br class="hidden sm:inline" />
         用<span class="text-transparent bg-clip-text bg-gradient-to-r from-rose-600 via-rose-500 to-amber-600">「起承转合」</span>生产爆款文案。
       </h1>
 
+      <!-- Subtitle -->
       <p class="mt-6 text-base sm:text-lg lg:text-xl text-stone-600 dark:text-stone-400 max-w-3xl mx-auto leading-relaxed">
         并非平庸的通用看板。系统围绕 <span class="font-bold text-stone-900 dark:text-stone-100 underline decoration-rose-500/50 decoration-2">唯一最该推进的「下一步行动」</span> 与 <span class="font-bold text-stone-900 dark:text-stone-100 underline decoration-rose-500/50 decoration-2">5 维故事评估罗盘</span>，打通线索核验、四幕大纲、分段写作、演播提词与成片复盘全生命周期。
       </p>
 
+      <!-- CTA Buttons -->
       <div class="mt-10 flex flex-wrap items-center justify-center gap-4">
         <a href="#workbench-preview" class="inline-flex items-center gap-2 px-6 py-3.5 rounded-2xl bg-rose-600 hover:bg-rose-700 active:scale-[0.98] text-white font-bold text-sm sm:text-base shadow-lg shadow-rose-600/25 transition-all">
           <i data-lucide="play-circle" class="w-5 h-5"></i>
           <span>交互式工作台预览</span>
         </a>
-        <a href="#deployment" class="inline-flex items-center gap-2 px-6 py-3.5 rounded-2xl border border-stone-300 dark:border-stone-700 bg-white dark:bg-stone-900 hover:bg-stone-50 dark:hover:bg-stone-850 text-stone-800 dark:text-stone-200 font-bold text-sm sm:text-base shadow-2xs hover:shadow-card transition-all">
-          <i data-lucide="terminal" class="w-5 h-5 text-rose-500"></i>
-          <span>Docker 10 秒极速部署</span>
+        <a href="https://github.com/biaobiaobiao108/TopicKanban" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-2.5 px-6 py-3.5 rounded-2xl border border-stone-300 dark:border-stone-700 bg-white dark:bg-stone-900 hover:bg-stone-50 dark:hover:bg-stone-850 text-stone-800 dark:text-stone-200 font-bold text-sm sm:text-base shadow-2xs hover:shadow-card transition-all">
+          <svg class="w-5 h-5 fill-current text-stone-900 dark:text-stone-100" viewBox="0 0 24 24" aria-hidden="true">
+            <path fill-rule="evenodd" clip-rule="evenodd" d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.53 1.032 1.53 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z" />
+          </svg>
+          <span>Star on GitHub</span>
+        </a>
+        <a href="#deployment" class="inline-flex items-center gap-2 px-5 py-3.5 rounded-2xl bg-stone-100 dark:bg-stone-850 hover:bg-stone-200 dark:hover:bg-stone-800 text-stone-700 dark:text-stone-300 font-bold text-sm sm:text-base transition-all">
+          <i data-lucide="terminal" class="w-4 h-4 text-rose-500"></i>
+          <span>Docker 部署</span>
         </a>
       </div>
 
+      <!-- Quick Metrics Ribbon -->
       <div class="mt-12 grid grid-cols-2 md:grid-cols-4 gap-4 max-w-4xl mx-auto">
         <div class="p-4 rounded-2xl border border-stone-200/70 dark:border-stone-800 bg-white/70 dark:bg-stone-900/70 backdrop-blur-xs shadow-2xs">
           <div class="text-2xl font-black text-rose-600 dark:text-rose-400">4+2 阶段</div>
@@ -235,6 +277,7 @@
     <!-- WORKBENCH INTERACTIVE PREVIEW -->
     <section id="workbench-preview" class="py-12 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
       <div class="rounded-3xl border border-stone-200/80 dark:border-stone-800 bg-white/90 dark:bg-stone-900/90 backdrop-blur-md shadow-card-hover overflow-hidden">
+        <!-- Mock Window Top Bar -->
         <div class="px-6 py-4 border-b border-stone-200/80 dark:border-stone-800 bg-stone-100/70 dark:bg-stone-950/70 flex items-center justify-between">
           <div class="flex items-center gap-3">
             <div class="flex items-center gap-1.5">
@@ -258,6 +301,7 @@
           </div>
         </div>
 
+        <!-- Pipeline Columns Showcase -->
         <div class="p-6 overflow-x-auto bg-stone-50/50 dark:bg-stone-950/40">
           <div class="grid grid-cols-1 md:grid-cols-4 gap-4 min-w-[780px]">
             
@@ -271,6 +315,7 @@
                 <span class="px-2 py-0.5 text-[11px] font-bold rounded-full bg-stone-200 dark:bg-stone-800 text-stone-600 dark:text-stone-300">2</span>
               </div>
 
+              <!-- Card 1 -->
               <div class="p-3.5 rounded-xl border border-stone-200/80 dark:border-stone-800 bg-white dark:bg-stone-900 shadow-2xs hover:shadow-card transition-all cursor-pointer group">
                 <div class="flex items-center justify-between text-[11px] text-stone-500 mb-1.5">
                   <span class="px-2 py-0.5 rounded-md bg-amber-500/10 text-amber-700 dark:text-amber-300 font-semibold">#荒诞发家史</span>
@@ -287,6 +332,7 @@
                 </div>
               </div>
 
+              <!-- Card 2 -->
               <div class="p-3.5 rounded-xl border border-stone-200/80 dark:border-stone-800 bg-white dark:bg-stone-900 shadow-2xs hover:shadow-card transition-all cursor-pointer group">
                 <div class="flex items-center justify-between text-[11px] text-stone-500 mb-1.5">
                   <span class="px-2 py-0.5 rounded-md bg-purple-500/10 text-purple-700 dark:text-purple-300 font-semibold">#社会纪实</span>
@@ -314,6 +360,7 @@
                 <span class="px-2 py-0.5 text-[11px] font-bold rounded-full bg-stone-200 dark:bg-stone-800 text-stone-600 dark:text-stone-300">1</span>
               </div>
 
+              <!-- Card Active Highlighted -->
               <div class="p-3.5 rounded-xl border-2 border-rose-500/80 bg-white dark:bg-stone-900 shadow-md shadow-rose-500/5 transition-all cursor-pointer group">
                 <div class="flex items-center justify-between text-[11px] text-stone-500 mb-1.5">
                   <span class="px-2 py-0.5 rounded-md bg-rose-500/10 text-rose-700 dark:text-rose-300 font-bold">#互联网人物</span>
@@ -346,6 +393,7 @@
                 <span class="px-2 py-0.5 text-[11px] font-bold rounded-full bg-stone-200 dark:bg-stone-800 text-stone-600 dark:text-stone-300">1</span>
               </div>
 
+              <!-- Card 4 -->
               <div class="p-3.5 rounded-xl border border-stone-200/80 dark:border-stone-800 bg-white dark:bg-stone-900 shadow-2xs hover:shadow-card transition-all cursor-pointer group">
                 <div class="flex items-center justify-between text-[11px] text-stone-500 mb-1.5">
                   <span class="px-2 py-0.5 rounded-md bg-stone-500/10 text-stone-700 dark:text-stone-300 font-semibold">#商业黑幕</span>
@@ -373,6 +421,7 @@
                 <span class="px-2 py-0.5 text-[11px] font-bold rounded-full bg-stone-200 dark:bg-stone-800 text-stone-600 dark:text-stone-300">1</span>
               </div>
 
+              <!-- Card 5 -->
               <div class="p-3.5 rounded-xl border border-stone-200/80 dark:border-stone-800 bg-white dark:bg-stone-900 shadow-2xs hover:shadow-card transition-all cursor-pointer group">
                 <div class="flex items-center justify-between text-[11px] text-stone-500 mb-1.5">
                   <span class="px-2 py-0.5 rounded-md bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 font-semibold">#文案已定稿</span>
@@ -812,7 +861,11 @@
                 <i data-lucide="copy" class="w-3 h-3"></i>
                 <span>复制</span>
               </button>
-              <pre id="dockerRunCode" class="text-stone-300 leading-relaxed"><code># 1. 极速拉取并启动单容器 (映射 8787 端口与数据卷)
+              <pre id="dockerRunCode" class="text-stone-300 leading-relaxed"><code># 1. 快速克隆仓库
+git clone https://github.com/biaobiaobiao108/TopicKanban.git
+cd TopicKanban
+
+# 2. 极速拉取并启动单容器 (映射 8787 端口与数据卷)
 docker run -d \
   --name topic-kanban \
   -p 8787:8787 \
@@ -820,13 +873,16 @@ docker run -d \
   -e AUTH_PASSWORD=admin \
   topic-kanban:latest
 
-# 2. 浏览器直接访问
+# 3. 浏览器直接访问
 http://localhost:8787</code></pre>
             </div>
           </div>
 
           <div class="mt-6 pt-4 border-t border-stone-100 dark:border-stone-800 flex items-center justify-between text-xs text-stone-500">
-            <span>支持 docker-compose.yml 一键编排</span>
+            <a href="https://github.com/biaobiaobiao108/TopicKanban" target="_blank" class="hover:text-rose-600 flex items-center gap-1 font-medium transition-colors">
+              <svg class="w-3.5 h-3.5 fill-current" viewBox="0 0 24 24"><path fill-rule="evenodd" clip-rule="evenodd" d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.53 1.032 1.53 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z" /></svg>
+              <span>GitHub: biaobiaobiao108/TopicKanban</span>
+            </a>
             <span class="font-mono text-rose-600 dark:text-rose-400 font-bold">内存占用 &lt; 35MB</span>
           </div>
         </div>
@@ -1000,8 +1056,8 @@ npx wrangler pages deploy dist</code></pre>
   <footer class="mt-20 border-t border-stone-200/80 dark:border-stone-800 bg-white/50 dark:bg-stone-950/50 backdrop-blur-md py-12 px-4 sm:px-6 lg:px-8">
     <div class="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-6 text-center sm:text-left">
       <div class="flex items-center gap-3">
-        <div class="w-8 h-8 rounded-lg bg-rose-600 flex items-center justify-center text-white font-bold text-xs">
-          <i data-lucide="clapperboard" class="w-4 h-4"></i>
+        <div class="w-8 h-8 rounded-lg overflow-hidden bg-rose-600 flex items-center justify-center p-0.5">
+          <img src="./icon.png" alt="Logo" class="w-full h-full object-cover rounded-md" onerror="this.src='../public/icon.png'" />
         </div>
         <div>
           <p class="text-xs font-bold text-stone-900 dark:text-stone-100">Topic Kanban Studio · 选题生产工作台</p>
@@ -1012,9 +1068,9 @@ npx wrangler pages deploy dist</code></pre>
       <div class="flex items-center gap-6 text-xs font-medium text-stone-500 dark:text-stone-400">
         <a href="#features" class="hover:text-rose-600 transition-colors">核心特性</a>
         <a href="#deployment" class="hover:text-rose-600 transition-colors">部署指南</a>
-        <a href="https://github.com" target="_blank" rel="noopener noreferrer" class="hover:text-rose-600 transition-colors flex items-center gap-1">
-          <i data-lucide="github" class="w-3.5 h-3.5"></i>
-          <span>GitHub 仓库</span>
+        <a href="https://github.com/biaobiaobiao108/TopicKanban" target="_blank" rel="noopener noreferrer" class="hover:text-rose-600 transition-colors flex items-center gap-1.5 font-semibold text-stone-700 dark:text-stone-300">
+          <svg class="w-4 h-4 fill-current" viewBox="0 0 24 24"><path fill-rule="evenodd" clip-rule="evenodd" d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.53 1.032 1.53 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z" /></svg>
+          <span>biaobiaobiao108/TopicKanban</span>
         </a>
       </div>
 
