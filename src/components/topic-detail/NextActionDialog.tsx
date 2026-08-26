@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { CalendarClock, CheckCircle2, Zap, ArrowRight, RotateCcw, Trash2, ArrowLeft } from 'lucide-react';
 import type { Topic } from '../../types';
 import { Modal } from '../ui/Modal';
+import { DateInput } from '../ui/DateInput';
 import { getNextActionAgeDays } from '../../lib/topicMetrics';
 
 interface NextActionDialogProps {
@@ -125,11 +126,12 @@ export const NextActionDialog: React.FC<NextActionDialogProps> = ({ isOpen, topi
               >
                 明天提醒
               </button>
-              <input
-                type="date"
+              <DateInput
+                name="next_action_deferred_until"
+                aria-label="延期提醒日期"
                 value={deferredUntil}
                 min={toBeijingDateInputValue()}
-                onChange={(event) => setDeferredUntil(event.target.value)}
+                onChange={setDeferredUntil}
                 className="min-h-10 flex-1 rounded-xl border border-stone-300/80 dark:border-stone-700 bg-white dark:bg-stone-800 px-3 text-xs text-stone-700 dark:text-stone-300 outline-none focus:border-rose-500"
               />
               {deferredUntil && (
@@ -322,11 +324,12 @@ export const NextActionDialog: React.FC<NextActionDialogProps> = ({ isOpen, topi
             >
               今天不做，明天提醒
             </button>
-            <input
-              type="date"
+            <DateInput
+              name="next_action_deferred_until"
+              aria-label="延期提醒日期"
               value={deferredUntil}
               min={toBeijingDateInputValue()}
-              onChange={(event) => setDeferredUntil(event.target.value)}
+              onChange={setDeferredUntil}
               className="min-h-10 flex-1 rounded-xl border border-stone-300/80 dark:border-stone-700 bg-white dark:bg-stone-800 px-3 text-xs text-stone-700 dark:text-stone-300 outline-none focus:border-rose-500"
             />
             <button

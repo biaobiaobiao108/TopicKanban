@@ -37,6 +37,7 @@ import {
   saveCommercialDeal,
 } from '../../lib/storage';
 import { Modal } from '../ui/Modal';
+import { DateInput } from '../ui/DateInput';
 import { CustomSelect, type SelectOption } from '../ui/CustomSelect';
 
 const STATUS_LABELS: Record<CommercialDealStatus, string> = {
@@ -311,15 +312,15 @@ function DealFormModal({ isOpen, deal, onClose, onSaved }: DealFormModalProps) {
             <SelectField label="回款状态" value={form.payment_status} options={PAYMENT_OPTIONS} onChange={(value) => setField('payment_status', value as CommercialDeal['payment_status'])} />
             <label className="text-xs font-semibold text-stone-600 dark:text-stone-300">
               交付截止日
-              <input name="delivery_due_date" type="date" value={form.delivery_due_date} onInput={(event) => setField('delivery_due_date', event.currentTarget.value)} onChange={(event) => setField('delivery_due_date', event.target.value)} className={fieldClass} />
+              <DateInput name="delivery_due_date" value={form.delivery_due_date} onChange={(value) => setField('delivery_due_date', value)} className={fieldClass} />
             </label>
             <label className="text-xs font-semibold text-stone-600 dark:text-stone-300">
               计划上线日
-              <input name="publish_date" type="date" value={form.publish_date} onInput={(event) => setField('publish_date', event.currentTarget.value)} onChange={(event) => setField('publish_date', event.target.value)} className={fieldClass} />
+              <DateInput name="publish_date" value={form.publish_date} onChange={(value) => setField('publish_date', value)} className={fieldClass} />
             </label>
             <label className="text-xs font-semibold text-stone-600 dark:text-stone-300">
               到账日期
-              <input name="paid_at" type="date" value={form.paid_at} onInput={(event) => setField('paid_at', event.currentTarget.value)} onChange={(event) => setField('paid_at', event.target.value)} className={fieldClass} />
+              <DateInput name="paid_at" value={form.paid_at} onChange={(value) => setField('paid_at', value)} className={fieldClass} />
             </label>
           </div>
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
@@ -329,7 +330,7 @@ function DealFormModal({ isOpen, deal, onClose, onSaved }: DealFormModalProps) {
             </label>
             <label className="text-xs font-semibold text-stone-600 dark:text-stone-300">
               下一步截止日
-              <input name="next_action_due_date" type="date" value={form.next_action_due_date} onInput={(event) => setField('next_action_due_date', event.currentTarget.value)} onChange={(event) => setField('next_action_due_date', event.target.value)} className={fieldClass} />
+              <DateInput name="next_action_due_date" value={form.next_action_due_date} onChange={(value) => setField('next_action_due_date', value)} className={fieldClass} />
             </label>
           </div>
         </fieldset>

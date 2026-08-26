@@ -5,6 +5,7 @@ import {
   MAX_LOGIN_REQUEST_BYTES,
   MAX_QUICK_DROP_REQUEST_BYTES,
   validateTextFields,
+  validateCommercialDealFields,
   validateTopicFields,
   verifyQuickDropCredential,
 } from '../src/server/apiShared';
@@ -32,5 +33,11 @@ describe('API validation boundaries', () => {
     expect(verifyQuickDropCredential('drop-secret', 'drop-secret')).toBe('valid');
     expect(verifyQuickDropCredential('workspace-password', 'drop-secret')).toBe('invalid');
     expect(verifyQuickDropCredential('anything', undefined)).toBe('missing_config');
+  });
+
+  it('rejects malformed commercial calendar dates', () => {
+    expect(validateCommercialDealFields({ delivery_due_date: '202608-02-07' })).toBe('delivery_due_date must be YYYY-MM-DD or null');
+    expect(validateCommercialDealFields({ delivery_due_date: '2026-02-30' })).toBe('delivery_due_date must be YYYY-MM-DD or null');
+    expect(validateCommercialDealFields({ delivery_due_date: '2026-08-27' })).toBeNull();
   });
 });

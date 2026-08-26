@@ -2,6 +2,7 @@ import React, { useState, useRef, useMemo, useEffect } from 'react';
 import { keepPreviousData, useQuery, useQueryClient } from '@tanstack/react-query';
 import { PublishedVideo, Topic } from '../../types';
 import { Modal } from '../ui/Modal';
+import { DateInput } from '../ui/DateInput';
 import { useToast } from '../ui/Toast';
 import { StatusBadge, PriorityBadge } from '../ui/Badge';
 import { CustomSelect } from '../ui/CustomSelect';
@@ -680,10 +681,10 @@ export const PublishedView: React.FC<PublishedViewProps> = ({
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div>
                 <label className="block text-xs font-semibold text-stone-700 dark:text-stone-300 mb-1">发布日期</label>
-                <input
-                  type="date"
+                <DateInput
+                  name="published_at"
                   value={publishedAt}
-                  onChange={(e) => setPublishedAt(e.target.value)}
+                  onChange={setPublishedAt}
                   className="w-full px-3 py-2 bg-stone-50 dark:bg-stone-800 border border-stone-300 dark:border-stone-700 rounded-lg text-sm text-stone-900 dark:text-stone-100 focus:bg-white dark:focus:bg-stone-800 focus:outline-none"
                 />
               </div>

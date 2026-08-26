@@ -1,5 +1,6 @@
 import { isTopicStatus } from '../types';
 import { isSafeExternalHttpUrl } from '../lib/urlSafety';
+import { isValidIsoDate } from '../lib/dateInput';
 
 export type ApiBindings = {
   DB: D1Database;
@@ -77,7 +78,7 @@ function isNullableText(value: unknown): boolean {
 }
 
 function isValidDateValue(value: unknown): boolean {
-  return value === null || value === undefined || (typeof value === 'string' && (value === '' || /^\d{4}-\d{2}-\d{2}$/.test(value)));
+  return value === null || value === undefined || value === '' || (typeof value === 'string' && isValidIsoDate(value));
 }
 
 export function validateCommercialDealFields(body: Record<string, unknown>, requireTitle = false): string | null {

@@ -1,5 +1,6 @@
 import { z } from 'zod';
 import { type BackupData, APP_THEMES } from '../types';
+import { isValidIsoDate } from './dateInput';
 
 const id = z.string().trim().min(1, 'ID 不能为空').max(200, 'ID 不能超过 200 字符');
 const shortText = z.string().max(200);
@@ -7,6 +8,7 @@ const mediumText = z.string().max(2_000);
 const longText = z.string().max(20_000);
 const timestamp = z.string().max(50);
 const optionalTimestamp = timestamp.nullable().optional();
+const optionalDateOnly = z.string().refine(isValidIsoDate, '日期必须是有效的 YYYY-MM-DD').nullable().optional();
 const verificationStatus = z.enum(['confirmed', 'unverified', 'rejected']);
 
 const tagSchema = z.object({
@@ -164,11 +166,11 @@ const commercialDealSchema = z.object({
   restrictions: longText,
   amount_cents: z.number().int().nonnegative(),
   payment_status: z.enum(['unpaid', 'paid']),
-  paid_at: optionalTimestamp,
-  delivery_due_date: optionalTimestamp,
-  publish_date: optionalTimestamp,
+  paid_at: optionalDateOnly,
+  delivery_due_date: optionalDateOnly,
+  publish_date: optionalDateOnly,
   next_action: mediumText,
-  next_action_due_date: optionalTimestamp,
+  next_action_due_date: optionalDateOnly,
   published_video_id: id.nullable().optional(),
   created_at: timestamp,
   updated_at: timestamp,
