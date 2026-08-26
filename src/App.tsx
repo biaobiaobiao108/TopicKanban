@@ -53,12 +53,14 @@ const VIEW_PATHS: Record<Exclude<NavView, 'topic-detail'>, string> = {
   people: '/people',
   tags: '/tags',
   published: '/published',
+  deals: '/deals',
   database: '/database',
   settings: '/settings',
 };
 
 function getViewFromPath(pathname: string): NavView {
   if (matchPath('/topics/:topicId', pathname)) return 'topic-detail';
+  if (matchPath('/deals/:dealId', pathname)) return 'deals';
   const found = Object.entries(VIEW_PATHS).find(([, path]) => path === pathname);
   return (found?.[0] as NavView | undefined) || 'today';
 }
@@ -68,6 +70,7 @@ const TopicDetailView = lazyWithReload(() => import('./components/topic-detail/T
 const PeopleView = lazyWithReload(() => import('./components/people/PeopleView').then((module) => ({ default: module.PeopleView })));
 const TagsView = lazyWithReload(() => import('./components/tags/TagsView').then((module) => ({ default: module.TagsView })));
 const PublishedView = lazyWithReload(() => import('./components/published/PublishedView').then((module) => ({ default: module.PublishedView })));
+const DealsView = lazyWithReload(() => import('./components/deals/DealsView').then((module) => ({ default: module.DealsView })));
 const TopicTableView = lazyWithReload(() => import('./components/kanban/TopicTableView').then((module) => ({ default: module.TopicTableView })));
 const SettingsView = lazyWithReload(() => import('./components/settings/SettingsView').then((module) => ({ default: module.SettingsView })));
 const PublicReviewView = lazyWithReload(() => import('./components/public/PublicReviewView').then((module) => ({ default: module.PublicReviewView })));
@@ -102,6 +105,8 @@ function WorkspaceApp({ isAuth, setIsAuth }: WorkspaceAppProps) {
   const { showToast } = useToast();
   const topicMatch = matchPath('/topics/:topicId', location.pathname);
   const activeTopicId = topicMatch?.params.topicId || null;
+  const dealMatch = matchPath('/deals/:dealId', location.pathname);
+  const activeDealId = dealMatch?.params.dealId || null;
 
   const {
     topics,
@@ -111,6 +116,7 @@ function WorkspaceApp({ isAuth, setIsAuth }: WorkspaceAppProps) {
     relationships,
     tags,
     settings,
+    dealFocus,
     isLoading: isLoadingData,
     error: loadError,
     reload: loadAllData,
@@ -163,6 +169,7 @@ function WorkspaceApp({ isAuth, setIsAuth }: WorkspaceAppProps) {
   useEffect(() => {
     const knownPath = location.pathname === '/'
       || Boolean(matchPath('/topics/:topicId', location.pathname))
+      || Boolean(matchPath('/deals/:dealId', location.pathname))
       || Object.values(VIEW_PATHS).includes(location.pathname);
     if (location.pathname === '/' || !knownPath) {
       navigate('/today', { replace: true });
@@ -291,6 +298,20 @@ function WorkspaceApp({ isAuth, setIsAuth }: WorkspaceAppProps) {
     });
     setTopics((prev) => [newTopic, ...prev]);
     await refreshTopics();
+  };
+
+  const handleCreateTopicFromDeal = async (topicData: { title: string; summary: string }): Promise<Topic> => {
+    const newTopic = await saveTopic({
+      title: topicData.title,
+      summary: topicData.summary,
+      hook: '',
+      next_action: '拆解商单要求并确认选题角度',
+      priority: 'high',
+      status: 'inbox',
+    });
+    setTopics((prev) => [newTopic, ...prev]);
+    await refreshTopics();
+    return newTopic;
   };
 
   const handleUpdateTopic = async (updates: Partial<Topic>) => {
@@ -611,11 +632,21 @@ function WorkspaceApp({ isAuth, setIsAuth }: WorkspaceAppProps) {
           {currentView === 'today' && (
             <TodayView
               topics={topics}
+              dealFocus={dealFocus}
               staleActionDays={settings.stale_action_days || 5}
               onOpenDetail={handleOpenDetail}
+              onOpenDeal={(dealId) => safeNavigate(`/deals/${encodeURIComponent(dealId)}`)}
               onOpenQuickCreate={openInboxQuickCreate}
               onTogglePin={handleTogglePin}
               onUpdateTopic={handleUpdateTopicById}
+            />
+          )}
+
+          {currentView === 'deals' && (
+            <DealsView
+              dealId={activeDealId}
+              topics={topics}
+              onCreateTopicFromDeal={handleCreateTopicFromDeal}
             />
           )}
 
@@ -655,6 +686,8 @@ function WorkspaceApp({ isAuth, setIsAuth }: WorkspaceAppProps) {
               onDeleteTag={handleDeleteTag}
               onDraftWordCountChange={handleDraftWordCountChange}
               onTopicMetricsChange={handleTopicMetricsChange}
+              onOpenDeal={(dealId) => safeNavigate(`/deals/${encodeURIComponent(dealId)}`)}
+              onCreateTopicFromDeal={handleCreateTopicFromDeal}
             />
           )}
 

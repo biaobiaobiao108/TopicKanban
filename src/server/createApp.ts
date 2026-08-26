@@ -14,6 +14,9 @@ import type {
   Topic,
   TopicStatus,
   AppSettings,
+  CommercialDeal,
+  CommercialDealActivity,
+  CommercialDealTopic,
 } from '../types';
 import { isTopicStatus } from '../types';
 import {
@@ -26,6 +29,10 @@ import {
   loadPublishedPage,
   loadPublishedAnalytics,
   loadTagsPage,
+  loadCommercialDeal,
+  loadCommercialDealFocus,
+  loadCommercialDealPage,
+  loadCommercialDealsByTopicId,
   permanentlyDeleteTrashedTopics,
   statements,
   TopicNotInTrashError,
@@ -48,6 +55,12 @@ import {
   patchRow,
   requireDb,
   validateExternalUrlField,
+  validateCommercialDealFields,
+  COMMERCIAL_DEAL_CONTRACT_STATUSES,
+  COMMERCIAL_DEAL_DELIVERABLE_TYPES,
+  COMMERCIAL_DEAL_PAYMENT_STATUSES,
+  COMMERCIAL_DEAL_SOURCES,
+  COMMERCIAL_DEAL_STATUSES,
   validateTopicFields,
   validateTextFields,
   verifyToken,
@@ -228,6 +241,224 @@ export function createApp() {
   app.get('/today/focus', async (c) => {
     try {
       return c.json(await loadTodayFocus(requireDb(c)));
+    } catch (error) {
+      return jsonError(c, error, 400);
+    }
+  });
+
+  app.get('/deals/page', async (c) => {
+    try {
+      const page = Math.max(1, Number.parseInt(c.req.query('page') || '1', 10) || 1);
+      const pageSize = Math.min(100, Math.max(1, Number.parseInt(c.req.query('page_size') || '30', 10) || 30));
+      const scope = c.req.query('scope') || 'active';
+      if (!isOneOf(scope, ['active', 'closed', 'all'])) return c.json({ error: 'Invalid commercial deal scope' }, 400);
+      const status = c.req.query('status');
+      const statuses = status?.split(',').map((value) => value.trim()).filter(Boolean) || [];
+      if (statuses.some((value) => !isOneOf(value, COMMERCIAL_DEAL_STATUSES))) return c.json({ error: 'Invalid commercial deal status' }, 400);
+      const paymentStatus = c.req.query('payment_status');
+      if (paymentStatus && !isOneOf(paymentStatus, COMMERCIAL_DEAL_PAYMENT_STATUSES)) return c.json({ error: 'Invalid commercial deal payment status' }, 400);
+      return c.json(await loadCommercialDealPage(requireDb(c), {
+        page,
+        pageSize,
+        scope: scope as 'active' | 'closed' | 'all',
+        query: c.req.query('q')?.slice(0, 200),
+        status,
+        paymentStatus,
+      }));
+    } catch (error) {
+      return jsonError(c, error, 400);
+    }
+  });
+
+  app.get('/deals/focus', async (c) => {
+    try {
+      return c.json(await loadCommercialDealFocus(requireDb(c)));
+    } catch (error) {
+      return jsonError(c, error, 400);
+    }
+  });
+
+  app.get('/topics/:id/deals', async (c) => {
+    try {
+      return c.json(await loadCommercialDealsByTopicId(requireDb(c), c.req.param('id')));
+    } catch (error) {
+      return jsonError(c, error, 400);
+    }
+  });
+
+  app.get('/deals/:id', async (c) => {
+    try {
+      const deal = await loadCommercialDeal(requireDb(c), c.req.param('id'));
+      return deal ? c.json(deal) : c.json({ error: 'Not found' }, 404);
+    } catch (error) {
+      return jsonError(c, error, 400);
+    }
+  });
+
+  app.post('/deals', async (c) => {
+    try {
+      const db = requireDb(c);
+      const body = await c.req.json<Record<string, unknown>>();
+      const validationError = validateCommercialDealFields(body, true);
+      if (validationError) return c.json({ error: validationError }, 400);
+      const now = new Date().toISOString();
+      const id = createId('deal');
+      const deal: CommercialDeal = {
+        id,
+        title: String(body.title).trim(),
+        brand_name: typeof body.brand_name === 'string' ? body.brand_name.trim() : '',
+        agency_name: typeof body.agency_name === 'string' ? body.agency_name.trim() : '',
+        contact_name: typeof body.contact_name === 'string' ? body.contact_name.trim() : '',
+        contact_channel: typeof body.contact_channel === 'string' ? body.contact_channel.trim() : '',
+        source: (body.source || 'other') as CommercialDeal['source'],
+        deliverable_type: (body.deliverable_type || 'custom_video') as CommercialDeal['deliverable_type'],
+        status: (body.status || 'lead') as CommercialDeal['status'],
+        contract_status: (body.contract_status || 'not_started') as CommercialDeal['contract_status'],
+        contract_summary: typeof body.contract_summary === 'string' ? body.contract_summary : '',
+        brief: typeof body.brief === 'string' ? body.brief : '',
+        requirements: typeof body.requirements === 'string' ? body.requirements : '',
+        restrictions: typeof body.restrictions === 'string' ? body.restrictions : '',
+        amount_cents: typeof body.amount_cents === 'number' ? body.amount_cents : 0,
+        payment_status: (body.payment_status || 'unpaid') as CommercialDeal['payment_status'],
+        paid_at: typeof body.paid_at === 'string' ? body.paid_at : null,
+        delivery_due_date: typeof body.delivery_due_date === 'string' ? body.delivery_due_date : null,
+        publish_date: typeof body.publish_date === 'string' ? body.publish_date : null,
+        next_action: typeof body.next_action === 'string' ? body.next_action : '',
+        next_action_due_date: typeof body.next_action_due_date === 'string' ? body.next_action_due_date : null,
+        published_video_id: typeof body.published_video_id === 'string' ? body.published_video_id : null,
+        created_at: now,
+        updated_at: now,
+      };
+      if (deal.published_video_id) {
+        const published = await db.prepare('SELECT id FROM published_videos WHERE id = ?').bind(deal.published_video_id).first<{ id: string }>();
+        if (!published) return c.json({ error: 'Published video not found' }, 400);
+      }
+      await statements.commercialDeal(db, deal).run();
+      return c.json(await loadCommercialDeal(db, id), 201);
+    } catch (error) {
+      return jsonError(c, error, 400);
+    }
+  });
+
+  app.patch('/deals/:id', async (c) => {
+    try {
+      const db = requireDb(c);
+      const id = c.req.param('id');
+      const body = await c.req.json<Record<string, unknown>>();
+      const validationError = validateCommercialDealFields(body);
+      if (validationError) return c.json({ error: validationError }, 400);
+      const existing = await db.prepare('SELECT * FROM commercial_deals WHERE id = ?').bind(id).first<CommercialDeal>();
+      if (!existing) return c.json({ error: 'Not found' }, 404);
+      if (typeof body.published_video_id === 'string') {
+        const published = await db.prepare('SELECT id FROM published_videos WHERE id = ?').bind(body.published_video_id).first<{ id: string }>();
+        if (!published) return c.json({ error: 'Published video not found' }, 400);
+      }
+      const fields = [
+        'title', 'brand_name', 'agency_name', 'contact_name', 'contact_channel', 'source',
+        'deliverable_type', 'status', 'contract_status', 'contract_summary', 'brief',
+        'requirements', 'restrictions', 'amount_cents', 'payment_status', 'paid_at',
+        'delivery_due_date', 'publish_date', 'next_action', 'next_action_due_date', 'published_video_id',
+      ].filter((field) => Object.prototype.hasOwnProperty.call(body, field));
+      const now = new Date().toISOString();
+      const batch: D1PreparedStatement[] = [];
+      if (fields.length > 0) {
+        batch.push(statements.bind(db,
+          `UPDATE commercial_deals SET ${fields.map((field) => `${field} = ?`).join(', ')}, updated_at = ? WHERE id = ?`,
+          [...fields.map((field) => body[field]), now, id]
+        ));
+      }
+      if (body.status !== undefined && body.status !== existing.status) {
+        batch.push(statements.commercialDealActivity(db, {
+          id: createId('deal-activity'), deal_id: id, kind: 'status_change',
+          content: `阶段变更：${existing.status} → ${String(body.status)}`, created_at: now,
+        }));
+      }
+      if (body.payment_status !== undefined && body.payment_status !== existing.payment_status) {
+        batch.push(statements.commercialDealActivity(db, {
+          id: createId('deal-activity'), deal_id: id, kind: 'payment',
+          content: `回款状态：${existing.payment_status} → ${String(body.payment_status)}`, created_at: now,
+        }));
+      }
+      if (batch.length > 0) await db.batch(batch);
+      return c.json(await loadCommercialDeal(db, id));
+    } catch (error) {
+      return jsonError(c, error, 400);
+    }
+  });
+
+  app.put('/deals/:id/topics', async (c) => {
+    try {
+      const db = requireDb(c);
+      const dealId = c.req.param('id');
+      const deal = await db.prepare('SELECT id FROM commercial_deals WHERE id = ?').bind(dealId).first<{ id: string }>();
+      if (!deal) return c.json({ error: 'Not found' }, 404);
+      const body = await c.req.json<{ primary_topic_id?: string | null; related_topic_ids?: string[] }>();
+      const primaryTopicId = body.primary_topic_id === undefined ? null : body.primary_topic_id;
+      const relatedTopicIds = body.related_topic_ids || [];
+      if (primaryTopicId !== null && typeof primaryTopicId !== 'string') return c.json({ error: 'primary_topic_id must be a string or null' }, 400);
+      if (!Array.isArray(relatedTopicIds) || relatedTopicIds.length > 100 || relatedTopicIds.some((topicId) => typeof topicId !== 'string' || !topicId.trim())) {
+        return c.json({ error: 'related_topic_ids must be an array of topic ids' }, 400);
+      }
+      const topicIds = Array.from(new Set([...(primaryTopicId ? [primaryTopicId] : []), ...relatedTopicIds]));
+      if (topicIds.length > 0) {
+        const placeholders = topicIds.map(() => '?').join(',');
+        const result = await db.prepare(`SELECT id FROM topics WHERE id IN (${placeholders})`).bind(...topicIds).all<{ id: string }>();
+        if (result.results.length !== topicIds.length) return c.json({ error: 'One or more topics not found' }, 400);
+      }
+      const now = new Date().toISOString();
+      const statementsToRun: D1PreparedStatement[] = [statements.bind(db, 'DELETE FROM commercial_deal_topics WHERE deal_id = ?', [dealId])];
+      topicIds.forEach((topicId) => statementsToRun.push(statements.commercialDealTopic(db, {
+        id: `${dealId}:${topicId}`,
+        deal_id: dealId,
+        topic_id: topicId,
+        relation_role: topicId === primaryTopicId ? 'primary' : 'related',
+        created_at: now,
+      })));
+      await db.batch(statementsToRun);
+      return c.json(await loadCommercialDeal(db, dealId));
+    } catch (error) {
+      return jsonError(c, error, 400);
+    }
+  });
+
+  app.post('/deals/:id/activities', async (c) => {
+    try {
+      const db = requireDb(c);
+      const dealId = c.req.param('id');
+      const deal = await db.prepare('SELECT id FROM commercial_deals WHERE id = ?').bind(dealId).first<{ id: string }>();
+      if (!deal) return c.json({ error: 'Not found' }, 404);
+      const body = await c.req.json<{ content?: string; kind?: string }>();
+      if (!body.content?.trim() || body.content.length > 20_000) return c.json({ error: 'Activity content is required and must be <= 20000 characters' }, 400);
+      if (body.kind && !isOneOf(body.kind, ['note', 'payment'])) return c.json({ error: 'Invalid activity kind' }, 400);
+      const activity: CommercialDealActivity = {
+        id: createId('deal-activity'), deal_id: dealId,
+        kind: (body.kind || 'note') as CommercialDealActivity['kind'],
+        content: body.content.trim(), created_at: new Date().toISOString(),
+      };
+      await statements.commercialDealActivity(db, activity).run();
+      await db.prepare('UPDATE commercial_deals SET updated_at = ? WHERE id = ?').bind(activity.created_at, dealId).run();
+      return c.json(activity, 201);
+    } catch (error) {
+      return jsonError(c, error, 400);
+    }
+  });
+
+  app.post('/deals/:id/link-published', async (c) => {
+    try {
+      const db = requireDb(c);
+      const id = c.req.param('id');
+      const deal = await db.prepare('SELECT id FROM commercial_deals WHERE id = ?').bind(id).first<{ id: string }>();
+      if (!deal) return c.json({ error: 'Not found' }, 404);
+      const body = await c.req.json<{ published_video_id?: string | null }>();
+      const publishedVideoId = body.published_video_id ?? null;
+      if (publishedVideoId !== null && typeof publishedVideoId !== 'string') return c.json({ error: 'published_video_id must be a string or null' }, 400);
+      if (publishedVideoId) {
+        const published = await db.prepare('SELECT id FROM published_videos WHERE id = ?').bind(publishedVideoId).first<{ id: string }>();
+        if (!published) return c.json({ error: 'Published video not found' }, 400);
+      }
+      await db.prepare('UPDATE commercial_deals SET published_video_id = ?, updated_at = ? WHERE id = ?')
+        .bind(publishedVideoId, new Date().toISOString(), id).run();
+      return c.json(await loadCommercialDeal(db, id));
     } catch (error) {
       return jsonError(c, error, 400);
     }

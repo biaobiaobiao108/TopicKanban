@@ -92,7 +92,11 @@ describe('Database schema contract', () => {
       const migrations = sqlite.query('SELECT name FROM _schema_migrations ORDER BY name').all() as Array<{ name: string }>;
       expect(migrations.map((migration) => migration.name)).toContain('0004_remove_settings_table.sql');
       expect(migrations.map((migration) => migration.name)).toContain('0005_create_publish_packages.sql');
+      expect(migrations.map((migration) => migration.name)).toContain('0006_create_commercial_deals.sql');
       expect(sqlite.query("SELECT name FROM sqlite_master WHERE type = 'table' AND name = 'publish_packages'").get()).not.toBeNull();
+      expect(sqlite.query("SELECT name FROM sqlite_master WHERE type = 'table' AND name = 'commercial_deals'").get()).not.toBeNull();
+      expect(sqlite.query("SELECT name FROM sqlite_master WHERE type = 'table' AND name = 'commercial_deal_topics'").get()).not.toBeNull();
+      expect(sqlite.query("SELECT name FROM sqlite_master WHERE type = 'table' AND name = 'commercial_deal_activities'").get()).not.toBeNull();
     } finally {
       sqlite.close();
       fs.rmSync(tempDir, { recursive: true, force: true });

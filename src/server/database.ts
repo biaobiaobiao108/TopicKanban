@@ -4,6 +4,11 @@ import type {
   BootstrapData,
   Draft,
   DraftCitation,
+  CommercialDeal,
+  CommercialDealActivity,
+  CommercialDealDetail,
+  CommercialDealTopic,
+  DealFocusData,
   Person,
   PersonRelationship,
   PublishedVideo,
@@ -16,6 +21,7 @@ import type {
   PaginatedPeople,
   PaginatedPublishedVideos,
   PaginatedTags,
+  PaginatedCommercialDeals,
 } from '../types';
 import { DEFAULT_APP_SETTINGS, isTopicStatus } from '../types';
 import {
@@ -43,6 +49,9 @@ export interface BackupImportSummary {
   tags: number;
   published: number;
   publish_packages: number;
+  commercial_deals: number;
+  commercial_deal_topics: number;
+  commercial_deal_activities: number;
 }
 
 export class BackupImportLimitError extends Error {}
@@ -52,11 +61,13 @@ export function getBackupImportSummary(data: BackupData): BackupImportSummary {
     (count, topic) => count + (topic.tags?.length || 0) + (topic.people?.length || 0),
     0
   );
-  const statements = 12 + data.tags.length + data.people.length + data.topics.length + topicRelations
+  const statements = 15 + data.tags.length + data.people.length + data.topics.length + topicRelations
     + data.sources.length + data.timeline.length
     + data.timeline.reduce((count, event) => count + (event.person_ids?.length || 0), 0)
     + data.drafts.length + data.citations.length
-    + data.relationships.length + data.published.length + (data.publish_packages?.length || 0);
+    + data.relationships.length + data.published.length + (data.publish_packages?.length || 0)
+    + (data.commercial_deals?.length || 0) + (data.commercial_deal_topics?.length || 0)
+    + (data.commercial_deal_activities?.length || 0);
 
   return {
     bytes: new TextEncoder().encode(JSON.stringify(data)).byteLength,
@@ -70,6 +81,9 @@ export function getBackupImportSummary(data: BackupData): BackupImportSummary {
     tags: data.tags.length,
     published: data.published.length,
     publish_packages: data.publish_packages?.length || 0,
+    commercial_deals: data.commercial_deals?.length || 0,
+    commercial_deal_topics: data.commercial_deal_topics?.length || 0,
+    commercial_deal_activities: data.commercial_deal_activities?.length || 0,
   };
 }
 
@@ -99,6 +113,7 @@ export async function loadTopics(db: D1Database, scope: 'active' | 'trash' | 'al
       (SELECT COUNT(*) FROM sources s WHERE s.topic_id = t.id) AS sources_count,
       (SELECT COUNT(*) FROM sources s WHERE s.topic_id = t.id AND s.verification_status = 'confirmed') AS verified_sources_count,
       (SELECT COUNT(*) FROM timeline_events e WHERE e.topic_id = t.id) AS timeline_count,
+      (SELECT COUNT(*) FROM commercial_deal_topics cdt WHERE cdt.topic_id = t.id) AS commercial_deals_count,
       COALESCE((SELECT word_count FROM drafts d WHERE d.topic_id = t.id LIMIT 1), 0) AS draft_word_count
       FROM topics t ${topicFilter}
       ORDER BY t.is_pinned DESC, t.sort_order ASC, t.updated_at DESC`),
@@ -165,6 +180,186 @@ export async function loadTodayFocus(db: D1Database): Promise<{ topics: Topic[];
   };
 }
 
+export interface CommercialDealPageOptions {
+  page: number;
+  pageSize: number;
+  query?: string;
+  status?: string;
+  paymentStatus?: string;
+  scope?: 'active' | 'closed' | 'all';
+}
+
+function normalizeCommercialDeal(row: Record<string, unknown>): CommercialDeal {
+  return {
+    id: String(row.id || ''),
+    title: String(row.title || ''),
+    brand_name: String(row.brand_name || ''),
+    agency_name: String(row.agency_name || ''),
+    contact_name: String(row.contact_name || ''),
+    contact_channel: String(row.contact_channel || ''),
+    source: String(row.source || 'other') as CommercialDeal['source'],
+    deliverable_type: String(row.deliverable_type || 'custom_video') as CommercialDeal['deliverable_type'],
+    status: String(row.status || 'lead') as CommercialDeal['status'],
+    contract_status: String(row.contract_status || 'not_started') as CommercialDeal['contract_status'],
+    contract_summary: String(row.contract_summary || ''),
+    brief: String(row.brief || ''),
+    requirements: String(row.requirements || ''),
+    restrictions: String(row.restrictions || ''),
+    amount_cents: Number(row.amount_cents || 0),
+    payment_status: String(row.payment_status || 'unpaid') as CommercialDeal['payment_status'],
+    paid_at: (row.paid_at as string | null | undefined) ?? null,
+    delivery_due_date: (row.delivery_due_date as string | null | undefined) ?? null,
+    publish_date: (row.publish_date as string | null | undefined) ?? null,
+    next_action: String(row.next_action || ''),
+    next_action_due_date: (row.next_action_due_date as string | null | undefined) ?? null,
+    published_video_id: (row.published_video_id as string | null | undefined) ?? null,
+    created_at: String(row.created_at || ''),
+    updated_at: String(row.updated_at || ''),
+    primary_topic_id: (row.primary_topic_id as string | null | undefined) ?? null,
+    primary_topic_title: (row.primary_topic_title as string | null | undefined) ?? null,
+    linked_topic_count: Number(row.linked_topic_count || 0),
+    published_video_title: (row.published_video_title as string | null | undefined) ?? null,
+    relation_role: row.relation_role as CommercialDeal['relation_role'],
+  };
+}
+
+function commercialDealProjection(): string {
+  return `d.*,
+    (SELECT cdt.topic_id FROM commercial_deal_topics cdt
+      WHERE cdt.deal_id = d.id AND cdt.relation_role = 'primary' LIMIT 1) AS primary_topic_id,
+    (SELECT t.title FROM commercial_deal_topics cdt
+      INNER JOIN topics t ON t.id = cdt.topic_id
+      WHERE cdt.deal_id = d.id AND cdt.relation_role = 'primary' LIMIT 1) AS primary_topic_title,
+    (SELECT COUNT(*) FROM commercial_deal_topics cdt WHERE cdt.deal_id = d.id) AS linked_topic_count,
+    (SELECT v.title FROM published_videos v WHERE v.id = d.published_video_id LIMIT 1) AS published_video_title`;
+}
+
+function buildCommercialDealFilter(options: CommercialDealPageOptions): { conditions: string[]; values: unknown[] } {
+  const conditions: string[] = [];
+  const values: unknown[] = [];
+  if (options.scope === 'active') conditions.push("d.status NOT IN ('paused', 'closed_lost')");
+  if (options.scope === 'closed') conditions.push("d.status IN ('paused', 'closed_lost')");
+  if (options.status) {
+    const statuses = options.status.split(',').map((value) => value.trim()).filter(Boolean);
+    if (statuses.length === 1) {
+      conditions.push('d.status = ?');
+      values.push(statuses[0]);
+    } else if (statuses.length > 1) {
+      conditions.push(`d.status IN (${statuses.map(() => '?').join(',')})`);
+      values.push(...statuses);
+    }
+  }
+  if (options.paymentStatus) {
+    conditions.push('d.payment_status = ?');
+    values.push(options.paymentStatus);
+  }
+  if (options.query?.trim()) {
+    const pattern = `%${options.query.trim().replace(/[\\%_]/g, '\\$&')}%`;
+    conditions.push(`(
+      d.title LIKE ? ESCAPE '\\' OR d.brand_name LIKE ? ESCAPE '\\'
+      OR d.agency_name LIKE ? ESCAPE '\\' OR d.contact_name LIKE ? ESCAPE '\\'
+      OR d.brief LIKE ? ESCAPE '\\' OR d.next_action LIKE ? ESCAPE '\\'
+      OR EXISTS (SELECT 1 FROM commercial_deal_topics sqdt
+        INNER JOIN topics sqt ON sqt.id = sqdt.topic_id
+        WHERE sqdt.deal_id = d.id AND sqt.title LIKE ? ESCAPE '\\')
+    )`);
+    values.push(pattern, pattern, pattern, pattern, pattern, pattern, pattern);
+  }
+  return { conditions, values };
+}
+
+export async function loadCommercialDealPage(db: D1Database, options: CommercialDealPageOptions): Promise<PaginatedCommercialDeals> {
+  const filter = buildCommercialDealFilter(options);
+  const where = filter.conditions.length ? `WHERE ${filter.conditions.join(' AND ')}` : '';
+  const offset = (options.page - 1) * options.pageSize;
+  const [countResult, rowsResult] = await db.batch([
+    bind(db, `SELECT
+      COUNT(*) AS total,
+      SUM(CASE WHEN d.status NOT IN ('paused', 'closed_lost') THEN 1 ELSE 0 END) AS active_count,
+      SUM(CASE WHEN d.status NOT IN ('paused', 'closed_lost', 'delivered')
+        AND d.delivery_due_date IS NOT NULL
+        AND d.delivery_due_date <= date('now', '+8 hours', '+7 days') THEN 1 ELSE 0 END) AS due_soon_count,
+      SUM(CASE WHEN d.status = 'reviewing' THEN 1 ELSE 0 END) AS pending_review_count,
+      SUM(CASE WHEN d.payment_status = 'unpaid' AND d.status != 'closed_lost' THEN d.amount_cents ELSE 0 END) AS unpaid_amount_cents,
+      SUM(CASE WHEN d.payment_status = 'unpaid' AND d.status != 'closed_lost' THEN 1 ELSE 0 END) AS unpaid_count
+      FROM commercial_deals d ${where}`, filter.values),
+    bind(db, `SELECT ${commercialDealProjection()}
+      FROM commercial_deals d ${where}
+      ORDER BY CASE WHEN d.delivery_due_date IS NULL THEN 1 ELSE 0 END,
+        d.delivery_due_date ASC, d.updated_at DESC, d.id DESC
+      LIMIT ? OFFSET ?`, [...filter.values, options.pageSize, offset]),
+  ]);
+  const summaryRow = (countResult.results[0] || {}) as Record<string, unknown>;
+  const total = Number(summaryRow.total || 0);
+  return {
+    items: (rowsResult.results as unknown as Array<Record<string, unknown>>).map(normalizeCommercialDeal),
+    page: options.page,
+    page_size: options.pageSize,
+    total,
+    total_pages: Math.max(1, Math.ceil(total / options.pageSize)),
+    summary: {
+      active_count: Number(summaryRow.active_count || 0),
+      due_soon_count: Number(summaryRow.due_soon_count || 0),
+      pending_review_count: Number(summaryRow.pending_review_count || 0),
+      unpaid_amount_cents: Number(summaryRow.unpaid_amount_cents || 0),
+      unpaid_count: Number(summaryRow.unpaid_count || 0),
+    },
+  };
+}
+
+export async function loadCommercialDeal(db: D1Database, id: string): Promise<CommercialDealDetail | null> {
+  const [dealRow, topicsResult, activitiesResult] = await db.batch([
+    bind(db, `SELECT ${commercialDealProjection()} FROM commercial_deals d WHERE d.id = ? LIMIT 1`, [id]),
+    bind(db, `SELECT cdt.*, t.title AS topic_title, t.status AS topic_status, t.deleted_at AS topic_deleted_at
+      FROM commercial_deal_topics cdt
+      INNER JOIN topics t ON t.id = cdt.topic_id
+      WHERE cdt.deal_id = ?
+      ORDER BY CASE WHEN cdt.relation_role = 'primary' THEN 0 ELSE 1 END, cdt.created_at ASC`, [id]),
+    bind(db, 'SELECT * FROM commercial_deal_activities WHERE deal_id = ? ORDER BY created_at DESC', [id]),
+  ]);
+  const row = (dealRow.results[0] || null) as Record<string, unknown> | null;
+  if (!row) return null;
+  const deal = normalizeCommercialDeal(row);
+  const publishedVideo = deal.published_video_id
+    ? await db.prepare('SELECT * FROM published_videos WHERE id = ?').bind(deal.published_video_id).first<PublishedVideo>()
+    : null;
+  return {
+    ...deal,
+    topics: topicsResult.results as unknown as CommercialDealTopic[],
+    activities: activitiesResult.results as unknown as CommercialDealActivity[],
+    published_video: publishedVideo || null,
+  };
+}
+
+export async function loadCommercialDealsByTopicId(db: D1Database, topicId: string): Promise<CommercialDeal[]> {
+  const result = await db.prepare(`SELECT ${commercialDealProjection()}, cdt.relation_role AS relation_role
+    FROM commercial_deals d
+    INNER JOIN commercial_deal_topics cdt ON cdt.deal_id = d.id
+    WHERE cdt.topic_id = ?
+    ORDER BY CASE WHEN cdt.relation_role = 'primary' THEN 0 ELSE 1 END, d.updated_at DESC`).bind(topicId).all<Record<string, unknown>>();
+  return result.results.map(normalizeCommercialDeal);
+}
+
+export async function loadCommercialDealFocus(db: D1Database): Promise<DealFocusData> {
+  const [dueResult, unpaidResult, countResult] = await db.batch([
+    db.prepare(`SELECT ${commercialDealProjection()} FROM commercial_deals d
+      WHERE d.status NOT IN ('paused', 'closed_lost', 'delivered')
+        AND (d.delivery_due_date <= date('now', '+8 hours')
+          OR d.next_action = '')
+      ORDER BY CASE WHEN d.delivery_due_date IS NULL THEN 1 ELSE 0 END,
+        d.delivery_due_date ASC, d.updated_at DESC LIMIT 8`),
+    db.prepare(`SELECT ${commercialDealProjection()} FROM commercial_deals d
+      WHERE d.status = 'delivered' AND d.payment_status = 'unpaid'
+      ORDER BY d.updated_at DESC LIMIT 8`),
+    db.prepare("SELECT COUNT(*) AS count FROM commercial_deals WHERE status NOT IN ('paused', 'closed_lost')"),
+  ]);
+  return {
+    due_items: (dueResult.results as unknown as Array<Record<string, unknown>>).map(normalizeCommercialDeal),
+    unpaid_items: (unpaidResult.results as unknown as Array<Record<string, unknown>>).map(normalizeCommercialDeal),
+    total_active: Number((countResult.results[0] as { count?: number } | undefined)?.count || 0),
+  };
+}
+
 export class TopicNotInTrashError extends Error {}
 
 function permanentDeleteStatements(db: D1Database, id: string): D1PreparedStatement[] {
@@ -178,6 +373,7 @@ function permanentDeleteStatements(db: D1Database, id: string): D1PreparedStatem
     bind(db, `DELETE FROM timeline_events WHERE topic_id IN (${trashedTopic})`, [id]),
     bind(db, `DELETE FROM topic_tags WHERE topic_id IN (${trashedTopic})`, [id]),
     bind(db, `DELETE FROM topic_people WHERE topic_id IN (${trashedTopic})`, [id]),
+    bind(db, `DELETE FROM commercial_deal_topics WHERE topic_id IN (${trashedTopic})`, [id]),
     bind(db, `DELETE FROM published_videos WHERE topic_id IN (${trashedTopic})`, [id]),
     bind(db, 'DELETE FROM topics WHERE id = ? AND deleted_at IS NOT NULL', [id]),
   ];
@@ -277,6 +473,7 @@ export async function loadTopicPage(db: D1Database, options: TopicPageOptions): 
       (SELECT COUNT(*) FROM sources s WHERE s.topic_id = t.id) AS sources_count,
       (SELECT COUNT(*) FROM sources s WHERE s.topic_id = t.id AND s.verification_status = 'confirmed') AS verified_sources_count,
       (SELECT COUNT(*) FROM timeline_events e WHERE e.topic_id = t.id) AS timeline_count,
+      (SELECT COUNT(*) FROM commercial_deal_topics cdt WHERE cdt.topic_id = t.id) AS commercial_deals_count,
       COALESCE((SELECT word_count FROM drafts d WHERE d.topic_id = t.id LIMIT 1), 0) AS draft_word_count
       FROM topics t ${where} ORDER BY ${sort} ${direction}, t.id ASC LIMIT ? OFFSET ?`, [...values, options.pageSize, offset]),
   ]);
@@ -677,9 +874,54 @@ function publishPackageStatement(db: D1Database, publishPackage: PublishPackageR
   ]);
 }
 
+function commercialDealStatement(db: D1Database, deal: CommercialDeal): D1PreparedStatement {
+  return bind(db, `INSERT INTO commercial_deals (
+    id, title, brand_name, agency_name, contact_name, contact_channel, source,
+    deliverable_type, status, contract_status, contract_summary, brief, requirements,
+    restrictions, amount_cents, payment_status, paid_at, delivery_due_date, publish_date,
+    next_action, next_action_due_date, published_video_id, created_at, updated_at
+  ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+  ON CONFLICT(id) DO UPDATE SET
+    title=excluded.title, brand_name=excluded.brand_name, agency_name=excluded.agency_name,
+    contact_name=excluded.contact_name, contact_channel=excluded.contact_channel, source=excluded.source,
+    deliverable_type=excluded.deliverable_type, status=excluded.status, contract_status=excluded.contract_status,
+    contract_summary=excluded.contract_summary, brief=excluded.brief, requirements=excluded.requirements,
+    restrictions=excluded.restrictions, amount_cents=excluded.amount_cents, payment_status=excluded.payment_status,
+    paid_at=excluded.paid_at, delivery_due_date=excluded.delivery_due_date, publish_date=excluded.publish_date,
+    next_action=excluded.next_action, next_action_due_date=excluded.next_action_due_date,
+    published_video_id=excluded.published_video_id, updated_at=excluded.updated_at`, [
+    deal.id, deal.title, deal.brand_name, deal.agency_name, deal.contact_name, deal.contact_channel,
+    deal.source, deal.deliverable_type, deal.status, deal.contract_status, deal.contract_summary,
+    deal.brief, deal.requirements, deal.restrictions, deal.amount_cents, deal.payment_status,
+    deal.paid_at ?? null, deal.delivery_due_date ?? null, deal.publish_date ?? null, deal.next_action,
+    deal.next_action_due_date ?? null, deal.published_video_id ?? null, deal.created_at, deal.updated_at,
+  ]);
+}
+
+function commercialDealTopicStatement(db: D1Database, relation: CommercialDealTopic): D1PreparedStatement {
+  return bind(db, `INSERT INTO commercial_deal_topics (id, deal_id, topic_id, relation_role, created_at)
+    VALUES (?, ?, ?, ?, ?)
+    ON CONFLICT(id) DO UPDATE SET
+      deal_id=excluded.deal_id, topic_id=excluded.topic_id, relation_role=excluded.relation_role`, [
+    relation.id, relation.deal_id, relation.topic_id, relation.relation_role, relation.created_at,
+  ]);
+}
+
+function commercialDealActivityStatement(db: D1Database, activity: CommercialDealActivity): D1PreparedStatement {
+  return bind(db, `INSERT INTO commercial_deal_activities (id, deal_id, kind, content, created_at)
+    VALUES (?, ?, ?, ?, ?)
+    ON CONFLICT(id) DO UPDATE SET
+      deal_id=excluded.deal_id, kind=excluded.kind, content=excluded.content, created_at=excluded.created_at`, [
+    activity.id, activity.deal_id, activity.kind, activity.content, activity.created_at,
+  ]);
+}
+
 export async function replaceAllData(db: D1Database, data: BackupData): Promise<void> {
   assertBackupImportWithinLimits(data);
   const statements: D1PreparedStatement[] = [
+    db.prepare('DELETE FROM commercial_deal_activities'),
+    db.prepare('DELETE FROM commercial_deal_topics'),
+    db.prepare('DELETE FROM commercial_deals'),
     db.prepare('DELETE FROM topic_tags'), db.prepare('DELETE FROM topic_people'),
     db.prepare('DELETE FROM timeline_event_people'),
     db.prepare('DELETE FROM sources'), db.prepare('DELETE FROM timeline_events'),
@@ -717,6 +959,9 @@ export async function replaceAllData(db: D1Database, data: BackupData): Promise<
   data.relationships.forEach((relationship) => statements.push(relationshipStatement(db, relationship)));
   data.published.forEach((video) => statements.push(publishedStatement(db, video)));
   (data.publish_packages || []).forEach((publishPackage) => statements.push(publishPackageStatement(db, publishPackage)));
+  (data.commercial_deals || []).forEach((deal) => statements.push(commercialDealStatement(db, deal)));
+  (data.commercial_deal_topics || []).forEach((relation) => statements.push(commercialDealTopicStatement(db, relation)));
+  (data.commercial_deal_activities || []).forEach((activity) => statements.push(commercialDealActivityStatement(db, activity)));
   await db.batch(statements);
 }
 
@@ -731,6 +976,9 @@ export async function exportAllData(db: D1Database, kvSettings?: AppSettings): P
       db.prepare('SELECT * FROM draft_citations ORDER BY created_at DESC'),
       db.prepare('SELECT timeline_event_id, person_id FROM timeline_event_people'),
       db.prepare('SELECT * FROM publish_packages ORDER BY updated_at DESC'),
+      db.prepare('SELECT * FROM commercial_deals ORDER BY updated_at DESC'),
+      db.prepare('SELECT * FROM commercial_deal_topics ORDER BY created_at ASC'),
+      db.prepare('SELECT * FROM commercial_deal_activities ORDER BY created_at ASC'),
     ]),
   ]);
   const personIdsByEvent = new Map<string, string[]>();
@@ -762,6 +1010,9 @@ export async function exportAllData(db: D1Database, kvSettings?: AppSettings): P
     tags: bootstrap.tags,
     published: bootstrap.published,
     publish_packages: publishPackages,
+    commercial_deals: details[6].results as unknown as CommercialDeal[],
+    commercial_deal_topics: details[7].results as unknown as CommercialDealTopic[],
+    commercial_deal_activities: details[8].results as unknown as CommercialDealActivity[],
     settings: kvSettings || bootstrap.settings,
   };
 }
@@ -777,4 +1028,7 @@ export const statements = {
   citation: citationStatement,
   published: publishedStatement,
   publishPackage: publishPackageStatement,
+  commercialDeal: commercialDealStatement,
+  commercialDealTopic: commercialDealTopicStatement,
+  commercialDealActivity: commercialDealActivityStatement,
 };

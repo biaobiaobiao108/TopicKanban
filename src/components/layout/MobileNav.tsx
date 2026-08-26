@@ -5,6 +5,7 @@ import {
   Users,
   Hash,
   Film,
+  Handshake,
   Database,
   Settings,
   Plus,
@@ -35,6 +36,7 @@ export const MobileBottomNav: React.FC<MobileBottomNavProps> = ({
     { id: 'tags', label: '赛道', icon: Hash, badge: null },
     { id: 'people', label: '人物', icon: Users, badge: null },
     { id: 'published', label: '复盘', icon: Film, badge: null },
+    { id: 'deals', label: '商单', icon: Handshake, badge: null },
     { id: 'settings', label: '设置', icon: Settings, badge: null },
   ];
 
@@ -153,6 +155,7 @@ export const MobileDrawer: React.FC<MobileDrawerProps> = ({
     { id: 'tags' as NavView, label: '标签与赛道', icon: Hash, badge: null },
     { id: 'people' as NavView, label: '人物档案库', icon: Users, badge: null },
     { id: 'published' as NavView, label: '已发布视频', icon: Film, badge: null },
+    { id: 'deals' as NavView, label: '商单中心', icon: Handshake, badge: null },
     { id: 'database' as NavView, label: '选题库', icon: Database, badge: null },
     { id: 'settings' as NavView, label: '偏好与数据', icon: Settings, badge: null },
   ];

@@ -13,6 +13,11 @@ export type ApiBindings = {
 
 const TOKEN_TTL_SECONDS = 60 * 60 * 24 * 7;
 const PRIORITIES = ['high', 'medium', 'low', 'none'] as const;
+export const COMMERCIAL_DEAL_STATUSES = ['lead', 'communicating', 'quoted', 'confirmed', 'producing', 'reviewing', 'scheduled', 'delivered', 'paused', 'closed_lost'] as const;
+export const COMMERCIAL_DEAL_PAYMENT_STATUSES = ['unpaid', 'paid'] as const;
+export const COMMERCIAL_DEAL_DELIVERABLE_TYPES = ['custom_video', 'dynamic', 'live', 'offline_activity', 'other'] as const;
+export const COMMERCIAL_DEAL_SOURCES = ['huahuo', 'brand_direct', 'agency', 'mcn', 'other'] as const;
+export const COMMERCIAL_DEAL_CONTRACT_STATUSES = ['not_started', 'drafting', 'signed'] as const;
 export const MAX_DRAFT_BYTES = 2 * 1024 * 1024;
 export const MAX_BATCH_SIZE = 200;
 export const MAX_REQUEST_BYTES = 10 * 1024 * 1024;
@@ -64,6 +69,35 @@ export function validateTopicFields(body: Record<string, unknown>): string | nul
     title: [200, true], summary: [2000], hook: [2000], storyline: [20000], why_now: [2000], next_action: [2000],
   });
   if (textError) return textError;
+  return null;
+}
+
+function isNullableText(value: unknown): boolean {
+  return value === null || typeof value === 'string';
+}
+
+function isValidDateValue(value: unknown): boolean {
+  return value === null || value === undefined || (typeof value === 'string' && (value === '' || /^\d{4}-\d{2}-\d{2}$/.test(value)));
+}
+
+export function validateCommercialDealFields(body: Record<string, unknown>, requireTitle = false): string | null {
+  const textError = validateTextFields(body, {
+    title: [200, requireTitle],
+    brand_name: [200], agency_name: [200], contact_name: [200], contact_channel: [2_000],
+    contract_summary: [20_000], brief: [20_000], requirements: [20_000], restrictions: [20_000],
+    next_action: [2_000],
+  });
+  if (textError) return textError;
+  if (hasInvalidValue(body, 'source', (value) => isOneOf(value, COMMERCIAL_DEAL_SOURCES))) return 'Invalid commercial deal source';
+  if (hasInvalidValue(body, 'deliverable_type', (value) => isOneOf(value, COMMERCIAL_DEAL_DELIVERABLE_TYPES))) return 'Invalid commercial deal deliverable type';
+  if (hasInvalidValue(body, 'status', (value) => isOneOf(value, COMMERCIAL_DEAL_STATUSES))) return 'Invalid commercial deal status';
+  if (hasInvalidValue(body, 'contract_status', (value) => isOneOf(value, COMMERCIAL_DEAL_CONTRACT_STATUSES))) return 'Invalid commercial deal contract status';
+  if (hasInvalidValue(body, 'payment_status', (value) => isOneOf(value, COMMERCIAL_DEAL_PAYMENT_STATUSES))) return 'Invalid commercial deal payment status';
+  if (hasInvalidValue(body, 'amount_cents', (value) => typeof value === 'number' && Number.isSafeInteger(value) && value >= 0)) return 'amount_cents must be a non-negative safe integer';
+  for (const field of ['paid_at', 'delivery_due_date', 'publish_date', 'next_action_due_date']) {
+    if (Object.prototype.hasOwnProperty.call(body, field) && !isValidDateValue(body[field])) return `${field} must be YYYY-MM-DD or null`;
+  }
+  if (hasInvalidValue(body, 'published_video_id', isNullableText)) return 'published_video_id must be a string or null';
   return null;
 }
 

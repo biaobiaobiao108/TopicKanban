@@ -9,6 +9,7 @@ import {
   FileText,
   Calendar,
   Film,
+  Handshake,
   Database,
   Settings,
   Hash,
@@ -115,13 +116,14 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
     enabled: isOpen && mode === 'all' && debouncedCleanQ.length > 0,
   });
 
-  // 1. Navigation commands (All 7 views)
+  // 1. Navigation commands
   const allNavCommands = useMemo(() => [
     { label: '前往 今日生产聚焦', view: 'today' as NavView, icon: Calendar, desc: '推进当前重点选题，减少选择焦虑', keywords: ['今日', '聚焦', 'today', 'focus', '任务'] },
     { label: '前往 选题全景看板', view: 'kanban' as NavView, icon: Kanban, desc: '4 个活跃阶段 + 2 个归档状态', keywords: ['看板', 'kanban', 'board', '选题看板', '主页'] },
     { label: '前往 标签与创作赛道', view: 'tags' as NavView, icon: Hash, desc: '分类赛道沉淀与选题资产盘点', keywords: ['标签', '赛道', 'tags', 'track', '分类'] },
     { label: '前往 人物档案库', view: 'people' as NavView, icon: User, desc: '网红与事件当事人关系库', keywords: ['人物', '网红', '档案', 'people', '关系网', '主播'] },
     { label: '前往 已发布视频复盘', view: 'published' as NavView, icon: Film, desc: '归档成片与 B 站数据沉淀', keywords: ['发布', '复盘', 'published', '成片', '视频', 'bilibili', 'b站'] },
+    { label: '前往 商单中心', view: 'deals' as NavView, icon: Handshake, desc: '管理商务沟通、交付、审核与回款', keywords: ['商单', '商务', '品牌', '客户', '回款', '花火', 'deal'] },
     { label: '前往 选题库', view: 'database' as NavView, icon: Database, desc: '全量多维数据表格与归档沉淀', keywords: ['选题库', '数据表格', 'database', '表格', '归档'] },
     { label: '前往 偏好与数据备份', view: 'settings' as NavView, icon: Settings, desc: '语速设置、视觉主题与数据备份', keywords: ['设置', '偏好', '备份', 'settings', '主题', '语速', '导出'] },
   ], []);

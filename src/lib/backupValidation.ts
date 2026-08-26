@@ -147,6 +147,49 @@ const publishedSchema = z.object({
   topic_title: z.string().max(200).nullable().optional(),
 }).passthrough();
 
+const commercialDealSchema = z.object({
+  id,
+  title: shortText.trim().min(1),
+  brand_name: shortText,
+  agency_name: shortText,
+  contact_name: shortText,
+  contact_channel: mediumText,
+  source: z.enum(['huahuo', 'brand_direct', 'agency', 'mcn', 'other']),
+  deliverable_type: z.enum(['custom_video', 'dynamic', 'live', 'offline_activity', 'other']),
+  status: z.enum(['lead', 'communicating', 'quoted', 'confirmed', 'producing', 'reviewing', 'scheduled', 'delivered', 'paused', 'closed_lost']),
+  contract_status: z.enum(['not_started', 'drafting', 'signed']),
+  contract_summary: longText,
+  brief: longText,
+  requirements: longText,
+  restrictions: longText,
+  amount_cents: z.number().int().nonnegative(),
+  payment_status: z.enum(['unpaid', 'paid']),
+  paid_at: optionalTimestamp,
+  delivery_due_date: optionalTimestamp,
+  publish_date: optionalTimestamp,
+  next_action: mediumText,
+  next_action_due_date: optionalTimestamp,
+  published_video_id: id.nullable().optional(),
+  created_at: timestamp,
+  updated_at: timestamp,
+}).passthrough();
+
+const commercialDealTopicSchema = z.object({
+  id,
+  deal_id: id,
+  topic_id: id,
+  relation_role: z.enum(['primary', 'related']),
+  created_at: timestamp,
+}).passthrough();
+
+const commercialDealActivitySchema = z.object({
+  id,
+  deal_id: id,
+  kind: z.enum(['note', 'status_change', 'payment']),
+  content: longText.trim().min(1),
+  created_at: timestamp,
+}).passthrough();
+
 const publishChapterSchema = z.object({
   id,
   title: shortText,
@@ -212,6 +255,9 @@ const backupSchema = z.object({
   tags: z.array(tagSchema),
   published: z.array(publishedSchema),
   publish_packages: z.array(publishPackageSchema).optional(),
+  commercial_deals: z.array(commercialDealSchema).optional(),
+  commercial_deal_topics: z.array(commercialDealTopicSchema).optional(),
+  commercial_deal_activities: z.array(commercialDealActivitySchema).optional(),
   settings: settingsSchema,
 }).superRefine((data, ctx) => {
   const addIssue = (path: Array<string | number>, message: string) => ctx.addIssue({ code: 'custom', path, message });
@@ -228,6 +274,9 @@ const backupSchema = z.object({
     ['people', data.people], ['relationships', data.relationships], ['drafts', data.drafts],
     ['citations', data.citations], ['tags', data.tags], ['published', data.published],
     ['publish_packages', data.publish_packages || []],
+    ['commercial_deals', data.commercial_deals || []],
+    ['commercial_deal_topics', data.commercial_deal_topics || []],
+    ['commercial_deal_activities', data.commercial_deal_activities || []],
   ];
   collections.forEach(([key, items]) => requireUniqueIds(items, key));
 
@@ -249,6 +298,31 @@ const backupSchema = z.object({
   data.citations.forEach((item, index) => requireTopic(item.topic_id, ['citations', index, 'topic_id']));
   data.published.forEach((item, index) => {
     if (item.topic_id) requireTopic(item.topic_id, ['published', index, 'topic_id']);
+  });
+  const dealIds = new Set((data.commercial_deals || []).map((item) => item.id));
+  const publishedIds = new Set(data.published.map((item) => item.id));
+  (data.commercial_deals || []).forEach((item, index) => {
+    if (item.published_video_id && !publishedIds.has(item.published_video_id)) {
+      addIssue(['commercial_deals', index, 'published_video_id'], `引用了不存在的已发布视频：${item.published_video_id}`);
+    }
+  });
+  (data.commercial_deal_topics || []).forEach((item, index) => {
+    if (!dealIds.has(item.deal_id)) addIssue(['commercial_deal_topics', index, 'deal_id'], `引用了不存在的商单：${item.deal_id}`);
+    requireTopic(item.topic_id, ['commercial_deal_topics', index, 'topic_id']);
+  });
+  const relationPairs = new Set<string>();
+  const primaryDeals = new Set<string>();
+  (data.commercial_deal_topics || []).forEach((item, index) => {
+    const pair = `${item.deal_id}:${item.topic_id}`;
+    if (relationPairs.has(pair)) addIssue(['commercial_deal_topics', index], `商单与选题关联重复：${pair}`);
+    relationPairs.add(pair);
+    if (item.relation_role === 'primary') {
+      if (primaryDeals.has(item.deal_id)) addIssue(['commercial_deal_topics', index, 'relation_role'], `一个商单只能有一个主选题：${item.deal_id}`);
+      primaryDeals.add(item.deal_id);
+    }
+  });
+  (data.commercial_deal_activities || []).forEach((item, index) => {
+    if (!dealIds.has(item.deal_id)) addIssue(['commercial_deal_activities', index, 'deal_id'], `引用了不存在的商单：${item.deal_id}`);
   });
   (data.publish_packages || []).forEach((item, index) => requireTopic(item.topic_id, ['publish_packages', index, 'topic_id']));
   data.relationships.forEach((item, index) => {

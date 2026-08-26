@@ -7,6 +7,13 @@ import type {
   DraftLoadResult,
   DraftRecoveryConflict,
   CitationInput,
+  CommercialDeal,
+  CommercialDealActivity,
+  CommercialDealDetail,
+  CommercialDealTopic,
+  CommercialDealStatus,
+  DealFocusData,
+  PaginatedCommercialDeals,
   Person,
   PersonOption,
   PersonRelationship,
@@ -138,6 +145,77 @@ export function fetchTopicPage(params: TopicPageParams): Promise<PaginatedTopics
 
 export function fetchTodayFocus(): Promise<TodayFocusData> {
   return apiRequest<TodayFocusData>('/api/today/focus');
+}
+
+export interface CommercialDealPageParams {
+  scope?: 'active' | 'closed' | 'all';
+  page?: number;
+  page_size?: number;
+  q?: string;
+  status?: CommercialDealStatus | string;
+  payment_status?: 'unpaid' | 'paid';
+}
+
+export function fetchCommercialDealPage(params: CommercialDealPageParams = {}): Promise<PaginatedCommercialDeals> {
+  const query = new URLSearchParams();
+  Object.entries(params).forEach(([key, value]) => {
+    if (value !== undefined && value !== '') query.set(key, String(value));
+  });
+  return apiRequest<PaginatedCommercialDeals>(`/api/deals/page?${query.toString()}`);
+}
+
+export function fetchCommercialDealFocus(): Promise<DealFocusData> {
+  return apiRequest<DealFocusData>('/api/deals/focus');
+}
+
+export function fetchCommercialDeal(id: string): Promise<CommercialDealDetail> {
+  return apiRequest<CommercialDealDetail>(`/api/deals/${encodeURIComponent(id)}`);
+}
+
+export function fetchCommercialDealsByTopicId(topicId: string): Promise<CommercialDeal[]> {
+  return apiRequest<CommercialDeal[]>(`/api/topics/${encodeURIComponent(topicId)}/deals`);
+}
+
+export async function saveCommercialDeal(data: Partial<CommercialDeal> & { title: string }): Promise<CommercialDealDetail> {
+  const deal = data.id
+    ? await apiRequest<CommercialDealDetail>(`/api/deals/${encodeURIComponent(data.id)}`, jsonRequest('PATCH', data))
+    : await apiRequest<CommercialDealDetail>('/api/deals', jsonRequest('POST', data));
+  invalidateBootstrap();
+  return deal;
+}
+
+export async function replaceCommercialDealTopics(
+  dealId: string,
+  primaryTopicId: string | null,
+  relatedTopicIds: string[] = []
+): Promise<CommercialDealDetail> {
+  const deal = await apiRequest<CommercialDealDetail>(`/api/deals/${encodeURIComponent(dealId)}/topics`, jsonRequest('PUT', {
+    primary_topic_id: primaryTopicId,
+    related_topic_ids: relatedTopicIds,
+  }));
+  invalidateBootstrap();
+  return deal;
+}
+
+export async function addCommercialDealActivity(
+  dealId: string,
+  content: string,
+  kind: 'note' | 'payment' = 'note'
+): Promise<CommercialDealActivity> {
+  const activity = await apiRequest<CommercialDealActivity>(`/api/deals/${encodeURIComponent(dealId)}/activities`, jsonRequest('POST', { content, kind }));
+  invalidateBootstrap();
+  return activity;
+}
+
+export async function linkPublishedVideoToCommercialDeal(
+  dealId: string,
+  publishedVideoId: string | null
+): Promise<CommercialDealDetail> {
+  const deal = await apiRequest<CommercialDealDetail>(`/api/deals/${encodeURIComponent(dealId)}/link-published`, jsonRequest('POST', {
+    published_video_id: publishedVideoId,
+  }));
+  invalidateBootstrap();
+  return deal;
 }
 
 export async function saveTopic(data: Partial<Topic> & { title?: string }): Promise<Topic> {

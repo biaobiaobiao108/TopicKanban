@@ -7,6 +7,7 @@ import { OverviewTab } from './OverviewTab';
 import { SourcesTab } from './SourcesTab';
 import { TimelineTab } from './TimelineTab';
 import { PeopleTab } from './PeopleTab';
+import { CommercialDealsTab } from './CommercialDealsTab';
 import { NextActionDialog } from './NextActionDialog';
 import { COLUMNS } from '../kanban/columns';
 import {
@@ -20,6 +21,7 @@ import {
   fetchDraftByTopicId,
   fetchTopicWorkspace,
   fetchDraftCitations,
+  fetchCommercialDealsByTopicId,
   saveDraft,
   cacheDraftLocally,
   saveDraftImmediately,
@@ -30,7 +32,7 @@ import {
   exportSingleTopicMarkdown,
 } from '../../lib/storage';
 import { Modal } from '../ui/Modal';
-import { LayoutDashboard, FileSearch, Clock, Users, PenTool, FileText, CheckCircle2, GitBranch, MoreHorizontal } from 'lucide-react';
+import { LayoutDashboard, FileSearch, Clock, Users, PenTool, FileText, Handshake, CheckCircle2, GitBranch, MoreHorizontal } from 'lucide-react';
 
 interface TopicDetailViewProps {
   topic: Topic;
@@ -48,9 +50,11 @@ interface TopicDetailViewProps {
   onDeleteTag?: (tagId: string) => Promise<void>;
   onDraftWordCountChange: (topicId: string, wordCount: number) => void;
   onTopicMetricsChange: (topicId: string, metrics: Partial<Topic>) => void;
+  onOpenDeal: (dealId: string) => void;
+  onCreateTopicFromDeal?: (data: { title: string; summary: string }) => Promise<Topic>;
 }
 
-type DetailTab = 'overview' | 'sources' | 'timeline' | 'people' | 'script' | 'publish';
+type DetailTab = 'overview' | 'sources' | 'timeline' | 'people' | 'deals' | 'script' | 'publish';
 
 const PublishPackageTab = React.lazy(() =>
   import('./PublishPackageTab').then((module) => ({ default: module.PublishPackageTab }))
@@ -76,12 +80,14 @@ export const TopicDetailView: React.FC<TopicDetailViewProps> = ({
   onDeleteTag,
   onDraftWordCountChange,
   onTopicMetricsChange,
+  onOpenDeal,
+  onCreateTopicFromDeal,
 }) => {
   const queryClient = useQueryClient();
   const [pendingOutlineHtml, setPendingOutlineHtml] = useState<string | null>(null);
   const [searchParams, setSearchParams] = useSearchParams();
   const rawTab = searchParams.get('tab');
-  const activeTab: DetailTab = (rawTab && ['overview', 'sources', 'timeline', 'people', 'script', 'publish'].includes(rawTab))
+  const activeTab: DetailTab = (rawTab && ['overview', 'sources', 'timeline', 'people', 'deals', 'script', 'publish'].includes(rawTab))
     ? (rawTab as DetailTab)
     : 'overview';
   const detailSubtabsRef = useRef<HTMLDivElement | null>(null);
@@ -138,6 +144,11 @@ export const TopicDetailView: React.FC<TopicDetailViewProps> = ({
     queryFn: () => fetchTopicWorkspace(topic.id),
     enabled: activeTab === 'publish',
   });
+  const dealsQuery = useQuery({
+    queryKey: ['topic-deals', topic.id],
+    queryFn: () => fetchCommercialDealsByTopicId(topic.id),
+    enabled: activeTab === 'deals',
+  });
 
   const sources: Source[] = sourcesQuery.data || [];
   const timeline: TimelineEvent[] = timelineQuery.data || [];
@@ -152,6 +163,7 @@ export const TopicDetailView: React.FC<TopicDetailViewProps> = ({
 
   const loading = (activeTab === 'sources' && sourcesQuery.isLoading)
     || (activeTab === 'timeline' && timelineQuery.isLoading)
+    || (activeTab === 'deals' && dealsQuery.isLoading)
     || (activeTab === 'script' && (draftQuery.isLoading || citationsQuery.isLoading || sourcesQuery.isLoading || timelineQuery.isLoading))
     || (activeTab === 'publish' && workspaceQuery.isLoading);
 
@@ -173,11 +185,11 @@ export const TopicDetailView: React.FC<TopicDetailViewProps> = ({
   }, [draftQuery.data?.draft, topic.id]);
 
   useEffect(() => {
-    const error = sourcesQuery.error || timelineQuery.error || draftQuery.error || citationsQuery.error || workspaceQuery.error;
+    const error = sourcesQuery.error || timelineQuery.error || dealsQuery.error || draftQuery.error || citationsQuery.error || workspaceQuery.error;
     if (!error) return;
     console.error(error);
     setOperationError(error instanceof Error ? `加载选题资料失败：${error.message}` : '加载选题资料失败');
-  }, [sourcesQuery.error, timelineQuery.error, draftQuery.error, citationsQuery.error, workspaceQuery.error]);
+  }, [sourcesQuery.error, timelineQuery.error, dealsQuery.error, draftQuery.error, citationsQuery.error, workspaceQuery.error]);
 
   const handleSaveSource = async (sourceData: Partial<Source> & { topic_id: string; title: string }) => {
     try {
@@ -324,6 +336,7 @@ export const TopicDetailView: React.FC<TopicDetailViewProps> = ({
     { id: 'sources', label: '资料与素材', icon: FileSearch, count: sources.length },
     { id: 'timeline', label: '故事时间线', icon: Clock, count: timeline.length },
     { id: 'people', label: '人物与关系', icon: Users, count: topic.people?.length || 0 },
+    { id: 'deals', label: '商单', icon: Handshake, count: topic.commercial_deals_count },
     { id: 'script', label: '文案创作', icon: PenTool },
     { id: 'publish', label: '发布包', icon: FileText },
   ];
@@ -343,7 +356,7 @@ export const TopicDetailView: React.FC<TopicDetailViewProps> = ({
     if (isOutsideViewport) {
       activeButton.scrollIntoView({ block: 'nearest', inline: 'nearest' });
     }
-  }, [activeTab, sources.length, timeline.length, topic.people?.length]);
+  }, [activeTab, sources.length, timeline.length, topic.people?.length, topic.commercial_deals_count]);
 
   const metricTopic: Topic = {
     ...topic,
@@ -555,6 +568,20 @@ export const TopicDetailView: React.FC<TopicDetailViewProps> = ({
               onNavigateToPeople={onNavigateToPeople}
             />
           </div>
+        )}
+
+        {activeTab === 'deals' && !loading && (
+          <div key="deals" className="view-tab-transition">
+            <CommercialDealsTab
+              topic={topic}
+              onOpenDeal={onOpenDeal}
+              onCreateTopicFromDeal={onCreateTopicFromDeal}
+            />
+          </div>
+        )}
+
+        {activeTab === 'deals' && loading && (
+          <div className="py-16 text-center text-sm text-stone-500">正在加载关联商单...</div>
         )}
 
         {activeTab === 'script' && !loading && (

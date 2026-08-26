@@ -63,6 +63,7 @@ export interface Topic {
   verified_sources_count?: number;
   timeline_count?: number;
   draft_word_count?: number;
+  commercial_deals_count?: number;
 }
 
 export interface Source {
@@ -280,6 +281,116 @@ export interface PublishedVideo {
   topic_title?: string | null;
 }
 
+export const COMMERCIAL_DEAL_STATUSES = [
+  'lead',
+  'communicating',
+  'quoted',
+  'confirmed',
+  'producing',
+  'reviewing',
+  'scheduled',
+  'delivered',
+  'paused',
+  'closed_lost',
+] as const;
+
+export type CommercialDealStatus = typeof COMMERCIAL_DEAL_STATUSES[number];
+
+export const COMMERCIAL_DEAL_PAYMENT_STATUSES = ['unpaid', 'paid'] as const;
+export type CommercialDealPaymentStatus = typeof COMMERCIAL_DEAL_PAYMENT_STATUSES[number];
+
+export const COMMERCIAL_DEAL_DELIVERABLE_TYPES = [
+  'custom_video',
+  'dynamic',
+  'live',
+  'offline_activity',
+  'other',
+] as const;
+export type CommercialDealDeliverableType = typeof COMMERCIAL_DEAL_DELIVERABLE_TYPES[number];
+
+export const COMMERCIAL_DEAL_SOURCES = ['huahuo', 'brand_direct', 'agency', 'mcn', 'other'] as const;
+export type CommercialDealSource = typeof COMMERCIAL_DEAL_SOURCES[number];
+
+export const COMMERCIAL_DEAL_CONTRACT_STATUSES = ['not_started', 'drafting', 'signed'] as const;
+export type CommercialDealContractStatus = typeof COMMERCIAL_DEAL_CONTRACT_STATUSES[number];
+
+export type CommercialDealTopicRole = 'primary' | 'related';
+export type CommercialDealActivityKind = 'note' | 'status_change' | 'payment';
+
+export interface CommercialDeal {
+  id: string;
+  title: string;
+  brand_name: string;
+  agency_name: string;
+  contact_name: string;
+  contact_channel: string;
+  source: CommercialDealSource;
+  deliverable_type: CommercialDealDeliverableType;
+  status: CommercialDealStatus;
+  contract_status: CommercialDealContractStatus;
+  contract_summary: string;
+  brief: string;
+  requirements: string;
+  restrictions: string;
+  amount_cents: number;
+  payment_status: CommercialDealPaymentStatus;
+  paid_at?: string | null;
+  delivery_due_date?: string | null;
+  publish_date?: string | null;
+  next_action: string;
+  next_action_due_date?: string | null;
+  published_video_id?: string | null;
+  created_at: string;
+  updated_at: string;
+  primary_topic_id?: string | null;
+  primary_topic_title?: string | null;
+  linked_topic_count?: number;
+  published_video_title?: string | null;
+  relation_role?: CommercialDealTopicRole;
+}
+
+export interface CommercialDealTopic {
+  id: string;
+  deal_id: string;
+  topic_id: string;
+  relation_role: CommercialDealTopicRole;
+  created_at: string;
+  topic_title?: string;
+  topic_status?: TopicStatus;
+  topic_deleted_at?: string | null;
+}
+
+export interface CommercialDealActivity {
+  id: string;
+  deal_id: string;
+  kind: CommercialDealActivityKind;
+  content: string;
+  created_at: string;
+}
+
+export interface CommercialDealDetail extends CommercialDeal {
+  topics: CommercialDealTopic[];
+  activities: CommercialDealActivity[];
+  published_video?: PublishedVideo | null;
+}
+
+export interface PaginatedCommercialDeals extends PageMeta {
+  items: CommercialDeal[];
+  summary: {
+    active_count: number;
+    due_soon_count: number;
+    pending_review_count: number;
+    unpaid_amount_cents: number;
+    unpaid_count: number;
+  };
+}
+
+export interface DealFocusData {
+  due_items: CommercialDeal[];
+  unpaid_items: CommercialDeal[];
+  total_active: number;
+}
+
 export const APP_THEMES = [
   'nordic_frost',
   'parisian_dawn',
@@ -412,6 +523,9 @@ export interface BackupData {
   tags: Tag[];
   published: PublishedVideo[];
   publish_packages?: PublishPackageRecord[];
+  commercial_deals?: CommercialDeal[];
+  commercial_deal_topics?: CommercialDealTopic[];
+  commercial_deal_activities?: CommercialDealActivity[];
   settings: AppSettings;
 }
 

@@ -18,6 +18,8 @@
     "db:upgrade:settings:remote": "wrangler d1 execute DB --remote --file=./drizzle/0004_remove_settings_table.sql",
     "db:upgrade:publish-package:local": "wrangler d1 execute DB --local --file=./drizzle/0005_create_publish_packages.sql",
     "db:upgrade:publish-package:remote": "wrangler d1 execute DB --remote --file=./drizzle/0005_create_publish_packages.sql",
+    "db:upgrade:deals:local": "wrangler d1 execute DB --local --file=./drizzle/0006_create_commercial_deals.sql",
+    "db:upgrade:deals:remote": "wrangler d1 execute DB --remote --file=./drizzle/0006_create_commercial_deals.sql",
     "build": "tsc && vite build && bun run build:server",
     "build:server": "bun build src/server/server.ts --target=bun --format=esm --outfile=dist/server.js",
     "start": "bun dist/server.js",

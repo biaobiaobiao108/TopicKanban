@@ -145,4 +145,52 @@ describe('backup schema validation', () => {
 
     expect(result.success).toBe(true);
   });
+
+  it('accepts commercial deals with topic relations and published video links', () => {
+    const topic = createTopic('topic-deal');
+    const result = validateBackupData(createBackup({
+      topics: [topic],
+      published: [{
+        id: 'published-deal', topic_id: topic.id, title: '商单成片', url: '', bvid: '',
+        published_at: '2026-01-03', views: 0, likes: 0, coins: 0, favorites: 0, comments: 0,
+        notes: '', updated_at: '2026-01-03T00:00:00.000Z',
+      }],
+      commercial_deals: [{
+        id: 'deal-1', title: '品牌定制视频', brand_name: '测试品牌', agency_name: '', contact_name: '',
+        contact_channel: '', source: 'brand_direct', deliverable_type: 'custom_video', status: 'delivered',
+        contract_status: 'signed', contract_summary: '已确认需求', brief: '商单摘要', requirements: '', restrictions: '',
+        amount_cents: 100000, payment_status: 'unpaid', paid_at: null, delivery_due_date: '2026-01-01',
+        publish_date: '2026-01-03', next_action: '等待回款', next_action_due_date: null,
+        published_video_id: 'published-deal', created_at: '2026-01-01T00:00:00.000Z', updated_at: '2026-01-03T00:00:00.000Z',
+      }],
+      commercial_deal_topics: [{
+        id: 'deal-1:topic-deal', deal_id: 'deal-1', topic_id: topic.id, relation_role: 'primary',
+        created_at: '2026-01-01T00:00:00.000Z',
+      }],
+      commercial_deal_activities: [{
+        id: 'deal-activity-1', deal_id: 'deal-1', kind: 'payment', content: '已提交回款申请',
+        created_at: '2026-01-03T00:00:00.000Z',
+      }],
+    }));
+
+    expect(result.success).toBe(true);
+  });
+
+  it('rejects commercial relations that point to missing entities', () => {
+    const result = validateBackupData(createBackup({
+      commercial_deals: [{
+        id: 'deal-1', title: '品牌合作', brand_name: '', agency_name: '', contact_name: '', contact_channel: '',
+        source: 'other', deliverable_type: 'other', status: 'lead', contract_status: 'not_started',
+        contract_summary: '', brief: '', requirements: '', restrictions: '', amount_cents: 0,
+        payment_status: 'unpaid', paid_at: null, delivery_due_date: null, publish_date: null, next_action: '',
+        next_action_due_date: null, published_video_id: null, created_at: '', updated_at: '',
+      }],
+      commercial_deal_topics: [{
+        id: 'deal-1:missing', deal_id: 'deal-1', topic_id: 'missing-topic', relation_role: 'primary', created_at: '',
+      }],
+    }));
+
+    expect(result.success).toBe(false);
+    if (!result.success) expect(result.error).toContain('引用了不存在的选题');
+  });
 });

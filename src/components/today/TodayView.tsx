@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from 'react';
-import { Topic } from '../../types';
+import { CommercialDeal, DealFocusData, Topic } from '../../types';
 import { StatusBadge, PriorityBadge, TagPill } from '../ui/Badge';
 import {
   Flame,
@@ -9,18 +9,66 @@ import {
   User,
   Sparkles,
   Pin,
-  Zap
+  Zap,
+  Handshake,
+  WalletCards
 } from 'lucide-react';
 import { NextActionDialog } from '../topic-detail/NextActionDialog';
 import { getNextActionAgeDays, getNextActionWarning } from '../../lib/topicMetrics';
 
 const FOCUS_PRIORITY = { high: 3, medium: 2, low: 1, none: 0 };
 const ACTIVE_FOCUS_STATUSES = new Set(['approved', 'scripting', 'production']);
+const DEAL_STATUS_LABELS: Record<CommercialDeal['status'], string> = {
+  lead: '商机',
+  communicating: '沟通中',
+  quoted: '已报价',
+  confirmed: '已确认',
+  producing: '制作中',
+  reviewing: '客户审核',
+  scheduled: '待上线',
+  delivered: '已交付',
+  paused: '已暂停',
+  closed_lost: '已流失',
+};
+
+function formatDealDate(value?: string | null): string {
+  if (!value) return '未设截止日期';
+  return new Date(`${value}T00:00:00+08:00`).toLocaleDateString('zh-CN', { month: 'numeric', day: 'numeric' });
+}
+
+function DealFocusCard({ deal, onOpen }: { deal: CommercialDeal; onOpen: () => void }) {
+  const isDue = Boolean(deal.delivery_due_date && deal.delivery_due_date <= new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Shanghai' }).format(new Date()));
+  const isUnpaid = deal.payment_status === 'unpaid' && deal.status === 'delivered';
+  return (
+    <button
+      type="button"
+      onClick={onOpen}
+      className="flex min-h-20 w-full items-center gap-3 rounded-2xl border border-stone-200/70 bg-white p-4 text-left shadow-2xs transition-all hover:-translate-y-0.5 hover:shadow-card dark:border-stone-800 dark:bg-stone-900"
+    >
+      <span className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl ${isUnpaid ? 'bg-amber-500/10 text-amber-600 dark:text-amber-300' : 'bg-rose-500/10 text-rose-600 dark:text-rose-300'}`}>
+        {isUnpaid ? <WalletCards className="h-5 w-5" /> : <Handshake className="h-5 w-5" />}
+      </span>
+      <span className="min-w-0 flex-1">
+        <span className="flex flex-wrap items-center gap-2">
+          <span className="truncate text-sm font-bold text-stone-900 dark:text-stone-100">{deal.brand_name || '未命名品牌'} · {deal.title}</span>
+          <span className="shrink-0 rounded-full bg-stone-500/10 px-2 py-0.5 text-[10px] font-bold text-stone-600 dark:text-stone-300">{DEAL_STATUS_LABELS[deal.status]}</span>
+        </span>
+        <span className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-stone-500 dark:text-stone-400">
+          {isUnpaid ? <span className="font-semibold text-amber-700 dark:text-amber-300">已交付待回款</span> : <span className={isDue ? 'font-semibold text-rose-700 dark:text-rose-300' : ''}>{isDue ? '截止/逾期' : '交付截止'}：{formatDealDate(deal.delivery_due_date)}</span>}
+          {deal.next_action ? <span className="truncate">下一步：{deal.next_action}</span> : <span className="font-semibold text-amber-700 dark:text-amber-300">缺少下一步行动</span>}
+        </span>
+      </span>
+      <ArrowRight className="h-4 w-4 shrink-0 text-stone-400" />
+    </button>
+  );
+}
 
 interface TodayViewProps {
   topics: Topic[];
+  dealFocus?: DealFocusData;
   staleActionDays?: number;
   onOpenDetail: (topicId: string) => void;
+  onOpenDeal?: (dealId: string) => void;
   onOpenQuickCreate: () => void;
   onTogglePin?: (topicId: string) => void;
   onUpdateTopic: (topicId: string, updates: Partial<Topic>) => Promise<void>;
@@ -28,8 +76,10 @@ interface TodayViewProps {
 
 export const TodayView: React.FC<TodayViewProps> = ({
   topics,
+  dealFocus = { due_items: [], unpaid_items: [], total_active: 0 },
   staleActionDays = 5,
   onOpenDetail,
+  onOpenDeal,
   onOpenQuickCreate,
   onTogglePin,
   onUpdateTopic,
@@ -71,6 +121,14 @@ export const TodayView: React.FC<TodayViewProps> = ({
       .slice(0, 8);
   }, [topics]);
   const visibleRecentUpdates = showAllActivity ? recentUpdates : recentUpdates.slice(0, 3);
+  const focusDeals = useMemo(() => {
+    const seen = new Set<string>();
+    return [...dealFocus.due_items, ...dealFocus.unpaid_items].filter((deal) => {
+      if (seen.has(deal.id)) return false;
+      seen.add(deal.id);
+      return true;
+    }).slice(0, 8);
+  }, [dealFocus.due_items, dealFocus.unpaid_items]);
 
   return (
     <div className="flex-1 w-full h-full overflow-y-auto overscroll-contain pb-20 md:pb-8">
@@ -216,6 +274,25 @@ export const TodayView: React.FC<TodayViewProps> = ({
               + 新建选题
             </button>
           </div>
+        )}
+
+        {focusDeals.length > 0 && onOpenDeal && (
+          <section aria-labelledby="today-deals-heading" className="space-y-3.5">
+            <div className="flex items-center justify-between gap-3">
+              <div>
+                <h4 id="today-deals-heading" className="flex items-center gap-2 text-base font-bold text-stone-900 dark:text-stone-100">
+                  <Handshake className="h-4 w-4 text-rose-600 dark:text-rose-400" />
+                  商单待推进
+                  <span className="rounded-full bg-rose-500/10 px-2 py-0.5 text-xs font-mono font-bold text-rose-700 dark:text-rose-300">{focusDeals.length}</span>
+                </h4>
+                <p className="mt-1 text-xs text-stone-500 dark:text-stone-400">交付节点、下一步行动与已交付未回款事项集中在这里。</p>
+              </div>
+              <button type="button" onClick={() => onOpenDeal(focusDeals[0].id)} className="min-h-11 shrink-0 rounded-xl border border-stone-200 bg-white px-3 text-xs font-semibold text-stone-700 transition-colors hover:border-rose-300 hover:text-rose-700 dark:border-stone-700 dark:bg-stone-900 dark:text-stone-300 dark:hover:border-rose-800 dark:hover:text-rose-300">打开商单</button>
+            </div>
+            <div className="grid gap-3 md:grid-cols-2">
+              {focusDeals.map((deal) => <DealFocusCard key={deal.id} deal={deal} onOpen={() => onOpenDeal(deal.id)} />)}
+            </div>
+          </section>
         )}
 
         {/* 2-Column Section: Top Priorities & Recent Activity */}

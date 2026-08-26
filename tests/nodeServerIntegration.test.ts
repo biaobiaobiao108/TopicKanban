@@ -23,6 +23,8 @@ describe('Bun Server Integration (Local SQLite & API)', () => {
     sqlite.exec(schemaSql);
     const publishPackageMigration = path.resolve(process.cwd(), 'drizzle/0005_create_publish_packages.sql');
     sqlite.exec(fs.readFileSync(publishPackageMigration, 'utf-8'));
+    const commercialDealsMigration = path.resolve(process.cwd(), 'drizzle/0006_create_commercial_deals.sql');
+    sqlite.exec(fs.readFileSync(commercialDealsMigration, 'utf-8'));
 
     const d1 = new LocalD1Database(sqlite);
     const kv = new LocalKVNamespace(sqlite);
@@ -341,6 +343,118 @@ describe('Bun Server Integration (Local SQLite & API)', () => {
     expect((await restoredSettingsRes.json() as { reading_speed: number }).reading_speed).toBe(333);
     expect(sqlite.query('SELECT title_simplified FROM publish_packages WHERE topic_id = ?').get(topic.id)).toEqual({ title_simplified: '简体发布标题' });
     expect(sqlite.query("SELECT name FROM sqlite_master WHERE type = 'table' AND name = 'settings'").get()).toBeNull();
+  });
+
+  it('runs the commercial deal workflow without changing topic status', async () => {
+    const loginRes = await app.request('/api/auth/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ password: testPassword }),
+    });
+    const { token } = await loginRes.json() as { token: string };
+    const headers = { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' };
+
+    const topicResponse = await app.request('/api/topics', {
+      method: 'POST', headers,
+      body: JSON.stringify({ title: '商单主选题', summary: '主选题摘要', status: 'inbox' }),
+    });
+    const topic = await topicResponse.json() as { id: string; status: string };
+    const relatedTopicResponse = await app.request('/api/topics', {
+      method: 'POST', headers,
+      body: JSON.stringify({ title: '商单系列选题', status: 'approved' }),
+    });
+    const relatedTopic = await relatedTopicResponse.json() as { id: string };
+
+    const invalidDealResponse = await app.request('/api/deals', {
+      method: 'POST', headers,
+      body: JSON.stringify({ title: '非法金额商单', amount_cents: -1 }),
+    });
+    expect(invalidDealResponse.status).toBe(400);
+
+    const createDealResponse = await app.request('/api/deals', {
+      method: 'POST', headers,
+      body: JSON.stringify({
+        title: '春季品牌定制视频', brand_name: '测试品牌', contact_name: '小林',
+        source: 'brand_direct', deliverable_type: 'custom_video', status: 'confirmed',
+        brief: '围绕主选题做一条定制视频', amount_cents: 125000,
+        delivery_due_date: '2026-01-01', next_action: '',
+      }),
+    });
+    expect(createDealResponse.status).toBe(201);
+    const deal = await createDealResponse.json() as { id: string; amount_cents: number; topics: unknown[] };
+    expect(deal.amount_cents).toBe(125000);
+    expect(deal.topics).toHaveLength(0);
+
+    const bindResponse = await app.request(`/api/deals/${deal.id}/topics`, {
+      method: 'PUT', headers,
+      body: JSON.stringify({ primary_topic_id: topic.id, related_topic_ids: [relatedTopic.id] }),
+    });
+    expect(bindResponse.status).toBe(200);
+    expect((await bindResponse.json() as { topics: Array<{ topic_id: string; relation_role: string }> }).topics).toEqual(expect.arrayContaining([
+      expect.objectContaining({ topic_id: topic.id, relation_role: 'primary' }),
+      expect.objectContaining({ topic_id: relatedTopic.id, relation_role: 'related' }),
+    ]));
+
+    const topicDealsResponse = await app.request(`/api/topics/${topic.id}/deals`, { headers });
+    expect(topicDealsResponse.status).toBe(200);
+    expect(await topicDealsResponse.json()).toEqual([expect.objectContaining({ id: deal.id, relation_role: 'primary' })]);
+
+    const statusResponse = await app.request(`/api/deals/${deal.id}`, {
+      method: 'PATCH', headers,
+      body: JSON.stringify({ status: 'producing' }),
+    });
+    expect(statusResponse.status).toBe(200);
+    const unchangedTopic = await app.request(`/api/topics/${topic.id}`, { headers });
+    expect((await unchangedTopic.json() as { status: string }).status).toBe('inbox');
+
+    const focusResponse = await app.request('/api/deals/focus', { headers });
+    expect(focusResponse.status).toBe(200);
+    expect((await focusResponse.json() as { due_items: Array<{ id: string }> }).due_items).toEqual([expect.objectContaining({ id: deal.id })]);
+
+    const activityResponse = await app.request(`/api/deals/${deal.id}/activities`, {
+      method: 'POST', headers,
+      body: JSON.stringify({ kind: 'note', content: '客户确认脚本方向，等待交付。' }),
+    });
+    expect(activityResponse.status).toBe(201);
+
+    sqlite.query(`INSERT INTO published_videos (id, title, published_at, updated_at) VALUES (?, ?, ?, ?)`)
+      .run('deal-published-video', '商单成片', '2026-01-02', '2026-01-02T00:00:00.000Z');
+    const linkResponse = await app.request(`/api/deals/${deal.id}/link-published`, {
+      method: 'POST', headers,
+      body: JSON.stringify({ published_video_id: 'deal-published-video' }),
+    });
+    expect(linkResponse.status).toBe(200);
+
+    await app.request(`/api/deals/${deal.id}`, {
+      method: 'PATCH', headers,
+      body: JSON.stringify({ status: 'delivered' }),
+    });
+    const unpaidFocusResponse = await app.request('/api/deals/focus', { headers });
+    expect((await unpaidFocusResponse.json() as { unpaid_items: Array<{ id: string }> }).unpaid_items).toEqual([expect.objectContaining({ id: deal.id })]);
+
+    const replaceResponse = await app.request(`/api/deals/${deal.id}/topics`, {
+      method: 'PUT', headers,
+      body: JSON.stringify({ primary_topic_id: relatedTopic.id, related_topic_ids: [topic.id] }),
+    });
+    expect(replaceResponse.status).toBe(200);
+    expect((await replaceResponse.json() as { topics: Array<{ topic_id: string; relation_role: string }> }).topics).toEqual(expect.arrayContaining([
+      expect.objectContaining({ topic_id: relatedTopic.id, relation_role: 'primary' }),
+      expect.objectContaining({ topic_id: topic.id, relation_role: 'related' }),
+    ]));
+
+    const unlinkResponse = await app.request(`/api/deals/${deal.id}/topics`, {
+      method: 'PUT', headers,
+      body: JSON.stringify({ primary_topic_id: null, related_topic_ids: [] }),
+    });
+    expect(unlinkResponse.status).toBe(200);
+    expect((await unlinkResponse.json() as { topics: unknown[] }).topics).toHaveLength(0);
+
+    const paidResponse = await app.request(`/api/deals/${deal.id}`, {
+      method: 'PATCH', headers,
+      body: JSON.stringify({ payment_status: 'paid', paid_at: '2026-01-03' }),
+    });
+    expect(paidResponse.status).toBe(200);
+    expect((await paidResponse.json() as { payment_status: string }).payment_status).toBe('paid');
   });
 
   it('fails explicitly when settings persistence has no KV binding', async () => {

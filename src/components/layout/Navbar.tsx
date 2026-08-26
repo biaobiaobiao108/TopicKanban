@@ -29,6 +29,7 @@ export const Navbar: React.FC<NavbarProps> = ({
     tags: '标签与创作赛道',
     people: '人物档案与关系库',
     published: '已发布视频复盘',
+    deals: '商单中心',
     database: '选题库',
     settings: '偏好与数据备份',
     'topic-detail': '选题生产工作台',

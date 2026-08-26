@@ -5,6 +5,7 @@ import {
   Users,
   Hash,
   Film,
+  Handshake,
   Database,
   Settings,
   Search,
@@ -12,7 +13,7 @@ import {
   LogOut
 } from 'lucide-react';
 
-export type NavView = 'today' | 'kanban' | 'people' | 'tags' | 'published' | 'database' | 'settings' | 'topic-detail';
+export type NavView = 'today' | 'kanban' | 'people' | 'tags' | 'published' | 'deals' | 'database' | 'settings' | 'topic-detail';
 
 interface SidebarProps {
   currentView: NavView;
@@ -37,6 +38,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
     { id: 'people' as NavView, label: '人物档案库', icon: Users, badge: null },
     { id: 'tags' as NavView, label: '标签与赛道', icon: Hash, badge: null },
     { id: 'published' as NavView, label: '已发布视频', icon: Film, badge: null },
+    { id: 'deals' as NavView, label: '商单中心', icon: Handshake, badge: null },
     { id: 'database' as NavView, label: '选题库', icon: Database, badge: null },
     { id: 'settings' as NavView, label: '偏好与数据', icon: Settings, badge: null },
   ];
