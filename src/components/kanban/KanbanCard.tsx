@@ -215,7 +215,7 @@ const KanbanCardComponent: React.FC<KanbanCardProps> = ({
           onOpenDetail(topic.id);
         }
       }}
-      className={`group relative bg-white dark:bg-stone-900 rounded-2xl border p-3.5 shadow-2xs transition-all duration-200 ease-editorial-out flex flex-col gap-2.5 select-none touch-manipulation focus:outline-none focus-visible:ring-2 focus-visible:ring-rose-500 ${
+      className={`group relative bg-white dark:bg-stone-900 rounded-2xl border p-3.5 shadow-2xs transition-all duration-200 ease-editorial-out flex flex-col gap-2.5 select-none touch-manipulation cv-card focus:outline-none focus-visible:ring-2 focus-visible:ring-rose-500 ${
         isDragging
           ? 'opacity-35 scale-[0.98] border-dashed border-rose-400 dark:border-rose-600 bg-rose-50/30 dark:bg-rose-950/20 shadow-none pointer-events-none'
           : sortableDisabled
@@ -339,7 +339,7 @@ const KanbanCardComponent: React.FC<KanbanCardProps> = ({
       </div>
 
       {/* Main Title */}
-      <h4 className="text-[15px] font-bold text-stone-900 dark:text-stone-100 leading-snug tracking-tight group-hover:text-rose-600 dark:group-hover:text-rose-400 transition-colors line-clamp-2">
+      <h4 className="text-[15px] font-bold text-stone-900 dark:text-stone-100 leading-snug tracking-tight group-hover:text-rose-600 dark:group-hover:text-rose-400 transition-colors line-clamp-2 text-pretty">
         {topic.title}
       </h4>
 

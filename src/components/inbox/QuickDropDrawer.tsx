@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { createPortal } from 'react-dom';
 import { QuickDropItem } from '../../types';
 import { fetchQuickDrops, deleteQuickDrop } from '../../lib/storage';
 import { sanitizeExternalHttpUrl } from '../../lib/urlSafety';
@@ -118,7 +119,7 @@ export const QuickDropDrawer: React.FC<QuickDropDrawerProps> = ({
 
   if (!isOpen) return null;
 
-  return (
+  const drawerContent = (
     <div className="fixed inset-0 z-50 overflow-hidden flex justify-end" role="presentation">
       {/* Backdrop */}
       <div
@@ -177,7 +178,7 @@ export const QuickDropDrawer: React.FC<QuickDropDrawerProps> = ({
         </div>
 
         {/* List Content */}
-        <div className="flex-1 overflow-y-auto p-4 space-y-3">
+        <div className="flex-1 overflow-y-auto overscroll-contain p-4 space-y-3">
           {drops.length === 0 ? (
             <div className="text-center py-16 px-4 space-y-3">
               <div className="w-12 h-12 rounded-2xl bg-stone-100 dark:bg-stone-800 text-stone-400 dark:text-stone-500 flex items-center justify-center mx-auto">
@@ -257,4 +258,10 @@ export const QuickDropDrawer: React.FC<QuickDropDrawerProps> = ({
       </div>
     </div>
   );
+
+  if (typeof document !== 'undefined') {
+    return createPortal(drawerContent, document.body);
+  }
+
+  return drawerContent;
 };

@@ -671,6 +671,8 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
             <form onSubmit={handleAddVoiceoverCue} className="flex items-center gap-2 pt-2">
               <input
                 type="text"
+                enterKeyHint="done"
+                autoComplete="off"
                 value={newCueInput}
                 onChange={(e) => setNewCueInput(e.target.value)}
                 placeholder="输入新气口标记，如：高潮配乐、叹气、深吸气"

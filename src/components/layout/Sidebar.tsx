@@ -42,7 +42,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
   ];
 
   return (
-    <aside className="sidebar-container hidden md:flex w-64 bg-white dark:bg-stone-900 border-r border-stone-200/70 dark:border-stone-800 flex-col h-screen shrink-0 select-none transition-colors">
+    <aside className="sidebar-container hidden md:flex w-64 bg-white dark:bg-stone-900 border-r border-stone-200/70 dark:border-stone-800 flex-col h-dvh shrink-0 select-none transition-colors">
       {/* Brand Header */}
       <div className="p-4 border-b border-stone-200/70 dark:border-stone-800">
         <div className="flex items-center gap-2.5">

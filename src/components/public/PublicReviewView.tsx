@@ -252,7 +252,7 @@ export const PublicReviewView: React.FC<PublicReviewViewProps> = ({ token: propT
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-stone-100 dark:bg-[#0c0a09] flex items-center justify-center p-4">
+      <div className="min-h-dvh bg-stone-100 dark:bg-[#0c0a09] flex items-center justify-center p-4">
         <div className="bg-white dark:bg-stone-900 p-8 rounded-2xl shadow-subtle border border-stone-200 dark:border-stone-800 text-center max-w-sm w-full space-y-4">
           <div className="w-10 h-10 border-3 border-rose-600 border-t-transparent rounded-full animate-spin mx-auto" />
           <p className="text-sm font-semibold text-stone-700 dark:text-stone-300">正在从边缘节点加载审稿文案…</p>
@@ -263,7 +263,7 @@ export const PublicReviewView: React.FC<PublicReviewViewProps> = ({ token: propT
 
   if (error || !snapshot) {
     return (
-      <div className="min-h-screen bg-stone-100 dark:bg-[#0c0a09] flex items-center justify-center p-4">
+      <div className="min-h-dvh bg-stone-100 dark:bg-[#0c0a09] flex items-center justify-center p-4">
         <div className="bg-white dark:bg-stone-900 p-8 rounded-2xl shadow-subtle border border-stone-200 dark:border-stone-800 text-center max-w-md w-full space-y-4">
           <div className="w-12 h-12 rounded-full bg-red-50 dark:bg-red-950/50 text-red-600 dark:text-red-400 flex items-center justify-center mx-auto">
             <AlertCircle className="w-6 h-6" />
@@ -286,7 +286,7 @@ export const PublicReviewView: React.FC<PublicReviewViewProps> = ({ token: propT
   }
 
   return (
-    <div className="min-h-screen bg-[#fcfbf9] dark:bg-[#0c0a09] text-stone-900 dark:text-stone-100 flex flex-col antialiased selection:bg-rose-100 dark:selection:bg-rose-950/60 selection:text-rose-900 dark:selection:text-rose-200 transition-colors">
+    <div className="min-h-dvh bg-[#fcfbf9] dark:bg-[#0c0a09] text-stone-900 dark:text-stone-100 flex flex-col antialiased selection:bg-rose-100 dark:selection:bg-rose-950/60 selection:text-rose-900 dark:selection:text-rose-200 transition-colors">
       {/* Top Floating Glass Header */}
       <header className="sticky top-0 z-30 bg-[#fcfbf9]/90 dark:bg-[#0c0a09]/90 backdrop-blur-md border-b border-stone-200/80 dark:border-stone-800/80 px-4 sm:px-8 py-3">
         <div className="max-w-5xl mx-auto flex items-center justify-between gap-4">

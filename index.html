@@ -6,14 +6,17 @@
     <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
     <meta name="color-scheme" content="light dark" />
+    <meta name="mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+    <meta name="theme-color" media="(prefers-color-scheme: light)" content="#fafaf9" />
+    <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#0c0a09" />
     <title>选题生产工作台 - B站叙事类视频创作看板</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
   </head>
-  <body class="bg-[#fafaf9] text-stone-900 antialiased selection:bg-rose-100 selection:text-rose-900 font-sans min-h-screen">
+  <body class="bg-[#fafaf9] text-stone-900 antialiased selection:bg-rose-100 selection:text-rose-900 font-sans min-h-dvh">
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
   </body>

@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef, useMemo, useCallback } from 'react';
+import { createPortal } from 'react-dom';
 import {
   Play,
   Pause,
@@ -510,9 +511,15 @@ function renderScriptTextWithCues(text: string, isDark: boolean): React.ReactNod
     return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
   };
 
-  return (
+  if (!isOpen) return null;
+
+  const teleprompterContent = (
     <div
       ref={containerRef}
+      role="dialog"
+      aria-modal="true"
+      aria-label="录音提词器"
+      tabIndex={-1}
       className={`teleprompter-modal-root fixed inset-0 z-50 flex flex-col select-none transition-colors duration-300 ${
         isDark ? 'dark is-dark bg-[#0c0a09] text-[#f5f5f4]' : 'is-light bg-[#fafaf9] text-stone-900'
       }`}
@@ -715,7 +722,7 @@ function renderScriptTextWithCues(text: string, isDark: boolean): React.ReactNod
         <div
           ref={scrollableRef}
           onScroll={handleManualScroll}
-          className={`w-full h-full overflow-y-auto px-6 sm:px-16 md:px-24 lg:px-36 py-12 scroll-auto ${
+          className={`w-full h-full overflow-y-auto overscroll-contain px-6 sm:px-16 md:px-24 lg:px-36 py-12 scroll-auto ${
             isMirror ? 'scale-x-[-1]' : ''
           }`}
           style={{ scrollbarWidth: 'none' }}
@@ -953,4 +960,10 @@ function renderScriptTextWithCues(text: string, isDark: boolean): React.ReactNod
       </footer>
     </div>
   );
+
+  if (typeof document !== 'undefined') {
+    return createPortal(teleprompterContent, document.body);
+  }
+
+  return teleprompterContent;
 };

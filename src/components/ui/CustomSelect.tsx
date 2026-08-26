@@ -246,6 +246,10 @@ export const CustomSelect: React.FC<CustomSelectProps> = ({
                 ref={searchRef}
                 id={searchboxId}
                 type="search"
+                enterKeyHint="search"
+                autoComplete="off"
+                autoCorrect="off"
+                spellCheck={false}
                 role="searchbox"
                 aria-controls={listboxId}
                 placeholder={searchPlaceholder}
@@ -257,7 +261,7 @@ export const CustomSelect: React.FC<CustomSelectProps> = ({
             </div>
           )}
 
-          <div id={listboxId} role="listbox" aria-label={ariaLabel || selectedOption?.label || placeholder} className="max-h-60 overflow-y-auto p-1.5 space-y-0.5">
+          <div id={listboxId} role="listbox" aria-label={ariaLabel || selectedOption?.label || placeholder} className="max-h-60 overflow-y-auto overscroll-contain p-1.5 space-y-0.5">
             {options.length === 0 ? emptyState : options.map((option, index) => {
               const isSelected = option.value === value;
               const isFocused = focusedIndex === index;

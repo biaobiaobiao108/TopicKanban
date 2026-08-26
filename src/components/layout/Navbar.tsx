@@ -61,7 +61,11 @@ export const Navbar: React.FC<NavbarProps> = ({
         <div className="relative">
           <Search className="w-3.5 h-3.5 text-stone-400 dark:text-stone-500 absolute left-2.5 sm:left-3 top-1/2 -translate-y-1/2" />
           <input
-            type="text"
+            type="search"
+            enterKeyHint="search"
+            autoComplete="off"
+            autoCorrect="off"
+            spellCheck={false}
             placeholder="搜索选题/人物..."
             value={searchTerm}
             onChange={(e) => onSearchChange(e.target.value)}

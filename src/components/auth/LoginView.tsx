@@ -33,7 +33,7 @@ export const LoginView: React.FC<LoginViewProps> = ({ onLoginSuccess }) => {
   };
 
   return (
-    <div className="min-h-screen w-screen bg-stone-50/50 dark:bg-stone-950 flex items-center justify-center p-4 sm:p-6 font-sans">
+    <div className="min-h-dvh w-screen bg-stone-50/50 dark:bg-stone-950 flex items-center justify-center p-4 sm:p-6 font-sans">
       <div className="w-full max-w-md bg-white dark:bg-stone-900 rounded-3xl border border-stone-200/70 dark:border-stone-800 shadow-modal p-8 sm:p-10 space-y-6 animate-in fade-in zoom-in-95 duration-200">
         {/* Brand Header */}
         <div className="text-center space-y-2.5">

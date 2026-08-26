@@ -75,13 +75,13 @@ export const TodayView: React.FC<TodayViewProps> = ({
   const visibleRecentUpdates = showAllActivity ? recentUpdates : recentUpdates.slice(0, 3);
 
   return (
-    <div className="flex-1 w-full h-full overflow-y-auto pb-20 md:pb-8">
+    <div className="flex-1 w-full h-full overflow-y-auto overscroll-contain pb-20 md:pb-8">
       <div className="max-w-7xl mx-auto px-4 sm:px-8 py-5 sm:py-8 space-y-6 sm:space-y-8">
         {/* Top Header */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           <div>
             <div className="flex items-center gap-2.5">
-              <h2 className="text-xl sm:text-2xl font-bold text-stone-900 dark:text-stone-100 tracking-tight">今日生产聚焦</h2>
+              <h2 className="text-xl sm:text-2xl font-bold text-stone-900 dark:text-stone-100 tracking-tight text-balance">今日生产聚焦</h2>
               <span className="text-xs bg-rose-500/10 text-rose-700 dark:text-rose-300 font-semibold px-2.5 py-0.5 rounded-full select-none">
                 专注当下
               </span>
@@ -130,7 +130,7 @@ export const TodayView: React.FC<TodayViewProps> = ({
               <div>
                 <h3
                   onClick={() => onOpenDetail(focusTopic.id)}
-                  className="text-xl sm:text-2xl lg:text-3xl font-bold text-stone-900 dark:text-stone-100 hover:text-rose-600 dark:hover:text-rose-400 transition-colors cursor-pointer leading-tight"
+                  className="text-xl sm:text-2xl lg:text-3xl font-bold text-stone-900 dark:text-stone-100 hover:text-rose-600 dark:hover:text-rose-400 transition-colors cursor-pointer leading-tight text-pretty"
                 >
                   {focusTopic.title}
                 </h3>

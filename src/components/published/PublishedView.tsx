@@ -705,6 +705,8 @@ export const PublishedView: React.FC<PublishedViewProps> = ({
                 <label className="block text-xs font-semibold text-stone-700 dark:text-stone-300 mb-1">播放量</label>
                 <input
                   type="number"
+                  inputMode="numeric"
+                  min="0"
                   value={views}
                   onChange={(e) => setViews(Number(e.target.value))}
                   className="w-full px-3 py-1.5 bg-stone-50 dark:bg-stone-800 border border-stone-300 dark:border-stone-700 rounded-lg text-sm font-mono text-stone-900 dark:text-stone-100 focus:bg-white dark:focus:bg-stone-800 focus:outline-none"
@@ -714,6 +716,8 @@ export const PublishedView: React.FC<PublishedViewProps> = ({
                 <label className="block text-xs font-semibold text-stone-700 dark:text-stone-300 mb-1">点赞数</label>
                 <input
                   type="number"
+                  inputMode="numeric"
+                  min="0"
                   value={likes}
                   onChange={(e) => setLikes(Number(e.target.value))}
                   className="w-full px-3 py-1.5 bg-stone-50 dark:bg-stone-800 border border-stone-300 dark:border-stone-700 rounded-lg text-sm font-mono text-stone-900 dark:text-stone-100 focus:bg-white dark:focus:bg-stone-800 focus:outline-none"
@@ -723,6 +727,8 @@ export const PublishedView: React.FC<PublishedViewProps> = ({
                 <label className="block text-xs font-semibold text-stone-700 dark:text-stone-300 mb-1">投币数</label>
                 <input
                   type="number"
+                  inputMode="numeric"
+                  min="0"
                   value={coins}
                   onChange={(e) => setCoins(Number(e.target.value))}
                   className="w-full px-3 py-1.5 bg-stone-50 dark:bg-stone-800 border border-stone-300 dark:border-stone-700 rounded-lg text-sm font-mono text-stone-900 dark:text-stone-100 focus:bg-white dark:focus:bg-stone-800 focus:outline-none"
@@ -732,6 +738,8 @@ export const PublishedView: React.FC<PublishedViewProps> = ({
                 <label className="block text-xs font-semibold text-stone-700 dark:text-stone-300 mb-1">收藏数</label>
                 <input
                   type="number"
+                  inputMode="numeric"
+                  min="0"
                   value={favorites}
                   onChange={(e) => setFavorites(Number(e.target.value))}
                   className="w-full px-3 py-1.5 bg-stone-50 dark:bg-stone-800 border border-stone-300 dark:border-stone-700 rounded-lg text-sm font-mono text-stone-900 dark:text-stone-100 focus:bg-white dark:focus:bg-stone-800 focus:outline-none"
@@ -741,6 +749,8 @@ export const PublishedView: React.FC<PublishedViewProps> = ({
                 <label className="block text-xs font-semibold text-stone-700 dark:text-stone-300 mb-1">评论数</label>
                 <input
                   type="number"
+                  inputMode="numeric"
+                  min="0"
                   value={comments}
                   onChange={(e) => setComments(Number(e.target.value))}
                   className="w-full px-3 py-1.5 bg-stone-50 dark:bg-stone-800 border border-stone-300 dark:border-stone-700 rounded-lg text-sm font-mono text-stone-900 dark:text-stone-100 focus:bg-white dark:focus:bg-stone-800 focus:outline-none"

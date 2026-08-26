@@ -99,7 +99,7 @@ export const Modal: React.FC<ModalProps> = ({
         aria-modal="true"
         aria-labelledby={titleId}
         tabIndex={-1}
-        className={`relative w-full ${maxWidthClasses[maxWidth]} bg-white dark:bg-stone-900 rounded-2xl shadow-modal border border-stone-200/80 dark:border-stone-800 overflow-hidden flex flex-col max-h-[90vh] z-10 animate-in fade-in zoom-in-95 duration-200 ease-editorial-out transition-colors`}
+        className={`relative w-full ${maxWidthClasses[maxWidth]} bg-white dark:bg-stone-900 rounded-2xl shadow-modal border border-stone-200/80 dark:border-stone-800 overflow-hidden flex flex-col max-h-[90dvh] z-10 animate-in fade-in zoom-in-95 duration-200 ease-editorial-out transition-colors`}
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
@@ -116,7 +116,7 @@ export const Modal: React.FC<ModalProps> = ({
         </div>
 
         {/* Content */}
-        <div className="p-6 overflow-y-auto">{children}</div>
+        <div className="p-6 overflow-y-auto overscroll-contain">{children}</div>
       </div>
     </div>
   );

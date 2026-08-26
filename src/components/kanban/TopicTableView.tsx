@@ -529,7 +529,7 @@ export const TopicTableView: React.FC<TopicTableViewProps> = ({
       )}
 
       {/* Mobile Card List */}
-      <div className="flex-1 min-h-0 overflow-y-auto md:hidden">
+      <div className="flex-1 min-h-0 overflow-y-auto overscroll-contain md:hidden">
         <div className="space-y-3 p-3 pb-[calc(5rem+env(safe-area-inset-bottom))]">
           {sortedTopics.map((topic) => {
             const totalScore =
@@ -544,7 +544,7 @@ export const TopicTableView: React.FC<TopicTableViewProps> = ({
             const isArchived = topic.status === 'published' || topic.status === 'icebox';
 
             return (
-              <article key={topic.id} className="rounded-2xl border border-stone-200 dark:border-stone-800 bg-white dark:bg-stone-900 p-4 shadow-subtle">
+              <article key={topic.id} className="rounded-2xl border border-stone-200 dark:border-stone-800 bg-white dark:bg-stone-900 p-4 shadow-subtle cv-card">
                 <div className="flex items-start justify-between gap-3">
                   <div className="flex items-start gap-2.5 min-w-0 flex-1">
                     <input
@@ -701,7 +701,7 @@ export const TopicTableView: React.FC<TopicTableViewProps> = ({
       </div>
 
       {/* Table Scroll Container */}
-      <div className="topic-table-container hidden flex-1 overflow-x-auto overflow-y-auto min-h-0 md:block">
+      <div className="topic-table-container hidden flex-1 overflow-x-auto overflow-y-auto overscroll-contain min-h-0 md:block">
         <table className="w-full text-left border-collapse text-xs">
           {/* Table Header */}
           <thead className="table-header-row bg-stone-50/90 dark:bg-stone-900/95 backdrop-blur-xs sticky top-0 z-10 border-b border-stone-200 dark:border-stone-800 text-stone-600 dark:text-stone-300 font-semibold select-none">
@@ -814,7 +814,7 @@ export const TopicTableView: React.FC<TopicTableViewProps> = ({
                 <tr
                   key={topic.id}
                   onClick={() => archiveScope !== 'trash' && onOpenDetail(topic.id)}
-                  className={`transition-all duration-150 ease-out group ${
+                  className={`transition-all duration-150 ease-out group cv-auto ${
                     archiveScope === 'trash' ? '' : 'cursor-pointer'
                   } ${
                     selectedIds.has(topic.id)

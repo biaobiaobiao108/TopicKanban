@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react';
+import { createPortal } from 'react-dom';
 import { useQuery } from '@tanstack/react-query';
 import {
   Search,
@@ -710,14 +711,17 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
 
   if (!isOpen) return null;
 
-  return (
-    <div className="fixed inset-0 z-[100] flex items-start justify-center pt-12 sm:pt-16 p-4 sm:p-6">
+  const paletteContent = (
+    <div className="fixed inset-0 z-[100] flex items-start justify-center pt-12 sm:pt-16 p-4 sm:p-6" role="presentation">
       {/* Backdrop */}
-      <div className="fixed inset-0 bg-stone-900/40 backdrop-blur-xs animate-in fade-in duration-200" onClick={onClose} />
+      <div className="fixed inset-0 bg-stone-900/40 backdrop-blur-xs animate-in fade-in duration-200" onClick={onClose} aria-hidden="true" />
 
       {/* Palette Modal */}
       <div
-        className="relative w-full max-w-2xl bg-white dark:bg-stone-900 rounded-2xl shadow-modal border border-stone-200/70 dark:border-stone-800 overflow-hidden flex flex-col z-10 animate-in fade-in slide-in-from-top-2 zoom-in-95 duration-200 ease-editorial-out transition-colors max-h-[85vh]"
+        role="dialog"
+        aria-modal="true"
+        aria-label="全局指令搜索面板"
+        className="relative w-full max-w-2xl bg-white dark:bg-stone-900 rounded-2xl shadow-modal border border-stone-200/70 dark:border-stone-800 overflow-hidden flex flex-col z-10 animate-in fade-in slide-in-from-top-2 zoom-in-95 duration-200 ease-editorial-out transition-colors max-h-[85dvh]"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Search Input Header */}
@@ -725,7 +729,11 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
           <Search className="w-5 h-5 text-stone-400 dark:text-stone-500 mr-3 shrink-0" />
           <input
             ref={inputRef}
-            type="text"
+            type="search"
+            enterKeyHint="search"
+            autoComplete="off"
+            autoCorrect="off"
+            spellCheck={false}
             placeholder="输入指令、搜索选题、#赛道、@人物、>动作、?帮助..."
             value={query}
             onChange={(e) => setQuery(e.target.value)}
@@ -803,7 +811,7 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
         </div>
 
         {/* Results List */}
-        <div className="max-h-[480px] overflow-y-auto p-2 space-y-1 divide-y divide-stone-50 dark:divide-stone-800/60">
+        <div className="max-h-[480px] overflow-y-auto overscroll-contain p-2 space-y-1 divide-y divide-stone-50 dark:divide-stone-800/60">
           {items.map((item, index) => {
             const isSelected = index === selectedIndex;
             const Icon = item.icon;
@@ -901,4 +909,10 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
       </div>
     </div>
   );
+
+  if (typeof document !== 'undefined') {
+    return createPortal(paletteContent, document.body);
+  }
+
+  return paletteContent;
 };

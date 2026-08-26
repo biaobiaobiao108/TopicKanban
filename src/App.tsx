@@ -82,7 +82,7 @@ export function App() {
     const shareMatch = matchPath('/share/:token', location.pathname);
     const token = shareMatch?.params.token || location.pathname.replace(/^\/share\/?/, '') || '';
     return (
-      <Suspense fallback={<div className="min-h-screen bg-stone-100 flex items-center justify-center text-sm text-stone-500">正在加载审稿文案...</div>}>
+      <Suspense fallback={<div className="min-h-dvh bg-stone-100 flex items-center justify-center text-sm text-stone-500">正在加载审稿文案...</div>}>
         <PublicReviewView token={token} />
       </Suspense>
     );
@@ -225,21 +225,31 @@ function WorkspaceApp({ isAuth, setIsAuth }: WorkspaceAppProps) {
     setIsAuth(false);
   };
 
+  const safeNavigate = useCallback((to: string, options?: { state?: any }) => {
+    if (typeof document !== 'undefined' && 'startViewTransition' in document) {
+      (document as unknown as { startViewTransition: (cb: () => void) => void }).startViewTransition(() => {
+        navigate(to, options);
+      });
+    } else {
+      navigate(to, options);
+    }
+  }, [navigate]);
+
   const navigateToView = (view: NavView) => {
     if (view === 'topic-detail') return;
-    navigate(VIEW_PATHS[view]);
+    safeNavigate(VIEW_PATHS[view]);
   };
 
   // Handlers for Topics
   const handleOpenDetail = (topicId: string) => {
-    navigate(`/topics/${encodeURIComponent(topicId)}`, {
+    safeNavigate(`/topics/${encodeURIComponent(topicId)}`, {
       state: { from: currentView === 'topic-detail' ? '/kanban' : location.pathname },
     });
   };
 
   const handleBackFromDetail = () => {
     const from = (location.state as { from?: unknown } | null)?.from;
-    navigate(typeof from === 'string' && from.startsWith('/') ? from : '/kanban');
+    safeNavigate(typeof from === 'string' && from.startsWith('/') ? from : '/kanban');
   };
 
   const handleDraftWordCountChange = (topicId: string, wordCount: number) => {
@@ -548,7 +558,7 @@ function WorkspaceApp({ isAuth, setIsAuth }: WorkspaceAppProps) {
   const activeTopic = topics.find((t) => t.id === activeTopicId);
 
   return (
-    <div className="flex h-screen w-screen bg-[#fafaf9] dark:bg-[#0c0a09] text-stone-900 dark:text-stone-100 overflow-hidden font-sans transition-colors">
+    <div className="flex h-dvh w-screen bg-[#fafaf9] dark:bg-[#0c0a09] text-stone-900 dark:text-stone-100 overflow-hidden font-sans transition-colors">
       {/* Desktop Sidebar (Hidden on mobile) */}
       <Sidebar
         currentView={currentView}
@@ -560,7 +570,7 @@ function WorkspaceApp({ isAuth, setIsAuth }: WorkspaceAppProps) {
       />
 
       {/* Main Content Area */}
-      <div className="flex-1 flex flex-col h-screen overflow-hidden min-w-0">
+      <div className="flex-1 flex flex-col h-dvh overflow-hidden min-w-0">
         {/* Top Navbar */}
         <Navbar
           currentView={currentView}

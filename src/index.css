@@ -334,16 +334,47 @@ html.theme-kyoto-zen .script-citation::after {
   opacity: 1 !important;
 }
 
-/* Prefers-reduced-motion Accessibility Fallback */
+/* Prefers-reduced-motion Accessibility Standard */
 @media (prefers-reduced-motion: reduce) {
+  html:focus-within {
+    scroll-behavior: auto;
+  }
   *,
   ::before,
   ::after {
-    animation-duration: 0.01ms !important;
+    animation-delay: -1ms !important;
+    animation-duration: 1ms !important;
     animation-iteration-count: 1 !important;
-    transition-duration: 0.01ms !important;
+    background-attachment: initial !important;
     scroll-behavior: auto !important;
+    transition-duration: 0s !important;
+    transition-delay: 0s !important;
   }
+}
+
+/* Modern Content Visibility & Rendering Performance */
+.cv-auto {
+  content-visibility: auto;
+  contain-intrinsic-size: auto 72px;
+}
+
+.cv-card {
+  content-visibility: auto;
+  contain-intrinsic-size: auto 130px;
+}
+
+/* Modern Typography Wrapping */
+.text-balance {
+  text-wrap: balance;
+}
+
+.text-pretty {
+  text-wrap: pretty;
+}
+
+/* Local Overscroll Containment */
+.overscroll-contain {
+  overscroll-behavior: contain;
 }
 
 @layer base {
