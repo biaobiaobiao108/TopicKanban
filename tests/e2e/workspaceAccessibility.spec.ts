@@ -77,6 +77,30 @@ test('dark theme keeps kanban selects and database pagination readable', async (
   await page.keyboard.press('Escape');
 
   await page.setViewportSize({ width: 390, height: 844 });
+  const statusTrigger = page.getByRole('button', { name: '流转' }).first();
+  if (await statusTrigger.count()) {
+    await statusTrigger.click();
+    const statusMenuHeading = page.getByText('活跃生产阶段').last();
+    await expect(statusMenuHeading).toBeVisible();
+    const menuBounds = await statusMenuHeading.evaluate((element) => {
+      const rect = element.parentElement?.getBoundingClientRect();
+      return rect ? {
+        top: rect.top,
+        right: rect.right,
+        bottom: rect.bottom,
+        left: rect.left,
+        position: getComputedStyle(element.parentElement as HTMLElement).position,
+      } : null;
+    });
+    expect(menuBounds).not.toBeNull();
+    expect(menuBounds?.left).toBeGreaterThanOrEqual(0);
+    expect(menuBounds?.right).toBeLessThanOrEqual(390);
+    expect(menuBounds?.top).toBeGreaterThanOrEqual(0);
+    expect(menuBounds?.bottom).toBeLessThanOrEqual(844);
+    expect(menuBounds?.position).toBe('fixed');
+    await page.keyboard.press('Escape');
+  }
+
   await page.goto('/database');
   await expect(page.getByRole('heading', { name: '选题库' })).toBeVisible();
   const mobilePaginationButton = page.getByRole('button', { name: '上一页' }).last();
