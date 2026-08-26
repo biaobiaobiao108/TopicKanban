@@ -43,7 +43,6 @@ import { QuickDropDrawer } from './components/inbox/QuickDropDrawer';
 import { fetchQuickDrops } from './lib/storage';
 import { applyTheme } from './lib/theme';
 import { matchPath, useLocation, useNavigate } from 'react-router-dom';
-import { useQueryClient } from '@tanstack/react-query';
 import { useWorkspace } from './hooks/useWorkspace';
 import { lazyWithReload } from './lib/lazyWithReload';
 import { useToast } from './components/ui/Toast';
@@ -99,7 +98,6 @@ interface WorkspaceAppProps {
 function WorkspaceApp({ isAuth, setIsAuth }: WorkspaceAppProps) {
   const location = useLocation();
   const navigate = useNavigate();
-  const queryClient = useQueryClient();
   const currentView = getViewFromPath(location.pathname);
   const { showToast } = useToast();
   const topicMatch = matchPath('/topics/:topicId', location.pathname);
@@ -124,6 +122,7 @@ function WorkspaceApp({ isAuth, setIsAuth }: WorkspaceAppProps) {
     setPublishedList,
     setTags,
     setSettings: setAppSettings,
+    refreshTopics,
   } = useWorkspace(isAuth, currentView);
 
   // Apply visual theme
@@ -291,18 +290,20 @@ function WorkspaceApp({ isAuth, setIsAuth }: WorkspaceAppProps) {
       tags: resolvedTags,
     });
     setTopics((prev) => [newTopic, ...prev]);
-    await queryClient.invalidateQueries({ queryKey: ['kanban-column-page'] });
+    await refreshTopics();
   };
 
   const handleUpdateTopic = async (updates: Partial<Topic>) => {
     if (!activeTopicId) return;
     const updated = await saveTopic({ id: activeTopicId, ...updates });
     setTopics((prev) => prev.map((topic) => (topic.id === updated.id ? { ...topic, ...updated } : topic)));
+    await refreshTopics();
   };
 
   const handleUpdateTopicById = async (topicId: string, updates: Partial<Topic>) => {
     const updated = await saveTopic({ id: topicId, ...updates });
     setTopics((prev) => prev.map((topic) => (topic.id === updated.id ? { ...topic, ...updated } : topic)));
+    await refreshTopics();
   };
 
   const handleDeleteTopic = async (topicId: string) => {
@@ -315,6 +316,7 @@ function WorkspaceApp({ isAuth, setIsAuth }: WorkspaceAppProps) {
       }
       return prev.filter((t) => t.id !== topicId);
     });
+    await refreshTopics();
     if (activeTopicId === topicId) {
       navigate('/kanban');
     }
@@ -327,6 +329,7 @@ function WorkspaceApp({ isAuth, setIsAuth }: WorkspaceAppProps) {
           const restored = await restoreTopic(topicId);
           setTrashedTopics((prev) => prev.filter((topic) => topic.id !== topicId));
           setTopics((prev) => [restored, ...prev]);
+          await refreshTopics();
         },
       });
     }
@@ -336,22 +339,26 @@ function WorkspaceApp({ isAuth, setIsAuth }: WorkspaceAppProps) {
     const restored = await restoreTopic(topicId);
     setTrashedTopics((prev) => prev.filter((topic) => topic.id !== topicId));
     setTopics((prev) => [restored, ...prev]);
+    await refreshTopics();
   };
 
   const handlePermanentlyDeleteTopic = async (topicId: string) => {
     await permanentlyDeleteTopic(topicId);
     setTrashedTopics((prev) => prev.filter((topic) => topic.id !== topicId));
+    await refreshTopics();
   };
 
   const handlePermanentlyDeleteTopicsBatch = async (ids: string[]) => {
     await permanentlyDeleteTopicsBatch(ids);
     const idSet = new Set(ids);
     setTrashedTopics((prev) => prev.filter((topic) => !idSet.has(topic.id)));
+    await refreshTopics();
   };
 
   const handleEmptyTrash = async () => {
     await emptyTrash();
     setTrashedTopics([]);
+    await refreshTopics();
   };
 
   const handleTogglePin = async (topicId: string) => {
@@ -364,6 +371,7 @@ function WorkspaceApp({ isAuth, setIsAuth }: WorkspaceAppProps) {
     setTopics((prev) => prev.map((topicItem) => (
       topicItem.id === updated.id ? { ...topicItem, ...updated } : topicItem
     )));
+    await refreshTopics();
   };
 
   const handleUpdateTopicStatus = async (
@@ -377,6 +385,7 @@ function WorkspaceApp({ isAuth, setIsAuth }: WorkspaceAppProps) {
     );
     try {
       await updateTopicStatus(topicId, status, sortOrder);
+      await refreshTopics();
     } catch (err) {
       setTopics(previousTopics);
       throw err;
@@ -395,6 +404,7 @@ function WorkspaceApp({ isAuth, setIsAuth }: WorkspaceAppProps) {
     }));
     try {
       await reorderTopics(updates);
+      await refreshTopics();
     } catch (err) {
       setTopics(previousTopics);
       throw err;

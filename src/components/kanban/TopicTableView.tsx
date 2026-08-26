@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useMemo } from 'react';
-import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { useQuery } from '@tanstack/react-query';
 import { Topic, TopicStatus, Priority } from '../../types';
 import { StatusBadge, PriorityBadge } from '../ui/Badge';
 import { COLUMNS } from './columns';
@@ -105,7 +105,6 @@ export const TopicTableView: React.FC<TopicTableViewProps> = ({
   readingSpeed = 280,
   searchTerm = '',
 }) => {
-  const queryClient = useQueryClient();
   const initialPreferences = useMemo(readTablePreferences, []);
   const [archiveScope, setArchiveScope] = useState<ArchiveScope>(initialPreferences.archiveScope);
   const [sortCol, setSortCol] = useState<SortCol>(initialPreferences.sortCol);
@@ -160,38 +159,25 @@ export const TopicTableView: React.FC<TopicTableViewProps> = ({
   }, [pageQuery.data]);
   const trashCount = pageQuery.data?.scope_counts?.trash || 0;
 
-  const refreshTopicPage = async () => {
-    await queryClient.invalidateQueries({ queryKey: ['topics-page'], refetchType: 'active' });
-  };
-
   const updateTopicStatus = async (topicId: string, status: TopicStatus) => {
     await onUpdateTopicStatus(topicId, status);
-    await refreshTopicPage();
   };
 
   const restoreTopic = async (topicId: string) => {
     await onRestoreTopic(topicId);
-    await refreshTopicPage();
   };
 
   const permanentlyDeleteTopic = async (topicId: string) => {
     await onPermanentlyDeleteTopic(topicId);
-    await refreshTopicPage();
   };
 
   const togglePin = async (topicId: string) => {
     await onTogglePin(topicId);
-    await refreshTopicPage();
   };
 
   const deleteTopic = async (topicId: string) => {
     await onDeleteTopic(topicId);
-    await refreshTopicPage();
   };
-
-  useEffect(() => {
-    void queryClient.invalidateQueries({ queryKey: ['topics-page'], refetchType: 'active' });
-  }, [topics, trashedTopics, queryClient]);
 
   const handleHeaderClick = (col: SortCol) => {
     if (sortCol === col) {
@@ -210,7 +196,6 @@ export const TopicTableView: React.FC<TopicTableViewProps> = ({
         next_action_updated_at: new Date().toISOString(),
         next_action_deferred_until: null,
       });
-      await refreshTopicPage();
       setEditingActionId(null);
       showToast({ message: '下一步行动已更新' });
     } catch (error) {
@@ -272,7 +257,6 @@ export const TopicTableView: React.FC<TopicTableViewProps> = ({
       const ids = [...selectedIds];
       if (onPermanentlyDeleteTopicsBatch) {
         await onPermanentlyDeleteTopicsBatch(ids);
-        await refreshTopicPage();
       } else {
         for (const id of ids) {
           await permanentlyDeleteTopic(id);
@@ -293,7 +277,6 @@ export const TopicTableView: React.FC<TopicTableViewProps> = ({
     try {
       if (onEmptyTrash) {
         await onEmptyTrash();
-        await refreshTopicPage();
       } else {
         const ids = trashedTopics.map((t) => t.id);
         for (const id of ids) {

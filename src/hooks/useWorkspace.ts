@@ -10,6 +10,7 @@ import type {
   Topic,
 } from '../types';
 import { fetchBootstrap, fetchPeople, fetchRelationships, fetchTags, fetchTagsPage, fetchPublishedVideos, fetchTrashedTopics, fetchTodayFocus, fetchSettings, invalidateBootstrap } from '../lib/storage';
+import { refreshTopicData } from '../lib/topicQueryCache';
 
 export function useWorkspace(enabled: boolean, view: string = 'today') {
   const queryClient = useQueryClient();
@@ -18,7 +19,9 @@ export function useWorkspace(enabled: boolean, view: string = 'today') {
     queryFn: () => fetchBootstrap('core'),
     enabled: enabled && !['today', 'people', 'tags', 'kanban', 'published', 'database', 'settings'].includes(view),
   });
-  const todayQuery = useQuery({ queryKey: ['today-focus'], queryFn: fetchTodayFocus, enabled: enabled && view === 'today' });
+  // Keep this small summary query mounted across routes so the navigation
+  // count never depends on whichever view happened to load last.
+  const todayQuery = useQuery({ queryKey: ['today-focus'], queryFn: fetchTodayFocus, enabled });
   const settingsQuery = useQuery({ queryKey: ['settings'], queryFn: fetchSettings, enabled });
   const peopleQuery = useQuery({ queryKey: ['people'], queryFn: fetchPeople, enabled: enabled && ['kanban', 'topic-detail'].includes(view) });
   const relationshipsQuery = useQuery({ queryKey: ['relationships'], queryFn: fetchRelationships, enabled: enabled && ['people', 'topic-detail'].includes(view) });
@@ -91,8 +94,7 @@ export function useWorkspace(enabled: boolean, view: string = 'today') {
   }, [queryClient, updateWorkspace]);
   const reload = useCallback(async () => {
     invalidateBootstrap();
-    const requests: Array<Promise<unknown>> = [settingsQuery.refetch()];
-    if (view === 'today') requests.push(todayQuery.refetch());
+    const requests: Array<Promise<unknown>> = [settingsQuery.refetch(), todayQuery.refetch()];
     if (!['today', 'people', 'tags', 'kanban', 'published', 'database', 'settings'].includes(view)) requests.push(workspaceQuery.refetch());
     if (view === 'database') requests.push(trashQuery.refetch());
     if (['kanban', 'topic-detail'].includes(view)) requests.push(peopleQuery.refetch());
@@ -102,9 +104,11 @@ export function useWorkspace(enabled: boolean, view: string = 'today') {
     await Promise.all(requests);
   }, [view, workspaceQuery.refetch, todayQuery.refetch, settingsQuery.refetch, trashQuery.refetch, peopleQuery.refetch, relationshipsQuery.refetch, tagsQuery.refetch, tagOptionsQuery.refetch]);
 
+  const refreshTopics = useCallback(() => refreshTopicData(queryClient), [queryClient]);
+
   const errorValue = workspaceQuery.error || todayQuery.error || settingsQuery.error || trashQuery.error || peopleQuery.error || relationshipsQuery.error || tagsQuery.error || tagOptionsQuery.error || publishedQuery.error;
   return {
-    topics: todayQuery.data?.topics || workspace?.topics || [],
+    topics: view === 'today' ? (todayQuery.data?.topics || workspace?.topics || []) : (workspace?.topics || []),
     topicCount: todayQuery.data?.total_active ?? workspace?.topics.length ?? 0,
     trashedTopics: trashQuery.data || [],
     people: peopleQuery.data || workspace?.people || [],
@@ -112,9 +116,18 @@ export function useWorkspace(enabled: boolean, view: string = 'today') {
     publishedList: publishedQuery.data || workspace?.published || [],
     tags: tagsQuery.data || tagOptionsQuery.data || workspace?.tags || [],
     settings: settingsQuery.data || workspace?.settings || { reading_speed: 280, theme: 'light' },
-    isLoading: workspaceQuery.isLoading || todayQuery.isLoading || settingsQuery.isLoading || trashQuery.isLoading || peopleQuery.isLoading || relationshipsQuery.isLoading || tagsQuery.isLoading || tagOptionsQuery.isLoading || publishedQuery.isLoading,
+    isLoading: (view === 'today' && todayQuery.isLoading)
+      || workspaceQuery.isLoading
+      || settingsQuery.isLoading
+      || trashQuery.isLoading
+      || peopleQuery.isLoading
+      || relationshipsQuery.isLoading
+      || tagsQuery.isLoading
+      || tagOptionsQuery.isLoading
+      || publishedQuery.isLoading,
     error: errorValue instanceof Error ? errorValue.message : errorValue ? '工作台数据加载失败' : null,
     reload,
+    refreshTopics,
     clear: () => queryClient.clear(),
     setTopics,
     setTrashedTopics,

@@ -492,7 +492,6 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
 
     try {
       await onReorderTopics(updates);
-      await queryClient.invalidateQueries({ queryKey: ['kanban-column-page'] });
     } catch {
       restoreSnapshot();
     }
@@ -542,7 +541,6 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
 
     try {
       await onReorderTopics(updates);
-      await queryClient.invalidateQueries({ queryKey: ['kanban-column-page'] });
     } catch {
       setColumns(snapshot.columns);
       setTopicsMap(snapshot.topics);
@@ -596,7 +594,7 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
         total: Math.max(0, old.total - (old.items.some((t) => t.id === topicId) ? 1 : 0)),
       } : old
     );
-    void Promise.resolve(onDeleteTopic(topicId)).then(() => queryClient.invalidateQueries({ queryKey: ['kanban-column-page'] }));
+    void Promise.resolve(onDeleteTopic(topicId));
   };
 
   const handleColumnStatusUpdate = (topicId: string, status: TopicStatus) => {
@@ -614,7 +612,7 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
       return next;
     });
     optimisticUpdateQueryCache([{ id: topicId, status, sort_order: 1 }]);
-    void onUpdateTopicStatus(topicId, status).then(() => queryClient.invalidateQueries({ queryKey: ['kanban-column-page'] }));
+    void onUpdateTopicStatus(topicId, status);
   };
 
   return (
