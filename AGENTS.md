@@ -147,9 +147,26 @@ bun run test:e2e
 其中 `test:e2e` 已通过 `bun run --bun playwright test` 强制 Playwright 在 Bun 运行时下执行。
 
 * **本地开发**：`bun run dev`（启动 Vite 前端热重载与本地 Bun API）
-* **运行全量自动化测试**：`bun run test:run`（Bun Test，修改后必跑，当前共 54 项测试）
+* **运行全量自动化测试**：`bun run test:run`（Bun Test，修改后必跑，当前共 71 项测试）
 * **类型检查与生产构建**：`bun run build`（包含前端 SPA 构建与 Bun 服务端 `build:server`）
 * **本地单机生产运行**：`bun run start`
 * **Podman / Docker 容器构建与编排**：
   * 构建本地镜像：`podman build -t topic-kanban:latest .`
   * 启动容器服务：`podman compose up -d` 或 `docker compose up -d`
+
+---
+
+## 🌐 六、GitHub Pages 静态展示落地页规范 (Showcase Page Strategy)
+
+本项目在 `docs/` 目录下维护独立的产品宣传与交互展示落地页，专供 GitHub Pages 免构建静态托管：
+
+1. **单一数据源原则 (Single Source of Truth)**：
+   - 静态展示页全站唯一定位于 `docs/index.html`，静态图标存放于 `docs/icon.png` 与 `docs/apple-touch-icon.png`，配有 `docs/.nojekyll` 避免 Jekyll 过滤；
+   - 严禁在根目录重复创建冗余的 `showcase.html`，根目录 `index.html` 专属为主应用 React SPA 入口。
+2. **零构建与极速渲染标准**：
+   - 必须采用 Tailwind CSS Play CDN + Lucide Icons + 原生 Vanilla JS，零打包构建依赖，任意静态托管平台即开即用；
+   - 动效必须遵循现代 Web 标准：原生 `IntersectionObserver` 驱动 GPU 硬件加速滚动入场、3D Tilt 视差微倾斜、动态 Spotlight 聚光灯遮罩与数字缓动插值，全面适配 `prefers-reduced-motion`。
+3. **内容与交互同步**：
+   - 展示页内置 5D 故事评估罗盘实时拖拽沙盒、起承转合四幕叙事流水线、录音提词器模拟器与全局指令面板模拟器；
+   - 仓库链接统一绑定官方地址：`https://github.com/biaobiaobiao108/TopicKanban`。
+

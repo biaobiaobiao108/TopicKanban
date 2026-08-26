@@ -4,6 +4,9 @@
 
 系统围绕**「下一步最该做什么（Next Action）」**与**「起承转合叙事引擎」**，全流程覆盖线索收集、一手资料核验、故事时间线梳理、四幕大纲提炼、分段文案写作、演播提词录制、成片发布与 5D 深度复盘。
 
+* 🌐 **在线产品展示与交互沙盒**：[https://biaobiaobiao108.github.io/TopicKanban/](https://biaobiaobiao108.github.io/TopicKanban/)
+* 📦 **开源官方仓库**：[https://github.com/biaobiaobiao108/TopicKanban](https://github.com/biaobiaobiao108/TopicKanban)
+
 支持 **本地 Podman / Docker 单容器一体化部署（内置 SQLite 与反代适配）** 与 **Cloudflare 边缘网络部署** 双环境无缝切换。
 
 ---
@@ -96,7 +99,16 @@ bun run test:e2e
 | **服务端** | Hono 4 + Bun 原生 HTTP Server | 跨运行时统一路由，启动 < 30ms |
 | **主业务持久库** | 本地 SQLite (`bun:sqlite` + WAL) / Cloudflare D1 | 8 张强关系型业务核心表 |
 | **键值与临时库** | 本地 `_kv_store` 表 (`LocalKVNamespace`) / Cloudflare KV | 全局偏好、审稿快照、在线锁、快投箱 |
-| **测试与构建** | Bun (`bun test` + `bun build`) | 54 项全量测试，毫秒级运行 |
+| **测试与构建** | Bun (`bun test` + `bun build`) | 71 项全量测试，毫秒级运行 |
+
+---
+
+## 🌐 线上交互展示页 (GitHub Pages)
+
+项目在 `docs/` 目录下内置了现代化的单文件静态产品落地页，包含全套 **5D 故事评估罗盘实时拖拽沙盒、起承转合四幕流水线、演播录音提词器模拟器与 3D 鼠标倾斜动效**。
+
+* **线上地址**：[https://biaobiaobiao108.github.io/TopicKanban/](https://biaobiaobiao108.github.io/TopicKanban/)
+* **部署方式**：GitHub 仓库设置中直接开启 GitHub Pages，选择 `master` (或 `main`) 分支的 `/docs` 目录即可秒级自动上线。
 
 ---
 
@@ -269,9 +281,13 @@ kanban/
 │   ├── types/index.ts                   # 领域模型与 TypeScript 契约
 │   ├── App.tsx                          # 路由分发入口
 │   └── main.tsx                         # DOM 挂载入口
-├── tests/                               # 54 项 bun:test 自动化单元与集成测试套件
-├── docs/                                # 部署配置与反代说明文档
-├── Dockerfile                           # 多阶段构建 Dockerfile
+├── tests/                               # 71 项 bun:test 自动化单元与集成测试套件
+├── docs/                                # GitHub Pages 静态展示落地页与文档
+│   ├── index.html                       # 独立产品落地页 (含交互沙盒与现代化动画)
+│   ├── icon.png                         # 落地页高清应用图标
+│   ├── apple-touch-icon.png             # 触控图标
+│   ├── .nojekyll                        # 禁用 Jekyll 静态过滤
+│   └── CONTAINER_DEPLOY.md              # 容器化部署说明文档
 ├── docker-compose.yml                   # 一键容器编排配置
 └── package.json
 ```
