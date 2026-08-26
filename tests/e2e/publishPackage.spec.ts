@@ -122,6 +122,7 @@ async function login(page: Page) {
   await page.goto('/');
   await page.locator('input[name="password"]').fill('admin');
   await page.getByRole('button', { name: '进入工作台' }).click();
+  await expect(page).toHaveURL(/\/today$/);
 }
 
 test('发布包可编辑、复制并导出 Markdown', async ({ page }) => {
@@ -191,12 +192,15 @@ test('发布包滚动到底部不会产生文档级溢出', async ({ page }) => 
   await mockWorkspace(page);
   await login(page);
   await page.goto(`/topics/${topic.id}?tab=publish`);
+  await expect(page.getByRole('heading', { name: '双平台发布包' })).toBeVisible();
 
-  await page.locator('div.relative.flex-1.overflow-y-auto').evaluate((element) => {
+  const scrollContainer = page.getByTestId('topic-detail-scroll-container');
+  await expect(scrollContainer).toBeVisible();
+  await scrollContainer.evaluate((element) => {
     element.scrollTop = element.scrollHeight;
   });
   const metrics = await page.evaluate(() => {
-    const scroller = document.querySelector<HTMLElement>('div.relative.flex-1.overflow-y-auto');
+    const scroller = document.querySelector<HTMLElement>('[data-testid="topic-detail-scroll-container"]');
     return {
       documentScrollHeight: document.documentElement.scrollHeight,
       documentClientHeight: document.documentElement.clientHeight,

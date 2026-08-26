@@ -12,10 +12,18 @@ export default defineConfig({
   projects: [
     { name: 'chrome', use: { ...devices['Desktop Chrome'], channel: 'chrome' } },
   ],
-  webServer: {
-    command: 'bun run dev',
-    url: 'http://localhost:3000',
-    reuseExistingServer: true,
-    timeout: 120_000,
-  },
+  webServer: [
+    {
+      command: 'bun run dev:web',
+      url: 'http://localhost:3000',
+      reuseExistingServer: true,
+      timeout: 120_000,
+    },
+    {
+      command: 'bun run dev:server',
+      url: 'http://localhost:8787/api/health',
+      reuseExistingServer: true,
+      timeout: 120_000,
+    },
+  ],
 });

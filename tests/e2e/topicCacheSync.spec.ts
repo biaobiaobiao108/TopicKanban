@@ -10,7 +10,13 @@ async function login(page: Page) {
   const password = page.locator('input[name="password"]');
   if (await password.count()) {
     await password.fill('admin');
+    const todayFocusResponse = page.waitForResponse((response) => (
+      response.url().includes('/api/today/focus')
+      && response.request().method() === 'GET'
+      && response.ok()
+    ));
     await page.getByRole('button', { name: '进入工作台' }).click();
+    await todayFocusResponse;
   }
   await expect(page).toHaveURL(/\/today$/);
 }

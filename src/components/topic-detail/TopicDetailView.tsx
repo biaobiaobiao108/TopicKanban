@@ -415,7 +415,7 @@ export const TopicDetailView: React.FC<TopicDetailViewProps> = ({
   };
 
   return (
-    <div className="flex-1 flex flex-col h-full overflow-hidden bg-[#fafaf9] dark:bg-[#0c0a09] transition-colors">
+    <div className="flex-1 flex flex-col h-full min-h-0 overflow-hidden bg-[#fafaf9] dark:bg-[#0c0a09] transition-colors">
       <Modal
         isOpen={Boolean(draftRecovery)}
         onClose={() => undefined}
@@ -485,7 +485,8 @@ export const TopicDetailView: React.FC<TopicDetailViewProps> = ({
 
       {/* Tab Content Container */}
       <div
-        className={`relative flex-1 ${
+        data-testid="topic-detail-scroll-container"
+        className={`relative flex-1 min-h-0 ${
           activeTab === 'script'
             ? 'overflow-hidden flex flex-col'
             : 'overflow-y-auto overscroll-contain px-4 sm:px-8 pb-24 md:pb-12'
