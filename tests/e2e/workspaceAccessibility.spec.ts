@@ -76,9 +76,16 @@ test('dark theme keeps kanban selects and database pagination readable', async (
   await expect.poll(async () => listbox.evaluate((element) => getComputedStyle(element.parentElement || element).backgroundColor)).not.toBe('rgb(255, 255, 255)');
   await page.keyboard.press('Escape');
 
+  await page.goto('/kanban');
+  await expect(page.getByRole('heading', { name: '选题全景看板' })).toBeVisible();
   await page.setViewportSize({ width: 390, height: 844 });
+  await page.getByRole('button', { name: /^已立项/ }).first().click();
   const statusTrigger = page.getByRole('button', { name: '流转' }).first();
   if (await statusTrigger.count()) {
+    const mobileTopicCard = page.locator('[data-topic-id]').first();
+    if (await mobileTopicCard.count()) {
+      await expect(mobileTopicCard).toHaveAttribute('tabindex', '-1');
+    }
     await statusTrigger.click();
     const statusMenuHeading = page.getByText('活跃生产阶段').last();
     await expect(statusMenuHeading).toBeVisible();

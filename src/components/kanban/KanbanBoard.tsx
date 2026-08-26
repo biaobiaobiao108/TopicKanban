@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect, useMemo, useCallback } from 'react';
+import React, { useState, useRef, useEffect, useMemo, useCallback, useSyncExternalStore } from 'react';
 import { keepPreviousData, useQueries, useQueryClient } from '@tanstack/react-query';
 import {
   DndContext,
@@ -26,6 +26,29 @@ import { getNextActionAgeDays, isActiveTopic, isNextActionDeferred } from '../..
 import { fetchTopicPage } from '../../lib/storage';
 
 const activeStatuses: TopicStatus[] = ['inbox', 'approved', 'scripting', 'production'];
+const MOBILE_VIEWPORT_QUERY = '(max-width: 767px)';
+
+function subscribeToMobileViewport(callback: () => void): () => void {
+  if (typeof window === 'undefined') return () => {};
+
+  const mediaQuery = window.matchMedia(MOBILE_VIEWPORT_QUERY);
+  if (mediaQuery.addEventListener) {
+    mediaQuery.addEventListener('change', callback);
+  } else {
+    mediaQuery.addListener(callback);
+  }
+  return () => {
+    if (mediaQuery.removeEventListener) {
+      mediaQuery.removeEventListener('change', callback);
+    } else {
+      mediaQuery.removeListener(callback);
+    }
+  };
+}
+
+function getIsMobileViewport(): boolean {
+  return typeof window !== 'undefined' && window.matchMedia(MOBILE_VIEWPORT_QUERY).matches;
+}
 
 type BoardColumns = Record<TopicStatus, string[]>;
 type TopicMap = Record<string, Topic>;
@@ -120,6 +143,7 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
   staleActionDays = 5,
 }) => {
   const queryClient = useQueryClient();
+  const isMobileViewport = useSyncExternalStore(subscribeToMobileViewport, getIsMobileViewport, () => false);
   const [topicsMap, setTopicsMap] = useState<TopicMap>(() => createTopicMap(topics));
   const [columns, setColumns] = useState<BoardColumns>(() => createColumns(topics));
   const [columnPages, setColumnPages] = useState<Record<TopicStatus, number>>(() => (
@@ -541,7 +565,7 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
     selectedTagId !== 'all' ||
     selectedPersonId !== 'all' ||
     sortBy !== 'sort_order';
-  const isDragDisabled = Boolean(searchTerm) || priorityFilter !== 'all' || selectedTagId !== 'all' || selectedPersonId !== 'all';
+  const isDragDisabled = isMobileViewport || Boolean(searchTerm) || priorityFilter !== 'all' || selectedTagId !== 'all' || selectedPersonId !== 'all';
 
   const handleResetFilters = () => {
     setPriorityFilter('all');
@@ -698,12 +722,12 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
 
       {/* DND Context & Board Grid (4 Active Columns) */}
       <DndContext
-        sensors={sensors}
         collisionDetection={closestCorners}
         onDragStart={handleDragStart}
         onDragOver={handleDragOver}
         onDragEnd={handleDragEnd}
         onDragCancel={handleDragCancel}
+        sensors={isMobileViewport ? [] : sensors}
       >
         {/* If Mobile Active Stage is chosen, only show that column on mobile */}
         {mobileActiveStage !== 'all' ? (

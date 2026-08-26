@@ -89,6 +89,7 @@ const KanbanCardComponent: React.FC<KanbanCardProps> = ({
       topic,
     },
   });
+  const { ['aria-disabled']: _ariaDisabled, ...sortableAttributes } = attributes;
 
   const style = {
     transform: CSS.Transform.toString(transform),
@@ -192,7 +193,7 @@ const KanbanCardComponent: React.FC<KanbanCardProps> = ({
       ref={setNodeRef}
       data-topic-id={topic.id}
       style={style}
-      {...attributes}
+      {...sortableAttributes}
       {...listeners}
       tabIndex={sortableDisabled ? -1 : 0}
       role="button"
