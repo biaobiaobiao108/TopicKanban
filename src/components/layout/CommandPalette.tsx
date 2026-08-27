@@ -81,8 +81,33 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
   const [query, setQuery] = useState('');
   const [selectedIndex, setSelectedIndex] = useState(0);
   const [debouncedCleanQ, setDebouncedCleanQ] = useState('');
+  const [isKeyboardFocused, setIsKeyboardFocused] = useState(false);
   const inputRef = useRef<HTMLInputElement | null>(null);
   const itemRefs = useRef<(HTMLButtonElement | null)[]>([]);
+  const keyboardFocusRef = useRef(false);
+
+  useEffect(() => {
+    keyboardFocusRef.current = false;
+    setIsKeyboardFocused(false);
+
+    if (!isOpen) return;
+
+    const handleTabKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Tab') {
+        keyboardFocusRef.current = true;
+      }
+    };
+    const handlePointerDown = () => {
+      keyboardFocusRef.current = false;
+    };
+
+    window.addEventListener('keydown', handleTabKeyDown, true);
+    window.addEventListener('pointerdown', handlePointerDown, true);
+    return () => {
+      window.removeEventListener('keydown', handleTabKeyDown, true);
+      window.removeEventListener('pointerdown', handlePointerDown, true);
+    };
+  }, [isOpen]);
 
   useEffect(() => {
     if (isOpen) {
@@ -740,7 +765,14 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             onKeyDown={handleKeyDown}
-            className="w-full text-sm sm:text-base bg-transparent border-none outline-none text-stone-900 dark:text-stone-100 placeholder:text-stone-400 dark:placeholder:text-stone-500 font-medium"
+            onPointerDown={() => {
+              keyboardFocusRef.current = false;
+              setIsKeyboardFocused(false);
+            }}
+            onFocus={() => setIsKeyboardFocused(keyboardFocusRef.current)}
+            onBlur={() => setIsKeyboardFocused(false)}
+            data-keyboard-focused={isKeyboardFocused ? 'true' : undefined}
+            className="command-palette-input w-full text-sm sm:text-base bg-transparent border-none outline-none text-stone-900 dark:text-stone-100 placeholder:text-stone-400 dark:placeholder:text-stone-500 font-medium"
           />
           {mode !== 'all' && (
             <span className="mr-2 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-rose-500/10 text-rose-700 dark:text-rose-300 shrink-0 font-mono">

@@ -1838,6 +1838,60 @@ html.theme-kyoto-zen ::-webkit-scrollbar-thumb { background: #d0d6cc; }
 html.theme-kyoto-zen ::-webkit-scrollbar-thumb:hover { background: #b5bfae; }
 
 /* ==========================================================================
+   Command Palette Search Input Focus Isolation
+   ========================================================================== */
+:root {
+  --command-palette-focus: #e11d48;
+}
+
+html.dark {
+  --command-palette-focus: #f43f5e;
+}
+
+html.theme-warm-paper {
+  --command-palette-focus: #de5b6d;
+}
+
+html.theme-nordic-frost {
+  --command-palette-focus: #2d7a64;
+}
+
+html.theme-parisian-dawn {
+  --command-palette-focus: #c84b5b;
+}
+
+html.theme-midnight-obsidian {
+  --command-palette-focus: #0ea5e9;
+}
+
+html.theme-kyoto-zen {
+  --command-palette-focus: #3d6b4f;
+}
+
+.command-palette-input:focus,
+html[class*="theme-"] input.command-palette-input:focus {
+  background-color: transparent !important;
+  border-color: transparent !important;
+  border-style: none !important;
+  border-width: 0 !important;
+  box-shadow: none !important;
+  outline: none !important;
+}
+
+.command-palette-input[data-keyboard-focused="true"]:focus,
+html[class*="theme-"] input.command-palette-input[data-keyboard-focused="true"]:focus {
+  outline: 2px solid color-mix(in oklab, var(--command-palette-focus) 42%, transparent) !important;
+  outline-offset: 2px;
+}
+
+@media (forced-colors: active) {
+  .command-palette-input[data-keyboard-focused="true"]:focus,
+  html[class*="theme-"] input.command-palette-input[data-keyboard-focused="true"]:focus {
+    outline: 2px solid Highlight !important;
+  }
+}
+
+/* ==========================================================================
    Teleprompter Modal Isolation & High Contrast Mode Rules
    ========================================================================== */
 .teleprompter-modal-root {

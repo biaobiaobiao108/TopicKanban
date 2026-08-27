@@ -50,6 +50,87 @@ test('workspace login, keyboard select and modal semantics work', async ({ page 
   expect(pageErrors).toEqual([]);
 });
 
+test('command palette search input keeps theme focus states clean', async ({ page }) => {
+  await page.goto('/');
+  await page.locator('input[name="password"]').fill('admin');
+  await page.getByRole('button', { name: '进入工作台' }).click();
+  await expect(page).toHaveURL(/\/today$/);
+
+  const themeStates = [
+    { name: '经典浅色', classes: [] },
+    { name: '深色专注', classes: ['dark'] },
+    { name: '暖沙纸境', classes: ['theme-warm-paper'] },
+    { name: '北欧冷杉', classes: ['theme-nordic-frost'] },
+    { name: '巴黎晨光', classes: ['theme-parisian-dawn'] },
+    { name: '深海星图', classes: ['theme-midnight-obsidian', 'dark'] },
+    { name: '京都茶席', classes: ['theme-kyoto-zen'] },
+    { name: '跟随系统', classes: ['dark'] },
+  ];
+  const customThemeClasses = [
+    'theme-warm-paper',
+    'theme-nordic-frost',
+    'theme-parisian-dawn',
+    'theme-midnight-obsidian',
+    'theme-kyoto-zen',
+  ];
+
+  const searchInput = page.getByPlaceholder('输入指令、搜索选题、#赛道、@人物、>动作、?帮助...');
+  const dialog = page.getByRole('dialog', { name: '全局指令搜索面板' });
+
+  for (const themeState of themeStates) {
+    await page.evaluate(({ classes, customThemeClasses }) => {
+      const root = document.documentElement;
+      root.classList.remove('dark', ...customThemeClasses);
+      root.classList.add(...classes);
+    }, { classes: themeState.classes, customThemeClasses });
+
+    await page.getByRole('button', { name: /全局搜索与指令/ }).first().click();
+    await expect(dialog).toBeVisible();
+    await searchInput.click();
+
+    const pointerFocusStyle = await searchInput.evaluate((element) => {
+      const style = getComputedStyle(element);
+      return {
+        borderStyle: style.borderStyle,
+        boxShadow: style.boxShadow,
+        outlineStyle: style.outlineStyle,
+        keyboardFocused: element.getAttribute('data-keyboard-focused'),
+      };
+    });
+    expect(pointerFocusStyle).toEqual({
+      borderStyle: 'none',
+      boxShadow: 'none',
+      outlineStyle: 'none',
+      keyboardFocused: null,
+    });
+
+    await page.keyboard.press('Tab');
+    await page.keyboard.press('Shift+Tab');
+    await expect(searchInput).toBeFocused();
+
+    const keyboardFocusStyle = await searchInput.evaluate((element) => {
+      const style = getComputedStyle(element);
+      return {
+        outlineStyle: style.outlineStyle,
+        outlineWidth: style.outlineWidth,
+        boxShadow: style.boxShadow,
+        keyboardFocused: element.getAttribute('data-keyboard-focused'),
+      };
+    });
+    expect(keyboardFocusStyle).toEqual({
+      outlineStyle: 'solid',
+      outlineWidth: '2px',
+      boxShadow: 'none',
+      keyboardFocused: 'true',
+    });
+
+    await page.keyboard.type('搜索');
+    await expect(searchInput).toHaveValue('搜索');
+    await page.keyboard.press('Escape');
+    await expect(dialog).toHaveCount(0);
+  }
+});
+
 test('一级模块使用统一页面标题且商单副标题已移除', async ({ page }) => {
   await page.goto('/');
   await page.locator('input[name="password"]').fill('admin');
