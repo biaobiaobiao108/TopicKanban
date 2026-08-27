@@ -110,10 +110,24 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
   }, [isOpen]);
 
   useEffect(() => {
+    if (!isOpen) return;
+
+    const handleEscape = (event: KeyboardEvent) => {
+      if (event.key !== 'Escape') return;
+      event.preventDefault();
+      onClose();
+    };
+
+    document.addEventListener('keydown', handleEscape, true);
+    return () => document.removeEventListener('keydown', handleEscape, true);
+  }, [isOpen, onClose]);
+
+  useEffect(() => {
     if (isOpen) {
       setQuery('');
       setSelectedIndex(0);
-      setTimeout(() => inputRef.current?.focus(), 50);
+      const focusFrame = requestAnimationFrame(() => inputRef.current?.focus());
+      return () => cancelAnimationFrame(focusFrame);
     }
   }, [isOpen]);
 
