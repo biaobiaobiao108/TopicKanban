@@ -131,12 +131,12 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
   // 2. Help items
   const helpItems: SelectableItem[] = useMemo(() => [
     {
-      id: 'help-cmd-p',
+      id: 'help-cmd-slash',
       category: 'help',
       categoryLabel: '全局快捷键',
-      title: 'Ctrl + P / Cmd + P',
+      title: 'Ctrl / Cmd + /',
       subtitle: '全局呼出此指令面板（任何输入框、正文聚焦或专注全屏均可用）',
-      keywords: ['ctrl+p', 'cmd+p', '快捷键', '搜索', '指令'],
+      keywords: ['ctrl+/', 'cmd+/', '快捷键', '搜索', '指令'],
       icon: Keyboard,
       onSelect: () => onClose(),
     },

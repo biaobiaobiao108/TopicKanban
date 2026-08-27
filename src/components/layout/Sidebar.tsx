@@ -73,7 +73,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
           >
             <Search className="w-3.5 h-3.5 text-stone-400" />
             <span>全局搜索与指令</span>
-            <kbd className="ml-auto text-[10px] bg-stone-200/70 dark:bg-stone-700 text-stone-500 dark:text-stone-400 px-1.5 py-0.5 rounded-md font-mono">Ctrl+P</kbd>
+            <kbd className="ml-auto text-[10px] bg-stone-200/70 dark:bg-stone-700 text-stone-500 dark:text-stone-400 px-1.5 py-0.5 rounded-md font-mono">Ctrl+/</kbd>
           </button>
         </div>
       </div>

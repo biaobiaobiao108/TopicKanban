@@ -184,7 +184,7 @@ function WorkspaceApp({ isAuth, setIsAuth }: WorkspaceAppProps) {
     return () => window.removeEventListener('kanban:unauthorized', handleUnauthorized);
   }, []);
 
-  // Global Keyboard Shortcuts: Ctrl+P / Cmd+P / / and N
+  // Global Keyboard Shortcuts: Ctrl+/ / Cmd+/ / / and N
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       const target = e.target as HTMLElement;
@@ -195,8 +195,8 @@ function WorkspaceApp({ isAuth, setIsAuth }: WorkspaceAppProps) {
 
       if (isInput) return;
 
-      // 1. Ctrl+P / Cmd+P to toggle Command Palette outside editable controls
-      if ((e.ctrlKey || e.metaKey) && !e.shiftKey && (e.key === 'p' || e.key === 'P')) {
+      // 1. Ctrl+/ / Cmd+/ to toggle Command Palette outside editable controls
+      if ((e.ctrlKey || e.metaKey) && !e.shiftKey && e.key === '/') {
         e.preventDefault();
         e.stopPropagation();
         setIsCommandPaletteOpen((prev) => !prev);
@@ -807,7 +807,7 @@ function WorkspaceApp({ isAuth, setIsAuth }: WorkspaceAppProps) {
         initialTagNames={quickCreateInitialTags}
       />
 
-      {/* Global Command Palette (Hotkey Ctrl+P / Cmd+P / /) */}
+      {/* Global Command Palette (Hotkey Ctrl+/ / Cmd+/ / /) */}
       <CommandPalette
         isOpen={isCommandPaletteOpen}
         onClose={() => setIsCommandPaletteOpen(false)}

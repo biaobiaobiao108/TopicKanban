@@ -35,8 +35,13 @@ test('workspace login, keyboard select and modal semantics work', async ({ page 
   await page.keyboard.press('Escape');
   await expect(page.getByRole('dialog')).toHaveCount(0);
 
-  await page.getByRole('button', { name: /全局搜索与指令/ }).click();
   const commandInput = page.getByPlaceholder(/输入指令、搜索选题/);
+  await page.keyboard.press('Control+/');
+  await expect(commandInput).toBeVisible();
+  await page.keyboard.press('Escape');
+  await expect(commandInput).toHaveCount(0);
+
+  await page.getByRole('button', { name: /全局搜索与指令/ }).click();
   await page.getByRole('button', { name: '? 快捷键大全' }).click();
   await expect(page.getByText('全局呼出此指令面板（任何输入框、正文聚焦或专注全屏均可用）')).toBeVisible();
   await commandInput.fill('? 搜索');

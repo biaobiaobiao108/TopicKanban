@@ -123,7 +123,7 @@
    * 必须保持 iPhone Safari 兼容性（包括 `safe-area-inset-bottom` 适配、底部导航 Dock、侧滑抽屉、触控点尺寸）。
    * 徽标（Badge）渲染必须严格校验 `typeof badge === 'number' && badge > 0`，防止空徽标显示为红点。
 4. **全局快捷键规范**：
-   * 全局指令搜索面板：`Ctrl+P` / `Cmd+P`（全平台通用）及 `/`（非输入状态下）。
+   * 全局指令搜索面板：`Ctrl+/` / `Cmd+/`（全平台通用）及 `/`（非输入状态下）。
    * 快速新建选题：`N`（非输入状态下）。
    * 弹窗关闭：`Esc`。
    * 文案专注模式：`Ctrl+Shift+F` / `Cmd+Shift+F`。
