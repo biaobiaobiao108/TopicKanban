@@ -247,8 +247,7 @@ bun run start
 ```text
 kanban/
 ├── drizzle/
-│   ├── 0000_schema.sql                  # 数据库基线表结构 SQL
-│   └── 0001_optional_published_topic.sql # 结构升级迁移 SQL
+│   └── 0000_schema.sql                  # 当前完整数据库基线表结构 SQL
 ├── functions/api/[[route]].ts           # Cloudflare Pages Functions API 入口
 ├── src/
 │   ├── components/

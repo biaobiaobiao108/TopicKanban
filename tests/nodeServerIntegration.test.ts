@@ -21,12 +21,6 @@ describe('Bun Server Integration (Local SQLite & API)', () => {
     const schemaFile = path.resolve(process.cwd(), 'drizzle/0000_schema.sql');
     const schemaSql = fs.readFileSync(schemaFile, 'utf-8');
     sqlite.exec(schemaSql);
-    const publishPackageMigration = path.resolve(process.cwd(), 'drizzle/0005_create_publish_packages.sql');
-    sqlite.exec(fs.readFileSync(publishPackageMigration, 'utf-8'));
-    const commercialDealsMigration = path.resolve(process.cwd(), 'drizzle/0006_create_commercial_deals.sql');
-    sqlite.exec(fs.readFileSync(commercialDealsMigration, 'utf-8'));
-    const commercialDealStatusMigration = path.resolve(process.cwd(), 'drizzle/0007_simplify_commercial_deal_status.sql');
-    sqlite.exec(fs.readFileSync(commercialDealStatusMigration, 'utf-8'));
 
     const d1 = new LocalD1Database(sqlite);
     const kv = new LocalKVNamespace(sqlite);
