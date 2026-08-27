@@ -21,16 +21,10 @@ import { getNextActionAgeDays, getNextActionWarning } from '../../lib/topicMetri
 const FOCUS_PRIORITY = { high: 3, medium: 2, low: 1, none: 0 };
 const ACTIVE_FOCUS_STATUSES = new Set(['approved', 'scripting', 'production']);
 const DEAL_STATUS_LABELS: Record<CommercialDeal['status'], string> = {
-  lead: '商机',
   communicating: '沟通中',
-  quoted: '已报价',
-  confirmed: '已确认',
   producing: '制作中',
-  reviewing: '客户审核',
-  scheduled: '待上线',
   delivered: '已交付',
-  paused: '已暂停',
-  closed_lost: '已流失',
+  archived: '归档',
 };
 
 function formatDealDate(value?: string | null): string {

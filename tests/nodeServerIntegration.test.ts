@@ -25,6 +25,8 @@ describe('Bun Server Integration (Local SQLite & API)', () => {
     sqlite.exec(fs.readFileSync(publishPackageMigration, 'utf-8'));
     const commercialDealsMigration = path.resolve(process.cwd(), 'drizzle/0006_create_commercial_deals.sql');
     sqlite.exec(fs.readFileSync(commercialDealsMigration, 'utf-8'));
+    const commercialDealStatusMigration = path.resolve(process.cwd(), 'drizzle/0007_simplify_commercial_deal_status.sql');
+    sqlite.exec(fs.readFileSync(commercialDealStatusMigration, 'utf-8'));
 
     const d1 = new LocalD1Database(sqlite);
     const kv = new LocalKVNamespace(sqlite);
@@ -371,19 +373,43 @@ describe('Bun Server Integration (Local SQLite & API)', () => {
     });
     expect(invalidDealResponse.status).toBe(400);
 
+    const invalidStatusResponse = await app.request('/api/deals', {
+      method: 'POST', headers,
+      body: JSON.stringify({ title: '旧阶段商单', status: 'reviewing' }),
+    });
+    expect(invalidStatusResponse.status).toBe(400);
+
     const createDealResponse = await app.request('/api/deals', {
       method: 'POST', headers,
       body: JSON.stringify({
         title: '春季品牌定制视频', brand_name: '测试品牌', contact_name: '小林',
-        source: 'brand_direct', deliverable_type: 'custom_video', status: 'confirmed',
+        source: 'brand_direct', deliverable_type: 'custom_video',
         brief: '围绕主选题做一条定制视频', amount_cents: 125000,
         delivery_due_date: '2026-01-01', next_action: '',
       }),
     });
     expect(createDealResponse.status).toBe(201);
-    const deal = await createDealResponse.json() as { id: string; amount_cents: number; topics: unknown[] };
+    const deal = await createDealResponse.json() as { id: string; amount_cents: number; status: string; topics: unknown[] };
     expect(deal.amount_cents).toBe(125000);
+    expect(deal.status).toBe('communicating');
     expect(deal.topics).toHaveLength(0);
+
+    const createAuxiliaryDeal = async (title: string, status: string) => {
+      const response = await app.request('/api/deals', {
+        method: 'POST', headers,
+        body: JSON.stringify({ title, status, source: 'other', deliverable_type: 'other' }),
+      });
+      expect(response.status).toBe(201);
+      return await response.json() as { id: string };
+    };
+    await createAuxiliaryDeal('分页制作商单', 'producing');
+    await createAuxiliaryDeal('分页归档商单', 'archived');
+    const activeDealsPage = await app.request('/api/deals/page?page=1&page_size=1&scope=active', { headers });
+    expect(activeDealsPage.status).toBe(200);
+    expect(await activeDealsPage.json()).toMatchObject({ page: 1, page_size: 1, total: 2, total_pages: 2 });
+    const allDealsPage = await app.request('/api/deals/page?page=2&page_size=2&scope=all', { headers });
+    expect(allDealsPage.status).toBe(200);
+    expect(await allDealsPage.json()).toMatchObject({ page: 2, page_size: 2, total: 3, total_pages: 2 });
 
     const bindResponse = await app.request(`/api/deals/${deal.id}/topics`, {
       method: 'PUT', headers,
@@ -404,12 +430,17 @@ describe('Bun Server Integration (Local SQLite & API)', () => {
       body: JSON.stringify({ status: 'producing' }),
     });
     expect(statusResponse.status).toBe(200);
+    const invalidUpdateStatusResponse = await app.request(`/api/deals/${deal.id}`, {
+      method: 'PATCH', headers,
+      body: JSON.stringify({ status: 'scheduled' }),
+    });
+    expect(invalidUpdateStatusResponse.status).toBe(400);
     const unchangedTopic = await app.request(`/api/topics/${topic.id}`, { headers });
     expect((await unchangedTopic.json() as { status: string }).status).toBe('inbox');
 
     const focusResponse = await app.request('/api/deals/focus', { headers });
     expect(focusResponse.status).toBe(200);
-    expect((await focusResponse.json() as { due_items: Array<{ id: string }> }).due_items).toEqual([expect.objectContaining({ id: deal.id })]);
+    expect((await focusResponse.json() as { due_items: Array<{ id: string }> }).due_items).toEqual(expect.arrayContaining([expect.objectContaining({ id: deal.id })]));
 
     const activityResponse = await app.request(`/api/deals/${deal.id}/activities`, {
       method: 'POST', headers,
@@ -455,6 +486,33 @@ describe('Bun Server Integration (Local SQLite & API)', () => {
     });
     expect(paidResponse.status).toBe(200);
     expect((await paidResponse.json() as { payment_status: string }).payment_status).toBe('paid');
+
+    const deleteTargetResponse = await app.request('/api/deals', {
+      method: 'POST', headers,
+      body: JSON.stringify({ title: '待删除商单', status: 'communicating' }),
+    });
+    const deleteTarget = await deleteTargetResponse.json() as { id: string };
+    await app.request(`/api/deals/${deleteTarget.id}/topics`, {
+      method: 'PUT', headers,
+      body: JSON.stringify({ primary_topic_id: topic.id, related_topic_ids: [] }),
+    });
+    await app.request(`/api/deals/${deleteTarget.id}/activities`, {
+      method: 'POST', headers,
+      body: JSON.stringify({ content: '删除前保留的活动记录' }),
+    });
+    sqlite.query(`INSERT INTO published_videos (id, title, published_at, updated_at) VALUES (?, ?, ?, ?)`)
+      .run('delete-target-video', '不应被删除的视频', '2026-01-04', '2026-01-04T00:00:00.000Z');
+    await app.request(`/api/deals/${deleteTarget.id}/link-published`, {
+      method: 'POST', headers,
+      body: JSON.stringify({ published_video_id: 'delete-target-video' }),
+    });
+    const deleteResponse = await app.request(`/api/deals/${deleteTarget.id}`, { method: 'DELETE', headers });
+    expect(deleteResponse.status).toBe(204);
+    expect(await app.request(`/api/deals/${deleteTarget.id}`, { headers })).toHaveProperty('status', 404);
+    expect(sqlite.query('SELECT COUNT(*) AS count FROM commercial_deal_topics WHERE deal_id = ?').get(deleteTarget.id)).toEqual({ count: 0 });
+    expect(sqlite.query('SELECT COUNT(*) AS count FROM commercial_deal_activities WHERE deal_id = ?').get(deleteTarget.id)).toEqual({ count: 0 });
+    expect(sqlite.query('SELECT id FROM topics WHERE id = ?').get(topic.id)).toEqual({ id: topic.id });
+    expect(sqlite.query('SELECT id FROM published_videos WHERE id = ?').get('delete-target-video')).toEqual({ id: 'delete-target-video' });
   });
 
   it('fails explicitly when settings persistence has no KV binding', async () => {

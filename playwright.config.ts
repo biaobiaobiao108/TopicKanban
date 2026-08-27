@@ -2,6 +2,8 @@ import { defineConfig, devices } from '@playwright/test';
 
 export default defineConfig({
   testDir: './tests/e2e',
+  // E2E tests share one local SQLite/auth server; serial execution avoids cross-test races.
+  workers: 1,
   fullyParallel: true,
   reporter: 'line',
   use: {

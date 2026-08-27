@@ -22,7 +22,9 @@ test('workspace login, keyboard select and modal semantics work', async ({ page 
   await page.keyboard.press('Enter');
   await expect(page.getByRole('listbox')).toHaveCount(0);
 
-  const quickDropButton = page.getByRole('button', { name: /打开手机快投灵感箱/ });
+  const quickDropButton = page.getByRole('button', {
+    name: /打开手机快投灵感箱/,
+  });
   await quickDropButton.click();
   await expect(page.getByRole('dialog', { name: '手机快投灵感箱' })).toBeVisible();
   await page.keyboard.press('Escape');
@@ -67,7 +69,11 @@ test('一级模块使用统一页面标题且商单副标题已移除', async ({
   }
 
   await page.goto('/deals');
-  await expect(page.getByText('把客户的执行单，变成可交付、可回款的一条生产线。', { exact: true })).toHaveCount(0);
+  await expect(
+    page.getByText('把客户的执行单，变成可交付、可回款的一条生产线。', {
+      exact: true,
+    })
+  ).toHaveCount(0);
 });
 
 test('dark theme keeps kanban selects and database pagination readable', async ({ page }) => {
@@ -84,7 +90,9 @@ test('dark theme keeps kanban selects and database pagination readable', async (
   await commandInput.fill('深色专注');
   const themeAction = page.getByRole('button', { name: /外观：深色专注/ });
   await expect(themeAction).toBeVisible();
-  const settingsSave = page.waitForResponse((response) => response.url().includes('/api/settings') && response.request().method() === 'PUT');
+  const settingsSave = page.waitForResponse(
+    (response) => response.url().includes('/api/settings') && response.request().method() === 'PUT'
+  );
   await themeAction.click();
   await settingsSave;
   await expect(page.locator('html')).toHaveClass(/dark/);
@@ -102,13 +110,18 @@ test('dark theme keeps kanban selects and database pagination readable', async (
   await prioritySelect.press('Enter');
   const listbox = page.getByRole('listbox');
   await expect(listbox).toBeVisible();
-  await expect.poll(async () => listbox.evaluate((element) => getComputedStyle(element.parentElement || element).backgroundColor)).not.toBe('rgb(255, 255, 255)');
+  await expect
+    .poll(async () => listbox.evaluate((element) => getComputedStyle(element.parentElement || element).backgroundColor))
+    .not.toBe('rgb(255, 255, 255)');
   await page.keyboard.press('Escape');
 
   await page.goto('/kanban');
   await expect(page.getByRole('heading', { name: '选题全景看板' })).toBeVisible();
   await page.setViewportSize({ width: 390, height: 844 });
-  await page.getByRole('button', { name: /^已立项/ }).first().click();
+  await page
+    .getByRole('button', { name: /^已立项/ })
+    .first()
+    .click();
   const statusTrigger = page.getByRole('button', { name: '流转' }).first();
   if (await statusTrigger.count()) {
     const mobileTopicCard = page.locator('[data-topic-id]').first();
@@ -120,13 +133,15 @@ test('dark theme keeps kanban selects and database pagination readable', async (
     await expect(statusMenuHeading).toBeVisible();
     const menuBounds = await statusMenuHeading.evaluate((element) => {
       const rect = element.parentElement?.getBoundingClientRect();
-      return rect ? {
-        top: rect.top,
-        right: rect.right,
-        bottom: rect.bottom,
-        left: rect.left,
-        position: getComputedStyle(element.parentElement as HTMLElement).position,
-      } : null;
+      return rect
+        ? {
+            top: rect.top,
+            right: rect.right,
+            bottom: rect.bottom,
+            left: rect.left,
+            position: getComputedStyle(element.parentElement as HTMLElement).position,
+          }
+        : null;
     });
     expect(menuBounds).not.toBeNull();
     expect(menuBounds?.left).toBeGreaterThanOrEqual(0);
@@ -142,11 +157,128 @@ test('dark theme keeps kanban selects and database pagination readable', async (
   await expect(page.getByRole('heading', { name: '选题库', exact: true, level: 1 })).toBeVisible();
   const mobilePaginationButton = page.getByRole('button', { name: '上一页' }).last();
   await expect(mobilePaginationButton).toBeVisible();
-  await expect.poll(async () => mobilePaginationButton.evaluate((element) => getComputedStyle(element.parentElement || element).backgroundColor)).not.toBe('rgb(245, 245, 244)');
+  await expect
+    .poll(async () => mobilePaginationButton.evaluate((element) => getComputedStyle(element.parentElement || element).backgroundColor))
+    .not.toBe('rgb(245, 245, 244)');
   const mobileCard = page.locator('article').first();
   if (await mobileCard.count()) {
-    await expect.poll(async () => mobileCard.evaluate((element) => getComputedStyle(element).backgroundColor)).not.toBe('rgb(255, 255, 255)');
+    await expect
+      .poll(async () => mobileCard.evaluate((element) => getComputedStyle(element).backgroundColor))
+      .not.toBe('rgb(255, 255, 255)');
   }
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth)).toBe(true);
   expect(pageErrors).toEqual([]);
+});
+
+test('商单中心支持分页、进行中筛选、详情就地编辑和长标题', async ({ page, request }) => {
+  await page.goto('/');
+  await page.locator('input[name="password"]').fill('admin');
+  await page.getByRole('button', { name: '进入工作台' }).click();
+  await expect(page).toHaveURL(/\/today$/);
+
+  const runId = `e2e-${Date.now()}`;
+  const dealIds: string[] = [];
+  let publishedVideoId: string | null = null;
+  const authResponse = await request.post('/api/auth/login', {
+    data: { password: 'admin' },
+  });
+  expect(authResponse.status()).toBe(200);
+  const authToken = ((await authResponse.json()) as { token?: string }).token || '';
+  const api = async (path: string, method: string, body?: Record<string, unknown>) => {
+    const response = await request.fetch(path, {
+      method,
+      headers: {
+        Authorization: `Bearer ${authToken || ''}`,
+        'Content-Type': 'application/json',
+      },
+      data: body,
+    });
+    return {
+      status: response.status(),
+      data: (await response.json().catch(() => null)) as { id?: string },
+    };
+  };
+
+  try {
+    for (let index = 0; index < 26; index += 1) {
+      const response = await api('/api/deals', 'POST', {
+        title: `${runId}-商单-${index}`,
+        brand_name: `${runId}-品牌`,
+        status: index === 25 ? 'delivered' : 'communicating',
+        deliverable_type: 'custom_video',
+      });
+      expect(response.status).toBe(201);
+      if (response.data.id) dealIds.push(response.data.id);
+    }
+
+    await page.goto('/deals');
+    const search = page.locator('input[name="deal_search"]');
+    await search.fill(runId);
+    await expect(page.locator('[data-testid="deal-card"]')).toHaveCount(24);
+    await expect(page.getByText('显示 1-24 / 共 25 单', { exact: true })).toBeVisible();
+    await page.getByRole('button', { name: '下一页' }).click();
+    await expect(page.getByText('显示 25-25 / 共 25 单', { exact: true })).toBeVisible();
+
+    const pageSizeSelect = page.getByRole('combobox', { name: '每页商单数量' });
+    await pageSizeSelect.click();
+    await page.getByRole('option', { name: '每页 12 张', exact: true }).click();
+    await expect(page.locator('[data-testid="deal-card"]')).toHaveCount(12);
+    await expect(page.getByText('显示 1-12 / 共 25 单', { exact: true })).toBeVisible();
+    await page.reload();
+    await search.fill(runId);
+    await expect(pageSizeSelect).toHaveText(/每页 12 张/);
+    await expect(page.locator('[data-testid="deal-card"]')).toHaveCount(12);
+
+    const scopeToggle = page.getByRole('button', { name: '显示进行中' });
+    await expect(scopeToggle).toHaveAttribute('aria-pressed', 'true');
+    await scopeToggle.click();
+    await expect(scopeToggle).toHaveAttribute('aria-pressed', 'false');
+    await expect(page.getByText(`${runId}-商单-24`, { exact: true })).toBeVisible();
+    const statusFilter = page.getByRole('combobox', { name: '按商单阶段筛选' });
+    await statusFilter.click();
+    await page.getByRole('option', { name: '已交付', exact: true }).click();
+    await expect(page.locator('[data-testid="deal-card"]')).toHaveCount(1);
+
+    const longVideoTitle = `这是一条用于验证商单详情页换行能力的超长发布视频标题-${'边界测试'.repeat(20)}`;
+    const publishedResponse = await api('/api/published', 'POST', {
+      title: longVideoTitle,
+      url: 'https://www.bilibili.com/video/BV1xx411c7mD',
+      bvid: 'BV1xx411c7mD',
+      published_at: '2026-08-27',
+    });
+    expect(publishedResponse.status).toBe(201);
+    publishedVideoId = publishedResponse.data.id || null;
+    expect(publishedVideoId).toBeTruthy();
+    const linkResponse = await api(`/api/deals/${dealIds[0]}/link-published`, 'POST', { published_video_id: publishedVideoId });
+    expect(linkResponse.status).toBe(200);
+
+    await page.goto(`/deals/${dealIds[0]}`);
+    await expect(page.getByRole('heading', { name: `${runId}-商单-0`, exact: true })).toBeVisible();
+    await expect(page.getByRole('combobox', { name: '直接修改商单阶段' })).toBeVisible();
+    await page.getByRole('combobox', { name: '直接修改商单阶段' }).click();
+    await page.getByRole('option', { name: '制作中', exact: true }).click();
+    await expect(page.getByText('制作前还没有绑定主选题', { exact: true })).toBeVisible();
+
+    await page.getByRole('button', { name: '编辑', exact: true }).first().click();
+    await page.locator('input[name="brand_name"]').fill(`${runId}-已编辑品牌`);
+    await page.getByRole('button', { name: '保存修改' }).click();
+    await expect(page.getByText(`${runId}-已编辑品牌`, { exact: true })).toBeVisible();
+    await expect(page.getByText(longVideoTitle, { exact: true }).last()).toBeVisible();
+    expect(await page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth)).toBe(true);
+
+    await page.setViewportSize({ width: 390, height: 844 });
+    await page.reload();
+    await expect(page.getByText(longVideoTitle, { exact: true }).last()).toBeVisible();
+    expect(await page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth)).toBe(true);
+
+    page.once('dialog', async (dialog) => {
+      expect(dialog.type()).toBe('confirm');
+      await dialog.accept();
+    });
+    await page.getByRole('button', { name: '删除商单' }).click();
+    await expect(page).toHaveURL(/\/deals$/);
+  } finally {
+    for (const dealId of dealIds) await api(`/api/deals/${dealId}`, 'DELETE');
+    if (publishedVideoId) await api(`/api/published/${publishedVideoId}`, 'DELETE');
+  }
 });

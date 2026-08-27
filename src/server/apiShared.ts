@@ -14,7 +14,7 @@ export type ApiBindings = {
 
 const TOKEN_TTL_SECONDS = 60 * 60 * 24 * 7;
 const PRIORITIES = ['high', 'medium', 'low', 'none'] as const;
-export const COMMERCIAL_DEAL_STATUSES = ['lead', 'communicating', 'quoted', 'confirmed', 'producing', 'reviewing', 'scheduled', 'delivered', 'paused', 'closed_lost'] as const;
+export const COMMERCIAL_DEAL_STATUSES = ['communicating', 'producing', 'delivered', 'archived'] as const;
 export const COMMERCIAL_DEAL_PAYMENT_STATUSES = ['unpaid', 'paid'] as const;
 export const COMMERCIAL_DEAL_DELIVERABLE_TYPES = ['custom_video', 'dynamic', 'live', 'offline_activity', 'other'] as const;
 export const COMMERCIAL_DEAL_SOURCES = ['huahuo', 'brand_direct', 'agency', 'mcn', 'other'] as const;

@@ -272,6 +272,15 @@ export function initializeSqliteDatabase(dbFilePath: string, schemaDir?: string)
   sqlite.query('INSERT OR IGNORE INTO _schema_migrations (name, applied_at) VALUES (?, ?)')
     .run('0006_create_commercial_deals.sql', appliedAt);
 
+  const commercialDealStatusMigration = sqlite.query("SELECT name FROM _schema_migrations WHERE name = '0007_simplify_commercial_deal_status.sql'").get();
+  if (!commercialDealStatusMigration) {
+    const migrationFile = path.join(resolvedSchemaDir, '0007_simplify_commercial_deal_status.sql');
+    if (!fs.existsSync(migrationFile)) throw new Error('Missing commercial deal status migration');
+    sqlite.exec(fs.readFileSync(migrationFile, 'utf-8'));
+  }
+  sqlite.query('INSERT OR IGNORE INTO _schema_migrations (name, applied_at) VALUES (?, ?)')
+    .run('0007_simplify_commercial_deal_status.sql', appliedAt);
+
   // Ensure _kv_store table exists for local KV adapter
   sqlite.exec(`
     CREATE TABLE IF NOT EXISTS _kv_store (

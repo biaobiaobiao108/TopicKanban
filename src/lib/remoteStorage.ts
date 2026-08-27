@@ -184,6 +184,11 @@ export async function saveCommercialDeal(data: Partial<CommercialDeal> & { title
   return deal;
 }
 
+export async function deleteCommercialDeal(id: string): Promise<void> {
+  await apiRequest(`/api/deals/${encodeURIComponent(id)}`, { method: 'DELETE' });
+  invalidateBootstrap();
+}
+
 export async function replaceCommercialDealTopics(
   dealId: string,
   primaryTopicId: string | null,

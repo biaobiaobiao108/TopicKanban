@@ -199,7 +199,7 @@ function normalizeCommercialDeal(row: Record<string, unknown>): CommercialDeal {
     contact_channel: String(row.contact_channel || ''),
     source: String(row.source || 'other') as CommercialDeal['source'],
     deliverable_type: String(row.deliverable_type || 'custom_video') as CommercialDeal['deliverable_type'],
-    status: String(row.status || 'lead') as CommercialDeal['status'],
+    status: String(row.status || 'communicating') as CommercialDeal['status'],
     contract_status: String(row.contract_status || 'not_started') as CommercialDeal['contract_status'],
     contract_summary: String(row.contract_summary || ''),
     brief: String(row.brief || ''),
@@ -237,8 +237,8 @@ function commercialDealProjection(): string {
 function buildCommercialDealFilter(options: CommercialDealPageOptions): { conditions: string[]; values: unknown[] } {
   const conditions: string[] = [];
   const values: unknown[] = [];
-  if (options.scope === 'active') conditions.push("d.status NOT IN ('paused', 'closed_lost')");
-  if (options.scope === 'closed') conditions.push("d.status IN ('paused', 'closed_lost')");
+  if (options.scope === 'active') conditions.push("d.status IN ('communicating', 'producing')");
+  if (options.scope === 'closed') conditions.push("d.status IN ('delivered', 'archived')");
   if (options.status) {
     const statuses = options.status.split(',').map((value) => value.trim()).filter(Boolean);
     if (statuses.length === 1) {
@@ -275,13 +275,13 @@ export async function loadCommercialDealPage(db: D1Database, options: Commercial
   const [countResult, rowsResult] = await db.batch([
     bind(db, `SELECT
       COUNT(*) AS total,
-      SUM(CASE WHEN d.status NOT IN ('paused', 'closed_lost') THEN 1 ELSE 0 END) AS active_count,
-      SUM(CASE WHEN d.status NOT IN ('paused', 'closed_lost', 'delivered')
+      SUM(CASE WHEN d.status IN ('communicating', 'producing') THEN 1 ELSE 0 END) AS active_count,
+      SUM(CASE WHEN d.status IN ('communicating', 'producing')
         AND d.delivery_due_date IS NOT NULL
         AND d.delivery_due_date <= date('now', '+8 hours', '+7 days') THEN 1 ELSE 0 END) AS due_soon_count,
-      SUM(CASE WHEN d.status = 'reviewing' THEN 1 ELSE 0 END) AS pending_review_count,
-      SUM(CASE WHEN d.payment_status = 'unpaid' AND d.status != 'closed_lost' THEN d.amount_cents ELSE 0 END) AS unpaid_amount_cents,
-      SUM(CASE WHEN d.payment_status = 'unpaid' AND d.status != 'closed_lost' THEN 1 ELSE 0 END) AS unpaid_count
+      SUM(CASE WHEN d.status IN ('communicating', 'producing') AND TRIM(d.next_action) = '' THEN 1 ELSE 0 END) AS needs_action_count,
+      SUM(CASE WHEN d.payment_status = 'unpaid' AND d.status != 'archived' THEN d.amount_cents ELSE 0 END) AS unpaid_amount_cents,
+      SUM(CASE WHEN d.payment_status = 'unpaid' AND d.status != 'archived' THEN 1 ELSE 0 END) AS unpaid_count
       FROM commercial_deals d ${where}`, filter.values),
     bind(db, `SELECT ${commercialDealProjection()}
       FROM commercial_deals d ${where}
@@ -300,7 +300,7 @@ export async function loadCommercialDealPage(db: D1Database, options: Commercial
     summary: {
       active_count: Number(summaryRow.active_count || 0),
       due_soon_count: Number(summaryRow.due_soon_count || 0),
-      pending_review_count: Number(summaryRow.pending_review_count || 0),
+      needs_action_count: Number(summaryRow.needs_action_count || 0),
       unpaid_amount_cents: Number(summaryRow.unpaid_amount_cents || 0),
       unpaid_count: Number(summaryRow.unpaid_count || 0),
     },
@@ -331,6 +331,17 @@ export async function loadCommercialDeal(db: D1Database, id: string): Promise<Co
   };
 }
 
+export async function deleteCommercialDeal(db: D1Database, id: string): Promise<boolean> {
+  const existing = await db.prepare('SELECT id FROM commercial_deals WHERE id = ?').bind(id).first<{ id: string }>();
+  if (!existing) return false;
+  await db.batch([
+    db.prepare('DELETE FROM commercial_deal_activities WHERE deal_id = ?').bind(id),
+    db.prepare('DELETE FROM commercial_deal_topics WHERE deal_id = ?').bind(id),
+    db.prepare('DELETE FROM commercial_deals WHERE id = ?').bind(id),
+  ]);
+  return true;
+}
+
 export async function loadCommercialDealsByTopicId(db: D1Database, topicId: string): Promise<CommercialDeal[]> {
   const result = await db.prepare(`SELECT ${commercialDealProjection()}, cdt.relation_role AS relation_role
     FROM commercial_deals d
@@ -343,7 +354,7 @@ export async function loadCommercialDealsByTopicId(db: D1Database, topicId: stri
 export async function loadCommercialDealFocus(db: D1Database): Promise<DealFocusData> {
   const [dueResult, unpaidResult, countResult] = await db.batch([
     db.prepare(`SELECT ${commercialDealProjection()} FROM commercial_deals d
-      WHERE d.status NOT IN ('paused', 'closed_lost', 'delivered')
+      WHERE d.status IN ('communicating', 'producing')
         AND (d.delivery_due_date <= date('now', '+8 hours')
           OR d.next_action = '')
       ORDER BY CASE WHEN d.delivery_due_date IS NULL THEN 1 ELSE 0 END,
@@ -351,7 +362,7 @@ export async function loadCommercialDealFocus(db: D1Database): Promise<DealFocus
     db.prepare(`SELECT ${commercialDealProjection()} FROM commercial_deals d
       WHERE d.status = 'delivered' AND d.payment_status = 'unpaid'
       ORDER BY d.updated_at DESC LIMIT 8`),
-    db.prepare("SELECT COUNT(*) AS count FROM commercial_deals WHERE status NOT IN ('paused', 'closed_lost')"),
+    db.prepare("SELECT COUNT(*) AS count FROM commercial_deals WHERE status IN ('communicating', 'producing')"),
   ]);
   return {
     due_items: (dueResult.results as unknown as Array<Record<string, unknown>>).map(normalizeCommercialDeal),

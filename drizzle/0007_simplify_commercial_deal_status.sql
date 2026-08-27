@@ -1,4 +1,6 @@
-CREATE TABLE IF NOT EXISTS commercial_deals (
+PRAGMA defer_foreign_keys = ON;
+
+CREATE TABLE commercial_deals_status_new (
   id TEXT PRIMARY KEY,
   title TEXT NOT NULL,
   brand_name TEXT NOT NULL DEFAULT '',
@@ -26,33 +28,30 @@ CREATE TABLE IF NOT EXISTS commercial_deals (
   FOREIGN KEY (published_video_id) REFERENCES published_videos(id) ON DELETE SET NULL
 );
 
-CREATE TABLE IF NOT EXISTS commercial_deal_topics (
-  id TEXT PRIMARY KEY,
-  deal_id TEXT NOT NULL,
-  topic_id TEXT NOT NULL,
-  relation_role TEXT NOT NULL DEFAULT 'related' CHECK (relation_role IN ('primary', 'related')),
-  created_at TEXT NOT NULL,
-  UNIQUE (deal_id, topic_id),
-  FOREIGN KEY (deal_id) REFERENCES commercial_deals(id) ON DELETE CASCADE,
-  FOREIGN KEY (topic_id) REFERENCES topics(id) ON DELETE CASCADE
-);
+INSERT INTO commercial_deals_status_new (
+  id, title, brand_name, agency_name, contact_name, contact_channel, source,
+  deliverable_type, status, contract_status, contract_summary, brief, requirements,
+  restrictions, amount_cents, payment_status, paid_at, delivery_due_date, publish_date,
+  next_action, next_action_due_date, published_video_id, created_at, updated_at
+)
+SELECT
+  id, title, brand_name, agency_name, contact_name, contact_channel, source,
+  deliverable_type,
+  CASE
+    WHEN status IN ('producing', 'reviewing', 'scheduled') THEN 'producing'
+    WHEN status = 'delivered' THEN 'delivered'
+    WHEN status IN ('paused', 'closed_lost') THEN 'archived'
+    ELSE 'communicating'
+  END,
+  contract_status, contract_summary, brief, requirements,
+  restrictions, amount_cents, payment_status, paid_at, delivery_due_date, publish_date,
+  next_action, next_action_due_date, published_video_id, created_at, updated_at
+FROM commercial_deals;
 
-CREATE TABLE IF NOT EXISTS commercial_deal_activities (
-  id TEXT PRIMARY KEY,
-  deal_id TEXT NOT NULL,
-  kind TEXT NOT NULL DEFAULT 'note' CHECK (kind IN ('note', 'status_change', 'payment')),
-  content TEXT NOT NULL,
-  created_at TEXT NOT NULL,
-  FOREIGN KEY (deal_id) REFERENCES commercial_deals(id) ON DELETE CASCADE
-);
+DROP TABLE commercial_deals;
+ALTER TABLE commercial_deals_status_new RENAME TO commercial_deals;
 
 CREATE INDEX IF NOT EXISTS idx_commercial_deals_status ON commercial_deals(status, updated_at);
 CREATE INDEX IF NOT EXISTS idx_commercial_deals_due_date ON commercial_deals(delivery_due_date);
 CREATE INDEX IF NOT EXISTS idx_commercial_deals_payment ON commercial_deals(payment_status, updated_at);
 CREATE INDEX IF NOT EXISTS idx_commercial_deals_published_video ON commercial_deals(published_video_id);
-CREATE INDEX IF NOT EXISTS idx_commercial_deal_topics_topic ON commercial_deal_topics(topic_id);
-CREATE INDEX IF NOT EXISTS idx_commercial_deal_topics_deal ON commercial_deal_topics(deal_id);
-CREATE UNIQUE INDEX IF NOT EXISTS idx_commercial_deal_primary_topic
-  ON commercial_deal_topics(deal_id)
-  WHERE relation_role = 'primary';
-CREATE INDEX IF NOT EXISTS idx_commercial_deal_activities_deal ON commercial_deal_activities(deal_id, created_at);

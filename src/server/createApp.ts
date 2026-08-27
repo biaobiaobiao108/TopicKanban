@@ -30,6 +30,7 @@ import {
   loadPublishedAnalytics,
   loadTagsPage,
   loadCommercialDeal,
+  deleteCommercialDeal,
   loadCommercialDealFocus,
   loadCommercialDealPage,
   loadCommercialDealsByTopicId,
@@ -249,7 +250,7 @@ export function createApp() {
   app.get('/deals/page', async (c) => {
     try {
       const page = Math.max(1, Number.parseInt(c.req.query('page') || '1', 10) || 1);
-      const pageSize = Math.min(100, Math.max(1, Number.parseInt(c.req.query('page_size') || '30', 10) || 30));
+      const pageSize = Math.min(100, Math.max(1, Number.parseInt(c.req.query('page_size') || '24', 10) || 24));
       const scope = c.req.query('scope') || 'active';
       if (!isOneOf(scope, ['active', 'closed', 'all'])) return c.json({ error: 'Invalid commercial deal scope' }, 400);
       const status = c.req.query('status');
@@ -312,7 +313,7 @@ export function createApp() {
         contact_channel: typeof body.contact_channel === 'string' ? body.contact_channel.trim() : '',
         source: (body.source || 'other') as CommercialDeal['source'],
         deliverable_type: (body.deliverable_type || 'custom_video') as CommercialDeal['deliverable_type'],
-        status: (body.status || 'lead') as CommercialDeal['status'],
+        status: (body.status || 'communicating') as CommercialDeal['status'],
         contract_status: (body.contract_status || 'not_started') as CommercialDeal['contract_status'],
         contract_summary: typeof body.contract_summary === 'string' ? body.contract_summary : '',
         brief: typeof body.brief === 'string' ? body.brief : '',
@@ -381,6 +382,15 @@ export function createApp() {
       }
       if (batch.length > 0) await db.batch(batch);
       return c.json(await loadCommercialDeal(db, id));
+    } catch (error) {
+      return jsonError(c, error, 400);
+    }
+  });
+
+  app.delete('/deals/:id', async (c) => {
+    try {
+      const deleted = await deleteCommercialDeal(requireDb(c), c.req.param('id'));
+      return deleted ? c.body(null, 204) : c.json({ error: 'Not found' }, 404);
     } catch (error) {
       return jsonError(c, error, 400);
     }

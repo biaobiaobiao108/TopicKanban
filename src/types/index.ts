@@ -282,16 +282,10 @@ export interface PublishedVideo {
 }
 
 export const COMMERCIAL_DEAL_STATUSES = [
-  'lead',
   'communicating',
-  'quoted',
-  'confirmed',
   'producing',
-  'reviewing',
-  'scheduled',
   'delivered',
-  'paused',
-  'closed_lost',
+  'archived',
 ] as const;
 
 export type CommercialDealStatus = typeof COMMERCIAL_DEAL_STATUSES[number];
@@ -379,7 +373,7 @@ export interface PaginatedCommercialDeals extends PageMeta {
   summary: {
     active_count: number;
     due_soon_count: number;
-    pending_review_count: number;
+    needs_action_count: number;
     unpaid_amount_cents: number;
     unpaid_count: number;
   };

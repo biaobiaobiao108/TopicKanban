@@ -93,10 +93,66 @@ describe('Database schema contract', () => {
       expect(migrations.map((migration) => migration.name)).toContain('0004_remove_settings_table.sql');
       expect(migrations.map((migration) => migration.name)).toContain('0005_create_publish_packages.sql');
       expect(migrations.map((migration) => migration.name)).toContain('0006_create_commercial_deals.sql');
+      expect(migrations.map((migration) => migration.name)).toContain('0007_simplify_commercial_deal_status.sql');
       expect(sqlite.query("SELECT name FROM sqlite_master WHERE type = 'table' AND name = 'publish_packages'").get()).not.toBeNull();
       expect(sqlite.query("SELECT name FROM sqlite_master WHERE type = 'table' AND name = 'commercial_deals'").get()).not.toBeNull();
       expect(sqlite.query("SELECT name FROM sqlite_master WHERE type = 'table' AND name = 'commercial_deal_topics'").get()).not.toBeNull();
       expect(sqlite.query("SELECT name FROM sqlite_master WHERE type = 'table' AND name = 'commercial_deal_activities'").get()).not.toBeNull();
+      const commercialDealTableSql = sqlite.query("SELECT sql FROM sqlite_master WHERE type = 'table' AND name = 'commercial_deals'").get() as { sql: string };
+      expect(commercialDealTableSql.sql).toContain("status IN ('communicating', 'producing', 'delivered', 'archived')");
+    } finally {
+      sqlite.close();
+      fs.rmSync(tempDir, { recursive: true, force: true });
+    }
+  });
+
+  it('maps legacy commercial stages while upgrading the status constraint', () => {
+    const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'kanban-deal-status-'));
+    const dbPath = path.join(tempDir, 'legacy-deals.db');
+    const legacy = new Database(dbPath);
+    legacy.exec(schemaSql);
+    legacy.exec(`
+      CREATE TABLE commercial_deals (
+        id TEXT PRIMARY KEY,
+        title TEXT NOT NULL,
+        brand_name TEXT NOT NULL DEFAULT '',
+        agency_name TEXT NOT NULL DEFAULT '',
+        contact_name TEXT NOT NULL DEFAULT '',
+        contact_channel TEXT NOT NULL DEFAULT '',
+        source TEXT NOT NULL DEFAULT 'other',
+        deliverable_type TEXT NOT NULL DEFAULT 'custom_video',
+        status TEXT NOT NULL DEFAULT 'lead' CHECK (status IN ('lead', 'communicating', 'quoted', 'confirmed', 'producing', 'reviewing', 'scheduled', 'delivered', 'paused', 'closed_lost')),
+        contract_status TEXT NOT NULL DEFAULT 'not_started',
+        contract_summary TEXT NOT NULL DEFAULT '',
+        brief TEXT NOT NULL DEFAULT '',
+        requirements TEXT NOT NULL DEFAULT '',
+        restrictions TEXT NOT NULL DEFAULT '',
+        amount_cents INTEGER NOT NULL DEFAULT 0,
+        payment_status TEXT NOT NULL DEFAULT 'unpaid',
+        paid_at TEXT,
+        delivery_due_date TEXT,
+        publish_date TEXT,
+        next_action TEXT NOT NULL DEFAULT '',
+        next_action_due_date TEXT,
+        published_video_id TEXT,
+        created_at TEXT NOT NULL,
+        updated_at TEXT NOT NULL
+      );
+      INSERT INTO commercial_deals (id, title, status, created_at, updated_at) VALUES
+        ('legacy-producing', '旧制作单', 'reviewing', '2026-08-01T00:00:00.000Z', '2026-08-01T00:00:00.000Z'),
+        ('legacy-lost', '旧流失单', 'closed_lost', '2026-08-01T00:00:00.000Z', '2026-08-01T00:00:00.000Z'),
+        ('legacy-lead', '旧线索单', 'lead', '2026-08-01T00:00:00.000Z', '2026-08-01T00:00:00.000Z');
+    `);
+    legacy.close();
+
+    const { sqlite } = initializeSqliteDatabase(dbPath, path.resolve(process.cwd(), 'drizzle'));
+    try {
+      expect(sqlite.query('SELECT id, status FROM commercial_deals ORDER BY id').all()).toEqual([
+        { id: 'legacy-lead', status: 'communicating' },
+        { id: 'legacy-lost', status: 'archived' },
+        { id: 'legacy-producing', status: 'producing' },
+      ]);
+      expect(() => sqlite.query("INSERT INTO commercial_deals (id, title, status, created_at, updated_at) VALUES ('invalid', '非法', 'reviewing', '2026-08-01', '2026-08-01')").run()).toThrow();
     } finally {
       sqlite.close();
       fs.rmSync(tempDir, { recursive: true, force: true });

@@ -180,7 +180,7 @@ describe('backup schema validation', () => {
     const result = validateBackupData(createBackup({
       commercial_deals: [{
         id: 'deal-1', title: '品牌合作', brand_name: '', agency_name: '', contact_name: '', contact_channel: '',
-        source: 'other', deliverable_type: 'other', status: 'lead', contract_status: 'not_started',
+        source: 'other', deliverable_type: 'other', status: 'communicating', contract_status: 'not_started',
         contract_summary: '', brief: '', requirements: '', restrictions: '', amount_cents: 0,
         payment_status: 'unpaid', paid_at: null, delivery_due_date: null, publish_date: null, next_action: '',
         next_action_due_date: null, published_video_id: null, created_at: '', updated_at: '',
@@ -198,7 +198,7 @@ describe('backup schema validation', () => {
     const result = validateBackupData(createBackup({
       commercial_deals: [{
         id: 'deal-invalid-date', title: '品牌合作', brand_name: '', agency_name: '', contact_name: '', contact_channel: '',
-        source: 'other', deliverable_type: 'other', status: 'lead', contract_status: 'not_started',
+        source: 'other', deliverable_type: 'other', status: 'communicating', contract_status: 'not_started',
         contract_summary: '', brief: '', requirements: '', restrictions: '', amount_cents: 0,
         payment_status: 'unpaid', paid_at: null, delivery_due_date: '2026-02-30', publish_date: null,
         next_action: '', next_action_due_date: null, published_video_id: null, created_at: '', updated_at: '',

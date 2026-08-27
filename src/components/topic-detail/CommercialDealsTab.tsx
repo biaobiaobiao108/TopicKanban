@@ -9,9 +9,7 @@ import {
 } from '../../lib/storage';
 
 const STATUS_LABELS: Record<CommercialDeal['status'], string> = {
-  lead: '商机', communicating: '沟通中', quoted: '已报价', confirmed: '已确认',
-  producing: '制作中', reviewing: '客户审核', scheduled: '待上线', delivered: '已交付',
-  paused: '已暂停', closed_lost: '已流失',
+  communicating: '沟通中', producing: '制作中', delivered: '已交付', archived: '归档',
 };
 
 const PAYMENT_LABELS = { unpaid: '未回款', paid: '已回款' } as const;
@@ -36,7 +34,7 @@ export const CommercialDealsTab: React.FC<CommercialDealsTabProps> = ({ topic, o
     queryFn: () => fetchCommercialDealsByTopicId(topic.id),
   });
   const deals = dealsQuery.data || [];
-  const activeDeals = useMemo(() => deals.filter((deal) => deal.status !== 'closed_lost'), [deals]);
+  const activeDeals = useMemo(() => deals, [deals]);
 
   const changeRelation = async (dealId: string, mode: 'unlink' | 'primary') => {
     setBusyId(dealId);
@@ -102,7 +100,7 @@ export const CommercialDealsTab: React.FC<CommercialDealsTabProps> = ({ topic, o
       {error && <div role="alert" aria-live="polite" className="rounded-xl border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-800 dark:border-red-900/60 dark:bg-red-950/30 dark:text-red-200">{error}</div>}
 
       {activeDeals.length === 0 ? (
-        <div className="rounded-2xl border border-dashed border-stone-300 bg-white p-10 text-center text-sm text-stone-500 dark:border-stone-700 dark:bg-stone-900 dark:text-stone-400">这个选题暂未关联进行中的商单。</div>
+        <div className="rounded-2xl border border-dashed border-stone-300 bg-white p-10 text-center text-sm text-stone-500 dark:border-stone-700 dark:bg-stone-900 dark:text-stone-400">这个选题暂未关联商单。</div>
       ) : (
         <div className="grid gap-3">
           {activeDeals.map((deal) => {

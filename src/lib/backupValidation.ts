@@ -158,7 +158,7 @@ const commercialDealSchema = z.object({
   contact_channel: mediumText,
   source: z.enum(['huahuo', 'brand_direct', 'agency', 'mcn', 'other']),
   deliverable_type: z.enum(['custom_video', 'dynamic', 'live', 'offline_activity', 'other']),
-  status: z.enum(['lead', 'communicating', 'quoted', 'confirmed', 'producing', 'reviewing', 'scheduled', 'delivered', 'paused', 'closed_lost']),
+  status: z.enum(['communicating', 'producing', 'delivered', 'archived']),
   contract_status: z.enum(['not_started', 'drafting', 'signed']),
   contract_summary: longText,
   brief: longText,

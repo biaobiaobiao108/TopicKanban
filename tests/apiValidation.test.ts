@@ -40,4 +40,12 @@ describe('API validation boundaries', () => {
     expect(validateCommercialDealFields({ delivery_due_date: '2026-02-30' })).toBe('delivery_due_date must be YYYY-MM-DD or null');
     expect(validateCommercialDealFields({ delivery_due_date: '2026-08-27' })).toBeNull();
   });
+
+  it('only accepts the four commercial deal stages and non-negative amounts', () => {
+    for (const status of ['communicating', 'producing', 'delivered', 'archived']) {
+      expect(validateCommercialDealFields({ status })).toBeNull();
+    }
+    expect(validateCommercialDealFields({ status: 'reviewing' })).toBe('Invalid commercial deal status');
+    expect(validateCommercialDealFields({ amount_cents: -1 })).toBe('amount_cents must be a non-negative safe integer');
+  });
 });
