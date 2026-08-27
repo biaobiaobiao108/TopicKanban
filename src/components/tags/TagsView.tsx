@@ -24,6 +24,7 @@ import {
   Zap
 } from 'lucide-react';
 import { fetchTagsPage, fetchTopicPage } from '../../lib/storage';
+import { PageHeader } from '../layout/PageHeader';
 
 interface TagsViewProps {
   tags: Tag[];
@@ -173,24 +174,21 @@ export const TagsView: React.FC<TagsViewProps> = ({
     <div className="flex-1 flex flex-col h-full bg-[#fafaf9] dark:bg-[#0c0a09] overflow-hidden transition-colors">
       {/* 1. Header & Metric Cards */}
       <div className="tags-header-banner px-4 sm:px-8 py-5 border-b border-stone-200/70 dark:border-stone-800 bg-white/80 dark:bg-stone-900/90 backdrop-blur-sm shrink-0">
-        <div className="flex items-center justify-between flex-wrap gap-4 mb-3">
-          <div>
-            <h2 className="text-xl font-bold text-stone-900 dark:text-stone-100 flex items-center gap-2">
-              <span className="p-1 rounded-lg bg-rose-500/10 text-rose-600 dark:text-rose-400">
-                <Hash className="w-5 h-5" />
-              </span>
-              <span>标签与创作赛道资产</span>
-            </h2>
-          </div>
-
-          <button
-            onClick={openCreateModal}
-            className="flex items-center gap-1.5 px-4 py-2 bg-rose-600 hover:bg-rose-700 active:scale-[0.98] text-white rounded-xl text-xs sm:text-sm font-semibold shadow-2xs hover:shadow-xs transition-all cursor-pointer"
-          >
-            <Plus className="w-4 h-4 stroke-[2.5]" />
-            <span>新建赛道标签</span>
-          </button>
-        </div>
+        <PageHeader
+          title="标签与创作赛道资产"
+          icon={Hash}
+          className="mb-4"
+          actions={(
+            <button
+              type="button"
+              onClick={openCreateModal}
+              className="inline-flex min-h-12 items-center gap-1.5 rounded-xl bg-rose-600 px-4 text-xs font-semibold text-white shadow-2xs transition-all hover:bg-rose-700 hover:shadow-xs active:scale-[0.98] sm:text-sm"
+            >
+              <Plus className="h-4 w-4 stroke-[2.5]" aria-hidden="true" />
+              <span>新建赛道标签</span>
+            </button>
+          )}
+        />
 
         {/* Metric Cards */}
         <div className="tags-metrics-container grid grid-cols-2 sm:grid-cols-4 gap-3">

@@ -11,6 +11,7 @@ import {
   ClipboardList,
   ExternalLink,
   FileText,
+  Handshake,
   Link2,
   MessageSquare,
   Pencil,
@@ -39,6 +40,7 @@ import {
 import { Modal } from '../ui/Modal';
 import { DateInput } from '../ui/DateInput';
 import { CustomSelect, type SelectOption } from '../ui/CustomSelect';
+import { PageHeader } from '../layout/PageHeader';
 
 const STATUS_LABELS: Record<CommercialDealStatus, string> = {
   lead: '商机线索',
@@ -448,10 +450,14 @@ function CommercialDealsView({ topics, onCreateTopicFromDeal }: Omit<DealsViewPr
   return (
     <div className="flex-1 overflow-y-auto overscroll-contain pb-20 md:pb-8">
       <div className="mx-auto max-w-7xl space-y-6 px-4 py-5 sm:px-8 sm:py-8">
-        <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-end">
-          <div><div className="flex flex-wrap items-center gap-2.5"><h2 className="text-2xl font-bold tracking-tight text-stone-900 dark:text-stone-100">商单中心</h2><span className="rounded-full bg-rose-500/10 px-2.5 py-1 text-xs font-semibold text-rose-700 dark:bg-rose-950/40 dark:text-rose-300">商务 × 内容生产</span></div><p className="mt-2 text-sm text-stone-500 dark:text-stone-400">把客户的执行单，变成可交付、可回款的一条生产线。</p></div>
-          <button type="button" onClick={() => setIsFormOpen(true)} className="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl bg-rose-600 px-4 py-2.5 text-sm font-bold text-white shadow-2xs transition-colors hover:bg-rose-700 active:scale-[0.98]"><Plus className="h-4 w-4" />记录新商单</button>
-        </div>
+        <PageHeader
+          title="商单中心"
+          icon={Handshake}
+          badge={<span className="rounded-full bg-rose-500/10 px-2.5 py-1 text-xs font-semibold text-rose-700 dark:bg-rose-950/40 dark:text-rose-300">商务 × 内容生产</span>}
+          actions={(
+            <button type="button" onClick={() => setIsFormOpen(true)} className="inline-flex min-h-12 items-center justify-center gap-2 rounded-xl bg-rose-600 px-4 text-sm font-bold text-white shadow-2xs transition-colors hover:bg-rose-700 active:scale-[0.98]"><Plus className="h-4 w-4" aria-hidden="true" />记录新商单</button>
+          )}
+        />
 
         <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
           <SummaryCard icon={<ClipboardList className="h-4 w-4" />} label="进行中的商单" value={String(page?.summary.active_count || 0)} detail="未暂停 / 未流失" />

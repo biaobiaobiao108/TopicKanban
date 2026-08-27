@@ -9,8 +9,10 @@ test('workspace login, keyboard select and modal semantics work', async ({ page 
   await page.getByRole('button', { name: '进入工作台' }).click();
   await expect(page).toHaveURL(/\/today$/);
   await expect(page.getByRole('heading', { name: '选题生产工作台' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: '今日生产聚焦', exact: true, level: 1 })).toBeVisible();
 
   await page.goto('/kanban');
+  await expect(page.getByRole('heading', { name: '选题全景看板', exact: true, level: 1 })).toBeVisible();
   const select = page.getByRole('combobox').first();
   await expect(select).toBeVisible();
   await expect(select).toHaveAttribute('aria-label', '优先级筛选');
@@ -39,6 +41,33 @@ test('workspace login, keyboard select and modal semantics work', async ({ page 
   await expect(page.getByText('全局呼出此指令面板（任何输入框、正文聚焦或专注全屏均可用）')).toBeVisible();
   await page.keyboard.press('Escape');
   expect(pageErrors).toEqual([]);
+});
+
+test('一级模块使用统一页面标题且商单副标题已移除', async ({ page }) => {
+  await page.goto('/');
+  await page.locator('input[name="password"]').fill('admin');
+  await page.getByRole('button', { name: '进入工作台' }).click();
+  await expect(page).toHaveURL(/\/today$/);
+
+  const modules = [
+    { path: '/today', title: '今日生产聚焦' },
+    { path: '/kanban', title: '选题全景看板' },
+    { path: '/people', title: '互联网人物档案与关系库' },
+    { path: '/tags', title: '标签与创作赛道资产' },
+    { path: '/published', title: '已发布视频复盘与数据沉淀' },
+    { path: '/deals', title: '商单中心' },
+    { path: '/database', title: '选题库' },
+    { path: '/settings', title: '偏好设置与数据管理' },
+  ];
+
+  for (const module of modules) {
+    await page.goto(module.path);
+    await expect(page.locator('[data-page-header]')).toHaveCount(1);
+    await expect(page.getByRole('heading', { name: module.title, exact: true, level: 1 })).toBeVisible();
+  }
+
+  await page.goto('/deals');
+  await expect(page.getByText('把客户的执行单，变成可交付、可回款的一条生产线。', { exact: true })).toHaveCount(0);
 });
 
 test('dark theme keeps kanban selects and database pagination readable', async ({ page }) => {
@@ -110,6 +139,7 @@ test('dark theme keeps kanban selects and database pagination readable', async (
 
   await page.goto('/database');
   await expect(page.getByRole('heading', { name: '选题库' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: '选题库', exact: true, level: 1 })).toBeVisible();
   const mobilePaginationButton = page.getByRole('button', { name: '上一页' }).last();
   await expect(mobilePaginationButton).toBeVisible();
   await expect.poll(async () => mobilePaginationButton.evaluate((element) => getComputedStyle(element.parentElement || element).backgroundColor)).not.toBe('rgb(245, 245, 244)');

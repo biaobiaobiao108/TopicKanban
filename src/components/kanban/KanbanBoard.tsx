@@ -21,7 +21,8 @@ import { KanbanColumn } from './KanbanColumn';
 import { KanbanCard } from './KanbanCard';
 import { KanbanFilters, SortField } from './KanbanFilters';
 import { ACTIVE_COLUMNS } from './columns';
-import { AlertTriangle } from 'lucide-react';
+import { AlertTriangle, KanbanSquare } from 'lucide-react';
+import { PageHeader } from '../layout/PageHeader';
 import { getNextActionAgeDays, isActiveTopic, isNextActionDeferred } from '../../lib/topicMetrics';
 import { fetchTopicPage } from '../../lib/storage';
 
@@ -617,6 +618,8 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
 
   return (
     <div className="flex-1 w-full h-full overflow-y-auto px-4 sm:px-6 py-4 space-y-4">
+      <PageHeader title="选题全景看板" icon={KanbanSquare} />
+
       {/* Filters Bar & View Switcher */}
       <div className="space-y-3">
         <div className="flex items-center justify-between flex-wrap gap-3">

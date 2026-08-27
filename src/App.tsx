@@ -46,6 +46,8 @@ import { matchPath, useLocation, useNavigate } from 'react-router-dom';
 import { useWorkspace } from './hooks/useWorkspace';
 import { lazyWithReload } from './lib/lazyWithReload';
 import { useToast } from './components/ui/Toast';
+import { PageHeader } from './components/layout/PageHeader';
+import { Database } from 'lucide-react';
 
 const VIEW_PATHS: Record<Exclude<NavView, 'topic-detail'>, string> = {
   today: '/today',
@@ -736,22 +738,25 @@ function WorkspaceApp({ isAuth, setIsAuth }: WorkspaceAppProps) {
           )}
 
           {currentView === 'database' && (
-            <div className="flex-1 w-full h-full flex flex-col px-4 sm:px-6 py-4 min-h-0 overflow-hidden">
-              <TopicTableView
-                topics={topics}
-                onOpenDetail={handleOpenDetail}
-                onTogglePin={handleTogglePin}
-                onUpdateTopicStatus={handleUpdateTopicStatus}
-                onUpdateTopic={handleUpdateTopicById}
-                onDeleteTopic={handleDeleteTopic}
-                trashedTopics={trashedTopics}
-                onRestoreTopic={handleRestoreTopic}
-                onPermanentlyDeleteTopic={handlePermanentlyDeleteTopic}
-                onPermanentlyDeleteTopicsBatch={handlePermanentlyDeleteTopicsBatch}
-                onEmptyTrash={handleEmptyTrash}
-                readingSpeed={settings.reading_speed || 280}
-                searchTerm={searchTerm}
-              />
+            <div className="flex h-full min-h-0 w-full flex-1 flex-col gap-4 overflow-hidden px-4 py-4 sm:px-6">
+              <PageHeader title="选题库" icon={Database} className="shrink-0" />
+              <div className="min-h-0 flex-1">
+                <TopicTableView
+                  topics={topics}
+                  onOpenDetail={handleOpenDetail}
+                  onTogglePin={handleTogglePin}
+                  onUpdateTopicStatus={handleUpdateTopicStatus}
+                  onUpdateTopic={handleUpdateTopicById}
+                  onDeleteTopic={handleDeleteTopic}
+                  trashedTopics={trashedTopics}
+                  onRestoreTopic={handleRestoreTopic}
+                  onPermanentlyDeleteTopic={handlePermanentlyDeleteTopic}
+                  onPermanentlyDeleteTopicsBatch={handlePermanentlyDeleteTopicsBatch}
+                  onEmptyTrash={handleEmptyTrash}
+                  readingSpeed={settings.reading_speed || 280}
+                  searchTerm={searchTerm}
+                />
+              </div>
             </div>
           )}
 

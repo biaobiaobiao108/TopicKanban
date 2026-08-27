@@ -11,9 +11,11 @@ import {
   Pin,
   Zap,
   Handshake,
-  WalletCards
+  WalletCards,
+  Calendar,
 } from 'lucide-react';
 import { NextActionDialog } from '../topic-detail/NextActionDialog';
+import { PageHeader } from '../layout/PageHeader';
 import { getNextActionAgeDays, getNextActionWarning } from '../../lib/topicMetrics';
 
 const FOCUS_PRIORITY = { high: 3, medium: 2, low: 1, none: 0 };
@@ -133,25 +135,21 @@ export const TodayView: React.FC<TodayViewProps> = ({
   return (
     <div className="flex-1 w-full h-full overflow-y-auto overscroll-contain pb-20 md:pb-8">
       <div className="max-w-7xl mx-auto px-4 sm:px-8 py-5 sm:py-8 space-y-6 sm:space-y-8">
-        {/* Top Header */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-          <div>
-            <div className="flex items-center gap-2.5">
-              <h2 className="text-xl sm:text-2xl font-bold text-stone-900 dark:text-stone-100 tracking-tight text-balance">今日生产聚焦</h2>
-              <span className="text-xs bg-rose-500/10 text-rose-700 dark:text-rose-300 font-semibold px-2.5 py-0.5 rounded-full select-none">
-                专注当下
-              </span>
-            </div>
-          </div>
-
-          <button
-            onClick={onOpenQuickCreate}
-            className="self-start sm:self-auto flex items-center gap-2 bg-stone-900 dark:bg-rose-600 hover:bg-stone-800 dark:hover:bg-rose-700 text-white px-4 py-2 rounded-xl text-xs sm:text-sm font-semibold transition-all shadow-2xs hover:shadow-xs cursor-pointer"
-          >
-            <Sparkles className="w-4 h-4 text-amber-300" />
-            <span>记录新灵感</span>
-          </button>
-        </div>
+        <PageHeader
+          title="今日生产聚焦"
+          icon={Calendar}
+          badge={<span className="rounded-full bg-rose-500/10 px-2.5 py-1 text-xs font-semibold text-rose-700 dark:bg-rose-950/40 dark:text-rose-300">专注当下</span>}
+          actions={(
+            <button
+              type="button"
+              onClick={onOpenQuickCreate}
+              className="inline-flex min-h-12 items-center justify-center gap-2 rounded-xl bg-stone-900 px-4 text-xs font-semibold text-white shadow-2xs transition-all hover:bg-stone-800 hover:shadow-xs dark:bg-rose-600 dark:hover:bg-rose-700 sm:text-sm"
+            >
+              <Sparkles className="h-4 w-4 text-amber-300" aria-hidden="true" />
+              <span>记录新灵感</span>
+            </button>
+          )}
+        />
 
         {/* 1. Spotlight Feature Topic Card (Editorial Hero Spotlight) */}
         {focusTopic ? (

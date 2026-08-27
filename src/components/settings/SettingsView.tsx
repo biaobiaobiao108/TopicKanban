@@ -13,6 +13,7 @@ import { exportBackupData, importBackupData, exportScriptsMarkdown } from '../..
 import { authenticatedFetch } from '../../lib/auth';
 import { applyTheme } from '../../lib/theme';
 import { resolvePublicUrl } from '../../lib/publicUrl';
+import { PageHeader } from '../layout/PageHeader';
 import {
   Settings,
   Download,
@@ -326,31 +327,28 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
   return (
     <div className="flex-1 w-full h-full overflow-y-auto pb-24 md:pb-8 transition-colors">
       <div className="max-w-5xl mx-auto px-4 sm:px-8 py-5 sm:py-8 space-y-6 sm:space-y-8">
-        {/* Header */}
-        <div className="flex items-center justify-between flex-wrap gap-4">
-          <div>
-            <h2 className="text-xl sm:text-2xl font-bold text-stone-900 dark:text-stone-100 tracking-tight flex items-center gap-2">
-              <Settings className="w-5 sm:w-6 h-5 sm:h-6 text-rose-600 dark:text-rose-500" />
-              <span>偏好设置与数据管理</span>
-            </h2>
-          </div>
-
-          <div className="flex items-center gap-2.5">
+        <PageHeader
+          title="偏好设置与数据管理"
+          icon={Settings}
+          actions={(
+            <>
             {savedSuccess && (
-              <span className="text-xs font-semibold text-emerald-600 dark:text-emerald-400 flex items-center gap-1 animate-in fade-in">
-                <CheckCircle2 className="w-4 h-4" /> 设置已同步至 Workers KV
+              <span className="flex items-center gap-1 text-xs font-semibold text-emerald-600 animate-in fade-in dark:text-emerald-400">
+                <CheckCircle2 className="h-4 w-4" aria-hidden="true" /> 设置已同步至 Workers KV
               </span>
             )}
             <button
+              type="button"
               onClick={handleSaveAllPreferences}
               disabled={isSaving}
-              className="flex items-center gap-1.5 px-4 py-2 bg-stone-900 dark:bg-rose-600 hover:bg-stone-800 dark:hover:bg-rose-700 active:scale-95 text-white rounded-xl text-xs sm:text-sm font-bold transition-all shadow-sm disabled:opacity-50 cursor-pointer"
+              className="inline-flex min-h-12 items-center gap-1.5 rounded-xl bg-stone-900 px-4 text-xs font-bold text-white shadow-sm transition-all hover:bg-stone-800 disabled:opacity-50 dark:bg-rose-600 dark:hover:bg-rose-700 sm:text-sm"
             >
-              <Zap className={`w-4 h-4 ${isSaving ? 'animate-spin' : ''}`} />
+              <Zap className={`h-4 w-4 ${isSaving ? 'animate-spin' : ''}`} aria-hidden="true" />
               <span>{isSaving ? '正在保存…' : '保存全部偏好设置'}</span>
             </button>
-          </div>
-        </div>
+            </>
+          )}
+        />
 
         {/* 1. Appearance */}
         <div className="bg-white dark:bg-stone-900 rounded-2xl border border-stone-200/70 dark:border-stone-800 p-5 sm:p-6 space-y-5 shadow-2xs transition-colors">

@@ -26,12 +26,12 @@ export const Navbar: React.FC<NavbarProps> = ({
   const titles: Record<NavView, string> = {
     today: '今日聚焦',
     kanban: '选题全景看板',
-    tags: '标签与创作赛道',
-    people: '人物档案与关系库',
-    published: '已发布视频复盘',
+    tags: '标签与创作赛道资产',
+    people: '互联网人物档案与关系库',
+    published: '已发布视频复盘与数据沉淀',
     deals: '商单中心',
     database: '选题库',
-    settings: '偏好与数据备份',
+    settings: '偏好设置与数据管理',
     'topic-detail': '选题生产工作台',
   };
 
@@ -51,9 +51,9 @@ export const Navbar: React.FC<NavbarProps> = ({
           </button>
         )}
 
-        <h2 className="text-sm sm:text-base font-bold text-stone-900 dark:text-stone-100 tracking-tight truncate">
+        <span className="text-sm sm:text-base font-bold text-stone-900 dark:text-stone-100 tracking-tight truncate">
           {currentTitle}
-        </h2>
+        </span>
       </div>
 
       {/* Right Controls */}

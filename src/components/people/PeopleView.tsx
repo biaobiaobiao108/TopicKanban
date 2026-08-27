@@ -19,6 +19,7 @@ import {
   Layers
 } from 'lucide-react';
 import { CustomSelect } from '../ui/CustomSelect';
+import { PageHeader } from '../layout/PageHeader';
 import { fetchPeopleOptions, fetchPeoplePage } from '../../lib/storage';
 
 interface PeopleViewProps {
@@ -154,19 +155,13 @@ export const PeopleView: React.FC<PeopleViewProps> = ({
   return (
     <div className="flex-1 w-full h-full overflow-y-auto">
       <div className="max-w-7xl mx-auto px-4 sm:px-8 py-6 sm:py-8 space-y-6 sm:space-y-8">
-        {/* Header */}
-        <div className="flex items-center justify-between flex-wrap gap-4 bg-white dark:bg-stone-900 p-5 sm:p-6 rounded-2xl border border-stone-200/70 dark:border-stone-800 shadow-2xs">
-          <div>
-            <h2 className="text-xl sm:text-2xl font-bold text-stone-900 dark:text-stone-100 tracking-tight flex items-center gap-2.5">
-              <span className="p-1.5 rounded-xl bg-rose-500/10 text-rose-600 dark:text-rose-400">
-                <Users className="w-5 h-5 sm:w-6 sm:h-6" />
-              </span>
-              <span>互联网人物档案与关系库</span>
-            </h2>
-          </div>
-
-          <div className="flex items-center gap-2.5 flex-wrap">
+        <PageHeader
+          title="互联网人物档案与关系库"
+          icon={Users}
+          actions={(
+            <>
             <button
+              type="button"
               onClick={() => {
                 if (peopleOptions.length < 2) {
                   showToast({ message: '请先创建至少2位人物以建立关系', tone: 'info' });
@@ -178,21 +173,23 @@ export const PeopleView: React.FC<PeopleViewProps> = ({
                 setRelDesc('');
                 setIsRelModalOpen(true);
               }}
-              className="flex items-center gap-1.5 bg-stone-100/80 dark:bg-stone-800 hover:bg-stone-200/80 dark:hover:bg-stone-700 text-stone-800 dark:text-stone-200 px-3.5 py-2 rounded-xl text-xs sm:text-sm font-semibold transition-colors cursor-pointer"
+              className="inline-flex min-h-12 items-center gap-1.5 rounded-xl bg-stone-100/80 px-3.5 text-xs font-semibold text-stone-800 transition-colors hover:bg-stone-200/80 dark:bg-stone-800 dark:text-stone-200 dark:hover:bg-stone-700 sm:text-sm"
             >
-              <Link2 className="w-4 h-4 text-stone-500 dark:text-stone-400" />
+              <Link2 className="h-4 w-4 text-stone-500 dark:text-stone-400" aria-hidden="true" />
               <span>+ 记录人物关系</span>
             </button>
 
             <button
+              type="button"
               onClick={openAddPersonModal}
-              className="flex items-center gap-1.5 bg-rose-600 hover:bg-rose-700 active:scale-[0.98] text-white px-4 py-2 rounded-xl text-xs sm:text-sm font-semibold transition-all shadow-2xs hover:shadow-xs cursor-pointer"
+              className="inline-flex min-h-12 items-center gap-1.5 rounded-xl bg-rose-600 px-4 text-xs font-semibold text-white shadow-2xs transition-all hover:bg-rose-700 hover:shadow-xs active:scale-[0.98] sm:text-sm"
             >
-              <Plus className="w-4 h-4 stroke-[2.5]" />
+              <Plus className="h-4 w-4 stroke-[2.5]" aria-hidden="true" />
               <span>新建人物档案</span>
             </button>
-          </div>
-        </div>
+            </>
+          )}
+        />
 
         {/* Search Bar */}
         <div className="relative max-w-md">
