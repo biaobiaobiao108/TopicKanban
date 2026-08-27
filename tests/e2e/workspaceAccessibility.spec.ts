@@ -76,6 +76,44 @@ test('一级模块使用统一页面标题且商单副标题已移除', async ({
   ).toHaveCount(0);
 });
 
+test('商单快速创建弹窗中的下拉菜单不会被裁剪', async ({ page }) => {
+  await page.goto('/');
+  await page.locator('input[name="password"]').fill('admin');
+  await page.getByRole('button', { name: '进入工作台' }).click();
+  await expect(page).toHaveURL(/\/today$/);
+
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.goto('/deals');
+  await page.getByRole('button', { name: '记录新商单' }).click();
+  const dialog = page.getByRole('dialog', { name: '记录新商单' });
+  await expect(dialog).toBeVisible();
+
+  const sourceSelect = dialog.getByRole('combobox', { name: '商单来源' });
+  await sourceSelect.click();
+  const sourceOption = page.getByRole('option', { name: '花火', exact: true });
+  await expect(sourceOption).toBeVisible();
+  const sourcePopover = page.getByRole('listbox').locator('..');
+  const sourceBounds = await sourcePopover.boundingBox();
+  expect(sourceBounds).not.toBeNull();
+  expect(sourceBounds?.x).toBeGreaterThanOrEqual(0);
+  expect((sourceBounds?.x || 0) + (sourceBounds?.width || 0)).toBeLessThanOrEqual(390);
+  expect(sourceBounds?.y).toBeGreaterThanOrEqual(0);
+  expect((sourceBounds?.y || 0) + (sourceBounds?.height || 0)).toBeLessThanOrEqual(844);
+  await page.keyboard.press('Escape');
+
+  const deliverableSelect = dialog.getByRole('combobox', { name: '交付类型' });
+  await deliverableSelect.click();
+  const deliverableOption = page.getByRole('option', { name: '动态推广', exact: true });
+  await expect(deliverableOption).toBeVisible();
+  const deliverablePopover = page.getByRole('listbox').locator('..');
+  const deliverableBounds = await deliverablePopover.boundingBox();
+  expect(deliverableBounds).not.toBeNull();
+  expect(deliverableBounds?.x).toBeGreaterThanOrEqual(0);
+  expect((deliverableBounds?.x || 0) + (deliverableBounds?.width || 0)).toBeLessThanOrEqual(390);
+  expect(deliverableBounds?.y).toBeGreaterThanOrEqual(0);
+  expect((deliverableBounds?.y || 0) + (deliverableBounds?.height || 0)).toBeLessThanOrEqual(844);
+});
+
 test('dark theme keeps kanban selects and database pagination readable', async ({ page }) => {
   const pageErrors: Error[] = [];
   page.on('pageerror', (error) => pageErrors.push(error));

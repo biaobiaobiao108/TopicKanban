@@ -531,7 +531,6 @@ export const PublishedView: React.FC<PublishedViewProps> = ({
                   placeholder="请选择关联选题"
                   className="min-w-0 flex-1"
                   buttonClassName="w-full min-h-[42px] px-3 py-2 bg-stone-50 dark:bg-stone-800 border-stone-300 dark:border-stone-700 rounded-lg text-sm pr-10"
-                  popoverClassName="w-full"
                   renderValue={() => {
                     const selectedTopic = topicMap.get(topicId);
                     return selectedTopic ? (

@@ -211,7 +211,7 @@ interface SelectFieldProps {
 
 function SelectField({ name, label, value, options, onChange }: SelectFieldProps) {
   return (
-    <div className="text-xs font-semibold text-stone-600 dark:text-stone-300">
+    <div className="min-w-0 text-xs font-semibold text-stone-600 dark:text-stone-300">
       <span className="block">{label}</span>
       <input type="hidden" name={name} value={value} />
       <CustomSelect
@@ -1708,6 +1708,7 @@ function CommercialDealDetailView({
                     searchable
                     searchPlaceholder="搜索已发布视频"
                     size="md"
+                    popoverWidth="content"
                     buttonClassName="mt-2 min-h-11 w-full min-w-0 max-w-full"
                     popoverClassName="w-[min(32rem,calc(100vw-2rem))] max-w-[calc(100vw-2rem)]"
                   />
