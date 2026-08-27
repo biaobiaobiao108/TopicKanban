@@ -32,7 +32,7 @@ import {
   toPersistedPublishPackageContent,
   type PublishPackageEditableFields,
 } from '../../lib/publishPackage';
-import { toTraditionalChinese } from '../../lib/traditionalChinese';
+import { toTraditionalChinese, toTraditionalChineseAsync, getTraditionalConverter } from '../../lib/traditionalChinese';
 import { PublishPackageConflictError } from '../../lib/storage';
 import { useToast } from '../ui/Toast';
 
@@ -229,10 +229,44 @@ export const PublishPackageTab: React.FC<PublishPackageTabProps> = ({
     }));
   };
 
-  const restoreTraditional = (field: 'title' | 'description') => {
-    updateFields((current) => field === 'title'
-      ? { ...current, title_traditional: toTraditionalChinese(current.title_simplified), title_traditional_auto: true }
-      : { ...current, description_traditional: toTraditionalChinese(current.description_simplified), description_traditional_auto: true });
+  useEffect(() => {
+    let active = true;
+    void getTraditionalConverter().then((convert) => {
+      if (!active) return;
+      setFields((current) => {
+        let changed = false;
+        let nextTitleTrad = current.title_traditional;
+        let nextDescTrad = current.description_traditional;
+        if (current.title_traditional_auto && current.title_simplified) {
+          const trad = convert(current.title_simplified);
+          if (trad !== current.title_traditional) {
+            nextTitleTrad = trad;
+            changed = true;
+          }
+        }
+        if (current.description_traditional_auto && current.description_simplified) {
+          const trad = convert(current.description_simplified);
+          if (trad !== current.description_traditional) {
+            nextDescTrad = trad;
+            changed = true;
+          }
+        }
+        return changed ? { ...current, title_traditional: nextTitleTrad, description_traditional: nextDescTrad } : current;
+      });
+    });
+    return () => {
+      active = false;
+    };
+  }, []);
+
+  const restoreTraditional = async (field: 'title' | 'description') => {
+    if (field === 'title') {
+      const trad = await toTraditionalChineseAsync(fields.title_simplified);
+      updateFields((current) => ({ ...current, title_traditional: trad, title_traditional_auto: true }));
+    } else {
+      const trad = await toTraditionalChineseAsync(fields.description_simplified);
+      updateFields((current) => ({ ...current, description_traditional: trad, description_traditional_auto: true }));
+    }
   };
 
   const checks = useMemo(() => evaluatePublishChecks({

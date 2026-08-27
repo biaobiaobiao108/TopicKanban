@@ -46,6 +46,41 @@ const FONT_SIZES = [
   { level: 4, label: '特大', sizeClass: 'text-5xl sm:text-6xl leading-relaxed' },
 ] as const;
 
+const PREF_SPEED_KEY = 'teleprompter_pref_speed';
+const PREF_FONT_KEY = 'teleprompter_pref_font';
+const PREF_THEME_KEY = 'teleprompter_pref_theme';
+const PREF_MIRROR_KEY = 'teleprompter_pref_mirror';
+
+function getStoredNumber(key: string, fallback: number, min: number, max: number): number {
+  if (typeof window === 'undefined') return fallback;
+  try {
+    const v = Number(localStorage.getItem(key));
+    return Number.isFinite(v) && v >= min && v <= max ? v : fallback;
+  } catch {
+    return fallback;
+  }
+}
+
+function getStoredString<T extends string>(key: string, fallback: T, allowed: readonly T[]): T {
+  if (typeof window === 'undefined') return fallback;
+  try {
+    const v = localStorage.getItem(key) as T;
+    return allowed.includes(v) ? v : fallback;
+  } catch {
+    return fallback;
+  }
+}
+
+function getStoredBool(key: string, fallback: boolean): boolean {
+  if (typeof window === 'undefined') return fallback;
+  try {
+    const v = localStorage.getItem(key);
+    return v === 'true' ? true : v === 'false' ? false : fallback;
+  } catch {
+    return fallback;
+  }
+}
+
 export const TeleprompterModal: React.FC<TeleprompterModalProps> = ({
   isOpen,
   onClose,
@@ -56,10 +91,10 @@ export const TeleprompterModal: React.FC<TeleprompterModalProps> = ({
   totalWordCount = 0,
 }) => {
   const [isPlaying, setIsPlaying] = useState(false);
-  const [speedMultiplier, setSpeedMultiplier] = useState(1.0);
-  const [fontLevel, setFontLevel] = useState<1 | 2 | 3 | 4>(2);
-  const [theme, setTheme] = useState<'dark' | 'light'>('dark');
-  const [isMirror, setIsMirror] = useState(false);
+  const [speedMultiplier, setSpeedMultiplier] = useState(() => getStoredNumber(PREF_SPEED_KEY, 1.0, 0.4, 3.0));
+  const [fontLevel, setFontLevel] = useState<1 | 2 | 3 | 4>(() => getStoredNumber(PREF_FONT_KEY, 2, 1, 4) as 1 | 2 | 3 | 4);
+  const [theme, setTheme] = useState<'dark' | 'light'>(() => getStoredString(PREF_THEME_KEY, 'dark', ['dark', 'light'] as const));
+  const [isMirror, setIsMirror] = useState(() => getStoredBool(PREF_MIRROR_KEY, false));
   const [isOutlineOpen, setIsOutlineOpen] = useState(false);
   const [showKeyboardHelp, setShowKeyboardHelp] = useState(false);
   const [elapsedSeconds, setElapsedSeconds] = useState(0);
@@ -67,6 +102,35 @@ export const TeleprompterModal: React.FC<TeleprompterModalProps> = ({
   const [activeBlockIndex, setActiveBlockIndex] = useState(0);
   const [isFullscreen, setIsFullscreen] = useState(false);
   const positionStorageKey = `teleprompter-position:${topicTitle}`;
+
+  const setSpeedMultiplierWithStorage = useCallback((valOrUpdater: number | ((prev: number) => number)) => {
+    setSpeedMultiplier((prev) => {
+      const next = typeof valOrUpdater === 'function' ? valOrUpdater(prev) : valOrUpdater;
+      try { localStorage.setItem(PREF_SPEED_KEY, String(next)); } catch {}
+      return next;
+    });
+  }, []);
+
+  const setFontLevelWithStorage = useCallback((level: 1 | 2 | 3 | 4) => {
+    setFontLevel(level);
+    try { localStorage.setItem(PREF_FONT_KEY, String(level)); } catch {}
+  }, []);
+
+  const setThemeWithStorage = useCallback((themeOrUpdater: 'dark' | 'light' | ((prev: 'dark' | 'light') => 'dark' | 'light')) => {
+    setTheme((prev) => {
+      const next = typeof themeOrUpdater === 'function' ? themeOrUpdater(prev) : themeOrUpdater;
+      try { localStorage.setItem(PREF_THEME_KEY, next); } catch {}
+      return next;
+    });
+  }, []);
+
+  const setIsMirrorWithStorage = useCallback((mirrorOrUpdater: boolean | ((prev: boolean) => boolean)) => {
+    setIsMirror((prev) => {
+      const next = typeof mirrorOrUpdater === 'function' ? mirrorOrUpdater(prev) : mirrorOrUpdater;
+      try { localStorage.setItem(PREF_MIRROR_KEY, String(next)); } catch {}
+      return next;
+    });
+  }, []);
 
   const containerRef = useRef<HTMLDivElement | null>(null);
   const scrollableRef = useRef<HTMLDivElement | null>(null);
@@ -414,28 +478,28 @@ export const TeleprompterModal: React.FC<TeleprompterModalProps> = ({
       }
       if (e.key === '+' || e.key === '=' || e.key === ']') {
         e.preventDefault();
-        setSpeedMultiplier((prev) => Math.min(3.0, Math.round((prev + 0.2) * 10) / 10));
+        setSpeedMultiplierWithStorage((prev) => Math.min(3.0, Math.round((prev + 0.2) * 10) / 10));
         return;
       }
       if (e.key === '-' || e.key === '_' || e.key === '[') {
         e.preventDefault();
-        setSpeedMultiplier((prev) => Math.max(0.4, Math.round((prev - 0.2) * 10) / 10));
+        setSpeedMultiplierWithStorage((prev) => Math.max(0.4, Math.round((prev - 0.2) * 10) / 10));
         return;
       }
       if (e.key === '1') {
-        setFontLevel(1);
+        setFontLevelWithStorage(1);
         return;
       }
       if (e.key === '2') {
-        setFontLevel(2);
+        setFontLevelWithStorage(2);
         return;
       }
       if (e.key === '3') {
-        setFontLevel(3);
+        setFontLevelWithStorage(3);
         return;
       }
       if (e.key === '4') {
-        setFontLevel(4);
+        setFontLevelWithStorage(4);
         return;
       }
       if (e.key === 'r' || e.key === 'R') {
@@ -445,12 +509,12 @@ export const TeleprompterModal: React.FC<TeleprompterModalProps> = ({
       }
       if (e.key === 't' || e.key === 'T') {
         e.preventDefault();
-        setTheme((prev) => (prev === 'dark' ? 'light' : 'dark'));
+        setThemeWithStorage((prev) => (prev === 'dark' ? 'light' : 'dark'));
         return;
       }
       if (e.key === 'm' || e.key === 'M') {
         e.preventDefault();
-        setIsMirror((prev) => !prev);
+        setIsMirrorWithStorage((prev) => !prev);
         return;
       }
       if (e.key === 'o' || e.key === 'O') {
@@ -595,7 +659,7 @@ function renderScriptTextWithCues(text: string, isDark: boolean): React.ReactNod
           }`}>
             <Gauge className={`w-3.5 h-3.5 ml-0.5 ${isDark ? 'text-stone-300' : 'text-stone-400'}`} />
             <button
-              onClick={() => setSpeedMultiplier((prev) => Math.max(0.4, Math.round((prev - 0.2) * 10) / 10))}
+              onClick={() => setSpeedMultiplierWithStorage((prev) => Math.max(0.4, Math.round((prev - 0.2) * 10) / 10))}
               className={`px-1 font-bold cursor-pointer ${isDark ? 'hover:text-rose-400 text-stone-200' : 'hover:text-rose-500 text-stone-700'}`}
               title="减速 (快捷键: -)"
             >
@@ -603,7 +667,7 @@ function renderScriptTextWithCues(text: string, isDark: boolean): React.ReactNod
             </button>
             <span className="font-bold text-rose-500 px-0.5">{speedMultiplier.toFixed(1)}x</span>
             <button
-              onClick={() => setSpeedMultiplier((prev) => Math.min(3.0, Math.round((prev + 0.2) * 10) / 10))}
+              onClick={() => setSpeedMultiplierWithStorage((prev) => Math.min(3.0, Math.round((prev + 0.2) * 10) / 10))}
               className={`px-1 font-bold cursor-pointer ${isDark ? 'hover:text-rose-400 text-stone-200' : 'hover:text-rose-500 text-stone-700'}`}
               title="加速 (快捷键: +)"
             >
@@ -619,7 +683,7 @@ function renderScriptTextWithCues(text: string, isDark: boolean): React.ReactNod
             {FONT_SIZES.map((f) => (
               <button
                 key={f.level}
-                onClick={() => setFontLevel(f.level)}
+                onClick={() => setFontLevelWithStorage(f.level)}
                 className={`px-1.5 py-0.5 rounded text-[11px] font-bold transition-colors cursor-pointer ${
                   fontLevel === f.level
                     ? 'bg-rose-600 text-white shadow-xs'
@@ -636,7 +700,7 @@ function renderScriptTextWithCues(text: string, isDark: boolean): React.ReactNod
 
           {/* Mirror Flip Mode (For Teleprompter Glass) */}
           <button
-            onClick={() => setIsMirror((prev) => !prev)}
+            onClick={() => setIsMirrorWithStorage((prev) => !prev)}
             className={`p-1.5 rounded-lg border transition-colors cursor-pointer ${
               isMirror
                 ? 'bg-amber-600 border-amber-600 text-white shadow-xs'
@@ -651,7 +715,7 @@ function renderScriptTextWithCues(text: string, isDark: boolean): React.ReactNod
 
           {/* Theme Switcher */}
           <button
-            onClick={() => setTheme((prev) => (prev === 'dark' ? 'light' : 'dark'))}
+            onClick={() => setThemeWithStorage((prev) => (prev === 'dark' ? 'light' : 'dark'))}
             className={`p-1.5 rounded-lg border transition-colors cursor-pointer ${
               isDark
                 ? 'bg-stone-900 border-stone-700/80 hover:bg-stone-800 text-stone-200 hover:text-white'

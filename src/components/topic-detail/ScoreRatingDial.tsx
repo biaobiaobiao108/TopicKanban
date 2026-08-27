@@ -1,6 +1,7 @@
 import React from 'react';
 import { Topic } from '../../types';
 import { Sparkles, AlertCircle, ArrowRight, CheckCircle2, Zap } from 'lucide-react';
+import { useToast } from '../ui/Toast';
 
 interface ScoreRatingDialProps {
   topic: Topic;
@@ -9,6 +10,7 @@ interface ScoreRatingDialProps {
 }
 
 export const ScoreRatingDial: React.FC<ScoreRatingDialProps> = ({ topic, onUpdateScores, onNavigateToTab }) => {
+  const { showToast } = useToast();
   const dimensions = [
     {
       key: 'score_character' as keyof Topic,
@@ -99,11 +101,16 @@ export const ScoreRatingDial: React.FC<ScoreRatingDialProps> = ({ topic, onUpdat
 
   const handleApplyDiagnosisAsAction = async () => {
     if (!lowestDim.actionText) return;
-    await onUpdateScores({
-      next_action: lowestDim.actionText,
-      next_action_updated_at: new Date().toISOString(),
-      next_action_deferred_until: null,
-    });
+    try {
+      await onUpdateScores({
+        next_action: lowestDim.actionText,
+        next_action_updated_at: new Date().toISOString(),
+        next_action_deferred_until: null,
+      });
+      showToast({ message: `已将「${lowestDim.label}」短板突破策略设为当前下一步行动！`, tone: 'success' });
+    } catch {
+      showToast({ message: '设置行动失败，请重试', tone: 'error' });
+    }
   };
 
   return (

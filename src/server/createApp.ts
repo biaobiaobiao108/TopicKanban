@@ -412,7 +412,7 @@ export function createApp() {
       const topicIds = Array.from(new Set([...(primaryTopicId ? [primaryTopicId] : []), ...relatedTopicIds]));
       if (topicIds.length > 0) {
         const placeholders = topicIds.map(() => '?').join(',');
-        const result = await db.prepare(`SELECT id FROM topics WHERE id IN (${placeholders})`).bind(...topicIds).all<{ id: string }>();
+        const result = await db.prepare(`SELECT id FROM topics WHERE deleted_at IS NULL AND id IN (${placeholders})`).bind(...topicIds).all<{ id: string }>();
         if (result.results.length !== topicIds.length) return c.json({ error: 'One or more topics not found' }, 400);
       }
       const now = new Date().toISOString();

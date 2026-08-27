@@ -34,7 +34,7 @@ import {
   type PublishedAnalyticsPayload,
 } from '../lib/videoAnalytics';
 
-export const MAX_IMPORT_STATEMENTS = 500;
+export const MAX_IMPORT_STATEMENTS = 5000;
 export const MAX_IMPORT_BYTES = 5 * 1024 * 1024;
 
 export interface BackupImportSummary {
@@ -61,7 +61,7 @@ export function getBackupImportSummary(data: BackupData): BackupImportSummary {
     (count, topic) => count + (topic.tags?.length || 0) + (topic.people?.length || 0),
     0
   );
-  const statements = 15 + data.tags.length + data.people.length + data.topics.length + topicRelations
+  const statements = 16 + data.tags.length + data.people.length + data.topics.length + topicRelations
     + data.sources.length + data.timeline.length
     + data.timeline.reduce((count, event) => count + (event.person_ids?.length || 0), 0)
     + data.drafts.length + data.citations.length
@@ -973,7 +973,12 @@ export async function replaceAllData(db: D1Database, data: BackupData): Promise<
   (data.commercial_deals || []).forEach((deal) => statements.push(commercialDealStatement(db, deal)));
   (data.commercial_deal_topics || []).forEach((relation) => statements.push(commercialDealTopicStatement(db, relation)));
   (data.commercial_deal_activities || []).forEach((activity) => statements.push(commercialDealActivityStatement(db, activity)));
-  await db.batch(statements);
+
+  const BATCH_CHUNK_SIZE = 50;
+  for (let i = 0; i < statements.length; i += BATCH_CHUNK_SIZE) {
+    const chunk = statements.slice(i, i + BATCH_CHUNK_SIZE);
+    await db.batch(chunk);
+  }
 }
 
 export async function exportAllData(db: D1Database, kvSettings?: AppSettings): Promise<BackupData> {

@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'bun:test';
+import { beforeAll, describe, expect, it } from 'bun:test';
 import type { Draft, PublishPackageRecord, Source, Topic } from '../src/types';
 import {
   buildPublishPackage,
@@ -7,6 +7,11 @@ import {
   mergeSavedPublishPackage,
   toPersistedPublishPackageContent,
 } from '../src/lib/publishPackage';
+import { getTraditionalConverter } from '../src/lib/traditionalChinese';
+
+beforeAll(async () => {
+  await getTraditionalConverter();
+});
 
 const topic: Topic = {
   id: 'topic-publish-package',
