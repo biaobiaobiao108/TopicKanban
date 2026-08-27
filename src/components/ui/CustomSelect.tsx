@@ -1,6 +1,7 @@
-import React, { useCallback, useEffect, useId, useLayoutEffect, useRef, useState } from 'react';
+import React, { useEffect, useId, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { Check, ChevronDown, Search } from 'lucide-react';
+import { useFloatingPosition } from '../../hooks/useFloatingPosition';
 
 export interface SelectOption {
   value: string;
@@ -13,15 +14,6 @@ export interface SelectOption {
 export interface SelectRenderState {
   selected: boolean;
   focused: boolean;
-}
-
-interface PopoverPosition {
-  left: number;
-  minWidth: number;
-  width?: number;
-  maxHeight: number;
-  placement: 'top' | 'bottom';
-  offset: number;
 }
 
 interface CustomSelectProps {
@@ -73,7 +65,6 @@ export const CustomSelect: React.FC<CustomSelectProps> = ({
   const [isOpen, setIsOpen] = useState(false);
   const [focusedIndex, setFocusedIndex] = useState(() => Math.max(0, options.findIndex((opt) => opt.value === value)));
   const [internalSearchValue, setInternalSearchValue] = useState('');
-  const [popoverPosition, setPopoverPosition] = useState<PopoverPosition | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const buttonRef = useRef<HTMLButtonElement>(null);
   const popoverRef = useRef<HTMLDivElement>(null);
@@ -85,71 +76,15 @@ export const CustomSelect: React.FC<CustomSelectProps> = ({
   const selectedOption = options.find((option) => option.value === value);
   const currentSearchValue = searchValue ?? internalSearchValue;
 
-  const updatePopoverPosition = useCallback(() => {
-    const trigger = buttonRef.current;
-    if (!trigger || typeof window === 'undefined') return;
-
-    const rect = trigger.getBoundingClientRect();
-    const viewportWidth = window.visualViewport?.width ?? window.innerWidth;
-    const viewportHeight = window.visualViewport?.height ?? window.innerHeight;
-    const gutter = 8;
-    const gap = 6;
-    const maxWidth = Math.max(0, viewportWidth - gutter * 2);
-    const minWidth = Math.min(Math.max(rect.width, 160), maxWidth);
-    const measuredWidth = popoverRef.current?.getBoundingClientRect().width;
-    const width = popoverWidth === 'content'
-      ? Math.min(Math.max(measuredWidth || minWidth, minWidth), maxWidth)
-      : minWidth;
-    const availableBelow = Math.max(0, viewportHeight - rect.bottom - gap - gutter);
-    const availableAbove = Math.max(0, rect.top - gap - gutter);
-    const estimatedHeight = popoverRef.current?.getBoundingClientRect().height || 288;
-    const placeAbove = availableBelow < Math.min(estimatedHeight, 220) && availableAbove > availableBelow;
-    const availableHeight = placeAbove ? availableAbove : availableBelow;
-    const maxHeight = Math.max(48, Math.min(288, availableHeight));
-    const preferredLeft = align === 'right' ? rect.right - width : rect.left;
-    const left = Math.min(Math.max(preferredLeft, gutter), Math.max(gutter, viewportWidth - width - gutter));
-
-    setPopoverPosition({
-      left,
-      minWidth,
-      width: popoverWidth === 'content' && measuredWidth ? width : undefined,
-      maxHeight,
-      placement: placeAbove ? 'top' : 'bottom',
-      offset: placeAbove ? viewportHeight - rect.top + gap : rect.bottom + gap,
-    });
-  }, [align, popoverWidth]);
-
-  useLayoutEffect(() => {
-    if (!isOpen) {
-      setPopoverPosition(null);
-      return;
-    }
-
-    updatePopoverPosition();
-    const frame = requestAnimationFrame(updatePopoverPosition);
-    let scheduledFrame: number | null = null;
-    const schedulePositionUpdate = () => {
-      if (scheduledFrame !== null) return;
-      scheduledFrame = requestAnimationFrame(() => {
-        scheduledFrame = null;
-        updatePopoverPosition();
-      });
-    };
-
-    window.addEventListener('resize', schedulePositionUpdate);
-    window.addEventListener('scroll', schedulePositionUpdate, true);
-    window.visualViewport?.addEventListener('resize', schedulePositionUpdate);
-    window.visualViewport?.addEventListener('scroll', schedulePositionUpdate);
-
-    return () => {
-      cancelAnimationFrame(frame);
-      if (scheduledFrame !== null) cancelAnimationFrame(scheduledFrame);
-      window.removeEventListener('resize', schedulePositionUpdate);
-      window.removeEventListener('scroll', schedulePositionUpdate, true);
-      window.visualViewport?.removeEventListener('resize', schedulePositionUpdate);
-      window.visualViewport?.removeEventListener('scroll', schedulePositionUpdate);
-    };
-  }, [isOpen, options.length, currentSearchValue, updatePopoverPosition]);
+  const popoverPosition = useFloatingPosition({
+    open: isOpen,
+    anchorRef: buttonRef,
+    popoverRef,
+    widthMode: popoverWidth,
+    minWidth: 160,
+    maxHeight: 288,
+    align,
+  });
 
   useEffect(() => {
     if (!isOpen) return;
@@ -323,12 +258,10 @@ export const CustomSelect: React.FC<CustomSelectProps> = ({
       {isOpen && popoverPosition && typeof document !== 'undefined' && createPortal(
         <div
           ref={popoverRef}
-          className={`fixed z-[100] min-w-0 max-w-[calc(100vw-1rem)] overflow-hidden bg-white/95 dark:bg-stone-900/95 backdrop-blur-md border border-stone-200/80 dark:border-stone-800 rounded-2xl shadow-modal animate-in fade-in zoom-in-95 duration-150 ease-editorial-out ${popoverClassName}`}
+          className={`fixed z-[100] min-w-0 max-w-[calc(100vw-1rem)] overflow-hidden bg-white/95 dark:bg-stone-900/95 backdrop-blur-md border border-stone-200/80 dark:border-stone-800 rounded-2xl shadow-modal animate-in fade-in zoom-in-95 duration-150 ease-editorial-out flex flex-col ${popoverClassName}`}
           style={{
             left: `${popoverPosition.left}px`,
-            ...(popoverPosition.placement === 'top'
-              ? { bottom: `${popoverPosition.offset}px` }
-              : { top: `${popoverPosition.offset}px` }),
+            top: `${popoverPosition.top}px`,
             minWidth: `${popoverPosition.minWidth}px`,
             ...(popoverPosition.width ? { width: `${popoverPosition.width}px` } : {}),
             maxWidth: 'calc(100vw - 1rem)',
@@ -357,7 +290,7 @@ export const CustomSelect: React.FC<CustomSelectProps> = ({
             </div>
           )}
 
-          <div id={listboxId} role="listbox" aria-label={ariaLabel || selectedOption?.label || placeholder} className="min-w-0 max-h-60 overflow-y-auto overscroll-contain p-1.5 space-y-0.5">
+          <div id={listboxId} role="listbox" aria-label={ariaLabel || selectedOption?.label || placeholder} className="min-h-0 min-w-0 flex-1 overflow-y-auto overscroll-contain p-1.5 space-y-0.5">
             {options.length === 0 ? emptyState : options.map((option, index) => {
               const isSelected = option.value === value;
               const isFocused = focusedIndex === index;

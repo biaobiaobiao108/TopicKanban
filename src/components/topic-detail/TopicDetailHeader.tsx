@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useId, useState, useEffect, useRef } from 'react';
 import { Topic, TopicStatus, Priority } from '../../types';
 import { COLUMNS } from '../kanban/columns';
 import {
@@ -13,6 +13,7 @@ import {
 } from 'lucide-react';
 import { NextActionDialog } from './NextActionDialog';
 import { getNextActionAgeDays, getNextActionWarning } from '../../lib/topicMetrics';
+import { FloatingMenu } from '../ui/FloatingMenu';
 
 const statusDots: Record<TopicStatus, string> = {
   inbox: 'bg-stone-400',
@@ -50,35 +51,14 @@ export const TopicDetailHeader: React.FC<TopicDetailHeaderProps> = ({
   const [isActionDialogOpen, setIsActionDialogOpen] = useState(false);
   const [isStatusMenuOpen, setIsStatusMenuOpen] = useState(false);
   const [isPriorityMenuOpen, setIsPriorityMenuOpen] = useState(false);
-  const statusMenuRef = useRef<HTMLDivElement | null>(null);
-  const priorityMenuRef = useRef<HTMLDivElement | null>(null);
+  const statusTriggerRef = useRef<HTMLButtonElement | null>(null);
+  const priorityTriggerRef = useRef<HTMLButtonElement | null>(null);
+  const statusMenuId = useId();
+  const priorityMenuId = useId();
 
   useEffect(() => {
     setTitle(topic.title);
   }, [topic.title]);
-
-  useEffect(() => {
-    const handleClickOutside = (e: MouseEvent) => {
-      if (statusMenuRef.current && !statusMenuRef.current.contains(e.target as Node)) {
-        setIsStatusMenuOpen(false);
-      }
-      if (priorityMenuRef.current && !priorityMenuRef.current.contains(e.target as Node)) {
-        setIsPriorityMenuOpen(false);
-      }
-    };
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') {
-        setIsStatusMenuOpen(false);
-        setIsPriorityMenuOpen(false);
-      }
-    };
-    document.addEventListener('mousedown', handleClickOutside);
-    document.addEventListener('keydown', handleKeyDown);
-    return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
-      document.removeEventListener('keydown', handleKeyDown);
-    };
-  }, []);
 
   const statusLabel = COLUMNS.find((column) => column.status === topic.status)?.label || topic.status;
   const warning = getNextActionWarning(topic);
@@ -155,9 +135,12 @@ export const TopicDetailHeader: React.FC<TopicDetailHeaderProps> = ({
         </div>
 
         {/* Status Dropdown Trigger (Compact Pill) */}
-        <div className="relative shrink-0" ref={statusMenuRef}>
+        <div className="relative z-10 shrink-0">
           <button
             type="button"
+            ref={statusTriggerRef}
+            aria-expanded={isStatusMenuOpen}
+            aria-controls={isStatusMenuOpen ? statusMenuId : undefined}
             onClick={() => {
               setIsStatusMenuOpen(!isStatusMenuOpen);
               setIsPriorityMenuOpen(false);
@@ -170,10 +153,18 @@ export const TopicDetailHeader: React.FC<TopicDetailHeaderProps> = ({
             <ChevronDown className="w-3 h-3 text-stone-400 dark:text-stone-500" />
           </button>
 
-          {isStatusMenuOpen && (
-            <div
-              className="absolute left-0 top-8 z-50 w-44 bg-white/95 dark:bg-stone-900/95 backdrop-blur-md rounded-2xl shadow-modal border border-stone-200/80 dark:border-stone-800 p-1.5 space-y-0.5 animate-in fade-in zoom-in-95 duration-100"
-            >
+          <FloatingMenu
+            isOpen={isStatusMenuOpen}
+            anchorRef={statusTriggerRef}
+            onClose={() => setIsStatusMenuOpen(false)}
+            id={statusMenuId}
+            ariaLabel="活跃生产阶段"
+            width={176}
+            minWidth={176}
+            maxHeight={320}
+            className="animate-in fade-in zoom-in-95 duration-100"
+          >
+            <div className="min-h-0 overflow-y-auto overscroll-contain p-1.5 space-y-0.5">
               <div className="px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider text-stone-400 dark:text-stone-500">
                 活跃生产阶段
               </div>
@@ -185,7 +176,7 @@ export const TopicDetailHeader: React.FC<TopicDetailHeaderProps> = ({
                     setIsStatusMenuOpen(false);
                     void onUpdateTopic({ status: c.status });
                   }}
-                  className={`w-full text-left px-2.5 py-1.5 rounded-xl text-xs font-medium flex items-center justify-between transition-colors cursor-pointer ${
+                  className={`w-full min-h-9 text-left px-2.5 py-1.5 rounded-xl text-xs font-medium flex items-center justify-between transition-colors cursor-pointer ${
                     topic.status === c.status
                       ? 'bg-stone-100 dark:bg-stone-800 text-stone-900 dark:text-stone-100 font-bold'
                       : 'text-stone-600 dark:text-stone-400 hover:bg-stone-50 dark:hover:bg-stone-800 hover:text-stone-900 dark:hover:text-stone-100'
@@ -210,7 +201,7 @@ export const TopicDetailHeader: React.FC<TopicDetailHeaderProps> = ({
                   setIsStatusMenuOpen(false);
                   void onUpdateTopic({ status: 'published' });
                 }}
-                className={`w-full text-left px-2.5 py-1.5 rounded-xl text-xs font-medium flex items-center justify-between transition-colors cursor-pointer ${
+                className={`w-full min-h-9 text-left px-2.5 py-1.5 rounded-xl text-xs font-medium flex items-center justify-between transition-colors cursor-pointer ${
                   topic.status === 'published'
                     ? 'bg-stone-100 dark:bg-stone-800 text-stone-900 dark:text-stone-100 font-bold'
                     : 'text-stone-600 dark:text-stone-400 hover:bg-emerald-50 dark:hover:bg-emerald-950/40 hover:text-emerald-800 dark:hover:text-emerald-300'
@@ -229,7 +220,7 @@ export const TopicDetailHeader: React.FC<TopicDetailHeaderProps> = ({
                   setIsStatusMenuOpen(false);
                   void onUpdateTopic({ status: 'icebox' });
                 }}
-                className={`w-full text-left px-2.5 py-1.5 rounded-xl text-xs font-medium flex items-center justify-between transition-colors cursor-pointer ${
+                className={`w-full min-h-9 text-left px-2.5 py-1.5 rounded-xl text-xs font-medium flex items-center justify-between transition-colors cursor-pointer ${
                   topic.status === 'icebox'
                     ? 'bg-stone-100 dark:bg-stone-800 text-stone-900 dark:text-stone-100 font-bold'
                     : 'text-stone-600 dark:text-stone-400 hover:bg-stone-100 dark:hover:bg-stone-800 hover:text-stone-900 dark:hover:text-stone-100'
@@ -242,13 +233,16 @@ export const TopicDetailHeader: React.FC<TopicDetailHeaderProps> = ({
                 {topic.status === 'icebox' && <span className="text-stone-600 dark:text-stone-400 text-xs">✓</span>}
               </button>
             </div>
-          )}
+          </FloatingMenu>
         </div>
 
         {/* Priority Dropdown Trigger (Compact Pill) */}
-        <div className="relative shrink-0" ref={priorityMenuRef}>
+        <div className="relative z-10 shrink-0">
           <button
             type="button"
+            ref={priorityTriggerRef}
+            aria-expanded={isPriorityMenuOpen}
+            aria-controls={isPriorityMenuOpen ? priorityMenuId : undefined}
             onClick={() => {
               setIsPriorityMenuOpen(!isPriorityMenuOpen);
               setIsStatusMenuOpen(false);
@@ -261,10 +255,18 @@ export const TopicDetailHeader: React.FC<TopicDetailHeaderProps> = ({
             <ChevronDown className="w-3 h-3 text-stone-400 dark:text-stone-500" />
           </button>
 
-          {isPriorityMenuOpen && (
-            <div
-              className="absolute left-0 top-8 z-50 w-40 bg-white/95 dark:bg-stone-900/95 backdrop-blur-md rounded-2xl shadow-modal border border-stone-200/80 dark:border-stone-800 p-1.5 space-y-0.5 animate-in fade-in zoom-in-95 duration-100"
-            >
+          <FloatingMenu
+            isOpen={isPriorityMenuOpen}
+            anchorRef={priorityTriggerRef}
+            onClose={() => setIsPriorityMenuOpen(false)}
+            id={priorityMenuId}
+            ariaLabel="优先级设定"
+            width={224}
+            minWidth={224}
+            maxHeight={240}
+            className="animate-in fade-in zoom-in-95 duration-100"
+          >
+            <div className="min-h-0 overflow-y-auto overscroll-contain p-1.5 space-y-0.5">
               <div className="px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider text-stone-400 dark:text-stone-500">
                 优先级设定
               </div>
@@ -279,23 +281,23 @@ export const TopicDetailHeader: React.FC<TopicDetailHeaderProps> = ({
                       setIsPriorityMenuOpen(false);
                       void onUpdateTopic({ priority: p });
                     }}
-                    className={`w-full text-left px-2.5 py-1.5 rounded-xl text-xs font-medium flex items-center justify-between transition-colors cursor-pointer ${
+                    className={`w-full min-h-9 text-left px-2.5 py-1.5 rounded-xl text-xs font-medium flex items-center justify-between transition-colors cursor-pointer ${
                       isSelected
                         ? 'bg-stone-100 dark:bg-stone-800 text-stone-900 dark:text-stone-100 font-bold'
                         : 'text-stone-600 dark:text-stone-400 hover:bg-stone-50 dark:hover:bg-stone-800 hover:text-stone-900 dark:hover:text-stone-100'
                     }`}
                   >
-                    <div className="flex items-center gap-2">
+                    <div className="flex min-w-0 items-center gap-2">
                       <span className={`w-2 h-2 rounded-full ${cfg.dot}`} />
-                      <span>{cfg.label}</span>
-                      <span className="text-[10px] text-stone-400 font-normal">({cfg.desc})</span>
+                      <span className="shrink-0">{cfg.label}</span>
+                      <span className="min-w-0 truncate text-[10px] text-stone-400 font-normal">({cfg.desc})</span>
                     </div>
                     {isSelected && <span className="text-rose-600 dark:text-rose-400 text-xs">✓</span>}
                   </button>
                 );
               })}
             </div>
-          )}
+          </FloatingMenu>
         </div>
 
         {/* Next Action Capsule: Highly Prominent Hero Pill */}

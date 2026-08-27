@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useLayoutEffect, useRef, useCallback } from 'react';
+import React, { useId, useState, useEffect, useLayoutEffect, useRef, useCallback } from 'react';
 import { useEditor, EditorContent } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
 import Placeholder from '@tiptap/extension-placeholder';
@@ -11,6 +11,7 @@ import { ScriptReferenceDrawer } from './ScriptReferenceDrawer';
 import { ScriptOutlinePanel } from './ScriptOutlinePanel';
 import { Modal } from '../ui/Modal';
 import { useToast } from '../ui/Toast';
+import { FloatingMenu } from '../ui/FloatingMenu';
 import {
   Clock,
   CheckCircle2,
@@ -183,7 +184,8 @@ export const ScriptEditorTab: React.FC<ScriptEditorTabProps> = ({
   const [isCueMenuOpen, setIsCueMenuOpen] = useState(false);
   const [lastInsertedCue, setLastInsertedCue] = useState<string | null>(null);
   const lastInsertedTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const cueMenuContainerRef = useRef<HTMLDivElement | null>(null);
+  const cueTriggerRef = useRef<HTMLButtonElement | null>(null);
+  const cueMenuId = useId();
 
   // Zen Mode Ambient Dynamic Respiration State
   const [isTypingZen, setIsTypingZen] = useState(false);
@@ -995,9 +997,12 @@ export const ScriptEditorTab: React.FC<ScriptEditorTabProps> = ({
             )}
 
             {/* Voiceover Cue Dropdown */}
-            <div ref={cueMenuContainerRef} className="relative">
+            <div className="relative">
               <button
                 type="button"
+                ref={cueTriggerRef}
+                aria-expanded={isCueMenuOpen}
+                aria-controls={isCueMenuOpen ? cueMenuId : undefined}
                 onClick={() => setIsCueMenuOpen((prev) => !prev)}
                 className={`flex items-center gap-1 px-2.5 py-1 rounded-xl text-xs font-semibold border transition-all cursor-pointer ${
                   isCueMenuOpen
@@ -1010,8 +1015,19 @@ export const ScriptEditorTab: React.FC<ScriptEditorTabProps> = ({
                 <span className="hidden sm:inline">气口</span>
               </button>
 
-              {isCueMenuOpen && (
-                <div className="absolute right-0 top-full mt-1.5 w-56 bg-white dark:bg-stone-800 rounded-2xl border border-stone-200 dark:border-stone-700 p-2.5 shadow-xl z-50 animate-in fade-in zoom-in-95 duration-100 font-sans">
+              <FloatingMenu
+                isOpen={isCueMenuOpen}
+                anchorRef={cueTriggerRef}
+                onClose={() => setIsCueMenuOpen(false)}
+                id={cueMenuId}
+                ariaLabel="演播气口库"
+                width={224}
+                minWidth={224}
+                maxHeight={288}
+                align="right"
+                className="animate-in fade-in zoom-in-95 duration-100 font-sans"
+              >
+                <div className="min-h-0 overflow-y-auto p-2.5">
                   <div className="flex items-center justify-between text-[10px] font-bold text-stone-400 dark:text-stone-500 px-1 py-0.5 uppercase tracking-wider border-b border-stone-100 dark:border-stone-800 pb-1.5 mb-1.5">
                     <div className="flex items-center gap-1 text-rose-600 dark:text-rose-400">
                       <Mic className="w-3 h-3" />
@@ -1033,7 +1049,7 @@ export const ScriptEditorTab: React.FC<ScriptEditorTabProps> = ({
                       </button>
                     </div>
                   </div>
-                  <div className="space-y-0.5 max-h-56 overflow-y-auto pr-0.5">
+                  <div className="space-y-0.5 pr-0.5">
                     {(settings?.voiceover_cues?.length ? settings.voiceover_cues : DEFAULT_VOICEOVER_CUES).map((cue) => {
                       const isJustInserted = lastInsertedCue === cue.replace(/^\[+|\]+$/g, '').trim();
                       return (
@@ -1041,7 +1057,7 @@ export const ScriptEditorTab: React.FC<ScriptEditorTabProps> = ({
                           key={cue}
                           type="button"
                           onClick={() => handleInsertVoiceoverCue(cue)}
-                          className={`w-full text-left px-2.5 py-1.5 rounded-lg text-xs font-medium flex items-center justify-between group transition-colors cursor-pointer ${
+                          className={`w-full min-h-9 text-left px-2.5 py-1.5 rounded-lg text-xs font-medium flex items-center justify-between group transition-colors cursor-pointer ${
                             isJustInserted
                               ? 'bg-emerald-50 dark:bg-emerald-950/40 text-emerald-800 dark:text-emerald-300'
                               : 'text-stone-700 dark:text-stone-200 hover:bg-rose-50 dark:hover:bg-rose-950/50 hover:text-rose-600 dark:hover:text-rose-300'
@@ -1058,7 +1074,7 @@ export const ScriptEditorTab: React.FC<ScriptEditorTabProps> = ({
                     })}
                   </div>
                 </div>
-              )}
+              </FloatingMenu>
             </div>
 
             {/* Public Review Share Button */}

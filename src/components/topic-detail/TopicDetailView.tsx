@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useLayoutEffect, useRef, useCallback } from 'react';
+import React, { useId, useState, useEffect, useLayoutEffect, useRef, useCallback } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useSearchParams } from 'react-router-dom';
 import { CitationInput, Topic, Source, TimelineEvent, Person, PersonRelationship, Draft, DraftCitation, DraftRecoveryConflict, Tag, AppSettings, PublishPackageSaveInput, PublishPackageRecord } from '../../types';
@@ -32,6 +32,7 @@ import {
   exportSingleTopicMarkdown,
 } from '../../lib/storage';
 import { Modal } from '../ui/Modal';
+import { FloatingMenu } from '../ui/FloatingMenu';
 import { LayoutDashboard, FileSearch, Clock, Users, PenTool, FileText, Handshake, CheckCircle2, GitBranch, MoreHorizontal } from 'lucide-react';
 
 interface TopicDetailViewProps {
@@ -110,6 +111,10 @@ export const TopicDetailView: React.FC<TopicDetailViewProps> = ({
   const [isActionDialogOpen, setIsActionDialogOpen] = useState(false);
   const [isStageMenuOpen, setIsStageMenuOpen] = useState(false);
   const [isMoreMenuOpen, setIsMoreMenuOpen] = useState(false);
+  const stageTriggerRef = useRef<HTMLButtonElement | null>(null);
+  const moreTriggerRef = useRef<HTMLButtonElement | null>(null);
+  const stageMenuId = useId();
+  const moreMenuId = useId();
   const [isFlushingDraft, setIsFlushingDraft] = useState(false);
   const [operationError, setOperationError] = useState<string | null>(null);
   const draftFlushRef = useRef<(() => Promise<void>) | null>(null);
@@ -643,19 +648,18 @@ export const TopicDetailView: React.FC<TopicDetailViewProps> = ({
       </div>
 
       <div className="fixed inset-x-0 bottom-0 z-40 border-t border-stone-200 dark:border-stone-800 bg-white/95 dark:bg-stone-900/95 px-2 pt-2 pb-[max(0.5rem,env(safe-area-inset-bottom))] backdrop-blur-md md:hidden transition-colors">
-        {(isStageMenuOpen || isMoreMenuOpen) && (
-          <button
-            type="button"
-            aria-label="关闭快捷菜单"
-            className="fixed inset-0 -z-10 bg-transparent"
-            onClick={() => {
-              setIsStageMenuOpen(false);
-              setIsMoreMenuOpen(false);
-            }}
-          />
-        )}
-        {isStageMenuOpen && (
-          <div className="absolute bottom-full left-2 right-2 mb-2 rounded-xl border border-stone-200 dark:border-stone-800 bg-white dark:bg-stone-900 p-2 shadow-modal animate-in fade-in zoom-in-95 duration-100">
+        <FloatingMenu
+          isOpen={isStageMenuOpen}
+          anchorRef={stageTriggerRef}
+          onClose={() => setIsStageMenuOpen(false)}
+          id={stageMenuId}
+          ariaLabel="切换生产阶段"
+          widthMode="content"
+          minWidth={160}
+          maxHeight={320}
+          className="w-[calc(100vw-1rem)] animate-in fade-in zoom-in-95 duration-100"
+        >
+          <div className="min-h-0 overflow-y-auto p-2">
             <div className="px-2 pb-1 text-[11px] font-bold text-stone-400 dark:text-stone-500">切换生产阶段</div>
             <div className="grid grid-cols-3 gap-1.5">
               {COLUMNS.map((column) => (
@@ -677,9 +681,20 @@ export const TopicDetailView: React.FC<TopicDetailViewProps> = ({
               ))}
             </div>
           </div>
-        )}
-        {isMoreMenuOpen && (
-          <div className="absolute bottom-full right-2 mb-2 w-52 rounded-xl border border-stone-200 dark:border-stone-800 bg-white dark:bg-stone-900 p-2 shadow-modal animate-in fade-in zoom-in-95 duration-100">
+        </FloatingMenu>
+        <FloatingMenu
+          isOpen={isMoreMenuOpen}
+          anchorRef={moreTriggerRef}
+          onClose={() => setIsMoreMenuOpen(false)}
+          id={moreMenuId}
+          ariaLabel="详情页更多标签"
+          width={208}
+          minWidth={208}
+          maxHeight={360}
+          align="right"
+          className="animate-in fade-in zoom-in-95 duration-100 p-2"
+        >
+          <div className="min-h-0 max-h-full overflow-y-auto">
             {tabs.filter((tab) => tab.id !== 'script').map((tab) => (
               <button
                 key={tab.id}
@@ -694,7 +709,7 @@ export const TopicDetailView: React.FC<TopicDetailViewProps> = ({
               </button>
             ))}
           </div>
-        )}
+        </FloatingMenu>
         <div className="grid grid-cols-4 gap-1">
           <button
             type="button"
@@ -705,6 +720,9 @@ export const TopicDetailView: React.FC<TopicDetailViewProps> = ({
           </button>
           <button
             type="button"
+            ref={stageTriggerRef}
+            aria-expanded={isStageMenuOpen}
+            aria-controls={isStageMenuOpen ? stageMenuId : undefined}
             onClick={() => {
               setIsStageMenuOpen((previous) => !previous);
               setIsMoreMenuOpen(false);
@@ -726,6 +744,9 @@ export const TopicDetailView: React.FC<TopicDetailViewProps> = ({
           </button>
           <button
             type="button"
+            ref={moreTriggerRef}
+            aria-expanded={isMoreMenuOpen}
+            aria-controls={isMoreMenuOpen ? moreMenuId : undefined}
             onClick={() => {
               setIsMoreMenuOpen((previous) => !previous);
               setIsStageMenuOpen(false);
