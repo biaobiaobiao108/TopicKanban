@@ -159,8 +159,8 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
   // 1. Navigation commands
   const allNavCommands = useMemo(() => [
     { label: '前往 今日生产聚焦', view: 'today' as NavView, icon: Calendar, desc: '推进当前重点选题，减少选择焦虑', keywords: ['今日', '聚焦', 'today', 'focus', '任务'] },
-    { label: '前往 排产与发布日历', view: 'calendar' as NavView, icon: CalendarDays, desc: '月度与周度发片排期、商单交付与生产截止大盘', keywords: ['日历', '排期', '排产', 'calendar', '更文', '排片'] },
     { label: '前往 选题全景看板', view: 'kanban' as NavView, icon: Kanban, desc: '4 个活跃阶段 + 2 个归档状态', keywords: ['看板', 'kanban', 'board', '选题看板', '主页'] },
+    { label: '前往 选题日历', view: 'calendar' as NavView, icon: CalendarDays, desc: '月度与周度发片排期、商单交付与生产截止大盘', keywords: ['日历', '选题日历', '排期', '排产', 'calendar', '更文', '排片'] },
     { label: '前往 标签与创作赛道', view: 'tags' as NavView, icon: Hash, desc: '分类赛道沉淀与选题资产盘点', keywords: ['标签', '赛道', 'tags', 'track', '分类'] },
     { label: '前往 人物档案库', view: 'people' as NavView, icon: User, desc: '网红与事件当事人关系库', keywords: ['人物', '网红', '档案', 'people', '关系网', '主播'] },
     { label: '前往 已发布视频复盘', view: 'published' as NavView, icon: Film, desc: '归档成片与 B 站数据沉淀', keywords: ['发布', '复盘', 'published', '成片', '视频', 'bilibili', 'b站'] },

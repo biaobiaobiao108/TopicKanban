@@ -25,8 +25,8 @@ export const Navbar: React.FC<NavbarProps> = ({
 }) => {
   const titles: Record<NavView, string> = {
     today: '今日聚焦',
-    calendar: '排产与发布日历',
     kanban: '选题全景看板',
+    calendar: '选题日历',
     tags: '标签与创作赛道资产',
     people: '互联网人物档案与关系库',
     published: '已发布视频复盘与数据沉淀',

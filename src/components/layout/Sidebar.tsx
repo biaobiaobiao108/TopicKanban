@@ -34,8 +34,8 @@ export const Sidebar: React.FC<SidebarProps> = ({
 }) => {
   const navItems = [
     { id: 'today' as NavView, label: '今日聚焦', icon: Calendar, badge: null },
-    { id: 'calendar' as NavView, label: '排产日历', icon: CalendarDays, badge: null },
     { id: 'kanban' as NavView, label: '选题看板', icon: KanbanSquare, badge: topicCount > 0 ? topicCount : null },
+    { id: 'calendar' as NavView, label: '选题日历', icon: CalendarDays, badge: null },
     { id: 'people' as NavView, label: '人物档案库', icon: Users, badge: null },
     { id: 'tags' as NavView, label: '标签与赛道', icon: Hash, badge: null },
     { id: 'published' as NavView, label: '已发布视频', icon: Film, badge: null },

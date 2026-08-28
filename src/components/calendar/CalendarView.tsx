@@ -195,7 +195,7 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
             <div className="flex items-center gap-3">
               <PageHeader
-                title="排产与发布日历"
+                title="选题日历"
                 icon={CalendarDays}
                 badge={
                   <span className="rounded-full bg-rose-500/10 px-2.5 py-1 text-xs font-semibold text-rose-700 dark:bg-rose-950/40 dark:text-rose-300">
