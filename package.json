@@ -11,7 +11,7 @@
     "db:init:local": "wrangler d1 execute kanban --local --file=./drizzle/0000_schema.sql",
     "db:init:remote": "wrangler d1 execute kanban --remote --file=./drizzle/0000_schema.sql",
     "build": "tsc && vite build && bun run build:server",
-    "build:server": "bun build src/server/server.ts --target=bun --format=esm --outfile=dist/server.js",
+    "build:server": "NODE_ENV=production bun build src/server/server.ts --target=bun --format=esm --outfile=dist/server.js",
     "start": "bun dist/server.js",
     "preview": "vite preview",
     "test": "bun test",

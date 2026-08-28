@@ -20,9 +20,17 @@ describe('Production security headers', () => {
     const serverSource = fs.readFileSync(path.resolve(process.cwd(), 'src/server/server.ts'), 'utf8');
     const pagesHeaders = fs.readFileSync(path.resolve(process.cwd(), 'public/_headers'), 'utf8');
     for (const source of [serverSource, pagesHeaders]) {
+      expect(source).toContain('Strict-Transport-Security');
       expect(source).toContain('Permissions-Policy');
       expect(source).toContain('Cross-Origin-Opener-Policy');
       expect(source).toContain('Cross-Origin-Resource-Policy');
     }
+  });
+
+  it('builds the Bun server bundle with production semantics', () => {
+    const packageJson = JSON.parse(fs.readFileSync(path.resolve(process.cwd(), 'package.json'), 'utf8')) as {
+      scripts?: { 'build:server'?: string };
+    };
+    expect(packageJson.scripts?.['build:server']).toContain('NODE_ENV=production');
   });
 });
