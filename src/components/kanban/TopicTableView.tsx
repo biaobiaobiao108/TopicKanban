@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useMemo } from 'react';
+import React, { useEffect, useState, useMemo, useRef } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Topic, TopicStatus, Priority } from '../../types';
 import { StatusBadge, PriorityBadge } from '../ui/Badge';
@@ -21,6 +21,7 @@ import {
   CheckSquare,
 } from 'lucide-react';
 import { CustomSelect } from '../ui/CustomSelect';
+import { FloatingMenu } from '../ui/FloatingMenu';
 import { useToast } from '../ui/Toast';
 
 interface TopicTableViewProps {
@@ -90,6 +91,67 @@ const STATUS_ORDER: Record<TopicStatus, number> = {
   icebox: 6,
 };
 
+function TableStatusCell({
+  topic,
+  rowPadding,
+  updateTopicStatus,
+}: {
+  topic: Topic;
+  rowPadding: string;
+  updateTopicStatus: (id: string, status: TopicStatus) => Promise<void>;
+}) {
+  const [isOpen, setIsOpen] = useState(false);
+  const triggerRef = useRef<HTMLButtonElement>(null);
+
+  return (
+    <td
+      onClick={(e) => e.stopPropagation()}
+      className={`${rowPadding} px-3`}
+    >
+      <button
+        ref={triggerRef}
+        type="button"
+        onClick={() => setIsOpen((prev) => !prev)}
+        className="flex items-center gap-1 hover:opacity-80 transition-opacity cursor-pointer"
+        title="修改阶段"
+      >
+        <StatusBadge status={topic.status} />
+        <ChevronDown className="w-3 h-3 text-stone-400 dark:text-stone-500" />
+      </button>
+
+      <FloatingMenu
+        isOpen={isOpen}
+        anchorRef={triggerRef}
+        onClose={() => setIsOpen(false)}
+        width={130}
+        minWidth={130}
+        maxHeight={280}
+        ariaLabel="修改选题阶段"
+        className="p-1.5 space-y-0.5"
+      >
+        {COLUMNS.map((col) => (
+          <button
+            key={col.status}
+            type="button"
+            onClick={async () => {
+              setIsOpen(false);
+              await updateTopicStatus(topic.id, col.status);
+            }}
+            className={`w-full text-left px-2 py-1.5 rounded-lg text-xs font-medium flex items-center justify-between transition-colors cursor-pointer ${
+              topic.status === col.status
+                ? 'bg-stone-100 dark:bg-stone-800 text-stone-900 dark:text-stone-100 font-bold'
+                : 'text-stone-600 dark:text-stone-400 hover:bg-stone-50 dark:hover:bg-stone-800 hover:text-stone-900 dark:hover:text-stone-100'
+            }`}
+          >
+            <span>{col.label}</span>
+            {topic.status === col.status && <span className="text-rose-600 dark:text-rose-400">✓</span>}
+          </button>
+        ))}
+      </FloatingMenu>
+    </td>
+  );
+}
+
 export const TopicTableView: React.FC<TopicTableViewProps> = ({
   topics,
   onOpenDetail,
@@ -112,11 +174,11 @@ export const TopicTableView: React.FC<TopicTableViewProps> = ({
   const [density, setDensity] = useState<Density>(initialPreferences.density);
   const [visibleColumns, setVisibleColumns] = useState<ColumnKey[]>(initialPreferences.visibleColumns);
   const [isColumnMenuOpen, setIsColumnMenuOpen] = useState(false);
+  const columnButtonRef = useRef<HTMLButtonElement>(null);
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [bulkStatus, setBulkStatus] = useState<TopicStatus>('approved');
   const [isBulkUpdating, setIsBulkUpdating] = useState(false);
   const [viewSaved, setViewSaved] = useState(false);
-  const [activeStatusMenuId, setActiveStatusMenuId] = useState<string | null>(null);
   const [editingActionId, setEditingActionId] = useState<string | null>(null);
   const [editingAction, setEditingAction] = useState('');
   const { showToast } = useToast();
@@ -410,6 +472,7 @@ export const TopicTableView: React.FC<TopicTableViewProps> = ({
               <Rows3 className="h-3.5 w-3.5" /> {density === 'compact' ? '紧凑' : '舒适'}
             </button>
             <button
+              ref={columnButtonRef}
               type="button"
               onClick={() => setIsColumnMenuOpen((previous) => !previous)}
               className="flex min-h-9 items-center gap-1.5 rounded-lg border border-stone-200 dark:border-stone-700 bg-white dark:bg-stone-800 px-2.5 text-[11px] font-semibold text-stone-600 dark:text-stone-300 hover:bg-stone-100 dark:hover:bg-stone-700 cursor-pointer"
@@ -425,24 +488,43 @@ export const TopicTableView: React.FC<TopicTableViewProps> = ({
             </button>
           </div>
 
-          {isColumnMenuOpen && (
-            <div className="absolute right-0 top-11 z-40 w-48 rounded-xl border border-stone-200 dark:border-stone-800 bg-white dark:bg-stone-900 p-2 shadow-modal">
-              <div className="px-2 pb-1 text-[10px] font-bold text-stone-400 dark:text-stone-500">标题列始终显示并冻结</div>
+          <FloatingMenu
+            isOpen={isColumnMenuOpen}
+            anchorRef={columnButtonRef}
+            onClose={() => setIsColumnMenuOpen(false)}
+            align="right"
+            width={200}
+            minWidth={200}
+            maxHeight={380}
+            ariaLabel="自定义表格显示列"
+            className="p-2"
+          >
+            <div className="px-2 pb-1 text-[10px] font-bold text-stone-400 dark:text-stone-500">
+              标题列始终显示并冻结
+            </div>
+            <div className="space-y-0.5 overflow-y-auto max-h-[300px]">
               {ALL_COLUMN_KEYS.map((column) => (
-                <label key={column} className="flex min-h-9 cursor-pointer items-center gap-2 rounded-lg px-2 text-xs text-stone-700 dark:text-stone-300 hover:bg-stone-50 dark:hover:bg-stone-800">
+                <label
+                  key={column}
+                  className="flex min-h-8 cursor-pointer items-center gap-2 rounded-lg px-2 text-xs text-stone-700 dark:text-stone-300 hover:bg-stone-50 dark:hover:bg-stone-800"
+                >
                   <input
                     type="checkbox"
                     checked={isColumnVisible(column)}
-                    onChange={() => setVisibleColumns((previous) => previous.includes(column)
-                      ? previous.filter((item) => item !== column)
-                      : [...previous, column])}
+                    onChange={() =>
+                      setVisibleColumns((previous) =>
+                        previous.includes(column)
+                          ? previous.filter((item) => item !== column)
+                          : [...previous, column]
+                      )
+                    }
                     className="accent-rose-600"
                   />
-                  {COLUMN_LABELS[column]}
+                  <span>{COLUMN_LABELS[column]}</span>
                 </label>
               ))}
             </div>
-          )}
+          </FloatingMenu>
         </div>
       </div>
 
@@ -790,7 +872,6 @@ export const TopicTableView: React.FC<TopicTableViewProps> = ({
                 ? (topic.draft_word_count / readingSpeed).toFixed(1)
                 : '0';
 
-              const isMenuOpen = activeStatusMenuId === topic.id;
               const isArchived = topic.status === 'published' || topic.status === 'icebox';
 
               return (
@@ -847,14 +928,9 @@ export const TopicTableView: React.FC<TopicTableViewProps> = ({
                   </td>
 
                   {/* 2. Title & Hook */}
-                  <td className={`px-3 ${rowPadding}`}>
-                    <div className="space-y-0.5">
-                      <div className="font-bold text-stone-900 dark:text-stone-100 text-sm group-hover:text-rose-600 dark:group-hover:text-rose-400 transition-colors line-clamp-1 flex items-center gap-1.5">
-                        {topic.is_pinned ? (
-                          <span className="text-[10px] bg-rose-50 dark:bg-rose-950/60 text-rose-600 dark:text-rose-300 border border-rose-200 dark:border-rose-900/60 px-1 py-0.2 rounded font-semibold">
-                            置顶
-                          </span>
-                        ) : null}
+                  <td className={`${rowPadding} px-3`}>
+                    <div className="space-y-0.5 max-w-sm">
+                      <div className="flex items-center gap-1.5 font-bold text-stone-900 dark:text-stone-100 text-xs line-clamp-1 group-hover:text-rose-600 dark:group-hover:text-rose-400 transition-colors">
                         <span>{topic.title}</span>
                       </div>
                       {topic.summary ? (
@@ -870,44 +946,13 @@ export const TopicTableView: React.FC<TopicTableViewProps> = ({
                   </td>
 
                   {/* 3. Status (With Dropdown Streamlining) */}
-                  {isColumnVisible('status') && <td
-                    onClick={(e) => e.stopPropagation()}
-                    className={`${rowPadding} px-3 relative`}
-                  >
-                    <button
-                      onClick={() => setActiveStatusMenuId(isMenuOpen ? null : topic.id)}
-                      className="flex items-center gap-1 hover:opacity-80 transition-opacity cursor-pointer"
-                    >
-                      <StatusBadge status={topic.status} />
-                      <ChevronDown className="w-3 h-3 text-stone-400 dark:text-stone-500" />
-                    </button>
-
-                    {/* Status Dropdown Menu */}
-                    {isMenuOpen && (
-                      <div
-                        className="absolute top-10 left-3 z-30 bg-white dark:bg-stone-900 rounded-xl shadow-modal border border-stone-200 dark:border-stone-800 p-1.5 space-y-0.5 w-32 animate-in fade-in zoom-in-95 duration-100"
-                        onMouseLeave={() => setActiveStatusMenuId(null)}
-                      >
-                        {COLUMNS.map((col) => (
-                          <button
-                            key={col.status}
-                            onClick={async () => {
-                              setActiveStatusMenuId(null);
-                              await updateTopicStatus(topic.id, col.status);
-                            }}
-                            className={`w-full text-left px-2 py-1.5 rounded-lg text-xs font-medium flex items-center justify-between transition-colors cursor-pointer ${
-                              topic.status === col.status
-                                ? 'bg-stone-100 dark:bg-stone-800 text-stone-900 dark:text-stone-100 font-bold'
-                                : 'text-stone-600 dark:text-stone-400 hover:bg-stone-50 dark:hover:bg-stone-800 hover:text-stone-900 dark:hover:text-stone-100'
-                            }`}
-                          >
-                            <span>{col.label}</span>
-                            {topic.status === col.status && <span className="text-rose-600 dark:text-rose-400">✓</span>}
-                          </button>
-                        ))}
-                      </div>
-                    )}
-                  </td>}
+                  {isColumnVisible('status') && (
+                    <TableStatusCell
+                      topic={topic}
+                      rowPadding={rowPadding}
+                      updateTopicStatus={updateTopicStatus}
+                    />
+                  )}
 
                   {/* 4. Priority */}
                   {isColumnVisible('priority') && <td className={`${rowPadding} px-3 text-center`}>
