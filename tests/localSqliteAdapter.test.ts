@@ -1,10 +1,10 @@
 import { describe, it, expect, beforeEach, afterEach } from 'bun:test';
 import { Database } from 'bun:sqlite';
-import { LocalD1Database } from '../src/server/adapters/localSqlite';
+import { SqliteDatabase } from '../src/server/sqlite';
 
-describe('LocalD1Database (SQLite Adapter)', () => {
+describe('SqliteDatabase', () => {
   let sqlite: Database;
-  let db: LocalD1Database;
+  let db: SqliteDatabase;
 
   beforeEach(() => {
     sqlite = new Database(':memory:');
@@ -16,7 +16,7 @@ describe('LocalD1Database (SQLite Adapter)', () => {
         sort_order INTEGER NOT NULL DEFAULT 0
       );
     `);
-    db = new LocalD1Database(sqlite);
+    db = new SqliteDatabase(sqlite);
   });
 
   afterEach(() => {

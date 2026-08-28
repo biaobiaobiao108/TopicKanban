@@ -253,7 +253,7 @@ export const QuickDropDrawer: React.FC<QuickDropDrawerProps> = ({
 
         {/* Footer info */}
         <div className="p-3 border-t border-stone-200/70 dark:border-stone-800 bg-stone-50 dark:bg-stone-900/90 text-[11px] text-stone-400 dark:text-stone-500 text-center">
-          快投碎片将在 Workers KV 中暂存 7 天，到期后自动销毁。
+          快投碎片将在本地 SQLite 中暂存 7 天，到期后自动销毁。
         </div>
       </div>
     </div>

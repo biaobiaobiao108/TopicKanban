@@ -62,7 +62,7 @@
 
 ---
 
-## 🛠️ 三、技术栈与多环境架构规范 (Tech Stack & Architecture)
+## 🛠️ 三、技术栈与运行时架构规范 (Tech Stack & Architecture)
 
 ### 1. 核心技术栈
 * **前端核心**：React 18 + TypeScript + Vite 6 + TailwindCSS 3
@@ -70,21 +70,20 @@
 * **看板与拖拽**：`@dnd-kit/core` + `@dnd-kit/sortable`
 * **文案编辑**：`@tiptap/react` + `@tiptap/starter-kit` + `@tiptap/extension-character-count` + 自定义原子内联扩展
 * **图标系统**：`lucide-react`
-* **服务端**：Hono 4 REST API（通用核心工厂位于 `src/server/createApp.ts`）
+* **服务端**：Bun 原生 HTTP Server 与 `Bun.serve({ routes })` REST API（路由定义位于 `src/server/createApp.ts`）
 * **鉴权体系**：Web Crypto HMAC-SHA256 签名无状态 Token（TTL 7 天）
 
-### 2. 双运行环境与存储适配规范 (Storage & Runtime Strategy)
+### 2. Bun 单运行环境与存储规范 (Storage & Runtime Strategy)
 
-本项目支持 **本地 Podman / Docker 一体化容器**（主力部署）与 **Cloudflare 边缘网络**（无代码托管）双环境无缝切换：
+本项目只支持 **Bun + SQLite 单运行环境**，可直接运行，也可通过 Podman / Docker 一体化容器部署：
 
 | 运行时环境 | 服务端入口 | 主关系数据库 (`DB`) | 键值与临时存储 (`KV`) | 静态文件托管 |
 | :--- | :--- | :--- | :--- | :--- |
-| **本地容器 / Bun** (主力) | `src/server/server.ts` (Bun 原生 HTTP Server) | 本地 SQLite (`bun:sqlite` + WAL 模式，文件 `./data/kanban.db`) | 本地 SQLite `_kv_store` 表 (`LocalKVNamespace`) | Bun 独立托管 SPA `dist/` |
-| **Cloudflare Pages** (云端) | `functions/api/[[route]].ts` (Pages Functions) | Cloudflare D1 (SQLite) | Cloudflare Workers KV | Cloudflare Pages CDN |
+| **Bun / 本地容器** (唯一运行时) | `src/server/server.ts` (`Bun.serve({ routes })`) | SQLite (`bun:sqlite` + WAL，文件 `./data/kanban.db`) | SQLite `_kv_store` 表 (`AppKV`) | Bun 独立托管 SPA `dist/` |
 
 #### 存储分工原则：
 * **主业务持久库 (`DB` / SQLite)**：负责强关系型业务资产（`topics`, `sources`, `timeline_events`, `people`, `drafts`, `draft_citations`, `tags`, `published_videos`）。
-* **键值存储 (`KV` / `_kv_store`)**：负责非关系型全局配置与轻量边缘交互数据：
+* **键值存储 (`KV` / `_kv_store`)**：负责非关系型全局配置与轻量交互数据：
   1. **全局偏好设置** (`app_settings`：语速、主题、排版、演播气口库 `voiceover_cues`、反代公网域名 `public_base_url`、停滞阈值 `stale_days` 等)；
   2. **免登录外部审稿只读快照** (`share:*` / `topic_share:*`：支持设定 TTL 自动物理销毁)；
   3. **多端编辑在线感知防踩踏锁** (`lock:*`：维持 30s TTL 租约心跳)；
@@ -93,13 +92,13 @@
 
 ### 3. 本地开发与反代公网域名规范 (Dev Proxy & Public Base URL)
 * **本地开发 (`bun run dev`)**：Vite 开发服务器运行于 3030 端口，配置 `/api` 代理转发至 Bun 后端 8787 端口；本地开发默认密码为 `admin`。
-* **反向代理 (`PUBLIC_BASE_URL`)**：当容器部署在反向代理（Nginx / Caddy / NPM / CF Tunnel）后方时，外部审稿分享链接与灵感快投 Webhook 地址必须自适应公网域名。
+* **反向代理 (`PUBLIC_BASE_URL`)**：当容器部署在反向代理（Nginx / Caddy / NPM）后方时，外部审稿分享链接与灵感快投 Webhook 地址必须自适应公网域名。
 * 解析优先级：`settings.public_base_url` > `env.PUBLIC_BASE_URL` > `X-Forwarded-*` 标头 > `window.location.origin`。
 
 ### 4. 外部音视频与社交平台链接智能识别架构（全量客户端直连原则 All Client-Side Direct Parsing）
-* **背景与风控考量**：本项目收集的资料均来自国内各大视频与社交媒体网站（Bilibili、抖音、小红书、微博、知乎、微信公众号、快手等）。各大平台对海外机房 / Cloudflare Workers 数据中心 IP 会执行 100% 反爬风控拦截（412/403/验证码），服务端抓取基本全部失效；相反，用户本人的原生浏览器网络（家庭/移动宽带原生 IP）干净度与信任度极高。
+* **背景与风控考量**：本项目收集的资料均来自国内各大视频与社交媒体网站（Bilibili、抖音、小红书、微博、知乎、微信公众号、快手等）。服务端抓取容易触发平台风控；相反，用户本人的原生浏览器网络（家庭/移动宽带原生 IP）干净度与信任度更高。
 * **架构铁律**：
-  1. **严禁服务端抓取**：严禁将国内视频与社交媒体链接交给服务端/Cloudflare 边缘节点代理抓取；
+  1. **严禁服务端抓取**：严禁将国内视频与社交媒体链接交给服务端代理抓取；
   2. **统一客户端引擎**：全站所有链接解析与分享文本处理必须通过 `src/lib/clientUrlParser.ts` 在客户端本地执行；
   3. **分平台直连机制**：
      * **Bilibili**：客户端原生 JSONP（`fetchBilibiliVideoData`）直连 B 站 open API，零风控、毫秒级获取视频真实标题、UP主、完整简介、发布日期、封面图以及播放/点赞/投币/收藏等全套互动数据；
@@ -153,7 +152,7 @@ bun run test:e2e
 其中 `test:e2e` 已通过 `bun run --bun playwright test` 强制 Playwright 在 Bun 运行时下执行。
 
 * **本地开发**：`bun run dev`（启动 Vite 前端热重载与本地 Bun API）
-* **运行全量自动化测试**：`bun run test:run`（Bun Test，修改后必跑，当前共 71 项测试）
+* **运行全量自动化测试**：`bun run test:run`（Bun Test，修改后必跑，当前共 85 项测试）
 * **类型检查与生产构建**：`bun run build`（包含前端 SPA 构建与 Bun 服务端 `build:server`）
 * **本地单机生产运行**：`bun run start`
 * **Podman / Docker 容器构建与编排**：

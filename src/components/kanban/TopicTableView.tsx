@@ -266,7 +266,7 @@ export const TopicTableView: React.FC<TopicTableViewProps> = ({
     }
   };
 
-  // 1. Scoped topics pre-sorted and paginated by D1 database
+  // 1. Scoped topics pre-sorted and paginated by the SQLite database
   const scopedTopics = useMemo(() => {
     return pageQuery.data?.items || [];
   }, [pageQuery.data]);

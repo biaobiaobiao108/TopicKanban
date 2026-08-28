@@ -2,15 +2,15 @@ import { describe, it, expect, beforeEach, afterEach } from 'bun:test';
 import { Database } from 'bun:sqlite';
 import fs from 'node:fs';
 import path from 'node:path';
-import { Hono } from 'hono';
 import { createApp } from '../src/server/createApp';
-import { LocalD1Database } from '../src/server/adapters/localSqlite';
-import { LocalKVNamespace } from '../src/server/adapters/localKv';
+import { AppKV } from '../src/server/appKv';
+import { SqliteDatabase } from '../src/server/sqlite';
+import { NativeApp } from '../src/server/native';
 import type { ApiBindings } from '../src/server/apiShared';
 
 describe('Bun Server Integration (Local SQLite & API)', () => {
   let sqlite: Database;
-  let app: Hono;
+  let app: NativeApp;
   const testPassword = 'test_secret_pass';
   const testDropToken = 'test_drop_token';
   const publicBaseUrl = 'https://kanban.example.com';
@@ -22,24 +22,18 @@ describe('Bun Server Integration (Local SQLite & API)', () => {
     const schemaSql = fs.readFileSync(schemaFile, 'utf-8');
     sqlite.exec(schemaSql);
 
-    const d1 = new LocalD1Database(sqlite);
-    const kv = new LocalKVNamespace(sqlite);
+    const db = new SqliteDatabase(sqlite);
+    const kv = new AppKV(db);
 
     const bindings: ApiBindings = {
-      DB: d1,
+      DB: db,
       KV: kv,
       APP_PASSWORD: testPassword,
       QUICK_DROP_TOKEN: testDropToken,
       PUBLIC_BASE_URL: publicBaseUrl,
     };
 
-    const rootApp = new Hono();
-    rootApp.use('*', async (c, next) => {
-      c.env = { ...c.env, ...bindings };
-      await next();
-    });
-    rootApp.route('/', createApp());
-    app = rootApp;
+    app = createApp(bindings);
   });
 
   afterEach(() => {
@@ -52,17 +46,17 @@ describe('Bun Server Integration (Local SQLite & API)', () => {
     expect(healthRes.status).toBe(200);
     const healthData = await healthRes.json() as {
       status: string;
-      environment: string;
+      runtime: string;
       public_base_url: string;
-      d1: { tables: number; message: string };
+      database: { tables: number; message: string };
       kv: { connected: boolean; message: string };
     };
     expect(healthData.status).toBe('online');
-    expect(healthData.environment).toBe('node_container');
+    expect(healthData.runtime).toBe('bun');
     expect(healthData.public_base_url).toBe(publicBaseUrl);
-    expect(healthData.d1.tables).toBeGreaterThan(0);
-    expect(healthData.d1.message).toContain('本地 SQLite');
-    expect(healthData.kv.message).toContain('本地 SQLite');
+    expect(healthData.database.tables).toBeGreaterThan(0);
+    expect(healthData.database.message).toContain('SQLite');
+    expect(healthData.kv.message).toContain('SQLite');
 
     // 2. Login
     const loginRes = await app.request('/api/auth/login', {
@@ -528,67 +522,6 @@ describe('Bun Server Integration (Local SQLite & API)', () => {
     expect(sqlite.query('SELECT COUNT(*) AS count FROM commercial_deal_activities WHERE deal_id = ?').get(deleteTarget.id)).toEqual({ count: 0 });
     expect(sqlite.query('SELECT id FROM topics WHERE id = ?').get(topic.id)).toEqual({ id: topic.id });
     expect(sqlite.query('SELECT id FROM published_videos WHERE id = ?').get('delete-target-video')).toEqual({ id: 'delete-target-video' });
-  });
-
-  it('fails explicitly when settings persistence has no KV binding', async () => {
-    const noKvApp = new Hono();
-    noKvApp.use('*', async (c, next) => {
-      c.env = { DB: new LocalD1Database(sqlite), APP_PASSWORD: testPassword };
-      await next();
-    });
-    noKvApp.route('/', createApp());
-
-    const loginRes = await noKvApp.request('/api/auth/login', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ password: testPassword }),
-    });
-    const { token } = await loginRes.json() as { token: string };
-    const settingsRes = await noKvApp.request('/api/settings', {
-      headers: { Authorization: `Bearer ${token}` },
-    });
-    expect(settingsRes.status).toBe(503);
-  });
-
-  it('correctly identifies Cloudflare Pages environment when ENVIRONMENT is cloudflare_pages or simulating D1/KV', async () => {
-    const cfApp = new Hono();
-    // Simulate Cloudflare environment without local sqlite adapter attachments
-    const mockD1 = {
-      prepare: (query: string) => ({
-        bind: () => mockD1.prepare(query),
-        first: async () => ({ count: 5 }),
-        run: async () => ({ success: true, meta: { changes: 1 } }),
-        all: async () => ({ results: [], success: true }),
-      }),
-    };
-    const mockKv = {
-      get: async () => null,
-      put: async () => {},
-      delete: async () => {},
-      list: async () => ({ keys: [] }),
-    };
-
-    cfApp.use('*', async (c, next) => {
-      c.env = {
-        DB: mockD1 as unknown as D1Database,
-        KV: mockKv as unknown as KVNamespace,
-        ENVIRONMENT: 'cloudflare_pages',
-      };
-      await next();
-    });
-    cfApp.route('/', createApp());
-
-    const res = await cfApp.request('/api/health');
-    expect(res.status).toBe(200);
-    const data = await res.json() as {
-      status: string;
-      environment: string;
-      d1: { connected: boolean; message: string };
-      kv: { connected: boolean; message: string };
-    };
-    expect(data.environment).toBe('cloudflare_pages');
-    expect(data.d1.message).toContain('Cloudflare D1');
-    expect(data.kv.message).toContain('Cloudflare KV');
   });
 
   it('rejects oversized unauthenticated login and quick-drop requests', async () => {

@@ -3,7 +3,6 @@ dist
 .git
 .gitignore
 .github
-.wrangler
 data
 tests
 playwright-report

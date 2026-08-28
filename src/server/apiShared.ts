@@ -1,14 +1,15 @@
 import { isTopicStatus } from '../types';
 import { isSafeExternalHttpUrl } from '../lib/urlSafety';
 import { isValidIsoDate } from '../lib/dateInput';
+import type { AppKV } from './appKv';
+import type { SqliteDatabase } from './sqlite';
 
 export type ApiBindings = {
-  DB: D1Database;
-  KV?: KVNamespace;
+  DB: SqliteDatabase;
+  KV: AppKV;
   APP_PASSWORD?: string;
   QUICK_DROP_TOKEN?: string;
   PUBLIC_BASE_URL?: string;
-  ENVIRONMENT?: 'node_container' | 'cloudflare_pages';
   CLIENT_IP?: string;
 };
 
@@ -168,8 +169,8 @@ export async function verifyToken(token: string, password: string): Promise<bool
   }
 }
 
-export function requireDb(c: { env: ApiBindings }): D1Database {
-  if (!c.env.DB) throw new Error('D1 database is not bound');
+export function requireDb(c: { env: ApiBindings }): SqliteDatabase {
+  if (!c.env.DB) throw new Error('SQLite database is not configured');
   return c.env.DB;
 }
 
@@ -199,7 +200,7 @@ const ALLOWED_PATCH_TABLES = [
 export type AllowedPatchTable = typeof ALLOWED_PATCH_TABLES[number];
 
 export async function patchRow(
-  db: D1Database,
+  db: SqliteDatabase,
   table: AllowedPatchTable | string,
   id: string,
   body: Record<string, unknown>,

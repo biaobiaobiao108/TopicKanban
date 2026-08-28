@@ -4,6 +4,7 @@ import {
   permanentlyDeleteTrashedTopics,
   TopicNotInTrashError,
 } from '../src/server/database';
+import type { SqliteDatabase } from '../src/server/sqlite';
 
 type FakeStatement = {
   sql: string;
@@ -36,7 +37,7 @@ describe('trash safety', () => {
         { results: [] },
         { results: [] },
       ]),
-    } as unknown as D1Database;
+    } as unknown as SqliteDatabase;
 
     const result = await loadTrashedTopics(db);
 
@@ -50,7 +51,7 @@ describe('trash safety', () => {
     const db = {
       prepare: (sql: string) => statement(sql, [{ id: 'trash-1' }]),
       batch,
-    } as unknown as D1Database;
+    } as unknown as SqliteDatabase;
 
     await expect(permanentlyDeleteTrashedTopics(db, ['trash-1', 'active-1']))
       .rejects.toBeInstanceOf(TopicNotInTrashError);
@@ -62,7 +63,7 @@ describe('trash safety', () => {
     const db = {
       prepare: (sql: string) => statement(sql, [{ id: 'trash-1' }]),
       batch,
-    } as unknown as D1Database;
+    } as unknown as SqliteDatabase;
 
     await permanentlyDeleteTrashedTopics(db, ['trash-1']);
 

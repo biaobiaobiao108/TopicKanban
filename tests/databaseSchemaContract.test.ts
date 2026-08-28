@@ -2,7 +2,7 @@ import { Database } from 'bun:sqlite';
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
-import { initializeSqliteDatabase } from '../src/server/adapters/localSqlite';
+import { initializeSqliteDatabase } from '../src/server/sqlite';
 
 const schemaSql = fs.readFileSync(path.resolve(process.cwd(), 'drizzle/0000_schema.sql'), 'utf8');
 

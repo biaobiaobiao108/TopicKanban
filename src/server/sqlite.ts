@@ -2,7 +2,7 @@ import { Database } from 'bun:sqlite';
 import fs from 'node:fs';
 import path from 'node:path';
 
-export interface BunSqliteStatement {
+export interface SqliteStatement {
   get(...params: unknown[]): unknown;
   all(...params: unknown[]): unknown[];
   values(...params: unknown[]): unknown[][];
@@ -10,14 +10,7 @@ export interface BunSqliteStatement {
   run(...params: unknown[]): { changes: number; lastInsertRowid: number | bigint };
 }
 
-export interface BunSqliteDatabase {
-  query(query: string): BunSqliteStatement;
-  exec(query: string): void;
-  transaction<T>(callback: (statements: D1PreparedStatement[]) => T): (statements: D1PreparedStatement[]) => T;
-  close(): void;
-}
-
-export interface LocalD1Result<T = unknown> {
+export interface SqliteResult<T = unknown> {
   results: T[];
   success: boolean;
   meta: {
@@ -27,19 +20,19 @@ export interface LocalD1Result<T = unknown> {
   };
 }
 
-export class LocalPreparedStatement implements D1PreparedStatement {
-  private stmt: BunSqliteStatement;
-  private boundValues: unknown[];
-  private query: string;
+export class SqlitePreparedStatement {
+  private readonly stmt: SqliteStatement;
+  private readonly boundValues: unknown[];
+  private readonly query: string;
 
-  constructor(stmt: BunSqliteStatement, query: string, boundValues: unknown[] = []) {
+  constructor(stmt: SqliteStatement, query: string, boundValues: unknown[] = []) {
     this.stmt = stmt;
     this.query = query;
     this.boundValues = boundValues;
   }
 
-  bind(...values: unknown[]): D1PreparedStatement {
-    return new LocalPreparedStatement(this.stmt, this.query, values) as unknown as D1PreparedStatement;
+  bind(...values: unknown[]): SqlitePreparedStatement {
+    return new SqlitePreparedStatement(this.stmt, this.query, values);
   }
 
   async first<T = Record<string, unknown>>(colName?: string): Promise<T | null> {
@@ -49,7 +42,7 @@ export class LocalPreparedStatement implements D1PreparedStatement {
     return row as T;
   }
 
-  async run<T = Record<string, unknown>>(): Promise<D1Result<T>> {
+  async run<T = Record<string, unknown>>(): Promise<SqliteResult<T>> {
     const start = performance.now();
     const info = this.stmt.run(...this.boundValues);
     return {
@@ -59,15 +52,11 @@ export class LocalPreparedStatement implements D1PreparedStatement {
         changes: info.changes,
         last_row_id: Number(info.lastInsertRowid),
         duration: performance.now() - start,
-        served_by: 'local-bun-sqlite',
-        rows_read: 0,
-        rows_written: info.changes,
-        size_after: 0,
       },
-    } as unknown as D1Result<T>;
+    };
   }
 
-  async all<T = Record<string, unknown>>(): Promise<D1Result<T>> {
+  async all<T = Record<string, unknown>>(): Promise<SqliteResult<T>> {
     const start = performance.now();
     const rows = this.stmt.all(...this.boundValues) as T[];
     return {
@@ -77,37 +66,34 @@ export class LocalPreparedStatement implements D1PreparedStatement {
         changes: 0,
         last_row_id: 0,
         duration: performance.now() - start,
-        served_by: 'local-bun-sqlite',
-        rows_read: rows.length,
-        rows_written: 0,
-        size_after: 0,
       },
-    } as unknown as D1Result<T>;
+    };
   }
 
   async raw<T = unknown[]>(options?: { columnNames?: boolean }): Promise<any> {
     const rows = this.stmt.values(...this.boundValues) as T[];
     if (options?.columnNames) {
-      const colNames = this.stmt.columns().map((c) => c.name);
+      const colNames = this.stmt.columns().map((column) => column.name);
       return [colNames, ...rows];
     }
     return rows;
   }
 
-  // Internal execution method for batch transactions
-  _executeSync(): { results: unknown[]; meta: { changes: number; last_row_id: number; duration: number } } {
+  executeSync(): SqliteResult {
     const start = performance.now();
     const isSelect = /^\s*(SELECT|PRAGMA|WITH)\b/i.test(this.query);
     if (isSelect) {
       const rows = this.stmt.all(...this.boundValues);
       return {
         results: rows,
+        success: true,
         meta: { changes: 0, last_row_id: 0, duration: performance.now() - start },
       };
     }
     const info = this.stmt.run(...this.boundValues);
     return {
       results: [],
+      success: true,
       meta: {
         changes: info.changes,
         last_row_id: Number(info.lastInsertRowid),
@@ -117,68 +103,40 @@ export class LocalPreparedStatement implements D1PreparedStatement {
   }
 }
 
-export class LocalD1Database implements D1Database {
-  public sqlite: BunSqliteDatabase;
+export class SqliteDatabase {
+  readonly sqlite: Database;
 
-  constructor(sqlite: BunSqliteDatabase) {
+  constructor(sqlite: Database) {
     this.sqlite = sqlite;
   }
 
-  prepare(query: string): D1PreparedStatement {
-    const stmt = this.sqlite.query(query);
-    return new LocalPreparedStatement(stmt, query) as unknown as D1PreparedStatement;
+  prepare(query: string): SqlitePreparedStatement {
+    return new SqlitePreparedStatement(this.sqlite.query(query) as unknown as SqliteStatement, query);
   }
 
-  async batch<T = unknown>(statements: D1PreparedStatement[]): Promise<D1Result<T>[]> {
-    const executeBatch = this.sqlite.transaction((stmts: D1PreparedStatement[]) => {
-      return stmts.map((stmt) => {
-        if (stmt instanceof LocalPreparedStatement) {
-          const res = stmt._executeSync();
-          return {
-            results: res.results as T[],
-            success: true,
-            meta: {
-              ...res.meta,
-              served_by: 'local-bun-sqlite',
-              rows_read: res.results.length,
-              rows_written: res.meta.changes,
-              size_after: 0,
-            },
-          } as unknown as D1Result<T>;
-        }
-        throw new Error('Unsupported prepared statement in batch');
-      });
+  async batch(statements: SqlitePreparedStatement[]): Promise<SqliteResult[]> {
+    const executeBatch = this.sqlite.transaction((items: SqlitePreparedStatement[]) => {
+      return items.map((statement) => statement.executeSync());
     });
-
     return executeBatch(statements);
   }
 
-  async exec(query: string): Promise<D1ExecResult> {
+  async exec(query: string): Promise<{ count: number; duration: number }> {
     const start = performance.now();
     this.sqlite.exec(query);
-    return {
-      count: 1,
-      duration: performance.now() - start,
-    };
+    return { count: 1, duration: performance.now() - start };
   }
 
-  async dump(): Promise<ArrayBuffer> {
-    throw new Error('dump is not supported in local sqlite');
-  }
-
-  withSession(_token?: string): any {
-    return this;
+  close(): void {
+    this.sqlite.close();
   }
 }
 
-export async function initializeSqliteDatabase(dbFilePath: string, schemaDir?: string): Promise<{ d1: D1Database; sqlite: BunSqliteDatabase }> {
+export async function initializeSqliteDatabase(dbFilePath: string, schemaDir?: string): Promise<{ db: SqliteDatabase; sqlite: Database }> {
   const dir = path.dirname(dbFilePath);
-  if (!fs.existsSync(dir)) {
-    fs.mkdirSync(dir, { recursive: true });
-  }
+  if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
 
-  const sqlite = new Database(dbFilePath) as unknown as BunSqliteDatabase;
-  // Enable WAL, foreign keys, busy timeout, and synchronous NORMAL
+  const sqlite = new Database(dbFilePath);
   sqlite.exec(`
     PRAGMA journal_mode = WAL;
     PRAGMA foreign_keys = ON;
@@ -186,7 +144,6 @@ export async function initializeSqliteDatabase(dbFilePath: string, schemaDir?: s
     PRAGMA synchronous = NORMAL;
   `);
 
-  // Check if tables already exist
   const tableCheck = sqlite.query("SELECT count(*) as count FROM sqlite_master WHERE type='table' AND name='topics'").get() as { count: number };
 
   sqlite.exec(`
@@ -198,31 +155,24 @@ export async function initializeSqliteDatabase(dbFilePath: string, schemaDir?: s
 
   const resolvedSchemaDir = schemaDir || path.resolve(process.cwd(), 'drizzle');
   if (tableCheck.count === 0) {
-    // Run schema migrations
     const schemaFile = path.join(resolvedSchemaDir, '0000_schema.sql');
     const schema = Bun.file(schemaFile);
-    if (await schema.exists()) {
-      const sql = await schema.text();
-      sqlite.exec(sql);
-    }
+    if (await schema.exists()) sqlite.exec(await schema.text());
   } else {
-    // Migration helper: ensure new columns exist for existing databases
     const columns = sqlite.query('PRAGMA table_info(topics)').all() as Array<{ name: string }>;
-    if (!columns.some((c) => c.name === 'target_publish_date')) {
+    if (!columns.some((column) => column.name === 'target_publish_date')) {
       sqlite.exec('ALTER TABLE topics ADD COLUMN target_publish_date TEXT;');
       sqlite.exec('CREATE INDEX IF NOT EXISTS idx_topics_target_publish_date ON topics(target_publish_date);');
     }
-    if (!columns.some((c) => c.name === 'deadline')) {
+    if (!columns.some((column) => column.name === 'deadline')) {
       sqlite.exec('ALTER TABLE topics ADD COLUMN deadline TEXT;');
       sqlite.exec('CREATE INDEX IF NOT EXISTS idx_topics_deadline ON topics(deadline);');
     }
   }
 
-  const appliedAt = new Date().toISOString();
   sqlite.query('INSERT OR IGNORE INTO _schema_migrations (name, applied_at) VALUES (?, ?)')
-    .run('0000_schema.sql', appliedAt);
+    .run('0000_schema.sql', new Date().toISOString());
 
-  // Ensure _kv_store table exists for local KV adapter
   sqlite.exec(`
     CREATE TABLE IF NOT EXISTS _kv_store (
       key TEXT PRIMARY KEY,
@@ -232,8 +182,5 @@ export async function initializeSqliteDatabase(dbFilePath: string, schemaDir?: s
     CREATE INDEX IF NOT EXISTS idx_kv_expires_at ON _kv_store(expires_at);
   `);
 
-  return {
-    d1: new LocalD1Database(sqlite) as unknown as D1Database,
-    sqlite,
-  };
+  return { db: new SqliteDatabase(sqlite), sqlite };
 }

@@ -7,7 +7,7 @@
 * 🌐 **在线产品展示与交互沙盒**：[https://biaobiaobiao108.github.io/TopicKanban/](https://biaobiaobiao108.github.io/TopicKanban/)
 * 📦 **开源官方仓库**：[https://github.com/biaobiaobiao108/TopicKanban](https://github.com/biaobiaobiao108/TopicKanban)
 
-支持 **本地 Podman / Docker 单容器一体化部署（内置 SQLite 与反代适配）** 与 **Cloudflare 边缘网络部署** 双环境无缝切换。
+支持 **本地 Podman / Docker 单容器一体化部署（Bun 原生服务 + SQLite + 反代适配）**，数据与运行时均由单个 Bun 服务统一管理。
 
 ---
 
@@ -96,10 +96,10 @@ bun run test:e2e
 | **路由与状态** | React Router 7 + TanStack Query 5 | 服务端状态缓存与乐观更新 |
 | **富文本编辑** | Tiptap 2 + StarterKit + 自定义原子气口扩展 | 支持演播气口节点与字数计算 |
 | **看板与拖拽** | `@dnd-kit/core` + `@dnd-kit/sortable` | 丝滑拖拽流转与时序排序 |
-| **服务端** | Hono 4 + Bun 原生 HTTP Server | 跨运行时统一路由，启动 < 30ms |
-| **主业务持久库** | 本地 SQLite (`bun:sqlite` + WAL) / Cloudflare D1 | 8 张强关系型业务核心表 |
-| **键值与临时库** | 本地 `_kv_store` 表 (`LocalKVNamespace`) / Cloudflare KV | 全局偏好、审稿快照、在线锁、快投箱 |
-| **测试与构建** | Bun (`bun test` + `bun build`) | 71 项全量测试，毫秒级运行 |
+| **服务端** | Bun 原生 HTTP Server + 原生路由 | `Bun.serve({ routes })` 直接分发 REST API，减少适配层 |
+| **主业务持久库** | SQLite (`bun:sqlite` + WAL) | 8 张强关系型业务核心表 |
+| **键值与临时库** | SQLite `_kv_store` 表 | 全局偏好、审稿快照、在线锁、快投箱 |
+| **测试与构建** | Bun (`bun test` + `bun build`) | 85 项全量测试，毫秒级运行 |
 
 ---
 
@@ -154,7 +154,7 @@ podman compose up -d --build
 
 ### 2. 反向代理（Reverse Proxy）配置
 
-当容器部署在 Nginx / Caddy / NPM / Cloudflare Tunnel 后方时，工作台会自动识别 `X-Forwarded-*` 请求头或采用配置的 `PUBLIC_BASE_URL`，确保生成的审稿链接与快投接口在公网环境完美访问。
+当容器部署在 Nginx / Caddy / NPM 等反向代理后方时，工作台会自动识别 `X-Forwarded-*` 请求头或采用配置的 `PUBLIC_BASE_URL`，确保生成的审稿链接与快投接口在公网环境完美访问。
 
 #### Nginx 配置样例：
 ```nginx
@@ -189,34 +189,7 @@ kanban.yourdomain.com {
 
 ---
 
-## ☁️ 二、Cloudflare Pages 部署流程
-
-如果您希望直接托管在 Cloudflare 全球边缘网络上：
-
-### 1. 准备 Cloudflare 资源
-1. **创建 D1 数据库**：进入 Cloudflare Dashboard → **Workers & Pages** → **D1 SQL Database** → 点击 **Create Database**，命名为 `kanban`。
-2. **创建 KV 命名空间**：进入 Cloudflare Dashboard → **Workers & Pages** → **KV** → 点击 **Create a Namespace**，命名为 `kanban-kv`。
-
-### 2. 绑定 Pages 项目环境变量
-在 Cloudflare Pages 项目的 **Settings** → **Functions** → **Bindings** 中绑定：
-* **D1 Database Bindings**：变量名 `DB` → 绑定刚才创建的 `kanban` 数据库；
-* **KV Namespace Bindings**：变量名 `KV` → 绑定刚才创建的 `kanban-kv` 命名空间；
-* **Environment Variables**：
-  * `APP_PASSWORD`: 设置工作台访问密码；
-  * `QUICK_DROP_TOKEN`: 设置手机快捷指令快投独立 Token。
-
-### 3. 初始化远程数据库表结构
-```bash
-bunx wrangler d1 execute kanban --remote --file=./drizzle/0000_schema.sql
-```
-
-### 4. 构建与发布
-* 构建命令：`bun run build`
-* 输出目录：`dist`
-
----
-
-## 💻 三、本地开发与验证工作流
+## 💻 二、本地开发与验证工作流
 
 系统推荐使用 **Bun 1.4+** 进行依赖管理与开发测试：
 
@@ -227,7 +200,7 @@ bun install
 # 2. 启动本地全栈开发环境 (Vite 前端 3030 端口 + Bun API 8787 端口)
 bun run dev
 
-# 3. 运行全量自动化测试套件 (54 项单元与集成测试)
+# 3. 运行全量自动化测试套件 (85 项单元与集成测试)
 bun run test:run
 
 # 4. 运行 Playwright E2E（Playwright CLI 使用 Bun 运行时）
@@ -248,7 +221,6 @@ bun run start
 kanban/
 ├── drizzle/
 │   └── 0000_schema.sql                  # 当前完整数据库基线表结构 SQL
-├── functions/api/[[route]].ts           # Cloudflare Pages Functions API 入口
 ├── src/
 │   ├── components/
 │   │   ├── auth/                        # 登录鉴权组件
@@ -270,17 +242,17 @@ kanban/
 │   │   ├── theme.ts                     # 8 套温润编辑部主题调色板配置
 │   │   └── auth.ts                      # Web Crypto HMAC-SHA256 Token 鉴权
 │   ├── server/
-│   │   ├── createApp.ts                 # Hono 核心 REST API 路由定义 (跨运行时共享)
+│   │   ├── createApp.ts                 # Bun 原生 REST API 路由定义
 │   │   ├── server.ts                    # Bun 独立服务端入口 (静态托管 + API)
+│   │   ├── native.ts                    # Bun 原生请求上下文与路由适配
+│   │   ├── sqlite.ts                    # bun:sqlite 数据库封装
+│   │   ├── appKv.ts                     # SQLite KV 与 TTL 存储
 │   │   ├── database.ts                  # SQL 业务持久层与备份导入导出
 │   │   ├── systemRoutes.ts              # 系统探测、设置与备份路由
-│   │   └── adapters/
-│   │       ├── localSqlite.ts           # 本地 SQLite (bun:sqlite) D1 兼容适配层
-│   │       └── localKv.ts               # 本地 SQLite KV 表适配层 (含 TTL 过期支持)
 │   ├── types/index.ts                   # 领域模型与 TypeScript 契约
 │   ├── App.tsx                          # 路由分发入口
 │   └── main.tsx                         # DOM 挂载入口
-├── tests/                               # 71 项 bun:test 自动化单元与集成测试套件
+├── tests/                               # 85 项 bun:test 自动化单元与集成测试套件
 ├── docs/                                # GitHub Pages 静态展示落地页与文档
 │   ├── index.html                       # 独立产品落地页 (含交互沙盒与现代化动画)
 │   ├── icon.png                         # 落地页高清应用图标

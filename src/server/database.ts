@@ -24,6 +24,7 @@ import type {
   PaginatedCommercialDeals,
 } from '../types';
 import { DEFAULT_APP_SETTINGS, isTopicStatus } from '../types';
+import type { SqliteDatabase, SqlitePreparedStatement } from './sqlite';
 import {
   analyzePeoplePerformance,
   analyzeTagPerformance,
@@ -98,11 +99,11 @@ export function assertBackupImportWithinLimits(data: BackupData): BackupImportSu
   return summary;
 }
 
-function bind(db: D1Database, sql: string, values: unknown[] = []): D1PreparedStatement {
+function bind(db: SqliteDatabase, sql: string, values: unknown[] = []): SqlitePreparedStatement {
   return db.prepare(sql).bind(...values);
 }
 
-export async function loadTopics(db: D1Database, scope: 'active' | 'trash' | 'all' = 'active'): Promise<Topic[]> {
+export async function loadTopics(db: SqliteDatabase, scope: 'active' | 'trash' | 'all' = 'active'): Promise<Topic[]> {
   const topicFilter = scope === 'active'
     ? 'WHERE t.deleted_at IS NULL'
     : scope === 'trash'
@@ -149,11 +150,11 @@ export async function loadTopics(db: D1Database, scope: 'active' | 'trash' | 'al
   }));
 }
 
-export async function loadTrashedTopics(db: D1Database): Promise<Topic[]> {
+export async function loadTrashedTopics(db: SqliteDatabase): Promise<Topic[]> {
   return loadTopics(db, 'trash');
 }
 
-export async function loadTodayFocus(db: D1Database): Promise<{ topics: Topic[]; total_active: number }> {
+export async function loadTodayFocus(db: SqliteDatabase): Promise<{ topics: Topic[]; total_active: number }> {
   const activeCondition = "t.deleted_at IS NULL AND t.status NOT IN ('published', 'icebox')";
   const [focusResult, priorityResult, recentResult, countResult] = await db.batch([
     db.prepare(`SELECT t.id FROM topics t WHERE ${activeCondition}
@@ -268,7 +269,7 @@ function buildCommercialDealFilter(options: CommercialDealPageOptions): { condit
   return { conditions, values };
 }
 
-export async function loadCommercialDealPage(db: D1Database, options: CommercialDealPageOptions): Promise<PaginatedCommercialDeals> {
+export async function loadCommercialDealPage(db: SqliteDatabase, options: CommercialDealPageOptions): Promise<PaginatedCommercialDeals> {
   const filter = buildCommercialDealFilter(options);
   const where = filter.conditions.length ? `WHERE ${filter.conditions.join(' AND ')}` : '';
   const offset = (options.page - 1) * options.pageSize;
@@ -307,7 +308,7 @@ export async function loadCommercialDealPage(db: D1Database, options: Commercial
   };
 }
 
-export async function loadCommercialDeal(db: D1Database, id: string): Promise<CommercialDealDetail | null> {
+export async function loadCommercialDeal(db: SqliteDatabase, id: string): Promise<CommercialDealDetail | null> {
   const [dealRow, topicsResult, activitiesResult] = await db.batch([
     bind(db, `SELECT ${commercialDealProjection()} FROM commercial_deals d WHERE d.id = ? LIMIT 1`, [id]),
     bind(db, `SELECT cdt.*, t.title AS topic_title, t.status AS topic_status, t.deleted_at AS topic_deleted_at
@@ -331,7 +332,7 @@ export async function loadCommercialDeal(db: D1Database, id: string): Promise<Co
   };
 }
 
-export async function deleteCommercialDeal(db: D1Database, id: string): Promise<boolean> {
+export async function deleteCommercialDeal(db: SqliteDatabase, id: string): Promise<boolean> {
   const existing = await db.prepare('SELECT id FROM commercial_deals WHERE id = ?').bind(id).first<{ id: string }>();
   if (!existing) return false;
   await db.batch([
@@ -342,7 +343,7 @@ export async function deleteCommercialDeal(db: D1Database, id: string): Promise<
   return true;
 }
 
-export async function loadCommercialDealsByTopicId(db: D1Database, topicId: string): Promise<CommercialDeal[]> {
+export async function loadCommercialDealsByTopicId(db: SqliteDatabase, topicId: string): Promise<CommercialDeal[]> {
   const result = await db.prepare(`SELECT ${commercialDealProjection()}, cdt.relation_role AS relation_role
     FROM commercial_deals d
     INNER JOIN commercial_deal_topics cdt ON cdt.deal_id = d.id
@@ -351,7 +352,7 @@ export async function loadCommercialDealsByTopicId(db: D1Database, topicId: stri
   return result.results.map(normalizeCommercialDeal);
 }
 
-export async function loadCommercialDealFocus(db: D1Database): Promise<DealFocusData> {
+export async function loadCommercialDealFocus(db: SqliteDatabase): Promise<DealFocusData> {
   const [dueResult, unpaidResult, countResult] = await db.batch([
     db.prepare(`SELECT ${commercialDealProjection()} FROM commercial_deals d
       WHERE d.status IN ('communicating', 'producing')
@@ -373,7 +374,7 @@ export async function loadCommercialDealFocus(db: D1Database): Promise<DealFocus
 
 export class TopicNotInTrashError extends Error {}
 
-function permanentDeleteStatements(db: D1Database, id: string): D1PreparedStatement[] {
+function permanentDeleteStatements(db: SqliteDatabase, id: string): SqlitePreparedStatement[] {
   const trashedTopic = 'SELECT id FROM topics WHERE id = ? AND deleted_at IS NOT NULL';
   return [
     bind(db, `DELETE FROM draft_citations WHERE topic_id IN (${trashedTopic})`, [id]),
@@ -390,7 +391,7 @@ function permanentDeleteStatements(db: D1Database, id: string): D1PreparedStatem
   ];
 }
 
-export async function permanentlyDeleteTrashedTopics(db: D1Database, ids: string[]): Promise<void> {
+export async function permanentlyDeleteTrashedTopics(db: SqliteDatabase, ids: string[]): Promise<void> {
   if (ids.length === 0) return;
   const placeholders = ids.map(() => '?').join(', ');
   const result = await bind(db,
@@ -455,7 +456,7 @@ function getTopicScopeCondition(scope: TopicPageOptions['scope']): string {
   return 't.deleted_at IS NULL';
 }
 
-export async function loadTopicPage(db: D1Database, options: TopicPageOptions): Promise<PaginatedTopics> {
+export async function loadTopicPage(db: SqliteDatabase, options: TopicPageOptions): Promise<PaginatedTopics> {
   const baseFilter = buildTopicFilterConditions(options);
   const conditions = [getTopicScopeCondition(options.scope), ...baseFilter.conditions];
   const values = baseFilter.values;
@@ -528,7 +529,7 @@ interface PageOptions {
   query?: string;
 }
 
-export async function loadPublishedPage(db: D1Database, options: PageOptions): Promise<PaginatedPublishedVideos> {
+export async function loadPublishedPage(db: SqliteDatabase, options: PageOptions): Promise<PaginatedPublishedVideos> {
   const offset = (options.page - 1) * options.pageSize;
   const [countResult, rowsResult] = await db.batch([
     db.prepare('SELECT COUNT(*) AS count FROM published_videos'),
@@ -549,7 +550,7 @@ export async function loadPublishedPage(db: D1Database, options: PageOptions): P
 }
 
 export async function loadPublishedAnalytics(
-  db: D1Database,
+  db: SqliteDatabase,
   options: PageOptions & { range: 'all' | '90d' | 'year' },
 ): Promise<PublishedAnalyticsPayload> {
   const result = await db.prepare(`SELECT v.*, t.title AS topic_title
@@ -598,7 +599,7 @@ export async function loadPublishedAnalytics(
   };
 }
 
-export async function loadPeoplePage(db: D1Database, options: PageOptions): Promise<PaginatedPeople> {
+export async function loadPeoplePage(db: SqliteDatabase, options: PageOptions): Promise<PaginatedPeople> {
   const conditions: string[] = [];
   const values: unknown[] = [];
   if (options.query?.trim()) {
@@ -645,7 +646,7 @@ export async function loadPeoplePage(db: D1Database, options: PageOptions): Prom
   };
 }
 
-export async function loadTagsPage(db: D1Database, options: PageOptions): Promise<PaginatedTags> {
+export async function loadTagsPage(db: SqliteDatabase, options: PageOptions): Promise<PaginatedTags> {
   const conditions: string[] = [];
   const values: unknown[] = [];
   if (options.query?.trim()) {
@@ -715,13 +716,13 @@ export interface BootstrapLoadOptions {
   includeTags?: boolean;
 }
 
-export async function loadBootstrap(db: D1Database, kvSettings?: AppSettings, options: BootstrapLoadOptions = {}): Promise<BootstrapData> {
+export async function loadBootstrap(db: SqliteDatabase, kvSettings?: AppSettings, options: BootstrapLoadOptions = {}): Promise<BootstrapData> {
   const includeTopics = options.includeTopics !== false;
   const includePeople = options.includePeople !== false;
   const includeRelationships = options.includeRelationships !== false;
   const includePublished = options.includePublished !== false;
   const includeTags = options.includeTags !== false;
-  const queries: D1PreparedStatement[] = [
+  const queries: SqlitePreparedStatement[] = [
     includePeople ? db.prepare(`SELECT p.*,
       (SELECT COUNT(*) FROM topic_people tp WHERE tp.person_id = p.id) AS related_topics_count
       FROM people p ORDER BY p.updated_at DESC`) : db.prepare('SELECT NULL WHERE 1 = 0'),
@@ -753,7 +754,7 @@ export async function loadBootstrap(db: D1Database, kvSettings?: AppSettings, op
   };
 }
 
-export async function loadTopic(db: D1Database, id: string): Promise<Topic | null> {
+export async function loadTopic(db: SqliteDatabase, id: string): Promise<Topic | null> {
   const results = await db.batch([
     bind(db, `SELECT t.*,
       (SELECT COUNT(*) FROM sources s WHERE s.topic_id = t.id) AS sources_count,
@@ -779,7 +780,7 @@ export async function loadTopic(db: D1Database, id: string): Promise<Topic | nul
   };
 }
 
-function topicStatement(db: D1Database, topic: Partial<Topic> & { id: string; title: string }): D1PreparedStatement {
+function topicStatement(db: SqliteDatabase, topic: Partial<Topic> & { id: string; title: string }): SqlitePreparedStatement {
   const now = new Date().toISOString();
   return bind(db, `INSERT INTO topics (
     id, title, summary, hook, storyline, why_now, status, priority, next_action,
@@ -808,7 +809,7 @@ function topicStatement(db: D1Database, topic: Partial<Topic> & { id: string; ti
   ]);
 }
 
-function sourceStatement(db: D1Database, source: Source): D1PreparedStatement {
+function sourceStatement(db: SqliteDatabase, source: Source): SqlitePreparedStatement {
   return bind(db, `INSERT INTO sources (
     id, topic_id, title, content, url, platform, author, published_at,
     verification_status, notes, created_at, updated_at
@@ -819,7 +820,7 @@ function sourceStatement(db: D1Database, source: Source): D1PreparedStatement {
   ]);
 }
 
-function timelineStatement(db: D1Database, event: TimelineEvent): D1PreparedStatement {
+function timelineStatement(db: SqliteDatabase, event: TimelineEvent): SqlitePreparedStatement {
   return bind(db, `INSERT INTO timeline_events (
     id, topic_id, title, description, event_date, date_precision, verification_status,
     sort_order, contrast_tag, created_at, updated_at
@@ -829,7 +830,7 @@ function timelineStatement(db: D1Database, event: TimelineEvent): D1PreparedStat
   ]);
 }
 
-function personStatement(db: D1Database, person: Person): D1PreparedStatement {
+function personStatement(db: SqliteDatabase, person: Person): SqlitePreparedStatement {
   return bind(db, `INSERT INTO people (
     id, name, aliases, avatar_url, description, identity, platform_accounts, quotes, notes, created_at, updated_at
   ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`, [
@@ -838,7 +839,7 @@ function personStatement(db: D1Database, person: Person): D1PreparedStatement {
   ]);
 }
 
-function relationshipStatement(db: D1Database, relationship: PersonRelationship): D1PreparedStatement {
+function relationshipStatement(db: SqliteDatabase, relationship: PersonRelationship): SqlitePreparedStatement {
   return bind(db, `INSERT INTO person_relationships (
     id, person_a_id, person_b_id, relationship, description, created_at
   ) VALUES (?, ?, ?, ?, ?, ?)`, [
@@ -847,7 +848,7 @@ function relationshipStatement(db: D1Database, relationship: PersonRelationship)
   ]);
 }
 
-function draftStatement(db: D1Database, draft: Draft): D1PreparedStatement {
+function draftStatement(db: SqliteDatabase, draft: Draft): SqlitePreparedStatement {
   return bind(db, `INSERT INTO drafts (
     id, topic_id, title, content_json, content_html, word_count, version, updated_at
   ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)`, [
@@ -856,7 +857,7 @@ function draftStatement(db: D1Database, draft: Draft): D1PreparedStatement {
   ]);
 }
 
-function citationStatement(db: D1Database, citation: DraftCitation): D1PreparedStatement {
+function citationStatement(db: SqliteDatabase, citation: DraftCitation): SqlitePreparedStatement {
   return bind(db, `INSERT INTO draft_citations (
     id, topic_id, reference_type, reference_id, reference_title, reference_snapshot,
     quoted_text, verification_status, created_at
@@ -867,7 +868,7 @@ function citationStatement(db: D1Database, citation: DraftCitation): D1PreparedS
   ]);
 }
 
-function publishedStatement(db: D1Database, video: PublishedVideo): D1PreparedStatement {
+function publishedStatement(db: SqliteDatabase, video: PublishedVideo): SqlitePreparedStatement {
   return bind(db, `INSERT INTO published_videos (
     id, topic_id, title, url, bvid, published_at, views, likes, coins, favorites, comments, notes, updated_at
   ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`, [
@@ -876,7 +877,7 @@ function publishedStatement(db: D1Database, video: PublishedVideo): D1PreparedSt
   ]);
 }
 
-function publishPackageStatement(db: D1Database, publishPackage: PublishPackageRecord): D1PreparedStatement {
+function publishPackageStatement(db: SqliteDatabase, publishPackage: PublishPackageRecord): SqlitePreparedStatement {
   return bind(db, `INSERT INTO publish_packages (
     id, topic_id, version, title_simplified, title_traditional, description_simplified, description_traditional,
     title_traditional_auto, description_traditional_auto, content_json, updated_at
@@ -888,7 +889,7 @@ function publishPackageStatement(db: D1Database, publishPackage: PublishPackageR
   ]);
 }
 
-function commercialDealStatement(db: D1Database, deal: CommercialDeal): D1PreparedStatement {
+function commercialDealStatement(db: SqliteDatabase, deal: CommercialDeal): SqlitePreparedStatement {
   return bind(db, `INSERT INTO commercial_deals (
     id, title, brand_name, agency_name, contact_name, contact_channel, source,
     deliverable_type, status, contract_status, contract_summary, brief, requirements,
@@ -912,7 +913,7 @@ function commercialDealStatement(db: D1Database, deal: CommercialDeal): D1Prepar
   ]);
 }
 
-function commercialDealTopicStatement(db: D1Database, relation: CommercialDealTopic): D1PreparedStatement {
+function commercialDealTopicStatement(db: SqliteDatabase, relation: CommercialDealTopic): SqlitePreparedStatement {
   return bind(db, `INSERT INTO commercial_deal_topics (id, deal_id, topic_id, relation_role, created_at)
     VALUES (?, ?, ?, ?, ?)
     ON CONFLICT(id) DO UPDATE SET
@@ -921,7 +922,7 @@ function commercialDealTopicStatement(db: D1Database, relation: CommercialDealTo
   ]);
 }
 
-function commercialDealActivityStatement(db: D1Database, activity: CommercialDealActivity): D1PreparedStatement {
+function commercialDealActivityStatement(db: SqliteDatabase, activity: CommercialDealActivity): SqlitePreparedStatement {
   return bind(db, `INSERT INTO commercial_deal_activities (id, deal_id, kind, content, created_at)
     VALUES (?, ?, ?, ?, ?)
     ON CONFLICT(id) DO UPDATE SET
@@ -930,9 +931,9 @@ function commercialDealActivityStatement(db: D1Database, activity: CommercialDea
   ]);
 }
 
-export async function replaceAllData(db: D1Database, data: BackupData): Promise<void> {
+export async function replaceAllData(db: SqliteDatabase, data: BackupData): Promise<void> {
   assertBackupImportWithinLimits(data);
-  const statements: D1PreparedStatement[] = [
+  const statements: SqlitePreparedStatement[] = [
     db.prepare('DELETE FROM commercial_deal_activities'),
     db.prepare('DELETE FROM commercial_deal_topics'),
     db.prepare('DELETE FROM commercial_deals'),
@@ -984,7 +985,7 @@ export async function replaceAllData(db: D1Database, data: BackupData): Promise<
   }
 }
 
-export async function exportAllData(db: D1Database, kvSettings?: AppSettings): Promise<BackupData> {
+export async function exportAllData(db: SqliteDatabase, kvSettings?: AppSettings): Promise<BackupData> {
   const [bootstrap, allTopics, details] = await Promise.all([
     loadBootstrap(db, kvSettings),
     loadTopics(db, 'all'),

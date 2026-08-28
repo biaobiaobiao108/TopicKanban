@@ -21,7 +21,6 @@ import {
   Upload,
   Gauge,
   Database,
-  Cloud,
   CheckCircle2,
   AlertTriangle,
   RotateCcw,
@@ -68,21 +67,21 @@ interface SettingsViewProps {
   onLogout?: () => void;
 }
 
-interface CloudflareStatus {
+interface RuntimeStatus {
   isChecking: boolean;
-  environment: 'local_vite' | 'cloudflare_pages' | 'node_container' | 'unknown';
-  d1Connected: boolean;
-  d1Message: string;
-  d1Tables?: number;
+  runtime: 'bun' | 'unknown';
+  databaseConnected: boolean;
+  databaseMessage: string;
+  databaseTables?: number;
   kvConnected: boolean;
   kvMessage: string;
   lastChecked?: string;
 }
 
 interface HealthResponse {
-  environment?: 'local_vite' | 'cloudflare_pages' | 'node_container';
+  runtime?: 'bun';
   public_base_url?: string;
-  d1?: { connected?: boolean; message?: string; tables?: number };
+  database?: { connected?: boolean; message?: string; tables?: number };
   kv?: { connected?: boolean; message?: string };
 }
 
@@ -140,21 +139,20 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
     timeoutIdsRef.current.push(timeoutId);
   }, []);
 
-  // Cloudflare live status
-  const [cfStatus, setCfStatus] = useState<CloudflareStatus>({
+  const [runtimeStatus, setRuntimeStatus] = useState<RuntimeStatus>({
     isChecking: true,
-    environment: 'unknown',
-    d1Connected: false,
-    d1Message: '正在检测后端连接...',
+    runtime: 'unknown',
+    databaseConnected: false,
+    databaseMessage: '正在检测后端连接...',
     kvConnected: false,
     kvMessage: '正在检测后端连接...',
   });
 
-  const checkCloudflareStatus = useCallback(async () => {
+  const checkRuntimeStatus = useCallback(async () => {
     healthControllerRef.current?.abort();
     const controller = new AbortController();
     healthControllerRef.current = controller;
-    setCfStatus((prev) => ({ ...prev, isChecking: true }));
+    setRuntimeStatus((prev) => ({ ...prev, isChecking: true }));
     let timeoutId: ReturnType<typeof setTimeout> | null = null;
     try {
       timeoutId = setTimeout(() => controller.abort(), 3000);
@@ -163,14 +161,14 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
       if (res.ok) {
         const data = (await res.json()) as HealthResponse;
         if (!isMountedRef.current) return;
-        setCfStatus({
+        setRuntimeStatus({
           isChecking: false,
-          environment: data.environment || 'cloudflare_pages',
-          d1Connected: data.d1?.connected || false,
-          d1Message: data.d1?.message || '数据库状态未知',
-          d1Tables: data.d1?.tables,
+          runtime: data.runtime || 'unknown',
+          databaseConnected: data.database?.connected || false,
+          databaseMessage: data.database?.message || '数据库状态未知',
+          databaseTables: data.database?.tables,
           kvConnected: data.kv?.connected || false,
-          kvMessage: data.kv?.message || 'KV 状态未知',
+          kvMessage: data.kv?.message || '键值存储状态未知',
           lastChecked: new Date().toLocaleTimeString(),
         });
       } else {
@@ -178,13 +176,13 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
       }
     } catch {
       if (!isMountedRef.current || controller.signal.aborted) return;
-      setCfStatus({
+      setRuntimeStatus({
         isChecking: false,
-        environment: 'local_vite',
-        d1Connected: false,
-        d1Message: '当前为本地单机开发模式，数据由浏览器本地持久化（未连接后端服务）',
+        runtime: 'unknown',
+        databaseConnected: false,
+        databaseMessage: '后端服务未连接，请确认 Bun 服务正常运行',
         kvConnected: false,
-        kvMessage: '未接入 KV 命名空间',
+        kvMessage: '键值存储状态未知',
         lastChecked: new Date().toLocaleTimeString(),
       });
     } finally {
@@ -194,13 +192,13 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
   }, []);
 
   useEffect(() => {
-    void checkCloudflareStatus();
+    void checkRuntimeStatus();
     return () => {
       isMountedRef.current = false;
       healthControllerRef.current?.abort();
       timeoutIdsRef.current.forEach(clearTimeout);
     };
-  }, [checkCloudflareStatus]);
+  }, [checkRuntimeStatus]);
 
   const handleSelectTheme = (theme: AppTheme) => {
     setSelectedTheme(theme);
@@ -351,7 +349,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
             <>
             {savedSuccess && (
               <span className="flex items-center gap-1 text-xs font-semibold text-emerald-600 animate-in fade-in dark:text-emerald-400">
-                <CheckCircle2 className="h-4 w-4" aria-hidden="true" /> 设置已同步至 Workers KV
+                <CheckCircle2 className="h-4 w-4" aria-hidden="true" /> 设置已同步至本地 SQLite
               </span>
             )}
             <button
@@ -379,7 +377,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
               </div>
             </div>
             <span className="text-[10px] font-mono font-bold bg-rose-500/10 text-rose-700 dark:text-rose-300 px-2.5 py-0.5 rounded-full">
-              KV 驱动
+              SQLite KV
             </span>
           </div>
 
@@ -935,32 +933,24 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                 <h3 className="text-sm font-bold text-stone-900 dark:text-stone-100">数据库与存储实时探测</h3>
               </div>
               <button
-                onClick={checkCloudflareStatus}
-                disabled={cfStatus.isChecking}
+                onClick={checkRuntimeStatus}
+                disabled={runtimeStatus.isChecking}
                 className="p-1 rounded-lg text-stone-400 hover:text-stone-700 dark:hover:text-stone-200 cursor-pointer"
                 title="重新检测"
               >
-                <RefreshCw className={`w-3.5 h-3.5 ${cfStatus.isChecking ? 'animate-spin' : ''}`} />
+                <RefreshCw className={`w-3.5 h-3.5 ${runtimeStatus.isChecking ? 'animate-spin' : ''}`} />
               </button>
             </div>
             <div className="flex items-center gap-2">
-              <span className={`w-2 h-2 rounded-full ${cfStatus.d1Connected ? 'bg-emerald-500' : 'bg-amber-500'}`} />
+              <span className={`w-2 h-2 rounded-full ${runtimeStatus.databaseConnected && runtimeStatus.kvConnected ? 'bg-emerald-500' : 'bg-amber-500'}`} />
               <span className="text-xs font-semibold text-stone-700 dark:text-stone-300">
-                {cfStatus.environment === 'node_container'
-                  ? '本地 SQLite 容器服务正常运行中'
-                  : cfStatus.environment === 'cloudflare_pages'
-                    ? (cfStatus.d1Connected && cfStatus.kvConnected
-                        ? 'D1 与 KV 服务正常运行中'
-                        : cfStatus.d1Connected
-                          ? 'D1 (SQLite) 数据库连接正常 (KV 未绑定)'
-                          : 'Cloudflare 服务未连通')
-                    : cfStatus.d1Connected
-                      ? 'D1 与 KV 服务正常运行中'
-                      : '本地开发模式运行中'}
+                {runtimeStatus.databaseConnected && runtimeStatus.kvConnected
+                  ? 'Bun + SQLite 本地服务正常运行中'
+                  : '后端服务未连通'}
               </span>
             </div>
             <p className="text-[11px] text-stone-400 dark:text-stone-500 truncate">
-              {cfStatus.d1Message}
+              {runtimeStatus.databaseMessage}
             </p>
           </div>
         </div>

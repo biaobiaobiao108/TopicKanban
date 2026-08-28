@@ -1,7 +1,7 @@
-import type { Hono } from 'hono';
-import { bodyLimit } from 'hono/body-limit';
+import { NativeApp, bodyLimit } from './native';
 import type { AppSettings } from '../types';
 import { DEFAULT_APP_SETTINGS, DEFAULT_VOICEOVER_CUES, APP_THEMES, type AppTheme } from '../types';
+import type { AppKV } from './appKv';
 import {
   BackupImportLimitError,
   exportAllData,
@@ -91,8 +91,7 @@ export function sanitizeAppSettings(
   };
 }
 
-async function getKvSettings(kv?: KVNamespace, defaultPublicBaseUrl?: string): Promise<AppSettings> {
-  if (!kv) return sanitizeAppSettings(null, defaultPublicBaseUrl);
+async function getKvSettings(kv: AppKV, defaultPublicBaseUrl?: string): Promise<AppSettings> {
   try {
     const settings = await kv.get<AppSettings>('app_settings', 'json');
     if (settings) {
@@ -102,23 +101,6 @@ async function getKvSettings(kv?: KVNamespace, defaultPublicBaseUrl?: string): P
     // fallback to default
   }
   return sanitizeAppSettings(null, defaultPublicBaseUrl);
-}
-
-export function detectEnvironment(c: { env: ApiBindings }): 'node_container' | 'cloudflare_pages' {
-  if (c.env.ENVIRONMENT === 'node_container') return 'node_container';
-  if (c.env.ENVIRONMENT === 'cloudflare_pages') return 'cloudflare_pages';
-
-  // Check whether DB or KV is using the local Bun SQLite adapters
-  const isLocalAdapter = Boolean((c.env.DB as unknown as { sqlite?: unknown })?.sqlite || (c.env.KV as unknown as { sqlite?: unknown })?.sqlite);
-  if (isLocalAdapter) return 'node_container';
-
-  // Check Cloudflare Workers / Pages environment indicators
-  const isCloudflare = (typeof navigator !== 'undefined' && navigator.userAgent === 'Cloudflare-Workers')
-    || typeof WebSocketPair !== 'undefined'
-    || Boolean((globalThis as unknown as { caches?: { default?: unknown } }).caches?.default);
-  if (isCloudflare) return 'cloudflare_pages';
-
-  return 'cloudflare_pages';
 }
 
 const failedLoginAttempts = new Map<string, { count: number; resetAt: number }>();
@@ -159,16 +141,13 @@ function resetFailedLogin(ip: string): void {
   failedLoginAttempts.delete(ip);
 }
 
-export function registerSystemRoutes(app: Hono<{ Bindings: ApiBindings }>): void {
+export function registerSystemRoutes(app: NativeApp): void {
   app.post('/auth/login', bodyLimit({
     maxSize: MAX_LOGIN_REQUEST_BYTES,
     onError: (c) => c.json({ success: false, message: '请求体过大' }, 413),
   }), async (c) => {
     try {
-      const clientIp = c.env.CLIENT_IP
-        || (c.env.ENVIRONMENT === 'cloudflare_pages'
-          ? c.req.header('cf-connecting-ip') || 'unknown'
-          : 'unknown');
+      const clientIp = c.env.CLIENT_IP || 'unknown';
 
       if (!checkLoginRateLimit(clientIp)) {
         return c.json({ success: false, message: '登录尝试过于频繁，请 1 分钟后再试' }, 429);
@@ -177,7 +156,7 @@ export function registerSystemRoutes(app: Hono<{ Bindings: ApiBindings }>): void
       const { password } = await c.req.json<{ password?: string }>();
       const correctPassword = c.env.APP_PASSWORD;
       if (!correctPassword) {
-        return c.json({ success: false, message: '云端访问密码尚未配置，请设置 APP_PASSWORD' }, 503);
+        return c.json({ success: false, message: '访问密码尚未配置，请设置 APP_PASSWORD' }, 503);
       }
       if (password !== correctPassword) {
         recordFailedLogin(clientIp);
@@ -196,27 +175,21 @@ export function registerSystemRoutes(app: Hono<{ Bindings: ApiBindings }>): void
       const tableCheck = await db.prepare("SELECT count(*) AS count FROM sqlite_master WHERE type='table'")
         .first<{ count: number }>();
       const kvSettings = await getKvSettings(c.env.KV, c.env.PUBLIC_BASE_URL);
-      const environment = detectEnvironment(c);
       const tablesCount = tableCheck?.count || 0;
       return c.json({
         status: 'online',
         timestamp: new Date().toISOString(),
-        environment,
+        runtime: 'bun',
         public_base_url: kvSettings.public_base_url || c.env.PUBLIC_BASE_URL || '',
-        d1: {
+        database: {
           connected: true,
           tables: tablesCount,
-          message: environment === 'node_container'
-            ? `本地 SQLite 数据库连接正常 (已检测到 ${tablesCount} 张数据表)`
-            : `Cloudflare D1 (SQLite) 数据库连接正常 (已检测到 ${tablesCount} 张数据表)`,
+          message: `SQLite 数据库连接正常 (已检测到 ${tablesCount} 张数据表)`,
         },
         kv: {
-          connected: !!c.env.KV,
-          message: c.env.KV
-            ? (environment === 'node_container'
-                ? '本地 SQLite KV 存储已就绪（用于全局偏好设置与轻量持久交互）'
-                : 'Cloudflare KV 命名空间已绑定（用于全局偏好设置与轻量持久交互）')
-            : 'KV 未绑定',
+          connected: true,
+          backend: 'sqlite',
+          message: 'SQLite KV 存储已就绪（用于全局偏好设置与轻量持久交互）',
         },
         quick_drop: {
           configured: !!c.env.QUICK_DROP_TOKEN,
@@ -257,7 +230,6 @@ export function registerSystemRoutes(app: Hono<{ Bindings: ApiBindings }>): void
     onError: (c) => c.json({ error: 'Backup request body is too large' }, 413),
   }), async (c) => {
     try {
-      if (!c.env.KV) return c.json({ error: 'KV is not configured' }, 503);
       const { data } = await c.req.json<{ data?: unknown }>();
       const validation = validateBackupData(data);
       if (!validation.success) return c.json({ error: validation.error }, 400);
@@ -271,13 +243,11 @@ export function registerSystemRoutes(app: Hono<{ Bindings: ApiBindings }>): void
   });
 
   app.get('/settings', async (c) => {
-    if (!c.env.KV) return c.json({ error: 'KV is not configured' }, 503);
     return c.json(await getKvSettings(c.env.KV, c.env.PUBLIC_BASE_URL));
   });
 
   app.put('/settings', async (c) => {
     try {
-      if (!c.env.KV) return c.json({ error: 'KV is not configured' }, 503);
       const raw = await c.req.json<Partial<AppSettings>>();
       const updatedSettings = sanitizeAppSettings(raw, c.env.PUBLIC_BASE_URL);
 

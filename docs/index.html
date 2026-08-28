@@ -6,7 +6,7 @@
   <meta name="referrer" content="no-referrer" />
   <title>选题生产工作台 (Topic Kanban Studio) - B站叙事类视频创作者的专属生产力引擎</title>
   <meta name="description" content="面向 Bilibili 叙事类视频（互联网人物、网红主播、荒诞事件、社会纪实）创作者量身打造的专属选题与文案生产工作台。围绕「下一步行动治理」与「起承转合四幕叙事」，全流程覆盖线索收集、素材核验、故事大纲、文案写作、演播提词与 5D 复盘。" />
-  <meta name="keywords" content="选题工作台,B站创作者,UP主生产力,叙事视频,文案写作,提词器,5D故事评估,四幕叙事,Docker部署,Cloudflare" />
+  <meta name="keywords" content="选题工作台,B站创作者,UP主生产力,叙事视频,文案写作,提词器,5D故事评估,四幕叙事,Bun,SQLite,Docker部署" />
   
   <!-- Favicon -->
   <link rel="icon" type="image/png" href="./icon.png" />
@@ -950,15 +950,15 @@
       </div>
     </section>
 
-    <!-- DUAL RUNTIME & DEPLOYMENT QUICK START -->
+    <!-- BUN RUNTIME & DEPLOYMENT QUICK START -->
     <section id="deployment" class="py-20 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
       <div class="text-center max-w-3xl mx-auto mb-16 scroll-reveal">
         <span class="text-xs font-bold uppercase tracking-wider text-rose-600 dark:text-rose-400">Deployment & Infrastructure</span>
         <h2 class="text-3xl sm:text-4xl font-black text-stone-900 dark:text-stone-100 mt-2">
-          单机容器与边缘云端双运行架构
+          Bun 原生单机容器架构
         </h2>
         <p class="mt-3 text-stone-600 dark:text-stone-400 text-xs sm:text-sm">
-          开箱即用的生产级体验。本地一台轻量服务器即可单容器闭环，亦可零成本托管至 Cloudflare 边缘网络。
+          开箱即用的生产级体验。一台轻量服务器即可通过单个 Bun 服务完成 API、SQLite 与 SPA 静态资源闭环。
         </p>
       </div>
 
@@ -980,7 +980,7 @@
             </div>
 
             <p class="text-xs text-stone-600 dark:text-stone-400 mb-4 leading-relaxed">
-              单镜像集成 Bun 原生 HTTP 核心与本地 SQLite WAL 数据库，自动自适应反向代理域名（Nginx / Caddy / CF Tunnel），分享链接即开即用。
+              单镜像集成 Bun 原生 HTTP 路由与本地 SQLite WAL 数据库，自动自适应反向代理域名（Nginx / Caddy / NPM），分享链接即开即用。
             </p>
 
             <div class="relative rounded-2xl bg-stone-950 p-4 font-mono text-xs text-stone-200 overflow-x-auto border border-stone-800">
@@ -992,16 +992,16 @@
 git clone https://github.com/biaobiaobiao108/TopicKanban.git
 cd TopicKanban
 
-# 2. 极速拉取并启动单容器 (映射 8787 端口与数据卷)
+# 2. 极速拉取并启动单容器 (映射 3030 端口与数据卷)
 docker run -d \
   --name topic-kanban \
-  -p 8787:8787 \
+  -p 3030:3030 \
   -v kanban_data:/app/data \
-  -e AUTH_PASSWORD=admin \
+  -e APP_PASSWORD=admin \
   topic-kanban:latest
 
 # 3. 浏览器直接访问
-http://localhost:8787</code></pre>
+http://localhost:3030</code></pre>
             </div>
           </div>
 
@@ -1018,39 +1018,41 @@ http://localhost:8787</code></pre>
           <div>
             <div class="flex items-center justify-between mb-4">
               <div class="flex items-center gap-3">
-                <div class="w-10 h-10 rounded-xl bg-amber-500/10 text-amber-600 dark:text-amber-400 flex items-center justify-center">
-                  <i data-lucide="cloud" class="w-5 h-5"></i>
+                <div class="w-10 h-10 rounded-xl bg-rose-500/10 text-rose-600 dark:text-rose-400 flex items-center justify-center">
+                  <i data-lucide="zap" class="w-5 h-5"></i>
                 </div>
                 <div>
-                  <h3 class="text-lg font-bold text-stone-900 dark:text-stone-100">Cloudflare 边缘无服务器架构</h3>
-                  <span class="text-xs text-stone-500 font-medium">Pages Functions + D1 SQLite + Workers KV</span>
+                  <h3 class="text-lg font-bold text-stone-900 dark:text-stone-100">Bun 原生请求与存储层</h3>
+                  <span class="text-xs text-stone-500 font-medium">Bun.serve routes + bun:sqlite + SQLite KV</span>
                 </div>
               </div>
-              <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-blue-500/10 text-blue-600 dark:text-blue-400">全球边缘秒开</span>
+              <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-rose-500/10 text-rose-600 dark:text-rose-400">低开销原生运行</span>
             </div>
 
             <p class="text-xs text-stone-600 dark:text-stone-400 mb-4 leading-relaxed">
-              代码通过 Hono 4 工厂统一驱动，原生兼容 Cloudflare D1 边缘数据库与 Workers KV，无需购买服务器即可享受毫秒级全球访问。
+              API 直接使用 Bun 原生路由分发，请求上下文与 SQLite 存储都不再经过跨运行时兼容层；WAL、TTL KV 和 SPA 静态托管由同一个进程统一管理。
             </p>
 
             <div class="relative rounded-2xl bg-stone-950 p-4 font-mono text-xs text-stone-200 overflow-x-auto border border-stone-800">
-              <button onclick="copyCode(this, 'cfDeployCode')" class="absolute top-3 right-3 px-2.5 py-1 rounded-lg bg-stone-800 hover:bg-stone-700 text-stone-300 text-[11px] flex items-center gap-1 border border-stone-700 transition-all hover:scale-105 active:scale-95">
+              <button onclick="copyCode(this, 'bunRuntimeCode')" class="absolute top-3 right-3 px-2.5 py-1 rounded-lg bg-stone-800 hover:bg-stone-700 text-stone-300 text-[11px] flex items-center gap-1 border border-stone-700 transition-all hover:scale-105 active:scale-95">
                 <i data-lucide="copy" class="w-3 h-3"></i>
                 <span>复制</span>
               </button>
-              <pre id="cfDeployCode" class="text-stone-300 leading-relaxed"><code># 1. 创建 D1 数据库与 KV 命名空间
-bunx wrangler d1 create topic-kanban-db
-bunx wrangler kv:namespace create TOPIC_KANBAN_KV
-
-# 2. 一键发布至 Cloudflare Pages
+              <pre id="bunRuntimeCode" class="text-stone-300 leading-relaxed"><code># 1. 安装依赖并构建
+bun install
 bun run build
-bunx wrangler pages deploy dist</code></pre>
+
+# 2. 启动 Bun 原生服务
+DATA_DIR=./data APP_PASSWORD=admin PORT=3030 bun run start
+
+# 3. 浏览器直接访问
+http://localhost:3030</code></pre>
             </div>
           </div>
 
           <div class="mt-6 pt-4 border-t border-stone-100 dark:border-stone-800 flex items-center justify-between text-xs text-stone-500">
-            <span>零维护成本 / 全球 CDN 加速</span>
-            <span class="font-mono text-amber-600 dark:text-amber-400 font-bold">无服务器边缘</span>
+            <span>单进程闭环 / SQLite WAL 持久化</span>
+            <span class="font-mono text-rose-600 dark:text-rose-400 font-bold">Bun 原生</span>
           </div>
         </div>
 
@@ -1076,8 +1078,8 @@ bunx wrangler pages deploy dist</code></pre>
           <div class="text-xs text-stone-500 mt-1">TypeScript + Vite 6</div>
         </div>
         <div class="tilt-card p-4 rounded-2xl border border-stone-200/80 dark:border-stone-800 bg-white dark:bg-stone-900 text-center shadow-2xs hover:shadow-card hover:-translate-y-1 transition-all">
-          <div class="text-rose-600 dark:text-rose-400 font-black text-lg">Hono 4</div>
-          <div class="text-xs text-stone-500 mt-1">轻量跨端 REST API</div>
+          <div class="text-rose-600 dark:text-rose-400 font-black text-lg">Native Routes</div>
+          <div class="text-xs text-stone-500 mt-1">Bun 原生 REST API</div>
         </div>
         <div class="tilt-card p-4 rounded-2xl border border-stone-200/80 dark:border-stone-800 bg-white dark:bg-stone-900 text-center shadow-2xs hover:shadow-card hover:-translate-y-1 transition-all">
           <div class="text-stone-900 dark:text-stone-100 font-black text-lg">SQLite WAL</div>
@@ -1202,7 +1204,7 @@ bunx wrangler pages deploy dist</code></pre>
       </div>
 
       <p class="text-[11px] text-stone-400 dark:text-stone-600 font-mono">
-        Built with Bun + Hono + SQLite + React
+        Built with Bun + SQLite + React
       </p>
     </div>
   </footer>

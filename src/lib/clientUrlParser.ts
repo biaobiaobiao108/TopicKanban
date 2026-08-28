@@ -104,7 +104,7 @@ export function cleanMobileShareText(rawText: string, extractedUrl: string): { t
 
 /**
  * All-in-one Client-Side Direct Metadata Parser
- * 100% runs in user's browser, completely bypassing Cloudflare datacenter IP blocking.
+ * 100% runs in the user's browser, keeping platform requests on the user's own network.
  */
 export async function parseClientMetadata(rawInput: string): Promise<ParsedClientMetadata> {
   const trimmed = rawInput.trim();

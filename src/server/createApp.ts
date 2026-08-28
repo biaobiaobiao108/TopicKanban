@@ -1,5 +1,4 @@
-import { Hono } from 'hono';
-import { bodyLimit } from 'hono/body-limit';
+import { NativeApp, bodyLimit } from './native';
 import type {
   Draft,
   DraftCitation,
@@ -70,8 +69,9 @@ import {
 import { registerSystemRoutes } from './systemRoutes';
 import { resolveServerPublicUrl } from '../lib/publicUrl';
 import { isSafeExternalHttpUrl } from '../lib/urlSafety';
+import type { SqliteDatabase, SqlitePreparedStatement } from './sqlite';
 
-async function loadTimelineEvents(db: D1Database, topicId: string): Promise<TimelineEvent[]> {
+async function loadTimelineEvents(db: SqliteDatabase, topicId: string): Promise<TimelineEvent[]> {
   const [eventResult, personResult] = await db.batch([
     db.prepare('SELECT * FROM timeline_events WHERE topic_id = ? ORDER BY sort_order').bind(topicId),
     db.prepare(`SELECT tep.timeline_event_id, tep.person_id
@@ -93,10 +93,10 @@ async function loadTimelineEvents(db: D1Database, topicId: string): Promise<Time
 }
 
 function replaceTimelinePeopleStatements(
-  db: D1Database,
+  db: SqliteDatabase,
   eventId: string,
   personIds: string[]
-): D1PreparedStatement[] {
+): SqlitePreparedStatement[] {
   return [
     statements.bind(db, 'DELETE FROM timeline_event_people WHERE timeline_event_id = ?', [eventId]),
     ...Array.from(new Set(personIds)).map((personId) => statements.bind(
@@ -107,7 +107,7 @@ function replaceTimelinePeopleStatements(
   ];
 }
 
-async function loadRelationship(db: D1Database, id: string): Promise<PersonRelationship | null> {
+async function loadRelationship(db: SqliteDatabase, id: string): Promise<PersonRelationship | null> {
   return db.prepare(`SELECT r.*, a.name AS person_a_name, b.name AS person_b_name
     FROM person_relationships r
     LEFT JOIN people a ON a.id = r.person_a_id
@@ -180,8 +180,8 @@ function validatePublishPackagePayload(body: Record<string, unknown>): string | 
   return null;
 }
 
-export function createApp() {
-  const app = new Hono<{ Bindings: ApiBindings }>().basePath('/api');
+export function createApp(bindings: ApiBindings) {
+  const app = new NativeApp(bindings, '/api');
 
   app.use('*', bodyLimit({
     maxSize: MAX_REQUEST_BYTES,
@@ -361,7 +361,7 @@ export function createApp() {
         'delivery_due_date', 'publish_date', 'next_action', 'next_action_due_date', 'published_video_id',
       ].filter((field) => Object.prototype.hasOwnProperty.call(body, field));
       const now = new Date().toISOString();
-      const batch: D1PreparedStatement[] = [];
+      const batch: SqlitePreparedStatement[] = [];
       if (fields.length > 0) {
         batch.push(statements.bind(db,
           `UPDATE commercial_deals SET ${fields.map((field) => `${field} = ?`).join(', ')}, updated_at = ? WHERE id = ?`,
@@ -416,7 +416,7 @@ export function createApp() {
         if (result.results.length !== topicIds.length) return c.json({ error: 'One or more topics not found' }, 400);
       }
       const now = new Date().toISOString();
-      const statementsToRun: D1PreparedStatement[] = [statements.bind(db, 'DELETE FROM commercial_deal_topics WHERE deal_id = ?', [dealId])];
+      const statementsToRun: SqlitePreparedStatement[] = [statements.bind(db, 'DELETE FROM commercial_deal_topics WHERE deal_id = ?', [dealId])];
       topicIds.forEach((topicId) => statementsToRun.push(statements.commercialDealTopic(db, {
         id: `${dealId}:${topicId}`,
         deal_id: dealId,
@@ -524,7 +524,7 @@ export function createApp() {
       const now = new Date().toISOString();
       const id = body.id || createId('topic');
       const topic = { ...body, id, title: body.title.trim(), created_at: body.created_at || now };
-      const batch: D1PreparedStatement[] = [statements.topic(db, topic)];
+      const batch: SqlitePreparedStatement[] = [statements.topic(db, topic)];
       body.tags?.forEach((tag) => batch.push(statements.bind(db,
         'INSERT OR IGNORE INTO topic_tags (id, topic_id, tag_id) VALUES (?, ?, ?)',
         [`${id}:${tag.id}`, id, tag.id]
@@ -547,7 +547,7 @@ export function createApp() {
       const body = await c.req.json<Partial<Topic>>();
       const validationError = validateTopicFields(body);
       if (validationError) return c.json({ error: validationError }, 400);
-      const batch: D1PreparedStatement[] = [];
+      const batch: SqlitePreparedStatement[] = [];
       const fields = [
         'title', 'summary', 'hook', 'storyline', 'why_now', 'status', 'priority', 'next_action',
         'next_action_updated_at', 'next_action_deferred_until',
@@ -1372,7 +1372,6 @@ export function createApp() {
   app.get('/public/share/:token', async (c) => {
     try {
       const kv = c.env.KV;
-      if (!kv) return c.json({ error: 'KV is not configured' }, 503);
       const token = c.req.param('token');
       const data = await kv.get(`share:${token}`, 'json');
       if (!data) return c.json({ error: '审稿链接已过期或不存在' }, 404);
@@ -1386,7 +1385,6 @@ export function createApp() {
   app.post('/topics/:id/share', async (c) => {
     try {
       const kv = c.env.KV;
-      if (!kv) return c.json({ error: 'KV is not configured' }, 503);
       const db = requireDb(c);
       const id = c.req.param('id');
       const body = await c.req.json<{ ttl_seconds?: number }>().catch(() => ({ ttl_seconds: 86400 * 3 }));
@@ -1437,7 +1435,6 @@ export function createApp() {
   app.delete('/topics/:id/share/:token', async (c) => {
     try {
       const kv = c.env.KV;
-      if (!kv) return c.json({ error: 'KV is not configured' }, 503);
       const token = c.req.param('token');
       const id = c.req.param('id');
       await kv.delete(`share:${token}`);
@@ -1456,7 +1453,6 @@ export function createApp() {
   app.post('/topics/:id/presence', async (c) => {
     try {
       const kv = c.env.KV;
-      if (!kv) return c.json({ is_locked: false });
       const topicId = c.req.param('id');
       const body = await c.req.json<{ client_id: string; device_name?: string }>();
       const clientId = body.client_id || 'unknown';
@@ -1489,7 +1485,6 @@ export function createApp() {
   app.delete('/topics/:id/presence', async (c) => {
     try {
       const kv = c.env.KV;
-      if (!kv) return c.json({ success: true });
       const topicId = c.req.param('id');
       const clientId = c.req.query('client_id');
       const currentLock = await kv.get<{ client_id: string }>(`lock:${topicId}`, 'json');
@@ -1513,7 +1508,6 @@ export function createApp() {
   }), async (c) => {
     try {
       const kv = c.env.KV;
-      if (!kv) return c.json({ error: 'KV is not configured' }, 503);
       let rawContent = '';
       let rawUrl: string | undefined = undefined;
       let rawSource = '手机快捷投递';
@@ -1560,7 +1554,6 @@ export function createApp() {
   app.get('/inbox/quick-drops', async (c) => {
     try {
       const kv = c.env.KV;
-      if (!kv) return c.json({ items: [] });
       const listIndex = (await kv.get<string[]>('quick_drops_index', 'json')) || [];
       const items: Array<{ id: string; content: string; url?: string; source?: string; created_at: string }> = [];
       const validIds: string[] = [];
@@ -1589,7 +1582,6 @@ export function createApp() {
   app.delete('/inbox/quick-drops/:id', async (c) => {
     try {
       const kv = c.env.KV;
-      if (!kv) return c.json({ success: true });
       const id = c.req.param('id');
       await kv.delete(`drop:${id}`);
       const listIndex = (await kv.get<string[]>('quick_drops_index', 'json')) || [];

@@ -1,6 +1,6 @@
 # 本地 Podman / Docker 容器部署与反向代理配置指南
 
-本文档介绍如何在本地服务器、家庭 NAS（群晖/绿联/极空间）或 VPS 上通过 **Podman** 或 **Docker** 容器化部署「叙事类视频选题生产工作台」，并配置反向代理（Nginx / Caddy / Cloudflare Tunnel / NPM）。
+本文档介绍如何在本地服务器、家庭 NAS（群晖/绿联/极空间）或 VPS 上通过 **Podman** 或 **Docker** 容器化部署「叙事类视频选题生产工作台」，并配置反向代理（Nginx / Caddy / NPM）。
 
 ---
 

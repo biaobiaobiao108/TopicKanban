@@ -1,14 +1,15 @@
 import { describe, it, expect, beforeEach, afterEach } from 'bun:test';
 import { Database } from 'bun:sqlite';
-import { LocalKVNamespace } from '../src/server/adapters/localKv';
+import { AppKV } from '../src/server/appKv';
+import { SqliteDatabase } from '../src/server/sqlite';
 
-describe('LocalKVNamespace (SQLite KV Adapter)', () => {
+describe('AppKV (SQLite)', () => {
   let sqlite: Database;
-  let kv: LocalKVNamespace;
+  let kv: AppKV;
 
   beforeEach(() => {
     sqlite = new Database(':memory:');
-    kv = new LocalKVNamespace(sqlite);
+    kv = new AppKV(new SqliteDatabase(sqlite));
   });
 
   afterEach(() => {
