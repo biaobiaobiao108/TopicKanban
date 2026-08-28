@@ -92,7 +92,9 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
   const [currentDate, setCurrentDate] = useState<Date>(() => parseCalendarDate(searchParams.get('date')) || new Date());
   const [viewMode, setViewMode] = useState<CalendarViewMode>(() => parseCalendarView(searchParams.get('view')));
   const [filters, setFilters] = useState<CalendarLayerFilters>(DEFAULT_CALENDAR_LAYERS);
-  const [isPoolOpen, setIsPoolOpen] = useState<boolean>(true);
+  const [isPoolOpen, setIsPoolOpen] = useState<boolean>(() => (
+    typeof window === 'undefined' ? true : window.matchMedia('(min-width: 640px)').matches
+  ));
   const [draggedTopic, setDraggedTopic] = useState<Topic | null>(null);
 
   // Modal State
@@ -430,7 +432,7 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
         </div>
 
         {/* Calendar Body Area + Side Pool */}
-        <div className="flex-1 flex min-h-0 overflow-hidden p-3 sm:p-6 gap-4">
+        <div className="relative flex-1 flex min-h-0 overflow-hidden p-3 sm:p-6 gap-4">
           {/* Main Grid View */}
           {viewMode === 'month' && (
             <CalendarMonthGrid

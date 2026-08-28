@@ -14,7 +14,7 @@ interface CalendarWeekGridProps {
   onOpenPublished: () => void;
 }
 
-function WeekDayColumn({
+function WeekDayRow({
   day,
   events,
   onDateClick,
@@ -37,13 +37,15 @@ function WeekDayColumn({
   return (
     <div
       ref={setNodeRef}
-      className={`flex-1 flex flex-col min-w-[140px] border-r border-stone-200/70 dark:border-stone-800 last:border-r-0 transition-colors ${
+      data-testid="calendar-week-day"
+      data-date={day.date}
+      className={`grid min-w-0 grid-cols-[6.5rem_minmax(0,1fr)] sm:grid-cols-[8.5rem_minmax(0,1fr)] border-b border-stone-200/70 last:border-b-0 dark:border-stone-800 transition-colors ${
         day.isToday ? 'bg-rose-50/[0.04] dark:bg-rose-950/[0.1]' : 'bg-white dark:bg-stone-900'
       } ${isOver ? 'bg-rose-100/60 dark:bg-rose-950/60 ring-2 ring-inset ring-rose-600' : ''}`}
     >
       {/* Header */}
       <div
-        className={`p-3 border-b border-stone-200/70 dark:border-stone-800 text-center select-none ${
+        className={`flex min-h-[8.5rem] flex-col items-center justify-center border-r border-stone-200/70 px-2 py-4 text-center select-none dark:border-stone-800 sm:px-4 ${
           day.isToday
             ? 'bg-rose-50 dark:bg-rose-950/40 text-rose-700 dark:text-rose-300 font-bold'
             : 'bg-stone-50 dark:bg-stone-900/90 text-stone-700 dark:text-stone-300'
@@ -60,22 +62,30 @@ function WeekDayColumn({
       </div>
 
       {/* Events List */}
-      <div className="min-h-[300px] flex-1 space-y-2 overflow-y-auto overscroll-contain p-2">
-        {events.map((ev) => (
-          <CalendarEventPill
-            key={ev.id}
-            event={ev}
-            compact
-            onOpenTopic={onOpenTopic}
-            onOpenDeal={onOpenDeal}
-            onOpenPublished={onOpenPublished}
-          />
-        ))}
+      <div className="min-w-0 min-h-[8.5rem] p-3 sm:p-4">
+        {events.length > 0 ? (
+          <div className="grid min-w-0 grid-cols-1 gap-2.5 md:grid-cols-[repeat(auto-fit,minmax(240px,1fr))]">
+            {events.map((ev) => (
+              <CalendarEventPill
+                key={ev.id}
+                event={ev}
+                compact={false}
+                onOpenTopic={onOpenTopic}
+                onOpenDeal={onOpenDeal}
+                onOpenPublished={onOpenPublished}
+              />
+            ))}
+          </div>
+        ) : (
+          <div className="flex min-h-[5.5rem] items-center justify-center rounded-xl border border-dashed border-stone-200/80 px-3 text-center text-xs text-stone-400 dark:border-stone-800 dark:text-stone-500">
+            今日暂无排期与待办
+          </div>
+        )}
 
         <button
           type="button"
           onClick={() => onDateClick(day.date)}
-          className="w-full flex items-center justify-center gap-1 py-2 rounded-xl text-xs font-semibold text-stone-400 dark:text-stone-500 hover:text-stone-800 dark:hover:text-stone-200 hover:bg-stone-100 dark:hover:bg-stone-800/80 border border-dashed border-stone-200 dark:border-stone-800 transition-colors cursor-pointer"
+          className="mt-3 inline-flex w-full items-center justify-center gap-1 rounded-xl border border-dashed border-stone-200 py-2 text-xs font-semibold text-stone-400 transition-colors hover:bg-stone-100 hover:text-stone-800 dark:border-stone-800 dark:text-stone-500 dark:hover:bg-stone-800/80 dark:hover:text-stone-200 sm:w-auto sm:px-4 cursor-pointer"
         >
           <Plus className="w-3.5 h-3.5" />
           <span>排期定档</span>
@@ -94,20 +104,13 @@ export const CalendarWeekGrid: React.FC<CalendarWeekGridProps> = ({
   onOpenPublished,
 }) => {
   return (
-    <div className="flex min-w-0 flex-1 overflow-x-auto overscroll-contain rounded-2xl border border-stone-200/70 bg-white shadow-2xs dark:border-stone-800 dark:bg-stone-900">
+    <div
+      data-testid="calendar-week-grid"
+      className="flex min-h-0 min-w-0 flex-1 flex-col overflow-y-auto overscroll-contain rounded-2xl border border-stone-200/70 bg-white shadow-2xs [scrollbar-gutter:stable] dark:border-stone-800 dark:bg-stone-900"
+    >
       {days.map((day) => {
         const events = eventsMap.get(day.date) || [];
-        return (
-          <WeekDayColumn
-            key={day.date}
-            day={day}
-            events={events}
-            onDateClick={onDateClick}
-            onOpenTopic={onOpenTopic}
-            onOpenDeal={onOpenDeal}
-            onOpenPublished={onOpenPublished}
-          />
-        );
+        return <WeekDayRow key={day.date} day={day} events={events} onDateClick={onDateClick} onOpenTopic={onOpenTopic} onOpenDeal={onOpenDeal} onOpenPublished={onOpenPublished} />;
       })}
     </div>
   );

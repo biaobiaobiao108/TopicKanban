@@ -199,7 +199,7 @@ export const CalendarEventPill: React.FC<CalendarEventPillProps> = ({
         {event.priority && <PriorityBadge priority={event.priority} />}
       </div>
 
-      <h5 className="min-w-0 text-sm font-bold leading-snug text-stone-900 dark:text-stone-100 line-clamp-2">
+      <h5 data-testid="calendar-event-title" className="min-w-0 text-sm font-bold leading-snug text-stone-900 dark:text-stone-100 line-clamp-2">
         {event.title}
       </h5>
 

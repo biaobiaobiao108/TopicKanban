@@ -121,7 +121,7 @@ export const UnscheduledTopicPool: React.FC<UnscheduledTopicPoolProps> = ({
   if (!isOpen) return null;
 
   return (
-    <aside className="w-80 border-l border-stone-200/70 dark:border-stone-800 bg-white/95 dark:bg-stone-900/95 backdrop-blur-sm flex flex-col h-full shrink-0 shadow-subtle z-20 transition-colors select-none">
+    <aside className="absolute inset-y-0 right-0 z-20 flex h-full w-full max-w-80 flex-col border-l border-stone-200/70 bg-white/95 shadow-subtle backdrop-blur-sm transition-colors select-none dark:border-stone-800 dark:bg-stone-900/95 sm:relative sm:inset-auto sm:w-80 sm:shrink-0">
       {/* Header */}
       <div className="p-4 border-b border-stone-200/70 dark:border-stone-800 flex items-center justify-between">
         <div className="flex items-center gap-2">

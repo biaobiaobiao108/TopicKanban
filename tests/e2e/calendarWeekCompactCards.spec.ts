@@ -194,7 +194,7 @@ async function login(page: Page) {
   await expect(page).toHaveURL(/\/today$/);
 }
 
-test('周视图商单卡片保持紧凑且可返回原周视图', async ({ page }) => {
+test('周视图按日期纵向排列并展示舒展商单卡片', async ({ page }) => {
   const pageErrors: Error[] = [];
   page.on('pageerror', (error) => pageErrors.push(error));
   await mockWorkspace(page);
@@ -218,9 +218,21 @@ test('周视图商单卡片保持紧凑且可返回原周视图', async ({ page 
       return Math.round(title.getBoundingClientRect().height / parseFloat(getComputedStyle(title).lineHeight));
     })(),
   }));
-  expect(layout.cardWidth).toBeGreaterThan(0);
+  expect(layout.cardWidth).toBeGreaterThan(240);
   expect(layout.scrollWidth).toBeLessThanOrEqual(layout.clientWidth + 1);
-  expect(layout.titleLines).toBeLessThanOrEqual(1);
+  expect(layout.titleLines).toBeLessThanOrEqual(2);
+
+  const weekLayout = await page.getByTestId('calendar-week-grid').evaluate((element) => {
+    const days = [...element.querySelectorAll<HTMLElement>('[data-testid="calendar-week-day"]')];
+    return {
+      dayCount: days.length,
+      topPositions: days.map((day) => day.getBoundingClientRect().top),
+      rightEdge: element.getBoundingClientRect().right,
+    };
+  });
+  expect(weekLayout.dayCount).toBe(7);
+  expect(weekLayout.topPositions.every((top, index, positions) => index === 0 || top > positions[index - 1])).toBe(true);
+  expect(weekLayout.rightEdge).toBeLessThanOrEqual(1281);
 
   await event.click();
   await expect(page).toHaveURL(/\/deals\/e2e-calendar-deal$/);
@@ -233,6 +245,30 @@ test('周视图商单卡片保持紧凑且可返回原周视图', async ({ page 
   await expect(page).toHaveURL('/calendar?view=week&date=2026-08-28');
   await expect(page.getByRole('button', { name: '周视图' })).toHaveClass(/bg-white/);
   expect(pageErrors).toEqual([]);
+});
+
+test('手机端周视图卡片自动单列且不产生横向溢出', async ({ page }) => {
+  await mockWorkspace(page, { includeCalendarContent: true });
+  await login(page);
+
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.goto('/calendar?view=week&date=2026-08-28');
+  await expect(page.getByTestId('calendar-week-grid')).toBeVisible();
+
+  const layout = await page.getByTestId('calendar-week-grid').evaluate((element) => {
+    const days = [...element.querySelectorAll<HTMLElement>('[data-testid="calendar-week-day"]')];
+    const cards = [...element.querySelectorAll<HTMLElement>('[data-testid="calendar-event"]')];
+    return {
+      dayCount: days.length,
+      gridScrollWidth: element.scrollWidth,
+      gridClientWidth: element.clientWidth,
+      cardWidths: cards.map((card) => card.getBoundingClientRect().width),
+    };
+  });
+
+  expect(layout.dayCount).toBe(7);
+  expect(layout.gridScrollWidth).toBeLessThanOrEqual(layout.gridClientWidth + 1);
+  expect(layout.cardWidths.every((width) => width > 0 && width < 390)).toBe(true);
 });
 
 test('直接打开商单详情时返回按钮回退到商单中心', async ({ page }) => {
