@@ -21,10 +21,10 @@
        container_name: topic-kanban
        restart: unless-stopped
        ports:
-         - "3000:3000"
+         - "3030:3030"
        environment:
          - NODE_ENV=production
-         - PORT=3000
+         - PORT=3030
          - APP_PASSWORD=your_secure_password      # 工作台访问密码
          - QUICK_DROP_TOKEN=your_quick_drop_token  # 手机快捷指令快投Token
          - PUBLIC_BASE_URL=https://kanban.yourdomain.com # 反向代理公网域名 (若无反代可留空)
@@ -46,7 +46,7 @@
      ```
 
 3. **访问工作台**：
-   打开浏览器访问 `http://localhost:3000` 或 `http://服务器IP:3000`。
+   打开浏览器访问 `http://localhost:3030` 或 `http://服务器IP:3030`。
 
 ---
 
@@ -61,7 +61,7 @@ podman build -t topic-kanban:latest .
 podman run -d \
   --name topic-kanban \
   --restart unless-stopped \
-  -p 3000:3000 \
+  -p 3030:3030 \
   -e APP_PASSWORD="your_secure_password" \
   -e QUICK_DROP_TOKEN="your_quick_drop_token" \
   -e PUBLIC_BASE_URL="https://kanban.yourdomain.com" \
@@ -79,7 +79,7 @@ docker build -t topic-kanban:latest .
 docker run -d \
   --name topic-kanban \
   --restart unless-stopped \
-  -p 3000:3000 \
+  -p 3030:3030 \
   -e APP_PASSWORD="your_secure_password" \
   -e QUICK_DROP_TOKEN="your_quick_drop_token" \
   -e PUBLIC_BASE_URL="https://kanban.yourdomain.com" \
@@ -112,7 +112,7 @@ server {
     client_max_body_size 10M; # 允许大草稿与备份导入
 
     location / {
-        proxy_pass http://127.0.0.1:3000;
+        proxy_pass http://127.0.0.1:3030;
         proxy_set_header Host $host;
         proxy_set_header X-Real-IP $remote_addr;
         proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
@@ -131,7 +131,7 @@ server {
 
 ```caddyfile
 kanban.yourdomain.com {
-    reverse_proxy 127.0.0.1:3000 {
+    reverse_proxy 127.0.0.1:3030 {
         header_up X-Forwarded-Proto {scheme}
         header_up X-Forwarded-Host {host}
     }
@@ -144,7 +144,7 @@ kanban.yourdomain.com {
    - **Domain Names**: `kanban.yourdomain.com`
    - **Forward Scheme**: `http`
    - **Forward Hostname / IP**: `127.0.0.1`（或容器内部服务名）
-   - **Forward Port**: `3000`
+   - **Forward Port**: `3030`
    - 勾选 `Block Common Exploits`、`Websockets Support`。
 2. 在 SSL 标签页中申请 Let's Encrypt 证书并勾选 `Force SSL` 与 `HTTP/2 Support`。
 
@@ -154,7 +154,7 @@ kanban.yourdomain.com {
 
 | 环境变量 | 必填 | 默认值 | 说明 |
 | :--- | :--- | :--- | :--- |
-| `PORT` | 否 | `3000` | 容器内 HTTP 监听端口 |
+| `PORT` | 否 | `3030` | 容器内 HTTP 监听端口 |
 | `DATA_DIR` | 否 | `/app/data` | 数据持久化目录（存放 `kanban.db`） |
 | `APP_PASSWORD` | 建议 | 空 | 工作台访问密码 |
 | `QUICK_DROP_TOKEN` | 建议 | 空 | 手机/快捷指令灵感快投独立鉴权 Token |

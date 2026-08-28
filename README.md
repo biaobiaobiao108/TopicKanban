@@ -128,10 +128,10 @@ services:
     container_name: topic-kanban
     restart: unless-stopped
     ports:
-      - "3000:3000"
+      - "3030:3030"
     environment:
       - NODE_ENV=production
-      - PORT=3000
+      - PORT=3030
       - APP_PASSWORD=your_secure_password      # 工作台访问密码
       - QUICK_DROP_TOKEN=your_quick_drop_token  # 手机快捷指令快投独立 Token
       - PUBLIC_BASE_URL=https://kanban.yourdomain.com # 反向代理公网域名（包含 https:// 协议头）
@@ -148,7 +148,7 @@ docker compose up -d --build
 podman compose up -d --build
 ```
 
-访问 `http://localhost:3000` 即可开始使用。本地开发与容器默认密码为 `admin`（可通过 `APP_PASSWORD` 自定义）。
+访问 `http://localhost:3030` 即可开始使用。本地开发与容器默认密码为 `admin`（可通过 `APP_PASSWORD` 自定义）。
 
 ---
 
@@ -168,7 +168,7 @@ server {
     client_max_body_size 20M;
 
     location / {
-        proxy_pass http://127.0.0.1:3000;
+        proxy_pass http://127.0.0.1:3030;
         proxy_set_header Host $host;
         proxy_set_header X-Real-IP $remote_addr;
         proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
@@ -181,7 +181,7 @@ server {
 #### Caddy 配置样例：
 ```caddyfile
 kanban.yourdomain.com {
-    reverse_proxy 127.0.0.1:3000
+    reverse_proxy 127.0.0.1:3030
 }
 ```
 
@@ -224,7 +224,7 @@ bunx wrangler d1 execute kanban --remote --file=./drizzle/0000_schema.sql
 # 1. 安装依赖
 bun install
 
-# 2. 启动本地全栈开发环境 (Vite 前端 3000 端口 + Bun API 8787 端口)
+# 2. 启动本地全栈开发环境 (Vite 前端 3030 端口 + Bun API 8787 端口)
 bun run dev
 
 # 3. 运行全量自动化测试套件 (54 项单元与集成测试)

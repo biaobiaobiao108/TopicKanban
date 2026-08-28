@@ -7,7 +7,7 @@ export default defineConfig({
   fullyParallel: true,
   reporter: 'line',
   use: {
-    baseURL: 'http://localhost:3000',
+    baseURL: 'http://localhost:3030',
     trace: 'retain-on-failure',
     screenshot: 'only-on-failure',
   },
@@ -17,7 +17,7 @@ export default defineConfig({
   webServer: [
     {
       command: 'bun run dev:web',
-      url: 'http://localhost:3000',
+      url: 'http://localhost:3030',
       reuseExistingServer: true,
       timeout: 120_000,
     },

@@ -5,9 +5,9 @@
   "type": "module",
   "scripts": {
     "dev": "bun scripts/dev.ts",
-    "dev:web": "vite --port 3000",
+    "dev:web": "vite --port 3030",
     "dev:server": "PORT=8787 bun --watch src/server/server.ts",
-    "dev:pages": "wrangler pages dev --proxy 3000 --port 8798 --persist-to .wrangler/state",
+    "dev:pages": "wrangler pages dev --proxy 3030 --port 8798 --persist-to .wrangler/state",
     "db:init:local": "wrangler d1 execute kanban --local --file=./drizzle/0000_schema.sql",
     "db:init:remote": "wrangler d1 execute kanban --remote --file=./drizzle/0000_schema.sql",
     "build": "tsc && vite build && bun run build:server",

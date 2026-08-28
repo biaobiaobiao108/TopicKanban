@@ -8,7 +8,7 @@ import { createLocalKVNamespace } from './adapters/localKv';
 import type { ApiBindings } from './apiShared';
 
 const isProduction = process.env.NODE_ENV === 'production';
-const defaultPort = isProduction ? 3000 : 8787;
+const defaultPort = isProduction ? 3030 : 8787;
 const port = Number(process.env.PORT) || defaultPort;
 const dataDir = process.env.DATA_DIR || path.resolve(process.cwd(), 'data');
 const dbFilePath = path.join(dataDir, 'kanban.db');

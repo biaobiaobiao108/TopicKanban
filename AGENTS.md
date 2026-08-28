@@ -92,7 +92,7 @@
 * **开发约束**：新增任何用户个性化配置项，一律扩展至 `app_settings`，避免污染主业务关系表。
 
 ### 3. 本地开发与反代公网域名规范 (Dev Proxy & Public Base URL)
-* **本地开发 (`bun run dev`)**：Vite 开发服务器运行于 3000 端口，配置 `/api` 代理转发至 Bun 后端 8787 端口；本地开发默认密码为 `admin`。
+* **本地开发 (`bun run dev`)**：Vite 开发服务器运行于 3030 端口，配置 `/api` 代理转发至 Bun 后端 8787 端口；本地开发默认密码为 `admin`。
 * **反向代理 (`PUBLIC_BASE_URL`)**：当容器部署在反向代理（Nginx / Caddy / NPM / CF Tunnel）后方时，外部审稿分享链接与灵感快投 Webhook 地址必须自适应公网域名。
 * 解析优先级：`settings.public_base_url` > `env.PUBLIC_BASE_URL` > `X-Forwarded-*` 标头 > `window.location.origin`。
 
@@ -175,4 +175,3 @@ bun run test:e2e
 3. **内容与交互同步**：
    - 展示页内置 5D 故事评估罗盘实时拖拽沙盒、起承转合四幕叙事流水线、录音提词器模拟器与全局指令面板模拟器；
    - 仓库链接统一绑定官方地址：`https://github.com/biaobiaobiao108/TopicKanban`。
-

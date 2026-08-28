@@ -7,10 +7,10 @@ services:
     container_name: topic-kanban
     restart: unless-stopped
     ports:
-      - "3000:3000"
+      - "3030:3030"
     environment:
       - NODE_ENV=production
-      - PORT=3000
+      - PORT=3030
       - APP_PASSWORD=your_secure_password # 登录工作台的访问密码
       - QUICK_DROP_TOKEN=your_quick_drop_token # 手机快捷指令灵感快投独立Token
       - PUBLIC_BASE_URL=https://kanban.example.com # 反向代理的公网域名 (若仅内网访问可留空)
