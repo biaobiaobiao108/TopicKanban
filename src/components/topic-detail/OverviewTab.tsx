@@ -334,50 +334,14 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({
   };
 
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 py-4">
-      {/* 0. Hero Next Action Callout Tile (Full Width at Top) */}
-      <div className="lg:col-span-12 bg-gradient-to-r from-rose-500/[0.08] via-rose-500/[0.04] to-amber-500/[0.08] dark:from-rose-950/40 dark:via-stone-900/40 dark:to-amber-950/30 rounded-2xl border border-rose-200/60 dark:border-rose-900/50 p-4 sm:p-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 shadow-2xs">
-        <div className="space-y-1 flex-1 min-w-0">
-          <div className="flex items-center gap-2 text-xs font-bold text-rose-700 dark:text-rose-400 uppercase tracking-wider">
-            <span className="relative flex h-2 w-2 shrink-0">
-              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-rose-400 opacity-75" />
-              <span className="relative inline-flex rounded-full h-2 w-2 bg-rose-600 dark:bg-rose-500" />
-            </span>
-            <Zap className="w-3.5 h-3.5 fill-rose-500/20" />
-            <span>当前核心行动 (Next Action)</span>
-            {topic.next_action && (
-              <span className="font-mono font-bold bg-rose-500/15 dark:bg-rose-900/50 text-rose-800 dark:text-rose-200 px-2 py-0.5 rounded-full text-[10px]">
-                已持续 {actionDays} 天
-              </span>
-            )}
-            {actionWarning && (
-              <span className="text-[10px] text-amber-700 dark:text-amber-300 font-bold bg-amber-500/15 px-2 py-0.5 rounded-full">
-                ⚠ {actionWarning}
-              </span>
-            )}
-          </div>
-          <div className="text-base sm:text-lg font-bold text-stone-900 dark:text-stone-100 leading-snug">
-            {topic.next_action || '尚未设置具体下一步，点击立即规划！'}
-          </div>
-        </div>
-
-        <button
-          type="button"
-          onClick={() => setIsActionDialogOpen(true)}
-          className="shrink-0 flex items-center gap-2 bg-rose-600 hover:bg-rose-700 active:scale-[0.98] text-white px-4 py-2 rounded-xl text-xs sm:text-sm font-semibold transition-all shadow-2xs cursor-pointer"
-        >
-          <CheckCircle2 className="w-4 h-4" />
-          <span>{topic.next_action ? '推进 / 完成行动' : '设置下一步行动'}</span>
-        </button>
-      </div>
-
+    <div className="grid grid-cols-1 xl:grid-cols-12 gap-6 py-4 items-start">
       {/* Left Main Column: Pitch & Four-Act Story Blueprint (7 / 12) */}
-      <div className="lg:col-span-7 space-y-5">
+      <div className="xl:col-span-7 space-y-6">
         {/* 1. 核心看点与戏剧反差卡 (The Pitch & Hook Card) */}
         <div className="bg-white dark:bg-stone-900 rounded-2xl border border-stone-200/70 dark:border-stone-800 p-5 space-y-4 shadow-2xs transition-colors">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <div className="p-1 rounded-lg bg-rose-500/10 text-rose-600 dark:text-rose-400">
+              <div className="p-1.5 rounded-xl bg-rose-500/10 text-rose-600 dark:text-rose-400">
                 <Flame className="w-4 h-4" />
               </div>
               <div>
@@ -483,7 +447,7 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({
         <div className="bg-white dark:bg-stone-900 rounded-2xl border border-stone-200/70 dark:border-stone-800 p-5 space-y-4 shadow-2xs transition-colors">
           <div className="flex items-center justify-between flex-wrap gap-2">
             <div className="flex items-center gap-2">
-              <div className="p-1 rounded-lg bg-emerald-500/10 text-emerald-600 dark:text-emerald-400">
+              <div className="p-1.5 rounded-xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-400">
                 <Clapperboard className="w-4 h-4" />
               </div>
               <div>
@@ -642,7 +606,7 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({
                 <button
                   type="button"
                   onClick={handleConvertToTimeline}
-                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-stone-100 dark:bg-stone-800 hover:bg-stone-200/80 dark:hover:bg-stone-700 text-stone-700 dark:text-stone-300 text-xs font-semibold transition-colors cursor-pointer"
+                  className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-stone-100 dark:bg-stone-800 hover:bg-stone-200/80 dark:hover:bg-stone-700 text-stone-700 dark:text-stone-300 text-xs font-semibold transition-colors cursor-pointer"
                   title="将四幕拆分为时间线节点，辅助梳理事件先后顺序"
                 >
                   <Calendar className="w-3.5 h-3.5 text-stone-500" />
@@ -660,122 +624,173 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({
         </div>
       </div>
 
-      {/* Right Column: Diagnostic Dial & Entities (5 / 12) */}
-      <div className="lg:col-span-5 space-y-5">
-        {/* 1. 五维健康度诊断罗盘 (ScoreRatingDial) */}
+      {/* Right Column: Production Cockpit, Diagnostic Dial & Entities (5 / 12) */}
+      <div className="xl:col-span-5 space-y-6">
+        {/* 1. 生产节奏与排期驾驶舱 (Production Rhythm Cockpit) */}
+        <div className="bg-white dark:bg-stone-900 rounded-2xl border border-stone-200/70 dark:border-stone-800 p-5 space-y-4 shadow-2xs transition-colors">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <div className="p-1.5 rounded-xl bg-rose-500/10 text-rose-600 dark:text-rose-400">
+                <Zap className="w-4 h-4 fill-rose-500/20" />
+              </div>
+              <div>
+                <h4 className="text-sm font-bold text-stone-900 dark:text-stone-100">生产节奏与排期驾驶舱</h4>
+              </div>
+            </div>
+            {targetPublishDate && (
+              <span className="text-xs font-mono font-bold px-2.5 py-0.5 rounded-full bg-rose-500/10 text-rose-700 dark:text-rose-300">
+                定档 {targetPublishDate}
+              </span>
+            )}
+          </div>
+
+          {/* Current Next Action Block */}
+          <div className="bg-gradient-to-br from-rose-500/[0.07] via-stone-500/[0.02] to-amber-500/[0.06] dark:from-rose-950/30 dark:via-stone-800/30 dark:to-amber-950/20 rounded-xl border border-rose-200/60 dark:border-rose-900/40 p-4 space-y-3">
+            <div className="flex items-center justify-between gap-2 flex-wrap">
+              <div className="flex items-center gap-2 text-xs font-bold text-rose-700 dark:text-rose-400 uppercase tracking-wider">
+                <span className="relative flex h-2 w-2 shrink-0">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-rose-400 opacity-75" />
+                  <span className="relative inline-flex rounded-full h-2 w-2 bg-rose-600 dark:bg-rose-500" />
+                </span>
+                <span>当前核心推进行动</span>
+              </div>
+              <div className="flex items-center gap-1.5">
+                {topic.next_action && (
+                  <span className="font-mono font-bold bg-rose-500/15 dark:bg-rose-900/50 text-rose-800 dark:text-rose-200 px-2 py-0.5 rounded-full text-[10px]">
+                    已推进 {actionDays} 天
+                  </span>
+                )}
+                {actionWarning && (
+                  <span className="text-[10px] text-amber-700 dark:text-amber-300 font-bold bg-amber-500/15 px-2 py-0.5 rounded-full">
+                    ⚠ {actionWarning}
+                  </span>
+                )}
+              </div>
+            </div>
+
+            <p className="text-sm font-bold text-stone-900 dark:text-stone-100 leading-relaxed break-words">
+              {topic.next_action || '尚未设置具体下一步，点击立即规划！'}
+            </p>
+
+            <div className="pt-1">
+              <button
+                type="button"
+                onClick={() => setIsActionDialogOpen(true)}
+                className="w-full flex items-center justify-center gap-2 bg-rose-600 hover:bg-rose-700 active:scale-[0.98] text-white py-2 px-3 rounded-xl text-xs font-bold transition-all shadow-2xs cursor-pointer"
+              >
+                <CheckCircle2 className="w-3.5 h-3.5" />
+                <span>{topic.next_action ? '推进 / 完成行动' : '设置下一步行动'}</span>
+              </button>
+            </div>
+          </div>
+
+          {/* Schedule & Milestones Grid */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1 border-t border-stone-100 dark:border-stone-800/80">
+            {/* Target Publish Date */}
+            <div className="space-y-1.5">
+              <div className="flex items-center justify-between">
+                <label className="text-xs font-bold text-stone-700 dark:text-stone-300 flex items-center gap-1">
+                  <Calendar className="w-3.5 h-3.5 text-rose-600 dark:text-rose-400" />
+                  <span>计划发布日期</span>
+                </label>
+                {targetPublishDate && (
+                  <button
+                    type="button"
+                    onClick={async () => {
+                      setTargetPublishDate('');
+                      await onUpdateTopic({ target_publish_date: null });
+                    }}
+                    className="text-[10px] text-stone-400 hover:text-red-500 cursor-pointer"
+                  >
+                    清除
+                  </button>
+                )}
+              </div>
+              <DateInput
+                value={targetPublishDate}
+                placeholder="YYYYMMDD，如 20260831"
+                onChange={async (val) => {
+                  setTargetPublishDate(val);
+                  await onUpdateTopic({ target_publish_date: val || null });
+                }}
+                className="w-full text-xs text-stone-800 dark:text-stone-100 bg-stone-500/[0.03] dark:bg-stone-800/60 border border-stone-200/60 dark:border-stone-700/60 rounded-xl p-2 focus:bg-white dark:focus:bg-stone-800 focus:border-rose-500 focus:outline-none transition-colors"
+              />
+              {/* Quick date presets */}
+              <div className="flex items-center gap-1 flex-wrap pt-0.5">
+                {[
+                  { label: '本周五', val: (() => { const d = new Date(); const diff = (5 - d.getDay() + 7) % 7; d.setDate(d.getDate() + (diff === 0 ? 7 : diff)); return d.toLocaleDateString('en-CA', { timeZone: 'Asia/Shanghai' }); })() },
+                  { label: '本周末', val: (() => { const d = new Date(); const diff = d.getDay() === 0 ? 0 : 7 - d.getDay(); d.setDate(d.getDate() + diff); return d.toLocaleDateString('en-CA', { timeZone: 'Asia/Shanghai' }); })() },
+                  { label: '下周五', val: (() => { const d = new Date(); const diff = ((5 - d.getDay() + 7) % 7) + 7; d.setDate(d.getDate() + diff); return d.toLocaleDateString('en-CA', { timeZone: 'Asia/Shanghai' }); })() },
+                ].map((preset) => (
+                  <button
+                    key={preset.label}
+                    type="button"
+                    onClick={async () => {
+                      setTargetPublishDate(preset.val);
+                      await onUpdateTopic({ target_publish_date: preset.val });
+                    }}
+                    className={`text-[10px] px-1.5 py-0.5 rounded-md border transition-colors cursor-pointer ${
+                      targetPublishDate === preset.val
+                        ? 'bg-rose-50 border-rose-300 text-rose-700 dark:bg-rose-950/40 dark:border-rose-800 dark:text-rose-300 font-bold'
+                        : 'bg-stone-100/70 dark:bg-stone-800 border-stone-200/60 dark:border-stone-700 text-stone-600 dark:text-stone-400 hover:bg-stone-200/60'
+                    }`}
+                  >
+                    {preset.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Production Deadline */}
+            <div className="space-y-1.5">
+              <div className="flex items-center justify-between">
+                <label className="text-xs font-bold text-stone-700 dark:text-stone-300 flex items-center gap-1">
+                  <Clock className="w-3.5 h-3.5 text-amber-600 dark:text-amber-400" />
+                  <span>制作截稿日</span>
+                </label>
+                {deadline && (
+                  <button
+                    type="button"
+                    onClick={async () => {
+                      setDeadline('');
+                      await onUpdateTopic({ deadline: null });
+                    }}
+                    className="text-[10px] text-stone-400 hover:text-red-500 cursor-pointer"
+                  >
+                    清除
+                  </button>
+                )}
+              </div>
+              <DateInput
+                value={deadline}
+                placeholder="YYYYMMDD，如 20260828"
+                onChange={async (val) => {
+                  setDeadline(val);
+                  await onUpdateTopic({ deadline: val || null });
+                }}
+                className="w-full text-xs text-stone-800 dark:text-stone-100 bg-stone-500/[0.03] dark:bg-stone-800/60 border border-stone-200/60 dark:border-stone-700/60 rounded-xl p-2 focus:bg-white dark:focus:bg-stone-800 focus:border-rose-500 focus:outline-none transition-colors"
+              />
+              <div className="pt-0.5">
+                <span className="text-[10px] text-stone-400 dark:text-stone-500">
+                  {deadline ? `定稿目标日: ${deadline}` : '用于内部写稿与剪辑交付倒计时'}
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* 2. 五维健康度诊断罗盘 (ScoreRatingDial) */}
         <ScoreRatingDial
           topic={topic}
           onUpdateScores={onUpdateTopic}
           onNavigateToTab={onNavigateToTab}
         />
 
-        {/* 1.5 排产与发布节点 (Schedule & Milestones) */}
+        {/* 3. 关联人物实体 (People Selector) */}
         <div className="bg-white dark:bg-stone-900 rounded-2xl border border-stone-200/70 dark:border-stone-800 p-5 space-y-4 shadow-2xs transition-colors">
           <div className="flex items-center justify-between">
             <h4 className="text-sm font-bold text-stone-900 dark:text-stone-100 flex items-center gap-2">
-              <span className="p-1 rounded-lg bg-rose-500/10 text-rose-600 dark:text-rose-400">
-                <CalendarDays className="w-4 h-4" />
-              </span>
-              <span>排产与发布排期</span>
-            </h4>
-            {targetPublishDate && (
-              <span className="text-xs font-mono font-bold px-2 py-0.5 rounded-full bg-rose-500/10 text-rose-700 dark:text-rose-300">
-                定档 {targetPublishDate}
-              </span>
-            )}
-          </div>
-
-          {/* 计划发布日期 (Target Publish Date) */}
-          <div className="space-y-1.5">
-            <div className="flex items-center justify-between">
-              <label className="text-xs font-bold text-stone-700 dark:text-stone-300">
-                🎬 计划发布日期 (Target Release)
-              </label>
-              {targetPublishDate && (
-                <button
-                  type="button"
-                  onClick={async () => {
-                    setTargetPublishDate('');
-                    await onUpdateTopic({ target_publish_date: null });
-                  }}
-                  className="text-[11px] text-stone-400 hover:text-red-500 cursor-pointer"
-                >
-                  清除定档
-                </button>
-              )}
-            </div>
-            <DateInput
-              value={targetPublishDate}
-              placeholder="YYYYMMDD，例如 20260831"
-              onChange={async (val) => {
-                setTargetPublishDate(val);
-                await onUpdateTopic({ target_publish_date: val || null });
-              }}
-              className="w-full text-xs text-stone-800 dark:text-stone-100 bg-stone-500/[0.03] dark:bg-stone-800/60 border border-stone-200/60 dark:border-stone-700/60 rounded-xl p-2.5 focus:bg-white dark:focus:bg-stone-800 focus:border-rose-500 focus:outline-none transition-colors"
-            />
-            {/* Quick date presets */}
-            <div className="flex items-center gap-1.5 flex-wrap pt-0.5">
-              <span className="text-[10px] text-stone-400">快捷定档:</span>
-              {[
-                { label: '本周五', val: (() => { const d = new Date(); const diff = (5 - d.getDay() + 7) % 7; d.setDate(d.getDate() + (diff === 0 ? 7 : diff)); return d.toLocaleDateString('en-CA', { timeZone: 'Asia/Shanghai' }); })() },
-                { label: '本周末', val: (() => { const d = new Date(); const diff = d.getDay() === 0 ? 0 : 7 - d.getDay(); d.setDate(d.getDate() + diff); return d.toLocaleDateString('en-CA', { timeZone: 'Asia/Shanghai' }); })() },
-                { label: '下周五', val: (() => { const d = new Date(); const diff = ((5 - d.getDay() + 7) % 7) + 7; d.setDate(d.getDate() + diff); return d.toLocaleDateString('en-CA', { timeZone: 'Asia/Shanghai' }); })() },
-              ].map((preset) => (
-                <button
-                  key={preset.label}
-                  type="button"
-                  onClick={async () => {
-                    setTargetPublishDate(preset.val);
-                    await onUpdateTopic({ target_publish_date: preset.val });
-                  }}
-                  className={`text-[11px] px-2 py-0.5 rounded-lg border transition-colors cursor-pointer ${
-                    targetPublishDate === preset.val
-                      ? 'bg-rose-50 border-rose-300 text-rose-700 dark:bg-rose-950/40 dark:border-rose-800 dark:text-rose-300 font-bold'
-                      : 'bg-stone-100/70 dark:bg-stone-800 border-stone-200/60 dark:border-stone-700 text-stone-600 dark:text-stone-400 hover:bg-stone-200/60'
-                  }`}
-                >
-                  {preset.label}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          {/* 内部制作截止日 (Production Deadline) */}
-          <div className="space-y-1.5 pt-2 border-t border-stone-100 dark:border-stone-800/80">
-            <div className="flex items-center justify-between">
-              <label className="text-xs font-bold text-stone-700 dark:text-stone-300">
-                ⏰ 内部制作截稿日 (Deadline)
-              </label>
-              {deadline && (
-                <button
-                  type="button"
-                  onClick={async () => {
-                    setDeadline('');
-                    await onUpdateTopic({ deadline: null });
-                  }}
-                  className="text-[11px] text-stone-400 hover:text-red-500 cursor-pointer"
-                >
-                  清除截稿日
-                </button>
-              )}
-            </div>
-            <DateInput
-              value={deadline}
-              placeholder="YYYYMMDD，例如 20260828"
-              onChange={async (val) => {
-                setDeadline(val);
-                await onUpdateTopic({ deadline: val || null });
-              }}
-              className="w-full text-xs text-stone-800 dark:text-stone-100 bg-stone-500/[0.03] dark:bg-stone-800/60 border border-stone-200/60 dark:border-stone-700/60 rounded-xl p-2.5 focus:bg-white dark:focus:bg-stone-800 focus:border-rose-500 focus:outline-none transition-colors"
-            />
-          </div>
-        </div>
-
-        {/* 2. 关联人物实体 (People Selector) */}
-        <div className="bg-white dark:bg-stone-900 rounded-2xl border border-stone-200/70 dark:border-stone-800 p-5 space-y-4 shadow-2xs transition-colors">
-          <div className="flex items-center justify-between">
-            <h4 className="text-sm font-bold text-stone-900 dark:text-stone-100 flex items-center gap-2">
-              <span className="p-1 rounded-lg bg-stone-500/10 text-stone-700 dark:text-stone-300">
+              <span className="p-1.5 rounded-xl bg-stone-500/10 text-stone-700 dark:text-stone-300">
                 <User className="w-4 h-4" />
               </span>
               <span>关联人物档案</span>
@@ -858,11 +873,11 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({
           </div>
         </div>
 
-        {/* 3. 分类标签 (Tags Selector) */}
+        {/* 4. 分类标签 (Tags Selector) */}
         <div className="bg-white dark:bg-stone-900 rounded-2xl border border-stone-200/70 dark:border-stone-800 p-5 space-y-4 shadow-2xs transition-colors">
           <div className="flex items-center justify-between">
             <h4 className="text-sm font-bold text-stone-900 dark:text-stone-100 flex items-center gap-2">
-              <span className="p-1 rounded-lg bg-stone-500/10 text-stone-700 dark:text-stone-300">
+              <span className="p-1.5 rounded-xl bg-stone-500/10 text-stone-700 dark:text-stone-300">
                 <TagIcon className="w-4 h-4" />
               </span>
               <span>分类标签与赛道</span>

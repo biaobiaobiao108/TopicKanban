@@ -181,37 +181,55 @@ export const ScoreRatingDial: React.FC<ScoreRatingDialProps> = ({ topic, onUpdat
       )}
 
       {/* 5-Dimension Diagnostic Sliders */}
-      <div className="space-y-3 pt-1">
+      <div className="space-y-2.5 pt-1">
         {dimensions.map((dim) => {
           const val = (topic[dim.key] as number) || 0;
           return (
-            <div key={dim.key} className="space-y-1.5 bg-stone-500/[0.02] dark:bg-stone-800/30 p-2.5 rounded-xl border border-stone-200/40 dark:border-stone-800/40">
-              <div className="flex items-center justify-between text-xs">
-                <span className="font-bold text-stone-800 dark:text-stone-200">{dim.label}</span>
-                <span className="text-[11px] font-mono text-stone-500 dark:text-stone-400">
-                  {val === 2 ? '🔥 王牌 / 充沛 (2分)' : val === 1 ? '✓ 合格 / 尚可 (1分)' : '⚠ 欠缺 / 短板 (0分)'}
+            <div
+              key={dim.key}
+              className="space-y-2 bg-stone-500/[0.02] dark:bg-stone-800/30 p-3 rounded-xl border border-stone-200/50 dark:border-stone-800/50 transition-colors"
+            >
+              <div className="flex items-center justify-between text-xs gap-2">
+                <div className="flex items-center gap-1.5 min-w-0">
+                  <span className="font-bold text-stone-900 dark:text-stone-100">{dim.label}</span>
+                  <div className="flex items-center gap-0.5">
+                    <span
+                      className={`h-1.5 w-3.5 rounded-full transition-colors ${
+                        val >= 1 ? (val === 2 ? 'bg-rose-500' : 'bg-emerald-500') : 'bg-stone-200 dark:bg-stone-700'
+                      }`}
+                    />
+                    <span
+                      className={`h-1.5 w-3.5 rounded-full transition-colors ${
+                        val === 2 ? 'bg-rose-500' : 'bg-stone-200 dark:bg-stone-700'
+                      }`}
+                    />
+                  </div>
+                </div>
+                <span className="text-[11px] font-mono shrink-0 text-stone-500 dark:text-stone-400">
+                  {val === 2 ? '🔥 爆点 (2分)' : val === 1 ? '✓ 达标 (1分)' : '⚠ 欠缺 (0分)'}
                 </span>
               </div>
+
               <p className="text-[11px] text-stone-400 dark:text-stone-500 leading-snug">{dim.hint}</p>
 
-              <div className="grid grid-cols-3 gap-1 pt-0.5">
+              <div className="grid grid-cols-3 gap-1.5 pt-0.5">
                 {[
-                  { score: 0, label: '0 短板' },
-                  { score: 1, label: '1 合格' },
+                  { score: 0, label: '0 欠缺' },
+                  { score: 1, label: '1 达标' },
                   { score: 2, label: '2 爆点' },
                 ].map((opt) => (
                   <button
                     key={opt.score}
                     type="button"
                     onClick={() => onUpdateScores({ [dim.key]: opt.score })}
-                    className={`py-1 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
+                    className={`py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
                       val === opt.score
                         ? opt.score === 2
                           ? 'bg-rose-600 text-white shadow-2xs font-bold'
                           : opt.score === 1
                           ? 'bg-stone-900 dark:bg-stone-100 text-white dark:text-stone-900 shadow-2xs font-bold'
-                          : 'bg-amber-500/20 text-amber-900 dark:text-amber-200 border border-amber-500/30 font-bold'
-                        : 'bg-stone-100/70 dark:bg-stone-800/70 hover:bg-stone-200/70 dark:hover:bg-stone-700 text-stone-600 dark:text-stone-400'
+                          : 'bg-amber-500/15 text-amber-900 dark:text-amber-200 border border-amber-500/30 font-bold'
+                        : 'bg-white dark:bg-stone-800 border border-stone-200/60 dark:border-stone-700/60 hover:bg-stone-100 dark:hover:bg-stone-700 text-stone-600 dark:text-stone-400'
                     }`}
                   >
                     {opt.label}
