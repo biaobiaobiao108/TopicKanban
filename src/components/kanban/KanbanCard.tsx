@@ -8,6 +8,8 @@ import { COLUMNS } from './columns';
 import {
   Pin,
   ChevronDown,
+  Calendar,
+  Clock,
 } from 'lucide-react';
 import { getNextActionAgeDays, getNextActionWarning } from '../../lib/topicMetrics';
 
@@ -371,6 +373,24 @@ const KanbanCardComponent: React.FC<KanbanCardProps> = ({
           )}
         </div>
       </div>
+
+      {/* Schedule / Deadline Badges */}
+      {(topic.target_publish_date || topic.deadline) && (
+        <div className="flex items-center gap-1.5 flex-wrap text-[10px]">
+          {topic.target_publish_date && (
+            <span className="inline-flex items-center gap-1 bg-rose-500/10 text-rose-700 dark:text-rose-300 dark:bg-rose-950/40 px-2 py-0.5 rounded-md font-semibold font-mono">
+              <Calendar className="w-3 h-3" />
+              <span>排期 {topic.target_publish_date.slice(5)}</span>
+            </span>
+          )}
+          {topic.deadline && (
+            <span className="inline-flex items-center gap-1 bg-amber-500/10 text-amber-800 dark:text-amber-300 dark:bg-amber-950/40 px-2 py-0.5 rounded-md font-medium font-mono">
+              <Clock className="w-3 h-3 text-amber-600 dark:text-amber-400" />
+              <span>截稿 {topic.deadline.slice(5)}</span>
+            </span>
+          )}
+        </div>
+      )}
 
       {/* Secondary context */}
       <div className="flex items-center justify-between pt-2 border-t border-stone-100 dark:border-stone-800/80 text-[11px] text-stone-400 dark:text-stone-500">

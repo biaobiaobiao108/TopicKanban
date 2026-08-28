@@ -66,6 +66,11 @@ export function validateTopicFields(body: Record<string, unknown>): string | nul
   for (const field of ['score_character', 'score_conflict', 'score_contrast', 'score_material', 'score_story']) {
     if (hasInvalidValue(body, field, isScore)) return `${field} must be an integer from 0 to 2`;
   }
+  for (const field of ['target_publish_date', 'deadline']) {
+    if (Object.prototype.hasOwnProperty.call(body, field) && !isValidDateValue(body[field])) {
+      return `${field} must be YYYY-MM-DD or null`;
+    }
+  }
   const textError = validateTextFields(body, {
     title: [200, true], summary: [2000], hook: [2000], storyline: [20000], why_now: [2000], next_action: [2000],
   });

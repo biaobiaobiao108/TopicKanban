@@ -783,15 +783,17 @@ function topicStatement(db: D1Database, topic: Partial<Topic> & { id: string; ti
   const now = new Date().toISOString();
   return bind(db, `INSERT INTO topics (
     id, title, summary, hook, storyline, why_now, status, priority, next_action,
-    next_action_updated_at, next_action_deferred_until,
+    next_action_updated_at, next_action_deferred_until, target_publish_date, deadline,
     score_character, score_conflict, score_contrast, score_material, score_story,
     is_pinned, sort_order, created_at, updated_at, published_at, deleted_at
-  ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+  ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
   ON CONFLICT(id) DO UPDATE SET
     title=excluded.title, summary=excluded.summary, hook=excluded.hook, storyline=excluded.storyline,
     why_now=excluded.why_now, status=excluded.status, priority=excluded.priority,
     next_action=excluded.next_action, next_action_updated_at=excluded.next_action_updated_at,
-    next_action_deferred_until=excluded.next_action_deferred_until, score_character=excluded.score_character,
+    next_action_deferred_until=excluded.next_action_deferred_until,
+    target_publish_date=excluded.target_publish_date, deadline=excluded.deadline,
+    score_character=excluded.score_character,
     score_conflict=excluded.score_conflict, score_contrast=excluded.score_contrast,
     score_material=excluded.score_material, score_story=excluded.score_story,
     is_pinned=excluded.is_pinned, sort_order=excluded.sort_order, updated_at=excluded.updated_at,
@@ -799,6 +801,7 @@ function topicStatement(db: D1Database, topic: Partial<Topic> & { id: string; ti
     topic.id, topic.title, topic.summary ?? '', topic.hook ?? '', topic.storyline ?? '', topic.why_now ?? '',
     topic.status ?? 'inbox', topic.priority ?? 'medium', topic.next_action ?? '',
     topic.next_action_updated_at ?? (topic.next_action ? now : null), topic.next_action_deferred_until ?? null,
+    topic.target_publish_date ?? null, topic.deadline ?? null,
     topic.score_character ?? 0, topic.score_conflict ?? 0, topic.score_contrast ?? 0,
     topic.score_material ?? 0, topic.score_story ?? 0, topic.is_pinned ?? 0, topic.sort_order ?? 0,
     topic.created_at ?? now, now, topic.published_at ?? null, topic.deleted_at ?? null,

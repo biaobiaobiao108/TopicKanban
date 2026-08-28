@@ -43,6 +43,8 @@ const topicSchema = z.object({
   next_action: mediumText,
   next_action_updated_at: optionalTimestamp,
   next_action_deferred_until: optionalTimestamp,
+  target_publish_date: optionalDateOnly,
+  deadline: optionalDateOnly,
   score_character: z.number().int().min(0).max(2),
   score_conflict: z.number().int().min(0).max(2),
   score_contrast: z.number().int().min(0).max(2),

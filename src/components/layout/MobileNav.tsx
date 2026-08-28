@@ -1,6 +1,7 @@
 import React, { useEffect, useRef } from 'react';
 import {
   Calendar,
+  CalendarDays,
   KanbanSquare,
   Users,
   Hash,
@@ -32,6 +33,7 @@ export const MobileBottomNav: React.FC<MobileBottomNavProps> = ({
 }) => {
   const items: { id: NavView; label: string; icon: React.ComponentType<{ className?: string }>; badge?: number | null }[] = [
     { id: 'today', label: '今日', icon: Calendar, badge: null },
+    { id: 'calendar', label: '日历', icon: CalendarDays, badge: null },
     { id: 'kanban', label: '看板', icon: KanbanSquare, badge: topicCount > 0 ? topicCount : null },
     { id: 'tags', label: '赛道', icon: Hash, badge: null },
     { id: 'people', label: '人物', icon: Users, badge: null },
@@ -151,6 +153,7 @@ export const MobileDrawer: React.FC<MobileDrawerProps> = ({
 
   const navItems = [
     { id: 'today' as NavView, label: '今日聚焦', icon: Calendar, badge: null },
+    { id: 'calendar' as NavView, label: '排产日历', icon: CalendarDays, badge: null },
     { id: 'kanban' as NavView, label: '选题看板', icon: KanbanSquare, badge: topicCount > 0 ? topicCount : null },
     { id: 'tags' as NavView, label: '标签与赛道', icon: Hash, badge: null },
     { id: 'people' as NavView, label: '人物档案库', icon: Users, badge: null },

@@ -44,6 +44,8 @@ export interface Topic {
   next_action: string;
   next_action_updated_at?: string | null;
   next_action_deferred_until?: string | null;
+  target_publish_date?: string | null;
+  deadline?: string | null;
   score_character: number;
   score_conflict: number;
   score_contrast: number;

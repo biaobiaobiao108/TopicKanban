@@ -1,12 +1,21 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { Modal } from '../ui/Modal';
 import { Priority, Tag, TopicStatus } from '../../types';
-import { Plus, X, Tag as TagIcon } from 'lucide-react';
+import { Plus, X, Tag as TagIcon, Calendar, Clock } from 'lucide-react';
 
 interface QuickCreateModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onSave: (data: { title: string; summary: string; priority: Priority; next_action: string; tags: Tag[]; status: TopicStatus }) => Promise<void>;
+  onSave: (data: {
+    title: string;
+    summary: string;
+    priority: Priority;
+    next_action: string;
+    target_publish_date?: string;
+    deadline?: string;
+    tags: Tag[];
+    status: TopicStatus;
+  }) => Promise<void>;
   availableTags: Tag[];
   defaultStatus: TopicStatus;
   initialTitle: string;
@@ -53,6 +62,8 @@ export const QuickCreateModal: React.FC<QuickCreateModalProps> = ({
   const [summary, setSummary] = useState('');
   const [priority, setPriority] = useState<Priority>('medium');
   const [nextAction, setNextAction] = useState('');
+  const [targetPublishDate, setTargetPublishDate] = useState('');
+  const [deadline, setDeadline] = useState('');
   const [selectedTagNames, setSelectedTagNames] = useState<string[]>([]);
   const [newTagInput, setNewTagInput] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -61,6 +72,8 @@ export const QuickCreateModal: React.FC<QuickCreateModalProps> = ({
     if (!isOpen) return;
     setTitle(initialTitle);
     setSelectedTagNames(initialTagNames);
+    setTargetPublishDate('');
+    setDeadline('');
   }, [initialTagNames, initialTitle, isOpen]);
 
   // Unselected tags from available pool
@@ -84,6 +97,8 @@ export const QuickCreateModal: React.FC<QuickCreateModalProps> = ({
         summary: summary.trim(),
         priority,
         next_action: nextAction.trim(),
+        target_publish_date: targetPublishDate || undefined,
+        deadline: deadline || undefined,
         tags,
         status: defaultStatus,
       });
@@ -93,6 +108,8 @@ export const QuickCreateModal: React.FC<QuickCreateModalProps> = ({
       setSummary('');
       setPriority('medium');
       setNextAction('');
+      setTargetPublishDate('');
+      setDeadline('');
       setSelectedTagNames([]);
       setNewTagInput('');
       onClose();
@@ -198,6 +215,35 @@ export const QuickCreateModal: React.FC<QuickCreateModalProps> = ({
                 </button>
               );
             })}
+          </div>
+        </div>
+
+        {/* Schedule & Deadline (Optional) */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div>
+            <label className="block text-xs font-semibold text-stone-700 dark:text-stone-300 mb-1 flex items-center gap-1">
+              <Calendar className="w-3.5 h-3.5 text-rose-500" />
+              <span>计划发布日期 (选填)</span>
+            </label>
+            <input
+              type="date"
+              value={targetPublishDate}
+              onChange={(e) => setTargetPublishDate(e.target.value)}
+              className="w-full px-3 py-2 bg-stone-500/[0.03] dark:bg-stone-800 border border-stone-200/80 dark:border-stone-700 rounded-xl text-stone-900 dark:text-stone-100 text-xs focus:bg-white dark:focus:bg-stone-800 focus:border-rose-500 focus:outline-none transition-colors"
+            />
+          </div>
+
+          <div>
+            <label className="block text-xs font-semibold text-stone-700 dark:text-stone-300 mb-1 flex items-center gap-1">
+              <Clock className="w-3.5 h-3.5 text-amber-500" />
+              <span>制作截稿日 (选填)</span>
+            </label>
+            <input
+              type="date"
+              value={deadline}
+              onChange={(e) => setDeadline(e.target.value)}
+              className="w-full px-3 py-2 bg-stone-500/[0.03] dark:bg-stone-800 border border-stone-200/80 dark:border-stone-700 rounded-xl text-stone-900 dark:text-stone-100 text-xs focus:bg-white dark:focus:bg-stone-800 focus:border-rose-500 focus:outline-none transition-colors"
+            />
           </div>
         </div>
 

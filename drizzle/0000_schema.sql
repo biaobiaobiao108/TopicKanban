@@ -12,6 +12,8 @@ CREATE TABLE topics (
   next_action TEXT NOT NULL DEFAULT '',
   next_action_updated_at TEXT,
   next_action_deferred_until TEXT,
+  target_publish_date TEXT,
+  deadline TEXT,
   score_character INTEGER NOT NULL DEFAULT 0 CHECK (score_character BETWEEN 0 AND 2),
   score_conflict INTEGER NOT NULL DEFAULT 0 CHECK (score_conflict BETWEEN 0 AND 2),
   score_contrast INTEGER NOT NULL DEFAULT 0 CHECK (score_contrast BETWEEN 0 AND 2),
@@ -24,6 +26,9 @@ CREATE TABLE topics (
   published_at TEXT,
   deleted_at TEXT
 );
+
+CREATE INDEX idx_topics_target_publish_date ON topics(target_publish_date);
+CREATE INDEX idx_topics_deadline ON topics(deadline);
 
 CREATE TABLE sources (
   id TEXT PRIMARY KEY,

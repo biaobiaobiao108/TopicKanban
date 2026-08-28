@@ -27,6 +27,10 @@ describe('Database schema contract', () => {
       const timelineColumns = sqlite.query('PRAGMA table_info(timeline_events)').all() as Array<{ name: string }>;
       expect(timelineColumns.some((column) => column.name === 'contrast_tag')).toBe(true);
 
+      const topicColumns = sqlite.query('PRAGMA table_info(topics)').all() as Array<{ name: string }>;
+      expect(topicColumns.some((column) => column.name === 'target_publish_date')).toBe(true);
+      expect(topicColumns.some((column) => column.name === 'deadline')).toBe(true);
+
       const publishedTopicColumn = sqlite.query('PRAGMA table_info(published_videos)')
         .all() as Array<{ name: string; notnull: number }>;
       expect(publishedTopicColumn.find((column) => column.name === 'topic_id')?.notnull).toBe(0);

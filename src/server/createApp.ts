@@ -551,6 +551,7 @@ export function createApp() {
       const fields = [
         'title', 'summary', 'hook', 'storyline', 'why_now', 'status', 'priority', 'next_action',
         'next_action_updated_at', 'next_action_deferred_until',
+        'target_publish_date', 'deadline',
         'score_character', 'score_conflict', 'score_contrast', 'score_material', 'score_story',
         'is_pinned', 'sort_order', 'published_at', 'deleted_at',
       ].filter((field) => Object.prototype.hasOwnProperty.call(body, field));

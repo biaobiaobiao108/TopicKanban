@@ -204,6 +204,17 @@ export function initializeSqliteDatabase(dbFilePath: string, schemaDir?: string)
       const sql = fs.readFileSync(schemaFile, 'utf-8');
       sqlite.exec(sql);
     }
+  } else {
+    // Migration helper: ensure new columns exist for existing databases
+    const columns = sqlite.query('PRAGMA table_info(topics)').all() as Array<{ name: string }>;
+    if (!columns.some((c) => c.name === 'target_publish_date')) {
+      sqlite.exec('ALTER TABLE topics ADD COLUMN target_publish_date TEXT;');
+      sqlite.exec('CREATE INDEX IF NOT EXISTS idx_topics_target_publish_date ON topics(target_publish_date);');
+    }
+    if (!columns.some((c) => c.name === 'deadline')) {
+      sqlite.exec('ALTER TABLE topics ADD COLUMN deadline TEXT;');
+      sqlite.exec('CREATE INDEX IF NOT EXISTS idx_topics_deadline ON topics(deadline);');
+    }
   }
 
   const appliedAt = new Date().toISOString();

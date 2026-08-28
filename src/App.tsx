@@ -51,6 +51,7 @@ import { Database } from 'lucide-react';
 
 const VIEW_PATHS: Record<Exclude<NavView, 'topic-detail'>, string> = {
   today: '/today',
+  calendar: '/calendar',
   kanban: '/kanban',
   people: '/people',
   tags: '/tags',
@@ -67,6 +68,7 @@ function getViewFromPath(pathname: string): NavView {
   return (found?.[0] as NavView | undefined) || 'today';
 }
 
+const CalendarView = lazyWithReload(() => import('./components/calendar/CalendarView').then((module) => ({ default: module.CalendarView })));
 const KanbanBoard = lazyWithReload(() => import('./components/kanban/KanbanBoard').then((module) => ({ default: module.KanbanBoard })));
 const TopicDetailView = lazyWithReload(() => import('./components/topic-detail/TopicDetailView').then((module) => ({ default: module.TopicDetailView })));
 const PeopleView = lazyWithReload(() => import('./components/people/PeopleView').then((module) => ({ default: module.PeopleView })));
@@ -277,6 +279,8 @@ function WorkspaceApp({ isAuth, setIsAuth }: WorkspaceAppProps) {
     summary?: string;
     hook?: string;
     next_action?: string;
+    target_publish_date?: string;
+    deadline?: string;
     priority?: Priority;
     tags?: Tag[];
     status?: TopicStatus;
@@ -294,6 +298,8 @@ function WorkspaceApp({ isAuth, setIsAuth }: WorkspaceAppProps) {
       summary: topicData.summary || '',
       hook: topicData.hook || '',
       next_action: topicData.next_action || '',
+      target_publish_date: topicData.target_publish_date || null,
+      deadline: topicData.deadline || null,
       priority: topicData.priority || 'medium',
       status: topicData.status || 'inbox',
       tags: resolvedTags,
@@ -641,6 +647,21 @@ function WorkspaceApp({ isAuth, setIsAuth }: WorkspaceAppProps) {
               onOpenQuickCreate={openInboxQuickCreate}
               onTogglePin={handleTogglePin}
               onUpdateTopic={handleUpdateTopicById}
+            />
+          )}
+
+          {currentView === 'calendar' && (
+            <CalendarView
+              topics={topics}
+              deals={dealFocus ? [...dealFocus.due_items, ...dealFocus.unpaid_items] : []}
+              availableTags={tags}
+              onOpenDetail={handleOpenDetail}
+              onOpenDeal={(dealId) => safeNavigate(`/deals/${encodeURIComponent(dealId)}`)}
+              onOpenPublished={() => safeNavigate('/published')}
+              onUpdateTopic={handleUpdateTopicById}
+              onCreateTopic={async (data) => {
+                await handleSaveQuickTopic(data);
+              }}
             />
           )}
 

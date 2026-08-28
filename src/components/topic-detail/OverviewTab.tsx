@@ -22,6 +22,7 @@ import {
   CheckCircle2,
   FileText,
   Calendar,
+  CalendarDays,
   Layers,
   ChevronDown,
   Flame,
@@ -107,6 +108,8 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({
   const [whyNow, setWhyNow] = useState(topic.why_now || '');
   const [storyline, setStoryline] = useState(topic.storyline || '');
   const [acts, setActs] = useState<FourActs>(() => parseStorylineToActs(topic.storyline || ''));
+  const [targetPublishDate, setTargetPublishDate] = useState(topic.target_publish_date || '');
+  const [deadline, setDeadline] = useState(topic.deadline || '');
   
   const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle');
   const [storylineMode, setStorylineMode] = useState<'acts' | 'raw'>('acts');
@@ -144,7 +147,9 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({
     setWhyNow(topic.why_now || '');
     setStoryline(topic.storyline || '');
     setActs(parseStorylineToActs(topic.storyline || ''));
-  }, [topic.id]);
+    setTargetPublishDate(topic.target_publish_date || '');
+    setDeadline(topic.deadline || '');
+  }, [topic.id, topic.target_publish_date, topic.deadline]);
 
   // Debounced auto-save function
   const triggerAutoSave = (updates: Partial<Topic>) => {
@@ -660,6 +665,110 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({
           onUpdateScores={onUpdateTopic}
           onNavigateToTab={onNavigateToTab}
         />
+
+        {/* 1.5 排产与发布节点 (Schedule & Milestones) */}
+        <div className="bg-white dark:bg-stone-900 rounded-2xl border border-stone-200/70 dark:border-stone-800 p-5 space-y-4 shadow-2xs transition-colors">
+          <div className="flex items-center justify-between">
+            <h4 className="text-sm font-bold text-stone-900 dark:text-stone-100 flex items-center gap-2">
+              <span className="p-1 rounded-lg bg-rose-500/10 text-rose-600 dark:text-rose-400">
+                <CalendarDays className="w-4 h-4" />
+              </span>
+              <span>排产与发布排期</span>
+            </h4>
+            {targetPublishDate && (
+              <span className="text-xs font-mono font-bold px-2 py-0.5 rounded-full bg-rose-500/10 text-rose-700 dark:text-rose-300">
+                定档 {targetPublishDate}
+              </span>
+            )}
+          </div>
+
+          {/* 计划发布日期 (Target Publish Date) */}
+          <div className="space-y-1.5">
+            <div className="flex items-center justify-between">
+              <label className="text-xs font-bold text-stone-700 dark:text-stone-300">
+                🎬 计划发布日期 (Target Release)
+              </label>
+              {targetPublishDate && (
+                <button
+                  type="button"
+                  onClick={async () => {
+                    setTargetPublishDate('');
+                    await onUpdateTopic({ target_publish_date: null });
+                  }}
+                  className="text-[11px] text-stone-400 hover:text-red-500 cursor-pointer"
+                >
+                  清除定档
+                </button>
+              )}
+            </div>
+            <input
+              type="date"
+              value={targetPublishDate}
+              onChange={async (e) => {
+                const val = e.target.value;
+                setTargetPublishDate(val);
+                await onUpdateTopic({ target_publish_date: val || null });
+              }}
+              className="w-full text-xs text-stone-800 dark:text-stone-100 bg-stone-500/[0.03] dark:bg-stone-800/60 border border-stone-200/60 dark:border-stone-700/60 rounded-xl p-2.5 focus:bg-white dark:focus:bg-stone-800 focus:border-rose-500 focus:outline-none transition-colors"
+            />
+            {/* Quick date presets */}
+            <div className="flex items-center gap-1.5 flex-wrap pt-0.5">
+              <span className="text-[10px] text-stone-400">快捷定档:</span>
+              {[
+                { label: '本周五', val: (() => { const d = new Date(); const diff = (5 - d.getDay() + 7) % 7; d.setDate(d.getDate() + (diff === 0 ? 7 : diff)); return d.toLocaleDateString('en-CA', { timeZone: 'Asia/Shanghai' }); })() },
+                { label: '本周末', val: (() => { const d = new Date(); const diff = d.getDay() === 0 ? 0 : 7 - d.getDay(); d.setDate(d.getDate() + diff); return d.toLocaleDateString('en-CA', { timeZone: 'Asia/Shanghai' }); })() },
+                { label: '下周五', val: (() => { const d = new Date(); const diff = ((5 - d.getDay() + 7) % 7) + 7; d.setDate(d.getDate() + diff); return d.toLocaleDateString('en-CA', { timeZone: 'Asia/Shanghai' }); })() },
+              ].map((preset) => (
+                <button
+                  key={preset.label}
+                  type="button"
+                  onClick={async () => {
+                    setTargetPublishDate(preset.val);
+                    await onUpdateTopic({ target_publish_date: preset.val });
+                  }}
+                  className={`text-[11px] px-2 py-0.5 rounded-lg border transition-colors cursor-pointer ${
+                    targetPublishDate === preset.val
+                      ? 'bg-rose-50 border-rose-300 text-rose-700 dark:bg-rose-950/40 dark:border-rose-800 dark:text-rose-300 font-bold'
+                      : 'bg-stone-100/70 dark:bg-stone-800 border-stone-200/60 dark:border-stone-700 text-stone-600 dark:text-stone-400 hover:bg-stone-200/60'
+                  }`}
+                >
+                  {preset.label}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* 内部制作截止日 (Production Deadline) */}
+          <div className="space-y-1.5 pt-2 border-t border-stone-100 dark:border-stone-800/80">
+            <div className="flex items-center justify-between">
+              <label className="text-xs font-bold text-stone-700 dark:text-stone-300">
+                ⏰ 内部制作截稿日 (Deadline)
+              </label>
+              {deadline && (
+                <button
+                  type="button"
+                  onClick={async () => {
+                    setDeadline('');
+                    await onUpdateTopic({ deadline: null });
+                  }}
+                  className="text-[11px] text-stone-400 hover:text-red-500 cursor-pointer"
+                >
+                  清除截稿日
+                </button>
+              )}
+            </div>
+            <input
+              type="date"
+              value={deadline}
+              onChange={async (e) => {
+                const val = e.target.value;
+                setDeadline(val);
+                await onUpdateTopic({ deadline: val || null });
+              }}
+              className="w-full text-xs text-stone-800 dark:text-stone-100 bg-stone-500/[0.03] dark:bg-stone-800/60 border border-stone-200/60 dark:border-stone-700/60 rounded-xl p-2.5 focus:bg-white dark:focus:bg-stone-800 focus:border-rose-500 focus:outline-none transition-colors"
+            />
+          </div>
+        </div>
 
         {/* 2. 关联人物实体 (People Selector) */}
         <div className="bg-white dark:bg-stone-900 rounded-2xl border border-stone-200/70 dark:border-stone-800 p-5 space-y-4 shadow-2xs transition-colors">
