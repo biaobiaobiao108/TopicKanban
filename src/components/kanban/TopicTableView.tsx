@@ -22,6 +22,7 @@ import {
 } from 'lucide-react';
 import { CustomSelect } from '../ui/CustomSelect';
 import { FloatingMenu } from '../ui/FloatingMenu';
+import { ConfirmDialog } from '../ui/ConfirmDialog';
 import { useToast } from '../ui/Toast';
 
 interface TopicTableViewProps {
@@ -308,47 +309,132 @@ export const TopicTableView: React.FC<TopicTableViewProps> = ({
     }
   };
 
-  const handleBulkPermanentDelete = async () => {
-    if (selectedIds.size === 0) return;
-    const count = selectedIds.size;
-    if (!window.confirm(`确定要永久删除选中的 ${count} 个选题吗？\n\n全部关联资料、时间线与草稿将一并删除，且无法撤销！`)) {
-      return;
-    }
-    setIsBulkUpdating(true);
-    try {
-      const ids = [...selectedIds];
-      if (onPermanentlyDeleteTopicsBatch) {
-        await onPermanentlyDeleteTopicsBatch(ids);
-      } else {
-        for (const id of ids) {
-          await permanentlyDeleteTopic(id);
-        }
-      }
-      setSelectedIds(new Set());
-    } finally {
-      setIsBulkUpdating(false);
-    }
+  const [confirmDialog, setConfirmDialog] = useState<{
+    isOpen: boolean;
+    title: string;
+    description?: React.ReactNode;
+    confirmText?: string;
+    tone?: 'danger' | 'warning' | 'primary';
+    onConfirm: () => Promise<void> | void;
+  }>({
+    isOpen: false,
+    title: '',
+    onConfirm: () => {},
+  });
+
+  const requestDeleteTopic = (topic: Topic) => {
+    setConfirmDialog({
+      isOpen: true,
+      title: '移入回收站',
+      description: `确定要将选题「${topic.title}」移入回收站吗？\n\n之后可以在选题库的回收站中随时恢复。`,
+      confirmText: '移入回收站',
+      tone: 'warning',
+      onConfirm: async () => {
+        await deleteTopic(topic.id);
+        setConfirmDialog((prev) => ({ ...prev, isOpen: false }));
+        showToast({ message: `已将选题「${topic.title}」移入回收站`, tone: 'info' });
+      },
+    });
   };
 
-  const handleEmptyTrash = async () => {
-    if (trashCount === 0) return;
-    if (!window.confirm(`确定要清空回收站吗？\n\n将永久删除回收站内的全部 ${trashCount} 个选题，此操作无法撤销！`)) {
-      return;
-    }
-    setIsBulkUpdating(true);
-    try {
-      if (onEmptyTrash) {
-        await onEmptyTrash();
-      } else {
-        const ids = trashedTopics.map((t) => t.id);
-        for (const id of ids) {
-          await permanentlyDeleteTopic(id);
+  const requestPermanentlyDeleteTopic = (topic: Topic) => {
+    setConfirmDialog({
+      isOpen: true,
+      title: '永久删除选题',
+      description: `确定要永久删除选题「${topic.title}」吗？\n\n全部关联数据（资料、时间线、文案草稿）将一并永久删除，且无法恢复。`,
+      confirmText: '永久删除',
+      tone: 'danger',
+      onConfirm: async () => {
+        await permanentlyDeleteTopic(topic.id);
+        setConfirmDialog((prev) => ({ ...prev, isOpen: false }));
+        showToast({ message: `已永久删除选题「${topic.title}」`, tone: 'info' });
+      },
+    });
+  };
+
+  const handleBulkTrash = () => {
+    if (selectedIds.size === 0) return;
+    const count = selectedIds.size;
+    setConfirmDialog({
+      isOpen: true,
+      title: '批量移入回收站',
+      description: `确定要将选中的 ${count} 个选题移入回收站吗？\n\n之后可以在选题库的回收站中随时恢复。`,
+      confirmText: '移入回收站',
+      tone: 'warning',
+      onConfirm: async () => {
+        setIsBulkUpdating(true);
+        try {
+          const ids = [...selectedIds];
+          for (const id of ids) {
+            await deleteTopic(id);
+          }
+          setSelectedIds(new Set());
+          setConfirmDialog((prev) => ({ ...prev, isOpen: false }));
+          showToast({ message: `已将选中的 ${count} 个选题移入回收站`, tone: 'info' });
+        } finally {
+          setIsBulkUpdating(false);
         }
-      }
-      setSelectedIds(new Set());
-    } finally {
-      setIsBulkUpdating(false);
-    }
+      },
+    });
+  };
+
+  const handleBulkPermanentDelete = () => {
+    if (selectedIds.size === 0) return;
+    const count = selectedIds.size;
+    setConfirmDialog({
+      isOpen: true,
+      title: '批量永久删除',
+      description: `确定要永久删除选中的 ${count} 个选题吗？\n\n全部关联资料、时间线与草稿将一并删除，且无法撤销！`,
+      confirmText: '永久删除',
+      tone: 'danger',
+      onConfirm: async () => {
+        setIsBulkUpdating(true);
+        try {
+          const ids = [...selectedIds];
+          if (onPermanentlyDeleteTopicsBatch) {
+            await onPermanentlyDeleteTopicsBatch(ids);
+          } else {
+            for (const id of ids) {
+              await permanentlyDeleteTopic(id);
+            }
+          }
+          setSelectedIds(new Set());
+          setConfirmDialog((prev) => ({ ...prev, isOpen: false }));
+          showToast({ message: `已永久删除选中的 ${count} 个选题`, tone: 'info' });
+        } finally {
+          setIsBulkUpdating(false);
+        }
+      },
+    });
+  };
+
+  const handleEmptyTrash = () => {
+    if (trashCount === 0) return;
+    setConfirmDialog({
+      isOpen: true,
+      title: '清空回收站',
+      description: `确定要清空回收站吗？\n\n将永久删除回收站内的全部 ${trashCount} 个选题，此操作无法撤销！`,
+      confirmText: '清空回收站',
+      tone: 'danger',
+      onConfirm: async () => {
+        setIsBulkUpdating(true);
+        try {
+          if (onEmptyTrash) {
+            await onEmptyTrash();
+          } else {
+            const ids = trashedTopics.map((t) => t.id);
+            for (const id of ids) {
+              await permanentlyDeleteTopic(id);
+            }
+          }
+          setSelectedIds(new Set());
+          setConfirmDialog((prev) => ({ ...prev, isOpen: false }));
+          showToast({ message: `已清空回收站`, tone: 'info' });
+        } finally {
+          setIsBulkUpdating(false);
+        }
+      },
+    });
   };
 
   const renderSortIndicator = (col: SortCol) => {
@@ -551,6 +637,15 @@ export const TopicTableView: React.FC<TopicTableViewProps> = ({
             >
               {isBulkUpdating ? '更新中…' : '批量修改阶段'}
             </button>
+            <button
+              type="button"
+              onClick={handleBulkTrash}
+              disabled={isBulkUpdating}
+              className="min-h-9 inline-flex items-center gap-1.5 rounded-lg border border-red-200 dark:border-red-800 bg-white dark:bg-stone-900 px-3 text-xs font-bold text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/40 disabled:opacity-50 transition-colors cursor-pointer"
+            >
+              <Trash2 className="h-3.5 w-3.5" />
+              <span>{isBulkUpdating ? '处理中…' : '批量移入回收站'}</span>
+            </button>
             <button type="button" onClick={() => setSelectedIds(new Set())} className="min-h-9 px-2 text-xs font-semibold text-stone-500 dark:text-stone-400 hover:text-stone-800 dark:hover:text-stone-200 cursor-pointer">取消</button>
           </div>
         </div>
@@ -710,11 +805,7 @@ export const TopicTableView: React.FC<TopicTableViewProps> = ({
                         <RotateCcw className="h-4 w-4" /> 恢复选题
                       </button>
                       <button
-                        onClick={() => {
-                          if (window.confirm(`确定要永久删除选题「${topic.title}」吗？\n\n全部关联数据将一并删除，且无法恢复。`)) {
-                            void permanentlyDeleteTopic(topic.id);
-                          }
-                        }}
+                        onClick={() => requestPermanentlyDeleteTopic(topic)}
                         className="flex min-h-10 items-center gap-1.5 rounded-xl border border-red-200 dark:border-red-800 px-3 text-xs font-semibold text-red-600 dark:text-red-300"
                       >
                         <Trash2 className="h-4 w-4" /> 永久删除
@@ -742,12 +833,8 @@ export const TopicTableView: React.FC<TopicTableViewProps> = ({
                     打开工作台 <ArrowRight className="h-4 w-4" />
                   </button>}
                   {archiveScope !== 'trash' && <button
-                    onClick={() => {
-                      if (window.confirm(`确定要将选题「${topic.title}」移入回收站吗？`)) {
-                        void deleteTopic(topic.id);
-                      }
-                    }}
-                    className="flex h-10 w-10 items-center justify-center rounded-xl border border-red-100 dark:border-red-900/60 text-red-500 dark:text-red-400"
+                    onClick={() => requestDeleteTopic(topic)}
+                    className="flex h-10 w-10 items-center justify-center rounded-xl border border-red-100 dark:border-red-900/60 text-red-500 dark:text-red-400 cursor-pointer"
                     title="移入回收站"
                   >
                     <Trash2 className="h-4 w-4" />
@@ -1083,11 +1170,7 @@ export const TopicTableView: React.FC<TopicTableViewProps> = ({
                             <RotateCcw className="w-3.5 h-3.5" />
                           </button>
                           <button
-                            onClick={() => {
-                              if (window.confirm(`确定要永久删除选题「${topic.title}」吗？\n\n全部关联数据将一并删除，且无法恢复。`)) {
-                                void permanentlyDeleteTopic(topic.id);
-                              }
-                            }}
+                            onClick={() => requestPermanentlyDeleteTopic(topic)}
                             className="p-1.5 text-red-500 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300 hover:bg-red-50 dark:hover:bg-red-950/40 rounded-lg transition-colors cursor-pointer"
                             title="永久删除"
                           >
@@ -1114,11 +1197,7 @@ export const TopicTableView: React.FC<TopicTableViewProps> = ({
 
 
                       {archiveScope !== 'trash' && <button
-                        onClick={() => {
-                          if (window.confirm(`确定要将选题「${topic.title}」移入回收站吗？`)) {
-                            void deleteTopic(topic.id);
-                          }
-                        }}
+                        onClick={() => requestDeleteTopic(topic)}
                         className="p-1.5 text-stone-300 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors cursor-pointer"
                         title="移入回收站"
                       >
@@ -1209,6 +1288,17 @@ export const TopicTableView: React.FC<TopicTableViewProps> = ({
           </div>
         </div>
       )}
+
+      {/* Confirmation Dialog */}
+      <ConfirmDialog
+        isOpen={confirmDialog.isOpen}
+        onClose={() => setConfirmDialog((prev) => ({ ...prev, isOpen: false }))}
+        onConfirm={confirmDialog.onConfirm}
+        title={confirmDialog.title}
+        description={confirmDialog.description}
+        confirmText={confirmDialog.confirmText}
+        tone={confirmDialog.tone}
+      />
     </div>
   );
 };

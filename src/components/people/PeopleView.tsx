@@ -19,6 +19,7 @@ import {
   Layers
 } from 'lucide-react';
 import { CustomSelect } from '../ui/CustomSelect';
+import { ConfirmDialog } from '../ui/ConfirmDialog';
 import { PageHeader } from '../layout/PageHeader';
 import { fetchPeopleOptions, fetchPeoplePage } from '../../lib/storage';
 
@@ -50,6 +51,7 @@ export const PeopleView: React.FC<PeopleViewProps> = ({
   const [page, setPage] = useState(1);
   const [isPersonModalOpen, setIsPersonModalOpen] = useState(false);
   const [editingPerson, setEditingPerson] = useState<Person | null>(null);
+  const [deletingPerson, setDeletingPerson] = useState<Person | null>(null);
 
   const [isRelModalOpen, setIsRelModalOpen] = useState(false);
 
@@ -257,15 +259,7 @@ export const PeopleView: React.FC<PeopleViewProps> = ({
                         <Edit2 className="w-4 h-4" />
                       </button>
                       <button
-                        onClick={() => {
-                          if (window.confirm(`确定要删除人物档案「${person.name}」吗？`)) {
-                            void onDeletePerson(person.id).then(async () => {
-                              if (filteredPeople.length === 1 && page > 1) setPage((current) => current - 1);
-                              await queryClient.invalidateQueries({ queryKey: ['people-page'] });
-                              await queryClient.invalidateQueries({ queryKey: ['people-options'] });
-                            });
-                          }
-                        }}
+                        onClick={() => setDeletingPerson(person)}
                         className="p-1.5 text-stone-400 dark:text-stone-500 hover:text-red-600 dark:hover:text-red-400 rounded-lg hover:bg-red-50 dark:hover:bg-red-950/40 cursor-pointer transition-colors"
                         title="删除人物档案"
                       >
@@ -536,6 +530,27 @@ export const PeopleView: React.FC<PeopleViewProps> = ({
             </div>
           </form>
         </Modal>
+
+        <ConfirmDialog
+          isOpen={Boolean(deletingPerson)}
+          onClose={() => setDeletingPerson(null)}
+          onConfirm={async () => {
+            if (!deletingPerson) return;
+            await onDeletePerson(deletingPerson.id);
+            if (filteredPeople.length === 1 && page > 1) setPage((current) => current - 1);
+            await queryClient.invalidateQueries({ queryKey: ['people-page'] });
+            await queryClient.invalidateQueries({ queryKey: ['people-options'] });
+            await queryClient.invalidateQueries({ queryKey: ['people'] });
+            await queryClient.invalidateQueries({ queryKey: ['relationships'] });
+            await queryClient.invalidateQueries({ queryKey: ['workspace'] });
+            setDeletingPerson(null);
+            showToast({ message: `已删除人物档案「${deletingPerson.name}」`, tone: 'info' });
+          }}
+          title="删除人物档案"
+          description={deletingPerson ? `确定要删除人物档案「${deletingPerson.name}」吗？\n\n人物关联关系网将一并解除，但不会影响已写文案内容。` : ''}
+          confirmText="删除档案"
+          tone="danger"
+        />
       </div>
     </div>
   );

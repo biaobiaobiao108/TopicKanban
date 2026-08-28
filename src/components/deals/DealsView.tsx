@@ -35,6 +35,7 @@ import {
 import { Modal } from '../ui/Modal';
 import { DateInput } from '../ui/DateInput';
 import { CustomSelect, type SelectOption, type SelectRenderState } from '../ui/CustomSelect';
+import { ConfirmDialog } from '../ui/ConfirmDialog';
 import { PageHeader } from '../layout/PageHeader';
 
 const ACTIVE_STATUSES: CommercialDealStatus[] = ['communicating', 'producing'];
@@ -857,6 +858,7 @@ function CommercialDealDetailView({
   const [isSaving, setIsSaving] = useState(false);
   const [isStatusSaving, setIsStatusSaving] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [primaryTopicId, setPrimaryTopicId] = useState<string | null>(null);
   const [relatedTopicIds, setRelatedTopicIds] = useState<string[]>([]);
   const dealQuery = useQuery({
@@ -997,12 +999,6 @@ function CommercialDealDetailView({
   };
 
   const handleDelete = async () => {
-    if (
-      !window.confirm(
-        `确定要永久删除商单「${deal.title}」吗？\n\n商单活动和选题关联会一并删除，但不会删除选题或已发布视频。此操作无法撤销。`
-      )
-    )
-      return;
     setIsDeleting(true);
     setDetailError('');
     try {
@@ -1014,6 +1010,7 @@ function CommercialDealDetailView({
       await queryClient.invalidateQueries({ queryKey: ['commercial-deals-calendar'] });
       await queryClient.invalidateQueries({ queryKey: ['topic-deals'] });
       await queryClient.invalidateQueries({ queryKey: ['workspace'] });
+      setIsDeleteModalOpen(false);
       navigate('/deals');
     } catch (error) {
       setDetailError(error instanceof Error ? error.message : '删除商单失败');
@@ -1202,9 +1199,9 @@ function CommercialDealDetailView({
                 </label>
                 <button
                   type="button"
-                  onClick={() => void handleDelete()}
+                  onClick={() => setIsDeleteModalOpen(true)}
                   disabled={isDeleting}
-                  className="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl border border-red-200 px-3 text-xs font-bold text-red-600 hover:bg-red-50 disabled:cursor-wait disabled:opacity-50 dark:border-red-900/60 dark:text-red-400 dark:hover:bg-red-950/30"
+                  className="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl border border-red-200 px-3 text-xs font-bold text-red-600 hover:bg-red-50 disabled:cursor-wait disabled:opacity-50 dark:border-red-900/60 dark:text-red-400 dark:hover:bg-red-950/30 cursor-pointer"
                 >
                   <Trash2 className="h-4 w-4" />
                   {isDeleting ? '删除中…' : '删除商单'}
@@ -1785,6 +1782,17 @@ function CommercialDealDetailView({
           </div>
         </div>
       </div>
+
+      <ConfirmDialog
+        isOpen={isDeleteModalOpen}
+        onClose={() => setIsDeleteModalOpen(false)}
+        onConfirm={handleDelete}
+        title="永久删除商单"
+        description={`确定要永久删除商单「${deal.title}」吗？\n\n商单活动和选题关联会一并删除，但不会删除选题或已发布视频。此操作无法撤销。`}
+        confirmText="永久删除"
+        tone="danger"
+        isLoading={isDeleting}
+      />
     </div>
   );
 }

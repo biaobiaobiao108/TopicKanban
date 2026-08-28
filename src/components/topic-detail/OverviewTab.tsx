@@ -4,6 +4,7 @@ import { ScoreRatingDial } from './ScoreRatingDial';
 import { NextActionDialog } from './NextActionDialog';
 import { Modal } from '../ui/Modal';
 import { DateInput } from '../ui/DateInput';
+import { useToast } from '../ui/Toast';
 import { getNextActionAgeDays, getNextActionWarning } from '../../lib/topicMetrics';
 import {
   Sparkles,
@@ -117,6 +118,7 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({
   const [isWhyNowExpanded, setIsWhyNowExpanded] = useState(Boolean(topic.why_now));
   const [isActionDialogOpen, setIsActionDialogOpen] = useState(false);
   const [bridgeStatus, setBridgeStatus] = useState<string | null>(null);
+  const { showToast } = useToast();
 
   // Tag creation state
   const [newTagName, setNewTagName] = useState('');
@@ -323,7 +325,7 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({
     ].filter((s) => Boolean(s.desc));
 
     if (steps.length === 0) {
-      alert('请先在四幕大纲中填写至少一个阶段的内容！');
+      showToast({ message: '请先在四幕大纲中填写至少一个阶段的内容！', tone: 'info' });
       return;
     }
 

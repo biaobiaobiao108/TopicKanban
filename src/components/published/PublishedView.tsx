@@ -6,6 +6,7 @@ import { DateInput } from '../ui/DateInput';
 import { useToast } from '../ui/Toast';
 import { StatusBadge, PriorityBadge } from '../ui/Badge';
 import { CustomSelect } from '../ui/CustomSelect';
+import { ConfirmDialog } from '../ui/ConfirmDialog';
 import { PageHeader } from '../layout/PageHeader';
 import { extractBvid, fetchBilibiliVideoData, getBilibiliCoverFromCache } from '../../lib/bilibili';
 import { PublishedVideoCard } from './PublishedVideoCard';
@@ -55,6 +56,7 @@ export const PublishedView: React.FC<PublishedViewProps> = ({
   });
   const pageItems = pageQuery.data?.items || [];
   const totalPublished = pageQuery.data?.total || 0;
+  const [deletingVideo, setDeletingVideo] = useState<PublishedVideo | null>(null);
 
   // Form State
   const [topicId, setTopicId] = useState('');
@@ -450,13 +452,7 @@ export const PublishedView: React.FC<PublishedViewProps> = ({
                   isBulkSyncing={isBulkSyncing}
                   onSync={() => handleSyncSingleVideo(video)}
                   onEdit={() => openEditModal(video)}
-                  onDelete={async () => {
-                    if (window.confirm(`确定要删除发布归档「${video.title}」吗？`)) {
-                      await onDeletePublished(video.id);
-                      if (pageItems.length === 1 && page > 1) setPage((current) => current - 1);
-                      await refreshPublishedQueries();
-                    }
-                  }}
+                  onDelete={() => setDeletingVideo(video)}
                   onSelectTopic={onSelectTopic}
                   formatNumber={formatNumber}
                 />
@@ -794,6 +790,22 @@ export const PublishedView: React.FC<PublishedViewProps> = ({
             </div>
           </form>
         </Modal>
+
+        <ConfirmDialog
+          isOpen={Boolean(deletingVideo)}
+          onClose={() => setDeletingVideo(null)}
+          onConfirm={async () => {
+            if (!deletingVideo) return;
+            await onDeletePublished(deletingVideo.id);
+            if (pageItems.length === 1 && page > 1) setPage((current) => current - 1);
+            await refreshPublishedQueries();
+            setDeletingVideo(null);
+          }}
+          title="删除发布归档"
+          description={deletingVideo ? `确定要删除发布归档「${deletingVideo.title}」吗？\n\n关联的成片互动数据将一并清除，但不会删除原选题。` : ''}
+          confirmText="删除归档"
+          tone="danger"
+        />
       </div>
     </div>
   );

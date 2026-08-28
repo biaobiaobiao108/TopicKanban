@@ -14,6 +14,7 @@ import {
 import { NextActionDialog } from './NextActionDialog';
 import { getNextActionAgeDays, getNextActionWarning } from '../../lib/topicMetrics';
 import { FloatingMenu } from '../ui/FloatingMenu';
+import { ConfirmDialog } from '../ui/ConfirmDialog';
 
 const statusDots: Record<TopicStatus, string> = {
   inbox: 'bg-stone-400',
@@ -51,6 +52,7 @@ export const TopicDetailHeader: React.FC<TopicDetailHeaderProps> = ({
   const [isActionDialogOpen, setIsActionDialogOpen] = useState(false);
   const [isStatusMenuOpen, setIsStatusMenuOpen] = useState(false);
   const [isPriorityMenuOpen, setIsPriorityMenuOpen] = useState(false);
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const statusTriggerRef = useRef<HTMLButtonElement | null>(null);
   const priorityTriggerRef = useRef<HTMLButtonElement | null>(null);
   const statusMenuId = useId();
@@ -358,10 +360,7 @@ export const TopicDetailHeader: React.FC<TopicDetailHeaderProps> = ({
         ) : (
           <button
             type="button"
-            onClick={() => {
-              const choice = window.confirm('点击【确定】归档为「已发布成片」，点击【取消】归档为「搁置库」');
-              onUpdateTopic({ status: choice ? 'published' : 'icebox' });
-            }}
+            onClick={() => setIsStatusMenuOpen(true)}
             className="flex items-center gap-1 px-3 py-1.5 rounded-xl text-xs font-semibold bg-stone-100 dark:bg-stone-800 text-stone-700 dark:text-stone-300 hover:bg-stone-200/80 dark:hover:bg-stone-700 transition-colors cursor-pointer"
             title="将此选题移入归档库（将从全景看板中移出）"
           >
@@ -400,12 +399,7 @@ export const TopicDetailHeader: React.FC<TopicDetailHeaderProps> = ({
         {/* Delete topic */}
         <button
           type="button"
-          onClick={async () => {
-            if (window.confirm(`确定要将选题「${topic.title}」移入回收站吗？\n\n之后可以在选题库的回收站中恢复。`)) {
-              await onDeleteTopic(topic.id);
-              onBack();
-            }
-          }}
+          onClick={() => setIsDeleteDialogOpen(true)}
           className="flex items-center gap-1 p-1.5 text-stone-400 dark:text-stone-500 hover:text-red-600 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/40 rounded-xl transition-colors cursor-pointer"
           title="移入回收站"
         >
@@ -418,6 +412,20 @@ export const TopicDetailHeader: React.FC<TopicDetailHeaderProps> = ({
         topic={topic}
         onClose={() => setIsActionDialogOpen(false)}
         onUpdate={onUpdateTopic}
+      />
+
+      <ConfirmDialog
+        isOpen={isDeleteDialogOpen}
+        onClose={() => setIsDeleteDialogOpen(false)}
+        onConfirm={async () => {
+          await onDeleteTopic(topic.id);
+          setIsDeleteDialogOpen(false);
+          onBack();
+        }}
+        title="移入回收站"
+        description={`确定要将选题「${topic.title}」移入回收站吗？\n\n之后可以在选题库的回收站中随时恢复。`}
+        confirmText="移入回收站"
+        tone="warning"
       />
     </div>
   );

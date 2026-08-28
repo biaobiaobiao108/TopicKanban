@@ -16,6 +16,7 @@ import {
   RefreshCw,
 } from 'lucide-react';
 import { CustomSelect } from '../ui/CustomSelect';
+import { ConfirmDialog } from '../ui/ConfirmDialog';
 import { parseClientMetadata } from '../../lib/clientUrlParser';
 import { sanitizeExternalHttpUrl } from '../../lib/urlSafety';
 import { useToast } from '../ui/Toast';
@@ -61,6 +62,7 @@ export const SourcesTab: React.FC<SourcesTabProps> = ({
   const [isParsingUrl, setIsParsingUrl] = useState(false);
   const parseRequestIdRef = useRef(0);
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  const [isDeleteSelectedModalOpen, setIsDeleteSelectedModalOpen] = useState(false);
   const { showToast } = useToast();
 
   // Form State
@@ -178,13 +180,9 @@ export const SourcesTab: React.FC<SourcesTabProps> = ({
     return next;
   });
 
-  const deleteSelected = async () => {
+  const deleteSelected = () => {
     if (selectedIds.size === 0) return;
-    if (!window.confirm(`确定要删除选中的 ${selectedIds.size} 条素材资料吗？`)) return;
-    for (const id of selectedIds) {
-      await onDeleteSource(id);
-    }
-    setSelectedIds(new Set());
+    setIsDeleteSelectedModalOpen(true);
   };
 
   const copyUrl = (id: string, link: string) => {
@@ -597,6 +595,24 @@ export const SourcesTab: React.FC<SourcesTabProps> = ({
           </div>
         </form>
       </Modal>
+
+      <ConfirmDialog
+        isOpen={isDeleteSelectedModalOpen}
+        onClose={() => setIsDeleteSelectedModalOpen(false)}
+        onConfirm={async () => {
+          for (const id of selectedIds) {
+            await onDeleteSource(id);
+          }
+          const count = selectedIds.size;
+          setSelectedIds(new Set());
+          setIsDeleteSelectedModalOpen(false);
+          showToast({ message: `已删除 ${count} 条素材资料`, tone: 'info' });
+        }}
+        title="批量删除素材资料"
+        description={`确定要删除选中的 ${selectedIds.size} 条素材资料吗？此操作无法撤销。`}
+        confirmText="批量删除"
+        tone="danger"
+      />
     </div>
   );
 };

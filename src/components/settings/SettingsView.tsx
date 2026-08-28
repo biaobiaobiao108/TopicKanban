@@ -14,6 +14,7 @@ import { authenticatedFetch } from '../../lib/auth';
 import { applyTheme } from '../../lib/theme';
 import { resolvePublicUrl } from '../../lib/publicUrl';
 import { PageHeader } from '../layout/PageHeader';
+import { ConfirmDialog } from '../ui/ConfirmDialog';
 import {
   Settings,
   Download,
@@ -287,6 +288,11 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
     }
   };
 
+  const [pendingImportContent, setPendingImportContent] = useState<{
+    content: string;
+    summary: string;
+  } | null>(null);
+
   const handleImportFile = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -299,24 +305,35 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
           const data = JSON.parse(content) as unknown;
           const validation = validateBackupData(data);
           if (!validation.success) throw new Error(validation.error);
-          const confirmed = window.confirm(`将覆盖当前所有数据，且操作无法撤销。\n\n备份包含：${formatBackupSummary(validation.data)}\n\n确定继续恢复吗？`);
-          if (!confirmed) return;
-          setIsImporting(true);
-          setImportStatus({ type: 'info', text: '正在恢复备份并重新载入工作台...' });
-          const result = await importBackupData(content);
-          if (!result.success) throw new Error(result.error || '导入失败');
-          await onReloadAllData();
-          setImportStatus({ type: 'success', text: '备份数据恢复成功！' });
-          schedule(() => setImportStatus(null), 3000);
+          setPendingImportContent({
+            content,
+            summary: formatBackupSummary(validation.data),
+          });
         } catch (error) {
-          setImportStatus({ type: 'error', text: error instanceof Error ? `导入失败：${error.message}` : '导入失败' });
-        } finally {
-          setIsImporting(false);
+          setImportStatus({ type: 'error', text: error instanceof Error ? `导入解析失败：${error.message}` : '导入解析失败' });
         }
       }
     };
     reader.readAsText(file);
     e.target.value = '';
+  };
+
+  const handleConfirmImport = async () => {
+    if (!pendingImportContent) return;
+    setIsImporting(true);
+    setImportStatus({ type: 'info', text: '正在恢复备份并重新载入工作台...' });
+    try {
+      const result = await importBackupData(pendingImportContent.content);
+      if (!result.success) throw new Error(result.error || '导入失败');
+      await onReloadAllData();
+      setImportStatus({ type: 'success', text: '备份数据恢复成功！' });
+      schedule(() => setImportStatus(null), 3000);
+      setPendingImportContent(null);
+    } catch (error) {
+      setImportStatus({ type: 'error', text: error instanceof Error ? `导入失败：${error.message}` : '导入失败' });
+    } finally {
+      setIsImporting(false);
+    }
   };
 
   const sampleChars = 1000;
@@ -1047,6 +1064,17 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
           </div>
         </div>
       </div>
+
+      <ConfirmDialog
+        isOpen={Boolean(pendingImportContent)}
+        onClose={() => setPendingImportContent(null)}
+        onConfirm={handleConfirmImport}
+        title="确认恢复数据备份"
+        description={pendingImportContent ? `将覆盖当前所有数据，且操作无法撤销。\n\n备份包含：${pendingImportContent.summary}\n\n确定继续恢复吗？` : ''}
+        confirmText="覆盖并恢复备份"
+        tone="danger"
+        isLoading={isImporting}
+      />
     </div>
   );
 };
