@@ -7,6 +7,7 @@ import {
   validateTextFields,
   validateCommercialDealFields,
   validateTopicFields,
+  validateExternalUrlField,
   verifyQuickDropCredential,
 } from '../src/server/apiShared';
 
@@ -33,6 +34,12 @@ describe('API validation boundaries', () => {
     expect(verifyQuickDropCredential('drop-secret', 'drop-secret')).toBe('valid');
     expect(verifyQuickDropCredential('workspace-password', 'drop-secret')).toBe('invalid');
     expect(verifyQuickDropCredential('anything', undefined)).toBe('missing_config');
+  });
+
+  it('only accepts public HTTP(S) URLs for rendered external media', () => {
+    expect(validateExternalUrlField({ avatar_url: 'https://images.example.com/avatar.png' }, 'avatar_url')).toBeNull();
+    expect(validateExternalUrlField({ avatar_url: 'javascript:alert(1)' }, 'avatar_url')).toContain('http(s) URL');
+    expect(validateExternalUrlField({ avatar_url: 'http://127.0.0.1/avatar.png' }, 'avatar_url')).toContain('http(s) URL');
   });
 
   it('rejects malformed commercial calendar dates', () => {

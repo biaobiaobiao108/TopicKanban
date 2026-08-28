@@ -14,6 +14,7 @@ import {
   X,
   UserPlus
 } from 'lucide-react';
+import { sanitizeExternalHttpUrl } from '../../lib/urlSafety';
 
 interface PeopleTabProps {
   topicPeople: Person[];
@@ -146,9 +147,9 @@ export const PeopleTab: React.FC<PeopleTabProps> = ({
               <div className="space-y-2.5">
                 <div className="flex items-start justify-between gap-2">
                   <div className="flex items-center gap-2.5">
-                    {person.avatar_url ? (
+                    {sanitizeExternalHttpUrl(person.avatar_url) ? (
                       <img
-                        src={person.avatar_url}
+                        src={sanitizeExternalHttpUrl(person.avatar_url)}
                         alt={person.name}
                         className="w-10 h-10 rounded-full object-cover border border-stone-200 dark:border-stone-700"
                       />

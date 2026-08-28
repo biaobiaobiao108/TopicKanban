@@ -401,11 +401,10 @@ test('商单中心支持分页、进行中筛选、详情就地编辑和长标�
     await expect(page.getByText(longVideoTitle, { exact: true }).last()).toBeVisible();
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth)).toBe(true);
 
-    page.once('dialog', async (dialog) => {
-      expect(dialog.type()).toBe('confirm');
-      await dialog.accept();
-    });
     await page.getByRole('button', { name: '删除商单' }).click();
+    const confirmDialog = page.getByRole('dialog', { name: '永久删除商单' });
+    await expect(confirmDialog).toBeVisible();
+    await confirmDialog.getByRole('button', { name: '永久删除', exact: true }).click();
     await expect(page).toHaveURL(/\/deals$/);
   } finally {
     for (const dealId of dealIds) await api(`/api/deals/${dealId}`, 'DELETE');

@@ -914,6 +914,8 @@ export function createApp() {
         platform_accounts: [2000], quotes: [20000], notes: [20000],
       });
       if (textError) return c.json({ error: textError }, 400);
+      const avatarUrlError = validateExternalUrlField(body as Record<string, unknown>, 'avatar_url');
+      if (avatarUrlError) return c.json({ error: avatarUrlError }, 400);
       const now = new Date().toISOString();
       const person: Person = {
         id: body.id || createId('person'), name: body.name.trim(), aliases: body.aliases || '',
@@ -937,6 +939,8 @@ export function createApp() {
         platform_accounts: [2000], quotes: [20000], notes: [20000],
       });
       if (textError) return c.json({ error: textError }, 400);
+      const avatarUrlError = validateExternalUrlField(body, 'avatar_url');
+      if (avatarUrlError) return c.json({ error: avatarUrlError }, 400);
       await patchRow(db, 'people', c.req.param('id'), body,
         ['name', 'aliases', 'avatar_url', 'description', 'identity', 'platform_accounts', 'quotes', 'notes']);
       const row = await db.prepare('SELECT * FROM people WHERE id = ?').bind(c.req.param('id')).first<Person>();

@@ -32,6 +32,8 @@ import {
   replaceCommercialDealTopics,
   saveCommercialDeal,
 } from '../../lib/storage';
+import { extractBvid } from '../../lib/bilibili';
+import { sanitizeExternalHttpUrl } from '../../lib/urlSafety';
 import { Modal } from '../ui/Modal';
 import { DateInput } from '../ui/DateInput';
 import { CustomSelect, type SelectOption, type SelectRenderState } from '../ui/CustomSelect';
@@ -109,6 +111,13 @@ const PAGE_SIZE_OPTIONS: SelectOption[] = [12, 24, 48].map((value) => ({
   label: `每页 ${value} 张`,
 }));
 const PAGE_SIZE_STORAGE_KEY = 'commercial-deals-page-size';
+
+function getSafePublishedVideoUrl(video: NonNullable<CommercialDealDetail['published_video']>): string {
+  const safeUrl = sanitizeExternalHttpUrl(video.url);
+  if (safeUrl) return safeUrl;
+  const bvid = extractBvid(video.bvid);
+  return bvid ? `https://www.bilibili.com/video/${bvid}` : '';
+}
 
 const todayInBeijing = () =>
   new Intl.DateTimeFormat('en-CA', {
@@ -882,6 +891,7 @@ function CommercialDealDetailView({
   if (dealQuery.isLoading) return <div className="grid flex-1 place-items-center text-sm text-stone-500">正在加载商单详情…</div>;
   if (dealQuery.error || !deal)
     return <div className="grid flex-1 place-items-center px-6 text-center text-sm text-stone-500">商单不存在或加载失败。</div>;
+  const safePublishedVideoUrl = deal.published_video ? getSafePublishedVideoUrl(deal.published_video) : '';
 
   const updateDealCache = (saved: CommercialDealDetail) => {
     queryClient.setQueryData(['commercial-deal', dealId], saved);
@@ -1726,14 +1736,18 @@ function CommercialDealDetailView({
                       >
                         {deal.published_video.title}
                       </p>
-                      <a
-                        href={deal.published_video.url || '#'}
-                        target="_blank"
-                        rel="noreferrer"
-                        className="mt-2 inline-flex max-w-full items-center gap-1.5 break-words text-xs font-semibold text-rose-600 hover:underline dark:text-rose-400"
-                      >
-                        打开 B 站视频 <ExternalLink className="h-3.5 w-3.5 shrink-0" />
-                      </a>
+                      {safePublishedVideoUrl ? (
+                        <a
+                          href={safePublishedVideoUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="mt-2 inline-flex max-w-full items-center gap-1.5 break-words text-xs font-semibold text-rose-600 hover:underline dark:text-rose-400"
+                        >
+                          打开 B 站视频 <ExternalLink className="h-3.5 w-3.5 shrink-0" />
+                        </a>
+                      ) : (
+                        <p className="mt-2 text-xs text-stone-500 dark:text-stone-400">视频链接未设置或已被拦截</p>
+                      )}
                     </div>
                   )}
                   {deal.status === 'delivered' && !deal.published_video_id && (

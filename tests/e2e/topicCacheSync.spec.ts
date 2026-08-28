@@ -39,8 +39,10 @@ test('topic mutations stay synchronized across today, database and kanban naviga
   const topicRow = page.locator('tr').filter({ hasText: title });
   await expect(topicRow).toBeVisible();
 
-  page.on('dialog', (dialog) => dialog.accept());
   await topicRow.getByTitle('移入回收站').click();
+  const confirmDialog = page.getByRole('dialog', { name: '移入回收站' });
+  await expect(confirmDialog).toBeVisible();
+  await confirmDialog.getByRole('button', { name: '移入回收站', exact: true }).click();
   await expect(topicRow).toHaveCount(0);
 
   await page.getByRole('navigation').getByRole('button', { name: /选题看板/ }).click();

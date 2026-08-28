@@ -22,6 +22,7 @@ import { CustomSelect } from '../ui/CustomSelect';
 import { ConfirmDialog } from '../ui/ConfirmDialog';
 import { PageHeader } from '../layout/PageHeader';
 import { fetchPeopleOptions, fetchPeoplePage } from '../../lib/storage';
+import { sanitizeExternalHttpUrl } from '../../lib/urlSafety';
 
 interface PeopleViewProps {
   people: Person[];
@@ -213,6 +214,7 @@ export const PeopleView: React.FC<PeopleViewProps> = ({
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
           {filteredPeople.map((person) => {
             const relatedTopics = person.related_topic_previews || [];
+            const safeAvatarUrl = sanitizeExternalHttpUrl(person.avatar_url);
 
             const personRels = relationships.filter(
               (r) => r.person_a_id === person.id || r.person_b_id === person.id
@@ -227,9 +229,9 @@ export const PeopleView: React.FC<PeopleViewProps> = ({
                   {/* Header info */}
                   <div className="flex items-start justify-between gap-2">
                     <div className="flex items-center gap-3 min-w-0">
-                      {person.avatar_url ? (
+                      {safeAvatarUrl ? (
                         <img
-                          src={person.avatar_url}
+                          src={safeAvatarUrl}
                           alt={person.name}
                           className="w-12 h-12 rounded-2xl object-cover border border-stone-200/70 dark:border-stone-700 shadow-2xs shrink-0"
                         />

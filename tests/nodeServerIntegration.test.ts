@@ -243,6 +243,27 @@ describe('Bun Server Integration (Local SQLite & API)', () => {
     });
     expect(invalidPublishedRes.status).toBe(400);
 
+    const invalidPersonRes = await app.request('/api/people', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${authToken}` },
+      body: JSON.stringify({ name: '恶意头像人物', avatar_url: 'http://127.0.0.1/avatar.png' }),
+    });
+    expect(invalidPersonRes.status).toBe(400);
+
+    const personRes = await app.request('/api/people', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${authToken}` },
+      body: JSON.stringify({ name: '安全头像人物', avatar_url: 'https://images.example.com/avatar.png' }),
+    });
+    expect(personRes.status).toBe(201);
+    const person = await personRes.json() as { id: string };
+    const invalidPersonPatchRes = await app.request(`/api/people/${person.id}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${authToken}` },
+      body: JSON.stringify({ avatar_url: 'javascript:alert(1)' }),
+    });
+    expect(invalidPersonPatchRes.status).toBe(400);
+
     const removedParserRes = await app.request('/api/sources/parse-url?url=https%3A%2F%2Fexample.com', {
       headers: { Authorization: `Bearer ${authToken}` },
     });

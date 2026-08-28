@@ -15,4 +15,14 @@ describe('Production security headers', () => {
     expect(indexHtml).not.toContain('user-scalable=no');
     expect(indexHtml).not.toContain('maximum-scale=1.0');
   });
+
+  it('includes defense-in-depth browser isolation headers', () => {
+    const serverSource = fs.readFileSync(path.resolve(process.cwd(), 'src/server/server.ts'), 'utf8');
+    const pagesHeaders = fs.readFileSync(path.resolve(process.cwd(), 'public/_headers'), 'utf8');
+    for (const source of [serverSource, pagesHeaders]) {
+      expect(source).toContain('Permissions-Policy');
+      expect(source).toContain('Cross-Origin-Opener-Policy');
+      expect(source).toContain('Cross-Origin-Resource-Policy');
+    }
+  });
 });
