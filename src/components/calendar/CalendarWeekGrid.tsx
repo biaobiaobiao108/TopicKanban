@@ -60,12 +60,12 @@ function WeekDayColumn({
       </div>
 
       {/* Events List */}
-      <div className="flex-1 p-2 space-y-2 overflow-y-auto min-h-[300px]">
+      <div className="min-h-[300px] flex-1 space-y-2 overflow-y-auto overscroll-contain p-2">
         {events.map((ev) => (
           <CalendarEventPill
             key={ev.id}
             event={ev}
-            compact={false}
+            compact
             onOpenTopic={onOpenTopic}
             onOpenDeal={onOpenDeal}
             onOpenPublished={onOpenPublished}
@@ -94,7 +94,7 @@ export const CalendarWeekGrid: React.FC<CalendarWeekGridProps> = ({
   onOpenPublished,
 }) => {
   return (
-    <div className="flex-1 flex min-w-0 bg-white dark:bg-stone-900 rounded-2xl border border-stone-200/70 dark:border-stone-800 shadow-2xs overflow-x-auto">
+    <div className="flex min-w-0 flex-1 overflow-x-auto overscroll-contain rounded-2xl border border-stone-200/70 bg-white shadow-2xs dark:border-stone-800 dark:bg-stone-900">
       {days.map((day) => {
         const events = eventsMap.get(day.date) || [];
         return (

@@ -2,7 +2,6 @@ import React, { useId, useState, useEffect, useRef } from 'react';
 import { Topic, TopicStatus, Priority } from '../../types';
 import { COLUMNS } from '../kanban/columns';
 import {
-  ArrowLeft,
   Pin,
   Trash2,
   Edit2,
@@ -12,6 +11,7 @@ import {
   AlertTriangle,
 } from 'lucide-react';
 import { NextActionDialog } from './NextActionDialog';
+import { BackButton } from '../layout/BackButton';
 import { getNextActionAgeDays, getNextActionWarning } from '../../lib/topicMetrics';
 import { FloatingMenu } from '../ui/FloatingMenu';
 import { ConfirmDialog } from '../ui/ConfirmDialog';
@@ -77,15 +77,7 @@ export const TopicDetailHeader: React.FC<TopicDetailHeaderProps> = ({
     <div className="bg-white/95 dark:bg-stone-900/95 backdrop-blur-sm border-b border-stone-200/80 dark:border-stone-800 px-4 sm:px-8 py-2.5 shrink-0 flex flex-col gap-2 xl:flex-row xl:items-center xl:justify-between transition-colors">
       {/* Left group: Back button + Title & Inline Editor + Status & Priority + Next Action Capsule */}
       <div className="flex w-full flex-wrap items-center gap-2.5 sm:gap-3.5 min-w-0 xl:w-auto xl:flex-1 xl:flex-nowrap">
-        <button
-          type="button"
-          onClick={onBack}
-          className="flex items-center gap-1.5 text-xs text-stone-600 dark:text-stone-300 hover:text-stone-900 dark:hover:text-stone-100 font-semibold px-2.5 py-1.5 rounded-xl hover:bg-stone-100 dark:hover:bg-stone-800 transition-colors cursor-pointer shrink-0"
-          title="返回全景看板"
-        >
-          <ArrowLeft className="w-4 h-4" />
-          <span className="hidden sm:inline">返回看板</span>
-        </button>
+        <BackButton onBack={onBack} label="返回看板" title="返回全景看板" />
 
         <span className="text-stone-200 dark:text-stone-700 hidden sm:inline select-none">|</span>
 

@@ -253,16 +253,37 @@ function WorkspaceApp({ isAuth, setIsAuth }: WorkspaceAppProps) {
     safeNavigate(VIEW_PATHS[view]);
   };
 
+  const currentLocation = `${location.pathname}${location.search}${location.hash}`;
+
+  const handleOpenDeal = (dealId: string) => {
+    safeNavigate(`/deals/${encodeURIComponent(dealId)}`, {
+      state: { from: currentLocation },
+    });
+  };
+
   // Handlers for Topics
   const handleOpenDetail = (topicId: string) => {
     safeNavigate(`/topics/${encodeURIComponent(topicId)}`, {
-      state: { from: currentView === 'topic-detail' ? '/kanban' : location.pathname },
+      state: { from: currentView === 'topic-detail' ? '/kanban' : currentLocation },
     });
   };
 
   const handleBackFromDetail = () => {
     const from = (location.state as { from?: unknown } | null)?.from;
-    safeNavigate(typeof from === 'string' && from.startsWith('/') ? from : '/kanban');
+    if (typeof from === 'string' && from.startsWith('/') && from !== currentLocation) {
+      navigate(-1);
+      return;
+    }
+    safeNavigate('/kanban');
+  };
+
+  const handleBackFromDeal = () => {
+    const from = (location.state as { from?: unknown } | null)?.from;
+    if (typeof from === 'string' && from.startsWith('/') && from !== currentLocation) {
+      navigate(-1);
+      return;
+    }
+    safeNavigate('/deals');
   };
 
   const handleDraftWordCountChange = (topicId: string, wordCount: number) => {
@@ -677,7 +698,7 @@ function WorkspaceApp({ isAuth, setIsAuth }: WorkspaceAppProps) {
               dealFocus={dealFocus}
               staleActionDays={settings.stale_action_days || 5}
               onOpenDetail={handleOpenDetail}
-              onOpenDeal={(dealId) => safeNavigate(`/deals/${encodeURIComponent(dealId)}`)}
+              onOpenDeal={handleOpenDeal}
               onOpenQuickCreate={openInboxQuickCreate}
               onTogglePin={handleTogglePin}
               onUpdateTopic={handleUpdateTopicById}
@@ -691,7 +712,7 @@ function WorkspaceApp({ isAuth, setIsAuth }: WorkspaceAppProps) {
               publishedList={publishedList}
               availableTags={tags}
               onOpenDetail={handleOpenDetail}
-              onOpenDeal={(dealId) => safeNavigate(`/deals/${encodeURIComponent(dealId)}`)}
+              onOpenDeal={handleOpenDeal}
               onOpenPublished={() => safeNavigate('/published')}
               onUpdateTopic={handleUpdateTopicById}
               onCreateTopic={async (data) => {
@@ -704,6 +725,7 @@ function WorkspaceApp({ isAuth, setIsAuth }: WorkspaceAppProps) {
             <DealsView
               dealId={activeDealId}
               topics={topics}
+              onBack={handleBackFromDeal}
               onCreateTopicFromDeal={handleCreateTopicFromDeal}
             />
           )}
@@ -744,7 +766,7 @@ function WorkspaceApp({ isAuth, setIsAuth }: WorkspaceAppProps) {
               onDeleteTag={handleDeleteTag}
               onDraftWordCountChange={handleDraftWordCountChange}
               onTopicMetricsChange={handleTopicMetricsChange}
-              onOpenDeal={(dealId) => safeNavigate(`/deals/${encodeURIComponent(dealId)}`)}
+              onOpenDeal={handleOpenDeal}
               onCreateTopicFromDeal={handleCreateTopicFromDeal}
             />
           )}

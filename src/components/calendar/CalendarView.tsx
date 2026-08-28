@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useCallback } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import {
   DndContext,
@@ -12,6 +12,7 @@ import {
 import { Topic, CommercialDeal, PublishedVideo, Tag, Priority, TopicStatus } from '../../types';
 import { fetchCommercialDealPage, fetchPublishedVideos, fetchTags } from '../../lib/storage';
 import { PageHeader } from '../layout/PageHeader';
+import { useSearchParams } from 'react-router-dom';
 import {
   CalendarDays,
   ChevronLeft,
@@ -65,6 +66,17 @@ interface CalendarViewProps {
   }) => Promise<void>;
 }
 
+function parseCalendarDate(value: string | null): Date | null {
+  if (!value || !/^\d{4}-\d{2}-\d{2}$/.test(value)) return null;
+  const [year, month, day] = value.split('-').map(Number);
+  const date = new Date(year, month - 1, day, 12);
+  return date.getFullYear() === year && date.getMonth() === month - 1 && date.getDate() === day ? date : null;
+}
+
+function parseCalendarView(value: string | null): CalendarViewMode {
+  return value === 'week' || value === 'agenda' ? value : 'month';
+}
+
 export const CalendarView: React.FC<CalendarViewProps> = ({
   topics,
   deals = [],
@@ -76,8 +88,9 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
   onUpdateTopic,
   onCreateTopic,
 }) => {
-  const [currentDate, setCurrentDate] = useState<Date>(() => new Date());
-  const [viewMode, setViewMode] = useState<CalendarViewMode>('month');
+  const [searchParams, setSearchParams] = useSearchParams();
+  const [currentDate, setCurrentDate] = useState<Date>(() => parseCalendarDate(searchParams.get('date')) || new Date());
+  const [viewMode, setViewMode] = useState<CalendarViewMode>(() => parseCalendarView(searchParams.get('view')));
   const [filters, setFilters] = useState<CalendarLayerFilters>(DEFAULT_CALENDAR_LAYERS);
   const [isPoolOpen, setIsPoolOpen] = useState<boolean>(true);
   const [draggedTopic, setDraggedTopic] = useState<Topic | null>(null);
@@ -87,6 +100,27 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
     date: string;
     topic?: Topic | null;
   } | null>(null);
+
+  // Keep the visible calendar state in the URL so detail-page navigation can return to the same week.
+  useEffect(() => {
+    const nextViewMode = parseCalendarView(searchParams.get('view'));
+    const nextDate = parseCalendarDate(searchParams.get('date'));
+    setViewMode((previous) => (previous === nextViewMode ? previous : nextViewMode));
+    if (nextDate) {
+      setCurrentDate((previous) => (
+        getBeijingDateString(previous) === getBeijingDateString(nextDate) ? previous : nextDate
+      ));
+    }
+  }, [searchParams]);
+
+  useEffect(() => {
+    const nextParams = new URLSearchParams(searchParams);
+    nextParams.set('view', viewMode);
+    nextParams.set('date', getBeijingDateString(currentDate));
+    if (nextParams.toString() !== searchParams.toString()) {
+      setSearchParams(nextParams, { replace: true });
+    }
+  }, [currentDate, searchParams, setSearchParams, viewMode]);
 
   // Setup Dnd Sensors
   const sensors = useSensors(

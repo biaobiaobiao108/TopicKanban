@@ -196,6 +196,18 @@ test('详情页顶栏浮层跨全部标签页保持可见且可关闭', async ({
   await expect(pageErrors).toEqual([]);
 });
 
+test('直接打开选题详情时共享返回按钮回退到看板', async ({ page }) => {
+  await mockWorkspace(page);
+  await login(page);
+  await page.goto(`/topics/${topic.id}`);
+
+  const backButton = page.getByRole('button', { name: '返回全景看板' });
+  await expect(backButton).toBeVisible();
+  await backButton.click();
+  await expect(page).toHaveURL(/\/kanban$/);
+  await expect(page.getByRole('heading', { name: '选题全景看板', exact: true })).toBeVisible();
+});
+
 test('移动端顶栏、底部阶段菜单和更多菜单均不超出视口', async ({ page }) => {
   await mockWorkspace(page);
   await login(page);

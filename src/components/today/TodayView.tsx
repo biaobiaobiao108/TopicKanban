@@ -45,9 +45,16 @@ function DealFocusCard({ deal, onOpen }: { deal: CommercialDeal; onOpen: () => v
         {isUnpaid ? <WalletCards className="h-5 w-5" /> : <Handshake className="h-5 w-5" />}
       </span>
       <span className="min-w-0 flex-1">
-        <span className="flex flex-wrap items-center gap-2">
-          <span className="truncate text-sm font-bold text-stone-900 dark:text-stone-100">{deal.brand_name || '未命名品牌'} · {deal.title}</span>
-          <span className="shrink-0 rounded-full bg-stone-500/10 px-2 py-0.5 text-[10px] font-bold text-stone-600 dark:text-stone-300">{DEAL_STATUS_LABELS[deal.status]}</span>
+        <span className="flex min-w-0 items-center gap-2">
+          <span
+            className="min-w-0 flex-1 truncate text-sm font-bold text-stone-900 dark:text-stone-100"
+            title={`${deal.brand_name || '未命名品牌'} · ${deal.title}`}
+          >
+            {deal.brand_name || '未命名品牌'} · {deal.title}
+          </span>
+          <span className="max-w-[4.5rem] shrink-0 truncate rounded-full bg-stone-500/10 px-2 py-0.5 text-[10px] font-bold text-stone-600 dark:text-stone-300">
+            {DEAL_STATUS_LABELS[deal.status]}
+          </span>
         </span>
         <span className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-stone-500 dark:text-stone-400">
           {isUnpaid ? <span className="font-semibold text-amber-700 dark:text-amber-300">已交付待回款</span> : <span className={isDue ? 'font-semibold text-rose-700 dark:text-rose-300' : ''}>{isDue ? '截止/逾期' : '交付截止'}：{formatDealDate(deal.delivery_due_date)}</span>}

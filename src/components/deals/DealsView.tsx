@@ -39,6 +39,7 @@ import { DateInput } from '../ui/DateInput';
 import { CustomSelect, type SelectOption, type SelectRenderState } from '../ui/CustomSelect';
 import { ConfirmDialog } from '../ui/ConfirmDialog';
 import { PageHeader } from '../layout/PageHeader';
+import { BackButton } from '../layout/BackButton';
 
 const ACTIVE_STATUSES: CommercialDealStatus[] = ['communicating', 'producing'];
 const STATUS_FLOW: CommercialDealStatus[] = ['communicating', 'producing', 'delivered', 'archived'];
@@ -141,6 +142,7 @@ const textareaClass = `${fieldClass} min-h-24 resize-y leading-relaxed`;
 interface DealsViewProps {
   dealId?: string | null;
   topics: Topic[];
+  onBack?: () => void;
   onCreateTopicFromDeal?: (data: { title: string; summary: string }) => Promise<Topic>;
 }
 
@@ -204,7 +206,7 @@ function readPageSize(): number {
 
 function StatusPill({ status }: { status: CommercialDealStatus }) {
   return (
-    <span className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-semibold ${STATUS_CLASSES[status]}`}>
+    <span className={`inline-flex shrink-0 items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-semibold ${STATUS_CLASSES[status]}`}>
       <span className={`h-1.5 w-1.5 rounded-full ${STATUS_DOTS[status]}`} />
       {STATUS_LABELS[status]}
     </span>
@@ -406,14 +408,14 @@ function DealCard({ deal, onOpen }: { deal: CommercialDeal; onOpen: (id: string)
     >
       <div className="flex min-w-0 items-start justify-between gap-3">
         <div className="min-w-0">
-          <div className="mb-2 flex flex-wrap items-center gap-1.5">
+          <div className="mb-2 flex min-w-0 flex-nowrap items-center gap-1.5 overflow-hidden">
             <StatusPill status={deal.status} />
             {deal.payment_status === 'paid' ? (
-              <span className="rounded-full bg-emerald-500/10 px-2.5 py-1 text-xs font-semibold text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-300">
+                <span className="shrink-0 rounded-full bg-emerald-500/10 px-2.5 py-1 text-xs font-semibold text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-300">
                 已回款
               </span>
             ) : (
-              <span className="rounded-full bg-amber-500/10 px-2.5 py-1 text-xs font-semibold text-amber-800 dark:bg-amber-950/40 dark:text-amber-300">
+                <span className="shrink-0 rounded-full bg-amber-500/10 px-2.5 py-1 text-xs font-semibold text-amber-800 dark:bg-amber-950/40 dark:text-amber-300">
                 待回款
               </span>
             )}
@@ -492,7 +494,7 @@ function SummaryCard({
   );
 }
 
-function CommercialDealsView({ topics, onCreateTopicFromDeal }: Omit<DealsViewProps, 'dealId'>) {
+function CommercialDealsView({ topics, onCreateTopicFromDeal }: Pick<DealsViewProps, 'topics' | 'onCreateTopicFromDeal'>) {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const [query, setQuery] = useState('');
@@ -848,10 +850,12 @@ function LinkedTopicRow({
 function CommercialDealDetailView({
   dealId,
   topics,
+  onBack,
   onCreateTopicFromDeal,
 }: {
   dealId: string;
   topics: Topic[];
+  onBack?: () => void;
   onCreateTopicFromDeal?: DealsViewProps['onCreateTopicFromDeal'];
 }) {
   const navigate = useNavigate();
@@ -1114,14 +1118,7 @@ function CommercialDealDetailView({
       <div className="mx-auto max-w-6xl space-y-5 px-4 py-4 sm:px-8 sm:py-6">
         <section className="min-w-0 rounded-2xl border border-stone-200/70 bg-white p-5 shadow-2xs dark:border-stone-800 dark:bg-stone-900 sm:p-6">
           <div className="flex flex-col gap-4">
-            <button
-              type="button"
-              onClick={() => navigate('/deals')}
-              className="inline-flex min-h-9 w-fit items-center gap-1.5 rounded-lg px-2 text-xs font-semibold text-stone-500 hover:bg-stone-100 dark:text-stone-400 dark:hover:bg-stone-800"
-            >
-              <ArrowLeft className="h-3.5 w-3.5" />
-              返回商单中心
-            </button>
+            <BackButton onBack={onBack || (() => navigate('/deals'))} label="返回商单中心" title="返回上一页" />
             <div className="flex min-w-0 flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
               <div className="min-w-0 flex-1">
                 <div className="flex flex-wrap items-center gap-2">
@@ -1838,9 +1835,9 @@ function TextBlock({ label, value, empty }: { label: string; value: string; empt
   );
 }
 
-export function DealsView({ dealId, topics, onCreateTopicFromDeal }: DealsViewProps) {
+export function DealsView({ dealId, topics, onBack, onCreateTopicFromDeal }: DealsViewProps) {
   return dealId ? (
-    <CommercialDealDetailView dealId={dealId} topics={topics} onCreateTopicFromDeal={onCreateTopicFromDeal} />
+    <CommercialDealDetailView dealId={dealId} topics={topics} onBack={onBack} onCreateTopicFromDeal={onCreateTopicFromDeal} />
   ) : (
     <CommercialDealsView topics={topics} onCreateTopicFromDeal={onCreateTopicFromDeal} />
   );

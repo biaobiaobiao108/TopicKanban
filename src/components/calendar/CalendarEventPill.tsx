@@ -1,7 +1,37 @@
 import React from 'react';
 import { CalendarEventItem } from './CalendarTypes';
+import type { CommercialDealStatus, TopicStatus } from '../../types';
 import { Film, Flame, AlertCircle, Handshake, CheckCircle2, Zap } from 'lucide-react';
 import { StatusBadge, PriorityBadge } from '../ui/Badge';
+
+const DEAL_STATUS_LABELS: Record<CommercialDealStatus, string> = {
+  communicating: '沟通中',
+  producing: '制作中',
+  delivered: '已交付',
+  archived: '归档',
+};
+
+const DEAL_STATUS_CLASSES: Record<CommercialDealStatus, string> = {
+  communicating: 'bg-blue-500/10 text-blue-700 dark:bg-blue-950/40 dark:text-blue-300',
+  producing: 'bg-indigo-500/10 text-indigo-800 dark:bg-indigo-950/40 dark:text-indigo-300',
+  delivered: 'bg-teal-500/10 text-teal-700 dark:bg-teal-950/40 dark:text-teal-300',
+  archived: 'bg-stone-500/10 text-stone-600 dark:bg-stone-800/70 dark:text-stone-300',
+};
+
+function EventStatusBadge({ event }: { event: CalendarEventItem }) {
+  if (!event.status || event.status === 'inbox') return null;
+
+  if (event.type === 'commercial_deal') {
+    const status = event.status as CommercialDealStatus;
+    return (
+      <span className={`inline-flex max-w-full items-center truncate rounded-full px-2 py-0.5 text-[10px] font-bold ${DEAL_STATUS_CLASSES[status] || DEAL_STATUS_CLASSES.communicating}`}>
+        {DEAL_STATUS_LABELS[status] || status}
+      </span>
+    );
+  }
+
+  return <StatusBadge status={event.status as TopicStatus} />;
+}
 
 interface CalendarEventPillProps {
   event: CalendarEventItem;
@@ -37,10 +67,12 @@ export const CalendarEventPill: React.FC<CalendarEventPillProps> = ({
             type="button"
             onClick={handleClick}
             title={`计划发布：${event.title}`}
-            className="w-full flex items-center gap-1.5 px-2 py-1 rounded-lg text-xs font-semibold bg-rose-500/10 hover:bg-rose-500/20 text-rose-700 dark:text-rose-300 dark:bg-rose-950/40 dark:hover:bg-rose-900/50 transition-colors text-left cursor-pointer truncate shadow-2xs border border-rose-200/50 dark:border-rose-900/40"
+            data-testid="calendar-event"
+            data-calendar-event-type={event.type}
+            className="flex w-full min-w-0 items-center gap-1.5 rounded-lg border border-rose-200/50 bg-rose-500/10 px-2 py-1 text-left text-xs font-semibold text-rose-700 shadow-2xs transition-colors hover:bg-rose-500/20 dark:border-rose-900/40 dark:bg-rose-950/40 dark:text-rose-300 dark:hover:bg-rose-900/50"
           >
             <span className="w-1.5 h-1.5 rounded-full bg-rose-600 dark:bg-rose-400 shrink-0" />
-            <span className="truncate flex-1">{event.title}</span>
+            <span className="min-w-0 flex-1 truncate">{event.title}</span>
             {event.status && event.status !== 'inbox' && (
               <span className="text-[10px] opacity-75 shrink-0 hidden xl:inline">
                 {event.status === 'scripting' ? '写稿' : event.status === 'production' ? '制作' : '已立项'}
@@ -55,10 +87,12 @@ export const CalendarEventPill: React.FC<CalendarEventPillProps> = ({
             type="button"
             onClick={handleClick}
             title={event.title}
-            className="w-full flex items-center gap-1.5 px-2 py-0.5 rounded-lg text-[11px] font-medium bg-amber-500/10 hover:bg-amber-500/20 text-amber-800 dark:text-amber-300 dark:bg-amber-950/40 dark:hover:bg-amber-900/50 transition-colors text-left cursor-pointer truncate border border-amber-200/50 dark:border-amber-900/40"
+            data-testid="calendar-event"
+            data-calendar-event-type={event.type}
+            className="flex w-full min-w-0 items-center gap-1.5 rounded-lg border border-amber-200/50 bg-amber-500/10 px-2 py-0.5 text-left text-[11px] font-medium text-amber-800 transition-colors hover:bg-amber-500/20 dark:border-amber-900/40 dark:bg-amber-950/40 dark:text-amber-300 dark:hover:bg-amber-900/50"
           >
             <AlertCircle className="w-3 h-3 text-amber-600 dark:text-amber-400 shrink-0" />
-            <span className="truncate flex-1">{event.title}</span>
+            <span className="min-w-0 flex-1 truncate">{event.title}</span>
           </button>
         );
 
@@ -67,14 +101,24 @@ export const CalendarEventPill: React.FC<CalendarEventPillProps> = ({
           <button
             type="button"
             onClick={handleClick}
-            title={event.title}
-            className="w-full flex items-center gap-1.5 px-2 py-1 rounded-lg text-xs font-semibold bg-indigo-500/10 hover:bg-indigo-500/20 text-indigo-700 dark:text-indigo-300 dark:bg-indigo-950/40 dark:hover:bg-indigo-900/50 transition-colors text-left cursor-pointer truncate shadow-2xs border border-indigo-200/50 dark:border-indigo-900/40"
+            title={`${event.title}${event.status ? ` · ${DEAL_STATUS_LABELS[event.status as CommercialDealStatus] || event.status}` : ''}`}
+            data-testid="calendar-event"
+            data-calendar-event-type={event.type}
+            className="w-full min-w-0 rounded-lg border border-indigo-200/50 bg-indigo-500/10 px-2 py-1.5 text-left text-xs font-semibold text-indigo-700 shadow-2xs transition-colors hover:bg-indigo-500/20 dark:border-indigo-900/40 dark:bg-indigo-950/40 dark:text-indigo-300 dark:hover:bg-indigo-900/50"
           >
-            <Handshake className="w-3 h-3 text-indigo-600 dark:text-indigo-400 shrink-0" />
-            <span className="truncate flex-1">{event.title}</span>
-            {typeof event.amount_cents === 'number' && event.amount_cents > 0 && (
-              <span className="text-[10px] font-mono text-indigo-600 dark:text-indigo-400 shrink-0">
-                ¥{(event.amount_cents / 100).toLocaleString()}
+            <span className="flex min-w-0 items-center gap-1.5">
+              <Handshake className="h-3 w-3 shrink-0 text-indigo-600 dark:text-indigo-400" />
+              <span data-testid="calendar-event-title" className="min-w-0 flex-1 truncate">{event.title}</span>
+              {typeof event.amount_cents === 'number' && event.amount_cents > 0 && (
+                <span className="max-w-[4.5rem] shrink-0 truncate font-mono text-[10px] text-indigo-600 dark:text-indigo-400">
+                  ¥{(event.amount_cents / 100).toLocaleString()}
+                </span>
+              )}
+            </span>
+            {event.status && (
+              <span className="mt-1 flex min-w-0 items-center gap-1 pl-[1.125rem] text-[10px] font-semibold text-indigo-600 dark:text-indigo-300">
+                <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-indigo-500 dark:bg-indigo-400" />
+                <span className="truncate">{DEAL_STATUS_LABELS[event.status as CommercialDealStatus] || event.status}</span>
               </span>
             )}
           </button>
@@ -86,10 +130,12 @@ export const CalendarEventPill: React.FC<CalendarEventPillProps> = ({
             type="button"
             onClick={handleClick}
             title={`已上线：${event.title}`}
-            className="w-full flex items-center gap-1.5 px-2 py-0.5 rounded-lg text-[11px] font-medium bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-800 dark:text-emerald-300 dark:bg-emerald-950/40 dark:hover:bg-emerald-900/50 transition-colors text-left cursor-pointer truncate border border-emerald-200/50 dark:border-emerald-900/40"
+            data-testid="calendar-event"
+            data-calendar-event-type={event.type}
+            className="flex w-full min-w-0 items-center gap-1.5 rounded-lg border border-emerald-200/50 bg-emerald-500/10 px-2 py-0.5 text-left text-[11px] font-medium text-emerald-800 transition-colors hover:bg-emerald-500/20 dark:border-emerald-900/40 dark:bg-emerald-950/40 dark:text-emerald-300 dark:hover:bg-emerald-900/50"
           >
             <Film className="w-3 h-3 text-emerald-600 dark:text-emerald-400 shrink-0" />
-            <span className="truncate flex-1">{event.title}</span>
+            <span className="min-w-0 flex-1 truncate">{event.title}</span>
             {typeof event.views === 'number' && event.views > 0 && (
               <span className="text-[10px] font-mono text-emerald-600 dark:text-emerald-400 shrink-0">
                 {(event.views >= 10000 ? `${(event.views / 10000).toFixed(1)}w` : event.views)}播
@@ -104,19 +150,23 @@ export const CalendarEventPill: React.FC<CalendarEventPillProps> = ({
             type="button"
             onClick={handleClick}
             title={event.title}
-            className="w-full flex items-center gap-1 px-2 py-0.5 rounded-lg text-[10px] font-medium bg-stone-500/10 hover:bg-stone-500/20 text-stone-600 dark:text-stone-400 dark:bg-stone-800 transition-colors text-left cursor-pointer truncate border border-stone-200/50 dark:border-stone-700"
+            data-testid="calendar-event"
+            data-calendar-event-type={event.type}
+            className="flex w-full min-w-0 items-center gap-1 rounded-lg border border-stone-200/50 bg-stone-500/10 px-2 py-0.5 text-left text-[10px] font-medium text-stone-600 transition-colors hover:bg-stone-500/20 dark:border-stone-700 dark:bg-stone-800 dark:text-stone-400"
           >
             <Zap className="w-3 h-3 text-amber-500 shrink-0" />
-            <span className="truncate flex-1">{event.title}</span>
+            <span className="min-w-0 flex-1 truncate">{event.title}</span>
           </button>
         );
     }
   }
 
-  // Expanded card format (for week or agenda view)
+  // Expanded card format (for agenda view)
   return (
     <div
       onClick={handleClick}
+      data-testid="calendar-event"
+      data-calendar-event-type={event.type}
       className={`p-3 rounded-xl border transition-all cursor-pointer shadow-2xs hover:shadow-card hover:-translate-y-0.5 ${
         event.type === 'planned_publish'
           ? 'bg-rose-500/[0.04] dark:bg-rose-950/20 border-rose-200/70 dark:border-rose-900/40'
@@ -127,8 +177,8 @@ export const CalendarEventPill: React.FC<CalendarEventPillProps> = ({
               : 'bg-stone-500/[0.03] dark:bg-stone-800/40 border-stone-200/70 dark:border-stone-700/60'
       }`}
     >
-      <div className="flex items-center justify-between gap-2 mb-1">
-        <div className="flex items-center gap-1.5">
+      <div className="mb-1 flex min-w-0 items-center justify-between gap-2">
+        <div className="flex min-w-0 flex-wrap items-center gap-1.5">
           {event.type === 'planned_publish' && (
             <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-rose-600 text-white">计划发布</span>
           )}
@@ -144,14 +194,12 @@ export const CalendarEventPill: React.FC<CalendarEventPillProps> = ({
           {event.type === 'deferred_action' && (
             <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-stone-600 text-white">行动唤醒</span>
           )}
-          {event.status && typeof event.status === 'string' && event.status !== 'inbox' && (
-            <StatusBadge status={event.status as any} />
-          )}
+          <EventStatusBadge event={event} />
         </div>
         {event.priority && <PriorityBadge priority={event.priority} />}
       </div>
 
-      <h5 className="text-sm font-bold text-stone-900 dark:text-stone-100 leading-snug line-clamp-2">
+      <h5 className="min-w-0 text-sm font-bold leading-snug text-stone-900 dark:text-stone-100 line-clamp-2">
         {event.title}
       </h5>
 
