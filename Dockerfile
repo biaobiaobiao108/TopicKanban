@@ -12,25 +12,13 @@ RUN bun install --frozen-lockfile --ignore-scripts
 COPY . .
 RUN bun run build
 
-# Stage 2: Install production dependencies for the target architecture
-FROM oven/bun:1.4.0-alpine AS prod-deps
-WORKDIR /app
-
-# Install only production dependencies
-COPY package.json bun.lock .npmrc* ./
-RUN bun install --production --frozen-lockfile
-
-# Stage 3: Ultra-slim Production Runner
+# Stage 2: Ultra-slim Production Runner
 FROM oven/bun:1.4.0-alpine AS runner
 WORKDIR /app
 
 ENV NODE_ENV=production
 ENV PORT=3030
 ENV DATA_DIR=/app/data
-
-# Copy production dependencies
-COPY --from=prod-deps /app/node_modules ./node_modules
-COPY --from=prod-deps /app/package.json ./package.json
 
 # Copy compiled SPA static files, bundled server, and database migrations
 COPY --from=builder /app/dist ./dist

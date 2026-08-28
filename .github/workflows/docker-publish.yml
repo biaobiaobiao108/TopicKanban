@@ -41,6 +41,9 @@ jobs:
       - name: Run unit & integration tests
         run: bun run test:run
 
+      - name: Build production bundles
+        run: bun run build
+
       - name: Set up QEMU (Multi-platform support)
         uses: docker/setup-qemu-action@v3
 
@@ -97,7 +100,7 @@ jobs:
             docker run -d \
               --name topic-kanban \
               --restart unless-stopped \
-              -p 3000:3000 \
+              -p 3030:3030 \
               -e APP_PASSWORD="your_secure_password" \
               -e QUICK_DROP_TOKEN="your_quick_drop_token" \
               -e PUBLIC_BASE_URL="https://kanban.yourdomain.com" \
