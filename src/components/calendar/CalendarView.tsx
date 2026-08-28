@@ -10,7 +10,7 @@ import {
   DragEndEvent,
 } from '@dnd-kit/core';
 import { Topic, CommercialDeal, PublishedVideo, Tag, Priority, TopicStatus } from '../../types';
-import { fetchPublishedVideos } from '../../lib/storage';
+import { fetchCommercialDealPage, fetchPublishedVideos, fetchTags } from '../../lib/storage';
 import { PageHeader } from '../layout/PageHeader';
 import {
   CalendarDays,
@@ -132,7 +132,23 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
     initialData: publishedList.length > 0 ? publishedList : undefined,
   });
 
+  // Fetch commercial deals via query for live auto-sync across all months/weeks
+  const dealsQuery = useQuery({
+    queryKey: ['commercial-deals-calendar'],
+    queryFn: () => fetchCommercialDealPage({ scope: 'all', page: 1, page_size: 100 }).then((res) => res.items),
+    initialData: deals.length > 0 ? deals : undefined,
+  });
+
+  // Fetch tags via query for live auto-sync
+  const tagsQuery = useQuery({
+    queryKey: ['tags'],
+    queryFn: fetchTags,
+    initialData: availableTags.length > 0 ? availableTags : undefined,
+  });
+
   const effectivePublishedList = publishedQuery.data || publishedList || [];
+  const effectiveDeals = dealsQuery.data || deals || [];
+  const effectiveTags = tagsQuery.data || availableTags || [];
 
   // Days grid
   const monthDays = useMemo(() => getMonthGridDays(year, monthIndex), [year, monthIndex]);
@@ -140,8 +156,8 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
 
   // Extract all calendar events by date
   const eventsMap = useMemo(() => {
-    return extractCalendarEvents(topics, deals, effectivePublishedList, filters);
-  }, [topics, deals, effectivePublishedList, filters]);
+    return extractCalendarEvents(topics, effectiveDeals, effectivePublishedList, filters);
+  }, [topics, effectiveDeals, effectivePublishedList, filters]);
 
   // Month Statistics
   const monthStats = useMemo(() => {
@@ -447,7 +463,7 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
             targetDate={actionModal.date}
             activeTopic={actionModal.topic}
             unscheduledTopics={unscheduledTopics}
-            availableTags={availableTags}
+            availableTags={effectiveTags}
             onClose={() => setActionModal(null)}
             onUpdateTopic={onUpdateTopic}
             onCreateTopic={onCreateTopic}

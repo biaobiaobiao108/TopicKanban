@@ -3,6 +3,7 @@ import { invalidateBootstrap } from './storage';
 
 const topicQueryKeys = [
   ['today-focus'],
+  ['deal-focus'],
   ['workspace'],
   ['kanban-column-page'],
   ['topics-page'],
@@ -10,8 +11,11 @@ const topicQueryKeys = [
   ['tags-page'],
   ['tag-topics-page'],
   ['people-page'],
+  ['published'],
   ['published-page'],
   ['published-analytics'],
+  ['commercial-deals-calendar'],
+  ['topic-deals'],
   ['command-topic-search'],
 ] as const;
 

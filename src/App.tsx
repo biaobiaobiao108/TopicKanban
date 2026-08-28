@@ -465,6 +465,10 @@ function WorkspaceApp({ isAuth, setIsAuth }: WorkspaceAppProps) {
       if (exists) return prev.map((p) => (p.id === saved.id ? saved : p));
       return [saved, ...prev];
     });
+    await queryClient.invalidateQueries({ queryKey: ['people'] });
+    await queryClient.invalidateQueries({ queryKey: ['people-options'] });
+    await queryClient.invalidateQueries({ queryKey: ['people-page'] });
+    await queryClient.invalidateQueries({ queryKey: ['workspace'] });
     return saved;
   };
 
@@ -478,6 +482,11 @@ function WorkspaceApp({ isAuth, setIsAuth }: WorkspaceAppProps) {
       ...topic,
       people: topic.people?.filter((person) => person.id !== personId),
     })));
+    await queryClient.invalidateQueries({ queryKey: ['people'] });
+    await queryClient.invalidateQueries({ queryKey: ['people-options'] });
+    await queryClient.invalidateQueries({ queryKey: ['people-page'] });
+    await queryClient.invalidateQueries({ queryKey: ['relationships'] });
+    await queryClient.invalidateQueries({ queryKey: ['workspace'] });
   };
 
   // Handlers for Tags
@@ -498,6 +507,11 @@ function WorkspaceApp({ isAuth, setIsAuth }: WorkspaceAppProps) {
         }))
       );
     }
+    await queryClient.invalidateQueries({ queryKey: ['tags'] });
+    await queryClient.invalidateQueries({ queryKey: ['tags-page'] });
+    await queryClient.invalidateQueries({ queryKey: ['tags-options'] });
+    await queryClient.invalidateQueries({ queryKey: ['tag-topics-page'] });
+    await queryClient.invalidateQueries({ queryKey: ['workspace'] });
     return newTag;
   };
 
@@ -510,6 +524,11 @@ function WorkspaceApp({ isAuth, setIsAuth }: WorkspaceAppProps) {
         tags: t.tags?.filter((tg) => tg.id !== tagId),
       }))
     );
+    await queryClient.invalidateQueries({ queryKey: ['tags'] });
+    await queryClient.invalidateQueries({ queryKey: ['tags-page'] });
+    await queryClient.invalidateQueries({ queryKey: ['tags-options'] });
+    await queryClient.invalidateQueries({ queryKey: ['tag-topics-page'] });
+    await queryClient.invalidateQueries({ queryKey: ['workspace'] });
   };
 
   const handleSaveRelationship = async (relData: Partial<PersonRelationship> & {
@@ -523,11 +542,17 @@ function WorkspaceApp({ isAuth, setIsAuth }: WorkspaceAppProps) {
       if (exists) return prev.map((r) => (r.id === saved.id ? saved : r));
       return [saved, ...prev];
     });
+    await queryClient.invalidateQueries({ queryKey: ['relationships'] });
+    await queryClient.invalidateQueries({ queryKey: ['people-page'] });
+    await queryClient.invalidateQueries({ queryKey: ['workspace'] });
   };
 
   const handleDeleteRelationship = async (relId: string) => {
     await deleteRelationship(relId);
     setRelationships((prev) => prev.filter((r) => r.id !== relId));
+    await queryClient.invalidateQueries({ queryKey: ['relationships'] });
+    await queryClient.invalidateQueries({ queryKey: ['people-page'] });
+    await queryClient.invalidateQueries({ queryKey: ['workspace'] });
   };
 
   // Handlers for Published

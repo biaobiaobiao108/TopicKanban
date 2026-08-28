@@ -50,8 +50,11 @@ export const CommercialDealsTab: React.FC<CommercialDealsTabProps> = ({ topic, o
         ? remaining.map((relation) => relation.topic_id)
         : remaining.filter((relation) => relation.topic_id !== primaryTopicId).map((relation) => relation.topic_id);
       await replaceCommercialDealTopics(dealId, primaryTopicId, relatedTopicIds);
-      await queryClient.invalidateQueries({ queryKey: ['topic-deals', topic.id] });
-      await queryClient.invalidateQueries({ queryKey: ['deal', dealId] });
+      await queryClient.invalidateQueries({ queryKey: ['topic-deals'] });
+      await queryClient.invalidateQueries({ queryKey: ['commercial-deal', dealId] });
+      await queryClient.invalidateQueries({ queryKey: ['commercial-deal-page'] });
+      await queryClient.invalidateQueries({ queryKey: ['deal-focus'] });
+      await queryClient.invalidateQueries({ queryKey: ['commercial-deals-calendar'] });
       await queryClient.invalidateQueries({ queryKey: ['workspace'] });
     } catch (reason) {
       setError(reason instanceof Error ? reason.message : '更新商单关联失败');
@@ -71,7 +74,12 @@ export const CommercialDealsTab: React.FC<CommercialDealsTabProps> = ({ topic, o
       });
       const detail = await fetchCommercialDeal(deal.id);
       await replaceCommercialDealTopics(deal.id, detail.primary_topic_id || created.id, detail.topics.filter((relation) => relation.topic_id !== detail.primary_topic_id).map((relation) => relation.topic_id).concat(detail.primary_topic_id && detail.primary_topic_id !== created.id ? [detail.primary_topic_id] : []));
-      await queryClient.invalidateQueries({ queryKey: ['topic-deals', topic.id] });
+      await queryClient.invalidateQueries({ queryKey: ['topic-deals'] });
+      await queryClient.invalidateQueries({ queryKey: ['commercial-deal', deal.id] });
+      await queryClient.invalidateQueries({ queryKey: ['commercial-deal-page'] });
+      await queryClient.invalidateQueries({ queryKey: ['deal-focus'] });
+      await queryClient.invalidateQueries({ queryKey: ['commercial-deals-calendar'] });
+      await queryClient.invalidateQueries({ queryKey: ['workspace'] });
       onOpenDeal(deal.id);
     } catch (reason) {
       setError(reason instanceof Error ? reason.message : '从商单创建选题失败');

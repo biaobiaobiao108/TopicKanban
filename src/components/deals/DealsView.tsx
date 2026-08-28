@@ -524,6 +524,10 @@ function CommercialDealsView({ topics, onCreateTopicFromDeal }: Omit<DealsViewPr
 
   const handleSaved = (deal: CommercialDealDetail) => {
     void queryClient.invalidateQueries({ queryKey: ['commercial-deal-page'] });
+    void queryClient.invalidateQueries({ queryKey: ['deal-focus'] });
+    void queryClient.invalidateQueries({ queryKey: ['commercial-deals-calendar'] });
+    void queryClient.invalidateQueries({ queryKey: ['topic-deals'] });
+    void queryClient.invalidateQueries({ queryKey: ['workspace'] });
     queryClient.setQueryData(['commercial-deal', deal.id], deal);
   };
   const handleStatusFilter = (value: string) => {
@@ -880,6 +884,8 @@ function CommercialDealDetailView({
   const updateDealCache = (saved: CommercialDealDetail) => {
     queryClient.setQueryData(['commercial-deal', dealId], saved);
     void queryClient.invalidateQueries({ queryKey: ['commercial-deal-page'] });
+    void queryClient.invalidateQueries({ queryKey: ['deal-focus'] });
+    void queryClient.invalidateQueries({ queryKey: ['commercial-deals-calendar'] });
     void queryClient.invalidateQueries({ queryKey: ['topic-deals'] });
     void queryClient.invalidateQueries({ queryKey: ['workspace'] });
   };
@@ -1004,6 +1010,8 @@ function CommercialDealDetailView({
       await queryClient.invalidateQueries({
         queryKey: ['commercial-deal-page'],
       });
+      await queryClient.invalidateQueries({ queryKey: ['deal-focus'] });
+      await queryClient.invalidateQueries({ queryKey: ['commercial-deals-calendar'] });
       await queryClient.invalidateQueries({ queryKey: ['topic-deals'] });
       await queryClient.invalidateQueries({ queryKey: ['workspace'] });
       navigate('/deals');

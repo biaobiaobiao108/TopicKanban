@@ -149,8 +149,11 @@ export const TagsView: React.FC<TagsViewProps> = ({
     if (!name) return;
 
     const saved = await onSaveTag(name, tagColorInput, editingTag?.id);
+    await queryClient.invalidateQueries({ queryKey: ['tags'] });
     await queryClient.invalidateQueries({ queryKey: ['tags-page'] });
+    await queryClient.invalidateQueries({ queryKey: ['tags-options'] });
     await queryClient.invalidateQueries({ queryKey: ['tag-topics-page'] });
+    await queryClient.invalidateQueries({ queryKey: ['workspace'] });
     setSelectedTagId(saved.id);
     setIsModalOpen(false);
   };
@@ -163,8 +166,11 @@ export const TagsView: React.FC<TagsViewProps> = ({
       setSelectedTagId(remaining[0]?.id || null);
     }
     if (visibleTags.length === 1 && tagPage > 1) setTagPage((current) => current - 1);
+    await queryClient.invalidateQueries({ queryKey: ['tags'] });
     await queryClient.invalidateQueries({ queryKey: ['tags-page'] });
+    await queryClient.invalidateQueries({ queryKey: ['tags-options'] });
     await queryClient.invalidateQueries({ queryKey: ['tag-topics-page'] });
+    await queryClient.invalidateQueries({ queryKey: ['workspace'] });
     setDeletingTag(null);
   };
 

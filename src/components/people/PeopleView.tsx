@@ -128,6 +128,10 @@ export const PeopleView: React.FC<PeopleViewProps> = ({
       description: relDesc.trim(),
     });
 
+    await queryClient.invalidateQueries({ queryKey: ['relationships'] });
+    await queryClient.invalidateQueries({ queryKey: ['people-page'] });
+    await queryClient.invalidateQueries({ queryKey: ['workspace'] });
+
     setIsRelModalOpen(false);
   };
 
