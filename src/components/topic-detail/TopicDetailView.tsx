@@ -38,6 +38,7 @@ import { LayoutDashboard, FileSearch, Clock, Users, PenTool, FileText, Handshake
 interface TopicDetailViewProps {
   topic: Topic;
   onBack: () => void;
+  backLabel?: string;
   onUpdateTopic: (updates: Partial<Topic>) => Promise<void>;
   onDeleteTopic: (topicId: string) => Promise<void>;
   allPeople: Person[];
@@ -68,6 +69,7 @@ const ScriptEditorTab = React.lazy(() =>
 export const TopicDetailView: React.FC<TopicDetailViewProps> = ({
   topic,
   onBack,
+  backLabel,
   onUpdateTopic,
   onDeleteTopic,
   allPeople,
@@ -464,6 +466,7 @@ export const TopicDetailView: React.FC<TopicDetailViewProps> = ({
       <TopicDetailHeader
         topic={metricTopic}
         onBack={onBack}
+        backLabel={backLabel}
         onUpdateTopic={onUpdateTopic}
         onDeleteTopic={onDeleteTopic}
         onExportMarkdown={handleExportMarkdown}

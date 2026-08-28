@@ -35,6 +35,7 @@ const priorityConfig: Record<Priority, { label: string; dot: string; desc: strin
 interface TopicDetailHeaderProps {
   topic: Topic;
   onBack: () => void;
+  backLabel?: string;
   onUpdateTopic: (updates: Partial<Topic>) => Promise<void>;
   onDeleteTopic: (topicId: string) => Promise<void>;
   onExportMarkdown?: () => void;
@@ -43,6 +44,7 @@ interface TopicDetailHeaderProps {
 export const TopicDetailHeader: React.FC<TopicDetailHeaderProps> = ({
   topic,
   onBack,
+  backLabel,
   onUpdateTopic,
   onDeleteTopic,
   onExportMarkdown,
@@ -77,7 +79,7 @@ export const TopicDetailHeader: React.FC<TopicDetailHeaderProps> = ({
     <div className="bg-white/95 dark:bg-stone-900/95 backdrop-blur-sm border-b border-stone-200/80 dark:border-stone-800 px-4 sm:px-8 py-2.5 shrink-0 flex flex-col gap-2 xl:flex-row xl:items-center xl:justify-between transition-colors">
       {/* Left group: Back button + Title & Inline Editor + Status & Priority + Next Action Capsule */}
       <div className="flex w-full flex-wrap items-center gap-2.5 sm:gap-3.5 min-w-0 xl:w-auto xl:flex-1 xl:flex-nowrap">
-        <BackButton onBack={onBack} label="返回看板" title="返回全景看板" />
+        <BackButton onBack={onBack} label={backLabel || '返回看板'} title={backLabel || '返回全景看板'} />
 
         <span className="text-stone-200 dark:text-stone-700 hidden sm:inline select-none">|</span>
 

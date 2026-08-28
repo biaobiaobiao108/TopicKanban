@@ -8,6 +8,7 @@ import { StatusBadge, PriorityBadge } from '../ui/Badge';
 import { CustomSelect } from '../ui/CustomSelect';
 import { ConfirmDialog } from '../ui/ConfirmDialog';
 import { PageHeader } from '../layout/PageHeader';
+import { BackButton } from '../layout/BackButton';
 import { extractBvid, fetchBilibiliVideoData, getBilibiliCoverFromCache } from '../../lib/bilibili';
 import { PublishedVideoCard } from './PublishedVideoCard';
 import {
@@ -33,6 +34,8 @@ interface PublishedViewProps {
   onSavePublished: (videoData: Partial<PublishedVideo> & { title: string; topic_id?: string | null }) => Promise<void>;
   onDeletePublished: (id: string) => Promise<void>;
   onSelectTopic: (topicId: string) => void;
+  onBack?: () => void;
+  backLabel?: string;
 }
 
 export const PublishedView: React.FC<PublishedViewProps> = ({
@@ -40,6 +43,8 @@ export const PublishedView: React.FC<PublishedViewProps> = ({
   onSavePublished,
   onDeletePublished,
   onSelectTopic,
+  onBack,
+  backLabel,
 }) => {
   const { showToast } = useToast();
   const queryClient = useQueryClient();
@@ -356,6 +361,7 @@ export const PublishedView: React.FC<PublishedViewProps> = ({
         <PageHeader
           title="已发布视频复盘与数据沉淀"
           icon={Film}
+          leading={onBack ? <BackButton onBack={onBack} label={backLabel || '返回上一页'} title={backLabel || '返回上一页'} /> : undefined}
           actions={(
             <>
             {syncableCount > 0 && (

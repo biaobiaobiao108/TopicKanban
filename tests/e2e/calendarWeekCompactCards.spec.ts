@@ -37,15 +37,61 @@ const dealDetail = {
   published_video: null,
 };
 
-async function mockWorkspace(page: Page) {
+const calendarTopic = {
+  id: 'e2e-calendar-topic',
+  title: '日历返回链路测试选题',
+  summary: '验证选题日历各类事项的返回链路。',
+  hook: '验证日历跳转返回',
+  storyline: '从日历进入选题详情后返回原周视图。',
+  why_now: '上线前回归测试。',
+  status: 'production',
+  priority: 'medium',
+  next_action: '确认返回链路',
+  next_action_deferred_until: '2026-08-28',
+  target_publish_date: '2026-08-28',
+  deadline: '2026-08-28',
+  score_character: 2,
+  score_conflict: 2,
+  score_contrast: 2,
+  score_material: 2,
+  score_story: 2,
+  is_pinned: 0,
+  sort_order: 0,
+  created_at: '2026-08-25T00:00:00.000Z',
+  updated_at: '2026-08-25T00:00:00.000Z',
+  tags: [],
+  people: [],
+  commercial_deals_count: 0,
+};
+
+const publishedVideo = {
+  id: 'e2e-calendar-published',
+  topic_id: null,
+  title: '日历返回链路已发布视频',
+  url: '',
+  bvid: '',
+  published_at: '2026-08-28',
+  views: 128,
+  likes: 12,
+  coins: 3,
+  favorites: 4,
+  comments: 1,
+  notes: '',
+  updated_at: '2026-08-28T00:00:00.000Z',
+};
+
+async function mockWorkspace(page: Page, options: { includeCalendarContent?: boolean } = {}) {
+  const includeCalendarContent = options.includeCalendarContent === true;
+  const topics = includeCalendarContent ? [calendarTopic] : [];
+  const published = includeCalendarContent ? [publishedVideo] : [];
   await page.route('**/api/bootstrap**', async (route) => {
     await route.fulfill({
       contentType: 'application/json',
       body: JSON.stringify({
-        topics: [],
+        topics,
         people: [],
         relationships: [],
-        published: [],
+        published,
         tags: [],
         settings: {
           reading_speed: 280,
@@ -70,7 +116,31 @@ async function mockWorkspace(page: Page) {
     await route.fulfill({ contentType: 'application/json', body: '[]' });
   });
   await page.route('**/api/published', async (route) => {
-    await route.fulfill({ contentType: 'application/json', body: '[]' });
+    await route.fulfill({ contentType: 'application/json', body: JSON.stringify(published) });
+  });
+  await page.route('**/api/published/page*', async (route) => {
+    await route.fulfill({
+      contentType: 'application/json',
+      body: JSON.stringify({
+        items: published,
+        page: 1,
+        page_size: 30,
+        total: published.length,
+        total_pages: published.length > 0 ? 1 : 0,
+      }),
+    });
+  });
+  await page.route('**/api/topics/page*', async (route) => {
+    await route.fulfill({
+      contentType: 'application/json',
+      body: JSON.stringify({
+        items: topics,
+        page: 1,
+        page_size: 100,
+        total: topics.length,
+        total_pages: topics.length > 0 ? 1 : 0,
+      }),
+    });
   });
   await page.route('**/api/deals/page*', async (route) => {
     await route.fulfill({
@@ -93,6 +163,27 @@ async function mockWorkspace(page: Page) {
   });
   await page.route(`**/api/deals/${deal.id}`, async (route) => {
     await route.fulfill({ contentType: 'application/json', body: JSON.stringify(dealDetail) });
+  });
+  await page.route(`**/api/topics/${calendarTopic.id}/workspace`, async (route) => {
+    await route.fulfill({
+      contentType: 'application/json',
+      body: JSON.stringify({ sources: [], timeline: [], citations: [], publish_package: null, draft: null }),
+    });
+  });
+  await page.route(`**/api/topics/${calendarTopic.id}/sources`, async (route) => {
+    await route.fulfill({ contentType: 'application/json', body: '[]' });
+  });
+  await page.route(`**/api/topics/${calendarTopic.id}/timeline`, async (route) => {
+    await route.fulfill({ contentType: 'application/json', body: '[]' });
+  });
+  await page.route(`**/api/topics/${calendarTopic.id}/draft`, async (route) => {
+    await route.fulfill({ contentType: 'application/json', body: JSON.stringify({ draft: null, conflict: null }) });
+  });
+  await page.route(`**/api/topics/${calendarTopic.id}/citations`, async (route) => {
+    await route.fulfill({ contentType: 'application/json', body: '[]' });
+  });
+  await page.route(`**/api/topics/${calendarTopic.id}/deals`, async (route) => {
+    await route.fulfill({ contentType: 'application/json', body: '[]' });
   });
 }
 
@@ -151,4 +242,37 @@ test('直接打开商单详情时返回按钮回退到商单中心', async ({ pa
   await backButton.click();
   await expect(page).toHaveURL(/\/deals$/);
   await expect(page.getByRole('heading', { name: '商单中心', exact: true })).toBeVisible();
+});
+
+test('日历各类事项跳转后都能返回原周视图', async ({ page }) => {
+  const pageErrors: Error[] = [];
+  page.on('pageerror', (error) => pageErrors.push(error));
+  await mockWorkspace(page, { includeCalendarContent: true });
+  await login(page);
+
+  const calendarUrl = '/calendar?view=week&date=2026-08-28';
+  await page.goto(calendarUrl);
+  await expect(page.getByRole('heading', { name: '选题日历', exact: true })).toBeVisible();
+
+  for (const eventType of ['planned_publish', 'deadline', 'deferred_action']) {
+    const event = page.locator(`[data-testid="calendar-event"][data-calendar-event-type="${eventType}"]`).filter({ hasText: calendarTopic.title });
+    await expect(event).toBeVisible();
+    await event.click();
+    await expect(page).toHaveURL(new RegExp(`/topics/${calendarTopic.id}$`));
+    const backButton = page.getByRole('button', { name: '返回选题日历' });
+    await expect(backButton).toBeVisible();
+    await backButton.click();
+    await expect(page).toHaveURL(calendarUrl);
+  }
+
+  const publishedEvent = page.locator('[data-testid="calendar-event"][data-calendar-event-type="published"]').filter({ hasText: publishedVideo.title });
+  await expect(publishedEvent).toBeVisible();
+  await publishedEvent.click();
+  await expect(page).toHaveURL('/published');
+  const publishedBackButton = page.getByRole('button', { name: '返回选题日历' });
+  await expect(publishedBackButton).toBeVisible();
+  await publishedBackButton.click();
+  await expect(page).toHaveURL(calendarUrl);
+  await expect(page.getByRole('button', { name: '周视图' })).toHaveClass(/bg-white/);
+  expect(pageErrors).toEqual([]);
 });

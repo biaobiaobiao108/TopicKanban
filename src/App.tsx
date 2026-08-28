@@ -74,6 +74,8 @@ function getBackLabel(path: string | undefined, fallback: string): string {
   if (path.startsWith('/calendar')) return '返回选题日历';
   if (path.startsWith('/today')) return '返回今日聚焦';
   if (path.startsWith('/topics/')) return '返回选题详情';
+  if (path.startsWith('/kanban')) return '返回选题看板';
+  if (path.startsWith('/published')) return '返回已发布视频';
   if (path === '/deals' || path.startsWith('/deals?')) return '返回商单中心';
   return '返回上一页';
 }
@@ -272,8 +274,15 @@ function WorkspaceApp({ isAuth, setIsAuth }: WorkspaceAppProps) {
 
   // Handlers for Topics
   const handleOpenDetail = (topicId: string) => {
+    const from = currentView === 'topic-detail' ? '/kanban' : currentLocation;
     safeNavigate(`/topics/${encodeURIComponent(topicId)}`, {
-      state: { from: currentView === 'topic-detail' ? '/kanban' : currentLocation },
+      state: { from, fromLabel: getBackLabel(from, '返回全景看板') },
+    });
+  };
+
+  const handleOpenPublished = () => {
+    safeNavigate('/published', {
+      state: { from: currentLocation, fromLabel: '返回选题日历' },
     });
   };
 
@@ -297,6 +306,19 @@ function WorkspaceApp({ isAuth, setIsAuth }: WorkspaceAppProps) {
 
   const dealFrom = (location.state as { from?: unknown } | null)?.from;
   const dealBackLabel = getBackLabel(typeof dealFrom === 'string' ? dealFrom : undefined, '返回商单中心');
+  const topicFrom = (location.state as { from?: unknown } | null)?.from;
+  const topicBackLabel = getBackLabel(typeof topicFrom === 'string' ? topicFrom : undefined, '返回全景看板');
+  const publishedFrom = (location.state as { from?: unknown } | null)?.from;
+  const hasPublishedBack = typeof publishedFrom === 'string' && publishedFrom.startsWith('/');
+  const publishedBackLabel = getBackLabel(hasPublishedBack ? publishedFrom : undefined, '返回上一页');
+
+  const handleBackFromPublished = () => {
+    if (hasPublishedBack) {
+      navigate(-1);
+      return;
+    }
+    safeNavigate('/published');
+  };
 
   const handleDraftWordCountChange = (topicId: string, wordCount: number) => {
     setTopics((prev) => prev.map((topic) => (
@@ -725,7 +747,7 @@ function WorkspaceApp({ isAuth, setIsAuth }: WorkspaceAppProps) {
               availableTags={tags}
               onOpenDetail={handleOpenDetail}
               onOpenDeal={handleOpenDeal}
-              onOpenPublished={() => safeNavigate('/published')}
+              onOpenPublished={handleOpenPublished}
               onUpdateTopic={handleUpdateTopicById}
               onCreateTopic={async (data) => {
                 await handleSaveQuickTopic(data);
@@ -764,6 +786,7 @@ function WorkspaceApp({ isAuth, setIsAuth }: WorkspaceAppProps) {
               key={activeTopic.id}
               topic={activeTopic}
               onBack={handleBackFromDetail}
+              backLabel={topicBackLabel}
               onUpdateTopic={handleUpdateTopic}
               onDeleteTopic={handleDeleteTopic}
               allPeople={people}
@@ -825,6 +848,8 @@ function WorkspaceApp({ isAuth, setIsAuth }: WorkspaceAppProps) {
               onSavePublished={handleSavePublished}
               onDeletePublished={handleDeletePublished}
               onSelectTopic={handleOpenDetail}
+              onBack={hasPublishedBack ? handleBackFromPublished : undefined}
+              backLabel={publishedBackLabel}
             />
           )}
 
