@@ -133,7 +133,7 @@ test('周视图商单卡片保持紧凑且可返回原周视图', async ({ page 
 
   await event.click();
   await expect(page).toHaveURL(/\/deals\/e2e-calendar-deal$/);
-  const backButton = page.getByRole('button', { name: '返回上一页' });
+  const backButton = page.getByRole('button', { name: '返回选题日历' });
   await expect(backButton).toBeVisible();
   await backButton.click();
   await expect(page).toHaveURL('/calendar?view=week&date=2026-08-28');
@@ -146,7 +146,7 @@ test('直接打开商单详情时返回按钮回退到商单中心', async ({ pa
   await login(page);
 
   await page.goto(`/deals/${deal.id}`);
-  const backButton = page.getByRole('button', { name: '返回上一页' });
+  const backButton = page.getByRole('button', { name: '返回商单中心' });
   await expect(backButton).toBeVisible();
   await backButton.click();
   await expect(page).toHaveURL(/\/deals$/);

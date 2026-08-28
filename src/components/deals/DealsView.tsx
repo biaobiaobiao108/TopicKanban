@@ -143,6 +143,7 @@ interface DealsViewProps {
   dealId?: string | null;
   topics: Topic[];
   onBack?: () => void;
+  backLabel?: string;
   onCreateTopicFromDeal?: (data: { title: string; summary: string }) => Promise<Topic>;
 }
 
@@ -850,12 +851,10 @@ function LinkedTopicRow({
 function CommercialDealDetailView({
   dealId,
   topics,
-  onBack,
   onCreateTopicFromDeal,
 }: {
   dealId: string;
   topics: Topic[];
-  onBack?: () => void;
   onCreateTopicFromDeal?: DealsViewProps['onCreateTopicFromDeal'];
 }) {
   const navigate = useNavigate();
@@ -1118,7 +1117,6 @@ function CommercialDealDetailView({
       <div className="mx-auto max-w-6xl space-y-5 px-4 py-4 sm:px-8 sm:py-6">
         <section className="min-w-0 rounded-2xl border border-stone-200/70 bg-white p-5 shadow-2xs dark:border-stone-800 dark:bg-stone-900 sm:p-6">
           <div className="flex flex-col gap-4">
-            <BackButton onBack={onBack || (() => navigate('/deals'))} label="返回商单中心" title="返回上一页" />
             <div className="flex min-w-0 flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
               <div className="min-w-0 flex-1">
                 <div className="flex flex-wrap items-center gap-2">
@@ -1835,10 +1833,21 @@ function TextBlock({ label, value, empty }: { label: string; value: string; empt
   );
 }
 
-export function DealsView({ dealId, topics, onBack, onCreateTopicFromDeal }: DealsViewProps) {
-  return dealId ? (
-    <CommercialDealDetailView dealId={dealId} topics={topics} onBack={onBack} onCreateTopicFromDeal={onCreateTopicFromDeal} />
-  ) : (
-    <CommercialDealsView topics={topics} onCreateTopicFromDeal={onCreateTopicFromDeal} />
+export function DealsView({ dealId, topics, onBack, backLabel, onCreateTopicFromDeal }: DealsViewProps) {
+  if (!dealId) {
+    return <CommercialDealsView topics={topics} onCreateTopicFromDeal={onCreateTopicFromDeal} />;
+  }
+
+  return (
+    <div className="flex min-h-0 flex-1 flex-col">
+      <div className="flex shrink-0 items-center border-b border-stone-200/70 bg-white/95 px-4 py-2.5 backdrop-blur-sm dark:border-stone-800 dark:bg-stone-900/95 sm:px-8">
+        <BackButton
+          onBack={onBack || (() => undefined)}
+          label={backLabel || '返回商单中心'}
+          title={backLabel || '返回商单中心'}
+        />
+      </div>
+      <CommercialDealDetailView dealId={dealId} topics={topics} onCreateTopicFromDeal={onCreateTopicFromDeal} />
+    </div>
   );
 }

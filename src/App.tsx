@@ -69,6 +69,15 @@ function getViewFromPath(pathname: string): NavView {
   return (found?.[0] as NavView | undefined) || 'today';
 }
 
+function getBackLabel(path: string | undefined, fallback: string): string {
+  if (!path) return fallback;
+  if (path.startsWith('/calendar')) return '返回选题日历';
+  if (path.startsWith('/today')) return '返回今日聚焦';
+  if (path.startsWith('/topics/')) return '返回选题详情';
+  if (path === '/deals' || path.startsWith('/deals?')) return '返回商单中心';
+  return '返回上一页';
+}
+
 const CalendarView = lazyWithReload(() => import('./components/calendar/CalendarView').then((module) => ({ default: module.CalendarView })));
 const KanbanBoard = lazyWithReload(() => import('./components/kanban/KanbanBoard').then((module) => ({ default: module.KanbanBoard })));
 const TopicDetailView = lazyWithReload(() => import('./components/topic-detail/TopicDetailView').then((module) => ({ default: module.TopicDetailView })));
@@ -257,7 +266,7 @@ function WorkspaceApp({ isAuth, setIsAuth }: WorkspaceAppProps) {
 
   const handleOpenDeal = (dealId: string) => {
     safeNavigate(`/deals/${encodeURIComponent(dealId)}`, {
-      state: { from: currentLocation },
+      state: { from: currentLocation, fromLabel: getBackLabel(currentLocation, '返回上一页') },
     });
   };
 
@@ -285,6 +294,9 @@ function WorkspaceApp({ isAuth, setIsAuth }: WorkspaceAppProps) {
     }
     safeNavigate('/deals');
   };
+
+  const dealFrom = (location.state as { from?: unknown } | null)?.from;
+  const dealBackLabel = getBackLabel(typeof dealFrom === 'string' ? dealFrom : undefined, '返回商单中心');
 
   const handleDraftWordCountChange = (topicId: string, wordCount: number) => {
     setTopics((prev) => prev.map((topic) => (
@@ -726,6 +738,7 @@ function WorkspaceApp({ isAuth, setIsAuth }: WorkspaceAppProps) {
               dealId={activeDealId}
               topics={topics}
               onBack={handleBackFromDeal}
+              backLabel={dealBackLabel}
               onCreateTopicFromDeal={handleCreateTopicFromDeal}
             />
           )}
