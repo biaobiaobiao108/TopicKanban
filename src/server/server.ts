@@ -4,6 +4,8 @@ import { AppKV } from './appKv';
 import { initializeSqliteDatabase } from './sqlite';
 import type { ApiBindings } from './apiShared';
 
+process.title = 'topickanban';
+
 const isProduction = Bun.env.NODE_ENV === 'production';
 const defaultPort = isProduction ? 3030 : 8787;
 const port = Number(Bun.env.PORT) || defaultPort;
