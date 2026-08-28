@@ -224,6 +224,9 @@ test('周视图商单卡片保持紧凑且可返回原周视图', async ({ page 
 
   await event.click();
   await expect(page).toHaveURL(/\/deals\/e2e-calendar-deal$/);
+  const dealBackBar = page.getByTestId('back-navigation-bar');
+  await expect(dealBackBar).toBeVisible();
+  await expect(dealBackBar).toHaveClass(/min-h-16/);
   const backButton = page.getByRole('button', { name: '返回选题日历' });
   await expect(backButton).toBeVisible();
   await backButton.click();
@@ -251,6 +254,7 @@ test('日历各类事项跳转后都能返回原周视图', async ({ page }) => 
   await login(page);
 
   const calendarUrl = '/calendar?view=week&date=2026-08-28';
+  const backBarHeights: number[] = [];
   await page.goto(calendarUrl);
   await expect(page.getByRole('heading', { name: '选题日历', exact: true })).toBeVisible();
 
@@ -259,6 +263,9 @@ test('日历各类事项跳转后都能返回原周视图', async ({ page }) => 
     await expect(event).toBeVisible();
     await event.click();
     await expect(page).toHaveURL(new RegExp(`/topics/${calendarTopic.id}$`));
+    const topicBackBar = page.getByTestId('back-navigation-bar');
+    await expect(topicBackBar).toBeVisible();
+    backBarHeights.push(await topicBackBar.evaluate((element) => element.getBoundingClientRect().height));
     const backButton = page.getByRole('button', { name: '返回选题日历' });
     await expect(backButton).toBeVisible();
     await backButton.click();
@@ -269,10 +276,14 @@ test('日历各类事项跳转后都能返回原周视图', async ({ page }) => 
   await expect(publishedEvent).toBeVisible();
   await publishedEvent.click();
   await expect(page).toHaveURL('/published');
+  const publishedBackBar = page.getByTestId('back-navigation-bar');
+  await expect(publishedBackBar).toBeVisible();
+  backBarHeights.push(await publishedBackBar.evaluate((element) => element.getBoundingClientRect().height));
   const publishedBackButton = page.getByRole('button', { name: '返回选题日历' });
   await expect(publishedBackButton).toBeVisible();
   await publishedBackButton.click();
   await expect(page).toHaveURL(calendarUrl);
   await expect(page.getByRole('button', { name: '周视图' })).toHaveClass(/bg-white/);
+  expect(new Set(backBarHeights)).toEqual(new Set([64]));
   expect(pageErrors).toEqual([]);
 });

@@ -39,7 +39,7 @@ import { DateInput } from '../ui/DateInput';
 import { CustomSelect, type SelectOption, type SelectRenderState } from '../ui/CustomSelect';
 import { ConfirmDialog } from '../ui/ConfirmDialog';
 import { PageHeader } from '../layout/PageHeader';
-import { BackButton } from '../layout/BackButton';
+import { BackNavigationBar } from '../layout/BackNavigationBar';
 
 const ACTIVE_STATUSES: CommercialDealStatus[] = ['communicating', 'producing'];
 const STATUS_FLOW: CommercialDealStatus[] = ['communicating', 'producing', 'delivered', 'archived'];
@@ -1840,13 +1840,11 @@ export function DealsView({ dealId, topics, onBack, backLabel, onCreateTopicFrom
 
   return (
     <div className="flex min-h-0 flex-1 flex-col">
-      <div className="flex shrink-0 items-center border-b border-stone-200/70 bg-white/95 px-4 py-2.5 backdrop-blur-sm dark:border-stone-800 dark:bg-stone-900/95 sm:px-8">
-        <BackButton
-          onBack={onBack || (() => undefined)}
-          label={backLabel || '返回商单中心'}
-          title={backLabel || '返回商单中心'}
-        />
-      </div>
+      <BackNavigationBar
+        onBack={onBack || (() => undefined)}
+        label={backLabel || '返回商单中心'}
+        title={backLabel || '返回商单中心'}
+      />
       <CommercialDealDetailView dealId={dealId} topics={topics} onCreateTopicFromDeal={onCreateTopicFromDeal} />
     </div>
   );

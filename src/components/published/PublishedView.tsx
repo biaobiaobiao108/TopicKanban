@@ -8,7 +8,7 @@ import { StatusBadge, PriorityBadge } from '../ui/Badge';
 import { CustomSelect } from '../ui/CustomSelect';
 import { ConfirmDialog } from '../ui/ConfirmDialog';
 import { PageHeader } from '../layout/PageHeader';
-import { BackButton } from '../layout/BackButton';
+import { BackNavigationBar } from '../layout/BackNavigationBar';
 import { extractBvid, fetchBilibiliVideoData, getBilibiliCoverFromCache } from '../../lib/bilibili';
 import { PublishedVideoCard } from './PublishedVideoCard';
 import {
@@ -357,11 +357,17 @@ export const PublishedView: React.FC<PublishedViewProps> = ({
 
   return (
     <div className="flex-1 w-full h-full overflow-y-auto transition-colors">
+      {onBack && (
+        <BackNavigationBar
+          onBack={onBack}
+          label={backLabel || '返回上一页'}
+          title={backLabel || '返回上一页'}
+        />
+      )}
       <div className="max-w-7xl mx-auto px-4 sm:px-8 py-6 sm:py-8 space-y-6 sm:space-y-8">
         <PageHeader
           title="已发布视频复盘与数据沉淀"
           icon={Film}
-          leading={onBack ? <BackButton onBack={onBack} label={backLabel || '返回上一页'} title={backLabel || '返回上一页'} /> : undefined}
           actions={(
             <>
             {syncableCount > 0 && (

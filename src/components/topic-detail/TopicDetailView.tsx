@@ -9,6 +9,7 @@ import { TimelineTab } from './TimelineTab';
 import { PeopleTab } from './PeopleTab';
 import { CommercialDealsTab } from './CommercialDealsTab';
 import { NextActionDialog } from './NextActionDialog';
+import { BackNavigationBar } from '../layout/BackNavigationBar';
 import { COLUMNS } from '../kanban/columns';
 import {
   fetchSourcesByTopicId,
@@ -462,11 +463,11 @@ export const TopicDetailView: React.FC<TopicDetailViewProps> = ({
           </div>
         )}
       </Modal>
+      <BackNavigationBar onBack={onBack} label={backLabel || '返回上一页'} title={backLabel || '返回上一页'} />
       {/* Fixed Topic Detail Header */}
       <TopicDetailHeader
         topic={metricTopic}
         onBack={onBack}
-        backLabel={backLabel}
         onUpdateTopic={onUpdateTopic}
         onDeleteTopic={onDeleteTopic}
         onExportMarkdown={handleExportMarkdown}

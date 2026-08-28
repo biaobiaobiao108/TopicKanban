@@ -4,7 +4,6 @@ import type { LucideIcon } from 'lucide-react';
 interface PageHeaderProps {
   title: string;
   icon: LucideIcon;
-  leading?: React.ReactNode;
   badge?: React.ReactNode;
   actions?: React.ReactNode;
   className?: string;
@@ -13,7 +12,6 @@ interface PageHeaderProps {
 export const PageHeader: React.FC<PageHeaderProps> = ({
   title,
   icon: Icon,
-  leading,
   badge,
   actions,
   className = '',
@@ -23,7 +21,6 @@ export const PageHeader: React.FC<PageHeaderProps> = ({
     className={`flex flex-col gap-3 border-b border-stone-200/70 pb-4 dark:border-stone-800 sm:flex-row sm:items-center sm:justify-between sm:gap-4 ${className}`}
   >
     <div className="flex min-w-0 items-center gap-3">
-      {leading}
       <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-rose-500/10 text-rose-600 dark:text-rose-400">
         <Icon className="h-5 w-5" aria-hidden="true" />
       </span>
