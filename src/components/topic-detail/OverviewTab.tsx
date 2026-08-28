@@ -3,6 +3,7 @@ import { Topic, Person, Tag } from '../../types';
 import { ScoreRatingDial } from './ScoreRatingDial';
 import { NextActionDialog } from './NextActionDialog';
 import { Modal } from '../ui/Modal';
+import { DateInput } from '../ui/DateInput';
 import { getNextActionAgeDays, getNextActionWarning } from '../../lib/topicMetrics';
 import {
   Sparkles,
@@ -701,11 +702,10 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({
                 </button>
               )}
             </div>
-            <input
-              type="date"
+            <DateInput
               value={targetPublishDate}
-              onChange={async (e) => {
-                const val = e.target.value;
+              placeholder="YYYYMMDD，例如 20260831"
+              onChange={async (val) => {
                 setTargetPublishDate(val);
                 await onUpdateTopic({ target_publish_date: val || null });
               }}
@@ -757,11 +757,10 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({
                 </button>
               )}
             </div>
-            <input
-              type="date"
+            <DateInput
               value={deadline}
-              onChange={async (e) => {
-                const val = e.target.value;
+              placeholder="YYYYMMDD，例如 20260828"
+              onChange={async (val) => {
                 setDeadline(val);
                 await onUpdateTopic({ deadline: val || null });
               }}

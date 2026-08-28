@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Modal } from '../ui/Modal';
+import { DateInput } from '../ui/DateInput';
 import { Topic, Priority, TopicStatus, Tag } from '../../types';
 import { Calendar, Plus, Check, Trash2, Clock, Sparkles } from 'lucide-react';
 import { StatusBadge, PriorityBadge } from '../ui/Badge';
@@ -187,12 +188,12 @@ export const CalendarDateActionModal: React.FC<CalendarDateActionModalProps> = (
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2 border-t border-stone-100 dark:border-stone-800">
               <div>
                 <label className="block text-xs font-semibold text-stone-700 dark:text-stone-300 mb-1">
-                  计划发布日期 (YYYY-MM-DD)
+                  计划发布日期 (YYYYMMDD / YYYY-MM-DD)
                 </label>
-                <input
-                  type="date"
+                <DateInput
                   value={publishDate}
-                  onChange={(e) => setPublishDate(e.target.value)}
+                  placeholder="YYYYMMDD，例如 20260831"
+                  onChange={(val) => setPublishDate(val)}
                   className="w-full px-3 py-2 rounded-xl text-xs bg-stone-500/[0.04] dark:bg-stone-800 border border-stone-200 dark:border-stone-700 text-stone-900 dark:text-stone-100 focus:outline-none focus:border-rose-500"
                 />
               </div>
@@ -201,10 +202,10 @@ export const CalendarDateActionModal: React.FC<CalendarDateActionModalProps> = (
                 <label className="block text-xs font-semibold text-stone-700 dark:text-stone-300 mb-1">
                   内部制作截止日 (选填)
                 </label>
-                <input
-                  type="date"
+                <DateInput
                   value={deadlineDate}
-                  onChange={(e) => setDeadlineDate(e.target.value)}
+                  placeholder="YYYYMMDD，例如 20260828"
+                  onChange={(val) => setDeadlineDate(val)}
                   className="w-full px-3 py-2 rounded-xl text-xs bg-stone-500/[0.04] dark:bg-stone-800 border border-stone-200 dark:border-stone-700 text-stone-900 dark:text-stone-100 focus:outline-none focus:border-rose-500"
                 />
               </div>

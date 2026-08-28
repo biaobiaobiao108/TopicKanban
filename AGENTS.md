@@ -119,6 +119,7 @@
    * **主行动按钮**：`rounded-xl bg-rose-600 hover:bg-rose-700 active:scale-[0.98] text-white font-bold shadow-2xs`。
 2. **全站 UI 统一组件约束**：
    * 全站所有下拉选择交互必须统一使用 `CustomSelect` 自定义组件，严禁在业务界面中使用系统原生 `<select>` 标签。
+   * 全站所有日期输入交互必须统一使用 `DateInput` 自定义组件（支持输入 8 位连续数字如 `20260831` 或 ISO 标准串 `2026-08-31`），严禁使用系统原生 `<input type="date">`，避免部分浏览器在直接键入数字时将年份解析为六位数（如 `202608-03-01`）。
 3. **移动端深度适配 (Mobile First on iOS Safari)**：
    * 必须保持 iPhone Safari 兼容性（包括 `safe-area-inset-bottom` 适配、底部导航 Dock、侧滑抽屉、触控点尺寸）。
    * 徽标（Badge）渲染必须严格校验 `typeof badge === 'number' && badge > 0`，防止空徽标显示为红点。

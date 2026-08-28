@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { Modal } from '../ui/Modal';
+import { DateInput } from '../ui/DateInput';
 import { Priority, Tag, TopicStatus } from '../../types';
 import { Plus, X, Tag as TagIcon, Calendar, Clock } from 'lucide-react';
 
@@ -225,10 +226,10 @@ export const QuickCreateModal: React.FC<QuickCreateModalProps> = ({
               <Calendar className="w-3.5 h-3.5 text-rose-500" />
               <span>计划发布日期 (选填)</span>
             </label>
-            <input
-              type="date"
+            <DateInput
               value={targetPublishDate}
-              onChange={(e) => setTargetPublishDate(e.target.value)}
+              placeholder="YYYYMMDD，例如 20260831"
+              onChange={(val) => setTargetPublishDate(val)}
               className="w-full px-3 py-2 bg-stone-500/[0.03] dark:bg-stone-800 border border-stone-200/80 dark:border-stone-700 rounded-xl text-stone-900 dark:text-stone-100 text-xs focus:bg-white dark:focus:bg-stone-800 focus:border-rose-500 focus:outline-none transition-colors"
             />
           </div>
@@ -238,10 +239,10 @@ export const QuickCreateModal: React.FC<QuickCreateModalProps> = ({
               <Clock className="w-3.5 h-3.5 text-amber-500" />
               <span>制作截稿日 (选填)</span>
             </label>
-            <input
-              type="date"
+            <DateInput
               value={deadline}
-              onChange={(e) => setDeadline(e.target.value)}
+              placeholder="YYYYMMDD，例如 20260828"
+              onChange={(val) => setDeadline(val)}
               className="w-full px-3 py-2 bg-stone-500/[0.03] dark:bg-stone-800 border border-stone-200/80 dark:border-stone-700 rounded-xl text-stone-900 dark:text-stone-100 text-xs focus:bg-white dark:focus:bg-stone-800 focus:border-rose-500 focus:outline-none transition-colors"
             />
           </div>
