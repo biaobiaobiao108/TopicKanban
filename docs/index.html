@@ -1039,12 +1039,12 @@ http://localhost:8787</code></pre>
                 <span>复制</span>
               </button>
               <pre id="cfDeployCode" class="text-stone-300 leading-relaxed"><code># 1. 创建 D1 数据库与 KV 命名空间
-npx wrangler d1 create topic-kanban-db
-npx wrangler kv:namespace create TOPIC_KANBAN_KV
+bunx wrangler d1 create topic-kanban-db
+bunx wrangler kv:namespace create TOPIC_KANBAN_KV
 
 # 2. 一键发布至 Cloudflare Pages
 bun run build
-npx wrangler pages deploy dist</code></pre>
+bunx wrangler pages deploy dist</code></pre>
             </div>
           </div>
 

@@ -42,10 +42,10 @@ describe('Database schema contract', () => {
     }
   });
 
-  it('initializes a fresh local database from the baseline without historical migration files', () => {
+  it('initializes a fresh local database from the baseline without historical migration files', async () => {
     const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'kanban-schema-'));
     const dbPath = path.join(tempDir, 'fresh.db');
-    const { sqlite } = initializeSqliteDatabase(dbPath, path.resolve(process.cwd(), 'drizzle'));
+    const { sqlite } = await initializeSqliteDatabase(dbPath, path.resolve(process.cwd(), 'drizzle'));
     try {
       expect(sqlite.query("SELECT name FROM sqlite_master WHERE type = 'table' AND name = 'publish_packages'").get()).not.toBeNull();
       expect(sqlite.query("SELECT name FROM sqlite_master WHERE type = 'table' AND name = 'commercial_deals'").get()).not.toBeNull();

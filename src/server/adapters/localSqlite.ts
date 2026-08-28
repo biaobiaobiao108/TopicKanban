@@ -171,7 +171,7 @@ export class LocalD1Database implements D1Database {
   }
 }
 
-export function initializeSqliteDatabase(dbFilePath: string, schemaDir?: string): { d1: D1Database; sqlite: BunSqliteDatabase } {
+export async function initializeSqliteDatabase(dbFilePath: string, schemaDir?: string): Promise<{ d1: D1Database; sqlite: BunSqliteDatabase }> {
   const dir = path.dirname(dbFilePath);
   if (!fs.existsSync(dir)) {
     fs.mkdirSync(dir, { recursive: true });
@@ -200,8 +200,9 @@ export function initializeSqliteDatabase(dbFilePath: string, schemaDir?: string)
   if (tableCheck.count === 0) {
     // Run schema migrations
     const schemaFile = path.join(resolvedSchemaDir, '0000_schema.sql');
-    if (fs.existsSync(schemaFile)) {
-      const sql = fs.readFileSync(schemaFile, 'utf-8');
+    const schema = Bun.file(schemaFile);
+    if (await schema.exists()) {
+      const sql = await schema.text();
       sqlite.exec(sql);
     }
   } else {

@@ -7,20 +7,20 @@ import { initializeSqliteDatabase } from './adapters/localSqlite';
 import { createLocalKVNamespace } from './adapters/localKv';
 import type { ApiBindings } from './apiShared';
 
-const isProduction = process.env.NODE_ENV === 'production';
+const isProduction = Bun.env.NODE_ENV === 'production';
 const defaultPort = isProduction ? 3030 : 8787;
-const port = Number(process.env.PORT) || defaultPort;
-const dataDir = process.env.DATA_DIR || path.resolve(process.cwd(), 'data');
+const port = Number(Bun.env.PORT) || defaultPort;
+const dataDir = Bun.env.DATA_DIR || path.resolve(process.cwd(), 'data');
 const dbFilePath = path.join(dataDir, 'kanban.db');
 const schemaDir = path.resolve(process.cwd(), 'drizzle');
 
 console.log(`[Kanban Server] Initializing SQLite database at: ${dbFilePath}`);
-const { d1, sqlite } = initializeSqliteDatabase(dbFilePath, schemaDir);
+const { d1, sqlite } = await initializeSqliteDatabase(dbFilePath, schemaDir);
 const kv = createLocalKVNamespace(sqlite);
 
-const appPassword = process.env.APP_PASSWORD || (isProduction ? '' : 'admin');
-const quickDropToken = process.env.QUICK_DROP_TOKEN || '';
-const publicBaseUrl = (process.env.PUBLIC_BASE_URL || '').trim().replace(/\/+$/, '');
+const appPassword = Bun.env.APP_PASSWORD || (isProduction ? '' : 'admin');
+const quickDropToken = Bun.env.QUICK_DROP_TOKEN || '';
+const publicBaseUrl = (Bun.env.PUBLIC_BASE_URL || '').trim().replace(/\/+$/, '');
 
 const serverBindings: ApiBindings = {
   DB: d1,
@@ -81,12 +81,15 @@ if (fs.existsSync(distPath)) {
       return c.json({ error: 'Not found' }, 404);
     }
     const indexPath = path.join(distPath, 'index.html');
-    if (fs.existsSync(indexPath)) {
-      const html = fs.readFileSync(indexPath, 'utf-8');
-      c.header('Cache-Control', 'no-cache, no-store, must-revalidate');
-      c.header('Pragma', 'no-cache');
-      c.header('Expires', '0');
-      return c.html(html);
+    const indexFile = Bun.file(indexPath);
+    if (await indexFile.exists()) {
+      return new Response(indexFile, {
+        headers: {
+          'Cache-Control': 'no-cache, no-store, must-revalidate',
+          Pragma: 'no-cache',
+          Expires: '0',
+        },
+      });
     }
     return c.text('Topic Kanban Studio - Build files not found. Please run bun run build.', 404);
   });
@@ -108,7 +111,7 @@ if (publicBaseUrl) {
 }
 console.log(`🗄️  本地 SQLite: ${dbFilePath}`);
 if (appPassword) {
-  console.log(`🔑 访问密码: ${process.env.APP_PASSWORD ? '已自定义配置' : 'admin (本地开发默认密码)'}`);
+  console.log(`🔑 访问密码: ${Bun.env.APP_PASSWORD ? '已自定义配置' : 'admin (本地开发默认密码)'}`);
 } else {
   console.log(`⚠️  警告: APP_PASSWORD 未配置，登录可能受限。建议设置 APP_PASSWORD 环境变量。`);
 }
