@@ -121,7 +121,10 @@
    * 全站所有下拉选择交互必须统一使用 `CustomSelect` 自定义组件，严禁在业务界面中使用系统原生 `<select>` 标签。
    * 全站所有日期输入交互必须统一使用 `DateInput` 自定义组件（支持输入 8 位连续数字如 `20260831` 或 ISO 标准串 `2026-08-31`），严禁使用系统原生 `<input type="date">`，避免部分浏览器在直接键入数字时将年份解析为六位数（如 `202608-03-01`）。
    * 全站所有浮层、操作菜单与自定义下拉列表（如表格列配置、阶段流转菜单、操作选项）必须统一使用 `FloatingMenu` 或 `CustomSelect`（基于 `createPortal(..., document.body)` 与 `useFloatingPosition` 实现），严禁使用 `absolute` 定位内嵌在滚动容器或表格中，杜绝因 `overflow: hidden` / `overflow: auto` 或层叠上下文导致的菜单被截断问题。
-   * 全站所有二次确认与破坏性操作（如移入回收站、永久删除、批量删除、覆盖恢复数据备份等）必须统一使用 `ConfirmDialog` 自定义组件，即时轻提示统一使用 `useToast`，**严禁在任何业务界面中使用浏览器原生 `window.confirm` 或 `window.alert`**，确保全站视觉质感与无障碍（焦点锁定、Escape 关闭）一致。
+   * **严禁浏览器原生弹窗 (Zero Native Dialogs)**：
+     - 全站所有二次确认与破坏性操作（如移入回收站、永久删除、批量删除、覆盖恢复数据备份等）必须统一使用 `ConfirmDialog` 模态组件（内置 `danger` 玫瑰红、`warning` 琥珀黄、`primary` 墨石黑三种语义色调与异步 `isLoading` 状态）；
+     - 所有即时状态轻提示必须统一使用 `useToast`（支持 `success`、`error`、`info`），**严禁在任何业务界面中使用浏览器原生 `window.confirm`、`window.alert` 或 `window.prompt`**；
+     - 所有自定义模态弹窗（`Modal` / `ConfirmDialog`）必须通过 `createPortal` 挂载到 `document.body`，且必须内置 `Escape` 键监听、焦点锁定（Focus trap）与 `body` 滚动穿透锁定。
 3. **移动端深度适配 (Mobile First on iOS Safari)**：
    * 必须保持 iPhone Safari 兼容性（包括 `safe-area-inset-bottom` 适配、底部导航 Dock、侧滑抽屉、触控点尺寸）。
    * 徽标（Badge）渲染必须严格校验 `typeof badge === 'number' && badge > 0`，防止空徽标显示为红点。
