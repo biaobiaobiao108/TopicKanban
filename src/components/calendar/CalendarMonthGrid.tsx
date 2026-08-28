@@ -47,7 +47,9 @@ function MonthCellDroppable({
     <div
       ref={setNodeRef}
       onClick={() => onDateClick(cell.date)}
-      className={`min-h-[110px] sm:min-h-[125px] flex flex-col p-1.5 sm:p-2 border-b border-r border-stone-200/70 dark:border-stone-800 transition-colors relative group select-none ${
+      data-testid="calendar-month-cell"
+      data-date={cell.date}
+      className={`flex flex-col p-1.5 sm:p-2 border-b border-r border-stone-200/70 dark:border-stone-800 transition-colors relative group select-none ${
         cell.isCurrentMonth
           ? 'bg-white dark:bg-stone-900'
           : 'bg-stone-50/50 dark:bg-stone-950/40 text-stone-400 dark:text-stone-600'
@@ -148,7 +150,10 @@ export const CalendarMonthGrid: React.FC<CalendarMonthGridProps> = ({
       </div>
 
       {/* Grid of days */}
-      <div className="flex-1 grid grid-cols-7 auto-rows-fr overflow-y-auto min-w-0">
+      <div
+        data-testid="calendar-month-grid"
+        className="flex-1 grid grid-cols-7 auto-rows-[minmax(110px,1fr)] sm:auto-rows-[minmax(125px,1fr)] overflow-y-auto min-w-0"
+      >
         {days.map((cell) => {
           const events = eventsMap.get(cell.date) || [];
           return (
