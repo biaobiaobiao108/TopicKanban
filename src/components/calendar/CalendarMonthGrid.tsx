@@ -65,19 +65,37 @@ function MonthCellDroppable({
     >
       {/* Date header in cell */}
       <div className="flex items-center justify-between gap-1 mb-1">
-        <span
-          className={`text-xs font-bold font-mono px-1.5 py-0.5 rounded-md ${
-            cell.isToday
-              ? 'bg-rose-600 text-white shadow-2xs font-extrabold'
-              : cell.isCurrentMonth
-                ? cell.isWeekend
-                  ? 'text-rose-700/80 dark:text-rose-400'
-                  : 'text-stone-800 dark:text-stone-200'
-                : 'text-stone-400 dark:text-stone-600'
-          }`}
-        >
-          {cell.dayNumber}
-        </span>
+        <div className="flex min-w-0 items-center gap-1">
+          <span
+            className={`text-xs font-bold font-mono px-1.5 py-0.5 rounded-md ${
+              cell.isToday
+                ? 'bg-rose-600 text-white shadow-2xs font-extrabold'
+                : cell.isCurrentMonth
+                  ? cell.isWeekend
+                    ? 'text-rose-700/80 dark:text-rose-400'
+                    : 'text-stone-800 dark:text-stone-200'
+                  : 'text-stone-400 dark:text-stone-600'
+            }`}
+          >
+            {cell.dayNumber}
+          </span>
+
+          {hiddenCount > 0 && (
+            <button
+              type="button"
+              data-testid="calendar-month-overflow"
+              aria-label={`${cell.date} 还有 ${hiddenCount} 项事项，查看全部`}
+              title={`还有 ${hiddenCount} 项事项`}
+              onClick={(e) => {
+                e.stopPropagation();
+                onShowAllEvents(cell.date, events);
+              }}
+              className="inline-flex shrink-0 items-center rounded-full bg-rose-500/10 px-1.5 py-0.5 text-[10px] font-bold leading-none text-rose-700 transition-colors hover:bg-rose-500/20 hover:text-rose-800 dark:bg-rose-950/40 dark:text-rose-300 dark:hover:bg-rose-900/60 dark:hover:text-rose-200 cursor-pointer"
+            >
+              +{hiddenCount}
+            </button>
+          )}
+        </div>
 
         {/* Hover Quick Schedule Button */}
         <button
@@ -106,18 +124,6 @@ function MonthCellDroppable({
           />
         ))}
 
-        {hiddenCount > 0 && (
-          <button
-            type="button"
-            onClick={(e) => {
-              e.stopPropagation();
-              onShowAllEvents(cell.date, events);
-            }}
-            className="w-full text-center py-0.5 text-[10px] font-bold text-stone-500 dark:text-stone-400 hover:text-rose-600 dark:hover:text-rose-400 hover:bg-stone-100 dark:hover:bg-stone-800/80 rounded transition-colors cursor-pointer"
-          >
-            +{hiddenCount} 更多事项
-          </button>
-        )}
       </div>
     </div>
   );
