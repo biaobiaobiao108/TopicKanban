@@ -1,4 +1,5 @@
 import React, { Suspense, useState, useEffect, useCallback } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
 import {
   Topic,
   Person,
@@ -105,6 +106,7 @@ interface WorkspaceAppProps {
 function WorkspaceApp({ isAuth, setIsAuth }: WorkspaceAppProps) {
   const location = useLocation();
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const currentView = getViewFromPath(location.pathname);
   const { showToast } = useToast();
   const topicMatch = matchPath('/topics/:topicId', location.pathname);
@@ -119,6 +121,7 @@ function WorkspaceApp({ isAuth, setIsAuth }: WorkspaceAppProps) {
     people,
     relationships,
     tags,
+    publishedList,
     settings,
     dealFocus,
     isLoading: isLoadingData,
@@ -535,11 +538,17 @@ function WorkspaceApp({ isAuth, setIsAuth }: WorkspaceAppProps) {
       if (exists) return prev.map((p) => (p.id === saved.id ? saved : p));
       return [saved, ...prev];
     });
+    await queryClient.invalidateQueries({ queryKey: ['published'] });
+    await queryClient.invalidateQueries({ queryKey: ['published-page'] });
+    await queryClient.invalidateQueries({ queryKey: ['published-analytics'] });
   };
 
   const handleDeletePublished = async (pubId: string) => {
     await deletePublishedVideo(pubId);
     setPublishedList((prev) => prev.filter((p) => p.id !== pubId));
+    await queryClient.invalidateQueries({ queryKey: ['published'] });
+    await queryClient.invalidateQueries({ queryKey: ['published-page'] });
+    await queryClient.invalidateQueries({ queryKey: ['published-analytics'] });
   };
 
   // Handlers for Settings
@@ -654,6 +663,7 @@ function WorkspaceApp({ isAuth, setIsAuth }: WorkspaceAppProps) {
             <CalendarView
               topics={topics}
               deals={dealFocus ? [...dealFocus.due_items, ...dealFocus.unpaid_items] : []}
+              publishedList={publishedList}
               availableTags={tags}
               onOpenDetail={handleOpenDetail}
               onOpenDeal={(dealId) => safeNavigate(`/deals/${encodeURIComponent(dealId)}`)}

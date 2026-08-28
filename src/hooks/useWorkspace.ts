@@ -33,7 +33,11 @@ export function useWorkspace(enabled: boolean, view: string = 'today') {
     queryFn: () => fetchTagsPage(1, 100).then((result) => result.items),
     enabled: enabled && view === 'today',
   });
-  const publishedQuery = useQuery({ queryKey: ['published'], queryFn: fetchPublishedVideos, enabled: false });
+  const publishedQuery = useQuery({
+    queryKey: ['published'],
+    queryFn: fetchPublishedVideos,
+    enabled: enabled && ['calendar', 'published', 'deals'].includes(view),
+  });
   const trashQuery = useQuery({
     queryKey: ['topics', 'trash'],
     queryFn: fetchTrashedTopics,

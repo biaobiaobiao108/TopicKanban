@@ -91,8 +91,10 @@ export const PublishedView: React.FC<PublishedViewProps> = ({
 
   const refreshPublishedQueries = async () => {
     await Promise.all([
+      queryClient.invalidateQueries({ queryKey: ['published'] }),
       queryClient.invalidateQueries({ queryKey: ['published-page'] }),
       queryClient.invalidateQueries({ queryKey: ['published-analytics'] }),
+      queryClient.invalidateQueries({ queryKey: ['workspace'] }),
     ]);
   };
 

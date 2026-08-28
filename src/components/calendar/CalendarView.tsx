@@ -1,4 +1,5 @@
 import React, { useState, useMemo, useCallback } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import {
   DndContext,
   DragOverlay,
@@ -9,6 +10,7 @@ import {
   DragEndEvent,
 } from '@dnd-kit/core';
 import { Topic, CommercialDeal, PublishedVideo, Tag, Priority, TopicStatus } from '../../types';
+import { fetchPublishedVideos } from '../../lib/storage';
 import { PageHeader } from '../layout/PageHeader';
 import {
   CalendarDays,
@@ -123,14 +125,23 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
     setCurrentDate(new Date());
   };
 
+  // Fetch published videos via query for live auto-sync
+  const publishedQuery = useQuery({
+    queryKey: ['published'],
+    queryFn: fetchPublishedVideos,
+    initialData: publishedList.length > 0 ? publishedList : undefined,
+  });
+
+  const effectivePublishedList = publishedQuery.data || publishedList || [];
+
   // Days grid
   const monthDays = useMemo(() => getMonthGridDays(year, monthIndex), [year, monthIndex]);
   const weekDays = useMemo(() => getWeekDays(currentDate), [currentDate]);
 
   // Extract all calendar events by date
   const eventsMap = useMemo(() => {
-    return extractCalendarEvents(topics, deals, publishedList, filters);
-  }, [topics, deals, publishedList, filters]);
+    return extractCalendarEvents(topics, deals, effectivePublishedList, filters);
+  }, [topics, deals, effectivePublishedList, filters]);
 
   // Month Statistics
   const monthStats = useMemo(() => {
