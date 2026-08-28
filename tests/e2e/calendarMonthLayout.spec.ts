@@ -160,6 +160,18 @@ test('month cells expose hidden event count and open all events', async ({ page 
   await expect(overflow).toHaveText('+1');
   await expect(overflow).toHaveAttribute('aria-label', '2026-08-15 还有 1 项事项，查看全部');
 
+  const cardBounds = await cell.evaluate((element) => {
+    const cellBottom = element.getBoundingClientRect().bottom;
+    const cards = [...element.querySelectorAll<HTMLElement>('[data-testid="calendar-event"]')];
+    return {
+      cardCount: cards.length,
+      lastCardBottom: cards.at(-1)?.getBoundingClientRect().bottom || 0,
+      cellBottom,
+    };
+  });
+  expect(cardBounds.cardCount).toBe(3);
+  expect(cardBounds.lastCardBottom).toBeLessThanOrEqual(cardBounds.cellBottom + 1);
+
   await overflow.click();
   const dialog = page.getByRole('dialog');
   await expect(dialog).toBeVisible();
