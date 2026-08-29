@@ -3,7 +3,7 @@ import { createPortal } from 'react-dom';
 import { QuickDropItem } from '../../types';
 import { fetchQuickDrops, deleteQuickDrop } from '../../lib/storage';
 import { sanitizeExternalHttpUrl } from '../../lib/urlSafety';
-import { normalizeQuickDropPayload } from '../../lib/quickDrop';
+import { normalizeQuickDropUrl } from '../../lib/quickDrop';
 import {
   Inbox,
   X,
@@ -192,8 +192,9 @@ export const QuickDropDrawer: React.FC<QuickDropDrawerProps> = ({
             </div>
           ) : (
             drops.map((item) => {
-              const normalizedItem = { ...item, ...normalizeQuickDropPayload(item.content, item.url) };
-              const safeUrl = sanitizeExternalHttpUrl(normalizedItem.url);
+              const normalizedUrl = normalizeQuickDropUrl(item.url);
+              const safeUrl = sanitizeExternalHttpUrl(normalizedUrl);
+              const normalizedItem = normalizedUrl === item.url ? item : { ...item, url: normalizedUrl };
               return (
               <div
                 key={item.id}
@@ -209,11 +210,9 @@ export const QuickDropDrawer: React.FC<QuickDropDrawerProps> = ({
                   </span>
                 </div>
 
-                {normalizedItem.content && (
-                  <p className="text-xs text-stone-800 dark:text-stone-200 font-medium leading-relaxed break-words whitespace-pre-wrap">
-                    {normalizedItem.content}
-                  </p>
-                )}
+                <p className="text-xs text-stone-800 dark:text-stone-200 font-medium leading-relaxed break-words whitespace-pre-wrap">
+                  {item.content}
+                </p>
 
                 {safeUrl && (
                   <div className="pt-0.5">
@@ -224,7 +223,7 @@ export const QuickDropDrawer: React.FC<QuickDropDrawerProps> = ({
                       className="inline-flex items-center gap-1 text-[11px] text-rose-600 dark:text-rose-400 hover:text-rose-700 dark:hover:text-rose-300 truncate max-w-full font-mono underline"
                     >
                       <ExternalLink className="w-3 h-3 shrink-0" />
-                      <span className="truncate">{normalizedItem.url}</span>
+                      <span className="truncate">{normalizedUrl}</span>
                     </a>
                   </div>
                 )}

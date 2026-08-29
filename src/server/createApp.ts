@@ -69,7 +69,7 @@ import {
 import { registerSystemRoutes } from './systemRoutes';
 import { resolveServerPublicUrl } from '../lib/publicUrl';
 import { isSafeExternalHttpUrl } from '../lib/urlSafety';
-import { normalizeQuickDropPayload } from '../lib/quickDrop';
+import { normalizeQuickDropUrl } from '../lib/quickDrop';
 import type { SqliteDatabase, SqlitePreparedStatement } from './sqlite';
 
 async function loadTimelineEvents(db: SqliteDatabase, topicId: string): Promise<TimelineEvent[]> {
@@ -1516,30 +1516,32 @@ export function createApp(bindings: ApiBindings) {
       try {
         const body = await c.req.json<{ content?: string; text?: string; url?: string; source?: string }>();
         rawContent = typeof body.content === 'string'
-          ? body.content.trim()
+          ? body.content
           : typeof body.text === 'string'
-            ? body.text.trim()
+            ? body.text
             : '';
-        rawUrl = typeof body.url === 'string' ? body.url.trim() || undefined : undefined;
+        rawUrl = typeof body.url === 'string' ? body.url : undefined;
         rawSource = typeof body.source === 'string' ? body.source.trim() || rawSource : rawSource;
       } catch {
         const text = await c.req.text().catch(() => '');
-        rawContent = text.trim();
+        rawContent = text;
       }
 
-      if (!rawContent && !rawUrl) {
+      const hasContent = rawContent.trim().length > 0;
+      const hasUrl = typeof rawUrl === 'string' && rawUrl.trim().length > 0;
+      if (!hasContent && !hasUrl) {
         return c.json({ error: '内容或链接不能为空' }, 400);
       }
-      const normalizedPayload = normalizeQuickDropPayload(rawContent, rawUrl);
-      if (rawUrl && (!normalizedPayload.url || !isSafeExternalHttpUrl(normalizedPayload.url))) {
+      const normalizedUrl = hasUrl ? normalizeQuickDropUrl(rawUrl) : undefined;
+      if (hasUrl && (!normalizedUrl || !isSafeExternalHttpUrl(normalizedUrl))) {
         return c.json({ error: 'url must be an http(s) URL' }, 400);
       }
       const id = createId('drop');
       const now = new Date().toISOString();
       const item = {
         id,
-        content: normalizedPayload.content || normalizedPayload.url || '',
-        url: normalizedPayload.url,
+        content: rawContent,
+        url: normalizedUrl,
         source: rawSource,
         created_at: now,
       };

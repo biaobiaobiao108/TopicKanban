@@ -1,47 +1,15 @@
 import { describe, expect, it } from 'bun:test';
-import { normalizeQuickDropPayload } from '../src/lib/quickDrop';
+import { normalizeQuickDropUrl } from '../src/lib/quickDrop';
 
-describe('Quick drop payload normalization', () => {
-  it('keeps the first safe URL when the URL field contains repeated URLs', () => {
-    expect(normalizeQuickDropPayload(
-      '超級测试就是这样',
-      'https://x.com/home https://x.com/home',
-    )).toEqual({
-      content: '超級测试就是这样',
-      url: 'https://x.com/home',
-    });
+describe('Quick drop URL normalization', () => {
+  it('keeps only the first safe URL from the URL field', () => {
+    expect(normalizeQuickDropUrl('https://x.com/home https://x.com/home')).toBe('https://x.com/home');
+    expect(normalizeQuickDropUrl('https://x.com/one https://x.com/two')).toBe('https://x.com/one');
   });
 
-  it('removes repeated URL copies and Markdown wrappers from content', () => {
-    expect(normalizeQuickDropPayload(
-      '[https://www.youtube.com/](https://www.youtube.com/) https://www.youtube.com/',
-      'https://www.youtube.com/',
-    )).toEqual({
-      content: '',
-      url: 'https://www.youtube.com/',
-    });
-  });
-
-  it('preserves notes while removing only the duplicated URL', () => {
-    expect(normalizeQuickDropPayload(
-      '值得回看 https://www.youtube.com/ https://www.youtube.com/',
-      'https://www.youtube.com/',
-    )).toEqual({
-      content: '值得回看',
-      url: 'https://www.youtube.com/',
-    });
-  });
-
-  it('moves a URL-only content payload into the dedicated URL field', () => {
-    expect(normalizeQuickDropPayload('https://www.youtube.com/')).toEqual({
-      content: '',
-      url: 'https://www.youtube.com/',
-    });
-  });
-
-  it('does not promote a private URL from content into a clickable field', () => {
-    expect(normalizeQuickDropPayload('http://127.0.0.1:8787/')).toEqual({
-      content: 'http://127.0.0.1:8787/',
-    });
+  it('does not accept unsafe or non-URL values', () => {
+    expect(normalizeQuickDropUrl('file:///etc/passwd')).toBeUndefined();
+    expect(normalizeQuickDropUrl('http://127.0.0.1:8787/')).toBeUndefined();
+    expect(normalizeQuickDropUrl('this is not a URL')).toBeUndefined();
   });
 });

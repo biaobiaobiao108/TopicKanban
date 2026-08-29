@@ -304,14 +304,57 @@ describe('Bun Server Integration (Local SQLite & API)', () => {
         'X-Quick-Drop-Token': testDropToken,
       },
       body: JSON.stringify({
-        content: 'chaoji ceshi jiushi zheyangde',
+        content: '\n值得回看 https://x.com/home https://x.com/home\n',
         url: 'https://x.com/home https://x.com/home',
       }),
     });
     expect(duplicateUrlDropRes.status).toBe(201);
     const duplicateUrlDrop = await duplicateUrlDropRes.json() as { item: { content: string; url?: string } };
-    expect(duplicateUrlDrop.item.content).toBe('chaoji ceshi jiushi zheyangde');
+    expect(duplicateUrlDrop.item.content).toBe('\n值得回看 https://x.com/home https://x.com/home\n');
     expect(duplicateUrlDrop.item.url).toBe('https://x.com/home');
+
+    const urlOnlyDropRes = await app.request('/api/inbox/quick-drop', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-Quick-Drop-Token': testDropToken,
+      },
+      body: JSON.stringify({ url: 'https://example.com/a https://example.com/a' }),
+    });
+    expect(urlOnlyDropRes.status).toBe(201);
+    const urlOnlyDrop = await urlOnlyDropRes.json() as { item: { content: string; url?: string } };
+    expect(urlOnlyDrop.item.content).toBe('');
+    expect(urlOnlyDrop.item.url).toBe('https://example.com/a');
+
+    const contentOnlyUrlRes = await app.request('/api/inbox/quick-drop', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-Quick-Drop-Token': testDropToken,
+      },
+      body: JSON.stringify({ content: 'https://example.com/from-content' }),
+    });
+    expect(contentOnlyUrlRes.status).toBe(201);
+    const contentOnlyUrl = await contentOnlyUrlRes.json() as { item: { content: string; url?: string } };
+    expect(contentOnlyUrl.item.content).toBe('https://example.com/from-content');
+    expect(contentOnlyUrl.item.url).toBeUndefined();
+
+    const invalidQuickDropUrls = [
+      'file:///etc/passwd',
+      'http://127.0.0.1:8787/',
+      'this is not a URL',
+    ];
+    for (const url of invalidQuickDropUrls) {
+      const invalidUrlRes = await app.request('/api/inbox/quick-drop', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-Quick-Drop-Token': testDropToken,
+        },
+        body: JSON.stringify({ content: '备注', url }),
+      });
+      expect(invalidUrlRes.status).toBe(400);
+    }
 
     // 8. Settings Update & Persistence (including voiceover_cues)
     const customCues = ['停顿 3s', '高能预警', '压低声线'];
