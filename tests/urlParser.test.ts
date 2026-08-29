@@ -7,6 +7,7 @@ describe('External URL safety', () => {
     expect(isSafeExternalHttpUrl('https://www.bilibili.com/video/BV1xx411c7mD')).toBe(true);
     expect(isSafeExternalHttpUrl('https://www.youtube.com/watch?v=dQw4w9WgXcQ')).toBe(true);
     expect(isSafeExternalHttpUrl('http://example.com/article')).toBe(true);
+    expect(isSafeExternalHttpUrl('https://x.com/home https://x.com/home')).toBe(false);
     expect(isSafeExternalHttpUrl('javascript:alert(1)')).toBe(false);
     expect(isSafeExternalHttpUrl('data:text/html,<script>alert(1)</script>')).toBe(false);
     expect(isSafeExternalHttpUrl('file:///etc/passwd')).toBe(false);

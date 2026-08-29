@@ -297,6 +297,22 @@ describe('Bun Server Integration (Local SQLite & API)', () => {
     expect(dropList.items.length).toBe(1);
     expect(dropList.items[0].content).toBe('某网红停播后续新料');
 
+    const duplicateUrlDropRes = await app.request('/api/inbox/quick-drop', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-Quick-Drop-Token': testDropToken,
+      },
+      body: JSON.stringify({
+        content: 'chaoji ceshi jiushi zheyangde',
+        url: 'https://x.com/home https://x.com/home',
+      }),
+    });
+    expect(duplicateUrlDropRes.status).toBe(201);
+    const duplicateUrlDrop = await duplicateUrlDropRes.json() as { item: { content: string; url?: string } };
+    expect(duplicateUrlDrop.item.content).toBe('chaoji ceshi jiushi zheyangde');
+    expect(duplicateUrlDrop.item.url).toBe('https://x.com/home');
+
     // 8. Settings Update & Persistence (including voiceover_cues)
     const customCues = ['停顿 3s', '高能预警', '压低声线'];
     const updateSettingsRes = await app.request('/api/settings', {

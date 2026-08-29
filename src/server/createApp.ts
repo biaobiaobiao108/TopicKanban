@@ -69,6 +69,7 @@ import {
 import { registerSystemRoutes } from './systemRoutes';
 import { resolveServerPublicUrl } from '../lib/publicUrl';
 import { isSafeExternalHttpUrl } from '../lib/urlSafety';
+import { normalizeQuickDropPayload } from '../lib/quickDrop';
 import type { SqliteDatabase, SqlitePreparedStatement } from './sqlite';
 
 async function loadTimelineEvents(db: SqliteDatabase, topicId: string): Promise<TimelineEvent[]> {
@@ -1514,7 +1515,11 @@ export function createApp(bindings: ApiBindings) {
 
       try {
         const body = await c.req.json<{ content?: string; text?: string; url?: string; source?: string }>();
-        rawContent = (body.content || body.text || '').trim();
+        rawContent = typeof body.content === 'string'
+          ? body.content.trim()
+          : typeof body.text === 'string'
+            ? body.text.trim()
+            : '';
         rawUrl = typeof body.url === 'string' ? body.url.trim() || undefined : undefined;
         rawSource = typeof body.source === 'string' ? body.source.trim() || rawSource : rawSource;
       } catch {
@@ -1525,15 +1530,16 @@ export function createApp(bindings: ApiBindings) {
       if (!rawContent && !rawUrl) {
         return c.json({ error: '内容或链接不能为空' }, 400);
       }
-      if (rawUrl && !isSafeExternalHttpUrl(rawUrl)) {
+      const normalizedPayload = normalizeQuickDropPayload(rawContent, rawUrl);
+      if (rawUrl && (!normalizedPayload.url || !isSafeExternalHttpUrl(normalizedPayload.url))) {
         return c.json({ error: 'url must be an http(s) URL' }, 400);
       }
       const id = createId('drop');
       const now = new Date().toISOString();
       const item = {
         id,
-        content: rawContent || rawUrl || '',
-        url: rawUrl,
+        content: normalizedPayload.content || normalizedPayload.url || '',
+        url: normalizedPayload.url,
         source: rawSource,
         created_at: now,
       };

@@ -49,6 +49,7 @@ export function isSafeExternalHttpUrl(value: unknown): value is string {
   if (typeof value !== 'string') return false;
   const trimmed = value.trim();
   if (!trimmed) return true;
+  if (/[\s\u0000-\u001F\u007F]/u.test(trimmed)) return false;
 
   try {
     const parsed = new URL(trimmed);
