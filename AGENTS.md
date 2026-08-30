@@ -2,8 +2,11 @@
 
 ## 📌 一、铁律规则 (Ironclad Rules)
 
-1. **代码修改后自动提交 Git**：
-   * 每次完成代码修改、写完一个新功能或 Bug 修复，并通过全量测试（`bun run test:run`）与生产构建测试（`bun run build`）后，必须立即自动执行一次规范清晰的本地 `git commit`。
+1. **代码修改后自动提交 Git（按需分级验证）**：
+   * 每次完成修改并通过对应层级的验证后，必须立即自动执行一次规范清晰的本地 `git commit`：
+     * **纯文档/注释/静态展示页修改**（如 `.md`、`docs/` 目录、代码注释）：**无需**运行单元测试或生产构建，修改完成后直接提交；
+     * **常规功能开发与 Bug 修复**：遵循“最小但足够”原则，优先运行改动相关的局部单测（`bun test tests/xxx.test.ts`）或通过 `bun run build`（或 `bunx tsc --noEmit`）校验类型与构建无误；
+     * **全局架构调整/公共模块重构/发版前**：必须通过全量测试（`bun run test:run`）与生产构建测试（`bun run build`）。
 2. **包管理器优先**：
    * 必须使用 Bun 进行依赖安装与脚本执行，`npm` 仅作极端情况兜底。
    * 本项目遵循 Bun-first 运行时规范：本地开发、测试、构建及 CLI 工具只要 Bun 能够支持，就必须使用 Bun，不得用 Node.js 替代。对于带有 `#!/usr/bin/env node` 的本地 CLI，使用 `bun run --bun <command>` 或 `bunx --bun <command>` 显式让 Bun 执行；只有工具明确不兼容 Bun 时才允许使用 Node.js，并说明原因。
@@ -11,12 +14,6 @@
    * 运行任何破坏性命令（包括但不限于删除关键文件、重置数据库结构、强制清空存储等）前，必须向用户明确说明风险并获得确认。删除文件优先使用安全机制（`trash` > `rm`）。
 4. **最小改动原则**：
    * 修改已有文件时只改动和当前任务直接相关的部分，不擅自进行大范围重构、改写无关组件风格或清理无关逻辑。
-5. **前端开发必先检索「现代 Web 开发指导」**：
-   * 凡涉及 HTML/CSS 布局、Web API、组件行为（弹窗、浮层、动画、手势）、性能优化（Core Web Vitals、资源加载优先级、分包加载）、数据流与现代前端技术选型任务，**必须第一时间使用 Bun 显式运行最新规范检索**：
-     ```bash
-     bunx --bun modern-web-guidance@latest search "<query>"
-     ```
-   * 严禁跳过检索直接套用过时/陈旧前端写法；必须依据检索到的最新指南标准（`retrieve "<id>"`）实施。
 ---
 
 ## 🎬 二、产品定位与核心领域模型 (Domain Model)
@@ -152,8 +149,12 @@ bun run test:e2e
 其中 `test:e2e` 已通过 `bun run --bun playwright test` 强制 Playwright 在 Bun 运行时下执行。
 
 * **本地开发**：`bun run dev`（启动 Vite 前端热重载与本地 Bun API）
-* **运行全量自动化测试**：`bun run test:run`（Bun Test，修改后必跑，当前共 85 项测试）
-* **类型检查与生产构建**：`bun run build`（包含前端 SPA 构建与 Bun 服务端 `build:server`）
+* **分级验证命令指引**：
+  * **按需局部单测（日常开发首选）**：`bun test tests/<module>.test.ts` 或 `bun test <filter>`（毫秒级定向反馈）；
+  * **快速类型校验**：`bunx tsc --noEmit`（无需完整打包，秒级校验 TS 类型）；
+  * **生产构建测试**：`bun run build`（包含前端 SPA 与 Bun 服务端打包，涉及构建链路或打包发布时执行）；
+  * **全量自动化测试**：`bun run test:run`（全量回归验证，涉及底层重构或重要节点发布时执行）；
+  * **测试豁免**：纯文档（Markdown）、代码注释、`docs/` 静态展示页等无运行时代码改动一律跳过测试与构建。
 * **本地单机生产运行**：`bun run start`
 * **Podman / Docker 容器构建与编排**：
   * 构建本地镜像：`podman build -t topic-kanban:latest .`
