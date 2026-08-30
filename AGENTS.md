@@ -50,6 +50,9 @@
 | :--- | :--- | :--- | :--- | :--- |
 | **Bun / 本地容器** (唯一运行时) | `src/server/server.ts` (`Bun.serve({ routes })`) | SQLite (`bun:sqlite` + WAL，文件 `./data/kanban.db`) | SQLite `_kv_store` 表 (`AppKV`) | Bun 独立托管 SPA `dist/` |
 
+#### 容器镜像用户约束：
+* 生产镜像必须保持 Dockerfile 未显式设置 `USER` 时的默认 root 用户运行。任何任务不得新增、删除或修改镜像用户，也不得通过 Compose 或 workflow 覆盖容器用户；只有用户明确授权时才可改变此约束。
+
 #### 存储分工原则：
 * **主业务持久库 (`DB` / SQLite)**：负责强关系型业务资产（`topics`, `sources`, `timeline_events`, `people`, `drafts`, `draft_citations`, `tags`, `published_videos`）。
 * **键值存储 (`KV` / `_kv_store`)**：负责非关系型全局配置与轻量交互数据：

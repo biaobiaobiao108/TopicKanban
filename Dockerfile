@@ -24,17 +24,17 @@ ENV NODE_ENV=production
 ENV PORT=3030
 ENV DATA_DIR=/app/data
 
-# Prepare the persistent data directory for the non-root runtime user.
-RUN mkdir -p /app/data && chown bun:bun /app/data
+# Prepare the persistent data directory for the default root runtime user.
+RUN mkdir -p /app/data
 
 # Copy compiled SPA static files, bundled server, and database migrations
-COPY --from=builder --chown=bun:bun /app/dist ./dist
-COPY --from=builder --chown=bun:bun /app/drizzle ./drizzle
+COPY --from=builder /app/dist ./dist
+COPY --from=builder /app/drizzle ./drizzle
 
 # Persistent data directory
 VOLUME ["/app/data"]
 
-USER bun
+# Keep the image's default user (root) so SQLite can write to bind-mounted data directories.
 
 EXPOSE 3030
 
