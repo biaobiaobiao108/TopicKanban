@@ -130,7 +130,15 @@ bun run test:e2e
 
 ### 1. 使用 Docker Compose / Podman Compose
 
-在项目根目录创建 `docker-compose.yml`：
+项目已提供 `docker-compose.yml`。首次启动前，请在项目根目录创建 `.env`，至少设置一个强密码：
+
+```dotenv
+APP_PASSWORD=your_secure_password
+QUICK_DROP_TOKEN=your_quick_drop_token
+PUBLIC_BASE_URL=https://kanban.yourdomain.com
+```
+
+然后使用以下 Compose 配置：
 
 ```yaml
 services:
@@ -142,12 +150,12 @@ services:
     ports:
       - "3030:3030"
     environment:
-      - NODE_ENV=production
-      - PORT=3030
-      - APP_PASSWORD=your_secure_password      # 工作台访问密码
-      - QUICK_DROP_TOKEN=your_quick_drop_token  # 手机快捷指令快投独立 Token
-      - PUBLIC_BASE_URL=https://kanban.yourdomain.com # 反向代理公网域名（包含 https:// 协议头）
-      - DATA_DIR=/app/data
+      NODE_ENV: production
+      PORT: "3030"
+      APP_PASSWORD: ${APP_PASSWORD:?APP_PASSWORD is required}
+      QUICK_DROP_TOKEN: ${QUICK_DROP_TOKEN:-}
+      PUBLIC_BASE_URL: ${PUBLIC_BASE_URL:-}
+      DATA_DIR: /app/data
     volumes:
       - ./data:/app/data
 ```
@@ -160,7 +168,7 @@ docker compose up -d --build
 podman compose up -d --build
 ```
 
-访问 `http://localhost:3030` 即可开始使用。本地开发与容器默认密码为 `admin`（可通过 `APP_PASSWORD` 自定义）。
+访问 `http://localhost:3030` 即可开始使用。容器不会使用默认生产密码，`APP_PASSWORD` 必须在 `.env` 或环境变量中显式设置。
 
 ---
 
