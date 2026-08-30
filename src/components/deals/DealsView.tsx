@@ -487,7 +487,7 @@ function SummaryCard({
     <div className="rounded-2xl border border-stone-200/70 bg-white p-4 shadow-2xs dark:border-stone-800 dark:bg-stone-900">
       <div className="flex items-center justify-between gap-3">
         <span className={`grid h-9 w-9 place-items-center rounded-xl ${tones[tone]}`}>{icon}</span>
-        <span className="text-xs font-medium text-stone-400 dark:text-stone-500">{detail}</span>
+        <span className="text-xs font-medium text-stone-600 dark:text-stone-400">{detail}</span>
       </div>
       <p className="mt-3 text-xs font-semibold text-stone-500 dark:text-stone-400">{label}</p>
       <p className="mt-1 text-xl font-bold tracking-tight text-stone-900 dark:text-stone-100">{value}</p>

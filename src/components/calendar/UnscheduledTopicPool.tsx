@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useEffect, useState, useMemo, useRef } from 'react';
 import { useDraggable } from '@dnd-kit/core';
 import { CSS } from '@dnd-kit/utilities';
 import { Topic, TopicStatus } from '../../types';
@@ -50,22 +50,31 @@ function DraggableTopicCard({
         </div>
 
         {/* Drag Handle */}
-        <div
+        <button
+          type="button"
           {...attributes}
           {...listeners}
+          aria-label={`拖拽「${topic.title}」至日历定档；按 Enter 或空格打开定档操作`}
+          onKeyDown={(event) => {
+            if (event.key === 'Enter' || event.key === ' ') {
+              event.preventDefault();
+              onScheduleTopic(topic);
+            }
+          }}
           title="按住拖拽至日历定档"
-          className="p-1 text-stone-400 hover:text-stone-700 dark:hover:text-stone-200 cursor-grab active:cursor-grabbing rounded hover:bg-stone-100 dark:hover:bg-stone-800 transition-colors"
+          className="rounded p-1 text-stone-400 transition-colors hover:bg-stone-100 hover:text-stone-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-rose-500 dark:hover:bg-stone-800 dark:hover:text-stone-200"
         >
-          <GripVertical className="w-3.5 h-3.5" />
-        </div>
+          <GripVertical className="w-3.5 h-3.5" aria-hidden="true" />
+        </button>
       </div>
 
-      <h5
+      <button
+        type="button"
         onClick={() => onOpenDetail(topic.id)}
-        className="text-xs font-bold text-stone-900 dark:text-stone-100 group-hover:text-rose-600 dark:group-hover:text-rose-400 transition-colors line-clamp-2 cursor-pointer leading-snug"
+        className="w-full text-left text-xs font-bold leading-snug text-stone-900 transition-colors hover:text-rose-600 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-rose-500 dark:text-stone-100 dark:hover:text-rose-400"
       >
         {topic.title}
-      </h5>
+      </button>
 
       {topic.next_action && (
         <div className="text-[11px] text-stone-500 dark:text-stone-400 truncate bg-stone-500/[0.03] dark:bg-stone-800/40 px-2 py-1 rounded-md">
@@ -100,6 +109,61 @@ export const UnscheduledTopicPool: React.FC<UnscheduledTopicPoolProps> = ({
 }) => {
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
+  const [isMobileDrawer, setIsMobileDrawer] = useState(false);
+  const closeButtonRef = useRef<HTMLButtonElement>(null);
+  const previousFocusRef = useRef<HTMLElement | null>(null);
+  const previousOverflowRef = useRef('');
+  const onCloseRef = useRef(onClose);
+  onCloseRef.current = onClose;
+
+  useEffect(() => {
+    const mediaQuery = window.matchMedia('(max-width: 639px)');
+    const update = () => setIsMobileDrawer(mediaQuery.matches);
+    update();
+    mediaQuery.addEventListener('change', update);
+    return () => mediaQuery.removeEventListener('change', update);
+  }, []);
+
+  useEffect(() => {
+    if (!isOpen || !isMobileDrawer) return;
+
+    previousFocusRef.current = document.activeElement instanceof HTMLElement ? document.activeElement : null;
+    previousOverflowRef.current = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        event.preventDefault();
+        onCloseRef.current();
+        return;
+      }
+      if (event.key !== 'Tab') return;
+      const drawer = closeButtonRef.current?.closest('aside');
+      if (!drawer) return;
+      const focusable = Array.from(drawer.querySelectorAll<HTMLElement>(
+        'button:not([disabled]), input:not([disabled]), [href], textarea:not([disabled]), select:not([disabled]), [tabindex]:not([tabindex="-1"])'
+      ));
+      if (focusable.length === 0) return;
+      const first = focusable[0];
+      const last = focusable[focusable.length - 1];
+      if (event.shiftKey && document.activeElement === first) {
+        event.preventDefault();
+        last.focus();
+      } else if (!event.shiftKey && document.activeElement === last) {
+        event.preventDefault();
+        first.focus();
+      }
+    };
+
+    document.addEventListener('keydown', handleKeyDown);
+    const focusFrame = requestAnimationFrame(() => closeButtonRef.current?.focus());
+    return () => {
+      cancelAnimationFrame(focusFrame);
+      document.removeEventListener('keydown', handleKeyDown);
+      document.body.style.overflow = previousOverflowRef.current;
+      previousFocusRef.current?.focus();
+    };
+  }, [isOpen, isMobileDrawer]);
 
   // Filter unscheduled topics
   const unscheduledTopics = useMemo(() => {
@@ -121,19 +185,26 @@ export const UnscheduledTopicPool: React.FC<UnscheduledTopicPoolProps> = ({
   if (!isOpen) return null;
 
   return (
-    <aside className="absolute inset-y-0 right-0 z-20 flex h-full w-full max-w-80 flex-col border-l border-stone-200/70 bg-white/95 shadow-subtle backdrop-blur-sm transition-colors select-none dark:border-stone-800 dark:bg-stone-900/95 sm:relative sm:inset-auto sm:w-80 sm:shrink-0">
+    <aside
+      role={isMobileDrawer ? 'dialog' : 'complementary'}
+      aria-modal={isMobileDrawer ? true : undefined}
+      aria-labelledby="unscheduled-topic-pool-title"
+      className="absolute inset-y-0 right-0 z-20 flex h-full w-full max-w-80 flex-col border-l border-stone-200/70 bg-white/95 shadow-subtle backdrop-blur-sm transition-colors select-none dark:border-stone-800 dark:bg-stone-900/95 sm:relative sm:inset-auto sm:w-80 sm:shrink-0"
+    >
       {/* Header */}
       <div className="p-4 border-b border-stone-200/70 dark:border-stone-800 flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <h3 className="text-sm font-bold text-stone-900 dark:text-stone-100">待排期选题池</h3>
+          <h2 id="unscheduled-topic-pool-title" className="text-sm font-bold text-stone-900 dark:text-stone-100">待排期选题池</h2>
           <span className="text-xs font-mono font-bold bg-rose-500/10 text-rose-700 dark:text-rose-300 px-2 py-0.5 rounded-full">
             {unscheduledTopics.length}
           </span>
         </div>
 
         <button
+          ref={closeButtonRef}
           type="button"
           onClick={onClose}
+          aria-label="关闭待排期选题池"
           className="p-1 rounded-lg text-stone-400 hover:text-stone-700 dark:hover:text-stone-200 hover:bg-stone-100 dark:hover:bg-stone-800 transition-colors cursor-pointer"
         >
           <X className="w-4 h-4" />
@@ -146,6 +217,8 @@ export const UnscheduledTopicPool: React.FC<UnscheduledTopicPoolProps> = ({
           <Search className="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-stone-400" />
           <input
             type="text"
+            aria-label="搜索待排期选题"
+            autoComplete="off"
             placeholder="搜索待排期选题..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
@@ -166,6 +239,7 @@ export const UnscheduledTopicPool: React.FC<UnscheduledTopicPoolProps> = ({
               key={item.id}
               type="button"
               onClick={() => setStatusFilter(item.id)}
+              aria-pressed={statusFilter === item.id}
               className={`px-2 py-1 rounded-lg font-semibold transition-colors cursor-pointer shrink-0 ${
                 statusFilter === item.id
                   ? 'bg-stone-900 text-white dark:bg-rose-600'
@@ -180,7 +254,7 @@ export const UnscheduledTopicPool: React.FC<UnscheduledTopicPoolProps> = ({
 
       {/* Topics Stream */}
       <div className="flex-1 p-3 space-y-2.5 overflow-y-auto min-h-0">
-        <div className="text-[11px] text-stone-400 dark:text-stone-500 px-1">
+        <div className="text-[11px] text-stone-500 dark:text-stone-400 px-1">
           💡 提示：按住卡片右侧把手可直接拖拽至左侧日历日期定档
         </div>
 
@@ -194,7 +268,7 @@ export const UnscheduledTopicPool: React.FC<UnscheduledTopicPoolProps> = ({
         ))}
 
         {unscheduledTopics.length === 0 && (
-          <div className="py-12 text-center text-xs text-stone-400 dark:text-stone-500">
+          <div className="py-12 text-center text-xs text-stone-500 dark:text-stone-400">
             {search || statusFilter !== 'all' ? '无匹配选题' : '所有活跃选题均已定档！'}
           </div>
         )}

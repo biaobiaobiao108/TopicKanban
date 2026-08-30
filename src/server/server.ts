@@ -90,7 +90,9 @@ if (hasDist) {
       const relativePath = assetPathFromRequest(request);
       const assetPath = relativePath === null ? null : safeAssetPath(relativePath);
       if (!assetPath) return withSecurityHeaders(new Response('Forbidden', { status: 403 }));
-      return withSecurityHeaders(await serveFile(assetPath));
+      return withSecurityHeaders(await serveFile(assetPath, {
+        'Cache-Control': 'public, max-age=31536000, immutable',
+      }));
     },
   };
   for (const fileName of ['icon.png', 'apple-touch-icon.png', 'favicon.ico', '_headers']) {

@@ -69,9 +69,9 @@ export const CalendarAgendaView: React.FC<CalendarAgendaViewProps> = ({
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
             <CalendarIcon className="w-4 h-4 text-rose-600 dark:text-rose-400" />
-            <h4 className="text-sm font-bold text-stone-900 dark:text-stone-100">
+            <h2 className="text-sm font-bold text-stone-900 dark:text-stone-100">
               {selectedDate} 排期与待办
-            </h4>
+            </h2>
             <span className="text-xs font-mono font-bold bg-stone-100 dark:bg-stone-800 text-stone-600 dark:text-stone-400 px-2 py-0.5 rounded-full">
               {selectedDayEvents.length}
             </span>
@@ -102,7 +102,7 @@ export const CalendarAgendaView: React.FC<CalendarAgendaViewProps> = ({
           </div>
         ) : (
           <div className="py-12 text-center border-2 border-dashed border-stone-200/80 dark:border-stone-800 rounded-2xl p-6">
-            <p className="text-xs text-stone-400 dark:text-stone-500">今日暂无排片与交付计划</p>
+            <p className="text-xs text-stone-500 dark:text-stone-400">今日暂无排片与交付计划</p>
             <button
               type="button"
               onClick={() => onDateClick(selectedDate)}

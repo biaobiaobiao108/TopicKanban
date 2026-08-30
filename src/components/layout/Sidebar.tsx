@@ -50,7 +50,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
       <div className="p-4 border-b border-stone-200/70 dark:border-stone-800">
         <div className="flex items-center gap-2.5">
           <div className="sidebar-brand-logo w-8 h-8 rounded-xl flex items-center justify-center overflow-hidden shadow-2xs shrink-0">
-            <img src="/icon.png" alt="工作台 Logo" className="w-full h-full object-cover rounded-xl" />
+            <img src="/icon.png" alt="工作台 Logo" width={32} height={32} className="w-full h-full object-cover rounded-xl" />
           </div>
           <div>
             <h1 className="font-bold text-stone-900 dark:text-stone-100 text-[15px] leading-tight">选题生产工作台</h1>
@@ -74,14 +74,14 @@ export const Sidebar: React.FC<SidebarProps> = ({
           >
             <Search className="w-3.5 h-3.5 text-stone-400" />
             <span>全局搜索与指令</span>
-            <kbd className="ml-auto text-[10px] bg-stone-200/70 dark:bg-stone-700 text-stone-500 dark:text-stone-400 px-1.5 py-0.5 rounded-md font-mono">Ctrl+/</kbd>
+            <kbd className="ml-auto text-[10px] bg-stone-200/70 dark:bg-stone-700 text-stone-700 dark:text-stone-300 px-1.5 py-0.5 rounded-md font-mono">Ctrl+/</kbd>
           </button>
         </div>
       </div>
 
       {/* Main Navigation */}
       <nav className="flex-1 p-3 space-y-1 overflow-y-auto">
-        <div className="text-[11px] font-semibold text-stone-400 dark:text-stone-500 px-3 py-1 uppercase tracking-wider">
+        <div className="text-[11px] font-semibold text-stone-500 dark:text-stone-400 px-3 py-1 uppercase tracking-wider">
           工作台模块
         </div>
         {navItems.map((item) => {
@@ -89,12 +89,14 @@ export const Sidebar: React.FC<SidebarProps> = ({
           const isActive = currentView === item.id;
           return (
             <button
+              type="button"
               key={item.id}
               onClick={() => onNavigate(item.id)}
+              aria-current={isActive ? 'page' : undefined}
               className={`w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-sm font-medium transition-all cursor-pointer ${
                 isActive
                   ? 'bg-stone-100 dark:bg-stone-800 text-stone-900 dark:text-stone-100 font-bold shadow-2xs'
-                  : 'text-stone-600 dark:text-stone-400 hover:bg-stone-50 dark:hover:bg-stone-800/60 hover:text-stone-900 dark:hover:text-stone-100'
+                  : 'text-stone-700 dark:text-stone-300 hover:bg-stone-50 dark:hover:bg-stone-800/60 hover:text-stone-900 dark:hover:text-stone-100'
               }`}
             >
               <div className="flex items-center gap-2.5">

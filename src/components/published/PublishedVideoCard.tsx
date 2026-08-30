@@ -66,6 +66,8 @@ export const PublishedVideoCard: React.FC<PublishedVideoCardProps> = ({
               <img
                 src={coverUrl}
                 alt={video.title}
+                width={640}
+                height={360}
                 referrerPolicy="no-referrer"
                 loading="lazy"
                 decoding="async"
@@ -118,26 +120,29 @@ export const PublishedVideoCard: React.FC<PublishedVideoCardProps> = ({
                   onClick={onSync}
                   disabled={isSyncingThis || isBulkSyncing}
                   className="p-1 text-stone-400 dark:text-stone-500 hover:text-rose-600 dark:hover:text-rose-400 rounded-lg hover:bg-rose-50 dark:hover:bg-rose-950/40 transition-colors disabled:opacity-50 cursor-pointer"
+                  aria-label="从 B站 同步最新数据"
                   title="从 B站 同步最新数据"
                 >
-                  <RefreshCw className={`w-3.5 h-3.5 ${isSyncingThis ? 'animate-spin text-rose-600 dark:text-rose-400' : ''}`} />
+                  <RefreshCw aria-hidden="true" className={`w-3.5 h-3.5 ${isSyncingThis ? 'animate-spin text-rose-600 dark:text-rose-400' : ''}`} />
                 </button>
               )}
               <button
                 type="button"
                 onClick={onEdit}
+                aria-label="编辑数据"
                 className="p-1 text-stone-400 dark:text-stone-500 hover:text-stone-700 dark:hover:text-stone-300 rounded-lg hover:bg-stone-100 dark:hover:bg-stone-800 cursor-pointer transition-colors"
                 title="编辑数据"
               >
-                <Edit2 className="w-3.5 h-3.5" />
+                <Edit2 aria-hidden="true" className="w-3.5 h-3.5" />
               </button>
               <button
                 type="button"
                 onClick={onDelete}
+                aria-label="删除已发布视频"
                 className="p-1 text-stone-400 dark:text-stone-500 hover:text-red-600 dark:hover:text-red-400 rounded-lg hover:bg-red-50 dark:hover:bg-red-950/40 cursor-pointer transition-colors"
                 title="删除"
               >
-                <Trash2 className="w-3.5 h-3.5" />
+                <Trash2 aria-hidden="true" className="w-3.5 h-3.5" />
               </button>
             </div>
           </div>

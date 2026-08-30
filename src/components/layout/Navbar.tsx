@@ -44,11 +44,13 @@ export const Navbar: React.FC<NavbarProps> = ({
       <div className="flex items-center gap-2.5 min-w-0">
         {onOpenMobileDrawer && (
           <button
+            type="button"
             onClick={onOpenMobileDrawer}
+            aria-label="打开菜单"
             className="md:hidden p-1.5 -ml-1 text-stone-600 dark:text-stone-300 hover:text-stone-900 dark:hover:text-stone-100 rounded-xl hover:bg-stone-100 dark:hover:bg-stone-800 cursor-pointer"
             title="打开菜单"
           >
-            <Menu className="w-5 h-5" />
+            <Menu className="w-5 h-5" aria-hidden="true" />
           </button>
         )}
 
@@ -64,6 +66,7 @@ export const Navbar: React.FC<NavbarProps> = ({
           <Search className="w-3.5 h-3.5 text-stone-400 dark:text-stone-500 absolute left-2.5 sm:left-3 top-1/2 -translate-y-1/2" />
           <input
             type="search"
+            aria-label="搜索选题或人物"
             enterKeyHint="search"
             autoComplete="off"
             autoCorrect="off"
@@ -100,10 +103,12 @@ export const Navbar: React.FC<NavbarProps> = ({
 
         {/* Quick Create Button */}
         <button
+          type="button"
           onClick={onOpenQuickCreate}
+          aria-label="新选题"
           className="flex items-center gap-1.5 bg-rose-600 hover:bg-rose-700 active:scale-95 text-white px-3.5 py-1.5 rounded-xl text-xs sm:text-sm font-semibold transition-all shadow-2xs hover:shadow-xs cursor-pointer"
         >
-          <Plus className="w-4 h-4 stroke-[2.5]" />
+          <Plus className="w-4 h-4 stroke-[2.5]" aria-hidden="true" />
           <span className="hidden sm:inline">新选题</span>
         </button>
       </div>

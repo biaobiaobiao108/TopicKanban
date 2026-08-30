@@ -62,6 +62,19 @@ const VIEW_PATHS: Record<Exclude<NavView, 'topic-detail'>, string> = {
   settings: '/settings',
 };
 
+const VIEW_TITLES: Record<NavView, string> = {
+  today: '今日生产聚焦',
+  calendar: '选题日历',
+  kanban: '选题全景看板',
+  people: '人物档案库',
+  tags: '标签与创作赛道',
+  published: '已发布视频复盘',
+  deals: '商单中心',
+  database: '选题库',
+  settings: '偏好与数据备份',
+  'topic-detail': '选题生产工作台',
+};
+
 function getViewFromPath(pathname: string): NavView {
   if (matchPath('/topics/:topicId', pathname)) return 'topic-detail';
   if (matchPath('/deals/:dealId', pathname)) return 'deals';
@@ -164,6 +177,17 @@ function WorkspaceApp({ isAuth, setIsAuth }: WorkspaceAppProps) {
   const [isQuickDropDrawerOpen, setIsQuickDropDrawerOpen] = useState(false);
   const [quickDropCount, setQuickDropCount] = useState(0);
   const [searchTerm, setSearchTerm] = useState('');
+
+  useEffect(() => {
+    if (!isAuth) {
+      document.title = '登录 - 选题生产工作台';
+      return;
+    }
+    const activeTopic = topics.find((topic) => topic.id === activeTopicId);
+    document.title = activeTopic
+      ? `${activeTopic.title} - 选题生产工作台`
+      : `${VIEW_TITLES[currentView]} - 选题生产工作台`;
+  }, [activeTopicId, currentView, isAuth, topics]);
 
   // Fetch quick drops count on mount and interval
   useEffect(() => {
@@ -687,6 +711,7 @@ function WorkspaceApp({ isAuth, setIsAuth }: WorkspaceAppProps) {
 
   return (
     <div className="flex h-dvh w-screen bg-[#fafaf9] dark:bg-[#0c0a09] text-stone-900 dark:text-stone-100 overflow-hidden font-sans transition-colors">
+      <a href="#main-content" className="skip-link">跳到主要内容</a>
       {/* Desktop Sidebar (Hidden on mobile) */}
       <Sidebar
         currentView={currentView}
@@ -712,7 +737,7 @@ function WorkspaceApp({ isAuth, setIsAuth }: WorkspaceAppProps) {
         />
 
         {/* View Router */}
-        <main className="flex-1 flex flex-col overflow-hidden min-w-0">
+        <main id="main-content" tabIndex={-1} className="flex-1 flex flex-col overflow-hidden min-w-0">
           {loadError && (
             <div className="m-4 flex items-center justify-between gap-3 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800">
               <span>加载工作台失败：{loadError}</span>

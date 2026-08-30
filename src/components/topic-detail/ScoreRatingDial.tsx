@@ -128,7 +128,7 @@ export const ScoreRatingDial: React.FC<ScoreRatingDialProps> = ({ topic, onUpdat
 
         <div className="flex items-center gap-1.5 bg-stone-100 dark:bg-stone-800/80 px-3 py-1 rounded-xl">
           <span className="text-lg font-mono font-extrabold text-stone-900 dark:text-stone-100">{currentScore}</span>
-          <span className="text-xs text-stone-400 dark:text-stone-500 font-mono">/ 10</span>
+          <span className="text-xs text-stone-600 dark:text-stone-400 font-mono">/ 10</span>
         </div>
       </div>
 

@@ -373,7 +373,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                 <Palette className="w-5 h-5" />
               </span>
               <div>
-                <h3 className="text-base font-bold text-stone-900 dark:text-stone-100">视觉外观主题</h3>
+                <h2 className="text-base font-bold text-stone-900 dark:text-stone-100">视觉外观主题</h2>
               </div>
             </div>
             <span className="text-[10px] font-mono font-bold bg-rose-500/10 text-rose-700 dark:text-rose-300 px-2.5 py-0.5 rounded-full">
@@ -385,7 +385,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
           <div className="space-y-2.5">
             <label className="text-xs sm:text-sm font-bold text-stone-800 dark:text-stone-200 flex items-center gap-1.5">
               <span>视觉主题调色</span>
-              <span className="text-[11px] font-normal text-stone-400 dark:text-stone-500">(即时生效)</span>
+              <span className="text-[11px] font-normal text-stone-600 dark:text-stone-400">(即时生效)</span>
             </label>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
@@ -511,7 +511,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                 <Mic className="w-5 h-5" />
               </span>
               <div>
-                <h3 className="text-base font-bold text-stone-900 dark:text-stone-100">文案写作与播音录制偏好 (Studio)</h3>
+                <h2 className="text-base font-bold text-stone-900 dark:text-stone-100">文案写作与播音录制偏好 (Studio)</h2>
               </div>
             </div>
           </div>
@@ -627,6 +627,8 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
             <button
               type="button"
               onClick={() => setTypewriterDefault((prev) => !prev)}
+              aria-label="默认开启打字机居中模式"
+              aria-pressed={typewriterDefault}
               className={`w-12 h-6 flex items-center rounded-full p-1 cursor-pointer transition-colors duration-200 ease-in-out ${
                 typewriterDefault ? 'bg-rose-600' : 'bg-stone-300 dark:bg-stone-700'
               }`}
@@ -645,7 +647,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
               <div className="flex items-center gap-2">
                 <Mic className="w-4 h-4 text-rose-600 dark:text-rose-400" />
                 <div>
-                  <h4 className="text-xs sm:text-sm font-bold text-stone-900 dark:text-stone-100">录音提词 · 演播气口标记库</h4>
+                  <h3 className="text-xs sm:text-sm font-bold text-stone-900 dark:text-stone-100">录音提词 · 演播气口标记库</h3>
                   <p className="text-[11px] text-stone-400 dark:text-stone-500">
                     在写稿与提词演播时快捷插入的配音提示词（如 [停顿 1s]、[重音]、[反讽语气]），提词器中将高亮呈现
                   </p>
@@ -707,7 +709,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-1.5">
                 <Gauge className="w-4 h-4 text-stone-600 dark:text-stone-400" />
-                <label className="text-xs sm:text-sm font-bold text-stone-800 dark:text-stone-200">文案朗读语速基准</label>
+                <label htmlFor="settings-reading-speed" className="text-xs sm:text-sm font-bold text-stone-800 dark:text-stone-200">文案朗读语速基准</label>
               </div>
               <span className="font-mono font-bold text-xs sm:text-sm text-rose-700 dark:text-rose-300 bg-rose-500/10 dark:bg-rose-950/60 px-2.5 py-0.5 rounded-full">
                 {readingSpeed} 字 / 分钟
@@ -758,6 +760,8 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
             </div>
 
             <input
+              id="settings-reading-speed"
+              name="reading_speed"
               type="range"
               min="180"
               max="420"
@@ -786,7 +790,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                 <Share2 className="w-5 h-5" />
               </span>
               <div>
-                <h3 className="text-base font-bold text-stone-900 dark:text-stone-100">选题生产流与外部审稿偏好</h3>
+                <h2 className="text-base font-bold text-stone-900 dark:text-stone-100">选题生产流与外部审稿偏好</h2>
               </div>
             </div>
           </div>
@@ -908,7 +912,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <KeyRound className="w-4 h-4 text-rose-600 dark:text-rose-500" />
-                <h3 className="text-sm font-bold text-stone-900 dark:text-stone-100">访问控制与安全密码</h3>
+                <h2 className="text-sm font-bold text-stone-900 dark:text-stone-100">访问控制与安全密码</h2>
               </div>
               {onLogout && (
                 <button
@@ -930,7 +934,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <Database className="w-4 h-4 text-blue-600 dark:text-blue-400" />
-                <h3 className="text-sm font-bold text-stone-900 dark:text-stone-100">数据库与存储实时探测</h3>
+                <h2 className="text-sm font-bold text-stone-900 dark:text-stone-100">数据库与存储实时探测</h2>
               </div>
               <button
                 onClick={checkRuntimeStatus}
@@ -961,7 +965,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
             <span className="p-1.5 rounded-xl bg-rose-500/10 text-rose-600 dark:text-rose-400">
               <Smartphone className="w-5 h-5" />
             </span>
-            <h3 className="text-base font-bold text-stone-900 dark:text-stone-100">手机快捷指令 · 灵感碎片快投配置</h3>
+            <h2 className="text-base font-bold text-stone-900 dark:text-stone-100">手机快捷指令 · 灵感碎片快投配置</h2>
           </div>
 
           <div className="p-4 bg-stone-500/[0.03] dark:bg-stone-800/60 rounded-2xl border border-stone-200/70 dark:border-stone-700 space-y-3 text-xs">
@@ -1004,7 +1008,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
             <span className="p-1.5 rounded-xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-400">
               <Database className="w-5 h-5" />
             </span>
-            <h3 className="text-base font-bold text-stone-900 dark:text-stone-100">数据安全、全量备份与文案归档</h3>
+            <h2 className="text-base font-bold text-stone-900 dark:text-stone-100">数据安全、全量备份与文案归档</h2>
           </div>
 
           {importStatus && (

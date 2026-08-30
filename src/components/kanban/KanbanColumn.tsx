@@ -83,18 +83,20 @@ export const KanbanColumn: React.FC<KanbanColumnProps> = ({
       <div className="flex items-center justify-between px-1.5 py-1 mb-2.5">
         <div className="flex items-center gap-2">
           <span className={`w-2.5 h-2.5 rounded-full ${c.dot}`} />
-          <h3 className="text-sm font-bold text-stone-800 dark:text-stone-100 tracking-tight">{label}</h3>
+          <h2 className="text-sm font-bold text-stone-800 dark:text-stone-100 tracking-tight">{label}</h2>
           <span className="text-xs bg-stone-200/70 dark:bg-stone-800 text-stone-700 dark:text-stone-300 font-bold px-2 py-0.5 rounded-full font-mono">
             {totalCount}
           </span>
         </div>
 
         <button
+          type="button"
           onClick={() => onQuickAddTopic(status)}
+          aria-label={`在${label}中快速建卡`}
           title={`在${label}中快速建卡`}
           className="p-1.5 text-stone-400 dark:text-stone-500 hover:text-stone-700 dark:hover:text-stone-200 hover:bg-stone-200/60 dark:hover:bg-stone-800 rounded-lg transition-colors cursor-pointer"
         >
-          <Plus className="w-4 h-4" />
+          <Plus className="w-4 h-4" aria-hidden="true" />
         </button>
       </div>
 
@@ -121,11 +123,11 @@ export const KanbanColumn: React.FC<KanbanColumnProps> = ({
             className={`h-28 flex flex-col items-center justify-center border-2 border-dashed rounded-2xl text-xs p-3 text-center transition-all duration-150 ${
               isOver
                 ? 'border-rose-400 dark:border-rose-600 bg-rose-50/60 dark:bg-rose-950/30 text-rose-600 dark:text-rose-400'
-                : 'border-stone-200/80 dark:border-stone-800 text-stone-400 dark:text-stone-500'
+                : 'border-stone-200/80 dark:border-stone-800 text-stone-600 dark:text-stone-400'
             }`}
           >
             <span className="font-semibold">{isOver ? '松开以移入此阶段' : '暂无选题'}</span>
-            <span className="text-[11px] opacity-80 mt-0.5">
+            <span className="text-[11px] text-stone-600 dark:text-stone-400 mt-0.5">
               {isOver ? `将卡片归入「${label}」` : '拖拽卡片至此可快速变更状态'}
             </span>
           </div>
@@ -136,6 +138,7 @@ export const KanbanColumn: React.FC<KanbanColumnProps> = ({
       {hiddenCount > 0 && (
         <div className="pt-2 mt-2 border-t border-stone-200/60 dark:border-stone-800">
           <button
+            type="button"
             onClick={() => setIsExpanded((prev) => !prev)}
             className="w-full flex items-center justify-center gap-1.5 py-1.5 px-3 bg-white/80 dark:bg-stone-800 hover:bg-white dark:hover:bg-stone-700 text-stone-600 dark:text-stone-300 hover:text-stone-900 dark:hover:text-stone-100 rounded-xl text-xs font-semibold transition-all shadow-2xs cursor-pointer"
           >

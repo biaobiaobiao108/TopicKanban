@@ -279,11 +279,11 @@ export const TodayView: React.FC<TodayViewProps> = ({
           <section aria-labelledby="today-deals-heading" className="space-y-3.5">
             <div className="flex items-center justify-between gap-3">
               <div>
-                <h4 id="today-deals-heading" className="flex items-center gap-2 text-base font-bold text-stone-900 dark:text-stone-100">
+                <h2 id="today-deals-heading" className="flex items-center gap-2 text-base font-bold text-stone-900 dark:text-stone-100">
                   <Handshake className="h-4 w-4 text-rose-600 dark:text-rose-400" />
                   商单待推进
                   <span className="rounded-full bg-rose-500/10 px-2 py-0.5 text-xs font-mono font-bold text-rose-700 dark:text-rose-300">{focusDeals.length}</span>
-                </h4>
+                </h2>
                 <p className="mt-1 text-xs text-stone-500 dark:text-stone-400">交付节点、下一步行动与已交付未回款事项集中在这里。</p>
               </div>
               <button type="button" onClick={() => onOpenDeal(focusDeals[0].id)} className="min-h-11 shrink-0 rounded-xl border border-stone-200 bg-white px-3 text-xs font-semibold text-stone-700 transition-colors hover:border-rose-300 hover:text-rose-700 dark:border-stone-700 dark:bg-stone-900 dark:text-stone-300 dark:hover:border-rose-800 dark:hover:text-rose-300">打开商单</button>
@@ -299,12 +299,12 @@ export const TodayView: React.FC<TodayViewProps> = ({
           {/* Left: Top Priorities */}
           <div className="space-y-3.5">
             <div className="flex items-center justify-between">
-              <h4 className="text-base font-bold text-stone-900 dark:text-stone-100 flex items-center gap-2">
+              <h2 className="text-base font-bold text-stone-900 dark:text-stone-100 flex items-center gap-2">
                 <span>今日优先选题</span>
                 <span className="text-xs bg-stone-200/60 dark:bg-stone-800 text-stone-700 dark:text-stone-300 px-2 py-0.5 rounded-full font-mono font-bold">
                   {priorityList.length}
                 </span>
-              </h4>
+              </h2>
             </div>
 
             <div className="space-y-3">
@@ -324,9 +324,9 @@ export const TodayView: React.FC<TodayViewProps> = ({
                     )}
                   </div>
 
-                  <h5 className="text-sm font-bold text-stone-900 dark:text-stone-100 group-hover:text-rose-600 dark:group-hover:text-rose-400 transition-colors line-clamp-1">
+                  <h3 className="text-sm font-bold text-stone-900 dark:text-stone-100 group-hover:text-rose-600 dark:group-hover:text-rose-400 transition-colors line-clamp-1">
                     {t.title}
-                  </h5>
+                  </h3>
 
                   <div className={`text-xs p-2.5 rounded-xl ${
                     t.next_action
@@ -356,7 +356,7 @@ export const TodayView: React.FC<TodayViewProps> = ({
               ))}
 
               {priorityList.length === 0 && (
-                <div className="p-8 text-center text-xs text-stone-400 dark:text-stone-500 border border-stone-200/70 dark:border-stone-800 rounded-2xl bg-white dark:bg-stone-900">
+                <div className="p-8 text-center text-xs text-stone-500 dark:text-stone-400 border border-stone-200/70 dark:border-stone-800 rounded-2xl bg-white dark:bg-stone-900">
                   暂无其他优先选题
                 </div>
               )}
@@ -366,10 +366,10 @@ export const TodayView: React.FC<TodayViewProps> = ({
           {/* Right: Recent Activity / Worklog */}
           <div className="space-y-3.5">
             <div className="flex items-center justify-between">
-              <h4 className="text-base font-bold text-stone-900 dark:text-stone-100 flex items-center gap-2">
+              <h2 className="text-base font-bold text-stone-900 dark:text-stone-100 flex items-center gap-2">
                 <Clock className="w-4 h-4 text-stone-500 dark:text-stone-400" />
                 <span>近期活跃轨迹</span>
-              </h4>
+              </h2>
             </div>
 
             <div className="today-recent-updates-panel bg-white/80 dark:bg-stone-900/80 rounded-2xl border border-stone-200/70 dark:border-stone-800 divide-y divide-stone-100 dark:divide-stone-800/70 shadow-2xs overflow-hidden">

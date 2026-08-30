@@ -845,7 +845,7 @@ export const TopicTableView: React.FC<TopicTableViewProps> = ({
           })}
 
           {sortedTopics.length === 0 && (
-            <div className="py-16 text-center text-sm text-stone-400 dark:text-stone-500">
+            <div className="py-16 text-center text-sm text-stone-600 dark:text-stone-400">
               {archiveScope === 'trash' ? '回收站为空' : archiveScope === 'archived' ? '归档库暂无已发布或搁置的选题' : '暂无匹配的选题数据'}
             </div>
           )}
@@ -1211,7 +1211,7 @@ export const TopicTableView: React.FC<TopicTableViewProps> = ({
 
             {sortedTopics.length === 0 && (
               <tr>
-                <td colSpan={4 + visibleColumns.length} className="py-16 text-center text-stone-400 dark:text-stone-500 text-sm">
+                <td colSpan={4 + visibleColumns.length} className="py-16 text-center text-stone-600 dark:text-stone-400 text-sm">
                   {archiveScope === 'trash' ? '回收站为空' : archiveScope === 'archived' ? '归档库暂无已发布或搁置的选题' : '暂无匹配的选题数据'}
                 </td>
               </tr>

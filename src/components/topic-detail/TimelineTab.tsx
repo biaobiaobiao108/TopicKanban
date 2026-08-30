@@ -464,12 +464,15 @@ export const TimelineTab: React.FC<TimelineTabProps> = ({
       >
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label className="block text-xs font-semibold text-stone-700 dark:text-stone-300 mb-1.5">
+            <label htmlFor="timeline-title" className="block text-xs font-semibold text-stone-700 dark:text-stone-300 mb-1.5">
               事件标题 <span className="text-rose-600">*</span>
             </label>
             <input
+              id="timeline-title"
+              name="timeline_title"
               type="text"
               required
+              autoComplete="off"
               placeholder="例如：首次入驻训练基地并立下誓言"
               value={title}
               onChange={(e) => setTitle(e.target.value)}
@@ -479,11 +482,14 @@ export const TimelineTab: React.FC<TimelineTabProps> = ({
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
             <div>
-              <label className="block text-xs font-semibold text-stone-700 dark:text-stone-300 mb-1.5">
+              <label htmlFor="timeline-event-date" className="block text-xs font-semibold text-stone-700 dark:text-stone-300 mb-1.5">
                 发生日期
               </label>
               <input
+                id="timeline-event-date"
+                name="timeline_event_date"
                 type="text"
+                autoComplete="off"
                 placeholder="2026-07-28 / 2026-05 / 待考证"
                 value={eventDate}
                 onChange={(e) => setEventDate(e.target.value)}
@@ -492,13 +498,14 @@ export const TimelineTab: React.FC<TimelineTabProps> = ({
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-stone-700 dark:text-stone-300 mb-1.5">
+              <label id="timeline-verification-label" className="block text-xs font-semibold text-stone-700 dark:text-stone-300 mb-1.5">
                 可信度状态
               </label>
               <CustomSelect
                 value={verificationStatus}
                 onChange={(val) => setVerificationStatus(val as VerificationStatus)}
                 ariaLabel="可信度状态"
+                ariaLabelledBy="timeline-verification-label"
                 className="w-full"
                 buttonClassName="w-full h-[38px] justify-between py-2 text-sm bg-stone-50 dark:bg-stone-800 border-stone-300 dark:border-stone-700 rounded-lg"
                 options={[
@@ -511,11 +518,14 @@ export const TimelineTab: React.FC<TimelineTabProps> = ({
           </div>
 
           <div>
-            <label className="block text-xs font-semibold text-stone-700 dark:text-stone-300 mb-1.5">
+            <label htmlFor="timeline-contrast-tag" className="block text-xs font-semibold text-stone-700 dark:text-stone-300 mb-1.5">
               反差与情绪标记 (选填)
             </label>
             <input
+              id="timeline-contrast-tag"
+              name="timeline_contrast_tag"
               type="text"
+              autoComplete="off"
               placeholder="例如：荒诞反差、人物张力、高潮爆发、伏笔呼应"
               value={contrastTag}
               onChange={(e) => setContrastTag(e.target.value)}
@@ -541,10 +551,13 @@ export const TimelineTab: React.FC<TimelineTabProps> = ({
           </div>
 
           <div>
-            <label className="block text-xs font-semibold text-stone-700 dark:text-stone-300 mb-1">
+            <label htmlFor="timeline-description" className="block text-xs font-semibold text-stone-700 dark:text-stone-300 mb-1">
               事件详细经过与说明
             </label>
             <textarea
+              id="timeline-description"
+              name="timeline_description"
+              autoComplete="off"
               rows={3}
               placeholder="详细记录发生了什么、谁参与了、产生了什么后果..."
               value={description}

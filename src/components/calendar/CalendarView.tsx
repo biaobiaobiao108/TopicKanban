@@ -261,10 +261,11 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
                 <button
                   type="button"
                   onClick={handlePrev}
+                  aria-label="上一周期"
                   title="上一周期"
                   className="p-1 rounded-lg hover:bg-white dark:hover:bg-stone-700 text-stone-600 dark:text-stone-300 transition-colors cursor-pointer"
                 >
-                  <ChevronLeft className="w-4 h-4" />
+                  <ChevronLeft className="w-4 h-4" aria-hidden="true" />
                 </button>
 
                 <span className="text-xs sm:text-sm font-bold font-mono px-2 text-stone-900 dark:text-stone-100 min-w-[75px] text-center">
@@ -274,10 +275,11 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
                 <button
                   type="button"
                   onClick={handleNext}
+                  aria-label="下一周期"
                   title="下一周期"
                   className="p-1 rounded-lg hover:bg-white dark:hover:bg-stone-700 text-stone-600 dark:text-stone-300 transition-colors cursor-pointer"
                 >
-                  <ChevronRight className="w-4 h-4" />
+                  <ChevronRight className="w-4 h-4" aria-hidden="true" />
                 </button>
               </div>
 
@@ -366,7 +368,7 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
 
             {/* Layer Filter Pills */}
             <div className="flex items-center gap-1.5 overflow-x-auto text-xs">
-              <span className="text-[11px] font-semibold text-stone-400 dark:text-stone-500 shrink-0">图层：</span>
+              <span className="text-[11px] font-semibold text-stone-500 dark:text-stone-400 shrink-0">图层：</span>
 
               <button
                 type="button"
@@ -374,7 +376,7 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
                 className={`px-2.5 py-1 rounded-lg font-semibold transition-all cursor-pointer shrink-0 flex items-center gap-1 ${
                   filters.showPlannedPublish
                     ? 'bg-rose-600 text-white shadow-2xs'
-                    : 'bg-stone-100 dark:bg-stone-800 text-stone-400 line-through'
+                    : 'bg-stone-100 dark:bg-stone-800 text-stone-600 dark:text-stone-400 line-through'
                 }`}
               >
                 <span>🎬 计划发片</span>
@@ -385,8 +387,8 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
                 onClick={() => handleToggleLayer('showDeadlines')}
                 className={`px-2.5 py-1 rounded-lg font-semibold transition-all cursor-pointer shrink-0 flex items-center gap-1 ${
                   filters.showDeadlines
-                    ? 'bg-amber-600 text-white shadow-2xs'
-                    : 'bg-stone-100 dark:bg-stone-800 text-stone-400 line-through'
+                    ? 'bg-amber-700 text-white shadow-2xs'
+                    : 'bg-stone-100 dark:bg-stone-800 text-stone-600 dark:text-stone-400 line-through'
                 }`}
               >
                 <span>⏰ 制作截止</span>
@@ -397,8 +399,8 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
                 onClick={() => handleToggleLayer('showDeals')}
                 className={`px-2.5 py-1 rounded-lg font-semibold transition-all cursor-pointer shrink-0 flex items-center gap-1 ${
                   filters.showDeals
-                    ? 'bg-indigo-600 text-white shadow-2xs'
-                    : 'bg-stone-100 dark:bg-stone-800 text-stone-400 line-through'
+                    ? 'bg-indigo-700 text-white shadow-2xs'
+                    : 'bg-stone-100 dark:bg-stone-800 text-stone-600 dark:text-stone-400 line-through'
                 }`}
               >
                 <span>🤝 商单 DDL</span>
@@ -409,8 +411,8 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
                 onClick={() => handleToggleLayer('showPublished')}
                 className={`px-2.5 py-1 rounded-lg font-semibold transition-all cursor-pointer shrink-0 flex items-center gap-1 ${
                   filters.showPublished
-                    ? 'bg-emerald-600 text-white shadow-2xs'
-                    : 'bg-stone-100 dark:bg-stone-800 text-stone-400 line-through'
+                    ? 'bg-emerald-700 text-white shadow-2xs'
+                    : 'bg-stone-100 dark:bg-stone-800 text-stone-600 dark:text-stone-400 line-through'
                 }`}
               >
                 <span>📺 历史已发</span>
@@ -422,7 +424,7 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
                 className={`px-2.5 py-1 rounded-lg font-semibold transition-all cursor-pointer shrink-0 flex items-center gap-1 ${
                   filters.showDeferred
                     ? 'bg-stone-700 text-white shadow-2xs'
-                    : 'bg-stone-100 dark:bg-stone-800 text-stone-400 line-through'
+                    : 'bg-stone-100 dark:bg-stone-800 text-stone-600 dark:text-stone-400 line-through'
                 }`}
               >
                 <span>⚡ 推迟唤醒</span>
@@ -485,9 +487,9 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
                 <StatusBadge status={draggedTopic.status} />
                 <PriorityBadge priority={draggedTopic.priority} />
               </div>
-              <h5 className="text-xs font-bold text-stone-900 dark:text-stone-100 line-clamp-1">
+              <div className="text-xs font-bold text-stone-900 dark:text-stone-100 line-clamp-1">
                 {draggedTopic.title}
-              </h5>
+              </div>
             </div>
           ) : null}
         </DragOverlay>

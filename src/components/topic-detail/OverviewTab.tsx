@@ -345,7 +345,7 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({
                 <Flame className="w-4 h-4" />
               </div>
               <div>
-                <h3 className="text-sm font-bold text-stone-900 dark:text-stone-100">核心看点与戏剧反差</h3>
+                <h2 className="text-sm font-bold text-stone-900 dark:text-stone-100">核心看点与戏剧反差</h2>
               </div>
             </div>
 
@@ -364,7 +364,7 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({
                 </span>
               )}
               {saveStatus === 'idle' && (
-                <span className="text-stone-400 dark:text-stone-500">自动保存已就绪</span>
+                <span className="text-stone-500 dark:text-stone-400">自动保存已就绪</span>
               )}
               {saveStatus === 'error' && (
                 <span className="text-red-600 dark:text-red-400">保存失败，请重试</span>
@@ -374,11 +374,14 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({
 
           {/* 一句话故事概念 (Core Concept) */}
           <div className="space-y-1.5">
-            <label className="block text-xs font-bold text-stone-800 dark:text-stone-200 flex items-center gap-1.5">
-              <Lightbulb className="w-3.5 h-3.5 text-amber-500" />
+            <label htmlFor="overview-summary" className="block text-xs font-bold text-stone-800 dark:text-stone-200 flex items-center gap-1.5">
+              <Lightbulb aria-hidden="true" className="w-3.5 h-3.5 text-amber-500" />
               <span>一句话看点 (Core Concept)</span>
             </label>
             <textarea
+              id="overview-summary"
+              name="summary"
+              autoComplete="off"
               rows={2}
               value={summary}
               onChange={(e) => {
@@ -393,11 +396,14 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({
 
           {/* 戏剧反差与核心钩子 (Hook & Tension) */}
           <div className="space-y-1.5">
-            <label className="block text-xs font-bold text-stone-800 dark:text-stone-200 flex items-center gap-1.5">
-              <Sparkles className="w-3.5 h-3.5 text-rose-500" />
+            <label htmlFor="overview-hook" className="block text-xs font-bold text-stone-800 dark:text-stone-200 flex items-center gap-1.5">
+              <Sparkles aria-hidden="true" className="w-3.5 h-3.5 text-rose-500" />
               <span>戏剧反差与讽刺钩子 (Hook & Contrast)</span>
             </label>
             <textarea
+              id="overview-hook"
+              name="hook"
+              autoComplete="off"
               rows={3}
               value={hook}
               onChange={(e) => {
@@ -428,6 +434,10 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({
             {isWhyNowExpanded && (
               <div className="mt-2.5 space-y-1">
                 <textarea
+                  id="overview-why-now"
+                  name="why_now"
+                  aria-label="为什么现在做 / 传播时机"
+                  autoComplete="off"
                   rows={2}
                   value={whyNow}
                   onChange={(e) => {
@@ -499,6 +509,8 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({
                   <span className="text-[10px] text-stone-400 font-normal">人物人设 / 起因交代 / 平静铺垫</span>
                 </div>
                 <textarea
+                  aria-label="第一幕：起，铺垫与暗涌"
+                  name="storyline_qi"
                   rows={2}
                   value={acts.qi}
                   onChange={(e) => handleActChange('qi', e.target.value)}
@@ -520,6 +532,8 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({
                   <span className="text-[10px] text-stone-400 font-normal">阻碍出现 / 嘴硬硬撑 / 舆论发酵</span>
                 </div>
                 <textarea
+                  aria-label="第二幕：承，发酵与失控"
+                  name="storyline_cheng"
                   rows={2}
                   value={acts.cheng}
                   onChange={(e) => handleActChange('cheng', e.target.value)}
@@ -541,6 +555,8 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({
                   <span className="text-[10px] text-stone-400 font-normal">高潮爆发 / 人设崩塌 / 滑竿名场面</span>
                 </div>
                 <textarea
+                  aria-label="第三幕：转，反转与核心名场面"
+                  name="storyline_zhuan"
                   rows={2}
                   value={acts.zhuan}
                   onChange={(e) => handleActChange('zhuan', e.target.value)}
@@ -562,6 +578,8 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({
                   <span className="text-[10px] text-stone-400 font-normal">闹剧落幕 / 时代讽刺 / 升华留白</span>
                 </div>
                 <textarea
+                  aria-label="第四幕：合，收尾与荒诞反思"
+                  name="storyline_he"
                   rows={2}
                   value={acts.he}
                   onChange={(e) => handleActChange('he', e.target.value)}
@@ -574,6 +592,8 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({
           ) : (
             <div className="space-y-2">
               <textarea
+                aria-label="起承转合故事骨架"
+                name="storyline"
                 rows={6}
                 value={storyline}
                 onChange={(e) => handleRawStorylineChange(e.target.value)}
@@ -689,8 +709,8 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({
             {/* Target Publish Date */}
             <div className="space-y-1.5">
               <div className="flex items-center justify-between">
-                <label className="text-xs font-bold text-stone-700 dark:text-stone-300 flex items-center gap-1">
-                  <Calendar className="w-3.5 h-3.5 text-rose-600 dark:text-rose-400" />
+                <label htmlFor="overview-target-publish-date" className="text-xs font-bold text-stone-700 dark:text-stone-300 flex items-center gap-1">
+                  <Calendar aria-hidden="true" className="w-3.5 h-3.5 text-rose-600 dark:text-rose-400" />
                   <span>计划发布日期</span>
                 </label>
                 {targetPublishDate && (
@@ -707,6 +727,8 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({
                 )}
               </div>
               <DateInput
+                id="overview-target-publish-date"
+                name="target_publish_date"
                 value={targetPublishDate}
                 placeholder="YYYYMMDD，如 20260831"
                 onChange={async (val) => {
@@ -744,8 +766,8 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({
             {/* Production Deadline */}
             <div className="space-y-1.5">
               <div className="flex items-center justify-between">
-                <label className="text-xs font-bold text-stone-700 dark:text-stone-300 flex items-center gap-1">
-                  <Clock className="w-3.5 h-3.5 text-amber-600 dark:text-amber-400" />
+                <label htmlFor="overview-deadline" className="text-xs font-bold text-stone-700 dark:text-stone-300 flex items-center gap-1">
+                  <Clock aria-hidden="true" className="w-3.5 h-3.5 text-amber-600 dark:text-amber-400" />
                   <span>制作截稿日</span>
                 </label>
                 {deadline && (
@@ -762,6 +784,8 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({
                 )}
               </div>
               <DateInput
+                id="overview-deadline"
+                name="deadline"
                 value={deadline}
                 placeholder="YYYYMMDD，如 20260828"
                 onChange={async (val) => {
@@ -771,7 +795,7 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({
                 className="w-full text-xs text-stone-800 dark:text-stone-100 bg-stone-500/[0.03] dark:bg-stone-800/60 border border-stone-200/60 dark:border-stone-700/60 rounded-xl p-2 focus:bg-white dark:focus:bg-stone-800 focus:border-rose-500 focus:outline-none transition-colors"
               />
               <div className="pt-0.5">
-                <span className="text-[10px] text-stone-400 dark:text-stone-500">
+                <span className="text-[10px] text-stone-500 dark:text-stone-400">
                   {deadline ? `定稿目标日: ${deadline}` : '用于内部写稿与剪辑交付倒计时'}
                 </span>
               </div>
@@ -980,12 +1004,15 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({
       >
         <form onSubmit={handleQuickCreatePerson} className="space-y-4">
           <div className="space-y-1.5">
-            <label className="block text-xs font-bold text-stone-800 dark:text-stone-200">
+            <label htmlFor="overview-person-name" className="block text-xs font-bold text-stone-800 dark:text-stone-200">
               人物姓名 / 核心昵称 <span className="text-rose-500">*</span>
             </label>
             <input
+              id="overview-person-name"
+              name="person_name"
               type="text"
               required
+              autoComplete="name"
               autoFocus
               placeholder="例如：大胃袋良子"
               value={newPersonName}
@@ -996,9 +1023,12 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div className="space-y-1.5">
-              <label className="block text-xs font-bold text-stone-800 dark:text-stone-200">核心身份 / 标签</label>
+              <label htmlFor="overview-person-identity" className="block text-xs font-bold text-stone-800 dark:text-stone-200">核心身份 / 标签</label>
               <input
+                id="overview-person-identity"
+                name="person_identity"
                 type="text"
+                autoComplete="off"
                 placeholder="例如：吃播网红 / 探店主播"
                 value={newPersonIdentity}
                 onChange={(e) => setNewPersonIdentity(e.target.value)}
@@ -1007,9 +1037,12 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({
             </div>
 
             <div className="space-y-1.5">
-              <label className="block text-xs font-bold text-stone-800 dark:text-stone-200">别名 / 外号 / 曾用名</label>
+              <label htmlFor="overview-person-aliases" className="block text-xs font-bold text-stone-800 dark:text-stone-200">别名 / 外号 / 曾用名</label>
               <input
+                id="overview-person-aliases"
+                name="person_aliases"
                 type="text"
+                autoComplete="off"
                 placeholder="例如：良子、峨眉山战神"
                 value={newPersonAliases}
                 onChange={(e) => setNewPersonAliases(e.target.value)}
@@ -1019,9 +1052,12 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({
           </div>
 
           <div className="space-y-1.5">
-            <label className="block text-xs font-bold text-stone-800 dark:text-stone-200">主要平台账号 / 粉丝量</label>
+            <label htmlFor="overview-person-accounts" className="block text-xs font-bold text-stone-800 dark:text-stone-200">主要平台账号 / 粉丝量</label>
             <input
+              id="overview-person-accounts"
+              name="person_accounts"
               type="text"
+              autoComplete="off"
               placeholder="例如：抖音 @大胃袋良子 (120w)、B站同名"
               value={newPersonAccounts}
               onChange={(e) => setNewPersonAccounts(e.target.value)}
@@ -1030,8 +1066,11 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({
           </div>
 
           <div className="space-y-1.5">
-            <label className="block text-xs font-bold text-stone-800 dark:text-stone-200">人物背景简介 / 核心特质</label>
+            <label htmlFor="overview-person-description" className="block text-xs font-bold text-stone-800 dark:text-stone-200">人物背景简介 / 核心特质</label>
             <textarea
+              id="overview-person-description"
+              name="person_description"
+              autoComplete="off"
               rows={3}
               placeholder="简要描述该人物的背景经历、公众形象、性格特质..."
               value={newPersonDesc}

@@ -32,17 +32,21 @@ export const ConfirmDialog: React.FC<ConfirmDialogProps> = ({
   const dialogRef = useRef<HTMLDivElement>(null);
   const previousFocusRef = useRef<HTMLElement | null>(null);
   const previousOverflowRef = useRef('');
+  const onCloseRef = useRef(onClose);
   const [internalLoading, setInternalLoading] = useState(false);
 
   const isLoading = externalLoading || internalLoading;
+  const isLoadingRef = useRef(isLoading);
+  onCloseRef.current = onClose;
+  isLoadingRef.current = isLoading;
 
   useEffect(() => {
     if (!isOpen) return;
 
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape' && !isLoading) {
+      if (e.key === 'Escape' && !isLoadingRef.current) {
         e.preventDefault();
-        onClose();
+        onCloseRef.current();
         return;
       }
       if (e.key !== 'Tab' || !dialogRef.current) return;
@@ -80,7 +84,7 @@ export const ConfirmDialog: React.FC<ConfirmDialogProps> = ({
       document.body.style.overflow = previousOverflowRef.current;
       previousFocusRef.current?.focus();
     };
-  }, [isOpen, isLoading, onClose]);
+  }, [isOpen]);
 
   if (!isOpen) return null;
 

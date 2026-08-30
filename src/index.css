@@ -2,6 +2,34 @@
 @tailwind components;
 @tailwind utilities;
 
+.skip-link {
+  position: fixed;
+  top: 0.75rem;
+  left: 0.75rem;
+  z-index: 200;
+  transform: translateY(-200%);
+  border-radius: 0.75rem;
+  background: #1c1917;
+  color: #fff;
+  padding: 0.75rem 1rem;
+  font-size: 0.875rem;
+  font-weight: 700;
+  box-shadow: 0 8px 24px rgb(28 25 23 / 0.2);
+  transition: transform 150ms ease-out;
+}
+
+.skip-link:focus-visible {
+  transform: translateY(0);
+  outline: 3px solid #fb7185;
+  outline-offset: 3px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .skip-link {
+    transition: none;
+  }
+}
+
 .script-citation {
   border-bottom: 2px solid rgb(251 113 133 / 0.55);
   background: rgb(255 241 242 / 0.8);

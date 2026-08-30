@@ -472,7 +472,7 @@ export const PublishedView: React.FC<PublishedViewProps> = ({
             })}
 
             {totalPublished === 0 && (
-              <div className="col-span-full p-12 text-center border-2 border-dashed border-stone-200 dark:border-stone-800 rounded-xl bg-white dark:bg-stone-900 text-stone-400 dark:text-stone-500">
+              <div className="col-span-full p-12 text-center border-2 border-dashed border-stone-200 dark:border-stone-800 rounded-xl bg-white dark:bg-stone-900 text-stone-600 dark:text-stone-400">
                 暂无已发布视频归档，制作完成发布后可在此沉淀播放与互动数据！
               </div>
             )}
@@ -508,7 +508,7 @@ export const PublishedView: React.FC<PublishedViewProps> = ({
             {/* Topic Select */}
             <div>
               <div className="flex items-center justify-between mb-1">
-                <label className="block text-xs font-semibold text-stone-700 dark:text-stone-300">
+                <label id="published-topic-label" className="block text-xs font-semibold text-stone-700 dark:text-stone-300">
                   对应选题 <span className="text-stone-400 dark:text-stone-500 font-normal">（自动过滤已关联选题）</span>
                 </label>
                 {selectableTopics.length > 0 && (
@@ -522,6 +522,7 @@ export const PublishedView: React.FC<PublishedViewProps> = ({
                 <CustomSelect
                   value={topicId}
                   ariaLabel="关联选题"
+                  ariaLabelledBy="published-topic-label"
                   onChange={(nextTopicId) => {
                     setTopicId(nextTopicId);
                     if (nextTopicId) {
@@ -579,8 +580,7 @@ export const PublishedView: React.FC<PublishedViewProps> = ({
                   onClick={() => setTopicId('')}
                   aria-label="取消关联选题"
                   title="取消关联选题"
-                  aria-hidden={!topicId}
-                  tabIndex={topicId ? 0 : -1}
+                  disabled={!topicId}
                   className={`flex h-[42px] w-[42px] shrink-0 items-center justify-center rounded-lg border border-stone-300 bg-stone-50 text-stone-400 transition-colors hover:border-red-300 hover:bg-red-50 hover:text-red-600 focus:outline-none focus:ring-2 focus:ring-rose-500/20 dark:border-stone-700 dark:bg-stone-800 dark:hover:border-red-800 dark:hover:bg-red-950/40 dark:hover:text-red-400 ${topicId ? '' : 'invisible pointer-events-none'}`}
                 >
                   <X className="h-4 w-4" aria-hidden="true" />
@@ -590,12 +590,15 @@ export const PublishedView: React.FC<PublishedViewProps> = ({
 
             {/* Quick Fetch Box */}
             <div className="bg-rose-50/50 dark:bg-rose-950/30 border border-rose-200/80 dark:border-rose-900/60 p-3 rounded-xl space-y-2">
-              <label className="block text-xs font-bold text-stone-800 dark:text-stone-200">
+              <label htmlFor="published-bvid" className="block text-xs font-bold text-stone-800 dark:text-stone-200">
                 B站 BV 号 或 视频链接
               </label>
               <div className="flex items-center gap-2">
                 <input
+                  id="published-bvid"
+                  name="bvid"
                   type="text"
+                  autoComplete="off"
                   placeholder="例如：BV1xx411c7xx 或粘贴 B站播放链接"
                   value={bvid}
                   onPaste={(e) => {
@@ -620,7 +623,7 @@ export const PublishedView: React.FC<PublishedViewProps> = ({
                       }
                     }
                   }}
-                  className="flex-1 px-3 py-1.5 bg-white dark:bg-stone-900 border border-stone-300 dark:border-stone-700 rounded-lg text-xs sm:text-sm text-stone-900 dark:text-stone-100 placeholder:text-stone-400 dark:placeholder:text-stone-500 focus:border-rose-500 dark:focus:border-rose-500 focus:outline-none font-mono"
+                   className="flex-1 px-3 py-1.5 bg-white dark:bg-stone-900 border border-stone-300 dark:border-stone-700 rounded-lg text-base text-stone-900 dark:text-stone-100 placeholder:text-stone-400 dark:placeholder:text-stone-500 focus:border-rose-500 dark:focus:border-rose-500 focus:outline-none font-mono"
                 />
                 <button
                   type="button"
@@ -643,7 +646,10 @@ export const PublishedView: React.FC<PublishedViewProps> = ({
                   <img
                     src={modalCoverUrl}
                     alt="视频封面预览"
+                    width={640}
+                    height={360}
                     referrerPolicy="no-referrer"
+                    decoding="async"
                     className="w-full h-full object-cover"
                   />
                   <div className="absolute bottom-2 left-2 px-2 py-0.5 rounded-md bg-black/60 text-white text-[11px] font-medium backdrop-blur-xs flex items-center gap-1">
@@ -670,12 +676,15 @@ export const PublishedView: React.FC<PublishedViewProps> = ({
 
             {/* Title */}
             <div>
-              <label className="block text-xs font-semibold text-stone-700 dark:text-stone-300 mb-1">
+              <label htmlFor="published-title" className="block text-xs font-semibold text-stone-700 dark:text-stone-300 mb-1">
                 最终视频标题 <span className="text-rose-600 dark:text-rose-500">*</span>
               </label>
               <input
+                id="published-title"
+                name="title"
                 type="text"
                 required
+                autoComplete="off"
                 placeholder="例如：【良子】峨眉山名场面深度复盘"
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
@@ -686,8 +695,9 @@ export const PublishedView: React.FC<PublishedViewProps> = ({
             {/* Date and URL */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div>
-                <label className="block text-xs font-semibold text-stone-700 dark:text-stone-300 mb-1">发布日期</label>
+                <label htmlFor="published-date" className="block text-xs font-semibold text-stone-700 dark:text-stone-300 mb-1">发布日期</label>
                 <DateInput
+                  id="published-date"
                   name="published_at"
                   value={publishedAt}
                   onChange={setPublishedAt}
@@ -695,9 +705,12 @@ export const PublishedView: React.FC<PublishedViewProps> = ({
                 />
               </div>
               <div>
-                <label className="block text-xs font-semibold text-stone-700 dark:text-stone-300 mb-1">成片链接</label>
+                <label htmlFor="published-url" className="block text-xs font-semibold text-stone-700 dark:text-stone-300 mb-1">成片链接</label>
                 <input
+                  id="published-url"
+                  name="url"
                   type="url"
+                  autoComplete="url"
                   placeholder="https://www.bilibili.com/video/..."
                   value={url}
                   onChange={(e) => setUrl(e.target.value)}
@@ -709,8 +722,10 @@ export const PublishedView: React.FC<PublishedViewProps> = ({
             {/* Interactive stats grid */}
             <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5 pt-1">
               <div>
-                <label className="block text-xs font-semibold text-stone-700 dark:text-stone-300 mb-1">播放量</label>
+                <label htmlFor="published-views" className="block text-xs font-semibold text-stone-700 dark:text-stone-300 mb-1">播放量</label>
                 <input
+                  id="published-views"
+                  name="views"
                   type="number"
                   inputMode="numeric"
                   min="0"
@@ -720,8 +735,10 @@ export const PublishedView: React.FC<PublishedViewProps> = ({
                 />
               </div>
               <div>
-                <label className="block text-xs font-semibold text-stone-700 dark:text-stone-300 mb-1">点赞数</label>
+                <label htmlFor="published-likes" className="block text-xs font-semibold text-stone-700 dark:text-stone-300 mb-1">点赞数</label>
                 <input
+                  id="published-likes"
+                  name="likes"
                   type="number"
                   inputMode="numeric"
                   min="0"
@@ -731,8 +748,10 @@ export const PublishedView: React.FC<PublishedViewProps> = ({
                 />
               </div>
               <div>
-                <label className="block text-xs font-semibold text-stone-700 dark:text-stone-300 mb-1">投币数</label>
+                <label htmlFor="published-coins" className="block text-xs font-semibold text-stone-700 dark:text-stone-300 mb-1">投币数</label>
                 <input
+                  id="published-coins"
+                  name="coins"
                   type="number"
                   inputMode="numeric"
                   min="0"
@@ -742,8 +761,10 @@ export const PublishedView: React.FC<PublishedViewProps> = ({
                 />
               </div>
               <div>
-                <label className="block text-xs font-semibold text-stone-700 dark:text-stone-300 mb-1">收藏数</label>
+                <label htmlFor="published-favorites" className="block text-xs font-semibold text-stone-700 dark:text-stone-300 mb-1">收藏数</label>
                 <input
+                  id="published-favorites"
+                  name="favorites"
                   type="number"
                   inputMode="numeric"
                   min="0"
@@ -753,8 +774,10 @@ export const PublishedView: React.FC<PublishedViewProps> = ({
                 />
               </div>
               <div>
-                <label className="block text-xs font-semibold text-stone-700 dark:text-stone-300 mb-1">评论数</label>
+                <label htmlFor="published-comments" className="block text-xs font-semibold text-stone-700 dark:text-stone-300 mb-1">评论数</label>
                 <input
+                  id="published-comments"
+                  name="comments"
                   type="number"
                   inputMode="numeric"
                   min="0"
@@ -767,8 +790,11 @@ export const PublishedView: React.FC<PublishedViewProps> = ({
 
             {/* Notes */}
             <div>
-              <label className="block text-xs font-semibold text-stone-700 dark:text-stone-300 mb-1">复盘心得与观众反馈</label>
+              <label htmlFor="published-notes" className="block text-xs font-semibold text-stone-700 dark:text-stone-300 mb-1">复盘心得与观众反馈</label>
               <textarea
+                id="published-notes"
+                name="notes"
+                autoComplete="off"
                 rows={3}
                 placeholder="记录本期视频哪些包袱响了、弹幕集中讨论什么、哪些地方剪辑拖沓..."
                 value={notes}

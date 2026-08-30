@@ -11,6 +11,7 @@
     "build:server": "NODE_ENV=production bun build src/server/server.ts --target=bun --format=esm --outfile=dist/server.js",
     "start": "bun dist/server.js",
     "preview": "vite preview",
+    "check:bundle": "bun scripts/checkBundleSize.ts",
     "test": "bun test",
     "test:run": "bun test",
     "test:e2e": "bun run --bun playwright test"
@@ -35,6 +36,7 @@
     "zod": "^4.4.3"
   },
   "devDependencies": {
+    "@axe-core/playwright": "^4.13.0",
     "@playwright/test": "^1.62.1",
     "@types/node": "^22.13.4",
     "@types/react": "^18.3.18",

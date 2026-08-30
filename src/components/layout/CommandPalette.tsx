@@ -86,6 +86,9 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
   const inputRef = useRef<HTMLInputElement | null>(null);
   const itemRefs = useRef<(HTMLButtonElement | null)[]>([]);
   const keyboardFocusRef = useRef(false);
+  const dialogRef = useRef<HTMLDivElement | null>(null);
+  const previousFocusRef = useRef<HTMLElement | null>(null);
+  const previousOverflowRef = useRef('');
 
   useEffect(() => {
     keyboardFocusRef.current = false;
@@ -107,6 +110,54 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
     return () => {
       window.removeEventListener('keydown', handleTabKeyDown, true);
       window.removeEventListener('pointerdown', handlePointerDown, true);
+    };
+  }, [isOpen]);
+
+  useEffect(() => {
+    if (!isOpen || !dialogRef.current) return;
+
+    previousFocusRef.current = document.activeElement instanceof HTMLElement ? document.activeElement : null;
+    previousOverflowRef.current = document.body.style.overflow;
+
+    const inertElements = new Map<HTMLElement, boolean>();
+    for (const child of Array.from(document.body.children)) {
+      const element = child as HTMLElement;
+      if (element.contains(dialogRef.current)) continue;
+      inertElements.set(element, element.inert);
+      element.inert = true;
+    }
+
+    const handleTabKeyDown = (event: KeyboardEvent) => {
+      if (event.key !== 'Tab' || !dialogRef.current) return;
+      const focusable = Array.from(dialogRef.current.querySelectorAll<HTMLElement>(
+        'button:not([disabled]), [href], input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])'
+      ));
+      if (focusable.length === 0) {
+        event.preventDefault();
+        dialogRef.current.focus();
+        return;
+      }
+      const first = focusable[0];
+      const last = focusable[focusable.length - 1];
+      if (event.shiftKey && document.activeElement === first) {
+        event.preventDefault();
+        last.focus();
+      } else if (!event.shiftKey && document.activeElement === last) {
+        event.preventDefault();
+        first.focus();
+      }
+    };
+
+    document.addEventListener('keydown', handleTabKeyDown);
+    document.body.style.overflow = 'hidden';
+    const focusFrame = requestAnimationFrame(() => inputRef.current?.focus());
+
+    return () => {
+      cancelAnimationFrame(focusFrame);
+      document.removeEventListener('keydown', handleTabKeyDown);
+      document.body.style.overflow = previousOverflowRef.current;
+      for (const [element, wasInert] of inertElements) element.inert = wasInert;
+      previousFocusRef.current?.focus();
     };
   }, [isOpen]);
 
@@ -176,7 +227,7 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
       category: 'help',
       categoryLabel: '全局快捷键',
       title: 'Ctrl / Cmd + /',
-      subtitle: '全局呼出此指令面板（任何输入框、正文聚焦或专注全屏均可用）',
+      subtitle: '全局呼出此指令面板（非输入控件聚焦时可用；输入框内不会触发）',
       keywords: ['ctrl+/', 'cmd+/', '快捷键', '搜索', '指令'],
       icon: Keyboard,
       onSelect: () => onClose(),
@@ -761,6 +812,7 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
 
       {/* Palette Modal */}
       <div
+        ref={dialogRef}
         role="dialog"
         aria-modal="true"
         aria-label="全局指令搜索面板"
@@ -769,10 +821,11 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
       >
         {/* Search Input Header */}
         <div className="flex items-center px-4 py-3.5 border-b border-stone-200/70 dark:border-stone-800 bg-stone-50/50 dark:bg-stone-900/90">
-          <Search className="w-5 h-5 text-stone-400 dark:text-stone-500 mr-3 shrink-0" />
+          <Search className="w-5 h-5 text-stone-500 dark:text-stone-400 mr-3 shrink-0" />
           <input
             ref={inputRef}
             type="search"
+            aria-label="搜索指令和选题"
             enterKeyHint="search"
             autoComplete="off"
             autoCorrect="off"
@@ -802,7 +855,7 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
 
         {/* Mode Quick Filter Chips */}
         <div className="px-4 py-2 bg-stone-500/[0.03] dark:bg-stone-800/60 border-b border-stone-200/60 dark:border-stone-700/60 flex items-center gap-1.5 overflow-x-auto no-scrollbar text-xs font-semibold transition-colors">
-          <span className="text-stone-400 dark:text-stone-500 text-[10px] uppercase font-bold tracking-wider mr-1 shrink-0">模式:</span>
+          <span className="text-stone-500 dark:text-stone-400 text-[10px] uppercase font-bold tracking-wider mr-1 shrink-0">模式:</span>
           <button
             type="button"
             onClick={() => handleSetPrefix('')}
@@ -871,7 +924,7 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
             return (
               <React.Fragment key={item.id}>
                 {isNewCategory && (
-                  <div className="pt-2.5 pb-1 px-3 text-[10px] font-bold text-stone-400 dark:text-stone-500 uppercase tracking-wider flex items-center justify-between">
+                  <div className="pt-2.5 pb-1 px-3 text-[10px] font-bold text-stone-500 dark:text-stone-400 uppercase tracking-wider flex items-center justify-between">
                     <span>{item.categoryLabel}</span>
                   </div>
                 )}
@@ -904,7 +957,7 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
                       </div>
 
                       {item.subtitle && (
-                        <div className="text-xs text-stone-400 dark:text-stone-500 group-hover:text-stone-500 dark:group-hover:text-stone-400 truncate mt-0.5 font-normal">
+                        <div className="text-xs text-stone-500 dark:text-stone-400 group-hover:text-stone-600 dark:group-hover:text-stone-300 truncate mt-0.5 font-normal">
                           {item.subtitle}
                         </div>
                       )}
@@ -925,9 +978,9 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
           })}
 
           {items.length === 0 && (
-            <div className="py-12 text-center text-stone-400 dark:text-stone-500 space-y-1">
+            <div className="py-12 text-center text-stone-500 dark:text-stone-400 space-y-1">
               <div className="text-sm font-medium">没有找到匹配项</div>
-              <div className="text-xs text-stone-400 dark:text-stone-500">
+              <div className="text-xs text-stone-500 dark:text-stone-400">
                 可尝试输入 <strong className="text-stone-600 dark:text-stone-300">#</strong> 查赛道、<strong className="text-stone-600 dark:text-stone-300">@</strong> 查人物、<strong className="text-stone-600 dark:text-stone-300">&gt;</strong> 执行动作、<strong className="text-stone-600 dark:text-stone-300">?</strong> 查看快捷键
               </div>
             </div>
@@ -952,7 +1005,7 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
             </span>
           </div>
 
-          <div className="text-stone-400 dark:text-stone-500 text-[10px] font-mono">
+          <div className="text-stone-500 dark:text-stone-400 text-[10px] font-mono">
             共 {items.length} 个可用指令与资源
           </div>
         </div>

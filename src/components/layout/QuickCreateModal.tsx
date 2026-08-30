@@ -151,13 +151,16 @@ export const QuickCreateModal: React.FC<QuickCreateModalProps> = ({
       <form onSubmit={handleSubmit} className="space-y-4">
         {/* Title */}
         <div>
-          <label className="block text-sm font-semibold text-stone-900 dark:text-stone-100 mb-1.5">
+          <label htmlFor="quick-create-title" className="block text-sm font-semibold text-stone-900 dark:text-stone-100 mb-1.5">
             选题标题 <span className="text-rose-600 dark:text-rose-500">*</span>
           </label>
           <input
+            id="quick-create-title"
+            name="title"
             type="text"
             required
             autoFocus
+            autoComplete="off"
             placeholder="例如：大胃袋良子：峨眉山减肥大溃败"
             value={title}
             onChange={(e) => setTitle(e.target.value)}
@@ -167,43 +170,50 @@ export const QuickCreateModal: React.FC<QuickCreateModalProps> = ({
 
         {/* Summary (Optional) */}
         <div>
-          <label className="block text-xs font-semibold text-stone-700 dark:text-stone-300 mb-1">
-            一句话看点 / 核心描述 <span className="text-stone-400 dark:text-stone-500 font-normal">(可选)</span>
+          <label htmlFor="quick-create-summary" className="block text-xs font-semibold text-stone-700 dark:text-stone-300 mb-1">
+            一句话看点 / 核心描述 <span className="text-stone-500 dark:text-stone-400 font-normal">(可选)</span>
           </label>
           <textarea
+            id="quick-create-summary"
+            name="summary"
+            autoComplete="off"
             rows={2}
             placeholder="用一句话说明视频在讲什么，例如：屡次减肥失败的网红，再一次试图证明自己..."
             value={summary}
             onChange={(e) => setSummary(e.target.value)}
-            className="w-full px-3.5 py-2.5 bg-stone-500/[0.03] dark:bg-stone-800 border border-stone-200/80 dark:border-stone-700 rounded-xl text-stone-900 dark:text-stone-100 text-sm focus:bg-white dark:focus:bg-stone-800 focus:border-rose-500 focus:outline-none transition-colors placeholder:text-stone-400 dark:placeholder:text-stone-500 resize-none"
+            className="w-full px-3.5 py-2.5 bg-stone-500/[0.03] dark:bg-stone-800 border border-stone-200/80 dark:border-stone-700 rounded-xl text-stone-900 dark:text-stone-100 text-base focus:bg-white dark:focus:bg-stone-800 focus:border-rose-500 focus:outline-none transition-colors placeholder:text-stone-400 dark:placeholder:text-stone-500 resize-none"
           />
         </div>
 
         {/* Next Action (Optional) */}
         <div>
-          <label className="block text-xs font-semibold text-stone-700 dark:text-stone-300 mb-1">
-            当前下一步行动 <span className="text-stone-400 dark:text-stone-500 font-normal">(可选，明确接下来做什么)</span>
+          <label htmlFor="quick-create-next-action" className="block text-xs font-semibold text-stone-700 dark:text-stone-300 mb-1">
+            当前下一步行动 <span className="text-stone-500 dark:text-stone-400 font-normal">(可选，明确接下来做什么)</span>
           </label>
           <input
+            id="quick-create-next-action"
+            name="next_action"
             type="text"
+            autoComplete="off"
             placeholder="例如：寻找第一次训练营逃跑原片"
             value={nextAction}
             onChange={(e) => setNextAction(e.target.value)}
-            className="w-full px-3.5 py-2.5 bg-stone-500/[0.03] dark:bg-stone-800 border border-stone-200/80 dark:border-stone-700 rounded-xl text-stone-900 dark:text-stone-100 text-sm focus:bg-white dark:focus:bg-stone-800 focus:border-rose-500 focus:outline-none transition-colors placeholder:text-stone-400 dark:placeholder:text-stone-500"
+            className="w-full px-3.5 py-2.5 bg-stone-500/[0.03] dark:bg-stone-800 border border-stone-200/80 dark:border-stone-700 rounded-xl text-stone-900 dark:text-stone-100 text-base focus:bg-white dark:focus:bg-stone-800 focus:border-rose-500 focus:outline-none transition-colors placeholder:text-stone-400 dark:placeholder:text-stone-500"
           />
         </div>
 
         {/* Priority Selector (Redesigned Aesthetic Segments) */}
-        <div>
-          <label className="block text-xs font-semibold text-stone-700 dark:text-stone-300 mb-1.5">
-            优先级设定
-          </label>
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+          <div>
+            <div id="quick-create-priority-label" className="block text-xs font-semibold text-stone-700 dark:text-stone-300 mb-1.5">
+              优先级设定
+            </div>
+            <div role="radiogroup" aria-labelledby="quick-create-priority-label" className="grid grid-cols-2 sm:grid-cols-4 gap-2">
             {priorityOptions.map((opt) => {
               const isSelected = priority === opt.value;
               return (
                 <button
                   type="button"
+                  aria-pressed={isSelected}
                   key={opt.value}
                   onClick={() => setPriority(opt.value)}
                   className={`flex items-center justify-center py-2.5 px-2.5 rounded-xl text-xs border transition-all cursor-pointer ${
@@ -222,28 +232,32 @@ export const QuickCreateModal: React.FC<QuickCreateModalProps> = ({
         {/* Schedule & Deadline (Optional) */}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <div>
-            <label className="block text-xs font-semibold text-stone-700 dark:text-stone-300 mb-1 flex items-center gap-1">
-              <Calendar className="w-3.5 h-3.5 text-rose-500" />
+            <label htmlFor="quick-create-target-publish-date" className="block text-xs font-semibold text-stone-700 dark:text-stone-300 mb-1 flex items-center gap-1">
+              <Calendar aria-hidden="true" className="w-3.5 h-3.5 text-rose-500" />
               <span>计划发布日期 (选填)</span>
             </label>
             <DateInput
               value={targetPublishDate}
+              id="quick-create-target-publish-date"
+              name="target_publish_date"
               placeholder="YYYYMMDD，例如 20260831"
               onChange={(val) => setTargetPublishDate(val)}
-              className="w-full px-3 py-2 bg-stone-500/[0.03] dark:bg-stone-800 border border-stone-200/80 dark:border-stone-700 rounded-xl text-stone-900 dark:text-stone-100 text-xs focus:bg-white dark:focus:bg-stone-800 focus:border-rose-500 focus:outline-none transition-colors"
+              className="w-full px-3 py-2 bg-stone-500/[0.03] dark:bg-stone-800 border border-stone-200/80 dark:border-stone-700 rounded-xl text-stone-900 dark:text-stone-100 text-base focus:bg-white dark:focus:bg-stone-800 focus:border-rose-500 focus:outline-none transition-colors"
             />
           </div>
 
           <div>
-            <label className="block text-xs font-semibold text-stone-700 dark:text-stone-300 mb-1 flex items-center gap-1">
-              <Clock className="w-3.5 h-3.5 text-amber-500" />
+            <label htmlFor="quick-create-deadline" className="block text-xs font-semibold text-stone-700 dark:text-stone-300 mb-1 flex items-center gap-1">
+              <Clock aria-hidden="true" className="w-3.5 h-3.5 text-amber-500" />
               <span>制作截稿日 (选填)</span>
             </label>
             <DateInput
               value={deadline}
+              id="quick-create-deadline"
+              name="deadline"
               placeholder="YYYYMMDD，例如 20260828"
               onChange={(val) => setDeadline(val)}
-              className="w-full px-3 py-2 bg-stone-500/[0.03] dark:bg-stone-800 border border-stone-200/80 dark:border-stone-700 rounded-xl text-stone-900 dark:text-stone-100 text-xs focus:bg-white dark:focus:bg-stone-800 focus:border-rose-500 focus:outline-none transition-colors"
+              className="w-full px-3 py-2 bg-stone-500/[0.03] dark:bg-stone-800 border border-stone-200/80 dark:border-stone-700 rounded-xl text-stone-900 dark:text-stone-100 text-base focus:bg-white dark:focus:bg-stone-800 focus:border-rose-500 focus:outline-none transition-colors"
             />
           </div>
         </div>
@@ -251,11 +265,11 @@ export const QuickCreateModal: React.FC<QuickCreateModalProps> = ({
         {/* Tags Management */}
         <div className="space-y-2 pt-1">
           <div className="flex items-center justify-between">
-            <label className="text-xs font-semibold text-stone-700 dark:text-stone-300 flex items-center gap-1.5">
-              <TagIcon className="w-3.5 h-3.5 text-stone-500" />
+            <label htmlFor="quick-create-custom-tag" className="text-xs font-semibold text-stone-700 dark:text-stone-300 flex items-center gap-1.5">
+              <TagIcon aria-hidden="true" className="w-3.5 h-3.5 text-stone-500" />
               <span>分类标签</span>
             </label>
-            <span className="text-[11px] text-stone-400 dark:text-stone-500 font-mono">已选 {selectedTagNames.length} 个</span>
+            <span className="text-[11px] text-stone-500 dark:text-stone-400 font-mono">已选 {selectedTagNames.length} 个</span>
           </div>
 
           {/* 1. Selected Tags */}
@@ -270,22 +284,23 @@ export const QuickCreateModal: React.FC<QuickCreateModalProps> = ({
                   <button
                     type="button"
                     onClick={() => removeSelectedTag(name)}
+                    aria-label={`移除标签 ${name}`}
                     className="text-stone-400 dark:text-rose-200 hover:text-white p-0.5 rounded-full transition-colors cursor-pointer"
                     title="移除标签"
                   >
-                    <X className="w-3 h-3" />
+                    <X aria-hidden="true" className="w-3 h-3" />
                   </button>
                 </span>
               ))
             ) : (
-              <span className="text-xs text-stone-400 dark:text-stone-500 italic">暂未选择标签（可点击下方候选或输入自定义标签）</span>
+              <span className="text-xs text-stone-500 dark:text-stone-400 italic">暂未选择标签（可点击下方候选或输入自定义标签）</span>
             )}
           </div>
 
           {/* 2. Available Tag Pool (Click to add) */}
           {unselectedAvailableTags.length > 0 && (
             <div className="flex flex-wrap items-center gap-1.5 pt-1">
-              <span className="text-[11px] text-stone-400 dark:text-stone-500 font-medium">推荐标签：</span>
+              <span className="text-[11px] text-stone-500 dark:text-stone-400 font-medium">推荐标签：</span>
               {unselectedAvailableTags.map((t) => (
                 <button
                   type="button"
@@ -293,7 +308,7 @@ export const QuickCreateModal: React.FC<QuickCreateModalProps> = ({
                   onClick={() => addTag(t.name)}
                   className="px-2.5 py-0.5 rounded-full text-xs bg-white dark:bg-stone-800 text-stone-600 dark:text-stone-300 border border-stone-200/70 dark:border-stone-700 hover:border-rose-400 hover:text-rose-600 transition-colors flex items-center gap-0.5 cursor-pointer shadow-2xs"
                 >
-                  <span className="text-stone-400 dark:text-stone-500">+</span>
+                  <span className="text-stone-500 dark:text-stone-400">+</span>
                   <span>#{t.name}</span>
                 </button>
               ))}
@@ -303,7 +318,11 @@ export const QuickCreateModal: React.FC<QuickCreateModalProps> = ({
           {/* 3. Custom Tag Input */}
           <div className="flex items-center gap-1.5 pt-1">
             <input
+              id="quick-create-custom-tag"
+              name="custom_tag"
               type="text"
+              autoComplete="off"
+              aria-label="输入自定义标签"
               placeholder="输入自定义标签名称 (按回车或点添加)..."
               value={newTagInput}
               onChange={(e) => setNewTagInput(e.target.value)}
@@ -313,7 +332,7 @@ export const QuickCreateModal: React.FC<QuickCreateModalProps> = ({
                   handleAddCustomTag();
                 }
               }}
-              className="px-3.5 py-2 bg-stone-500/[0.03] dark:bg-stone-800 border border-stone-200/80 dark:border-stone-700 rounded-xl text-xs text-stone-900 dark:text-stone-100 placeholder:text-stone-400 focus:bg-white dark:focus:bg-stone-800 focus:outline-none focus:border-rose-500 flex-1 transition-colors"
+              className="px-3.5 py-2 bg-stone-500/[0.03] dark:bg-stone-800 border border-stone-200/80 dark:border-stone-700 rounded-xl text-base text-stone-900 dark:text-stone-100 placeholder:text-stone-400 focus:bg-white dark:focus:bg-stone-800 focus:outline-none focus:border-rose-500 flex-1 transition-colors"
             />
             <button
               type="button"
@@ -340,7 +359,7 @@ export const QuickCreateModal: React.FC<QuickCreateModalProps> = ({
             disabled={!title.trim() || isSubmitting}
             className="px-5 py-2 text-xs bg-rose-600 hover:bg-rose-700 active:scale-[0.98] text-white rounded-xl font-bold transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1.5 shadow-2xs cursor-pointer"
           >
-            <Plus className="w-4 h-4 stroke-[2.5]" />
+            <Plus aria-hidden="true" className="w-4 h-4 stroke-[2.5]" />
             <span>{isSubmitting ? '创建中...' : '立即创建'}</span>
           </button>
         </div>

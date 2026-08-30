@@ -103,6 +103,12 @@ async function mockWorkspace(page: Page, options: { includeCalendarContent?: boo
       }),
     });
   });
+  await page.route('**/api/today/focus', async (route) => {
+    await route.fulfill({
+      contentType: 'application/json',
+      body: JSON.stringify({ topics: [], total_active: 0 }),
+    });
+  });
   await page.route('**/api/topics/trash', async (route) => {
     await route.fulfill({ contentType: 'application/json', body: '[]' });
   });
@@ -285,7 +291,11 @@ test('直接打开商单详情时返回按钮回退到商单中心', async ({ pa
 
 test('日历各类事项跳转后都能返回原周视图', async ({ page }) => {
   const pageErrors: Error[] = [];
+  const bootstrapUrls: string[] = [];
   page.on('pageerror', (error) => pageErrors.push(error));
+  page.on('request', (request) => {
+    if (request.url().includes('/api/bootstrap')) bootstrapUrls.push(request.url());
+  });
   await mockWorkspace(page, { includeCalendarContent: true });
   await login(page);
 
@@ -293,6 +303,14 @@ test('日历各类事项跳转后都能返回原周视图', async ({ page }) => 
   const backBarHeights: number[] = [];
   await page.goto(calendarUrl);
   await expect(page.getByRole('heading', { name: '选题日历', exact: true })).toBeVisible();
+  expect(bootstrapUrls.some((url) => {
+    const parsed = new URL(url);
+    return parsed.pathname === '/api/bootstrap' && parsed.searchParams.get('scope') === 'core';
+  })).toBe(true);
+
+  await page.reload();
+  await expect(page.getByRole('heading', { name: '选题日历', exact: true })).toBeVisible();
+  await expect(page.locator('[data-testid="calendar-event"][data-calendar-event-type="planned_publish"]').filter({ hasText: calendarTopic.title })).toBeVisible();
 
   for (const eventType of ['planned_publish', 'deadline', 'deferred_action']) {
     const event = page.locator(`[data-testid="calendar-event"][data-calendar-event-type="${eventType}"]`).filter({ hasText: calendarTopic.title });

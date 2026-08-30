@@ -186,10 +186,10 @@ export const CalendarEventPill: React.FC<CalendarEventPillProps> = ({
             <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-indigo-600 text-white">商单交付</span>
           )}
           {event.type === 'deadline' && (
-            <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-600 text-white">制作截止</span>
+            <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-700 text-white">制作截止</span>
           )}
           {event.type === 'published' && (
-            <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-600 text-white">已上线</span>
+            <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-700 text-white">已上线</span>
           )}
           {event.type === 'deferred_action' && (
             <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-stone-600 text-white">行动唤醒</span>
@@ -199,9 +199,9 @@ export const CalendarEventPill: React.FC<CalendarEventPillProps> = ({
         {event.priority && <PriorityBadge priority={event.priority} />}
       </div>
 
-      <h5 data-testid="calendar-event-title" className="min-w-0 text-sm font-bold leading-snug text-stone-900 dark:text-stone-100 line-clamp-2">
+      <div data-testid="calendar-event-title" className="min-w-0 text-sm font-bold leading-snug text-stone-900 dark:text-stone-100 line-clamp-2">
         {event.title}
-      </h5>
+      </div>
 
       {event.subtitle && (
         <p className="text-xs text-stone-500 dark:text-stone-400 mt-1 line-clamp-1">

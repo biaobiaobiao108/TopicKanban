@@ -151,6 +151,10 @@ export const PeopleTab: React.FC<PeopleTabProps> = ({
                       <img
                         src={sanitizeExternalHttpUrl(person.avatar_url)}
                         alt={person.name}
+                        width={40}
+                        height={40}
+                        loading="lazy"
+                        decoding="async"
                         className="w-10 h-10 rounded-full object-cover border border-stone-200 dark:border-stone-700"
                       />
                     ) : (

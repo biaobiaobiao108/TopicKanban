@@ -203,6 +203,10 @@ export const PeopleView: React.FC<PeopleViewProps> = ({
           <Search className="w-4 h-4 text-stone-400 dark:text-stone-500 absolute left-3.5 top-1/2 -translate-y-1/2" />
           <input
             type="text"
+            id="people-search"
+            name="people_search"
+            aria-label="搜索人物"
+            autoComplete="off"
             placeholder="搜索人物姓名、身份、别名或语录..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
@@ -233,6 +237,10 @@ export const PeopleView: React.FC<PeopleViewProps> = ({
                         <img
                           src={safeAvatarUrl}
                           alt={person.name}
+                          width={48}
+                          height={48}
+                          loading="lazy"
+                          decoding="async"
                           className="w-12 h-12 rounded-2xl object-cover border border-stone-200/70 dark:border-stone-700 shadow-2xs shrink-0"
                         />
                       ) : (
@@ -254,18 +262,22 @@ export const PeopleView: React.FC<PeopleViewProps> = ({
 
                     <div className="flex items-center gap-1 shrink-0">
                       <button
+                        type="button"
                         onClick={() => openEditPersonModal(person)}
+                        aria-label={`编辑人物档案：${person.name}`}
                         className="p-1.5 text-stone-400 dark:text-stone-500 hover:text-stone-700 dark:hover:text-stone-300 rounded-lg hover:bg-stone-100 dark:hover:bg-stone-800 cursor-pointer transition-colors"
                         title="编辑人物档案"
                       >
-                        <Edit2 className="w-4 h-4" />
+                        <Edit2 aria-hidden="true" className="w-4 h-4" />
                       </button>
                       <button
+                        type="button"
                         onClick={() => setDeletingPerson(person)}
+                        aria-label={`删除人物档案：${person.name}`}
                         className="p-1.5 text-stone-400 dark:text-stone-500 hover:text-red-600 dark:hover:text-red-400 rounded-lg hover:bg-red-50 dark:hover:bg-red-950/40 cursor-pointer transition-colors"
                         title="删除人物档案"
                       >
-                        <Trash2 className="w-4 h-4" />
+                        <Trash2 aria-hidden="true" className="w-4 h-4" />
                       </button>
                     </div>
                   </div>
@@ -336,7 +348,7 @@ export const PeopleView: React.FC<PeopleViewProps> = ({
           })}
 
           {filteredPeople.length === 0 && !peoplePageQuery.isFetching && (
-            <div className="col-span-full p-12 text-center border-2 border-dashed border-stone-200/80 dark:border-stone-800 rounded-2xl bg-white dark:bg-stone-900 text-stone-400 dark:text-stone-500">
+            <div className="col-span-full p-12 text-center border-2 border-dashed border-stone-200/80 dark:border-stone-800 rounded-2xl bg-white dark:bg-stone-900 text-stone-600 dark:text-stone-400">
               暂无人物档案记录，点击右上角新建人物！
             </div>
           )}
@@ -359,12 +371,15 @@ export const PeopleView: React.FC<PeopleViewProps> = ({
         >
           <form onSubmit={handlePersonSubmit} className="space-y-4">
             <div>
-              <label className="block text-xs font-bold text-stone-800 dark:text-stone-200 mb-1">
+              <label htmlFor="person-name" className="block text-xs font-bold text-stone-800 dark:text-stone-200 mb-1">
                 姓名 / 核心称呼 <span className="text-rose-600">*</span>
               </label>
               <input
+                id="person-name"
+                name="name"
                 type="text"
                 required
+                autoComplete="name"
                 placeholder="例如：大胃袋良子"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
@@ -374,9 +389,12 @@ export const PeopleView: React.FC<PeopleViewProps> = ({
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div>
-                <label className="block text-xs font-bold text-stone-800 dark:text-stone-200 mb-1">常用昵称 / 别名</label>
+                <label htmlFor="person-aliases" className="block text-xs font-bold text-stone-800 dark:text-stone-200 mb-1">常用昵称 / 别名</label>
                 <input
+                  id="person-aliases"
+                  name="aliases"
                   type="text"
+                  autoComplete="off"
                   placeholder="良子, 峨眉山战神"
                   value={aliases}
                   onChange={(e) => setAliases(e.target.value)}
@@ -384,9 +402,12 @@ export const PeopleView: React.FC<PeopleViewProps> = ({
                 />
               </div>
               <div>
-                <label className="block text-xs font-bold text-stone-800 dark:text-stone-200 mb-1">身份标签</label>
+                <label htmlFor="person-identity" className="block text-xs font-bold text-stone-800 dark:text-stone-200 mb-1">身份标签</label>
                 <input
+                  id="person-identity"
+                  name="identity"
                   type="text"
+                  autoComplete="off"
                   placeholder="吃播博主 / 健身教练"
                   value={identity}
                   onChange={(e) => setIdentity(e.target.value)}
@@ -396,9 +417,12 @@ export const PeopleView: React.FC<PeopleViewProps> = ({
             </div>
 
             <div>
-              <label className="block text-xs font-bold text-stone-800 dark:text-stone-200 mb-1">头像图片 URL</label>
+              <label htmlFor="person-avatar-url" className="block text-xs font-bold text-stone-800 dark:text-stone-200 mb-1">头像图片 URL</label>
               <input
+                id="person-avatar-url"
+                name="avatar_url"
                 type="url"
+                autoComplete="url"
                 placeholder="https://..."
                 value={avatarUrl}
                 onChange={(e) => setAvatarUrl(e.target.value)}
@@ -407,9 +431,12 @@ export const PeopleView: React.FC<PeopleViewProps> = ({
             </div>
 
             <div>
-              <label className="block text-xs font-bold text-stone-800 dark:text-stone-200 mb-1">主要平台与账号</label>
+              <label htmlFor="person-platform-accounts" className="block text-xs font-bold text-stone-800 dark:text-stone-200 mb-1">主要平台与账号</label>
               <input
+                id="person-platform-accounts"
+                name="platform_accounts"
                 type="text"
+                autoComplete="off"
                 placeholder="抖音: @良子大胃袋 (280w), B站: @良子吃不饱"
                 value={platformAccounts}
                 onChange={(e) => setPlatformAccounts(e.target.value)}
@@ -418,9 +445,12 @@ export const PeopleView: React.FC<PeopleViewProps> = ({
             </div>
 
             <div>
-              <label className="block text-xs font-bold text-stone-800 dark:text-stone-200 mb-1">经典名言 / 代表语录</label>
+              <label htmlFor="person-quotes" className="block text-xs font-bold text-stone-800 dark:text-stone-200 mb-1">经典名言 / 代表语录</label>
               <input
+                id="person-quotes"
+                name="quotes"
                 type="text"
+                autoComplete="off"
                 placeholder="“这次上峨眉山，我不是来旅游的...”"
                 value={quotes}
                 onChange={(e) => setQuotes(e.target.value)}
@@ -429,8 +459,11 @@ export const PeopleView: React.FC<PeopleViewProps> = ({
             </div>
 
             <div>
-              <label className="block text-xs font-bold text-stone-800 dark:text-stone-200 mb-1">一句话人物生平与人设简介</label>
+              <label htmlFor="person-description" className="block text-xs font-bold text-stone-800 dark:text-stone-200 mb-1">一句话人物生平与人设简介</label>
               <textarea
+                id="person-description"
+                name="description"
+                autoComplete="off"
                 rows={3}
                 placeholder="记录该人物的行为特征、性格反差与过往核心黑历史..."
                 value={description}
@@ -467,22 +500,24 @@ export const PeopleView: React.FC<PeopleViewProps> = ({
           <form onSubmit={handleRelSubmit} className="space-y-4">
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div>
-                <label className="block text-xs font-bold text-stone-800 dark:text-stone-200 mb-1">人物 A</label>
+                <label id="relationship-person-a-label" className="block text-xs font-bold text-stone-800 dark:text-stone-200 mb-1">人物 A</label>
                 <CustomSelect
                   value={relPersonA}
                   onChange={(val) => setRelPersonA(val)}
                   ariaLabel="人物 A"
+                  ariaLabelledBy="relationship-person-a-label"
                   className="w-full"
                   buttonClassName="w-full justify-between py-2 text-sm bg-stone-500/[0.03] dark:bg-stone-800 border-stone-200/80 dark:border-stone-700 rounded-xl"
                   options={peopleOptions.map((p) => ({ value: p.id, label: p.name }))}
                 />
               </div>
               <div>
-                <label className="block text-xs font-bold text-stone-800 dark:text-stone-200 mb-1">人物 B</label>
+                <label id="relationship-person-b-label" className="block text-xs font-bold text-stone-800 dark:text-stone-200 mb-1">人物 B</label>
                 <CustomSelect
                   value={relPersonB}
                   onChange={(val) => setRelPersonB(val)}
                   ariaLabel="人物 B"
+                  ariaLabelledBy="relationship-person-b-label"
                   className="w-full"
                   buttonClassName="w-full justify-between py-2 text-sm bg-stone-500/[0.03] dark:bg-stone-800 border-stone-200/80 dark:border-stone-700 rounded-xl"
                   options={peopleOptions.map((p) => ({ value: p.id, label: p.name }))}
@@ -491,12 +526,15 @@ export const PeopleView: React.FC<PeopleViewProps> = ({
             </div>
 
             <div>
-              <label className="block text-xs font-bold text-stone-800 dark:text-stone-200 mb-1">
+              <label htmlFor="relationship-name" className="block text-xs font-bold text-stone-800 dark:text-stone-200 mb-1">
                 关系定性 <span className="text-rose-600">*</span>
               </label>
               <input
+                id="relationship-name"
+                name="relationship_name"
                 type="text"
                 required
+                autoComplete="off"
                 placeholder="例如：师徒反目 / 商业对手 / 前合伙人"
                 value={relName}
                 onChange={(e) => setRelName(e.target.value)}
@@ -505,8 +543,11 @@ export const PeopleView: React.FC<PeopleViewProps> = ({
             </div>
 
             <div>
-              <label className="block text-xs font-bold text-stone-800 dark:text-stone-200 mb-1">关系背景补充说明</label>
+              <label htmlFor="relationship-description" className="block text-xs font-bold text-stone-800 dark:text-stone-200 mb-1">关系背景补充说明</label>
               <textarea
+                id="relationship-description"
+                name="relationship_description"
+                autoComplete="off"
                 rows={2}
                 placeholder="简要说明双方爆发冲突或合作的关键时间点与事件..."
                 value={relDesc}

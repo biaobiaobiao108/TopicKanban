@@ -216,6 +216,10 @@ export const SourcesTab: React.FC<SourcesTabProps> = ({
             <Search className="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-stone-400 dark:text-stone-500" />
             <input
               type="text"
+              id="sources-search"
+              name="sources_search"
+              aria-label="搜索素材"
+              autoComplete="off"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="搜索素材标题、内容、备忘..."
@@ -223,7 +227,9 @@ export const SourcesTab: React.FC<SourcesTabProps> = ({
             />
             {searchQuery && (
               <button
+                type="button"
                 onClick={() => setSearchQuery('')}
+                aria-label="清除素材搜索"
                 className="absolute right-2.5 top-1/2 -translate-y-1/2 text-stone-400 hover:text-stone-600 dark:hover:text-stone-200 cursor-pointer"
               >
                 <X className="w-3.5 h-3.5" />
@@ -441,7 +447,12 @@ export const SourcesTab: React.FC<SourcesTabProps> = ({
               </div>
               <div className="flex items-center gap-2">
                 <input
+                  id="source-smart-paste"
+                  name="smart_source_url"
                   type="text"
+                  aria-label="粘贴 B站或 YouTube 链接以识别素材"
+                  autoComplete="url"
+                  inputMode="url"
                   value={smartPasteInput}
                   onChange={(e) => setSmartPasteInput(e.target.value)}
                   onPaste={(e) => {
@@ -471,12 +482,15 @@ export const SourcesTab: React.FC<SourcesTabProps> = ({
           )}
 
           <div>
-            <label className="block text-xs font-semibold text-stone-700 dark:text-stone-300 mb-1">
+            <label htmlFor="source-title" className="block text-xs font-semibold text-stone-700 dark:text-stone-300 mb-1">
               素材标题 <span className="text-rose-600">*</span>
             </label>
             <input
+              id="source-title"
+              name="source_title"
               type="text"
               required
+              autoComplete="off"
               placeholder="例如：良子出征誓师直播录屏"
               value={title}
               onChange={(e) => setTitle(e.target.value)}
@@ -486,11 +500,12 @@ export const SourcesTab: React.FC<SourcesTabProps> = ({
 
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="block text-xs font-semibold text-stone-700 dark:text-stone-300 mb-1">来源平台</label>
+              <label id="source-platform-label" className="block text-xs font-semibold text-stone-700 dark:text-stone-300 mb-1">来源平台</label>
               <CustomSelect
                 value={platform}
                 onChange={(val) => setPlatform(val as PlatformType)}
                 ariaLabel="来源平台"
+                ariaLabelledBy="source-platform-label"
                 className="w-full"
                 buttonClassName="w-full justify-between py-2 text-sm bg-stone-50 dark:bg-stone-800 border-stone-300 dark:border-stone-700 rounded-lg"
                 options={[
@@ -510,9 +525,12 @@ export const SourcesTab: React.FC<SourcesTabProps> = ({
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-stone-700 dark:text-stone-300 mb-1">原作者 / 发布者</label>
+              <label htmlFor="source-author" className="block text-xs font-semibold text-stone-700 dark:text-stone-300 mb-1">原作者 / 发布者</label>
               <input
+                id="source-author"
+                name="source_author"
                 type="text"
+                autoComplete="name"
                 placeholder="例如：良子官方录播组"
                 value={author}
                 onChange={(e) => setAuthor(e.target.value)}
@@ -523,9 +541,12 @@ export const SourcesTab: React.FC<SourcesTabProps> = ({
 
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="block text-xs font-semibold text-stone-700 dark:text-stone-300 mb-1">来源 URL 链接</label>
+              <label htmlFor="source-url" className="block text-xs font-semibold text-stone-700 dark:text-stone-300 mb-1">来源 URL 链接</label>
               <input
+                id="source-url"
+                name="source_url"
                 type="url"
+                autoComplete="url"
                 placeholder="https://www.bilibili.com/video/..."
                 value={url}
                 onChange={(e) => setUrl(e.target.value)}
@@ -540,11 +561,12 @@ export const SourcesTab: React.FC<SourcesTabProps> = ({
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-stone-700 dark:text-stone-300 mb-1">可信度状态</label>
+              <label id="source-verification-label" className="block text-xs font-semibold text-stone-700 dark:text-stone-300 mb-1">可信度状态</label>
               <CustomSelect
                 value={verificationStatus}
                 onChange={(val) => setVerificationStatus(val as VerificationStatus)}
                 ariaLabel="可信度状态"
+                ariaLabelledBy="source-verification-label"
                 className="w-full"
                 buttonClassName="w-full justify-between py-2 text-sm bg-stone-50 dark:bg-stone-800 border-stone-300 dark:border-stone-700 rounded-lg"
                 options={[
@@ -557,8 +579,11 @@ export const SourcesTab: React.FC<SourcesTabProps> = ({
           </div>
 
           <div>
-            <label className="block text-xs font-semibold text-stone-700 dark:text-stone-300 mb-1">内容摘要 / 关键发言</label>
+            <label htmlFor="source-content" className="block text-xs font-semibold text-stone-700 dark:text-stone-300 mb-1">内容摘要 / 关键发言</label>
             <textarea
+              id="source-content"
+              name="source_content"
+              autoComplete="off"
               rows={3}
               placeholder="提取原视频或文章中的关键信息、时间码（如04:15处金句）或关键截图要点..."
               value={content}
@@ -568,9 +593,12 @@ export const SourcesTab: React.FC<SourcesTabProps> = ({
           </div>
 
           <div>
-            <label className="block text-xs font-semibold text-stone-700 dark:text-stone-300 mb-1">使用备注与提示</label>
+            <label htmlFor="source-notes" className="block text-xs font-semibold text-stone-700 dark:text-stone-300 mb-1">使用备注与提示</label>
             <input
+              id="source-notes"
+              name="source_notes"
               type="text"
+              autoComplete="off"
               placeholder="例如：可用作第一章转折画面"
               value={notes}
               onChange={(e) => setNotes(e.target.value)}

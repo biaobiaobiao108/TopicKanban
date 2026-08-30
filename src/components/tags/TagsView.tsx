@@ -212,7 +212,7 @@ export const TagsView: React.FC<TagsViewProps> = ({
               <span>打标覆盖率</span>
             </div>
             <div className="text-xl font-bold text-emerald-700 dark:text-emerald-400 mt-1 font-mono">
-              {coveragePercent}% <span className="text-xs text-stone-400 dark:text-stone-500 font-normal">({totalTaggedTopics}/{totalTopicCount})</span>
+              {coveragePercent}% <span className="text-xs text-stone-600 dark:text-stone-400 font-normal">({totalTaggedTopics}/{totalTopicCount})</span>
             </div>
           </div>
 
@@ -250,6 +250,10 @@ export const TagsView: React.FC<TagsViewProps> = ({
               <Search className="w-4 h-4 text-stone-400 dark:text-stone-500 absolute left-3 top-2.5" />
               <input
                 type="text"
+                id="tags-search"
+                name="tags_search"
+                aria-label="搜索标签"
+                autoComplete="off"
                 placeholder="搜索标签名称..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
@@ -329,7 +333,7 @@ export const TagsView: React.FC<TagsViewProps> = ({
             })}
 
             {visibleTags.length === 0 && !tagsPageQuery.isFetching && (
-              <div className="py-8 text-center text-xs text-stone-400 dark:text-stone-500">
+              <div className="py-8 text-center text-xs text-stone-600 dark:text-stone-400">
                 暂无匹配标签
               </div>
             )}

@@ -256,11 +256,12 @@ const KanbanCardComponent: React.FC<KanbanCardProps> = ({
                   setIsStatusMenuOpen(true);
                 }}
                 aria-expanded={isStatusMenuOpen}
+                aria-label="快速流转阶段"
                 className="inline-flex items-center gap-1 text-[11px] font-medium text-stone-600 dark:text-stone-300 hover:text-stone-900 dark:hover:text-stone-100 bg-stone-100 dark:bg-stone-800 hover:bg-stone-200/80 dark:hover:bg-stone-700 px-2 py-0.5 rounded-full transition-colors cursor-pointer"
                 title="快速流转阶段"
               >
                 <span>流转</span>
-                <ChevronDown className="w-3 h-3 text-stone-400 dark:text-stone-500" />
+                <ChevronDown className="w-3 h-3 text-stone-400 dark:text-stone-500" aria-hidden="true" />
               </button>
 
               {isStatusMenuOpen && statusMenuPosition && createPortal(
@@ -405,10 +406,12 @@ const KanbanCardComponent: React.FC<KanbanCardProps> = ({
               e.stopPropagation();
               onTogglePin(topic.id);
             }}
+            type="button"
+            aria-label={topic.is_pinned ? '取消置顶' : '置顶'}
             title={topic.is_pinned ? '取消置顶' : '置顶'}
             className="p-1 hover:text-amber-600 dark:hover:text-amber-400 rounded-lg cursor-pointer transition-colors"
           >
-            <Pin className={`w-3.5 h-3.5 ${topic.is_pinned ? 'fill-amber-500 text-amber-500' : 'text-stone-300 dark:text-stone-600 hover:text-stone-500'}`} />
+            <Pin aria-hidden="true" className={`w-3.5 h-3.5 ${topic.is_pinned ? 'fill-amber-500 text-amber-500' : 'text-stone-300 dark:text-stone-600 hover:text-stone-500'}`} />
           </button>
         </div>
       </div>

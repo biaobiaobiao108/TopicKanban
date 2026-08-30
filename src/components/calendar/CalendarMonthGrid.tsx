@@ -74,7 +74,7 @@ function MonthCellDroppable({
                   ? cell.isWeekend
                     ? 'text-rose-700/80 dark:text-rose-400'
                     : 'text-stone-800 dark:text-stone-200'
-                  : 'text-stone-400 dark:text-stone-600'
+                : 'text-stone-600 dark:text-stone-400'
             }`}
           >
             {cell.dayNumber}

@@ -166,9 +166,9 @@ export const CalendarDateActionModal: React.FC<CalendarDateActionModalProps> = (
                           <StatusBadge status={topic.status} />
                           <PriorityBadge priority={topic.priority} />
                         </div>
-                        <h5 className="text-xs font-bold text-stone-900 dark:text-stone-100 truncate">
+                        <div className="text-xs font-bold text-stone-900 dark:text-stone-100 truncate">
                           {topic.title}
-                        </h5>
+                        </div>
                       </div>
                       {isSelected && (
                         <Check className="w-4 h-4 text-rose-600 dark:text-rose-400 shrink-0" />
@@ -178,7 +178,7 @@ export const CalendarDateActionModal: React.FC<CalendarDateActionModalProps> = (
                 })}
 
                 {unscheduledTopics.length === 0 && (
-                  <div className="py-8 text-center text-xs text-stone-400 dark:text-stone-500">
+                  <div className="py-8 text-center text-xs text-stone-500 dark:text-stone-400">
                     暂无可定档的未排期选题，请切换到「新建选题」
                   </div>
                 )}

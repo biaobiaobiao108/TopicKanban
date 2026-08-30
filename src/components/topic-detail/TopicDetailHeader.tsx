@@ -82,7 +82,11 @@ export const TopicDetailHeader: React.FC<TopicDetailHeaderProps> = ({
             <div className="flex items-center gap-2 w-full">
               <input
                 type="text"
+                id="topic-title"
+                name="title"
                 autoFocus
+                aria-label="编辑选题标题"
+                autoComplete="off"
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
                 onKeyDown={(e) => {
@@ -114,6 +118,7 @@ export const TopicDetailHeader: React.FC<TopicDetailHeaderProps> = ({
               <button
                 type="button"
                 onClick={() => setIsEditingTitle(true)}
+                aria-label="修改选题标题"
                 className="opacity-60 sm:opacity-0 group-hover:opacity-100 text-stone-400 dark:text-stone-500 hover:text-stone-700 dark:hover:text-stone-300 p-0.5 rounded-lg transition-opacity cursor-pointer shrink-0"
                 title="修改标题"
               >
@@ -297,13 +302,13 @@ export const TopicDetailHeader: React.FC<TopicDetailHeaderProps> = ({
               onClick={() => setIsActionDialogOpen(true)}
               className={`group inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full text-xs sm:text-[13px] font-bold transition-all cursor-pointer shadow-xs hover:shadow-subtle active:scale-[0.98] max-w-full truncate ${
                 warning
-                  ? 'bg-amber-500 hover:bg-amber-600 text-amber-950 dark:bg-amber-600 dark:hover:bg-amber-500 dark:text-white'
+                  ? 'bg-amber-700 hover:bg-amber-800 text-white dark:bg-amber-800 dark:hover:bg-amber-700 dark:text-white'
                   : 'bg-stone-900 hover:bg-stone-800 text-white dark:bg-rose-600 dark:hover:bg-rose-700'
               }`}
               title={`当前核心行动：${topic.next_action} (已持续 ${actionDays} 天) - 点击完成或续接下一步`}
             >
               <Zap className={`w-3.5 h-3.5 sm:w-4 sm:h-4 shrink-0 ${warning ? 'text-amber-950 dark:text-amber-200 fill-current' : 'text-amber-300 fill-amber-300 animate-pulse'}`} />
-              <span className="truncate">{topic.next_action}</span>
+              <span className="truncate text-white">{topic.next_action}</span>
               {warning && (
                 <span className="text-[10px] font-extrabold bg-black/20 dark:bg-black/30 text-white px-1.5 py-0.5 rounded-full shrink-0">
                   {warning}

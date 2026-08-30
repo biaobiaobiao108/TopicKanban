@@ -21,14 +21,41 @@ export const Modal: React.FC<ModalProps> = ({
   const dialogRef = useRef<HTMLDivElement>(null);
   const previousFocusRef = useRef<HTMLElement | null>(null);
   const previousOverflowRef = useRef('');
+  const lastFocusedElementRef = useRef<HTMLElement | null>(null);
   const onCloseRef = useRef(onClose);
   onCloseRef.current = onClose;
+
+  useEffect(() => {
+    const handleFocusIn = (event: FocusEvent) => {
+      const target = event.target as HTMLElement | null;
+      const isInsideDialog = target?.closest('[role="dialog"]') || dialogRef.current?.contains(target);
+      if (target && !isInsideDialog) {
+        lastFocusedElementRef.current = target;
+      }
+    };
+    document.addEventListener('focusin', handleFocusIn);
+    return () => document.removeEventListener('focusin', handleFocusIn);
+  }, []);
+
+  const restoreFocus = () => {
+    const previousFocus = previousFocusRef.current;
+    if (!previousFocus) return;
+    requestAnimationFrame(() => {
+      if (previousFocus.isConnected) previousFocus.focus();
+    });
+  };
+
+  const handleClose = () => {
+    onCloseRef.current();
+    restoreFocus();
+  };
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'Escape') {
         e.preventDefault();
         onCloseRef.current();
+        restoreFocus();
         return;
       }
       if (e.key !== 'Tab' || !dialogRef.current) return;
@@ -51,7 +78,7 @@ export const Modal: React.FC<ModalProps> = ({
       }
     };
     if (isOpen) {
-      previousFocusRef.current = document.activeElement instanceof HTMLElement ? document.activeElement : null;
+      previousFocusRef.current = lastFocusedElementRef.current || (document.activeElement as HTMLElement | null);
       previousOverflowRef.current = document.body.style.overflow;
       document.addEventListener('keydown', handleKeyDown);
       document.body.style.overflow = 'hidden';
@@ -66,7 +93,7 @@ export const Modal: React.FC<ModalProps> = ({
       document.removeEventListener('keydown', handleKeyDown);
       if (isOpen) {
         document.body.style.overflow = previousOverflowRef.current;
-        previousFocusRef.current?.focus();
+        restoreFocus();
       }
     };
   }, [isOpen]);
@@ -89,7 +116,7 @@ export const Modal: React.FC<ModalProps> = ({
       <div
         className="fixed inset-0 bg-stone-900/40 backdrop-blur-sm animate-in fade-in duration-200"
         aria-hidden="true"
-        onClick={onClose}
+        onClick={handleClose}
       />
 
       {/* Modal Container */}
@@ -108,7 +135,7 @@ export const Modal: React.FC<ModalProps> = ({
           <button
             type="button"
             aria-label="关闭弹窗"
-            onClick={onClose}
+            onClick={handleClose}
             className="shrink-0 text-stone-400 dark:text-stone-500 hover:text-stone-700 dark:hover:text-stone-300 p-1.5 rounded-lg hover:bg-stone-100 dark:hover:bg-stone-800 transition-colors cursor-pointer"
           >
             <X className="w-5 h-5" />
