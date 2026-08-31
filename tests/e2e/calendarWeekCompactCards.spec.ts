@@ -430,18 +430,24 @@ test('行动日期在当天显示相对语义并在跨日后自动变为逾期',
 
   await page.goto('/kanban');
   const card = page.locator(`[data-topic-id="${calendarTopic.id}"]`);
-  await expect(card).toContainText('排期 今天 · 8月28日');
-  await expect(card).toContainText('截稿 今天 · 8月28日');
-  await expect(card.locator('[data-testid="topic-schedule-badge"] time')).toHaveAttribute('data-date-state', 'today');
+  const scheduleTime = card.locator('[data-testid="topic-schedule-badge"] time');
+  const deadlineTime = card.locator('[data-testid="topic-deadline-badge"] time');
+  await expect(scheduleTime).toHaveText('今天');
+  await expect(deadlineTime).toHaveText('今天');
+  await expect(scheduleTime).toHaveAttribute('data-date-state', 'today');
+  await expect(scheduleTime).toHaveAttribute('title', '今天，2026年8月28日');
+  await expect(scheduleTime).toHaveAttribute('aria-label', '今天，2026年8月28日');
 
   await page.goto('/calendar?view=agenda&date=2026-08-28');
-  await expect(page.getByRole('heading', { name: '今天 · 8月28日 排期与待办' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: '今天 排期与待办' })).toBeVisible();
 
   await page.clock.fastForward('24:00:01');
   await page.goto('/kanban');
-  await expect(card).toContainText('排期 已逾期 1 天 · 8月28日');
-  await expect(card).toContainText('截稿 已逾期 1 天 · 8月28日');
-  await expect(card.locator('[data-testid="topic-schedule-badge"] time')).toHaveAttribute('data-date-state', 'overdue');
+  await expect(scheduleTime).toHaveText('已逾期 1 天');
+  await expect(deadlineTime).toHaveText('已逾期 1 天');
+  await expect(scheduleTime).toHaveAttribute('data-date-state', 'overdue');
+  await expect(scheduleTime).toHaveAttribute('title', '已逾期 1 天，2026年8月28日');
+  await expect(scheduleTime).toHaveAttribute('aria-label', '已逾期 1 天，2026年8月28日');
 
   await page.setViewportSize({ width: 390, height: 844 });
   const mobileLayout = await card.evaluate((element) => ({
@@ -451,7 +457,7 @@ test('行动日期在当天显示相对语义并在跨日后自动变为逾期',
   expect(mobileLayout.scrollWidth).toBeLessThanOrEqual(mobileLayout.clientWidth + 1);
 
   await page.goto('/deals');
-  await expect(page.getByTestId('deal-card').filter({ hasText: '星河品牌' })).toContainText('已逾期 1 天 · 8月28日');
+  await expect(page.getByTestId('deal-card').filter({ hasText: '星河品牌' }).locator('time.action-date')).toHaveText('已逾期 1 天');
 });
 
 test('直接打开商单详情时返回按钮回退到商单中心', async ({ page }) => {

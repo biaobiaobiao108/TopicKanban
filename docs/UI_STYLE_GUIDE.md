@@ -261,7 +261,7 @@ font-family: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
 
 ### 5.4 日期、时间与数据
 
-- 行动日期（排期、截稿、交付、下一步截止）使用统一相对状态：当天显示“今天 + 精确日期”，逾期显示“已逾期 N 天 + 精确日期”，未来日期显示绝对日期。
+- 行动日期（排期、截稿、交付、下一步截止）使用统一相对状态：可见文字当天只显示“今天”，逾期只显示“已逾期 N 天”，未来日期显示绝对日期；完整日期保留在 `title`、`aria-label` 和 `<time dateTime>` 中。
 - 已完成、已发布、归档事项和历史记录保持绝对日期。
 - 日期展示必须保留完整 `title`、`aria-label` 和可机器读取的 `<time dateTime>`。
 - 日期输入使用项目的 `DateInput`，不使用原生 `<input type="date">`。

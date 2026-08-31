@@ -4,9 +4,9 @@ import { getActionDateDisplay, getBeijingDateString } from '../src/lib/actionDat
 describe('行动日期展示', () => {
   const today = '2026-08-31';
 
-  it('区分今天、未来日期和逾期天数，并保留精确日期', () => {
+  it('区分今天、未来日期和逾期天数，并保留无障碍所需的精确日期', () => {
     expect(getActionDateDisplay('2026-08-31', { today })).toMatchObject({
-      text: '今天 · 8月31日',
+      text: '今天',
       fullDate: '2026年8月31日',
       state: 'today',
       daysFromToday: 0,
@@ -17,7 +17,8 @@ describe('行动日期展示', () => {
       daysFromToday: 2,
     });
     expect(getActionDateDisplay('2026-08-29', { today })).toMatchObject({
-      text: '已逾期 2 天 · 8月29日',
+      text: '已逾期 2 天',
+      fullDate: '2026年8月29日',
       state: 'overdue',
       daysFromToday: -2,
     });

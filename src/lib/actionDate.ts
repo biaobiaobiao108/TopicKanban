@@ -97,13 +97,13 @@ export function getActionDateDisplay(
   }
 
   if (daysFromToday === 0) {
-    return { value: normalized, text: `今天 · ${absoluteDate}`, fullDate, state: 'today', daysFromToday };
+    return { value: normalized, text: '今天', fullDate, state: 'today', daysFromToday };
   }
 
   if (daysFromToday < 0) {
     return {
       value: normalized,
-      text: `已逾期 ${Math.abs(daysFromToday)} 天 · ${absoluteDate}`,
+      text: `已逾期 ${Math.abs(daysFromToday)} 天`,
       fullDate,
       state: 'overdue',
       daysFromToday,
