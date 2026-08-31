@@ -175,7 +175,7 @@ test('month cells expose hidden event count and open all events', async ({ page 
   await overflow.click();
   const dialog = page.getByRole('dialog');
   await expect(dialog).toBeVisible();
-  await expect(dialog).toContainText('2026-08-15');
+  await expect(dialog.getByRole('heading')).toContainText('8月15日');
   await expect(dialog.getByTestId('calendar-event')).toHaveCount(4);
   await expect(dialog).toContainText('月视图超量事项 4');
 });

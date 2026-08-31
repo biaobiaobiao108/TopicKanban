@@ -95,8 +95,10 @@ test('topic date edits are visible on kanban before delayed saves finish', async
   await page.getByRole('button', { name: '返回选题看板' }).click();
   await expect(page).toHaveURL('/kanban');
   const updatedCard = page.locator(`[data-topic-id="${topicId}"]`);
-  await expect(updatedCard).toContainText('排期 9月1日');
-  await expect(updatedCard).toContainText('截稿 9月5日');
+  await expect(updatedCard.getByTestId('topic-schedule-badge')).toContainText('排期');
+  await expect(updatedCard.getByTestId('topic-schedule-badge').locator('time')).toHaveAttribute('datetime', '2026-09-01');
+  await expect(updatedCard.getByTestId('topic-deadline-badge')).toContainText('截稿');
+  await expect(updatedCard.getByTestId('topic-deadline-badge').locator('time')).toHaveAttribute('datetime', '2026-09-05');
 
   releaseSaves();
   await savesCompleted;

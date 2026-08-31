@@ -181,12 +181,12 @@ export const TodayView: React.FC<TodayViewProps> = ({
 
               {/* Title & Summary */}
               <div>
-                <h3
+                <h2
                   onClick={() => onOpenDetail(focusTopic.id)}
                   className="text-xl sm:text-2xl lg:text-3xl font-bold text-stone-900 dark:text-stone-100 hover:text-rose-600 dark:hover:text-rose-400 transition-colors cursor-pointer leading-tight text-pretty"
                 >
                   {focusTopic.title}
-                </h3>
+                </h2>
                 {focusTopic.summary && (
                   <p className="text-sm sm:text-base text-stone-600 dark:text-stone-300 mt-2.5 leading-relaxed max-w-4xl">
                     {focusTopic.summary}
@@ -391,7 +391,7 @@ export const TodayView: React.FC<TodayViewProps> = ({
                     )}
                   </div>
 
-                  <div className="text-[11px] text-stone-400 dark:text-stone-500 shrink-0">
+                  <div className="text-[11px] text-stone-600 dark:text-stone-400 shrink-0">
                     <time dateTime={t.updated_at} className="tabular-nums">
                       {new Date(t.updated_at).toLocaleDateString('zh-CN', { month: 'numeric', day: 'numeric' })}
                     </time>

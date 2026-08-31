@@ -189,9 +189,9 @@ const KanbanCardComponent: React.FC<KanbanCardProps> = ({
         </div>
 
         {/* Main Title */}
-        <h4 className="text-[15px] font-bold text-stone-900 dark:text-stone-100 leading-snug tracking-tight line-clamp-2">
+        <h3 className="text-[15px] font-bold text-stone-900 dark:text-stone-100 leading-snug tracking-tight line-clamp-2">
           {topic.title}
-        </h4>
+        </h3>
 
         {/* Next Action Highlight Bar */}
         {topic.next_action ? (
@@ -205,7 +205,7 @@ const KanbanCardComponent: React.FC<KanbanCardProps> = ({
         ) : null}
 
         <div className="flex items-center justify-between gap-2 text-[11px]">
-          <span className={actionWarning ? 'font-semibold text-amber-700 dark:text-amber-400' : 'text-stone-400 dark:text-stone-500'}>
+          <span className={actionWarning ? 'font-semibold text-amber-700 dark:text-amber-400' : 'text-stone-600 dark:text-stone-400'}>
             {actionWarning || `行动持续 ${getNextActionAgeDays(topic)} 天`}
           </span>
           <div data-testid="topic-card-meta" className="flex items-center gap-1.5 text-stone-500 dark:text-stone-400">
@@ -231,7 +231,7 @@ const KanbanCardComponent: React.FC<KanbanCardProps> = ({
       {...sortableAttributes}
       {...listeners}
       tabIndex={sortableDisabled ? -1 : 0}
-      role="button"
+      role="group"
       aria-label={`${topic.title}，${topic.status}`}
       onKeyDown={(event) => {
         if (event.key === 'ArrowLeft' && onKeyboardMove) {
@@ -375,9 +375,9 @@ const KanbanCardComponent: React.FC<KanbanCardProps> = ({
       </div>
 
       {/* Main Title */}
-      <h4 className="text-[15px] font-bold text-stone-900 dark:text-stone-100 leading-snug tracking-tight group-hover:text-rose-600 dark:group-hover:text-rose-400 transition-colors line-clamp-2 text-pretty">
+      <h3 className="text-[15px] font-bold text-stone-900 dark:text-stone-100 leading-snug tracking-tight group-hover:text-rose-600 dark:group-hover:text-rose-400 transition-colors line-clamp-2 text-pretty">
         {topic.title}
-      </h4>
+      </h3>
 
       {/* Next Action Highlight Bar */}
       {topic.next_action ? (
@@ -389,13 +389,13 @@ const KanbanCardComponent: React.FC<KanbanCardProps> = ({
           </div>
         </div>
       ) : (
-        <div className="rounded-xl p-2 text-[11px] text-stone-400 dark:text-stone-500 text-center bg-stone-500/[0.03] dark:bg-stone-800/30">
+        <div className="rounded-xl p-2 text-[11px] text-stone-600 dark:text-stone-400 text-center bg-stone-500/[0.03] dark:bg-stone-800/30">
           未设置下一步行动
         </div>
       )}
 
       <div className="flex items-center justify-between gap-2 text-[11px]">
-        <span className={actionWarning ? 'font-semibold text-amber-700 dark:text-amber-400' : 'text-stone-400 dark:text-stone-500'}>
+        <span className={actionWarning ? 'font-semibold text-amber-700 dark:text-amber-400' : 'text-stone-600 dark:text-stone-400'}>
           {actionWarning || `行动持续 ${getNextActionAgeDays(topic)} 天`}
         </span>
         <div data-testid="topic-card-meta" className="flex items-center gap-1.5 text-stone-500 dark:text-stone-400">
@@ -412,7 +412,7 @@ const KanbanCardComponent: React.FC<KanbanCardProps> = ({
       <TopicScheduleBadges scheduleDate={scheduleDate} deadlineDate={deadlineDate} />
 
       {/* Secondary context */}
-      <div className="flex items-center justify-between pt-2 border-t border-stone-100 dark:border-stone-800/80 text-[11px] text-stone-400 dark:text-stone-500">
+      <div className="flex items-center justify-between pt-2 border-t border-stone-100 dark:border-stone-800/80 text-[11px] text-stone-600 dark:text-stone-400">
         <div className="min-w-0 truncate pr-2">
           {topic.people?.slice(0, 2).map((person) => person.name).join(' / ') || '未关联人物'}
           {topic.tags?.length ? ` · ${topic.tags.slice(0, 2).map((tag) => `#${tag.name}`).join(' ')}` : ''}

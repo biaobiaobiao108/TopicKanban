@@ -757,7 +757,7 @@ export const TopicTableView: React.FC<TopicTableViewProps> = ({
                     options={COLUMNS.map((column) => ({ value: column.status, label: column.label }))}
                   />
                   <PriorityBadge priority={topic.priority} />
-                  <span className="ml-auto text-[11px] text-stone-400 dark:text-stone-500">{formatRelativeTime(topic.updated_at)}</span>
+                  <span className="ml-auto text-[11px] text-stone-600 dark:text-stone-400">{formatRelativeTime(topic.updated_at)}</span>
                 </div>
 
                 <div className="mt-3 rounded-xl border border-rose-100 dark:border-rose-900/60 bg-rose-50/60 dark:bg-rose-950/40 px-3 py-2 text-xs text-stone-700 dark:text-stone-300">
@@ -782,15 +782,15 @@ export const TopicTableView: React.FC<TopicTableViewProps> = ({
 
                 <div className="mt-3 grid grid-cols-3 divide-x divide-stone-100 dark:divide-stone-700 rounded-xl bg-stone-50 dark:bg-stone-800/60 py-2 text-center">
                   <div>
-                    <div className="text-[10px] text-stone-400 dark:text-stone-500">故事评分</div>
+                    <div className="text-[10px] text-stone-600 dark:text-stone-400">故事评分</div>
                     <div className="mt-0.5 font-mono text-xs font-bold text-stone-800 dark:text-stone-200">{totalScore || '—'}{totalScore ? '/10' : ''}</div>
                   </div>
                   <div>
-                    <div className="text-[10px] text-stone-400 dark:text-stone-500">文案字数</div>
+                    <div className="text-[10px] text-stone-600 dark:text-stone-400">文案字数</div>
                     <div className="mt-0.5 font-mono text-xs font-bold text-stone-800 dark:text-stone-200">{(topic.draft_word_count || 0).toLocaleString()}</div>
                   </div>
                   <div>
-                    <div className="text-[10px] text-stone-400 dark:text-stone-500">预估时长</div>
+                    <div className="text-[10px] text-stone-600 dark:text-stone-400">预估时长</div>
                     <div className="mt-0.5 text-xs font-bold text-stone-800 dark:text-stone-200"><span className="font-mono tabular-nums">{minutes}</span> 分钟</div>
                   </div>
                 </div>
@@ -1076,7 +1076,7 @@ export const TopicTableView: React.FC<TopicTableViewProps> = ({
                       <button
                         type="button"
                         onClick={() => { if (onUpdateTopic) { setEditingActionId(topic.id); setEditingAction(''); } }}
-                        className="text-[11px] italic text-stone-300 hover:text-rose-600 dark:text-stone-600 cursor-pointer"
+                        className="text-[11px] italic text-stone-600 hover:text-rose-600 dark:text-stone-400 cursor-pointer"
                         title="点击添加下一步行动"
                       >
                         + 添加行动
@@ -1132,7 +1132,7 @@ export const TopicTableView: React.FC<TopicTableViewProps> = ({
                         <span className="text-[10px] text-amber-600/70 dark:text-amber-400/70 font-normal">/10</span>
                       </div>
                     ) : (
-                      <span className="text-stone-300 dark:text-stone-600 text-[11px]">未评分</span>
+                      <span className="text-stone-600 dark:text-stone-400 text-[11px]">未评分</span>
                     )}
                   </td>}
 
