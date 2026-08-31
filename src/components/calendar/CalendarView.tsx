@@ -237,8 +237,6 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
     setFilters((prev) => ({ ...prev, [key]: !prev[key] }));
   };
 
-  const formattedMonthTitle = `${year}年 ${monthIndex + 1}月`;
-
   return (
     <DndContext sensors={sensors} onDragStart={handleDragStart} onDragEnd={handleDragEnd}>
       <div className="flex-1 flex flex-col h-full min-w-0 bg-[#fafaf9] dark:bg-[#0c0a09] overflow-hidden">
@@ -268,8 +266,9 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
                   <ChevronLeft className="w-4 h-4" aria-hidden="true" />
                 </button>
 
-                <span className="text-xs sm:text-sm font-bold font-mono px-2 text-stone-900 dark:text-stone-100 min-w-[75px] text-center">
-                  {formattedMonthTitle}
+                <span className="text-xs sm:text-sm font-bold px-2 text-stone-900 dark:text-stone-100 min-w-[75px] text-center">
+                  <span className="font-mono tabular-nums">{year}</span>年{' '}
+                  <span className="font-mono tabular-nums">{monthIndex + 1}</span>月
                 </span>
 
                 <button
@@ -343,7 +342,7 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
               >
                 <Inbox className="w-3.5 h-3.5" />
                 <span>待排期池</span>
-                <span className="font-mono font-bold bg-rose-600 text-white text-[10px] px-1.5 py-0.2 rounded-full">
+                <span className="font-mono tabular-nums font-bold bg-rose-600 text-white text-[10px] px-1.5 py-0.2 rounded-full">
                   {unscheduledTopics.length}
                 </span>
               </button>
@@ -356,13 +355,13 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
             <div className="flex items-center gap-2 sm:gap-3 text-xs text-stone-600 dark:text-stone-400 overflow-x-auto">
               <span className="font-semibold text-stone-900 dark:text-stone-100">本月生产：</span>
               <span className="inline-flex items-center gap-1 bg-rose-500/10 text-rose-700 dark:text-rose-300 px-2 py-0.5 rounded-md font-medium">
-                计划发片 <strong className="font-mono">{monthStats.plannedPublishCount}</strong>
+                计划发片 <strong className="font-mono tabular-nums">{monthStats.plannedPublishCount}</strong>
               </span>
               <span className="inline-flex items-center gap-1 bg-indigo-500/10 text-indigo-700 dark:text-indigo-300 px-2 py-0.5 rounded-md font-medium">
-                商单履约 <strong className="font-mono">{monthStats.commercialDealCount}</strong>
+                商单履约 <strong className="font-mono tabular-nums">{monthStats.commercialDealCount}</strong>
               </span>
               <span className="inline-flex items-center gap-1 bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 px-2 py-0.5 rounded-md font-medium">
-                已发视频 <strong className="font-mono">{monthStats.publishedVideoCount}</strong>
+                已发视频 <strong className="font-mono tabular-nums">{monthStats.publishedVideoCount}</strong>
               </span>
             </div>
 

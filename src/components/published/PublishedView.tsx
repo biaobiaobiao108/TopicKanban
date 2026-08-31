@@ -487,7 +487,7 @@ export const PublishedView: React.FC<PublishedViewProps> = ({
               onClick={() => setPage((current) => Math.max(1, current - 1))}
               className="rounded-lg border border-stone-200 bg-white px-3 py-2 font-semibold disabled:cursor-not-allowed disabled:opacity-40 dark:border-stone-700 dark:bg-stone-900"
             >上一页</button>
-            <span className="font-mono">{page} / {Math.max(1, pageQuery.data?.total_pages || 1)} · 共 {totalPublished} 条</span>
+            <span><span className="font-mono tabular-nums">{page} / {Math.max(1, pageQuery.data?.total_pages || 1)}</span> · 共 <span className="font-mono tabular-nums">{totalPublished}</span> 条</span>
             <button
               type="button"
               disabled={page >= (pageQuery.data?.total_pages || 1) || pageQuery.isFetching}
@@ -512,8 +512,8 @@ export const PublishedView: React.FC<PublishedViewProps> = ({
                   对应选题 <span className="text-stone-400 dark:text-stone-500 font-normal">（自动过滤已关联选题）</span>
                 </label>
                 {selectableTopics.length > 0 && (
-                  <span className="text-[11px] text-stone-400 dark:text-stone-500 font-mono">
-                    {selectableTopics.length} 个可用选题
+                  <span className="text-[11px] text-stone-400 dark:text-stone-500">
+                    <span className="font-mono tabular-nums">{selectableTopics.length}</span> 个可用选题
                   </span>
                 )}
               </div>

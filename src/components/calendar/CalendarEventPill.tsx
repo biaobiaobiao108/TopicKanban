@@ -69,7 +69,7 @@ export const CalendarEventPill: React.FC<CalendarEventPillProps> = ({
             title={`计划发布：${event.title}`}
             data-testid="calendar-event"
             data-calendar-event-type={event.type}
-            className="flex w-full min-w-0 items-center gap-1.5 rounded-lg border border-rose-200/50 bg-rose-500/10 px-2 py-1 text-left text-xs font-semibold text-rose-700 shadow-2xs transition-colors hover:bg-rose-500/20 dark:border-rose-900/40 dark:bg-rose-950/40 dark:text-rose-300 dark:hover:bg-rose-900/50"
+            className="flex w-full min-w-0 items-center gap-1.5 rounded-lg border border-rose-200/50 bg-rose-500/10 px-2 py-0.5 text-left text-[11px] font-medium leading-4 text-rose-700 shadow-2xs transition-colors hover:bg-rose-500/20 dark:border-rose-900/40 dark:bg-rose-950/40 dark:text-rose-300 dark:hover:bg-rose-900/50"
           >
             <span className="w-1.5 h-1.5 rounded-full bg-rose-600 dark:bg-rose-400 shrink-0" />
             <span className="min-w-0 flex-1 truncate">{event.title}</span>
@@ -89,7 +89,7 @@ export const CalendarEventPill: React.FC<CalendarEventPillProps> = ({
             title={event.title}
             data-testid="calendar-event"
             data-calendar-event-type={event.type}
-            className="flex w-full min-w-0 items-center gap-1.5 rounded-lg border border-amber-200/50 bg-amber-500/10 px-2 py-0.5 text-left text-[11px] font-medium text-amber-800 transition-colors hover:bg-amber-500/20 dark:border-amber-900/40 dark:bg-amber-950/40 dark:text-amber-300 dark:hover:bg-amber-900/50"
+            className="flex w-full min-w-0 items-center gap-1.5 rounded-lg border border-amber-200/50 bg-amber-500/10 px-2 py-0.5 text-left text-[11px] font-medium leading-4 text-amber-800 transition-colors hover:bg-amber-500/20 dark:border-amber-900/40 dark:bg-amber-950/40 dark:text-amber-300 dark:hover:bg-amber-900/50"
           >
             <AlertCircle className="w-3 h-3 text-amber-600 dark:text-amber-400 shrink-0" />
             <span className="min-w-0 flex-1 truncate">{event.title}</span>
@@ -137,8 +137,8 @@ export const CalendarEventPill: React.FC<CalendarEventPillProps> = ({
             <Film className="w-3 h-3 text-emerald-600 dark:text-emerald-400 shrink-0" />
             <span className="min-w-0 flex-1 truncate">{event.title}</span>
             {typeof event.views === 'number' && event.views > 0 && (
-              <span className="text-[10px] font-mono text-emerald-600 dark:text-emerald-400 shrink-0">
-                {(event.views >= 10000 ? `${(event.views / 10000).toFixed(1)}w` : event.views)}播
+              <span className="text-[10px] text-emerald-600 dark:text-emerald-400 shrink-0">
+                <span className="font-mono tabular-nums">{event.views >= 10000 ? `${(event.views / 10000).toFixed(1)}w` : event.views}</span>播
               </span>
             )}
           </button>
@@ -210,15 +210,15 @@ export const CalendarEventPill: React.FC<CalendarEventPillProps> = ({
       )}
 
       {event.type === 'published' && (typeof event.views === 'number' || typeof event.likes === 'number') && (
-        <div className="flex items-center gap-3 mt-2 text-xs text-stone-500 dark:text-stone-400 font-mono">
-          {typeof event.views === 'number' && <span>{event.views.toLocaleString()} 播放</span>}
-          {typeof event.likes === 'number' && <span>{event.likes.toLocaleString()} 点赞</span>}
+        <div className="flex items-center gap-3 mt-2 text-xs text-stone-500 dark:text-stone-400">
+          {typeof event.views === 'number' && <span><span className="font-mono tabular-nums">{event.views.toLocaleString()}</span> 播放</span>}
+          {typeof event.likes === 'number' && <span><span className="font-mono tabular-nums">{event.likes.toLocaleString()}</span> 点赞</span>}
         </div>
       )}
 
       {event.type === 'commercial_deal' && typeof event.amount_cents === 'number' && event.amount_cents > 0 && (
-        <div className="mt-2 text-xs font-mono font-bold text-indigo-600 dark:text-indigo-400">
-          商单金额：¥{(event.amount_cents / 100).toLocaleString()}
+        <div className="mt-2 text-xs font-bold text-indigo-600 dark:text-indigo-400">
+          商单金额：<span className="font-mono tabular-nums">¥{(event.amount_cents / 100).toLocaleString()}</span>
         </div>
       )}
     </div>

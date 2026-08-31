@@ -34,6 +34,8 @@ interface StatusMenuPosition {
 const STATUS_MENU_WIDTH = 144;
 const VIEWPORT_MARGIN = 8;
 const STATUS_MENU_GAP = 6;
+const CARD_META_VALUE_CLASS = 'tabular-nums';
+const SCHEDULE_BADGE_CLASS = 'inline-flex items-center gap-1 rounded-md px-2 py-0.5 text-[11px] font-sans font-medium leading-4 whitespace-nowrap';
 
 function getStatusMenuPosition(
   trigger: HTMLElement,
@@ -177,12 +179,12 @@ const KanbanCardComponent: React.FC<KanbanCardProps> = ({
           <span className={actionWarning ? 'font-semibold text-amber-700 dark:text-amber-400' : 'text-stone-400 dark:text-stone-500'}>
             {actionWarning || `行动持续 ${getNextActionAgeDays(topic)} 天`}
           </span>
-          <div className="flex items-center gap-1.5 font-mono text-stone-500 dark:text-stone-400">
+          <div data-testid="topic-card-meta" className="flex items-center gap-1.5 text-stone-500 dark:text-stone-400">
             {(topic.sources_count || 0) > 0 && (
-              <span>{topic.sources_count}资料</span>
+              <span><span className={CARD_META_VALUE_CLASS}>{topic.sources_count}</span>资料</span>
             )}
             {(topic.draft_word_count || 0) > 0 && (
-              <span>{topic.draft_word_count}字</span>
+              <span><span className={CARD_META_VALUE_CLASS}>{topic.draft_word_count}</span>字</span>
             )}
           </div>
         </div>
@@ -365,29 +367,29 @@ const KanbanCardComponent: React.FC<KanbanCardProps> = ({
         <span className={actionWarning ? 'font-semibold text-amber-700 dark:text-amber-400' : 'text-stone-400 dark:text-stone-500'}>
           {actionWarning || `行动持续 ${getNextActionAgeDays(topic)} 天`}
         </span>
-        <div className="flex items-center gap-1.5 font-mono text-stone-500 dark:text-stone-400">
+        <div data-testid="topic-card-meta" className="flex items-center gap-1.5 text-stone-500 dark:text-stone-400">
           {(topic.sources_count || 0) > 0 && (
-            <span>{topic.sources_count}资料</span>
+            <span><span className={CARD_META_VALUE_CLASS}>{topic.sources_count}</span>资料</span>
           )}
           {(topic.draft_word_count || 0) > 0 && (
-            <span>{topic.draft_word_count}字</span>
+            <span><span className={CARD_META_VALUE_CLASS}>{topic.draft_word_count}</span>字</span>
           )}
         </div>
       </div>
 
       {/* Schedule / Deadline Badges */}
       {(topic.target_publish_date || topic.deadline) && (
-        <div className="flex items-center gap-1.5 flex-wrap text-[10px]">
+        <div className="flex items-center gap-1.5 flex-wrap">
           {topic.target_publish_date && (
-            <span className="inline-flex items-center gap-1 bg-rose-500/10 text-rose-700 dark:text-rose-300 dark:bg-rose-950/40 px-2 py-0.5 rounded-md font-semibold font-mono">
+            <span data-testid="topic-schedule-badge" className={`${SCHEDULE_BADGE_CLASS} bg-rose-500/10 text-rose-700 dark:bg-rose-950/40 dark:text-rose-300`}>
               <Calendar className="w-3 h-3" />
-              <span>排期 {topic.target_publish_date.slice(5)}</span>
+              <span>排期 <time dateTime={topic.target_publish_date} className={CARD_META_VALUE_CLASS}>{topic.target_publish_date.slice(5)}</time></span>
             </span>
           )}
           {topic.deadline && (
-            <span className="inline-flex items-center gap-1 bg-amber-500/10 text-amber-800 dark:text-amber-300 dark:bg-amber-950/40 px-2 py-0.5 rounded-md font-medium font-mono">
+            <span data-testid="topic-deadline-badge" className={`${SCHEDULE_BADGE_CLASS} bg-amber-500/10 text-amber-800 dark:bg-amber-950/40 dark:text-amber-300`}>
               <Clock className="w-3 h-3 text-amber-600 dark:text-amber-400" />
-              <span>截稿 {topic.deadline.slice(5)}</span>
+              <span>截稿 <time dateTime={topic.deadline} className={CARD_META_VALUE_CLASS}>{topic.deadline.slice(5)}</time></span>
             </span>
           )}
         </div>

@@ -269,7 +269,7 @@ export const QuickCreateModal: React.FC<QuickCreateModalProps> = ({
               <TagIcon aria-hidden="true" className="w-3.5 h-3.5 text-stone-500" />
               <span>分类标签</span>
             </label>
-            <span className="text-[11px] text-stone-500 dark:text-stone-400 font-mono">已选 {selectedTagNames.length} 个</span>
+            <span className="text-[11px] text-stone-500 dark:text-stone-400">已选 <span className="font-mono tabular-nums">{selectedTagNames.length}</span> 个</span>
           </div>
 
           {/* 1. Selected Tags */}

@@ -203,7 +203,7 @@ export const TagsView: React.FC<TagsViewProps> = ({
               <Layers className="w-3.5 h-3.5 text-stone-400 dark:text-stone-500" />
               <span>赛道标签总数</span>
             </div>
-            <div className="text-xl font-bold text-stone-900 dark:text-stone-100 mt-1 font-mono">{totalTags} 个</div>
+            <div className="text-xl font-bold text-stone-900 dark:text-stone-100 mt-1"><span className="font-mono tabular-nums">{totalTags}</span> 个</div>
           </div>
 
           <div className="bg-white dark:bg-stone-800/80 border border-stone-200/70 dark:border-stone-700/80 rounded-2xl p-3.5 shadow-2xs">
@@ -211,8 +211,8 @@ export const TagsView: React.FC<TagsViewProps> = ({
               <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500" />
               <span>打标覆盖率</span>
             </div>
-            <div className="text-xl font-bold text-emerald-700 dark:text-emerald-400 mt-1 font-mono">
-              {coveragePercent}% <span className="text-xs text-stone-600 dark:text-stone-400 font-normal">({totalTaggedTopics}/{totalTopicCount})</span>
+            <div className="text-xl font-bold text-emerald-700 dark:text-emerald-400 mt-1">
+              <span className="font-mono tabular-nums">{coveragePercent}%</span> <span className="text-xs text-stone-600 dark:text-stone-400 font-normal font-mono tabular-nums">({totalTaggedTopics}/{totalTopicCount})</span>
             </div>
           </div>
 
@@ -233,8 +233,8 @@ export const TagsView: React.FC<TagsViewProps> = ({
               <PenTool className="w-3.5 h-3.5 text-indigo-500 dark:text-indigo-400" />
               <span>在写稿赛道数</span>
             </div>
-            <div className="text-xl font-bold text-indigo-700 dark:text-indigo-400 mt-1 font-mono">
-              {visibleTags.filter((t) => (tagStatsMap.get(t.id)?.inProgressCount || 0) > 0).length} 赛道
+            <div className="text-xl font-bold text-indigo-700 dark:text-indigo-400 mt-1">
+              <span className="font-mono tabular-nums">{visibleTags.filter((t) => (tagStatsMap.get(t.id)?.inProgressCount || 0) > 0).length}</span> 赛道
             </div>
           </div>
         </div>
@@ -341,7 +341,7 @@ export const TagsView: React.FC<TagsViewProps> = ({
           {totalTags > 0 && (
             <div className="flex shrink-0 items-center justify-center gap-2 border-t border-stone-100 px-2 py-2 text-[11px] text-stone-500 dark:border-stone-800 dark:text-stone-400">
               <button type="button" disabled={tagPage <= 1 || tagsPageQuery.isFetching} onClick={() => setTagPage((current) => Math.max(1, current - 1))} className="rounded-lg border border-stone-200 bg-white px-2 py-1 font-semibold disabled:cursor-not-allowed disabled:opacity-40 dark:border-stone-700 dark:bg-stone-900">上一页</button>
-              <span className="font-mono">{tagPage} / {Math.max(1, tagsPageQuery.data?.total_pages || 1)}</span>
+              <span className="font-mono tabular-nums">{tagPage} / {Math.max(1, tagsPageQuery.data?.total_pages || 1)}</span>
               <button type="button" disabled={tagPage >= (tagsPageQuery.data?.total_pages || 1) || tagsPageQuery.isFetching} onClick={() => setTagPage((current) => current + 1)} className="rounded-lg border border-stone-200 bg-white px-2 py-1 font-semibold disabled:cursor-not-allowed disabled:opacity-40 dark:border-stone-700 dark:bg-stone-900">下一页</button>
             </div>
           )}
@@ -359,14 +359,14 @@ export const TagsView: React.FC<TagsViewProps> = ({
                       <Hash className="w-6 h-6 text-rose-600 dark:text-rose-500" />
                       {activeTag.name}
                     </span>
-                    <span className="text-xs bg-stone-100 dark:bg-stone-800 text-stone-700 dark:text-stone-300 font-bold px-2.5 py-0.5 rounded-full font-mono">
-                      共 {activeStats?.count || 0} 个选题
+                    <span className="text-xs bg-stone-100 dark:bg-stone-800 text-stone-700 dark:text-stone-300 font-bold px-2.5 py-0.5 rounded-full">
+                      共 <span className="font-mono tabular-nums">{activeStats?.count || 0}</span> 个选题
                     </span>
                   </div>
                   <div className="text-xs text-stone-500 dark:text-stone-400 flex items-center gap-3">
-                    <span>累计产出文案：<strong className="text-stone-800 dark:text-stone-200 font-mono">{activeStats?.wordsTotal || 0} 字</strong></span>
+                    <span>累计产出文案：<strong className="text-stone-800 dark:text-stone-200"><span className="font-mono tabular-nums">{activeStats?.wordsTotal || 0}</span> 字</strong></span>
                     <span>•</span>
-                    <span>平均故事评分：<strong className="text-stone-800 dark:text-stone-200 font-mono">{activeStats?.avgScore || 0} / 10分</strong></span>
+                    <span>平均故事评分：<strong className="text-stone-800 dark:text-stone-200"><span className="font-mono tabular-nums">{activeStats?.avgScore || 0} / 10</span>分</strong></span>
                   </div>
                 </div>
 
@@ -450,7 +450,7 @@ export const TagsView: React.FC<TagsViewProps> = ({
                       </div>
 
                       <div className="pt-3 border-t border-stone-100 dark:border-stone-800 flex items-center justify-between text-xs text-stone-400 dark:text-stone-500">
-                        <span className="font-mono">{topic.draft_word_count ? `${topic.draft_word_count} 字` : '未开始文案'}</span>
+                        <span>{topic.draft_word_count ? <><span className="font-mono tabular-nums">{topic.draft_word_count}</span> 字</> : '未开始文案'}</span>
                         <div className="flex items-center gap-1 text-stone-600 dark:text-stone-300 font-semibold group-hover:translate-x-0.5 transition-transform">
                           <span>进入工作台</span>
                           <ArrowRight className="w-3.5 h-3.5" />
@@ -468,7 +468,7 @@ export const TagsView: React.FC<TagsViewProps> = ({
                 {(tagTopicsPageQuery.data?.total || 0) > 0 && (
                   <div className="mt-5 flex items-center justify-center gap-3 text-xs text-stone-500 dark:text-stone-400">
                     <button type="button" disabled={topicPage <= 1 || tagTopicsPageQuery.isFetching} onClick={() => setTopicPage((current) => Math.max(1, current - 1))} className="rounded-lg border border-stone-200 bg-white px-3 py-2 font-semibold disabled:cursor-not-allowed disabled:opacity-40 dark:border-stone-700 dark:bg-stone-900">上一页</button>
-                    <span className="font-mono">{topicPage} / {Math.max(1, tagTopicsPageQuery.data?.total_pages || 1)} · 共 {tagTopicsPageQuery.data?.total || 0} 个选题</span>
+                    <span><span className="font-mono tabular-nums">{topicPage} / {Math.max(1, tagTopicsPageQuery.data?.total_pages || 1)}</span> · 共 <span className="font-mono tabular-nums">{tagTopicsPageQuery.data?.total || 0}</span> 个选题</span>
                     <button type="button" disabled={topicPage >= (tagTopicsPageQuery.data?.total_pages || 1) || tagTopicsPageQuery.isFetching} onClick={() => setTopicPage((current) => current + 1)} className="rounded-lg border border-stone-200 bg-white px-3 py-2 font-semibold disabled:cursor-not-allowed disabled:opacity-40 dark:border-stone-700 dark:bg-stone-900">下一页</button>
                   </div>
                 )}

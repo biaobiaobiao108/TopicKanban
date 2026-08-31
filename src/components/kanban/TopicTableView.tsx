@@ -791,7 +791,7 @@ export const TopicTableView: React.FC<TopicTableViewProps> = ({
                   </div>
                   <div>
                     <div className="text-[10px] text-stone-400 dark:text-stone-500">预估时长</div>
-                    <div className="mt-0.5 font-mono text-xs font-bold text-stone-800 dark:text-stone-200">{minutes} 分钟</div>
+                    <div className="mt-0.5 text-xs font-bold text-stone-800 dark:text-stone-200"><span className="font-mono tabular-nums">{minutes}</span> 分钟</div>
                   </div>
                 </div>
 
@@ -1132,24 +1132,24 @@ export const TopicTableView: React.FC<TopicTableViewProps> = ({
                         <span className="text-[10px] text-amber-600/70 dark:text-amber-400/70 font-normal">/10</span>
                       </div>
                     ) : (
-                      <span className="text-stone-300 dark:text-stone-600 text-[11px] font-mono">未评分</span>
+                      <span className="text-stone-300 dark:text-stone-600 text-[11px]">未评分</span>
                     )}
                   </td>}
 
                   {/* 9. Word Count & Estimated Duration */}
-                  {isColumnVisible('words') && <td className={`${rowPadding} px-3 text-right font-mono`}>
+                  {isColumnVisible('words') && <td className={`${rowPadding} px-3 text-right`}>
                     {topic.draft_word_count ? (
                       <div>
-                        <div className="font-bold text-stone-800 dark:text-stone-200">{topic.draft_word_count.toLocaleString()} 字</div>
-                        <div className="text-[10px] text-stone-400 dark:text-stone-500">~{minutes} 分钟</div>
+                        <div className="font-bold text-stone-800 dark:text-stone-200"><span className="font-mono tabular-nums">{topic.draft_word_count.toLocaleString()}</span> 字</div>
+                        <div className="text-[10px] text-stone-400 dark:text-stone-500">~<span className="font-mono tabular-nums">{minutes}</span> 分钟</div>
                       </div>
                     ) : (
-                      <span className="text-stone-300 dark:text-stone-600 text-[11px]">0 字</span>
+                      <span className="text-stone-300 dark:text-stone-600 text-[11px]"><span className="font-mono tabular-nums">0</span> 字</span>
                     )}
                   </td>}
 
                   {/* 10. Updated Time */}
-                  {isColumnVisible('updated_at') && <td className={`${rowPadding} px-3 text-right text-stone-400 dark:text-stone-500 font-mono text-[11px]`}>
+                  {isColumnVisible('updated_at') && <td className={`${rowPadding} px-3 text-right text-stone-400 dark:text-stone-500 text-[11px] tabular-nums`}>
                     {formatRelativeTime(topic.updated_at)}
                   </td>}
 
@@ -1223,23 +1223,23 @@ export const TopicTableView: React.FC<TopicTableViewProps> = ({
       {/* Table Summary Footer */}
       <div className="hidden p-3.5 bg-stone-50 dark:bg-stone-900/90 border-t border-stone-200 dark:border-stone-800 md:flex items-center justify-between text-xs text-stone-500 dark:text-stone-400 font-medium shrink-0 flex-wrap gap-2">
         <div className="flex items-center gap-4">
-          <span>当前页：<strong className="text-stone-900 dark:text-stone-100 font-mono">{sortedTopics.length}</strong> 个选题</span>
+          <span>当前页：<strong className="text-stone-900 dark:text-stone-100"><span className="font-mono tabular-nums">{sortedTopics.length}</span> 个选题</strong></span>
           <span>•</span>
-          <span>全库活跃生产：<strong className="text-indigo-700 dark:text-indigo-300 font-mono">{inScriptingCount}</strong> 篇</span>
+          <span>全库活跃生产：<strong className="text-indigo-700 dark:text-indigo-300"><span className="font-mono tabular-nums">{inScriptingCount}</span> 篇</strong></span>
           <span>•</span>
-          <span>全库累计文案：<strong className="text-stone-900 dark:text-stone-100 font-mono">{totalWords.toLocaleString()}</strong> 字</span>
+          <span>全库累计文案：<strong className="text-stone-900 dark:text-stone-100"><span className="font-mono tabular-nums">{totalWords.toLocaleString()}</span> 字</strong></span>
         </div>
 
         <div className="flex items-center gap-2">
           <button type="button" disabled={page <= 1 || pageQuery.isFetching} onClick={() => setPage((value) => Math.max(1, value - 1))} className="rounded-lg border border-stone-200 dark:border-stone-700 bg-white dark:bg-stone-800 text-stone-700 dark:text-stone-200 px-2.5 py-1.5 disabled:opacity-40">上一页</button>
-          <span className="font-mono">{page} / {Math.max(1, pageQuery.data?.total_pages || 1)} · 共 {pageQuery.data?.total || 0} 条</span>
+          <span><span className="font-mono tabular-nums">{page} / {Math.max(1, pageQuery.data?.total_pages || 1)}</span> · 共 <span className="font-mono tabular-nums">{pageQuery.data?.total || 0}</span> 条</span>
           <button type="button" disabled={page >= (pageQuery.data?.total_pages || 1) || pageQuery.isFetching} onClick={() => setPage((value) => value + 1)} className="rounded-lg border border-stone-200 dark:border-stone-700 bg-white dark:bg-stone-800 text-stone-700 dark:text-stone-200 px-2.5 py-1.5 disabled:opacity-40">下一页</button>
         </div>
       </div>
 
       <div className="flex items-center justify-center gap-2 border-t border-stone-200 dark:border-stone-800 bg-stone-50 dark:bg-stone-900/90 p-3 text-xs md:hidden">
         <button type="button" disabled={page <= 1 || pageQuery.isFetching} onClick={() => setPage((value) => Math.max(1, value - 1))} className="rounded-lg border border-stone-200 dark:border-stone-700 bg-white dark:bg-stone-800 text-stone-700 dark:text-stone-200 px-3 py-2 disabled:opacity-40">上一页</button>
-        <span className="font-mono text-stone-500 dark:text-stone-400">{page} / {Math.max(1, pageQuery.data?.total_pages || 1)}</span>
+        <span className="text-stone-500 dark:text-stone-400 font-mono tabular-nums">{page} / {Math.max(1, pageQuery.data?.total_pages || 1)}</span>
         <button type="button" disabled={page >= (pageQuery.data?.total_pages || 1) || pageQuery.isFetching} onClick={() => setPage((value) => value + 1)} className="rounded-lg border border-stone-200 dark:border-stone-700 bg-white dark:bg-stone-800 text-stone-700 dark:text-stone-200 px-3 py-2 disabled:opacity-40">下一页</button>
       </div>
 

@@ -84,7 +84,7 @@ export const KanbanColumn: React.FC<KanbanColumnProps> = ({
         <div className="flex items-center gap-2">
           <span className={`w-2.5 h-2.5 rounded-full ${c.dot}`} />
           <h2 className="text-sm font-bold text-stone-800 dark:text-stone-100 tracking-tight">{label}</h2>
-          <span className="text-xs bg-stone-200/70 dark:bg-stone-800 text-stone-700 dark:text-stone-300 font-bold px-2 py-0.5 rounded-full font-mono">
+          <span className="kanban-column-count text-xs bg-stone-200/70 dark:bg-stone-800 text-stone-700 dark:text-stone-300 font-bold px-2 py-0.5 rounded-full font-mono tabular-nums">
             {totalCount}
           </span>
         </div>

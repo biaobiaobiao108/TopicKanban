@@ -357,7 +357,7 @@ export const PeopleView: React.FC<PeopleViewProps> = ({
         {totalPeople > 0 && (
           <div className="flex items-center justify-center gap-3 text-xs text-stone-500 dark:text-stone-400">
             <button type="button" disabled={page <= 1 || peoplePageQuery.isFetching} onClick={() => setPage((current) => Math.max(1, current - 1))} className="rounded-lg border border-stone-200 bg-white px-3 py-2 font-semibold disabled:cursor-not-allowed disabled:opacity-40 dark:border-stone-700 dark:bg-stone-900">上一页</button>
-            <span className="font-mono">{page} / {Math.max(1, peoplePageQuery.data?.total_pages || 1)} · 共 {totalPeople} 人</span>
+            <span><span className="font-mono tabular-nums">{page} / {Math.max(1, peoplePageQuery.data?.total_pages || 1)}</span> · 共 <span className="font-mono tabular-nums">{totalPeople}</span> 人</span>
             <button type="button" disabled={page >= (peoplePageQuery.data?.total_pages || 1) || peoplePageQuery.isFetching} onClick={() => setPage((current) => current + 1)} className="rounded-lg border border-stone-200 bg-white px-3 py-2 font-semibold disabled:cursor-not-allowed disabled:opacity-40 dark:border-stone-700 dark:bg-stone-900">下一页</button>
           </div>
         )}

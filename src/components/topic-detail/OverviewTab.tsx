@@ -350,7 +350,7 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({
             </div>
 
             {/* Auto-save Status Chip */}
-            <div className="flex items-center gap-1.5 text-[11px] font-medium font-mono select-none">
+            <div className="flex items-center gap-1.5 text-[11px] font-medium select-none">
               {saveStatus === 'saving' && (
                 <span className="text-rose-600 dark:text-rose-400 flex items-center gap-1">
                   <span className="w-1.5 h-1.5 rounded-full bg-rose-600 animate-pulse" />
@@ -599,7 +599,7 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({
                 onChange={(e) => handleRawStorylineChange(e.target.value)}
                 onBlur={handleImmediateSave}
                 placeholder="【起·铺垫】起因人设 → 【承·发酵】矛盾升级 → 【转·反转】滑竿出场名场面 → 【合·反思】结局与讽刺"
-                className="w-full text-xs text-stone-800 dark:text-stone-100 bg-stone-500/[0.03] dark:bg-stone-800/60 border border-stone-200/60 dark:border-stone-700/60 rounded-xl p-3.5 placeholder:text-stone-400 dark:placeholder:text-stone-500 focus:bg-white dark:focus:bg-stone-800 focus:border-rose-500 dark:focus:border-rose-500 focus:outline-none transition-colors font-mono"
+                className="w-full text-xs text-stone-800 dark:text-stone-100 bg-stone-500/[0.03] dark:bg-stone-800/60 border border-stone-200/60 dark:border-stone-700/60 rounded-xl p-3.5 placeholder:text-stone-400 dark:placeholder:text-stone-500 focus:bg-white dark:focus:bg-stone-800 focus:border-rose-500 dark:focus:border-rose-500 focus:outline-none transition-colors"
               />
               <p className="text-[11px] text-stone-400">
                 提示：支持使用 <code>【起...】</code> 标签或 <code>→</code> 连接各幕。
@@ -658,8 +658,8 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({
               </div>
             </div>
             {targetPublishDate && (
-              <span className="text-xs font-mono font-bold px-2.5 py-0.5 rounded-full bg-rose-500/10 text-rose-700 dark:text-rose-300">
-                定档 {targetPublishDate}
+              <span className="text-xs font-bold px-2.5 py-0.5 rounded-full bg-rose-500/10 text-rose-700 dark:text-rose-300">
+                定档 <time dateTime={targetPublishDate} className="font-mono tabular-nums">{targetPublishDate}</time>
               </span>
             )}
           </div>
@@ -676,8 +676,8 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({
               </div>
               <div className="flex items-center gap-1.5">
                 {topic.next_action && (
-                  <span className="font-mono font-bold bg-rose-500/15 dark:bg-rose-900/50 text-rose-800 dark:text-rose-200 px-2 py-0.5 rounded-full text-[10px]">
-                    已推进 {actionDays} 天
+                  <span className="font-bold bg-rose-500/15 dark:bg-rose-900/50 text-rose-800 dark:text-rose-200 px-2 py-0.5 rounded-full text-[10px]">
+                    已推进 <span className="font-mono tabular-nums">{actionDays}</span> 天
                   </span>
                 )}
                 {actionWarning && (
@@ -869,7 +869,7 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({
           <div className="pt-3 border-t border-stone-100 dark:border-stone-800/80 space-y-2">
             <div className="flex items-center justify-between">
               <span className="text-[11px] font-semibold text-stone-500 dark:text-stone-400">全局人物库速选：</span>
-              <span className="text-[11px] text-stone-400 dark:text-stone-500 font-mono">共 {allPeople.length} 人</span>
+              <span className="text-[11px] text-stone-400 dark:text-stone-500">共 <span className="font-mono tabular-nums">{allPeople.length}</span> 人</span>
             </div>
 
             <div className="flex flex-wrap gap-1.5 max-h-36 overflow-y-auto pr-1">
@@ -970,7 +970,7 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({
           <div className="pt-3 border-t border-stone-100 dark:border-stone-800/80 space-y-2">
             <div className="flex items-center justify-between">
               <span className="text-[11px] font-semibold text-stone-500 dark:text-stone-400">标签库：</span>
-              <span className="text-[11px] text-stone-400 dark:text-stone-500 font-mono">共 {allTags.length} 个</span>
+              <span className="text-[11px] text-stone-400 dark:text-stone-500">共 <span className="font-mono tabular-nums">{allTags.length}</span> 个</span>
             </div>
 
             <div className="flex flex-wrap gap-1.5 max-h-32 overflow-y-auto pr-1">

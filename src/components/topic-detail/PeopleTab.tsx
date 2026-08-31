@@ -248,7 +248,7 @@ export const PeopleTab: React.FC<PeopleTabProps> = ({
               <span>从全局人物库快速引入</span>
               <span className="text-xs text-stone-400 dark:text-stone-500 font-normal">（点击直接关联至本选题）</span>
             </h4>
-            <span className="text-xs text-stone-400 dark:text-stone-500 font-mono">未关联 {unattachedPeople.length} 人</span>
+            <span className="text-xs text-stone-400 dark:text-stone-500">未关联 <span className="font-mono tabular-nums">{unattachedPeople.length}</span> 人</span>
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2.5">

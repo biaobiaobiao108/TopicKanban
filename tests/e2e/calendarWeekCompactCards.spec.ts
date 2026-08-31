@@ -148,6 +148,18 @@ async function mockWorkspace(page: Page, options: { includeCalendarContent?: boo
       }),
     });
   });
+  await page.route('**/api/topics?*', async (route) => {
+    await route.fulfill({
+      contentType: 'application/json',
+      body: JSON.stringify({
+        items: topics,
+        page: 1,
+        page_size: 30,
+        total: topics.length,
+        total_pages: topics.length > 0 ? 1 : 0,
+      }),
+    });
+  });
   await page.route('**/api/deals/page*', async (route) => {
     await route.fulfill({
       contentType: 'application/json',
@@ -275,6 +287,140 @@ test('手机端周视图卡片自动单列且不产生横向溢出', async ({ pa
   expect(layout.dayCount).toBe(7);
   expect(layout.gridScrollWidth).toBeLessThanOrEqual(layout.gridClientWidth + 1);
   expect(layout.cardWidths.every((width) => width > 0 && width < 390)).toBe(true);
+});
+
+test('看板排期与截稿徽标使用一致的语义字体', async ({ page }) => {
+  await mockWorkspace(page, { includeCalendarContent: true });
+  await login(page);
+
+  await page.goto('/kanban');
+  const card = page.locator(`[data-topic-id="${calendarTopic.id}"]`);
+  await expect(card).toBeVisible();
+
+  const badgeStyles = await card.evaluate((element) => {
+    const schedule = element.querySelector<HTMLElement>('[data-testid="topic-schedule-badge"]');
+    const deadline = element.querySelector<HTMLElement>('[data-testid="topic-deadline-badge"]');
+    const meta = element.querySelector<HTMLElement>('[data-testid="topic-card-meta"]');
+    if (!schedule || !deadline || !meta) return null;
+
+    const scheduleStyle = getComputedStyle(schedule);
+    const deadlineStyle = getComputedStyle(deadline);
+    const scheduleDate = schedule.querySelector<HTMLElement>('time');
+    const deadlineDate = deadline.querySelector<HTMLElement>('time');
+
+    return {
+      schedule: {
+        fontFamily: scheduleStyle.fontFamily,
+        fontSize: scheduleStyle.fontSize,
+        fontWeight: scheduleStyle.fontWeight,
+        lineHeight: scheduleStyle.lineHeight,
+        whiteSpace: scheduleStyle.whiteSpace,
+      },
+      deadline: {
+        fontFamily: deadlineStyle.fontFamily,
+        fontSize: deadlineStyle.fontSize,
+        fontWeight: deadlineStyle.fontWeight,
+        lineHeight: deadlineStyle.lineHeight,
+        whiteSpace: deadlineStyle.whiteSpace,
+      },
+      dates: {
+        scheduleFontFamily: scheduleDate ? getComputedStyle(scheduleDate).fontFamily : '',
+        deadlineFontFamily: deadlineDate ? getComputedStyle(deadlineDate).fontFamily : '',
+        scheduleVariant: scheduleDate ? getComputedStyle(scheduleDate).fontVariantNumeric : '',
+        deadlineVariant: deadlineDate ? getComputedStyle(deadlineDate).fontVariantNumeric : '',
+      },
+      colors: {
+        schedule: scheduleStyle.color,
+        deadline: deadlineStyle.color,
+      },
+      classNames: {
+        schedule: schedule.className,
+        deadline: deadline.className,
+      },
+      metaBackground: getComputedStyle(meta).backgroundColor,
+    };
+  });
+
+  expect(badgeStyles).not.toBeNull();
+  expect(badgeStyles?.schedule).toEqual(badgeStyles?.deadline);
+  expect(badgeStyles?.classNames.schedule).toContain('text-rose-');
+  expect(badgeStyles?.classNames.deadline).toContain('text-amber-');
+  expect(badgeStyles?.schedule.fontFamily).not.toContain('JetBrains Mono');
+  expect(badgeStyles?.colors.schedule).not.toBe(badgeStyles?.colors.deadline);
+  expect(badgeStyles?.dates.scheduleFontFamily).toBe(badgeStyles?.dates.deadlineFontFamily);
+  expect(badgeStyles?.dates.scheduleVariant).toContain('tabular-nums');
+  expect(badgeStyles?.dates.deadlineVariant).toContain('tabular-nums');
+  expect(badgeStyles?.metaBackground).toBe('rgba(0, 0, 0, 0)');
+
+  const themeVariants = [
+    [],
+    ['theme-warm-paper'],
+    ['theme-nordic-frost'],
+    ['theme-parisian-dawn'],
+    ['theme-midnight-obsidian', 'dark'],
+    ['theme-kyoto-zen'],
+  ];
+  const themeClasses = [
+    'theme-warm-paper',
+    'theme-nordic-frost',
+    'theme-parisian-dawn',
+    'theme-midnight-obsidian',
+    'theme-kyoto-zen',
+  ];
+  for (const classes of themeVariants) {
+    await page.evaluate(({ classes, themeClasses }) => {
+      document.documentElement.classList.remove(...themeClasses, 'dark');
+      document.documentElement.classList.add(...classes);
+    }, { classes, themeClasses });
+    const themeStyles = await card.evaluate((element) => {
+      const column = element.closest<HTMLElement>('[data-column-status]');
+      const count = column?.querySelector<HTMLElement>('.kanban-column-count');
+      const schedule = element.querySelector<HTMLElement>('[data-testid="topic-schedule-badge"]');
+      const meta = element.querySelector<HTMLElement>('[data-testid="topic-card-meta"]');
+      return {
+        countBackground: count ? getComputedStyle(count).backgroundColor : '',
+        scheduleBackground: schedule ? getComputedStyle(schedule).backgroundColor : '',
+        metaBackground: meta ? getComputedStyle(meta).backgroundColor : '',
+      };
+    });
+    expect(themeStyles.countBackground).not.toBe(themeStyles.metaBackground);
+    expect(themeStyles.scheduleBackground).not.toBe(themeStyles.countBackground);
+    expect(themeStyles.metaBackground).toBe('rgba(0, 0, 0, 0)');
+  }
+  await page.evaluate(({ themeClasses }) => {
+    document.documentElement.classList.remove(...themeClasses, 'dark');
+  }, { themeClasses });
+
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.goto('/kanban');
+  const mobileCard = page.locator(`[data-topic-id="${calendarTopic.id}"]`);
+  await expect(mobileCard).toBeVisible();
+  const mobileLayout = await mobileCard.evaluate((element) => ({
+    width: element.getBoundingClientRect().width,
+    scrollWidth: element.scrollWidth,
+    clientWidth: element.clientWidth,
+    scheduleWidth: element.querySelector<HTMLElement>('[data-testid="topic-schedule-badge"]')?.getBoundingClientRect().width || 0,
+    deadlineWidth: element.querySelector<HTMLElement>('[data-testid="topic-deadline-badge"]')?.getBoundingClientRect().width || 0,
+  }));
+  expect(mobileLayout.scrollWidth).toBeLessThanOrEqual(mobileLayout.clientWidth + 1);
+  expect(mobileLayout.scheduleWidth).toBeGreaterThan(0);
+  expect(mobileLayout.deadlineWidth).toBeGreaterThan(0);
+
+  await page.goto('/calendar?view=week&date=2026-08-28');
+  const plannedEvent = page.locator('[data-testid="calendar-event"][data-calendar-event-type="planned_publish"]').filter({ hasText: calendarTopic.title });
+  const deadlineEvent = page.locator('[data-testid="calendar-event"][data-calendar-event-type="deadline"]').filter({ hasText: calendarTopic.title });
+  await expect(plannedEvent).toBeVisible();
+  await expect(deadlineEvent).toBeVisible();
+  const eventTypography = await Promise.all([plannedEvent, deadlineEvent].map((event) => event.evaluate((element) => {
+    const style = getComputedStyle(element);
+    return {
+      fontFamily: style.fontFamily,
+      fontSize: style.fontSize,
+      fontWeight: style.fontWeight,
+      lineHeight: style.lineHeight,
+    };
+  })));
+  expect(eventTypography[0]).toEqual(eventTypography[1]);
 });
 
 test('直接打开商单详情时返回按钮回退到商单中心', async ({ page }) => {

@@ -176,8 +176,8 @@ export const TodayView: React.FC<TodayViewProps> = ({
                   )}
                 </div>
 
-                <div className="text-[11px] text-stone-400 dark:text-stone-500 font-mono">
-                  行动持续 {getNextActionAgeDays(focusTopic)} 天
+                <div className="text-[11px] text-stone-400 dark:text-stone-500">
+                  行动持续 <span className="font-mono tabular-nums">{getNextActionAgeDays(focusTopic)}</span> 天
                 </div>
               </div>
 
@@ -253,8 +253,8 @@ export const TodayView: React.FC<TodayViewProps> = ({
 
                 <div className="flex items-center gap-3">
                   {focusTopic.draft_word_count ? (
-                    <span className="font-mono text-stone-700 dark:text-stone-300 font-medium">
-                      文案: {focusTopic.draft_word_count} 字
+                    <span className="text-stone-700 dark:text-stone-300 font-medium">
+                      文案: <span className="font-mono tabular-nums">{focusTopic.draft_word_count}</span> 字
                     </span>
                   ) : null}
                   <span>{focusTopic.verified_sources_count || 0} 条已确认资料</span>
@@ -301,7 +301,7 @@ export const TodayView: React.FC<TodayViewProps> = ({
             <div className="flex items-center justify-between">
               <h2 className="text-base font-bold text-stone-900 dark:text-stone-100 flex items-center gap-2">
                 <span>今日优先选题</span>
-                <span className="text-xs bg-stone-200/60 dark:bg-stone-800 text-stone-700 dark:text-stone-300 px-2 py-0.5 rounded-full font-mono font-bold">
+                <span className="text-xs bg-stone-200/60 dark:bg-stone-800 text-stone-700 dark:text-stone-300 px-2 py-0.5 rounded-full font-mono font-bold tabular-nums">
                   {priorityList.length}
                 </span>
               </h2>
@@ -393,8 +393,10 @@ export const TodayView: React.FC<TodayViewProps> = ({
                     )}
                   </div>
 
-                  <div className="text-[11px] text-stone-400 dark:text-stone-500 font-mono shrink-0">
-                    {new Date(t.updated_at).toLocaleDateString('zh-CN', { month: 'numeric', day: 'numeric' })}
+                  <div className="text-[11px] text-stone-400 dark:text-stone-500 shrink-0">
+                    <time dateTime={t.updated_at} className="tabular-nums">
+                      {new Date(t.updated_at).toLocaleDateString('zh-CN', { month: 'numeric', day: 'numeric' })}
+                    </time>
                   </div>
                 </div>
               ))}

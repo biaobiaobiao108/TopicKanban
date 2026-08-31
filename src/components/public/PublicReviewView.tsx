@@ -301,12 +301,12 @@ export const PublicReviewView: React.FC<PublicReviewViewProps> = ({ token: propT
                   外部审稿版
                 </span>
               </h1>
-              <div className="flex items-center gap-3 text-[11px] text-stone-400 dark:text-stone-500 font-mono flex-wrap">
+              <div className="flex items-center gap-3 text-[11px] text-stone-400 dark:text-stone-500 flex-wrap">
                 <span className="flex items-center gap-1">
-                  <FileText className="w-3 h-3 text-stone-400" /> {snapshot.word_count.toLocaleString()} 字
+                  <FileText className="w-3 h-3 text-stone-400" /> <span className="font-mono tabular-nums">{snapshot.word_count.toLocaleString()}</span> 字
                 </span>
                 <span className="flex items-center gap-1">
-                  <Clock className="w-3 h-3 text-rose-500" /> 预估 {minutes} 分钟
+                  <Clock className="w-3 h-3 text-rose-500" /> 预估 <span className="font-mono tabular-nums">{minutes}</span> 分钟
                 </span>
                 {snapshot.reviewer_branding && (
                   <span className="text-stone-500 dark:text-stone-400 font-sans font-medium text-[11px] border-l border-stone-200 dark:border-stone-700 pl-2">
@@ -350,8 +350,8 @@ export const PublicReviewView: React.FC<PublicReviewViewProps> = ({ token: propT
                   <Compass className="w-3.5 h-3.5 text-rose-600 dark:text-rose-400" />
                   <span>文案故事大纲</span>
                 </div>
-                <span className="font-mono text-[10px] bg-rose-50 dark:bg-rose-950/60 text-rose-700 dark:text-rose-300 px-1.5 py-0.5 rounded font-bold border border-rose-200/60 dark:border-rose-900/60">
-                  {outlineItems.length} 章节
+                <span className="text-[10px] bg-rose-50 dark:bg-rose-950/60 text-rose-700 dark:text-rose-300 px-1.5 py-0.5 rounded font-bold border border-rose-200/60 dark:border-rose-900/60">
+                  <span className="font-mono tabular-nums">{outlineItems.length}</span> 章节
                 </span>
               </div>
 
@@ -433,8 +433,8 @@ export const PublicReviewView: React.FC<PublicReviewViewProps> = ({ token: propT
           {/* Footer note */}
           <footer className="pt-8 mt-8 border-t border-stone-100 dark:border-stone-800 flex items-center justify-between text-xs text-stone-400 dark:text-stone-500">
             <span>选题生产工作台 · 审稿快照</span>
-            <span className="font-mono text-[11px]">
-              有效期至：{new Date(snapshot.expires_at).toLocaleString()}
+            <span className="text-[11px]">
+              有效期至：<time dateTime={snapshot.expires_at} className="font-mono tabular-nums">{new Date(snapshot.expires_at).toLocaleString()}</time>
             </span>
           </footer>
         </article>
