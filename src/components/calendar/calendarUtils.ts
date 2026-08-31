@@ -1,19 +1,8 @@
 import { CommercialDeal, PublishedVideo, Topic } from '../../types';
 import { CalendarEventItem, CalendarLayerFilters, MonthStats } from './CalendarTypes';
+import { getBeijingDateString } from '../../lib/actionDate';
 
-/**
- * Returns Beijing date string YYYY-MM-DD from a Date object or ISO string.
- */
-export function getBeijingDateString(dateInput?: Date | string | null): string {
-  const date = dateInput ? (typeof dateInput === 'string' ? new Date(dateInput) : dateInput) : new Date();
-  if (Number.isNaN(date.getTime())) return '';
-  return new Intl.DateTimeFormat('en-CA', {
-    timeZone: 'Asia/Shanghai',
-    year: 'numeric',
-    month: '2-digit',
-    day: '2-digit',
-  }).format(date);
-}
+export { getBeijingDateString } from '../../lib/actionDate';
 
 export interface MonthDayCell {
   date: string; // YYYY-MM-DD

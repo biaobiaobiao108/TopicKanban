@@ -41,6 +41,8 @@ import { CustomSelect, type SelectOption, type SelectRenderState } from '../ui/C
 import { ConfirmDialog } from '../ui/ConfirmDialog';
 import { PageHeader } from '../layout/PageHeader';
 import { BackNavigationBar } from '../layout/BackNavigationBar';
+import { ActionDate, ActionDateText } from '../ui/ActionDate';
+import { useActionDateDisplay } from '../../lib/actionDate';
 
 const ACTIVE_STATUSES: CommercialDealStatus[] = ['communicating', 'producing'];
 const STATUS_FLOW: CommercialDealStatus[] = ['communicating', 'producing', 'delivered', 'archived'];
@@ -121,20 +123,7 @@ function getSafePublishedVideoUrl(video: NonNullable<CommercialDealDetail['publi
   return bvid ? `https://www.bilibili.com/video/${bvid}` : '';
 }
 
-const todayInBeijing = () =>
-  new Intl.DateTimeFormat('en-CA', {
-    timeZone: 'Asia/Shanghai',
-    year: 'numeric',
-    month: '2-digit',
-    day: '2-digit',
-  }).format(new Date());
-const formatDate = (value?: string | null) => {
-  if (!value) return '未设置';
-  const parts = value.split('-');
-  return parts.length === 3 ? `${Number(parts[1])}月${Number(parts[2])}日` : value;
-};
 const formatMoney = (cents: number) => (cents > 0 ? `¥${(cents / 100).toLocaleString('zh-CN', { minimumFractionDigits: 2 })}` : '未报价');
-const isOverdue = (value?: string | null) => Boolean(value && value < todayInBeijing());
 
 const fieldClass =
   'mt-1.5 w-full rounded-xl border border-stone-200/80 bg-stone-500/[0.03] px-3 py-2.5 text-sm text-stone-900 outline-none transition-colors placeholder:text-stone-400 focus:border-rose-500 focus:bg-white dark:border-stone-700 dark:bg-stone-800 dark:text-stone-100 dark:focus:bg-stone-800';
@@ -399,7 +388,8 @@ function DealFormModal({
 }
 
 function DealCard({ deal, onOpen }: { deal: CommercialDeal; onOpen: (id: string) => void }) {
-  const overdue = isOverdue(deal.delivery_due_date) && !['delivered', 'archived'].includes(deal.status);
+  const deliveryDate = useActionDateDisplay(deal.delivery_due_date, !['delivered', 'archived'].includes(deal.status));
+  const overdue = deliveryDate.state === 'overdue';
   const needsTopic = deal.status === 'producing' && !deal.primary_topic_id;
   return (
     <button
@@ -436,7 +426,12 @@ function DealCard({ deal, onOpen }: { deal: CommercialDeal; onOpen: (id: string)
         </div>
         <div className={`flex items-center gap-1.5 ${overdue ? 'font-bold text-red-600 dark:text-red-400' : ''}`}>
           <CalendarClock className="h-3.5 w-3.5 shrink-0" />
-          {deal.delivery_due_date ? `${overdue ? '已逾期 · ' : '交付 · '}${formatDate(deal.delivery_due_date)}` : '尚未设置交付日'}
+          {deliveryDate.state === 'empty' ? '尚未设置交付日' : (
+            <>
+              {!overdue && '交付 · '}
+              <ActionDateText display={deliveryDate} />
+            </>
+          )}
         </div>
         {deal.primary_topic_title ? (
           <div className="flex min-w-0 items-center gap-1.5">
@@ -884,6 +879,15 @@ function CommercialDealDetailView({
     queryFn: fetchPublishedVideos,
   });
   const deal = dealQuery.data;
+  const deliveryDate = useActionDateDisplay(
+    deal?.delivery_due_date,
+    !deal || !['delivered', 'archived'].includes(deal.status)
+  );
+  const publishDate = useActionDateDisplay(
+    deal?.publish_date,
+    !deal || !['delivered', 'archived'].includes(deal.status)
+  );
+  const nextActionDueDate = useActionDateDisplay(deal?.next_action_due_date, !deal || deal.status !== 'archived');
 
   useEffect(() => {
     if (!deal) return;
@@ -1112,7 +1116,7 @@ function CommercialDealDetailView({
   const linkedTopicIds = new Set([...(primaryTopicId ? [primaryTopicId] : []), ...relatedTopicIds]);
   const availableTopics = topics.filter((topic) => !topic.deleted_at);
   const canShowTopicCta = deal.status === 'producing' && !primaryTopicId;
-  const overdue = isOverdue(deal.delivery_due_date) && !['delivered', 'archived'].includes(deal.status);
+  const overdue = deliveryDate.state === 'overdue';
   const currentFlowIndex = STATUS_FLOW.indexOf(deal.status);
 
   return (
@@ -1222,7 +1226,7 @@ function CommercialDealDetailView({
               <MetaItem label="成交金额" value={formatMoney(deal.amount_cents)} />
               <MetaItem
                 label="交付截止"
-                value={deal.delivery_due_date ? formatDate(deal.delivery_due_date) : '未设置'}
+                value={deliveryDate.state === 'empty' ? '未设置' : <ActionDateText display={deliveryDate} />}
                 tone={overdue ? 'danger' : undefined}
               />
             </div>
@@ -1677,12 +1681,12 @@ function CommercialDealDetailView({
                       >
                         {deal.payment_status === 'paid' ? '已收到款项' : '等待回款'}
                       </span>
-                      {deal.paid_at && <span className="text-xs text-stone-400">到账 {formatDate(deal.paid_at)}</span>}
+                      {deal.paid_at && <span className="text-xs text-stone-400">到账 <ActionDate value={deal.paid_at} active={false} /></span>}
                     </div>
                   </div>
                   <div className="grid grid-cols-2 gap-3">
-                    <MetaItem label="交付截止" value={formatDate(deal.delivery_due_date)} tone={overdue ? 'danger' : undefined} />
-                    <MetaItem label="计划上线日" value={formatDate(deal.publish_date)} />
+                    <MetaItem label="交付截止" value={deliveryDate.state === 'empty' ? '未设置' : <ActionDateText display={deliveryDate} />} tone={overdue ? 'danger' : undefined} />
+                    <MetaItem label="计划上线日" value={publishDate.state === 'empty' ? '未设置' : <ActionDateText display={publishDate} />} />
                   </div>
                   <div className="rounded-xl bg-rose-500/[0.07] p-4 dark:bg-rose-950/30">
                     <p className="text-xs font-bold text-rose-700 dark:text-rose-300">下一步行动</p>
@@ -1691,9 +1695,9 @@ function CommercialDealDetailView({
                     </p>
                     {deal.next_action_due_date && (
                       <p
-                        className={`mt-3 text-xs ${isOverdue(deal.next_action_due_date) ? 'font-bold text-red-600 dark:text-red-400' : 'text-stone-500 dark:text-stone-400'}`}
+                        className={`mt-3 text-xs ${nextActionDueDate.state === 'overdue' ? 'font-bold text-red-600 dark:text-red-400' : 'text-stone-500 dark:text-stone-400'}`}
                       >
-                        截止 {formatDate(deal.next_action_due_date)}
+                        截止 <ActionDateText display={nextActionDueDate} />
                       </p>
                     )}
                   </div>
@@ -1754,7 +1758,7 @@ function CommercialDealDetailView({
                 </div>
                 <div className="grid grid-cols-2 gap-3">
                   <MetaItem label="发布视频 BV 号" value={deal.published_video?.bvid || '未绑定'} />
-                  <MetaItem label="计划上线日" value={formatDate(deal.publish_date)} />
+                  <MetaItem label="计划上线日" value={publishDate.state === 'empty' ? '未设置' : <ActionDateText display={publishDate} />} />
                 </div>
               </div>
             </SectionCard>
@@ -1766,9 +1770,9 @@ function CommercialDealDetailView({
                 </p>
                 {deal.next_action_due_date && (
                   <p
-                    className={`mt-3 text-xs ${isOverdue(deal.next_action_due_date) ? 'font-bold text-red-600 dark:text-red-400' : 'text-stone-500 dark:text-stone-400'}`}
+                    className={`mt-3 text-xs ${nextActionDueDate.state === 'overdue' ? 'font-bold text-red-600 dark:text-red-400' : 'text-stone-500 dark:text-stone-400'}`}
                   >
-                    截止 {formatDate(deal.next_action_due_date)}
+                    截止 <ActionDateText display={nextActionDueDate} />
                   </p>
                 )}
               </div>
@@ -1809,7 +1813,7 @@ function CommercialDealDetailView({
   );
 }
 
-function MetaItem({ label, value, tone }: { label: string; value: string; tone?: 'danger' }) {
+function MetaItem({ label, value, tone }: { label: string; value: React.ReactNode; tone?: 'danger' }) {
   return (
     <div className="min-w-0">
       <p className="text-[11px] font-semibold text-stone-400 dark:text-stone-500">{label}</p>

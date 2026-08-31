@@ -423,6 +423,37 @@ test('看板排期与截稿徽标使用一致的语义字体', async ({ page }) 
   expect(eventTypography[0]).toEqual(eventTypography[1]);
 });
 
+test('行动日期在当天显示相对语义并在跨日后自动变为逾期', async ({ page }) => {
+  await page.clock.install({ time: '2026-08-28T00:00:00+08:00' });
+  await mockWorkspace(page, { includeCalendarContent: true });
+  await login(page);
+
+  await page.goto('/kanban');
+  const card = page.locator(`[data-topic-id="${calendarTopic.id}"]`);
+  await expect(card).toContainText('排期 今天 · 8月28日');
+  await expect(card).toContainText('截稿 今天 · 8月28日');
+  await expect(card.locator('[data-testid="topic-schedule-badge"] time')).toHaveAttribute('data-date-state', 'today');
+
+  await page.goto('/calendar?view=agenda&date=2026-08-28');
+  await expect(page.getByRole('heading', { name: '今天 · 8月28日 排期与待办' })).toBeVisible();
+
+  await page.clock.fastForward('24:00:01');
+  await page.goto('/kanban');
+  await expect(card).toContainText('排期 已逾期 1 天 · 8月28日');
+  await expect(card).toContainText('截稿 已逾期 1 天 · 8月28日');
+  await expect(card.locator('[data-testid="topic-schedule-badge"] time')).toHaveAttribute('data-date-state', 'overdue');
+
+  await page.setViewportSize({ width: 390, height: 844 });
+  const mobileLayout = await card.evaluate((element) => ({
+    clientWidth: element.clientWidth,
+    scrollWidth: element.scrollWidth,
+  }));
+  expect(mobileLayout.scrollWidth).toBeLessThanOrEqual(mobileLayout.clientWidth + 1);
+
+  await page.goto('/deals');
+  await expect(page.getByTestId('deal-card').filter({ hasText: '星河品牌' })).toContainText('已逾期 1 天 · 8月28日');
+});
+
 test('直接打开商单详情时返回按钮回退到商单中心', async ({ page }) => {
   await mockWorkspace(page);
   await login(page);

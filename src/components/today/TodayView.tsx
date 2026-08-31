@@ -17,6 +17,8 @@ import {
 import { NextActionDialog } from '../topic-detail/NextActionDialog';
 import { PageHeader } from '../layout/PageHeader';
 import { getNextActionAgeDays, getNextActionWarning } from '../../lib/topicMetrics';
+import { useActionDateDisplay } from '../../lib/actionDate';
+import { ActionDateText } from '../ui/ActionDate';
 
 const FOCUS_PRIORITY = { high: 3, medium: 2, low: 1, none: 0 };
 const ACTIVE_FOCUS_STATUSES = new Set(['approved', 'scripting', 'production']);
@@ -27,13 +29,9 @@ const DEAL_STATUS_LABELS: Record<CommercialDeal['status'], string> = {
   archived: '归档',
 };
 
-function formatDealDate(value?: string | null): string {
-  if (!value) return '未设截止日期';
-  return new Date(`${value}T00:00:00+08:00`).toLocaleDateString('zh-CN', { month: 'numeric', day: 'numeric' });
-}
-
 function DealFocusCard({ deal, onOpen }: { deal: CommercialDeal; onOpen: () => void }) {
-  const isDue = Boolean(deal.delivery_due_date && deal.delivery_due_date <= new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Shanghai' }).format(new Date()));
+  const deliveryDate = useActionDateDisplay(deal.delivery_due_date, !['delivered', 'archived'].includes(deal.status));
+  const isDue = deliveryDate.state === 'today' || deliveryDate.state === 'overdue';
   const isUnpaid = deal.payment_status === 'unpaid' && deal.status === 'delivered';
   return (
     <button
@@ -57,7 +55,7 @@ function DealFocusCard({ deal, onOpen }: { deal: CommercialDeal; onOpen: () => v
           </span>
         </span>
         <span className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-stone-500 dark:text-stone-400">
-          {isUnpaid ? <span className="font-semibold text-amber-700 dark:text-amber-300">已交付待回款</span> : <span className={isDue ? 'font-semibold text-rose-700 dark:text-rose-300' : ''}>{isDue ? '截止/逾期' : '交付截止'}：{formatDealDate(deal.delivery_due_date)}</span>}
+          {isUnpaid ? <span className="font-semibold text-amber-700 dark:text-amber-300">已交付待回款</span> : <span className={isDue ? 'font-semibold text-rose-700 dark:text-rose-300' : ''}>{isDue ? '截止' : '交付截止'}：{deliveryDate.state === 'empty' ? '未设截止日期' : <ActionDateText display={deliveryDate} />}</span>}
           {deal.next_action ? <span className="truncate">下一步：{deal.next_action}</span> : <span className="font-semibold text-amber-700 dark:text-amber-300">缺少下一步行动</span>}
         </span>
       </span>

@@ -3,6 +3,7 @@ import { WeekDayCell } from './calendarUtils';
 import { CalendarEventItem } from './CalendarTypes';
 import { CalendarEventPill } from './CalendarEventPill';
 import { Plus, Calendar as CalendarIcon } from 'lucide-react';
+import { getActionDateDisplay, useBeijingToday } from '../../lib/actionDate';
 
 interface CalendarAgendaViewProps {
   days: WeekDayCell[];
@@ -21,12 +22,14 @@ export const CalendarAgendaView: React.FC<CalendarAgendaViewProps> = ({
   onOpenDeal,
   onOpenPublished,
 }) => {
+  const today = useBeijingToday();
   const [selectedDate, setSelectedDate] = useState<string>(() => {
     const today = days.find((d) => d.isToday);
     return today ? today.date : (days[0]?.date || '');
   });
 
   const selectedDayEvents = eventsMap.get(selectedDate) || [];
+  const selectedDateLabel = getActionDateDisplay(selectedDate, { today }).text || selectedDate;
 
   return (
     <div className="flex-1 flex flex-col min-w-0 bg-white dark:bg-stone-900 rounded-2xl border border-stone-200/70 dark:border-stone-800 shadow-2xs overflow-hidden">
@@ -70,7 +73,7 @@ export const CalendarAgendaView: React.FC<CalendarAgendaViewProps> = ({
           <div className="flex items-center gap-2">
             <CalendarIcon className="w-4 h-4 text-rose-600 dark:text-rose-400" />
             <h2 className="text-sm font-bold text-stone-900 dark:text-stone-100">
-              {selectedDate} 排期与待办
+              {selectedDateLabel} 排期与待办
             </h2>
             <span className="text-xs font-mono font-bold bg-stone-100 dark:bg-stone-800 text-stone-600 dark:text-stone-400 px-2 py-0.5 rounded-full">
               {selectedDayEvents.length}

@@ -5,6 +5,7 @@ import { CalendarEventItem } from './CalendarTypes';
 import { CalendarEventPill } from './CalendarEventPill';
 import { Plus } from 'lucide-react';
 import { Modal } from '../ui/Modal';
+import { getActionDateDisplay, useBeijingToday } from '../../lib/actionDate';
 
 interface CalendarMonthGridProps {
   days: MonthDayCell[];
@@ -137,6 +138,7 @@ export const CalendarMonthGrid: React.FC<CalendarMonthGridProps> = ({
   onOpenDeal,
   onOpenPublished,
 }) => {
+  const today = useBeijingToday();
   const [activeDateModal, setActiveDateModal] = useState<{ date: string; events: CalendarEventItem[] } | null>(null);
 
   return (
@@ -182,7 +184,7 @@ export const CalendarMonthGrid: React.FC<CalendarMonthGridProps> = ({
         <Modal
           isOpen
           onClose={() => setActiveDateModal(null)}
-          title={`📅 ${activeDateModal.date} 全部排期与事项`}
+          title={`📅 ${getActionDateDisplay(activeDateModal.date, { today }).text || activeDateModal.date} 全部排期与事项`}
           maxWidth="md"
         >
           <div className="space-y-2.5 max-h-[60vh] overflow-y-auto pr-1">

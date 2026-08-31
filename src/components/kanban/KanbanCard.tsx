@@ -12,6 +12,8 @@ import {
   Clock,
 } from 'lucide-react';
 import { getNextActionAgeDays, getNextActionWarning } from '../../lib/topicMetrics';
+import { ActionDateText } from '../ui/ActionDate';
+import { useActionDateDisplay, type ActionDateDisplay } from '../../lib/actionDate';
 
 interface KanbanCardProps {
   topic: Topic;
@@ -63,6 +65,30 @@ function getStatusMenuPosition(
   };
 }
 
+const TopicScheduleBadges: React.FC<{
+  scheduleDate: ActionDateDisplay;
+  deadlineDate: ActionDateDisplay;
+}> = ({ scheduleDate, deadlineDate }) => {
+  if (scheduleDate.state === 'empty' && deadlineDate.state === 'empty') return null;
+
+  return (
+    <div className="flex items-center gap-1.5 flex-wrap">
+      {scheduleDate.state !== 'empty' && (
+        <span data-testid="topic-schedule-badge" className={`${SCHEDULE_BADGE_CLASS} bg-rose-500/10 text-rose-700 dark:bg-rose-950/40 dark:text-rose-300`}>
+          <Calendar className="w-3 h-3" />
+          <span>排期 <ActionDateText display={scheduleDate} /></span>
+        </span>
+      )}
+      {deadlineDate.state !== 'empty' && (
+        <span data-testid="topic-deadline-badge" className={`${SCHEDULE_BADGE_CLASS} bg-amber-500/10 text-amber-800 dark:bg-amber-950/40 dark:text-amber-300`}>
+          <Clock className="w-3 h-3 text-amber-600 dark:text-amber-400" />
+          <span>截稿 <ActionDateText display={deadlineDate} /></span>
+        </span>
+      )}
+    </div>
+  );
+};
+
 const KanbanCardComponent: React.FC<KanbanCardProps> = ({
   topic,
   onOpenDetail,
@@ -102,6 +128,9 @@ const KanbanCardComponent: React.FC<KanbanCardProps> = ({
   };
 
   const actionWarning = getNextActionWarning(topic, new Date(), staleThresholdDays);
+  const activeTopicDates = topic.status !== 'published' && topic.status !== 'icebox';
+  const scheduleDate = useActionDateDisplay(topic.target_publish_date, activeTopicDates);
+  const deadlineDate = useActionDateDisplay(topic.deadline, activeTopicDates);
 
   useLayoutEffect(() => {
     if (!isStatusMenuOpen || !statusTriggerRef.current) return;
@@ -188,6 +217,8 @@ const KanbanCardComponent: React.FC<KanbanCardProps> = ({
             )}
           </div>
         </div>
+
+        <TopicScheduleBadges scheduleDate={scheduleDate} deadlineDate={deadlineDate} />
       </div>
     );
   }
@@ -378,22 +409,7 @@ const KanbanCardComponent: React.FC<KanbanCardProps> = ({
       </div>
 
       {/* Schedule / Deadline Badges */}
-      {(topic.target_publish_date || topic.deadline) && (
-        <div className="flex items-center gap-1.5 flex-wrap">
-          {topic.target_publish_date && (
-            <span data-testid="topic-schedule-badge" className={`${SCHEDULE_BADGE_CLASS} bg-rose-500/10 text-rose-700 dark:bg-rose-950/40 dark:text-rose-300`}>
-              <Calendar className="w-3 h-3" />
-              <span>排期 <time dateTime={topic.target_publish_date} className={CARD_META_VALUE_CLASS}>{topic.target_publish_date.slice(5)}</time></span>
-            </span>
-          )}
-          {topic.deadline && (
-            <span data-testid="topic-deadline-badge" className={`${SCHEDULE_BADGE_CLASS} bg-amber-500/10 text-amber-800 dark:bg-amber-950/40 dark:text-amber-300`}>
-              <Clock className="w-3 h-3 text-amber-600 dark:text-amber-400" />
-              <span>截稿 <time dateTime={topic.deadline} className={CARD_META_VALUE_CLASS}>{topic.deadline.slice(5)}</time></span>
-            </span>
-          )}
-        </div>
-      )}
+      <TopicScheduleBadges scheduleDate={scheduleDate} deadlineDate={deadlineDate} />
 
       {/* Secondary context */}
       <div className="flex items-center justify-between pt-2 border-t border-stone-100 dark:border-stone-800/80 text-[11px] text-stone-400 dark:text-stone-500">

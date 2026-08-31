@@ -4,6 +4,7 @@ import { DateInput } from '../ui/DateInput';
 import { Topic, Priority, TopicStatus, Tag } from '../../types';
 import { Calendar, Plus, Check, Trash2, Clock, Sparkles } from 'lucide-react';
 import { StatusBadge, PriorityBadge } from '../ui/Badge';
+import { getActionDateDisplay, useBeijingToday } from '../../lib/actionDate';
 
 interface CalendarDateActionModalProps {
   isOpen: boolean;
@@ -34,6 +35,7 @@ export const CalendarDateActionModal: React.FC<CalendarDateActionModalProps> = (
   onUpdateTopic,
   onCreateTopic,
 }) => {
+  const today = useBeijingToday();
   const [tab, setTab] = useState<'schedule_existing' | 'create_new'>(
     activeTopic ? 'schedule_existing' : (unscheduledTopics.length > 0 ? 'schedule_existing' : 'create_new')
   );
@@ -107,7 +109,7 @@ export const CalendarDateActionModal: React.FC<CalendarDateActionModalProps> = (
     <Modal
       isOpen={isOpen}
       onClose={onClose}
-      title={`📅 排期定档 · ${targetDate}`}
+      title={`📅 排期定档 · ${getActionDateDisplay(targetDate, { today }).text || targetDate}`}
       maxWidth="md"
     >
       <div className="space-y-4">

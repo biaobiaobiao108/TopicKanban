@@ -6,6 +6,8 @@ import { Modal } from '../ui/Modal';
 import { DateInput } from '../ui/DateInput';
 import { useToast } from '../ui/Toast';
 import { getNextActionAgeDays, getNextActionWarning } from '../../lib/topicMetrics';
+import { useActionDateDisplay } from '../../lib/actionDate';
+import { ActionDateText } from '../ui/ActionDate';
 import {
   Sparkles,
   User,
@@ -142,6 +144,9 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({
 
   const actionDays = getNextActionAgeDays(topic);
   const actionWarning = getNextActionWarning(topic);
+  const activeTopicDates = topic.status !== 'published' && topic.status !== 'icebox';
+  const targetPublishDateDisplay = useActionDateDisplay(targetPublishDate, activeTopicDates);
+  const deadlineDisplay = useActionDateDisplay(deadline, activeTopicDates);
 
   // Sync state when topic prop changes from outside
   useEffect(() => {
@@ -659,7 +664,7 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({
             </div>
             {targetPublishDate && (
               <span className="text-xs font-bold px-2.5 py-0.5 rounded-full bg-rose-500/10 text-rose-700 dark:text-rose-300">
-                定档 <time dateTime={targetPublishDate} className="font-mono tabular-nums">{targetPublishDate}</time>
+                定档 <ActionDateText display={targetPublishDateDisplay} />
               </span>
             )}
           </div>
@@ -796,7 +801,7 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({
               />
               <div className="pt-0.5">
                 <span className="text-[10px] text-stone-500 dark:text-stone-400">
-                  {deadline ? `定稿目标日: ${deadline}` : '用于内部写稿与剪辑交付倒计时'}
+                  {deadline ? <>定稿目标日: <ActionDateText display={deadlineDisplay} /></> : '用于内部写稿与剪辑交付倒计时'}
                 </span>
               </div>
             </div>

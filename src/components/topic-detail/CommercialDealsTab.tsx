@@ -8,6 +8,7 @@ import {
   replaceCommercialDealTopics,
 } from '../../lib/storage';
 import { updateCommercialDealCaches } from '../../lib/queryCacheSync';
+import { ActionDate } from '../ui/ActionDate';
 
 const STATUS_LABELS: Record<CommercialDeal['status'], string> = {
   communicating: '沟通中', producing: '制作中', delivered: '已交付', archived: '归档',
@@ -20,11 +21,6 @@ interface CommercialDealsTabProps {
   onOpenDeal: (dealId: string) => void;
   onCreateTopicFromDeal?: (data: { title: string; summary: string }) => Promise<Topic>;
   onTopicMetricsChange?: (topicId: string, metrics: Partial<Topic>) => void;
-}
-
-function formatDate(value?: string | null): string {
-  if (!value) return '未设截止日期';
-  return new Date(`${value}T00:00:00+08:00`).toLocaleDateString('zh-CN', { year: 'numeric', month: 'numeric', day: 'numeric' });
 }
 
 export const CommercialDealsTab: React.FC<CommercialDealsTabProps> = ({ topic, onOpenDeal, onCreateTopicFromDeal, onTopicMetricsChange }) => {
@@ -135,7 +131,11 @@ export const CommercialDealsTab: React.FC<CommercialDealsTabProps> = ({ topic, o
                     <h4 className="mt-2 text-base font-bold text-stone-900 transition-colors hover:text-rose-600 dark:text-stone-100 dark:hover:text-rose-400">{deal.title}</h4>
                     <div className="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-xs text-stone-500 dark:text-stone-400">
                       <span>{deal.relation_role === 'primary' ? '主选题' : '系列关联'}</span>
-                      <span>交付截止：{formatDate(deal.delivery_due_date)}</span>
+                      <span>
+                        交付截止：{deal.delivery_due_date ? (
+                          <ActionDate value={deal.delivery_due_date} active={!['delivered', 'archived'].includes(deal.status)} />
+                        ) : '未设截止日期'}
+                      </span>
                       {deal.next_action && <span className="max-w-full truncate">下一步：{deal.next_action}</span>}
                     </div>
                   </button>
