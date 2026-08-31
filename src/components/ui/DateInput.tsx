@@ -39,7 +39,10 @@ export const DateInput: React.FC<DateInputProps> = ({
     const nextResult = normalizeDateInputValue(nextDraft, min);
     setDraft(nextResult.error ? nextDraft : nextResult.value);
     setShowError(false);
-    onChange(nextResult.error ? '' : nextResult.value);
+    // Keep incomplete/invalid drafts local. Saving an empty value for every
+    // intermediate keystroke can race a valid edit and clear a previously
+    // saved date before the user finishes typing.
+    if (!nextResult.error) onChange(nextResult.value);
   };
 
   const validateOnBlur = () => {

@@ -1,4 +1,4 @@
-import React, { Suspense, useState, useEffect, useCallback } from 'react';
+import React, { Suspense, useState, useEffect, useCallback, useRef } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import {
   Topic,
@@ -45,6 +45,17 @@ import { fetchQuickDrops } from './lib/storage';
 import { applyTheme } from './lib/theme';
 import { matchPath, useLocation, useNavigate } from 'react-router-dom';
 import { useWorkspace } from './hooks/useWorkspace';
+import {
+  removePersonCaches,
+  removePublishedCaches,
+  removeTagCaches,
+  removeTopicCaches,
+  replaceTopicCaches,
+  updatePersonCaches,
+  updatePublishedCaches,
+  updateTagCaches,
+  updateTopicCaches,
+} from './lib/queryCacheSync';
 import { lazyWithReload } from './lib/lazyWithReload';
 import { useToast } from './components/ui/Toast';
 import { PageHeader } from './components/layout/PageHeader';
@@ -93,6 +104,14 @@ function getBackLabel(path: string | undefined, fallback: string): string {
   return '返回上一页';
 }
 
+type TopicField = keyof Topic;
+
+interface PendingTopicFieldState {
+  baseValue: unknown;
+  pending: Array<{ sequence: number; value: unknown }>;
+  latestResolved?: { sequence: number; value: unknown };
+}
+
 const CalendarView = lazyWithReload(() => import('./components/calendar/CalendarView').then((module) => ({ default: module.CalendarView })));
 const KanbanBoard = lazyWithReload(() => import('./components/kanban/KanbanBoard').then((module) => ({ default: module.KanbanBoard })));
 const TopicDetailView = lazyWithReload(() => import('./components/topic-detail/TopicDetailView').then((module) => ({ default: module.TopicDetailView })));
@@ -137,6 +156,8 @@ function WorkspaceApp({ isAuth, setIsAuth }: WorkspaceAppProps) {
   const activeTopicId = topicMatch?.params.topicId || null;
   const dealMatch = matchPath('/deals/:dealId', location.pathname);
   const activeDealId = dealMatch?.params.dealId || null;
+  const topicMutationSequenceRef = useRef(0);
+  const pendingTopicFieldsRef = useRef(new Map<string, Map<TopicField, PendingTopicFieldState>>());
 
   const {
     topics,
@@ -290,6 +311,68 @@ function WorkspaceApp({ isAuth, setIsAuth }: WorkspaceAppProps) {
 
   const currentLocation = `${location.pathname}${location.search}${location.hash}`;
 
+  const beginTopicMutation = (topicId: string, updates: Partial<Topic>) => {
+    const sequence = ++topicMutationSequenceRef.current;
+    const fields = Object.keys(updates) as TopicField[];
+    const currentTopic = topics.find((topic) => topic.id === topicId);
+    const topicFields = pendingTopicFieldsRef.current.get(topicId) || new Map<TopicField, PendingTopicFieldState>();
+    fields.forEach((field) => {
+      const currentField = topicFields.get(field);
+      const baseValue = currentField?.pending.length
+        ? currentField.pending[currentField.pending.length - 1].value
+        : currentTopic?.[field];
+      const state = currentField || { baseValue, pending: [] };
+      state.pending.push({ sequence, value: updates[field] });
+      topicFields.set(field, state);
+    });
+    pendingTopicFieldsRef.current.set(topicId, topicFields);
+    return sequence;
+  };
+
+  const reconcileTopicMutation = (topicId: string, updates: Partial<Topic>, serverTopic: Topic, sequence: number) => {
+    const topicFields = pendingTopicFieldsRef.current.get(topicId);
+    const patch: Record<string, unknown> = {};
+    const fields = Object.keys(updates) as TopicField[];
+    fields.forEach((field) => {
+      const state = topicFields?.get(field);
+      const pendingIndex = state?.pending.findIndex((entry) => entry.sequence === sequence) ?? -1;
+      const serverValue = Object.prototype.hasOwnProperty.call(serverTopic, field) ? serverTopic[field] : updates[field];
+      if (!state || pendingIndex < 0) {
+        patch[field] = serverValue;
+        return;
+      }
+      state.pending.splice(pendingIndex, 1);
+      if (!state.latestResolved || state.latestResolved.sequence < sequence) {
+        state.latestResolved = { sequence, value: serverValue };
+      }
+      const latestPending = state.pending[state.pending.length - 1];
+      patch[field] = latestPending
+        ? latestPending.value
+        : state.latestResolved ? state.latestResolved.value : serverValue;
+      if (state.pending.length === 0) topicFields?.delete(field);
+    });
+    if (topicFields?.size === 0) pendingTopicFieldsRef.current.delete(topicId);
+    return patch as Partial<Topic>;
+  };
+
+  const rollbackTopicMutation = (topicId: string, updates: Partial<Topic>, sequence: number) => {
+    const topicFields = pendingTopicFieldsRef.current.get(topicId);
+    const patch: Record<string, unknown> = {};
+    (Object.keys(updates) as TopicField[]).forEach((field) => {
+      const state = topicFields?.get(field);
+      const pendingIndex = state?.pending.findIndex((entry) => entry.sequence === sequence) ?? -1;
+      if (!state || pendingIndex < 0) return;
+      state.pending.splice(pendingIndex, 1);
+      const latestPending = state.pending[state.pending.length - 1];
+      patch[field] = latestPending
+        ? latestPending.value
+        : state.latestResolved ? state.latestResolved.value : state.baseValue;
+      if (state.pending.length === 0) topicFields?.delete(field);
+    });
+    if (topicFields?.size === 0) pendingTopicFieldsRef.current.delete(topicId);
+    return patch as Partial<Topic>;
+  };
+
   const handleOpenDeal = (dealId: string) => {
     safeNavigate(`/deals/${encodeURIComponent(dealId)}`, {
       state: { from: currentLocation, fromLabel: getBackLabel(currentLocation, '返回上一页') },
@@ -348,12 +431,14 @@ function WorkspaceApp({ isAuth, setIsAuth }: WorkspaceAppProps) {
     setTopics((prev) => prev.map((topic) => (
       topic.id === topicId ? { ...topic, draft_word_count: wordCount } : topic
     )));
+    updateTopicCaches(queryClient, topicId, { draft_word_count: wordCount });
   };
 
   const handleTopicMetricsChange = (topicId: string, metrics: Partial<Topic>) => {
     setTopics((prev) => prev.map((topic) => (
       topic.id === topicId ? { ...topic, ...metrics } : topic
     )));
+    updateTopicCaches(queryClient, topicId, metrics);
   };
 
   const handleSaveQuickTopic = async (topicData: {
@@ -406,14 +491,40 @@ function WorkspaceApp({ isAuth, setIsAuth }: WorkspaceAppProps) {
 
   const handleUpdateTopic = async (updates: Partial<Topic>) => {
     if (!activeTopicId) return;
-    const updated = await saveTopic({ id: activeTopicId, ...updates });
-    setTopics((prev) => prev.map((topic) => (topic.id === updated.id ? { ...topic, ...updated } : topic)));
+    const sequence = beginTopicMutation(activeTopicId, updates);
+    updateTopicCaches(queryClient, activeTopicId, updates);
+    setTopics((prev) => prev.map((topic) => (topic.id === activeTopicId ? { ...topic, ...updates } : topic)));
+    let updated: Topic;
+    try {
+      updated = await saveTopic({ id: activeTopicId, ...updates });
+    } catch (error) {
+      const rollback = rollbackTopicMutation(activeTopicId, updates, sequence);
+      setTopics((prev) => prev.map((topic) => (topic.id === activeTopicId ? { ...topic, ...rollback } : topic)));
+      updateTopicCaches(queryClient, activeTopicId, rollback);
+      throw error;
+    }
+    const resolved = reconcileTopicMutation(activeTopicId, updates, updated, sequence);
+    setTopics((prev) => prev.map((topic) => (topic.id === updated.id ? { ...topic, ...resolved } : topic)));
+    updateTopicCaches(queryClient, updated.id, resolved);
     await refreshTopics();
   };
 
   const handleUpdateTopicById = async (topicId: string, updates: Partial<Topic>) => {
-    const updated = await saveTopic({ id: topicId, ...updates });
-    setTopics((prev) => prev.map((topic) => (topic.id === updated.id ? { ...topic, ...updated } : topic)));
+    const sequence = beginTopicMutation(topicId, updates);
+    updateTopicCaches(queryClient, topicId, updates);
+    setTopics((prev) => prev.map((topic) => (topic.id === topicId ? { ...topic, ...updates } : topic)));
+    let updated: Topic;
+    try {
+      updated = await saveTopic({ id: topicId, ...updates });
+    } catch (error) {
+      const rollback = rollbackTopicMutation(topicId, updates, sequence);
+      setTopics((prev) => prev.map((topic) => (topic.id === topicId ? { ...topic, ...rollback } : topic)));
+      updateTopicCaches(queryClient, topicId, rollback);
+      throw error;
+    }
+    const resolved = reconcileTopicMutation(topicId, updates, updated, sequence);
+    setTopics((prev) => prev.map((topic) => (topic.id === updated.id ? { ...topic, ...resolved } : topic)));
+    updateTopicCaches(queryClient, updated.id, resolved);
     await refreshTopics();
   };
 
@@ -427,6 +538,7 @@ function WorkspaceApp({ isAuth, setIsAuth }: WorkspaceAppProps) {
       }
       return prev.filter((t) => t.id !== topicId);
     });
+    removeTopicCaches(queryClient, topicId);
     await refreshTopics();
     if (activeTopicId === topicId) {
       navigate('/kanban');
@@ -440,6 +552,7 @@ function WorkspaceApp({ isAuth, setIsAuth }: WorkspaceAppProps) {
           const restored = await restoreTopic(topicId);
           setTrashedTopics((prev) => prev.filter((topic) => topic.id !== topicId));
           setTopics((prev) => [restored, ...prev]);
+          replaceTopicCaches(queryClient, restored);
           await refreshTopics();
         },
       });
@@ -450,6 +563,7 @@ function WorkspaceApp({ isAuth, setIsAuth }: WorkspaceAppProps) {
     const restored = await restoreTopic(topicId);
     setTrashedTopics((prev) => prev.filter((topic) => topic.id !== topicId));
     setTopics((prev) => [restored, ...prev]);
+    replaceTopicCaches(queryClient, restored);
     await refreshTopics();
   };
 
@@ -475,14 +589,9 @@ function WorkspaceApp({ isAuth, setIsAuth }: WorkspaceAppProps) {
   const handleTogglePin = async (topicId: string) => {
     const topic = topics.find((t) => t.id === topicId);
     if (!topic) return;
-    const updated = await saveTopic({
-      id: topic.id,
+    await handleUpdateTopicById(topic.id, {
       is_pinned: topic.is_pinned === 1 ? 0 : 1,
     });
-    setTopics((prev) => prev.map((topicItem) => (
-      topicItem.id === updated.id ? { ...topicItem, ...updated } : topicItem
-    )));
-    await refreshTopics();
   };
 
   const handleUpdateTopicStatus = async (
@@ -491,16 +600,23 @@ function WorkspaceApp({ isAuth, setIsAuth }: WorkspaceAppProps) {
     sortOrder?: number
   ) => {
     const previousTopics = topics;
+    const topicUpdate: Partial<Topic> = {
+      status,
+      ...(typeof sortOrder === 'number' ? { sort_order: sortOrder } : {}),
+    };
+    updateTopicCaches(queryClient, topicId, topicUpdate);
     setTopics((prev) =>
       prev.map((t) => (t.id === topicId ? { ...t, status, sort_order: sortOrder ?? t.sort_order, updated_at: new Date().toISOString() } : t))
     );
     try {
       await updateTopicStatus(topicId, status, sortOrder);
-      await refreshTopics();
     } catch (err) {
       setTopics(previousTopics);
+      const previous = previousTopics.find((topic) => topic.id === topicId);
+      if (previous) replaceTopicCaches(queryClient, previous);
       throw err;
     }
+    await refreshTopics();
   };
 
   const handleReorderTopics = async (
@@ -513,13 +629,15 @@ function WorkspaceApp({ isAuth, setIsAuth }: WorkspaceAppProps) {
       const update = updateMap.get(topic.id);
       return update ? { ...topic, ...update, updated_at: nowIso } : topic;
     }));
+    updates.forEach((update) => updateTopicCaches(queryClient, update.id, update));
     try {
       await reorderTopics(updates);
-      await refreshTopics();
     } catch (err) {
       setTopics(previousTopics);
+      previousTopics.forEach((topic) => replaceTopicCaches(queryClient, topic));
       throw err;
     }
+    await refreshTopics();
   };
 
   const handleQuickAddInStatus = (status: TopicStatus) => {
@@ -544,6 +662,7 @@ function WorkspaceApp({ isAuth, setIsAuth }: WorkspaceAppProps) {
       if (exists) return prev.map((p) => (p.id === saved.id ? saved : p));
       return [saved, ...prev];
     });
+    updatePersonCaches(queryClient, saved);
     await queryClient.invalidateQueries({ queryKey: ['people'] });
     await queryClient.invalidateQueries({ queryKey: ['people-options'] });
     await queryClient.invalidateQueries({ queryKey: ['people-page'] });
@@ -561,6 +680,7 @@ function WorkspaceApp({ isAuth, setIsAuth }: WorkspaceAppProps) {
       ...topic,
       people: topic.people?.filter((person) => person.id !== personId),
     })));
+    removePersonCaches(queryClient, personId);
     await queryClient.invalidateQueries({ queryKey: ['people'] });
     await queryClient.invalidateQueries({ queryKey: ['people-options'] });
     await queryClient.invalidateQueries({ queryKey: ['people-page'] });
@@ -586,6 +706,7 @@ function WorkspaceApp({ isAuth, setIsAuth }: WorkspaceAppProps) {
         }))
       );
     }
+    updateTagCaches(queryClient, newTag);
     await queryClient.invalidateQueries({ queryKey: ['tags'] });
     await queryClient.invalidateQueries({ queryKey: ['tags-page'] });
     await queryClient.invalidateQueries({ queryKey: ['tags-options'] });
@@ -603,6 +724,7 @@ function WorkspaceApp({ isAuth, setIsAuth }: WorkspaceAppProps) {
         tags: t.tags?.filter((tg) => tg.id !== tagId),
       }))
     );
+    removeTagCaches(queryClient, tagId);
     await queryClient.invalidateQueries({ queryKey: ['tags'] });
     await queryClient.invalidateQueries({ queryKey: ['tags-page'] });
     await queryClient.invalidateQueries({ queryKey: ['tags-options'] });
@@ -642,6 +764,7 @@ function WorkspaceApp({ isAuth, setIsAuth }: WorkspaceAppProps) {
       if (exists) return prev.map((p) => (p.id === saved.id ? saved : p));
       return [saved, ...prev];
     });
+    updatePublishedCaches(queryClient, saved);
     await queryClient.invalidateQueries({ queryKey: ['published'] });
     await queryClient.invalidateQueries({ queryKey: ['published-page'] });
     await queryClient.invalidateQueries({ queryKey: ['published-analytics'] });
@@ -650,6 +773,7 @@ function WorkspaceApp({ isAuth, setIsAuth }: WorkspaceAppProps) {
   const handleDeletePublished = async (pubId: string) => {
     await deletePublishedVideo(pubId);
     setPublishedList((prev) => prev.filter((p) => p.id !== pubId));
+    removePublishedCaches(queryClient, pubId);
     await queryClient.invalidateQueries({ queryKey: ['published'] });
     await queryClient.invalidateQueries({ queryKey: ['published-page'] });
     await queryClient.invalidateQueries({ queryKey: ['published-analytics'] });

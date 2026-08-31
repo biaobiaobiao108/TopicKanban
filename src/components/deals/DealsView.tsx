@@ -34,6 +34,7 @@ import {
 } from '../../lib/storage';
 import { extractBvid } from '../../lib/bilibili';
 import { sanitizeExternalHttpUrl } from '../../lib/urlSafety';
+import { removeCommercialDealCaches, updateCommercialDealCaches } from '../../lib/queryCacheSync';
 import { Modal } from '../ui/Modal';
 import { DateInput } from '../ui/DateInput';
 import { CustomSelect, type SelectOption, type SelectRenderState } from '../ui/CustomSelect';
@@ -536,6 +537,7 @@ function CommercialDealsView({ topics, onCreateTopicFromDeal }: Pick<DealsViewPr
   }, [page, totalPages]);
 
   const handleSaved = (deal: CommercialDealDetail) => {
+    updateCommercialDealCaches(queryClient, deal);
     void queryClient.invalidateQueries({ queryKey: ['commercial-deal-page'] });
     void queryClient.invalidateQueries({ queryKey: ['deal-focus'] });
     void queryClient.invalidateQueries({ queryKey: ['commercial-deals-calendar'] });
@@ -897,7 +899,7 @@ function CommercialDealDetailView({
   const safePublishedVideoUrl = deal.published_video ? getSafePublishedVideoUrl(deal.published_video) : '';
 
   const updateDealCache = (saved: CommercialDealDetail) => {
-    queryClient.setQueryData(['commercial-deal', dealId], saved);
+    updateCommercialDealCaches(queryClient, saved);
     void queryClient.invalidateQueries({ queryKey: ['commercial-deal-page'] });
     void queryClient.invalidateQueries({ queryKey: ['deal-focus'] });
     void queryClient.invalidateQueries({ queryKey: ['commercial-deals-calendar'] });
@@ -1016,6 +1018,7 @@ function CommercialDealDetailView({
     setDetailError('');
     try {
       await deleteCommercialDeal(deal.id);
+      removeCommercialDealCaches(queryClient, deal.id);
       await queryClient.invalidateQueries({
         queryKey: ['commercial-deal-page'],
       });

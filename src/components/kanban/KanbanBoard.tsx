@@ -723,6 +723,7 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
 
       {/* DND Context & Board Grid (4 Active Columns) */}
       <DndContext
+        key={isMobileViewport ? 'mobile' : 'desktop'}
         collisionDetection={closestCorners}
         onDragStart={handleDragStart}
         onDragOver={handleDragOver}

@@ -48,3 +48,64 @@ test('topic mutations stay synchronized across today, database and kanban naviga
   await page.getByRole('navigation').getByRole('button', { name: /选题看板/ }).click();
   await expect.poll(async () => readTopicCount(await kanbanNav.innerText())).toBe(countBefore);
 });
+
+test('topic date edits are visible on kanban before delayed saves finish', async ({ page }) => {
+  await login(page);
+
+  const title = `E2E日期即时同步-${Date.now()}`;
+  await page.getByRole('button', { name: '新选题' }).click();
+  await page.getByPlaceholder('例如：大胃袋良子：峨眉山减肥大溃败').fill(title);
+  await page.getByRole('button', { name: '立即创建' }).click();
+  await expect(page.getByRole('heading', { name: title, exact: true })).toBeVisible();
+
+  await page.getByRole('navigation').getByRole('button', { name: /选题看板/ }).click();
+  const boardCard = page.locator('[data-topic-id]').filter({ hasText: title });
+  await expect(boardCard).toBeVisible();
+  const topicId = await boardCard.getAttribute('data-topic-id');
+  if (!topicId) throw new Error('看板卡片缺少选题 ID');
+  await boardCard.click();
+  await expect(page).toHaveURL(new RegExp(`/topics/${topicId}$`));
+
+  let pendingSaves = 0;
+  let completedSaves = 0;
+  let releaseSaves!: () => void;
+  const savesReleased = new Promise<void>((resolve) => {
+    releaseSaves = resolve;
+  });
+  let resolveCompleted!: () => void;
+  const savesCompleted = new Promise<void>((resolve) => {
+    resolveCompleted = resolve;
+  });
+  await page.route(`**/api/topics/${topicId}`, async (route) => {
+    if (route.request().method() !== 'PATCH') {
+      await route.continue();
+      return;
+    }
+    pendingSaves += 1;
+    await savesReleased;
+    await route.continue();
+    completedSaves += 1;
+    if (completedSaves >= 2) resolveCompleted();
+  });
+
+  await page.locator('#overview-target-publish-date').fill('20260901');
+  await page.locator('#overview-deadline').fill('20260905');
+  await expect.poll(() => pendingSaves).toBeGreaterThanOrEqual(2);
+
+  await page.getByRole('button', { name: '返回选题看板' }).click();
+  await expect(page).toHaveURL('/kanban');
+  const updatedCard = page.locator(`[data-topic-id="${topicId}"]`);
+  await expect(updatedCard).toContainText('排期 09-01');
+  await expect(updatedCard).toContainText('截稿 09-05');
+
+  releaseSaves();
+  await savesCompleted;
+
+  await page.getByRole('navigation').getByRole('button', { name: '选题库' }).click();
+  const topicRow = page.locator('tr').filter({ hasText: title });
+  await expect(topicRow).toBeVisible();
+  await topicRow.getByTitle('移入回收站').click();
+  const confirmDialog = page.getByRole('dialog', { name: '移入回收站' });
+  await confirmDialog.getByRole('button', { name: '移入回收站', exact: true }).click();
+  await expect(topicRow).toHaveCount(0);
+});

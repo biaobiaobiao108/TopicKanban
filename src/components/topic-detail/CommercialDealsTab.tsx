@@ -7,6 +7,7 @@ import {
   fetchCommercialDealsByTopicId,
   replaceCommercialDealTopics,
 } from '../../lib/storage';
+import { updateCommercialDealCaches } from '../../lib/queryCacheSync';
 
 const STATUS_LABELS: Record<CommercialDeal['status'], string> = {
   communicating: '沟通中', producing: '制作中', delivered: '已交付', archived: '归档',
@@ -18,6 +19,7 @@ interface CommercialDealsTabProps {
   topic: Topic;
   onOpenDeal: (dealId: string) => void;
   onCreateTopicFromDeal?: (data: { title: string; summary: string }) => Promise<Topic>;
+  onTopicMetricsChange?: (topicId: string, metrics: Partial<Topic>) => void;
 }
 
 function formatDate(value?: string | null): string {
@@ -25,7 +27,7 @@ function formatDate(value?: string | null): string {
   return new Date(`${value}T00:00:00+08:00`).toLocaleDateString('zh-CN', { year: 'numeric', month: 'numeric', day: 'numeric' });
 }
 
-export const CommercialDealsTab: React.FC<CommercialDealsTabProps> = ({ topic, onOpenDeal, onCreateTopicFromDeal }) => {
+export const CommercialDealsTab: React.FC<CommercialDealsTabProps> = ({ topic, onOpenDeal, onCreateTopicFromDeal, onTopicMetricsChange }) => {
   const queryClient = useQueryClient();
   const [busyId, setBusyId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -49,8 +51,12 @@ export const CommercialDealsTab: React.FC<CommercialDealsTabProps> = ({ topic, o
       const relatedTopicIds = mode === 'primary'
         ? remaining.map((relation) => relation.topic_id)
         : remaining.filter((relation) => relation.topic_id !== primaryTopicId).map((relation) => relation.topic_id);
-      await replaceCommercialDealTopics(dealId, primaryTopicId, relatedTopicIds);
+      const saved = await replaceCommercialDealTopics(dealId, primaryTopicId, relatedTopicIds);
+      updateCommercialDealCaches(queryClient, saved);
       await queryClient.invalidateQueries({ queryKey: ['topic-deals'] });
+      onTopicMetricsChange?.(topic.id, {
+        commercial_deals_count: queryClient.getQueryData<CommercialDeal[]>(['topic-deals', topic.id])?.length || 0,
+      });
       await queryClient.invalidateQueries({ queryKey: ['commercial-deal', dealId] });
       await queryClient.invalidateQueries({ queryKey: ['commercial-deal-page'] });
       await queryClient.invalidateQueries({ queryKey: ['deal-focus'] });
@@ -73,8 +79,12 @@ export const CommercialDealsTab: React.FC<CommercialDealsTabProps> = ({ topic, o
         summary: deal.brief || deal.requirements || `商单「${deal.title}」的选题草稿`,
       });
       const detail = await fetchCommercialDeal(deal.id);
-      await replaceCommercialDealTopics(deal.id, detail.primary_topic_id || created.id, detail.topics.filter((relation) => relation.topic_id !== detail.primary_topic_id).map((relation) => relation.topic_id).concat(detail.primary_topic_id && detail.primary_topic_id !== created.id ? [detail.primary_topic_id] : []));
+      const saved = await replaceCommercialDealTopics(deal.id, detail.primary_topic_id || created.id, detail.topics.filter((relation) => relation.topic_id !== detail.primary_topic_id).map((relation) => relation.topic_id).concat(detail.primary_topic_id && detail.primary_topic_id !== created.id ? [detail.primary_topic_id] : []));
+      updateCommercialDealCaches(queryClient, saved);
       await queryClient.invalidateQueries({ queryKey: ['topic-deals'] });
+      onTopicMetricsChange?.(topic.id, {
+        commercial_deals_count: queryClient.getQueryData<CommercialDeal[]>(['topic-deals', topic.id])?.length || 0,
+      });
       await queryClient.invalidateQueries({ queryKey: ['commercial-deal', deal.id] });
       await queryClient.invalidateQueries({ queryKey: ['commercial-deal-page'] });
       await queryClient.invalidateQueries({ queryKey: ['deal-focus'] });

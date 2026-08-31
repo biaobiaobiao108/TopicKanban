@@ -234,6 +234,7 @@ export const TopicDetailView: React.FC<TopicDetailViewProps> = ({
       await saveTimelineEvent(eventData);
       const updated = await fetchTimelineByTopicId(topic.id);
       queryClient.setQueryData(['topic-timeline', topic.id], updated);
+      onTopicMetricsChange(topic.id, { timeline_count: updated.length });
     } catch (error) {
       setOperationError(error instanceof Error ? `保存时间线失败：${error.message}` : '保存时间线失败');
       throw error;
@@ -245,6 +246,7 @@ export const TopicDetailView: React.FC<TopicDetailViewProps> = ({
       await deleteTimelineEvent(eventId);
       const updated = await fetchTimelineByTopicId(topic.id);
       queryClient.setQueryData(['topic-timeline', topic.id], updated);
+      onTopicMetricsChange(topic.id, { timeline_count: updated.length });
     } catch (error) {
       setOperationError(error instanceof Error ? `删除时间线失败：${error.message}` : '删除时间线失败');
       throw error;
@@ -400,6 +402,7 @@ export const TopicDetailView: React.FC<TopicDetailViewProps> = ({
       });
       const updated = await fetchTimelineByTopicId(topic.id);
       queryClient.setQueryData(['topic-timeline', topic.id], updated);
+      onTopicMetricsChange(topic.id, { timeline_count: updated.length });
     } catch (err) {
       setOperationError(err instanceof Error ? `流转时间线事件失败：${err.message}` : '流转时间线事件失败');
     }
@@ -429,6 +432,7 @@ export const TopicDetailView: React.FC<TopicDetailViewProps> = ({
       }
       const updated = await fetchTimelineByTopicId(topic.id);
       queryClient.setQueryData(['topic-timeline', topic.id], updated);
+      onTopicMetricsChange(topic.id, { timeline_count: updated.length });
       setActiveTab('timeline');
     } catch (err) {
       setOperationError(err instanceof Error ? `流转时间线失败：${err.message}` : '流转时间线失败');
@@ -585,6 +589,7 @@ export const TopicDetailView: React.FC<TopicDetailViewProps> = ({
               topic={topic}
               onOpenDeal={onOpenDeal}
               onCreateTopicFromDeal={onCreateTopicFromDeal}
+              onTopicMetricsChange={onTopicMetricsChange}
             />
           </div>
         )}
