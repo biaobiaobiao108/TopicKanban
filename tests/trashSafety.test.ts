@@ -3,7 +3,7 @@ import {
   loadTrashedTopics,
   permanentlyDeleteTrashedTopics,
   TopicNotInTrashError,
-} from '../src/server/database';
+} from '../src/server/repositories/topics';
 import type { SqliteDatabase } from '../src/server/sqlite';
 
 type FakeStatement = {

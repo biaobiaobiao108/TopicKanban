@@ -1,22 +1,23 @@
-import { NativeApp, bodyLimit } from './native';
-import type { AppSettings } from '../types';
-import { DEFAULT_APP_SETTINGS, DEFAULT_VOICEOVER_CUES, APP_THEMES, type AppTheme } from '../types';
-import type { AppKV } from './appKv';
+import { NativeApp, bodyLimit } from '../native';
+import type { AppSettings } from '../../types';
+import { DEFAULT_APP_SETTINGS, DEFAULT_VOICEOVER_CUES, APP_THEMES, type AppTheme } from '../../types';
+import type { AppKV } from '../appKv';
 import {
   BackupImportLimitError,
   exportAllData,
   loadBootstrap,
   replaceAllData,
-} from './database';
-import { validateBackupData } from '../lib/backupValidation';
-import type { ApiBindings } from './apiShared';
+} from '../repositories';
+import { validateBackupData } from '../../lib/backupValidation';
+import type { ApiBindings } from '../apiShared';
 import {
   MAX_BACKUP_REQUEST_BYTES,
   MAX_LOGIN_REQUEST_BYTES,
   createToken,
   jsonError,
   requireDb,
-} from './apiShared';
+} from '../apiShared';
+import { countDatabaseTables } from '../repositories';
 
 export function sanitizeAppSettings(
   settings?: Partial<AppSettings> | null,
@@ -172,10 +173,8 @@ export function registerSystemRoutes(app: NativeApp): void {
   app.get('/health', async (c) => {
     try {
       const db = requireDb(c);
-      const tableCheck = await db.prepare("SELECT count(*) AS count FROM sqlite_master WHERE type='table'")
-        .first<{ count: number }>();
+      const tablesCount = await countDatabaseTables(db);
       const kvSettings = await getKvSettings(c.env.KV, c.env.PUBLIC_BASE_URL);
-      const tablesCount = tableCheck?.count || 0;
       return c.json({
         status: 'online',
         timestamp: new Date().toISOString(),

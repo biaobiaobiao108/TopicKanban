@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'bun:test';
 import { DEFAULT_APP_SETTINGS, APP_THEMES } from '../src/types';
-import { sanitizeAppSettings } from '../src/server/systemRoutes';
+import { sanitizeAppSettings } from '../src/server/routes/system';
 
 describe('Settings KV Model and Sanitization', () => {
   it('should have valid DEFAULT_APP_SETTINGS', () => {

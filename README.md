@@ -108,7 +108,7 @@ bun run test:e2e
 | **路由与状态** | React Router 7 + TanStack Query 5 | 服务端状态缓存与乐观更新 |
 | **富文本编辑** | Tiptap 2 + StarterKit + 自定义原子气口扩展 | 支持演播气口节点与字数计算 |
 | **看板与拖拽** | `@dnd-kit/core` + `@dnd-kit/sortable` | 丝滑拖拽流转与时序排序 |
-| **服务端** | Bun 原生 HTTP Server + 原生路由 | `Bun.serve({ routes })` 直接分发 REST API，减少适配层 |
+| **服务端** | Bun 原生 HTTP Server + 按领域组织的原生路由 | `app.ts` 负责组合，`routes/` 负责 HTTP 行为，`repositories/` 负责 SQLite 持久化 |
 | **主业务持久库** | SQLite (`bun:sqlite` + WAL) | 选题、素材、时间线、人物、文案、发布包、商单等业务表 |
 | **键值与临时库** | SQLite `_kv_store` 表 | 全局偏好、审稿快照、在线锁、快投箱 |
 | **测试与构建** | Bun (`bun test` + `bun build`) | 85 项全量测试，毫秒级运行 |
@@ -264,13 +264,36 @@ kanban/
 │   │   ├── theme.ts                     # 8 套温润编辑部主题调色板配置
 │   │   └── auth.ts                      # Web Crypto HMAC-SHA256 Token 鉴权
 │   ├── server/
-│   │   ├── createApp.ts                 # Bun 原生 REST API 路由定义
+│   │   ├── app.ts                       # API 应用组合与鉴权中间件
 │   │   ├── server.ts                    # Bun 独立服务端入口 (静态托管 + API)
 │   │   ├── native.ts                    # Bun 原生请求上下文与路由适配
 │   │   ├── sqlite.ts                    # bun:sqlite 数据库封装
 │   │   ├── appKv.ts                     # SQLite KV 与 TTL 存储
-│   │   ├── database.ts                  # SQL 业务持久层与备份导入导出
-│   │   ├── systemRoutes.ts              # 系统探测、设置与备份路由
+│   │   ├── apiShared.ts                 # API 常量、校验、Token 与通用辅助
+│   │   ├── routes/                      # 按业务领域组织的 REST 路由注册模块
+│   │   │   ├── topics.ts                # 选题、回收站与今日聚焦
+│   │   │   ├── workspace.ts             # 工作区、素材与时间线
+│   │   │   ├── writing.ts               # 草稿、发布包与引用
+│   │   │   ├── people.ts                # 人物与关系
+│   │   │   ├── tags.ts                  # 标签
+│   │   │   ├── published.ts             # 已发布视频与分析
+│   │   │   ├── deals.ts                 # 商单与履约记录
+│   │   │   ├── sharing.ts               # 审稿分享与在线锁
+│   │   │   ├── quickDrops.ts            # 快投灵感
+│   │   │   └── system.ts                # 鉴权、健康检查、设置与备份
+│   │   └── repositories/                # 按业务领域组织的 SQLite 查询与写入
+│   │       ├── topics.ts                # 选题查询与写入
+│   │       ├── workspace.ts             # 工作区、素材与时间线持久化
+│   │       ├── writing.ts               # 草稿、发布包与引用持久化
+│   │       ├── people.ts                # 人物与关系持久化
+│   │       ├── tags.ts                  # 标签持久化
+│   │       ├── published.ts             # 已发布视频与分析查询
+│   │       ├── deals.ts                 # 商单持久化
+│   │       ├── bootstrap.ts             # 启动数据聚合
+│   │       ├── backup.ts                # 备份导入导出
+│   │       ├── system.ts                # 系统数据库探测
+│   │       ├── shared.ts                # SQL bind 与共享数据库辅助
+│   │       └── index.ts                 # repository 统一导出
 │   ├── types/index.ts                   # 领域模型与 TypeScript 契约
 │   ├── App.tsx                          # 路由分发入口
 │   └── main.tsx                         # DOM 挂载入口

@@ -4,7 +4,7 @@ import {
   assertBackupImportWithinLimits,
   getBackupImportSummary,
   MAX_IMPORT_STATEMENTS,
-} from '../src/server/database';
+} from '../src/server/repositories/backup';
 
 function createBackup(overrides: Partial<BackupData> = {}): BackupData {
   return {

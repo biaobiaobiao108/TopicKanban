@@ -1,5 +1,5 @@
 import path from 'node:path';
-import { createApp } from './createApp';
+import { createApp } from './app';
 import { AppKV } from './appKv';
 import { initializeSqliteDatabase } from './sqlite';
 import type { ApiBindings } from './apiShared';

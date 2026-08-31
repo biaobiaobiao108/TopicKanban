@@ -2,7 +2,7 @@ import { describe, it, expect, beforeEach, afterEach } from 'bun:test';
 import { Database } from 'bun:sqlite';
 import fs from 'node:fs';
 import path from 'node:path';
-import { createApp } from '../src/server/createApp';
+import { createApp } from '../src/server/app';
 import { AppKV } from '../src/server/appKv';
 import { SqliteDatabase } from '../src/server/sqlite';
 import { NativeApp } from '../src/server/native';

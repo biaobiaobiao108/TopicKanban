@@ -39,8 +39,16 @@
 * **看板与拖拽**：`@dnd-kit/core` + `@dnd-kit/sortable`
 * **文案编辑**：`@tiptap/react` + `@tiptap/starter-kit` + `@tiptap/extension-character-count` + 自定义原子内联扩展
 * **图标系统**：`lucide-react`
-* **服务端**：Bun 原生 HTTP Server 与 `Bun.serve({ routes })` REST API（路由定义位于 `src/server/createApp.ts`）
+* **服务端**：Bun 原生 HTTP Server 与 `Bun.serve({ routes })` REST API（应用组合位于 `src/server/app.ts`，业务路由位于 `src/server/routes/`）
 * **鉴权体系**：Web Crypto HMAC-SHA256 签名无状态 Token（TTL 7 天）
+
+### 1.1 后端业务模块边界
+
+* `src/server/app.ts` 只负责应用组装、全局 body 限制、鉴权中间件和路由注册，不承载具体业务 SQL 或业务流程。
+* `src/server/routes/` 按业务领域注册 HTTP 路由，负责请求解析、参数校验、状态码和响应格式；路由层禁止直接调用 `db.prepare`、编写 SQL 或拼装跨表事务。
+* `src/server/repositories/` 按业务领域负责 SQLite 查询、写入、事务、结果标准化和关联数据加载；涉及多个表的原子操作必须在对应 repository 内完成。
+* 新增或修改业务功能时，应同时更新对应的 route 与 repository，并补充对应的单测或集成测试；公共类型仍以 `src/types/` 为前后端契约来源。
+* `src/server/native.ts`、`sqlite.ts`、`appKv.ts` 和 `apiShared.ts` 属于基础设施/共享辅助层，不应反向依赖业务 route 或 repository。
 
 ### 2. Bun 单运行环境与存储规范 (Storage & Runtime Strategy)
 
