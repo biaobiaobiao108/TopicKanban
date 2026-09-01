@@ -91,7 +91,7 @@ export const TodayView: React.FC<TodayViewProps> = ({
   todoActions,
 }) => {
   const [actionTopic, setActionTopic] = useState<Topic | null>(null);
-  const [showAllActivity, setShowAllActivity] = useState(false);
+  const [showAllActivity, setShowAllActivity] = useState(true);
 
   const activeTopics = useMemo(
     () => topics.filter((topic) => topic.status !== 'published' && topic.status !== 'icebox'),

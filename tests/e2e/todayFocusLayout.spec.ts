@@ -69,6 +69,23 @@ test('今日聚焦两列保持固定高度，近期轨迹展开时在面板内�
   const initialHeights = await getHeights();
   expect(initialHeights[0]).toBeCloseTo(initialHeights[1] || 0, 0);
   expect(initialHeights[2]).toBeCloseTo(initialHeights[3] || 0, 0);
+  await expect(page.getByRole('button', { name: '收起近期轨迹' })).toBeVisible();
+
+  const initialScrollState = await page.getByTestId('today-recent-activity-scroll').evaluate((element) => ({
+    overflowY: getComputedStyle(element).overflowY,
+    clientHeight: element.clientHeight,
+    scrollHeight: element.scrollHeight,
+  }));
+  expect(initialScrollState.overflowY).toBe('auto');
+  expect(initialScrollState.scrollHeight).toBeGreaterThan(initialScrollState.clientHeight);
+
+  await page.getByRole('button', { name: '收起近期轨迹' }).click();
+  await expect(page.getByRole('button', { name: /展开另外/ })).toBeVisible();
+  const collapsedHeights = await getHeights();
+  expect(collapsedHeights[0]).toBeCloseTo(initialHeights[0] || 0, 0);
+  expect(collapsedHeights[1]).toBeCloseTo(initialHeights[1] || 0, 0);
+  expect(collapsedHeights[2]).toBeCloseTo(initialHeights[2] || 0, 0);
+  expect(collapsedHeights[3]).toBeCloseTo(initialHeights[3] || 0, 0);
 
   await page.getByRole('button', { name: /展开另外/ }).click();
   await expect(page.getByRole('button', { name: '收起近期轨迹' })).toBeVisible();
