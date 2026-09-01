@@ -53,8 +53,22 @@ const makeTodo = (id: string, title: string, sortOrder: number) => ({
 async function mockWorkspace(page: Page) {
   let todos = [currentTodo, makeTodo('e2e-inline-two', '整理第二条', 2), makeTodo('e2e-inline-three', '整理第三条', 3)];
   let currentTopic = { ...topic };
-  const getTopic = () => ({ ...currentTopic, current_todo: todos.find((todo) => todo.is_current === 1 && !todo.completed_at) || null });
-  const mutationResponse = () => ({ topic: getTopic(), todos: [...todos].sort((a, b) => a.sort_order - b.sort_order) });
+  const normalizeTodos = () => {
+    const ordered = [
+      ...todos.filter((todo) => !todo.completed_at).sort((a, b) => a.sort_order - b.sort_order),
+      ...todos.filter((todo) => Boolean(todo.completed_at)).sort((a, b) => a.sort_order - b.sort_order),
+    ];
+    const firstPending = ordered.findIndex((todo) => !todo.completed_at);
+    todos = ordered.map((todo, index) => ({
+      ...todo,
+      sort_order: index + 1,
+      is_current: index === firstPending ? 1 : 0,
+      current_started_at: index === firstPending ? todo.current_started_at || '2026-08-25T00:00:00.000Z' : null,
+    }));
+    return todos;
+  };
+  const getTopic = () => ({ ...currentTopic, current_todo: normalizeTodos().find((todo) => todo.is_current === 1 && !todo.completed_at) || null });
+  const mutationResponse = () => ({ topic: getTopic(), todos: [...normalizeTodos()] });
 
   await page.route('**/api/bootstrap**', async (route) => {
     await route.fulfill({
@@ -104,14 +118,22 @@ async function mockWorkspace(page: Page) {
     todos = todos.map((todo) => order.has(todo.id) ? { ...todo, sort_order: order.get(todo.id)! } : todo);
     await route.fulfill({ contentType: 'application/json', body: JSON.stringify(mutationResponse()) });
   });
-  await page.route(`**/api/todos/${currentTodo.id}`, async (route) => {
-    const body = route.request().postDataJSON() as { title?: string };
-    todos = todos.map((todo) => todo.id === currentTodo.id && body.title ? { ...todo, title: body.title } : todo);
-    await route.fulfill({ contentType: 'application/json', body: JSON.stringify(mutationResponse()) });
-  });
-  await page.route(`**/api/todos/e2e-inline-two`, async (route) => {
-    const body = route.request().postDataJSON() as { title?: string };
-    todos = todos.map((todo) => todo.id === 'e2e-inline-two' && body.title ? { ...todo, title: body.title } : todo);
+  await page.route('**/api/todos/**', async (route) => {
+    const url = new URL(route.request().url());
+    const path = url.pathname;
+    const pathParts = path.split('/');
+    const todoId = pathParts[3] || '';
+    const action = pathParts[4] || '';
+    const body = route.request().method() === 'PATCH' ? route.request().postDataJSON() as { title?: string } : {};
+    if (route.request().method() === 'PATCH' && body.title) {
+      todos = todos.map((todo) => todo.id === todoId ? { ...todo, title: body.title! } : todo);
+    } else if (route.request().method() === 'POST' && action === 'complete') {
+      todos = todos.map((todo) => todo.id === todoId ? { ...todo, completed_at: '2026-09-02T10:00:00.000Z', is_current: 0, current_started_at: null } : todo);
+    } else if (route.request().method() === 'POST' && action === 'reopen') {
+      todos = todos.map((todo) => todo.id === todoId ? { ...todo, completed_at: null, is_current: 0, current_started_at: null, sort_order: Math.max(...todos.map((item) => item.sort_order)) + 1 } : todo);
+    } else if (route.request().method() === 'DELETE') {
+      todos = todos.filter((todo) => todo.id !== todoId);
+    }
     await route.fulfill({ contentType: 'application/json', body: JSON.stringify(mutationResponse()) });
   });
   await page.route(`**/api/topics/${topic.id}/workspace`, async (route) => {
@@ -149,6 +171,7 @@ test('执行清单支持连续内联创建、标题编辑和紧凑布局', async
 
   const composer = page.getByRole('textbox', { name: '添加待办' });
   await expect(composer).toBeVisible();
+  await expect(page.getByText('其他未完成', { exact: false })).toHaveCount(0);
   await expect(page.locator('textarea')).toHaveCount(0);
   await expect(page.getByText('截止日期', { exact: true })).toHaveCount(0);
 
@@ -201,6 +224,13 @@ test('执行清单支持连续内联创建、标题编辑和紧凑布局', async
   await cancelledEditor.press('Escape');
   await expect(page.getByText('第二条失焦保存', { exact: true })).toBeVisible();
   await expect(page.getByRole('textbox', { name: '编辑待办标题' })).toHaveCount(0);
+
+  const currentCheckbox = page.getByRole('checkbox', { name: '完成待办：确认当前行动' });
+  await currentCheckbox.click();
+  await expect(page.getByRole('checkbox', { name: '撤销完成：确认当前行动' })).toBeChecked();
+  await expect(page.locator('[data-testid="todo-row"][data-todo-id="e2e-inline-two"]')).toHaveAttribute('data-current', 'true');
+  await page.getByRole('checkbox', { name: '撤销完成：确认当前行动' }).click();
+  await expect(page.getByRole('checkbox', { name: '完成待办：确认当前行动' })).not.toBeChecked();
 });
 
 test('执行清单拖拽时保留源卡片占位并完成排序', async ({ page }) => {
@@ -209,15 +239,12 @@ test('执行清单拖拽时保留源卡片占位并完成排序', async ({ page 
   await page.goto(`/topics/${topic.id}?tab=todos`);
 
   const source = page.locator('[data-testid="todo-row"][data-todo-id="e2e-inline-three"]');
-  const target = page.locator('[data-testid="todo-row"][data-todo-id="e2e-inline-two"]');
-  const sourceHandle = source.getByRole('button', { name: '拖动排序' });
+  const sourceHandle = source.getByTestId('todo-drag-handle');
   const sourceBefore = await source.boundingBox();
   expect(sourceBefore).not.toBeNull();
   expect(sourceBefore!.height).toBeLessThanOrEqual(44);
   const sourceHandleBox = await sourceHandle.boundingBox();
-  const targetBox = await target.boundingBox();
   expect(sourceHandleBox).not.toBeNull();
-  expect(targetBox).not.toBeNull();
 
   const reorderRequest = page.waitForRequest((request) => request.url().includes(`/api/topics/${topic.id}/todos/reorder`));
   await page.mouse.move(sourceHandleBox!.x + sourceHandleBox!.width / 2, sourceHandleBox!.y + sourceHandleBox!.height / 2);
@@ -230,11 +257,15 @@ test('执行清单拖拽时保留源卡片占位并完成排序', async ({ page 
   expect(previewBox!.height).toBeCloseTo(sourceBefore!.height, 0);
   const sourceDuring = await source.boundingBox();
   expect(sourceDuring?.height).toBeCloseTo(sourceBefore!.height, 0);
-  await page.mouse.move(targetBox!.x + targetBox!.width / 2, targetBox!.y + targetBox!.height / 2, { steps: 8 });
+  const currentTarget = page.locator('[data-testid="todo-row"][data-todo-id="e2e-inline-current"]');
+  const currentTargetBox = await currentTarget.boundingBox();
+  expect(currentTargetBox).not.toBeNull();
+  await page.mouse.move(currentTargetBox!.x + currentTargetBox!.width / 2, currentTargetBox!.y + currentTargetBox!.height / 2, { steps: 8 });
   await page.mouse.up();
   await reorderRequest;
 
   const ids = await page.locator('[data-testid="todo-row"]').evaluateAll((rows) => rows.map((row) => row.getAttribute('data-todo-id')));
-  expect(ids.indexOf('e2e-inline-three')).toBeLessThan(ids.indexOf('e2e-inline-two'));
+  expect(ids.indexOf('e2e-inline-three')).toBeLessThan(ids.indexOf('e2e-inline-current'));
+  await expect(page.locator('[data-testid="todo-row"][data-todo-id="e2e-inline-three"]')).toHaveAttribute('data-current', 'true');
   await expect(page.getByTestId('todo-drag-preview')).toHaveCount(0);
 });

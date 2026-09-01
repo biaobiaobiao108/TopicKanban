@@ -774,6 +774,6 @@ describe('Bun Server Integration (Local SQLite & API)', () => {
     const todayFocus = await app.request('/api/today/focus', { headers });
     const todayData = await todayFocus.json() as { topics: unknown[]; total_active: number };
     expect(todayData.total_active).toBe(31);
-    expect(todayData.topics.length).toBeLessThanOrEqual(13);
+    expect(todayData.topics).toHaveLength(31);
   });
 });

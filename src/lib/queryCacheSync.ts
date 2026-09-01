@@ -16,6 +16,7 @@ import type {
   Tag,
   TodayFocusData,
   Topic,
+  TopicPinMutationResult,
   TopicTodoMutationResult,
 } from '../types';
 
@@ -167,6 +168,13 @@ export function replaceTopicCaches(queryClient: QueryClient, topic: Topic) {
 export function replaceTopicTodoCaches(queryClient: QueryClient, result: TopicTodoMutationResult) {
   queryClient.setQueryData(['topic-todos', result.topic.id], result.todos);
   replaceTopicCaches(queryClient, result.topic);
+}
+
+export function replaceTopicPinCaches(queryClient: QueryClient, result: TopicPinMutationResult) {
+  replaceTopicCaches(queryClient, result.topic);
+  result.cleared_topic_ids.forEach((topicId) => {
+    updateTopicCaches(queryClient, topicId, { is_pinned: 0 });
+  });
 }
 
 export function removeTopicCaches(queryClient: QueryClient, topicId: string) {

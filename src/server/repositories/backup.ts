@@ -112,7 +112,16 @@ export async function replaceAllData(db: SqliteDatabase, data: BackupData): Prom
     [tag.id, tag.name, tag.color ?? 'stone', data.export_at]
   )));
   data.people.forEach((person) => statements.push(personStatement(db, person)));
-  data.topics.forEach((topic) => statements.push(topicStatement(db, { ...topic, title: topic.title })));
+  const pinnedTopicId = data.topics.find((topic) => (
+    topic.is_pinned === 1
+    && !topic.deleted_at
+    && !['published', 'icebox'].includes(topic.status)
+  ))?.id;
+  data.topics.forEach((topic) => statements.push(topicStatement(db, {
+    ...topic,
+    title: topic.title,
+    is_pinned: topic.id === pinnedTopicId ? 1 : 0,
+  })));
   data.topics.forEach((topic) => {
     topic.tags?.forEach((tag) => statements.push(bind(db,
       'INSERT OR IGNORE INTO topic_tags (id, topic_id, tag_id) VALUES (?, ?, ?)',

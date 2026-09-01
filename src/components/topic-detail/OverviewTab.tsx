@@ -819,7 +819,7 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({
             </h4>
             <button
               onClick={() => setIsAddPersonModalOpen(true)}
-              className="flex items-center gap-1 text-xs text-rose-600 dark:text-rose-400 hover:text-rose-700 font-semibold bg-rose-500/10 hover:bg-rose-500/20 px-2.5 py-1 rounded-lg transition-colors cursor-pointer"
+              className="flex items-center gap-1 rounded-lg bg-rose-500/10 px-2.5 py-1 text-xs font-semibold text-rose-700 transition-colors hover:bg-rose-500/20 hover:text-rose-800 dark:text-rose-300 dark:hover:text-rose-200 cursor-pointer"
               title="新建人物档案并关联到本选题"
             >
               <UserPlus className="w-3.5 h-3.5" />

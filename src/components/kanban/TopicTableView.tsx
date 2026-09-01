@@ -720,13 +720,13 @@ export const TopicTableView: React.FC<TopicTableViewProps> = ({
                   </div>
                   <button
                     onClick={() => void togglePin(topic.id)}
-                    disabled={archiveScope === 'trash'}
+                    disabled={archiveScope === 'trash' || isArchived}
                     className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border transition-colors ${
                       topic.is_pinned
                         ? 'border-rose-200 dark:border-rose-800 bg-rose-50 dark:bg-rose-950/40 text-rose-600 dark:text-rose-400'
                         : 'border-stone-200 dark:border-stone-700 text-stone-400 dark:text-stone-500'
                     }`}
-                    title={topic.is_pinned ? '取消置顶' : '置顶选题'}
+                    title={isArchived ? '归档选题不可设为主推' : topic.is_pinned ? '取消置顶' : '置顶选题'}
                   >
                     <Pin className={`h-4 w-4 ${topic.is_pinned ? 'fill-rose-600' : ''}`} />
                   </button>
@@ -982,13 +982,15 @@ export const TopicTableView: React.FC<TopicTableViewProps> = ({
                   <td
                     onClick={(e) => {
                       e.stopPropagation();
-                      if (archiveScope !== 'trash') void togglePin(topic.id);
+                      if (archiveScope !== 'trash' && !isArchived) void togglePin(topic.id);
                     }}
                     className={`${rowPadding} px-3 text-center`}
                   >
                     <button
-                      title={topic.is_pinned ? '取消置顶' : '置顶选题'}
-                      className={`p-1 rounded transition-colors cursor-pointer ${
+                      type="button"
+                      disabled={archiveScope === 'trash' || isArchived}
+                      title={isArchived ? '归档选题不可设为主推' : topic.is_pinned ? '取消置顶' : '置顶选题'}
+                      className={`p-1 rounded transition-colors ${isArchived ? 'cursor-not-allowed opacity-30' : 'cursor-pointer'} ${
                         topic.is_pinned
                           ? 'text-rose-600 dark:text-rose-400 hover:text-stone-400'
                           : 'text-stone-300 dark:text-stone-600 hover:text-stone-600 dark:hover:text-stone-300 opacity-0 group-hover:opacity-100'

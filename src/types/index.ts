@@ -541,6 +541,11 @@ export interface TopicTodoMutationResult {
   todos: TopicTodo[];
 }
 
+export interface TopicPinMutationResult {
+  topic: Topic;
+  cleared_topic_ids: string[];
+}
+
 export interface ShareSnapshot {
   token: string;
   topic_id: string;

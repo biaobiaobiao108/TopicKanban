@@ -24,6 +24,7 @@ import {
   removeTagCaches,
   removeTopicCaches,
   replaceTopicTodoCaches,
+  replaceTopicPinCaches,
   updateCommercialDealCaches,
   updatePersonCaches,
   updatePublishedCaches,
@@ -69,6 +70,25 @@ function baseWorkspace(topics: Topic[] = []): BootstrapData {
 }
 
 describe('跨视图实体缓存同步', () => {
+  it('同步唯一主推选题并清除旧主推缓存', () => {
+    const queryClient = new QueryClient();
+    const oldPinned = topic('topic-old', { is_pinned: 1 });
+    const nextPinned = topic('topic-next');
+    const key = ['kanban-column-page', 'production', '', 'all', 'all', 'all', 'sort_order', 1];
+    queryClient.setQueryData<BootstrapData>(['workspace'], baseWorkspace([oldPinned, nextPinned]));
+    queryClient.setQueryData<TodayFocusData>(['today-focus'], { topics: [oldPinned, nextPinned], total_active: 2 });
+    queryClient.setQueryData<PaginatedTopics>(key, page([oldPinned, nextPinned]));
+
+    replaceTopicPinCaches(queryClient, { topic: { ...nextPinned, is_pinned: 1 }, cleared_topic_ids: [oldPinned.id] });
+
+    expect(queryClient.getQueryData<BootstrapData>(['workspace'])?.topics).toEqual([
+      { ...oldPinned, is_pinned: 0 },
+      { ...nextPinned, is_pinned: 1 },
+    ]);
+    expect(queryClient.getQueryData<TodayFocusData>(['today-focus'])?.topics[0].is_pinned).toBe(0);
+    expect(queryClient.getQueryData<PaginatedTopics>(key)?.items.find((item) => item.id === nextPinned.id)?.is_pinned).toBe(1);
+  });
+
   it('同步选题到工作区、今日聚焦和所有分页选题缓存', () => {
     const queryClient = new QueryClient();
     const current = topic('topic-1', { deadline: '2026-08-28' });

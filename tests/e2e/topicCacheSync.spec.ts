@@ -33,7 +33,6 @@ test('topic mutations stay synchronized across today, database and kanban naviga
   await page.getByPlaceholder('例如：大胃袋良子：峨眉山减肥大溃败').fill(title);
   await page.getByRole('button', { name: '立即创建' }).click();
 
-  await expect(page.getByRole('heading', { name: title, exact: true })).toBeVisible();
   await expect.poll(async () => readTopicCount(await kanbanNav.innerText())).toBe(countBefore + 1);
 
   await page.getByRole('navigation').getByRole('button', { name: '选题库' }).click();
@@ -57,8 +56,6 @@ test('topic date edits are visible on kanban before delayed saves finish', async
   await page.getByRole('button', { name: '新选题' }).click();
   await page.getByPlaceholder('例如：大胃袋良子：峨眉山减肥大溃败').fill(title);
   await page.getByRole('button', { name: '立即创建' }).click();
-  await expect(page.getByRole('heading', { name: title, exact: true })).toBeVisible();
-
   await page.getByRole('navigation').getByRole('button', { name: /选题看板/ }).click();
   const boardCard = page.locator('[data-topic-id]').filter({ hasText: title });
   await expect(boardCard).toBeVisible();

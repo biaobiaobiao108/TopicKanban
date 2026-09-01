@@ -28,6 +28,7 @@ import type {
   Tag,
   TimelineEvent,
   Topic,
+  TopicPinMutationResult,
   TopicTodo,
   TopicTodoMutationResult,
   TopicStatus,
@@ -236,6 +237,13 @@ export async function saveTopic(data: TopicCreateInput): Promise<Topic> {
     : await apiRequest<Topic>('/api/topics', jsonRequest('POST', data));
   invalidateBootstrap();
   return topic;
+}
+
+export function setTopicPinned(id: string, isPinned: 0 | 1): Promise<TopicPinMutationResult> {
+  return apiRequest<TopicPinMutationResult>(
+    `/api/topics/${encodeURIComponent(id)}/pin`,
+    jsonRequest('POST', { is_pinned: isPinned }),
+  );
 }
 
 export function fetchTopicTodos(topicId: string): Promise<TopicTodo[]> {

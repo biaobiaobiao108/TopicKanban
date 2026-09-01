@@ -75,6 +75,20 @@ function createTopicMap(topics: Topic[]): TopicMap {
   return Object.fromEntries(topics.map((topic) => [topic.id, topic]));
 }
 
+function topicSyncSignature(topic: Topic): string {
+  return [
+    topic.id,
+    topic.status,
+    topic.sort_order,
+    topic.is_pinned,
+    topic.updated_at,
+    topic.title,
+    topic.priority,
+    topic.current_todo?.id || '',
+    topic.current_todo?.title || '',
+  ].join('|');
+}
+
 function findContainer(columns: BoardColumns, id: string): TopicStatus | undefined {
   return activeStatuses.find((status) => status === id || (columns[status] && columns[status].includes(id)));
 }
@@ -193,6 +207,7 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
   }, [searchTerm, priorityFilter, selectedTagId, selectedPersonId, sortBy]);
 
   useEffect(() => {
+    const parentTopicsById = new Map(topics.map((topic) => [topic.id, topic]));
     setLoadedTopicsByStatus((current) => {
       let changed = false;
       const next = { ...current };
@@ -201,18 +216,23 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
         const items = query?.isPlaceholderData ? undefined : query?.data?.items;
         if (!items) return;
 
+        const mergedItems = items.map((item) => {
+          const parentTopic = parentTopicsById.get(item.id);
+          return parentTopic ? { ...item, ...parentTopic } : item;
+        });
+
         const currentPage = columnPages[status] || 1;
         if (currentPage === 1) {
           const currentList = current[status] || [];
-          const currentSig = currentList.map((t) => `${t.id}-${t.status}-${t.sort_order}`).join(',');
-          const newSig = items.map((t) => `${t.id}-${t.status}-${t.sort_order}`).join(',');
+          const currentSig = currentList.map(topicSyncSignature).join(',');
+          const newSig = mergedItems.map(topicSyncSignature).join(',');
           if (currentSig !== newSig) {
-            next[status] = items;
+            next[status] = mergedItems;
             changed = true;
           }
         } else {
           const knownIds = new Set((current[status] || []).map((topic) => topic.id));
-          const additions = items.filter((topic) => !knownIds.has(topic.id));
+          const additions = mergedItems.filter((topic) => !knownIds.has(topic.id));
           if (additions.length > 0) {
             next[status] = [...(current[status] || []), ...additions];
             changed = true;
@@ -235,7 +255,7 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
 
       return changed ? next : current;
     });
-  }, [columnQueries, columnPages]);
+  }, [columnQueries, columnPages, topics]);
 
   const pagedTopics = useMemo(
     () => activeStatuses.flatMap((status) => loadedTopicsByStatus[status] || []),
@@ -243,7 +263,11 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
   );
   const hasLoadedBoardData = activeStatuses.some((status) => loadedTopicsByStatus[status].length > 0)
     || columnQueries.some((query) => Boolean(query.data));
-  const boardTopics = hasLoadedBoardData ? pagedTopics : topics;
+  const parentTopicsById = useMemo(() => new Map(topics.map((topic) => [topic.id, topic])), [topics]);
+  const boardTopics = useMemo(
+    () => hasLoadedBoardData ? pagedTopics.map((topic) => parentTopicsById.get(topic.id) ? { ...topic, ...parentTopicsById.get(topic.id) } : topic) : topics,
+    [hasLoadedBoardData, parentTopicsById, pagedTopics, topics]
+  );
   const columnTotalCounts = useMemo(() => Object.fromEntries(activeStatuses.map((status, index) => [
     status,
     columnQueries[index]?.data?.total ?? topics.filter((topic) => topic.status === status).length,

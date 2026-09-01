@@ -13,6 +13,8 @@ import {
   Handshake,
   WalletCards,
   Calendar,
+  ListChecks,
+  AlertTriangle,
 } from 'lucide-react';
 import { TodoQuickActionDialog } from '../topic-detail/TodoQuickActionDialog';
 import type { TopicTodoActions } from '../topic-detail/todoTypes';
@@ -91,10 +93,14 @@ export const TodayView: React.FC<TodayViewProps> = ({
   const [actionTopic, setActionTopic] = useState<Topic | null>(null);
   const [showAllActivity, setShowAllActivity] = useState(false);
 
-  // Main focus: pinned first, then production stage, priority and recent activity.
+  const activeTopics = useMemo(
+    () => topics.filter((topic) => topic.status !== 'published' && topic.status !== 'icebox'),
+    [topics]
+  );
+
+  // Main focus: the unique active pin first, then production stage, priority and recency.
   const focusTopic = useMemo(() => {
-    return [...topics]
-      .filter((topic) => topic.status !== 'published' && topic.status !== 'icebox')
+    return [...activeTopics]
       .sort((a, b) => {
         if (a.is_pinned !== b.is_pinned) return (b.is_pinned || 0) - (a.is_pinned || 0);
         const activeDiff = Number(ACTIVE_FOCUS_STATUSES.has(b.status)) - Number(ACTIVE_FOCUS_STATUSES.has(a.status));
@@ -104,19 +110,22 @@ export const TodayView: React.FC<TodayViewProps> = ({
         }
         return new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime();
       })[0] || null;
-  }, [topics]);
+  }, [activeTopics]);
 
-  // Top 3~5 today priority items
-  const priorityList = useMemo(() => {
-    return [...topics]
-      .filter((t) => t.id !== focusTopic?.id && t.status !== 'published' && t.status !== 'icebox')
-      .sort((a, b) => {
-        if (a.is_pinned !== b.is_pinned) return (b.is_pinned || 0) - (a.is_pinned || 0);
-        if (FOCUS_PRIORITY[a.priority] !== FOCUS_PRIORITY[b.priority]) return FOCUS_PRIORITY[b.priority] - FOCUS_PRIORITY[a.priority];
-        return new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime();
-      })
-      .slice(0, 4);
-  }, [topics, focusTopic?.id]);
+  const actionProgress = useMemo(() => {
+    const missingAction = activeTopics.filter((topic) => !topic.current_todo);
+    const staleAction = activeTopics.filter((topic) => topic.current_todo && getCurrentActionAgeDays(topic) >= staleActionDays);
+    const attention = [
+      ...missingAction,
+      ...staleAction.filter((topic) => !missingAction.some((item) => item.id === topic.id)),
+    ].slice(0, 3);
+    return {
+      missingAction,
+      staleAction,
+      attention,
+      covered: activeTopics.length - missingAction.length,
+    };
+  }, [activeTopics, staleActionDays]);
 
   // Recently updated stream
   const recentUpdates = useMemo(() => {
@@ -177,10 +186,26 @@ export const TodayView: React.FC<TodayViewProps> = ({
                   )}
                 </div>
 
-                <div className="text-[11px] text-stone-400 dark:text-stone-500">
-                  {focusTopic.current_todo
-                    ? <>行动持续 <span className="font-mono tabular-nums">{getCurrentActionAgeDays(focusTopic)}</span> 天</>
-                    : '未设置当前行动'}
+                <div className="flex items-center gap-2">
+                  <div className="text-right text-[11px] text-stone-400 dark:text-stone-500">
+                    <div>{focusTopic.is_pinned === 1 ? '唯一置顶 · 主推' : '按阶段、优先级与最近更新'}</div>
+                    <div className="mt-0.5">
+                      {focusTopic.current_todo
+                        ? <>行动持续 <span className="font-mono tabular-nums">{getCurrentActionAgeDays(focusTopic)}</span> 天</>
+                        : '未设置当前行动'}
+                    </div>
+                  </div>
+                  {onTogglePin && (
+                    <button
+                      type="button"
+                      onClick={() => void onTogglePin(focusTopic.id)}
+                      className={`inline-flex min-h-9 items-center gap-1.5 rounded-xl border px-2.5 text-xs font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rose-500/40 ${focusTopic.is_pinned === 1 ? 'border-amber-200 bg-amber-50 text-amber-800 hover:bg-amber-100 dark:border-amber-900/60 dark:bg-amber-950/30 dark:text-amber-300 dark:hover:bg-amber-950/50' : 'border-stone-200 bg-white text-stone-600 hover:border-rose-300 hover:text-rose-700 dark:border-stone-700 dark:bg-stone-900 dark:text-stone-300 dark:hover:border-rose-800 dark:hover:text-rose-300'}`}
+                      title={focusTopic.is_pinned === 1 ? '取消主推' : '设为主推'}
+                    >
+                      <Pin className={`h-3.5 w-3.5 ${focusTopic.is_pinned === 1 ? 'fill-amber-500' : ''}`} aria-hidden="true" />
+                      <span>{focusTopic.is_pinned === 1 ? '取消主推' : '设为主推'}</span>
+                    </button>
+                  )}
                 </div>
               </div>
 
@@ -297,74 +322,66 @@ export const TodayView: React.FC<TodayViewProps> = ({
           </section>
         )}
 
-        {/* 2-Column Section: Top Priorities & Recent Activity */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {/* Left: Top Priorities */}
-          <div className="space-y-3.5">
-            <div className="flex items-center justify-between">
-              <h2 className="text-base font-bold text-stone-900 dark:text-stone-100 flex items-center gap-2">
-                <span>今日优先选题</span>
-                <span className="text-xs bg-stone-200/60 dark:bg-stone-800 text-stone-700 dark:text-stone-300 px-2 py-0.5 rounded-full font-mono font-bold tabular-nums">
-                  {priorityList.length}
-                </span>
+        {/* 2-Column Section: Action Progress & Recent Activity */}
+        <div className="grid grid-cols-1 items-stretch gap-6 md:grid-cols-2">
+          {/* Left: Action Progress */}
+          <section aria-labelledby="today-action-progress-heading" className="flex min-h-full flex-col space-y-3.5">
+            <div className="flex items-center justify-between gap-3">
+              <h2 id="today-action-progress-heading" className="flex items-center gap-2 text-base font-bold text-stone-900 dark:text-stone-100">
+                <ListChecks className="h-4 w-4 text-rose-600 dark:text-rose-400" />
+                <span>行动推进</span>
+                <span className="rounded-full bg-stone-200/60 px-2 py-0.5 text-xs font-mono font-bold tabular-nums text-stone-700 dark:bg-stone-800 dark:text-stone-300">{activeTopics.length}</span>
               </h2>
+              <span className="text-[11px] font-semibold text-stone-500 dark:text-stone-400">{actionProgress.covered}/{activeTopics.length || 0} 已落地</span>
             </div>
 
-            <div className="space-y-3">
-              {priorityList.map((t) => (
-                <div
-                  key={t.id}
-                  onClick={() => onOpenDetail(t.id)}
-                  className="today-priority-item bg-white dark:bg-stone-900 rounded-2xl border border-stone-200/70 dark:border-stone-800 hover:border-stone-300 dark:hover:border-stone-700 p-4 sm:p-5 shadow-2xs hover:shadow-card-hover hover:-translate-y-0.5 transition-all cursor-pointer flex flex-col gap-2.5 group"
-                >
-                  <div className="flex items-center justify-between gap-2">
-                    <div className="flex items-center gap-1.5">
-                      <StatusBadge status={t.status} />
-                      <PriorityBadge priority={t.priority} />
-                    </div>
-                    {t.is_pinned === 1 && (
-                      <Pin className="w-3.5 h-3.5 fill-amber-500 text-amber-500" />
-                    )}
-                  </div>
-
-                  <h3 className="text-sm font-bold text-stone-900 dark:text-stone-100 group-hover:text-rose-600 dark:group-hover:text-rose-400 transition-colors line-clamp-1">
-                    {t.title}
-                  </h3>
-
-                  <div className={`text-xs p-2.5 rounded-xl ${
-                    t.current_todo
-                      ? 'bg-stone-500/5 dark:bg-stone-800/50 text-stone-700 dark:text-stone-300'
-                      : 'bg-amber-500/10 text-amber-800 dark:text-amber-300'
-                  }`}>
-                    <strong className="text-rose-700 dark:text-rose-400">当前行动：</strong>
-                    {t.current_todo?.title || '尚未设置当前行动'}
-                  </div>
-
-                  <div className="flex items-center justify-between gap-2 pt-1">
-                    <span className={`text-[11px] ${getCurrentActionWarning(t, new Date(), staleActionDays) ? 'font-semibold text-amber-700 dark:text-amber-400' : 'text-stone-400 dark:text-stone-500'}`}>
-                      {getCurrentActionWarning(t, new Date(), staleActionDays) || `行动持续 ${getCurrentActionAgeDays(t)} 天`}
-                    </span>
-                    <button
-                      type="button"
-                      onClick={(event) => {
-                        event.stopPropagation();
-                        setActionTopic(t);
-                      }}
-                      className="min-h-8 rounded-lg bg-rose-600 px-3 text-[11px] font-bold text-white hover:bg-rose-700 transition-colors cursor-pointer shadow-2xs"
-                    >
-                      {t.current_todo ? '完成行动' : '设置行动'}
-                    </button>
-                  </div>
+            <div className="flex flex-1 flex-col rounded-2xl border border-stone-200/70 bg-white/80 p-4 shadow-2xs dark:border-stone-800 dark:bg-stone-900/80">
+              <div className="flex items-end justify-between gap-3">
+                <div>
+                  <div className="text-2xl font-bold tracking-tight text-stone-900 dark:text-stone-100">{activeTopics.length ? Math.round((actionProgress.covered / activeTopics.length) * 100) : 0}%</div>
+                  <p className="mt-0.5 text-xs text-stone-500 dark:text-stone-400">活跃选题已有明确下一步</p>
                 </div>
-              ))}
+                <div className="flex items-center gap-1.5 text-[11px] text-stone-500 dark:text-stone-400">
+                  <span className="h-2 w-2 rounded-full bg-amber-400" />
+                  <span>{actionProgress.staleAction.length} 条需重新推进</span>
+                </div>
+              </div>
 
-              {priorityList.length === 0 && (
-                <div className="p-8 text-center text-xs text-stone-500 dark:text-stone-400 border border-stone-200/70 dark:border-stone-800 rounded-2xl bg-white dark:bg-stone-900">
-                  暂无其他优先选题
+              <div className="mt-3 h-2 overflow-hidden rounded-full bg-stone-100 dark:bg-stone-800" aria-label={`当前行动覆盖率 ${activeTopics.length ? Math.round((actionProgress.covered / activeTopics.length) * 100) : 0}%`} role="progressbar" aria-valuemin={0} aria-valuemax={100} aria-valuenow={activeTopics.length ? Math.round((actionProgress.covered / activeTopics.length) * 100) : 0}>
+                <div className="h-full rounded-full bg-gradient-to-r from-rose-500 to-rose-400 transition-[width] duration-300 motion-reduce:transition-none" style={{ width: `${activeTopics.length ? (actionProgress.covered / activeTopics.length) * 100 : 0}%` }} />
+              </div>
+
+              <div className="mt-4 flex-1 divide-y divide-stone-100 dark:divide-stone-800/70">
+                {actionProgress.attention.length > 0 ? actionProgress.attention.map((topic) => {
+                  const hasAction = Boolean(topic.current_todo);
+                  return (
+                    <button key={topic.id} type="button" onClick={() => onOpenDetail(topic.id, 'todos')} className="flex min-h-12 w-full items-center gap-3 py-2 text-left transition-colors hover:text-rose-700 dark:hover:text-rose-300">
+                      <span className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-lg ${hasAction ? 'bg-amber-500/10 text-amber-600 dark:text-amber-300' : 'bg-rose-500/10 text-rose-600 dark:text-rose-300'}`}>
+                        {hasAction ? <AlertTriangle className="h-3.5 w-3.5" aria-hidden="true" /> : <Zap className="h-3.5 w-3.5" aria-hidden="true" />}
+                      </span>
+                      <span className="min-w-0 flex-1">
+                        <span className="block truncate text-xs font-semibold text-stone-800 dark:text-stone-200">{topic.title}</span>
+                        <span className="mt-0.5 block truncate text-[11px] text-stone-500 dark:text-stone-400">{hasAction ? getCurrentActionWarning(topic, new Date(), staleActionDays) || '行动需要重新推进' : '尚未设置当前行动'}</span>
+                      </span>
+                      <ArrowRight className="h-3.5 w-3.5 shrink-0 text-stone-400" aria-hidden="true" />
+                    </button>
+                  );
+                }) : (
+                  <div className="flex min-h-36 flex-col items-center justify-center text-center">
+                    <CheckCircle2 className="h-6 w-6 text-emerald-500" aria-hidden="true" />
+                    <p className="mt-2 text-sm font-semibold text-stone-800 dark:text-stone-200">当前行动都已就位</p>
+                    <p className="mt-1 text-xs text-stone-500 dark:text-stone-400">继续从主推选题开始推进即可。</p>
+                  </div>
+                )}
+              </div>
+
+              {actionProgress.attention.length > 0 && (
+                <div className="mt-3 border-t border-stone-100 pt-3 text-[11px] text-stone-500 dark:border-stone-800/70 dark:text-stone-400">
+                  {actionProgress.missingAction.length > 0 ? `还有 ${actionProgress.missingAction.length} 个选题等待补充行动` : '优先处理停滞行动，保持制作节奏。'}
                 </div>
               )}
             </div>
-          </div>
+          </section>
 
           {/* Right: Recent Activity / Worklog */}
           <div className="space-y-3.5">

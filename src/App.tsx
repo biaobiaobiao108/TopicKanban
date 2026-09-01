@@ -9,10 +9,12 @@ import {
   AppSettings,
   TopicStatus,
   Priority,
+  TopicPinMutationResult,
   TopicTodoMutationResult,
 } from './types';
 import {
   saveTopic,
+  setTopicPinned,
   updateTopicStatus,
   reorderTopics,
   deleteTopic,
@@ -65,6 +67,7 @@ import {
   updateTagCaches,
   updateTopicCaches,
   replaceTopicTodoCaches,
+  replaceTopicPinCaches,
 } from './lib/queryCacheSync';
 import { lazyWithReload } from './lib/lazyWithReload';
 import { useToast } from './components/ui/Toast';
@@ -647,9 +650,45 @@ function WorkspaceApp({ isAuth, setIsAuth }: WorkspaceAppProps) {
   const handleTogglePin = async (topicId: string) => {
     const topic = topics.find((t) => t.id === topicId);
     if (!topic) return;
-    await handleUpdateTopicById(topic.id, {
-      is_pinned: topic.is_pinned === 1 ? 0 : 1,
-    });
+    const nextPin: 0 | 1 = topic.is_pinned === 1 ? 0 : 1;
+    if (nextPin === 1 && ['published', 'icebox'].includes(topic.status)) {
+      showToast({ tone: 'info', message: '只有活跃选题可以设为主推' });
+      return;
+    }
+
+    const previousTopics = topics;
+    const activeTopicIds = new Set(previousTopics
+      .filter((item) => item.status !== 'published' && item.status !== 'icebox' && !item.deleted_at)
+      .map((item) => item.id));
+    const applyOptimisticPin = (value: 0 | 1) => {
+      setTopics((current) => current.map((item) => {
+        if (item.id === topic.id) return { ...item, is_pinned: value };
+        return value === 1 && activeTopicIds.has(item.id) ? { ...item, is_pinned: 0 } : item;
+      }));
+      updateTopicCaches(queryClient, topic.id, { is_pinned: value });
+      if (value === 1) {
+        previousTopics.forEach((item) => {
+          if (item.id !== topic.id && activeTopicIds.has(item.id) && item.is_pinned === 1) {
+            updateTopicCaches(queryClient, item.id, { is_pinned: 0 });
+          }
+        });
+      }
+    };
+
+    applyOptimisticPin(nextPin);
+    try {
+      const result: TopicPinMutationResult = await setTopicPinned(topic.id, nextPin);
+      setTopics((current) => current.map((item) => {
+        if (item.id === result.topic.id) return { ...item, ...result.topic };
+        return result.cleared_topic_ids.includes(item.id) ? { ...item, is_pinned: 0 } : item;
+      }));
+      replaceTopicPinCaches(queryClient, result);
+      await refreshTopics();
+    } catch (error) {
+      setTopics(previousTopics);
+      previousTopics.forEach((item) => replaceTopicCaches(queryClient, item));
+      showToast({ tone: 'error', message: error instanceof Error ? error.message : '主推设置失败，请稍后重试' });
+    }
   };
 
   const handleUpdateTopicStatus = async (

@@ -21,6 +21,7 @@ import {
   permanentlyDeleteTrashedTopics,
   reorderTopics,
   restoreTopic,
+  setTopicPinned,
   softDeleteTopic,
   TopicNotInTrashError,
   updateTopic,
@@ -76,6 +77,16 @@ export function registerTopicRoutes(app: NativeApp): void {
       return topic ? c.json(topic) : c.json({ error: 'Not found' }, 404);
     } catch (error) {
       return jsonError(c, error);
+    }
+  });
+
+  app.post('/topics/:id/pin', async (c) => {
+    try {
+      const body = await c.req.json<{ is_pinned?: unknown }>();
+      if (body.is_pinned !== 0 && body.is_pinned !== 1) return c.json({ error: 'is_pinned must be 0 or 1' }, 400);
+      return c.json(await setTopicPinned(requireDb(c), c.req.param('id'), body.is_pinned));
+    } catch (error) {
+      return jsonError(c, error, 400);
     }
   });
 

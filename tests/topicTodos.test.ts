@@ -95,4 +95,34 @@ describe('Topic Todo API', () => {
     sqlite.query(`DELETE FROM topics WHERE id = 'topic-direct'`).run();
     expect(sqlite.query(`SELECT id FROM topic_todos WHERE topic_id = 'topic-direct'`).all()).toEqual([]);
   });
+
+  it('derives current action from the first pending Todo and keeps completed items at the end', async () => {
+    const topicResponse = await app.request('/api/topics', {
+      method: 'POST', headers, body: JSON.stringify({ title: '单列排序选题', initial_todo: { title: '第一步' } }),
+    });
+    const topic = await topicResponse.json() as { id: string };
+    const createResponse = await app.request(`/api/topics/${topic.id}/todos`, {
+      method: 'POST', headers, body: JSON.stringify({ title: '第二步' }),
+    });
+    const created = await createResponse.json() as { todos: Array<{ id: string; title: string }> };
+    const firstId = created.todos.find((todo) => todo.title === '第一步')!.id;
+    const secondId = created.todos.find((todo) => todo.title === '第二步')!.id;
+
+    const completed = await app.request(`/api/todos/${firstId}/complete`, { method: 'POST', headers });
+    expect((await completed.json() as { topic: { current_todo?: { id: string } } }).topic.current_todo?.id).toBe(secondId);
+
+    const reordered = await app.request(`/api/topics/${topic.id}/todos/reorder`, {
+      method: 'PATCH', headers, body: JSON.stringify({ ids: [firstId, secondId] }),
+    });
+    const reorderedData = await reordered.json() as { topic: { current_todo?: { id: string } }; todos: Array<{ id: string; completed_at?: string | null; is_current: number }> };
+    expect(reorderedData.topic.current_todo?.id).toBe(secondId);
+    expect(reorderedData.todos.map((todo) => todo.id)).toEqual([secondId, firstId]);
+    expect(reorderedData.todos.find((todo) => todo.id === secondId)?.is_current).toBe(1);
+    expect(reorderedData.todos.find((todo) => todo.id === firstId)?.is_current).toBe(0);
+
+    const reopened = await app.request(`/api/todos/${firstId}/reopen`, { method: 'POST', headers });
+    const reopenedData = await reopened.json() as { topic: { current_todo?: { id: string } }; todos: Array<{ id: string }> };
+    expect(reopenedData.topic.current_todo?.id).toBe(secondId);
+    expect(reopenedData.todos.map((todo) => todo.id)).toEqual([secondId, firstId]);
+  });
 });
