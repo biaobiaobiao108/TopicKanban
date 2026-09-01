@@ -224,7 +224,7 @@ const SortableTodoRow: React.FC<SortableTodoRowProps> = ({
       data-todo-id={todo.id}
       data-current={isCurrent ? 'true' : undefined}
       aria-current={isCurrent ? 'true' : undefined}
-      className={`todo-row group flex min-h-10 items-center gap-2 rounded-2xl border px-2.5 py-0.5 transition-shadow motion-reduce:!transition-none ${isDragging ? 'border-rose-300 opacity-0 shadow-none dark:border-rose-700' : isCompleted ? 'border-stone-200/70 bg-stone-50/70 dark:border-stone-800 dark:bg-stone-900/70' : `border-stone-200/70 bg-white dark:border-stone-800 dark:bg-stone-900${isCurrent ? ' todo-current-row' : ''}`}`}
+      className={`todo-row group flex min-h-10 items-center gap-2 rounded-2xl border px-2.5 py-0.5 transition-shadow motion-reduce:!transition-none ${isEditing ? 'todo-row-editing' : ''} ${isDragging ? 'border-rose-300 opacity-0 shadow-none dark:border-rose-700' : isCompleted ? 'border-stone-200/70 bg-stone-50/70 dark:border-stone-800 dark:bg-stone-900/70' : `border-stone-200/70 bg-white dark:border-stone-800 dark:bg-stone-900${isCurrent ? ' todo-current-row' : ''}`}`}
     >
       <input
         type="checkbox"

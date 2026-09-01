@@ -1960,12 +1960,16 @@ html[class*="theme-"] input.command-palette-input[data-keyboard-focused="true"]:
 }
 
 .todo-inline-editor-shell:focus-within {
-  background-color: color-mix(in oklab, var(--todo-accent) 8%, transparent);
-  background-image: linear-gradient(var(--todo-accent), var(--todo-accent));
-  background-position: left bottom;
-  background-repeat: no-repeat;
-  background-size: 100% 1px;
+  background-color: transparent;
+  background-image: none;
   box-shadow: none;
+}
+
+.todo-row-editing {
+  border-color: color-mix(in oklab, var(--todo-accent) 45%, var(--border-subtle)) !important;
+  background-color: color-mix(in oklab, var(--todo-accent) 7%, var(--bg-surface)) !important;
+  background-image: none !important;
+  box-shadow: none !important;
 }
 
 .todo-composer-input,
@@ -2000,10 +2004,13 @@ html.dark input.todo-inline-editor-input:focus {
 }
 
 @media (forced-colors: active) {
-  .todo-composer-shell:focus-within,
-  .todo-inline-editor-shell:focus-within {
+  .todo-composer-shell:focus-within {
     border-block-end-color: Highlight;
     box-shadow: none;
+  }
+
+  .todo-row-editing {
+    border-color: Highlight !important;
   }
 }
 

@@ -246,6 +246,27 @@ test('执行清单支持连续内联创建、标题编辑和紧凑布局', async
   const editorShell = editRow.getByTestId('todo-editor-shell');
   await expect(editorShell).toHaveCSS('box-shadow', 'none');
   await expect(editorShell).toHaveCSS('outline-style', 'none');
+  await expect(editorShell).toHaveCSS('background-image', 'none');
+  await expect(editRow).toHaveClass(/todo-row-editing/);
+  const editorRowStyle = await editRow.evaluate((element) => {
+    const style = getComputedStyle(element);
+    return {
+      borderStyle: style.borderStyle,
+      borderTopColor: style.borderTopColor,
+      borderRightColor: style.borderRightColor,
+      borderBottomColor: style.borderBottomColor,
+      borderLeftColor: style.borderLeftColor,
+      backgroundImage: style.backgroundImage,
+      boxShadow: style.boxShadow,
+    };
+  });
+  expect(editorRowStyle).toEqual(expect.objectContaining({ borderStyle: 'solid', backgroundImage: 'none', boxShadow: 'none' }));
+  expect(new Set([
+    editorRowStyle.borderTopColor,
+    editorRowStyle.borderRightColor,
+    editorRowStyle.borderBottomColor,
+    editorRowStyle.borderLeftColor,
+  ]).size).toBe(1);
   await editor.fill('第二条已修改');
   await editor.press('Enter');
   await expect(page.getByText('第二条已修改', { exact: true })).toBeVisible();
