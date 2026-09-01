@@ -62,8 +62,8 @@ const InlineTodoComposer: React.FC<InlineTodoComposerProps> = ({ onCreate, disab
   return (
     <form onSubmit={(event) => void handleSubmit(event)} className="space-y-1.5" noValidate>
       <label htmlFor="todo-composer-input" className="sr-only">添加待办</label>
-      <div className="flex min-h-10 items-center gap-2 rounded-2xl border border-dashed border-rose-300/80 bg-rose-50/40 px-3 transition-colors focus-within:border-rose-400/90 focus-within:bg-white/90 focus-within:shadow-[inset_0_-2px_0_0_rgba(225,29,72,0.45)] motion-reduce:transition-none dark:border-rose-900/70 dark:bg-rose-950/20 dark:focus-within:border-rose-700 dark:focus-within:bg-stone-900 dark:focus-within:shadow-[inset_0_-2px_0_0_rgba(251,113,133,0.5)]">
-        <span aria-hidden="true" className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-rose-600/10 text-rose-600 dark:bg-rose-500/15 dark:text-rose-400">＋</span>
+      <div data-testid="todo-composer-shell" className="todo-composer-shell flex min-h-11 items-center gap-2 rounded-2xl px-3 transition-colors motion-reduce:transition-none">
+        <span aria-hidden="true" className="todo-composer-icon flex h-7 w-7 shrink-0 items-center justify-center rounded-lg text-sm font-semibold">＋</span>
         <input
           id="todo-composer-input"
           name="title"
@@ -82,7 +82,7 @@ const InlineTodoComposer: React.FC<InlineTodoComposerProps> = ({ onCreate, disab
           aria-invalid={Boolean(error)}
           aria-describedby="todo-composer-help"
           placeholder="输入待办，按 Enter 添加下一条"
-          className="min-w-0 flex-1 bg-transparent py-1.5 text-base text-stone-900 outline-none ring-0 placeholder:text-stone-400 focus:outline-none focus:ring-0 disabled:cursor-not-allowed disabled:opacity-60 dark:text-stone-100 sm:text-sm"
+          className="todo-composer-input min-w-0 flex-1 bg-transparent py-1.5 text-base text-stone-900 outline-none ring-0 placeholder:text-stone-400 focus:outline-none focus:ring-0 disabled:cursor-not-allowed disabled:opacity-60 dark:text-stone-100 sm:text-sm"
         />
         <span aria-hidden="true" className="hidden shrink-0 text-[10px] font-semibold text-stone-500 sm:inline dark:text-stone-400">Enter 添加</span>
       </div>
@@ -164,7 +164,7 @@ const InlineTitleEditor: React.FC<InlineTitleEditorProps> = ({ initialValue, onC
         aria-label="编辑待办标题"
         aria-invalid={Boolean(error)}
         aria-describedby="todo-editor-error"
-        className="min-h-7 min-w-0 w-full rounded-lg border border-rose-300 bg-white px-2 py-1 text-base font-semibold leading-5 text-stone-900 outline-none focus:border-rose-500 focus:outline-none focus:ring-0 dark:border-rose-700 dark:bg-stone-900 dark:text-stone-100 sm:text-sm"
+        className="todo-inline-editor-input min-h-7 min-w-0 w-full bg-transparent px-0 py-1 text-base font-semibold leading-5 text-stone-900 outline-none focus:outline-none focus:ring-0 dark:text-stone-100 sm:text-sm"
       />
       <div id="todo-editor-error" role={error ? 'alert' : undefined} className={error ? 'mt-1 text-[11px] leading-4 text-rose-700 dark:text-rose-300' : 'sr-only'}>{error || '按 Enter 保存，按 Escape 取消编辑'}</div>
     </>
@@ -179,7 +179,7 @@ const TodoDragPreview: React.FC<{ todo: TopicTodo; isCurrent: boolean; size?: { 
   >
     <span aria-hidden="true" className={`h-2 w-2 shrink-0 rounded-full ${isCurrent ? 'bg-rose-600 dark:bg-rose-400' : 'bg-stone-300 dark:bg-stone-600'}`} />
     <span className={`min-w-0 flex-1 break-words text-sm leading-5 ${todo.completed_at ? 'text-stone-500 line-through dark:text-stone-400' : 'font-semibold text-stone-900 dark:text-stone-100'}`}>{todo.title}</span>
-    {isCurrent && <span className="shrink-0 rounded-full bg-rose-600 px-2 py-0.5 text-[10px] font-bold leading-none text-white">当前行动</span>}
+    {isCurrent && <span className="todo-current-badge shrink-0 rounded-full px-2 py-0.5 text-[10px] font-bold leading-none text-white">当前行动</span>}
   </div>
 );
 
@@ -224,7 +224,7 @@ const SortableTodoRow: React.FC<SortableTodoRowProps> = ({
       data-todo-id={todo.id}
       data-current={isCurrent ? 'true' : undefined}
       aria-current={isCurrent ? 'true' : undefined}
-      className={`group flex min-h-10 items-center gap-2 rounded-2xl border px-2.5 py-0.5 transition-shadow motion-reduce:!transition-none dark:bg-stone-900 ${isDragging ? 'border-rose-300 opacity-0 shadow-none dark:border-rose-700' : isCurrent ? 'border-rose-300/80 bg-rose-50/70 shadow-2xs dark:border-rose-800/80 dark:bg-rose-950/25' : isCompleted ? 'border-stone-200/70 bg-stone-50/70 dark:border-stone-800 dark:bg-stone-900/70' : 'border-stone-200/70 bg-white dark:border-stone-800'}`}
+      className={`todo-row group flex min-h-10 items-center gap-2 rounded-2xl border px-2.5 py-0.5 transition-shadow motion-reduce:!transition-none ${isDragging ? 'border-rose-300 opacity-0 shadow-none dark:border-rose-700' : isCurrent ? 'todo-current-row' : isCompleted ? 'border-stone-200/70 bg-stone-50/70 dark:border-stone-800 dark:bg-stone-900/70' : 'border-stone-200/70 bg-white dark:border-stone-800'}`}
     >
       <input
         type="checkbox"
@@ -239,8 +239,8 @@ const SortableTodoRow: React.FC<SortableTodoRowProps> = ({
       <div
         {...dragAttributes}
         {...dragListeners}
-        data-testid="todo-drag-handle"
-        className={`min-w-0 flex-1 rounded-xl px-1.5 py-1 ${isEditing ? '' : 'cursor-grab touch-none active:cursor-grabbing'}`}
+        data-testid={isEditing ? 'todo-editor-shell' : 'todo-drag-handle'}
+        className={`min-w-0 flex-1 rounded-xl px-1.5 py-1 ${isEditing ? 'todo-inline-editor-shell' : 'cursor-grab touch-none active:cursor-grabbing'}`}
         aria-label={`${todo.title}${isCurrent ? '，当前行动' : ''}`}
       >
         {isEditing ? (
@@ -252,7 +252,7 @@ const SortableTodoRow: React.FC<SortableTodoRowProps> = ({
         ) : (
           <div className="flex min-h-7 items-center gap-2">
             <span className={`min-w-0 flex-1 break-words text-sm leading-5 ${isCompleted ? 'text-stone-500 line-through dark:text-stone-400' : isCurrent ? 'font-bold text-stone-900 dark:text-stone-100' : 'font-semibold text-stone-900 dark:text-stone-100'}`}>{todo.title}</span>
-            {isCurrent && <span className="inline-flex shrink-0 items-center gap-1 rounded-full bg-rose-600 px-2 py-1 text-[10px] font-bold leading-none text-white shadow-2xs"><Zap className="h-3 w-3" aria-hidden="true" />当前行动</span>}
+            {isCurrent && <span className="todo-current-badge inline-flex shrink-0 items-center gap-1 rounded-full px-2 py-1 text-[10px] font-bold leading-none text-white shadow-2xs"><Zap className="h-3 w-3" aria-hidden="true" />当前行动</span>}
           </div>
         )}
       </div>

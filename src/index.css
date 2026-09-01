@@ -1920,6 +1920,96 @@ html[class*="theme-"] input.command-palette-input[data-keyboard-focused="true"]:
 }
 
 /* ==========================================================================
+   Today Focus & Topic Todo Theme-aware Surfaces
+   ========================================================================== */
+:root {
+  --todo-accent: var(--command-palette-focus);
+}
+
+.today-focus-scroll {
+  scrollbar-gutter: stable;
+  overscroll-behavior: contain;
+}
+
+.todo-current-row {
+  border-color: color-mix(in oklab, var(--todo-accent) 30%, var(--border-subtle)) !important;
+  border-inline-start-color: var(--todo-accent) !important;
+  border-inline-start-width: 3px !important;
+  background-color: color-mix(in oklab, var(--todo-accent) 8%, var(--bg-surface)) !important;
+  box-shadow: inset 3px 0 0 var(--todo-accent), 0 1px 3px color-mix(in oklab, var(--todo-accent) 10%, transparent) !important;
+}
+
+.todo-current-badge {
+  background-color: var(--todo-accent) !important;
+}
+
+.todo-composer-shell {
+  border: 1px dashed color-mix(in oklab, var(--todo-accent) 42%, var(--border-subtle));
+  background-color: color-mix(in oklab, var(--todo-accent) 6%, var(--bg-surface));
+}
+
+.todo-composer-shell:focus-within {
+  border-color: color-mix(in oklab, var(--todo-accent) 70%, var(--border-subtle));
+  background-color: color-mix(in oklab, var(--todo-accent) 9%, var(--bg-surface));
+  box-shadow: inset 0 -2px 0 var(--todo-accent);
+}
+
+.todo-composer-icon {
+  background-color: color-mix(in oklab, var(--todo-accent) 13%, transparent);
+  color: var(--todo-accent);
+}
+
+.todo-inline-editor-shell {
+  background-color: color-mix(in oklab, var(--todo-accent) 5%, transparent);
+  box-shadow: inset 0 -2px 0 color-mix(in oklab, var(--todo-accent) 55%, transparent);
+}
+
+.todo-inline-editor-shell:focus-within {
+  background-color: color-mix(in oklab, var(--todo-accent) 8%, transparent);
+  box-shadow: inset 0 -2px 0 var(--todo-accent);
+}
+
+.todo-composer-shell:has(input:focus-visible),
+.todo-inline-editor-shell:has(input:focus-visible) {
+  outline: 2px solid color-mix(in oklab, var(--todo-accent) 42%, transparent);
+  outline-offset: 2px;
+}
+
+.todo-composer-input,
+.todo-inline-editor-input,
+html[class*="theme-"] input.todo-composer-input,
+html[class*="theme-"] input.todo-inline-editor-input,
+html.dark input.todo-composer-input,
+html.dark input.todo-inline-editor-input {
+  border-color: transparent !important;
+  border-style: none !important;
+  border-width: 0 !important;
+  background-color: transparent !important;
+  box-shadow: none !important;
+}
+
+.todo-composer-input:focus,
+.todo-inline-editor-input:focus,
+html[class*="theme-"] input.todo-composer-input:focus,
+html[class*="theme-"] input.todo-inline-editor-input:focus,
+html.dark input.todo-composer-input:focus,
+html.dark input.todo-inline-editor-input:focus {
+  border-color: transparent !important;
+  border-style: none !important;
+  border-width: 0 !important;
+  background-color: transparent !important;
+  box-shadow: none !important;
+  outline: none !important;
+}
+
+@media (forced-colors: active) {
+  .todo-composer-shell:has(input:focus-visible),
+  .todo-inline-editor-shell:has(input:focus-visible) {
+    outline-color: Highlight;
+  }
+}
+
+/* ==========================================================================
    Teleprompter Modal Isolation & High Contrast Mode Rules
    ========================================================================== */
 .teleprompter-modal-root {
@@ -1964,7 +2054,6 @@ html[class*="theme-"] input.command-palette-input[data-keyboard-focused="true"]:
     width: 15rem; /* 240px / 16:9 -> 135px height */
   }
 }
-
 
 
 

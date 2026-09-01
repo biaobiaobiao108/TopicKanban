@@ -323,9 +323,9 @@ export const TodayView: React.FC<TodayViewProps> = ({
         )}
 
         {/* 2-Column Section: Action Progress & Recent Activity */}
-        <div className="grid grid-cols-1 items-stretch gap-6 md:grid-cols-2">
+        <div data-testid="today-focus-columns" className="grid grid-cols-1 gap-6 md:grid-cols-2">
           {/* Left: Action Progress */}
-          <section aria-labelledby="today-action-progress-heading" className="flex min-h-full flex-col space-y-3.5">
+          <section aria-labelledby="today-action-progress-heading" data-testid="today-action-progress-column" className="flex h-[22rem] min-h-0 flex-col space-y-3.5">
             <div className="flex items-center justify-between gap-3">
               <h2 id="today-action-progress-heading" className="flex items-center gap-2 text-base font-bold text-stone-900 dark:text-stone-100">
                 <ListChecks className="h-4 w-4 text-rose-600 dark:text-rose-400" />
@@ -335,7 +335,7 @@ export const TodayView: React.FC<TodayViewProps> = ({
               <span className="text-[11px] font-semibold text-stone-500 dark:text-stone-400">{actionProgress.covered}/{activeTopics.length || 0} 已落地</span>
             </div>
 
-            <div className="flex flex-1 flex-col rounded-2xl border border-stone-200/70 bg-white/80 p-4 shadow-2xs dark:border-stone-800 dark:bg-stone-900/80">
+            <div data-testid="today-action-progress-panel" className="flex min-h-0 flex-1 flex-col overflow-hidden rounded-2xl border border-stone-200/70 bg-white/80 p-4 shadow-2xs dark:border-stone-800 dark:bg-stone-900/80">
               <div className="flex items-end justify-between gap-3">
                 <div>
                   <div className="text-2xl font-bold tracking-tight text-stone-900 dark:text-stone-100">{activeTopics.length ? Math.round((actionProgress.covered / activeTopics.length) * 100) : 0}%</div>
@@ -351,7 +351,7 @@ export const TodayView: React.FC<TodayViewProps> = ({
                 <div className="h-full rounded-full bg-gradient-to-r from-rose-500 to-rose-400 transition-[width] duration-300 motion-reduce:transition-none" style={{ width: `${activeTopics.length ? (actionProgress.covered / activeTopics.length) * 100 : 0}%` }} />
               </div>
 
-              <div className="mt-4 flex-1 divide-y divide-stone-100 dark:divide-stone-800/70">
+              <div data-testid="today-action-progress-scroll" className="today-focus-scroll mt-4 min-h-0 flex-1 overflow-y-auto divide-y divide-stone-100 dark:divide-stone-800/70">
                 {actionProgress.attention.length > 0 ? actionProgress.attention.map((topic) => {
                   const hasAction = Boolean(topic.current_todo);
                   return (
@@ -384,53 +384,55 @@ export const TodayView: React.FC<TodayViewProps> = ({
           </section>
 
           {/* Right: Recent Activity / Worklog */}
-          <div className="space-y-3.5">
+          <section aria-labelledby="today-recent-activity-heading" data-testid="today-recent-activity-column" className="flex h-[22rem] min-h-0 flex-col space-y-3.5">
             <div className="flex items-center justify-between">
-              <h2 className="text-base font-bold text-stone-900 dark:text-stone-100 flex items-center gap-2">
+              <h2 id="today-recent-activity-heading" className="text-base font-bold text-stone-900 dark:text-stone-100 flex items-center gap-2">
                 <Clock className="w-4 h-4 text-stone-500 dark:text-stone-400" />
                 <span>近期活跃轨迹</span>
               </h2>
             </div>
 
-            <div className="today-recent-updates-panel bg-white/80 dark:bg-stone-900/80 rounded-2xl border border-stone-200/70 dark:border-stone-800 divide-y divide-stone-100 dark:divide-stone-800/70 shadow-2xs overflow-hidden">
-              {visibleRecentUpdates.map((t) => (
-                <div
-                  key={t.id}
-                  onClick={() => onOpenDetail(t.id)}
-                  className="p-3.5 hover:bg-stone-50 dark:hover:bg-stone-800/60 transition-colors cursor-pointer flex items-center justify-between gap-3 group"
-                >
-                  <div className="min-w-0">
-                    <div className="flex items-center gap-2">
-                      <span className="text-xs font-semibold text-stone-900 dark:text-stone-100 group-hover:text-rose-600 dark:group-hover:text-rose-400 transition-colors truncate">
-                        {t.title}
-                      </span>
-                      <StatusBadge status={t.status} />
+            <div data-testid="today-recent-activity-panel" className="today-recent-updates-panel flex min-h-0 flex-1 flex-col overflow-hidden rounded-2xl border border-stone-200/70 bg-white/80 shadow-2xs dark:border-stone-800 dark:bg-stone-900/80">
+              <div data-testid="today-recent-activity-scroll" className="today-focus-scroll min-h-0 flex-1 overflow-y-auto divide-y divide-stone-100 dark:divide-stone-800/70">
+                {visibleRecentUpdates.map((t) => (
+                  <div
+                    key={t.id}
+                    onClick={() => onOpenDetail(t.id)}
+                    className="flex cursor-pointer items-center justify-between gap-3 p-3.5 transition-colors hover:bg-stone-50 dark:hover:bg-stone-800/60 group"
+                  >
+                    <div className="min-w-0">
+                      <div className="flex items-center gap-2">
+                        <span className="truncate text-xs font-semibold text-stone-900 transition-colors group-hover:text-rose-600 dark:text-stone-100 dark:group-hover:text-rose-400">
+                          {t.title}
+                        </span>
+                        <StatusBadge status={t.status} />
+                      </div>
+                      {t.current_todo && (
+                        <p className="mt-0.5 truncate text-xs text-stone-500 dark:text-stone-400">
+                          当前行动: {t.current_todo.title}
+                        </p>
+                      )}
                     </div>
-                    {t.current_todo && (
-                      <p className="text-xs text-stone-500 dark:text-stone-400 truncate mt-0.5">
-                        当前行动: {t.current_todo.title}
-                      </p>
-                    )}
-                  </div>
 
-                  <div className="text-[11px] text-stone-600 dark:text-stone-400 shrink-0">
-                    <time dateTime={t.updated_at} className="tabular-nums">
-                      {new Date(t.updated_at).toLocaleDateString('zh-CN', { month: 'numeric', day: 'numeric' })}
-                    </time>
+                    <div className="shrink-0 text-[11px] text-stone-600 dark:text-stone-400">
+                      <time dateTime={t.updated_at} className="tabular-nums">
+                        {new Date(t.updated_at).toLocaleDateString('zh-CN', { month: 'numeric', day: 'numeric' })}
+                      </time>
+                    </div>
                   </div>
-                </div>
-              ))}
+                ))}
+              </div>
               {recentUpdates.length > 3 && (
                 <button
                   type="button"
                   onClick={() => setShowAllActivity((previous) => !previous)}
-                  className="w-full px-3 py-2.5 text-xs font-semibold text-stone-500 dark:text-stone-400 hover:bg-white dark:hover:bg-stone-800 hover:text-stone-900 dark:hover:text-stone-100 cursor-pointer transition-colors"
+                  className="w-full shrink-0 cursor-pointer px-3 py-2.5 text-xs font-semibold text-stone-500 transition-colors hover:bg-white hover:text-stone-900 dark:text-stone-400 dark:hover:bg-stone-800 dark:hover:text-stone-100"
                 >
                   {showAllActivity ? '收起近期轨迹' : `展开另外 ${recentUpdates.length - 3} 条`}
                 </button>
               )}
             </div>
-          </div>
+          </section>
         </div>
       </div>
 

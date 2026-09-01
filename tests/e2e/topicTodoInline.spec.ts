@@ -175,6 +175,25 @@ test('执行清单支持连续内联创建、标题编辑和紧凑布局', async
   await expect(page.locator('textarea')).toHaveCount(0);
   await expect(page.getByText('截止日期', { exact: true })).toHaveCount(0);
 
+  await composer.click();
+  const composerFocusStyle = await composer.evaluate((element) => {
+    const style = getComputedStyle(element);
+    return { borderStyle: style.borderStyle, borderWidth: style.borderWidth, boxShadow: style.boxShadow, outlineStyle: style.outlineStyle };
+  });
+  expect(composerFocusStyle).toEqual({ borderStyle: 'none', borderWidth: '0px', boxShadow: 'none', outlineStyle: 'none' });
+  const composerShell = page.getByTestId('todo-composer-shell');
+  const composerShellFocusStyle = await composerShell.evaluate((element) => {
+    const style = getComputedStyle(element);
+    return { borderStyle: style.borderStyle, boxShadow: style.boxShadow };
+  });
+  expect(composerShellFocusStyle.borderStyle).toBe('dashed');
+  expect(composerShellFocusStyle.boxShadow).toContain('inset');
+
+  await page.keyboard.press('Tab');
+  await page.keyboard.press('Shift+Tab');
+  await expect(composer).toBeFocused();
+  await expect(composerShell).toHaveCSS('outline-style', 'solid');
+
   await composer.press('Enter');
   await expect(composer).toBeFocused();
   await expect(composer).toHaveAttribute('aria-invalid', 'true');
@@ -200,6 +219,13 @@ test('执行清单支持连续内联创建、标题编辑和紧凑布局', async
   const editRow = page.locator('[data-testid="todo-row"][data-todo-id="e2e-inline-two"]');
   await editRow.getByTitle('编辑待办').click();
   const editor = page.getByRole('textbox', { name: '编辑待办标题' });
+  const editorFocusStyle = await editor.evaluate((element) => {
+    const style = getComputedStyle(element);
+    return { borderStyle: style.borderStyle, borderWidth: style.borderWidth, boxShadow: style.boxShadow, outlineStyle: style.outlineStyle };
+  });
+  expect(editorFocusStyle).toEqual({ borderStyle: 'none', borderWidth: '0px', boxShadow: 'none', outlineStyle: 'none' });
+  const editorShell = editRow.getByTestId('todo-editor-shell');
+  await expect(editorShell).toHaveCSS('box-shadow', /inset/);
   await editor.fill('第二条已修改');
   await editor.press('Enter');
   await expect(page.getByText('第二条已修改', { exact: true })).toBeVisible();
@@ -226,6 +252,14 @@ test('执行清单支持连续内联创建、标题编辑和紧凑布局', async
   await expect(page.getByRole('textbox', { name: '编辑待办标题' })).toHaveCount(0);
 
   const currentCheckbox = page.getByRole('checkbox', { name: '完成待办：确认当前行动' });
+  const currentRow = page.locator('[data-testid="todo-row"][data-todo-id="e2e-inline-current"]');
+  await expect(currentRow).toHaveAttribute('aria-current', 'true');
+  const currentRowStyle = await currentRow.evaluate((element) => {
+    const style = getComputedStyle(element);
+    return { borderInlineStartWidth: style.borderInlineStartWidth, boxShadow: style.boxShadow };
+  });
+  expect(currentRowStyle.borderInlineStartWidth).toBe('3px');
+  expect(currentRowStyle.boxShadow).toContain('inset');
   await currentCheckbox.click();
   await expect(page.getByRole('checkbox', { name: '撤销完成：确认当前行动' })).toBeChecked();
   await expect(page.locator('[data-testid="todo-row"][data-todo-id="e2e-inline-two"]')).toHaveAttribute('data-current', 'true');
