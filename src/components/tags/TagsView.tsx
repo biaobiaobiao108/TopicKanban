@@ -440,11 +440,11 @@ export const TagsView: React.FC<TagsViewProps> = ({
                           </p>
                         )}
 
-                        {/* Next Action */}
-                        {topic.next_action && (
+                        {/* Current Action */}
+                        {topic.current_todo && (
                           <div className="text-xs text-rose-950 dark:text-rose-200 bg-rose-500/10 dark:bg-rose-950/40 px-2.5 py-1 rounded-lg flex items-center gap-1.5 font-medium truncate">
-                            <span className="shrink-0 font-bold text-rose-600 dark:text-rose-400">⚡ 下一步:</span>
-                            <span className="truncate">{topic.next_action}</span>
+                            <span className="shrink-0 font-bold text-rose-600 dark:text-rose-400">⚡ 当前行动:</span>
+                            <span className="truncate">{topic.current_todo.title}</span>
                           </div>
                         )}
                       </div>

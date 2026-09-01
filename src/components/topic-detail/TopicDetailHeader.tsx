@@ -10,8 +10,7 @@ import {
   Zap,
   AlertTriangle,
 } from 'lucide-react';
-import { NextActionDialog } from './NextActionDialog';
-import { getNextActionAgeDays, getNextActionWarning } from '../../lib/topicMetrics';
+import { getCurrentActionAgeDays, getCurrentActionWarning } from '../../lib/topicMetrics';
 import { FloatingMenu } from '../ui/FloatingMenu';
 import { ConfirmDialog } from '../ui/ConfirmDialog';
 
@@ -37,6 +36,7 @@ interface TopicDetailHeaderProps {
   onUpdateTopic: (updates: Partial<Topic>) => Promise<void>;
   onDeleteTopic: (topicId: string) => Promise<void>;
   onExportMarkdown?: () => void;
+  onOpenCurrentAction: () => void;
 }
 
 export const TopicDetailHeader: React.FC<TopicDetailHeaderProps> = ({
@@ -45,10 +45,10 @@ export const TopicDetailHeader: React.FC<TopicDetailHeaderProps> = ({
   onUpdateTopic,
   onDeleteTopic,
   onExportMarkdown,
+  onOpenCurrentAction,
 }) => {
   const [isEditingTitle, setIsEditingTitle] = useState(false);
   const [title, setTitle] = useState(topic.title);
-  const [isActionDialogOpen, setIsActionDialogOpen] = useState(false);
   const [isStatusMenuOpen, setIsStatusMenuOpen] = useState(false);
   const [isPriorityMenuOpen, setIsPriorityMenuOpen] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
@@ -62,8 +62,8 @@ export const TopicDetailHeader: React.FC<TopicDetailHeaderProps> = ({
   }, [topic.title]);
 
   const statusLabel = COLUMNS.find((column) => column.status === topic.status)?.label || topic.status;
-  const warning = getNextActionWarning(topic);
-  const actionDays = getNextActionAgeDays(topic);
+  const warning = getCurrentActionWarning(topic);
+  const actionDays = getCurrentActionAgeDays(topic);
 
   const handleSaveTitle = async () => {
     if (title.trim() && title !== topic.title) {
@@ -74,7 +74,7 @@ export const TopicDetailHeader: React.FC<TopicDetailHeaderProps> = ({
 
   return (
     <div className="bg-white/95 dark:bg-stone-900/95 backdrop-blur-sm border-b border-stone-200/80 dark:border-stone-800 px-4 sm:px-8 py-2.5 shrink-0 flex flex-col gap-2 xl:flex-row xl:items-center xl:justify-between transition-colors">
-      {/* Left group: Title & Inline Editor + Status & Priority + Next Action Capsule */}
+      {/* Left group: Title & Inline Editor + Status & Priority + Current Action Capsule */}
       <div className="flex w-full flex-wrap items-center gap-2.5 sm:gap-3.5 min-w-0 xl:w-auto xl:flex-1 xl:flex-nowrap">
         {/* Title area & Inline Editor */}
         <div className="min-w-[5.5rem] max-w-[150px] sm:max-w-xs lg:max-w-md flex flex-1 items-center gap-1.5 xl:shrink">
@@ -294,21 +294,21 @@ export const TopicDetailHeader: React.FC<TopicDetailHeaderProps> = ({
           </FloatingMenu>
         </div>
 
-        {/* Next Action Capsule: Highly Prominent Hero Pill */}
+        {/* Current Action Capsule: Highly Prominent Hero Pill */}
         <div className="shrink-0 min-w-0 max-w-[220px] sm:max-w-sm lg:max-w-lg">
-          {topic.next_action ? (
+          {topic.current_todo ? (
             <button
               type="button"
-              onClick={() => setIsActionDialogOpen(true)}
+              onClick={onOpenCurrentAction}
               className={`group inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full text-xs sm:text-[13px] font-bold transition-all cursor-pointer shadow-xs hover:shadow-subtle active:scale-[0.98] max-w-full truncate ${
                 warning
                   ? 'bg-amber-700 hover:bg-amber-800 text-white dark:bg-amber-800 dark:hover:bg-amber-700 dark:text-white'
                   : 'bg-stone-900 hover:bg-stone-800 text-white dark:bg-rose-600 dark:hover:bg-rose-700'
               }`}
-              title={`当前核心行动：${topic.next_action} (已持续 ${actionDays} 天) - 点击完成或续接下一步`}
+              title={`当前核心行动：${topic.current_todo.title} (已持续 ${actionDays} 天) - 点击完成或编辑`}
             >
               <Zap className={`w-3.5 h-3.5 sm:w-4 sm:h-4 shrink-0 ${warning ? 'text-amber-950 dark:text-amber-200 fill-current' : 'text-amber-300 fill-amber-300 animate-pulse'}`} />
-              <span className="truncate text-white">{topic.next_action}</span>
+              <span className="truncate text-white">{topic.current_todo.title}</span>
               {warning && (
                 <span className="text-[10px] font-extrabold bg-black/20 dark:bg-black/30 text-white px-1.5 py-0.5 rounded-full shrink-0">
                   {warning}
@@ -321,16 +321,16 @@ export const TopicDetailHeader: React.FC<TopicDetailHeaderProps> = ({
           ) : (
             <button
               type="button"
-              onClick={() => setIsActionDialogOpen(true)}
+              onClick={onOpenCurrentAction}
               className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-rose-600 hover:bg-rose-700 active:scale-[0.98] text-white text-xs sm:text-[13px] font-bold transition-all cursor-pointer shadow-xs"
-              title="当前选题尚未明确下一步行动，点击立即设定！"
+              title="当前选题尚未设置当前行动，点击打开执行清单"
             >
               <span className="relative flex h-2 w-2 shrink-0">
                 <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-300 opacity-75" />
                 <span className="relative inline-flex rounded-full h-2 w-2 bg-amber-300" />
               </span>
               <Zap className="w-3.5 h-3.5 text-amber-300 fill-amber-300" />
-              <span className="hidden sm:inline">设定下一步行动</span>
+              <span className="hidden sm:inline">设置当前行动</span>
               <span className="sm:hidden">加行动</span>
             </button>
           )}
@@ -398,13 +398,6 @@ export const TopicDetailHeader: React.FC<TopicDetailHeaderProps> = ({
           <Trash2 className="w-4 h-4" />
         </button>
       </div>
-
-      <NextActionDialog
-        isOpen={isActionDialogOpen}
-        topic={topic}
-        onClose={() => setIsActionDialogOpen(false)}
-        onUpdate={onUpdateTopic}
-      />
 
       <ConfirmDialog
         isOpen={isDeleteDialogOpen}

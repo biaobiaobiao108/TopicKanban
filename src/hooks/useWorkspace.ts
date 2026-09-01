@@ -9,8 +9,9 @@ import type {
   PublishedVideo,
   Tag,
   Topic,
+  TopicTodo,
 } from '../types';
-import { fetchBootstrap, fetchCommercialDealFocus, fetchPeople, fetchRelationships, fetchTags, fetchTagsPage, fetchPublishedVideos, fetchTrashedTopics, fetchTodayFocus, fetchSettings, invalidateBootstrap } from '../lib/storage';
+import { fetchAllTopicTodos, fetchBootstrap, fetchCommercialDealFocus, fetchPeople, fetchRelationships, fetchTags, fetchTagsPage, fetchPublishedVideos, fetchTrashedTopics, fetchTodayFocus, fetchSettings, invalidateBootstrap } from '../lib/storage';
 import { refreshTopicData } from '../lib/topicQueryCache';
 
 export function useWorkspace(enabled: boolean, view: string = 'today') {
@@ -23,6 +24,7 @@ export function useWorkspace(enabled: boolean, view: string = 'today') {
   // Keep this small summary query mounted across routes so the navigation
   // count never depends on whichever view happened to load last.
   const todayQuery = useQuery({ queryKey: ['today-focus'], queryFn: fetchTodayFocus, enabled });
+  const todosQuery = useQuery({ queryKey: ['topic-todos-all'], queryFn: fetchAllTopicTodos, enabled });
   const dealFocusQuery = useQuery<DealFocusData>({ queryKey: ['deal-focus'], queryFn: fetchCommercialDealFocus, enabled: enabled && view === 'today' });
   const settingsQuery = useQuery({ queryKey: ['settings'], queryFn: fetchSettings, enabled });
   const peopleQuery = useQuery({ queryKey: ['people'], queryFn: fetchPeople, enabled: enabled && ['kanban', 'topic-detail'].includes(view) });
@@ -100,7 +102,7 @@ export function useWorkspace(enabled: boolean, view: string = 'today') {
   }, [queryClient, updateWorkspace]);
   const reload = useCallback(async () => {
     invalidateBootstrap();
-    const requests: Array<Promise<unknown>> = [settingsQuery.refetch(), todayQuery.refetch()];
+    const requests: Array<Promise<unknown>> = [settingsQuery.refetch(), todayQuery.refetch(), todosQuery.refetch()];
     if (!['today', 'people', 'tags', 'kanban', 'published', 'database', 'settings'].includes(view)) requests.push(workspaceQuery.refetch());
     if (view === 'database') requests.push(trashQuery.refetch());
     if (['kanban', 'topic-detail'].includes(view)) requests.push(peopleQuery.refetch());
@@ -111,13 +113,14 @@ export function useWorkspace(enabled: boolean, view: string = 'today') {
       requests.push(dealFocusQuery.refetch());
     }
     await Promise.all(requests);
-  }, [view, workspaceQuery.refetch, todayQuery.refetch, settingsQuery.refetch, trashQuery.refetch, peopleQuery.refetch, relationshipsQuery.refetch, tagsQuery.refetch, tagOptionsQuery.refetch, dealFocusQuery.refetch]);
+  }, [view, workspaceQuery.refetch, todayQuery.refetch, todosQuery.refetch, settingsQuery.refetch, trashQuery.refetch, peopleQuery.refetch, relationshipsQuery.refetch, tagsQuery.refetch, tagOptionsQuery.refetch, dealFocusQuery.refetch]);
 
   const refreshTopics = useCallback(() => refreshTopicData(queryClient), [queryClient]);
 
-  const errorValue = workspaceQuery.error || todayQuery.error || dealFocusQuery.error || settingsQuery.error || trashQuery.error || peopleQuery.error || relationshipsQuery.error || tagsQuery.error || tagOptionsQuery.error || publishedQuery.error;
+  const errorValue = workspaceQuery.error || todayQuery.error || todosQuery.error || dealFocusQuery.error || settingsQuery.error || trashQuery.error || peopleQuery.error || relationshipsQuery.error || tagsQuery.error || tagOptionsQuery.error || publishedQuery.error;
   return {
     topics: view === 'today' ? (todayQuery.data?.topics || workspace?.topics || []) : (workspace?.topics || []),
+    todos: (todosQuery.data || []) as TopicTodo[],
     dealFocus: dealFocusQuery.data || { due_items: [], unpaid_items: [], total_active: 0 },
     topicCount: todayQuery.data?.total_active ?? workspace?.topics.length ?? 0,
     trashedTopics: trashQuery.data || [],
@@ -127,6 +130,7 @@ export function useWorkspace(enabled: boolean, view: string = 'today') {
     tags: tagsQuery.data || tagOptionsQuery.data || workspace?.tags || [],
     settings: settingsQuery.data || workspace?.settings || { reading_speed: 280, theme: 'light' },
     isLoading: (view === 'today' && todayQuery.isLoading)
+      || todosQuery.isLoading
       || dealFocusQuery.isLoading
       || workspaceQuery.isLoading
       || settingsQuery.isLoading

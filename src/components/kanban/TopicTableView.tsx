@@ -27,10 +27,10 @@ import { useToast } from '../ui/Toast';
 
 interface TopicTableViewProps {
   topics: Topic[];
-  onOpenDetail: (topicId: string) => void;
+  onOpenDetail: (topicId: string, tab?: 'todos') => void;
+  onOpenCurrentAction: (topicId: string) => void;
   onTogglePin: (topicId: string) => void | Promise<void>;
   onUpdateTopicStatus: (topicId: string, status: TopicStatus) => Promise<void>;
-  onUpdateTopic?: (topicId: string, updates: Partial<Topic>) => Promise<void>;
   onDeleteTopic: (topicId: string) => void | Promise<void>;
   trashedTopics: Topic[];
   onRestoreTopic: (topicId: string) => Promise<void>;
@@ -44,7 +44,7 @@ interface TopicTableViewProps {
 type SortCol = 'title' | 'status' | 'priority' | 'score' | 'words' | 'updated_at' | 'created_at';
 type ArchiveScope = 'all' | 'active' | 'archived' | 'trash';
 type Density = 'compact' | 'comfortable';
-type ColumnKey = 'status' | 'priority' | 'next_action' | 'tags' | 'people' | 'score' | 'words' | 'updated_at';
+type ColumnKey = 'status' | 'priority' | 'current_action' | 'tags' | 'people' | 'score' | 'words' | 'updated_at';
 
 interface TableViewPreferences {
   archiveScope: ArchiveScope;
@@ -55,9 +55,9 @@ interface TableViewPreferences {
 }
 
 const TABLE_VIEW_KEY = 'topic_kanban_table_view_v1';
-const ALL_COLUMN_KEYS: ColumnKey[] = ['status', 'priority', 'next_action', 'tags', 'people', 'score', 'words', 'updated_at'];
+const ALL_COLUMN_KEYS: ColumnKey[] = ['status', 'priority', 'current_action', 'tags', 'people', 'score', 'words', 'updated_at'];
 const COLUMN_LABELS: Record<ColumnKey, string> = {
-  status: '阶段状态', priority: '优先级', next_action: '下一步行动', tags: '分类标签',
+  status: '阶段状态', priority: '优先级', current_action: '当前行动', tags: '分类标签',
   people: '关联人物', score: '故事评分', words: '字数 / 时长', updated_at: '更新时间',
 };
 
@@ -156,9 +156,9 @@ function TableStatusCell({
 export const TopicTableView: React.FC<TopicTableViewProps> = ({
   topics,
   onOpenDetail,
+  onOpenCurrentAction,
   onTogglePin,
   onUpdateTopicStatus,
-  onUpdateTopic,
   onDeleteTopic,
   trashedTopics,
   onRestoreTopic,
@@ -180,8 +180,6 @@ export const TopicTableView: React.FC<TopicTableViewProps> = ({
   const [bulkStatus, setBulkStatus] = useState<TopicStatus>('approved');
   const [isBulkUpdating, setIsBulkUpdating] = useState(false);
   const [viewSaved, setViewSaved] = useState(false);
-  const [editingActionId, setEditingActionId] = useState<string | null>(null);
-  const [editingAction, setEditingAction] = useState('');
   const { showToast } = useToast();
   const [archiveTopicId, setArchiveTopicId] = useState<string | null>(null);
   const [page, setPage] = useState(1);
@@ -251,20 +249,6 @@ export const TopicTableView: React.FC<TopicTableViewProps> = ({
     }
   };
 
-  const saveInlineAction = async (topic: Topic) => {
-    if (!onUpdateTopic) return;
-    try {
-      await onUpdateTopic(topic.id, {
-        next_action: editingAction.trim(),
-        next_action_updated_at: new Date().toISOString(),
-        next_action_deferred_until: null,
-      });
-      setEditingActionId(null);
-      showToast({ message: '下一步行动已更新' });
-    } catch (error) {
-      showToast({ message: error instanceof Error ? error.message : '更新下一步行动失败', tone: 'error' });
-    }
-  };
 
   // 1. Scoped topics pre-sorted and paginated by the SQLite database
   const scopedTopics = useMemo(() => {
@@ -761,8 +745,8 @@ export const TopicTableView: React.FC<TopicTableViewProps> = ({
                 </div>
 
                 <div className="mt-3 rounded-xl border border-rose-100 dark:border-rose-900/60 bg-rose-50/60 dark:bg-rose-950/40 px-3 py-2 text-xs text-stone-700 dark:text-stone-300">
-                  <span className="font-semibold text-rose-700 dark:text-rose-300">下一步：</span>
-                  {topic.next_action || '尚未设置具体行动'}
+                  <span className="font-semibold text-rose-700 dark:text-rose-300">当前行动：</span>
+                  {topic.current_todo?.title || '未设置当前行动'}
                 </div>
 
                 {(topic.tags?.length || topic.people?.length) ? (
@@ -899,8 +883,8 @@ export const TopicTableView: React.FC<TopicTableViewProps> = ({
                 </div>
               </th>}
 
-              {isColumnVisible('next_action') && <th className="py-3 px-3 min-w-[180px]">
-                <span>下一步行动 (Next Action)</span>
+              {isColumnVisible('current_action') && <th className="py-3 px-3 min-w-[180px]">
+                <span>当前行动</span>
               </th>}
 
               {isColumnVisible('tags') && <th className="py-3 px-3 min-w-[130px]">
@@ -1048,40 +1032,17 @@ export const TopicTableView: React.FC<TopicTableViewProps> = ({
                     </div>
                   </td>}
 
-                  {/* 5. Next Action */}
-                  {isColumnVisible('next_action') && <td className={`${rowPadding} px-3`}>
-                    {editingActionId === topic.id && onUpdateTopic ? (
-                      <form className="flex min-w-[180px] items-center gap-1" onSubmit={(event) => { event.preventDefault(); void saveInlineAction(topic); }}>
-                        <input
-                          autoFocus
-                          value={editingAction}
-                          onChange={(event) => setEditingAction(event.target.value)}
-                          onKeyDown={(event) => { if (event.key === 'Escape') setEditingActionId(null); }}
-                          className="min-w-0 flex-1 rounded-md border border-rose-300 dark:border-rose-700 bg-white dark:bg-stone-800 px-2 py-1 text-[11px] text-stone-800 dark:text-stone-200 outline-none focus:ring-2 focus:ring-rose-100 dark:focus:ring-rose-900/50"
-                          aria-label={`编辑「${topic.title}」的下一步行动`}
-                        />
-                        <button type="submit" className="rounded px-1.5 py-1 text-[10px] font-bold text-rose-700 dark:text-rose-300 hover:bg-rose-50 dark:hover:bg-rose-950/40">保存</button>
-                      </form>
-                    ) : topic.next_action ? (
-                      <button
-                        type="button"
-                        onClick={() => { setEditingActionId(topic.id); setEditingAction(topic.next_action || ''); }}
-                        className="inline-flex max-w-[220px] items-center gap-1.5 truncate rounded-lg bg-rose-500/10 dark:bg-rose-500/15 px-2.5 py-1 text-left text-[11px] font-semibold text-rose-950 dark:text-rose-200 hover:bg-rose-500/20 transition-colors"
-                        title="点击直接编辑下一步行动"
-                      >
-                        <span className="text-rose-600 dark:text-rose-400">⚡</span>
-                        <span className="truncate">{topic.next_action}</span>
-                      </button>
-                    ) : (
-                      <button
-                        type="button"
-                        onClick={() => { if (onUpdateTopic) { setEditingActionId(topic.id); setEditingAction(''); } }}
-                        className="text-[11px] italic text-stone-600 hover:text-rose-600 dark:text-stone-400 cursor-pointer"
-                        title="点击添加下一步行动"
-                      >
-                        + 添加行动
-                      </button>
-                    )}
+                  {/* 5. Current Action */}
+                  {isColumnVisible('current_action') && <td className={`${rowPadding} px-3`}>
+                    <button
+                      type="button"
+                      onClick={() => onOpenCurrentAction(topic.id)}
+                      className={`inline-flex max-w-[240px] items-center gap-1.5 truncate rounded-lg px-2.5 py-1 text-left text-[11px] font-semibold transition-colors cursor-pointer ${topic.current_todo ? 'bg-rose-500/10 text-rose-950 hover:bg-rose-500/20 dark:bg-rose-500/15 dark:text-rose-200' : 'bg-stone-500/5 text-stone-500 hover:bg-stone-500/10 dark:text-stone-400'}`}
+                      title="管理当前行动"
+                    >
+                      <span className={topic.current_todo ? 'text-rose-600 dark:text-rose-400' : 'text-stone-400'}>⚡</span>
+                      <span className="truncate">{topic.current_todo?.title || '未设置当前行动'}</span>
+                    </button>
                   </td>}
 
                   {/* 6. Tags */}

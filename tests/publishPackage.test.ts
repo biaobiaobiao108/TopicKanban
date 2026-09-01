@@ -22,7 +22,6 @@ const topic: Topic = {
   why_now: '新的公开材料刚刚出现。',
   status: 'production',
   priority: 'high',
-  next_action: '整理发布文案',
   score_character: 2,
   score_conflict: 2,
   score_contrast: 2,

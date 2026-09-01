@@ -28,6 +28,8 @@ import type {
   Tag,
   TimelineEvent,
   Topic,
+  TopicTodo,
+  TopicTodoMutationResult,
   TopicStatus,
   TopicWorkspaceData,
   TopicWorkspaceLoad,
@@ -223,12 +225,67 @@ export async function linkPublishedVideoToCommercialDeal(
   return deal;
 }
 
-export async function saveTopic(data: Partial<Topic> & { title?: string }): Promise<Topic> {
+export type TopicCreateInput = Partial<Topic> & {
+  title?: string;
+  initial_todo?: { title: string; notes?: string; due_date?: string | null };
+};
+
+export async function saveTopic(data: TopicCreateInput): Promise<Topic> {
   const topic = data.id
     ? await apiRequest<Topic>(`/api/topics/${encodeURIComponent(data.id)}`, jsonRequest('PATCH', data))
     : await apiRequest<Topic>('/api/topics', jsonRequest('POST', data));
   invalidateBootstrap();
   return topic;
+}
+
+export function fetchTopicTodos(topicId: string): Promise<TopicTodo[]> {
+  return apiRequest<TopicTodo[]>(`/api/topics/${encodeURIComponent(topicId)}/todos`);
+}
+
+export function fetchAllTopicTodos(): Promise<TopicTodo[]> {
+  return apiRequest<TopicTodo[]>('/api/todos');
+}
+
+export function saveTopicTodo(data: {
+  topic_id: string;
+  title: string;
+  notes?: string;
+  due_date?: string | null;
+}): Promise<TopicTodoMutationResult> {
+  return apiRequest<TopicTodoMutationResult>(
+    `/api/topics/${encodeURIComponent(data.topic_id)}/todos`,
+    jsonRequest('POST', data),
+  );
+}
+
+export function updateTopicTodo(
+  id: string,
+  updates: Pick<Partial<TopicTodo>, 'title' | 'notes' | 'due_date'>,
+): Promise<TopicTodoMutationResult> {
+  return apiRequest<TopicTodoMutationResult>(`/api/todos/${encodeURIComponent(id)}`, jsonRequest('PATCH', updates));
+}
+
+export function setTopicTodoCurrent(id: string): Promise<TopicTodoMutationResult> {
+  return apiRequest<TopicTodoMutationResult>(`/api/todos/${encodeURIComponent(id)}/current`, { method: 'POST' });
+}
+
+export function completeTopicTodo(id: string): Promise<TopicTodoMutationResult> {
+  return apiRequest<TopicTodoMutationResult>(`/api/todos/${encodeURIComponent(id)}/complete`, { method: 'POST' });
+}
+
+export function reopenTopicTodo(id: string): Promise<TopicTodoMutationResult> {
+  return apiRequest<TopicTodoMutationResult>(`/api/todos/${encodeURIComponent(id)}/reopen`, { method: 'POST' });
+}
+
+export function deleteTopicTodo(id: string): Promise<TopicTodoMutationResult> {
+  return apiRequest<TopicTodoMutationResult>(`/api/todos/${encodeURIComponent(id)}`, { method: 'DELETE' });
+}
+
+export function reorderTopicTodos(topicId: string, ids: string[]): Promise<TopicTodoMutationResult> {
+  return apiRequest<TopicTodoMutationResult>(
+    `/api/topics/${encodeURIComponent(topicId)}/todos/reorder`,
+    jsonRequest('PATCH', { ids }),
+  );
 }
 
 export async function updateTopicStatus(id: string, status: TopicStatus, sortOrder?: number): Promise<void> {
@@ -763,7 +820,13 @@ export function exportSingleTopicMarkdown(
   if (topic.hook) lines.push(`- **核心反差 / 钩子 (Hook)**：${topic.hook}`);
   if (topic.summary) lines.push(`- **故事主线脉络 (Summary)**：${topic.summary}`);
   if (topic.why_now) lines.push(`- **为什么是现在 (Why Now)**：${topic.why_now}`);
-  if (topic.next_action) lines.push(`- **当前核心行动 (Next Action)**：${topic.next_action}`);
+  if (topic.current_todo) {
+    lines.push(`- **当前行动**：${topic.current_todo.title}`);
+    if (topic.current_todo.notes) lines.push(`  - 备注：${topic.current_todo.notes}`);
+    if (topic.current_todo.due_date) lines.push(`  - 截止日期：${topic.current_todo.due_date}`);
+  } else {
+    lines.push('- **当前行动**：未设置当前行动');
+  }
   if (topic.tags && topic.tags.length > 0) {
     lines.push(`- **创作赛道 / 标签**：${topic.tags.map((t) => `#${t.name}`).join(' ')}`);
   }

@@ -20,10 +20,8 @@ async function mockMonthOverflowWorkspace(page: Page) {
     why_now: '',
     status: 'approved',
     priority: 'medium',
-    next_action: '',
     target_publish_date: '2026-08-15',
     deadline: null,
-    next_action_deferred_until: null,
     score_character: 1,
     score_conflict: 1,
     score_contrast: 1,
@@ -58,6 +56,9 @@ async function mockMonthOverflowWorkspace(page: Page) {
     });
   });
   await page.route('**/api/topics/trash', async (route) => {
+    await route.fulfill({ contentType: 'application/json', body: '[]' });
+  });
+  await page.route('**/api/todos', async (route) => {
     await route.fulfill({ contentType: 'application/json', body: '[]' });
   });
   await page.route('**/api/people', async (route) => {

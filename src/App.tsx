@@ -8,7 +8,8 @@ import {
   Tag,
   AppSettings,
   TopicStatus,
-  Priority
+  Priority,
+  TopicTodoMutationResult,
 } from './types';
 import {
   saveTopic,
@@ -28,6 +29,13 @@ import {
   saveTag,
   deleteTag,
   saveSettings,
+  updateTopicTodo,
+  setTopicTodoCurrent,
+  completeTopicTodo,
+  reopenTopicTodo,
+  deleteTopicTodo,
+  reorderTopicTodos,
+  saveTopicTodo,
   exportBackupData,
   exportScriptsMarkdown,
 } from './lib/storage';
@@ -39,6 +47,7 @@ import { MobileBottomNav, MobileDrawer } from './components/layout/MobileNav';
 import { CommandPalette } from './components/layout/CommandPalette';
 import { QuickCreateModal } from './components/layout/QuickCreateModal';
 import { TodayView } from './components/today/TodayView';
+import { TodoQuickActionDialog } from './components/topic-detail/TodoQuickActionDialog';
 import { ViewErrorBoundary } from './components/ui/ViewErrorBoundary';
 import { QuickDropDrawer } from './components/inbox/QuickDropDrawer';
 import { fetchQuickDrops } from './lib/storage';
@@ -55,6 +64,7 @@ import {
   updatePublishedCaches,
   updateTagCaches,
   updateTopicCaches,
+  replaceTopicTodoCaches,
 } from './lib/queryCacheSync';
 import { lazyWithReload } from './lib/lazyWithReload';
 import { useToast } from './components/ui/Toast';
@@ -161,6 +171,7 @@ function WorkspaceApp({ isAuth, setIsAuth }: WorkspaceAppProps) {
 
   const {
     topics,
+    todos,
     topicCount: workspaceTopicCount,
     trashedTopics,
     people,
@@ -198,6 +209,7 @@ function WorkspaceApp({ isAuth, setIsAuth }: WorkspaceAppProps) {
   const [isQuickDropDrawerOpen, setIsQuickDropDrawerOpen] = useState(false);
   const [quickDropCount, setQuickDropCount] = useState(0);
   const [searchTerm, setSearchTerm] = useState('');
+  const [quickActionTopicId, setQuickActionTopicId] = useState<string | null>(null);
 
   useEffect(() => {
     if (!isAuth) {
@@ -380,9 +392,10 @@ function WorkspaceApp({ isAuth, setIsAuth }: WorkspaceAppProps) {
   };
 
   // Handlers for Topics
-  const handleOpenDetail = (topicId: string) => {
+  const handleOpenDetail = (topicId: string, tab?: 'todos') => {
     const from = currentView === 'topic-detail' ? '/kanban' : currentLocation;
     safeNavigate(`/topics/${encodeURIComponent(topicId)}`, {
+      ...(tab ? { search: `?tab=${tab}` } : {}),
       state: { from, fromLabel: getBackLabel(from, '返回全景看板') },
     });
   };
@@ -445,7 +458,7 @@ function WorkspaceApp({ isAuth, setIsAuth }: WorkspaceAppProps) {
     title: string;
     summary?: string;
     hook?: string;
-    next_action?: string;
+    initial_todo?: { title: string };
     target_publish_date?: string;
     deadline?: string;
     priority?: Priority;
@@ -464,7 +477,7 @@ function WorkspaceApp({ isAuth, setIsAuth }: WorkspaceAppProps) {
       title: topicData.title,
       summary: topicData.summary || '',
       hook: topicData.hook || '',
-      next_action: topicData.next_action || '',
+      initial_todo: topicData.initial_todo,
       target_publish_date: topicData.target_publish_date || null,
       deadline: topicData.deadline || null,
       priority: topicData.priority || 'medium',
@@ -480,7 +493,7 @@ function WorkspaceApp({ isAuth, setIsAuth }: WorkspaceAppProps) {
       title: topicData.title,
       summary: topicData.summary,
       hook: '',
-      next_action: '拆解商单要求并确认选题角度',
+      initial_todo: { title: '拆解商单要求并确认选题角度' },
       priority: 'high',
       status: 'inbox',
     });
@@ -488,6 +501,52 @@ function WorkspaceApp({ isAuth, setIsAuth }: WorkspaceAppProps) {
     await refreshTopics();
     return newTopic;
   };
+
+  const handleTopicTodoMutation = (result: TopicTodoMutationResult) => {
+    setTopics((prev) => prev.map((topic) => (topic.id === result.topic.id ? result.topic : topic)));
+    replaceTopicTodoCaches(queryClient, result);
+  };
+
+  const topicTodoActions = {
+    createTodo: async (topicId: string, input: { title: string; notes?: string; due_date?: string | null }) => {
+      const result = await saveTopicTodo({ topic_id: topicId, ...input });
+      handleTopicTodoMutation(result);
+      return result;
+    },
+    updateTodo: async (todoId: string, updates: Parameters<typeof updateTopicTodo>[1]) => {
+      const result = await updateTopicTodo(todoId, updates);
+      handleTopicTodoMutation(result);
+      return result;
+    },
+    setCurrentTodo: async (todoId: string) => {
+      const result = await setTopicTodoCurrent(todoId);
+      handleTopicTodoMutation(result);
+      return result;
+    },
+    completeTodo: async (todoId: string) => {
+      const result = await completeTopicTodo(todoId);
+      handleTopicTodoMutation(result);
+      return result;
+    },
+    reopenTodo: async (todoId: string) => {
+      const result = await reopenTopicTodo(todoId);
+      handleTopicTodoMutation(result);
+      return result;
+    },
+    deleteTodo: async (todoId: string) => {
+      const result = await deleteTopicTodo(todoId);
+      handleTopicTodoMutation(result);
+      return result;
+    },
+    reorderTodos: async (topicId: string, ids: string[]) => {
+      const result = await reorderTopicTodos(topicId, ids);
+      handleTopicTodoMutation(result);
+      return result;
+    },
+  };
+  const quickActionTopic = quickActionTopicId
+    ? topics.find((topic) => topic.id === quickActionTopicId) || null
+    : null;
 
   const handleUpdateTopic = async (updates: Partial<Topic>) => {
     if (!activeTopicId) return;
@@ -878,6 +937,7 @@ function WorkspaceApp({ isAuth, setIsAuth }: WorkspaceAppProps) {
           {currentView === 'today' && (
             <TodayView
               topics={topics}
+              todoActions={topicTodoActions}
               dealFocus={dealFocus}
               staleActionDays={settings.stale_action_days || 5}
               onOpenDetail={handleOpenDetail}
@@ -891,6 +951,7 @@ function WorkspaceApp({ isAuth, setIsAuth }: WorkspaceAppProps) {
           {currentView === 'calendar' && (
             <CalendarView
               topics={topics}
+              todos={todos}
               deals={dealFocus ? [...dealFocus.due_items, ...dealFocus.unpaid_items] : []}
               publishedList={publishedList}
               availableTags={tags}
@@ -918,6 +979,7 @@ function WorkspaceApp({ isAuth, setIsAuth }: WorkspaceAppProps) {
             <KanbanBoard
               topics={topics}
               onOpenDetail={handleOpenDetail}
+              onOpenCurrentAction={(topicId) => setQuickActionTopicId(topicId)}
               onDeleteTopic={handleDeleteTopic}
               onTogglePin={handleTogglePin}
               onUpdateTopicStatus={handleUpdateTopicStatus}
@@ -953,6 +1015,7 @@ function WorkspaceApp({ isAuth, setIsAuth }: WorkspaceAppProps) {
               onTopicMetricsChange={handleTopicMetricsChange}
               onOpenDeal={handleOpenDeal}
               onCreateTopicFromDeal={handleCreateTopicFromDeal}
+              todoActions={topicTodoActions}
             />
           )}
 
@@ -1009,9 +1072,9 @@ function WorkspaceApp({ isAuth, setIsAuth }: WorkspaceAppProps) {
                 <TopicTableView
                   topics={topics}
                   onOpenDetail={handleOpenDetail}
+                  onOpenCurrentAction={(topicId) => setQuickActionTopicId(topicId)}
                   onTogglePin={handleTogglePin}
                   onUpdateTopicStatus={handleUpdateTopicStatus}
-                  onUpdateTopic={handleUpdateTopicById}
                   onDeleteTopic={handleDeleteTopic}
                   trashedTopics={trashedTopics}
                   onRestoreTopic={handleRestoreTopic}
@@ -1071,6 +1134,20 @@ function WorkspaceApp({ isAuth, setIsAuth }: WorkspaceAppProps) {
         initialTitle={quickCreateInitialTitle}
         initialTagNames={quickCreateInitialTags}
       />
+
+      {quickActionTopic && (
+        <TodoQuickActionDialog
+          isOpen
+          topic={quickActionTopic}
+          todo={quickActionTopic.current_todo}
+          onClose={() => setQuickActionTopicId(null)}
+          onOpenTodoList={() => {
+            setQuickActionTopicId(null);
+            handleOpenDetail(quickActionTopic.id, 'todos');
+          }}
+          actions={topicTodoActions}
+        />
+      )}
 
       {/* Global Command Palette (Hotkey Ctrl+/ / Cmd+/ / /) */}
       <CommandPalette

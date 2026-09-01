@@ -1,4 +1,4 @@
-import type { PaginatedTopics, Person, Tag, Topic, TopicStatus } from '../../types';
+import type { PaginatedTopics, Person, Tag, Topic, TopicStatus, TopicTodo } from '../../types';
 import type { SqliteDatabase, SqlitePreparedStatement } from '../sqlite';
 import { bind } from './shared';
 
@@ -21,6 +21,7 @@ export async function loadTopics(db: SqliteDatabase, scope: 'active' | 'trash' |
     db.prepare('SELECT topic_id, person_id FROM topic_people'),
     db.prepare('SELECT id, name, color FROM tags'),
     db.prepare('SELECT * FROM people'),
+    db.prepare('SELECT * FROM topic_todos WHERE is_current = 1 AND completed_at IS NULL'),
   ]);
 
   const topicRows = results[0].results as unknown as Topic[];
@@ -28,6 +29,8 @@ export async function loadTopics(db: SqliteDatabase, scope: 'active' | 'trash' |
   const topicPeople = results[2].results as unknown as Array<{ topic_id: string; person_id: string }>;
   const tags = results[3].results as unknown as Tag[];
   const people = results[4].results as unknown as Person[];
+  const currentTodos = results[5].results as unknown as TopicTodo[];
+  const currentTodoByTopic = new Map(currentTodos.map((todo) => [todo.topic_id, todo]));
   const tagMap = new Map(tags.map((tag) => [tag.id, tag]));
   const personMap = new Map(people.map((person) => [person.id, person]));
   const tagsByTopic = new Map<string, Tag[]>();
@@ -46,6 +49,7 @@ export async function loadTopics(db: SqliteDatabase, scope: 'active' | 'trash' |
     ...topic,
     tags: tagsByTopic.get(topic.id) || [],
     people: peopleByTopic.get(topic.id) || [],
+    current_todo: currentTodoByTopic.get(topic.id) || null,
   }));
 }
 
@@ -94,6 +98,7 @@ function permanentDeleteStatements(db: SqliteDatabase, id: string): SqlitePrepar
     bind(db, `DELETE FROM topic_people WHERE topic_id IN (${trashedTopic})`, [id]),
     bind(db, `DELETE FROM commercial_deal_topics WHERE topic_id IN (${trashedTopic})`, [id]),
     bind(db, `DELETE FROM published_videos WHERE topic_id IN (${trashedTopic})`, [id]),
+    bind(db, `DELETE FROM topic_todos WHERE topic_id IN (${trashedTopic})`, [id]),
     bind(db, 'DELETE FROM topics WHERE id = ? AND deleted_at IS NOT NULL', [id]),
   ];
 }
@@ -146,11 +151,13 @@ function buildTopicFilterConditions(options: TopicPageOptions): { conditions: st
   if (options.query) {
     const pattern = `%${options.query.replace(/[\\%_]/g, '\\$&')}%`;
     conditions.push(`(t.title LIKE ? ESCAPE '\\' OR t.summary LIKE ? ESCAPE '\\' OR t.hook LIKE ? ESCAPE '\\'
-      OR t.next_action LIKE ? ESCAPE '\\' OR t.storyline LIKE ? ESCAPE '\\'
+      OR t.storyline LIKE ? ESCAPE '\\'
+      OR EXISTS (SELECT 1 FROM topic_todos stt WHERE stt.topic_id = t.id
+        AND (stt.title LIKE ? ESCAPE '\\' OR stt.notes LIKE ? ESCAPE '\\'))
       OR EXISTS (SELECT 1 FROM topic_tags st INNER JOIN tags sg ON sg.id = st.tag_id WHERE st.topic_id = t.id AND sg.name LIKE ? ESCAPE '\\')
       OR EXISTS (SELECT 1 FROM topic_people sp INNER JOIN people spp ON spp.id = sp.person_id WHERE sp.topic_id = t.id
         AND (spp.name LIKE ? ESCAPE '\\' OR spp.aliases LIKE ? ESCAPE '\\' OR spp.identity LIKE ? ESCAPE '\\')))`);
-    values.push(pattern, pattern, pattern, pattern, pattern, pattern, pattern, pattern, pattern);
+    values.push(pattern, pattern, pattern, pattern, pattern, pattern, pattern, pattern, pattern, pattern);
   }
   return { conditions, values };
 }
@@ -199,13 +206,18 @@ export async function loadTopicPage(db: SqliteDatabase, options: TopicPageOption
   const ids = rows.map((row) => row.id);
   if (ids.length > 0) {
     const placeholders = ids.map(() => '?').join(',');
-    const [tagResult, personResult] = await db.batch([
+    const [tagResult, personResult, currentTodoResult] = await db.batch([
       bind(db, `SELECT tt.topic_id, tg.* FROM topic_tags tt INNER JOIN tags tg ON tg.id = tt.tag_id WHERE tt.topic_id IN (${placeholders})`, ids),
       bind(db, `SELECT tp.topic_id, p.* FROM topic_people tp INNER JOIN people p ON p.id = tp.person_id WHERE tp.topic_id IN (${placeholders})`, ids),
+      bind(db, `SELECT * FROM topic_todos WHERE is_current = 1 AND completed_at IS NULL AND topic_id IN (${placeholders})`, ids),
     ]);
+    const currentTodoByTopic = new Map(
+      (currentTodoResult.results as unknown as TopicTodo[]).map((todo) => [todo.topic_id, todo])
+    );
     rows.forEach((topic) => {
       topic.tags = (tagResult.results as unknown as Array<Tag & { topic_id: string }>).filter((tag) => tag.topic_id === topic.id);
       topic.people = (personResult.results as unknown as Array<Person & { topic_id: string }>).filter((person) => person.topic_id === topic.id);
+      topic.current_todo = currentTodoByTopic.get(topic.id) || null;
     });
   }
   const total = Number((countResult.results[0] as { count?: number } | undefined)?.count || 0);
@@ -242,6 +254,8 @@ export async function loadTopic(db: SqliteDatabase, id: string): Promise<Topic |
     bind(db, `SELECT p.* FROM people p
       INNER JOIN topic_people tp ON tp.person_id = p.id
       WHERE tp.topic_id = ?`, [id]),
+    bind(db, `SELECT * FROM topic_todos
+      WHERE topic_id = ? AND is_current = 1 AND completed_at IS NULL LIMIT 1`, [id]),
   ]);
 
   const topic = (results[0].results as unknown as Topic[])[0];
@@ -251,22 +265,21 @@ export async function loadTopic(db: SqliteDatabase, id: string): Promise<Topic |
     ...topic,
     tags: (results[1].results as unknown as Tag[]) || [],
     people: (results[2].results as unknown as Person[]) || [],
+    current_todo: ((results[3].results as unknown as TopicTodo[])[0] || null),
   };
 }
 
 export function topicStatement(db: SqliteDatabase, topic: Partial<Topic> & { id: string; title: string }): SqlitePreparedStatement {
   const now = new Date().toISOString();
   return bind(db, `INSERT INTO topics (
-    id, title, summary, hook, storyline, why_now, status, priority, next_action,
-    next_action_updated_at, next_action_deferred_until, target_publish_date, deadline,
+    id, title, summary, hook, storyline, why_now, status, priority,
+    target_publish_date, deadline,
     score_character, score_conflict, score_contrast, score_material, score_story,
     is_pinned, sort_order, created_at, updated_at, published_at, deleted_at
-  ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+  ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
   ON CONFLICT(id) DO UPDATE SET
     title=excluded.title, summary=excluded.summary, hook=excluded.hook, storyline=excluded.storyline,
     why_now=excluded.why_now, status=excluded.status, priority=excluded.priority,
-    next_action=excluded.next_action, next_action_updated_at=excluded.next_action_updated_at,
-    next_action_deferred_until=excluded.next_action_deferred_until,
     target_publish_date=excluded.target_publish_date, deadline=excluded.deadline,
     score_character=excluded.score_character,
     score_conflict=excluded.score_conflict, score_contrast=excluded.score_contrast,
@@ -274,8 +287,7 @@ export function topicStatement(db: SqliteDatabase, topic: Partial<Topic> & { id:
     is_pinned=excluded.is_pinned, sort_order=excluded.sort_order, updated_at=excluded.updated_at,
     published_at=excluded.published_at, deleted_at=excluded.deleted_at`, [
     topic.id, topic.title, topic.summary ?? '', topic.hook ?? '', topic.storyline ?? '', topic.why_now ?? '',
-    topic.status ?? 'inbox', topic.priority ?? 'medium', topic.next_action ?? '',
-    topic.next_action_updated_at ?? (topic.next_action ? now : null), topic.next_action_deferred_until ?? null,
+    topic.status ?? 'inbox', topic.priority ?? 'medium',
     topic.target_publish_date ?? null, topic.deadline ?? null,
     topic.score_character ?? 0, topic.score_conflict ?? 0, topic.score_contrast ?? 0,
     topic.score_material ?? 0, topic.score_story ?? 0, topic.is_pinned ?? 0, topic.sort_order ?? 0,
@@ -286,9 +298,20 @@ export async function insertTopic(
   db: SqliteDatabase,
   topic: Partial<Topic> & { id: string; title: string },
   tagIds: string[] = [],
-  personIds: string[] = []
+  personIds: string[] = [],
+  initialTodo?: { id: string; title: string; notes?: string; due_date?: string | null }
 ): Promise<void> {
   const batch: SqlitePreparedStatement[] = [topicStatement(db, topic)];
+  if (initialTodo) {
+    const now = new Date().toISOString();
+    batch.push(bind(db, `INSERT INTO topic_todos (
+      id, topic_id, title, notes, due_date, is_current, current_started_at,
+      completed_at, sort_order, created_at, updated_at
+    ) VALUES (?, ?, ?, ?, ?, 1, ?, NULL, 1, ?, ?)`, [
+      initialTodo.id, topic.id, initialTodo.title, initialTodo.notes || '', initialTodo.due_date || null,
+      now, now, now,
+    ]));
+  }
   tagIds.forEach((tagId) => batch.push(bind(db,
     'INSERT OR IGNORE INTO topic_tags (id, topic_id, tag_id) VALUES (?, ?, ?)',
     [`${topic.id}:${tagId}`, topic.id, tagId]
@@ -307,8 +330,8 @@ export async function updateTopic(
 ): Promise<void> {
   const batch: SqlitePreparedStatement[] = [];
   const fields = [
-    'title', 'summary', 'hook', 'storyline', 'why_now', 'status', 'priority', 'next_action',
-    'next_action_updated_at', 'next_action_deferred_until', 'target_publish_date', 'deadline',
+    'title', 'summary', 'hook', 'storyline', 'why_now', 'status', 'priority',
+    'target_publish_date', 'deadline',
     'score_character', 'score_conflict', 'score_contrast', 'score_material', 'score_story',
     'is_pinned', 'sort_order', 'published_at', 'deleted_at',
   ].filter((field) => Object.prototype.hasOwnProperty.call(body, field));

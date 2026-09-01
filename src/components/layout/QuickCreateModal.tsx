@@ -11,7 +11,7 @@ interface QuickCreateModalProps {
     title: string;
     summary: string;
     priority: Priority;
-    next_action: string;
+    initial_todo?: { title: string };
     target_publish_date?: string;
     deadline?: string;
     tags: Tag[];
@@ -62,7 +62,7 @@ export const QuickCreateModal: React.FC<QuickCreateModalProps> = ({
   const [title, setTitle] = useState('');
   const [summary, setSummary] = useState('');
   const [priority, setPriority] = useState<Priority>('medium');
-  const [nextAction, setNextAction] = useState('');
+  const [initialTodo, setInitialTodo] = useState('');
   const [targetPublishDate, setTargetPublishDate] = useState('');
   const [deadline, setDeadline] = useState('');
   const [selectedTagNames, setSelectedTagNames] = useState<string[]>([]);
@@ -72,6 +72,9 @@ export const QuickCreateModal: React.FC<QuickCreateModalProps> = ({
   useEffect(() => {
     if (!isOpen) return;
     setTitle(initialTitle);
+    setSummary('');
+    setPriority('medium');
+    setInitialTodo('');
     setSelectedTagNames(initialTagNames);
     setTargetPublishDate('');
     setDeadline('');
@@ -97,7 +100,7 @@ export const QuickCreateModal: React.FC<QuickCreateModalProps> = ({
         title: title.trim(),
         summary: summary.trim(),
         priority,
-        next_action: nextAction.trim(),
+        initial_todo: initialTodo.trim() ? { title: initialTodo.trim() } : undefined,
         target_publish_date: targetPublishDate || undefined,
         deadline: deadline || undefined,
         tags,
@@ -108,7 +111,7 @@ export const QuickCreateModal: React.FC<QuickCreateModalProps> = ({
       setTitle('');
       setSummary('');
       setPriority('medium');
-      setNextAction('');
+      setInitialTodo('');
       setTargetPublishDate('');
       setDeadline('');
       setSelectedTagNames([]);
@@ -185,19 +188,19 @@ export const QuickCreateModal: React.FC<QuickCreateModalProps> = ({
           />
         </div>
 
-        {/* Next Action (Optional) */}
+        {/* First Todo (Optional) */}
         <div>
-          <label htmlFor="quick-create-next-action" className="block text-xs font-semibold text-stone-700 dark:text-stone-300 mb-1">
-            当前下一步行动 <span className="text-stone-500 dark:text-stone-400 font-normal">(可选，明确接下来做什么)</span>
+          <label htmlFor="quick-create-initial-todo" className="block text-xs font-semibold text-stone-700 dark:text-stone-300 mb-1">
+            首个待办 <span className="text-stone-500 dark:text-stone-400 font-normal">(可选，填写后会直接设为当前行动)</span>
           </label>
           <input
-            id="quick-create-next-action"
-            name="next_action"
+            id="quick-create-initial-todo"
+            name="initial_todo"
             type="text"
             autoComplete="off"
             placeholder="例如：寻找第一次训练营逃跑原片"
-            value={nextAction}
-            onChange={(e) => setNextAction(e.target.value)}
+            value={initialTodo}
+            onChange={(e) => setInitialTodo(e.target.value)}
             className="w-full px-3.5 py-2.5 bg-stone-500/[0.03] dark:bg-stone-800 border border-stone-200/80 dark:border-stone-700 rounded-xl text-stone-900 dark:text-stone-100 text-base focus:bg-white dark:focus:bg-stone-800 focus:border-rose-500 focus:outline-none transition-colors placeholder:text-stone-400 dark:placeholder:text-stone-500"
           />
         </div>

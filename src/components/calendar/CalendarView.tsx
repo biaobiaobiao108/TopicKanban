@@ -9,7 +9,7 @@ import {
   DragStartEvent,
   DragEndEvent,
 } from '@dnd-kit/core';
-import { Topic, CommercialDeal, PublishedVideo, Tag, Priority, TopicStatus } from '../../types';
+import { Topic, CommercialDeal, PublishedVideo, Tag, Priority, TopicStatus, TopicTodo } from '../../types';
 import { fetchCommercialDealPage, fetchPublishedVideos, fetchTags } from '../../lib/storage';
 import { PageHeader } from '../layout/PageHeader';
 import { useSearchParams } from 'react-router-dom';
@@ -50,6 +50,7 @@ interface CalendarViewProps {
   topics: Topic[];
   deals?: CommercialDeal[];
   publishedList?: PublishedVideo[];
+  todos?: TopicTodo[];
   availableTags: Tag[];
   onOpenDetail: (topicId: string) => void;
   onOpenDeal?: (dealId: string) => void;
@@ -81,6 +82,7 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
   topics,
   deals = [],
   publishedList = [],
+  todos = [],
   availableTags,
   onOpenDetail,
   onOpenDeal,
@@ -192,8 +194,8 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
 
   // Extract all calendar events by date
   const eventsMap = useMemo(() => {
-    return extractCalendarEvents(topics, effectiveDeals, effectivePublishedList, filters);
-  }, [topics, effectiveDeals, effectivePublishedList, filters]);
+    return extractCalendarEvents(topics, effectiveDeals, effectivePublishedList, todos, filters);
+  }, [topics, effectiveDeals, effectivePublishedList, todos, filters]);
 
   // Month Statistics
   const monthStats = useMemo(() => {
@@ -363,6 +365,9 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
               <span className="inline-flex items-center gap-1 bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 px-2 py-0.5 rounded-md font-medium">
                 已发视频 <strong className="font-mono tabular-nums">{monthStats.publishedVideoCount}</strong>
               </span>
+              <span className="inline-flex items-center gap-1 bg-amber-500/10 text-amber-700 dark:text-amber-300 px-2 py-0.5 rounded-md font-medium">
+                待办截止 <strong className="font-mono tabular-nums">{monthStats.todoDueCount}</strong>
+              </span>
             </div>
 
             {/* Layer Filter Pills */}
@@ -419,14 +424,14 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
 
               <button
                 type="button"
-                onClick={() => handleToggleLayer('showDeferred')}
+                onClick={() => handleToggleLayer('showTodoDue')}
                 className={`px-2.5 py-1 rounded-lg font-semibold transition-all cursor-pointer shrink-0 flex items-center gap-1 ${
-                  filters.showDeferred
+                  filters.showTodoDue
                     ? 'bg-stone-700 text-white shadow-2xs'
                     : 'bg-stone-100 dark:bg-stone-800 text-stone-600 dark:text-stone-400 line-through'
                 }`}
               >
-                <span>⚡ 推迟唤醒</span>
+                <span>✅ 待办截止</span>
               </button>
             </div>
           </div>

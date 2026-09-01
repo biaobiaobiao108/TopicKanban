@@ -800,7 +800,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
             <div className="space-y-2">
               <label className="text-xs sm:text-sm font-bold text-stone-800 dark:text-stone-200 flex items-center gap-1.5">
                 <Clock className="w-4 h-4 text-amber-500" />
-                <span>下一步行动停滞预警阈值</span>
+                <span>当前行动停滞预警阈值</span>
               </label>
               <p className="text-[11px] text-stone-400 dark:text-stone-500">选题在立项或写稿中超过设定天数未更新行动时标红预警</p>
               <div className="grid grid-cols-3 gap-2">

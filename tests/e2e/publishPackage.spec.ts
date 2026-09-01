@@ -9,7 +9,6 @@ const topic = {
   why_now: '测试用的传播时机',
   status: 'production',
   priority: 'medium',
-  next_action: '验证发布包',
   score_character: 2,
   score_conflict: 2,
   score_contrast: 2,
@@ -67,6 +66,9 @@ async function mockWorkspace(page: Page, draft = workspace.draft) {
         },
       }),
     });
+  });
+  await page.route('**/api/todos', async (route) => {
+    await route.fulfill({ contentType: 'application/json', body: '[]' });
   });
   await page.route('**/api/topics/trash', async (route) => {
     await route.fulfill({ contentType: 'application/json', body: '[]' });

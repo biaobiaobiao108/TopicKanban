@@ -1,14 +1,16 @@
 import React, { useId, useState, useEffect, useLayoutEffect, useRef, useCallback } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useSearchParams } from 'react-router-dom';
-import { CitationInput, Topic, Source, TimelineEvent, Person, PersonRelationship, Draft, DraftCitation, DraftRecoveryConflict, Tag, AppSettings, PublishPackageSaveInput, PublishPackageRecord } from '../../types';
+import { CitationInput, Topic, Source, TimelineEvent, Person, PersonRelationship, Draft, DraftCitation, DraftRecoveryConflict, Tag, AppSettings, PublishPackageSaveInput, PublishPackageRecord, TopicTodo } from '../../types';
 import { TopicDetailHeader } from './TopicDetailHeader';
 import { OverviewTab } from './OverviewTab';
 import { SourcesTab } from './SourcesTab';
 import { TimelineTab } from './TimelineTab';
 import { PeopleTab } from './PeopleTab';
 import { CommercialDealsTab } from './CommercialDealsTab';
-import { NextActionDialog } from './NextActionDialog';
+import { TodoQuickActionDialog } from './TodoQuickActionDialog';
+import { TodoListTab } from './TodoListTab';
+import type { TopicTodoActions } from './todoTypes';
 import { BackNavigationBar } from '../layout/BackNavigationBar';
 import { COLUMNS } from '../kanban/columns';
 import {
@@ -23,6 +25,7 @@ import {
   fetchTopicWorkspace,
   fetchDraftCitations,
   fetchCommercialDealsByTopicId,
+  fetchTopicTodos,
   saveDraft,
   cacheDraftLocally,
   saveDraftImmediately,
@@ -34,7 +37,7 @@ import {
 } from '../../lib/storage';
 import { Modal } from '../ui/Modal';
 import { FloatingMenu } from '../ui/FloatingMenu';
-import { LayoutDashboard, FileSearch, Clock, Users, PenTool, FileText, Handshake, CheckCircle2, GitBranch, MoreHorizontal } from 'lucide-react';
+import { LayoutDashboard, FileSearch, Clock, Users, PenTool, FileText, Handshake, CheckCircle2, GitBranch, MoreHorizontal, ListTodo } from 'lucide-react';
 
 interface TopicDetailViewProps {
   topic: Topic;
@@ -55,9 +58,10 @@ interface TopicDetailViewProps {
   onTopicMetricsChange: (topicId: string, metrics: Partial<Topic>) => void;
   onOpenDeal: (dealId: string) => void;
   onCreateTopicFromDeal?: (data: { title: string; summary: string }) => Promise<Topic>;
+  todoActions: TopicTodoActions;
 }
 
-type DetailTab = 'overview' | 'sources' | 'timeline' | 'people' | 'deals' | 'script' | 'publish';
+type DetailTab = 'overview' | 'todos' | 'sources' | 'timeline' | 'people' | 'deals' | 'script' | 'publish';
 
 const PublishPackageTab = React.lazy(() =>
   import('./PublishPackageTab').then((module) => ({ default: module.PublishPackageTab }))
@@ -86,12 +90,13 @@ export const TopicDetailView: React.FC<TopicDetailViewProps> = ({
   onTopicMetricsChange,
   onOpenDeal,
   onCreateTopicFromDeal,
+  todoActions,
 }) => {
   const queryClient = useQueryClient();
   const [pendingOutlineHtml, setPendingOutlineHtml] = useState<string | null>(null);
   const [searchParams, setSearchParams] = useSearchParams();
   const rawTab = searchParams.get('tab');
-  const activeTab: DetailTab = (rawTab && ['overview', 'sources', 'timeline', 'people', 'deals', 'script', 'publish'].includes(rawTab))
+  const activeTab: DetailTab = (rawTab && ['overview', 'todos', 'sources', 'timeline', 'people', 'deals', 'script', 'publish'].includes(rawTab))
     ? (rawTab as DetailTab)
     : 'overview';
   const detailSubtabsRef = useRef<HTMLDivElement | null>(null);
@@ -157,11 +162,17 @@ export const TopicDetailView: React.FC<TopicDetailViewProps> = ({
     queryFn: () => fetchCommercialDealsByTopicId(topic.id),
     enabled: activeTab === 'deals',
   });
+  const todosQuery = useQuery({
+    queryKey: ['topic-todos', topic.id],
+    queryFn: () => fetchTopicTodos(topic.id),
+    enabled: activeTab === 'todos',
+  });
 
   const sources: Source[] = sourcesQuery.data || [];
   const timeline: TimelineEvent[] = timelineQuery.data || [];
   const citations: DraftCitation[] = citationsQuery.data || [];
   const draft: Draft | null = draftQuery.data?.draft || null;
+  const todos: TopicTodo[] = todosQuery.data || [];
 
   useEffect(() => {
     if (draftQuery.data?.conflict) {
@@ -173,7 +184,8 @@ export const TopicDetailView: React.FC<TopicDetailViewProps> = ({
     || (activeTab === 'timeline' && timelineQuery.isLoading)
     || (activeTab === 'deals' && dealsQuery.isLoading)
     || (activeTab === 'script' && (draftQuery.isLoading || citationsQuery.isLoading || sourcesQuery.isLoading || timelineQuery.isLoading))
-    || (activeTab === 'publish' && workspaceQuery.isLoading);
+    || (activeTab === 'publish' && workspaceQuery.isLoading)
+    || (activeTab === 'todos' && todosQuery.isLoading);
 
   useEffect(() => {
     if (sourcesQuery.data) {
@@ -342,7 +354,8 @@ export const TopicDetailView: React.FC<TopicDetailViewProps> = ({
   };
 
   const tabs: { id: DetailTab; label: string; icon: React.ComponentType<{ className?: string }>; count?: number }[] = [
-    { id: 'overview', label: '概览与评分', icon: LayoutDashboard },
+    { id: 'overview', label: '选题概览', icon: LayoutDashboard },
+    { id: 'todos', label: '执行清单', icon: ListTodo, count: todos.filter((todo) => !todo.completed_at).length },
     { id: 'sources', label: '资料与素材', icon: FileSearch, count: sources.length },
     { id: 'timeline', label: '故事时间线', icon: Clock, count: timeline.length },
     { id: 'people', label: '人物与关系', icon: Users, count: topic.people?.length || 0 },
@@ -366,7 +379,7 @@ export const TopicDetailView: React.FC<TopicDetailViewProps> = ({
     if (isOutsideViewport) {
       activeButton.scrollIntoView({ block: 'nearest', inline: 'nearest' });
     }
-  }, [activeTab, sources.length, timeline.length, topic.people?.length, topic.commercial_deals_count]);
+  }, [activeTab, sources.length, timeline.length, topic.people?.length, topic.commercial_deals_count, todos.length]);
 
   const metricTopic: Topic = {
     ...topic,
@@ -475,6 +488,7 @@ export const TopicDetailView: React.FC<TopicDetailViewProps> = ({
         onUpdateTopic={onUpdateTopic}
         onDeleteTopic={onDeleteTopic}
         onExportMarkdown={handleExportMarkdown}
+        onOpenCurrentAction={() => setIsActionDialogOpen(true)}
       />
 
       {/* Sub Tabs Navigation (Scrollable on mobile) */}
@@ -534,10 +548,16 @@ export const TopicDetailView: React.FC<TopicDetailViewProps> = ({
               onSavePerson={onSavePerson}
               onSaveTag={onSaveTag}
               onDeleteTag={onDeleteTag}
-              onNavigateToTab={(tab) => setActiveTab(tab)}
+              onOpenCurrentAction={() => setIsActionDialogOpen(true)}
               onInjectOutlineIntoDraft={handleInjectOutlineIntoDraft}
               onConvertStorylineToTimeline={handleConvertStorylineToTimeline}
             />
+          </div>
+        )}
+
+        {activeTab === 'todos' && (
+          <div key="todos" className="view-tab-transition">
+            <TodoListTab topic={topic} todos={todos} actions={todoActions} isLoading={todosQuery.isLoading} />
           </div>
         )}
 
@@ -725,7 +745,7 @@ export const TopicDetailView: React.FC<TopicDetailViewProps> = ({
             onClick={() => setIsActionDialogOpen(true)}
             className="flex min-h-12 flex-col items-center justify-center gap-0.5 rounded-xl bg-rose-600 hover:bg-rose-700 px-1 text-[10px] font-bold text-white cursor-pointer shadow-2xs"
           >
-            <CheckCircle2 className="h-4 w-4" /> 下一步
+            <CheckCircle2 className="h-4 w-4" /> 当前行动
           </button>
           <button
             type="button"
@@ -767,11 +787,16 @@ export const TopicDetailView: React.FC<TopicDetailViewProps> = ({
         </div>
       </div>
 
-      <NextActionDialog
+      <TodoQuickActionDialog
         isOpen={isActionDialogOpen}
         topic={metricTopic}
+        todo={metricTopic.current_todo}
         onClose={() => setIsActionDialogOpen(false)}
-        onUpdate={onUpdateTopic}
+        onOpenTodoList={() => {
+          setIsActionDialogOpen(false);
+          setActiveTab('todos');
+        }}
+        actions={todoActions}
       />
     </div>
   );

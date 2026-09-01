@@ -73,7 +73,7 @@ export function validateTopicFields(body: Record<string, unknown>): string | nul
     }
   }
   const textError = validateTextFields(body, {
-    title: [200, true], summary: [2000], hook: [2000], storyline: [20000], why_now: [2000], next_action: [2000],
+    title: [200, true], summary: [2000], hook: [2000], storyline: [20000], why_now: [2000],
   });
   if (textError) return textError;
   return null;

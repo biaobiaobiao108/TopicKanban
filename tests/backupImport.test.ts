@@ -29,7 +29,7 @@ describe('backup import limits', () => {
     const backup = createBackup({
       topics: [{
         id: 'topic-1', title: '选题', summary: '', hook: '', storyline: '', why_now: '',
-        status: 'inbox', priority: 'medium', next_action: '', score_character: 0,
+        status: 'inbox', priority: 'medium', score_character: 0,
         score_conflict: 0, score_contrast: 0, score_material: 0, score_story: 0,
         is_pinned: 0, sort_order: 1, created_at: '', updated_at: '',
         tags: [{ id: 'tag-1', name: '标签' }],
@@ -37,12 +37,12 @@ describe('backup import limits', () => {
       }],
     });
 
-    expect(getBackupImportSummary(backup)).toMatchObject({ topics: 1, statements: 19 });
+    expect(getBackupImportSummary(backup)).toMatchObject({ topics: 1, statements: 20 });
   });
 
   it('accepts a backup at the atomic statement limit', () => {
     const backup = createBackup({
-      tags: Array.from({ length: MAX_IMPORT_STATEMENTS - 16 }, (_, index) => ({ id: `tag-${index}`, name: `标签 ${index}` })),
+      tags: Array.from({ length: MAX_IMPORT_STATEMENTS - 17 }, (_, index) => ({ id: `tag-${index}`, name: `标签 ${index}` })),
     });
 
     expect(assertBackupImportWithinLimits(backup).statements).toBe(MAX_IMPORT_STATEMENTS);
@@ -50,7 +50,7 @@ describe('backup import limits', () => {
 
   it('rejects a backup exceeding the atomic statement limit before writes begin', () => {
     const backup = createBackup({
-      tags: Array.from({ length: MAX_IMPORT_STATEMENTS - 15 }, (_, index) => ({ id: `tag-${index}`, name: `标签 ${index}` })),
+      tags: Array.from({ length: MAX_IMPORT_STATEMENTS - 16 }, (_, index) => ({ id: `tag-${index}`, name: `标签 ${index}` })),
     });
 
     expect(() => assertBackupImportWithinLimits(backup)).toThrow('超过单次原子恢复上限');

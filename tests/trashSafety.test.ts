@@ -36,6 +36,7 @@ describe('trash safety', () => {
         { results: [] },
         { results: [] },
         { results: [] },
+        { results: [] },
       ]),
     } as unknown as SqliteDatabase;
 
@@ -68,7 +69,7 @@ describe('trash safety', () => {
     await permanentlyDeleteTrashedTopics(db, ['trash-1']);
 
     const statements = batch.mock.calls[0][0] as FakeStatement[];
-    expect(statements).toHaveLength(10);
+    expect(statements).toHaveLength(11);
     statements.forEach((item) => expect(item.sql).toContain('deleted_at IS NOT NULL'));
   });
 });

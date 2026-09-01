@@ -11,11 +11,13 @@ import type {
   PublishPackageRecord,
   Source,
   TimelineEvent,
+  TopicTodo,
 } from '../../types';
 import type { SqliteDatabase, SqlitePreparedStatement } from '../sqlite';
 import { bind } from './shared';
 import { loadBootstrap } from './bootstrap';
 import { loadTopics, topicStatement } from './topics';
+import { topicTodoStatement } from './todos';
 import { personStatement, relationshipStatement } from './people';
 import { sourceStatement, timelineStatement } from './workspace';
 import { citationStatement, draftStatement, publishPackageStatement } from './writing';
@@ -43,6 +45,7 @@ export interface BackupImportSummary {
   commercial_deals: number;
   commercial_deal_topics: number;
   commercial_deal_activities: number;
+  todos: number;
 }
 export class BackupImportLimitError extends Error {}
 
@@ -51,13 +54,13 @@ export function getBackupImportSummary(data: BackupData): BackupImportSummary {
     (count, topic) => count + (topic.tags?.length || 0) + (topic.people?.length || 0),
     0
   );
-  const statements = 16 + data.tags.length + data.people.length + data.topics.length + topicRelations
+  const statements = 17 + data.tags.length + data.people.length + data.topics.length + topicRelations
     + data.sources.length + data.timeline.length
     + data.timeline.reduce((count, event) => count + (event.person_ids?.length || 0), 0)
     + data.drafts.length + data.citations.length
     + data.relationships.length + data.published.length + (data.publish_packages?.length || 0)
     + (data.commercial_deals?.length || 0) + (data.commercial_deal_topics?.length || 0)
-    + (data.commercial_deal_activities?.length || 0);
+    + (data.commercial_deal_activities?.length || 0) + (data.todos?.length || 0);
 
   return {
     bytes: new TextEncoder().encode(JSON.stringify(data)).byteLength,
@@ -74,6 +77,7 @@ export function getBackupImportSummary(data: BackupData): BackupImportSummary {
     commercial_deals: data.commercial_deals?.length || 0,
     commercial_deal_topics: data.commercial_deal_topics?.length || 0,
     commercial_deal_activities: data.commercial_deal_activities?.length || 0,
+    todos: data.todos?.length || 0,
   };
 }
 
@@ -94,6 +98,7 @@ export async function replaceAllData(db: SqliteDatabase, data: BackupData): Prom
     db.prepare('DELETE FROM commercial_deal_activities'),
     db.prepare('DELETE FROM commercial_deal_topics'),
     db.prepare('DELETE FROM commercial_deals'),
+    db.prepare('DELETE FROM topic_todos'),
     db.prepare('DELETE FROM topic_tags'), db.prepare('DELETE FROM topic_people'),
     db.prepare('DELETE FROM timeline_event_people'),
     db.prepare('DELETE FROM sources'), db.prepare('DELETE FROM timeline_events'),
@@ -118,6 +123,7 @@ export async function replaceAllData(db: SqliteDatabase, data: BackupData): Prom
       [`${topic.id}:${person.id}`, topic.id, person.id, '']
     )));
   });
+  (data.todos || []).forEach((todo) => statements.push(topicTodoStatement(db, todo)));
   data.sources.forEach((source) => statements.push(sourceStatement(db, source)));
   data.timeline.forEach((event) => {
     statements.push(timelineStatement(db, event));
@@ -160,6 +166,7 @@ export async function exportAllData(db: SqliteDatabase, kvSettings?: AppSettings
       db.prepare('SELECT * FROM commercial_deals ORDER BY updated_at DESC'),
       db.prepare('SELECT * FROM commercial_deal_topics ORDER BY created_at ASC'),
       db.prepare('SELECT * FROM commercial_deal_activities ORDER BY created_at ASC'),
+      db.prepare('SELECT * FROM topic_todos ORDER BY topic_id, sort_order, created_at'),
     ]),
   ]);
   const personIdsByEvent = new Map<string, string[]>();
@@ -194,6 +201,7 @@ export async function exportAllData(db: SqliteDatabase, kvSettings?: AppSettings
     commercial_deals: details[6].results as unknown as CommercialDeal[],
     commercial_deal_topics: details[7].results as unknown as CommercialDealTopic[],
     commercial_deal_activities: details[8].results as unknown as CommercialDealActivity[],
+    todos: details[9].results as unknown as TopicTodo[],
     settings: kvSettings || bootstrap.settings,
   };
 }

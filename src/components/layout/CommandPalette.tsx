@@ -592,7 +592,7 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
           category: 'topic',
           categoryLabel: '近期活跃选题',
           title: topic.title,
-          subtitle: topic.next_action ? `⚡ 下一步：${topic.next_action}` : topic.summary || topic.hook || undefined,
+          subtitle: topic.current_todo ? `⚡ 当前行动：${topic.current_todo.title}` : topic.summary || topic.hook || undefined,
           icon: FileText,
           extra: (
             <div className="flex items-center gap-1.5 shrink-0">
@@ -676,7 +676,7 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
           category: 'topic',
           categoryLabel: '匹配选题',
           title: topic.title,
-          subtitle: topic.next_action ? `⚡ 下一步：${topic.next_action}` : topic.summary || topic.hook || undefined,
+          subtitle: topic.current_todo ? `⚡ 当前行动：${topic.current_todo.title}` : topic.summary || topic.hook || undefined,
           icon: FileText,
           extra: (
             <div className="flex items-center gap-1.5 shrink-0">

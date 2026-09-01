@@ -18,7 +18,7 @@ describe('Database schema contract', () => {
         'commercial_deal_activities', 'commercial_deal_topics', 'commercial_deals',
         'draft_citations', 'drafts', 'people', 'person_relationships', 'publish_packages',
         'published_videos', 'sources', 'tags', 'timeline_event_people', 'timeline_events',
-        'topic_people', 'topic_tags', 'topics',
+        'topic_people', 'topic_tags', 'topic_todos', 'topics',
       ]);
 
       const sourceColumns = sqlite.query('PRAGMA table_info(sources)').all() as Array<{ name: string }>;
@@ -30,6 +30,17 @@ describe('Database schema contract', () => {
       const topicColumns = sqlite.query('PRAGMA table_info(topics)').all() as Array<{ name: string }>;
       expect(topicColumns.some((column) => column.name === 'target_publish_date')).toBe(true);
       expect(topicColumns.some((column) => column.name === 'deadline')).toBe(true);
+      expect(topicColumns.some((column) => column.name === 'next_action')).toBe(false);
+      expect(topicColumns.some((column) => column.name === 'next_action_updated_at')).toBe(false);
+      expect(topicColumns.some((column) => column.name === 'next_action_deferred_until')).toBe(false);
+
+      const todoColumns = sqlite.query('PRAGMA table_info(topic_todos)').all() as Array<{ name: string }>;
+      expect(todoColumns.map((column) => column.name)).toEqual([
+        'id', 'topic_id', 'title', 'notes', 'due_date', 'is_current', 'current_started_at',
+        'completed_at', 'sort_order', 'created_at', 'updated_at',
+      ]);
+      const currentIndex = sqlite.query("SELECT sql FROM sqlite_master WHERE type = 'index' AND name = 'idx_topic_todos_current'").get() as { sql: string };
+      expect(currentIndex.sql).toMatch(/WHERE is_current\s*=\s*1 AND completed_at IS NULL/);
 
       const publishedTopicColumn = sqlite.query('PRAGMA table_info(published_videos)')
         .all() as Array<{ name: string; notnull: number }>;

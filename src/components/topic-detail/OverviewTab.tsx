@@ -1,11 +1,9 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { Topic, Person, Tag } from '../../types';
-import { ScoreRatingDial } from './ScoreRatingDial';
-import { NextActionDialog } from './NextActionDialog';
 import { Modal } from '../ui/Modal';
 import { DateInput } from '../ui/DateInput';
 import { useToast } from '../ui/Toast';
-import { getNextActionAgeDays, getNextActionWarning } from '../../lib/topicMetrics';
+import { getCurrentActionAgeDays, getCurrentActionWarning } from '../../lib/topicMetrics';
 import { useActionDateDisplay } from '../../lib/actionDate';
 import { ActionDateText } from '../ui/ActionDate';
 import {
@@ -41,7 +39,7 @@ interface OverviewTabProps {
   onSavePerson?: (personData: Partial<Person> & { name: string }) => Promise<Person>;
   onSaveTag?: (tagName: string, color?: string) => Promise<Tag>;
   onDeleteTag?: (tagId: string) => Promise<void>;
-  onNavigateToTab?: (tab: 'overview' | 'sources' | 'timeline' | 'people' | 'script') => void;
+  onOpenCurrentAction: () => void;
   onInjectOutlineIntoDraft?: (outlineHtml: string) => Promise<void>;
   onConvertStorylineToTimeline?: (steps: Array<{ title: string; desc: string }>) => Promise<void>;
 }
@@ -103,7 +101,7 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({
   allTags,
   onSavePerson,
   onSaveTag,
-  onNavigateToTab,
+  onOpenCurrentAction,
   onInjectOutlineIntoDraft,
   onConvertStorylineToTimeline,
 }) => {
@@ -118,7 +116,6 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({
   const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle');
   const [storylineMode, setStorylineMode] = useState<'acts' | 'raw'>('acts');
   const [isWhyNowExpanded, setIsWhyNowExpanded] = useState(Boolean(topic.why_now));
-  const [isActionDialogOpen, setIsActionDialogOpen] = useState(false);
   const [bridgeStatus, setBridgeStatus] = useState<string | null>(null);
   const { showToast } = useToast();
 
@@ -142,8 +139,8 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({
     if (statusTimerRef.current) clearTimeout(statusTimerRef.current);
   }, []);
 
-  const actionDays = getNextActionAgeDays(topic);
-  const actionWarning = getNextActionWarning(topic);
+  const actionDays = getCurrentActionAgeDays(topic);
+  const actionWarning = getCurrentActionWarning(topic);
   const activeTopicDates = topic.status !== 'published' && topic.status !== 'icebox';
   const targetPublishDateDisplay = useActionDateDisplay(targetPublishDate, activeTopicDates);
   const deadlineDisplay = useActionDateDisplay(deadline, activeTopicDates);
@@ -649,7 +646,7 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({
         </div>
       </div>
 
-      {/* Right Column: Production Cockpit, Diagnostic Dial & Entities (5 / 12) */}
+      {/* Right Column: Production Cockpit & Entities (5 / 12) */}
       <div className="xl:col-span-5 space-y-6">
         {/* 1. 生产节奏与排期驾驶舱 (Production Rhythm Cockpit) */}
         <div className="bg-white dark:bg-stone-900 rounded-2xl border border-stone-200/70 dark:border-stone-800 p-5 space-y-4 shadow-2xs transition-colors">
@@ -669,7 +666,7 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({
             )}
           </div>
 
-          {/* Current Next Action Block */}
+          {/* Current Action Block */}
           <div className="bg-gradient-to-br from-rose-500/[0.07] via-stone-500/[0.02] to-amber-500/[0.06] dark:from-rose-950/30 dark:via-stone-800/30 dark:to-amber-950/20 rounded-xl border border-rose-200/60 dark:border-rose-900/40 p-4 space-y-3">
             <div className="flex items-center justify-between gap-2 flex-wrap">
               <div className="flex items-center gap-2 text-xs font-bold text-rose-700 dark:text-rose-400 uppercase tracking-wider">
@@ -680,7 +677,7 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({
                 <span>当前核心推进行动</span>
               </div>
               <div className="flex items-center gap-1.5">
-                {topic.next_action && (
+                {topic.current_todo && (
                   <span className="font-bold bg-rose-500/15 dark:bg-rose-900/50 text-rose-800 dark:text-rose-200 px-2 py-0.5 rounded-full text-[10px]">
                     已推进 <span className="font-mono tabular-nums">{actionDays}</span> 天
                   </span>
@@ -694,17 +691,17 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({
             </div>
 
             <p className="text-sm font-bold text-stone-900 dark:text-stone-100 leading-relaxed break-words">
-              {topic.next_action || '尚未设置具体下一步，点击立即规划！'}
+              {topic.current_todo?.title || '尚未设置当前行动，点击立即规划！'}
             </p>
 
             <div className="pt-1">
               <button
                 type="button"
-                onClick={() => setIsActionDialogOpen(true)}
+                onClick={onOpenCurrentAction}
                 className="w-full flex items-center justify-center gap-2 bg-rose-600 hover:bg-rose-700 active:scale-[0.98] text-white py-2 px-3 rounded-xl text-xs font-bold transition-all shadow-2xs cursor-pointer"
               >
                 <CheckCircle2 className="w-3.5 h-3.5" />
-                <span>{topic.next_action ? '推进 / 完成行动' : '设置下一步行动'}</span>
+                <span>{topic.current_todo ? '推进 / 完成行动' : '设置当前行动'}</span>
               </button>
             </div>
           </div>
@@ -808,14 +805,7 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({
           </div>
         </div>
 
-        {/* 2. 五维健康度诊断罗盘 (ScoreRatingDial) */}
-        <ScoreRatingDial
-          topic={topic}
-          onUpdateScores={onUpdateTopic}
-          onNavigateToTab={onNavigateToTab}
-        />
-
-        {/* 3. 关联人物实体 (People Selector) */}
+        {/* 2. 关联人物实体 (People Selector) */}
         <div className="bg-white dark:bg-stone-900 rounded-2xl border border-stone-200/70 dark:border-stone-800 p-5 space-y-4 shadow-2xs transition-colors">
           <div className="flex items-center justify-between">
             <h4 className="text-sm font-bold text-stone-900 dark:text-stone-100 flex items-center gap-2">
@@ -1103,13 +1093,6 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({
         </form>
       </Modal>
 
-      {/* Next Action Dialog */}
-      <NextActionDialog
-        isOpen={isActionDialogOpen}
-        topic={topic}
-        onClose={() => setIsActionDialogOpen(false)}
-        onUpdate={onUpdateTopic}
-      />
     </div>
   );
 };

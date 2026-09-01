@@ -14,6 +14,8 @@ import type {
   Tag,
   TodayFocusData,
   Topic,
+  TopicTodo,
+  TopicTodoMutationResult,
 } from '../src/types';
 import {
   removeCommercialDealCaches,
@@ -21,6 +23,7 @@ import {
   removePublishedCaches,
   removeTagCaches,
   removeTopicCaches,
+  replaceTopicTodoCaches,
   updateCommercialDealCaches,
   updatePersonCaches,
   updatePublishedCaches,
@@ -38,7 +41,6 @@ function topic(id: string, overrides: Partial<Topic> = {}): Topic {
     why_now: '',
     status: 'production',
     priority: 'medium',
-    next_action: '',
     score_character: 0,
     score_conflict: 0,
     score_contrast: 0,
@@ -102,6 +104,31 @@ describe('跨视图实体缓存同步', () => {
     expect(queryClient.getQueryData<PaginatedTopics>(key('production'))?.total).toBe(0);
     expect(queryClient.getQueryData<PaginatedTopics>(key('approved'))?.items[0].title).toBe('新标题');
     expect(queryClient.getQueryData<PaginatedTopics>(key('approved'))?.total).toBe(1);
+  });
+
+  it('Todo 变更同步当前选题、详情清单和全量日历缓存', () => {
+    const queryClient = new QueryClient();
+    const current = topic('topic-1');
+    const todo = {
+      id: 'todo-1', topic_id: current.id, title: '核对原始资料', notes: '', due_date: '2026-08-28',
+      is_current: 1, current_started_at: '2026-08-25T00:00:00.000Z', completed_at: null,
+      sort_order: 1, created_at: '2026-08-25T00:00:00.000Z', updated_at: '2026-08-25T00:00:00.000Z',
+    } satisfies TopicTodo;
+    const result: TopicTodoMutationResult = {
+      topic: { ...current, current_todo: todo },
+      todos: [todo],
+    };
+    queryClient.setQueryData<BootstrapData>(['workspace'], baseWorkspace([current]));
+    queryClient.setQueryData<TodayFocusData>(['today-focus'], { topics: [current], total_active: 1 });
+    queryClient.setQueryData<TopicTodo[]>(['topic-todos-all'], []);
+    queryClient.setQueryData<TopicTodo[]>(['topic-todos', current.id], []);
+
+    replaceTopicTodoCaches(queryClient, result);
+
+    expect(queryClient.getQueryData<BootstrapData>(['workspace'])?.topics[0].current_todo?.title).toBe('核对原始资料');
+    expect(queryClient.getQueryData<TodayFocusData>(['today-focus'])?.topics[0].current_todo?.id).toBe(todo.id);
+    expect(queryClient.getQueryData<TopicTodo[]>(['topic-todos', current.id])).toEqual([todo]);
+    expect(queryClient.getQueryData<TopicTodo[]>(['topic-todos-all'])).toEqual([todo]);
   });
 
   it('同步人物和标签在选题关联对象中的显示值', () => {

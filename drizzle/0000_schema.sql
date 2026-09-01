@@ -9,9 +9,6 @@ CREATE TABLE topics (
   why_now TEXT NOT NULL DEFAULT '',
   status TEXT NOT NULL DEFAULT 'inbox' CHECK (status IN ('inbox', 'approved', 'scripting', 'production', 'published', 'icebox')),
   priority TEXT NOT NULL DEFAULT 'medium' CHECK (priority IN ('high', 'medium', 'low', 'none')),
-  next_action TEXT NOT NULL DEFAULT '',
-  next_action_updated_at TEXT,
-  next_action_deferred_until TEXT,
   target_publish_date TEXT,
   deadline TEXT,
   score_character INTEGER NOT NULL DEFAULT 0 CHECK (score_character BETWEEN 0 AND 2),
@@ -29,6 +26,28 @@ CREATE TABLE topics (
 
 CREATE INDEX idx_topics_target_publish_date ON topics(target_publish_date);
 CREATE INDEX idx_topics_deadline ON topics(deadline);
+
+CREATE TABLE topic_todos (
+  id TEXT PRIMARY KEY,
+  topic_id TEXT NOT NULL,
+  title TEXT NOT NULL,
+  notes TEXT NOT NULL DEFAULT '',
+  due_date TEXT,
+  is_current INTEGER NOT NULL DEFAULT 0 CHECK (is_current IN (0, 1)),
+  current_started_at TEXT,
+  completed_at TEXT,
+  sort_order INTEGER NOT NULL DEFAULT 0 CHECK (sort_order >= 0),
+  created_at TEXT NOT NULL,
+  updated_at TEXT NOT NULL,
+  CHECK (completed_at IS NULL OR is_current = 0),
+  FOREIGN KEY (topic_id) REFERENCES topics(id) ON DELETE CASCADE
+);
+
+CREATE INDEX idx_topic_todos_topic_order ON topic_todos(topic_id, sort_order, created_at);
+CREATE INDEX idx_topic_todos_due_date ON topic_todos(due_date);
+CREATE UNIQUE INDEX idx_topic_todos_current
+  ON topic_todos(topic_id)
+  WHERE is_current = 1 AND completed_at IS NULL;
 
 CREATE TABLE sources (
   id TEXT PRIMARY KEY,

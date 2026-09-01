@@ -76,9 +76,9 @@ function DraggableTopicCard({
         {topic.title}
       </button>
 
-      {topic.next_action && (
+      {topic.current_todo && (
         <div className="text-[11px] text-stone-500 dark:text-stone-400 truncate bg-stone-500/[0.03] dark:bg-stone-800/40 px-2 py-1 rounded-md">
-          下一步: {topic.next_action}
+          当前行动: {topic.current_todo.title}
         </div>
       )}
 
@@ -175,7 +175,7 @@ export const UnscheduledTopicPool: React.FC<UnscheduledTopicPoolProps> = ({
         const query = search.toLowerCase();
         const matchesTitle = topic.title.toLowerCase().includes(query);
         const matchesSummary = topic.summary?.toLowerCase().includes(query);
-        const matchesAction = topic.next_action?.toLowerCase().includes(query);
+        const matchesAction = topic.current_todo?.title.toLowerCase().includes(query);
         if (!matchesTitle && !matchesSummary && !matchesAction) return false;
       }
       return true;

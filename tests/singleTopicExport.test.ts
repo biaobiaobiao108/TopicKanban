@@ -12,7 +12,11 @@ describe('exportSingleTopicMarkdown utility', () => {
     why_now: '近期行业整顿与相关法律判决下达。',
     status: 'scripting',
     priority: 'high',
-    next_action: '撰写第三幕反转文案',
+    current_todo: {
+      id: 'todo-demo', topic_id: 'topic-demo', title: '撰写第三幕反转文案', notes: '', due_date: null,
+      is_current: 1, current_started_at: '2026-08-20T10:00:00.000Z', completed_at: null,
+      sort_order: 1, created_at: '2026-08-20T10:00:00.000Z', updated_at: '2026-08-20T10:00:00.000Z',
+    },
     score_character: 2,
     score_conflict: 2,
     score_contrast: 2,

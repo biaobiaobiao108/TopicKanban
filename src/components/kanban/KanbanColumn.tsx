@@ -15,6 +15,7 @@ interface KanbanColumnProps {
   isLoadingMore?: boolean;
   onLoadMore?: () => void;
   onOpenDetail: (topicId: string) => void;
+  onOpenCurrentAction?: (topicId: string) => void;
   onDeleteTopic: (topicId: string) => void;
   onTogglePin: (topicId: string) => void;
   onQuickAddTopic: (status: TopicStatus) => void;
@@ -45,6 +46,7 @@ export const KanbanColumn: React.FC<KanbanColumnProps> = ({
   isLoadingMore = false,
   onLoadMore,
   onOpenDetail,
+  onOpenCurrentAction,
   onDeleteTopic,
   onTogglePin,
   onQuickAddTopic,
@@ -108,6 +110,7 @@ export const KanbanColumn: React.FC<KanbanColumnProps> = ({
               key={topic.id}
               topic={topic}
               onOpenDetail={onOpenDetail}
+              onOpenCurrentAction={onOpenCurrentAction}
               onDeleteTopic={onDeleteTopic}
               onTogglePin={onTogglePin}
               onUpdateStatus={onUpdateStatus}

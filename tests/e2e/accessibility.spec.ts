@@ -22,7 +22,6 @@ const accessibilityTopic = {
   why_now: '详情页无障碍检查用传播时机',
   status: 'production',
   priority: 'medium',
-  next_action: '检查详情页无障碍结构',
   score_character: 2,
   score_conflict: 2,
   score_contrast: 2,
@@ -88,6 +87,9 @@ test('选题详情页直接打开时通过 axe 无障碍检查', async ({ page }
         },
       }),
     });
+  });
+  await page.route('**/api/todos', async (route) => {
+    await route.fulfill({ contentType: 'application/json', body: '[]' });
   });
   await page.goto(`/topics/${accessibilityTopic.id}`);
   await expect(page.locator('main h1')).toHaveText(accessibilityTopic.title);

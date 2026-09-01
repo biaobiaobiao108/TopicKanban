@@ -9,7 +9,7 @@ const topic = {
   why_now: '测试用的传播时机',
   status: 'production',
   priority: 'medium',
-  next_action: '检查详情页浮层',
+  current_todo: { id: 'e2e-floating-todo', topic_id: 'e2e-floating-topic', title: '检查详情页浮层', notes: '', due_date: null, is_current: 1, current_started_at: '2026-08-25T00:00:00.000Z', completed_at: null, sort_order: 1, created_at: '2026-08-25T00:00:00.000Z', updated_at: '2026-08-25T00:00:00.000Z' },
   score_character: 2,
   score_conflict: 2,
   score_contrast: 2,
@@ -64,6 +64,12 @@ async function mockWorkspace(page: Page) {
   });
   await page.route('**/api/topics/trash', async (route) => {
     await route.fulfill({ contentType: 'application/json', body: '[]' });
+  });
+  await page.route('**/api/todos', async (route) => {
+    await route.fulfill({ contentType: 'application/json', body: JSON.stringify([currentTopic.current_todo]) });
+  });
+  await page.route(`**/api/topics/${topic.id}/todos`, async (route) => {
+    await route.fulfill({ contentType: 'application/json', body: JSON.stringify([currentTopic.current_todo]) });
   });
   await page.route('**/api/people', async (route) => {
     await route.fulfill({ contentType: 'application/json', body: '[]' });
@@ -151,7 +157,8 @@ test('详情页顶栏浮层跨全部标签页保持可见且可关闭', async ({
   await login(page);
 
   const tabs = [
-    ['overview', '概览与评分'],
+    ['overview', '选题概览'],
+    ['todos', '执行清单'],
     ['sources', '资料与素材'],
     ['timeline', '故事时间线'],
     ['people', '人物与关系'],
@@ -163,6 +170,14 @@ test('详情页顶栏浮层跨全部标签页保持可见且可关闭', async ({
     await page.goto(`/topics/${topic.id}${tab === 'overview' ? '' : `?tab=${tab}`}`);
     await expect(page.getByRole('heading', { name: topic.title, exact: true })).toBeVisible();
     await expect(page.locator('button[aria-current="page"]')).toHaveText(new RegExp(label));
+    if (tab === 'overview') {
+      await expect(page.getByText('选题健康度')).toHaveCount(0);
+      await expect(page.getByText('五维诊断')).toHaveCount(0);
+    }
+    if (tab === 'todos') {
+      await expect(page.getByRole('heading', { name: '执行清单', exact: true })).toBeVisible();
+      await expect(page.getByText('检查详情页浮层', { exact: true })).toHaveCount(2);
+    }
 
     const statusTrigger = page.getByTitle('修改选题生产阶段');
     await statusTrigger.click();

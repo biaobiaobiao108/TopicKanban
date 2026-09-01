@@ -13,6 +13,7 @@ import { registerSharingRoutes } from './routes/sharing';
 import { registerSystemRoutes } from './routes/system';
 import { registerTagRoutes } from './routes/tags';
 import { registerTopicRoutes } from './routes/topics';
+import { registerTodoRoutes } from './routes/todos';
 import { registerWorkspaceRoutes } from './routes/workspace';
 import { registerWritingRoutes } from './routes/writing';
 
@@ -48,6 +49,7 @@ export function createApp(bindings: ApiBindings): NativeApp {
 
   registerSystemRoutes(app);
   registerTopicRoutes(app);
+  registerTodoRoutes(app);
   registerDealRoutes(app);
   registerWorkspaceRoutes(app);
   registerPeopleRoutes(app);

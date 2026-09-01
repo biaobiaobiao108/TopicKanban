@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'bun:test';
-import type { BackupData, Topic } from '../src/types';
+import type { BackupData, Topic, TopicTodo } from '../src/types';
 import { validateBackupData } from '../src/lib/backupValidation';
 
 function createBackup(overrides: Partial<BackupData> = {}): BackupData {
@@ -30,7 +30,6 @@ function createTopic(id: string): Topic {
     why_now: '',
     status: 'inbox',
     priority: 'medium',
-    next_action: '',
     score_character: 0,
     score_conflict: 0,
     score_contrast: 0,
@@ -43,9 +42,48 @@ function createTopic(id: string): Topic {
   };
 }
 
+function createTodo(id: string, topicId: string, overrides: Partial<TopicTodo> = {}): TopicTodo {
+  return {
+    id,
+    topic_id: topicId,
+    title: `待办 ${id}`,
+    notes: '',
+    due_date: '2026-01-05',
+    is_current: 0,
+    current_started_at: null,
+    completed_at: null,
+    sort_order: 1,
+    created_at: '2026-01-01T00:00:00.000Z',
+    updated_at: '2026-01-01T00:00:00.000Z',
+    ...overrides,
+  };
+}
+
 describe('backup schema validation', () => {
   it('accepts a valid version 2 backup', () => {
     expect(validateBackupData(createBackup())).toMatchObject({ success: true });
+  });
+
+  it('validates Todo references, dates, and the single current action constraint', () => {
+    const topic = createTopic('topic-todo');
+    const current = createTodo('todo-current', topic.id, {
+      is_current: 1,
+      current_started_at: '2026-01-02T00:00:00.000Z',
+    });
+    expect(validateBackupData(createBackup({ topics: [topic], todos: [current] })).success).toBe(true);
+
+    const duplicateCurrent = validateBackupData(createBackup({
+      topics: [topic],
+      todos: [current, createTodo('todo-duplicate', topic.id, { is_current: 1 })],
+    }));
+    expect(duplicateCurrent.success).toBe(false);
+    if (!duplicateCurrent.success) expect(duplicateCurrent.error).toContain('一个选题只能有一个当前 Todo');
+
+    const invalidDate = validateBackupData(createBackup({
+      topics: [topic],
+      todos: [createTodo('todo-invalid-date', topic.id, { due_date: '2026-02-31' })],
+    }));
+    expect(invalidDate.success).toBe(false);
   });
 
   it('rejects malformed entity fields before import', () => {

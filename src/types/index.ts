@@ -32,6 +32,20 @@ export type PlatformType =
   | 'live'
   | 'other';
 
+export interface TopicTodo {
+  id: string;
+  topic_id: string;
+  title: string;
+  notes: string;
+  due_date?: string | null;
+  is_current: number; // 0 or 1
+  current_started_at?: string | null;
+  completed_at?: string | null;
+  sort_order: number;
+  created_at: string;
+  updated_at: string;
+}
+
 export interface Topic {
   id: string;
   title: string;
@@ -41,9 +55,7 @@ export interface Topic {
   why_now: string;
   status: TopicStatus;
   priority: Priority;
-  next_action: string;
-  next_action_updated_at?: string | null;
-  next_action_deferred_until?: string | null;
+  current_todo?: TopicTodo | null;
   target_publish_date?: string | null;
   deadline?: string | null;
   score_character: number;
@@ -522,7 +534,13 @@ export interface BackupData {
   commercial_deals?: CommercialDeal[];
   commercial_deal_topics?: CommercialDealTopic[];
   commercial_deal_activities?: CommercialDealActivity[];
+  todos?: TopicTodo[];
   settings: AppSettings;
+}
+
+export interface TopicTodoMutationResult {
+  topic: Topic;
+  todos: TopicTodo[];
 }
 
 export interface ShareSnapshot {

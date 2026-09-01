@@ -2,32 +2,42 @@ import type { Topic } from '../types';
 
 const DAY_MS = 24 * 60 * 60 * 1000;
 
-export function getNextActionAgeDays(topic: Topic, now = new Date()): number {
-  const timestamp = topic.next_action_updated_at || topic.updated_at;
+export function getCurrentActionAgeDays(topic: Topic, now = new Date()): number {
+  const timestamp = topic.current_todo?.current_started_at || topic.updated_at;
   const value = new Date(timestamp).getTime();
   if (!Number.isFinite(value)) return 0;
   return Math.max(0, Math.floor((now.getTime() - value) / DAY_MS));
 }
 
-export function isNextActionDeferred(topic: Topic, now = new Date()): boolean {
-  if (!topic.next_action_deferred_until) return false;
-  const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(topic.next_action_deferred_until);
+export function isCurrentActionDue(topic: Topic, now = new Date()): boolean {
+  const dueDate = topic.current_todo?.due_date;
+  if (!dueDate) return false;
+  const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(dueDate);
   if (!match) return false;
   const [, y, m, d] = match;
   // 显式以北京时间 (UTC+8) 当天的 23:59:59.999 作为截止时间点
   const endOfDeferredDay = new Date(`${y}-${m}-${d}T23:59:59.999+08:00`);
-  return Number.isFinite(endOfDeferredDay.getTime()) && endOfDeferredDay.getTime() >= now.getTime();
+  return Number.isFinite(endOfDeferredDay.getTime()) && endOfDeferredDay.getTime() < now.getTime();
 }
 
 export function isActiveTopic(topic: Topic): boolean {
   return topic.status !== 'published' && topic.status !== 'icebox';
 }
 
-export function getNextActionWarning(topic: Topic, now = new Date(), staleThresholdDays = 5): string | null {
+export function getCurrentActionWarning(topic: Topic, now = new Date(), staleThresholdDays = 5): string | null {
   if (!isActiveTopic(topic)) return null;
-  if (!topic.next_action.trim()) return '缺少下一步行动';
-  if (isNextActionDeferred(topic, now)) return `已延期至 ${topic.next_action_deferred_until}`;
-  const days = getNextActionAgeDays(topic, now);
+  if (!topic.current_todo) return '未设置当前行动';
+  if (isCurrentActionDue(topic, now)) {
+    const match = topic.current_todo.due_date?.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+    if (match) {
+      const endOfDueDay = new Date(`${match[1]}-${match[2]}-${match[3]}T23:59:59.999+08:00`);
+      if (Number.isFinite(endOfDueDay.getTime()) && endOfDueDay.getTime() < now.getTime()) {
+        const days = Math.max(1, Math.floor((now.getTime() - endOfDueDay.getTime()) / DAY_MS));
+        return `已逾期 ${days} 天`;
+      }
+    }
+  }
+  const days = getCurrentActionAgeDays(topic, now);
   return days >= staleThresholdDays ? `行动已停滞 ${days} 天` : null;
 }
 

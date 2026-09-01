@@ -83,11 +83,13 @@ describe('Bun Server Integration (Local SQLite & API)', () => {
         summary: '梳理核心争议事件与反转脉络',
         status: 'approved',
         priority: 'high',
+        initial_todo: { title: '核对核心争议原片', notes: '记录关键时间点', due_date: '2026-09-03' },
       }),
     });
     expect(createRes.status).toBe(201);
-    const topic = await createRes.json() as { id: string; title: string };
+    const topic = await createRes.json() as { id: string; title: string; current_todo?: { title: string; due_date: string } };
     expect(topic.title).toBe('测试爆款人物解说');
+    expect(topic.current_todo).toMatchObject({ title: '核对核心争议原片', due_date: '2026-09-03' });
 
     // 4. Save Draft
     const draftRes = await app.request(`/api/topics/${topic.id}/draft`, {
@@ -390,12 +392,15 @@ describe('Bun Server Integration (Local SQLite & API)', () => {
     const backupPayload = await backupRes.json() as { data: { settings: Record<string, unknown> } };
     const fullBackupPayload = await (await app.request('/api/backup', {
       headers: { Authorization: `Bearer ${authToken}` },
-    })).json() as { data: { publish_packages?: Array<{ topic_id: string; title_simplified: string; title_traditional_auto: boolean }> } };
+    })).json() as { data: { publish_packages?: Array<{ topic_id: string; title_simplified: string; title_traditional_auto: boolean }>; todos?: Array<{ topic_id: string; title: string }> } };
     expect(fullBackupPayload.data.publish_packages?.[0]).toMatchObject({
       topic_id: topic.id,
       title_simplified: '简体发布标题',
       title_traditional_auto: true,
     });
+    expect(fullBackupPayload.data.todos).toEqual(expect.arrayContaining([
+      expect.objectContaining({ topic_id: topic.id, title: '核对核心争议原片' }),
+    ]));
     const restoreRes = await app.request('/api/backup', {
       method: 'PUT',
       headers: { Authorization: `Bearer ${authToken}`, 'Content-Type': 'application/json' },

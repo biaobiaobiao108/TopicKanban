@@ -126,7 +126,7 @@ export const PublishedView: React.FC<PublishedViewProps> = ({
     return selectableTopics.filter((t) => {
       const titleMatch = t.title.toLowerCase().includes(q);
       const summaryMatch = (t.summary || '').toLowerCase().includes(q);
-      const nextActionMatch = (t.next_action || '').toLowerCase().includes(q);
+      const nextActionMatch = (t.current_todo?.title || '').toLowerCase().includes(q);
       const tagMatch = t.tags?.some((tag) => tag.name.toLowerCase().includes(q));
       return titleMatch || summaryMatch || nextActionMatch || tagMatch;
     });
@@ -563,7 +563,7 @@ export const PublishedView: React.FC<PublishedViewProps> = ({
                       <div className="flex items-center justify-between gap-2 w-full min-w-0">
                         <div className="min-w-0 pr-2 space-y-0.5">
                           <div className="text-xs sm:text-sm font-semibold truncate leading-tight">{topic.title}</div>
-                          {(topic.summary || topic.next_action) && <div className="text-[11px] text-stone-400 dark:text-stone-500 truncate">{topic.next_action ? `下一步: ${topic.next_action}` : topic.summary}</div>}
+                          {(topic.summary || topic.current_todo) && <div className="text-[11px] text-stone-400 dark:text-stone-500 truncate">{topic.current_todo ? `当前行动: ${topic.current_todo.title}` : topic.summary}</div>}
                         </div>
                         <div className="flex items-center gap-1.5 shrink-0"><StatusBadge status={topic.status} size="sm" />{state.selected && <span className="text-rose-600 dark:text-rose-400">✓</span>}</div>
                       </div>

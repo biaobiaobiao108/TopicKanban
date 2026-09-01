@@ -40,9 +40,6 @@ const topicSchema = z.object({
   why_now: mediumText,
   status: z.enum(['inbox', 'approved', 'scripting', 'production', 'published', 'icebox']),
   priority: z.enum(['high', 'medium', 'low', 'none']),
-  next_action: mediumText,
-  next_action_updated_at: optionalTimestamp,
-  next_action_deferred_until: optionalTimestamp,
   target_publish_date: optionalDateOnly,
   deadline: optionalDateOnly,
   score_character: z.number().int().min(0).max(2),
@@ -58,6 +55,20 @@ const topicSchema = z.object({
   deleted_at: optionalTimestamp,
   tags: z.array(tagSchema).optional(),
   people: z.array(personSchema).optional(),
+}).passthrough();
+
+const todoSchema = z.object({
+  id,
+  topic_id: id,
+  title: shortText.trim().min(1, 'Todo 标题不能为空'),
+  notes: longText,
+  due_date: optionalDateOnly,
+  is_current: z.union([z.literal(0), z.literal(1)]),
+  current_started_at: optionalTimestamp,
+  completed_at: optionalTimestamp,
+  sort_order: z.number().int().nonnegative(),
+  created_at: timestamp,
+  updated_at: timestamp,
 }).passthrough();
 
 const sourceSchema = z.object({
@@ -262,6 +273,7 @@ const backupSchema = z.object({
   commercial_deals: z.array(commercialDealSchema).optional(),
   commercial_deal_topics: z.array(commercialDealTopicSchema).optional(),
   commercial_deal_activities: z.array(commercialDealActivitySchema).optional(),
+  todos: z.array(todoSchema).optional(),
   settings: settingsSchema,
 }).superRefine((data, ctx) => {
   const addIssue = (path: Array<string | number>, message: string) => ctx.addIssue({ code: 'custom', path, message });
@@ -281,6 +293,7 @@ const backupSchema = z.object({
     ['commercial_deals', data.commercial_deals || []],
     ['commercial_deal_topics', data.commercial_deal_topics || []],
     ['commercial_deal_activities', data.commercial_deal_activities || []],
+    ['todos', data.todos || []],
   ];
   collections.forEach(([key, items]) => requireUniqueIds(items, key));
 
@@ -300,6 +313,17 @@ const backupSchema = z.object({
   });
   data.drafts.forEach((item, index) => requireTopic(item.topic_id, ['drafts', index, 'topic_id']));
   data.citations.forEach((item, index) => requireTopic(item.topic_id, ['citations', index, 'topic_id']));
+  const currentTodoTopics = new Set<string>();
+  (data.todos || []).forEach((item, index) => {
+    requireTopic(item.topic_id, ['todos', index, 'topic_id']);
+    if (item.is_current === 1 && item.completed_at) {
+      addIssue(['todos', index, 'is_current'], '已完成 Todo 不能设为当前行动');
+    }
+    if (item.is_current === 1 && currentTodoTopics.has(item.topic_id)) {
+      addIssue(['todos', index, 'is_current'], `一个选题只能有一个当前 Todo：${item.topic_id}`);
+    }
+    if (item.is_current === 1) currentTodoTopics.add(item.topic_id);
+  });
   data.published.forEach((item, index) => {
     if (item.topic_id) requireTopic(item.topic_id, ['published', index, 'topic_id']);
   });

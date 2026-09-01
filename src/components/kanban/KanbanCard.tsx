@@ -11,13 +11,14 @@ import {
   Calendar,
   Clock,
 } from 'lucide-react';
-import { getNextActionAgeDays, getNextActionWarning } from '../../lib/topicMetrics';
+import { getCurrentActionAgeDays, getCurrentActionWarning } from '../../lib/topicMetrics';
 import { ActionDateText } from '../ui/ActionDate';
 import { useActionDateDisplay, type ActionDateDisplay } from '../../lib/actionDate';
 
 interface KanbanCardProps {
   topic: Topic;
   onOpenDetail: (topicId: string) => void;
+  onOpenCurrentAction?: (topicId: string) => void;
   onDeleteTopic: (topicId: string) => void;
   onTogglePin: (topicId: string) => void;
   onUpdateStatus?: (topicId: string, status: TopicStatus) => void;
@@ -92,6 +93,7 @@ const TopicScheduleBadges: React.FC<{
 const KanbanCardComponent: React.FC<KanbanCardProps> = ({
   topic,
   onOpenDetail,
+  onOpenCurrentAction,
   onDeleteTopic,
   onTogglePin,
   onUpdateStatus,
@@ -127,7 +129,7 @@ const KanbanCardComponent: React.FC<KanbanCardProps> = ({
     zIndex: isDragging ? 50 : 1,
   };
 
-  const actionWarning = getNextActionWarning(topic, new Date(), staleThresholdDays);
+  const actionWarning = getCurrentActionWarning(topic, new Date(), staleThresholdDays);
   const activeTopicDates = topic.status !== 'published' && topic.status !== 'icebox';
   const scheduleDate = useActionDateDisplay(topic.target_publish_date, activeTopicDates);
   const deadlineDate = useActionDateDisplay(topic.deadline, activeTopicDates);
@@ -193,20 +195,20 @@ const KanbanCardComponent: React.FC<KanbanCardProps> = ({
           {topic.title}
         </h3>
 
-        {/* Next Action Highlight Bar */}
-        {topic.next_action ? (
+        {/* Current Action Highlight Bar */}
+        {topic.current_todo ? (
           <div className="bg-rose-500/[0.08] dark:bg-rose-500/[0.14] rounded-xl p-2.5 flex items-start gap-2 text-xs text-rose-950 dark:text-rose-200">
             <div className="w-1.5 h-1.5 rounded-full bg-rose-500 dark:bg-rose-400 mt-1.5 shrink-0" />
             <div className="flex-1 min-w-0">
-              <span className="font-semibold text-rose-700 dark:text-rose-400 mr-1">下一步:</span>
-              <span className="font-medium">{topic.next_action}</span>
+              <span className="font-semibold text-rose-700 dark:text-rose-400 mr-1">当前行动:</span>
+              <span className="font-medium">{topic.current_todo.title}</span>
             </div>
           </div>
         ) : null}
 
         <div className="flex items-center justify-between gap-2 text-[11px]">
           <span className={actionWarning ? 'font-semibold text-amber-700 dark:text-amber-400' : 'text-stone-600 dark:text-stone-400'}>
-            {actionWarning || `行动持续 ${getNextActionAgeDays(topic)} 天`}
+            {actionWarning || `行动持续 ${getCurrentActionAgeDays(topic)} 天`}
           </span>
           <div data-testid="topic-card-meta" className="flex items-center gap-1.5 text-stone-500 dark:text-stone-400">
             {(topic.sources_count || 0) > 0 && (
@@ -379,24 +381,24 @@ const KanbanCardComponent: React.FC<KanbanCardProps> = ({
         {topic.title}
       </h3>
 
-      {/* Next Action Highlight Bar */}
-      {topic.next_action ? (
-        <div className="bg-rose-500/[0.06] dark:bg-rose-500/[0.12] rounded-xl p-2.5 flex items-start gap-2 text-xs text-rose-950 dark:text-rose-200 transition-colors">
-          <div className="w-1.5 h-1.5 rounded-full bg-rose-500 dark:bg-rose-400 mt-1.5 shrink-0 animate-pulse" />
-          <div className="flex-1 min-w-0">
-            <span className="font-semibold text-rose-700 dark:text-rose-400 mr-1">下一步:</span>
-            <span className="font-medium">{topic.next_action}</span>
-          </div>
-        </div>
-      ) : (
-        <div className="rounded-xl p-2 text-[11px] text-stone-600 dark:text-stone-400 text-center bg-stone-500/[0.03] dark:bg-stone-800/30">
-          未设置下一步行动
-        </div>
+      {/* Current Action Highlight Bar */}
+        {topic.current_todo ? (
+          <button type="button" onClick={(event) => { event.stopPropagation(); onOpenCurrentAction?.(topic.id); }} className="w-full text-left bg-rose-500/[0.06] dark:bg-rose-500/[0.12] rounded-xl p-2.5 flex items-start gap-2 text-xs text-rose-950 dark:text-rose-200 transition-colors cursor-pointer hover:bg-rose-500/[0.12]">
+            <div className="w-1.5 h-1.5 rounded-full bg-rose-500 dark:bg-rose-400 mt-1.5 shrink-0 animate-pulse" />
+            <div className="flex-1 min-w-0">
+              <span className="font-semibold text-rose-700 dark:text-rose-400 mr-1">当前行动:</span>
+              <span className="font-medium">{topic.current_todo.title}</span>
+            </div>
+          </button>
+        ) : (
+        <button type="button" onClick={(event) => { event.stopPropagation(); onOpenCurrentAction?.(topic.id); }} className="w-full rounded-xl p-2 text-[11px] text-stone-600 dark:text-stone-400 text-center bg-stone-500/[0.03] dark:bg-stone-800/30 cursor-pointer hover:bg-stone-500/[0.08]">
+          未设置当前行动
+        </button>
       )}
 
       <div className="flex items-center justify-between gap-2 text-[11px]">
         <span className={actionWarning ? 'font-semibold text-amber-700 dark:text-amber-400' : 'text-stone-600 dark:text-stone-400'}>
-          {actionWarning || `行动持续 ${getNextActionAgeDays(topic)} 天`}
+          {actionWarning || `行动持续 ${getCurrentActionAgeDays(topic)} 天`}
         </span>
         <div data-testid="topic-card-meta" className="flex items-center gap-1.5 text-stone-500 dark:text-stone-400">
           {(topic.sources_count || 0) > 0 && (

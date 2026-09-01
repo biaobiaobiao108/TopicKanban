@@ -1,11 +1,11 @@
-import { CommercialDeal, Priority, PublishedVideo, Topic, TopicStatus, CommercialDealStatus } from '../../types';
+import { CommercialDeal, Priority, PublishedVideo, Topic, TopicStatus, CommercialDealStatus, TopicTodo } from '../../types';
 
 export type CalendarEventType =
   | 'planned_publish'
   | 'deadline'
   | 'commercial_deal'
   | 'published'
-  | 'deferred_action';
+  | 'todo_due';
 
 export interface CalendarEventItem {
   id: string;
@@ -24,6 +24,7 @@ export interface CalendarEventItem {
   rawTopic?: Topic;
   rawDeal?: CommercialDeal;
   rawPublished?: PublishedVideo;
+  rawTodo?: TopicTodo;
 }
 
 export interface CalendarLayerFilters {
@@ -31,7 +32,7 @@ export interface CalendarLayerFilters {
   showDeadlines: boolean;
   showDeals: boolean;
   showPublished: boolean;
-  showDeferred: boolean;
+  showTodoDue: boolean;
 }
 
 export const DEFAULT_CALENDAR_LAYERS: CalendarLayerFilters = {
@@ -39,7 +40,7 @@ export const DEFAULT_CALENDAR_LAYERS: CalendarLayerFilters = {
   showDeadlines: true,
   showDeals: true,
   showPublished: true,
-  showDeferred: true,
+  showTodoDue: true,
 };
 
 export type CalendarViewMode = 'month' | 'week' | 'agenda';
@@ -49,4 +50,5 @@ export interface MonthStats {
   commercialDealCount: number;
   publishedVideoCount: number;
   unscheduledActiveCount: number;
+  todoDueCount: number;
 }

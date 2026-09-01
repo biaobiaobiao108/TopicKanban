@@ -23,7 +23,7 @@ import { KanbanFilters, SortField } from './KanbanFilters';
 import { ACTIVE_COLUMNS } from './columns';
 import { AlertTriangle, KanbanSquare } from 'lucide-react';
 import { PageHeader } from '../layout/PageHeader';
-import { getNextActionAgeDays, isActiveTopic, isNextActionDeferred } from '../../lib/topicMetrics';
+import { getCurrentActionAgeDays, isActiveTopic, isCurrentActionDue } from '../../lib/topicMetrics';
 import { fetchTopicPage } from '../../lib/storage';
 
 const activeStatuses: TopicStatus[] = ['inbox', 'approved', 'scripting', 'production'];
@@ -115,6 +115,7 @@ interface KanbanBoardProps {
   availablePeople: Person[];
   searchTerm: string;
   staleActionDays?: number;
+  onOpenCurrentAction?: (topicId: string) => void;
 }
 
 // Smooth drop animation configuration matching testkanban
@@ -142,6 +143,7 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
   availablePeople,
   searchTerm,
   staleActionDays = 5,
+  onOpenCurrentAction,
 }) => {
   const queryClient = useQueryClient();
   const isMobileViewport = useSyncExternalStore(subscribeToMobileViewport, getIsMobileViewport, () => false);
@@ -287,7 +289,7 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
           const matchTitle = topic.title.toLowerCase().includes(q);
           const matchSummary = topic.summary?.toLowerCase().includes(q);
           const matchHook = topic.hook?.toLowerCase().includes(q);
-          const matchAction = topic.next_action?.toLowerCase().includes(q);
+          const matchAction = topic.current_todo?.title.toLowerCase().includes(q) || topic.current_todo?.notes.toLowerCase().includes(q);
           const matchPerson = topic.people?.some((p) => p.name.toLowerCase().includes(q));
           const matchTag = topic.tags?.some((t) => t.name.toLowerCase().includes(q));
           if (!matchTitle && !matchSummary && !matchHook && !matchAction && !matchPerson && !matchTag) return false;
@@ -552,8 +554,8 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
   const approvedCount = (columns.approved || []).length;
   const scriptingCount = (columns.scripting || []).length;
   const stagnantTopics = boardTopics
-    .filter((topic) => isActiveTopic(topic) && !isNextActionDeferred(topic) && getNextActionAgeDays(topic) >= staleActionDays)
-    .sort((a, b) => getNextActionAgeDays(b) - getNextActionAgeDays(a));
+    .filter((topic) => isActiveTopic(topic) && !isCurrentActionDue(topic) && getCurrentActionAgeDays(topic) >= staleActionDays)
+    .sort((a, b) => getCurrentActionAgeDays(b) - getCurrentActionAgeDays(a));
   const wipWarnings = [
     approvedCount > 5 ? `已立项 ${approvedCount} 个，超过建议上限 5 个` : null,
     scriptingCount > 2 ? `写稿中 ${scriptingCount} 个，超过建议上限 2 个` : null,
@@ -674,7 +676,7 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
                         onClick={() => onOpenDetail(topic.id)}
                         className="rounded-md border border-amber-200 dark:border-amber-900/60 bg-white dark:bg-stone-800 px-2 py-1 text-[11px] font-semibold text-stone-700 dark:text-stone-200 hover:border-amber-400 dark:hover:border-amber-600 hover:text-amber-900 dark:hover:text-amber-200 cursor-pointer"
                       >
-                        {topic.title} · {getNextActionAgeDays(topic)} 天
+                        {topic.title} · {getCurrentActionAgeDays(topic)} 天
                       </button>
                     ))}
                   </div>
@@ -745,6 +747,7 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
                   description={col.description}
                   topics={colTopics}
                   onOpenDetail={onOpenDetail}
+                  onOpenCurrentAction={onOpenCurrentAction}
                   totalCount={columnTotalCounts[col.status] || 0}
                   hasMore={(columnTotalCounts[col.status] || 0) > (loadedTopicsByStatus[col.status]?.length || colTopics.length)}
                   isLoadingMore={columnQueries[activeStatuses.indexOf(col.status)]?.isFetching && columnPages[col.status] > 1}
@@ -775,6 +778,7 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
                   description={col.description}
                   topics={colTopics}
                   onOpenDetail={onOpenDetail}
+                  onOpenCurrentAction={onOpenCurrentAction}
                   totalCount={columnTotalCounts[col.status] || 0}
                   hasMore={(columnTotalCounts[col.status] || 0) > (loadedTopicsByStatus[col.status]?.length || colTopics.length)}
                   isLoadingMore={columnQueries[activeStatuses.indexOf(col.status)]?.isFetching && columnPages[col.status] > 1}

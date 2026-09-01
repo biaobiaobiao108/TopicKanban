@@ -14,9 +14,10 @@ import {
   WalletCards,
   Calendar,
 } from 'lucide-react';
-import { NextActionDialog } from '../topic-detail/NextActionDialog';
+import { TodoQuickActionDialog } from '../topic-detail/TodoQuickActionDialog';
+import type { TopicTodoActions } from '../topic-detail/todoTypes';
 import { PageHeader } from '../layout/PageHeader';
-import { getNextActionAgeDays, getNextActionWarning } from '../../lib/topicMetrics';
+import { getCurrentActionAgeDays, getCurrentActionWarning } from '../../lib/topicMetrics';
 import { useActionDateDisplay } from '../../lib/actionDate';
 import { ActionDateText } from '../ui/ActionDate';
 
@@ -68,11 +69,12 @@ interface TodayViewProps {
   topics: Topic[];
   dealFocus?: DealFocusData;
   staleActionDays?: number;
-  onOpenDetail: (topicId: string) => void;
+  onOpenDetail: (topicId: string, tab?: 'todos') => void;
   onOpenDeal?: (dealId: string) => void;
   onOpenQuickCreate: () => void;
   onTogglePin?: (topicId: string) => void;
   onUpdateTopic: (topicId: string, updates: Partial<Topic>) => Promise<void>;
+  todoActions: TopicTodoActions;
 }
 
 export const TodayView: React.FC<TodayViewProps> = ({
@@ -84,6 +86,7 @@ export const TodayView: React.FC<TodayViewProps> = ({
   onOpenQuickCreate,
   onTogglePin,
   onUpdateTopic,
+  todoActions,
 }) => {
   const [actionTopic, setActionTopic] = useState<Topic | null>(null);
   const [showAllActivity, setShowAllActivity] = useState(false);
@@ -175,7 +178,9 @@ export const TodayView: React.FC<TodayViewProps> = ({
                 </div>
 
                 <div className="text-[11px] text-stone-400 dark:text-stone-500">
-                  行动持续 <span className="font-mono tabular-nums">{getNextActionAgeDays(focusTopic)}</span> 天
+                  {focusTopic.current_todo
+                    ? <>行动持续 <span className="font-mono tabular-nums">{getCurrentActionAgeDays(focusTopic)}</span> 天</>
+                    : '未设置当前行动'}
                 </div>
               </div>
 
@@ -194,7 +199,7 @@ export const TodayView: React.FC<TodayViewProps> = ({
                 )}
               </div>
 
-              {/* Next Action Callout (Editorial Action Hero Tile) */}
+              {/* Current Action Callout (Editorial Action Hero Tile) */}
               <div className="bg-rose-500/[0.07] dark:bg-rose-500/[0.12] rounded-2xl p-5 sm:p-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 transition-colors">
                 <div className="space-y-1.5 flex-1 min-w-0">
                   <div className="text-xs font-bold uppercase tracking-wider text-rose-700 dark:text-rose-400 flex items-center gap-2">
@@ -203,10 +208,10 @@ export const TodayView: React.FC<TodayViewProps> = ({
                       <span className="relative inline-flex rounded-full h-2 w-2 bg-rose-600 dark:bg-rose-500"></span>
                     </span>
                     <Zap className="w-3.5 h-3.5 fill-rose-500/20" />
-                    <span>当前核心行动 (Next Action)</span>
+                    <span>当前核心行动</span>
                   </div>
                   <div className="text-base sm:text-lg font-bold text-stone-900 dark:text-stone-100 leading-snug">
-                    {focusTopic.next_action || '尚未设置具体下一步，点击立即规划！'}
+                    {focusTopic.current_todo?.title || '尚未设置当前行动，点击立即规划！'}
                   </div>
                 </div>
 
@@ -216,7 +221,7 @@ export const TodayView: React.FC<TodayViewProps> = ({
                     className="w-full sm:w-auto shrink-0 flex items-center justify-center gap-2 bg-rose-600 hover:bg-rose-700 text-white px-5 py-2.5 rounded-xl text-sm font-semibold transition-all shadow-2xs hover:shadow-xs active:scale-[0.98] cursor-pointer"
                   >
                     <CheckCircle2 className="w-4 h-4" />
-                    <span>{focusTopic.next_action ? '推进 / 完成行动' : '设置下一步'}</span>
+                    <span>{focusTopic.current_todo ? '推进 / 完成行动' : '设置当前行动'}</span>
                   </button>
                   <button
                     onClick={() => onOpenDetail(focusTopic.id)}
@@ -228,10 +233,10 @@ export const TodayView: React.FC<TodayViewProps> = ({
                 </div>
               </div>
 
-              {getNextActionWarning(focusTopic, new Date(), staleActionDays) && (
+              {getCurrentActionWarning(focusTopic, new Date(), staleActionDays) && (
                 <div className="-mt-3 text-xs font-semibold text-amber-700 dark:text-amber-400 flex items-center gap-1.5">
                   <span>⚠</span>
-                  <span>{getNextActionWarning(focusTopic, new Date(), staleActionDays)}</span>
+                  <span>{getCurrentActionWarning(focusTopic, new Date(), staleActionDays)}</span>
                 </div>
               )}
 
@@ -327,17 +332,17 @@ export const TodayView: React.FC<TodayViewProps> = ({
                   </h3>
 
                   <div className={`text-xs p-2.5 rounded-xl ${
-                    t.next_action
+                    t.current_todo
                       ? 'bg-stone-500/5 dark:bg-stone-800/50 text-stone-700 dark:text-stone-300'
                       : 'bg-amber-500/10 text-amber-800 dark:text-amber-300'
                   }`}>
-                    <strong className="text-rose-700 dark:text-rose-400">下一步：</strong>
-                    {t.next_action || '尚未设置'}
+                    <strong className="text-rose-700 dark:text-rose-400">当前行动：</strong>
+                    {t.current_todo?.title || '尚未设置当前行动'}
                   </div>
 
                   <div className="flex items-center justify-between gap-2 pt-1">
-                    <span className={`text-[11px] ${getNextActionWarning(t, new Date(), staleActionDays) ? 'font-semibold text-amber-700 dark:text-amber-400' : 'text-stone-400 dark:text-stone-500'}`}>
-                      {getNextActionWarning(t, new Date(), staleActionDays) || `行动持续 ${getNextActionAgeDays(t)} 天`}
+                    <span className={`text-[11px] ${getCurrentActionWarning(t, new Date(), staleActionDays) ? 'font-semibold text-amber-700 dark:text-amber-400' : 'text-stone-400 dark:text-stone-500'}`}>
+                      {getCurrentActionWarning(t, new Date(), staleActionDays) || `行动持续 ${getCurrentActionAgeDays(t)} 天`}
                     </span>
                     <button
                       type="button"
@@ -347,7 +352,7 @@ export const TodayView: React.FC<TodayViewProps> = ({
                       }}
                       className="min-h-8 rounded-lg bg-rose-600 px-3 text-[11px] font-bold text-white hover:bg-rose-700 transition-colors cursor-pointer shadow-2xs"
                     >
-                      {t.next_action ? '完成行动' : '设置行动'}
+                      {t.current_todo ? '完成行动' : '设置行动'}
                     </button>
                   </div>
                 </div>
@@ -384,9 +389,9 @@ export const TodayView: React.FC<TodayViewProps> = ({
                       </span>
                       <StatusBadge status={t.status} />
                     </div>
-                    {t.next_action && (
+                    {t.current_todo && (
                       <p className="text-xs text-stone-500 dark:text-stone-400 truncate mt-0.5">
-                        下一步: {t.next_action}
+                        当前行动: {t.current_todo.title}
                       </p>
                     )}
                   </div>
@@ -413,13 +418,16 @@ export const TodayView: React.FC<TodayViewProps> = ({
       </div>
 
       {actionTopic && (
-        <NextActionDialog
+        <TodoQuickActionDialog
           isOpen
           topic={topics.find((topic) => topic.id === actionTopic.id) || actionTopic}
+          todo={(topics.find((topic) => topic.id === actionTopic.id) || actionTopic).current_todo}
           onClose={() => setActionTopic(null)}
-          onUpdate={async (updates) => {
-            await onUpdateTopic(actionTopic.id, updates);
+          onOpenTodoList={() => {
+            setActionTopic(null);
+            onOpenDetail(actionTopic.id, 'todos');
           }}
+          actions={todoActions}
         />
       )}
     </div>

@@ -5,6 +5,7 @@ const topicQueryKeys = [
   ['today-focus'],
   ['deal-focus'],
   ['workspace'],
+  ['topic-todos-all'],
   ['kanban-column-page'],
   ['topics-page'],
   ['topics', 'trash'],
