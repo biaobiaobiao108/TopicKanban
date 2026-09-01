@@ -882,8 +882,8 @@ html.theme-warm-paper input[type="number"]:focus,
 html.theme-warm-paper input[type="search"]:focus,
 html.theme-warm-paper textarea:focus,
 html.theme-warm-paper select:focus {
-  border-color: #6b5fb5 !important;
-  box-shadow: 0 0 0 2px rgba(107, 95, 181, 0.18) !important;
+  border-color: var(--command-palette-focus) !important;
+  box-shadow: 0 0 0 2px color-mix(in oklab, var(--command-palette-focus) 22%, transparent) !important;
 }
 html.theme-warm-paper input[type="checkbox"]:checked {
   background-color: #4d8b61 !important;
@@ -1122,8 +1122,8 @@ html.theme-nordic-frost input[type="number"]:focus,
 html.theme-nordic-frost input[type="search"]:focus,
 html.theme-nordic-frost textarea:focus,
 html.theme-nordic-frost select:focus {
-  border-color: #2d7a64 !important;
-  box-shadow: 0 0 0 2px rgba(45, 122, 100, 0.18) !important;
+  border-color: var(--command-palette-focus) !important;
+  box-shadow: 0 0 0 2px color-mix(in oklab, var(--command-palette-focus) 22%, transparent) !important;
 }
 html.theme-nordic-frost input[type="checkbox"]:checked {
   background-color: #2d7a64 !important;
@@ -1362,8 +1362,8 @@ html.theme-parisian-dawn input[type="number"]:focus,
 html.theme-parisian-dawn input[type="search"]:focus,
 html.theme-parisian-dawn textarea:focus,
 html.theme-parisian-dawn select:focus {
-  border-color: #c84b5b !important;
-  box-shadow: 0 0 0 2px rgba(200, 75, 91, 0.18) !important;
+  border-color: var(--command-palette-focus) !important;
+  box-shadow: 0 0 0 2px color-mix(in oklab, var(--command-palette-focus) 22%, transparent) !important;
 }
 html.theme-parisian-dawn input[type="checkbox"]:checked {
   background-color: #c84b5b !important;
@@ -1603,8 +1603,8 @@ html.theme-midnight-obsidian input[type="number"]:focus,
 html.theme-midnight-obsidian input[type="search"]:focus,
 html.theme-midnight-obsidian textarea:focus,
 html.theme-midnight-obsidian select:focus {
-  border-color: #0ea5e9 !important;
-  box-shadow: 0 0 0 2px rgba(14, 165, 233, 0.25) !important;
+  border-color: var(--command-palette-focus) !important;
+  box-shadow: 0 0 0 2px color-mix(in oklab, var(--command-palette-focus) 22%, transparent) !important;
 }
 html.theme-midnight-obsidian input[type="checkbox"]:checked {
   background-color: #0ea5e9 !important;
@@ -1843,8 +1843,8 @@ html.theme-kyoto-zen input[type="number"]:focus,
 html.theme-kyoto-zen input[type="search"]:focus,
 html.theme-kyoto-zen textarea:focus,
 html.theme-kyoto-zen select:focus {
-  border-color: #3d6b4f !important;
-  box-shadow: 0 0 0 2px rgba(61, 107, 79, 0.18) !important;
+  border-color: var(--command-palette-focus) !important;
+  box-shadow: 0 0 0 2px color-mix(in oklab, var(--command-palette-focus) 22%, transparent) !important;
 }
 html.theme-kyoto-zen input[type="checkbox"]:checked {
   background-color: #3d6b4f !important;
@@ -2018,6 +2018,14 @@ html.dark input.todo-inline-editor-input:focus {
   .todo-row-editing {
     border-color: Highlight !important;
   }
+}
+
+/* All text-like controls use the active theme accent for their focus border. */
+input:not([type="checkbox"]):not([type="radio"]):focus,
+textarea:focus,
+select:focus {
+  border-color: var(--command-palette-focus) !important;
+  box-shadow: 0 0 0 2px color-mix(in oklab, var(--command-palette-focus) 22%, transparent) !important;
 }
 
 /* ==========================================================================

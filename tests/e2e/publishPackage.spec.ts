@@ -47,7 +47,7 @@ const workspace = {
   },
 };
 
-async function mockWorkspace(page: Page, draft = workspace.draft) {
+async function mockWorkspace(page: Page, draft = workspace.draft, theme = 'light') {
   let savedPackage: Record<string, unknown> | null = null;
   await page.route('**/api/bootstrap**', async (route) => {
     await route.fulfill({
@@ -60,7 +60,7 @@ async function mockWorkspace(page: Page, draft = workspace.draft) {
         tags: topic.tags,
         settings: {
           reading_speed: 280,
-          theme: 'light',
+          theme,
           stale_action_days: 5,
           default_share_ttl_days: 3,
         },
@@ -168,6 +168,27 @@ test('发布包可编辑、复制并导出 Markdown', async ({ page }) => {
   expect(download.suggestedFilename()).toContain('双平台发布包-');
   expect(download.suggestedFilename()).toMatch(/\.md$/);
   await expect(page.locator('body')).toContainText('双平台发布包');
+});
+
+test('发布包文本控件的焦点边框跟随当前主题', async ({ page }) => {
+  await mockWorkspace(page, workspace.draft, 'warm_paper');
+  await login(page);
+  await page.goto(`/topics/${topic.id}?tab=publish`);
+
+  await expect(page.getByRole('heading', { name: '双平台发布包' })).toBeVisible();
+  const expectedFocusColor = await page.evaluate(() => {
+    const probe = document.createElement('span');
+    probe.style.color = getComputedStyle(document.documentElement).getPropertyValue('--command-palette-focus');
+    document.body.append(probe);
+    const color = getComputedStyle(probe).color;
+    probe.remove();
+    return color;
+  });
+
+  for (const control of [page.getByLabel('简体标题'), page.getByLabel('简体简介')]) {
+    await control.click();
+    await expect.poll(() => control.evaluate((element) => getComputedStyle(element).borderTopColor)).toBe(expectedFocusColor);
+  }
 });
 
 test('没有草稿时阻止复制和导出发布包', async ({ page }) => {
