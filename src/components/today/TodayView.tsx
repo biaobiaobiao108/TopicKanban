@@ -140,7 +140,7 @@ export const TodayView: React.FC<TodayViewProps> = ({
         <PageHeader
           title="今日生产聚焦"
           icon={Calendar}
-          badge={<span className="rounded-full bg-rose-500/10 px-2.5 py-1 text-xs font-semibold text-rose-700 dark:bg-rose-950/40 dark:text-rose-300">专注当下</span>}
+          badge={<span className="rounded-full bg-rose-500/10 px-2.5 py-1 text-xs font-semibold text-rose-800 dark:bg-rose-950/40 dark:text-rose-300">专注当下</span>}
           actions={(
             <button
               type="button"

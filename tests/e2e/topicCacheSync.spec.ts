@@ -19,6 +19,7 @@ async function login(page: Page) {
     await todayFocusResponse;
   }
   await expect(page).toHaveURL(/\/today$/);
+  await expect(page.locator('main h1')).toBeVisible();
 }
 
 test('topic mutations stay synchronized across today, database and kanban navigation', async ({ page }) => {
@@ -63,7 +64,7 @@ test('topic date edits are visible on kanban before delayed saves finish', async
   await expect(boardCard).toBeVisible();
   const topicId = await boardCard.getAttribute('data-topic-id');
   if (!topicId) throw new Error('看板卡片缺少选题 ID');
-  await boardCard.click();
+  await boardCard.getByRole('heading', { name: title, exact: true }).click();
   await expect(page).toHaveURL(new RegExp(`/topics/${topicId}$`));
 
   let pendingSaves = 0;

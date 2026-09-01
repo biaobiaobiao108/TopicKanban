@@ -212,6 +212,7 @@ async function login(page: Page) {
   await page.locator('input[name="password"]').fill('admin');
   await page.getByRole('button', { name: '进入工作台' }).click();
   await expect(page).toHaveURL(/\/today$/);
+  await expect(page.locator('main h1')).toBeVisible();
 }
 
 test('周视图按日期纵向排列并展示舒展商单卡片', async ({ page }) => {

@@ -89,6 +89,10 @@ async function mockWorkspace(page: Page) {
   await page.route(`**/api/topics/${topic.id}/todos`, async (route) => {
     if (route.request().method() === 'POST') {
       const body = route.request().postDataJSON() as { title: string };
+      if (body.title === '模拟创建失败') {
+        await route.fulfill({ status: 500, contentType: 'application/json', body: JSON.stringify({ error: '模拟创建失败' }) });
+        return;
+      }
       const id = `e2e-inline-created-${todos.length}`;
       todos = [...todos, makeTodo(id, body.title, Math.max(...todos.map((todo) => todo.sort_order)) + 1)];
     }
@@ -135,6 +139,7 @@ async function login(page: Page) {
   await page.locator('input[name="password"]').fill('admin');
   await page.getByRole('button', { name: '进入工作台' }).click();
   await expect(page).toHaveURL(/\/today$/);
+  await expect(page.locator('main h1')).toBeVisible();
 }
 
 test('执行清单支持连续内联创建、标题编辑和紧凑布局', async ({ page }) => {
@@ -147,6 +152,11 @@ test('执行清单支持连续内联创建、标题编辑和紧凑布局', async
   await expect(page.locator('textarea')).toHaveCount(0);
   await expect(page.getByText('截止日期', { exact: true })).toHaveCount(0);
 
+  await composer.press('Enter');
+  await expect(composer).toBeFocused();
+  await expect(composer).toHaveAttribute('aria-invalid', 'true');
+  await expect(page.getByText('待办标题不能为空', { exact: true })).toBeVisible();
+
   await composer.fill('新增第一条');
   await composer.press('Enter');
   await expect(page.getByText('新增第一条', { exact: true })).toBeVisible();
@@ -157,6 +167,12 @@ test('执行清单支持连续内联创建、标题编辑和紧凑布局', async
   await composer.press('Enter');
   await expect(page.getByText('新增第二条', { exact: true })).toBeVisible();
   await expect(composer).toBeFocused();
+
+  await composer.fill('模拟创建失败');
+  await composer.press('Enter');
+  await expect(composer).toHaveValue('模拟创建失败');
+  await expect(page.getByRole('status').filter({ hasText: '模拟创建失败' })).toBeVisible();
+  await composer.fill('');
 
   const editRow = page.locator('[data-testid="todo-row"][data-todo-id="e2e-inline-two"]');
   await editRow.getByTitle('编辑待办').click();
@@ -169,6 +185,15 @@ test('执行清单支持连续内联创建、标题编辑和紧凑布局', async
   await page.getByRole('textbox', { name: '编辑待办标题' }).fill('第二条失焦保存');
   await page.getByRole('textbox', { name: '编辑待办标题' }).blur();
   await expect(page.getByText('第二条失焦保存', { exact: true })).toBeVisible();
+
+  await editRow.getByTitle('编辑待办').click();
+  const emptyEditor = page.getByRole('textbox', { name: '编辑待办标题' });
+  await emptyEditor.fill('');
+  await emptyEditor.press('Enter');
+  await expect(emptyEditor).toBeVisible();
+  await expect(emptyEditor).toHaveAttribute('aria-invalid', 'true');
+  await expect(page.getByRole('alert').filter({ hasText: '待办标题不能为空' })).toBeVisible();
+  await emptyEditor.press('Escape');
 
   await editRow.getByTitle('编辑待办').click();
   const cancelledEditor = page.getByRole('textbox', { name: '编辑待办标题' });
@@ -199,6 +224,10 @@ test('执行清单拖拽时保留源卡片占位并完成排序', async ({ page 
   await page.mouse.down();
   await page.mouse.move(sourceHandleBox!.x + sourceHandleBox!.width / 2 + 16, sourceHandleBox!.y + sourceHandleBox!.height / 2 + 16, { steps: 3 });
   await expect(page.getByTestId('todo-drag-preview')).toBeVisible();
+  const previewBox = await page.getByTestId('todo-drag-preview').boundingBox();
+  expect(previewBox).not.toBeNull();
+  expect(previewBox!.width).toBeCloseTo(sourceBefore!.width, 0);
+  expect(previewBox!.height).toBeCloseTo(sourceBefore!.height, 0);
   const sourceDuring = await source.boundingBox();
   expect(sourceDuring?.height).toBeCloseTo(sourceBefore!.height, 0);
   await page.mouse.move(targetBox!.x + targetBox!.width / 2, targetBox!.y + targetBox!.height / 2, { steps: 8 });

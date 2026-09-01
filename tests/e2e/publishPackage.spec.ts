@@ -125,6 +125,7 @@ async function login(page: Page) {
   await page.locator('input[name="password"]').fill('admin');
   await page.getByRole('button', { name: '进入工作台' }).click();
   await expect(page).toHaveURL(/\/today$/);
+  await expect(page.locator('main h1')).toBeVisible();
 }
 
 test('发布包可编辑、复制并导出 Markdown', async ({ page }) => {

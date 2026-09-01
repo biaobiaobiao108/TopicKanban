@@ -8,6 +8,7 @@ async function login(page: Page) {
     await page.getByRole('button', { name: '进入工作台' }).click();
   }
   await expect(page).toHaveURL(/\/today$/);
+  await expect(page.locator('main h1')).toBeVisible();
 }
 
 async function mockMonthOverflowWorkspace(page: Page) {
@@ -149,6 +150,7 @@ test('current month grid keeps row borders and backgrounds aligned', async ({ pa
 });
 
 test('month cells expose hidden event count and open all events', async ({ page }) => {
+  await page.clock.install({ time: '2026-08-01T00:00:00+08:00' });
   await mockMonthOverflowWorkspace(page);
   await login(page);
 

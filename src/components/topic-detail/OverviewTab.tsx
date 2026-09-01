@@ -475,7 +475,7 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({
                 className={`px-3 py-1 rounded-lg transition-all cursor-pointer flex items-center gap-1 ${
                   storylineMode === 'acts'
                     ? 'bg-white dark:bg-stone-700 text-stone-900 dark:text-stone-100 shadow-2xs'
-                    : 'text-stone-500 dark:text-stone-400 hover:text-stone-900'
+                    : 'text-stone-600 dark:text-stone-400 hover:text-stone-900'
                 }`}
               >
                 <Layers className="w-3.5 h-3.5" />
@@ -487,7 +487,7 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({
                 className={`px-3 py-1 rounded-lg transition-all cursor-pointer flex items-center gap-1 ${
                   storylineMode === 'raw'
                     ? 'bg-white dark:bg-stone-700 text-stone-900 dark:text-stone-100 shadow-2xs'
-                    : 'text-stone-500 dark:text-stone-400 hover:text-stone-900'
+                    : 'text-stone-600 dark:text-stone-400 hover:text-stone-900'
                 }`}
               >
                 <Edit3 className="w-3.5 h-3.5" />
@@ -829,7 +829,7 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({
 
           {/* Active Characters */}
           <div className="space-y-1.5">
-            <div className="text-[11px] font-semibold text-stone-400 dark:text-stone-500">本选题关联人物：</div>
+            <div className="text-[11px] font-semibold text-stone-600 dark:text-stone-400">本选题关联人物：</div>
             <div className="flex flex-wrap gap-1.5 min-h-[32px]">
               {topic.people && topic.people.length > 0 ? (
                 topic.people.map((p) => (
@@ -853,7 +853,7 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({
                   </span>
                 ))
               ) : (
-                <div className="text-xs text-stone-400 dark:text-stone-500 italic bg-stone-500/[0.03] dark:bg-stone-800/40 p-2.5 rounded-xl w-full text-center">
+                <div className="text-xs text-stone-600 dark:text-stone-400 italic bg-stone-500/[0.03] dark:bg-stone-800/40 p-2.5 rounded-xl w-full text-center">
                   暂未关联人物，可在下方快速勾选
                 </div>
               )}
@@ -864,7 +864,7 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({
           <div className="pt-3 border-t border-stone-100 dark:border-stone-800/80 space-y-2">
             <div className="flex items-center justify-between">
               <span className="text-[11px] font-semibold text-stone-500 dark:text-stone-400">全局人物库速选：</span>
-              <span className="text-[11px] text-stone-400 dark:text-stone-500">共 <span className="font-mono tabular-nums">{allPeople.length}</span> 人</span>
+              <span className="text-[11px] text-stone-600 dark:text-stone-400">共 <span className="font-mono tabular-nums">{allPeople.length}</span> 人</span>
             </div>
 
             <div className="flex flex-wrap gap-1.5 max-h-36 overflow-y-auto pr-1">

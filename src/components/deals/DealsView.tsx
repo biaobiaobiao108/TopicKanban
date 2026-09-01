@@ -566,7 +566,7 @@ function CommercialDealsView({ topics, onCreateTopicFromDeal }: Pick<DealsViewPr
           title="商单中心"
           icon={Handshake}
           badge={
-            <span className="rounded-full bg-rose-500/10 px-2.5 py-1 text-xs font-semibold text-rose-700 dark:bg-rose-950/40 dark:text-rose-300">
+            <span className="rounded-full bg-rose-500/10 px-2.5 py-1 text-xs font-semibold text-rose-800 dark:bg-rose-950/40 dark:text-rose-300">
               商务 × 内容生产
             </span>
           }
@@ -670,7 +670,7 @@ function CommercialDealsView({ topics, onCreateTopicFromDeal }: Pick<DealsViewPr
           <div className="rounded-2xl border border-dashed border-stone-300 bg-white px-6 py-20 text-center dark:border-stone-700 dark:bg-stone-900">
             <CircleDollarSign className="mx-auto h-8 w-8 text-stone-300 dark:text-stone-600" />
             <p className="mt-3 text-sm font-semibold text-stone-600 dark:text-stone-300">还没有符合条件的商单</p>
-            <p className="mt-1 text-xs text-stone-400">收到品牌需求时，先把它记下来，别让商务线索飘走。</p>
+            <p className="mt-1 text-xs text-stone-600 dark:text-stone-400">收到品牌需求时，先把它记下来，别让商务线索飘走。</p>
             <button
               type="button"
               onClick={() => setIsFormOpen(true)}

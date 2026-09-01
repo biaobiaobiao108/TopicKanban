@@ -848,7 +848,7 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
               {mode === 'tag' ? '# 赛道模式' : mode === 'person' ? '@ 人物模式' : mode === 'help' ? '? 快捷键模式' : '> 动作模式'}
             </span>
           )}
-          <kbd className="text-xs bg-stone-100 dark:bg-stone-800 text-stone-500 dark:text-stone-400 px-2 py-0.5 rounded-lg border border-stone-200/70 dark:border-stone-700 font-mono shrink-0 shadow-2xs">
+          <kbd className="text-xs bg-stone-100 dark:bg-stone-800 text-stone-700 dark:text-stone-400 px-2 py-0.5 rounded-lg border border-stone-200/70 dark:border-stone-700 font-mono shrink-0 shadow-2xs">
             ESC
           </kbd>
         </div>
@@ -957,7 +957,7 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
                       </div>
 
                       {item.subtitle && (
-                        <div className="text-xs text-stone-500 dark:text-stone-400 group-hover:text-stone-600 dark:group-hover:text-stone-300 truncate mt-0.5 font-normal">
+                        <div className="text-xs text-stone-600 dark:text-stone-400 group-hover:text-stone-700 dark:group-hover:text-stone-300 truncate mt-0.5 font-normal">
                           {item.subtitle}
                         </div>
                       )}

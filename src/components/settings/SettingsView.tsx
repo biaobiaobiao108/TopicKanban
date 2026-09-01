@@ -480,7 +480,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                           )}
                         </div>
                       </div>
-                      <p className="text-[11px] text-stone-500 dark:text-stone-400 leading-normal">
+                      <p className="text-[11px] text-stone-600 dark:text-stone-400 leading-normal">
                         {themeOpt.desc}
                       </p>
                     </div>
@@ -544,7 +544,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                         }`}
                       >
                         <div className="text-xs">{opt.label}</div>
-                        <div className="text-[10px] text-stone-400 font-normal">{opt.sub}</div>
+                        <div className="text-[10px] text-stone-600 dark:text-stone-400 font-normal">{opt.sub}</div>
                       </button>
                     );
                   })}
@@ -576,7 +576,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                         }`}
                       >
                         <div className="text-xs">{opt.label}</div>
-                        <div className="text-[10px] text-stone-400 font-normal">{opt.sub}</div>
+                        <div className="text-[10px] text-stone-600 dark:text-stone-400 font-normal">{opt.sub}</div>
                       </button>
                     );
                   })}

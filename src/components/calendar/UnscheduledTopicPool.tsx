@@ -82,7 +82,7 @@ function DraggableTopicCard({
         </div>
       )}
 
-      <div className="flex items-center justify-between pt-1 border-t border-stone-100 dark:border-stone-800/80 text-[10px] text-stone-400">
+      <div className="flex items-center justify-between pt-1 border-t border-stone-100 dark:border-stone-800/80 text-[10px] text-stone-600 dark:text-stone-400">
         <span>
           {(topic.draft_word_count || 0) > 0 ? <><span className="font-mono tabular-nums">{topic.draft_word_count}</span>字</> : '未动笔'}
         </span>

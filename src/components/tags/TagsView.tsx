@@ -475,7 +475,7 @@ export const TagsView: React.FC<TagsViewProps> = ({
               </div>
             </>
           ) : (
-            <div className="flex-1 flex items-center justify-center p-12 text-stone-400 text-sm">
+            <div className="flex-1 flex items-center justify-center p-12 text-stone-600 dark:text-stone-400 text-sm">
               请选择或创建一个赛道标签
             </div>
           )}
