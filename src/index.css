@@ -1931,14 +1931,6 @@ html[class*="theme-"] input.command-palette-input[data-keyboard-focused="true"]:
   overscroll-behavior: contain;
 }
 
-.todo-current-row {
-  border-color: color-mix(in oklab, var(--todo-accent) 30%, var(--border-subtle)) !important;
-  border-inline-start-color: var(--todo-accent) !important;
-  border-inline-start-width: 3px !important;
-  background-color: color-mix(in oklab, var(--todo-accent) 8%, var(--bg-surface)) !important;
-  box-shadow: inset 3px 0 0 var(--todo-accent), 0 1px 3px color-mix(in oklab, var(--todo-accent) 10%, transparent) !important;
-}
-
 .todo-current-badge {
   background-color: var(--todo-accent) !important;
 }
@@ -1969,12 +1961,6 @@ html[class*="theme-"] input.command-palette-input[data-keyboard-focused="true"]:
   box-shadow: inset 0 -2px 0 var(--todo-accent);
 }
 
-.todo-composer-shell:has(input:focus-visible),
-.todo-inline-editor-shell:has(input:focus-visible) {
-  outline: 2px solid color-mix(in oklab, var(--todo-accent) 42%, transparent);
-  outline-offset: 2px;
-}
-
 .todo-composer-input,
 .todo-inline-editor-input,
 html[class*="theme-"] input.todo-composer-input,
@@ -2003,9 +1989,10 @@ html.dark input.todo-inline-editor-input:focus {
 }
 
 @media (forced-colors: active) {
-  .todo-composer-shell:has(input:focus-visible),
-  .todo-inline-editor-shell:has(input:focus-visible) {
-    outline-color: Highlight;
+  .todo-composer-shell:focus-within,
+  .todo-inline-editor-shell:focus-within {
+    border-block-end-color: Highlight;
+    box-shadow: none;
   }
 }
 
@@ -2054,6 +2041,4 @@ html.dark input.todo-inline-editor-input:focus {
     width: 15rem; /* 240px / 16:9 -> 135px height */
   }
 }
-
-
 

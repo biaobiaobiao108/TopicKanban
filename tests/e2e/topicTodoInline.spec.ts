@@ -50,8 +50,9 @@ const makeTodo = (id: string, title: string, sortOrder: number) => ({
   updated_at: '2026-08-25T00:00:00.000Z',
 });
 
-async function mockWorkspace(page: Page) {
-  let todos = [currentTodo, makeTodo('e2e-inline-two', '整理第二条', 2), makeTodo('e2e-inline-three', '整理第三条', 3)];
+async function mockWorkspace(page: Page, options: { withCurrentTodo?: boolean } = {}) {
+  const withCurrentTodo = options.withCurrentTodo ?? true;
+  let todos = withCurrentTodo ? [currentTodo, makeTodo('e2e-inline-two', '整理第二条', 2), makeTodo('e2e-inline-three', '整理第三条', 3)] : [];
   let currentTopic = { ...topic };
   const normalizeTodos = () => {
     const ordered = [
@@ -192,7 +193,7 @@ test('执行清单支持连续内联创建、标题编辑和紧凑布局', async
   await page.keyboard.press('Tab');
   await page.keyboard.press('Shift+Tab');
   await expect(composer).toBeFocused();
-  await expect(composerShell).toHaveCSS('outline-style', 'solid');
+  await expect(composerShell).toHaveCSS('outline-style', 'none');
 
   await composer.press('Enter');
   await expect(composer).toBeFocused();
@@ -226,6 +227,7 @@ test('执行清单支持连续内联创建、标题编辑和紧凑布局', async
   expect(editorFocusStyle).toEqual({ borderStyle: 'none', borderWidth: '0px', boxShadow: 'none', outlineStyle: 'none' });
   const editorShell = editRow.getByTestId('todo-editor-shell');
   await expect(editorShell).toHaveCSS('box-shadow', /inset/);
+  await expect(editorShell).toHaveCSS('outline-style', 'none');
   await editor.fill('第二条已修改');
   await editor.press('Enter');
   await expect(page.getByText('第二条已修改', { exact: true })).toBeVisible();
@@ -258,13 +260,33 @@ test('执行清单支持连续内联创建、标题编辑和紧凑布局', async
     const style = getComputedStyle(element);
     return { borderInlineStartWidth: style.borderInlineStartWidth, boxShadow: style.boxShadow };
   });
-  expect(currentRowStyle.borderInlineStartWidth).toBe('3px');
-  expect(currentRowStyle.boxShadow).toContain('inset');
+  expect(currentRowStyle.borderInlineStartWidth).toBe('1px');
+  expect(currentRowStyle.boxShadow).toBe('none');
+  await page.evaluate(() => document.documentElement.classList.add('dark'));
+  const pendingRow = page.locator('[data-testid="todo-row"][data-todo-id="e2e-inline-two"]');
+  await expect(pendingRow).toHaveCSS('background-color', 'rgb(28, 25, 23)');
   await currentCheckbox.click();
   await expect(page.getByRole('checkbox', { name: '撤销完成：确认当前行动' })).toBeChecked();
   await expect(page.locator('[data-testid="todo-row"][data-todo-id="e2e-inline-two"]')).toHaveAttribute('data-current', 'true');
   await page.getByRole('checkbox', { name: '撤销完成：确认当前行动' }).click();
   await expect(page.getByRole('checkbox', { name: '完成待办：确认当前行动' })).not.toBeChecked();
+});
+
+test('今日聚焦可从当前行动弹窗打开执行清单页签', async ({ page }) => {
+  await mockWorkspace(page, { withCurrentTodo: false });
+  await login(page);
+
+  const setActionButton = page.getByRole('button', { name: '设置当前行动', exact: true }).first();
+  await expect(setActionButton).toBeVisible();
+  await setActionButton.click();
+
+  const dialog = page.getByRole('dialog', { name: '当前行动' });
+  await expect(dialog).toBeVisible();
+  await dialog.getByRole('button', { name: '打开执行清单', exact: true }).click();
+
+  await expect(page).toHaveURL(new RegExp(`/topics/${topic.id}\\?tab=todos$`));
+  await expect(page.getByRole('heading', { name: '执行清单', exact: true })).toBeVisible();
+  await expect(page.getByRole('heading', { name: '选题概览', exact: true })).toHaveCount(0);
 });
 
 test('执行清单拖拽时保留源卡片占位并完成排序', async ({ page }) => {

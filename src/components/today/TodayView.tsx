@@ -351,7 +351,7 @@ export const TodayView: React.FC<TodayViewProps> = ({
                 <div className="h-full rounded-full bg-gradient-to-r from-rose-500 to-rose-400 transition-[width] duration-300 motion-reduce:transition-none" style={{ width: `${activeTopics.length ? (actionProgress.covered / activeTopics.length) * 100 : 0}%` }} />
               </div>
 
-              <div data-testid="today-action-progress-scroll" className="today-focus-scroll mt-4 min-h-0 flex-1 overflow-y-auto divide-y divide-stone-100 dark:divide-stone-800/70">
+              <div data-testid="today-action-progress-scroll" tabIndex={0} aria-label="行动推进列表" className="today-focus-scroll mt-4 min-h-0 flex-1 overflow-y-auto divide-y divide-stone-100 dark:divide-stone-800/70">
                 {actionProgress.attention.length > 0 ? actionProgress.attention.map((topic) => {
                   const hasAction = Boolean(topic.current_todo);
                   return (
@@ -393,7 +393,7 @@ export const TodayView: React.FC<TodayViewProps> = ({
             </div>
 
             <div data-testid="today-recent-activity-panel" className="today-recent-updates-panel flex min-h-0 flex-1 flex-col overflow-hidden rounded-2xl border border-stone-200/70 bg-white/80 shadow-2xs dark:border-stone-800 dark:bg-stone-900/80">
-              <div data-testid="today-recent-activity-scroll" className="today-focus-scroll min-h-0 flex-1 overflow-y-auto divide-y divide-stone-100 dark:divide-stone-800/70">
+              <div data-testid="today-recent-activity-scroll" tabIndex={0} aria-label="近期活跃轨迹列表" className="today-focus-scroll min-h-0 flex-1 overflow-y-auto divide-y divide-stone-100 dark:divide-stone-800/70">
                 {visibleRecentUpdates.map((t) => (
                   <div
                     key={t.id}

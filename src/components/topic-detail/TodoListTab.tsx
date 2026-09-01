@@ -175,7 +175,7 @@ const TodoDragPreview: React.FC<{ todo: TopicTodo; isCurrent: boolean; size?: { 
   <div
     data-testid="todo-drag-preview"
     style={size ? { width: size.width, height: size.height, boxSizing: 'border-box' } : undefined}
-    className={`flex min-h-10 flex-none items-center gap-2 overflow-hidden rounded-2xl border px-3 py-1 shadow-xl ring-1 ring-rose-500/20 ${isCurrent ? 'border-rose-400 bg-rose-50 dark:border-rose-600 dark:bg-rose-950/30' : 'border-stone-300 bg-white dark:border-stone-700 dark:bg-stone-900'}`}
+    className="flex min-h-10 flex-none items-center gap-2 overflow-hidden rounded-2xl border border-stone-300 bg-white px-3 py-1 shadow-xl ring-1 ring-rose-500/20 dark:border-stone-700 dark:bg-stone-900"
   >
     <span aria-hidden="true" className={`h-2 w-2 shrink-0 rounded-full ${isCurrent ? 'bg-rose-600 dark:bg-rose-400' : 'bg-stone-300 dark:bg-stone-600'}`} />
     <span className={`min-w-0 flex-1 break-words text-sm leading-5 ${todo.completed_at ? 'text-stone-500 line-through dark:text-stone-400' : 'font-semibold text-stone-900 dark:text-stone-100'}`}>{todo.title}</span>
@@ -224,7 +224,7 @@ const SortableTodoRow: React.FC<SortableTodoRowProps> = ({
       data-todo-id={todo.id}
       data-current={isCurrent ? 'true' : undefined}
       aria-current={isCurrent ? 'true' : undefined}
-      className={`todo-row group flex min-h-10 items-center gap-2 rounded-2xl border px-2.5 py-0.5 transition-shadow motion-reduce:!transition-none ${isDragging ? 'border-rose-300 opacity-0 shadow-none dark:border-rose-700' : isCurrent ? 'todo-current-row' : isCompleted ? 'border-stone-200/70 bg-stone-50/70 dark:border-stone-800 dark:bg-stone-900/70' : 'border-stone-200/70 bg-white dark:border-stone-800'}`}
+      className={`todo-row group flex min-h-10 items-center gap-2 rounded-2xl border px-2.5 py-0.5 transition-shadow motion-reduce:!transition-none ${isDragging ? 'border-rose-300 opacity-0 shadow-none dark:border-rose-700' : isCompleted ? 'border-stone-200/70 bg-stone-50/70 dark:border-stone-800 dark:bg-stone-900/70' : `border-stone-200/70 bg-white dark:border-stone-800 dark:bg-stone-900${isCurrent ? ' todo-current-row' : ''}`}`}
     >
       <input
         type="checkbox"
@@ -251,7 +251,7 @@ const SortableTodoRow: React.FC<SortableTodoRowProps> = ({
           />
         ) : (
           <div className="flex min-h-7 items-center gap-2">
-            <span className={`min-w-0 flex-1 break-words text-sm leading-5 ${isCompleted ? 'text-stone-500 line-through dark:text-stone-400' : isCurrent ? 'font-bold text-stone-900 dark:text-stone-100' : 'font-semibold text-stone-900 dark:text-stone-100'}`}>{todo.title}</span>
+            <span className={`min-w-0 flex-1 break-words text-sm leading-5 ${isCompleted ? 'text-stone-500 line-through dark:text-stone-400' : 'font-semibold text-stone-900 dark:text-stone-100'}`}>{todo.title}</span>
             {isCurrent && <span className="todo-current-badge inline-flex shrink-0 items-center gap-1 rounded-full px-2 py-1 text-[10px] font-bold leading-none text-white shadow-2xs"><Zap className="h-3 w-3" aria-hidden="true" />当前行动</span>}
           </div>
         )}

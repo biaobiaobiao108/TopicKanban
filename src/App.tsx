@@ -396,8 +396,8 @@ function WorkspaceApp({ isAuth, setIsAuth }: WorkspaceAppProps) {
   // Handlers for Topics
   const handleOpenDetail = (topicId: string, tab?: 'todos') => {
     const from = currentView === 'topic-detail' ? '/kanban' : currentLocation;
-    safeNavigate(`/topics/${encodeURIComponent(topicId)}`, {
-      ...(tab ? { search: `?tab=${tab}` } : {}),
+    const detailPath = `/topics/${encodeURIComponent(topicId)}${tab ? `?tab=${tab}` : ''}`;
+    safeNavigate(detailPath, {
       state: { from, fromLabel: getBackLabel(from, '返回全景看板') },
     });
   };
