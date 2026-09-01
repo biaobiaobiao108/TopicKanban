@@ -1,4 +1,4 @@
-import { CommercialDeal, PublishedVideo, Topic, TopicTodo } from '../../types';
+import { CommercialDeal, PublishedVideo, Topic } from '../../types';
 import { CalendarEventItem, CalendarLayerFilters, MonthStats } from './CalendarTypes';
 import { getBeijingDateString } from '../../lib/actionDate';
 
@@ -122,7 +122,6 @@ export function extractCalendarEvents(
   topics: Topic[],
   deals: CommercialDeal[],
   publishedList: PublishedVideo[],
-  todos: TopicTodo[],
   filters: CalendarLayerFilters
 ): Map<string, CalendarEventItem[]> {
   const map = new Map<string, CalendarEventItem[]>();
@@ -168,27 +167,6 @@ export function extractCalendarEvents(
     }
 
   });
-
-  // Layer 5: Todo due dates. Completed todos never create calendar events.
-  if (filters.showTodoDue) {
-    const topicMap = new Map(topics.map((topic) => [topic.id, topic]));
-    todos.forEach((todo) => {
-      const topic = topicMap.get(todo.topic_id);
-      if (!topic || topic.deleted_at || topic.status === 'published' || topic.status === 'icebox' || todo.completed_at || !todo.due_date) return;
-      addEvent(todo.due_date, {
-        id: `todo:${todo.id}`,
-        date: todo.due_date,
-        type: 'todo_due',
-        title: `待办截止：${todo.title}`,
-        subtitle: topic.title,
-        status: topic.status,
-        priority: topic.priority,
-        topicId: topic.id,
-        rawTopic: topic,
-        rawTodo: todo,
-      });
-    });
-  }
 
   // 2. Commercial Deals (Layer 3)
   if (filters.showDeals) {
@@ -244,7 +222,6 @@ export function calculateMonthStats(
   let plannedPublishCount = 0;
   let commercialDealCount = 0;
   let publishedVideoCount = 0;
-  let todoDueCount = 0;
 
   eventsMap.forEach((events, date) => {
     if (date.startsWith(monthPrefix)) {
@@ -252,7 +229,6 @@ export function calculateMonthStats(
         if (ev.type === 'planned_publish') plannedPublishCount++;
         else if (ev.type === 'commercial_deal') commercialDealCount++;
         else if (ev.type === 'published') publishedVideoCount++;
-        else if (ev.type === 'todo_due') todoDueCount++;
       });
     }
   });
@@ -269,6 +245,5 @@ export function calculateMonthStats(
     commercialDealCount,
     publishedVideoCount,
     unscheduledActiveCount,
-    todoDueCount,
   };
 }

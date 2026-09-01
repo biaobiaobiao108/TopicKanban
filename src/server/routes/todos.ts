@@ -6,7 +6,6 @@ import {
   requireDb,
   validateTextFields,
 } from '../apiShared';
-import { isValidIsoDate } from '../../lib/dateInput';
 import {
   completeTopicTodo,
   deleteTopicTodo,
@@ -20,20 +19,11 @@ import {
   updateTopicTodo,
 } from '../repositories';
 
-function isValidTodoDate(value: unknown): boolean {
-  return value === null || value === undefined || value === '' || (typeof value === 'string' && isValidIsoDate(value));
-}
-
 function validateTodoFields(body: Record<string, unknown>, requireTitle = false): string | null {
   const textError = validateTextFields(body, {
     title: [200, requireTitle],
-    notes: [20_000],
   });
-  if (textError) return textError;
-  if (Object.prototype.hasOwnProperty.call(body, 'due_date') && !isValidTodoDate(body.due_date)) {
-    return 'due_date must be YYYY-MM-DD or null';
-  }
-  return null;
+  return textError;
 }
 
 export function registerTodoRoutes(app: NativeApp): void {
@@ -64,8 +54,6 @@ export function registerTodoRoutes(app: NativeApp): void {
         id: createId('todo'),
         topic_id: c.req.param('id'),
         title: String(body.title).trim(),
-        notes: typeof body.notes === 'string' ? body.notes.trim() : '',
-        due_date: typeof body.due_date === 'string' && body.due_date ? body.due_date : null,
         is_current: 0,
         current_started_at: null,
         completed_at: null,
@@ -89,8 +77,6 @@ export function registerTodoRoutes(app: NativeApp): void {
       }
       return c.json(await updateTopicTodo(requireDb(c), c.req.param('id'), {
         ...(Object.prototype.hasOwnProperty.call(body, 'title') ? { title: String(body.title).trim() } : {}),
-        ...(Object.prototype.hasOwnProperty.call(body, 'notes') ? { notes: String(body.notes).trim() } : {}),
-        ...(Object.prototype.hasOwnProperty.call(body, 'due_date') ? { due_date: body.due_date ? String(body.due_date) : null } : {}),
       }));
     } catch (error) {
       return jsonError(c, error, 400);

@@ -36,7 +36,7 @@ describe('Database schema contract', () => {
 
       const todoColumns = sqlite.query('PRAGMA table_info(topic_todos)').all() as Array<{ name: string }>;
       expect(todoColumns.map((column) => column.name)).toEqual([
-        'id', 'topic_id', 'title', 'notes', 'due_date', 'is_current', 'current_started_at',
+        'id', 'topic_id', 'title', 'is_current', 'current_started_at',
         'completed_at', 'sort_order', 'created_at', 'updated_at',
       ]);
       const currentIndex = sqlite.query("SELECT sql FROM sqlite_master WHERE type = 'index' AND name = 'idx_topic_todos_current'").get() as { sql: string };

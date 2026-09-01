@@ -2,7 +2,6 @@ import React, { useEffect, useState } from 'react';
 import { CheckCircle2, ListTodo, Zap } from 'lucide-react';
 import type { Topic, TopicTodo } from '../../types';
 import { getCurrentActionAgeDays } from '../../lib/topicMetrics';
-import { DateInput } from '../ui/DateInput';
 import { Modal } from '../ui/Modal';
 import type { TopicTodoActions } from './todoTypes';
 
@@ -24,16 +23,12 @@ export const TodoQuickActionDialog: React.FC<TodoQuickActionDialogProps> = ({
   actions,
 }) => {
   const [title, setTitle] = useState('');
-  const [notes, setNotes] = useState('');
-  const [dueDate, setDueDate] = useState('');
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
     if (!isOpen) return;
     setTitle(todo?.title || '');
-    setNotes(todo?.notes || '');
-    setDueDate(todo?.due_date || '');
-  }, [isOpen, todo?.id, todo?.title, todo?.notes, todo?.due_date]);
+  }, [isOpen, todo?.id, todo?.title]);
 
   const handleSave = async () => {
     if (!todo || !title.trim() || saving) return;
@@ -41,8 +36,6 @@ export const TodoQuickActionDialog: React.FC<TodoQuickActionDialogProps> = ({
     try {
       await actions.updateTodo(todo.id, {
         title: title.trim(),
-        notes: notes.trim(),
-        due_date: dueDate || null,
       });
       onClose();
     } finally {
@@ -95,15 +88,6 @@ export const TodoQuickActionDialog: React.FC<TodoQuickActionDialogProps> = ({
           <span className="text-xs font-bold text-stone-700 dark:text-stone-300">行动标题</span>
           <input value={title} onChange={(event) => setTitle(event.target.value)} autoFocus className="w-full rounded-xl border border-stone-200/80 bg-stone-500/[0.03] px-3.5 py-2.5 text-sm outline-none focus:border-rose-500 dark:border-stone-700 dark:bg-stone-800 dark:text-stone-100" />
         </label>
-        <label className="block space-y-1.5">
-          <span className="text-xs font-bold text-stone-700 dark:text-stone-300">备注</span>
-          <textarea value={notes} onChange={(event) => setNotes(event.target.value)} rows={3} placeholder="补充执行说明、资料位置或判断标准" className="w-full resize-none rounded-xl border border-stone-200/80 bg-stone-500/[0.03] px-3.5 py-2.5 text-sm outline-none focus:border-rose-500 dark:border-stone-700 dark:bg-stone-800 dark:text-stone-100" />
-        </label>
-        <label className="block space-y-1.5">
-          <span className="text-xs font-bold text-stone-700 dark:text-stone-300">截止日期</span>
-          <DateInput value={dueDate} onChange={setDueDate} placeholder="YYYYMMDD，例如 20260901" className="w-full rounded-xl border border-stone-200/80 bg-stone-500/[0.03] px-3.5 py-2.5 text-sm outline-none focus:border-rose-500 dark:border-stone-700 dark:bg-stone-800 dark:text-stone-100" />
-        </label>
-
         <div className="flex flex-col-reverse gap-2 border-t border-stone-200/70 pt-4 sm:flex-row sm:items-center sm:justify-between dark:border-stone-800">
           <button type="button" onClick={() => void handleComplete()} disabled={saving} className="inline-flex min-h-10 items-center justify-center gap-1.5 rounded-xl bg-emerald-500/10 px-3.5 text-xs font-bold text-emerald-700 hover:bg-emerald-500/20 disabled:opacity-50 dark:text-emerald-300 cursor-pointer">
             <CheckCircle2 className="h-4 w-4" />完成当前行动

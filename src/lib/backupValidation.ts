@@ -61,8 +61,6 @@ const todoSchema = z.object({
   id,
   topic_id: id,
   title: shortText.trim().min(1, 'Todo 标题不能为空'),
-  notes: longText,
-  due_date: optionalDateOnly,
   is_current: z.union([z.literal(0), z.literal(1)]),
   current_started_at: optionalTimestamp,
   completed_at: optionalTimestamp,

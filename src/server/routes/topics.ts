@@ -11,7 +11,6 @@ import {
   validateTextFields,
   validateTopicFields,
 } from '../apiShared';
-import { isValidIsoDate } from '../../lib/dateInput';
 import {
   insertTopic,
   listTrashedTopicIds,
@@ -84,20 +83,14 @@ export function registerTopicRoutes(app: NativeApp): void {
     try {
       const db = requireDb(c);
       const body = await c.req.json<Partial<Topic> & {
-        initial_todo?: { title?: unknown; notes?: unknown; due_date?: unknown };
+        initial_todo?: { title?: unknown };
       }>();
       if (!body.title?.trim()) return c.json({ error: 'Title is required' }, 400);
       const validationError = validateTopicFields(body);
       if (validationError) return c.json({ error: validationError }, 400);
       if (body.initial_todo) {
-        const todoTextError = validateTextFields(body.initial_todo as Record<string, unknown>, {
-          title: [200, true], notes: [20_000],
-        });
+        const todoTextError = validateTextFields(body.initial_todo as Record<string, unknown>, { title: [200, true] });
         if (todoTextError) return c.json({ error: `initial_todo.${todoTextError}` }, 400);
-        const dueDate = body.initial_todo.due_date;
-        if (dueDate !== undefined && dueDate !== null && dueDate !== '' && (typeof dueDate !== 'string' || !isValidIsoDate(dueDate))) {
-          return c.json({ error: 'initial_todo.due_date must be YYYY-MM-DD or null' }, 400);
-        }
       }
       const now = new Date().toISOString();
       const id = body.id || createId('topic');
@@ -111,8 +104,6 @@ export function registerTopicRoutes(app: NativeApp): void {
           ? {
               id: createId('todo'),
               title: body.initial_todo.title.trim(),
-              notes: typeof body.initial_todo.notes === 'string' ? body.initial_todo.notes.trim() : '',
-              due_date: typeof body.initial_todo.due_date === 'string' && body.initial_todo.due_date ? body.initial_todo.due_date : null,
             }
           : undefined,
       );

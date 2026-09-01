@@ -31,8 +31,6 @@ CREATE TABLE topic_todos (
   id TEXT PRIMARY KEY,
   topic_id TEXT NOT NULL,
   title TEXT NOT NULL,
-  notes TEXT NOT NULL DEFAULT '',
-  due_date TEXT,
   is_current INTEGER NOT NULL DEFAULT 0 CHECK (is_current IN (0, 1)),
   current_started_at TEXT,
   completed_at TEXT,
@@ -44,7 +42,6 @@ CREATE TABLE topic_todos (
 );
 
 CREATE INDEX idx_topic_todos_topic_order ON topic_todos(topic_id, sort_order, created_at);
-CREATE INDEX idx_topic_todos_due_date ON topic_todos(due_date);
 CREATE UNIQUE INDEX idx_topic_todos_current
   ON topic_todos(topic_id)
   WHERE is_current = 1 AND completed_at IS NULL;

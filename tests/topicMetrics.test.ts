@@ -7,7 +7,7 @@ describe('topicMetrics - current Todo action', () => {
     id: 'topic-1', title: '测试选题', summary: '', hook: '', storyline: '', why_now: '',
     status: 'scripting', priority: 'medium',
     current_todo: {
-      id: 'todo-1', topic_id: 'topic-1', title: '核实争议原片', notes: '', due_date: '2026-08-22',
+      id: 'todo-1', topic_id: 'topic-1', title: '核实争议原片',
       is_current: 1, current_started_at: '2026-08-20T10:00:00.000Z', completed_at: null,
       sort_order: 1, created_at: '2026-08-20T10:00:00.000Z', updated_at: '2026-08-20T10:00:00.000Z',
     },
@@ -20,9 +20,8 @@ describe('topicMetrics - current Todo action', () => {
     expect(getCurrentActionAgeDays(baseTopic, new Date('2026-08-25T10:00:00.000Z'))).toBe(5);
   });
 
-  it('reports a Todo due date after its Beijing end of day', () => {
-    expect(getCurrentActionWarning(baseTopic, new Date('2026-08-22T07:00:00.000Z'))).toBeNull();
-    expect(getCurrentActionWarning(baseTopic, new Date('2026-08-23T00:00:01.000Z'))).toBe('已逾期 1 天');
+  it('reports a stale current action without a due-date concept', () => {
+    expect(getCurrentActionWarning(baseTopic, new Date('2026-08-25T10:00:00.000Z'), 5)).toBe('行动已停滞 5 天');
   });
 
   it('uses the current action placeholder when no Todo is active', () => {

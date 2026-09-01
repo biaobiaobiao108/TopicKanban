@@ -47,8 +47,6 @@ function createTodo(id: string, topicId: string, overrides: Partial<TopicTodo> =
     id,
     topic_id: topicId,
     title: `待办 ${id}`,
-    notes: '',
-    due_date: '2026-01-05',
     is_current: 0,
     current_started_at: null,
     completed_at: null,
@@ -64,7 +62,7 @@ describe('backup schema validation', () => {
     expect(validateBackupData(createBackup())).toMatchObject({ success: true });
   });
 
-  it('validates Todo references, dates, and the single current action constraint', () => {
+  it('validates Todo references and the single current action constraint', () => {
     const topic = createTopic('topic-todo');
     const current = createTodo('todo-current', topic.id, {
       is_current: 1,
@@ -79,11 +77,6 @@ describe('backup schema validation', () => {
     expect(duplicateCurrent.success).toBe(false);
     if (!duplicateCurrent.success) expect(duplicateCurrent.error).toContain('一个选题只能有一个当前 Todo');
 
-    const invalidDate = validateBackupData(createBackup({
-      topics: [topic],
-      todos: [createTodo('todo-invalid-date', topic.id, { due_date: '2026-02-31' })],
-    }));
-    expect(invalidDate.success).toBe(false);
   });
 
   it('rejects malformed entity fields before import', () => {

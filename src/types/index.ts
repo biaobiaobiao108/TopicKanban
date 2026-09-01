@@ -36,8 +36,6 @@ export interface TopicTodo {
   id: string;
   topic_id: string;
   title: string;
-  notes: string;
-  due_date?: string | null;
   is_current: number; // 0 or 1
   current_started_at?: string | null;
   completed_at?: string | null;

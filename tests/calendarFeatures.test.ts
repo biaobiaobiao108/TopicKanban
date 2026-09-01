@@ -7,7 +7,7 @@ import {
   getBeijingDateString,
 } from '../src/components/calendar/calendarUtils';
 import { DEFAULT_CALENDAR_LAYERS } from '../src/components/calendar/CalendarTypes';
-import { Topic, CommercialDeal, PublishedVideo, TopicTodo } from '../src/types';
+import { Topic, CommercialDeal, PublishedVideo } from '../src/types';
 
 describe('Calendar utilities and event extraction', () => {
   it('generates consistent month grid days starting on Monday', () => {
@@ -45,7 +45,7 @@ describe('Calendar utilities and event extraction', () => {
     expect(week[6].isWeekend).toBe(true);
   });
 
-  it('extracts all 5 event types across topics, deals, and published videos', () => {
+  it('extracts topic, deal, and published events', () => {
     const topics: Topic[] = [
       {
         id: 't1',
@@ -132,13 +132,7 @@ describe('Calendar utilities and event extraction', () => {
       },
     ];
 
-    const todos: TopicTodo[] = [{
-      id: 'todo-1', topic_id: 't1', title: '写第二幕', notes: '', due_date: '2026-08-27',
-      is_current: 1, current_started_at: '2026-08-20T00:00:00.000Z', completed_at: null,
-      sort_order: 1, created_at: '2026-08-20T00:00:00.000Z', updated_at: '2026-08-20T00:00:00.000Z',
-    }];
-
-    const eventsMap = extractCalendarEvents(topics, deals, published, todos, DEFAULT_CALENDAR_LAYERS);
+    const eventsMap = extractCalendarEvents(topics, deals, published, DEFAULT_CALENDAR_LAYERS);
 
     // Check target publish date on 2026-08-30
     const aug30Events = eventsMap.get('2026-08-30');
@@ -160,17 +154,11 @@ describe('Calendar utilities and event extraction', () => {
     expect(aug15Events).toBeDefined();
     expect(aug15Events?.some((e) => e.type === 'published' && e.publishedVideoId === 'p1')).toBe(true);
 
-    // Check todo due date on 2026-08-27
-    const aug27Events = eventsMap.get('2026-08-27');
-    expect(aug27Events).toBeDefined();
-    expect(aug27Events?.some((e) => e.type === 'todo_due' && e.topicId === 't1')).toBe(true);
-
     // Calculate month stats for August 2026
     const stats = calculateMonthStats(eventsMap, 2026, 7, topics);
     expect(stats.plannedPublishCount).toBe(1);
     expect(stats.commercialDealCount).toBe(1);
     expect(stats.publishedVideoCount).toBe(1);
-    expect(stats.todoDueCount).toBe(1);
     expect(stats.unscheduledActiveCount).toBe(1); // t2 has no target_publish_date
   });
 
@@ -199,7 +187,7 @@ describe('Calendar utilities and event extraction', () => {
       },
     ];
 
-    const filteredMap = extractCalendarEvents(topics, [], [], [], {
+    const filteredMap = extractCalendarEvents(topics, [], [], {
       ...DEFAULT_CALENDAR_LAYERS,
       showPlannedPublish: false,
       showDeadlines: false,

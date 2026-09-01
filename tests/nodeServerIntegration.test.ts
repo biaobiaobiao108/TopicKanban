@@ -83,13 +83,13 @@ describe('Bun Server Integration (Local SQLite & API)', () => {
         summary: '梳理核心争议事件与反转脉络',
         status: 'approved',
         priority: 'high',
-        initial_todo: { title: '核对核心争议原片', notes: '记录关键时间点', due_date: '2026-09-03' },
+        initial_todo: { title: '核对核心争议原片' },
       }),
     });
     expect(createRes.status).toBe(201);
-    const topic = await createRes.json() as { id: string; title: string; current_todo?: { title: string; due_date: string } };
+    const topic = await createRes.json() as { id: string; title: string; current_todo?: { title: string } };
     expect(topic.title).toBe('测试爆款人物解说');
-    expect(topic.current_todo).toMatchObject({ title: '核对核心争议原片', due_date: '2026-09-03' });
+    expect(topic.current_todo).toMatchObject({ title: '核对核心争议原片' });
 
     // 4. Save Draft
     const draftRes = await app.request(`/api/topics/${topic.id}/draft`, {

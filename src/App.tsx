@@ -171,7 +171,6 @@ function WorkspaceApp({ isAuth, setIsAuth }: WorkspaceAppProps) {
 
   const {
     topics,
-    todos,
     topicCount: workspaceTopicCount,
     trashedTopics,
     people,
@@ -508,7 +507,7 @@ function WorkspaceApp({ isAuth, setIsAuth }: WorkspaceAppProps) {
   };
 
   const topicTodoActions = {
-    createTodo: async (topicId: string, input: { title: string; notes?: string; due_date?: string | null }) => {
+    createTodo: async (topicId: string, input: { title: string }) => {
       const result = await saveTopicTodo({ topic_id: topicId, ...input });
       handleTopicTodoMutation(result);
       return result;
@@ -951,7 +950,6 @@ function WorkspaceApp({ isAuth, setIsAuth }: WorkspaceAppProps) {
           {currentView === 'calendar' && (
             <CalendarView
               topics={topics}
-              todos={todos}
               deals={dealFocus ? [...dealFocus.due_items, ...dealFocus.unpaid_items] : []}
               publishedList={publishedList}
               availableTags={tags}

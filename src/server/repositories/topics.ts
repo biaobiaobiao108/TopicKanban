@@ -153,11 +153,11 @@ function buildTopicFilterConditions(options: TopicPageOptions): { conditions: st
     conditions.push(`(t.title LIKE ? ESCAPE '\\' OR t.summary LIKE ? ESCAPE '\\' OR t.hook LIKE ? ESCAPE '\\'
       OR t.storyline LIKE ? ESCAPE '\\'
       OR EXISTS (SELECT 1 FROM topic_todos stt WHERE stt.topic_id = t.id
-        AND (stt.title LIKE ? ESCAPE '\\' OR stt.notes LIKE ? ESCAPE '\\'))
+        AND stt.title LIKE ? ESCAPE '\\')
       OR EXISTS (SELECT 1 FROM topic_tags st INNER JOIN tags sg ON sg.id = st.tag_id WHERE st.topic_id = t.id AND sg.name LIKE ? ESCAPE '\\')
       OR EXISTS (SELECT 1 FROM topic_people sp INNER JOIN people spp ON spp.id = sp.person_id WHERE sp.topic_id = t.id
         AND (spp.name LIKE ? ESCAPE '\\' OR spp.aliases LIKE ? ESCAPE '\\' OR spp.identity LIKE ? ESCAPE '\\')))`);
-    values.push(pattern, pattern, pattern, pattern, pattern, pattern, pattern, pattern, pattern, pattern);
+    values.push(pattern, pattern, pattern, pattern, pattern, pattern, pattern, pattern, pattern);
   }
   return { conditions, values };
 }
@@ -299,16 +299,16 @@ export async function insertTopic(
   topic: Partial<Topic> & { id: string; title: string },
   tagIds: string[] = [],
   personIds: string[] = [],
-  initialTodo?: { id: string; title: string; notes?: string; due_date?: string | null }
+  initialTodo?: { id: string; title: string }
 ): Promise<void> {
   const batch: SqlitePreparedStatement[] = [topicStatement(db, topic)];
   if (initialTodo) {
     const now = new Date().toISOString();
     batch.push(bind(db, `INSERT INTO topic_todos (
-      id, topic_id, title, notes, due_date, is_current, current_started_at,
+      id, topic_id, title, is_current, current_started_at,
       completed_at, sort_order, created_at, updated_at
-    ) VALUES (?, ?, ?, ?, ?, 1, ?, NULL, 1, ?, ?)`, [
-      initialTodo.id, topic.id, initialTodo.title, initialTodo.notes || '', initialTodo.due_date || null,
+    ) VALUES (?, ?, ?, 1, ?, NULL, 1, ?, ?)`, [
+      initialTodo.id, topic.id, initialTodo.title,
       now, now, now,
     ]));
   }

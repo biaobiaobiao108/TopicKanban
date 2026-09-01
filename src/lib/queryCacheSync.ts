@@ -92,7 +92,7 @@ function topicMatchesKanbanQuery(topic: Topic, queryKey: readonly unknown[]): bo
   if (tagId && tagId !== 'all' && !topic.tags?.some((tag) => tag.id === tagId)) return false;
   if (personId && personId !== 'all' && !topic.people?.some((person) => person.id === personId)) return false;
   if (!searchTerm) return true;
-  return [topic.title, topic.summary, topic.hook, topic.current_todo?.title, topic.current_todo?.notes].some((value) => value?.toLowerCase().includes(searchTerm))
+  return [topic.title, topic.summary, topic.hook, topic.current_todo?.title].some((value) => value?.toLowerCase().includes(searchTerm))
     || Boolean(topic.people?.some((person) => person.name.toLowerCase().includes(searchTerm)))
     || Boolean(topic.tags?.some((tag) => tag.name.toLowerCase().includes(searchTerm)));
 }
@@ -166,11 +166,6 @@ export function replaceTopicCaches(queryClient: QueryClient, topic: Topic) {
 
 export function replaceTopicTodoCaches(queryClient: QueryClient, result: TopicTodoMutationResult) {
   queryClient.setQueryData(['topic-todos', result.topic.id], result.todos);
-  queryClient.setQueryData<TopicTodoMutationResult['todos']>(['topic-todos-all'], (current) => {
-    if (!current) return current;
-    const remaining = current.filter((todo) => todo.topic_id !== result.topic.id);
-    return [...remaining, ...result.todos].sort((a, b) => a.topic_id.localeCompare(b.topic_id) || a.sort_order - b.sort_order);
-  });
   replaceTopicCaches(queryClient, result.topic);
 }
 

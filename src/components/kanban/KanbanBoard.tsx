@@ -23,7 +23,7 @@ import { KanbanFilters, SortField } from './KanbanFilters';
 import { ACTIVE_COLUMNS } from './columns';
 import { AlertTriangle, KanbanSquare } from 'lucide-react';
 import { PageHeader } from '../layout/PageHeader';
-import { getCurrentActionAgeDays, isActiveTopic, isCurrentActionDue } from '../../lib/topicMetrics';
+import { getCurrentActionAgeDays, isActiveTopic } from '../../lib/topicMetrics';
 import { fetchTopicPage } from '../../lib/storage';
 
 const activeStatuses: TopicStatus[] = ['inbox', 'approved', 'scripting', 'production'];
@@ -289,7 +289,7 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
           const matchTitle = topic.title.toLowerCase().includes(q);
           const matchSummary = topic.summary?.toLowerCase().includes(q);
           const matchHook = topic.hook?.toLowerCase().includes(q);
-          const matchAction = topic.current_todo?.title.toLowerCase().includes(q) || topic.current_todo?.notes.toLowerCase().includes(q);
+          const matchAction = topic.current_todo?.title.toLowerCase().includes(q);
           const matchPerson = topic.people?.some((p) => p.name.toLowerCase().includes(q));
           const matchTag = topic.tags?.some((t) => t.name.toLowerCase().includes(q));
           if (!matchTitle && !matchSummary && !matchHook && !matchAction && !matchPerson && !matchTag) return false;
@@ -554,7 +554,7 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
   const approvedCount = (columns.approved || []).length;
   const scriptingCount = (columns.scripting || []).length;
   const stagnantTopics = boardTopics
-    .filter((topic) => isActiveTopic(topic) && !isCurrentActionDue(topic) && getCurrentActionAgeDays(topic) >= staleActionDays)
+    .filter((topic) => isActiveTopic(topic) && getCurrentActionAgeDays(topic) >= staleActionDays)
     .sort((a, b) => getCurrentActionAgeDays(b) - getCurrentActionAgeDays(a));
   const wipWarnings = [
     approvedCount > 5 ? `已立项 ${approvedCount} 个，超过建议上限 5 个` : null,

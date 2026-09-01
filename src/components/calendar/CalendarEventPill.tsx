@@ -1,7 +1,7 @@
 import React from 'react';
 import { CalendarEventItem } from './CalendarTypes';
 import type { CommercialDealStatus, TopicStatus } from '../../types';
-import { Film, AlertCircle, Handshake, CheckCircle2, ListTodo } from 'lucide-react';
+import { Film, AlertCircle, Handshake, CheckCircle2 } from 'lucide-react';
 import { StatusBadge, PriorityBadge } from '../ui/Badge';
 
 const DEAL_STATUS_LABELS: Record<CommercialDealStatus, string> = {
@@ -144,20 +144,6 @@ export const CalendarEventPill: React.FC<CalendarEventPillProps> = ({
           </button>
         );
 
-      case 'todo_due':
-        return (
-          <button
-            type="button"
-            onClick={handleClick}
-            title={event.title}
-            data-testid="calendar-event"
-            data-calendar-event-type={event.type}
-            className="flex w-full min-w-0 items-center gap-1 rounded-lg border border-stone-200/50 bg-stone-500/10 px-2 py-0.5 text-left text-[10px] font-medium text-stone-600 transition-colors hover:bg-stone-500/20 dark:border-stone-700 dark:bg-stone-800 dark:text-stone-400"
-          >
-            <ListTodo className="w-3 h-3 text-amber-500 shrink-0" />
-            <span className="min-w-0 flex-1 truncate">{event.title}</span>
-          </button>
-        );
     }
   }
 
@@ -190,9 +176,6 @@ export const CalendarEventPill: React.FC<CalendarEventPillProps> = ({
           )}
           {event.type === 'published' && (
             <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-700 text-white">已上线</span>
-          )}
-          {event.type === 'todo_due' && (
-            <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-600 text-white">待办截止</span>
           )}
           <EventStatusBadge event={event} />
         </div>

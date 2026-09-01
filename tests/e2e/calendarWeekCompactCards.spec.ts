@@ -46,7 +46,7 @@ const calendarTopic = {
   why_now: '上线前回归测试。',
   status: 'production',
   priority: 'medium',
-  current_todo: { id: 'e2e-calendar-todo', topic_id: 'e2e-calendar-topic', title: '确认返回链路', notes: '', due_date: '2026-08-28', is_current: 1, current_started_at: '2026-08-25T00:00:00.000Z', completed_at: null, sort_order: 1, created_at: '2026-08-25T00:00:00.000Z', updated_at: '2026-08-25T00:00:00.000Z' },
+  current_todo: { id: 'e2e-calendar-todo', topic_id: 'e2e-calendar-topic', title: '确认返回链路', is_current: 1, current_started_at: '2026-08-25T00:00:00.000Z', completed_at: null, sort_order: 1, created_at: '2026-08-25T00:00:00.000Z', updated_at: '2026-08-25T00:00:00.000Z' },
   target_publish_date: '2026-08-28',
   deadline: '2026-08-28',
   score_character: 2,
@@ -497,7 +497,7 @@ test('日历各类事项跳转后都能返回原周视图', async ({ page }) => 
   await expect(page.getByRole('heading', { name: '选题日历', exact: true })).toBeVisible();
   await expect(page.locator('[data-testid="calendar-event"][data-calendar-event-type="planned_publish"]').filter({ hasText: calendarTopic.title })).toBeVisible();
 
-  for (const eventType of ['planned_publish', 'deadline', 'todo_due']) {
+  for (const eventType of ['planned_publish', 'deadline']) {
     const event = page.locator(`[data-testid="calendar-event"][data-calendar-event-type="${eventType}"]`).filter({ hasText: calendarTopic.title });
     await expect(event).toBeVisible();
     await event.click();

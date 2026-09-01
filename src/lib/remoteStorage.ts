@@ -227,7 +227,7 @@ export async function linkPublishedVideoToCommercialDeal(
 
 export type TopicCreateInput = Partial<Topic> & {
   title?: string;
-  initial_todo?: { title: string; notes?: string; due_date?: string | null };
+  initial_todo?: { title: string };
 };
 
 export async function saveTopic(data: TopicCreateInput): Promise<Topic> {
@@ -249,8 +249,6 @@ export function fetchAllTopicTodos(): Promise<TopicTodo[]> {
 export function saveTopicTodo(data: {
   topic_id: string;
   title: string;
-  notes?: string;
-  due_date?: string | null;
 }): Promise<TopicTodoMutationResult> {
   return apiRequest<TopicTodoMutationResult>(
     `/api/topics/${encodeURIComponent(data.topic_id)}/todos`,
@@ -260,7 +258,7 @@ export function saveTopicTodo(data: {
 
 export function updateTopicTodo(
   id: string,
-  updates: Pick<Partial<TopicTodo>, 'title' | 'notes' | 'due_date'>,
+  updates: Pick<Partial<TopicTodo>, 'title'>,
 ): Promise<TopicTodoMutationResult> {
   return apiRequest<TopicTodoMutationResult>(`/api/todos/${encodeURIComponent(id)}`, jsonRequest('PATCH', updates));
 }
@@ -822,8 +820,6 @@ export function exportSingleTopicMarkdown(
   if (topic.why_now) lines.push(`- **为什么是现在 (Why Now)**：${topic.why_now}`);
   if (topic.current_todo) {
     lines.push(`- **当前行动**：${topic.current_todo.title}`);
-    if (topic.current_todo.notes) lines.push(`  - 备注：${topic.current_todo.notes}`);
-    if (topic.current_todo.due_date) lines.push(`  - 截止日期：${topic.current_todo.due_date}`);
   } else {
     lines.push('- **当前行动**：未设置当前行动');
   }

@@ -9,7 +9,7 @@ const topic = {
   why_now: '测试用的传播时机',
   status: 'production',
   priority: 'medium',
-  current_todo: { id: 'e2e-floating-todo', topic_id: 'e2e-floating-topic', title: '检查详情页浮层', notes: '', due_date: null, is_current: 1, current_started_at: '2026-08-25T00:00:00.000Z', completed_at: null, sort_order: 1, created_at: '2026-08-25T00:00:00.000Z', updated_at: '2026-08-25T00:00:00.000Z' },
+  current_todo: { id: 'e2e-floating-todo', topic_id: 'e2e-floating-topic', title: '检查详情页浮层', is_current: 1, current_started_at: '2026-08-25T00:00:00.000Z', completed_at: null, sort_order: 1, created_at: '2026-08-25T00:00:00.000Z', updated_at: '2026-08-25T00:00:00.000Z' },
   score_character: 2,
   score_conflict: 2,
   score_contrast: 2,

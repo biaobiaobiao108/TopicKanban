@@ -13,7 +13,7 @@ describe('exportSingleTopicMarkdown utility', () => {
     status: 'scripting',
     priority: 'high',
     current_todo: {
-      id: 'todo-demo', topic_id: 'topic-demo', title: '撰写第三幕反转文案', notes: '', due_date: null,
+      id: 'todo-demo', topic_id: 'topic-demo', title: '撰写第三幕反转文案',
       is_current: 1, current_started_at: '2026-08-20T10:00:00.000Z', completed_at: null,
       sort_order: 1, created_at: '2026-08-20T10:00:00.000Z', updated_at: '2026-08-20T10:00:00.000Z',
     },

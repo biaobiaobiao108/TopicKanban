@@ -10,8 +10,6 @@ function todoRowToRecord(row: TopicTodo): TopicTodo {
   return {
     ...row,
     is_current: Number(row.is_current) === 1 ? 1 : 0,
-    notes: row.notes || '',
-    due_date: row.due_date || null,
     current_started_at: row.current_started_at || null,
     completed_at: row.completed_at || null,
     sort_order: Number(row.sort_order || 0),
@@ -50,10 +48,10 @@ export async function loadCurrentTodosByTopicIds(
 
 export function topicTodoStatement(db: SqliteDatabase, todo: TopicTodo): SqlitePreparedStatement {
   return bind(db, `INSERT INTO topic_todos (
-    id, topic_id, title, notes, due_date, is_current, current_started_at,
+    id, topic_id, title, is_current, current_started_at,
     completed_at, sort_order, created_at, updated_at
-  ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`, [
-    todo.id, todo.topic_id, todo.title, todo.notes, todo.due_date ?? null,
+  ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`, [
+    todo.id, todo.topic_id, todo.title,
     todo.is_current, todo.current_started_at ?? null, todo.completed_at ?? null,
     todo.sort_order, todo.created_at, todo.updated_at,
   ]);
@@ -94,11 +92,11 @@ export async function insertTopicTodo(db: SqliteDatabase, todo: TopicTodo): Prom
 export async function updateTopicTodo(
   db: SqliteDatabase,
   id: string,
-  body: Pick<Partial<TopicTodo>, 'title' | 'notes' | 'due_date'>
+  body: Pick<Partial<TopicTodo>, 'title'>
 ): Promise<TopicTodoMutationResult> {
   const existing = await loadTodo(db, id);
   if (!existing) throw new TopicTodoNotFoundError('Todo not found');
-  const fields = ['title', 'notes', 'due_date'].filter((field) => Object.prototype.hasOwnProperty.call(body, field));
+  const fields = ['title'].filter((field) => Object.prototype.hasOwnProperty.call(body, field));
   const now = new Date().toISOString();
   const statements: SqlitePreparedStatement[] = [];
   if (fields.length > 0) {

@@ -31,21 +31,21 @@ describe('Topic Todo API', () => {
   it('supports CRUD, ordering, unique current action and automatic promotion', async () => {
     const topicResponse = await app.request('/api/topics', {
       method: 'POST', headers, body: JSON.stringify({
-        title: 'Todo 流程选题', initial_todo: { title: '先看原始资料', due_date: '2026-09-03' },
+        title: 'Todo 流程选题', initial_todo: { title: '先看原始资料' },
       }),
     });
     expect(topicResponse.status).toBe(201);
     const topic = await topicResponse.json() as { id: string; current_todo?: { title: string } };
     expect(topic.current_todo?.title).toBe('先看原始资料');
 
-    const create = async (title: string, notes = '') => {
+    const create = async (title: string) => {
       const response = await app.request(`/api/topics/${topic.id}/todos`, {
-        method: 'POST', headers, body: JSON.stringify({ title, notes }),
+        method: 'POST', headers, body: JSON.stringify({ title }),
       });
       expect(response.status).toBe(201);
       return await response.json() as { todos: Array<{ id: string; title: string; is_current: number }> };
     };
-    const secondResult = await create('整理关键时间线', '找出三个反转节点');
+    const secondResult = await create('整理关键时间线');
     const thirdResult = await create('写出开场段落');
     const initialTodos = secondResult.todos;
     const firstId = initialTodos.find((todo) => todo.title === '先看原始资料')!.id;
@@ -62,10 +62,10 @@ describe('Topic Todo API', () => {
     expect((await currentResponse.json() as { topic: { current_todo?: { id: string } } }).topic.current_todo?.id).toBe(secondId);
 
     const updateResponse = await app.request(`/api/todos/${secondId}`, {
-      method: 'PATCH', headers, body: JSON.stringify({ title: '整理关键时间线（已更新）', due_date: '2026-09-04' }),
+      method: 'PATCH', headers, body: JSON.stringify({ title: '整理关键时间线（已更新）' }),
     });
     expect(updateResponse.status).toBe(200);
-    expect((await updateResponse.json() as { todos: Array<{ id: string; title: string; due_date: string }> }).todos.find((todo) => todo.id === secondId)).toMatchObject({ title: '整理关键时间线（已更新）', due_date: '2026-09-04' });
+    expect((await updateResponse.json() as { todos: Array<{ id: string; title: string }> }).todos.find((todo) => todo.id === secondId)).toMatchObject({ title: '整理关键时间线（已更新）' });
 
     const completeCurrent = await app.request(`/api/todos/${secondId}/complete`, { method: 'POST', headers });
     expect(completeCurrent.status).toBe(200);
@@ -81,10 +81,10 @@ describe('Topic Todo API', () => {
     const deleteCurrent = await app.request(`/api/todos/${thirdId}`, { method: 'DELETE', headers });
     expect((await deleteCurrent.json() as { topic: { current_todo?: { id: string } } }).topic.current_todo?.id).toBe(firstId);
 
-    const invalidDate = await app.request(`/api/topics/${topic.id}/todos`, {
-      method: 'POST', headers, body: JSON.stringify({ title: '非法日期', due_date: '2026-02-31' }),
+    const emptyTitle = await app.request(`/api/topics/${topic.id}/todos`, {
+      method: 'POST', headers, body: JSON.stringify({ title: '   ' }),
     });
-    expect(invalidDate.status).toBe(400);
+    expect(emptyTitle.status).toBe(400);
   });
 
   it('prevents two current pending Todos at the database level and cascades with topic deletion', async () => {
