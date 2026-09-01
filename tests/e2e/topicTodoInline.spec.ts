@@ -54,6 +54,7 @@ async function mockWorkspace(page: Page, options: { withCurrentTodo?: boolean } 
   const withCurrentTodo = options.withCurrentTodo ?? true;
   let todos = withCurrentTodo ? [currentTodo, makeTodo('e2e-inline-two', '整理第二条', 2), makeTodo('e2e-inline-three', '整理第三条', 3)] : [];
   let currentTopic = { ...topic };
+  const settings = { reading_speed: 280, theme: 'light', stale_action_days: 5, default_share_ttl_days: 3, voiceover_cues: [] };
   const normalizeTodos = () => {
     const ordered = [
       ...todos.filter((todo) => !todo.completed_at).sort((a, b) => a.sort_order - b.sort_order),
@@ -76,9 +77,12 @@ async function mockWorkspace(page: Page, options: { withCurrentTodo?: boolean } 
       contentType: 'application/json',
       body: JSON.stringify({
         topics: [getTopic()], people: [], relationships: [], published: [], tags: [],
-        settings: { reading_speed: 280, theme: 'light', stale_action_days: 5, default_share_ttl_days: 3, voiceover_cues: [] },
+        settings,
       }),
     });
+  });
+  await page.route('**/api/settings', async (route) => {
+    await route.fulfill({ contentType: 'application/json', body: JSON.stringify(settings) });
   });
   await page.route('**/api/today/focus', async (route) => {
     await route.fulfill({ contentType: 'application/json', body: JSON.stringify({ topics: [getTopic()], total_active: 1 }) });
@@ -176,19 +180,33 @@ test('执行清单支持连续内联创建、标题编辑和紧凑布局', async
   await expect(page.locator('textarea')).toHaveCount(0);
   await expect(page.getByText('截止日期', { exact: true })).toHaveCount(0);
 
+  const composerShell = page.getByTestId('todo-composer-shell');
+  const composerShellBeforeFocus = await composerShell.evaluate((element) => {
+    const style = getComputedStyle(element);
+    return { borderStyle: style.borderStyle, borderWidth: style.borderWidth, boxShadow: style.boxShadow, outlineStyle: style.outlineStyle, backgroundColor: style.backgroundColor };
+  });
+  expect(composerShellBeforeFocus).toEqual(expect.objectContaining({ borderStyle: 'solid', borderWidth: '1px', boxShadow: 'none', outlineStyle: 'none' }));
+  const composerBeforeFocusBox = await composerShell.boundingBox();
+  expect(composerBeforeFocusBox).not.toBeNull();
+  await expect(composer).toBeEnabled();
   await composer.click();
+  await expect(composer).toBeFocused();
   const composerFocusStyle = await composer.evaluate((element) => {
     const style = getComputedStyle(element);
     return { borderStyle: style.borderStyle, borderWidth: style.borderWidth, boxShadow: style.boxShadow, outlineStyle: style.outlineStyle };
   });
   expect(composerFocusStyle).toEqual({ borderStyle: 'none', borderWidth: '0px', boxShadow: 'none', outlineStyle: 'none' });
-  const composerShell = page.getByTestId('todo-composer-shell');
   const composerShellFocusStyle = await composerShell.evaluate((element) => {
     const style = getComputedStyle(element);
-    return { borderStyle: style.borderStyle, boxShadow: style.boxShadow };
+    return { borderStyle: style.borderStyle, borderWidth: style.borderWidth, borderTopColor: style.borderTopColor, borderBottomColor: style.borderBottomColor, boxShadow: style.boxShadow, outlineStyle: style.outlineStyle };
   });
-  expect(composerShellFocusStyle.borderStyle).toBe('dashed');
-  expect(composerShellFocusStyle.boxShadow).toContain('inset');
+  expect(composerShellFocusStyle).toEqual(expect.objectContaining({ borderStyle: 'solid', borderWidth: '1px', boxShadow: 'none', outlineStyle: 'none' }));
+  expect(composerShellFocusStyle.borderBottomColor).not.toBe('transparent');
+  expect(composerShellFocusStyle.backgroundColor).not.toBe(composerShellBeforeFocus.backgroundColor);
+  const composerFocusedBox = await composerShell.boundingBox();
+  expect(composerFocusedBox).not.toBeNull();
+  expect(composerFocusedBox!.width).toBeCloseTo(composerBeforeFocusBox!.width, 0);
+  expect(composerFocusedBox!.height).toBeCloseTo(composerBeforeFocusBox!.height, 0);
 
   await page.keyboard.press('Tab');
   await page.keyboard.press('Shift+Tab');
@@ -226,7 +244,7 @@ test('执行清单支持连续内联创建、标题编辑和紧凑布局', async
   });
   expect(editorFocusStyle).toEqual({ borderStyle: 'none', borderWidth: '0px', boxShadow: 'none', outlineStyle: 'none' });
   const editorShell = editRow.getByTestId('todo-editor-shell');
-  await expect(editorShell).toHaveCSS('box-shadow', /inset/);
+  await expect(editorShell).toHaveCSS('box-shadow', 'none');
   await expect(editorShell).toHaveCSS('outline-style', 'none');
   await editor.fill('第二条已修改');
   await editor.press('Enter');
@@ -262,7 +280,11 @@ test('执行清单支持连续内联创建、标题编辑和紧凑布局', async
   });
   expect(currentRowStyle.borderInlineStartWidth).toBe('1px');
   expect(currentRowStyle.boxShadow).toBe('none');
-  await page.evaluate(() => document.documentElement.classList.add('dark'));
+  await page.evaluate(() => {
+    const root = document.documentElement;
+    root.classList.remove('theme-warm-paper', 'theme-nordic-frost', 'theme-parisian-dawn', 'theme-midnight-obsidian', 'theme-kyoto-zen');
+    root.classList.add('dark');
+  });
   const pendingRow = page.locator('[data-testid="todo-row"][data-todo-id="e2e-inline-two"]');
   await expect(pendingRow).toHaveCSS('background-color', 'rgb(28, 25, 23)');
   await currentCheckbox.click();
