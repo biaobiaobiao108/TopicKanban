@@ -4,9 +4,9 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <meta name="referrer" content="no-referrer" />
-  <title>选题生产工作台 (Topic Kanban Studio) - B站叙事类视频创作者的专属生产力引擎</title>
-  <meta name="description" content="面向 Bilibili 叙事类视频（互联网人物、网红主播、荒诞事件、社会纪实）创作者量身打造的专属选题与文案生产工作台。围绕「下一步行动治理」与「起承转合四幕叙事」，全流程覆盖线索收集、素材核验、故事大纲、文案写作、演播提词与 5D 复盘。" />
-  <meta name="keywords" content="选题工作台,B站创作者,UP主生产力,叙事视频,文案写作,提词器,5D故事评估,四幕叙事,Bun,SQLite,Docker部署" />
+  <title>选题生产工作台 (Topic Kanban Studio) - B站叙事视频创作者的选题与文案工作台</title>
+  <meta name="description" content="面向 Bilibili 叙事类视频创作者的选题与文案生产工作台。通过选题看板、执行清单、今日聚焦、资料核验、四幕叙事、文案写作、演播提词、发布包与成片复盘，帮助创作者持续推进每一个故事。" />
+  <meta name="keywords" content="选题工作台,B站创作者,UP主生产力,叙事视频,执行清单,当前行动,选题看板,选题日历,文案写作,提词器,四幕叙事,发布包,Bun,SQLite,Docker部署" />
   
   <!-- Favicon -->
   <link rel="icon" type="image/png" href="./icon.png" />
@@ -274,7 +274,7 @@
       <!-- Desktop Nav Links -->
       <nav class="hidden md:flex items-center gap-6 text-sm font-medium text-stone-600 dark:text-stone-300">
         <a href="#features" class="hover:text-rose-600 dark:hover:text-rose-400 transition-colors">核心引擎</a>
-        <a href="#story-dial" class="hover:text-rose-600 dark:hover:text-rose-400 transition-colors">5D 诊断罗盘</a>
+        <a href="#story-dial" class="hover:text-rose-600 dark:hover:text-rose-400 transition-colors">故事评分参考</a>
         <a href="#narrative" class="hover:text-rose-600 dark:hover:text-rose-400 transition-colors">起承转合蓝图</a>
         <a href="#teleprompter" class="hover:text-rose-600 dark:hover:text-rose-400 transition-colors">录音提词器</a>
         <a href="#deployment" class="hover:text-rose-600 dark:hover:text-rose-400 transition-colors">部署运行</a>
@@ -292,7 +292,7 @@
         <button onclick="openSearchModal()" class="hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-xl border border-stone-200/80 dark:border-stone-800 bg-stone-100/70 dark:bg-stone-900/70 text-stone-500 dark:text-stone-400 text-xs hover:border-stone-300 dark:hover:border-stone-700 hover:scale-105 active:scale-95 transition-all">
           <i data-lucide="search" class="w-3.5 h-3.5"></i>
           <span>指令面板</span>
-          <kbd class="px-1.5 py-0.5 text-[10px] font-mono rounded bg-white dark:bg-stone-800 border border-stone-200 dark:border-stone-700 text-stone-500 shadow-2xs">Ctrl P</kbd>
+          <kbd class="px-1.5 py-0.5 text-[10px] font-mono rounded bg-white dark:bg-stone-800 border border-stone-200 dark:border-stone-700 text-stone-500 shadow-2xs">Ctrl /</kbd>
         </button>
 
         <!-- GitHub Repo CTA -->
@@ -342,7 +342,7 @@
 
       <!-- Subtitle -->
       <p class="mt-6 text-base sm:text-lg lg:text-xl text-stone-600 dark:text-stone-400 max-w-3xl mx-auto leading-relaxed scroll-reveal delay-150">
-        并非平庸的通用看板。系统围绕 <span class="font-bold text-stone-900 dark:text-stone-100 underline decoration-rose-500/50 decoration-2">唯一最该推进的「下一步行动」</span> 与 <span class="font-bold text-stone-900 dark:text-stone-100 underline decoration-rose-500/50 decoration-2">5 维故事评估罗盘</span>，打通线索核验、四幕大纲、分段写作、演播提词与成片复盘全生命周期。
+        并非平庸的通用看板。系统围绕 <span class="font-bold text-stone-900 dark:text-stone-100 underline decoration-rose-500/50 decoration-2">执行清单首位的「当前行动」</span> 与 <span class="font-bold text-stone-900 dark:text-stone-100 underline decoration-rose-500/50 decoration-2">起承转合叙事引擎</span>，打通线索核验、故事结构、分段写作、演播提词、发布与成片复盘全生命周期。
       </p>
 
       <!-- CTA Buttons -->
@@ -374,8 +374,8 @@
           <div class="text-xs text-stone-500 dark:text-stone-400 mt-0.5 font-medium">客户端直连零风控拦截</div>
         </div>
         <div class="tilt-card p-4 rounded-2xl border border-stone-200/70 dark:border-stone-800 bg-white/70 dark:bg-stone-900/70 backdrop-blur-xs shadow-2xs hover:shadow-card">
-          <div class="text-2xl font-black text-stone-900 dark:text-stone-100">5 维罗盘</div>
-          <div class="text-xs text-stone-500 dark:text-stone-400 mt-0.5 font-medium">故事力智能诊断定位</div>
+          <div class="text-2xl font-black text-stone-900 dark:text-stone-100">执行清单</div>
+          <div class="text-xs text-stone-500 dark:text-stone-400 mt-0.5 font-medium">首位待办就是当前行动</div>
         </div>
         <div class="tilt-card p-4 rounded-2xl border border-stone-200/70 dark:border-stone-800 bg-white/70 dark:bg-stone-900/70 backdrop-blur-xs shadow-2xs hover:shadow-card">
           <div class="text-2xl font-black text-rose-600 dark:text-rose-400">&lt; 30 ms</div>
@@ -429,7 +429,7 @@
               <div class="tilt-card p-3.5 rounded-xl border border-stone-200/80 dark:border-stone-800 bg-white dark:bg-stone-900 shadow-2xs hover:shadow-card hover:-translate-y-1 transition-all duration-200 cursor-pointer group">
                 <div class="flex items-center justify-between text-[11px] text-stone-500 mb-1.5">
                   <span class="px-2 py-0.5 rounded-md bg-amber-500/10 text-amber-700 dark:text-amber-300 font-semibold">#荒诞发家史</span>
-                  <span class="font-mono">5D: 68分</span>
+                  <span class="font-mono">评分参考: 68</span>
                 </div>
                 <h4 class="text-xs font-bold text-stone-900 dark:text-stone-100 group-hover:text-rose-600 transition-colors line-clamp-2 leading-snug">
                   从顶流主播到全网退网：某千万网红的 7 次离谱公关反转
@@ -437,7 +437,7 @@
                 <div class="mt-2.5 pt-2 border-t border-stone-100 dark:border-stone-800/80 flex items-center justify-between text-[11px]">
                   <span class="text-rose-600 dark:text-rose-400 font-medium flex items-center gap-1">
                     <i data-lucide="arrow-right-circle" class="w-3 h-3"></i>
-                    下一步: 核验第3次直播录屏
+                    当前行动: 核验第 3 次直播录屏
                   </span>
                 </div>
               </div>
@@ -446,7 +446,7 @@
               <div class="tilt-card p-3.5 rounded-xl border border-stone-200/80 dark:border-stone-800 bg-white dark:bg-stone-900 shadow-2xs hover:shadow-card hover:-translate-y-1 transition-all duration-200 cursor-pointer group">
                 <div class="flex items-center justify-between text-[11px] text-stone-500 mb-1.5">
                   <span class="px-2 py-0.5 rounded-md bg-purple-500/10 text-purple-700 dark:text-purple-300 font-semibold">#社会纪实</span>
-                  <span class="font-mono">5D: 74分</span>
+                  <span class="font-mono">评分参考: 74</span>
                 </div>
                 <h4 class="text-xs font-bold text-stone-900 dark:text-stone-100 group-hover:text-rose-600 transition-colors line-clamp-2 leading-snug">
                   鹤岗买房热退潮后：那些留下来的人现在怎样了？
@@ -454,7 +454,7 @@
                 <div class="mt-2.5 pt-2 border-t border-stone-100 dark:border-stone-800/80 flex items-center justify-between text-[11px]">
                   <span class="text-stone-500 font-medium flex items-center gap-1">
                     <i data-lucide="clock" class="w-3 h-3"></i>
-                    明日再议 (已推迟)
+                    待办 3 项 · 可拖动排序
                   </span>
                 </div>
               </div>
@@ -474,7 +474,7 @@
               <div class="tilt-card p-3.5 rounded-xl border-2 border-rose-500/80 bg-white dark:bg-stone-900 shadow-md shadow-rose-500/10 hover:shadow-card hover:-translate-y-1 transition-all duration-200 cursor-pointer group">
                 <div class="flex items-center justify-between text-[11px] text-stone-500 mb-1.5">
                   <span class="px-2 py-0.5 rounded-md bg-rose-500/10 text-rose-700 dark:text-rose-300 font-bold">#互联网人物</span>
-                  <span class="font-mono font-bold text-rose-600 dark:text-rose-400">5D: 88分</span>
+                  <span class="font-mono font-bold text-rose-600 dark:text-rose-400">评分参考: 88</span>
                 </div>
                 <h4 class="text-xs font-bold text-stone-900 dark:text-stone-100 group-hover:text-rose-600 transition-colors leading-snug">
                   假带货真洗钱？揭秘某跨境电商大佬的“海外神话”破灭记
@@ -487,7 +487,7 @@
                 <div class="mt-2.5 pt-2 border-t border-rose-100 dark:border-rose-950/50 flex items-center justify-between text-[11px]">
                   <span class="text-rose-600 dark:text-rose-400 font-bold flex items-center gap-1">
                     <i data-lucide="zap" class="w-3 h-3 text-rose-500 animate-bounce"></i>
-                    下一步: 提炼起承转合四幕大纲
+                    当前行动: 提炼起承转合四幕大纲
                   </span>
                 </div>
               </div>
@@ -515,7 +515,7 @@
                 <div class="mt-2.5 pt-2 border-t border-stone-100 dark:border-stone-800/80 flex items-center justify-between text-[11px]">
                   <span class="text-rose-600 dark:text-rose-400 font-medium flex items-center gap-1">
                     <i data-lucide="edit-3" class="w-3 h-3"></i>
-                    下一步: 打标第三幕演播气口
+                    当前行动: 打标第三幕演播气口
                   </span>
                 </div>
               </div>
@@ -543,7 +543,7 @@
                 <div class="mt-2.5 pt-2 border-t border-stone-100 dark:border-stone-800/80 flex items-center justify-between text-[11px]">
                   <span class="text-emerald-600 dark:text-emerald-400 font-medium flex items-center gap-1">
                     <i data-lucide="mic" class="w-3 h-3"></i>
-                    下一步: 录制配音与 B-Roll 标记
+                    当前行动: 录制配音与 B-Roll 标记
                   </span>
                 </div>
               </div>
@@ -559,24 +559,24 @@
       <div class="text-center max-w-3xl mx-auto mb-16 scroll-reveal">
         <span class="text-xs font-bold uppercase tracking-wider text-rose-600 dark:text-rose-400">Domain-Driven Architecture</span>
         <h2 class="text-3xl sm:text-4xl font-black text-stone-900 dark:text-stone-100 mt-2">
-          为叙事视频工业化定制的 9 大生产引擎
+          为叙事视频持续生产定制的 9 大生产引擎
         </h2>
         <p class="mt-4 text-stone-600 dark:text-stone-400 text-sm sm:text-base">
-          拒绝泛而不精的通用工具。从故事评估、四幕破题到演播提词，每一个功能都直接解决长视频创作者的生产瓶颈。
+          拒绝泛而不精的通用工具。从行动推进、资料核验到演播提词，每一个功能都服务于“把故事做完”。
         </p>
       </div>
 
       <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
 
-        <!-- 1. Next Action Engine -->
+        <!-- 1. Execution Checklist & Action Focus -->
         <div class="tilt-card scroll-reveal delay-75 p-6 rounded-2xl border border-stone-200/80 dark:border-stone-800 bg-white dark:bg-stone-900/80 shadow-2xs hover:shadow-card hover:-translate-y-1.5 transition-all duration-300 flex flex-col justify-between">
           <div>
             <div class="w-12 h-12 rounded-xl bg-rose-500/10 text-rose-600 dark:text-rose-400 flex items-center justify-center mb-4 transition-transform group-hover:scale-110">
               <i data-lucide="target" class="w-6 h-6"></i>
             </div>
-            <h3 class="text-lg font-bold text-stone-900 dark:text-stone-100 mb-2">1. 下一步行动治理 (Next Action)</h3>
+            <h3 class="text-lg font-bold text-stone-900 dark:text-stone-100 mb-2">1. 执行清单与当前行动</h3>
             <p class="text-xs text-stone-600 dark:text-stone-400 leading-relaxed">
-              每个选题强制绑定当前唯一推进动作；支持稍后/跨天自动唤醒（UTC+8），自定义 3/5/7 天停滞警报标红，彻底斩断拖延。
+              每个选题拥有独立执行清单。支持行内连续新增、回车创建、编辑、完成与拖动排序；首个未完成待办自动成为当前行动，完成后顺序推进。
             </p>
           </div>
           <div class="mt-4 pt-4 border-t border-stone-100 dark:border-stone-800 text-[11px] text-rose-600 dark:text-rose-400 font-semibold flex items-center gap-1">
@@ -602,15 +602,15 @@
           </div>
         </div>
 
-        <!-- 3. 5D Diagnostic Dial -->
+        <!-- 3. Story Score Reference -->
         <div class="tilt-card scroll-reveal delay-200 p-6 rounded-2xl border border-stone-200/80 dark:border-stone-800 bg-white dark:bg-stone-900/80 shadow-2xs hover:shadow-card hover:-translate-y-1.5 transition-all duration-300 flex flex-col justify-between">
           <div>
             <div class="w-12 h-12 rounded-xl bg-purple-500/10 text-purple-600 dark:text-purple-400 flex items-center justify-center mb-4">
               <i data-lucide="compass" class="w-6 h-6"></i>
             </div>
-            <h3 class="text-lg font-bold text-stone-900 dark:text-stone-100 mb-2">3. 5 维故事力评估罗盘</h3>
+            <h3 class="text-lg font-bold text-stone-900 dark:text-stone-100 mb-2">3. 5 维故事评分参考</h3>
             <p class="text-xs text-stone-600 dark:text-stone-400 leading-relaxed">
-              人物张力、戏剧冲突、荒诞反差、素材完整度、主线成立度；0~100 分综合力，智能定位内容短板并一键生成突破行动。
+              人物张力、戏剧冲突、荒诞反差、素材完整度、主线成立度等评分字段，用于看板排序、标签统计与发布复盘分析，辅助判断故事准备度。
             </p>
           </div>
           <div class="mt-4 pt-4 border-t border-stone-100 dark:border-stone-800 text-[11px] text-purple-600 dark:text-purple-400 font-semibold flex items-center gap-1">
@@ -710,9 +710,9 @@
             <div class="w-12 h-12 rounded-xl bg-rose-500/10 text-rose-600 dark:text-rose-400 flex items-center justify-center mb-4">
               <i data-lucide="bar-chart-3" class="w-6 h-6"></i>
             </div>
-            <h3 class="text-lg font-bold text-stone-900 dark:text-stone-100 mb-2">9. 成片复盘与 5D 表现关联</h3>
+            <h3 class="text-lg font-bold text-stone-900 dark:text-stone-100 mb-2">9. 成片复盘与故事评分关联</h3>
             <p class="text-xs text-stone-600 dark:text-stone-400 leading-relaxed">
-              直连 B 站 API 实时同步播放量、投币与弹幕；5D 评分与成片实际表现双柱关联图，科学提炼爆款因子。
+              记录 BVID 与成片指标，关联故事评分、播放与互动表现，帮助复盘哪些选题判断真正转化成了内容结果。
             </p>
           </div>
           <div class="mt-4 pt-4 border-t border-stone-100 dark:border-stone-800 text-[11px] text-rose-600 dark:text-rose-400 font-semibold flex items-center gap-1">
@@ -724,20 +724,20 @@
       </div>
     </section>
 
-    <!-- INTERACTIVE SECTION 1: 5D STORY DIAGNOSTIC DIAL -->
+    <!-- INTERACTIVE SECTION 1: 5D STORY SCORE REFERENCE -->
     <section id="story-dial" class="py-16 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto bg-stone-100/60 dark:bg-stone-900/40 rounded-3xl border border-stone-200/80 dark:border-stone-800/80 my-12 scroll-reveal">
       <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
         <!-- Left: Interactive Controls -->
         <div class="lg:col-span-6 space-y-5">
           <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-rose-500/10 text-rose-600 dark:text-rose-400 text-xs font-bold">
             <i data-lucide="sliders" class="w-3.5 h-3.5"></i>
-            <span>实时交互诊断沙盒</span>
+            <span>实时交互评分沙盒</span>
           </div>
           <h2 class="text-2xl sm:text-3xl font-black text-stone-900 dark:text-stone-100">
-            5D 故事评估罗盘：拖动滑块体验智能诊断
+            5D 故事评分参考：拖动滑块查看叙事短板
           </h2>
           <p class="text-xs sm:text-sm text-stone-600 dark:text-stone-400 leading-relaxed">
-            不同维度权重精准拟合叙事短视频爆款规律。系统不仅量化故事力，更会自动定位薄弱项，直接推导突破性下一步行动。
+            调整五个维度，快速理解综合分数如何变化。评分用于辅助看板排序与成片复盘，不替代执行清单，也不会自动覆盖当前行动。
           </p>
 
           <!-- Sliders -->
@@ -793,7 +793,7 @@
         <div class="lg:col-span-6">
           <div class="tilt-card p-6 sm:p-8 rounded-2xl border border-stone-200/90 dark:border-stone-800 bg-white dark:bg-stone-900 shadow-card">
             <div class="flex items-center justify-between pb-4 border-b border-stone-100 dark:border-stone-800">
-              <span class="text-xs font-bold text-stone-500 uppercase tracking-wider">诊断报告输出</span>
+              <span class="text-xs font-bold text-stone-500 uppercase tracking-wider">评分摘要</span>
               <span id="rating-badge" class="px-2.5 py-1 rounded-full text-xs font-black bg-rose-500/10 text-rose-600 dark:text-rose-400 transition-all duration-300">S级 头部爆款潜力</span>
             </div>
 
@@ -803,7 +803,7 @@
               <span class="text-stone-400 text-xl font-bold font-mono">/ 100</span>
             </div>
 
-            <!-- Diagnostic Details -->
+            <!-- Score Details -->
             <div class="space-y-3 bg-stone-50 dark:bg-stone-850 p-4 rounded-xl border border-stone-200/60 dark:border-stone-800 text-xs">
               <div class="flex items-start gap-2">
                 <i data-lucide="check-circle-2" class="w-4 h-4 text-emerald-500 shrink-0 mt-0.5"></i>
@@ -816,21 +816,19 @@
               <div class="flex items-start gap-2">
                 <i data-lucide="alert-triangle" class="w-4 h-4 text-amber-500 shrink-0 mt-0.5"></i>
                 <div>
-                  <span class="font-bold text-stone-900 dark:text-stone-100">当前瓶颈：</span>
+                  <span class="font-bold text-stone-900 dark:text-stone-100">待补强项：</span>
                   <span id="diag-weakness" class="text-stone-600 dark:text-stone-300 transition-all duration-300">素材完整度尚存短板，关键证据链可能缺乏一手视频录屏佐证。</span>
                 </div>
               </div>
             </div>
 
-            <!-- Auto-generated Next Action -->
+            <!-- Score interpretation -->
             <div class="mt-4 p-3.5 rounded-xl border border-rose-200 dark:border-rose-900/60 bg-rose-50/70 dark:bg-rose-950/30 flex items-center justify-between">
               <div class="flex items-center gap-2 text-xs">
                 <i data-lucide="sparkles" class="w-4 h-4 text-rose-600 dark:text-rose-400 shrink-0 animate-pulse"></i>
-                <span class="text-stone-700 dark:text-stone-200 font-medium">推荐下一步行动：<b id="diag-action" class="text-rose-600 dark:text-rose-400 font-bold transition-all">通过客户端 JSONP 补齐B站一手采访视频</b></span>
+                <span class="text-stone-700 dark:text-stone-200 font-medium">建议补强方向：<b id="diag-action" class="text-rose-600 dark:text-rose-400 font-bold transition-all">通过客户端 JSONP 补齐 B 站一手采访视频</b></span>
               </div>
-              <button onclick="alert('已将该建议自动注入当前选题的「下一步行动」！')" class="px-2.5 py-1 rounded-lg bg-rose-600 hover:bg-rose-700 text-white font-bold text-[10px] shrink-0 active:scale-95 transition-all shadow-2xs hover:scale-105">
-                一键采纳
-              </button>
+              <span class="shrink-0 rounded-lg bg-white/70 px-2.5 py-1 text-[10px] font-bold text-rose-700 dark:bg-stone-900/50 dark:text-rose-300">回到执行清单拆分</span>
             </div>
           </div>
         </div>
@@ -876,7 +874,7 @@
           <div class="mt-8 pt-6 border-t border-stone-100 dark:border-stone-800 flex flex-wrap items-center justify-between gap-4">
             <div class="text-xs text-stone-500 dark:text-stone-400 flex items-center gap-2">
               <i data-lucide="refresh-cw" class="w-3.5 h-3.5 text-rose-500 animate-spin" style="animation-duration: 4s;"></i>
-              <span>支持 800ms 防抖实时暂存与 Markdown 双向转换</span>
+              <span>支持 1.5s 防抖本地暂存与 Markdown 双向转换</span>
             </div>
             <button onclick="simulateInject()" class="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-stone-900 hover:bg-stone-800 dark:bg-stone-100 dark:hover:bg-white text-white dark:text-stone-900 font-bold text-xs shadow-2xs transition-all hover:scale-105 active:scale-95">
               <i data-lucide="arrow-down-to-line" class="w-4 h-4 text-rose-500"></i>
