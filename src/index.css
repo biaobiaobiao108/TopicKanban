@@ -1964,14 +1964,16 @@ html[class*="theme-"] input.command-palette-input[data-keyboard-focused="true"]:
   box-shadow: none;
 }
 
-.todo-composer-input::selection,
-.todo-inline-editor-input::selection,
-html[class*="theme-"] input.todo-composer-input::selection,
-html[class*="theme-"] input.todo-inline-editor-input::selection,
-html.dark input.todo-composer-input::selection,
-html.dark input.todo-inline-editor-input::selection {
-  color: var(--text-primary);
-  background-color: color-mix(in oklab, var(--todo-accent) 28%, var(--bg-surface));
+::selection,
+*::selection {
+  color: var(--text-primary) !important;
+  background-color: color-mix(in oklab, var(--todo-accent) 28%, var(--bg-surface)) !important;
+}
+
+::-moz-selection,
+*::-moz-selection {
+  color: var(--text-primary) !important;
+  background-color: color-mix(in oklab, var(--todo-accent) 28%, var(--bg-surface)) !important;
 }
 
 .todo-row-editing {

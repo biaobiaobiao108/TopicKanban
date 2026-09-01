@@ -191,6 +191,12 @@ test('执行清单支持连续内联创建、标题编辑和紧凑布局', async
   await expect(composer).toBeEnabled();
   await composer.click();
   await expect(composer).toBeFocused();
+  const globalSelectionStyle = await page.evaluate(() => {
+    const style = getComputedStyle(document.body, '::selection');
+    return { color: style.color, backgroundColor: style.backgroundColor };
+  });
+  expect(globalSelectionStyle.color).not.toBe('');
+  expect(globalSelectionStyle.backgroundColor).not.toBe('rgba(0, 0, 0, 0)');
   const composerFocusStyle = await composer.evaluate((element) => {
     const style = getComputedStyle(element);
     return { borderStyle: style.borderStyle, borderWidth: style.borderWidth, boxShadow: style.boxShadow, outlineStyle: style.outlineStyle };

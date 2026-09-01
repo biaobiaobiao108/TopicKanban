@@ -286,7 +286,7 @@ export const PublicReviewView: React.FC<PublicReviewViewProps> = ({ token: propT
   }
 
   return (
-    <div className="min-h-dvh bg-[#fcfbf9] dark:bg-[#0c0a09] text-stone-900 dark:text-stone-100 flex flex-col antialiased selection:bg-rose-100 dark:selection:bg-rose-950/60 selection:text-rose-900 dark:selection:text-rose-200 transition-colors">
+    <div className="min-h-dvh bg-[#fcfbf9] dark:bg-[#0c0a09] text-stone-900 dark:text-stone-100 flex flex-col antialiased transition-colors">
       {/* Top Floating Glass Header */}
       <header className="sticky top-0 z-30 bg-[#fcfbf9]/90 dark:bg-[#0c0a09]/90 backdrop-blur-md border-b border-stone-200/80 dark:border-stone-800/80 px-4 sm:px-8 py-3">
         <div className="max-w-5xl mx-auto flex items-center justify-between gap-4">
