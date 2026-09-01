@@ -201,7 +201,7 @@ test('执行清单支持连续内联创建、标题编辑和紧凑布局', async
     return { borderStyle: style.borderStyle, borderWidth: style.borderWidth, borderTopColor: style.borderTopColor, borderBottomColor: style.borderBottomColor, boxShadow: style.boxShadow, outlineStyle: style.outlineStyle };
   });
   expect(composerShellFocusStyle).toEqual(expect.objectContaining({ borderStyle: 'solid', borderWidth: '1px', boxShadow: 'none', outlineStyle: 'none' }));
-  expect(composerShellFocusStyle.borderBottomColor).not.toBe('transparent');
+  expect(composerShellFocusStyle.borderBottomColor).toBe(composerShellFocusStyle.borderTopColor);
   expect(composerShellFocusStyle.backgroundColor).not.toBe(composerShellBeforeFocus.backgroundColor);
   const composerFocusedBox = await composerShell.boundingBox();
   expect(composerFocusedBox).not.toBeNull();
@@ -247,6 +247,12 @@ test('执行清单支持连续内联创建、标题编辑和紧凑布局', async
   await expect(editorShell).toHaveCSS('box-shadow', 'none');
   await expect(editorShell).toHaveCSS('outline-style', 'none');
   await expect(editorShell).toHaveCSS('background-image', 'none');
+  const editorSelectionStyle = await editor.evaluate((element) => {
+    const style = getComputedStyle(element, '::selection');
+    return { color: style.color, backgroundColor: style.backgroundColor };
+  });
+  expect(editorSelectionStyle.color).not.toBe('');
+  expect(editorSelectionStyle.backgroundColor).not.toBe('rgba(0, 0, 0, 0)');
   await expect(editRow).toHaveClass(/todo-row-editing/);
   const editorRowStyle = await editRow.evaluate((element) => {
     const style = getComputedStyle(element);
