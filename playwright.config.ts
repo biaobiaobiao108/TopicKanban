@@ -7,7 +7,7 @@ export default defineConfig({
   fullyParallel: true,
   reporter: 'line',
   use: {
-    baseURL: 'http://localhost:3030',
+    baseURL: 'http://127.0.0.1:3030',
     trace: 'retain-on-failure',
     screenshot: 'only-on-failure',
   },
@@ -22,13 +22,13 @@ export default defineConfig({
   webServer: [
     {
       command: 'bun run dev:web',
-      url: 'http://localhost:3030',
+      url: 'http://127.0.0.1:3030',
       reuseExistingServer: true,
       timeout: 120_000,
     },
     {
       command: 'bun run dev:server',
-      url: 'http://localhost:8787/api/health',
+      url: 'http://127.0.0.1:8787/api/health',
       reuseExistingServer: true,
       timeout: 120_000,
     },

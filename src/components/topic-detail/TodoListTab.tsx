@@ -55,7 +55,7 @@ const InlineTodoComposer: React.FC<InlineTodoComposerProps> = ({ onCreate, disab
       if (await onCreate(nextTitle)) setTitle('');
     } finally {
       setIsSubmitting(false);
-      requestAnimationFrame(() => inputRef.current?.focus());
+      setTimeout(() => inputRef.current?.focus(), 0);
     }
   };
 

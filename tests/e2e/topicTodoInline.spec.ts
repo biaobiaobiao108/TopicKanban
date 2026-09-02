@@ -320,7 +320,7 @@ test('执行清单支持连续内联创建、标题编辑和紧凑布局', async
     root.classList.add('dark');
   });
   const pendingRow = page.locator('[data-testid="todo-row"][data-todo-id="e2e-inline-two"]');
-  await expect(pendingRow).toHaveCSS('background-color', 'rgb(28, 25, 23)');
+  await expect(pendingRow).toHaveCSS('background-color', /rgb\(28,\s*25,\s*23\)|oklch\(0\.216\s+0\.006\s+56\.043\)/);
   await currentCheckbox.click();
   await expect(page.getByRole('checkbox', { name: '撤销完成：确认当前行动' })).toBeChecked();
   await expect(page.locator('[data-testid="todo-row"][data-todo-id="e2e-inline-two"]')).toHaveAttribute('data-current', 'true');
