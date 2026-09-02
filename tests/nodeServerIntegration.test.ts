@@ -225,6 +225,20 @@ describe('Bun Server Integration (Local SQLite & API)', () => {
     expect(secondShareRes.status).toBe(200);
     expect(secondShareData.token).not.toBe(shareData.token);
 
+    const mismatchedDeleteRes = await app.request(`/api/topics/not-the-topic/share/${secondShareData.token}`, {
+      method: 'DELETE',
+      headers: { Authorization: `Bearer ${authToken}` },
+    });
+    expect(mismatchedDeleteRes.status).toBe(409);
+    expect((await app.request(`/api/public/share/${secondShareData.token}`)).status).toBe(200);
+
+    const validDeleteRes = await app.request(`/api/topics/${topic.id}/share/${secondShareData.token}`, {
+      method: 'DELETE',
+      headers: { Authorization: `Bearer ${authToken}` },
+    });
+    expect(validDeleteRes.status).toBe(200);
+    expect((await app.request(`/api/public/share/${secondShareData.token}`)).status).toBe(404);
+
     const invalidSourceRes = await app.request('/api/sources', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${authToken}` },
@@ -605,6 +619,23 @@ describe('Bun Server Integration (Local SQLite & API)', () => {
       body: JSON.stringify({ content: 'x'.repeat(70_000) }),
     });
     expect(dropRes.status).toBe(413);
+  });
+
+  it('uses the socket address for login rate limiting unless proxy headers are trusted', async () => {
+    const results: number[] = [];
+    for (let index = 0; index < 11; index += 1) {
+      const response = await app.fetch(new Request('http://localhost/api/auth/login', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-Forwarded-For': `198.51.100.${index + 1}`,
+        },
+        body: JSON.stringify({ password: 'wrong-password' }),
+      }), '127.0.0.1');
+      results.push(response.status);
+    }
+    expect(results.slice(0, 10)).toEqual(Array(10).fill(401));
+    expect(results[10]).toBe(429);
   });
 
   it('keeps the first active presence lease when another client reports', async () => {

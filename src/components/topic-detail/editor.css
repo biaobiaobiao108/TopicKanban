@@ -1,0 +1,208 @@
+@config "../../../tailwind.config.js";
+@import "tailwindcss/utilities.css" layer(utilities) source(none);
+@source "./";
+@source not inline("hidden");
+
+/* Rich-text editor and teleprompter styles are loaded with the detail editor route. */
+
+@keyframes floatInFromLeft {
+  from { transform: translate3d(-16px, 0, 0) scale(0.98); opacity: 0; }
+  to { transform: translate3d(0, 0, 0) scale(1); opacity: 1; }
+}
+
+@keyframes floatInFromRight {
+  from { transform: translate3d(16px, 0, 0) scale(0.98); opacity: 0; }
+  to { transform: translate3d(0, 0, 0) scale(1); opacity: 1; }
+}
+
+.script-outline-panel {
+  animation: floatInFromLeft 200ms cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  will-change: transform, opacity;
+}
+
+.script-reference-drawer {
+  animation: floatInFromRight 200ms cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  will-change: transform, opacity;
+}
+
+.script-editor-focus-mode .tiptap > * {
+  opacity: 0.3;
+  transition: opacity 320ms cubic-bezier(0.4, 0, 0.2, 1);
+  will-change: opacity;
+}
+
+.script-editor-focus-mode .tiptap > .is-focused-paragraph {
+  opacity: 1 !important;
+}
+
+.tiptap {
+  outline: none;
+  font-size: var(--script-editor-font-size, 16px);
+  line-height: var(--script-editor-line-height, 1.8);
+  color: #292524;
+}
+
+.tiptap p {
+  font-size: var(--script-editor-font-size, 16px) !important;
+  line-height: var(--script-editor-line-height, 1.8) !important;
+  margin-top: 0.6em;
+  margin-bottom: 0.6em;
+}
+
+html.dark .tiptap { color: #f5f5f4; }
+
+.tiptap p.is-editor-empty:first-child::before {
+  color: #a8a29e;
+  content: attr(data-placeholder);
+  float: left;
+  height: 0;
+  pointer-events: none;
+}
+
+html.dark .tiptap p.is-editor-empty:first-child::before { color: #57534e; }
+
+.tiptap h1 {
+  font-size: 1.625rem;
+  font-weight: 700;
+  line-height: 1.3;
+  margin-top: 1.5rem;
+  margin-bottom: 0.75rem;
+  color: #1c1917;
+  letter-spacing: -0.015em;
+}
+
+html.dark .tiptap h1 { color: #fafaf9; }
+
+.tiptap h2 {
+  font-size: 1.375rem;
+  font-weight: 600;
+  line-height: 1.35;
+  margin-top: 1.25rem;
+  margin-bottom: 0.5rem;
+  color: #292524;
+}
+
+html.dark .tiptap h2 { color: #f5f5f4; }
+
+.tiptap h3 {
+  font-size: 1.125rem;
+  font-weight: 600;
+  margin-top: 1rem;
+  margin-bottom: 0.25rem;
+  color: #44403c;
+}
+
+html.dark .tiptap h3 { color: #e7e5e4; }
+
+.tiptap p {
+  margin-top: 0.625rem;
+  margin-bottom: 0.625rem;
+}
+
+.tiptap blockquote {
+  border-left: 3px solid #e11d48;
+  margin-top: 1rem;
+  margin-bottom: 1rem;
+  font-style: italic;
+  color: #57534e;
+  background: #fff1f2/40;
+  border-radius: 0 0.375rem 0.375rem 0;
+  padding: 0.5rem 1rem;
+}
+
+html.dark .tiptap blockquote {
+  border-left-color: #f43f5e;
+  background: rgba(244, 63, 94, 0.08);
+  color: #e7e5e4;
+}
+
+.tiptap ul {
+  list-style-type: disc;
+  padding-left: 1.5rem;
+  margin-top: 0.5rem;
+  margin-bottom: 0.5rem;
+}
+
+.tiptap ol {
+  list-style-type: decimal;
+  padding-left: 1.5rem;
+  margin-top: 0.5rem;
+  margin-bottom: 0.5rem;
+}
+
+.tiptap hr {
+  border: none;
+  border-top: 1px solid #e7e5e4;
+  margin: 1.5rem 0;
+}
+
+html.dark .tiptap hr { border-top-color: #292524; }
+
+html.theme-warm-paper .tiptap { color: #2b2723; }
+html.theme-warm-paper .tiptap h1 { color: #6b5fb5; }
+html.theme-warm-paper .tiptap h2 { color: #327c94; }
+html.theme-warm-paper .tiptap h3 { color: #3b8ca7; }
+html.theme-warm-paper .tiptap blockquote {
+  border-left-color: #6b5fb5;
+  background: rgba(107, 95, 181, 0.06);
+  color: #5c554e;
+}
+html.theme-warm-paper .tiptap hr { border-top-color: #e3dbd0; }
+
+html.theme-nordic-frost .tiptap { color: #1a2424; }
+html.theme-nordic-frost .tiptap h1 { color: #2d7a64; }
+html.theme-nordic-frost .tiptap h2 { color: #0284c7; }
+html.theme-nordic-frost .tiptap h3 { color: #0f766e; }
+html.theme-nordic-frost .tiptap blockquote {
+  border-left-color: #2d7a64;
+  background: rgba(45, 122, 100, 0.07);
+  color: #1c3b32;
+}
+html.theme-nordic-frost .tiptap hr { border-top-color: #dce5e5; }
+
+html.theme-parisian-dawn .tiptap { color: #2b2520; }
+html.theme-parisian-dawn .tiptap h1 { color: #c84b5b; }
+html.theme-parisian-dawn .tiptap h2 { color: #b87e43; }
+html.theme-parisian-dawn .tiptap h3 { color: #8f5c2c; }
+html.theme-parisian-dawn .tiptap blockquote {
+  border-left-color: #c84b5b;
+  background: rgba(200, 75, 91, 0.06);
+  color: #5c4a45;
+}
+html.theme-parisian-dawn .tiptap hr { border-top-color: #ded7ce; }
+
+html.theme-midnight-obsidian .tiptap { color: #f1f5f9; }
+html.theme-midnight-obsidian .tiptap h1 { color: #38bdf8; }
+html.theme-midnight-obsidian .tiptap h2 { color: #a855f7; }
+html.theme-midnight-obsidian .tiptap h3 { color: #34d399; }
+html.theme-midnight-obsidian .tiptap blockquote {
+  border-left-color: #0ea5e9;
+  background: rgba(14, 165, 233, 0.1);
+  color: #cbd5e1;
+}
+html.theme-midnight-obsidian .tiptap hr { border-top-color: rgba(255, 255, 255, 0.1); }
+
+html.theme-kyoto-zen .tiptap { color: #232a24; }
+html.theme-kyoto-zen .tiptap h1 { color: #3d6b4f; }
+html.theme-kyoto-zen .tiptap h2 { color: #c2413b; }
+html.theme-kyoto-zen .tiptap h3 { color: #527d65; }
+html.theme-kyoto-zen .tiptap blockquote {
+  border-left-color: #3d6b4f;
+  background: rgba(61, 107, 79, 0.07);
+  color: #354a3e;
+}
+html.theme-kyoto-zen .tiptap hr { border-top-color: #dadfd5; }
+
+.teleprompter-modal-root { isolation: isolate; }
+
+.teleprompter-modal-root.is-dark header.teleprompter-header {
+  background-color: #141210 !important;
+  border-color: #292524 !important;
+  color: #f5f5f4 !important;
+}
+
+.teleprompter-modal-root.is-light header.teleprompter-header {
+  background-color: #fafaf9 !important;
+  border-color: #e7e5e4 !important;
+  color: #1c1917 !important;
+}

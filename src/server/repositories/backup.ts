@@ -155,10 +155,7 @@ export async function replaceAllData(db: SqliteDatabase, data: BackupData): Prom
   (data.commercial_deal_topics || []).forEach((relation) => statements.push(commercialDealTopicStatement(db, relation)));
   (data.commercial_deal_activities || []).forEach((activity) => statements.push(commercialDealActivityStatement(db, activity)));
 
-  const BATCH_CHUNK_SIZE = 50;
-  for (let i = 0; i < statements.length; i += BATCH_CHUNK_SIZE) {
-    await db.batch(statements.slice(i, i + BATCH_CHUNK_SIZE));
-  }
+  await db.batch(statements);
 }
 
 export async function exportAllData(db: SqliteDatabase, kvSettings?: AppSettings): Promise<BackupData> {

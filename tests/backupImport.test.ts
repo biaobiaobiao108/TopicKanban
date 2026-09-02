@@ -1,10 +1,15 @@
 import { describe, expect, it } from 'bun:test';
+import { Database } from 'bun:sqlite';
+import fs from 'node:fs';
+import path from 'node:path';
 import type { BackupData } from '../src/types';
 import {
   assertBackupImportWithinLimits,
   getBackupImportSummary,
   MAX_IMPORT_STATEMENTS,
+  replaceAllData,
 } from '../src/server/repositories/backup';
+import { SqliteDatabase } from '../src/server/sqlite';
 
 function createBackup(overrides: Partial<BackupData> = {}): BackupData {
   return {
@@ -54,5 +59,27 @@ describe('backup import limits', () => {
     });
 
     expect(() => assertBackupImportWithinLimits(backup)).toThrow('超过单次原子恢复上限');
+  });
+
+  it('rolls back the complete restore when a later write violates a constraint', async () => {
+    const sqlite = new Database(':memory:');
+    sqlite.exec(fs.readFileSync(path.resolve(process.cwd(), 'drizzle/0000_schema.sql'), 'utf8'));
+    sqlite.query(`INSERT INTO topics (id, title, created_at, updated_at) VALUES (?, ?, ?, ?)`)
+      .run('old-topic', '旧数据', '2026-01-01T00:00:00.000Z', '2026-01-01T00:00:00.000Z');
+
+    const backup = createBackup({
+      tags: [
+        ...Array.from({ length: 39 }, (_, index) => ({ id: `new-tag-${index}`, name: `新标签 ${index}` })),
+        { id: 'new-tag-0', name: '重复标签 ID' },
+      ],
+    });
+
+    try {
+      await expect(replaceAllData(new SqliteDatabase(sqlite), backup)).rejects.toThrow();
+      expect(sqlite.query('SELECT id, title FROM topics WHERE id = ?').get('old-topic')).toEqual({ id: 'old-topic', title: '旧数据' });
+      expect(sqlite.query('SELECT COUNT(*) AS count FROM tags').get()).toEqual({ count: 0 });
+    } finally {
+      sqlite.close();
+    }
   });
 });

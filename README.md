@@ -136,6 +136,7 @@ bun run test:e2e
 APP_PASSWORD=your_secure_password
 QUICK_DROP_TOKEN=your_quick_drop_token
 PUBLIC_BASE_URL=https://kanban.yourdomain.com
+TRUST_PROXY_HEADERS=false
 ```
 
 然后使用以下 Compose 配置：
@@ -155,6 +156,7 @@ services:
       APP_PASSWORD: ${APP_PASSWORD:?APP_PASSWORD is required}
       QUICK_DROP_TOKEN: ${QUICK_DROP_TOKEN:-}
       PUBLIC_BASE_URL: ${PUBLIC_BASE_URL:-}
+      TRUST_PROXY_HEADERS: ${TRUST_PROXY_HEADERS:-false}
       DATA_DIR: /app/data
     volumes:
       - ./data:/app/data
@@ -174,7 +176,7 @@ podman compose up -d --build
 
 ### 2. 反向代理（Reverse Proxy）配置
 
-当容器部署在 Nginx / Caddy / NPM 等反向代理后方时，工作台会自动识别 `X-Forwarded-*` 请求头或采用配置的 `PUBLIC_BASE_URL`，确保生成的审稿链接与快投接口在公网环境完美访问。
+当容器部署在 Nginx / Caddy / NPM 等反向代理后方时，建议配置 `PUBLIC_BASE_URL`。只有在代理会可靠覆盖并转发 `X-Forwarded-*` 请求头时，才显式设置 `TRUST_PROXY_HEADERS=true`；默认关闭可避免伪造请求头影响登录限流或分享链接域名。
 
 #### Nginx 配置样例：
 ```nginx

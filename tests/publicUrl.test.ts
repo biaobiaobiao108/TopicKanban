@@ -26,6 +26,7 @@ describe('Public Base URL & Reverse Proxy Resolution', () => {
   it('resolves server public URL from reverse proxy forwarded headers when configuredUrl is empty', () => {
     const url = resolveServerPublicUrl('/share/rv_abc', {
       configuredUrl: '',
+      trustProxyHeaders: true,
       forwardedProto: 'https',
       forwardedHost: 'kanban.proxy.org',
     });
@@ -34,9 +35,25 @@ describe('Public Base URL & Reverse Proxy Resolution', () => {
 
   it('handles comma-separated forwarded headers gracefully', () => {
     const url = resolveServerPublicUrl('/api/inbox/quick-drop', {
+      trustProxyHeaders: true,
       forwardedProto: 'https, http',
       forwardedHost: 'kanban.proxy.org, 10.0.0.1',
     });
     expect(url).toBe('https://kanban.proxy.org/api/inbox/quick-drop');
+  });
+
+  it('ignores forwarded headers unless proxy trust is explicitly enabled', () => {
+    expect(resolveServerPublicUrl('/share/rv_abc', {
+      forwardedProto: 'https',
+      forwardedHost: 'attacker.example.com',
+    })).toBe('/share/rv_abc');
+  });
+
+  it('rejects forwarded host values that could alter the generated path', () => {
+    expect(resolveServerPublicUrl('/share/rv_abc', {
+      trustProxyHeaders: true,
+      forwardedProto: 'https',
+      forwardedHost: 'attacker.example.com?redirect=https://evil.example.com',
+    })).toBe('/share/rv_abc');
   });
 });

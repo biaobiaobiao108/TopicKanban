@@ -8,6 +8,10 @@ type BunRequestLike = Request & {
   params?: Record<string, string>;
 };
 
+type BunServerLike = {
+  requestIP?: (request: Request) => { address?: string } | null;
+};
+
 export class BodyLimitError extends Error {
   constructor() {
     super('Request body is too large');
@@ -20,6 +24,7 @@ class NativeRequest {
   private readonly url: URL;
   private bodyPromise: Promise<string> | null = null;
   private bodyLength: number | null = null;
+  private bodyLimitBytes = Number.POSITIVE_INFINITY;
 
   constructor(request: BunRequestLike) {
     this.request = request;
@@ -42,15 +47,27 @@ class NativeRequest {
     return this.request.headers.get(name) ?? undefined;
   }
 
+  setBodyLimit(maxBytes: number): void {
+    this.bodyLimitBytes = Math.min(this.bodyLimitBytes, maxBytes);
+  }
+
+  contentLength(): number | null {
+    const value = this.request.headers.get('content-length');
+    if (value === null) return null;
+    const contentLength = Number(value);
+    return Number.isFinite(contentLength) && contentLength >= 0 ? contentLength : null;
+  }
+
   async readBody(maxBytes = Number.POSITIVE_INFINITY): Promise<string> {
+    const effectiveMaxBytes = Math.min(maxBytes, this.bodyLimitBytes);
     if (this.bodyPromise) {
       const body = await this.bodyPromise;
-      if ((this.bodyLength || 0) > maxBytes) throw new BodyLimitError();
+      if ((this.bodyLength || 0) > effectiveMaxBytes) throw new BodyLimitError();
       return body;
     }
 
-    const contentLength = Number(this.request.headers.get('content-length'));
-    if (Number.isFinite(contentLength) && contentLength > maxBytes) {
+    const contentLength = this.contentLength();
+    if (contentLength !== null && contentLength > effectiveMaxBytes) {
       throw new BodyLimitError();
     }
 
@@ -69,7 +86,7 @@ class NativeRequest {
           if (done) break;
           if (!value) continue;
           total += value.byteLength;
-          if (total > maxBytes) {
+          if (total > effectiveMaxBytes) {
             await reader.cancel();
             throw new BodyLimitError();
           }
@@ -91,7 +108,7 @@ class NativeRequest {
     })();
 
     const body = await this.bodyPromise;
-    if ((this.bodyLength || 0) > maxBytes) throw new BodyLimitError();
+    if ((this.bodyLength || 0) > effectiveMaxBytes) throw new BodyLimitError();
     return body;
   }
 
@@ -157,10 +174,22 @@ export class NativeContext {
 export interface BodyLimitOptions {
   maxSize: number;
   onError: (context: NativeContext) => Response | Promise<Response>;
+  preflightOnly?: boolean;
 }
 
 export function bodyLimit(options: BodyLimitOptions): NativeMiddleware {
   return async (context, next) => {
+    context.req.setBodyLimit(options.maxSize);
+    const contentLength = context.req.contentLength();
+    if (contentLength !== null && contentLength > options.maxSize) return options.onError(context);
+    if (options.preflightOnly) {
+      try {
+        return await next();
+      } catch (error) {
+        if (error instanceof BodyLimitError) return options.onError(context);
+        throw error;
+      }
+    }
     try {
       await context.req.readBody(options.maxSize);
       return await next();
@@ -267,9 +296,13 @@ export class NativeApp {
     return this;
   }
 
-  private async dispatch(request: BunRequestLike, match: RouteMatch): Promise<Response> {
+  private async dispatch(request: BunRequestLike, match: RouteMatch, requestIp?: string): Promise<Response> {
     const forwardedFor = request.headers.get('x-forwarded-for')?.split(',')[0]?.trim();
-    const clientIp = this.env.CLIENT_IP || forwardedFor || request.headers.get('x-real-ip') || 'unknown';
+    const forwardedRealIp = request.headers.get('x-real-ip')?.trim();
+    const clientIp = this.env.CLIENT_IP
+      || requestIp
+      || (this.env.TRUST_PROXY_HEADERS ? forwardedFor || forwardedRealIp : undefined)
+      || 'unknown';
     const context = new NativeContext(request, { ...this.env, CLIENT_IP: clientIp });
     const routeHandlers = [...this.middlewares, ...match.route.handlers];
     let index = -1;
@@ -283,13 +316,13 @@ export class NativeApp {
     return context.withHeaders(await next(0));
   }
 
-  async fetch(request: Request): Promise<Response> {
+  async fetch(request: Request, requestIp?: string): Promise<Response> {
     const nativeRequest = request as BunRequestLike;
     const url = new URL(request.url);
     const match = matchRoute(this.routes, request.method.toUpperCase(), url.pathname);
     if (!match) return new Response('Not Found', { status: 404 });
     nativeRequest.params = match.params;
-    return this.dispatch(nativeRequest, match);
+    return this.dispatch(nativeRequest, match, requestIp);
   }
 
   request(input: string | URL, init?: RequestInit): Promise<Response> {
@@ -299,15 +332,15 @@ export class NativeApp {
     return this.fetch(new Request(url, init));
   }
 
-  toBunRoutes(finalize: (response: Response) => Response = (response) => response): Record<string, Record<string, (request: BunRequestLike) => Promise<Response>>> {
-    const grouped = new Map<string, Record<string, (request: BunRequestLike) => Promise<Response>>>();
+  toBunRoutes(finalize: (response: Response) => Response = (response) => response): Record<string, Record<string, (request: BunRequestLike, server: BunServerLike) => Promise<Response>>> {
+    const grouped = new Map<string, Record<string, (request: BunRequestLike, server: BunServerLike) => Promise<Response>>>();
     for (const route of this.routes) {
       const methodHandlers = grouped.get(route.path) || {};
-      methodHandlers[route.method] = async (request) => {
+      methodHandlers[route.method] = async (request, server) => {
         return finalize(await this.dispatch(request, {
           route,
           params: request.params || {},
-        }));
+        }, server.requestIP?.(request)?.address));
       };
       grouped.set(route.path, methodHandlers);
     }

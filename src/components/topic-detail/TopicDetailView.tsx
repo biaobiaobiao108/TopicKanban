@@ -1,4 +1,5 @@
 import React, { useId, useState, useEffect, useLayoutEffect, useRef, useCallback } from 'react';
+import './editor.css';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useSearchParams } from 'react-router-dom';
 import { CitationInput, Topic, Source, TimelineEvent, Person, PersonRelationship, Draft, DraftCitation, DraftRecoveryConflict, Tag, AppSettings, PublishPackageSaveInput, PublishPackageRecord, TopicTodo } from '../../types';

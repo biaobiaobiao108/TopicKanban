@@ -20,6 +20,7 @@ const kv = new AppKV(db);
 const appPassword = Bun.env.APP_PASSWORD || (isProduction ? '' : 'admin');
 const quickDropToken = Bun.env.QUICK_DROP_TOKEN || '';
 const publicBaseUrl = (Bun.env.PUBLIC_BASE_URL || '').trim().replace(/\/+$/, '');
+const trustProxyHeaders = /^(1|true|yes|on)$/i.test(Bun.env.TRUST_PROXY_HEADERS || '');
 
 const bindings: ApiBindings = {
   DB: db,
@@ -27,6 +28,7 @@ const bindings: ApiBindings = {
   APP_PASSWORD: appPassword,
   QUICK_DROP_TOKEN: quickDropToken,
   PUBLIC_BASE_URL: publicBaseUrl,
+  TRUST_PROXY_HEADERS: trustProxyHeaders,
 };
 
 const apiApp = createApp(bindings);
@@ -107,10 +109,10 @@ const server = Bun.serve({
     ...apiApp.toBunRoutes(withSecurityHeaders),
     ...staticRoutes,
   } as any,
-  fetch: async (request) => {
+  fetch: async (request, server) => {
     const requestPath = new URL(request.url).pathname;
     if (requestPath.startsWith('/api/')) {
-      return withSecurityHeaders(await apiApp.fetch(request));
+      return withSecurityHeaders(await apiApp.fetch(request, server.requestIP(request)?.address));
     }
     if (!hasDist) {
       return withSecurityHeaders(new Response('Topic Kanban API Server is running. Frontend dist not built yet.'));

@@ -51,6 +51,7 @@ export function registerSharingRoutes(app: NativeApp): void {
       await c.env.KV.put(`topic_share:${id}`, token, { expirationTtl: ttl });
       const fullUrl = resolveServerPublicUrl(`/share/${token}`, {
         configuredUrl: publicBaseUrl,
+        trustProxyHeaders: c.env.TRUST_PROXY_HEADERS,
         forwardedProto: c.req.header('x-forwarded-proto'),
         forwardedHost: c.req.header('x-forwarded-host'),
         host: c.req.header('host'),
@@ -63,8 +64,14 @@ export function registerSharingRoutes(app: NativeApp): void {
 
   app.delete('/topics/:id/share/:token', async (c) => {
     try {
-      await c.env.KV.delete(`share:${c.req.param('token')}`);
-      await c.env.KV.delete(`topic_share:${c.req.param('id')}`);
+      const topicId = c.req.param('id');
+      const token = c.req.param('token');
+      const snapshot = await c.env.KV.get<{ topic_id?: string }>(`share:${token}`, 'json');
+      if (!snapshot) return c.json({ error: 'Share not found' }, 404);
+      if (snapshot.topic_id !== topicId) return c.json({ error: 'Share token does not belong to topic' }, 409);
+      await c.env.KV.delete(`share:${token}`);
+      const currentToken = await c.env.KV.get(`topic_share:${topicId}`, 'text');
+      if (currentToken === token) await c.env.KV.delete(`topic_share:${topicId}`);
       return c.json({ success: true });
     } catch (error) {
       return jsonError(c, error);

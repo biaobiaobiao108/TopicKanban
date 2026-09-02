@@ -10,6 +10,7 @@ export type ApiBindings = {
   APP_PASSWORD?: string;
   QUICK_DROP_TOKEN?: string;
   PUBLIC_BASE_URL?: string;
+  TRUST_PROXY_HEADERS?: boolean;
   CLIENT_IP?: string;
 };
 

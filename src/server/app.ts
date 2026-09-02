@@ -22,6 +22,7 @@ export function createApp(bindings: ApiBindings): NativeApp {
 
   app.use('*', bodyLimit({
     maxSize: MAX_REQUEST_BYTES,
+    preflightOnly: true,
     onError: (c) => c.json({ error: 'Request body is too large' }, 413),
   }));
 

@@ -30,6 +30,7 @@ export function resolvePublicUrl(path: string, publicBaseUrl?: string): string {
 
 export interface ServerUrlOptions {
   configuredUrl?: string;
+  trustProxyHeaders?: boolean;
   forwardedProto?: string;
   forwardedHost?: string;
   host?: string;
@@ -42,10 +43,12 @@ export function resolveServerPublicUrl(path: string, options: ServerUrlOptions =
     return `${configured}${normalizedPath}`;
   }
 
+  if (!options.trustProxyHeaders) return normalizedPath;
+
   const proto = (options.forwardedProto || 'http').split(',')[0].trim().toLowerCase();
   const host = (options.forwardedHost || options.host || '').split(',')[0].trim();
 
-  if (host && (proto === 'http' || proto === 'https') && !/[\s/@]/.test(host)) {
+  if (host && (proto === 'http' || proto === 'https') && !/[\s/@?#\\]/.test(host)) {
     return `${proto}://${host}${normalizedPath}`;
   }
 

@@ -15,6 +15,7 @@ services:
       APP_PASSWORD: ${APP_PASSWORD:?APP_PASSWORD is required}
       QUICK_DROP_TOKEN: ${QUICK_DROP_TOKEN:-}
       PUBLIC_BASE_URL: ${PUBLIC_BASE_URL:-}
+      TRUST_PROXY_HEADERS: ${TRUST_PROXY_HEADERS:-false}
       DATA_DIR: /app/data
     volumes:
       - ./data:/app/data
