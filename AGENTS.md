@@ -95,6 +95,7 @@
    * **悬停交互**：卡片支持轻盈微抬升 `hover:shadow-card hover:-translate-y-0.5 transition-all duration-200`。
    * **胶囊徽章 (Tinted Pills)**：状态徽标统一为透底色药丸 `bg-{color}-500/10 text-{color}-700 dark:text-{color}-300 rounded-full font-bold px-2.5 py-0.5 text-xs`。
    * **表单控件**：输入框与文本域统一为 `rounded-xl border border-stone-200/80 dark:border-stone-700 bg-stone-500/[0.03] dark:bg-stone-800 text-stone-900 dark:text-stone-100 focus:bg-white dark:focus:bg-stone-800 focus:border-rose-500`。
+   * **表单尺寸与提示**：同一组输入控件必须统一 `min-height`、内边距和行高；日期字段默认使用 `min-h-10`。字段格式说明放在 `placeholder` 或帮助文本中，不把冗长格式说明塞进 label；占位符必须明显弱于正文，统一使用 `placeholder:text-stone-400/60 dark:placeholder:text-stone-500/60`，且不能替代可见 label。
    * **主行动按钮**：`rounded-xl bg-rose-600 hover:bg-rose-700 active:scale-[0.98] text-white font-bold shadow-2xs`。
 2. **全站 UI 统一组件约束**：
    * 全站所有下拉选择交互必须统一使用 `CustomSelect` 自定义组件，严禁在业务界面中使用系统原生 `<select>` 标签。
@@ -104,6 +105,7 @@
      - 全站所有二次确认与破坏性操作（如移入回收站、永久删除、批量删除、覆盖恢复数据备份等）必须统一使用 `ConfirmDialog` 模态组件（内置 `danger` 玫瑰红、`warning` 琥珀黄、`primary` 墨石黑三种语义色调与异步 `isLoading` 状态）；
      - 所有即时状态轻提示必须统一使用 `useToast`（支持 `success`、`error`、`info`），**严禁在任何业务界面中使用浏览器原生 `window.confirm`、`window.alert` 或 `window.prompt`**；
      - 所有自定义模态弹窗（`Modal` / `ConfirmDialog`）必须通过 `createPortal` 挂载到 `document.body`，且必须内置 `Escape` 键监听、焦点锁定（Focus trap）与 `body` 滚动穿透锁定。
+   * **异步列表操作**：禁止用共享 `isBusy` / `loading` 状态同时切换整列列表项的 `disabled`、透明度或视觉 class；新增、完成、编辑、删除等操作只锁定目标项，新增表单使用自身 `isSubmitting` 防重复。操作期间未受影响项的 checkbox、DOM 节点和布局必须保持稳定，避免整列闪烁。
 3. **移动端深度适配 (Mobile First on iOS Safari)**：
    * 必须保持 iPhone Safari 兼容性（包括 `safe-area-inset-bottom` 适配、底部导航 Dock、侧滑抽屉、触控点尺寸）。
    * 徽标（Badge）渲染必须严格校验 `typeof badge === 'number' && badge > 0`，防止空徽标显示为红点。
@@ -151,6 +153,7 @@ bun run test:e2e
   * **生产构建测试**：`bun run build`（包含前端 SPA 与 Bun 服务端打包，涉及构建链路或打包发布时执行）；
   * **全量自动化测试**：`bun run test:run`（全量回归验证，涉及底层重构或重要节点发布时执行）；
   * **测试豁免**：纯文档（Markdown）、代码注释、`docs/` 静态展示页等无运行时代码改动一律跳过测试与构建。
+* **交互回归要求**：修改表单尺寸、占位符或列表异步状态时，必须补充 Playwright 回归；至少断言同组控件高度一致、占位符样式符合规范，以及异步请求期间未受影响列表项不会被禁用或改变布局。
 * **本地单机生产运行**：`bun run start`
 * **Podman / Docker 容器构建与编排**：
   * 构建本地镜像：`podman build -t topic-kanban:latest .`
