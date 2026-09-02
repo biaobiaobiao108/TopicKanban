@@ -39,8 +39,12 @@ function DraggableTopicCard({
     <div
       ref={setNodeRef}
       style={style}
-      className={`p-3 rounded-xl border border-stone-200/70 dark:border-stone-800 bg-white dark:bg-stone-900 shadow-2xs hover:shadow-card hover:border-stone-300 dark:hover:border-stone-700 transition-all flex flex-col gap-2 group ${
-        isDragging ? 'ring-2 ring-rose-500 shadow-xl' : ''
+      data-testid="unscheduled-topic-card"
+      data-topic-id={topic.id}
+      className={`p-3 rounded-xl border border-stone-200/70 dark:border-stone-800 bg-white dark:bg-stone-900 shadow-2xs hover:shadow-card hover:border-stone-300 dark:hover:border-stone-700 flex flex-col gap-2 group ${
+        isDragging
+          ? 'transition-none will-change-transform ring-2 ring-rose-500 shadow-xl'
+          : 'transition-all duration-200'
       }`}
     >
       <div className="flex items-center justify-between gap-1.5">

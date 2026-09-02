@@ -467,9 +467,9 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
         </div>
 
         {/* Drag Overlay */}
-        <DragOverlay>
+        <DragOverlay dropAnimation={null}>
           {draggedTopic ? (
-            <div className="p-3 rounded-xl border border-rose-400 bg-white dark:bg-stone-900 shadow-2xl w-64 ring-2 ring-rose-500 select-none pointer-events-none">
+            <div data-testid="calendar-drag-overlay" className="p-3 rounded-xl border border-rose-400 bg-white dark:bg-stone-900 shadow-2xl w-64 ring-2 ring-rose-500 select-none pointer-events-none">
               <div className="flex items-center gap-1.5 mb-1">
                 <StatusBadge status={draggedTopic.status} />
                 <PriorityBadge priority={draggedTopic.priority} />

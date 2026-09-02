@@ -252,12 +252,12 @@ const KanbanCardComponent: React.FC<KanbanCardProps> = ({
           onOpenDetail(topic.id);
         }
       }}
-      className={`group relative bg-white dark:bg-stone-900 rounded-2xl border p-3.5 shadow-2xs transition-all duration-200 ease-editorial-out flex flex-col gap-2.5 select-none touch-manipulation cv-card focus:outline-none focus-visible:ring-2 focus-visible:ring-rose-500 ${
+      className={`group relative bg-white dark:bg-stone-900 rounded-2xl border p-3.5 shadow-2xs flex flex-col gap-2.5 select-none touch-manipulation cv-card focus:outline-none focus-visible:ring-2 focus-visible:ring-rose-500 ${
         isDragging
-          ? 'opacity-35 scale-[0.98] border-dashed border-rose-400 dark:border-rose-600 bg-rose-50/30 dark:bg-rose-950/20 shadow-none pointer-events-none'
+          ? 'transition-none will-change-transform opacity-35 scale-[0.98] border-dashed border-rose-400 dark:border-rose-600 bg-rose-50/30 dark:bg-rose-950/20 shadow-none pointer-events-none'
           : sortableDisabled
-            ? 'border-stone-200/70 dark:border-stone-800 cursor-default'
-            : 'border-stone-200/70 dark:border-stone-800 hover:border-stone-300 dark:hover:border-stone-700 hover:shadow-card-hover hover:-translate-y-1 cursor-grab active:cursor-grabbing'
+            ? 'transition-all duration-200 ease-editorial-out border-stone-200/70 dark:border-stone-800 cursor-default'
+            : 'transition-all duration-200 ease-editorial-out border-stone-200/70 dark:border-stone-800 hover:border-stone-300 dark:hover:border-stone-700 hover:shadow-card-hover hover:-translate-y-1 cursor-grab active:cursor-grabbing'
       } ${
         topic.is_pinned && !isDragging ? 'ring-1 ring-amber-400/40 bg-amber-50/[0.08] dark:bg-amber-950/10' : ''
       }`}

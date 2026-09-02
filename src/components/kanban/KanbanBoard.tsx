@@ -12,8 +12,6 @@ import {
   DragOverEvent,
   DragEndEvent,
   closestCorners,
-  defaultDropAnimationSideEffects,
-  DropAnimation,
 } from '@dnd-kit/core';
 import { arrayMove, sortableKeyboardCoordinates } from '@dnd-kit/sortable';
 import { Topic, TopicStatus, Priority, Tag, Person, PaginatedTopics } from '../../types';
@@ -53,7 +51,12 @@ function getIsMobileViewport(): boolean {
 
 type BoardColumns = Record<TopicStatus, string[]>;
 type TopicMap = Record<string, Topic>;
-type BoardSnapshot = { columns: BoardColumns; topics: TopicMap };
+type LoadedTopicsByStatus = Record<TopicStatus, Topic[]>;
+type BoardSnapshot = {
+  columns: BoardColumns;
+  topics: TopicMap;
+  loadedTopicsByStatus: LoadedTopicsByStatus;
+};
 
 function createColumns(topics: Topic[]): BoardColumns {
   const seen = new Set<string>();
@@ -93,10 +96,25 @@ function findContainer(columns: BoardColumns, id: string): TopicStatus | undefin
   return activeStatuses.find((status) => status === id || (columns[status] && columns[status].includes(id)));
 }
 
-function cloneBoard(columns: BoardColumns, topics: TopicMap): BoardSnapshot {
+function cloneColumns(columns: BoardColumns): BoardColumns {
+  return Object.fromEntries(activeStatuses.map((status) => [status, [...(columns[status] || [])]])) as BoardColumns;
+}
+
+function cloneLoadedTopicsByStatus(loadedTopicsByStatus: LoadedTopicsByStatus): LoadedTopicsByStatus {
+  return Object.fromEntries(
+    activeStatuses.map((status) => [status, [...(loadedTopicsByStatus[status] || [])]])
+  ) as LoadedTopicsByStatus;
+}
+
+function cloneBoard(
+  columns: BoardColumns,
+  topics: TopicMap,
+  loadedTopicsByStatus: LoadedTopicsByStatus,
+): BoardSnapshot {
   return {
-    columns: Object.fromEntries(activeStatuses.map((status) => [status, [...(columns[status] || [])]])) as BoardColumns,
+    columns: cloneColumns(columns),
     topics: { ...topics },
+    loadedTopicsByStatus: cloneLoadedTopicsByStatus(loadedTopicsByStatus),
   };
 }
 
@@ -106,7 +124,7 @@ function moveBetweenColumns(
   overId: string,
   target: TopicStatus
 ): BoardColumns {
-  const next = cloneBoard(columns, {}).columns;
+  const next = cloneColumns(columns);
   const source = findContainer(columns, activeId);
   if (!source) return columns;
 
@@ -115,6 +133,20 @@ function moveBetweenColumns(
   const overIndex = overId === target ? next[target].length : next[target].indexOf(overId);
   next[target].splice(overIndex < 0 ? next[target].length : overIndex, 0, activeId);
   return next;
+}
+
+function reorderLoadedTopics(
+  loadedTopicsByStatus: LoadedTopicsByStatus,
+  columns: BoardColumns,
+  topics: TopicMap,
+): LoadedTopicsByStatus {
+  return activeStatuses.reduce((result, status) => {
+    const loadedById = new Map((loadedTopicsByStatus[status] || []).map((topic) => [topic.id, topic]));
+    result[status] = (columns[status] || [])
+      .map((id) => topics[id] || loadedById.get(id))
+      .filter((topic): topic is Topic => Boolean(topic));
+    return result;
+  }, {} as LoadedTopicsByStatus);
 }
 
 interface KanbanBoardProps {
@@ -131,19 +163,6 @@ interface KanbanBoardProps {
   staleActionDays?: number;
   onOpenCurrentAction?: (topicId: string) => void;
 }
-
-// Smooth drop animation configuration matching testkanban
-const dropAnimationConfig: DropAnimation = {
-  sideEffects: defaultDropAnimationSideEffects({
-    styles: {
-      active: {
-        opacity: '0.35',
-      },
-    },
-  }),
-  duration: 180,
-  easing: 'cubic-bezier(0.2, 0.8, 0.2, 1)',
-};
 
 export const KanbanBoard: React.FC<KanbanBoardProps> = ({
   topics,
@@ -166,7 +185,7 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
   const [columnPages, setColumnPages] = useState<Record<TopicStatus, number>>(() => (
     Object.fromEntries(activeStatuses.map((status) => [status, 1])) as Record<TopicStatus, number>
   ));
-  const [loadedTopicsByStatus, setLoadedTopicsByStatus] = useState<Record<TopicStatus, Topic[]>>(() => (
+  const [loadedTopicsByStatus, setLoadedTopicsByStatus] = useState<LoadedTopicsByStatus>(() => (
     Object.fromEntries(activeStatuses.map((status) => [status, []])) as unknown as Record<TopicStatus, Topic[]>
   ));
   const [activeId, setActiveId] = useState<string | null>(null);
@@ -356,9 +375,11 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
   const activeTopic = activeId ? topicsMap[activeId] : null;
 
   const restoreSnapshot = () => {
-    if (!snapshotRef.current) return;
-    setColumns(snapshotRef.current.columns);
-    setTopicsMap(snapshotRef.current.topics);
+    const snapshot = snapshotRef.current;
+    if (!snapshot) return;
+    setColumns(snapshot.columns);
+    setTopicsMap(snapshot.topics);
+    setLoadedTopicsByStatus(snapshot.loadedTopicsByStatus);
     snapshotRef.current = null;
     setActiveId(null);
     setActiveCardWidth(null);
@@ -417,7 +438,7 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
 
   const handleDragStart = (event: DragStartEvent) => {
     const { active } = event;
-    snapshotRef.current = cloneBoard(columns, topicsMap);
+    snapshotRef.current = cloneBoard(columns, topicsMap, loadedTopicsByStatus);
     setActiveId(String(active.id));
 
     // Measure current card's layout width for pixel-perfect DragOverlay
@@ -463,7 +484,7 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
 
     const activeKey = String(active.id);
     const overKey = String(over.id);
-    const source = findContainer(columns, activeKey);
+    const source = findContainer(snapshot.columns, activeKey);
     const target = findContainer(columns, overKey);
     if (!source || !target) {
       restoreSnapshot();
@@ -479,28 +500,21 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
       }
     }
 
+    const activeTopic = topicsMap[activeKey];
+    if (!activeTopic) {
+      restoreSnapshot();
+      return;
+    }
+
     const nextTopicsMap = {
       ...topicsMap,
-      [activeKey]: { ...topicsMap[activeKey], status: target },
+      [activeKey]: { ...activeTopic, status: target },
     };
 
     setActiveId(null);
-    snapshotRef.current = null;
     setColumns(nextColumns);
     setTopicsMap(nextTopicsMap);
-    setLoadedTopicsByStatus((current) => {
-      const next = { ...current };
-      activeStatuses.forEach((status) => {
-        const remaining = (current[status] || []).filter((t) => t.id !== activeKey);
-        if (status === target) {
-          const item = topicsMap[activeKey] ? { ...topicsMap[activeKey], status: target } : undefined;
-          next[status] = item ? [...remaining, item] : remaining;
-        } else {
-          next[status] = remaining;
-        }
-      });
-      return next;
-    });
+    setLoadedTopicsByStatus((current) => reorderLoadedTopics(current, nextColumns, nextTopicsMap));
 
     if (sortBy !== 'sort_order') {
       setSortBy('sort_order');
@@ -523,6 +537,7 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
 
     try {
       await onReorderTopics(updates);
+      snapshotRef.current = null;
     } catch {
       restoreSnapshot();
     }
@@ -538,7 +553,7 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
     const targetStatus = activeStatuses[currentIndex + direction];
     if (!targetStatus) return;
 
-    const snapshot = cloneBoard(columns, topicsMap);
+    const snapshot = cloneBoard(columns, topicsMap, loadedTopicsByStatus);
     const nextColumns = moveBetweenColumns(columns, topic.id, targetStatus, targetStatus);
     const nextTopicsMap = {
       ...topicsMap,
@@ -547,18 +562,7 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
 
     setColumns(nextColumns);
     setTopicsMap(nextTopicsMap);
-    setLoadedTopicsByStatus((current) => {
-      const next = { ...current };
-      activeStatuses.forEach((status) => {
-        const remaining = (current[status] || []).filter((t) => t.id !== topic.id);
-        if (status === targetStatus) {
-          next[status] = [...remaining, { ...topic, status: targetStatus }];
-        } else {
-          next[status] = remaining;
-        }
-      });
-      return next;
-    });
+    setLoadedTopicsByStatus((current) => reorderLoadedTopics(current, nextColumns, nextTopicsMap));
 
     const updates: Array<{ id: string; status: TopicStatus; sort_order: number }> = [];
     nextColumns[targetStatus].forEach((id, idx) => {
@@ -575,6 +579,7 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
     } catch {
       setColumns(snapshot.columns);
       setTopicsMap(snapshot.topics);
+      setLoadedTopicsByStatus(snapshot.loadedTopicsByStatus);
     }
   };
 
@@ -824,10 +829,11 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
           })}
         </div>
 
-        <DragOverlay dropAnimation={dropAnimationConfig}>
+        <DragOverlay dropAnimation={null}>
           {activeTopic ? (
             <div
               style={{ width: activeCardWidth ? `${activeCardWidth}px` : undefined }}
+              data-testid="kanban-drag-overlay"
               className="pointer-events-none"
             >
               <KanbanCard
