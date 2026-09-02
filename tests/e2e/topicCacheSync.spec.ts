@@ -30,8 +30,27 @@ test('topic mutations stay synchronized across today, database and kanban naviga
   const title = `E2E缓存同步-${Date.now()}`;
 
   await page.getByRole('button', { name: '新选题' }).click();
-  await page.getByPlaceholder('例如：大胃袋良子：峨眉山减肥大溃败').fill(title);
-  await page.getByRole('button', { name: '立即创建' }).click();
+  const quickCreateDialog = page.getByRole('dialog', { name: '新建选题' });
+  await quickCreateDialog.getByLabel(/选题标题/).fill(title);
+  await quickCreateDialog.getByLabel(/一句话概述/).fill('用于验证核心字段提交。');
+  await quickCreateDialog.getByRole('button', { name: /进一步设置/ }).click();
+  await quickCreateDialog.getByLabel(/首个行动/).fill('确认首个行动');
+  await quickCreateDialog.getByRole('button', { name: '高', exact: true }).click();
+  await quickCreateDialog.locator('#quick-create-target-publish-date').fill('20260920');
+  await quickCreateDialog.locator('#quick-create-deadline').fill('20260918');
+  const createRequest = page.waitForRequest((request) => (
+    request.url().endsWith('/api/topics') && request.method() === 'POST'
+  ));
+  await quickCreateDialog.getByRole('button', { name: '立即创建' }).click();
+  const createPayload = (await createRequest).postDataJSON();
+  expect(createPayload).toMatchObject({
+    title,
+    summary: '用于验证核心字段提交。',
+    priority: 'high',
+    initial_todo: { title: '确认首个行动' },
+    target_publish_date: '2026-09-20',
+    deadline: '2026-09-18',
+  });
 
   await expect.poll(async () => readTopicCount(await kanbanNav.innerText())).toBe(countBefore + 1);
 
@@ -54,7 +73,7 @@ test('topic date edits are visible on kanban before delayed saves finish', async
 
   const title = `E2E日期即时同步-${Date.now()}`;
   await page.getByRole('button', { name: '新选题' }).click();
-  await page.getByPlaceholder('例如：大胃袋良子：峨眉山减肥大溃败').fill(title);
+  await page.getByRole('dialog', { name: '新建选题' }).getByLabel(/选题标题/).fill(title);
   await page.getByRole('button', { name: '立即创建' }).click();
   await page.getByRole('navigation').getByRole('button', { name: /选题看板/ }).click();
   const boardCard = page.locator('[data-topic-id]').filter({ hasText: title });

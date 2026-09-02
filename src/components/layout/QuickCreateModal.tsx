@@ -2,7 +2,7 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { Modal } from '../ui/Modal';
 import { DateInput } from '../ui/DateInput';
 import { Priority, Tag, TopicStatus } from '../../types';
-import { Plus, X, Tag as TagIcon, Calendar, Clock } from 'lucide-react';
+import { Plus, X, Tag as TagIcon, Calendar, Clock, ChevronDown, SlidersHorizontal } from 'lucide-react';
 
 interface QuickCreateModalProps {
   isOpen: boolean;
@@ -30,22 +30,22 @@ const priorityOptions: Array<{
 }> = [
   {
     value: 'high',
-    label: '🔥 高优先级',
+    label: '高',
     activeClass: 'bg-rose-50 dark:bg-rose-950/60 border-rose-500 text-rose-800 dark:text-rose-200 ring-2 ring-rose-200 dark:ring-rose-800 font-bold shadow-xs',
   },
   {
     value: 'medium',
-    label: '⚡ 中优先级',
+    label: '中',
     activeClass: 'bg-amber-50 dark:bg-amber-950/60 border-amber-500 text-amber-800 dark:text-amber-200 ring-2 ring-amber-200 dark:ring-amber-800 font-bold shadow-xs',
   },
   {
     value: 'low',
-    label: '🌱 低优先级',
+    label: '低',
     activeClass: 'bg-emerald-50 dark:bg-emerald-950/60 border-emerald-500 text-emerald-800 dark:text-emerald-200 ring-2 ring-emerald-200 dark:ring-emerald-800 font-bold shadow-xs',
   },
   {
     value: 'none',
-    label: '⚪ 无优先级',
+    label: '无',
     activeClass: 'bg-stone-100 dark:bg-stone-800 border-stone-400 dark:border-stone-600 text-stone-800 dark:text-stone-200 ring-2 ring-stone-200 dark:ring-stone-700 font-bold shadow-xs',
   },
 ];
@@ -67,6 +67,7 @@ export const QuickCreateModal: React.FC<QuickCreateModalProps> = ({
   const [deadline, setDeadline] = useState('');
   const [selectedTagNames, setSelectedTagNames] = useState<string[]>([]);
   const [newTagInput, setNewTagInput] = useState('');
+  const [isAdvancedOpen, setIsAdvancedOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
@@ -78,6 +79,8 @@ export const QuickCreateModal: React.FC<QuickCreateModalProps> = ({
     setSelectedTagNames(initialTagNames);
     setTargetPublishDate('');
     setDeadline('');
+    setNewTagInput('');
+    setIsAdvancedOpen(initialTagNames.length > 0);
   }, [initialTagNames, initialTitle, isOpen]);
 
   // Unselected tags from available pool
@@ -116,6 +119,7 @@ export const QuickCreateModal: React.FC<QuickCreateModalProps> = ({
       setDeadline('');
       setSelectedTagNames([]);
       setNewTagInput('');
+      setIsAdvancedOpen(false);
       onClose();
     } catch (err) {
       console.error(err);
@@ -148,219 +152,242 @@ export const QuickCreateModal: React.FC<QuickCreateModalProps> = ({
     <Modal
       isOpen={isOpen}
       onClose={onClose}
-      title="💡 10秒快速新建选题"
+      title="新建选题"
       maxWidth="md"
     >
-      <form onSubmit={handleSubmit} className="space-y-4">
-        {/* Title */}
-        <div>
-          <label htmlFor="quick-create-title" className="block text-sm font-semibold text-stone-900 dark:text-stone-100 mb-1.5">
-            选题标题 <span className="text-rose-600 dark:text-rose-500">*</span>
-          </label>
-          <input
-            id="quick-create-title"
-            name="title"
-            type="text"
-            required
-            autoFocus
-            autoComplete="off"
-            placeholder="例如：大胃袋良子：峨眉山减肥大溃败"
-            value={title}
-            onChange={(e) => setTitle(e.target.value)}
-            className="w-full px-3.5 py-2.5 bg-stone-500/[0.03] dark:bg-stone-800 border border-stone-200/80 dark:border-stone-700 rounded-xl text-stone-900 dark:text-stone-100 text-base focus:bg-white dark:focus:bg-stone-800 focus:border-rose-500 focus:outline-none transition-colors placeholder:text-stone-400 dark:placeholder:text-stone-500"
-          />
-        </div>
-
-        {/* Summary (Optional) */}
-        <div>
-          <label htmlFor="quick-create-summary" className="block text-xs font-semibold text-stone-700 dark:text-stone-300 mb-1">
-            一句话看点 / 核心描述 <span className="text-stone-500 dark:text-stone-400 font-normal">(可选)</span>
-          </label>
-          <textarea
-            id="quick-create-summary"
-            name="summary"
-            autoComplete="off"
-            rows={2}
-            placeholder="用一句话说明视频在讲什么，例如：屡次减肥失败的网红，再一次试图证明自己..."
-            value={summary}
-            onChange={(e) => setSummary(e.target.value)}
-            className="w-full px-3.5 py-2.5 bg-stone-500/[0.03] dark:bg-stone-800 border border-stone-200/80 dark:border-stone-700 rounded-xl text-stone-900 dark:text-stone-100 text-base focus:bg-white dark:focus:bg-stone-800 focus:border-rose-500 focus:outline-none transition-colors placeholder:text-stone-400 dark:placeholder:text-stone-500 resize-none"
-          />
-        </div>
-
-        {/* First Todo (Optional) */}
-        <div>
-          <label htmlFor="quick-create-initial-todo" className="block text-xs font-semibold text-stone-700 dark:text-stone-300 mb-1">
-            首个待办 <span className="text-stone-500 dark:text-stone-400 font-normal">(可选，填写后会直接设为当前行动)</span>
-          </label>
-          <input
-            id="quick-create-initial-todo"
-            name="initial_todo"
-            type="text"
-            autoComplete="off"
-            placeholder="例如：寻找第一次训练营逃跑原片"
-            value={initialTodo}
-            onChange={(e) => setInitialTodo(e.target.value)}
-            className="w-full px-3.5 py-2.5 bg-stone-500/[0.03] dark:bg-stone-800 border border-stone-200/80 dark:border-stone-700 rounded-xl text-stone-900 dark:text-stone-100 text-base focus:bg-white dark:focus:bg-stone-800 focus:border-rose-500 focus:outline-none transition-colors placeholder:text-stone-400 dark:placeholder:text-stone-500"
-          />
-        </div>
-
-        {/* Priority Selector (Redesigned Aesthetic Segments) */}
+      <form onSubmit={handleSubmit} className="space-y-5">
+        <fieldset className="space-y-4">
+          <legend className="sr-only">核心信息</legend>
           <div>
-            <div id="quick-create-priority-label" className="block text-xs font-semibold text-stone-700 dark:text-stone-300 mb-1.5">
-              优先级设定
-            </div>
-            <div role="radiogroup" aria-labelledby="quick-create-priority-label" className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-            {priorityOptions.map((opt) => {
-              const isSelected = priority === opt.value;
-              return (
-                <button
-                  type="button"
-                  aria-pressed={isSelected}
-                  key={opt.value}
-                  onClick={() => setPriority(opt.value)}
-                  className={`flex items-center justify-center py-2.5 px-2.5 rounded-xl text-xs border transition-all cursor-pointer ${
-                    isSelected
-                      ? opt.activeClass
-                      : 'border-stone-200/70 dark:border-stone-700 bg-white dark:bg-stone-800 text-stone-600 dark:text-stone-300 hover:bg-stone-50 dark:hover:bg-stone-700 hover:border-stone-300 dark:hover:border-stone-600 font-medium shadow-2xs'
-                  }`}
-                >
-                  <span>{opt.label}</span>
-                </button>
-              );
-            })}
-          </div>
-        </div>
-
-        {/* Schedule & Deadline (Optional) */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-          <div>
-            <label htmlFor="quick-create-target-publish-date" className="block text-xs font-semibold text-stone-700 dark:text-stone-300 mb-1 flex items-center gap-1">
-              <Calendar aria-hidden="true" className="w-3.5 h-3.5 text-rose-500" />
-              <span>计划发布日期 (选填)</span>
+            <label htmlFor="quick-create-title" className="mb-1.5 flex items-center gap-2 text-sm font-semibold text-stone-900 dark:text-stone-100">
+              <span>选题标题</span>
+              <span className="text-[11px] font-medium text-rose-600 dark:text-rose-400">必填</span>
             </label>
-            <DateInput
-              value={targetPublishDate}
-              id="quick-create-target-publish-date"
-              name="target_publish_date"
-              placeholder="YYYYMMDD，例如 20260831"
-              onChange={(val) => setTargetPublishDate(val)}
-              className="w-full px-3 py-2 bg-stone-500/[0.03] dark:bg-stone-800 border border-stone-200/80 dark:border-stone-700 rounded-xl text-stone-900 dark:text-stone-100 text-base focus:bg-white dark:focus:bg-stone-800 focus:border-rose-500 focus:outline-none transition-colors"
-            />
-          </div>
-
-          <div>
-            <label htmlFor="quick-create-deadline" className="block text-xs font-semibold text-stone-700 dark:text-stone-300 mb-1 flex items-center gap-1">
-              <Clock aria-hidden="true" className="w-3.5 h-3.5 text-amber-500" />
-              <span>制作截稿日 (选填)</span>
-            </label>
-            <DateInput
-              value={deadline}
-              id="quick-create-deadline"
-              name="deadline"
-              placeholder="YYYYMMDD，例如 20260828"
-              onChange={(val) => setDeadline(val)}
-              className="w-full px-3 py-2 bg-stone-500/[0.03] dark:bg-stone-800 border border-stone-200/80 dark:border-stone-700 rounded-xl text-stone-900 dark:text-stone-100 text-base focus:bg-white dark:focus:bg-stone-800 focus:border-rose-500 focus:outline-none transition-colors"
-            />
-          </div>
-        </div>
-
-        {/* Tags Management */}
-        <div className="space-y-2 pt-1">
-          <div className="flex items-center justify-between">
-            <label htmlFor="quick-create-custom-tag" className="text-xs font-semibold text-stone-700 dark:text-stone-300 flex items-center gap-1.5">
-              <TagIcon aria-hidden="true" className="w-3.5 h-3.5 text-stone-500" />
-              <span>分类标签</span>
-            </label>
-            <span className="text-[11px] text-stone-500 dark:text-stone-400">已选 <span className="font-mono tabular-nums">{selectedTagNames.length}</span> 个</span>
-          </div>
-
-          {/* 1. Selected Tags */}
-          <div className="flex flex-wrap items-center gap-1.5 p-2.5 bg-stone-500/[0.03] dark:bg-stone-800/60 border border-stone-200/70 dark:border-stone-700 rounded-xl min-h-[42px]">
-            {selectedTagNames.length > 0 ? (
-              selectedTagNames.map((name) => (
-                <span
-                  key={name}
-                  className="inline-flex items-center gap-1 px-3 py-1 bg-stone-900 dark:bg-rose-600 text-white rounded-full text-xs font-semibold shadow-2xs group animate-in fade-in zoom-in-95 duration-150"
-                >
-                  <span>#{name}</span>
-                  <button
-                    type="button"
-                    onClick={() => removeSelectedTag(name)}
-                    aria-label={`移除标签 ${name}`}
-                    className="text-stone-400 dark:text-rose-200 hover:text-white p-0.5 rounded-full transition-colors cursor-pointer"
-                    title="移除标签"
-                  >
-                    <X aria-hidden="true" className="w-3 h-3" />
-                  </button>
-                </span>
-              ))
-            ) : (
-              <span className="text-xs text-stone-500 dark:text-stone-400 italic">暂未选择标签（可点击下方候选或输入自定义标签）</span>
-            )}
-          </div>
-
-          {/* 2. Available Tag Pool (Click to add) */}
-          {unselectedAvailableTags.length > 0 && (
-            <div className="flex flex-wrap items-center gap-1.5 pt-1">
-              <span className="text-[11px] text-stone-500 dark:text-stone-400 font-medium">推荐标签：</span>
-              {unselectedAvailableTags.map((t) => (
-                <button
-                  type="button"
-                  key={t.id || t.name}
-                  onClick={() => addTag(t.name)}
-                  className="px-2.5 py-0.5 rounded-full text-xs bg-white dark:bg-stone-800 text-stone-600 dark:text-stone-300 border border-stone-200/70 dark:border-stone-700 hover:border-rose-400 hover:text-rose-600 transition-colors flex items-center gap-0.5 cursor-pointer shadow-2xs"
-                >
-                  <span className="text-stone-500 dark:text-stone-400">+</span>
-                  <span>#{t.name}</span>
-                </button>
-              ))}
-            </div>
-          )}
-
-          {/* 3. Custom Tag Input */}
-          <div className="flex items-center gap-1.5 pt-1">
             <input
-              id="quick-create-custom-tag"
-              name="custom_tag"
+              id="quick-create-title"
+              name="title"
               type="text"
+              required
+              autoFocus
               autoComplete="off"
-              aria-label="输入自定义标签"
-              placeholder="输入自定义标签名称 (按回车或点添加)..."
-              value={newTagInput}
-              onChange={(e) => setNewTagInput(e.target.value)}
-              onKeyDown={(e) => {
-                if (e.key === 'Enter') {
-                  e.preventDefault();
-                  handleAddCustomTag();
-                }
-              }}
-              className="px-3.5 py-2 bg-stone-500/[0.03] dark:bg-stone-800 border border-stone-200/80 dark:border-stone-700 rounded-xl text-base text-stone-900 dark:text-stone-100 placeholder:text-stone-400 focus:bg-white dark:focus:bg-stone-800 focus:outline-none focus:border-rose-500 flex-1 transition-colors"
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
+              className="min-h-12 w-full rounded-xl border border-stone-200/80 bg-stone-500/[0.03] px-3.5 py-2.5 text-base text-stone-900 transition-colors focus:border-rose-500 focus:bg-white focus:outline-none dark:border-stone-700 dark:bg-stone-800 dark:text-stone-100 dark:focus:bg-stone-800"
             />
-            <button
-              type="button"
-              onClick={() => handleAddCustomTag()}
-              disabled={!newTagInput.trim()}
-              className="px-4 py-2 bg-stone-900 dark:bg-stone-800 hover:bg-stone-800 dark:hover:bg-stone-700 text-white text-xs font-semibold rounded-xl disabled:opacity-40 transition-colors shrink-0 shadow-2xs cursor-pointer"
-            >
-              + 添加
-            </button>
           </div>
-        </div>
+
+          <div>
+            <label htmlFor="quick-create-summary" className="mb-1.5 flex items-center gap-2 text-sm font-semibold text-stone-800 dark:text-stone-200">
+              <span>一句话概述</span>
+              <span className="text-[11px] font-medium text-stone-500 dark:text-stone-400">选填</span>
+            </label>
+            <textarea
+              id="quick-create-summary"
+              name="summary"
+              autoComplete="off"
+              rows={2}
+              value={summary}
+              onChange={(e) => setSummary(e.target.value)}
+              className="min-h-[88px] w-full resize-none rounded-xl border border-stone-200/80 bg-stone-500/[0.03] px-3.5 py-2.5 text-base text-stone-900 transition-colors focus:border-rose-500 focus:bg-white focus:outline-none dark:border-stone-700 dark:bg-stone-800 dark:text-stone-100 dark:focus:bg-stone-800"
+            />
+          </div>
+        </fieldset>
+
+        <button
+          type="button"
+          aria-expanded={isAdvancedOpen}
+          aria-controls="quick-create-advanced-fields"
+          onClick={() => setIsAdvancedOpen((prev) => !prev)}
+          className="flex min-h-12 w-full items-center justify-between gap-3 rounded-xl border border-stone-200/80 bg-stone-500/[0.03] px-3.5 py-2.5 text-left transition-colors hover:border-stone-300 hover:bg-stone-50 dark:border-stone-700 dark:bg-stone-800/60 dark:hover:border-stone-600 dark:hover:bg-stone-800"
+        >
+          <span className="flex min-w-0 items-center gap-2">
+            <SlidersHorizontal aria-hidden="true" className="h-4 w-4 shrink-0 text-stone-500 dark:text-stone-400" />
+            <span className="text-sm font-semibold text-stone-800 dark:text-stone-200">进一步设置</span>
+          </span>
+          <span className="flex shrink-0 items-center gap-2 text-xs font-medium text-stone-500 dark:text-stone-400">
+            <span>{isAdvancedOpen ? '收起' : '按需补充'}</span>
+            <ChevronDown aria-hidden="true" className={`h-4 w-4 transition-transform ${isAdvancedOpen ? 'rotate-180' : ''}`} />
+          </span>
+        </button>
+
+        {isAdvancedOpen && (
+          <div id="quick-create-advanced-fields" className="space-y-5 rounded-2xl border border-stone-200/70 bg-stone-500/[0.02] p-4 dark:border-stone-800 dark:bg-stone-800/30">
+            <fieldset className="space-y-3">
+              <legend className="text-xs font-bold text-stone-800 dark:text-stone-200">执行安排</legend>
+              <div>
+                <label htmlFor="quick-create-initial-todo" className="mb-1.5 flex items-center gap-2 text-xs font-semibold text-stone-700 dark:text-stone-300">
+                  <span>首个行动</span>
+                  <span className="font-medium text-stone-500 dark:text-stone-400">选填</span>
+                </label>
+                <input
+                  id="quick-create-initial-todo"
+                  name="initial_todo"
+                  type="text"
+                  autoComplete="off"
+                  value={initialTodo}
+                  onChange={(e) => setInitialTodo(e.target.value)}
+                  className="min-h-12 w-full rounded-xl border border-stone-200/80 bg-white px-3.5 py-2.5 text-base text-stone-900 transition-colors focus:border-rose-500 focus:outline-none dark:border-stone-700 dark:bg-stone-900 dark:text-stone-100"
+                />
+              </div>
+
+              <fieldset className="space-y-2">
+                <legend className="text-xs font-semibold text-stone-700 dark:text-stone-300">优先级</legend>
+                <div role="radiogroup" aria-label="优先级" className="grid grid-cols-2 gap-2 sm:grid-cols-4">
+                  {priorityOptions.map((opt) => {
+                    const isSelected = priority === opt.value;
+                    return (
+                      <button
+                        type="button"
+                        aria-pressed={isSelected}
+                        key={opt.value}
+                        onClick={() => setPriority(opt.value)}
+                        className={`flex min-h-12 items-center justify-center rounded-xl border px-2.5 py-2.5 text-sm transition-all ${
+                          isSelected
+                            ? opt.activeClass
+                            : 'border-stone-200/70 bg-white text-stone-600 shadow-2xs hover:border-stone-300 hover:bg-stone-50 dark:border-stone-700 dark:bg-stone-800 dark:text-stone-300 dark:hover:border-stone-600 dark:hover:bg-stone-700'
+                        }`}
+                      >
+                        <span>{opt.label}</span>
+                      </button>
+                    );
+                  })}
+                </div>
+              </fieldset>
+            </fieldset>
+
+            <fieldset className="space-y-3">
+              <legend className="text-xs font-bold text-stone-800 dark:text-stone-200">
+                <span>排期</span>
+                <span className="ml-2 font-medium text-stone-500 dark:text-stone-400">选填</span>
+              </legend>
+              <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                <div>
+                  <label htmlFor="quick-create-target-publish-date" className="mb-1.5 flex items-center gap-1 text-xs font-semibold text-stone-700 dark:text-stone-300">
+                    <Calendar aria-hidden="true" className="h-3.5 w-3.5 text-rose-500" />
+                    <span>计划发布日期</span>
+                  </label>
+                  <DateInput
+                    value={targetPublishDate}
+                    id="quick-create-target-publish-date"
+                    name="target_publish_date"
+                    placeholder="YYYYMMDD"
+                    onChange={(val) => setTargetPublishDate(val)}
+                    className="min-h-12 w-full rounded-xl border border-stone-200/80 bg-white px-3 py-2 text-base text-stone-900 transition-colors focus:border-rose-500 focus:bg-white focus:outline-none dark:border-stone-700 dark:bg-stone-900 dark:text-stone-100"
+                  />
+                </div>
+
+                <div>
+                  <label htmlFor="quick-create-deadline" className="mb-1.5 flex items-center gap-1 text-xs font-semibold text-stone-700 dark:text-stone-300">
+                    <Clock aria-hidden="true" className="h-3.5 w-3.5 text-amber-500" />
+                    <span>制作截稿日</span>
+                  </label>
+                  <DateInput
+                    value={deadline}
+                    id="quick-create-deadline"
+                    name="deadline"
+                    placeholder="YYYYMMDD"
+                    onChange={(val) => setDeadline(val)}
+                    className="min-h-12 w-full rounded-xl border border-stone-200/80 bg-white px-3 py-2 text-base text-stone-900 transition-colors focus:border-rose-500 focus:bg-white focus:outline-none dark:border-stone-700 dark:bg-stone-900 dark:text-stone-100"
+                  />
+                </div>
+              </div>
+            </fieldset>
+
+            <fieldset className="space-y-3">
+              <legend className="flex items-center gap-1.5 text-xs font-bold text-stone-800 dark:text-stone-200">
+                <TagIcon aria-hidden="true" className="h-3.5 w-3.5 text-stone-500" />
+                <span>分类标签</span>
+                <span className="ml-auto font-medium text-stone-500 dark:text-stone-400">已选 {selectedTagNames.length} 个</span>
+              </legend>
+
+              <div className="flex min-h-[44px] flex-wrap items-center gap-1.5 rounded-xl border border-stone-200/70 bg-white p-2.5 dark:border-stone-700 dark:bg-stone-900">
+                {selectedTagNames.length > 0 ? (
+                  selectedTagNames.map((name) => (
+                    <span
+                      key={name}
+                      className="group inline-flex items-center gap-1 rounded-full bg-stone-900 px-3 py-1 text-xs font-semibold text-white shadow-2xs dark:bg-rose-600"
+                    >
+                      <span>#{name}</span>
+                      <button
+                        type="button"
+                        onClick={() => removeSelectedTag(name)}
+                        aria-label={`移除标签 ${name}`}
+                        className="rounded-full p-0.5 text-stone-400 transition-colors hover:text-white dark:text-rose-200"
+                        title="移除标签"
+                      >
+                        <X aria-hidden="true" className="h-3 w-3" />
+                      </button>
+                    </span>
+                  ))
+                ) : (
+                  <span className="text-xs text-stone-500 dark:text-stone-400">暂未选择标签</span>
+                )}
+              </div>
+
+              {unselectedAvailableTags.length > 0 && (
+                <div className="flex flex-wrap items-center gap-1.5">
+                  <span className="text-[11px] font-medium text-stone-500 dark:text-stone-400">可选标签：</span>
+                  {unselectedAvailableTags.map((t) => (
+                    <button
+                      type="button"
+                      key={t.id || t.name}
+                      onClick={() => addTag(t.name)}
+                      className="flex min-h-9 items-center gap-0.5 rounded-full border border-stone-200/70 bg-white px-2.5 py-0.5 text-xs text-stone-600 shadow-2xs transition-colors hover:border-rose-400 hover:text-rose-600 dark:border-stone-700 dark:bg-stone-800 dark:text-stone-300"
+                    >
+                      <span className="text-stone-500 dark:text-stone-400">+</span>
+                      <span>#{t.name}</span>
+                    </button>
+                  ))}
+                </div>
+              )}
+
+              <div className="grid grid-cols-[minmax(0,1fr)_auto] items-end gap-2">
+                <div className="min-w-0">
+                  <label htmlFor="quick-create-custom-tag" className="mb-1.5 block text-[11px] font-semibold text-stone-600 dark:text-stone-400">
+                    自定义标签
+                  </label>
+                  <input
+                    id="quick-create-custom-tag"
+                    name="custom_tag"
+                    type="text"
+                    autoComplete="off"
+                    value={newTagInput}
+                    onChange={(e) => setNewTagInput(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') {
+                        e.preventDefault();
+                        handleAddCustomTag();
+                      }
+                    }}
+                    className="min-h-12 w-full rounded-xl border border-stone-200/80 bg-white px-3.5 py-2 text-base text-stone-900 transition-colors focus:border-rose-500 focus:outline-none dark:border-stone-700 dark:bg-stone-900 dark:text-stone-100"
+                  />
+                </div>
+                <button
+                  type="button"
+                  onClick={() => handleAddCustomTag()}
+                  disabled={!newTagInput.trim()}
+                  className="min-h-12 rounded-xl bg-stone-900 px-4 py-2 text-xs font-semibold text-white shadow-2xs transition-colors hover:bg-stone-800 disabled:cursor-not-allowed disabled:opacity-40 dark:bg-stone-800 dark:hover:bg-stone-700"
+                >
+                  添加
+                </button>
+              </div>
+            </fieldset>
+          </div>
+        )}
 
         {/* Submit Buttons */}
-        <div className="flex items-center justify-end gap-2.5 pt-3 border-t border-stone-100 dark:border-stone-800">
+        <div className="flex items-center justify-end gap-2.5 border-t border-stone-100 pt-4 dark:border-stone-800">
           <button
             type="button"
             onClick={onClose}
-            className="px-4 py-2 text-xs text-stone-600 dark:text-stone-400 hover:text-stone-900 dark:hover:text-stone-100 hover:bg-stone-100 dark:hover:bg-stone-800 rounded-xl transition-colors font-medium cursor-pointer"
+            className="min-h-11 rounded-xl px-4 py-2 text-xs font-medium text-stone-600 transition-colors hover:bg-stone-100 hover:text-stone-900 dark:text-stone-400 dark:hover:bg-stone-800 dark:hover:text-stone-100"
           >
             取消
           </button>
           <button
             type="submit"
             disabled={!title.trim() || isSubmitting}
-            className="px-5 py-2 text-xs bg-rose-600 hover:bg-rose-700 active:scale-[0.98] text-white rounded-xl font-bold transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1.5 shadow-2xs cursor-pointer"
+            className="flex min-h-11 items-center gap-1.5 rounded-xl bg-rose-600 px-5 py-2 text-xs font-bold text-white shadow-2xs transition-all hover:bg-rose-700 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-50"
           >
             <Plus aria-hidden="true" className="w-4 h-4 stroke-[2.5]" />
             <span>{isSubmitting ? '创建中...' : '立即创建'}</span>

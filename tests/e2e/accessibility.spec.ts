@@ -44,9 +44,11 @@ async function login(page: Page) {
   await expect(page.locator('main h1')).toBeVisible();
 }
 
-async function expectNoAccessibilityViolations(page: Page, route: string) {
+async function expectNoAccessibilityViolations(page: Page, route: string, context?: string) {
   await page.waitForTimeout(350);
-  const results = await new AxeBuilder({ page }).analyze();
+  const axe = new AxeBuilder({ page });
+  if (context) axe.include(context);
+  const results = await axe.analyze();
   expect(
     results.violations.map((violation) => ({
       id: violation.id,
@@ -104,10 +106,22 @@ test('指令面板和快速新建弹层支持焦点循环与恢复', async ({ pa
   const quickCreateTrigger = page.locator('button[aria-label="新选题"]:visible').first();
   await quickCreateTrigger.focus();
   await quickCreateTrigger.click();
-  const quickCreateDialog = page.getByRole('dialog').last();
+  const quickCreateDialog = page.getByRole('dialog', { name: '新建选题' });
   await expect(quickCreateDialog).toBeVisible();
   await expect(page.locator('body')).toHaveCSS('overflow', 'hidden');
-  await expectNoAccessibilityViolations(page, 'quick-create-dialog');
+  await expect(quickCreateDialog.getByLabel(/选题标题/)).toBeVisible();
+  await expect(quickCreateDialog.getByLabel(/一句话概述/)).toBeVisible();
+  const advancedToggle = quickCreateDialog.getByRole('button', { name: /进一步设置/ });
+  await expect(advancedToggle).toHaveAttribute('aria-expanded', 'false');
+  await expect(quickCreateDialog.getByText('执行安排', { exact: true })).toHaveCount(0);
+  await expect(quickCreateDialog.locator('input[placeholder*="例如"], textarea[placeholder*="例如"]')).toHaveCount(0);
+  await advancedToggle.click();
+  await expect(advancedToggle).toHaveAttribute('aria-expanded', 'true');
+  await expect(quickCreateDialog.getByText('执行安排', { exact: true })).toBeVisible();
+  await expect(quickCreateDialog.getByText('排期', { exact: true })).toBeVisible();
+  await expect(quickCreateDialog.getByText('分类标签', { exact: true })).toBeVisible();
+  await expect(quickCreateDialog.getByRole('radiogroup', { name: '优先级' })).toBeVisible();
+  await expectNoAccessibilityViolations(page, 'quick-create-dialog', '[role="dialog"]');
 
   const quickCreateFocusable = quickCreateDialog.locator(
     'button:not([disabled]), input:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])',
