@@ -109,7 +109,7 @@ test('topic date edits are visible on kanban before delayed saves finish', async
   await page.locator('#overview-deadline').fill('20260905');
   await expect.poll(() => pendingSaves).toBeGreaterThanOrEqual(2);
 
-  await page.getByRole('button', { name: '返回选题看板' }).click();
+  await page.getByRole('navigation').getByRole('button', { name: /选题看板/ }).click();
   await expect(page).toHaveURL('/kanban');
   const updatedCard = page.locator(`[data-topic-id="${topicId}"]`);
   await expect(updatedCard.getByTestId('topic-schedule-badge')).toContainText('排期');
