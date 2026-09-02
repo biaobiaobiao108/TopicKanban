@@ -91,7 +91,6 @@ export const TodayView: React.FC<TodayViewProps> = ({
   todoActions,
 }) => {
   const [actionTopic, setActionTopic] = useState<Topic | null>(null);
-  const [showAllActivity, setShowAllActivity] = useState(true);
 
   const activeTopics = useMemo(
     () => topics.filter((topic) => topic.status !== 'published' && topic.status !== 'icebox'),
@@ -133,7 +132,6 @@ export const TodayView: React.FC<TodayViewProps> = ({
       .sort((a, b) => new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime())
       .slice(0, 8);
   }, [topics]);
-  const visibleRecentUpdates = showAllActivity ? recentUpdates : recentUpdates.slice(0, 3);
   const focusDeals = useMemo(() => {
     const seen = new Set<string>();
     return [...dealFocus.due_items, ...dealFocus.unpaid_items].filter((deal) => {
@@ -394,9 +392,10 @@ export const TodayView: React.FC<TodayViewProps> = ({
 
             <div data-testid="today-recent-activity-panel" className="today-recent-updates-panel flex min-h-0 flex-1 flex-col overflow-hidden rounded-2xl border border-stone-200/70 bg-white/80 shadow-2xs dark:border-stone-800 dark:bg-stone-900/80">
               <div data-testid="today-recent-activity-scroll" tabIndex={0} aria-label="近期活跃轨迹列表" className="today-focus-scroll min-h-0 flex-1 overflow-y-auto divide-y divide-stone-100 dark:divide-stone-800/70">
-                {visibleRecentUpdates.map((t) => (
+                {recentUpdates.map((t) => (
                   <div
                     key={t.id}
+                    data-testid="today-recent-activity-item"
                     onClick={() => onOpenDetail(t.id)}
                     className="flex cursor-pointer items-center justify-between gap-3 p-3.5 transition-colors hover:bg-stone-50 dark:hover:bg-stone-800/60 group"
                   >
@@ -422,15 +421,13 @@ export const TodayView: React.FC<TodayViewProps> = ({
                   </div>
                 ))}
               </div>
-              {recentUpdates.length > 3 && (
-                <button
-                  type="button"
-                  onClick={() => setShowAllActivity((previous) => !previous)}
-                  className="w-full shrink-0 cursor-pointer px-3 py-2.5 text-xs font-semibold text-stone-500 transition-colors hover:bg-white hover:text-stone-900 dark:text-stone-400 dark:hover:bg-stone-800 dark:hover:text-stone-100"
-                >
-                  {showAllActivity ? '收起近期轨迹' : `展开另外 ${recentUpdates.length - 3} 条`}
-                </button>
-              )}
+              <div className="flex shrink-0 items-center justify-between border-t border-stone-100 px-3 py-2.5 text-[11px] font-semibold text-stone-500 dark:border-stone-800/70 dark:text-stone-400">
+                <span className="flex items-center gap-1.5">
+                  <Clock className="h-3.5 w-3.5 text-stone-400 dark:text-stone-500" aria-hidden="true" />
+                  <span>近期活跃选题</span>
+                </span>
+                <span data-testid="today-recent-activity-count" className="font-mono tabular-nums text-stone-700 dark:text-stone-300">{recentUpdates.length}</span>
+              </div>
             </div>
           </section>
         </div>
