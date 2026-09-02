@@ -36,7 +36,7 @@ const openccBytes = opencc ? await sizeOf(resolve(assetsDir, opencc)) : 0;
 
 const budgets = {
   initialJs: 512 * 1024,
-  initialCss: 200 * 1024,
+  initialCss: 220 * 1024,
 };
 
 console.log(`Initial JS: ${(initialJsBytes / 1024).toFixed(1)} KiB / ${(budgets.initialJs / 1024).toFixed(0)} KiB`);

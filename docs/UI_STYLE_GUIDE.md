@@ -57,9 +57,6 @@
 | 跟随系统 `system` | 跟随系统 | 跟随系统 | 跟随系统 | 跟随系统 |
 | 暖沙纸境 `warm_paper` | `#faf7f2` | `#ffffff` | `#de5b6d` | `#6b5fb5` |
 | 北欧冷杉 `nordic_frost` | `#f8fafb` | `#ffffff` | `#2d7a64` | `#0ea5e9` |
-| 巴黎晨光 `parisian_dawn` | `#faf8f5` | `#ffffff` | `#c84b5b` | `#b87e43` |
-| 深海星图 `midnight_obsidian` | `#151921` | `#1c212c` | `#0ea5e9` | `#a855f7` |
-| 京都茶席 `kyoto_zen` | `#f8faf7` | `#ffffff` | `#3d6b4f` | `#c2413b` |
 
 新增主题时必须提供工作区背景、表面、主文字、次文字、边框、主强调色、悬停色和焦点色；禁止只替换按钮颜色而留下不可读的边框或文字。
 

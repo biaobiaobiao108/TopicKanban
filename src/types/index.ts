@@ -399,9 +399,6 @@ export interface DealFocusData {
 
 export const APP_THEMES = [
   'nordic_frost',
-  'parisian_dawn',
-  'midnight_obsidian',
-  'kyoto_zen',
   'warm_paper',
   'light',
   'dark',

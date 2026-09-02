@@ -18,29 +18,15 @@ export function applyTheme(theme: AppTheme = 'light'): void {
   // Clear specific theme class tokens
   root.classList.remove(
     'theme-warm-paper',
-    'theme-nordic-frost',
-    'theme-parisian-dawn',
-    'theme-midnight-obsidian',
-    'theme-kyoto-zen'
+    'theme-nordic-frost'
   );
 
   if (theme === 'dark') {
     root.classList.add('dark');
     root.style.colorScheme = 'dark';
-  } else if (theme === 'midnight_obsidian') {
-    root.classList.add('dark', 'theme-midnight-obsidian');
-    root.style.colorScheme = 'dark';
   } else if (theme === 'nordic_frost') {
     root.classList.remove('dark');
     root.classList.add('theme-nordic-frost');
-    root.style.colorScheme = 'light';
-  } else if (theme === 'parisian_dawn') {
-    root.classList.remove('dark');
-    root.classList.add('theme-parisian-dawn');
-    root.style.colorScheme = 'light';
-  } else if (theme === 'kyoto_zen') {
-    root.classList.remove('dark');
-    root.classList.add('theme-kyoto-zen');
     root.style.colorScheme = 'light';
   } else if (theme === 'warm_paper') {
     root.classList.remove('dark');
@@ -85,25 +71,6 @@ export const THEME_CONFIG_LIST: ThemeConfig[] = [
     desc: 'Craft / Linear 极简冷雾青与冷杉青绿，通透冷静',
     tag: '推荐',
     colors: ['#f8fafb', '#edf2f2', '#2d7a64', '#0ea5e9'],
-  },
-  {
-    id: 'parisian_dawn',
-    title: '巴黎晨光',
-    desc: '生椰浅灰麦色与波尔多复古红，法式编辑部调性',
-    colors: ['#faf8f5', '#ece7e1', '#c84b5b', '#b87e43'],
-  },
-  {
-    id: 'midnight_obsidian',
-    title: '深海星图',
-    desc: 'Raycast 曜石黑与极光电光蓝，极客夜间沉浸写稿',
-    tag: '极客',
-    colors: ['#151921', '#1c212c', '#0ea5e9', '#a855f7'],
-  },
-  {
-    id: 'kyoto_zen',
-    title: '京都茶席',
-    desc: '素竹青砂与宇治浓抹茶绿，禅意宁静专注',
-    colors: ['#f8faf7', '#ebeee7', '#3d6b4f', '#c2413b'],
   },
   {
     id: 'warm_paper',

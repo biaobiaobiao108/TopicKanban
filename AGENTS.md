@@ -118,8 +118,8 @@
    * 输入框与可编辑元素（`INPUT`, `TEXTAREA`, `contenteditable`）内禁止误触发全局快捷键。
 5. **文案防丢保障**：
    * 文案编辑器需保持 1.5s 防抖本地暂存，并在 `visibilitychange` 与 `pagehide` 时触发即时同步；保存携带 `base_version` 原子校验防冲突。
-6. **8 套主题生态**：
-   * 支持北欧冷杉 (`nordic_frost`)、巴黎晨光 (`parisian_dawn`)、深海星图 (`midnight_obsidian`)、京都茶席 (`kyoto_zen`)、暖沙纸境 (`warm_paper`)、经典浅色 (`light`)、深色夜间 (`dark`)、跟随系统 (`system`)。
+6. **5 套主题生态**：
+   * 支持北欧冷杉 (`nordic_frost`)、暖沙纸境 (`warm_paper`)、经典浅色 (`light`)、深色夜间 (`dark`)、跟随系统 (`system`)。
 
 7. **字体与混排规范**：
    * 中文业务文本、标签、按钮与说明文字使用现有无衬线业务字体栈；不要将含中文的整块内容统一套用 `font-mono`。

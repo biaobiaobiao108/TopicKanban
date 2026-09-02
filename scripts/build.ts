@@ -46,7 +46,6 @@ const serverResult = await Bun.build({
   splitting: false,
   minify: true,
   naming: { entry: '[name].[ext]' },
-  write: false,
 });
 
 if (!serverResult.success) {
