@@ -582,7 +582,7 @@ export const ScriptEditorTab: React.FC<ScriptEditorTabProps> = ({
       }
       return;
     }
-    editor?.commands.setContent(draftConflict.content_html || '', false);
+    editor?.commands.setContent(draftConflict.content_html || '', { emitUpdate: false });
     latestContentRef.current = {
       html: draftConflict.content_html,
       json: draftConflict.content_json,

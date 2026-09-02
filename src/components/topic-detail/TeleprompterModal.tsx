@@ -803,7 +803,9 @@ function renderScriptTextWithCues(text: string, isDark: boolean): React.ReactNod
               return (
                 <div
                   key={block.id}
-                  ref={(el) => (blockElementsRef.current[idx] = el)}
+                  ref={(el) => {
+                    blockElementsRef.current[idx] = el;
+                  }}
                   className={`transition-colors duration-150 ${
                     isActive
                       ? isDark

@@ -1,20 +1,20 @@
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
+import tailwindcss from '@tailwindcss/vite';
 import path from 'path';
 
 // https://vitejs.dev/config/
 export default defineConfig({
-  plugins: [react()],
+  plugins: [react(), tailwindcss()],
   resolve: {
     alias: {
-      '@': path.resolve(__dirname, './src'),
+      '@': path.resolve(import.meta.dirname, './src'),
     },
   },
   build: {
     chunkSizeWarningLimit: 1200,
     rollupOptions: {
       output: {
-        onlyExplicitManualChunks: true,
         manualChunks(id) {
           if (id.includes('/node_modules/@tiptap/')) return 'tiptap';
           if (id.includes('/node_modules/@dnd-kit/')) return 'dnd';
