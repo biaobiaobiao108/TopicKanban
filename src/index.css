@@ -1,7 +1,6 @@
 @import "tailwindcss" source(none);
 @config "../tailwind.config.js";
 @source ".";
-@source not "./components/topic-detail";
 
 .skip-link {
   position: fixed;

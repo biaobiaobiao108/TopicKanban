@@ -4,38 +4,45 @@ import { AppKV } from './appKv';
 import { initializeSqliteDatabase } from './sqlite';
 import type { ApiBindings } from './apiShared';
 
-process.title = 'topickanban';
+export interface ServerOptions {
+  development?: boolean;
+  frontendRoutes?: Record<string, unknown>;
+}
 
-const isProduction = Bun.env.NODE_ENV === 'production';
-const defaultPort = isProduction ? 3030 : 8787;
-const port = Number(Bun.env.PORT) || defaultPort;
-const dataDir = Bun.env.DATA_DIR || path.resolve(process.cwd(), 'data');
-const dbFilePath = path.join(dataDir, 'kanban.db');
-const schemaDir = path.resolve(process.cwd(), 'drizzle');
+export async function startServer(options: ServerOptions = {}): Promise<void> {
+  process.title = 'topickanban';
 
-console.log(`[Kanban Server] Initializing SQLite database at: ${dbFilePath}`);
-const { db, sqlite } = await initializeSqliteDatabase(dbFilePath, schemaDir);
-const kv = new AppKV(db);
+  const isProduction = Bun.env.NODE_ENV === 'production';
+  const isDevelopment = options.development ?? !isProduction;
+  const defaultPort = 3030;
+  const port = Number(Bun.env.PORT) || defaultPort;
+  const dataDir = Bun.env.DATA_DIR || path.resolve(process.cwd(), 'data');
+  const dbFilePath = path.join(dataDir, 'kanban.db');
+  const schemaDir = path.resolve(process.cwd(), 'drizzle');
 
-const appPassword = Bun.env.APP_PASSWORD || (isProduction ? '' : 'admin');
-const quickDropToken = Bun.env.QUICK_DROP_TOKEN || '';
-const publicBaseUrl = (Bun.env.PUBLIC_BASE_URL || '').trim().replace(/\/+$/, '');
-const trustProxyHeaders = /^(1|true|yes|on)$/i.test(Bun.env.TRUST_PROXY_HEADERS || '');
+  console.log(`[Kanban Server] Initializing SQLite database at: ${dbFilePath}`);
+  const { db, sqlite } = await initializeSqliteDatabase(dbFilePath, schemaDir);
+  const kv = new AppKV(db);
 
-const bindings: ApiBindings = {
-  DB: db,
-  KV: kv,
-  APP_PASSWORD: appPassword,
-  QUICK_DROP_TOKEN: quickDropToken,
-  PUBLIC_BASE_URL: publicBaseUrl,
-  TRUST_PROXY_HEADERS: trustProxyHeaders,
-};
+  const appPassword = Bun.env.APP_PASSWORD || (isProduction ? '' : 'admin');
+  const quickDropToken = Bun.env.QUICK_DROP_TOKEN || '';
+  const publicBaseUrl = (Bun.env.PUBLIC_BASE_URL || '').trim().replace(/\/+$/, '');
+  const trustProxyHeaders = /^(1|true|yes|on)$/i.test(Bun.env.TRUST_PROXY_HEADERS || '');
 
-const apiApp = createApp(bindings);
-const distPath = path.resolve(process.cwd(), 'dist');
-const hasDist = await Bun.file(path.join(distPath, 'index.html')).exists();
+  const bindings: ApiBindings = {
+    DB: db,
+    KV: kv,
+    APP_PASSWORD: appPassword,
+    QUICK_DROP_TOKEN: quickDropToken,
+    PUBLIC_BASE_URL: publicBaseUrl,
+    TRUST_PROXY_HEADERS: trustProxyHeaders,
+  };
 
-function withSecurityHeaders(response: Response): Response {
+  const apiApp = createApp(bindings);
+  const distPath = path.resolve(process.cwd(), 'dist');
+  const hasDist = await Bun.file(path.join(distPath, 'index.html')).exists();
+
+  function withSecurityHeaders(response: Response): Response {
   const headers = new Headers(response.headers);
   headers.set('X-Content-Type-Options', 'nosniff');
   headers.set('X-Frame-Options', 'DENY');
@@ -50,9 +57,9 @@ function withSecurityHeaders(response: Response): Response {
     statusText: response.statusText,
     headers,
   });
-}
+  }
 
-async function serveFile(filePath: string, extraHeaders?: HeadersInit): Promise<Response> {
+  async function serveFile(filePath: string, extraHeaders?: HeadersInit): Promise<Response> {
   const file = Bun.file(filePath);
   if (!(await file.exists())) return new Response('Not Found', { status: 404 });
   const response = new Response(file);
@@ -65,16 +72,16 @@ async function serveFile(filePath: string, extraHeaders?: HeadersInit): Promise<
     statusText: response.statusText,
     headers,
   });
-}
+  }
 
-function safeAssetPath(relativePath: string): string | null {
+  function safeAssetPath(relativePath: string): string | null {
   const root = path.resolve(distPath, 'assets');
   const candidate = path.resolve(root, relativePath);
   if (candidate !== root && !candidate.startsWith(`${root}${path.sep}`)) return null;
   return candidate;
-}
+  }
 
-function assetPathFromRequest(request: Request): string | null {
+  function assetPathFromRequest(request: Request): string | null {
   const pathname = new URL(request.url).pathname;
   if (!pathname.startsWith('/assets/')) return null;
   try {
@@ -82,12 +89,12 @@ function assetPathFromRequest(request: Request): string | null {
   } catch {
     return null;
   }
-}
+  }
 
-const staticRoutes: Record<string, unknown> = {};
-if (hasDist) {
+  const frontendRoutes: Record<string, unknown> = { ...(options.frontendRoutes ?? {}) };
+  if (isProduction && hasDist) {
   console.log(`[Kanban Server] Serving static files from: ${distPath}`);
-  staticRoutes['/assets/*'] = {
+  frontendRoutes['/assets/*'] = {
     GET: async (request: Request) => {
       const relativePath = assetPathFromRequest(request);
       const assetPath = relativePath === null ? null : safeAssetPath(relativePath);
@@ -98,68 +105,75 @@ if (hasDist) {
     },
   };
   for (const fileName of ['icon.png', 'apple-touch-icon.png', 'favicon.ico', '_headers']) {
-    staticRoutes[`/${fileName}`] = {
+    frontendRoutes[`/${fileName}`] = {
       GET: () => serveFile(path.join(distPath, fileName)).then(withSecurityHeaders),
     };
   }
-}
+  }
 
-const server = Bun.serve({
-  routes: {
-    ...apiApp.toBunRoutes(withSecurityHeaders),
-    ...staticRoutes,
-  } as any,
-  fetch: async (request, server) => {
-    const requestPath = new URL(request.url).pathname;
-    if (requestPath.startsWith('/api/')) {
-      return withSecurityHeaders(await apiApp.fetch(request, server.requestIP(request)?.address));
-    }
-    if (!hasDist) {
-      return withSecurityHeaders(new Response('Topic Kanban API Server is running. Frontend dist not built yet.'));
-    }
-    return withSecurityHeaders(await serveFile(path.join(distPath, 'index.html'), {
-      'Cache-Control': 'no-cache, no-store, must-revalidate',
-      Pragma: 'no-cache',
-      Expires: '0',
-    }));
-  },
-  port,
-});
-
-console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
-console.log(`🎬 叙事类视频选题生产工作台 (Topic Kanban Studio)`);
-console.log(`🚀 服务已启动: http://localhost:${server.port}`);
-if (publicBaseUrl) console.log(`🌐 反代公开域名: ${publicBaseUrl}`);
-console.log(`🗄️  本地 SQLite: ${dbFilePath}`);
-if (appPassword) {
-  console.log(`🔑 访问密码: ${Bun.env.APP_PASSWORD ? '已自定义配置' : 'admin (本地开发默认密码)'}`);
-} else {
-  console.log(`⚠️  警告: APP_PASSWORD 未配置，登录可能受限。建议设置 APP_PASSWORD 环境变量。`);
-}
-console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
-
-let isShuttingDown = false;
-const handleShutdown = (signal: string) => {
-  if (isShuttingDown) return;
-  isShuttingDown = true;
-  console.log(`\n[Kanban Server] 接收到 ${signal} 信号，正在平滑关闭服务...`);
-
-  server.stop().then(() => {
-    try {
-      sqlite.exec('PRAGMA wal_checkpoint(TRUNCATE)');
-      sqlite.close();
-      console.log('[Kanban Server] SQLite 数据已安全检查点并关闭连接。');
-    } catch (error) {
-      console.error('[Kanban Server] 关闭 SQLite 时出错:', error);
-    }
-    process.exit(0);
+  const server = Bun.serve({
+    development: isDevelopment ? { hmr: true } : false,
+    routes: {
+      ...apiApp.toBunRoutes(withSecurityHeaders),
+      ...frontendRoutes,
+    } as any,
+    fetch: async (request, server) => {
+      const requestPath = new URL(request.url).pathname;
+      if (requestPath.startsWith('/api/')) {
+        return withSecurityHeaders(await apiApp.fetch(request, server.requestIP(request)?.address));
+      }
+      if (isDevelopment) {
+        return withSecurityHeaders(new Response('Not Found', { status: 404 }));
+      }
+      if (!hasDist) {
+        return withSecurityHeaders(new Response('Topic Kanban API Server is running. Frontend dist not built yet.'));
+      }
+      return withSecurityHeaders(await serveFile(path.join(distPath, 'index.html'), {
+        'Cache-Control': 'no-cache, no-store, must-revalidate',
+        Pragma: 'no-cache',
+        Expires: '0',
+      }));
+    },
+    port,
   });
 
-  setTimeout(() => {
-    console.error('[Kanban Server] 平滑关闭超时，强制退出。');
-    process.exit(1);
-  }, 5000).unref();
-};
+  console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+  console.log(`🎬 叙事类视频选题生产工作台 (Topic Kanban Studio)`);
+  console.log(`🚀 服务已启动: http://localhost:${server.port}`);
+  if (publicBaseUrl) console.log(`🌐 反代公开域名: ${publicBaseUrl}`);
+  console.log(`🗄️  本地 SQLite: ${dbFilePath}`);
+  if (appPassword) {
+    console.log(`🔑 访问密码: ${Bun.env.APP_PASSWORD ? '已自定义配置' : 'admin (本地开发默认密码)'}`);
+  } else {
+    console.log(`⚠️  警告: APP_PASSWORD 未配置，登录可能受限。建议设置 APP_PASSWORD 环境变量。`);
+  }
+  console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
 
-process.on('SIGTERM', () => handleShutdown('SIGTERM'));
-process.on('SIGINT', () => handleShutdown('SIGINT'));
+  let isShuttingDown = false;
+  const handleShutdown = (signal: string) => {
+    if (isShuttingDown) return;
+    isShuttingDown = true;
+    console.log(`\n[Kanban Server] 接收到 ${signal} 信号，正在平滑关闭服务...`);
+
+    server.stop().then(() => {
+      try {
+        sqlite.exec('PRAGMA wal_checkpoint(TRUNCATE)');
+        sqlite.close();
+        console.log('[Kanban Server] SQLite 数据已安全检查点并关闭连接。');
+      } catch (error) {
+        console.error('[Kanban Server] 关闭 SQLite 时出错:', error);
+      }
+      process.exit(0);
+    });
+
+    setTimeout(() => {
+      console.error('[Kanban Server] 平滑关闭超时，强制退出。');
+      process.exit(1);
+    }, 5000).unref();
+  };
+
+  process.on('SIGTERM', () => handleShutdown('SIGTERM'));
+  process.on('SIGINT', () => handleShutdown('SIGINT'));
+}
+
+if (import.meta.main) await startServer();

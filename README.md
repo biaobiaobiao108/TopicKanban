@@ -215,11 +215,13 @@ kanban.yourdomain.com {
 
 系统推荐使用 **Bun 1.4+** 进行依赖管理与开发测试：
 
+前端使用 Bun HTML Bundler 与 Bun.serve；Tailwind 通过 `bun-plugin-tailwind@0.1.2` 处理，插件内置 Tailwind `4.1.14`。
+
 ```bash
 # 1. 安装依赖
 bun install
 
-# 2. 启动本地全栈开发环境 (Vite 前端 3030 端口 + Bun API 8787 端口)
+# 2. 启动本地全栈开发环境 (Bun HTML Bundler + Bun API，3030 端口)
 bun run dev
 
 # 3. 运行全量自动化测试套件 (85 项单元与集成测试)
@@ -228,7 +230,7 @@ bun run test:run
 # 4. 运行 Playwright E2E（Playwright CLI 使用 Bun 运行时）
 bun run test:e2e
 
-# 5. 生产构建打包 (Vite 前端打包 + Bun 服务端 Bundle)
+# 5. 生产构建打包 (Bun HTML Bundler 全栈 Bundle)
 bun run build
 
 # 6. 本地生产单机运行

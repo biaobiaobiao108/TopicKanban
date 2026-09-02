@@ -19,18 +19,10 @@ export default defineConfig({
       use: { ...devices['iPhone 13'] },
     },
   ],
-  webServer: [
-    {
-      command: 'bun run --bun vite --host 127.0.0.1 --port 3030',
-      url: 'http://127.0.0.1:3030',
-      reuseExistingServer: true,
-      timeout: 120_000,
-    },
-    {
-      command: 'bun run dev:server',
-      url: 'http://127.0.0.1:8787/api/health',
-      reuseExistingServer: true,
-      timeout: 120_000,
-    },
-  ],
+  webServer: {
+    command: 'bun run dev',
+    url: 'http://127.0.0.1:3030',
+    reuseExistingServer: true,
+    timeout: 120_000,
+  },
 });

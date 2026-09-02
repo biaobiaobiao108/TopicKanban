@@ -1,6 +1,9 @@
 [run]
 bun = true
 
+[serve.static]
+plugins = ["bun-plugin-tailwind"]
+
 [test]
 root = "./tests"
 pathIgnorePatterns = ["e2e/**", "tests/e2e/**"]

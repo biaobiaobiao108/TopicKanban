@@ -4,13 +4,10 @@
   "version": "1.0.0",
   "type": "module",
   "scripts": {
-    "dev": "bun scripts/dev.ts",
-    "dev:web": "bun run --bun vite --port 3030",
-    "dev:server": "bun --watch src/server/server.ts",
-    "build": "bun run --bun tsc && bun run --bun vite build && bun run build:server",
-    "build:server": "NODE_ENV=production bun build src/server/server.ts --target=bun --format=esm --outfile=dist/server.js",
+    "dev": "bun --hot src/server/dev.ts",
+    "build": "bun run --bun tsc && bun run build:server",
+    "build:server": "NODE_ENV=production bun run --bun scripts/build.ts",
     "start": "NODE_ENV=production bun dist/server.js",
-    "preview": "bun run --bun vite preview",
     "check:bundle": "bun scripts/checkBundleSize.ts",
     "test": "bun test",
     "test:run": "bun test",
@@ -38,17 +35,13 @@
   "devDependencies": {
     "@axe-core/playwright": "^4.13.0",
     "@playwright/test": "^1.62.1",
-    "@tailwindcss/vite": "^4.3.3",
     "@types/node": "^26.4.1",
     "@types/react": "^19.2.18",
     "@types/react-dom": "^19.2.5",
-    "@vitejs/plugin-react": "^6.1.1",
-    "autoprefixer": "^10.4.20",
+    "bun-plugin-tailwind": "0.1.2",
     "bun-types": "^1.4.0",
-    "postcss": "^8.5.2",
-    "tailwindcss": "^4.3.3",
-    "typescript": "^7.0.2",
-    "vite": "^8.2.2"
+    "lightningcss": "1.33.0",
+    "typescript": "^7.0.2"
   },
   "workspaces": ["."]
 }
