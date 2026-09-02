@@ -16,7 +16,6 @@ import {
   type StoryStructureKey,
 } from '../../lib/storyStructure';
 import {
-  Sparkles,
   User,
   Plus,
   ArrowRight,
@@ -36,7 +35,7 @@ import {
   CalendarDays,
   Layers,
   ChevronDown,
-  Flame,
+  Target,
   Clapperboard
 } from 'lucide-react';
 
@@ -306,17 +305,20 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({
 
   return (
     <div className="grid grid-cols-1 xl:grid-cols-12 gap-6 py-4 items-start">
-      {/* Left Main Column: Pitch & Four-Act Story Blueprint (7 / 12) */}
+      {/* Left Main Column: Topic Positioning & Story Structure (7 / 12) */}
       <div className="xl:col-span-7 space-y-6">
-        {/* 1. 核心看点与戏剧反差卡 (The Pitch & Hook Card) */}
+        {/* 1. 选题定位卡 */}
         <div className="bg-white dark:bg-stone-900 rounded-2xl border border-stone-200/70 dark:border-stone-800 p-5 space-y-4 shadow-2xs transition-colors">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
               <div className="p-1.5 rounded-xl bg-rose-500/10 text-rose-600 dark:text-rose-400">
-                <Flame className="w-4 h-4" />
+                <Target className="w-4 h-4" />
               </div>
               <div>
-                <h2 className="text-sm font-bold text-stone-900 dark:text-stone-100">核心看点与戏剧反差</h2>
+                <h2 className="text-sm font-bold text-stone-900 dark:text-stone-100">选题定位</h2>
+                <p className="mt-0.5 text-[11px] text-stone-500 dark:text-stone-400">
+                  先说清内容，再确认看点与时机。
+                </p>
               </div>
             </div>
 
@@ -343,11 +345,11 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({
             </div>
           </div>
 
-          {/* 一句话故事概念 (Core Concept) */}
+          {/* 一句话概述 */}
           <div className="space-y-1.5">
             <label htmlFor="overview-summary" className="block text-xs font-bold text-stone-800 dark:text-stone-200 flex items-center gap-1.5">
               <Lightbulb aria-hidden="true" className="w-3.5 h-3.5 text-amber-500" />
-              <span>一句话看点 (Core Concept)</span>
+              <span>一句话概述</span>
             </label>
             <textarea
               id="overview-summary"
@@ -360,16 +362,16 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({
                 triggerAutoSave({ summary: e.target.value, hook, why_now: whyNow, storyline });
               }}
               onBlur={handleImmediateSave}
-              placeholder="例如：一个屡次减肥失败的网红，再一次试图证明自己，最后却被峨眉山滑竿抬了下来。"
+              placeholder="用一句话说清这条内容在讲什么、围绕谁或什么展开。"
               className="w-full text-sm text-stone-800 dark:text-stone-100 bg-stone-500/[0.03] dark:bg-stone-800/60 border border-stone-200/60 dark:border-stone-700/60 rounded-xl p-3 placeholder:text-stone-400 dark:placeholder:text-stone-500 focus:bg-white dark:focus:bg-stone-800 focus:border-rose-500 dark:focus:border-rose-500 focus:outline-none transition-colors"
             />
           </div>
 
-          {/* 戏剧反差与核心钩子 (Hook & Tension) */}
+          {/* 核心看点 */}
           <div className="space-y-1.5">
             <label htmlFor="overview-hook" className="block text-xs font-bold text-stone-800 dark:text-stone-200 flex items-center gap-1.5">
-              <Sparkles aria-hidden="true" className="w-3.5 h-3.5 text-rose-500" />
-              <span>戏剧反差与讽刺钩子 (Hook & Contrast)</span>
+              <Eye aria-hidden="true" className="w-3.5 h-3.5 text-rose-500" />
+              <span>核心看点</span>
             </label>
             <textarea
               id="overview-hook"
@@ -382,12 +384,12 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({
                 triggerAutoSave({ hook: e.target.value, summary, why_now: whyNow, storyline });
               }}
               onBlur={handleImmediateSave}
-              placeholder="观众预期 vs 实际现实：前期的豪言壮语与结尾躺在滑竿上的巨大反差，揭示流量时代嘴硬人设与现实生活的荒诞错位..."
+              placeholder="这条内容最值得被看到的地方是什么？可以是一个问题、事实、变化、冲突、方法或独特视角。"
               className="w-full text-sm text-stone-800 dark:text-stone-100 bg-stone-500/[0.03] dark:bg-stone-800/60 border border-stone-200/60 dark:border-stone-700/60 rounded-xl p-3 placeholder:text-stone-400 dark:placeholder:text-stone-500 focus:bg-white dark:focus:bg-stone-800 focus:border-rose-500 dark:focus:border-rose-500 focus:outline-none transition-colors"
             />
           </div>
 
-          {/* 可折叠：当下时机与爆发点 (Why Now) */}
+          {/* 可折叠：为什么现在做 */}
           <div className="border-t border-stone-100 dark:border-stone-800/80 pt-3">
             <button
               type="button"
@@ -396,7 +398,7 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({
             >
               <div className="flex items-center gap-1.5">
                 <Clock className="w-3.5 h-3.5 text-blue-500" />
-                <span>为什么现在做 / 传播时机 (Why Now)</span>
+                <span>为什么现在做</span>
                 {whyNow && <span className="w-1.5 h-1.5 rounded-full bg-blue-500" />}
               </div>
               <ChevronDown className={`w-3.5 h-3.5 transition-transform ${isWhyNowExpanded ? 'rotate-180' : ''}`} />
@@ -407,7 +409,7 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({
                 <textarea
                   id="overview-why-now"
                   name="why_now"
-                  aria-label="为什么现在做 / 传播时机"
+                  aria-label="为什么现在做"
                   autoComplete="off"
                   rows={2}
                   value={whyNow}
@@ -416,7 +418,7 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({
                     triggerAutoSave({ why_now: e.target.value, summary, hook, storyline });
                   }}
                   onBlur={handleImmediateSave}
-                  placeholder="热点发酵已达高潮，评论区深度解构声音激增，正适合一部系统叙事长视频建立认知壁垒..."
+                  placeholder="现在做它的理由是什么？例如出现了新信息、需求变化、事件节点或正在发生的讨论。"
                   className="w-full text-xs text-stone-800 dark:text-stone-100 bg-stone-500/[0.03] dark:bg-stone-800/60 border border-stone-200/60 dark:border-stone-700/60 rounded-xl p-3 placeholder:text-stone-400 dark:placeholder:text-stone-500 focus:bg-white dark:focus:bg-stone-800 focus:border-rose-500 dark:focus:border-rose-500 focus:outline-none transition-colors"
                 />
               </div>
