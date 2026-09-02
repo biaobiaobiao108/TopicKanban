@@ -1,3 +1,4 @@
+import fs from 'node:fs';
 import path from 'node:path';
 import { createApp } from './app';
 import { AppKV } from './appKv';
@@ -7,15 +8,16 @@ import type { ApiBindings } from './apiShared';
 export interface ServerOptions {
   development?: boolean;
   frontendRoutes?: Record<string, unknown>;
+  port?: number;
 }
 
-export async function startServer(options: ServerOptions = {}): Promise<void> {
+export async function startServer(options: ServerOptions = {}) {
   process.title = 'topickanban';
 
   const isProduction = Bun.env.NODE_ENV === 'production';
   const isDevelopment = options.development ?? !isProduction;
   const defaultPort = 3030;
-  const port = Number(Bun.env.PORT) || defaultPort;
+  const port = options.port ?? (Number(Bun.env.PORT) || defaultPort);
   const dataDir = Bun.env.DATA_DIR || path.resolve(process.cwd(), 'data');
   const dbFilePath = path.join(dataDir, 'kanban.db');
   const schemaDir = path.resolve(process.cwd(), 'drizzle');
@@ -93,22 +95,37 @@ export async function startServer(options: ServerOptions = {}): Promise<void> {
 
   const frontendRoutes: Record<string, unknown> = { ...(options.frontendRoutes ?? {}) };
   if (isProduction && hasDist) {
-  console.log(`[Kanban Server] Serving static files from: ${distPath}`);
-  frontendRoutes['/assets/*'] = {
-    GET: async (request: Request) => {
-      const relativePath = assetPathFromRequest(request);
-      const assetPath = relativePath === null ? null : safeAssetPath(relativePath);
-      if (!assetPath) return withSecurityHeaders(new Response('Forbidden', { status: 403 }));
-      return withSecurityHeaders(await serveFile(assetPath, {
-        'Cache-Control': 'public, max-age=31536000, immutable',
-      }));
-    },
-  };
-  for (const fileName of ['icon.png', 'apple-touch-icon.png', 'favicon.ico', '_headers']) {
-    frontendRoutes[`/${fileName}`] = {
-      GET: () => serveFile(path.join(distPath, fileName)).then(withSecurityHeaders),
+    console.log(`[Kanban Server] Serving static files from: ${distPath}`);
+    frontendRoutes['/assets/*'] = {
+      GET: async (request: Request) => {
+        const relativePath = assetPathFromRequest(request);
+        const assetPath = relativePath === null ? null : safeAssetPath(relativePath);
+        if (!assetPath) return withSecurityHeaders(new Response('Forbidden', { status: 403 }));
+        return withSecurityHeaders(await serveFile(assetPath, {
+          'Cache-Control': 'public, max-age=31536000, immutable',
+        }));
+      },
     };
   }
+
+  const publicDir = path.resolve(process.cwd(), 'public');
+  const staticRoot = isProduction && hasDist ? distPath : publicDir;
+  const staticFiles = new Set(['icon.png', 'apple-touch-icon.png', 'favicon.ico', '_headers']);
+  try {
+    const discovered = await fs.promises.readdir(publicDir);
+    for (const file of discovered) {
+      if (file !== 'index.html' && file !== 'server.js' && file !== 'assets') {
+        staticFiles.add(file);
+      }
+    }
+  } catch {
+    // Fall back to default static files if publicDir is not present (e.g. runner container)
+  }
+
+  for (const fileName of staticFiles) {
+    frontendRoutes[`/${fileName}`] = {
+      GET: () => serveFile(path.join(staticRoot, fileName)).then(withSecurityHeaders),
+    };
   }
 
   const server = Bun.serve({
@@ -174,6 +191,8 @@ export async function startServer(options: ServerOptions = {}): Promise<void> {
 
   process.on('SIGTERM', () => handleShutdown('SIGTERM'));
   process.on('SIGINT', () => handleShutdown('SIGINT'));
+
+  return server;
 }
 
 if (import.meta.main) await startServer();
