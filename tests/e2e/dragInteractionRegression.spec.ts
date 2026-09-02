@@ -281,3 +281,27 @@ test('日历未排期池拖拽到日期后不保留释放动画', async ({ page 
   await expect.poll(() => state.topics.find((topic) => topic.id === 'e2e-calendar-drag-topic')?.target_publish_date).toMatch(/^2026-09-\d{2}$/);
   await expect(card).toHaveCount(0);
 });
+
+test('日历已有选题定档表单的日期字段高度和占位提示保持一致', async ({ page }) => {
+  await mockWorkspace(page, { calendar: true });
+  await login(page);
+  await page.goto('/calendar?view=agenda&date=2026-09-03');
+
+  await page.getByRole('button', { name: '在此日期排期定档' }).click();
+  const dialog = page.getByRole('dialog', { name: /排期定档/ });
+  await expect(dialog).toBeVisible();
+  await expect(dialog.getByText('计划发布日期', { exact: true })).toBeVisible();
+  await expect(dialog.getByText('计划发布日期 (YYYYMMDD / YYYY-MM-DD)', { exact: true })).toHaveCount(0);
+
+  const dateInputs = dialog.locator('input[placeholder*="YYYYMMDD"]');
+  await expect(dateInputs).toHaveCount(2);
+  const dateStyles = await dateInputs.evaluateAll((inputs) => inputs.map((input) => {
+    const style = getComputedStyle(input);
+    return {
+      height: style.height,
+      className: input.className,
+    };
+  }));
+  expect(dateStyles[0].height).toBe(dateStyles[1].height);
+  expect(dateStyles.every(({ className }) => className.includes('placeholder:text-stone-400/60'))).toBe(true);
+});

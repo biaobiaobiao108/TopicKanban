@@ -50,8 +50,9 @@ const makeTodo = (id: string, title: string, sortOrder: number) => ({
   updated_at: '2026-08-25T00:00:00.000Z',
 });
 
-async function mockWorkspace(page: Page, options: { withCurrentTodo?: boolean } = {}) {
+async function mockWorkspace(page: Page, options: { withCurrentTodo?: boolean; createDelayMs?: number } = {}) {
   const withCurrentTodo = options.withCurrentTodo ?? true;
+  const createDelayMs = options.createDelayMs ?? 0;
   let todos = withCurrentTodo ? [currentTodo, makeTodo('e2e-inline-two', '整理第二条', 2), makeTodo('e2e-inline-three', '整理第三条', 3)] : [];
   let currentTopic = { ...topic };
   const settings = { reading_speed: 280, theme: 'light', stale_action_days: 5, default_share_ttl_days: 3, voiceover_cues: [] };
@@ -114,6 +115,7 @@ async function mockWorkspace(page: Page, options: { withCurrentTodo?: boolean } 
       }
       const id = `e2e-inline-created-${todos.length}`;
       todos = [...todos, makeTodo(id, body.title, Math.max(...todos.map((todo) => todo.sort_order)) + 1)];
+      if (createDelayMs > 0) await new Promise((resolve) => setTimeout(resolve, createDelayMs));
     }
     await route.fulfill({ contentType: 'application/json', body: JSON.stringify(route.request().method() === 'GET' ? todos : mutationResponse()) });
   });
@@ -171,7 +173,7 @@ async function login(page: Page) {
 }
 
 test('执行清单支持连续内联创建、标题编辑和紧凑布局', async ({ page }) => {
-  await mockWorkspace(page);
+  await mockWorkspace(page, { createDelayMs: 180 });
   await login(page);
   await page.goto(`/topics/${topic.id}?tab=todos`);
 
@@ -226,7 +228,10 @@ test('执行清单支持连续内联创建、标题编辑和紧凑布局', async
   await expect(page.getByText('待办标题不能为空', { exact: true })).toBeVisible();
 
   await composer.fill('新增第一条');
+  const createRequest = page.waitForRequest((request) => request.url().endsWith(`/api/topics/${topic.id}/todos`) && request.method() === 'POST');
   await composer.press('Enter');
+  await createRequest;
+  await expect.poll(() => page.locator('[data-testid="todo-row"] input[type="checkbox"]').evaluateAll((inputs) => inputs.map((input) => (input as HTMLInputElement).disabled))).toEqual([false, false, false]);
   await expect(page.getByText('新增第一条', { exact: true })).toBeVisible();
   await expect(composer).toBeFocused();
   await expect(composer).toHaveValue('');

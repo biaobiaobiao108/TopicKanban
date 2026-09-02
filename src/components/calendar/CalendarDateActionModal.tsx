@@ -189,26 +189,26 @@ export const CalendarDateActionModal: React.FC<CalendarDateActionModalProps> = (
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2 border-t border-stone-100 dark:border-stone-800">
               <div>
-                <label className="block text-xs font-semibold text-stone-700 dark:text-stone-300 mb-1">
-                  计划发布日期 (YYYYMMDD / YYYY-MM-DD)
+                <label className="block min-h-4 text-xs font-semibold text-stone-700 dark:text-stone-300 mb-1">
+                  计划发布日期
                 </label>
                 <DateInput
                   value={publishDate}
                   placeholder="YYYYMMDD，例如 20260831"
                   onChange={(val) => setPublishDate(val)}
-                  className="w-full px-3 py-2 rounded-xl text-xs bg-stone-500/[0.04] dark:bg-stone-800 border border-stone-200 dark:border-stone-700 text-stone-900 dark:text-stone-100 focus:outline-none focus:border-rose-500"
+                  className="min-h-10 w-full px-3 py-2 rounded-xl text-xs bg-stone-500/[0.04] dark:bg-stone-800 border border-stone-200 dark:border-stone-700 text-stone-900 dark:text-stone-100 focus:outline-none focus:border-rose-500"
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-stone-700 dark:text-stone-300 mb-1">
+                <label className="block min-h-4 text-xs font-semibold text-stone-700 dark:text-stone-300 mb-1">
                   内部制作截止日 (选填)
                 </label>
                 <DateInput
                   value={deadlineDate}
                   placeholder="YYYYMMDD，例如 20260828"
                   onChange={(val) => setDeadlineDate(val)}
-                  className="w-full px-3 py-2 rounded-xl text-xs bg-stone-500/[0.04] dark:bg-stone-800 border border-stone-200 dark:border-stone-700 text-stone-900 dark:text-stone-100 focus:outline-none focus:border-rose-500"
+                  className="min-h-10 w-full px-3 py-2 rounded-xl text-xs bg-stone-500/[0.04] dark:bg-stone-800 border border-stone-200 dark:border-stone-700 text-stone-900 dark:text-stone-100 focus:outline-none focus:border-rose-500"
                 />
               </div>
             </div>

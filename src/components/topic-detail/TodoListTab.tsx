@@ -290,6 +290,7 @@ export const TodoListTab: React.FC<TodoListTabProps> = ({ topic, todos, actions,
   const [activeTodoId, setActiveTodoId] = useState<string | null>(null);
   const [activeTodoSize, setActiveTodoSize] = useState<{ width: number; height: number } | undefined>(undefined);
   const [pendingOrder, setPendingOrder] = useState<string[] | null>(null);
+  const [pendingTodoId, setPendingTodoId] = useState<string | null>(null);
   const [editingTodoId, setEditingTodoId] = useState<string | null>(null);
   const operationInFlightRef = useRef(false);
   const editSavingRef = useRef<string | null>(null);
@@ -318,10 +319,15 @@ export const TodoListTab: React.FC<TodoListTabProps> = ({ topic, todos, actions,
     if (pendingOrder) setPendingOrder(null);
   }, [todos]);
 
-  const run = async (operation: () => Promise<unknown>, options: { lockControls?: boolean } = {}): Promise<boolean> => {
+  const run = async (
+    operation: () => Promise<unknown>,
+    options: { lockControls?: boolean; todoId?: string } = {},
+  ): Promise<boolean> => {
     if (operationInFlightRef.current) return false;
     const lockControls = options.lockControls ?? true;
+    const todoId = options.todoId;
     operationInFlightRef.current = true;
+    if (todoId) setPendingTodoId(todoId);
     if (lockControls) setIsBusy(true);
     try {
       await operation();
@@ -331,6 +337,7 @@ export const TodoListTab: React.FC<TodoListTabProps> = ({ topic, todos, actions,
       return false;
     } finally {
       if (lockControls) setIsBusy(false);
+      if (todoId) setPendingTodoId((current) => current === todoId ? null : current);
       operationInFlightRef.current = false;
     }
   };
@@ -348,7 +355,7 @@ export const TodoListTab: React.FC<TodoListTabProps> = ({ topic, todos, actions,
     const nextTitle = title.trim();
     if (!nextTitle) return false;
     editSavingRef.current = todo.id;
-    const success = await run(() => actions.updateTodo(todo.id, { title: nextTitle }));
+    const success = await run(() => actions.updateTodo(todo.id, { title: nextTitle }), { lockControls: false, todoId: todo.id });
     editSavingRef.current = null;
     if (success && editingTodoId === todo.id) setEditingTodoId(null);
     return success;
@@ -389,7 +396,7 @@ export const TodoListTab: React.FC<TodoListTabProps> = ({ topic, todos, actions,
     }
   };
 
-  const createTodo = (title: string) => run(() => actions.createTodo(topic.id, { title }));
+  const createTodo = (title: string) => run(() => actions.createTodo(topic.id, { title }), { lockControls: false });
 
   return (
     <div className="mx-auto w-full max-w-4xl space-y-5 px-4 py-5 sm:px-6 sm:py-7">
@@ -411,10 +418,10 @@ export const TodoListTab: React.FC<TodoListTabProps> = ({ topic, todos, actions,
                   onEdit={startEditing}
                   onSaveEdit={saveEditing}
                   onCancelEdit={cancelEditing}
-                  onComplete={(item) => void run(() => actions.completeTodo(item.id))}
-                  onReopen={(item) => void run(() => actions.reopenTodo(item.id))}
+                  onComplete={(item) => void run(() => actions.completeTodo(item.id), { lockControls: false, todoId: item.id })}
+                  onReopen={(item) => void run(() => actions.reopenTodo(item.id), { lockControls: false, todoId: item.id })}
                   onDelete={setDeleteTarget}
-                  disabled={isBusy}
+                  disabled={isBusy || pendingTodoId === todo.id}
                   dragDisabled={isReordering}
                 />
               ))}
@@ -426,7 +433,7 @@ export const TodoListTab: React.FC<TodoListTabProps> = ({ topic, todos, actions,
             </DragOverlay>,
             document.body,
           )}
-          <InlineTodoComposer onCreate={createTodo} disabled={isBusy} />
+          <InlineTodoComposer onCreate={createTodo} disabled={isBusy || Boolean(pendingTodoId)} />
         </DndContext>
       )}
 
@@ -435,7 +442,7 @@ export const TodoListTab: React.FC<TodoListTabProps> = ({ topic, todos, actions,
         onClose={() => setDeleteTarget(null)}
         onConfirm={async () => {
           if (!deleteTarget) return;
-          const success = await run(() => actions.deleteTodo(deleteTarget.id));
+          const success = await run(() => actions.deleteTodo(deleteTarget.id), { lockControls: false, todoId: deleteTarget.id });
           if (success) setDeleteTarget(null);
         }}
         title="删除这个待办？"
