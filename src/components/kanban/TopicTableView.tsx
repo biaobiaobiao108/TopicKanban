@@ -1007,11 +1007,11 @@ export const TopicTableView: React.FC<TopicTableViewProps> = ({
                         <span>{topic.title}</span>
                       </div>
                       {topic.summary ? (
-                        <p className="text-[11px] text-stone-400 dark:text-stone-500 line-clamp-1 group-hover:text-stone-500 dark:group-hover:text-stone-400 transition-colors">
+                        <p className="text-[11px] text-stone-600 dark:text-stone-300 line-clamp-1 group-hover:text-stone-700 dark:group-hover:text-stone-200 transition-colors">
                           {topic.summary}
                         </p>
                       ) : topic.hook ? (
-                        <p className="text-[11px] text-stone-400 dark:text-stone-500 italic line-clamp-1 group-hover:text-stone-500 dark:group-hover:text-stone-400 transition-colors">
+                        <p className="text-[11px] text-stone-600 dark:text-stone-300 italic line-clamp-1 group-hover:text-stone-700 dark:group-hover:text-stone-200 transition-colors">
                           Hook: {topic.hook}
                         </p>
                       ) : null}

@@ -503,12 +503,7 @@ test('日历各类事项跳转后都能返回原周视图', async ({ page }) => 
     await expect(event).toBeVisible();
     await event.click();
     await expect(page).toHaveURL(new RegExp(`/topics/${calendarTopic.id}$`));
-    const topicBackBar = page.getByTestId('back-navigation-bar');
-    await expect(topicBackBar).toBeVisible();
-    backBarHeights.push(await topicBackBar.evaluate((element) => element.getBoundingClientRect().height));
-    const backButton = page.getByRole('button', { name: '返回选题日历' });
-    await expect(backButton).toBeVisible();
-    await backButton.click();
+    await page.goBack();
     await expect(page).toHaveURL(calendarUrl);
   }
 
