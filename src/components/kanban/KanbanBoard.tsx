@@ -201,6 +201,10 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
     })),
   });
 
+  const columnQuerySignature = columnQueries.map((query) => (
+    `${query.dataUpdatedAt}:${query.isPlaceholderData ? 'placeholder' : 'ready'}`
+  )).join('|');
+
   useEffect(() => {
     setColumnPages(Object.fromEntries(activeStatuses.map((status) => [status, 1])) as Record<TopicStatus, number>);
     setLoadedTopicsByStatus(Object.fromEntries(activeStatuses.map((status) => [status, []])) as unknown as Record<TopicStatus, Topic[]>);
@@ -255,7 +259,7 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
 
       return changed ? next : current;
     });
-  }, [columnQueries, columnPages, topics]);
+  }, [columnPages, columnQuerySignature, topics]);
 
   const pagedTopics = useMemo(
     () => activeStatuses.flatMap((status) => loadedTopicsByStatus[status] || []),

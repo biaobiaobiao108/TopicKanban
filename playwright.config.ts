@@ -21,7 +21,7 @@ export default defineConfig({
   ],
   webServer: [
     {
-      command: 'bun run dev:web',
+      command: 'bun run --bun vite --host 127.0.0.1 --port 3030',
       url: 'http://127.0.0.1:3030',
       reuseExistingServer: true,
       timeout: 120_000,
