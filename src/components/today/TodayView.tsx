@@ -375,7 +375,13 @@ export const TodayView: React.FC<TodayViewProps> = ({
 
               {actionProgress.attention.length > 0 && (
                 <div data-testid="today-action-progress-footer" className="mt-3 border-t border-stone-100 pt-3 text-[11px] text-stone-500 dark:border-stone-800/70 dark:text-stone-400">
-                  {actionProgress.missingAction.length > 0 ? `还有 ${actionProgress.missingAction.length} 个选题等待补充行动` : '优先处理停滞行动，保持制作节奏。'}
+                  <div className="flex items-center justify-between gap-3 font-semibold">
+                    <span className="flex items-center gap-1.5">
+                      {actionProgress.missingAction.length > 0 ? <Zap className="h-3.5 w-3.5 text-rose-500 dark:text-rose-400" aria-hidden="true" /> : <AlertTriangle className="h-3.5 w-3.5 text-amber-500 dark:text-amber-400" aria-hidden="true" />}
+                      <span>{actionProgress.missingAction.length > 0 ? '等待补充行动' : '需要重新推进'}</span>
+                    </span>
+                    <span data-testid="today-action-progress-count" className="font-mono tabular-nums text-stone-700 dark:text-stone-300">{actionProgress.missingAction.length > 0 ? actionProgress.missingAction.length : actionProgress.staleAction.length}</span>
+                  </div>
                 </div>
               )}
             </div>

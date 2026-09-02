@@ -78,6 +78,8 @@ test('今日聚焦两列保持固定高度，近期轨迹始终展开并在面�
   await expect(page.getByRole('button', { name: '收起近期轨迹' })).toHaveCount(0);
   await expect(page.getByRole('button', { name: /展开另外/ })).toHaveCount(0);
   await expect(page.getByTestId('today-recent-activity-item')).toHaveCount(8);
+  await expect(actionFooter).toContainText('等待补充行动');
+  await expect(page.getByTestId('today-action-progress-count')).toHaveText('8');
   await expect(page.getByText('近期活跃选题', { exact: true })).toBeVisible();
   await expect(page.getByTestId('today-recent-activity-count')).toHaveText('8');
 
