@@ -45,6 +45,12 @@ jobs:
       - name: Typecheck
         run: bunx --bun tsc --noEmit
 
+      - name: Build production bundle
+        run: bun run build
+
+      - name: Check bundle size
+        run: bun run check:bundle
+
   publish:
     name: Build and Publish Image
     needs: test
