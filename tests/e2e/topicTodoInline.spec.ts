@@ -121,6 +121,7 @@ async function mockWorkspace(page: Page, options: { withCurrentTodo?: boolean } 
     const body = route.request().postDataJSON() as { ids: string[] };
     const order = new Map(body.ids.map((id, index) => [id, index + 1]));
     todos = todos.map((todo) => order.has(todo.id) ? { ...todo, sort_order: order.get(todo.id)! } : todo);
+    await new Promise((resolve) => setTimeout(resolve, 180));
     await route.fulfill({ contentType: 'application/json', body: JSON.stringify(mutationResponse()) });
   });
   await page.route('**/api/todos/**', async (route) => {
@@ -358,10 +359,14 @@ test('执行清单拖拽时保留源卡片占位并完成排序', async ({ page 
   expect(sourceHandleBox).not.toBeNull();
 
   const reorderRequest = page.waitForRequest((request) => request.url().includes(`/api/topics/${topic.id}/todos/reorder`));
+  const reorderResponse = page.waitForResponse((response) => response.url().includes(`/api/topics/${topic.id}/todos/reorder`) && response.ok());
   await page.mouse.move(sourceHandleBox!.x + sourceHandleBox!.width / 2, sourceHandleBox!.y + sourceHandleBox!.height / 2);
   await page.mouse.down();
   await page.mouse.move(sourceHandleBox!.x + sourceHandleBox!.width / 2 + 16, sourceHandleBox!.y + sourceHandleBox!.height / 2 + 16, { steps: 3 });
   await expect(page.getByTestId('todo-drag-preview')).toBeVisible();
+  await expect.poll(() => page.evaluate(() => document.body.classList.contains('todo-dragging'))).toBe(true);
+  await expect(sourceHandle).toHaveCSS('cursor', 'grabbing');
+  await expect(page.getByTestId('todo-drag-preview')).toHaveCSS('cursor', 'grabbing');
   const previewBox = await page.getByTestId('todo-drag-preview').boundingBox();
   expect(previewBox).not.toBeNull();
   expect(previewBox!.width).toBeCloseTo(sourceBefore!.width, 0);
@@ -375,8 +380,14 @@ test('执行清单拖拽时保留源卡片占位并完成排序', async ({ page 
   await page.mouse.up();
   await reorderRequest;
 
+  const controlsDuringReorder = await page.locator('[data-testid="todo-row"] input[type="checkbox"], #todo-composer-input').evaluateAll((elements) => elements.map((element) => (element as HTMLInputElement).disabled));
+  expect(controlsDuringReorder).not.toContain(true);
+  await reorderResponse;
+
   const ids = await page.locator('[data-testid="todo-row"]').evaluateAll((rows) => rows.map((row) => row.getAttribute('data-todo-id')));
   expect(ids.indexOf('e2e-inline-three')).toBeLessThan(ids.indexOf('e2e-inline-current'));
   await expect(page.locator('[data-testid="todo-row"][data-todo-id="e2e-inline-three"]')).toHaveAttribute('data-current', 'true');
   await expect(page.getByTestId('todo-drag-preview')).toHaveCount(0);
+  await expect.poll(() => page.evaluate(() => document.body.classList.contains('todo-dragging'))).toBe(false);
+  await expect(sourceHandle).toHaveCSS('cursor', 'grab');
 });

@@ -1931,6 +1931,11 @@ html[class*="theme-"] input.command-palette-input[data-keyboard-focused="true"]:
   overscroll-behavior: contain;
 }
 
+body.todo-dragging,
+body.todo-dragging * {
+  cursor: grabbing !important;
+}
+
 .todo-current-badge {
   background-color: var(--todo-accent) !important;
 }
@@ -2021,7 +2026,7 @@ html.dark input.todo-inline-editor-input:focus {
 }
 
 /* All text-like controls use the active theme accent for their focus border. */
-input:not([type="checkbox"]):not([type="radio"]):focus,
+input:not([type="checkbox"]):not([type="radio"]):not(.todo-composer-input):not(.todo-inline-editor-input):focus,
 textarea:focus,
 select:focus {
   border-color: var(--command-palette-focus) !important;

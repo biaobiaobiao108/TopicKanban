@@ -175,7 +175,7 @@ const TodoDragPreview: React.FC<{ todo: TopicTodo; isCurrent: boolean; size?: { 
   <div
     data-testid="todo-drag-preview"
     style={size ? { width: size.width, height: size.height, boxSizing: 'border-box' } : undefined}
-    className="flex min-h-10 flex-none items-center gap-2 overflow-hidden rounded-2xl border border-stone-300 bg-white px-3 py-1 shadow-xl ring-1 ring-rose-500/20 dark:border-stone-700 dark:bg-stone-900"
+    className="flex min-h-10 flex-none select-none items-center gap-2 overflow-hidden rounded-2xl border border-stone-300 bg-white px-3 py-1 shadow-xl ring-1 ring-rose-500/20 cursor-grabbing dark:border-stone-700 dark:bg-stone-900"
   >
     <span aria-hidden="true" className={`h-2 w-2 shrink-0 rounded-full ${isCurrent ? 'bg-rose-600 dark:bg-rose-400' : 'bg-stone-300 dark:bg-stone-600'}`} />
     <span className={`min-w-0 flex-1 break-words text-sm leading-5 ${todo.completed_at ? 'text-stone-500 line-through dark:text-stone-400' : 'font-semibold text-stone-900 dark:text-stone-100'}`}>{todo.title}</span>
@@ -194,6 +194,7 @@ interface SortableTodoRowProps {
   onReopen: (todo: TopicTodo) => void;
   onDelete: (todo: TopicTodo) => void;
   disabled?: boolean;
+  dragDisabled?: boolean;
 }
 
 const SortableTodoRow: React.FC<SortableTodoRowProps> = ({
@@ -207,10 +208,11 @@ const SortableTodoRow: React.FC<SortableTodoRowProps> = ({
   onReopen,
   onDelete,
   disabled = false,
+  dragDisabled = false,
 }) => {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
     id: todo.id,
-    disabled,
+    disabled: disabled || dragDisabled,
   });
   const isCompleted = Boolean(todo.completed_at);
   const dragAttributes = isEditing ? {} : attributes;
@@ -284,10 +286,12 @@ export const TodoListTab: React.FC<TodoListTabProps> = ({ topic, todos, actions,
   const { showToast } = useToast();
   const [deleteTarget, setDeleteTarget] = useState<TopicTodo | null>(null);
   const [isBusy, setIsBusy] = useState(false);
+  const [isReordering, setIsReordering] = useState(false);
   const [activeTodoId, setActiveTodoId] = useState<string | null>(null);
   const [activeTodoSize, setActiveTodoSize] = useState<{ width: number; height: number } | undefined>(undefined);
   const [pendingOrder, setPendingOrder] = useState<string[] | null>(null);
   const [editingTodoId, setEditingTodoId] = useState<string | null>(null);
+  const operationInFlightRef = useRef(false);
   const editSavingRef = useRef<string | null>(null);
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 6 } }),
@@ -305,12 +309,20 @@ export const TodoListTab: React.FC<TodoListTabProps> = ({ topic, todos, actions,
   const activeTodo = activeTodoId ? orderedTodos.find((todo) => todo.id === activeTodoId) || null : null;
 
   useEffect(() => {
+    if (!activeTodoId) return;
+    document.body.classList.add('todo-dragging');
+    return () => document.body.classList.remove('todo-dragging');
+  }, [activeTodoId]);
+
+  useEffect(() => {
     if (pendingOrder) setPendingOrder(null);
   }, [todos]);
 
-  const run = async (operation: () => Promise<unknown>): Promise<boolean> => {
-    if (isBusy) return false;
-    setIsBusy(true);
+  const run = async (operation: () => Promise<unknown>, options: { lockControls?: boolean } = {}): Promise<boolean> => {
+    if (operationInFlightRef.current) return false;
+    const lockControls = options.lockControls ?? true;
+    operationInFlightRef.current = true;
+    if (lockControls) setIsBusy(true);
     try {
       await operation();
       return true;
@@ -318,12 +330,13 @@ export const TodoListTab: React.FC<TodoListTabProps> = ({ topic, todos, actions,
       showToast({ tone: 'error', message: getErrorMessage(error) });
       return false;
     } finally {
-      setIsBusy(false);
+      if (lockControls) setIsBusy(false);
+      operationInFlightRef.current = false;
     }
   };
 
   const startEditing = (todo: TopicTodo) => {
-    if (!isBusy) setEditingTodoId(todo.id);
+    if (!isBusy && !isReordering && !operationInFlightRef.current) setEditingTodoId(todo.id);
   };
 
   const cancelEditing = () => {
@@ -360,14 +373,20 @@ export const TodoListTab: React.FC<TodoListTabProps> = ({ topic, todos, actions,
   const handleDragEnd = async (event: DragEndEvent) => {
     const { active, over } = event;
     clearDragState();
+    if (isReordering || operationInFlightRef.current) return;
     if (!over || active.id === over.id) return;
     const oldIndex = orderedTodos.findIndex((todo) => todo.id === active.id);
     const newIndex = orderedTodos.findIndex((todo) => todo.id === over.id);
     if (oldIndex < 0 || newIndex < 0) return;
     const nextIds = normalizeDisplayOrder(arrayMove(orderedTodos, oldIndex, newIndex)).map((todo) => todo.id);
+    setIsReordering(true);
     setPendingOrder(nextIds);
-    await run(() => actions.reorderTodos(topic.id, nextIds));
-    setPendingOrder(null);
+    try {
+      await run(() => actions.reorderTodos(topic.id, nextIds), { lockControls: false });
+    } finally {
+      setPendingOrder(null);
+      setIsReordering(false);
+    }
   };
 
   const createTodo = (title: string) => run(() => actions.createTodo(topic.id, { title }));
@@ -396,6 +415,7 @@ export const TodoListTab: React.FC<TodoListTabProps> = ({ topic, todos, actions,
                   onReopen={(item) => void run(() => actions.reopenTodo(item.id))}
                   onDelete={setDeleteTarget}
                   disabled={isBusy}
+                  dragDisabled={isReordering}
                 />
               ))}
             </ul>
