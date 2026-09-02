@@ -34,6 +34,7 @@ import { CitationMark } from './CitationMark';
 import { VoiceoverCueNode } from './VoiceoverCueNode';
 import { getCitationHealth } from '../../lib/citations';
 import { resolvePublicUrl } from '../../lib/publicUrl';
+import { buildStoryStructureDraftHtml } from '../../lib/storyStructure';
 import {
   createShareSnapshot,
   deleteShareSnapshot,
@@ -543,7 +544,7 @@ export const ScriptEditorTab: React.FC<ScriptEditorTabProps> = ({
     lastInjectedOutlineRef.current = pendingOutlineHtml;
     const currentText = editor.getText().trim();
     if (!currentText || currentText === `【开场】${topicTitle}`) {
-      editor.commands.setContent(pendingOutlineHtml);
+      editor.commands.setContent(`<h1>【开场】${topicTitle}</h1><p></p>${pendingOutlineHtml}`);
     } else {
       editor.commands.insertContent(`<hr/>${pendingOutlineHtml}`);
     }
@@ -554,7 +555,7 @@ export const ScriptEditorTab: React.FC<ScriptEditorTabProps> = ({
     latestContentRef.current = { html, json, wordCount, title: draftTitleRef.current };
     onSaveDraftImmediately(html, json, wordCount, draftTitleRef.current);
     onOutlineInjected?.();
-    showToast({ message: '已将四幕大纲注入文案编辑器', tone: 'success' });
+    showToast({ message: '已将故事结构导入文案编辑器', tone: 'success' });
   }, [editor, onOutlineInjected, onSaveDraftImmediately, pendingOutlineHtml, showToast, topicTitle]);
 
   // Calculate stats
@@ -814,15 +815,15 @@ export const ScriptEditorTab: React.FC<ScriptEditorTabProps> = ({
 
   const handleInjectFourActOutline = () => {
     if (!editor) return;
-    const hookText = topic?.hook || '在此写下抓住观众前 3 秒注意力的核心反差与悬念...';
-    const template = `<h1>【黄金Hook】${topicTitle}</h1><p>${hookText}</p><h2>【起·破题引人】初见端倪与反常现象</h2><p>交代故事起点、主角初始人设与打破平静的关键事件...</p><h2>【承·反转升级】冲突加剧与多方交锋</h2><p>揭露深层矛盾，展现荒诞发展与意料之外的戏剧性转折...</p><h2>【转·荒诞高潮】戏剧性崩塌与真相大白</h2><p>到达全篇情绪最高潮，核心谜底揭晓或局势彻底失控...</p><h2>【合·价值落地】荒诞复盘与现实回响</h2><p>跳出个体事件，提炼社会纪实价值与留给观众的回味思考...</p>`;
+    const hookText = topic?.hook || '在此写下能让观众迅速理解这条选题的核心问题或看点...';
+    const template = buildStoryStructureDraftHtml(topicTitle, hookText);
     const currentText = editor.getText().trim();
     if (!currentText || currentText === `【开场】${topicTitle}`) {
       editor.commands.setContent(template);
     } else {
       editor.commands.insertContent(template);
     }
-    showToast({ message: '已成功注入【起承转合】四幕大纲模版', tone: 'success' });
+    showToast({ message: '已插入故事结构模板', tone: 'success' });
   };
 
   useEffect(() => () => {

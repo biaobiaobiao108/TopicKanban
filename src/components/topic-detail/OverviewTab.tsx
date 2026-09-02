@@ -7,6 +7,15 @@ import { getCurrentActionAgeDays, getCurrentActionWarning } from '../../lib/topi
 import { useActionDateDisplay } from '../../lib/actionDate';
 import { ActionDateText } from '../ui/ActionDate';
 import {
+  buildStoryStructureSectionsHtml,
+  buildStoryStructureTimelineSteps,
+  parseStorylineToActs,
+  serializeActsToStoryline,
+  STORY_STRUCTURE_STEPS,
+  type StoryStructureActs,
+  type StoryStructureKey,
+} from '../../lib/storyStructure';
+import {
   Sparkles,
   User,
   Plus,
@@ -44,55 +53,32 @@ interface OverviewTabProps {
   onConvertStorylineToTimeline?: (steps: Array<{ title: string; desc: string }>) => Promise<void>;
 }
 
-interface FourActs {
-  qi: string;    // 起·铺垫与起因
-  cheng: string; // 承·发酵与升级
-  zhuan: string; // 转·高潮与名场面
-  he: string;    // 合·收尾与反思
-}
-
-function parseStorylineToActs(storyline: string): FourActs {
-  if (!storyline.trim()) {
-    return { qi: '', cheng: '', zhuan: '', he: '' };
-  }
-
-  // 1. Try match by 【起...】 【承...】 【转...】 【合...】
-  const qiMatch = storyline.match(/【起[^】]*】\s*([^\n【]*)/);
-  const chengMatch = storyline.match(/【承[^】]*】\s*([^\n【]*)/);
-  const zhuanMatch = storyline.match(/【转[^】]*】\s*([^\n【]*)/);
-  const heMatch = storyline.match(/【合[^】]*】\s*([^\n【]*)/);
-
-  if (qiMatch || chengMatch || zhuanMatch || heMatch) {
-    return {
-      qi: qiMatch ? qiMatch[1].trim() : '',
-      cheng: chengMatch ? chengMatch[1].trim() : '',
-      zhuan: zhuanMatch ? zhuanMatch[1].trim() : '',
-      he: heMatch ? heMatch[1].trim() : '',
-    };
-  }
-
-  // 2. Fallback: split by arrows or newlines
-  const parts = storyline
-    .split(/(?:→|->|\n)/g)
-    .map((p) => p.replace(/^第[一二三四1-4]幕[:：]\s*/, '').trim())
-    .filter(Boolean);
-
-  return {
-    qi: parts[0] || '',
-    cheng: parts[1] || '',
-    zhuan: parts[2] || '',
-    he: parts.slice(3).join(' ') || '',
-  };
-}
-
-function serializeActsToStoryline(acts: FourActs): string {
-  const parts: string[] = [];
-  if (acts.qi.trim()) parts.push(`【起·铺垫】${acts.qi.trim()}`);
-  if (acts.cheng.trim()) parts.push(`【承·发酵】${acts.cheng.trim()}`);
-  if (acts.zhuan.trim()) parts.push(`【转·反转】${acts.zhuan.trim()}`);
-  if (acts.he.trim()) parts.push(`【合·反思】${acts.he.trim()}`);
-  return parts.join('\n');
-}
+const STORY_STRUCTURE_CARD_STYLES: Record<StoryStructureKey, {
+  header: string;
+  badge: string;
+  focus: string;
+}> = {
+  qi: {
+    header: 'text-emerald-800 dark:text-emerald-400',
+    badge: 'bg-emerald-500/15 text-emerald-700 dark:text-emerald-300',
+    focus: 'focus:border-emerald-500',
+  },
+  cheng: {
+    header: 'text-blue-800 dark:text-blue-400',
+    badge: 'bg-blue-500/15 text-blue-700 dark:text-blue-300',
+    focus: 'focus:border-blue-500',
+  },
+  zhuan: {
+    header: 'text-rose-800 dark:text-rose-400',
+    badge: 'bg-rose-500/15 text-rose-700 dark:text-rose-300',
+    focus: 'focus:border-rose-500',
+  },
+  he: {
+    header: 'text-purple-800 dark:text-purple-400',
+    badge: 'bg-purple-500/15 text-purple-700 dark:text-purple-300',
+    focus: 'focus:border-purple-500',
+  },
+};
 
 export const OverviewTab: React.FC<OverviewTabProps> = ({
   topic,
@@ -109,7 +95,7 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({
   const [hook, setHook] = useState(topic.hook || '');
   const [whyNow, setWhyNow] = useState(topic.why_now || '');
   const [storyline, setStoryline] = useState(topic.storyline || '');
-  const [acts, setActs] = useState<FourActs>(() => parseStorylineToActs(topic.storyline || ''));
+  const [acts, setActs] = useState<StoryStructureActs>(() => parseStorylineToActs(topic.storyline || ''));
   const [targetPublishDate, setTargetPublishDate] = useState(topic.target_publish_date || '');
   const [deadline, setDeadline] = useState(topic.deadline || '');
   
@@ -175,7 +161,7 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({
   };
 
   // Handle act change in 4-act mode
-  const handleActChange = (key: keyof FourActs, value: string) => {
+  const handleActChange = (key: StoryStructureKey, value: string) => {
     const updated = { ...acts, [key]: value };
     setActs(updated);
     const serialized = serializeActsToStoryline(updated);
@@ -299,39 +285,22 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({
   // Pipeline Bridge 1: Inject Four-Act Outline into Draft
   const handleInjectIntoDraft = async () => {
     if (!onInjectOutlineIntoDraft) return;
-    const outlineHtml = `
-      <h2>🎬 第一幕：起因与铺垫</h2>
-      <p>${acts.qi || '【铺垫前期人设与平静状态】'}</p>
-      <p></p>
-      <h2>🔥 第二幕：发酵与失控</h2>
-      <p>${acts.cheng || '【矛盾逐渐激化，事情开始失控】'}</p>
-      <p></p>
-      <h2>💥 第三幕：高潮与反转（核心名场面）</h2>
-      <p>${acts.zhuan || '【现实重拳出击，核心名场面爆发】'}</p>
-      <p></p>
-      <h2>🎭 第四幕：收尾与荒诞反思</h2>
-      <p>${acts.he || '【闹剧收场，余味反思与升华】'}</p>
-    `;
-    setBridgeStatus('已成功将四幕骨架注入文案草稿并跳转！');
+    const outlineHtml = buildStoryStructureSectionsHtml(acts);
+    setBridgeStatus('已将故事结构导入文案草稿并跳转！');
     await onInjectOutlineIntoDraft(outlineHtml);
   };
 
   // Pipeline Bridge 2: Convert Four-Act Outline into Timeline Events
   const handleConvertToTimeline = async () => {
     if (!onConvertStorylineToTimeline) return;
-    const steps: Array<{ title: string; desc: string }> = [
-      { title: '第一幕：起因与铺垫', desc: acts.qi || '前期背景铺垫' },
-      { title: '第二幕：发酵与失控', desc: acts.cheng || '矛盾升级失控' },
-      { title: '第三幕：反转与名场面', desc: acts.zhuan || '核心戏剧名场面' },
-      { title: '第四幕：收尾与反思', desc: acts.he || '结局反思' },
-    ].filter((s) => Boolean(s.desc));
+    const steps = buildStoryStructureTimelineSteps(acts);
 
     if (steps.length === 0) {
-      showToast({ message: '请先在四幕大纲中填写至少一个阶段的内容！', tone: 'info' });
+      showToast({ message: '请先在故事结构中填写至少一个阶段的内容！', tone: 'info' });
       return;
     }
 
-    setBridgeStatus('已将四幕节点流转为时间线事件！');
+    setBridgeStatus('已将故事结构拆分为时间线！');
     await onConvertStorylineToTimeline(steps);
   };
 
@@ -455,7 +424,7 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({
           </div>
         </div>
 
-        {/* 2. 起承转合四幕故事骨架工作台 (Four-Act Narrative Blueprint) */}
+        {/* 2. 故事结构工作台 (Story Structure) */}
         <div className="bg-white dark:bg-stone-900 rounded-2xl border border-stone-200/70 dark:border-stone-800 p-5 space-y-4 shadow-2xs transition-colors">
           <div className="flex items-center justify-between flex-wrap gap-2">
             <div className="flex items-center gap-2">
@@ -463,7 +432,10 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({
                 <Clapperboard className="w-4 h-4" />
               </div>
               <div>
-                <h3 className="text-sm font-bold text-stone-900 dark:text-stone-100">起承转合四幕故事骨架</h3>
+                <h3 className="text-sm font-bold text-stone-900 dark:text-stone-100">故事结构</h3>
+                <p className="mt-0.5 text-[11px] text-stone-500 dark:text-stone-400">
+                  按四段梳理从背景到结果，适用于人物、事件、产品、观点和过程类选题。
+                </p>
               </div>
             </div>
 
@@ -479,7 +451,7 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({
                 }`}
               >
                 <Layers className="w-3.5 h-3.5" />
-                <span>四幕卡片</span>
+                <span>分段卡片</span>
               </button>
               <button
                 type="button"
@@ -496,115 +468,50 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({
             </div>
           </div>
 
-          {/* Four-Act Interactive Cards */}
+          {/* Story Structure Cards */}
           {storylineMode === 'acts' ? (
             <div className="space-y-3">
-              {/* Act 1: 起 */}
-              <div className="rounded-xl border border-stone-200/60 dark:border-stone-800 bg-stone-500/[0.02] dark:bg-stone-800/30 p-3.5 space-y-1.5">
-                <div className="flex items-center justify-between text-xs font-bold text-emerald-800 dark:text-emerald-400">
-                  <div className="flex items-center gap-2">
-                    <span className="w-5 h-5 rounded-md bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 flex items-center justify-center font-mono text-[11px]">
-                      1
-                    </span>
-                    <span>🎬 第一幕【起 · 铺垫与暗涌】</span>
+              {STORY_STRUCTURE_STEPS.map((step) => {
+                const styles = STORY_STRUCTURE_CARD_STYLES[step.key];
+                return (
+                  <div key={step.key} className="rounded-xl border border-stone-200/60 dark:border-stone-800 bg-stone-500/[0.02] dark:bg-stone-800/30 p-3.5 space-y-1.5">
+                    <div className={`flex items-start justify-between gap-2 text-xs font-bold ${styles.header}`}>
+                      <div className="flex items-center gap-2 min-w-0">
+                        <span className={`w-5 h-5 shrink-0 rounded-md flex items-center justify-center font-mono text-[11px] ${styles.badge}`}>
+                          {step.number}
+                        </span>
+                        <span>{`第 ${step.number} 段 · ${step.label}`}</span>
+                      </div>
+                      <span className="shrink-0 text-right text-[10px] text-stone-400 font-normal">{step.note}</span>
+                    </div>
+                    <textarea
+                      aria-label={`第 ${step.number} 段：${step.label}`}
+                      name={`storyline_${step.key}`}
+                      rows={2}
+                      value={acts[step.key]}
+                      onChange={(e) => handleActChange(step.key, e.target.value)}
+                      onBlur={handleImmediateSave}
+                      placeholder={step.placeholder}
+                      className={`w-full text-xs text-stone-800 dark:text-stone-100 bg-white dark:bg-stone-800 border border-stone-200/60 dark:border-stone-700 rounded-lg p-2.5 placeholder:text-stone-400 dark:placeholder:text-stone-500 focus:outline-none ${styles.focus}`}
+                    />
                   </div>
-                  <span className="text-[10px] text-stone-400 font-normal">人物人设 / 起因交代 / 平静铺垫</span>
-                </div>
-                <textarea
-                  aria-label="第一幕：起，铺垫与暗涌"
-                  name="storyline_qi"
-                  rows={2}
-                  value={acts.qi}
-                  onChange={(e) => handleActChange('qi', e.target.value)}
-                  onBlur={handleImmediateSave}
-                  placeholder="交代主角背景人设、立下 flag、前期豪言壮语与暗涌..."
-                  className="w-full text-xs text-stone-800 dark:text-stone-100 bg-white dark:bg-stone-800 border border-stone-200/60 dark:border-stone-700 rounded-lg p-2.5 placeholder:text-stone-400 dark:placeholder:text-stone-500 focus:outline-none focus:border-emerald-500"
-                />
-              </div>
-
-              {/* Act 2: 承 */}
-              <div className="rounded-xl border border-stone-200/60 dark:border-stone-800 bg-stone-500/[0.02] dark:bg-stone-800/30 p-3.5 space-y-1.5">
-                <div className="flex items-center justify-between text-xs font-bold text-blue-800 dark:text-blue-400">
-                  <div className="flex items-center gap-2">
-                    <span className="w-5 h-5 rounded-md bg-blue-500/15 text-blue-700 dark:text-blue-300 flex items-center justify-center font-mono text-[11px]">
-                      2
-                    </span>
-                    <span>🔥 第二幕【承 · 发酵与失控】</span>
-                  </div>
-                  <span className="text-[10px] text-stone-400 font-normal">阻碍出现 / 嘴硬硬撑 / 舆论发酵</span>
-                </div>
-                <textarea
-                  aria-label="第二幕：承，发酵与失控"
-                  name="storyline_cheng"
-                  rows={2}
-                  value={acts.cheng}
-                  onChange={(e) => handleActChange('cheng', e.target.value)}
-                  onBlur={handleImmediateSave}
-                  placeholder="事情逐渐失控，体力透支但继续死撑，评论区开始围观..."
-                  className="w-full text-xs text-stone-800 dark:text-stone-100 bg-white dark:bg-stone-800 border border-stone-200/60 dark:border-stone-700 rounded-lg p-2.5 placeholder:text-stone-400 dark:placeholder:text-stone-500 focus:outline-none focus:border-blue-500"
-                />
-              </div>
-
-              {/* Act 3: 转 */}
-              <div className="rounded-xl border border-stone-200/60 dark:border-stone-800 bg-stone-500/[0.02] dark:bg-stone-800/30 p-3.5 space-y-1.5">
-                <div className="flex items-center justify-between text-xs font-bold text-rose-800 dark:text-rose-400">
-                  <div className="flex items-center gap-2">
-                    <span className="w-5 h-5 rounded-md bg-rose-500/15 text-rose-700 dark:text-rose-300 flex items-center justify-center font-mono text-[11px]">
-                      3
-                    </span>
-                    <span>💥 第三幕【转 · 反转与核心名场面】</span>
-                  </div>
-                  <span className="text-[10px] text-stone-400 font-normal">高潮爆发 / 人设崩塌 / 滑竿名场面</span>
-                </div>
-                <textarea
-                  aria-label="第三幕：转，反转与核心名场面"
-                  name="storyline_zhuan"
-                  rows={2}
-                  value={acts.zhuan}
-                  onChange={(e) => handleActChange('zhuan', e.target.value)}
-                  onBlur={handleImmediateSave}
-                  placeholder="现实啪啪打脸，核心荒诞名场面出场，全网狂欢与戏剧高潮..."
-                  className="w-full text-xs text-stone-800 dark:text-stone-100 bg-white dark:bg-stone-800 border border-stone-200/60 dark:border-stone-700 rounded-lg p-2.5 placeholder:text-stone-400 dark:placeholder:text-stone-500 focus:outline-none focus:border-rose-500"
-                />
-              </div>
-
-              {/* Act 4: 合 */}
-              <div className="rounded-xl border border-stone-200/60 dark:border-stone-800 bg-stone-500/[0.02] dark:bg-stone-800/30 p-3.5 space-y-1.5">
-                <div className="flex items-center justify-between text-xs font-bold text-purple-800 dark:text-purple-400">
-                  <div className="flex items-center gap-2">
-                    <span className="w-5 h-5 rounded-md bg-purple-500/15 text-purple-700 dark:text-purple-300 flex items-center justify-center font-mono text-[11px]">
-                      4
-                    </span>
-                    <span>🎭 第四幕【合 · 收尾与荒诞反思】</span>
-                  </div>
-                  <span className="text-[10px] text-stone-400 font-normal">闹剧落幕 / 时代讽刺 / 升华留白</span>
-                </div>
-                <textarea
-                  aria-label="第四幕：合，收尾与荒诞反思"
-                  name="storyline_he"
-                  rows={2}
-                  value={acts.he}
-                  onChange={(e) => handleActChange('he', e.target.value)}
-                  onBlur={handleImmediateSave}
-                  placeholder="结局收尾，揭示流量狂欢后的人性讽刺与深层反思..."
-                  className="w-full text-xs text-stone-800 dark:text-stone-100 bg-white dark:bg-stone-800 border border-stone-200/60 dark:border-stone-700 rounded-lg p-2.5 placeholder:text-stone-400 dark:placeholder:text-stone-500 focus:outline-none focus:border-purple-500"
-                />
-              </div>
+                );
+              })}
             </div>
           ) : (
             <div className="space-y-2">
               <textarea
-                aria-label="起承转合故事骨架"
+                aria-label="故事结构"
                 name="storyline"
                 rows={6}
                 value={storyline}
                 onChange={(e) => handleRawStorylineChange(e.target.value)}
                 onBlur={handleImmediateSave}
-                placeholder="【起·铺垫】起因人设 → 【承·发酵】矛盾升级 → 【转·反转】滑竿出场名场面 → 【合·反思】结局与讽刺"
+                placeholder="【开始】背景与问题 → 【发展】过程与变化 → 【转折】改变走向的节点 → 【收束】结果与影响"
                 className="w-full text-xs text-stone-800 dark:text-stone-100 bg-stone-500/[0.03] dark:bg-stone-800/60 border border-stone-200/60 dark:border-stone-700/60 rounded-xl p-3.5 placeholder:text-stone-400 dark:placeholder:text-stone-500 focus:bg-white dark:focus:bg-stone-800 focus:border-rose-500 dark:focus:border-rose-500 focus:outline-none transition-colors"
               />
               <p className="text-[11px] text-stone-400">
-                提示：支持使用 <code>【起...】</code> 标签或 <code>→</code> 连接各幕。
+                提示：支持使用 <code>【开始...】</code>、<code>【发展...】</code> 等标签，也可以用换行或 <code>→</code> 连接各段。
               </p>
             </div>
           )}
@@ -617,10 +524,10 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({
                   type="button"
                   onClick={handleInjectIntoDraft}
                   className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-stone-900 dark:bg-rose-600 hover:bg-stone-800 dark:hover:bg-rose-700 text-white text-xs font-bold transition-all shadow-2xs cursor-pointer active:scale-[0.98]"
-                  title="将四幕大纲转为分幕结构直接注入文案编辑器，开启写稿"
+                  title="将故事结构直接导入文案编辑器"
                 >
                   <FileText className="w-3.5 h-3.5" />
-                  <span>🚀 导入文案草稿直接写稿</span>
+                  <span>导入文案草稿</span>
                 </button>
               )}
 
@@ -629,10 +536,10 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({
                   type="button"
                   onClick={handleConvertToTimeline}
                   className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-stone-100 dark:bg-stone-800 hover:bg-stone-200/80 dark:hover:bg-stone-700 text-stone-700 dark:text-stone-300 text-xs font-semibold transition-colors cursor-pointer"
-                  title="将四幕拆分为时间线节点，辅助梳理事件先后顺序"
+                  title="将故事结构拆分为时间线节点"
                 >
                   <Calendar className="w-3.5 h-3.5 text-stone-500" />
-                  <span>⚡ 生成时间线事件</span>
+                  <span>拆成时间线</span>
                 </button>
               )}
             </div>

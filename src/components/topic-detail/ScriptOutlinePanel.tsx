@@ -184,7 +184,7 @@ export const ScriptOutlinePanel: React.FC<ScriptOutlinePanelProps> = ({
                 className="w-full mt-2 flex items-center justify-center gap-1.5 rounded-xl border border-rose-300 dark:border-rose-800 bg-rose-50 dark:bg-rose-950/60 px-3 py-2 text-xs font-bold text-rose-700 dark:text-rose-300 hover:bg-rose-100 dark:hover:bg-rose-900/60 active:scale-98 transition-all cursor-pointer shadow-2xs"
               >
                 <Sparkles className="h-3.5 w-3.5 text-rose-500" />
-                <span>注入【起承转合】四幕模版</span>
+                <span>插入故事结构</span>
               </button>
             )}
           </div>
@@ -219,7 +219,7 @@ export const ScriptOutlinePanel: React.FC<ScriptOutlinePanelProps> = ({
                   className="w-full flex items-center justify-center gap-1.5 rounded-xl border border-stone-200 dark:border-stone-700 bg-stone-50 dark:bg-stone-800/50 hover:bg-rose-50 dark:hover:bg-rose-950/40 hover:border-rose-300 dark:hover:border-rose-800 text-stone-600 dark:text-stone-400 hover:text-rose-700 dark:hover:text-rose-300 px-3 py-1.5 text-[11px] font-medium transition-all cursor-pointer"
                 >
                   <Sparkles className="h-3 w-3 text-rose-500" />
-                  <span>追加四幕叙事骨架</span>
+                  <span>追加故事结构</span>
                 </button>
               </div>
             )}
