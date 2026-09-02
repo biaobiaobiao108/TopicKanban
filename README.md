@@ -104,14 +104,14 @@ bun run test:e2e
 
 | 层级 | 技术选型 | 说明 |
 | :--- | :--- | :--- |
-| **前端核心** | React 18 + TypeScript + Vite 6 + TailwindCSS 3 | 模块化 SPA，秒级热重载 |
+| **前端核心** | React 19 + TypeScript + Bun HTML Bundler + Tailwind（`bun-plugin-tailwind@0.1.2`） | 模块化 SPA，Bun 热重载与同源开发 |
 | **路由与状态** | React Router 7 + TanStack Query 5 | 服务端状态缓存与乐观更新 |
 | **富文本编辑** | Tiptap 2 + StarterKit + 自定义原子气口扩展 | 支持演播气口节点与字数计算 |
 | **看板与拖拽** | `@dnd-kit/core` + `@dnd-kit/sortable` | 丝滑拖拽流转与时序排序 |
 | **服务端** | Bun 原生 HTTP Server + 按领域组织的原生路由 | `app.ts` 负责组合，`routes/` 负责 HTTP 行为，`repositories/` 负责 SQLite 持久化 |
 | **主业务持久库** | SQLite (`bun:sqlite` + WAL) | 选题、素材、时间线、人物、文案、发布包、商单等业务表 |
 | **键值与临时库** | SQLite `_kv_store` 表 | 全局偏好、审稿快照、在线锁、快投箱 |
-| **测试与构建** | Bun (`bun test` + `bun build`) | 85 项全量测试，毫秒级运行 |
+| **测试与构建** | Bun (`bun test` + `Bun.build()`) | 112 项全量测试，前后端统一构建 |
 
 ---
 
@@ -224,7 +224,7 @@ bun install
 # 2. 启动本地全栈开发环境 (Bun HTML Bundler + Bun API，3030 端口)
 bun run dev
 
-# 3. 运行全量自动化测试套件 (85 项单元与集成测试)
+# 3. 运行全量自动化测试套件 (112 项单元与集成测试)
 bun run test:run
 
 # 4. 运行 Playwright E2E（Playwright CLI 使用 Bun 运行时）
@@ -301,7 +301,7 @@ kanban/
 │   ├── types/index.ts                   # 领域模型与 TypeScript 契约
 │   ├── App.tsx                          # 路由分发入口
 │   └── main.tsx                         # DOM 挂载入口
-├── tests/                               # 85 项 bun:test 自动化单元与集成测试套件
+├── tests/                               # 112 项 bun:test 自动化单元与集成测试套件
 ├── docs/                                # GitHub Pages 静态展示落地页与文档
 │   ├── index.html                       # 独立产品落地页 (含交互沙盒与现代化动画)
 │   ├── icon.png                         # 落地页高清应用图标

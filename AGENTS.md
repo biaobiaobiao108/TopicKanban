@@ -34,7 +34,7 @@
 ## 🛠️ 三、技术栈与运行时架构规范 (Tech Stack & Architecture)
 
 ### 1. 核心技术栈
-* **前端核心**：React 18 + TypeScript + Vite 6 + TailwindCSS 3
+* **前端核心**：React 19 + TypeScript + Bun HTML Bundler + Tailwind（通过 `bun-plugin-tailwind@0.1.2`，插件内置 Tailwind 4.1.14）
 * **路由与数据流**：React Router 7 + TanStack Query 5
 * **看板与拖拽**：`@dnd-kit/core` + `@dnd-kit/sortable`
 * **文案编辑**：`@tiptap/react` + `@tiptap/starter-kit` + `@tiptap/extension-character-count` + 自定义原子内联扩展
@@ -70,8 +70,8 @@
   4. **手机/快捷指令碎片灵感快投箱** (`drop:*` / `quick_drops_index`：7 天自动生命周期)。
 * **开发约束**：新增任何用户个性化配置项，一律扩展至 `app_settings`，避免污染主业务关系表。
 
-### 3. 本地开发与反代公网域名规范 (Dev Proxy & Public Base URL)
-* **本地开发 (`bun run dev`)**：Vite 开发服务器运行于 3030 端口，配置 `/api` 代理转发至 Bun 后端 8787 端口；本地开发默认密码为 `admin`。
+### 3. 本地开发与反代公网域名规范 (Local Bun Server & Public Base URL)
+* **本地开发 (`bun run dev`)**：Bun HTML Bundler 热重载与 Bun.serve 在同一进程运行于 3030 端口，页面、静态资源和 `/api` 由同一个服务同源提供；不再使用独立前端开发服务器或跨端口代理。本地开发默认密码为 `admin`。
 * **反向代理 (`PUBLIC_BASE_URL`)**：当容器部署在反向代理（Nginx / Caddy / NPM）后方时，外部审稿分享链接与灵感快投 Webhook 地址必须自适应公网域名。
 * 解析优先级：`settings.public_base_url` > `env.PUBLIC_BASE_URL` > `X-Forwarded-*` 标头 > `window.location.origin`。
 
@@ -144,7 +144,7 @@ bun run test:e2e
 
 其中 `test:e2e` 已通过 `bun run --bun playwright test` 强制 Playwright 在 Bun 运行时下执行。
 
-* **本地开发**：`bun run dev`（启动 Vite 前端热重载与本地 Bun API）
+* **本地开发**：`bun run dev`（启动 Bun HTML Bundler 热重载与本地 Bun API 的单进程全栈服务）
 * **分级验证命令指引**：
   * **按需局部单测（日常开发首选）**：`bun test tests/<module>.test.ts` 或 `bun test <filter>`（毫秒级定向反馈）；
   * **快速类型校验**：`bunx tsc --noEmit`（无需完整打包，秒级校验 TS 类型）；
