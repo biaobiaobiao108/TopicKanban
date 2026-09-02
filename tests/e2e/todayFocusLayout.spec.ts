@@ -75,6 +75,7 @@ test('今日聚焦两列保持固定高度，近期轨迹始终展开并在面�
   expect(actionFooterBox).not.toBeNull();
   expect(recentFooterBox).not.toBeNull();
   expect(actionFooterBox?.y).toBeCloseTo(recentFooterBox?.y || 0, 0);
+  await expect(recentFooter.locator('svg')).toHaveClass(/text-rose-500/);
   await expect(page.getByRole('button', { name: '收起近期轨迹' })).toHaveCount(0);
   await expect(page.getByRole('button', { name: /展开另外/ })).toHaveCount(0);
   await expect(page.getByTestId('today-recent-activity-item')).toHaveCount(8);

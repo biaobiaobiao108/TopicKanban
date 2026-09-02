@@ -430,7 +430,7 @@ export const TodayView: React.FC<TodayViewProps> = ({
               <div data-testid="today-recent-activity-footer" className="mt-3 shrink-0 border-t border-stone-100 pt-3 text-[11px] text-stone-500 dark:border-stone-800/70 dark:text-stone-400">
                 <div className="flex items-center justify-between gap-3 font-semibold">
                   <span className="flex items-center gap-1.5">
-                    <Clock className="h-3.5 w-3.5 text-stone-400 dark:text-stone-500" aria-hidden="true" />
+                    <Clock className="h-3.5 w-3.5 text-rose-500 dark:text-rose-400" aria-hidden="true" />
                     <span>近期活跃选题</span>
                   </span>
                   <span data-testid="today-recent-activity-count" className="font-mono tabular-nums text-stone-700 dark:text-stone-300">{recentUpdates.length}</span>
