@@ -53,6 +53,8 @@ test('今日聚焦两列保持固定高度，近期轨迹始终展开并在面�
   const recentColumn = page.getByTestId('today-recent-activity-column');
   const actionPanel = page.getByTestId('today-action-progress-panel');
   const recentPanel = page.getByTestId('today-recent-activity-panel');
+  const actionFooter = page.getByTestId('today-action-progress-footer');
+  const recentFooter = page.getByTestId('today-recent-activity-footer');
   await expect(actionColumn).toHaveCSS('height', '352px');
   await expect(recentColumn).toHaveCSS('height', '352px');
 
@@ -69,6 +71,10 @@ test('今日聚焦两列保持固定高度，近期轨迹始终展开并在面�
   const initialHeights = await getHeights();
   expect(initialHeights[0]).toBeCloseTo(initialHeights[1] || 0, 0);
   expect(initialHeights[2]).toBeCloseTo(initialHeights[3] || 0, 0);
+  const [actionFooterBox, recentFooterBox] = await Promise.all([actionFooter.boundingBox(), recentFooter.boundingBox()]);
+  expect(actionFooterBox).not.toBeNull();
+  expect(recentFooterBox).not.toBeNull();
+  expect(actionFooterBox?.y).toBeCloseTo(recentFooterBox?.y || 0, 0);
   await expect(page.getByRole('button', { name: '收起近期轨迹' })).toHaveCount(0);
   await expect(page.getByRole('button', { name: /展开另外/ })).toHaveCount(0);
   await expect(page.getByTestId('today-recent-activity-item')).toHaveCount(8);

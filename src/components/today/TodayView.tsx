@@ -374,7 +374,7 @@ export const TodayView: React.FC<TodayViewProps> = ({
               </div>
 
               {actionProgress.attention.length > 0 && (
-                <div className="mt-3 border-t border-stone-100 pt-3 text-[11px] text-stone-500 dark:border-stone-800/70 dark:text-stone-400">
+                <div data-testid="today-action-progress-footer" className="mt-3 border-t border-stone-100 pt-3 text-[11px] text-stone-500 dark:border-stone-800/70 dark:text-stone-400">
                   {actionProgress.missingAction.length > 0 ? `还有 ${actionProgress.missingAction.length} 个选题等待补充行动` : '优先处理停滞行动，保持制作节奏。'}
                 </div>
               )}
@@ -390,7 +390,7 @@ export const TodayView: React.FC<TodayViewProps> = ({
               </h2>
             </div>
 
-            <div data-testid="today-recent-activity-panel" className="today-recent-updates-panel flex min-h-0 flex-1 flex-col overflow-hidden rounded-2xl border border-stone-200/70 bg-white/80 shadow-2xs dark:border-stone-800 dark:bg-stone-900/80">
+            <div data-testid="today-recent-activity-panel" className="today-recent-updates-panel flex min-h-0 flex-1 flex-col overflow-hidden rounded-2xl border border-stone-200/70 bg-white/80 p-4 shadow-2xs dark:border-stone-800 dark:bg-stone-900/80">
               <div data-testid="today-recent-activity-scroll" tabIndex={0} aria-label="近期活跃轨迹列表" className="today-focus-scroll min-h-0 flex-1 overflow-y-auto divide-y divide-stone-100 dark:divide-stone-800/70">
                 {recentUpdates.map((t) => (
                   <div
@@ -421,12 +421,14 @@ export const TodayView: React.FC<TodayViewProps> = ({
                   </div>
                 ))}
               </div>
-              <div className="flex shrink-0 items-center justify-between border-t border-stone-100 px-3 py-2.5 text-[11px] font-semibold text-stone-500 dark:border-stone-800/70 dark:text-stone-400">
-                <span className="flex items-center gap-1.5">
-                  <Clock className="h-3.5 w-3.5 text-stone-400 dark:text-stone-500" aria-hidden="true" />
-                  <span>近期活跃选题</span>
-                </span>
-                <span data-testid="today-recent-activity-count" className="font-mono tabular-nums text-stone-700 dark:text-stone-300">{recentUpdates.length}</span>
+              <div data-testid="today-recent-activity-footer" className="mt-3 shrink-0 border-t border-stone-100 pt-3 text-[11px] text-stone-500 dark:border-stone-800/70 dark:text-stone-400">
+                <div className="flex items-center justify-between gap-3 font-semibold">
+                  <span className="flex items-center gap-1.5">
+                    <Clock className="h-3.5 w-3.5 text-stone-400 dark:text-stone-500" aria-hidden="true" />
+                    <span>近期活跃选题</span>
+                  </span>
+                  <span data-testid="today-recent-activity-count" className="font-mono tabular-nums text-stone-700 dark:text-stone-300">{recentUpdates.length}</span>
+                </div>
               </div>
             </div>
           </section>
