@@ -428,8 +428,6 @@ function WorkspaceApp({ isAuth, setIsAuth }: WorkspaceAppProps) {
 
   const dealFrom = (location.state as { from?: unknown } | null)?.from;
   const dealBackLabel = getBackLabel(typeof dealFrom === 'string' ? dealFrom : undefined, '返回商单中心');
-  const topicFrom = (location.state as { from?: unknown } | null)?.from;
-  const topicBackLabel = getBackLabel(typeof topicFrom === 'string' ? topicFrom : undefined, '返回全景看板');
   const publishedFrom = (location.state as { from?: unknown } | null)?.from;
   const hasPublishedBack = typeof publishedFrom === 'string' && publishedFrom.startsWith('/');
   const publishedBackLabel = getBackLabel(hasPublishedBack ? publishedFrom : undefined, '返回上一页');
@@ -1034,7 +1032,6 @@ function WorkspaceApp({ isAuth, setIsAuth }: WorkspaceAppProps) {
               key={activeTopic.id}
               topic={activeTopic}
               onBack={handleBackFromDetail}
-              backLabel={topicBackLabel}
               onUpdateTopic={handleUpdateTopic}
               onDeleteTopic={handleDeleteTopic}
               allPeople={people}

@@ -11,7 +11,6 @@ import { CommercialDealsTab } from './CommercialDealsTab';
 import { TodoQuickActionDialog } from './TodoQuickActionDialog';
 import { TodoListTab } from './TodoListTab';
 import type { TopicTodoActions } from './todoTypes';
-import { BackNavigationBar } from '../layout/BackNavigationBar';
 import { COLUMNS } from '../kanban/columns';
 import {
   fetchSourcesByTopicId,
@@ -42,7 +41,6 @@ import { LayoutDashboard, FileSearch, Clock, Users, PenTool, FileText, Handshake
 interface TopicDetailViewProps {
   topic: Topic;
   onBack: () => void;
-  backLabel?: string;
   onUpdateTopic: (updates: Partial<Topic>) => Promise<void>;
   onDeleteTopic: (topicId: string) => Promise<void>;
   allPeople: Person[];
@@ -74,7 +72,6 @@ const ScriptEditorTab = React.lazy(() =>
 export const TopicDetailView: React.FC<TopicDetailViewProps> = ({
   topic,
   onBack,
-  backLabel,
   onUpdateTopic,
   onDeleteTopic,
   allPeople,
@@ -480,7 +477,6 @@ export const TopicDetailView: React.FC<TopicDetailViewProps> = ({
           </div>
         )}
       </Modal>
-      <BackNavigationBar onBack={onBack} label={backLabel || '返回上一页'} title={backLabel || '返回上一页'} />
       {/* Fixed Topic Detail Header */}
       <TopicDetailHeader
         topic={metricTopic}
