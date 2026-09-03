@@ -14,8 +14,13 @@ export interface ServerOptions {
 export async function startServer(options: ServerOptions = {}) {
   process.title = 'topickanban';
 
-  const isProduction = Bun.env.NODE_ENV === 'production';
-  const isDevelopment = options.development ?? !isProduction;
+  const distPath = path.resolve(process.cwd(), 'dist');
+  const hasDist = await Bun.file(path.join(distPath, 'index.html')).exists();
+
+  const isDevelopment = options.development !== undefined
+    ? options.development
+    : (Bun.env.NODE_ENV === 'development' ? true : (Bun.env.NODE_ENV === 'production' ? false : !hasDist));
+  const isProduction = !isDevelopment;
   const defaultPort = 3030;
   const port = options.port ?? (Number(Bun.env.PORT) || defaultPort);
   const dataDir = Bun.env.DATA_DIR || path.resolve(process.cwd(), 'data');
@@ -41,8 +46,6 @@ export async function startServer(options: ServerOptions = {}) {
   };
 
   const apiApp = createApp(bindings);
-  const distPath = path.resolve(process.cwd(), 'dist');
-  const hasDist = await Bun.file(path.join(distPath, 'index.html')).exists();
 
   function withSecurityHeaders(response: Response): Response {
   const headers = new Headers(response.headers);

@@ -4,7 +4,7 @@ export default defineConfig({
   testDir: './tests/e2e',
   // E2E tests share one local SQLite/auth server; serial execution avoids cross-test races.
   workers: 1,
-  fullyParallel: true,
+  fullyParallel: false,
   reporter: 'line',
   use: {
     baseURL: 'http://127.0.0.1:3030',
