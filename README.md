@@ -77,7 +77,7 @@
 
 ### 11. 🎨 温润编辑部设计系统与主题生态 (Editorial Design System)
 * **温润微质感**：基于 Stone 灰度与 Rose 玫瑰红强调色打造，采用大圆角（`rounded-2xl`）、微投影（`shadow-2xs`）与透底色药丸（Tinted Pills）。
-* **8 套主题随心换**：北欧冷杉（推荐）、巴黎晨光、深海星图（极客夜间）、京都茶席、暖沙纸境、经典浅色、深色专注、跟随系统。
+* **5 套温润编辑部主题随心换**：北欧冷杉（推荐）、暖沙纸境、经典浅色、深色夜间、跟随系统。
 * **全局指令搜索面板 (`Cmd/Ctrl + /` 或 `/`)**：支持全拼搜索，并通过 `#` 查赛道、`@` 查人物、`>` 执行快捷动作、`?` 调出快捷键大全。
 
 ### 12. ⚡ Bun-first 运行时规范
@@ -106,12 +106,12 @@ bun run test:e2e
 | :--- | :--- | :--- |
 | **前端核心** | React 19 + TypeScript + Bun HTML Bundler + Tailwind（`bun-plugin-tailwind@0.1.2`） | 模块化 SPA，Bun 热重载与同源开发 |
 | **路由与状态** | React Router 7 + TanStack Query 5 | 服务端状态缓存与乐观更新 |
-| **富文本编辑** | Tiptap 2 + StarterKit + 自定义原子气口扩展 | 支持演播气口节点与字数计算 |
+| **富文本编辑** | Tiptap 3 + StarterKit + 自定义原子气口扩展 | 支持演播气口节点与字数计算 |
 | **看板与拖拽** | `@dnd-kit/core` + `@dnd-kit/sortable` | 丝滑拖拽流转与时序排序 |
 | **服务端** | Bun 原生 HTTP Server + 按领域组织的原生路由 | `app.ts` 负责组合，`routes/` 负责 HTTP 行为，`repositories/` 负责 SQLite 持久化 |
 | **主业务持久库** | SQLite (`bun:sqlite` + WAL) | 选题、素材、时间线、人物、文案、发布包、商单等业务表 |
 | **键值与临时库** | SQLite `_kv_store` 表 | 全局偏好、审稿快照、在线锁、快投箱 |
-| **测试与构建** | Bun (`bun test` + `Bun.build()`) | 112 项全量测试，前后端统一构建 |
+| **测试与构建** | Bun (`bun test` + `Bun.build()`) | 114 项全量测试，前后端统一构建 |
 
 ---
 
@@ -224,7 +224,7 @@ bun install
 # 2. 启动本地全栈开发环境 (Bun HTML Bundler + Bun API，3030 端口)
 bun run dev
 
-# 3. 运行全量自动化测试套件 (112 项单元与集成测试)
+# 3. 运行全量自动化测试套件 (114 项单元与集成测试)
 bun run test:run
 
 # 4. 运行 Playwright E2E（Playwright CLI 使用 Bun 运行时）
@@ -243,6 +243,10 @@ bun run start
 
 ```text
 kanban/
+├── .github/
+│   └── workflows/
+│       ├── ci.yml                       # 主分支自动化测试、类型检查、构建与体积预算门禁
+│       └── docker-publish.yml           # 版本发布多架构 Docker 镜像自动打包与推送
 ├── drizzle/
 │   └── 0000_schema.sql                  # 当前完整数据库基线表结构 SQL
 ├── src/
@@ -265,7 +269,7 @@ kanban/
 │   │   ├── clientUrlParser.ts           # 全站客户端直连解析（Bilibili JSONP / YouTube CORS）
 │   │   ├── publicUrl.ts                 # 反代公网域名推导与规范化
 │   │   ├── remoteStorage.ts             # REST API 通信门面
-│   │   ├── theme.ts                     # 8 套温润编辑部主题调色板配置
+│   │   ├── theme.ts                     # 5 套温润编辑部主题调色板配置
 │   │   └── auth.ts                      # Web Crypto HMAC-SHA256 Token 鉴权
 │   ├── server/
 │   │   ├── app.ts                       # API 应用组合与鉴权中间件
@@ -301,7 +305,7 @@ kanban/
 │   ├── types/index.ts                   # 领域模型与 TypeScript 契约
 │   ├── App.tsx                          # 路由分发入口
 │   └── main.tsx                         # DOM 挂载入口
-├── tests/                               # 112 项 bun:test 自动化单元与集成测试套件
+├── tests/                               # 114 项 bun:test 自动化单元与集成测试套件
 ├── docs/                                # GitHub Pages 静态展示落地页与文档
 │   ├── index.html                       # 独立产品落地页 (含交互沙盒与现代化动画)
 │   ├── icon.png                         # 落地页高清应用图标

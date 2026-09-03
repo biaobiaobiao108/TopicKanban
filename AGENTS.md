@@ -62,7 +62,7 @@
 * 生产镜像必须保持 Dockerfile 未显式设置 `USER` 时的默认 root 用户运行。任何任务不得新增、删除或修改镜像用户，也不得通过 Compose 或 workflow 覆盖容器用户；只有用户明确授权时才可改变此约束。
 
 #### 存储分工原则：
-* **主业务持久库 (`DB` / SQLite)**：负责强关系型业务资产（`topics`, `sources`, `timeline_events`, `people`, `drafts`, `draft_citations`, `tags`, `published_videos`）。
+* **主业务持久库 (`DB` / SQLite)**：负责强关系型业务资产（`topics`, `topic_todos`, `sources`, `timeline_events`, `people`, `person_relationships`, `drafts`, `draft_citations`, `tags`, `topic_tags`, `published_videos`, `commercial_deals`, `commercial_deal_activities`）。
 * **键值存储 (`KV` / `_kv_store`)**：负责非关系型全局配置与轻量交互数据：
   1. **全局偏好设置** (`app_settings`：语速、主题、排版、演播气口库 `voiceover_cues`、反代公网域名 `public_base_url`、停滞阈值 `stale_days` 等)；
   2. **免登录外部审稿只读快照** (`share:*` / `topic_share:*`：支持设定 TTL 自动物理销毁)；
@@ -154,6 +154,7 @@ bun run test:e2e
   * **全量自动化测试**：`bun run test:run`（全量回归验证，涉及底层重构或重要节点发布时执行）；
   * **测试豁免**：纯文档（Markdown）、代码注释、`docs/` 静态展示页等无运行时代码改动一律跳过测试与构建。
 * **交互回归要求**：修改表单尺寸、占位符或列表异步状态时，必须补充 Playwright 回归；至少断言同组控件高度一致、占位符样式符合规范，以及异步请求期间未受影响列表项不会被禁用或改变布局。
+* **日常 CI 自动化门禁 (`.github/workflows/ci.yml`)**：推送到 `master` 或发起 PR 时自动执行类型校验、全量测试、前后端构建及包体积预算检测（`check:bundle`）。
 * **本地单机生产运行**：`bun run start`
 * **Podman / Docker 容器构建与编排**：
   * 构建本地镜像：`podman build -t topic-kanban:latest .`
