@@ -1,4 +1,6 @@
 import { describe, it, expect, afterEach } from 'bun:test';
+import fs from 'node:fs';
+import path from 'node:path';
 import { startServer } from '../src/server/server';
 
 describe('Static Assets Route Serving', () => {
@@ -45,16 +47,31 @@ describe('Static Assets Route Serving', () => {
   });
 
   it('serves dist/index.html on SPA routes when started standalone with built dist', async () => {
-    server = await startServer({
-      port: 0,
-    });
+    const distDir = path.resolve(process.cwd(), 'dist');
+    const indexHtmlPath = path.join(distDir, 'index.html');
+    const createdMockDist = !fs.existsSync(indexHtmlPath);
 
-    const baseUrl = `http://localhost:${server.port}`;
-    const res = await fetch(`${baseUrl}/topics/test-spa-route`);
-    expect(res.status).toBe(200);
-    expect(res.headers.get('content-type')).toContain('text/html');
-    const html = await res.text();
-    expect(html).toContain('<div id="root"></div>');
+    if (createdMockDist) {
+      fs.mkdirSync(distDir, { recursive: true });
+      fs.writeFileSync(indexHtmlPath, '<!doctype html><html><body><div id="root"></div></body></html>', 'utf8');
+    }
+
+    try {
+      server = await startServer({
+        port: 0,
+      });
+
+      const baseUrl = `http://localhost:${server.port}`;
+      const res = await fetch(`${baseUrl}/topics/test-spa-route`);
+      expect(res.status).toBe(200);
+      expect(res.headers.get('content-type')).toContain('text/html');
+      const html = await res.text();
+      expect(html).toContain('<div id="root"></div>');
+    } finally {
+      if (createdMockDist && fs.existsSync(indexHtmlPath)) {
+        fs.unlinkSync(indexHtmlPath);
+      }
+    }
   });
 });
 
