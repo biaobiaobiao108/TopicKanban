@@ -41,7 +41,7 @@ const draft = {
   updated_at: '2026-08-25T00:00:00.000Z',
 };
 
-async function mockWorkspace(page: Page) {
+async function mockWorkspace(page: Page, workspaceDraft = draft) {
   let currentTopic = { ...topic };
   await page.route('**/api/bootstrap**', async (route) => {
     await route.fulfill({
@@ -91,7 +91,7 @@ async function mockWorkspace(page: Page) {
   await page.route(`**/api/topics/${topic.id}/workspace`, async (route) => {
     await route.fulfill({
       contentType: 'application/json',
-      body: JSON.stringify({ sources: [], timeline: [], citations: [], publish_package: null, draft }),
+      body: JSON.stringify({ sources: [], timeline: [], citations: [], publish_package: null, draft: workspaceDraft }),
     });
   });
   await page.route(`**/api/topics/${topic.id}/sources`, async (route) => {
@@ -101,7 +101,7 @@ async function mockWorkspace(page: Page) {
     await route.fulfill({ contentType: 'application/json', body: '[]' });
   });
   await page.route(`**/api/topics/${topic.id}/draft`, async (route) => {
-    await route.fulfill({ contentType: 'application/json', body: JSON.stringify({ draft, conflict: null }) });
+    await route.fulfill({ contentType: 'application/json', body: JSON.stringify({ draft: workspaceDraft, conflict: null }) });
   });
   await page.route(`**/api/topics/${topic.id}/citations`, async (route) => {
     await route.fulfill({ contentType: 'application/json', body: '[]' });
@@ -272,4 +272,16 @@ test('文案页气口菜单使用视口浮层并支持选项选择', async ({ pa
   await expect(cueMenu).toContainText('已插入');
   await page.keyboard.press('Escape');
   await expect(cueMenu).toHaveCount(0);
+});
+
+test('没有已有草稿时文案正文不重复显示选题名称', async ({ page }) => {
+  await mockWorkspace(page, null);
+  await login(page);
+  await page.goto(`/topics/${topic.id}?tab=script`);
+
+  await expect(page.locator('#script-draft-title')).toHaveValue(topic.title);
+  const editor = page.locator('.ProseMirror');
+  await expect(editor).toBeVisible();
+  await expect(editor.locator('h1')).toHaveCount(0);
+  await expect(editor).not.toContainText(`【开场】${topic.title}`);
 });

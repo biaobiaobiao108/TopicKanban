@@ -463,7 +463,7 @@ export const ScriptEditorTab: React.FC<ScriptEditorTabProps> = ({
       VoiceoverCueNode,
       FocusParagraphExtension,
     ],
-    content: initialDraft?.content_html || `<h1>【开场】${topicTitle}</h1><p></p>`,
+    content: initialDraft?.content_html || '<p></p>',
     editorProps: {
       attributes: {
         class: 'prose prose-stone max-w-none focus:outline-none min-h-[500px] text-stone-900 dark:text-stone-100 font-normal',
@@ -543,8 +543,8 @@ export const ScriptEditorTab: React.FC<ScriptEditorTabProps> = ({
     if (!editor || !pendingOutlineHtml || lastInjectedOutlineRef.current === pendingOutlineHtml) return;
     lastInjectedOutlineRef.current = pendingOutlineHtml;
     const currentText = editor.getText().trim();
-    if (!currentText || currentText === `【开场】${topicTitle}`) {
-      editor.commands.setContent(`<h1>【开场】${topicTitle}</h1><p></p>${pendingOutlineHtml}`);
+    if (!currentText) {
+      editor.commands.setContent(pendingOutlineHtml);
     } else {
       editor.commands.insertContent(`<hr/>${pendingOutlineHtml}`);
     }
@@ -818,7 +818,7 @@ export const ScriptEditorTab: React.FC<ScriptEditorTabProps> = ({
     const hookText = topic?.hook || '在此写下能让观众迅速理解这条选题的核心问题或看点...';
     const template = buildStoryStructureDraftHtml(topicTitle, hookText);
     const currentText = editor.getText().trim();
-    if (!currentText || currentText === `【开场】${topicTitle}`) {
+    if (!currentText) {
       editor.commands.setContent(template);
     } else {
       editor.commands.insertContent(template);
