@@ -2,6 +2,12 @@
 @config "../tailwind.config.js";
 @source ".";
 
+html.theme-change-in-progress *,
+html.theme-change-in-progress *::before,
+html.theme-change-in-progress *::after {
+  transition: none !important;
+}
+
 .skip-link {
   position: fixed;
   top: 0.75rem;

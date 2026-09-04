@@ -8,6 +8,12 @@ export function applyTheme(theme: AppTheme = 'light'): void {
 
   const root = document.documentElement;
 
+  // Theme changes can otherwise leave translucent surfaces and text in an
+  // intermediate color frame while accessibility checks or assistive tech
+  // inspect the page. Apply the new palette atomically, then restore motion.
+  root.classList.add('theme-change-in-progress');
+  const restoreThemeMotion = () => root.classList.remove('theme-change-in-progress');
+
   // Clean up previous system theme listener if exists
   if (systemThemeListener && mediaQueryList) {
     mediaQueryList.removeEventListener('change', systemThemeListener);
@@ -53,6 +59,12 @@ export function applyTheme(theme: AppTheme = 'light'): void {
       updateSystemTheme(e.matches);
     };
     mediaQueryList.addEventListener('change', systemThemeListener);
+  }
+
+  if (typeof window.requestAnimationFrame === 'function') {
+    window.requestAnimationFrame(restoreThemeMotion);
+  } else {
+    window.setTimeout(restoreThemeMotion, 0);
   }
 }
 
