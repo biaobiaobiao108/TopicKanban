@@ -91,7 +91,7 @@ function MonthCellDroppable({
                 e.stopPropagation();
                 onShowAllEvents(cell.date, events);
               }}
-              className="inline-flex shrink-0 items-center rounded-full bg-rose-500/10 px-1.5 py-0.5 text-[10px] font-bold leading-none text-rose-700 transition-colors hover:bg-rose-500/20 hover:text-rose-800 dark:bg-rose-950/40 dark:text-rose-300 dark:hover:bg-rose-900/60 dark:hover:text-rose-200 cursor-pointer"
+              className="inline-flex shrink-0 items-center rounded-full bg-rose-500/10 px-1.5 py-0.5 text-[10px] font-bold leading-none text-rose-800 transition-colors hover:bg-rose-500/20 hover:text-rose-900 dark:bg-rose-950/40 dark:text-rose-200 dark:hover:bg-rose-900/60 dark:hover:text-white cursor-pointer"
             >
               +{hiddenCount}
             </button>

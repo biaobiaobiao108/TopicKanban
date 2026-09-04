@@ -638,6 +638,54 @@ describe('Bun Server Integration (Local SQLite & API)', () => {
     expect(results[10]).toBe(429);
   });
 
+  it('uses trusted forwarded client IPs for login rate limiting', async () => {
+    const trustedApp = createApp({
+      DB: new SqliteDatabase(sqlite),
+      KV: new AppKV(new SqliteDatabase(sqlite)),
+      APP_PASSWORD: testPassword,
+      QUICK_DROP_TOKEN: testDropToken,
+      PUBLIC_BASE_URL: publicBaseUrl,
+      TRUST_PROXY_HEADERS: true,
+    });
+    const results: number[] = [];
+    for (let index = 0; index < 11; index += 1) {
+      const response = await trustedApp.fetch(new Request('http://localhost/api/auth/login', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-Forwarded-For': `203.0.113.${100 + index}`,
+        },
+        body: JSON.stringify({ password: 'wrong-password' }),
+      }), '127.0.0.1');
+      results.push(response.status);
+    }
+    expect(results).toEqual(Array(11).fill(401));
+  });
+
+  it('rolls back timeline fields when replacing people fails', async () => {
+    const now = new Date().toISOString();
+    sqlite.query(`INSERT INTO topics (id, title, created_at, updated_at)
+      VALUES (?, ?, ?, ?)`).run('timeline-atomic-topic', '时间线原子事务测试', now, now);
+    sqlite.query(`INSERT INTO timeline_events (id, topic_id, title, created_at, updated_at)
+      VALUES (?, ?, ?, ?, ?)`).run('timeline-atomic-event', 'timeline-atomic-topic', '原始事件标题', now, now);
+
+    const loginRes = await app.request('/api/auth/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ password: testPassword }),
+    });
+    const { token } = await loginRes.json() as { token: string };
+    const patchRes = await app.request('/api/timeline/timeline-atomic-event', {
+      method: 'PATCH',
+      headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ title: '不应落库的新标题', person_ids: ['missing-person-id'] }),
+    });
+
+    expect(patchRes.status).toBe(400);
+    expect(sqlite.query('SELECT title FROM timeline_events WHERE id = ?').get('timeline-atomic-event'))
+      .toEqual({ title: '原始事件标题' });
+  });
+
   it('keeps the first active presence lease when another client reports', async () => {
     const first = await app.request('/api/topics/topic-1/presence', {
       method: 'POST',
@@ -673,7 +721,7 @@ describe('Bun Server Integration (Local SQLite & API)', () => {
     expect(aData.is_locked).toBe(false);
   });
 
-  it('handles batch permanent deletion across multiple chunk sizes correctly', async () => {
+  it('handles batch permanent deletion across multiple topics correctly', async () => {
     const loginRes = await app.request('/api/auth/login', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -682,7 +730,7 @@ describe('Bun Server Integration (Local SQLite & API)', () => {
     const { token } = await loginRes.json() as { token: string };
     const headers = { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' };
 
-    // Create 30 topics (more than chunk size of 25)
+    // Create 30 topics to verify the whole batch remains transactional.
     const topicIds: string[] = [];
     for (let i = 0; i < 30; i++) {
       const createRes = await app.request('/api/topics', {
@@ -711,6 +759,43 @@ describe('Bun Server Integration (Local SQLite & API)', () => {
     const trashRes = await app.request('/api/topics/trash', { headers });
     const trashList = await trashRes.json() as unknown[];
     expect(trashList.length).toBe(0);
+  });
+
+  it('rolls back every permanent deletion when a later topic fails', async () => {
+    const now = new Date().toISOString();
+    const topicIds = Array.from({ length: 26 }, (_, index) => `rollback-trash-${index}`);
+    for (const [index, id] of topicIds.entries()) {
+      sqlite.query(`INSERT INTO topics (id, title, created_at, updated_at, deleted_at)
+        VALUES (?, ?, ?, ?, ?)`).run(id, `回滚删除测试 ${index}`, now, now, now);
+    }
+    sqlite.query(`INSERT INTO sources (id, topic_id, title, created_at, updated_at)
+      VALUES (?, ?, ?, ?, ?)`).run('rollback-trash-source', topicIds[0], '应保留的关联资料', now, now);
+    sqlite.exec(`
+      CREATE TRIGGER fail_permanent_topic_delete
+      BEFORE DELETE ON topics
+      WHEN OLD.id = 'rollback-trash-25'
+      BEGIN
+        SELECT RAISE(ABORT, 'simulated permanent deletion failure');
+      END;
+    `);
+
+    const loginRes = await app.request('/api/auth/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ password: testPassword }),
+    });
+    const { token } = await loginRes.json() as { token: string };
+    const deleteRes = await app.request('/api/topics/batch/permanent', {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ ids: topicIds }),
+    });
+
+    expect(deleteRes.status).toBe(400);
+    expect(sqlite.query('SELECT COUNT(*) AS count FROM topics WHERE id LIKE ?').get('rollback-trash-%'))
+      .toEqual({ count: 26 });
+    expect(sqlite.query('SELECT id FROM sources WHERE id = ?').get('rollback-trash-source'))
+      .toEqual({ id: 'rollback-trash-source' });
   });
 
   it('safely handles resource DELETE endpoints idempotently', async () => {

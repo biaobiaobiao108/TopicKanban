@@ -53,7 +53,7 @@ describe('Database schema contract', () => {
     }
   });
 
-  it('initializes a fresh local database from the baseline without historical migration files', async () => {
+  it('initializes a fresh local database from the current baseline schema', async () => {
     const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'kanban-schema-'));
     const dbPath = path.join(tempDir, 'fresh.db');
     const { sqlite } = await initializeSqliteDatabase(dbPath, path.resolve(process.cwd(), 'drizzle'));
@@ -63,8 +63,7 @@ describe('Database schema contract', () => {
       expect(sqlite.query("SELECT name FROM sqlite_master WHERE type = 'table' AND name = 'commercial_deal_topics'").get()).not.toBeNull();
       expect(sqlite.query("SELECT name FROM sqlite_master WHERE type = 'table' AND name = 'commercial_deal_activities'").get()).not.toBeNull();
 
-      const migrations = sqlite.query('SELECT name FROM _schema_migrations ORDER BY name').all() as Array<{ name: string }>;
-      expect(migrations).toEqual([{ name: '0000_schema.sql' }]);
+      expect(sqlite.query("SELECT name FROM sqlite_master WHERE type = 'table' AND name = '_schema_migrations'").get()).toBeNull();
       sqlite.query("INSERT INTO commercial_deals (id, title, created_at, updated_at) VALUES ('valid', '有效商单', '2026-08-27', '2026-08-27')").run();
       expect(() => sqlite.query("INSERT INTO commercial_deals (id, title, status, created_at, updated_at) VALUES ('invalid', '非法阶段', 'reviewing', '2026-08-27', '2026-08-27')").run()).toThrow();
     } finally {

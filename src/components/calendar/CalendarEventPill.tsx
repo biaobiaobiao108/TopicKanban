@@ -69,7 +69,7 @@ export const CalendarEventPill: React.FC<CalendarEventPillProps> = ({
             title={`计划发布：${event.title}`}
             data-testid="calendar-event"
             data-calendar-event-type={event.type}
-            className="flex w-full min-w-0 items-center gap-1.5 rounded-lg border border-rose-200/50 bg-rose-500/10 px-2 py-0.5 text-left text-[11px] font-medium leading-4 text-rose-700 shadow-2xs transition-colors hover:bg-rose-500/20 dark:border-rose-900/40 dark:bg-rose-950/40 dark:text-rose-300 dark:hover:bg-rose-900/50"
+            className="flex w-full min-w-0 items-center gap-1.5 rounded-lg border border-rose-200/50 bg-rose-500/10 px-2 py-0.5 text-left text-[11px] font-medium leading-4 text-rose-800 shadow-2xs transition-colors hover:bg-rose-500/20 hover:text-rose-900 dark:border-rose-900/40 dark:bg-rose-950/40 dark:text-rose-200 dark:hover:bg-rose-900/50 dark:hover:text-white"
           >
             <span className="w-1.5 h-1.5 rounded-full bg-rose-600 dark:bg-rose-400 shrink-0" />
             <span className="min-w-0 flex-1 truncate">{event.title}</span>

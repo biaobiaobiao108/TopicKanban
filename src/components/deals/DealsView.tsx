@@ -413,9 +413,9 @@ function DealCard({ deal, onOpen }: { deal: CommercialDeal; onOpen: (id: string)
             )}
           </div>
           <p className="truncate text-xs font-semibold text-rose-600 dark:text-rose-400">{deal.brand_name || '未填写品牌'}</p>
-          <h3 className="mt-1 line-clamp-2 break-words text-sm font-bold leading-relaxed text-stone-900 group-hover:text-rose-600 dark:text-stone-100 dark:group-hover:text-rose-400">
+          <p className="mt-1 line-clamp-2 break-words text-sm font-bold leading-relaxed text-stone-900 group-hover:text-rose-600 dark:text-stone-100 dark:group-hover:text-rose-400">
             {deal.title}
-          </h3>
+          </p>
         </div>
         <ArrowRight className="mt-1 h-4 w-4 shrink-0 text-stone-300 transition-transform group-hover:translate-x-0.5 group-hover:text-rose-500 dark:text-stone-600" />
       </div>

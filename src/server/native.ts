@@ -300,8 +300,8 @@ export class NativeApp {
     const forwardedFor = request.headers.get('x-forwarded-for')?.split(',')[0]?.trim();
     const forwardedRealIp = request.headers.get('x-real-ip')?.trim();
     const clientIp = this.env.CLIENT_IP
-      || requestIp
       || (this.env.TRUST_PROXY_HEADERS ? forwardedFor || forwardedRealIp : undefined)
+      || requestIp
       || 'unknown';
     const context = new NativeContext(request, { ...this.env, CLIENT_IP: clientIp });
     const routeHandlers = [...this.middlewares, ...match.route.handlers];

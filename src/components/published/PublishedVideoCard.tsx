@@ -149,19 +149,19 @@ export const PublishedVideoCard: React.FC<PublishedVideoCardProps> = ({
 
           {/* Row 2: Two-Line Title Slot without clipping */}
           <div className="min-h-[2.75rem] h-[2.75rem] flex items-start overflow-hidden">
-            <h3
+            <p
               className="text-xs sm:text-sm font-bold text-stone-900 dark:text-stone-100 leading-snug break-words line-clamp-2 hover:text-rose-600 dark:hover:text-rose-400 transition-colors"
               title={video.title}
             >
               {video.title}
-            </h3>
+            </p>
           </div>
 
           {/* Row 3: 5 Key Metrics Bar + Ratios */}
           <div className="space-y-1">
             <div className="grid grid-cols-5 gap-1 bg-stone-500/[0.03] dark:bg-stone-800/50 p-1.5 rounded-lg border border-stone-200/50 dark:border-stone-800 text-center font-mono">
               <div>
-                <div className="text-[9px] text-stone-400 dark:text-stone-500 flex items-center justify-center gap-0.5">
+                <div className="text-[9px] text-stone-600 dark:text-stone-300 flex items-center justify-center gap-0.5">
                   <Eye className="w-2.5 h-2.5" />
                   <span>播放</span>
                 </div>
@@ -171,7 +171,7 @@ export const PublishedVideoCard: React.FC<PublishedVideoCardProps> = ({
               </div>
 
               <div>
-                <div className="text-[9px] text-stone-400 dark:text-stone-500 flex items-center justify-center gap-0.5">
+                <div className="text-[9px] text-stone-600 dark:text-stone-300 flex items-center justify-center gap-0.5">
                   <ThumbsUp className="w-2.5 h-2.5" />
                   <span>点赞</span>
                 </div>
@@ -181,7 +181,7 @@ export const PublishedVideoCard: React.FC<PublishedVideoCardProps> = ({
               </div>
 
               <div>
-                <div className="text-[9px] text-stone-400 dark:text-stone-500 flex items-center justify-center gap-0.5">
+                <div className="text-[9px] text-stone-600 dark:text-stone-300 flex items-center justify-center gap-0.5">
                   <Coins className="w-2.5 h-2.5" />
                   <span>投币</span>
                 </div>
@@ -191,7 +191,7 @@ export const PublishedVideoCard: React.FC<PublishedVideoCardProps> = ({
               </div>
 
               <div>
-                <div className="text-[9px] text-stone-400 dark:text-stone-500 flex items-center justify-center gap-0.5">
+                <div className="text-[9px] text-stone-600 dark:text-stone-300 flex items-center justify-center gap-0.5">
                   <Bookmark className="w-2.5 h-2.5" />
                   <span>收藏</span>
                 </div>
@@ -201,7 +201,7 @@ export const PublishedVideoCard: React.FC<PublishedVideoCardProps> = ({
               </div>
 
               <div>
-                <div className="text-[9px] text-stone-400 dark:text-stone-500 flex items-center justify-center gap-0.5">
+                <div className="text-[9px] text-stone-600 dark:text-stone-300 flex items-center justify-center gap-0.5">
                   <MessageSquare className="w-2.5 h-2.5" />
                   <span>评论</span>
                 </div>
@@ -243,7 +243,7 @@ export const PublishedVideoCard: React.FC<PublishedVideoCardProps> = ({
           </div>
 
           {/* Row 4: Bottom Bar (Date + Note Tooltip + Link) */}
-          <div className="pt-2 border-t border-stone-100 dark:border-stone-800 flex items-center justify-between text-[11px] text-stone-400 dark:text-stone-500">
+          <div className="pt-2 border-t border-stone-100 dark:border-stone-800 flex items-center justify-between text-[11px] text-stone-600 dark:text-stone-400">
             <span className="flex items-center gap-1 shrink-0">
               <Calendar className="w-3 h-3" />
               <span>{video.published_at}</span>

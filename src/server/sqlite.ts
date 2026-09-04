@@ -146,32 +146,12 @@ export async function initializeSqliteDatabase(dbFilePath: string, schemaDir?: s
 
   const tableCheck = sqlite.query("SELECT count(*) as count FROM sqlite_master WHERE type='table' AND name='topics'").get() as { count: number };
 
-  sqlite.exec(`
-    CREATE TABLE IF NOT EXISTS _schema_migrations (
-      name TEXT PRIMARY KEY,
-      applied_at TEXT NOT NULL
-    );
-  `);
-
   const resolvedSchemaDir = schemaDir || path.resolve(process.cwd(), 'drizzle');
   if (tableCheck.count === 0) {
     const schemaFile = path.join(resolvedSchemaDir, '0000_schema.sql');
     const schema = Bun.file(schemaFile);
     if (await schema.exists()) sqlite.exec(await schema.text());
-  } else {
-    const columns = sqlite.query('PRAGMA table_info(topics)').all() as Array<{ name: string }>;
-    if (!columns.some((column) => column.name === 'target_publish_date')) {
-      sqlite.exec('ALTER TABLE topics ADD COLUMN target_publish_date TEXT;');
-      sqlite.exec('CREATE INDEX IF NOT EXISTS idx_topics_target_publish_date ON topics(target_publish_date);');
-    }
-    if (!columns.some((column) => column.name === 'deadline')) {
-      sqlite.exec('ALTER TABLE topics ADD COLUMN deadline TEXT;');
-      sqlite.exec('CREATE INDEX IF NOT EXISTS idx_topics_deadline ON topics(deadline);');
-    }
   }
-
-  sqlite.query('INSERT OR IGNORE INTO _schema_migrations (name, applied_at) VALUES (?, ?)')
-    .run('0000_schema.sql', new Date().toISOString());
 
   sqlite.exec(`
     CREATE TABLE IF NOT EXISTS _kv_store (

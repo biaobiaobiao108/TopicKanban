@@ -147,11 +147,7 @@ export async function permanentlyDeleteTrashedTopics(db: SqliteDatabase, ids: st
     throw new TopicNotInTrashError('All topics must be in trash before permanent deletion');
   }
 
-  const CHUNK_SIZE = 25;
-  for (let i = 0; i < ids.length; i += CHUNK_SIZE) {
-    const chunkIds = ids.slice(i, i + CHUNK_SIZE);
-    await db.batch(chunkIds.flatMap((id) => permanentDeleteStatements(db, id)));
-  }
+  await db.batch(ids.flatMap((id) => permanentDeleteStatements(db, id)));
 }
 export interface TopicPageOptions {
   scope: 'active' | 'archived' | 'trash' | 'all';

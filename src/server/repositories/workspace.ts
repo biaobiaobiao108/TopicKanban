@@ -144,17 +144,19 @@ export async function updateTimelineEvent(
 ): Promise<TimelineEvent | null> {
   const fields = ['title', 'description', 'event_date', 'date_precision', 'verification_status', 'sort_order', 'contrast_tag']
     .filter((field) => Object.prototype.hasOwnProperty.call(body, field));
+  const statements: SqlitePreparedStatement[] = [];
   if (fields.length > 0) {
-    await bind(db, `UPDATE timeline_events SET ${fields.map((field) => `${field} = ?`).join(', ')}, updated_at = ? WHERE id = ?`,
-      [...fields.map((field) => body[field]), new Date().toISOString(), id]).run();
+    statements.push(bind(db, `UPDATE timeline_events SET ${fields.map((field) => `${field} = ?`).join(', ')}, updated_at = ? WHERE id = ?`,
+      [...fields.map((field) => body[field]), new Date().toISOString(), id]));
   }
   if (Array.isArray(body.person_ids)) {
-    await db.batch(replaceTimelinePeopleStatements(
+    statements.push(...replaceTimelinePeopleStatements(
       db,
       id,
       body.person_ids.filter((value): value is string => typeof value === 'string')
     ));
   }
+  if (statements.length > 0) await db.batch(statements);
   const row = await db.prepare('SELECT topic_id FROM timeline_events WHERE id = ?').bind(id).first<{ topic_id: string }>();
   if (!row) return null;
   return (await loadTimelineEvents(db, row.topic_id)).find((event) => event.id === id) || null;

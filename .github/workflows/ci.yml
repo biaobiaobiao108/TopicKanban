@@ -32,6 +32,9 @@ jobs:
       - name: Install dependencies
         run: bun install --frozen-lockfile
 
+      - name: Install Playwright browsers
+        run: bunx --bun playwright install --with-deps chromium webkit
+
       - name: Run unit and integration tests
         run: bun run test:run
 
@@ -43,3 +46,6 @@ jobs:
 
       - name: Check bundle size
         run: bun run check:bundle
+
+      - name: Run end-to-end tests
+        run: bun run test:e2e
