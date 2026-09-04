@@ -54,8 +54,8 @@ export const MobileBottomNav: React.FC<MobileBottomNavProps> = ({
             aria-current={isActive ? 'page' : undefined}
             className={`relative flex min-h-11 min-w-11 touch-manipulation flex-col items-center justify-center rounded-lg px-1.5 py-1 transition-colors ${
               isActive
-                ? 'text-rose-600 dark:text-rose-400 font-bold'
-                : 'text-stone-500 dark:text-stone-400 hover:text-stone-800 dark:hover:text-stone-200'
+                ? 'text-rose-800 dark:text-rose-200 font-bold'
+                : 'text-stone-700 dark:text-stone-300 hover:text-stone-900 dark:hover:text-white'
             }`}
           >
             <Icon className={`w-5 h-5 ${isActive ? 'stroke-[2.5]' : 'stroke-2'}`} />
