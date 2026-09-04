@@ -39,7 +39,7 @@ export const Navbar: React.FC<NavbarProps> = ({
   const currentTitle = titles[currentView] || titles.kanban;
 
   return (
-    <header className="navbar-container h-13 bg-white/85 dark:bg-stone-900/90 backdrop-blur-md border-b border-stone-200/70 dark:border-stone-800 px-4 sm:px-6 flex items-center justify-between sticky top-0 z-20 shrink-0 transition-colors">
+    <header className="navbar-container h-13 bg-[var(--bg-surface)] backdrop-blur-md border-b border-stone-200/70 dark:border-stone-800 px-4 sm:px-6 flex items-center justify-between sticky top-0 z-20 shrink-0 transition-colors">
       {/* Left: Mobile Menu button & Title */}
       <div className="flex items-center gap-2.5 min-w-0">
         {onOpenMobileDrawer && (
@@ -54,7 +54,7 @@ export const Navbar: React.FC<NavbarProps> = ({
           </button>
         )}
 
-        <span className="text-sm sm:text-base font-bold text-stone-900 dark:text-stone-100 tracking-tight truncate">
+        <span className="text-sm sm:text-base font-bold text-[var(--text-primary)] tracking-tight truncate">
           {currentTitle}
         </span>
       </div>
