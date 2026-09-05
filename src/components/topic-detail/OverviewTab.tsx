@@ -484,7 +484,7 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({
                         </span>
                         <span>{`第 ${step.number} 段 · ${step.label}`}</span>
                       </div>
-                      <span className="shrink-0 text-right text-[10px] text-stone-400 font-normal">{step.note}</span>
+                      <span className="shrink-0 text-right text-[10px] text-stone-600 dark:text-stone-400 font-normal">{step.note}</span>
                     </div>
                     <textarea
                       aria-label={`第 ${step.number} 段：${step.label}`}
