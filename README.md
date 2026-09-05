@@ -105,13 +105,13 @@ bun run test:e2e
 | 层级 | 技术选型 | 说明 |
 | :--- | :--- | :--- |
 | **前端核心** | React 19 + TypeScript + Bun HTML Bundler + Tailwind（`bun-plugin-tailwind@0.1.2`） | 模块化 SPA，Bun 热重载与同源开发 |
-| **路由与状态** | React Router 7 + TanStack Query 5 | 服务端状态缓存与乐观更新 |
-| **富文本编辑** | Tiptap 3 + StarterKit + 自定义原子气口扩展 | 支持演播气口节点与字数计算 |
+| **路由与动效** | React Router 7 + View Transitions API + TanStack Query 5 | 平滑视图过渡、服务端状态缓存与乐观更新 |
+| **富文本编辑** | Tiptap 3 (`3.31.3`) + StarterKit + 自定义原子气口扩展 | 支持演播气口节点与字数计算 |
 | **看板与拖拽** | `@dnd-kit/core` + `@dnd-kit/sortable` | 丝滑拖拽流转与时序排序 |
-| **服务端** | Bun 原生 HTTP Server + 按领域组织的原生路由 | `app.ts` 负责组合，`routes/` 负责 HTTP 行为，`repositories/` 负责 SQLite 持久化 |
+| **服务端与校验** | Bun 原生 HTTP Server + Zod 4 声明式校验管道 + 按领域组织的原生路由 | `app.ts` 负责组合，`schemas.ts` 统一契约校验，`routes/` 负责 HTTP 行为，`repositories/` 负责 SQLite 持久化 |
 | **主业务持久库** | SQLite (`bun:sqlite` + WAL) | 选题、素材、时间线、人物、文案、发布包、商单等业务表 |
 | **键值与临时库** | SQLite `_kv_store` 表 | 全局偏好、审稿快照、在线锁、快投箱 |
-| **测试与构建** | Bun (`bun test` + `Bun.build()`) | 114 项全量测试，前后端统一构建 |
+| **测试与构建** | Bun (`bun test` + `Bun.build()`) | 124 项全量测试，前后端统一构建 |
 
 ---
 
