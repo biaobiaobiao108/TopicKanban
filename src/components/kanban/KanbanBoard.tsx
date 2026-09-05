@@ -652,7 +652,7 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
   };
 
   return (
-    <div className="flex-1 w-full h-full overflow-y-auto px-4 sm:px-6 py-4 space-y-4">
+    <div className="flex h-full w-full flex-1 space-y-4 overflow-y-auto px-4 py-4 mobile-bottom-nav-content sm:px-6">
       <PageHeader title="选题全景看板" icon={KanbanSquare} />
 
       {/* Filters Bar & View Switcher */}

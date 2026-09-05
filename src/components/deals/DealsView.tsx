@@ -560,7 +560,7 @@ function CommercialDealsView({ topics, onCreateTopicFromDeal }: Pick<DealsViewPr
   const lastItem = Math.min(page * pageSize, total);
 
   return (
-    <div className="flex-1 overflow-y-auto overscroll-contain pb-20 md:pb-8">
+    <div className="flex-1 overflow-y-auto overscroll-contain pb-20 mobile-bottom-nav-content md:pb-8">
       <div className="mx-auto max-w-7xl space-y-6 px-4 py-5 sm:px-8 sm:py-8">
         <PageHeader
           title="商单中心"
@@ -1120,7 +1120,7 @@ function CommercialDealDetailView({
   const currentFlowIndex = STATUS_FLOW.indexOf(deal.status);
 
   return (
-    <div className="flex-1 overflow-y-auto overscroll-contain pb-20 md:pb-8">
+    <div className="flex-1 overflow-y-auto overscroll-contain pb-20 mobile-bottom-nav-content md:pb-8">
       <div className="mx-auto max-w-6xl space-y-5 px-4 py-4 sm:px-8 sm:py-6">
         <section className="min-w-0 rounded-2xl border border-stone-200/70 bg-white p-5 shadow-2xs dark:border-stone-800 dark:bg-stone-900 sm:p-6">
           <div className="flex flex-col gap-4">

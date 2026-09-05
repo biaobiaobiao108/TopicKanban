@@ -35,16 +35,16 @@ export const MobileBottomNav: React.FC<MobileBottomNavProps> = ({
   const items: { id: NavView; label: string; icon: React.ComponentType<{ className?: string }>; badge?: number | null }[] = [
     { id: 'today', label: '今日', icon: Calendar, badge: null },
     { id: 'kanban', label: '看板', icon: KanbanSquare, badge: topicCount > 0 ? topicCount : null },
-    { id: 'calendar', label: '日历', icon: CalendarDays, badge: null },
-    { id: 'tags', label: '赛道', icon: Hash, badge: null },
-    { id: 'people', label: '人物', icon: Users, badge: null },
-    { id: 'published', label: '复盘', icon: Film, badge: null },
     { id: 'deals', label: '商单', icon: Handshake, badge: null },
     { id: 'settings', label: '设置', icon: Settings, badge: null },
   ];
 
   return (
-    <div className="mobile-nav-container md:hidden fixed bottom-0 left-0 right-0 z-40 bg-white/95 dark:bg-stone-900/95 backdrop-blur-md border-t border-stone-200/80 dark:border-stone-800 px-3 pt-1.5 pb-[max(0.5rem,env(safe-area-inset-bottom))] flex items-center justify-around transition-colors">
+    <nav
+      data-testid="mobile-bottom-nav"
+      aria-label="移动端主导航"
+      className="mobile-nav-container md:hidden fixed bottom-0 left-0 right-0 z-40 grid grid-cols-5 items-center bg-white/95 px-2 pt-1.5 pb-[max(0.5rem,env(safe-area-inset-bottom))] backdrop-blur-md transition-colors dark:bg-stone-900/95"
+    >
       {items.map((item) => {
         const Icon = item.icon;
         const isActive = currentView === item.id;
@@ -53,7 +53,8 @@ export const MobileBottomNav: React.FC<MobileBottomNavProps> = ({
             key={item.id}
             onClick={() => onNavigate(item.id)}
             aria-current={isActive ? 'page' : undefined}
-            className={`relative flex min-h-11 min-w-11 touch-manipulation flex-col items-center justify-center rounded-lg px-1.5 py-1 transition-colors ${
+            aria-label={typeof item.badge === 'number' && item.badge > 0 ? `${item.label}，${item.badge}个选题` : item.label}
+            className={`relative flex min-h-11 w-full min-w-0 touch-manipulation flex-col items-center justify-center rounded-lg px-0.5 py-1 transition-colors ${
               isActive
                 ? 'text-rose-800 dark:text-rose-200 font-bold'
                 : 'text-stone-700 dark:text-stone-300 hover:text-stone-900 dark:hover:text-white'
@@ -74,12 +75,12 @@ export const MobileBottomNav: React.FC<MobileBottomNavProps> = ({
       <button
         onClick={onOpenQuickCreate}
         aria-label="新建选题"
-        className="mobile-fab-create-button ml-1 flex h-11 w-11 shrink-0 touch-manipulation items-center justify-center rounded-full bg-stone-900 dark:bg-rose-600 text-white shadow-md transition-transform active:scale-95 cursor-pointer"
+        className="mobile-fab-create-button mx-auto flex h-11 w-11 shrink-0 touch-manipulation items-center justify-center rounded-full bg-stone-900 text-white shadow-md transition-transform active:scale-95 cursor-pointer dark:bg-rose-600"
         title="新建选题"
       >
         <Plus className="w-5 h-5 stroke-[2.5]" />
       </button>
-    </div>
+    </nav>
   );
 };
 

@@ -421,7 +421,7 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
         </div>
 
         {/* Calendar Body Area + Side Pool */}
-        <div className="relative flex-1 flex min-h-0 overflow-hidden p-3 sm:p-6 gap-4">
+        <div className="relative flex min-h-0 flex-1 gap-4 overflow-hidden p-3 sm:p-6 mobile-bottom-nav-content">
           {/* Main Grid View */}
           {viewMode === 'month' && (
             <CalendarMonthGrid

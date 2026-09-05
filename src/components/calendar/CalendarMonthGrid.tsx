@@ -142,7 +142,7 @@ export const CalendarMonthGrid: React.FC<CalendarMonthGridProps> = ({
   const [activeDateModal, setActiveDateModal] = useState<{ date: string; events: CalendarEventItem[] } | null>(null);
 
   return (
-    <div className="flex-1 flex flex-col min-w-0 bg-white dark:bg-stone-900 rounded-2xl border border-stone-200/70 dark:border-stone-800 shadow-2xs overflow-hidden">
+    <div className="flex min-h-0 flex-1 flex-col min-w-0 overflow-hidden rounded-2xl border border-stone-200/70 bg-white shadow-2xs dark:border-stone-800 dark:bg-stone-900">
       {/* 7-Column Header */}
       <div className="grid grid-cols-7 border-b border-stone-200/70 dark:border-stone-800 bg-stone-50 dark:bg-stone-900/90 select-none">
         {WEEK_HEADERS.map((name, i) => (
@@ -160,7 +160,7 @@ export const CalendarMonthGrid: React.FC<CalendarMonthGridProps> = ({
       {/* Grid of days */}
       <div
         data-testid="calendar-month-grid"
-        className="flex-1 grid grid-cols-7 auto-rows-[max-content] overflow-y-auto min-w-0"
+        className="grid min-h-0 min-w-0 flex-1 grid-cols-7 auto-rows-[max-content] touch-pan-y overflow-y-auto overscroll-contain"
       >
         {days.map((cell) => {
           const events = eventsMap.get(cell.date) || [];

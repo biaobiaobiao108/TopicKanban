@@ -60,9 +60,9 @@ export const Navbar: React.FC<NavbarProps> = ({
       </div>
 
       {/* Right Controls */}
-      <div className="flex items-center gap-2 sm:gap-3 shrink-0">
+      <div className="flex shrink-0 items-center gap-1.5 sm:gap-3">
         {/* Quick Search */}
-        <div className="relative">
+        <div className="relative shrink-0">
           <Search className="w-3.5 h-3.5 text-stone-400 dark:text-stone-500 absolute left-2.5 sm:left-3 top-1/2 -translate-y-1/2" />
           <input
             type="search"
@@ -74,7 +74,7 @@ export const Navbar: React.FC<NavbarProps> = ({
             placeholder="搜索选题/人物..."
             value={searchTerm}
             onChange={(e) => onSearchChange(e.target.value)}
-            className="pl-8 sm:pl-9 pr-2.5 py-1.5 bg-stone-100/80 dark:bg-stone-800 hover:bg-stone-100 dark:hover:bg-stone-800/90 focus:bg-white dark:focus:bg-stone-800 text-xs sm:text-sm text-stone-900 dark:text-stone-100 placeholder:text-stone-400 dark:placeholder:text-stone-500 rounded-xl border border-transparent focus:border-stone-300 dark:focus:border-stone-600 focus:outline-none w-32 sm:w-56 focus:w-44 sm:focus:w-72 transition-all shadow-2xs"
+            className="w-28 rounded-xl border border-transparent bg-stone-100/80 py-1.5 pl-8 pr-2.5 text-xs text-stone-900 shadow-2xs transition-all placeholder:text-stone-400 focus:border-stone-300 focus:bg-white focus:outline-none dark:bg-stone-800 dark:text-stone-100 dark:placeholder:text-stone-500 dark:focus:border-stone-600 dark:focus:bg-stone-800 sm:w-56 sm:pl-9 sm:text-sm sm:focus:w-72 focus:w-36"
           />
         </div>
 
@@ -85,7 +85,7 @@ export const Navbar: React.FC<NavbarProps> = ({
             onClick={onOpenQuickDrops}
             aria-label={quickDropCount > 0 ? `手机快投箱中有 ${quickDropCount} 条未处理灵感` : '打开手机快投灵感箱'}
             title={quickDropCount > 0 ? `手机快投箱中有 ${quickDropCount} 条未处理灵感` : '打开手机快投灵感箱'}
-            className={`relative flex items-center gap-1.5 px-3 py-1.5 text-xs rounded-xl transition-all cursor-pointer ${
+            className={`relative flex shrink-0 items-center gap-1.5 rounded-xl px-3 py-1.5 text-xs transition-all cursor-pointer ${
               quickDropCount > 0
                 ? 'bg-rose-500/10 dark:bg-rose-950/50 text-rose-800 dark:text-rose-200 font-bold shadow-2xs hover:bg-rose-500/20'
                 : 'bg-stone-100/80 dark:bg-stone-800 hover:bg-stone-200/80 dark:hover:bg-stone-700 text-stone-600 dark:text-stone-300'
@@ -106,7 +106,7 @@ export const Navbar: React.FC<NavbarProps> = ({
           type="button"
           onClick={onOpenQuickCreate}
           aria-label="新选题"
-          className="flex items-center gap-1.5 bg-rose-600 hover:bg-rose-700 active:scale-95 text-white px-3.5 py-1.5 rounded-xl text-xs sm:text-sm font-semibold transition-all shadow-2xs hover:shadow-xs cursor-pointer"
+          className="hidden items-center gap-1.5 rounded-xl bg-rose-600 px-3.5 py-1.5 text-xs font-semibold text-white shadow-2xs transition-all hover:bg-rose-700 hover:shadow-xs active:scale-95 cursor-pointer sm:text-sm md:flex"
         >
           <Plus className="w-4 h-4 stroke-[2.5]" aria-hidden="true" />
           <span className="hidden sm:inline">新选题</span>

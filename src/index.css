@@ -421,6 +421,13 @@ html.theme-nordic-frost .script-citation::after {
   display: none;
 }
 
+/* Keep scrollable mobile views clear of the fixed five-item bottom navigation. */
+@media (max-width: 767px) {
+  .mobile-bottom-nav-content {
+    padding-bottom: max(5rem, calc(4.5rem + env(safe-area-inset-bottom)));
+  }
+}
+
 /* Legacy scrollbar fallback for older WebKit engines */
 @supports not (scrollbar-color: auto) {
   ::-webkit-scrollbar {
