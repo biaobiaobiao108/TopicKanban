@@ -866,7 +866,7 @@ export const ScriptEditorTab: React.FC<ScriptEditorTabProps> = ({
     <div
       className={
         isZenMode
-          ? 'fixed inset-0 z-50 bg-[#fafaf9] dark:bg-[#0c0a09] flex flex-col transition-all duration-300 ease-in-out'
+          ? 'pwa-fullscreen-surface fixed inset-0 z-50 bg-[#fafaf9] dark:bg-[#0c0a09] flex flex-col transition-all duration-300 ease-in-out'
           : 'w-full h-full flex flex-col'
       }
     >

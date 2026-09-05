@@ -24,6 +24,7 @@ describe('Production security headers', () => {
       expect(source).toContain('Permissions-Policy');
       expect(source).toContain('Cross-Origin-Opener-Policy');
       expect(source).toContain('Cross-Origin-Resource-Policy');
+      expect(source).toContain("worker-src 'self'");
     }
   });
 

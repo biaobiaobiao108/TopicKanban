@@ -17,6 +17,7 @@ import {
   Smartphone,
 } from 'lucide-react';
 import { NavView } from './Sidebar';
+import { PwaInstallButton } from '../ui/PwaInstall';
 
 interface MobileBottomNavProps {
   currentView: NavView;
@@ -169,7 +170,7 @@ export const MobileDrawer: React.FC<MobileDrawerProps> = ({
       <div className="fixed inset-0 bg-stone-900/40 backdrop-blur-xs" onClick={onClose} />
 
       {/* Drawer */}
-      <div ref={drawerRef} role="dialog" aria-modal="true" aria-label="移动端导航菜单" className="mobile-drawer-container relative w-4/5 max-w-xs bg-white dark:bg-stone-900 h-full shadow-2xl flex flex-col justify-between p-5 z-10 animate-in slide-in-from-left duration-200 border-r border-stone-200/70 dark:border-stone-800 transition-colors">
+      <div ref={drawerRef} role="dialog" aria-modal="true" aria-label="移动端导航菜单" className="mobile-drawer-container pwa-mobile-drawer relative w-4/5 max-w-xs bg-white dark:bg-stone-900 h-full shadow-2xl flex flex-col justify-between p-5 z-10 animate-in slide-in-from-left duration-200 border-r border-stone-200/70 dark:border-stone-800 transition-colors">
         <div className="space-y-5">
           {/* Header */}
           <div className="flex items-center justify-between pb-4 border-b border-stone-100 dark:border-stone-800">
@@ -224,6 +225,8 @@ export const MobileDrawer: React.FC<MobileDrawerProps> = ({
                 )}
               </button>
             )}
+
+            <PwaInstallButton variant="menu" />
 
             <button
               onClick={() => {

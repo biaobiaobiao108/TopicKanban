@@ -584,7 +584,7 @@ function renderScriptTextWithCues(text: string, isDark: boolean): React.ReactNod
       aria-modal="true"
       aria-label="录音提词器"
       tabIndex={-1}
-      className={`teleprompter-modal-root fixed inset-0 z-50 flex flex-col select-none transition-colors duration-300 ${
+      className={`teleprompter-modal-root pwa-fullscreen-surface fixed inset-0 z-50 flex flex-col select-none transition-colors duration-300 ${
         isDark ? 'dark is-dark bg-[#0c0a09] text-[#f5f5f4]' : 'is-light bg-[#fafaf9] text-stone-900'
       }`}
     >

@@ -1167,6 +1167,23 @@ select:focus {
   }
 }
 
+/* Installed iOS/iPadOS web apps render edge-to-edge behind the system bars. */
+@media (display-mode: standalone), (display-mode: fullscreen) {
+  .pwa-navbar {
+    height: calc(3.25rem + env(safe-area-inset-top));
+    padding-top: env(safe-area-inset-top);
+  }
+
+  .pwa-mobile-drawer {
+    padding-top: max(1.25rem, env(safe-area-inset-top));
+  }
+
+  .pwa-fullscreen-surface {
+    padding-top: env(safe-area-inset-top);
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .modal-backdrop-modern,
   .modal-dialog-modern {

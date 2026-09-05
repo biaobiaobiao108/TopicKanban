@@ -15,6 +15,7 @@ import { applyTheme } from '../../lib/theme';
 import { resolvePublicUrl } from '../../lib/publicUrl';
 import { PageHeader } from '../layout/PageHeader';
 import { ConfirmDialog } from '../ui/ConfirmDialog';
+import { PwaInstallCard } from '../ui/PwaInstall';
 import {
   Settings,
   Download,
@@ -362,6 +363,8 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
             </>
           )}
         />
+
+        <PwaInstallCard />
 
         {/* 1. Appearance */}
         <div className="bg-white dark:bg-stone-900 rounded-2xl border border-stone-200/70 dark:border-stone-800 p-5 sm:p-6 space-y-5 shadow-2xs transition-colors">

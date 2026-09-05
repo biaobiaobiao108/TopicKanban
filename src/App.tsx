@@ -72,6 +72,7 @@ import {
 import { lazyWithReload } from './lib/lazyWithReload';
 import { useToast } from './components/ui/Toast';
 import { PageHeader } from './components/layout/PageHeader';
+import { PwaInstallPromptBanner } from './components/ui/PwaInstall';
 import { Database } from 'lucide-react';
 
 const VIEW_PATHS: Record<Exclude<NavView, 'topic-detail'>, string> = {
@@ -948,6 +949,7 @@ function WorkspaceApp({ isAuth, setIsAuth }: WorkspaceAppProps) {
           searchTerm={searchTerm}
           onSearchChange={setSearchTerm}
         />
+        <PwaInstallPromptBanner />
 
         {/* View Router */}
         <main id="main-content" tabIndex={-1} className="flex-1 flex flex-col overflow-hidden min-w-0">

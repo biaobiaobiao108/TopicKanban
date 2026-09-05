@@ -56,7 +56,7 @@ export async function startServer(options: ServerOptions = {}) {
   headers.set('Permissions-Policy', 'camera=(), microphone=(), geolocation=()');
   headers.set('Cross-Origin-Opener-Policy', 'same-origin-allow-popups');
   headers.set('Cross-Origin-Resource-Policy', 'same-origin');
-  headers.set('Content-Security-Policy', "default-src 'self'; script-src 'self' https://api.bilibili.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: blob: https:; connect-src 'self' https://api.bilibili.com https://www.youtube.com; object-src 'none'; base-uri 'self'; frame-ancestors 'none'; form-action 'self'");
+  headers.set('Content-Security-Policy', "default-src 'self'; script-src 'self' https://api.bilibili.com; worker-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: blob: https:; connect-src 'self' https://api.bilibili.com https://www.youtube.com; object-src 'none'; base-uri 'self'; frame-ancestors 'none'; form-action 'self'");
   return new Response(response.body, {
     status: response.status,
     statusText: response.statusText,
@@ -126,8 +126,20 @@ export async function startServer(options: ServerOptions = {}) {
   }
 
   for (const fileName of staticFiles) {
+    const staticHeaders: HeadersInit = fileName === 'manifest.webmanifest'
+      ? {
+          'Content-Type': 'application/manifest+json; charset=utf-8',
+          'Cache-Control': 'no-cache, no-store, must-revalidate',
+        }
+      : fileName === 'sw.js'
+        ? {
+            'Content-Type': 'application/javascript; charset=utf-8',
+            'Cache-Control': 'no-cache, no-store, must-revalidate',
+            'Service-Worker-Allowed': '/',
+          }
+        : {};
     frontendRoutes[`/${fileName}`] = {
-      GET: () => serveFile(path.join(staticRoot, fileName)).then(withSecurityHeaders),
+      GET: () => serveFile(path.join(staticRoot, fileName), staticHeaders).then(withSecurityHeaders),
     };
   }
 

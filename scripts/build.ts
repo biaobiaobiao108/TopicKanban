@@ -65,4 +65,31 @@ for (const fileName of await readdir(publicDir)) {
   await cp(resolve(publicDir, fileName), resolve(distDir, fileName), { recursive: true });
 }
 
+const precacheUrls = [
+  '/',
+  '/index.html',
+  '/today',
+  '/manifest.webmanifest',
+  '/icon-192.png',
+  '/icon-512.png',
+  '/apple-touch-icon.png',
+  '/favicon.ico',
+  ...(await readdir(assetsDir)).sort().map((fileName) => `/assets/${fileName}`),
+];
+const serviceWorkerPath = resolve(distDir, 'sw.js');
+if (await Bun.file(serviceWorkerPath).exists()) {
+  const serviceWorkerSource = await Bun.file(serviceWorkerPath).text();
+  const precacheDeclaration = 'const PRECACHE_URLS = [];';
+  if (!serviceWorkerSource.includes(precacheDeclaration)) {
+    throw new Error('Service Worker precache placeholder is missing.');
+  }
+  await Bun.write(
+    serviceWorkerPath,
+    serviceWorkerSource.replace(
+      precacheDeclaration,
+      `const PRECACHE_URLS = ${JSON.stringify(precacheUrls)};`,
+    ),
+  );
+}
+
 console.log(`Bun production build completed: ${distDir}`);

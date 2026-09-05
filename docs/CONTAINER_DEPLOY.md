@@ -96,6 +96,14 @@ docker run -d \
 
 为了实现外网 HTTPS 安全访问、免登录外部审稿链接及手机快捷指令随时随地投递灵感，建议使用反向代理。默认不信任客户端传入的转发头；请优先配置 `PUBLIC_BASE_URL`，只有在可信代理会覆盖这些头时才开启 `TRUST_PROXY_HEADERS=true`。
 
+HTTPS 也是手机 PWA 安装的正式要求。容器服务本身继续监听 HTTP `3030`，由 Nginx、Caddy 或 NPM 负责终止 TLS 并将 HTTPS 请求反向代理到该端口；不要使用普通的局域网 HTTP 地址测试手机安装。
+
+部署完成后：
+
+- Android 使用最新版 Chrome、Edge 或 Samsung Internet 打开 HTTPS 地址，点击工作台中的「安装到手机」，或从浏览器菜单选择「安装应用 / 添加到主屏幕」。
+- iOS / iPadOS 使用 Safari 打开 HTTPS 地址，点击分享 →「添加到主屏幕」→「添加」。从主屏幕启动后会以独立 App 窗口运行。
+- PWA 只缓存应用壳和静态资源，不缓存鉴权 API 或 SQLite 业务数据；断网时普通业务操作仍需等待联网，文案编辑器的本地草稿暂存继续有效。
+
 ### 1. Nginx 配置样例
 
 ```nginx
