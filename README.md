@@ -241,7 +241,7 @@ bun install
 bun run dev
 
 # 3. 运行全量自动化测试套件 (114 项单元与集成测试)
-bun run test:run
+bun test
 
 # 4. 运行 Playwright E2E（Playwright CLI 使用 Bun 运行时）
 bun run test:e2e

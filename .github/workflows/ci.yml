@@ -50,7 +50,7 @@ jobs:
         run: google-chrome --version
 
       - name: Run unit and integration tests
-        run: bun run test:run
+        run: bun test
 
       - name: Typecheck
         run: bunx --bun tsc --noEmit

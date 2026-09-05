@@ -10,7 +10,6 @@
     "start": "NODE_ENV=production bun dist/server.js",
     "check:bundle": "bun scripts/checkBundleSize.ts",
     "test": "bun test",
-    "test:run": "bun test",
     "test:e2e": "bun run --bun playwright test"
   },
   "dependencies": {
