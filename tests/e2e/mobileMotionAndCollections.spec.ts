@@ -39,12 +39,20 @@ const topics = [
   ...topic,
 }));
 
-async function mockWorkspace(page: Page) {
+const longKanbanTopics = Array.from({ length: 60 }, (_, index) => ({
+  ...topics[index % topics.length],
+  id: `mobile-long-${index}`,
+  title: `${index < 30 ? '收集箱' : '已立项'} 长列表选题 ${index + 1}`,
+  status: index < 30 ? 'inbox' : 'approved',
+  sort_order: index,
+}));
+
+async function mockWorkspace(page: Page, workspaceTopics = topics) {
   await page.route('**/api/bootstrap**', async (route) => {
     await route.fulfill({
       contentType: 'application/json',
       body: JSON.stringify({
-        topics,
+        topics: workspaceTopics,
         people: [],
         relationships: [],
         published: [],
@@ -96,7 +104,7 @@ async function mockWorkspace(page: Page) {
     const status = url.searchParams.get('status');
     const tagId = url.searchParams.get('tag_id');
     const statusList = status?.split(',').filter(Boolean);
-    const items = topics.filter((topic) => (
+    const items = workspaceTopics.filter((topic) => (
       (!statusList?.length || statusList.includes(topic.status))
       && (!tagId || topic.tags?.some((tag) => tag.id === tagId))
     ));
@@ -185,6 +193,31 @@ test('移动端标签页使用单一选题流和单一滚动上下文', async ({
     }).length
   ));
   expect(scrollableElements).toBeLessThanOrEqual(1);
+  await expectNoViewportOverflow(page);
+});
+
+test('移动端长看板阶段栏保持完整高度且不被长列表挤压', async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await mockWorkspace(page, longKanbanTopics);
+  await login(page);
+  await page.goto('/kanban');
+
+  const stageTabs = page.getByTestId('kanban-mobile-stage-tabs');
+  await expect(stageTabs).toBeVisible();
+  const layout = await stageTabs.evaluate((element) => {
+    const rect = element.getBoundingClientRect();
+    const buttons = [...element.querySelectorAll<HTMLButtonElement>('button')].map((button) => {
+      const buttonRect = button.getBoundingClientRect();
+      return { top: buttonRect.top, bottom: buttonRect.bottom };
+    });
+    return {
+      height: rect.height,
+      bottom: rect.bottom,
+      buttonsInside: buttons.every((button) => button.top >= rect.top && button.bottom <= rect.bottom),
+    };
+  });
+  expect(layout.height).toBeGreaterThanOrEqual(36);
+  expect(layout.buttonsInside).toBe(true);
   await expectNoViewportOverflow(page);
 });
 

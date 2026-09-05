@@ -55,6 +55,12 @@ test('今日聚焦两列保持固定高度，近期轨迹始终展开并在面�
   const recentPanel = page.getByTestId('today-recent-activity-panel');
   const actionFooter = page.getByTestId('today-action-progress-footer');
   const recentFooter = page.getByTestId('today-recent-activity-footer');
+  const desktopFocusLayout = await page.getByTestId('today-focus-columns').evaluate((element) => {
+    const rect = element.getBoundingClientRect();
+    const main = element.closest('main')?.getBoundingClientRect();
+    return { width: rect.width, mainWidth: main?.width || 0 };
+  });
+  expect(desktopFocusLayout.width).toBeGreaterThan(desktopFocusLayout.mainWidth * 0.8);
   await expect(actionColumn).toHaveCSS('height', '352px');
   await expect(recentColumn).toHaveCSS('height', '352px');
 
