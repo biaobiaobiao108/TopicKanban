@@ -356,7 +356,7 @@ export const PublishedView: React.FC<PublishedViewProps> = ({
   const syncableCount = pageItems.filter((v) => extractBvid(v.bvid || v.url)).length;
 
   return (
-    <div className="flex-1 w-full h-full overflow-y-auto transition-colors">
+    <div className="min-h-0 min-w-0 flex-1 w-full h-full overflow-y-auto overscroll-contain mobile-bottom-nav-content transition-colors">
       {onBack && (
         <BackNavigationBar
           onBack={onBack}

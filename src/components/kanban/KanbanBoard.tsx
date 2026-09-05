@@ -197,7 +197,8 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
   const [selectedTagId, setSelectedTagId] = useState<string | 'all'>('all');
   const [selectedPersonId, setSelectedPersonId] = useState<string | 'all'>('all');
   const [sortBy, setSortBy] = useState<SortField>('sort_order');
-  const [mobileActiveStage, setMobileActiveStage] = useState<TopicStatus | 'all'>('all');
+  const [mobileActiveStage, setMobileActiveStage] = useState<TopicStatus>('inbox');
+  const mobileStageAutoSelectedRef = useRef(false);
   const [dragSortNotice, setDragSortNotice] = useState(false);
   const dragNoticeTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -227,6 +228,8 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
   useEffect(() => {
     setColumnPages(Object.fromEntries(activeStatuses.map((status) => [status, 1])) as Record<TopicStatus, number>);
     setLoadedTopicsByStatus(Object.fromEntries(activeStatuses.map((status) => [status, []])) as unknown as Record<TopicStatus, Topic[]>);
+    mobileStageAutoSelectedRef.current = false;
+    setMobileActiveStage('inbox');
   }, [searchTerm, priorityFilter, selectedTagId, selectedPersonId, sortBy]);
 
   useEffect(() => {
@@ -295,6 +298,17 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
     status,
     columnQueries[index]?.data?.total ?? topics.filter((topic) => topic.status === status).length,
   ])) as Record<TopicStatus, number>, [columnQueries, topics]);
+
+  useEffect(() => {
+    if (mobileStageAutoSelectedRef.current || columnQueries.some((query) => query.isPending || query.isPlaceholderData)) return;
+    // Prefer the loaded items over totals: the latter can be stale while a
+    // filtered query is settling, and selecting an empty stage makes the
+    // mobile board look blank even though another stage has content.
+    const firstPopulatedStage = ACTIVE_COLUMNS.find((column) => (loadedTopicsByStatus[column.status] || []).length > 0)?.status;
+    if (!firstPopulatedStage) return;
+    setMobileActiveStage(firstPopulatedStage);
+    mobileStageAutoSelectedRef.current = true;
+  }, [columnQuerySignature, columnTotalCounts, loadedTopicsByStatus]);
 
   useEffect(() => () => {
     if (dragNoticeTimerRef.current) clearTimeout(dragNoticeTimerRef.current);
@@ -608,8 +622,6 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
     setSortBy('sort_order');
   };
 
-  const totalActiveCount = activeStatuses.reduce((acc, status) => acc + (columnTotalCounts[status] || 0), 0);
-
   const loadMoreColumn = (status: TopicStatus) => {
     setColumnPages((current) => ({ ...current, [status]: current[status] + 1 }));
   };
@@ -652,7 +664,7 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
   };
 
   return (
-    <div className="flex h-full w-full flex-1 space-y-4 overflow-y-auto px-4 py-4 mobile-bottom-nav-content sm:px-6">
+    <div data-testid="kanban-page" className="flex min-h-0 h-full w-full min-w-0 flex-1 flex-col gap-4 overflow-y-auto overscroll-contain px-4 py-4 mobile-bottom-nav-content sm:px-6">
       <PageHeader title="选题全景看板" icon={KanbanSquare} />
 
       {/* Filters Bar & View Switcher */}
@@ -722,16 +734,6 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
 
       {/* Mobile Stage Selector Pill Bar (iPhone Safari optimized) */}
       <div className="md:hidden flex items-center gap-1.5 overflow-x-auto no-scrollbar py-1 -mx-4 px-4 border-b border-stone-200/60 dark:border-stone-800 transition-colors">
-        <button
-          onClick={() => setMobileActiveStage('all')}
-          className={`shrink-0 text-xs font-semibold px-3 py-1.5 rounded-full transition-colors cursor-pointer ${
-            mobileActiveStage === 'all'
-              ? 'bg-stone-900 dark:bg-stone-100 text-white dark:text-stone-900 shadow-2xs font-bold'
-              : 'bg-stone-100 dark:bg-stone-800 text-stone-600 dark:text-stone-300 hover:bg-stone-200/80 dark:hover:bg-stone-700'
-          }`}
-        >
-          全部活跃 ({totalActiveCount})
-        </button>
         {ACTIVE_COLUMNS.map((col) => {
           const count = columnTotalCounts[col.status] || 0;
           const isActive = mobileActiveStage === col.status;
@@ -766,9 +768,8 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
         onDragCancel={handleDragCancel}
         sensors={isMobileViewport ? [] : sensors}
       >
-        {/* If Mobile Active Stage is chosen, only show that column on mobile */}
-        {mobileActiveStage !== 'all' ? (
-          <div className="md:hidden">
+        {isMobileViewport ? (
+          <div key={mobileActiveStage} data-testid="kanban-mobile-stage" className="mobile-stage-enter min-w-0">
             {ACTIVE_COLUMNS.filter((c) => c.status === mobileActiveStage).map((col) => {
               const ids = visibleColumnIds[col.status] || [];
               const colTopics = ids.map((id) => topicsMap[id]).filter(Boolean);
@@ -790,44 +791,45 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
                   onQuickAddTopic={onQuickAddTopic}
                   onUpdateStatus={handleColumnStatusUpdate}
                   onKeyboardMove={handleKeyboardMove}
-                  sortableDisabled={isDragDisabled}
+                  sortableDisabled
                   staleThresholdDays={staleActionDays}
+                  mobileMode
                 />
               );
             })}
           </div>
-        ) : null}
-
-        {/* Desktop / Full Grid View (4 Clean Columns: 收集箱, 已立项, 写稿中, 待制作) with Mobile Scroll Snap */}
-        <div className={mobileActiveStage !== 'all' ? 'hidden md:grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4' : 'flex md:grid flex-nowrap overflow-x-auto snap-x snap-mandatory no-scrollbar md:overflow-visible grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4 pb-4 md:pb-0'}>
-          {ACTIVE_COLUMNS.map((col) => {
-            const ids = visibleColumnIds[col.status] || [];
-            const colTopics = ids.map((id) => topicsMap[id]).filter(Boolean);
-            return (
-              <div key={col.status} className={mobileActiveStage === 'all' ? 'min-w-[85vw] sm:min-w-0 snap-center shrink-0 sm:shrink flex-1' : 'flex-1'}>
-                <KanbanColumn
-                  status={col.status}
-                  label={col.label}
-                  description={col.description}
-                  topics={colTopics}
-                  onOpenDetail={onOpenDetail}
-                  onOpenCurrentAction={onOpenCurrentAction}
-                  totalCount={columnTotalCounts[col.status] || 0}
-                  hasMore={(columnTotalCounts[col.status] || 0) > (loadedTopicsByStatus[col.status]?.length || colTopics.length)}
-                  isLoadingMore={columnQueries[activeStatuses.indexOf(col.status)]?.isFetching && columnPages[col.status] > 1}
-                  onLoadMore={() => loadMoreColumn(col.status)}
-                  onDeleteTopic={handleColumnDelete}
-                  onTogglePin={onTogglePin}
-                  onQuickAddTopic={onQuickAddTopic}
-                  onUpdateStatus={handleColumnStatusUpdate}
-                  onKeyboardMove={handleKeyboardMove}
-                  sortableDisabled={isDragDisabled}
-                  staleThresholdDays={staleActionDays}
-                />
-              </div>
-            );
-          })}
-        </div>
+        ) : (
+          /* Desktop four-column board; drag and drop remains available here. */
+          <div data-testid="kanban-desktop-board" className="min-w-0 grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
+            {ACTIVE_COLUMNS.map((col) => {
+              const ids = visibleColumnIds[col.status] || [];
+              const colTopics = ids.map((id) => topicsMap[id]).filter(Boolean);
+              return (
+                <div key={col.status} className="min-w-0">
+                  <KanbanColumn
+                    status={col.status}
+                    label={col.label}
+                    description={col.description}
+                    topics={colTopics}
+                    onOpenDetail={onOpenDetail}
+                    onOpenCurrentAction={onOpenCurrentAction}
+                    totalCount={columnTotalCounts[col.status] || 0}
+                    hasMore={(columnTotalCounts[col.status] || 0) > (loadedTopicsByStatus[col.status]?.length || colTopics.length)}
+                    isLoadingMore={columnQueries[activeStatuses.indexOf(col.status)]?.isFetching && columnPages[col.status] > 1}
+                    onLoadMore={() => loadMoreColumn(col.status)}
+                    onDeleteTopic={handleColumnDelete}
+                    onTogglePin={onTogglePin}
+                    onQuickAddTopic={onQuickAddTopic}
+                    onUpdateStatus={handleColumnStatusUpdate}
+                    onKeyboardMove={handleKeyboardMove}
+                    sortableDisabled={isDragDisabled}
+                    staleThresholdDays={staleActionDays}
+                  />
+                </div>
+              );
+            })}
+          </div>
+        )}
 
         <DragOverlay dropAnimation={null}>
           {activeTopic ? (

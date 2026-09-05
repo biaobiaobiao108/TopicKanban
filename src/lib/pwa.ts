@@ -1,3 +1,5 @@
+import type { AppTheme } from '../types';
+
 export type PwaInstallOutcome = 'accepted' | 'dismissed' | null;
 
 export interface PwaInstallSnapshot {
@@ -28,6 +30,37 @@ let snapshot: PwaInstallSnapshot = {
   isStandalone: false,
   isSupported: false,
 };
+
+const PWA_SURFACE_COLORS: Record<Exclude<AppTheme, 'system'>, string> = {
+  light: '#ffffff',
+  warm_paper: '#fdfcf9',
+  nordic_frost: '#ffffff',
+  dark: '#1c1917',
+};
+
+function ensureMeta(name: string): HTMLMetaElement {
+  const existing = document.querySelector<HTMLMetaElement>(`meta[name="${name}"]`);
+  if (existing) return existing;
+  const meta = document.createElement('meta');
+  meta.name = name;
+  document.head.appendChild(meta);
+  return meta;
+}
+
+export function syncPwaChrome(theme: AppTheme, resolvedDark = false): void {
+  if (typeof document === 'undefined') return;
+
+  const isDark = theme === 'dark' || (theme === 'system' && resolvedDark);
+  const themeColor = theme === 'system'
+    ? (isDark ? PWA_SURFACE_COLORS.dark : PWA_SURFACE_COLORS.light)
+    : PWA_SURFACE_COLORS[theme];
+
+  ensureMeta('theme-color').setAttribute('content', themeColor);
+  ensureMeta('apple-mobile-web-app-status-bar-style').setAttribute(
+    'content',
+    isDark ? 'black-translucent' : 'default',
+  );
+}
 
 function notifySubscribers(): void {
   subscribers.forEach((subscriber) => subscriber());

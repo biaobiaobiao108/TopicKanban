@@ -310,7 +310,9 @@ function WorkspaceApp({ isAuth, setIsAuth }: WorkspaceAppProps) {
   };
 
   const safeNavigate = useCallback((to: string, options?: { state?: any; replace?: boolean; viewTransition?: boolean }) => {
-    navigate(to, { viewTransition: true, ...options });
+    const reducedMotion = typeof window !== 'undefined'
+      && window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
+    navigate(to, { ...options, viewTransition: options?.viewTransition ?? !reducedMotion });
   }, [navigate]);
 
   const navigateToView = (view: NavView) => {
@@ -924,7 +926,7 @@ function WorkspaceApp({ isAuth, setIsAuth }: WorkspaceAppProps) {
   const activeTopic = topics.find((t) => t.id === activeTopicId);
 
   return (
-    <div className="flex h-dvh w-screen bg-[#fafaf9] dark:bg-[#0c0a09] text-stone-900 dark:text-stone-100 overflow-hidden font-sans transition-colors">
+    <div className="pwa-app-shell pwa-app-shell-enter flex h-dvh w-full bg-[#fafaf9] dark:bg-[#0c0a09] text-stone-900 dark:text-stone-100 overflow-hidden font-sans transition-colors">
       <a href="#main-content" className="skip-link">跳到主要内容</a>
       {/* Desktop Sidebar (Hidden on mobile) */}
       <Sidebar
@@ -952,7 +954,7 @@ function WorkspaceApp({ isAuth, setIsAuth }: WorkspaceAppProps) {
         <PwaInstallPromptBanner />
 
         {/* View Router */}
-        <main id="main-content" tabIndex={-1} className="flex-1 flex flex-col overflow-hidden min-w-0">
+        <main id="main-content" tabIndex={-1} className="view-transition-page-content flex min-h-0 flex-1 flex-col overflow-hidden min-w-0">
           {loadError && (
             <div className="m-4 flex items-center justify-between gap-3 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800">
               <span>加载工作台失败：{loadError}</span>
@@ -1096,7 +1098,7 @@ function WorkspaceApp({ isAuth, setIsAuth }: WorkspaceAppProps) {
           )}
 
           {currentView === 'database' && (
-            <div className="flex h-full min-h-0 w-full flex-1 flex-col gap-4 overflow-hidden px-4 py-4 sm:px-6">
+            <div className="flex h-full min-h-0 w-full min-w-0 flex-1 flex-col gap-4 overflow-hidden px-4 py-4 mobile-bottom-nav-content sm:px-6">
               <PageHeader title="选题库" icon={Database} className="shrink-0" />
               <div className="min-h-0 flex-1">
                 <TopicTableView

@@ -674,7 +674,7 @@ export const TopicTableView: React.FC<TopicTableViewProps> = ({
 
       {/* Mobile Card List */}
       <div className="flex-1 min-h-0 overflow-y-auto overscroll-contain md:hidden">
-        <div className="space-y-3 p-3 pb-[calc(5rem+env(safe-area-inset-bottom))]">
+        <div className="space-y-3 p-3 pb-[max(5rem,var(--mobile-bottom-nav-clearance))]">
           {sortedTopics.map((topic) => {
             const totalScore =
               (topic.score_character || 0) +

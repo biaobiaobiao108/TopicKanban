@@ -128,11 +128,20 @@ export const PwaInstallCard: React.FC = () => {
 export const PwaInstallPromptBanner: React.FC = () => {
   const { isInstallable, isIOS, isStandalone } = usePwaInstall();
   const [isDismissed, setIsDismissed] = useState(isPwaInstallBannerDismissed);
+  const [isClosing, setIsClosing] = useState(false);
 
   if (isStandalone || !isInstallable || isDismissed) return null;
 
+  const handleDismiss = () => {
+    if (isClosing) return;
+    dismissPwaInstallBanner();
+    setIsClosing(true);
+    const delay = window.matchMedia?.('(prefers-reduced-motion: reduce)')?.matches ? 0 : 180;
+    window.setTimeout(() => setIsDismissed(true), delay);
+  };
+
   return (
-    <div className="border-b border-rose-200/80 bg-rose-50/90 px-4 py-2.5 dark:border-rose-900/60 dark:bg-rose-950/30 sm:px-6">
+    <div className={`pwa-install-banner ${isClosing ? 'pwa-install-banner-closing' : ''} border-b border-rose-200/80 bg-rose-50/90 px-4 py-2.5 dark:border-rose-900/60 dark:bg-rose-950/30 sm:px-6`}>
       <div className="mx-auto flex max-w-7xl items-center gap-3 text-xs text-rose-950 dark:text-rose-100">
         <Smartphone className="h-4 w-4 shrink-0 text-rose-600 dark:text-rose-400" aria-hidden="true" />
         <p className="min-w-0 flex-1">{isIOS ? '把选题工作台添加到主屏幕，随时像 App 一样打开。' : '把选题工作台安装到设备，获得独立 App 窗口。'}</p>
@@ -140,10 +149,7 @@ export const PwaInstallPromptBanner: React.FC = () => {
         <button
           type="button"
           aria-label="关闭安装提示"
-          onClick={() => {
-            dismissPwaInstallBanner();
-            setIsDismissed(true);
-          }}
+          onClick={handleDismiss}
           className="shrink-0 rounded-lg p-1.5 text-rose-700 transition-colors hover:bg-rose-100 dark:text-rose-300 dark:hover:bg-rose-900/40"
         >
           <X className="h-4 w-4" />

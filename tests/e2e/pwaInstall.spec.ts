@@ -108,3 +108,20 @@ test('standalone display mode hides install prompts', async ({ page }) => {
   await login(page);
   await expect(page.getByRole('button', { name: /安装到手机|添加到主屏幕|查看安装说明/ })).toHaveCount(0);
 });
+
+test('PWA chrome color follows the selected application theme', async ({ page }) => {
+  await login(page);
+  await page.goto('/settings');
+
+  await page.getByRole('button', { name: /深色专注/ }).click();
+  await expect.poll(() => page.evaluate(() => ({
+    themeColor: document.querySelector('meta[name="theme-color"]')?.getAttribute('content'),
+    statusBar: document.querySelector('meta[name="apple-mobile-web-app-status-bar-style"]')?.getAttribute('content'),
+  }))).toEqual({ themeColor: '#1c1917', statusBar: 'black-translucent' });
+
+  await page.getByRole('button', { name: /经典浅色/ }).click();
+  await expect.poll(() => page.evaluate(() => ({
+    themeColor: document.querySelector('meta[name="theme-color"]')?.getAttribute('content'),
+    statusBar: document.querySelector('meta[name="apple-mobile-web-app-status-bar-style"]')?.getAttribute('content'),
+  }))).toEqual({ themeColor: '#ffffff', statusBar: 'default' });
+});

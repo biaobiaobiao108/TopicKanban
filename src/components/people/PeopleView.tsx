@@ -160,7 +160,7 @@ export const PeopleView: React.FC<PeopleViewProps> = ({
   const peopleOptions = peopleOptionsQuery.data || people.map((person) => ({ id: person.id, name: person.name }));
 
   return (
-    <div className="flex-1 w-full h-full overflow-y-auto">
+    <div className="min-h-0 min-w-0 flex-1 w-full h-full overflow-y-auto overscroll-contain mobile-bottom-nav-content">
       <div className="max-w-7xl mx-auto px-4 sm:px-8 py-6 sm:py-8 space-y-6 sm:space-y-8">
         <PageHeader
           title="互联网人物档案与关系库"

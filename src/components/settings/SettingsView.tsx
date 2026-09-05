@@ -339,7 +339,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
   const estS = Math.round((rawMin - estM) * 60);
 
   return (
-    <div className="flex h-full w-full flex-1 overflow-y-auto pb-24 mobile-bottom-nav-content transition-colors md:pb-8">
+    <div className="flex min-h-0 min-w-0 h-full w-full flex-1 overflow-y-auto mobile-bottom-nav-content transition-colors md:pb-8">
       <div className="max-w-5xl mx-auto px-4 sm:px-8 py-5 sm:py-8 space-y-6 sm:space-y-8">
         <PageHeader
           title="偏好设置与数据管理"

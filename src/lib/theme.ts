@@ -1,4 +1,5 @@
 import type { AppTheme } from '../types';
+import { syncPwaChrome } from './pwa';
 
 let systemThemeListener: ((e: MediaQueryListEvent) => void) | null = null;
 let mediaQueryList: MediaQueryList | null = null;
@@ -51,6 +52,7 @@ export function applyTheme(theme: AppTheme = 'light'): void {
         root.classList.remove('dark');
         root.style.colorScheme = 'light';
       }
+      syncPwaChrome('system', matchesDark);
     };
 
     updateSystemTheme(mediaQueryList.matches);
@@ -60,6 +62,8 @@ export function applyTheme(theme: AppTheme = 'light'): void {
     };
     mediaQueryList.addEventListener('change', systemThemeListener);
   }
+
+  if (theme !== 'system') syncPwaChrome(theme, theme === 'dark');
 
   if (typeof window.requestAnimationFrame === 'function') {
     window.requestAnimationFrame(restoreThemeMotion);

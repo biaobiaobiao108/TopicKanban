@@ -23,6 +23,7 @@ interface KanbanColumnProps {
   onKeyboardMove?: (topic: Topic, direction: -1 | 1) => void;
   sortableDisabled?: boolean;
   staleThresholdDays?: number;
+  mobileMode?: boolean;
 }
 
 const DEFAULT_LIMIT = 8;
@@ -54,6 +55,7 @@ export const KanbanColumn: React.FC<KanbanColumnProps> = ({
   onKeyboardMove,
   sortableDisabled,
   staleThresholdDays = 5,
+  mobileMode = false,
 }) => {
   const [isExpanded, setIsExpanded] = useState(false);
 
@@ -68,14 +70,14 @@ export const KanbanColumn: React.FC<KanbanColumnProps> = ({
   const c = columnHeaders[status] || columnHeaders.inbox;
 
   // Apply display limit
-  const visibleTopics = isExpanded ? topics : topics.slice(0, DEFAULT_LIMIT);
+  const visibleTopics = mobileMode || isExpanded ? topics : topics.slice(0, DEFAULT_LIMIT);
   const hiddenCount = topics.length - DEFAULT_LIMIT;
 
   return (
     <div
       ref={setNodeRef}
       data-column-status={status}
-      className={`kanban-column-container w-full rounded-3xl p-3.5 flex flex-col min-h-[220px] border transition-all duration-200 ${
+      className={`kanban-column-container w-full min-w-0 rounded-3xl p-3.5 flex flex-col min-h-[220px] border transition-all duration-200 ${
         isOver
           ? 'border-rose-400/80 ring-2 ring-rose-400/30 bg-rose-50/60 dark:bg-rose-950/40 shadow-card'
           : 'border-stone-200/70 dark:border-stone-800/70 bg-stone-100/60 dark:bg-stone-900/50 hover:bg-stone-100/80 dark:hover:bg-stone-900/70'
@@ -103,7 +105,7 @@ export const KanbanColumn: React.FC<KanbanColumnProps> = ({
       </div>
 
       {/* Cards Area */}
-      <div className="space-y-3 min-h-[140px] flex-1">
+      <div className="mobile-scroll-reveal min-w-0 space-y-3 min-h-[140px] flex-1">
         <SortableContext items={visibleTopics.map((t) => t.id)} strategy={verticalListSortingStrategy}>
           {visibleTopics.map((topic) => (
             <KanbanCard
@@ -117,6 +119,7 @@ export const KanbanColumn: React.FC<KanbanColumnProps> = ({
               onKeyboardMove={onKeyboardMove}
               sortableDisabled={sortableDisabled}
               staleThresholdDays={staleThresholdDays}
+              mobileMotion={mobileMode}
             />
           ))}
         </SortableContext>
@@ -138,7 +141,7 @@ export const KanbanColumn: React.FC<KanbanColumnProps> = ({
       </div>
 
       {/* Expand / Collapse Button if exceeding limit */}
-      {hiddenCount > 0 && (
+      {!mobileMode && hiddenCount > 0 && (
         <div className="pt-2 mt-2 border-t border-stone-200/60 dark:border-stone-800">
           <button
             type="button"
