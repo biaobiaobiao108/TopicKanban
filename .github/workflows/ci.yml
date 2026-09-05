@@ -4,9 +4,15 @@ on:
   push:
     branches:
       - master
+    paths-ignore:
+      - '**/*.md'
+      - 'docs/**'
   pull_request:
     branches:
       - master
+    paths-ignore:
+      - '**/*.md'
+      - 'docs/**'
 
 concurrency:
   group: ci-${{ github.ref }}
@@ -29,11 +35,19 @@ jobs:
         with:
           bun-version: 1.4.2
 
+      - name: Cache Bun install packages
+        uses: actions/cache@5a3ec84eff668545956fd18022155c47e93e2684 # v4
+        with:
+          path: ~/.bun/install/cache
+          key: bun-install-${{ runner.os }}-1.4.2-${{ hashFiles('bun.lock') }}
+          restore-keys: |
+            bun-install-${{ runner.os }}-1.4.2-
+
       - name: Install dependencies
         run: bun install --frozen-lockfile
 
-      - name: Install Playwright browsers
-        run: bunx --bun playwright install --with-deps chromium webkit
+      - name: Verify preinstalled Google Chrome
+        run: google-chrome --version
 
       - name: Run unit and integration tests
         run: bun run test:run

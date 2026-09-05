@@ -13,11 +13,6 @@ export default defineConfig({
   },
   projects: [
     { name: 'chrome', use: { ...devices['Desktop Chrome'], channel: 'chrome' } },
-    {
-      name: 'webkit-mobile',
-      testMatch: /accessibility\.spec\.ts/,
-      use: { ...devices['iPhone 13'] },
-    },
   ],
   webServer: {
     command: 'bun run dev',

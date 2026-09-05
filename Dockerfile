@@ -8,12 +8,21 @@ ARG BUN_IMAGE_DIGEST=sha256:d888c0ae6c86d7866ff10c5aafdd9077b36aee6455b33dd270fb
 FROM --platform=$BUILDPLATFORM oven/bun:${BUN_VERSION}-alpine@${BUN_IMAGE_DIGEST} AS builder
 WORKDIR /app
 
-# Cache dependencies
-COPY package.json bun.lock .npmrc* ./
-RUN bun install --frozen-lockfile --ignore-scripts
+# Install dependencies with a persistent BuildKit cache. The lockfile and
+# package manifest stay in an earlier layer so source edits do not invalidate
+# dependency installation.
+COPY --link package.json bun.lock .npmrc ./
+RUN --mount=type=cache,target=/root/.bun/install/cache,sharing=locked \
+  bun install --frozen-lockfile --ignore-scripts
 
-# Copy source code and build production assets
-COPY . .
+# Copy only production build inputs. The .dockerignore provides the matching
+# context allowlist so docs, tests, and development artifacts never enter the
+# image build.
+COPY --link bunfig.toml tsconfig.json index.html tailwind.config.js postcss.config.js ./
+COPY --link public ./public
+COPY --link src ./src
+COPY --link scripts ./scripts
+COPY --link drizzle ./drizzle
 RUN bun run build
 
 # Stage 2: Ultra-slim Production Runner
@@ -23,9 +32,6 @@ WORKDIR /app
 ENV NODE_ENV=production
 ENV PORT=3030
 ENV DATA_DIR=/app/data
-
-# Prepare the persistent data directory for the default root runtime user.
-RUN mkdir -p /app/data
 
 # Copy compiled SPA static files, bundled server, and database migrations
 COPY --from=builder /app/dist ./dist
