@@ -96,7 +96,7 @@ const FocusParagraphExtension = Extension.create({
       new Plugin({
         key: new PluginKey('focusParagraphDecoration'),
         props: {
-          decorations: (state) => {
+          decorations: (state): any => {
             const { $from } = state.selection;
             if ($from.depth < 1) return DecorationSet.empty;
             const pos = $from.before(1);

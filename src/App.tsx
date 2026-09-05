@@ -308,14 +308,8 @@ function WorkspaceApp({ isAuth, setIsAuth }: WorkspaceAppProps) {
     setIsAuth(false);
   };
 
-  const safeNavigate = useCallback((to: string, options?: { state?: any }) => {
-    if (typeof document !== 'undefined' && 'startViewTransition' in document) {
-      (document as unknown as { startViewTransition: (cb: () => void) => void }).startViewTransition(() => {
-        navigate(to, options);
-      });
-    } else {
-      navigate(to, options);
-    }
+  const safeNavigate = useCallback((to: string, options?: { state?: any; replace?: boolean; viewTransition?: boolean }) => {
+    navigate(to, { viewTransition: true, ...options });
   }, [navigate]);
 
   const navigateToView = (view: NavView) => {

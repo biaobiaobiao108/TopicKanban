@@ -114,7 +114,7 @@ export const Modal: React.FC<ModalProps> = ({
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6" role="presentation">
       {/* Backdrop */}
       <div
-        className="fixed inset-0 bg-stone-900/40 backdrop-blur-sm animate-in fade-in duration-200"
+        className="fixed inset-0 bg-stone-900/40 backdrop-blur-sm modal-backdrop-modern animate-in fade-in duration-200"
         aria-hidden="true"
         onClick={handleClose}
       />
@@ -126,7 +126,7 @@ export const Modal: React.FC<ModalProps> = ({
         aria-modal="true"
         aria-labelledby={titleId}
         tabIndex={-1}
-        className={`relative min-w-0 w-full ${maxWidthClasses[maxWidth]} bg-white dark:bg-stone-900 rounded-2xl shadow-modal border border-stone-200/80 dark:border-stone-800 overflow-hidden flex flex-col max-h-[90dvh] z-10 animate-in fade-in zoom-in-95 duration-200 ease-editorial-out transition-colors`}
+        className={`relative min-w-0 w-full ${maxWidthClasses[maxWidth]} bg-white dark:bg-stone-900 rounded-2xl shadow-modal border border-stone-200/80 dark:border-stone-800 overflow-hidden flex flex-col max-h-[90dvh] z-10 modal-dialog-modern animate-in fade-in zoom-in-95 duration-200 ease-editorial-out transition-colors`}
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}

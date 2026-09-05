@@ -58,55 +58,21 @@ export function hasInvalidValue(
   return Object.prototype.hasOwnProperty.call(body, field) && !predicate(body[field]);
 }
 
+import {
+  topicCreateSchema,
+  topicUpdateSchema,
+  commercialDealSchema,
+  parseWithZod,
+} from './schemas';
+
 export function validateTopicFields(body: Record<string, unknown>): string | null {
-  const isScore = (value: unknown) => typeof value === 'number'
-    && Number.isInteger(value) && value >= 0 && value <= 2;
-  if (hasInvalidValue(body, 'status', isTopicStatus)) return 'Invalid topic status';
-  if (hasInvalidValue(body, 'priority', (value) => isOneOf(value, PRIORITIES))) return 'Invalid topic priority';
-  if (hasInvalidValue(body, 'is_pinned', (value) => value === 0 || value === 1)) return 'is_pinned must be 0 or 1';
-  if (hasInvalidValue(body, 'sort_order', isNonNegativeInteger)) return 'sort_order must be a non-negative integer';
-  for (const field of ['score_character', 'score_conflict', 'score_contrast', 'score_material', 'score_story']) {
-    if (hasInvalidValue(body, field, isScore)) return `${field} must be an integer from 0 to 2`;
-  }
-  for (const field of ['target_publish_date', 'deadline']) {
-    if (Object.prototype.hasOwnProperty.call(body, field) && !isValidDateValue(body[field])) {
-      return `${field} must be YYYY-MM-DD or null`;
-    }
-  }
-  const textError = validateTextFields(body, {
-    title: [200, true], summary: [2000], hook: [2000], storyline: [20000], why_now: [2000],
-  });
-  if (textError) return textError;
-  return null;
-}
-
-function isNullableText(value: unknown): boolean {
-  return value === null || typeof value === 'string';
-}
-
-function isValidDateValue(value: unknown): boolean {
-  return value === null || value === undefined || value === '' || (typeof value === 'string' && isValidIsoDate(value));
+  const result = parseWithZod(topicUpdateSchema, body);
+  return result.success ? null : result.error;
 }
 
 export function validateCommercialDealFields(body: Record<string, unknown>, requireTitle = false): string | null {
-  const textError = validateTextFields(body, {
-    title: [200, requireTitle],
-    brand_name: [200], agency_name: [200], contact_name: [200], contact_channel: [2_000],
-    contract_summary: [20_000], brief: [20_000], requirements: [20_000], restrictions: [20_000],
-    next_action: [2_000],
-  });
-  if (textError) return textError;
-  if (hasInvalidValue(body, 'source', (value) => isOneOf(value, COMMERCIAL_DEAL_SOURCES))) return 'Invalid commercial deal source';
-  if (hasInvalidValue(body, 'deliverable_type', (value) => isOneOf(value, COMMERCIAL_DEAL_DELIVERABLE_TYPES))) return 'Invalid commercial deal deliverable type';
-  if (hasInvalidValue(body, 'status', (value) => isOneOf(value, COMMERCIAL_DEAL_STATUSES))) return 'Invalid commercial deal status';
-  if (hasInvalidValue(body, 'contract_status', (value) => isOneOf(value, COMMERCIAL_DEAL_CONTRACT_STATUSES))) return 'Invalid commercial deal contract status';
-  if (hasInvalidValue(body, 'payment_status', (value) => isOneOf(value, COMMERCIAL_DEAL_PAYMENT_STATUSES))) return 'Invalid commercial deal payment status';
-  if (hasInvalidValue(body, 'amount_cents', (value) => typeof value === 'number' && Number.isSafeInteger(value) && value >= 0)) return 'amount_cents must be a non-negative safe integer';
-  for (const field of ['paid_at', 'delivery_due_date', 'publish_date', 'next_action_due_date']) {
-    if (Object.prototype.hasOwnProperty.call(body, field) && !isValidDateValue(body[field])) return `${field} must be YYYY-MM-DD or null`;
-  }
-  if (hasInvalidValue(body, 'published_video_id', isNullableText)) return 'published_video_id must be a string or null';
-  return null;
+  const result = parseWithZod(commercialDealSchema(requireTitle), body);
+  return result.success ? null : result.error;
 }
 
 export function validateTextFields(
@@ -178,6 +144,13 @@ export function requireDb(c: { env: ApiBindings }): SqliteDatabase {
 export function jsonError(c: any, error: unknown, status = 500) {
   const message = error instanceof Error ? error.message : 'Unknown error';
   return c.json({ error: message }, status);
+}
+
+export function jsonValidationError(c: any, errorMsg: string, issues?: unknown[]) {
+  return c.json({
+    error: errorMsg,
+    ...(issues && issues.length > 0 ? { details: issues } : {}),
+  }, 400);
 }
 
 export function createId(prefix: string): string {

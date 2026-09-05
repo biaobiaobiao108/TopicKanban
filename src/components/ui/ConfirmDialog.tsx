@@ -120,7 +120,7 @@ export const ConfirmDialog: React.FC<ConfirmDialogProps> = ({
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6" role="presentation">
       {/* Backdrop */}
       <div
-        className="fixed inset-0 bg-stone-900/45 backdrop-blur-sm animate-in fade-in duration-150"
+        className="fixed inset-0 bg-stone-900/45 backdrop-blur-sm modal-backdrop-modern animate-in fade-in duration-150"
         aria-hidden="true"
         onClick={isLoading ? undefined : onClose}
       />
@@ -133,7 +133,7 @@ export const ConfirmDialog: React.FC<ConfirmDialogProps> = ({
         aria-labelledby={titleId}
         aria-describedby={description ? descId : undefined}
         tabIndex={-1}
-        className="relative min-w-0 w-full max-w-md bg-white dark:bg-stone-900 rounded-2xl shadow-modal border border-stone-200/80 dark:border-stone-800 overflow-hidden flex flex-col z-10 p-5 sm:p-6 space-y-4 animate-in fade-in zoom-in-95 duration-150 ease-editorial-out"
+        className="relative min-w-0 w-full max-w-md bg-white dark:bg-stone-900 rounded-2xl shadow-modal border border-stone-200/80 dark:border-stone-800 overflow-hidden flex flex-col z-10 p-5 sm:p-6 space-y-4 modal-dialog-modern animate-in fade-in zoom-in-95 duration-150 ease-editorial-out"
       >
         <div className="flex items-start gap-3.5">
           <div className={`shrink-0 w-10 h-10 rounded-xl flex items-center justify-center ${iconBgClasses[tone]}`}>
