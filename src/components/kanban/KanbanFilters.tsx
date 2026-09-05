@@ -35,7 +35,7 @@ export const KanbanFilters: React.FC<KanbanFiltersProps> = ({
   hasActiveFilters,
 }) => {
   return (
-    <div className="flex items-center justify-between flex-wrap gap-3 pb-3 border-b border-stone-200 dark:border-stone-800 transition-colors">
+    <div data-testid="kanban-filters" className="flex items-center justify-between flex-wrap gap-3 pb-3 md:border-b border-stone-200 dark:border-stone-800 transition-colors">
       <div className="flex items-center gap-2.5 flex-wrap text-xs">
         <span className="font-semibold text-stone-500 dark:text-stone-400 flex items-center gap-1">
           <Filter className="w-3.5 h-3.5" />

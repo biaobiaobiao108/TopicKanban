@@ -162,6 +162,8 @@ test('移动端看板使用单列阶段视图并提供平滑阶段切换', async
   await expect(page.getByTestId('kanban-mobile-stage')).toBeVisible();
   await expect(page.getByTestId('kanban-mobile-stage').locator('.kanban-column-container')).toHaveCount(1);
   await expect(page.getByTestId('kanban-desktop-board')).toBeHidden();
+  await expect(page.getByTestId('kanban-filters')).toHaveCSS('border-bottom-width', '0px');
+  await expect(page.getByTestId('kanban-mobile-stage-tabs')).toHaveCSS('border-bottom-width', '0px');
   await expectNoViewportOverflow(page);
 
   const approvedStage = page.getByRole('button', { name: /已立项/ }).last();
@@ -169,6 +171,12 @@ test('移动端看板使用单列阶段视图并提供平滑阶段切换', async
   await expect(page.getByTestId('kanban-mobile-stage')).toContainText('已立项');
   const animationName = await page.getByTestId('kanban-mobile-stage').evaluate((element) => getComputedStyle(element).animationName);
   expect(animationName).toContain('mobile-stage-enter');
+
+  await page.setViewportSize({ width: 1024, height: 768 });
+  await page.goto('/kanban');
+  await expect(page.getByTestId('kanban-desktop-board')).toBeVisible();
+  await expect(page.getByTestId('kanban-mobile-stage-tabs')).toBeHidden();
+  await expect(page.getByTestId('kanban-filters')).toHaveCSS('border-bottom-width', '1px');
 });
 
 test('移动端标签页使用单一选题流和单一滚动上下文', async ({ page }) => {

@@ -733,7 +733,7 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
       </div>
 
       {/* Mobile Stage Selector Pill Bar (iPhone Safari optimized) */}
-      <div data-testid="kanban-mobile-stage-tabs" className="md:hidden flex shrink-0 items-center gap-1.5 overflow-x-auto no-scrollbar py-1 -mx-4 px-4 border-b border-stone-200/60 dark:border-stone-800 transition-colors">
+      <div data-testid="kanban-mobile-stage-tabs" className="md:hidden flex shrink-0 items-center gap-1.5 overflow-x-auto no-scrollbar -mx-2 rounded-2xl bg-stone-100/70 p-1 transition-colors dark:bg-stone-800/70">
         {ACTIVE_COLUMNS.map((col) => {
           const count = columnTotalCounts[col.status] || 0;
           const isActive = mobileActiveStage === col.status;
