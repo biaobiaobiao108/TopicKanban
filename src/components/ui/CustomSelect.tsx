@@ -107,15 +107,17 @@ export const CustomSelect: React.FC<CustomSelectProps> = ({
     const handleKeyDown = (event: KeyboardEvent) => {
       if (event.key === 'Escape') {
         event.preventDefault();
+        event.stopPropagation();
+        event.stopImmediatePropagation?.();
         setIsOpen(false);
         requestAnimationFrame(() => buttonRef.current?.focus());
       }
     };
     document.addEventListener('pointerdown', handleClickOutside);
-    document.addEventListener('keydown', handleKeyDown);
+    document.addEventListener('keydown', handleKeyDown, true);
     return () => {
       document.removeEventListener('pointerdown', handleClickOutside);
-      document.removeEventListener('keydown', handleKeyDown);
+      document.removeEventListener('keydown', handleKeyDown, true);
     };
   }, [isOpen]);
 

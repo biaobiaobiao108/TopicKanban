@@ -196,4 +196,39 @@ describe('Calendar utilities and event extraction', () => {
     expect(filteredMap.get('2026-08-30')).toBeUndefined();
     expect(filteredMap.get('2026-08-28')).toBeUndefined();
   });
+
+  it('keeps dayNumber and date precisely aligned regardless of timezone', () => {
+    // September 2026: Sept 1 is Tuesday, Aug 31 is Monday
+    const days = getMonthGridDays(2026, 8);
+    const dayOne = days.find((d) => d.dayNumber === 1 && d.isCurrentMonth);
+    expect(dayOne).toBeDefined();
+    expect(dayOne?.date).toBe('2026-09-01');
+
+    const dayLast = days.find((d) => d.dayNumber === 30 && d.isCurrentMonth);
+    expect(dayLast).toBeDefined();
+    expect(dayLast?.date).toBe('2026-09-30');
+
+    // Prev month padding
+    const prevPadding = days.find((d) => !d.isCurrentMonth && d.dayNumber === 31);
+    expect(prevPadding?.date).toBe('2026-08-31');
+  });
+
+  it('correctly attributes published video timestamps with ISO Z time into Beijing date', () => {
+    const published: PublishedVideo[] = [
+      {
+        id: 'p_early',
+        title: '凌晨发布的视频',
+        published_at: '2026-09-07T18:00:00.000Z', // 18:00 UTC = 02:00 next day Beijing (2026-09-08)
+        views: 100,
+        likes: 10,
+        comments: 1,
+        shares: 0,
+        created_at: '2026-09-07',
+        updated_at: '2026-09-07',
+      },
+    ];
+
+    const events = extractCalendarEvents([], [], published, DEFAULT_CALENDAR_LAYERS);
+    expect(events.get('2026-09-08')?.some((e) => e.publishedVideoId === 'p_early')).toBe(true);
+  });
 });

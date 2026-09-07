@@ -46,6 +46,8 @@ export const ConfirmDialog: React.FC<ConfirmDialogProps> = ({
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'Escape' && !isLoadingRef.current) {
         e.preventDefault();
+        e.stopPropagation();
+        e.stopImmediatePropagation?.();
         onCloseRef.current();
         return;
       }
@@ -71,7 +73,7 @@ export const ConfirmDialog: React.FC<ConfirmDialogProps> = ({
 
     previousFocusRef.current = document.activeElement instanceof HTMLElement ? document.activeElement : null;
     previousOverflowRef.current = document.body.style.overflow;
-    document.addEventListener('keydown', handleKeyDown);
+    document.addEventListener('keydown', handleKeyDown, true);
     document.body.style.overflow = 'hidden';
 
     requestAnimationFrame(() => {
@@ -80,7 +82,7 @@ export const ConfirmDialog: React.FC<ConfirmDialogProps> = ({
     });
 
     return () => {
-      document.removeEventListener('keydown', handleKeyDown);
+      document.removeEventListener('keydown', handleKeyDown, true);
       document.body.style.overflow = previousOverflowRef.current;
       previousFocusRef.current?.focus();
     };

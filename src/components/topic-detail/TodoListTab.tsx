@@ -294,8 +294,19 @@ export const TodoListTab: React.FC<TodoListTabProps> = ({ topic, todos, actions,
   const [editingTodoId, setEditingTodoId] = useState<string | null>(null);
   const operationInFlightRef = useRef(false);
   const editSavingRef = useRef<string | null>(null);
+class NonTouchPointerSensor extends PointerSensor {
+  static activators = [
+    {
+      eventName: 'onPointerDown' as const,
+      handler: ({ nativeEvent: event }: { nativeEvent: PointerEvent }) => {
+        return event.isPrimary && event.button === 0 && event.pointerType !== 'touch';
+      },
+    },
+  ];
+}
+
   const sensors = useSensors(
-    useSensor(PointerSensor, { activationConstraint: { distance: 6 } }),
+    useSensor(NonTouchPointerSensor, { activationConstraint: { distance: 6 } }),
     useSensor(TouchSensor, { activationConstraint: { delay: 220, tolerance: 5 } }),
     useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates }),
   );

@@ -28,13 +28,24 @@ export function detectPlatformFromText(input: string): PlatformType {
   return 'other';
 }
 
+// Strip trailing punctuation (both Latin and CJK) and closing brackets commonly attached when copying from chat or social media
+const TRAILING_PUNCTUATION_REGEX = /[，。！？；：、）》】」』”’"'`.,!?:;)\]}>]+$/u;
+
+export function stripTrailingPunctuation(url: string): string {
+  let cleaned = url.trim();
+  while (TRAILING_PUNCTUATION_REGEX.test(cleaned)) {
+    cleaned = cleaned.replace(TRAILING_PUNCTUATION_REGEX, '').trim();
+  }
+  return cleaned;
+}
+
 /**
  * Extract clean URL from text
  */
 export function extractUrlFromText(input: string): string {
   const trimmed = input.trim();
   const urlMatch = trimmed.match(/https?:\/\/[^\s\u4e00-\u9fa5]+/i);
-  if (urlMatch) return urlMatch[0];
+  if (urlMatch) return stripTrailingPunctuation(urlMatch[0]);
 
   const bvMatch = trimmed.match(/BV[a-zA-Z0-9]{10}/i);
   if (bvMatch) return `https://www.bilibili.com/video/${bvMatch[0]}`;
@@ -51,10 +62,10 @@ export function extractUrlFromText(input: string): string {
   ) {
     const rawClean = trimmed.replace(/^https?:\/\//i, '').replace(/^\/+/, '');
     const firstPart = rawClean.split(/[\s\u4e00-\u9fa5]/)[0];
-    return `https://${firstPart}`;
+    return stripTrailingPunctuation(`https://${firstPart}`);
   }
 
-  return trimmed;
+  return stripTrailingPunctuation(trimmed);
 }
 
 /**

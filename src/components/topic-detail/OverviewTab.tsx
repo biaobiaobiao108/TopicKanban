@@ -130,16 +130,82 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({
   const targetPublishDateDisplay = useActionDateDisplay(targetPublishDate, activeTopicDates);
   const deadlineDisplay = useActionDateDisplay(deadline, activeTopicDates);
 
-  // Sync state when topic prop changes from outside
+  const lastSyncedRef = useRef({
+    id: topic.id,
+    summary: topic.summary || '',
+    hook: topic.hook || '',
+    why_now: topic.why_now || '',
+    storyline: topic.storyline || '',
+    target_publish_date: topic.target_publish_date || '',
+    deadline: topic.deadline || '',
+  });
+
+  // Sync state when topic prop changes from outside (e.g. from command palette, drafts or other tabs)
   useEffect(() => {
-    setSummary(topic.summary || '');
-    setHook(topic.hook || '');
-    setWhyNow(topic.why_now || '');
-    setStoryline(topic.storyline || '');
-    setActs(parseStorylineToActs(topic.storyline || ''));
-    setTargetPublishDate(topic.target_publish_date || '');
-    setDeadline(topic.deadline || '');
-  }, [topic.id, topic.target_publish_date, topic.deadline]);
+    const isDifferentTopic = topic.id !== lastSyncedRef.current.id;
+    const isTyping = Boolean(debounceTimerRef.current);
+
+    if (isDifferentTopic) {
+      setSummary(topic.summary || '');
+      setHook(topic.hook || '');
+      setWhyNow(topic.why_now || '');
+      setStoryline(topic.storyline || '');
+      setActs(parseStorylineToActs(topic.storyline || ''));
+      setTargetPublishDate(topic.target_publish_date || '');
+      setDeadline(topic.deadline || '');
+      lastSyncedRef.current = {
+        id: topic.id,
+        summary: topic.summary || '',
+        hook: topic.hook || '',
+        why_now: topic.why_now || '',
+        storyline: topic.storyline || '',
+        target_publish_date: topic.target_publish_date || '',
+        deadline: topic.deadline || '',
+      };
+      return;
+    }
+
+    // Same topic: only sync fields that changed externally when user is not actively typing
+    if (!isTyping) {
+      if ((topic.summary || '') !== lastSyncedRef.current.summary) {
+        setSummary(topic.summary || '');
+      }
+      if ((topic.hook || '') !== lastSyncedRef.current.hook) {
+        setHook(topic.hook || '');
+      }
+      if ((topic.why_now || '') !== lastSyncedRef.current.why_now) {
+        setWhyNow(topic.why_now || '');
+      }
+      if ((topic.storyline || '') !== lastSyncedRef.current.storyline) {
+        setStoryline(topic.storyline || '');
+        setActs(parseStorylineToActs(topic.storyline || ''));
+      }
+    }
+    if ((topic.target_publish_date || '') !== lastSyncedRef.current.target_publish_date) {
+      setTargetPublishDate(topic.target_publish_date || '');
+    }
+    if ((topic.deadline || '') !== lastSyncedRef.current.deadline) {
+      setDeadline(topic.deadline || '');
+    }
+
+    lastSyncedRef.current = {
+      id: topic.id,
+      summary: topic.summary || '',
+      hook: topic.hook || '',
+      why_now: topic.why_now || '',
+      storyline: topic.storyline || '',
+      target_publish_date: topic.target_publish_date || '',
+      deadline: topic.deadline || '',
+    };
+  }, [
+    topic.id,
+    topic.summary,
+    topic.hook,
+    topic.why_now,
+    topic.storyline,
+    topic.target_publish_date,
+    topic.deadline,
+  ]);
 
   // Debounced auto-save function
   const triggerAutoSave = (updates: Partial<Topic>) => {

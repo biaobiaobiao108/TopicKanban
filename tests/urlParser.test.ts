@@ -40,5 +40,9 @@ describe('Client-side URL parser', () => {
   it('extracts URLs from share text locally', () => {
     expect(extractUrlFromText('看这个视频 https://example.com/article 真有意思')).toBe('https://example.com/article');
     expect(extractUrlFromText('BV1xx411c7mD')).toBe('https://www.bilibili.com/video/BV1xx411c7mD');
+    expect(extractUrlFromText('来看这个 https://v.douyin.com/abc123/，非常精彩！')).toBe('https://v.douyin.com/abc123/');
+    expect(extractUrlFromText('分享链接：https://b23.tv/xyz789。快看')).toBe('https://b23.tv/xyz789');
+    expect(extractUrlFromText('参考链接（https://xhslink.com/foo）')).toBe('https://xhslink.com/foo');
+    expect(extractUrlFromText('链接【https://weibo.com/p/123】')).toBe('https://weibo.com/p/123');
   });
 });

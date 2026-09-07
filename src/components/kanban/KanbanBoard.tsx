@@ -322,8 +322,19 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
     }
   }, [boardTopics, activeId]);
 
+class NonTouchPointerSensor extends PointerSensor {
+  static activators = [
+    {
+      eventName: 'onPointerDown' as const,
+      handler: ({ nativeEvent: event }: { nativeEvent: PointerEvent }) => {
+        return event.isPrimary && event.button === 0 && event.pointerType !== 'touch';
+      },
+    },
+  ];
+}
+
   const sensors = useSensors(
-    useSensor(PointerSensor, {
+    useSensor(NonTouchPointerSensor, {
       activationConstraint: {
         distance: 6,
       },

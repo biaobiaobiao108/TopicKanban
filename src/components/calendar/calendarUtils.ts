@@ -12,30 +12,37 @@ export interface MonthDayCell {
   isWeekend: boolean;
 }
 
+function formatIsoDate(year: number, monthIndex: number, day: number): string {
+  return `${year}-${String(monthIndex + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+}
+
 /**
  * Generates the 35 or 42 day cells for a calendar month grid (Monday is first day of week).
  */
 export function getMonthGridDays(year: number, monthIndex: number): MonthDayCell[] {
   const todayStr = getBeijingDateString(new Date());
 
-  // First day of target month
-  const firstDay = new Date(year, monthIndex, 1);
-  // Day of week: 0 = Sun, 1 = Mon, ..., 6 = Sat
-  let firstDayOfWeek = firstDay.getDay();
+  // First day of target month (using UTC to be completely immune to local timezone shift)
+  const firstDayUtc = new Date(Date.UTC(year, monthIndex, 1));
+  let firstDayOfWeek = firstDayUtc.getUTCDay();
   // Adjust so Mon = 0, ..., Sun = 6
   firstDayOfWeek = firstDayOfWeek === 0 ? 6 : firstDayOfWeek - 1;
 
-  const daysInCurrentMonth = new Date(year, monthIndex + 1, 0).getDate();
-  const daysInPrevMonth = new Date(year, monthIndex, 0).getDate();
+  const daysInCurrentMonth = new Date(Date.UTC(year, monthIndex + 1, 0)).getUTCDate();
+  const daysInPrevMonth = new Date(Date.UTC(year, monthIndex, 0)).getUTCDate();
+
+  const prevMonth = monthIndex === 0 ? 11 : monthIndex - 1;
+  const prevYear = monthIndex === 0 ? year - 1 : year;
+  const nextMonth = monthIndex === 11 ? 0 : monthIndex + 1;
+  const nextYear = monthIndex === 11 ? year + 1 : year;
 
   const cells: MonthDayCell[] = [];
 
   // Prev month padding
   for (let i = firstDayOfWeek - 1; i >= 0; i--) {
     const day = daysInPrevMonth - i;
-    const prevDate = new Date(year, monthIndex - 1, day);
-    const dateStr = getBeijingDateString(prevDate);
-    const dayOfWeek = prevDate.getDay();
+    const dateStr = formatIsoDate(prevYear, prevMonth, day);
+    const dayOfWeek = new Date(Date.UTC(prevYear, prevMonth, day)).getUTCDay();
     cells.push({
       date: dateStr,
       dayNumber: day,
@@ -47,9 +54,8 @@ export function getMonthGridDays(year: number, monthIndex: number): MonthDayCell
 
   // Current month days
   for (let day = 1; day <= daysInCurrentMonth; day++) {
-    const curDate = new Date(year, monthIndex, day);
-    const dateStr = getBeijingDateString(curDate);
-    const dayOfWeek = curDate.getDay();
+    const dateStr = formatIsoDate(year, monthIndex, day);
+    const dayOfWeek = new Date(Date.UTC(year, monthIndex, day)).getUTCDay();
     cells.push({
       date: dateStr,
       dayNumber: day,
@@ -62,9 +68,8 @@ export function getMonthGridDays(year: number, monthIndex: number): MonthDayCell
   // Next month padding to fill complete weeks (up to 35 or 42 total cells)
   const remaining = (7 - (cells.length % 7)) % 7;
   for (let day = 1; day <= remaining; day++) {
-    const nextDate = new Date(year, monthIndex + 1, day);
-    const dateStr = getBeijingDateString(nextDate);
-    const dayOfWeek = nextDate.getDay();
+    const dateStr = formatIsoDate(nextYear, nextMonth, day);
+    const dayOfWeek = new Date(Date.UTC(nextYear, nextMonth, day)).getUTCDay();
     cells.push({
       date: dateStr,
       dayNumber: day,
@@ -92,21 +97,22 @@ const WEEKDAY_NAMES = ['周一', '周二', '周三', '周四', '周五', '周六
  */
 export function getWeekDays(baseDate: Date): WeekDayCell[] {
   const todayStr = getBeijingDateString(new Date());
-  const current = new Date(baseDate);
-  let dayOfWeek = current.getDay(); // 0 = Sun, 1 = Mon ...
+  const baseIso = getBeijingDateString(baseDate) || formatIsoDate(baseDate.getFullYear(), baseDate.getMonth(), baseDate.getDate());
+  const [bYear, bMonth, bDay] = baseIso.split('-').map(Number);
+  const baseUtc = new Date(Date.UTC(bYear, bMonth - 1, bDay));
+  
+  let dayOfWeek = baseUtc.getUTCDay(); // 0 = Sun, 1 = Mon ...
   const diffToMonday = dayOfWeek === 0 ? -6 : 1 - dayOfWeek;
-  const monday = new Date(current);
-  monday.setDate(current.getDate() + diffToMonday);
+  const mondayUtcTime = baseUtc.getTime() + diffToMonday * 86400000;
 
   const days: WeekDayCell[] = [];
   for (let i = 0; i < 7; i++) {
-    const d = new Date(monday);
-    d.setDate(monday.getDate() + i);
-    const dateStr = getBeijingDateString(d);
-    const dOfWeek = d.getDay();
+    const dUtc = new Date(mondayUtcTime + i * 86400000);
+    const dateStr = formatIsoDate(dUtc.getUTCFullYear(), dUtc.getUTCMonth(), dUtc.getUTCDate());
+    const dOfWeek = dUtc.getUTCDay();
     days.push({
       date: dateStr,
-      dayNumber: d.getDate(),
+      dayNumber: dUtc.getUTCDate(),
       dayName: WEEKDAY_NAMES[i],
       isToday: dateStr === todayStr,
       isWeekend: dOfWeek === 0 || dOfWeek === 6,
@@ -128,7 +134,7 @@ export function extractCalendarEvents(
 
   const addEvent = (dateStr: string | null | undefined, event: CalendarEventItem) => {
     if (!dateStr) return;
-    const cleanDate = dateStr.slice(0, 10);
+    const cleanDate = dateStr.includes('T') ? getBeijingDateString(dateStr) : dateStr.slice(0, 10);
     if (!/^\d{4}-\d{2}-\d{2}$/.test(cleanDate)) return;
     const existing = map.get(cleanDate) || [];
     map.set(cleanDate, [...existing, event]);
