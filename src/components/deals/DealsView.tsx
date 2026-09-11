@@ -681,7 +681,7 @@ function CommercialDealsView({ topics, onCreateTopicFromDeal }: Pick<DealsViewPr
           </div>
         ) : (
           <>
-            <div className="flex items-center justify-between gap-3 text-xs text-stone-500 dark:text-stone-400">
+            <div className="flex items-center justify-between gap-3 text-xs text-stone-600 dark:text-stone-400">
               <span aria-live="polite">
                 显示 {firstItem}-{lastItem} / 共 {total} 单
               </span>

@@ -997,7 +997,7 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
         </div>
 
         {/* Footer Keybinding Hints Bar */}
-        <div className="px-4 py-2.5 bg-stone-50 dark:bg-stone-900/90 border-t border-stone-200 dark:border-stone-800 flex items-center justify-between text-[11px] text-stone-500 dark:text-stone-400 font-medium shrink-0 flex-wrap gap-2">
+        <div className="px-4 py-2.5 bg-stone-50 dark:bg-stone-900/90 border-t border-stone-200 dark:border-stone-800 flex items-center justify-between text-[11px] text-stone-600 dark:text-stone-400 font-medium shrink-0 flex-wrap gap-2">
           <div className="flex items-center gap-3">
             <span className="flex items-center gap-1">
               <kbd className="bg-white dark:bg-stone-800 px-1.5 py-0.5 rounded border border-stone-200 dark:border-stone-700 font-mono shadow-2xs text-stone-700 dark:text-stone-300">↑</kbd>
@@ -1014,7 +1014,7 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
             </span>
           </div>
 
-          <div className="text-stone-500 dark:text-stone-400 text-[10px] font-mono">
+          <div className="text-stone-600 dark:text-stone-400 text-[10px] font-mono">
             共 {items.length} 个可用指令与资源
           </div>
         </div>

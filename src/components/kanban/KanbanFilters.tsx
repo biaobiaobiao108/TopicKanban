@@ -37,7 +37,7 @@ export const KanbanFilters: React.FC<KanbanFiltersProps> = ({
   return (
     <div data-testid="kanban-filters" className="flex items-center justify-between flex-wrap gap-3 pb-3 md:border-b border-stone-200 dark:border-stone-800 transition-colors">
       <div className="flex items-center gap-2.5 flex-wrap text-xs">
-        <span className="font-semibold text-stone-500 dark:text-stone-400 flex items-center gap-1">
+        <span className="font-semibold text-stone-600 dark:text-stone-400 flex items-center gap-1">
           <Filter className="w-3.5 h-3.5" />
           筛选:
         </span>
@@ -96,7 +96,7 @@ export const KanbanFilters: React.FC<KanbanFiltersProps> = ({
 
       {/* Sorting dropdown */}
       <div className="flex items-center gap-2 text-xs">
-        <span className="font-semibold text-stone-500 dark:text-stone-400 flex items-center gap-1">
+        <span className="font-semibold text-stone-600 dark:text-stone-400 flex items-center gap-1">
           <ArrowUpDown className="w-3.5 h-3.5" />
           排序:
         </span>

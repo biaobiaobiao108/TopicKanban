@@ -748,16 +748,16 @@ html.theme-warm-paper .bg-rose-600,
 html.theme-warm-paper .bg-rose-500,
 html.theme-warm-paper aside.sidebar-container button.bg-stone-900,
 html.theme-warm-paper .mobile-drawer-container button.bg-stone-900 {
-  background-color: #de5b6d !important;
+  background-color: #b4233f !important;
   color: #ffffff !important;
 }
 html.theme-warm-paper .hover\:bg-rose-700:hover,
 html.theme-warm-paper aside.sidebar-container button.bg-stone-900:hover,
 html.theme-warm-paper .mobile-drawer-container button.bg-stone-900:hover {
-  background-color: #cb4a5c !important;
+  background-color: #a61e36 !important;
 }
 html.theme-warm-paper .active\:bg-rose-800:active {
-  background-color: #b53a4b !important;
+  background-color: #8f172f !important;
 }
 
 /* 7. Accent Highlights, Badges & Next Action */
@@ -766,7 +766,7 @@ html.theme-warm-paper .text-rose-700,
 html.theme-warm-paper .text-rose-500,
 html.theme-warm-paper .text-rose-400,
 html.theme-warm-paper .group-hover\:text-rose-600 {
-  color: #de5b6d !important;
+  color: #b4233f !important;
 }
 html.theme-warm-paper .text-rose-900,
 html.theme-warm-paper .text-rose-800 {

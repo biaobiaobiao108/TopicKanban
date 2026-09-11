@@ -185,7 +185,7 @@ export const PublishedVideoCard: React.FC<PublishedVideoCardProps> = ({
                   <Coins className="w-2.5 h-2.5" />
                   <span>投币</span>
                 </div>
-                <div className="text-[11px] font-bold text-amber-600 dark:text-amber-400 leading-tight">
+                <div className="text-[11px] font-bold text-amber-700 dark:text-amber-400 leading-tight">
                   {formatNumber(video.coins)}
                 </div>
               </div>

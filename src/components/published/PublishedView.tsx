@@ -480,7 +480,7 @@ export const PublishedView: React.FC<PublishedViewProps> = ({
         )}
 
         {viewMode === 'cards' && totalPublished > 0 && (
-          <div className="flex items-center justify-center gap-3 text-xs text-stone-500 dark:text-stone-400">
+          <div className="flex items-center justify-center gap-3 text-xs text-stone-600 dark:text-stone-400">
             <button
               type="button"
               disabled={page <= 1 || pageQuery.isFetching}
