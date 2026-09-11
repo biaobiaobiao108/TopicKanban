@@ -160,7 +160,7 @@ export async function replaceAllData(db: SqliteDatabase, data: BackupData): Prom
 
 export async function exportAllData(db: SqliteDatabase, kvSettings?: AppSettings): Promise<BackupData> {
   const [bootstrap, allTopics, details] = await Promise.all([
-    loadBootstrap(db, kvSettings),
+    loadBootstrap(db, kvSettings, { includeTopics: false }),
     loadTopics(db, 'all'),
     db.batch([
       db.prepare('SELECT * FROM sources ORDER BY created_at DESC'),

@@ -3,6 +3,7 @@ import { invalidateBootstrap } from './storage';
 
 const topicQueryKeys = [
   ['today-focus'],
+  ['active-topic-count'],
   ['deal-focus'],
   ['workspace'],
   ['kanban-column-page'],
@@ -21,8 +22,8 @@ const topicQueryKeys = [
 
 /**
  * Mark every topic-derived query stale while only refetching queries used by
- * the currently visible view. The today-focus query is kept mounted globally
- * so it also provides an up-to-date navigation count.
+ * the currently visible view. Aggregates are re-read from the server rather
+ * than guessed from the current client cache.
  */
 export async function refreshTopicData(queryClient: QueryClient): Promise<void> {
   invalidateBootstrap();

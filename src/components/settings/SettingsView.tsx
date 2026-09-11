@@ -9,7 +9,7 @@ import {
   DEFAULT_VOICEOVER_CUES,
 } from '../../types';
 import { validateBackupData } from '../../lib/backupValidation';
-import { exportBackupData, importBackupData, exportScriptsMarkdown } from '../../lib/storage';
+import { exportBackupData, importBackupData, exportScriptsMarkdown, MAX_BACKUP_IMPORT_BYTES } from '../../lib/storage';
 import { authenticatedFetch } from '../../lib/auth';
 import { applyTheme } from '../../lib/theme';
 import { resolvePublicUrl } from '../../lib/publicUrl';
@@ -252,8 +252,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
   const handleExportJson = async () => {
     setIsExporting(true);
     try {
-      const jsonStr = await exportBackupData();
-      const blob = new Blob([jsonStr], { type: 'application/json' });
+      const blob = await exportBackupData();
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
@@ -286,33 +285,35 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
   };
 
   const [pendingImportContent, setPendingImportContent] = useState<{
-    content: string;
+    file: File;
     summary: string;
   } | null>(null);
 
   const handleImportFile = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
-
-    const reader = new FileReader();
-    reader.onload = async (evt) => {
-      const content = evt.target?.result as string;
-      if (content) {
-        try {
-          const data = JSON.parse(content) as unknown;
-          const validation = validateBackupData(data);
-          if (!validation.success) throw new Error(validation.error);
-          setPendingImportContent({
-            content,
-            summary: formatBackupSummary(validation.data),
-          });
-        } catch (error) {
-          setImportStatus({ type: 'error', text: error instanceof Error ? `导入解析失败：${error.message}` : '导入解析失败' });
-        }
-      }
-    };
-    reader.readAsText(file);
     e.target.value = '';
+    if (file.size > MAX_BACKUP_IMPORT_BYTES) {
+      setImportStatus({ type: 'error', text: `备份文件超过 ${(MAX_BACKUP_IMPORT_BYTES / 1024 / 1024).toFixed(0)} MB 限制` });
+      return;
+    }
+
+    void file.text().then((content) => {
+      if (!content) return;
+      try {
+        const data = JSON.parse(content) as unknown;
+        const validation = validateBackupData(data);
+        if (!validation.success) throw new Error(validation.error);
+        setPendingImportContent({
+          file,
+          summary: formatBackupSummary(validation.data),
+        });
+      } catch (error) {
+        setImportStatus({ type: 'error', text: error instanceof Error ? `导入解析失败：${error.message}` : '导入解析失败' });
+      }
+    }).catch((error) => {
+      setImportStatus({ type: 'error', text: error instanceof Error ? `导入解析失败：${error.message}` : '导入解析失败' });
+    });
   };
 
   const handleConfirmImport = async () => {
@@ -320,7 +321,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
     setIsImporting(true);
     setImportStatus({ type: 'info', text: '正在恢复备份并重新载入工作台...' });
     try {
-      const result = await importBackupData(pendingImportContent.content);
+      const result = await importBackupData(pendingImportContent.file);
       if (!result.success) throw new Error(result.error || '导入失败');
       await onReloadAllData();
       setImportStatus({ type: 'success', text: '备份数据恢复成功！' });

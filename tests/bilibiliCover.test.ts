@@ -47,4 +47,15 @@ describe('Bilibili cover utilities and caching', () => {
     setBilibiliCoverToCache(testBvid, testCover);
     expect(getBilibiliCoverFromCache(testBvid)).toBe(testCover);
   });
+
+  it('bounds the in-memory cover cache to the newest 128 entries', () => {
+    for (let index = 0; index <= 128; index += 1) {
+      setBilibiliCoverToCache(`lru-${index}`, `https://example.com/${index}.jpg`);
+    }
+    const storage = (globalThis as typeof globalThis & { localStorage?: Storage }).localStorage;
+    storage?.removeItem('bili_cover_lru-0');
+
+    expect(getBilibiliCoverFromCache('lru-0')).toBeNull();
+    expect(getBilibiliCoverFromCache('lru-128')).toBe('https://example.com/128.jpg');
+  });
 });

@@ -218,7 +218,14 @@ export function registerSystemRoutes(app: NativeApp): void {
   app.get('/backup', async (c) => {
     try {
       const kvSettings = await getKvSettings(c.env.KV, c.env.PUBLIC_BASE_URL);
-      return c.json({ data: await exportAllData(requireDb(c), kvSettings) });
+      const data = await exportAllData(requireDb(c), kvSettings);
+      if (c.req.query('format') === 'download') {
+        return c.body(JSON.stringify(data, null, 2), 200, {
+          'Content-Type': 'application/json; charset=UTF-8',
+          'Content-Disposition': 'attachment; filename="topic-kanban-backup.json"',
+        });
+      }
+      return c.json({ data });
     } catch (error) {
       return jsonError(c, error);
     }

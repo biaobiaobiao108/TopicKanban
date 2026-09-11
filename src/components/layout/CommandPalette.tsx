@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { createPortal } from 'react-dom';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import {
   Search,
   Plus,
@@ -79,6 +79,7 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
   onExportMarkdown,
   onFilterStatus,
 }) => {
+  const queryClient = useQueryClient();
   const [query, setQuery] = useState('');
   const [selectedIndex, setSelectedIndex] = useState(0);
   const [debouncedCleanQ, setDebouncedCleanQ] = useState('');
@@ -205,7 +206,15 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
     queryKey: ['command-topic-search', debouncedCleanQ],
     queryFn: () => fetchTopicPage({ scope: 'all', q: debouncedCleanQ, page: 1, page_size: 20, sort: 'updated_at' }),
     enabled: isOpen && mode === 'all' && debouncedCleanQ.length > 0,
+    subscribed: isOpen && mode === 'all' && debouncedCleanQ.length > 0,
   });
+
+  useEffect(() => {
+    if (!isOpen) {
+      // Search results are disposable and should not survive closing the palette.
+      queryClient.removeQueries({ queryKey: ['command-topic-search'] });
+    }
+  }, [isOpen, queryClient]);
 
   // 1. Navigation commands
   const allNavCommands = useMemo(() => [

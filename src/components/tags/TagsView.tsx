@@ -150,6 +150,7 @@ export const TagsView: React.FC<TagsViewProps> = ({
       direction: 'desc',
     }),
     enabled: Boolean(activeTag),
+    subscribed: Boolean(activeTag),
     placeholderData: keepPreviousData,
   });
   const activeTagTopics = tagTopicsPageQuery.data?.items || [];

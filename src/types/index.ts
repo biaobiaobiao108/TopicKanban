@@ -477,6 +477,10 @@ export interface TodayFocusData {
   total_active: number;
 }
 
+export interface ActiveTopicCount {
+  active_count: number;
+}
+
 export interface PageMeta {
   page: number;
   page_size: number;

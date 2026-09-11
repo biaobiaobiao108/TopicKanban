@@ -15,6 +15,7 @@ import {
   insertTopic,
   listTrashedTopicIds,
   loadTodayFocus,
+  loadActiveTopicCount,
   loadTopic,
   loadTopicPage,
   loadTrashedTopics,
@@ -58,6 +59,14 @@ export function registerTopicRoutes(app: NativeApp): void {
   app.get('/today/focus', async (c) => {
     try {
       return c.json(await loadTodayFocus(requireDb(c)));
+    } catch (error) {
+      return jsonError(c, error, 400);
+    }
+  });
+
+  app.get('/topics/summary', async (c) => {
+    try {
+      return c.json({ active_count: await loadActiveTopicCount(requireDb(c)) });
     } catch (error) {
       return jsonError(c, error, 400);
     }

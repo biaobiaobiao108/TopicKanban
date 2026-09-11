@@ -15,8 +15,9 @@ export function useBilibiliCover(bvidOrUrl?: string | null) {
       return meta.cover_url || '';
     },
     enabled: !!cleanBvid,
+    subscribed: !!cleanBvid,
     staleTime: 1000 * 60 * 60 * 24, // 24 hours
-    gcTime: 1000 * 60 * 60 * 24 * 7, // 7 days
+    gcTime: 1000 * 60, // The bounded local cache remains the durable fallback.
     initialData: cleanBvid ? (getBilibiliCoverFromCache(cleanBvid) ?? undefined) : undefined,
   });
 }

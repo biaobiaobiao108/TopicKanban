@@ -255,10 +255,13 @@ function WorkspaceApp({ isAuth, setIsAuth }: WorkspaceAppProps) {
   }, [location.pathname, navigate]);
 
   useEffect(() => {
-    const handleUnauthorized = () => setIsAuth(false);
+    const handleUnauthorized = () => {
+      clearWorkspace();
+      setIsAuth(false);
+    };
     window.addEventListener('kanban:unauthorized', handleUnauthorized);
     return () => window.removeEventListener('kanban:unauthorized', handleUnauthorized);
-  }, []);
+  }, [clearWorkspace]);
 
   // Global Keyboard Shortcuts: Ctrl+/ / Cmd+/ / / and N
   useEffect(() => {
@@ -889,8 +892,7 @@ function WorkspaceApp({ isAuth, setIsAuth }: WorkspaceAppProps) {
 
   const handleExportBackup = async () => {
     try {
-      const jsonStr = await exportBackupData();
-      const blob = new Blob([jsonStr], { type: 'application/json' });
+      const blob = await exportBackupData();
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;

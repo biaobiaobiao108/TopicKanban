@@ -61,17 +61,87 @@ export const normalizeCoverUrl = (url?: string): string => {
 
 const COVER_CACHE_PREFIX = 'bili_cover_';
 const coverMemoryCache = new Map<string, string>();
+const COVER_CACHE_MAX_ENTRIES = 128;
+const COVER_CACHE_TTL_MS = 30 * 24 * 60 * 60 * 1000;
+const COVER_CACHE_PRUNE_INTERVAL_MS = 5 * 60 * 1000;
+let lastPersistentCoverPruneAt = 0;
+
+interface StoredCoverCacheEntry {
+  url: string;
+  cachedAt: number;
+}
+
+function rememberCoverInMemory(bvid: string, coverUrl: string): void {
+  coverMemoryCache.delete(bvid);
+  coverMemoryCache.set(bvid, coverUrl);
+  while (coverMemoryCache.size > COVER_CACHE_MAX_ENTRIES) {
+    const oldest = coverMemoryCache.keys().next().value as string | undefined;
+    if (!oldest) break;
+    coverMemoryCache.delete(oldest);
+  }
+}
+
+function parseStoredCover(value: string): StoredCoverCacheEntry {
+  try {
+    const parsed = JSON.parse(value) as Partial<StoredCoverCacheEntry>;
+    if (typeof parsed.url === 'string' && typeof parsed.cachedAt === 'number') {
+      return { url: parsed.url, cachedAt: parsed.cachedAt };
+    }
+  } catch {
+    // Read legacy raw URL entries below.
+  }
+  return { url: value, cachedAt: 0 };
+}
+
+function prunePersistentCoverCache(now = Date.now()): void {
+  if (now - lastPersistentCoverPruneAt < COVER_CACHE_PRUNE_INTERVAL_MS) return;
+  lastPersistentCoverPruneAt = now;
+  try {
+    if (typeof localStorage === 'undefined') return;
+    const entries: Array<{ key: string; cachedAt: number }> = [];
+    for (let index = 0; index < localStorage.length; index += 1) {
+      const key = localStorage.key(index);
+      if (!key?.startsWith(COVER_CACHE_PREFIX)) continue;
+      const value = localStorage.getItem(key);
+      if (!value) continue;
+      const entry = parseStoredCover(value);
+      if (entry.cachedAt > 0 && now - entry.cachedAt > COVER_CACHE_TTL_MS) {
+        localStorage.removeItem(key);
+        continue;
+      }
+      entries.push({ key, cachedAt: entry.cachedAt });
+    }
+    entries.sort((a, b) => a.cachedAt - b.cachedAt || a.key.localeCompare(b.key));
+    entries.slice(0, Math.max(0, entries.length - COVER_CACHE_MAX_ENTRIES)).forEach(({ key }) => localStorage.removeItem(key));
+  } catch {
+    // Ignore quota or private mode errors.
+  }
+}
 
 export const getBilibiliCoverFromCache = (bvid: string): string | null => {
   if (!bvid) return null;
   const inMemory = coverMemoryCache.get(bvid);
-  if (inMemory) return inMemory;
+  if (inMemory) {
+    rememberCoverInMemory(bvid, inMemory);
+    return inMemory;
+  }
   try {
     if (typeof localStorage !== 'undefined') {
-      const stored = localStorage.getItem(`${COVER_CACHE_PREFIX}${bvid}`);
+      const key = `${COVER_CACHE_PREFIX}${bvid}`;
+      const stored = localStorage.getItem(key);
       if (stored) {
-        coverMemoryCache.set(bvid, stored);
-        return stored;
+        const entry = parseStoredCover(stored);
+        const now = Date.now();
+        if (entry.cachedAt > 0 && now - entry.cachedAt > COVER_CACHE_TTL_MS) {
+          localStorage.removeItem(key);
+          return null;
+        }
+        rememberCoverInMemory(bvid, entry.url);
+        if (entry.cachedAt === 0) {
+          localStorage.setItem(key, JSON.stringify({ url: entry.url, cachedAt: now } satisfies StoredCoverCacheEntry));
+        }
+        prunePersistentCoverCache(now);
+        return entry.url;
       }
     }
   } catch {
@@ -82,10 +152,11 @@ export const getBilibiliCoverFromCache = (bvid: string): string | null => {
 
 export const setBilibiliCoverToCache = (bvid: string, coverUrl: string): void => {
   if (!bvid || !coverUrl) return;
-  coverMemoryCache.set(bvid, coverUrl);
+  rememberCoverInMemory(bvid, coverUrl);
   try {
     if (typeof localStorage !== 'undefined') {
-      localStorage.setItem(`${COVER_CACHE_PREFIX}${bvid}`, coverUrl);
+      localStorage.setItem(`${COVER_CACHE_PREFIX}${bvid}`, JSON.stringify({ url: coverUrl, cachedAt: Date.now() } satisfies StoredCoverCacheEntry));
+      prunePersistentCoverCache();
     }
   } catch {
     // Ignore quota or private mode errors

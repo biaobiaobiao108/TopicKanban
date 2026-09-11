@@ -404,6 +404,12 @@ describe('Bun Server Integration (Local SQLite & API)', () => {
     });
     expect(backupRes.status).toBe(200);
     const backupPayload = await backupRes.json() as { data: { settings: Record<string, unknown> } };
+    const backupDownload = await app.request('/api/backup?format=download', {
+      headers: { Authorization: `Bearer ${authToken}` },
+    });
+    expect(backupDownload.status).toBe(200);
+    expect(backupDownload.headers.get('content-type')).toContain('application/json');
+    expect((await backupDownload.json() as { topics?: unknown[] }).topics).toBeDefined();
     const fullBackupPayload = await (await app.request('/api/backup', {
       headers: { Authorization: `Bearer ${authToken}` },
     })).json() as { data: { publish_packages?: Array<{ topic_id: string; title_simplified: string; title_traditional_auto: boolean }>; todos?: Array<{ topic_id: string; title: string }> } };
@@ -891,5 +897,10 @@ describe('Bun Server Integration (Local SQLite & API)', () => {
     const todayData = await todayFocus.json() as { topics: unknown[]; total_active: number };
     expect(todayData.total_active).toBe(31);
     expect(todayData.topics).toHaveLength(31);
+
+    const topicSummary = await app.request('/api/topics/summary', { headers });
+    const summaryData = await topicSummary.json() as { active_count: number };
+    expect(topicSummary.status).toBe(200);
+    expect(summaryData).toEqual({ active_count: 31 });
   });
 });

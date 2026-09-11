@@ -35,6 +35,7 @@ import type {
   TopicWorkspaceData,
   TopicWorkspaceLoad,
   TodayFocusData,
+  ActiveTopicCount,
   ShareSnapshot,
   PresenceState,
   QuickDropItem,
@@ -44,11 +45,13 @@ import type { PublishedAnalyticsPayload } from './videoAnalytics';
 
 const PENDING_DRAFTS_KEY = 'topic_kanban_pending_drafts_v3';
 const LEGACY_PENDING_DRAFTS_KEY = 'topic_kanban_pending_drafts_v2';
+export const MAX_BACKUP_IMPORT_BYTES = 5 * 1024 * 1024;
 let bootstrapPromise: Promise<BootstrapData> | null = null;
 let bootstrapToken: string | null = null;
 const draftUploadQueues = new Map<string, Promise<Draft>>();
 const knownDraftVersions = new Map<string, number>();
 const knownCitationSignatures = new Map<string, string>();
+let remoteStorageMemoryGeneration = 0;
 
 export interface BackupImportResult {
   success: boolean;
@@ -92,6 +95,15 @@ async function apiRequest<T>(path: string, init: RequestInit = {}): Promise<T> {
   return data as T;
 }
 
+async function apiRequestBlob(path: string, init: RequestInit = {}): Promise<Blob> {
+  const response = await authenticatedFetch(path, init);
+  if (!response.ok) {
+    const data = await response.json().catch(() => null) as { error?: string } | null;
+    throw new Error(data?.error || `请求失败 (${response.status})`);
+  }
+  return response.blob();
+}
+
 function jsonRequest(method: string, body: unknown, keepalive = false): RequestInit {
   return {
     method,
@@ -103,6 +115,19 @@ function jsonRequest(method: string, body: unknown, keepalive = false): RequestI
 
 export function invalidateBootstrap(): void {
   bootstrapPromise = null;
+}
+
+export function clearRemoteStorageMemoryCaches(): void {
+  remoteStorageMemoryGeneration += 1;
+  bootstrapPromise = null;
+  bootstrapToken = null;
+  knownDraftVersions.clear();
+  knownCitationSignatures.clear();
+}
+
+export function clearRemoteStorageTopicCaches(topicId: string): void {
+  knownDraftVersions.delete(topicId);
+  knownCitationSignatures.delete(topicId);
 }
 
 export function fetchBootstrap(scope: 'full' | 'core' = 'full'): Promise<BootstrapData> {
@@ -148,6 +173,10 @@ export function fetchTopicPage(params: TopicPageParams): Promise<PaginatedTopics
 
 export function fetchTodayFocus(): Promise<TodayFocusData> {
   return apiRequest<TodayFocusData>('/api/today/focus');
+}
+
+export function fetchActiveTopicCount(): Promise<ActiveTopicCount> {
+  return apiRequest<ActiveTopicCount>('/api/topics/summary');
 }
 
 export interface CommercialDealPageParams {
@@ -326,17 +355,20 @@ export async function restoreTopic(id: string): Promise<Topic> {
 
 export async function permanentlyDeleteTopic(id: string): Promise<void> {
   await apiRequest(`/api/topics/${encodeURIComponent(id)}/permanent`, { method: 'DELETE' });
+  clearRemoteStorageTopicCaches(id);
   invalidateBootstrap();
 }
 
 export async function permanentlyDeleteTopicsBatch(ids: string[]): Promise<void> {
   if (ids.length === 0) return;
   await apiRequest('/api/topics/batch/permanent', jsonRequest('POST', { ids }));
+  ids.forEach(clearRemoteStorageTopicCaches);
   invalidateBootstrap();
 }
 
 export async function emptyTrash(): Promise<void> {
   await apiRequest('/api/topics/trash/empty', jsonRequest('POST', {}));
+  clearRemoteStorageMemoryCaches();
   invalidateBootstrap();
 }
 
@@ -477,7 +509,7 @@ function clearPendingDraftIfCurrent(draft: Draft): void {
   }
 }
 
-async function uploadDraft(draft: Draft, keepalive = false): Promise<Draft> {
+async function uploadDraft(draft: Draft, keepalive = false, generation = remoteStorageMemoryGeneration): Promise<Draft> {
   try {
     const saved = await apiRequest<Draft>(
       `/api/topics/${encodeURIComponent(draft.topic_id)}/draft`,
@@ -486,23 +518,28 @@ async function uploadDraft(draft: Draft, keepalive = false): Promise<Draft> {
         base_version: knownDraftVersions.get(draft.topic_id) ?? draft.version ?? 0,
       }, keepalive)
     );
-    knownDraftVersions.set(draft.topic_id, saved.version);
+    if (generation === remoteStorageMemoryGeneration) {
+      knownDraftVersions.set(draft.topic_id, saved.version);
+    }
     clearPendingDraftIfCurrent(draft);
     invalidateBootstrap();
     return saved;
   } catch (error) {
     if (error instanceof DraftConflictError) {
-      knownDraftVersions.set(draft.topic_id, error.current?.version || 0);
+      if (generation === remoteStorageMemoryGeneration) {
+        knownDraftVersions.set(draft.topic_id, error.current?.version || 0);
+      }
     }
     throw error;
   }
 }
 
 function enqueueDraftUpload(draft: Draft, keepalive = false): Promise<Draft> {
+  const generation = remoteStorageMemoryGeneration;
   const previous = draftUploadQueues.get(draft.topic_id);
   const upload = previous
-    ? previous.catch(() => undefined).then(() => uploadDraft(draft, keepalive))
-    : uploadDraft(draft, keepalive);
+    ? previous.catch(() => undefined).then(() => uploadDraft(draft, keepalive, generation))
+    : uploadDraft(draft, keepalive, generation);
   draftUploadQueues.set(draft.topic_id, upload);
   void upload.finally(() => {
     if (draftUploadQueues.get(draft.topic_id) === upload) {
@@ -512,8 +549,10 @@ function enqueueDraftUpload(draft: Draft, keepalive = false): Promise<Draft> {
   return upload;
 }
 
-function mergePendingDraft(topicId: string, serverDraft: Draft | null): DraftLoadResult {
-  knownDraftVersions.set(topicId, serverDraft?.version || 0);
+function mergePendingDraft(topicId: string, serverDraft: Draft | null, generation = remoteStorageMemoryGeneration): DraftLoadResult {
+  if (generation === remoteStorageMemoryGeneration) {
+    knownDraftVersions.set(topicId, serverDraft?.version || 0);
+  }
   const pending = readPendingDrafts()[topicId];
   if (pending) {
     if (pending.base_version !== (serverDraft?.version || 0)) {
@@ -528,14 +567,18 @@ function mergePendingDraft(topicId: string, serverDraft: Draft | null): DraftLoa
 }
 
 export async function fetchDraftByTopicId(topicId: string): Promise<DraftLoadResult> {
+  const generation = remoteStorageMemoryGeneration;
   const serverDraft = await apiRequest<Draft | null>(`/api/topics/${encodeURIComponent(topicId)}/draft`);
-  return mergePendingDraft(topicId, serverDraft);
+  return mergePendingDraft(topicId, serverDraft, generation);
 }
 
 export async function fetchTopicWorkspace(topicId: string): Promise<TopicWorkspaceLoad> {
+  const generation = remoteStorageMemoryGeneration;
   const data = await apiRequest<TopicWorkspaceData>(`/api/topics/${encodeURIComponent(topicId)}/workspace`);
-  knownCitationSignatures.set(topicId, data.citations.map((citation) => citation.id).sort().join(','));
-  return { ...data, draft: mergePendingDraft(topicId, data.draft) };
+  if (generation === remoteStorageMemoryGeneration) {
+    knownCitationSignatures.set(topicId, data.citations.map((citation) => citation.id).sort().join(','));
+  }
+  return { ...data, draft: mergePendingDraft(topicId, data.draft, generation) };
 }
 
 export function savePublishPackage(
@@ -569,8 +612,11 @@ export async function resolveDraftRecovery(
 }
 
 export function fetchDraftCitations(topicId: string): Promise<DraftCitation[]> {
+  const generation = remoteStorageMemoryGeneration;
   return apiRequest<DraftCitation[]>(`/api/topics/${encodeURIComponent(topicId)}/citations`).then((citations) => {
-    knownCitationSignatures.set(topicId, citations.map((citation) => citation.id).sort().join(','));
+    if (generation === remoteStorageMemoryGeneration) {
+      knownCitationSignatures.set(topicId, citations.map((citation) => citation.id).sort().join(','));
+    }
     return citations;
   });
 }
@@ -599,13 +645,16 @@ function extractCitationIds(contentJson: string): string[] {
 
 async function syncActiveCitations(topicId: string, contentJson: string): Promise<void> {
   try {
+    const generation = remoteStorageMemoryGeneration;
     const activeIds = extractCitationIds(contentJson);
     const signature = activeIds.join(',');
     if (knownCitationSignatures.get(topicId) === signature) return;
     await apiRequest(`/api/topics/${encodeURIComponent(topicId)}/citations/active`, jsonRequest('PUT', {
       active_ids: activeIds,
     }));
-    knownCitationSignatures.set(topicId, signature);
+    if (generation === remoteStorageMemoryGeneration) {
+      knownCitationSignatures.set(topicId, signature);
+    }
   } catch (error) {
     console.warn('同步活跃引用失败 (不影响正文保存):', error);
   }
@@ -728,9 +777,8 @@ export async function saveSettings(settings: AppSettings): Promise<AppSettings> 
   return saved;
 }
 
-export async function exportBackupData(): Promise<string> {
-  const { data } = await apiRequest<{ data: unknown }>('/api/backup');
-  return JSON.stringify(data, null, 2);
+export async function exportBackupData(): Promise<Blob> {
+  return apiRequestBlob('/api/backup?format=download');
 }
 
 // Convert HTML to clean readable Markdown text for export
@@ -911,8 +959,9 @@ export function exportSingleTopicMarkdown(
   return lines.join('\n');
 }
 
-export async function importBackupData(jsonString: string): Promise<BackupImportResult> {
+export async function importBackupData(input: string | File): Promise<BackupImportResult> {
   try {
+    const jsonString = typeof input === 'string' ? input : await input.text();
     const data = JSON.parse(jsonString) as unknown;
     await apiRequest('/api/backup', jsonRequest('PUT', { data }));
     invalidateBootstrap();

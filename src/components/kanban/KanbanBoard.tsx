@@ -217,6 +217,7 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
         sort: sortBy,
         direction: sortBy === 'sort_order' ? 'asc' : 'desc',
       }),
+      subscribed: true,
       placeholderData: keepPreviousData,
     })),
   });

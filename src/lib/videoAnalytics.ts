@@ -1,4 +1,16 @@
-import { PublishedVideo, Topic } from '../types';
+import type { Person, PublishedVideo, Tag, Topic } from '../types';
+
+export interface AnalyticsTopic {
+  id: string;
+  score_character: number;
+  score_conflict: number;
+  score_contrast: number;
+  score_material: number;
+  score_story: number;
+  draft_word_count?: number;
+  people?: Array<Pick<Person, 'id' | 'name'>>;
+  tags?: Array<Pick<Tag, 'id' | 'name'>>;
+}
 
 export interface VideoDeepMetrics {
   tripleRate: number; // (likes + coins + favorites) / views %
@@ -84,7 +96,7 @@ export interface PublishedAnalyticsPayload {
 
 const roundPercent = (val: number) => Math.round(val * 100) / 100;
 
-export function calculateDeepMetrics(video: PublishedVideo, topic?: Topic | null): VideoDeepMetrics {
+export function calculateDeepMetrics(video: PublishedVideo, topic?: AnalyticsTopic | null): VideoDeepMetrics {
   const views = Math.max(0, video.views || 0);
   const likes = Math.max(0, video.likes || 0);
   const coins = Math.max(0, video.coins || 0);
@@ -144,7 +156,7 @@ export function calculateDeepMetrics(video: PublishedVideo, topic?: Topic | null
   };
 }
 
-export function calculateChannelOverview(videos: PublishedVideo[], topics: Topic[]): ChannelOverviewMetrics {
+export function calculateChannelOverview(videos: PublishedVideo[], topics: AnalyticsTopic[]): ChannelOverviewMetrics {
   const topicMap = new Map(topics.map((t) => [t.id, t]));
 
   if (!videos.length) {
@@ -229,7 +241,7 @@ export function calculateChannelOverview(videos: PublishedVideo[], topics: Topic
   };
 }
 
-export function analyzeTopicModelCorrelation(videos: PublishedVideo[], topics: Topic[]): FiveDModelCorrelation {
+export function analyzeTopicModelCorrelation(videos: PublishedVideo[], topics: AnalyticsTopic[]): FiveDModelCorrelation {
   const topicMap = new Map(topics.map((t) => [t.id, t]));
 
   // Attach topics to videos
@@ -296,7 +308,7 @@ export function analyzeTopicModelCorrelation(videos: PublishedVideo[], topics: T
   };
 }
 
-export function analyzePeoplePerformance(videos: PublishedVideo[], topics: Topic[]): EntityPerformance[] {
+export function analyzePeoplePerformance(videos: PublishedVideo[], topics: AnalyticsTopic[]): EntityPerformance[] {
   const topicMap = new Map(topics.map((t) => [t.id, t]));
   const peopleMap = new Map<
     string,
@@ -370,7 +382,7 @@ export function analyzePeoplePerformance(videos: PublishedVideo[], topics: Topic
     .sort((a, b) => b.totalViews - a.totalViews);
 }
 
-export function analyzeTagPerformance(videos: PublishedVideo[], topics: Topic[]): EntityPerformance[] {
+export function analyzeTagPerformance(videos: PublishedVideo[], topics: AnalyticsTopic[]): EntityPerformance[] {
   const topicMap = new Map(topics.map((t) => [t.id, t]));
   const tagMap = new Map<
     string,
@@ -434,7 +446,7 @@ export function analyzeTagPerformance(videos: PublishedVideo[], topics: Topic[])
     .sort((a, b) => b.totalViews - a.totalViews);
 }
 
-export function generateAnalyticsInsights(videos: PublishedVideo[], topics: Topic[]): AnalyticsInsight[] {
+export function generateAnalyticsInsights(videos: PublishedVideo[], topics: AnalyticsTopic[]): AnalyticsInsight[] {
   const insights: AnalyticsInsight[] = [];
   if (videos.length === 0) return insights;
 

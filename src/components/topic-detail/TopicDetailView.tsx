@@ -130,40 +130,55 @@ export const TopicDetailView: React.FC<TopicDetailViewProps> = ({
   const onTopicMetricsChangeRef = useRef(onTopicMetricsChange);
   onTopicMetricsChangeRef.current = onTopicMetricsChange;
 
+  const sourcesEnabled = activeTab === 'sources' || activeTab === 'script';
+  const timelineEnabled = activeTab === 'timeline' || activeTab === 'script';
+  const draftEnabled = activeTab === 'script';
+  const citationsEnabled = activeTab === 'script';
+  const workspaceEnabled = activeTab === 'publish';
+  const dealsEnabled = activeTab === 'deals';
+  const todosEnabled = activeTab === 'todos';
+
   const sourcesQuery = useQuery({
     queryKey: ['topic-sources', topic.id],
     queryFn: () => fetchSourcesByTopicId(topic.id),
-    enabled: activeTab === 'sources' || activeTab === 'script',
+    enabled: sourcesEnabled,
+    subscribed: sourcesEnabled,
   });
   const timelineQuery = useQuery({
     queryKey: ['topic-timeline', topic.id],
     queryFn: () => fetchTimelineByTopicId(topic.id),
-    enabled: activeTab === 'timeline' || activeTab === 'script',
+    enabled: timelineEnabled,
+    subscribed: timelineEnabled,
   });
   const draftQuery = useQuery({
     queryKey: ['topic-draft', topic.id],
     queryFn: () => fetchDraftByTopicId(topic.id),
-    enabled: activeTab === 'script',
+    enabled: draftEnabled,
+    subscribed: draftEnabled,
   });
   const citationsQuery = useQuery({
     queryKey: ['topic-citations', topic.id],
     queryFn: () => fetchDraftCitations(topic.id),
-    enabled: activeTab === 'script',
+    enabled: citationsEnabled,
+    subscribed: citationsEnabled,
   });
   const workspaceQuery = useQuery({
     queryKey: ['topic-workspace', topic.id],
     queryFn: () => fetchTopicWorkspace(topic.id),
-    enabled: activeTab === 'publish',
+    enabled: workspaceEnabled,
+    subscribed: workspaceEnabled,
   });
   const dealsQuery = useQuery({
     queryKey: ['topic-deals', topic.id],
     queryFn: () => fetchCommercialDealsByTopicId(topic.id),
-    enabled: activeTab === 'deals',
+    enabled: dealsEnabled,
+    subscribed: dealsEnabled,
   });
   const todosQuery = useQuery({
     queryKey: ['topic-todos', topic.id],
     queryFn: () => fetchTopicTodos(topic.id),
-    enabled: activeTab === 'todos',
+    enabled: todosEnabled,
+    subscribed: todosEnabled,
   });
 
   const sources: Source[] = sourcesQuery.data || [];

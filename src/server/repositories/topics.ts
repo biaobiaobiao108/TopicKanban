@@ -85,11 +85,19 @@ export async function loadTodayFocus(db: SqliteDatabase): Promise<{ topics: Topi
     ...(recentResult.results as unknown as Array<{ id: string }>).map((row) => row.id),
     ...(allActiveResult.results as unknown as Array<{ id: string }>).map((row) => row.id),
   ]));
-  const loadedTopics = await Promise.all(orderedIds.map((id) => loadTopic(db, id)));
+  const loadedTopics = await loadTopics(db, 'active');
+  const topicsById = new Map(loadedTopics.map((topic) => [topic.id, topic]));
   return {
-    topics: loadedTopics.filter((topic): topic is Topic => Boolean(topic)),
+    topics: orderedIds.map((id) => topicsById.get(id)).filter((topic): topic is Topic => Boolean(topic)),
     total_active: Number((countResult.results[0] as { count?: number } | undefined)?.count || 0),
   };
+}
+
+export async function loadActiveTopicCount(db: SqliteDatabase): Promise<number> {
+  const result = await db.prepare(
+    "SELECT COUNT(*) AS count FROM topics t WHERE t.deleted_at IS NULL AND t.status NOT IN ('published', 'icebox')"
+  ).first<{ count?: number }>();
+  return Number(result?.count || 0);
 }
 export class TopicNotInTrashError extends Error {}
 export class TopicPinInvalidStateError extends Error {}
