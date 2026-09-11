@@ -63,6 +63,7 @@ export const SourcesTab: React.FC<SourcesTabProps> = ({
   const parseRequestIdRef = useRef(0);
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [isDeleteSelectedModalOpen, setIsDeleteSelectedModalOpen] = useState(false);
+  const [deletingSource, setDeletingSource] = useState<Source | null>(null);
   const { showToast } = useToast();
 
   // Form State
@@ -320,7 +321,8 @@ export const SourcesTab: React.FC<SourcesTabProps> = ({
                     <Edit2 className="w-3.5 h-3.5" />
                   </button>
                   <button
-                    onClick={() => onDeleteSource(s.id)}
+                    type="button"
+                    onClick={() => setDeletingSource(s)}
                     className="p-1 text-stone-400 dark:text-stone-500 hover:text-red-600 dark:hover:text-red-400 rounded-lg hover:bg-red-50 dark:hover:bg-red-950/40 cursor-pointer transition-colors"
                     title="删除素材"
                   >
@@ -639,6 +641,21 @@ export const SourcesTab: React.FC<SourcesTabProps> = ({
         title="批量删除素材资料"
         description={`确定要删除选中的 ${selectedIds.size} 条素材资料吗？此操作无法撤销。`}
         confirmText="批量删除"
+        tone="danger"
+      />
+
+      <ConfirmDialog
+        isOpen={Boolean(deletingSource)}
+        onClose={() => setDeletingSource(null)}
+        onConfirm={async () => {
+          if (!deletingSource) return;
+          await onDeleteSource(deletingSource.id);
+          showToast({ message: `已删除素材「${deletingSource.title}」`, tone: 'info' });
+          setDeletingSource(null);
+        }}
+        title="删除素材资料"
+        description={deletingSource ? `确定要删除素材「${deletingSource.title}」吗？此操作无法撤销。` : ''}
+        confirmText="删除素材"
         tone="danger"
       />
     </div>

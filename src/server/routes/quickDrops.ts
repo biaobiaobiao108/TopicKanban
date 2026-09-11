@@ -62,8 +62,10 @@ export function registerQuickDropRoutes(app: NativeApp): void {
         }
       }));
       items.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
-      if (validIds.length !== listIndex.length) {
-        await c.env.KV.put('quick_drops_index', JSON.stringify(validIds), { expirationTtl: 86400 * 30 });
+      const validIdSet = new Set(validIds);
+      const orderedValidIds = listIndex.filter((id) => validIdSet.has(id));
+      if (orderedValidIds.length !== listIndex.length) {
+        await c.env.KV.put('quick_drops_index', JSON.stringify(orderedValidIds), { expirationTtl: 86400 * 30 });
       }
       return c.json({ items });
     } catch (error) {

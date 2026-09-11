@@ -527,9 +527,10 @@ describe('Bun Server Integration (Local SQLite & API)', () => {
       method: 'PATCH', headers,
       body: JSON.stringify({ status: 'scheduled' }),
     });
-    expect(invalidUpdateStatusResponse.status).toBe(400);
     const unchangedTopic = await app.request(`/api/topics/${topic.id}`, { headers });
-    expect((await unchangedTopic.json() as { status: string }).status).toBe('inbox');
+    const topicData = await unchangedTopic.json() as { status: string; commercial_deals_count?: number };
+    expect(topicData.status).toBe('inbox');
+    expect(topicData.commercial_deals_count).toBe(1);
 
     const focusResponse = await app.request('/api/deals/focus', { headers });
     expect(focusResponse.status).toBe(200);

@@ -1044,7 +1044,6 @@ function WorkspaceApp({ isAuth, setIsAuth }: WorkspaceAppProps) {
               }}
               onSavePerson={handleSavePerson}
               onSaveTag={handleSaveTag}
-              onDeleteTag={handleDeleteTag}
               onDraftWordCountChange={handleDraftWordCountChange}
               onTopicMetricsChange={handleTopicMetricsChange}
               onOpenDeal={handleOpenDeal}

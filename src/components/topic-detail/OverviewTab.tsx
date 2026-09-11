@@ -46,7 +46,6 @@ interface OverviewTabProps {
   allTags: Tag[];
   onSavePerson?: (personData: Partial<Person> & { name: string }) => Promise<Person>;
   onSaveTag?: (tagName: string, color?: string) => Promise<Tag>;
-  onDeleteTag?: (tagId: string) => Promise<void>;
   onOpenCurrentAction: () => void;
   onInjectOutlineIntoDraft?: (outlineHtml: string) => Promise<void>;
   onConvertStorylineToTimeline?: (steps: Array<{ title: string; desc: string }>) => Promise<void>;

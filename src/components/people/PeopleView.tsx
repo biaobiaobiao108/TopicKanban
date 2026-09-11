@@ -53,6 +53,7 @@ export const PeopleView: React.FC<PeopleViewProps> = ({
   const [isPersonModalOpen, setIsPersonModalOpen] = useState(false);
   const [editingPerson, setEditingPerson] = useState<Person | null>(null);
   const [deletingPerson, setDeletingPerson] = useState<Person | null>(null);
+  const [deletingRel, setDeletingRel] = useState<{ id: string; label: string } | null>(null);
 
   const [isRelModalOpen, setIsRelModalOpen] = useState(false);
 
@@ -312,9 +313,18 @@ export const PeopleView: React.FC<PeopleViewProps> = ({
                           return (
                             <span
                               key={r.id}
-                              className="inline-flex items-center text-xs bg-stone-100 dark:bg-stone-800 text-stone-700 dark:text-stone-300 px-2.5 py-0.5 rounded-lg"
+                              className="group inline-flex items-center gap-1 text-xs bg-stone-100 dark:bg-stone-800 text-stone-700 dark:text-stone-300 pl-2.5 pr-1.5 py-0.5 rounded-lg"
                             >
-                              与 {targetName}: {r.relationship}
+                              <span>与 {targetName}: {r.relationship}</span>
+                              <button
+                                type="button"
+                                aria-label={`解除与 ${targetName} 的关系`}
+                                onClick={() => setDeletingRel({ id: r.id, label: `与 ${targetName} 的「${r.relationship}」关系` })}
+                                className="text-stone-400 hover:text-red-600 dark:text-stone-500 dark:hover:text-red-400 p-0.5 rounded transition-colors cursor-pointer"
+                                title="解除此关系"
+                              >
+                                <span className="text-xs leading-none">×</span>
+                              </button>
                             </span>
                           );
                         })}
@@ -592,6 +602,23 @@ export const PeopleView: React.FC<PeopleViewProps> = ({
           title="删除人物档案"
           description={deletingPerson ? `确定要删除人物档案「${deletingPerson.name}」吗？\n\n人物关联关系网将一并解除，但不会影响已写文案内容。` : ''}
           confirmText="删除档案"
+          tone="danger"
+        />
+
+        <ConfirmDialog
+          isOpen={Boolean(deletingRel)}
+          onClose={() => setDeletingRel(null)}
+          onConfirm={async () => {
+            if (!deletingRel) return;
+            await onDeleteRelationship(deletingRel.id);
+            await queryClient.invalidateQueries({ queryKey: ['relationships'] });
+            await queryClient.invalidateQueries({ queryKey: ['workspace'] });
+            showToast({ message: `已解除关系「${deletingRel.label}」`, tone: 'info' });
+            setDeletingRel(null);
+          }}
+          title="解除人物关系"
+          description={deletingRel ? `确定要解除${deletingRel.label}吗？此操作不会删除人物档案。` : ''}
+          confirmText="解除关系"
           tone="danger"
         />
       </div>

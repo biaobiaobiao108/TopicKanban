@@ -52,7 +52,6 @@ interface TopicDetailViewProps {
   onNavigateToPeople: () => void;
   onSavePerson?: (personData: Partial<Person> & { name: string }) => Promise<Person>;
   onSaveTag?: (tagName: string, color?: string) => Promise<Tag>;
-  onDeleteTag?: (tagId: string) => Promise<void>;
   onDraftWordCountChange: (topicId: string, wordCount: number) => void;
   onTopicMetricsChange: (topicId: string, metrics: Partial<Topic>) => void;
   onOpenDeal: (dealId: string) => void;
@@ -83,7 +82,6 @@ export const TopicDetailView: React.FC<TopicDetailViewProps> = ({
   onNavigateToPeople,
   onSavePerson,
   onSaveTag,
-  onDeleteTag,
   onDraftWordCountChange,
   onTopicMetricsChange,
   onOpenDeal,
@@ -559,7 +557,6 @@ export const TopicDetailView: React.FC<TopicDetailViewProps> = ({
               allTags={allTags}
               onSavePerson={onSavePerson}
               onSaveTag={onSaveTag}
-              onDeleteTag={onDeleteTag}
               onOpenCurrentAction={() => setIsActionDialogOpen(true)}
               onInjectOutlineIntoDraft={handleInjectOutlineIntoDraft}
               onConvertStorylineToTimeline={handleConvertStorylineToTimeline}

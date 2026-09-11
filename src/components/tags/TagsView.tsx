@@ -26,6 +26,7 @@ import {
 import { fetchTagsPage, fetchTopicPage } from '../../lib/storage';
 import { PageHeader } from '../layout/PageHeader';
 import { CustomSelect, type SelectOption } from '../ui/CustomSelect';
+import { ConfirmDialog } from '../ui/ConfirmDialog';
 
 interface TagsViewProps {
   tags: Tag[];
@@ -601,35 +602,15 @@ export const TagsView: React.FC<TagsViewProps> = ({
       </Modal>
 
       {/* Modal: Delete Confirm */}
-      <Modal
+      <ConfirmDialog
         isOpen={Boolean(deletingTag)}
         onClose={() => setDeletingTag(null)}
+        onConfirm={handleConfirmDelete}
         title="确认删除此赛道标签？"
-        maxWidth="sm"
-      >
-        <div className="space-y-4">
-          <p className="text-xs sm:text-sm text-stone-600 dark:text-stone-300 leading-relaxed">
-            删除标签 <strong className="text-stone-900 dark:text-stone-100">#{deletingTag?.name}</strong> 将仅移除标签本身，关联选题不会被删除。
-          </p>
-
-          <div className="flex items-center justify-end gap-2.5 pt-3 border-t border-stone-200/70 dark:border-stone-800">
-            <button
-              type="button"
-              onClick={() => setDeletingTag(null)}
-              className="px-4 py-2 text-xs sm:text-sm font-semibold text-stone-600 dark:text-stone-400 hover:bg-stone-100 dark:hover:bg-stone-800 rounded-xl cursor-pointer"
-            >
-              取消
-            </button>
-            <button
-              type="button"
-              onClick={handleConfirmDelete}
-              className="px-5 py-2 text-xs sm:text-sm bg-red-600 hover:bg-red-700 text-white rounded-xl font-bold cursor-pointer transition-all shadow-2xs"
-            >
-              确认删除
-            </button>
-          </div>
-        </div>
-      </Modal>
+        description={deletingTag ? `删除标签「#${deletingTag.name}」将仅移除标签本身，关联选题不会被删除。` : ''}
+        confirmText="确认删除"
+        tone="danger"
+      />
     </div>
   );
 };

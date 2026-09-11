@@ -31,6 +31,8 @@ import {
   SlidersHorizontal,
 } from 'lucide-react';
 import { CustomSelect } from '../ui/CustomSelect';
+import { ConfirmDialog } from '../ui/ConfirmDialog';
+import { useToast } from '../ui/Toast';
 
 const CONTRAST_PRESETS = [
   '荒诞反差',
@@ -230,6 +232,9 @@ export const TimelineTab: React.FC<TimelineTabProps> = ({
     return (saved === 'time_desc' || saved === 'time_asc' || saved === 'custom') ? saved : 'custom';
   });
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  const [deletingEvent, setDeletingEvent] = useState<TimelineEvent | null>(null);
+  const [isDeleteSelectedModalOpen, setIsDeleteSelectedModalOpen] = useState(false);
+  const { showToast } = useToast();
 
   useEffect(() => {
     try {
@@ -408,7 +413,7 @@ export const TimelineTab: React.FC<TimelineTabProps> = ({
             <span>添加节点</span>
           </button>
           {selectedIds.size > 0 && (
-            <button type="button" onClick={() => void deleteSelected()} className="flex items-center gap-1 rounded-xl bg-red-500/10 hover:bg-red-500/20 px-3 py-2 text-xs font-semibold text-red-700 dark:text-red-300 transition-colors cursor-pointer">
+            <button type="button" onClick={() => setIsDeleteSelectedModalOpen(true)} className="flex items-center gap-1 rounded-xl bg-red-500/10 hover:bg-red-500/20 px-3 py-2 text-xs font-semibold text-red-700 dark:text-red-300 transition-colors cursor-pointer">
               <Trash2 className="h-4 w-4" /> 删除选中 ({selectedIds.size})
             </button>
           )}
@@ -432,7 +437,7 @@ export const TimelineTab: React.FC<TimelineTabProps> = ({
                 event={evt}
                 index={idx}
                 onEdit={openEditModal}
-                onDelete={onDeleteEvent}
+                onDelete={() => setDeletingEvent(evt)}
                 selected={selectedIds.has(evt.id)}
                 onToggle={(id) => setSelectedIds((current) => {
                   const next = new Set(current);
@@ -583,6 +588,43 @@ export const TimelineTab: React.FC<TimelineTabProps> = ({
           </div>
         </form>
       </Modal>
+
+      <ConfirmDialog
+        isOpen={Boolean(deletingEvent)}
+        onClose={() => setDeletingEvent(null)}
+        onConfirm={async () => {
+          if (!deletingEvent) return;
+          await onDeleteEvent(deletingEvent.id);
+          setSelectedIds((current) => {
+            const next = new Set(current);
+            next.delete(deletingEvent.id);
+            return next;
+          });
+          showToast({ message: `已删除时间节点「${deletingEvent.title}」`, tone: 'info' });
+          setDeletingEvent(null);
+        }}
+        title="删除时间节点"
+        description={deletingEvent ? `确定要删除时间节点「${deletingEvent.title}」吗？此操作无法撤销。` : ''}
+        confirmText="删除节点"
+        tone="danger"
+      />
+
+      <ConfirmDialog
+        isOpen={isDeleteSelectedModalOpen}
+        onClose={() => setIsDeleteSelectedModalOpen(false)}
+        onConfirm={async () => {
+          const ids = [...selectedIds];
+          await Promise.all(ids.map((id) => onDeleteEvent(id)));
+          const count = ids.length;
+          setSelectedIds(new Set());
+          setIsDeleteSelectedModalOpen(false);
+          showToast({ message: `已批量删除 ${count} 个时间节点`, tone: 'info' });
+        }}
+        title="批量删除时间节点"
+        description={`确定要删除选中的 ${selectedIds.size} 个时间节点吗？此操作无法撤销。`}
+        confirmText="批量删除"
+        tone="danger"
+      />
     </div>
   );
 };
