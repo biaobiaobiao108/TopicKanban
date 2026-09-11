@@ -32,6 +32,7 @@ import {
 } from 'lucide-react';
 import { CitationMark } from './CitationMark';
 import { VoiceoverCueNode } from './VoiceoverCueNode';
+import { ImeMarkdownSafeExtension } from './ImeMarkdownSafeExtension';
 import { getCitationHealth } from '../../lib/citations';
 import { resolvePublicUrl } from '../../lib/publicUrl';
 import { buildStoryStructureDraftHtml } from '../../lib/storyStructure';
@@ -92,21 +93,33 @@ export const LINE_HEIGHT_MAP: Record<EditorLineHeight, string> = {
 const FocusParagraphExtension = Extension.create({
   name: 'focusParagraph',
   addProseMirrorPlugins() {
+    let cachedDecorations = DecorationSet.empty;
     return [
       new Plugin({
         key: new PluginKey('focusParagraphDecoration'),
         props: {
           decorations: (state): any => {
+            // 如果编辑器处于输入法合成过程中，复用缓存避免 DOM 突变破坏合成
+            if ((this.editor?.view as any)?.composing) {
+              return cachedDecorations;
+            }
             const { $from } = state.selection;
-            if ($from.depth < 1) return DecorationSet.empty;
+            if ($from.depth < 1) {
+              cachedDecorations = DecorationSet.empty;
+              return cachedDecorations;
+            }
             const pos = $from.before(1);
             const node = state.doc.nodeAt(pos);
-            if (!node) return DecorationSet.empty;
-            return DecorationSet.create(state.doc, [
+            if (!node) {
+              cachedDecorations = DecorationSet.empty;
+              return cachedDecorations;
+            }
+            cachedDecorations = DecorationSet.create(state.doc, [
               Decoration.node(pos, pos + node.nodeSize, {
                 class: 'is-focused-paragraph',
               }),
             ]);
+            return cachedDecorations;
           },
         },
       }),
@@ -462,6 +475,7 @@ export const ScriptEditorTab: React.FC<ScriptEditorTabProps> = ({
       CitationMark,
       VoiceoverCueNode,
       FocusParagraphExtension,
+      ImeMarkdownSafeExtension,
     ],
     content: initialDraft?.content_html || '<p></p>',
     editorProps: {
