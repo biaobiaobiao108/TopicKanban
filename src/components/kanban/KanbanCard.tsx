@@ -258,10 +258,10 @@ const KanbanCardComponent: React.FC<KanbanCardProps> = ({
         isDragging
           ? 'transition-none will-change-transform opacity-35 scale-[0.98] border-dashed border-rose-400 dark:border-rose-600 bg-rose-50/30 dark:bg-rose-950/20 shadow-none pointer-events-none'
           : sortableDisabled
-            ? 'transition-all duration-200 ease-editorial-out border-stone-200/70 dark:border-stone-800 cursor-default'
-            : 'transition-all duration-200 ease-editorial-out border-stone-200/70 dark:border-stone-800 hover:border-stone-300 dark:hover:border-stone-700 hover:shadow-card-hover hover:-translate-y-1 cursor-grab active:cursor-grabbing'
+            ? 'transition-all duration-200 ease-editorial-out border-stone-200/50 dark:border-stone-800/60 cursor-default'
+            : 'transition-all duration-200 ease-editorial-out border-stone-200/50 dark:border-stone-800/60 hover:border-stone-300/80 dark:hover:border-stone-700 hover:shadow-card-hover hover:-translate-y-0.5 cursor-grab active:cursor-grabbing'
       } ${
-        topic.is_pinned && !isDragging ? 'ring-1 ring-amber-400/40 bg-amber-50/[0.08] dark:bg-amber-950/10' : ''
+        topic.is_pinned && !isDragging ? 'ring-1 ring-amber-400/30 bg-amber-50/[0.06] dark:bg-amber-950/10' : ''
       }`}
     >
       {/* Top row: Priority, Pin & Quick Stage */}

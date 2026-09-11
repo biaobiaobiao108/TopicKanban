@@ -18,10 +18,10 @@ export const PageHeader: React.FC<PageHeaderProps> = ({
 }) => (
   <header
     data-page-header
-    className={`flex flex-col gap-3 border-b border-stone-200/70 pb-4 dark:border-stone-800 sm:flex-row sm:items-center sm:justify-between sm:gap-4 ${className}`}
+    className={`flex flex-col gap-3 pb-2 sm:pb-3 sm:flex-row sm:items-center sm:justify-between sm:gap-4 ${className}`}
   >
     <div className="flex min-w-0 items-center gap-3">
-      <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-rose-500/10 text-rose-600 dark:text-rose-400">
+      <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-rose-500/10 text-rose-600 dark:text-rose-400 ring-1 ring-rose-500/15">
         <Icon className="h-5 w-5" aria-hidden="true" />
       </span>
       <div className="flex min-w-0 flex-wrap items-center gap-2.5">

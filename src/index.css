@@ -345,33 +345,45 @@ html.theme-nordic-frost .script-citation::after {
 
 @layer base {
   :root {
-    --bg-primary: #fafaf9;
+    --bg-primary: #fbfbf9;
     --bg-surface: #ffffff;
+    --bg-sidebar: #fbfbfa;
     --text-primary: #1c1917;
     --text-secondary: #78716c;
-    --border-subtle: #e7e5e4;
+    --border-subtle: #eae8e4;
+    --border-divider: rgba(228, 224, 218, 0.55);
+    --nav-glass-bg: rgba(255, 255, 255, 0.85);
+    --sidebar-glass-bg: rgba(251, 251, 250, 0.88);
     --scrollbar-thumb: #d6d3d1;
     --scrollbar-track: transparent;
     color-scheme: light;
   }
 
   html.theme-warm-paper {
-    --bg-primary: #f6f3ed;
+    --bg-primary: #f7f4ed;
     --bg-surface: #fdfcf9;
+    --bg-sidebar: #f5efe6;
     --text-primary: #2d2b29;
     --text-secondary: #8c857b;
-    --border-subtle: #eae5dc;
+    --border-subtle: #eae3d6;
+    --border-divider: rgba(226, 219, 208, 0.6);
+    --nav-glass-bg: rgba(253, 252, 249, 0.85);
+    --sidebar-glass-bg: rgba(245, 239, 230, 0.88);
     --scrollbar-thumb: #ded6cb;
     --scrollbar-track: transparent;
     color-scheme: light;
   }
 
   html.theme-nordic-frost {
-    --bg-primary: #f8fafb;
+    --bg-primary: #f6faf9;
     --bg-surface: #ffffff;
+    --bg-sidebar: #f0f5f4;
     --text-primary: #1a2424;
     --text-secondary: #5f7474;
-    --border-subtle: #dce5e5;
+    --border-subtle: #dae4e2;
+    --border-divider: rgba(218, 228, 226, 0.6);
+    --nav-glass-bg: rgba(255, 255, 255, 0.85);
+    --sidebar-glass-bg: rgba(240, 245, 244, 0.88);
     --scrollbar-thumb: #c8d8d8;
     --scrollbar-track: transparent;
     color-scheme: light;
@@ -379,11 +391,15 @@ html.theme-nordic-frost .script-citation::after {
 
 
   html.dark {
-    --bg-primary: #0c0a09;
-    --bg-surface: #1c1917;
+    --bg-primary: #12100e;
+    --bg-surface: #1a1715;
+    --bg-sidebar: #151312;
     --text-primary: #f5f5f4;
     --text-secondary: #a8a29e;
-    --border-subtle: #292524;
+    --border-subtle: #2d2825;
+    --border-divider: rgba(55, 49, 45, 0.55);
+    --nav-glass-bg: rgba(26, 23, 21, 0.85);
+    --sidebar-glass-bg: rgba(21, 19, 18, 0.88);
     --scrollbar-thumb: #44403c;
     --scrollbar-track: transparent;
     color-scheme: dark;
@@ -410,6 +426,26 @@ html.theme-nordic-frost .script-citation::after {
     -webkit-tap-highlight-color: transparent;
     transition: background-color 0.15s ease, color 0.15s ease;
   }
+}
+
+/* Modern Fluid Chrome & Glass Surfaces */
+.glass-header {
+  background-color: var(--nav-glass-bg);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border-bottom: 1px solid var(--border-divider);
+  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.015), 0 4px 16px -4px rgba(0, 0, 0, 0.02);
+}
+
+.glass-sidebar {
+  background-color: var(--sidebar-glass-bg);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border-right: 1px solid var(--border-divider);
+}
+
+.border-subtle-divider {
+  border-color: var(--border-divider);
 }
 
 /* Hide scrollbar for tabs on mobile */

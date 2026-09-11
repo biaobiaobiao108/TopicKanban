@@ -40,7 +40,7 @@ function DealFocusCard({ deal, onOpen }: { deal: CommercialDeal; onOpen: () => v
     <button
       type="button"
       onClick={onOpen}
-      className="flex min-h-20 w-full items-center gap-3 rounded-2xl border border-stone-200/70 bg-white p-4 text-left shadow-2xs transition-all hover:-translate-y-0.5 hover:shadow-card dark:border-stone-800 dark:bg-stone-900"
+      className="flex min-h-20 w-full items-center gap-3 rounded-2xl border border-stone-200/50 bg-white p-4 text-left shadow-2xs transition-all hover:-translate-y-0.5 hover:shadow-card dark:border-stone-800/60 dark:bg-stone-900"
     >
       <span className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl ${isUnpaid ? 'bg-amber-500/10 text-amber-600 dark:text-amber-300' : 'bg-rose-500/10 text-rose-600 dark:text-rose-300'}`}>
         {isUnpaid ? <WalletCards className="h-5 w-5" /> : <Handshake className="h-5 w-5" />}
@@ -152,9 +152,9 @@ export const TodayView: React.FC<TodayViewProps> = ({
             <button
               type="button"
               onClick={onOpenQuickCreate}
-              className="inline-flex min-h-12 items-center justify-center gap-2 rounded-xl bg-stone-900 px-4 text-xs font-semibold text-white shadow-2xs transition-all hover:bg-stone-800 hover:shadow-xs dark:bg-rose-600 dark:hover:bg-rose-700 sm:text-sm"
+              className="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl bg-rose-600 hover:bg-rose-700 px-4 text-xs font-semibold text-white shadow-soft-pill hover:shadow-md transition-all active:scale-[0.98] sm:text-sm cursor-pointer"
             >
-              <Sparkles className="h-4 w-4 text-amber-300" aria-hidden="true" />
+              <Sparkles className="h-4 w-4 text-amber-200" aria-hidden="true" />
               <span>记录新灵感</span>
             </button>
           )}
@@ -162,7 +162,7 @@ export const TodayView: React.FC<TodayViewProps> = ({
 
         {/* 1. Spotlight Feature Topic Card (Editorial Hero Spotlight) */}
         {focusTopic ? (
-          <div className="today-spotlight-card relative bg-gradient-to-br from-white via-white to-rose-50/20 dark:from-stone-900 dark:via-stone-900 dark:to-rose-950/20 rounded-3xl border border-stone-200/70 dark:border-stone-800 p-6 sm:p-8 shadow-card ring-1 ring-stone-900/5 dark:ring-white/5 overflow-hidden transition-all">
+          <div className="today-spotlight-card relative bg-gradient-to-br from-white via-white to-rose-50/20 dark:from-stone-900 dark:via-stone-900 dark:to-rose-950/20 rounded-3xl border border-stone-200/50 dark:border-stone-800/60 p-6 sm:p-8 shadow-card ring-1 ring-stone-900/[0.03] dark:ring-white/[0.04] overflow-hidden transition-all">
             {/* Subtle atmospheric glow */}
             <div className="absolute -right-12 -top-12 w-48 h-48 bg-rose-500/5 dark:bg-rose-500/10 rounded-full blur-3xl pointer-events-none" />
 

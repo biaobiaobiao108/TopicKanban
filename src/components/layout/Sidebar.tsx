@@ -45,15 +45,15 @@ export const Sidebar: React.FC<SidebarProps> = ({
   ];
 
   return (
-    <aside className="sidebar-container hidden md:flex w-64 bg-white dark:bg-stone-900 border-r border-stone-200/70 dark:border-stone-800 flex-col h-dvh shrink-0 select-none transition-colors">
+    <aside className="sidebar-container hidden md:flex w-64 glass-sidebar flex-col h-dvh shrink-0 select-none transition-colors">
       {/* Brand Header */}
-      <div className="p-4 border-b border-stone-200/70 dark:border-stone-800">
+      <div className="p-4 pb-3">
         <div className="flex items-center gap-2.5">
-          <div className="sidebar-brand-logo w-8 h-8 rounded-xl flex items-center justify-center overflow-hidden shadow-2xs shrink-0">
+          <div className="sidebar-brand-logo w-8 h-8 rounded-xl flex items-center justify-center overflow-hidden shadow-2xs shrink-0 ring-1 ring-black/5 dark:ring-white/10">
             <img src="/icon.png" alt="工作台 Logo" width={32} height={32} className="w-full h-full object-cover rounded-xl" />
           </div>
           <div>
-            <h1 className="font-bold text-stone-900 dark:text-stone-100 text-[15px] leading-tight">选题生产工作台</h1>
+            <h1 className="font-bold text-stone-900 dark:text-stone-100 text-[15px] tracking-tight leading-tight">选题生产工作台</h1>
           </div>
         </div>
 
@@ -61,27 +61,27 @@ export const Sidebar: React.FC<SidebarProps> = ({
         <div className="mt-3.5 space-y-2">
           <button
             onClick={onOpenQuickCreate}
-            className="w-full flex items-center justify-center gap-2 bg-stone-900 dark:bg-rose-600 hover:bg-stone-800 dark:hover:bg-rose-700 text-white px-3.5 py-2 rounded-xl text-sm font-semibold transition-all shadow-2xs hover:shadow-xs cursor-pointer active:scale-[0.98]"
+            className="w-full flex items-center justify-center gap-2 bg-rose-600 hover:bg-rose-700 text-white px-3.5 py-2 rounded-xl text-sm font-semibold transition-all shadow-soft-pill hover:shadow-md cursor-pointer active:scale-[0.98]"
           >
             <Plus className="w-4 h-4 stroke-[2.5]" />
             <span>新建选题</span>
-            <kbd className="ml-auto text-[11px] bg-stone-700 dark:bg-rose-800/80 text-stone-300 dark:text-rose-100 px-1.5 py-0.5 rounded-md font-mono">N</kbd>
+            <kbd className="ml-auto text-[11px] bg-rose-700/80 dark:bg-rose-800/80 text-rose-100 px-1.5 py-0.5 rounded-md font-mono">N</kbd>
           </button>
 
           <button
             onClick={onOpenCommandPalette}
-            className="w-full flex items-center gap-2 bg-stone-100/70 dark:bg-stone-800/70 hover:bg-stone-100 dark:hover:bg-stone-800 text-stone-600 dark:text-stone-300 px-3 py-1.5 rounded-xl text-xs font-medium border border-stone-200/60 dark:border-stone-700 transition-colors cursor-pointer"
+            className="w-full flex items-center gap-2 bg-stone-200/40 dark:bg-stone-800/50 hover:bg-stone-200/70 dark:hover:bg-stone-800/80 text-stone-600 dark:text-stone-300 px-3 py-1.5 rounded-xl text-xs font-medium border border-stone-200/40 dark:border-stone-700/40 transition-colors cursor-pointer"
           >
-            <Search className="w-3.5 h-3.5 text-stone-400" />
+            <Search className="w-3.5 h-3.5 text-stone-400 dark:text-stone-500" />
             <span>全局搜索与指令</span>
-            <kbd className="ml-auto text-[10px] bg-stone-200/70 dark:bg-stone-700 text-stone-700 dark:text-stone-300 px-1.5 py-0.5 rounded-md font-mono">Ctrl+/</kbd>
+            <kbd className="ml-auto text-[10px] bg-stone-200/60 dark:bg-stone-700/60 text-stone-600 dark:text-stone-300 px-1.5 py-0.5 rounded-md font-mono">Ctrl+/</kbd>
           </button>
         </div>
       </div>
 
       {/* Main Navigation */}
       <nav className="flex-1 p-3 space-y-1 overflow-y-auto">
-        <div className="text-[11px] font-semibold text-stone-600 dark:text-stone-400 px-3 py-1 uppercase tracking-wider">
+        <div className="text-[11px] font-semibold text-stone-400 dark:text-stone-500 px-3 py-1 uppercase tracking-wider">
           工作台模块
         </div>
         {navItems.map((item) => {
@@ -93,18 +93,22 @@ export const Sidebar: React.FC<SidebarProps> = ({
               key={item.id}
               onClick={() => onNavigate(item.id)}
               aria-current={isActive ? 'page' : undefined}
-              className={`w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-sm font-medium transition-all cursor-pointer ${
+              className={`group relative w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-sm font-medium transition-all cursor-pointer ${
                 isActive
-                  ? 'bg-stone-100 dark:bg-stone-800 text-stone-900 dark:text-stone-100 font-bold shadow-2xs'
-                  : 'text-stone-700 dark:text-stone-300 hover:bg-stone-50 dark:hover:bg-stone-800/60 hover:text-stone-900 dark:hover:text-stone-100'
+                  ? 'bg-rose-500/10 dark:bg-rose-950/40 text-rose-900 dark:text-rose-100 font-bold shadow-2xs'
+                  : 'text-stone-600 dark:text-stone-300 hover:bg-stone-200/40 dark:hover:bg-stone-800/50 hover:text-stone-900 dark:hover:text-stone-100'
               }`}
             >
               <div className="flex items-center gap-2.5">
-                <Icon className={`w-4.5 h-4.5 ${isActive ? 'text-rose-600 dark:text-rose-400' : 'text-stone-400 dark:text-stone-500'}`} />
+                <Icon className={`w-4.5 h-4.5 transition-colors ${isActive ? 'text-rose-600 dark:text-rose-400' : 'text-stone-400 dark:text-stone-500 group-hover:text-stone-600 dark:group-hover:text-stone-300'}`} />
                 <span>{item.label}</span>
               </div>
               {typeof item.badge === 'number' && item.badge > 0 && (
-                <span className="text-xs bg-stone-200/80 dark:bg-stone-700 text-stone-700 dark:text-stone-300 px-2 py-0.5 rounded-full font-mono font-bold">
+                <span className={`text-xs px-2 py-0.5 rounded-full font-mono font-bold transition-colors ${
+                  isActive
+                    ? 'bg-rose-600 text-white shadow-2xs'
+                    : 'bg-stone-200/70 dark:bg-stone-800 text-stone-700 dark:text-stone-300'
+                }`}>
                   {item.badge}
                 </span>
               )}
@@ -114,19 +118,19 @@ export const Sidebar: React.FC<SidebarProps> = ({
       </nav>
 
       {/* Footer Info & Logout */}
-      <div className="p-3.5 border-t border-stone-200/70 dark:border-stone-800 bg-stone-50/50 dark:bg-stone-900/50 space-y-2">
-        <div className="flex items-center justify-between text-xs text-stone-600 dark:text-stone-400">
+      <div className="p-3.5 border-t border-stone-200/30 dark:border-stone-800/40 space-y-2">
+        <div className="flex items-center justify-between text-xs text-stone-500 dark:text-stone-400">
           <div className="flex items-center gap-1.5">
             <span className="w-2 h-2 rounded-full bg-emerald-500" />
             <span>存储鉴权已就绪</span>
           </div>
-          <span className="text-[11px] font-mono text-stone-600 dark:text-stone-400">v1.0</span>
+          <span className="text-[11px] font-mono text-stone-400 dark:text-stone-500">v1.0</span>
         </div>
 
         {onLogout && (
           <button
             onClick={onLogout}
-            className="w-full flex items-center gap-1.5 text-xs text-stone-600 dark:text-stone-400 hover:text-red-600 dark:hover:text-red-400 px-2 py-1 rounded-lg hover:bg-red-50/50 dark:hover:bg-red-950/30 transition-colors cursor-pointer"
+            className="w-full flex items-center gap-1.5 text-xs text-stone-500 dark:text-stone-400 hover:text-red-600 dark:hover:text-red-400 px-2 py-1 rounded-lg hover:bg-red-50/50 dark:hover:bg-red-950/30 transition-colors cursor-pointer"
           >
             <LogOut className="w-3.5 h-3.5" />
             <span>退出登录</span>

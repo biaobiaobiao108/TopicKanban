@@ -80,7 +80,7 @@ export const KanbanColumn: React.FC<KanbanColumnProps> = ({
       className={`kanban-column-container w-full min-w-0 rounded-3xl p-3.5 flex flex-col min-h-[220px] border transition-all duration-200 ${
         isOver
           ? 'border-rose-400/80 ring-2 ring-rose-400/30 bg-rose-50/60 dark:bg-rose-950/40 shadow-card'
-          : 'border-stone-200/70 dark:border-stone-800/70 bg-stone-100/60 dark:bg-stone-900/50 hover:bg-stone-100/80 dark:hover:bg-stone-900/70'
+          : 'border-stone-200/45 dark:border-stone-800/50 bg-stone-100/40 dark:bg-stone-900/40 hover:bg-stone-100/60 dark:hover:bg-stone-900/55'
       }`}
     >
       {/* Column Header */}
@@ -88,7 +88,7 @@ export const KanbanColumn: React.FC<KanbanColumnProps> = ({
         <div className="flex items-center gap-2">
           <span className={`w-2.5 h-2.5 rounded-full ${c.dot}`} />
           <h2 className="text-sm font-bold text-stone-800 dark:text-stone-100 tracking-tight">{label}</h2>
-          <span className="kanban-column-count text-xs bg-stone-200/70 dark:bg-stone-800 text-stone-700 dark:text-stone-300 font-bold px-2 py-0.5 rounded-full font-mono tabular-nums">
+          <span className="kanban-column-count text-xs bg-stone-200/60 dark:bg-stone-800/80 text-stone-600 dark:text-stone-300 font-semibold px-2 py-0.5 rounded-full font-mono tabular-nums">
             {totalCount}
           </span>
         </div>
