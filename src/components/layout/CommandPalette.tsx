@@ -218,15 +218,15 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
 
   // 1. Navigation commands
   const allNavCommands = useMemo(() => [
-    { label: '前往 今日生产聚焦', view: 'today' as NavView, icon: Calendar, desc: '推进当前重点选题，减少选择焦虑', keywords: ['今日', '聚焦', 'today', 'focus', '任务'] },
-    { label: '前往 选题全景看板', view: 'kanban' as NavView, icon: Kanban, desc: '4 个活跃阶段 + 2 个归档状态', keywords: ['看板', 'kanban', 'board', '选题看板', '主页'] },
-    { label: '前往 选题日历', view: 'calendar' as NavView, icon: CalendarDays, desc: '月度与周度发片排期、商单交付与生产截止大盘', keywords: ['日历', '选题日历', '排期', '排产', 'calendar', '更文', '排片'] },
-    { label: '前往 标签与创作赛道', view: 'tags' as NavView, icon: Hash, desc: '分类赛道沉淀与选题资产盘点', keywords: ['标签', '赛道', 'tags', 'track', '分类'] },
-    { label: '前往 人物档案库', view: 'people' as NavView, icon: User, desc: '网红与事件当事人关系库', keywords: ['人物', '网红', '档案', 'people', '关系网', '主播'] },
-    { label: '前往 已发布视频复盘', view: 'published' as NavView, icon: Film, desc: '归档成片与 B 站数据沉淀', keywords: ['发布', '复盘', 'published', '成片', '视频', 'bilibili', 'b站'] },
-    { label: '前往 商单中心', view: 'deals' as NavView, icon: Handshake, desc: '管理商务沟通、交付、审核与回款', keywords: ['商单', '商务', '品牌', '客户', '回款', '花火', 'deal'] },
-    { label: '前往 选题库', view: 'database' as NavView, icon: Database, desc: '全量多维数据表格与归档沉淀', keywords: ['选题库', '数据表格', 'database', '表格', '归档'] },
-    { label: '前往 偏好与数据备份', view: 'settings' as NavView, icon: Settings, desc: '语速设置、视觉主题与数据备份', keywords: ['设置', '偏好', '备份', 'settings', '主题', '语速', '导出'] },
+    { label: '前往 今日生产聚焦', view: 'today' as NavView, icon: Calendar, desc: '查看今天的重点选题', keywords: ['今日', '聚焦', 'today', 'focus', '任务'] },
+    { label: '前往 选题全景看板', view: 'kanban' as NavView, icon: Kanban, desc: '按生产阶段管理选题', keywords: ['看板', 'kanban', 'board', '选题看板', '主页'] },
+    { label: '前往 选题日历', view: 'calendar' as NavView, icon: CalendarDays, desc: '查看排期与交付日历', keywords: ['日历', '选题日历', '排期', '排产', 'calendar', '更文', '排片'] },
+    { label: '前往 标签与创作赛道', view: 'tags' as NavView, icon: Hash, desc: '管理赛道与选题标签', keywords: ['标签', '赛道', 'tags', 'track', '分类'] },
+    { label: '前往 人物档案库', view: 'people' as NavView, icon: User, desc: '维护人物与关系档案', keywords: ['人物', '网红', '档案', 'people', '关系网', '主播'] },
+    { label: '前往 已发布视频复盘', view: 'published' as NavView, icon: Film, desc: '复盘已发布视频数据', keywords: ['发布', '复盘', 'published', '成片', '视频', 'bilibili', 'b站'] },
+    { label: '前往 商单中心', view: 'deals' as NavView, icon: Handshake, desc: '管理商务交付与回款', keywords: ['商单', '商务', '品牌', '客户', '回款', '花火', 'deal'] },
+    { label: '前往 选题库', view: 'database' as NavView, icon: Database, desc: '查看全量选题数据', keywords: ['选题库', '数据表格', 'database', '表格', '归档'] },
+    { label: '前往 偏好与数据备份', view: 'settings' as NavView, icon: Settings, desc: '调整偏好与备份数据', keywords: ['设置', '偏好', '备份', 'settings', '主题', '语速', '导出'] },
   ], []);
 
   // 2. Help items
@@ -236,7 +236,7 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
       category: 'help',
       categoryLabel: '全局快捷键',
       title: 'Ctrl / Cmd + /',
-      subtitle: '全局呼出此指令面板（非输入控件聚焦时可用；输入框内不会触发）',
+      subtitle: '打开全局指令搜索面板',
       keywords: ['ctrl+/', 'cmd+/', '快捷键', '搜索', '指令'],
       icon: Keyboard,
       onSelect: () => onClose(),
@@ -246,7 +246,7 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
       category: 'help',
       categoryLabel: '文案与演播',
       title: 'Cmd / Ctrl + Shift + P',
-      subtitle: '全屏沉浸录音提词器（文案编辑页快速进入导播演播模式）',
+      subtitle: '打开沉浸式录音提词器',
       keywords: ['提词器', '录音', 'teleprompter', '演播'],
       icon: Keyboard,
       onSelect: () => onClose(),
@@ -256,7 +256,7 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
       category: 'help',
       categoryLabel: '文案与演播',
       title: 'Cmd / Ctrl + Shift + F',
-      subtitle: '文案编辑专注全屏模式（纯净无干扰沉浸写作）',
+      subtitle: '切换沉浸写作模式',
       keywords: ['专注', '全屏', 'zen', '写作'],
       icon: Keyboard,
       onSelect: () => onClose(),
@@ -266,7 +266,7 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
       category: 'help',
       categoryLabel: '看板操作',
       title: 'N',
-      subtitle: '快速新建选题（非输入状态下直接按 N 键）',
+      subtitle: '快速新建选题',
       keywords: ['新建', 'n', 'new'],
       icon: Keyboard,
       onSelect: () => {
@@ -279,7 +279,7 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
       category: 'help',
       categoryLabel: '看板操作',
       title: '/',
-      subtitle: '快速呼出指令搜索面板（非输入状态下按斜杠键）',
+      subtitle: '打开指令搜索面板',
       keywords: ['/', '斜杠', '搜索'],
       icon: Keyboard,
       onSelect: () => onClose(),
@@ -289,7 +289,7 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
       category: 'help',
       categoryLabel: '通用操作',
       title: 'Esc',
-      subtitle: '关闭当前浮窗、弹窗、气口选单、抽屉或退出专注全屏',
+      subtitle: '关闭浮层或退出沉浸模式',
       keywords: ['esc', '退出', '关闭'],
       icon: Keyboard,
       onSelect: () => onClose(),
@@ -324,7 +324,7 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
           category: 'action',
           categoryLabel: '快捷动作',
           title: `新建选题："${cleanTitle}"`,
-          subtitle: '回车立即打开新建弹窗捕获灵感',
+          subtitle: '回车打开新建弹窗',
           keywords: ['新建', '创建', 'new', 'create', cleanTitle],
           icon: Plus,
           onSelect: () => {
@@ -344,7 +344,7 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
         category: 'action',
         categoryLabel: '快捷动作',
         title: '打开手机灵感快投箱',
-        subtitle: '查看手机快捷指令或 Webhook 投递的碎片灵感',
+        subtitle: '查看手机投递的灵感',
         keywords: ['快投箱', '手机', '灵感', 'drop', 'quick drop', '快捷指令', 'webhook', 'ios'],
         icon: Inbox,
         onSelect: () => {
@@ -359,7 +359,7 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
       category: 'action',
       categoryLabel: '快捷动作',
       title: '新建选题 / 收集灵感',
-      subtitle: '打开新建选题弹窗 (快捷键 N)',
+      subtitle: '打开新建选题弹窗 · 快捷键 N',
       keywords: ['新建', '创建', '灵感', '选题', 'new', 'create', 'n', '+'],
       icon: Plus,
       onSelect: () => {
@@ -374,7 +374,7 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
         category: 'action',
         categoryLabel: '快捷动作',
         title: '下载全量数据备份 (JSON)',
-        subtitle: '导出包含所有选题、人物、赛道与文案的离线备份包',
+        subtitle: '导出选题、人物与文案备份',
         keywords: ['备份', '导出', 'backup', 'json', '下载', '恢复'],
         icon: Download,
         onSelect: () => {
@@ -390,7 +390,7 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
         category: 'action',
         categoryLabel: '快捷动作',
         title: '导出所有文案讲稿 (Markdown)',
-        subtitle: '导出所有已撰写文案的 Markdown 合集压缩归档',
+        subtitle: '导出全部文案 Markdown',
         keywords: ['导出', 'markdown', 'md', '文案', '讲稿', '文档', '解说词'],
         icon: FileText,
         onSelect: () => {
@@ -405,7 +405,7 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
       category: 'action',
       categoryLabel: '快捷动作',
       title: '快捷键与帮助总览',
-      subtitle: '查看全站所有高效创作快捷键清单 (输入 ?)',
+      subtitle: '查看快捷键说明 · 输入 ?',
       keywords: ['帮助', '快捷键', 'help', 'hotkey', '手册', '说明', '?'],
       icon: HelpCircle,
       onSelect: () => {
@@ -467,7 +467,7 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
             category: 'action',
             categoryLabel: '生命周期直达',
             title: '看板筛选：写稿中 (Scripting)',
-            subtitle: '只看正在撰写文案解说的选题',
+            subtitle: '筛选正在写稿的选题',
             keywords: ['写稿中', 'scripting', '写稿', '文案', '筛选'],
             icon: FileText,
             onSelect: () => {
@@ -481,7 +481,7 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
             category: 'action',
             categoryLabel: '生命周期直达',
             title: '看板筛选：待制作 (Production)',
-            subtitle: '只看文案已定稿、等待录音剪辑的选题',
+            subtitle: '筛选待录音剪辑的选题',
             keywords: ['待制作', 'production', '录音', '剪辑', '制作', '筛选'],
             icon: Sparkles,
             onSelect: () => {
@@ -495,7 +495,7 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
             category: 'action',
             categoryLabel: '生命周期直达',
             title: '看板筛选：已立项 (Approved)',
-            subtitle: '只看故事线成立、准备开工的选题',
+            subtitle: '筛选已立项的选题',
             keywords: ['已立项', 'approved', '立项', '开工', '筛选'],
             icon: CheckCircle2,
             onSelect: () => {
@@ -509,7 +509,7 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
             category: 'action',
             categoryLabel: '生命周期直达',
             title: '看板筛选：收集箱 (Inbox)',
-            subtitle: '查看所有处于灵感碎片与线索阶段的选题',
+            subtitle: '筛选收集箱线索',
             keywords: ['收集箱', 'inbox', '灵感', '线索', '筛选'],
             icon: Inbox,
             onSelect: () => {
@@ -933,7 +933,7 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
             return (
               <React.Fragment key={item.id}>
                 {isNewCategory && (
-                  <div className="pt-2.5 pb-1 px-3 text-[10px] font-bold text-stone-500 dark:text-stone-400 uppercase tracking-wider flex items-center justify-between">
+                  <div className="pt-2 pb-0.5 px-3 text-[10px] font-bold text-stone-500 dark:text-stone-400 uppercase tracking-wider flex items-center justify-between">
                     <span>{item.categoryLabel}</span>
                   </div>
                 )}
@@ -941,7 +941,7 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
                   ref={(el) => { itemRefs.current[index] = el; }}
                   onClick={item.onSelect}
                   onMouseEnter={() => setSelectedIndex(index)}
-                  className={`w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-left transition-all cursor-pointer group ${
+                  className={`w-full flex items-center justify-between px-3 py-1.5 rounded-xl text-left transition-all cursor-pointer group ${
                     isSelected
                       ? 'bg-rose-50/70 dark:bg-rose-950/50 text-rose-950 dark:text-rose-100 ring-1 ring-rose-200 dark:ring-rose-800 shadow-2xs'
                       : 'text-stone-700 dark:text-stone-300 hover:bg-stone-50 dark:hover:bg-stone-800/60'
@@ -958,12 +958,17 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
                       <Icon className="w-3.5 h-3.5" />
                     </div>
 
-                    <div className="truncate flex-1 min-w-0">
+                    <div className="min-w-0 flex-1">
                       <div className="flex items-center gap-2">
                         <span className="font-semibold text-stone-900 dark:text-stone-100 text-sm truncate">
                           {item.title}
                         </span>
                       </div>
+                      {item.subtitle && (
+                        <div className="mt-0.5 line-clamp-1 text-[11px] leading-4 text-stone-500 dark:text-stone-400">
+                          {item.subtitle}
+                        </div>
+                      )}
                     </div>
                   </div>
 
