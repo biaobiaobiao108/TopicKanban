@@ -81,7 +81,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
 
       {/* Main Navigation */}
       <nav className="flex-1 p-3 space-y-1 overflow-y-auto">
-        <div className="text-[11px] font-semibold text-stone-600 dark:text-stone-500 px-3 py-1 uppercase tracking-wider">
+        <div className="text-[11px] font-semibold text-stone-600 dark:text-stone-400 px-3 py-1 uppercase tracking-wider">
           工作台模块
         </div>
         {navItems.map((item) => {
@@ -124,7 +124,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
             <span className="w-2 h-2 rounded-full bg-emerald-500" />
             <span>存储鉴权已就绪</span>
           </div>
-          <span className="text-[11px] font-mono text-stone-600 dark:text-stone-500">v1.0</span>
+          <span className="text-[11px] font-mono text-stone-600 dark:text-stone-400">v1.0</span>
         </div>
 
         {onLogout && (

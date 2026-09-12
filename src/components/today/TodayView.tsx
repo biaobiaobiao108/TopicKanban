@@ -399,32 +399,34 @@ export const TodayView: React.FC<TodayViewProps> = ({
             <div data-testid="today-recent-activity-panel" className="today-recent-updates-panel flex min-h-0 flex-1 flex-col overflow-hidden rounded-2xl border border-stone-200/70 bg-white/80 p-4 shadow-2xs dark:border-stone-800 dark:bg-stone-900/80">
               <div data-testid="today-recent-activity-scroll" role="region" tabIndex={0} aria-label="近期活跃轨迹列表" className="today-focus-scroll min-h-0 flex-1 overflow-y-auto divide-y divide-stone-100 dark:divide-stone-800/70">
                 {recentUpdates.map((t) => (
-                  <div
+                  <button
+                    type="button"
                     key={t.id}
                     data-testid="today-recent-activity-item"
+                    aria-label={`打开选题：${t.title}`}
                     onClick={() => onOpenDetail(t.id)}
-                    className="flex cursor-pointer items-center justify-between gap-3 p-3.5 transition-colors hover:bg-stone-50 dark:hover:bg-stone-800/60 group"
+                    className="group flex w-full cursor-pointer items-center justify-between gap-3 p-3.5 text-left transition-colors hover:bg-stone-50 dark:hover:bg-stone-800/60"
                   >
-                    <div className="min-w-0">
-                      <div className="flex items-center gap-2">
+                    <span className="block min-w-0">
+                      <span className="flex items-center gap-2">
                         <span className="truncate text-xs font-semibold text-stone-900 transition-colors group-hover:text-rose-600 dark:text-stone-100 dark:group-hover:text-rose-400">
                           {t.title}
                         </span>
                         <StatusBadge status={t.status} />
-                      </div>
+                      </span>
                       {t.current_todo && (
-                        <p className="mt-0.5 truncate text-xs text-stone-600 dark:text-stone-400">
+                        <span className="mt-0.5 block truncate text-xs text-stone-600 dark:text-stone-400">
                           当前行动: {t.current_todo.title}
-                        </p>
+                        </span>
                       )}
-                    </div>
+                    </span>
 
-                    <div className="shrink-0 text-[11px] text-stone-600 dark:text-stone-400">
+                    <span className="shrink-0 text-[11px] text-stone-600 dark:text-stone-400">
                       <time dateTime={t.updated_at} className="tabular-nums">
                         {new Date(t.updated_at).toLocaleDateString('zh-CN', { month: 'numeric', day: 'numeric' })}
                       </time>
-                    </div>
-                  </div>
+                    </span>
+                  </button>
                 ))}
               </div>
               <div data-testid="today-recent-activity-footer" className="mt-3 shrink-0 border-t border-stone-100 pt-3 text-[11px] text-stone-600 dark:border-stone-800/70 dark:text-stone-400">

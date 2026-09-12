@@ -157,7 +157,18 @@ export const CalendarDateActionModal: React.FC<CalendarDateActionModalProps> = (
                         setSelectedTopicId(topic.id);
                         setDeadlineDate(topic.deadline || '');
                       }}
-                      className={`p-2.5 rounded-xl border transition-all cursor-pointer flex items-center justify-between gap-2 ${
+                      onKeyDown={(event) => {
+                        if (event.key === 'Enter' || event.key === ' ') {
+                          event.preventDefault();
+                          setSelectedTopicId(topic.id);
+                          setDeadlineDate(topic.deadline || '');
+                        }
+                      }}
+                      role="button"
+                      tabIndex={0}
+                      aria-pressed={isSelected}
+                      aria-label={`选择选题：${topic.title}`}
+                      className={`p-2.5 rounded-xl border transition-all cursor-pointer flex items-center justify-between gap-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rose-500/60 ${
                         isSelected
                           ? 'border-rose-500 bg-rose-50/50 dark:bg-rose-950/40 ring-1 ring-rose-500 shadow-2xs'
                           : 'border-stone-200/80 dark:border-stone-800 hover:border-stone-300 dark:hover:border-stone-700'

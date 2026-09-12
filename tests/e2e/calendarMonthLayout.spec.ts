@@ -175,6 +175,14 @@ test('month cells expose hidden event count and open all events', async ({ page 
   expect(cardBounds.cardCount).toBe(3);
   expect(cardBounds.lastCardBottom).toBeLessThanOrEqual(cardBounds.cellBottom + 1);
 
+  const scheduleButton = cell.getByRole('button', { name: '在 2026-08-15 排期定档' });
+  await scheduleButton.focus();
+  await page.keyboard.press('Enter');
+  const scheduleDialog = page.getByRole('dialog');
+  await expect(scheduleDialog).toBeVisible();
+  await page.keyboard.press('Escape');
+  await expect(scheduleDialog).toHaveCount(0);
+
   await overflow.click();
   const dialog = page.getByRole('dialog');
   await expect(dialog).toBeVisible();

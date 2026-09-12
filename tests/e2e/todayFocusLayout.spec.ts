@@ -105,4 +105,10 @@ test('今日聚焦两列保持固定高度，近期轨迹始终展开并在面�
   }));
   expect(scrollState.overflowY).toBe('auto');
   expect(scrollState.scrollHeight).toBeGreaterThan(scrollState.clientHeight);
+
+  const firstRecentItem = page.getByTestId('today-recent-activity-item').first();
+  await expect(firstRecentItem).toHaveAttribute('type', 'button');
+  await firstRecentItem.focus();
+  await page.keyboard.press('Enter');
+  await expect(page).toHaveURL(/\/topics\/e2e-today-layout-\d+$/);
 });

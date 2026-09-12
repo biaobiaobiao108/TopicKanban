@@ -300,20 +300,24 @@ export const TagsView: React.FC<TagsViewProps> = ({
               return (
                 <div
                   key={tag.id}
-                  onClick={() => setSelectedTagId(tag.id)}
                   className={`tag-menu-item group relative flex items-center justify-between p-3 rounded-xl border transition-all cursor-pointer ${
                     isSelected
                       ? 'is-selected bg-rose-500/10 dark:bg-rose-950/40 border-rose-500/20 text-stone-900 dark:text-stone-100 shadow-2xs font-semibold'
                       : 'bg-white dark:bg-stone-900 border-transparent hover:bg-stone-100/70 dark:hover:bg-stone-800/60 text-stone-700 dark:text-stone-300'
                   }`}
                 >
-                  <div className="flex items-center gap-2.5 min-w-0">
+                  <button
+                    type="button"
+                    onClick={() => setSelectedTagId(tag.id)}
+                    aria-pressed={isSelected}
+                    className="flex min-w-0 flex-1 cursor-pointer items-center gap-2.5 rounded-lg text-left outline-none focus-visible:ring-2 focus-visible:ring-rose-500/60"
+                  >
                     <span className={`w-2.5 h-2.5 rounded-full ${colorConf.dot} shrink-0`} />
-                    <div className="truncate">
-                      <div className="text-sm font-bold truncate flex items-center gap-1.5">
+                    <span className="truncate">
+                      <span className="text-sm font-bold truncate flex items-center gap-1.5">
                         <span>#{tag.name}</span>
-                      </div>
-                      <div className="text-[11px] text-stone-400 dark:text-stone-500 flex items-center gap-2 mt-0.5">
+                      </span>
+                      <span className="text-[11px] text-stone-400 dark:text-stone-500 flex items-center gap-2 mt-0.5">
                         <span>{count} 选题</span>
                         {stats && stats.inProgressCount > 0 && (
                           <span className="text-indigo-600 dark:text-indigo-400 font-semibold">{stats.inProgressCount} 写稿</span>
@@ -321,9 +325,9 @@ export const TagsView: React.FC<TagsViewProps> = ({
                         {stats && stats.publishedCount > 0 && (
                           <span className="text-emerald-600 dark:text-emerald-400 font-semibold">{stats.publishedCount} 已发布</span>
                         )}
-                      </div>
-                    </div>
-                  </div>
+                      </span>
+                    </span>
+                  </button>
 
                   {/* Actions & Count Badge */}
                   <div className="flex items-center gap-1 shrink-0">
@@ -470,7 +474,16 @@ export const TagsView: React.FC<TagsViewProps> = ({
                     <div
                       key={topic.id}
                       onClick={() => onSelectTopic(topic.id)}
-                      className="mobile-motion-card min-w-0 bg-white dark:bg-stone-900 rounded-2xl border border-stone-200/70 dark:border-stone-800 p-5 space-y-3 shadow-2xs hover:shadow-card hover:-translate-y-0.5 transition-all cursor-pointer flex flex-col justify-between group"
+                      role="button"
+                      tabIndex={0}
+                      aria-label={`打开选题：${topic.title}`}
+                      onKeyDown={(event) => {
+                        if (event.key === 'Enter' || event.key === ' ') {
+                          event.preventDefault();
+                          onSelectTopic(topic.id);
+                        }
+                      }}
+                      className="mobile-motion-card min-w-0 bg-white dark:bg-stone-900 rounded-2xl border border-stone-200/70 dark:border-stone-800 p-5 space-y-3 shadow-2xs hover:shadow-card hover:-translate-y-0.5 transition-all cursor-pointer flex flex-col justify-between group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rose-500/60"
                     >
                       <div className="space-y-2.5">
                         {/* Status & Priority */}

@@ -67,8 +67,14 @@ function MonthCellDroppable({
       {/* Date header in cell */}
       <div className="flex items-center justify-between gap-1 mb-1">
         <div className="flex min-w-0 items-center gap-1">
-          <span
-            className={`text-xs font-bold font-mono px-1.5 py-0.5 rounded-md ${
+          <button
+            type="button"
+            onClick={(event) => {
+              event.stopPropagation();
+              onDateClick(cell.date);
+            }}
+            aria-label={`在 ${cell.date} 排期定档`}
+            className={`text-xs font-bold font-mono px-1.5 py-0.5 rounded-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rose-500/60 cursor-pointer ${
               cell.isToday
                 ? 'bg-rose-600 text-white shadow-2xs font-extrabold'
                 : cell.isCurrentMonth
@@ -79,7 +85,7 @@ function MonthCellDroppable({
             }`}
           >
             {cell.dayNumber}
-          </span>
+          </button>
 
           {hiddenCount > 0 && (
             <button

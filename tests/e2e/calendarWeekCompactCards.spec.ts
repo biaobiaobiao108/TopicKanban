@@ -292,6 +292,19 @@ test('手机端周视图卡片自动单列且不产生横向溢出', async ({ pa
   expect(layout.cardWidths.every((width) => width > 0 && width < 390)).toBe(true);
 });
 
+test('日历舒展事项卡支持键盘激活', async ({ page }) => {
+  await page.clock.install({ time: '2026-08-28T00:00:00+08:00' });
+  await mockWorkspace(page, { includeCalendarContent: true });
+  await login(page);
+
+  await page.goto('/calendar?view=agenda&date=2026-08-28');
+  const agendaEvent = page.getByRole('button', { name: '打开日历事项：日历返回链路测试选题' });
+  await expect(agendaEvent).toBeVisible();
+  await agendaEvent.focus();
+  await page.keyboard.press('Enter');
+  await expect(page).toHaveURL(/\/topics\/e2e-calendar-topic$/);
+});
+
 test('看板排期与截稿徽标使用一致的语义字体', async ({ page }) => {
   await mockWorkspace(page, { includeCalendarContent: true });
   await login(page);

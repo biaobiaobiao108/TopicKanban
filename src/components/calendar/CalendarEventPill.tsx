@@ -50,12 +50,24 @@ export const CalendarEventPill: React.FC<CalendarEventPillProps> = ({
 }) => {
   const handleClick = (e: React.MouseEvent) => {
     e.stopPropagation();
+    handleOpen();
+  };
+
+  const handleOpen = () => {
     if (event.topicId && onOpenTopic) {
       onOpenTopic(event.topicId);
     } else if (event.dealId && onOpenDeal) {
       onOpenDeal(event.dealId);
     } else if (event.publishedVideoId && onOpenPublished) {
       onOpenPublished();
+    }
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLDivElement>) => {
+    if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault();
+      e.stopPropagation();
+      handleOpen();
     }
   };
 
@@ -151,9 +163,13 @@ export const CalendarEventPill: React.FC<CalendarEventPillProps> = ({
   return (
     <div
       onClick={handleClick}
+      onKeyDown={handleKeyDown}
+      role="button"
+      tabIndex={0}
+      aria-label={`打开日历事项：${event.title}`}
       data-testid="calendar-event"
       data-calendar-event-type={event.type}
-      className={`p-3 rounded-xl border transition-all cursor-pointer shadow-2xs hover:shadow-card hover:-translate-y-0.5 ${
+      className={`p-3 rounded-xl border transition-all cursor-pointer shadow-2xs hover:shadow-card hover:-translate-y-0.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rose-500/60 ${
         event.type === 'planned_publish'
           ? 'bg-rose-500/[0.04] dark:bg-rose-950/20 border-rose-200/70 dark:border-rose-900/40'
           : event.type === 'commercial_deal'

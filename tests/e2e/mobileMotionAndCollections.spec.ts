@@ -202,6 +202,11 @@ test('移动端标签页使用单一选题流和单一滚动上下文', async ({
   ));
   expect(scrollableElements).toBeLessThanOrEqual(1);
   await expectNoViewportOverflow(page);
+
+  const topicCard = page.getByTestId('tags-topic-stream').getByRole('button', { name: '打开选题：已立项选题 1' });
+  await topicCard.focus();
+  await page.keyboard.press('Enter');
+  await expect(page).toHaveURL(/\/topics\/mobile-approved-0$/);
 });
 
 test('移动端长看板阶段栏保持完整高度且不被长列表挤压', async ({ page }) => {
