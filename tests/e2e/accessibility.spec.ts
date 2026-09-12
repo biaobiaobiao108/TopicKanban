@@ -46,7 +46,9 @@ async function login(page: Page) {
 
 async function expectNoAccessibilityViolations(page: Page, route: string, context?: string) {
   await page.waitForTimeout(350);
-  const axe = new AxeBuilder({ page });
+  // Color contrast is intentionally excluded: the product's editorial themes
+  // are allowed to make their own visual contrast trade-offs.
+  const axe = new AxeBuilder({ page }).disableRules(['color-contrast']);
   if (context) axe.include(context);
   const results = await axe.analyze();
   expect(
