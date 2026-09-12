@@ -48,7 +48,7 @@ test('workspace login, keyboard select and modal semantics work', async ({ page 
   await expect(commandInput).toHaveCount(0);
 
   await commandPaletteTrigger.click();
-  await expect(page.getByText('打开新建选题弹窗 · 快捷键 N', { exact: true })).toHaveCount(0);
+  await expect(page.getByText('打开新建选题弹窗 · 快捷键 N', { exact: true })).toBeVisible();
   await page.getByRole('button', { name: '? 快捷键大全' }).click();
   await expect(page.getByRole('button', { name: 'Ctrl / Cmd + /' })).toBeVisible();
   await expect(page.getByText('打开全局指令搜索面板', { exact: true })).toBeVisible();
