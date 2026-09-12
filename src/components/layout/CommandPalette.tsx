@@ -964,12 +964,6 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
                           {item.title}
                         </span>
                       </div>
-
-                      {item.subtitle && (
-                        <div className="text-xs text-stone-600 dark:text-stone-400 group-hover:text-stone-700 dark:group-hover:text-stone-300 truncate mt-0.5 font-normal">
-                          {item.subtitle}
-                        </div>
-                      )}
                     </div>
                   </div>
 

@@ -412,6 +412,12 @@ export const ScriptEditorTab: React.FC<ScriptEditorTabProps> = ({
     localCacheRef.current = onCacheDraftLocally;
   }, [onCacheDraftLocally]);
 
+  // Keep the app shell out of the way while the editor owns the viewport.
+  useEffect(() => {
+    document.documentElement.classList.toggle('script-editor-zen-mode', isZenMode);
+    return () => document.documentElement.classList.remove('script-editor-zen-mode');
+  }, [isZenMode]);
+
   // Ambient Respiration on Zen Mode: wake on mouse movement
   useEffect(() => {
     if (!isZenMode) return;

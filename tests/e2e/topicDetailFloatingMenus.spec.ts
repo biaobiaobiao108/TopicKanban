@@ -221,6 +221,24 @@ test('直接打开选题详情时不再显示独立返回栏', async ({ page }) 
   await expect(page.getByRole('heading', { name: topic.title, exact: true })).toBeVisible();
 });
 
+test('文案沉浸写作模式会隐藏全局顶栏', async ({ page }) => {
+  await mockWorkspace(page);
+  await login(page);
+  await page.goto(`/topics/${topic.id}?tab=script`);
+
+  const enterZenButton = page.getByRole('button', { name: '沉浸写作', exact: true });
+  await expect(enterZenButton).toBeVisible();
+  await enterZenButton.click();
+
+  await expect(page.locator('html')).toHaveClass(/script-editor-zen-mode/);
+  await expect(page.locator('.pwa-navbar')).toBeHidden();
+  await expect(page.getByRole('button', { name: /退出沉浸/ })).toBeVisible();
+
+  await page.keyboard.press('Escape');
+  await expect(page.locator('html')).not.toHaveClass(/script-editor-zen-mode/);
+  await expect(page.locator('.pwa-navbar')).toBeVisible();
+});
+
 test('移动端顶栏、底部阶段菜单和更多菜单均不超出视口', async ({ page }) => {
   await mockWorkspace(page);
   await login(page);

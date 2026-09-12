@@ -1261,6 +1261,12 @@ select:focus {
   view-transition-name: page-content;
 }
 
+/* Zen writing mode owns the viewport, so the global app chrome must not sit above it. */
+html.script-editor-zen-mode .pwa-navbar,
+html.script-editor-zen-mode .pwa-install-banner {
+  display: none !important;
+}
+
 @keyframes vt-fade-in {
   from {
     opacity: 0;
