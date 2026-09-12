@@ -965,7 +965,7 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
                         </span>
                       </div>
                       {item.subtitle && (
-                        <div className="mt-0.5 line-clamp-1 text-[11px] leading-4 text-stone-500 dark:text-stone-400">
+                        <div className="mt-0.5 line-clamp-1 text-[11px] leading-4 text-stone-500/80 dark:text-stone-400/80">
                           {item.subtitle}
                         </div>
                       )}
