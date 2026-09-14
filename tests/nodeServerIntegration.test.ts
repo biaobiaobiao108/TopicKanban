@@ -1,7 +1,5 @@
 import { describe, it, expect, beforeEach, afterEach } from 'bun:test';
 import { Database } from 'bun:sqlite';
-import fs from 'node:fs';
-import path from 'node:path';
 import { createApp } from '../src/server/app';
 import { AppKV } from '../src/server/appKv';
 import { SqliteDatabase } from '../src/server/sqlite';
@@ -15,11 +13,10 @@ describe('Bun Server Integration (Local SQLite & API)', () => {
   const testDropToken = 'test_drop_token';
   const publicBaseUrl = 'https://kanban.example.com';
 
-  beforeEach(() => {
+  beforeEach(async () => {
     sqlite = new Database(':memory:');
     // Load schema
-    const schemaFile = path.resolve(process.cwd(), 'drizzle/0000_schema.sql');
-    const schemaSql = fs.readFileSync(schemaFile, 'utf-8');
+    const schemaSql = await Bun.file('drizzle/0000_schema.sql').text();
     sqlite.exec(schemaSql);
 
     const db = new SqliteDatabase(sqlite);

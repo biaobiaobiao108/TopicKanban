@@ -1,7 +1,5 @@
 import { beforeEach, afterEach, describe, expect, it } from 'bun:test';
 import { Database } from 'bun:sqlite';
-import fs from 'node:fs';
-import path from 'node:path';
 import { createApp } from '../src/server/app';
 import { AppKV } from '../src/server/appKv';
 import { NativeApp } from '../src/server/native';
@@ -15,7 +13,7 @@ describe('Topic Todo API', () => {
 
   beforeEach(async () => {
     sqlite = new Database(':memory:');
-    sqlite.exec(fs.readFileSync(path.resolve(process.cwd(), 'drizzle/0000_schema.sql'), 'utf8'));
+    sqlite.exec(await Bun.file('drizzle/0000_schema.sql').text());
     const db = new SqliteDatabase(sqlite);
     app = createApp({ DB: db, KV: new AppKV(db), APP_PASSWORD: 'todo-test-password' } satisfies ApiBindings);
     const response = await app.request('/api/auth/login', {

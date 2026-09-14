@@ -1,7 +1,5 @@
 import { describe, expect, it } from 'bun:test';
 import { Database } from 'bun:sqlite';
-import fs from 'node:fs';
-import path from 'node:path';
 import type { BackupData } from '../src/types';
 import {
   assertBackupImportWithinLimits,
@@ -63,7 +61,7 @@ describe('backup import limits', () => {
 
   it('rolls back the complete restore when a later write violates a constraint', async () => {
     const sqlite = new Database(':memory:');
-    sqlite.exec(fs.readFileSync(path.resolve(process.cwd(), 'drizzle/0000_schema.sql'), 'utf8'));
+    sqlite.exec(await Bun.file('drizzle/0000_schema.sql').text());
     sqlite.query(`INSERT INTO topics (id, title, created_at, updated_at) VALUES (?, ?, ?, ?)`)
       .run('old-topic', '旧数据', '2026-01-01T00:00:00.000Z', '2026-01-01T00:00:00.000Z');
 

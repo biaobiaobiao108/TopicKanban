@@ -1,10 +1,21 @@
 import { Database } from 'bun:sqlite';
-import fs from 'node:fs';
-import os from 'node:os';
-import path from 'node:path';
+import { joinPath, resolvePath } from '../src/server/bunPaths';
 import { initializeSqliteDatabase } from '../src/server/sqlite';
 
-const schemaSql = fs.readFileSync(path.resolve(process.cwd(), 'drizzle/0000_schema.sql'), 'utf8');
+const schemaSql = await Bun.file(joinPath(process.cwd(), 'drizzle/0000_schema.sql')).text();
+const schemaDir = resolvePath(process.cwd(), 'drizzle');
+
+function temporaryDatabasePath(prefix: string): string {
+  const tempRoot = Bun.env.TMPDIR || Bun.env.TEMP || Bun.env.TMP || process.cwd();
+  return joinPath(tempRoot, `${prefix}-${crypto.randomUUID()}.db`);
+}
+
+async function removeSqliteArtifacts(dbPath: string): Promise<void> {
+  await Promise.all(['', '-wal', '-shm', '-journal'].map(async (suffix) => {
+    const file = Bun.file(`${dbPath}${suffix}`);
+    if (await file.exists()) await file.unlink();
+  }));
+}
 
 describe('Database schema contract', () => {
   it('keeps the single baseline schema aligned with the current business model', () => {
@@ -54,9 +65,8 @@ describe('Database schema contract', () => {
   });
 
   it('initializes a fresh local database from the current baseline schema', async () => {
-    const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'kanban-schema-'));
-    const dbPath = path.join(tempDir, 'fresh.db');
-    const { sqlite } = await initializeSqliteDatabase(dbPath, path.resolve(process.cwd(), 'drizzle'));
+    const dbPath = temporaryDatabasePath('kanban-schema');
+    const { sqlite } = await initializeSqliteDatabase(dbPath, schemaDir);
     try {
       expect(sqlite.query("SELECT name FROM sqlite_master WHERE type = 'table' AND name = 'publish_packages'").get()).not.toBeNull();
       expect(sqlite.query("SELECT name FROM sqlite_master WHERE type = 'table' AND name = 'commercial_deals'").get()).not.toBeNull();
@@ -69,13 +79,12 @@ describe('Database schema contract', () => {
       expect(() => sqlite.query("INSERT INTO commercial_deals (id, title, status, created_at, updated_at) VALUES ('invalid', '非法阶段', 'reviewing', '2026-08-27', '2026-08-27')").run()).toThrow();
     } finally {
       sqlite.close();
-      fs.rmSync(tempDir, { recursive: true, force: true });
+      await removeSqliteArtifacts(dbPath);
     }
   });
 
   it('upgrades a legacy database in place and preserves its current action', async () => {
-    const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'kanban-legacy-schema-'));
-    const dbPath = path.join(tempDir, 'legacy.db');
+    const dbPath = temporaryDatabasePath('kanban-legacy-schema');
     const legacy = new Database(dbPath);
     legacy.exec(`
       PRAGMA foreign_keys = ON;
@@ -109,7 +118,7 @@ describe('Database schema contract', () => {
     `);
     legacy.close();
 
-    const first = await initializeSqliteDatabase(dbPath, path.resolve(process.cwd(), 'drizzle'));
+    const first = await initializeSqliteDatabase(dbPath, schemaDir);
     try {
       expect(first.sqlite.query('PRAGMA user_version').get()).toEqual({ user_version: 1 });
       expect(first.sqlite.query('SELECT target_publish_date, deadline FROM topics WHERE id = ?').get('legacy-topic'))
@@ -124,13 +133,13 @@ describe('Database schema contract', () => {
       first.sqlite.close();
     }
 
-    const second = await initializeSqliteDatabase(dbPath, path.resolve(process.cwd(), 'drizzle'));
+    const second = await initializeSqliteDatabase(dbPath, schemaDir);
     try {
       expect(second.sqlite.query('SELECT COUNT(*) AS count FROM topic_todos WHERE topic_id = ?').get('legacy-topic'))
         .toEqual({ count: 1 });
     } finally {
       second.sqlite.close();
-      fs.rmSync(tempDir, { recursive: true, force: true });
+      await removeSqliteArtifacts(dbPath);
     }
   });
 });

@@ -1,7 +1,6 @@
-import fs from 'node:fs';
-import path from 'node:path';
 import { createApp } from './app';
 import { AppKV } from './appKv';
+import { isPathInside, joinPath, resolvePath } from './bunPaths';
 import { initializeSqliteDatabase } from './sqlite';
 import type { ApiBindings } from './apiShared';
 
@@ -14,8 +13,8 @@ export interface ServerOptions {
 export async function startServer(options: ServerOptions = {}) {
   process.title = 'topickanban';
 
-  const distPath = path.resolve(process.cwd(), 'dist');
-  const hasDist = await Bun.file(path.join(distPath, 'index.html')).exists();
+  const distPath = resolvePath(process.cwd(), 'dist');
+  const hasDist = await Bun.file(joinPath(distPath, 'index.html')).exists();
 
   const isDevelopment = options.development !== undefined
     ? options.development
@@ -23,9 +22,9 @@ export async function startServer(options: ServerOptions = {}) {
   const isProduction = !isDevelopment;
   const defaultPort = 3030;
   const port = options.port ?? (Number(Bun.env.PORT) || defaultPort);
-  const dataDir = Bun.env.DATA_DIR || path.resolve(process.cwd(), 'data');
-  const dbFilePath = path.join(dataDir, 'kanban.db');
-  const schemaDir = path.resolve(process.cwd(), 'drizzle');
+  const dataDir = Bun.env.DATA_DIR || resolvePath(process.cwd(), 'data');
+  const dbFilePath = joinPath(dataDir, 'kanban.db');
+  const schemaDir = resolvePath(process.cwd(), 'drizzle');
 
   console.log(`[Kanban Server] Initializing SQLite database at: ${dbFilePath}`);
   const { db, sqlite } = await initializeSqliteDatabase(dbFilePath, schemaDir);
@@ -80,10 +79,9 @@ export async function startServer(options: ServerOptions = {}) {
   }
 
   function safeAssetPath(relativePath: string): string | null {
-  const root = path.resolve(distPath, 'assets');
-  const candidate = path.resolve(root, relativePath);
-  if (candidate !== root && !candidate.startsWith(`${root}${path.sep}`)) return null;
-  return candidate;
+    const root = resolvePath(distPath, 'assets');
+    const candidate = resolvePath(root, relativePath);
+    return isPathInside(root, candidate) ? candidate : null;
   }
 
   function assetPathFromRequest(request: Request): string | null {
@@ -111,12 +109,11 @@ export async function startServer(options: ServerOptions = {}) {
     };
   }
 
-  const publicDir = path.resolve(process.cwd(), 'public');
+  const publicDir = resolvePath(process.cwd(), 'public');
   const staticRoot = isProduction && hasDist ? distPath : publicDir;
   const staticFiles = new Set(['icon.png', 'apple-touch-icon.png', 'favicon.ico', '_headers']);
   try {
-    const discovered = await fs.promises.readdir(publicDir);
-    for (const file of discovered) {
+    for await (const file of new Bun.Glob('*').scan({ cwd: publicDir, onlyFiles: true, dot: true })) {
       if (file !== 'index.html' && file !== 'server.js' && file !== 'assets') {
         staticFiles.add(file);
       }
@@ -139,7 +136,7 @@ export async function startServer(options: ServerOptions = {}) {
           }
         : {};
     frontendRoutes[`/${fileName}`] = {
-      GET: () => serveFile(path.join(staticRoot, fileName), staticHeaders).then(withSecurityHeaders),
+      GET: () => serveFile(joinPath(staticRoot, fileName), staticHeaders).then(withSecurityHeaders),
     };
   }
 
@@ -160,7 +157,7 @@ export async function startServer(options: ServerOptions = {}) {
       if (!hasDist) {
         return withSecurityHeaders(new Response('Topic Kanban API Server is running. Frontend dist not built yet.'));
       }
-      return withSecurityHeaders(await serveFile(path.join(distPath, 'index.html'), {
+      return withSecurityHeaders(await serveFile(joinPath(distPath, 'index.html'), {
         'Cache-Control': 'no-cache, no-store, must-revalidate',
         Pragma: 'no-cache',
         Expires: '0',

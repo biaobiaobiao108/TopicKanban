@@ -1,6 +1,5 @@
 import { Database } from 'bun:sqlite';
-import fs from 'node:fs';
-import path from 'node:path';
+import { joinPath, resolvePath } from './bunPaths';
 
 export interface SqliteStatement {
   get(...params: unknown[]): unknown;
@@ -275,8 +274,10 @@ function migrateLegacySchema(sqlite: Database): void {
 }
 
 export async function initializeSqliteDatabase(dbFilePath: string, schemaDir?: string): Promise<{ db: SqliteDatabase; sqlite: Database }> {
-  const dir = path.dirname(dbFilePath);
-  if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
+  const dbFile = Bun.file(dbFilePath);
+  if (!(await dbFile.exists())) {
+    await Bun.write(dbFilePath, '', { createPath: true });
+  }
 
   const sqlite = new Database(dbFilePath);
   sqlite.exec(`
@@ -288,9 +289,9 @@ export async function initializeSqliteDatabase(dbFilePath: string, schemaDir?: s
 
   const tableCheck = sqlite.query("SELECT count(*) as count FROM sqlite_master WHERE type='table' AND name='topics'").get() as { count: number };
 
-  const resolvedSchemaDir = schemaDir || path.resolve(process.cwd(), 'drizzle');
+  const resolvedSchemaDir = schemaDir || resolvePath(process.cwd(), 'drizzle');
   if (tableCheck.count === 0) {
-    const schemaFile = path.join(resolvedSchemaDir, '0000_schema.sql');
+    const schemaFile = joinPath(resolvedSchemaDir, '0000_schema.sql');
     const schema = Bun.file(schemaFile);
     if (await schema.exists()) sqlite.exec(await schema.text());
   }

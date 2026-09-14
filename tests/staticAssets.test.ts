@@ -1,6 +1,4 @@
 import { describe, it, expect, afterEach } from 'bun:test';
-import fs from 'node:fs';
-import path from 'node:path';
 import { startServer } from '../src/server/server';
 
 describe('Static Assets Route Serving', () => {
@@ -47,13 +45,12 @@ describe('Static Assets Route Serving', () => {
   });
 
   it('serves dist/index.html on SPA routes when started standalone with built dist', async () => {
-    const distDir = path.resolve(process.cwd(), 'dist');
-    const indexHtmlPath = path.join(distDir, 'index.html');
-    const createdMockDist = !fs.existsSync(indexHtmlPath);
+    const indexHtmlPath = 'dist/index.html';
+    const indexHtmlFile = Bun.file(indexHtmlPath);
+    const createdMockDist = !(await indexHtmlFile.exists());
 
     if (createdMockDist) {
-      fs.mkdirSync(distDir, { recursive: true });
-      fs.writeFileSync(indexHtmlPath, '<!doctype html><html><body><div id="root"></div></body></html>', 'utf8');
+      await Bun.write(indexHtmlPath, '<!doctype html><html><body><div id="root"></div></body></html>', { createPath: true });
     }
 
     try {
@@ -68,10 +65,9 @@ describe('Static Assets Route Serving', () => {
       const html = await res.text();
       expect(html).toContain('<div id="root"></div>');
     } finally {
-      if (createdMockDist && fs.existsSync(indexHtmlPath)) {
-        fs.unlinkSync(indexHtmlPath);
+      if (createdMockDist && await Bun.file(indexHtmlPath).exists()) {
+        await Bun.file(indexHtmlPath).unlink();
       }
     }
   });
 });
-
