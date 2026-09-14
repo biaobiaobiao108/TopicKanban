@@ -48,8 +48,8 @@ html.dark .script-citation {
 }
 
 html.theme-warm-paper .script-citation {
-  background: rgba(107, 95, 181, 0.12);
-  border-bottom-color: rgba(107, 95, 181, 0.65);
+  background: rgba(56, 86, 116, 0.12);
+  border-bottom-color: rgba(56, 86, 116, 0.65);
 }
 
 html.theme-nordic-frost .script-citation {
@@ -83,6 +83,12 @@ html.dark .inline-voiceover-cue {
   border-color: rgba(159, 18, 57, 0.8);
 }
 
+html.theme-warm-paper .inline-voiceover-cue {
+  background-color: rgba(163, 82, 41, 0.1);
+  color: #8c421e;
+  border-color: rgba(163, 82, 41, 0.25);
+}
+
 .script-citation::after {
   content: "〔" attr(data-reference-title) "〕";
   margin-left: 0.2rem;
@@ -97,7 +103,7 @@ html.dark .script-citation::after {
 }
 
 html.theme-warm-paper .script-citation::after {
-  color: #6b5fb5;
+  color: #385674;
 }
 
 html.theme-nordic-frost .script-citation::after {
@@ -361,15 +367,15 @@ html.theme-nordic-frost .script-citation::after {
 
   html.theme-warm-paper {
     --bg-primary: #f7f4ed;
-    --bg-surface: #fdfcf9;
-    --bg-sidebar: #f5efe6;
-    --text-primary: #2d2b29;
-    --text-secondary: #8c857b;
-    --border-subtle: #eae3d6;
-    --border-divider: rgba(226, 219, 208, 0.6);
-    --nav-glass-bg: rgba(253, 252, 249, 0.85);
-    --sidebar-glass-bg: rgba(245, 239, 230, 0.88);
-    --scrollbar-thumb: #ded6cb;
+    --bg-surface: #fdfcf7;
+    --bg-sidebar: #f2ece1;
+    --text-primary: #2d2926;
+    --text-secondary: #7d756c;
+    --border-subtle: #eae2d5;
+    --border-divider: rgba(224, 216, 203, 0.6);
+    --nav-glass-bg: rgba(253, 252, 247, 0.85);
+    --sidebar-glass-bg: rgba(242, 236, 225, 0.88);
+    --scrollbar-thumb: #d8cfc2;
     --scrollbar-track: transparent;
     color-scheme: light;
   }
@@ -605,7 +611,7 @@ html.theme-nordic-frost .script-citation::after {
 }
 
 /* ==========================================================================
-   1. Warm Paper (暖沙纸境) - Morandi Strawberry & Oatmeal Cream System
+   1. Warm Paper (暖沙纸境) - Vintage Caramel Terracotta & Ink Navy System
    ========================================================================== */
 
 /* 1. Main Workspace Canvas */
@@ -614,7 +620,7 @@ html.theme-warm-paper #root,
 html.theme-warm-paper main,
 html.theme-warm-paper .bg-\[\#fafaf9\],
 html.theme-warm-paper .bg-stone-50 {
-  background-color: #faf7f2 !important;
+  background-color: #f7f4ed !important;
 }
 
 /* 2. All Common White Surfaces */
@@ -630,62 +636,62 @@ html.theme-warm-paper .kanban-column-container .bg-white,
 html.theme-warm-paper .today-spotlight-card,
 html.theme-warm-paper .today-priority-item,
 html.theme-warm-paper .today-recent-updates-panel {
-  background-color: #ffffff !important;
-  border-color: #eae3d8 !important;
+  background-color: #fdfcf7 !important;
+  border-color: #eae2d5 !important;
 }
 
 html.theme-warm-paper .kanban-column-container .bg-white,
 html.theme-warm-paper .today-priority-item,
 html.theme-warm-paper .today-spotlight-card {
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03), 0 1px 2px rgba(0, 0, 0, 0.02) !important;
+  box-shadow: 0 1px 3px rgba(60, 45, 30, 0.04), 0 1px 2px rgba(60, 45, 30, 0.02) !important;
 }
 
 html.theme-warm-paper .kanban-column-container .bg-white:hover,
 html.theme-warm-paper .today-priority-item:hover {
-  background-color: #ffffff !important;
-  border-color: #ded6cb !important;
-  box-shadow: 0 4px 12px rgba(60, 45, 30, 0.06) !important;
+  background-color: #fdfcf7 !important;
+  border-color: #dcd2c3 !important;
+  box-shadow: 0 4px 14px rgba(60, 45, 30, 0.07) !important;
 }
 
-/* 3. Kanban Board & 4 Columns */
+/* 3. Kanban Board & 4 Columns (Vintage Book Stages) */
 html.theme-warm-paper .kanban-column-container[data-column-status="inbox"] {
-  background-color: #fbf3ec !important;
-  border-color: #ede0d4 !important;
-  border-top-color: #e8d5c5 !important;
+  background-color: #faf3eb !important;
+  border-color: #ede1d3 !important;
+  border-top-color: #e5d5c3 !important;
 }
 html.theme-warm-paper .kanban-column-container[data-column-status="inbox"] .kanban-column-count {
-  background-color: #f5e4d5 !important;
-  color: #7b471c !important;
+  background-color: #f4e3d1 !important;
+  color: #7f4922 !important;
 }
 
 html.theme-warm-paper .kanban-column-container[data-column-status="approved"] {
-  background-color: #f1f6f2 !important;
-  border-color: #dbe8dc !important;
-  border-top-color: #cce0ce !important;
+  background-color: #f1f5f0 !important;
+  border-color: #dbe6db !important;
+  border-top-color: #cbdecc !important;
 }
 html.theme-warm-paper .kanban-column-container[data-column-status="approved"] .kanban-column-count {
-  background-color: #e2efe4 !important;
-  color: #205630 !important;
+  background-color: #e0ece0 !important;
+  color: #2b5c37 !important;
 }
 
 html.theme-warm-paper .kanban-column-container[data-column-status="scripting"] {
-  background-color: #f5f1f8 !important;
-  border-color: #e5dcee !important;
-  border-top-color: #ded1eb !important;
+  background-color: #f7f4ed !important;
+  border-color: #e8e0d2 !important;
+  border-top-color: #ddd3c2 !important;
 }
 html.theme-warm-paper .kanban-column-container[data-column-status="scripting"] .kanban-column-count {
-  background-color: #ebe2f4 !important;
-  color: #493674 !important;
+  background-color: #ece4d5 !important;
+  color: #614d33 !important;
 }
 
 html.theme-warm-paper .kanban-column-container[data-column-status="production"] {
   background-color: #f0f4f7 !important;
   border-color: #dbe5eb !important;
-  border-top-color: #cde0eb !important;
+  border-top-color: #cde0ec !important;
 }
 html.theme-warm-paper .kanban-column-container[data-column-status="production"] .kanban-column-count {
-  background-color: #e1ecf2 !important;
-  color: #1d4f66 !important;
+  background-color: #dfeaf0 !important;
+  color: #2a526d !important;
 }
 
 /* 4. Subtabs & Scope Navigation */
@@ -693,22 +699,22 @@ html.theme-warm-paper .detail-subtabs-container,
 html.theme-warm-paper .table-scope-tabs-container,
 html.theme-warm-paper .tags-header-banner,
 html.theme-warm-paper .script-editor-canvas-container {
-  background-color: #faf7f2 !important;
-  border-bottom-color: #e3dbd0 !important;
+  background-color: #f7f4ed !important;
+  border-bottom-color: #e2dbce !important;
 }
 
 html.theme-warm-paper .detail-subtabs-container button.border-rose-600,
 html.theme-warm-paper .table-scope-tabs-container button.is-active {
-  background-color: #ffffff !important;
-  border: 1px solid #e2dbd0 !important;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04) !important;
-  color: #1f1c19 !important;
+  background-color: #fdfcf7 !important;
+  border: 1px solid #e0d8cb !important;
+  box-shadow: 0 1px 3px rgba(60, 45, 30, 0.05) !important;
+  color: #24201d !important;
   font-weight: 700 !important;
 }
 
 html.theme-warm-paper .detail-subtabs-container button:not(.border-rose-600) {
   border-color: transparent !important;
-  color: #787066 !important;
+  color: #7d756c !important;
 }
 
 /* 5. Outer Framework */
@@ -722,42 +728,42 @@ html.theme-warm-paper .tags-sidebar-panel,
 html.theme-warm-paper .script-editor-toolbar,
 html.theme-warm-paper .script-reference-drawer,
 html.theme-warm-paper .script-outline-panel {
-  background-color: #f0ebe4 !important;
-  border-color: #e3dbd0 !important;
+  background-color: #f2ece1 !important;
+  border-color: #e5ded2 !important;
 }
 
 html.theme-warm-paper .sidebar-brand-logo,
 html.theme-warm-paper .mobile-fab-create-button {
-  background-color: #de5b6d !important;
-  box-shadow: 0 2px 6px rgba(222, 91, 109, 0.25) !important;
+  background-color: #a35229 !important;
+  box-shadow: 0 2px 8px rgba(163, 82, 41, 0.28) !important;
 }
 
 html.theme-warm-paper aside.sidebar-container nav button.bg-stone-100,
 html.theme-warm-paper aside nav button.bg-stone-100,
 html.theme-warm-paper .mobile-drawer-container nav button.bg-stone-100,
 html.theme-warm-paper .tags-sidebar-panel .tag-menu-item.is-selected {
-  background-color: #ffffff !important;
-  border: 1px solid #e2dbd0 !important;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04) !important;
-  color: #1f1c19 !important;
+  background-color: #fdfcf7 !important;
+  border: 1px solid #e0d8cb !important;
+  box-shadow: 0 1px 3px rgba(60, 45, 30, 0.05) !important;
+  color: #24201d !important;
   font-weight: 700 !important;
 }
 
-/* 6. Primary Action Buttons & CTA */
+/* 6. Primary Action Buttons & CTA (Caramel Terracotta #a35229) */
 html.theme-warm-paper .bg-rose-600,
 html.theme-warm-paper .bg-rose-500,
 html.theme-warm-paper aside.sidebar-container button.bg-stone-900,
 html.theme-warm-paper .mobile-drawer-container button.bg-stone-900 {
-  background-color: #b4233f !important;
+  background-color: #a35229 !important;
   color: #ffffff !important;
 }
 html.theme-warm-paper .hover\:bg-rose-700:hover,
 html.theme-warm-paper aside.sidebar-container button.bg-stone-900:hover,
 html.theme-warm-paper .mobile-drawer-container button.bg-stone-900:hover {
-  background-color: #a61e36 !important;
+  background-color: #8c421e !important;
 }
 html.theme-warm-paper .active\:bg-rose-800:active {
-  background-color: #8f172f !important;
+  background-color: #783516 !important;
 }
 
 /* 7. Accent Highlights, Badges & Next Action */
@@ -766,23 +772,23 @@ html.theme-warm-paper .text-rose-700,
 html.theme-warm-paper .text-rose-500,
 html.theme-warm-paper .text-rose-400,
 html.theme-warm-paper .group-hover\:text-rose-600 {
-  color: #b4233f !important;
+  color: #a35229 !important;
 }
 html.theme-warm-paper .text-rose-900,
 html.theme-warm-paper .text-rose-800 {
-  color: #a82e40 !important;
+  color: #6d2e13 !important;
 }
 html.theme-warm-paper .border-rose-600,
 html.theme-warm-paper .border-rose-500,
 html.theme-warm-paper .border-rose-400 {
-  border-color: #de5b6d !important;
+  border-color: #a35229 !important;
 }
 html.theme-warm-paper .border-rose-300,
 html.theme-warm-paper .border-rose-200,
 html.theme-warm-paper .border-rose-100,
 html.theme-warm-paper .border-rose-200\/60,
 html.theme-warm-paper .border-rose-200\/70 {
-  border-color: rgba(222, 91, 109, 0.25) !important;
+  border-color: rgba(163, 82, 41, 0.25) !important;
 }
 html.theme-warm-paper .bg-rose-50,
 html.theme-warm-paper .bg-rose-100,
@@ -790,25 +796,25 @@ html.theme-warm-paper .bg-rose-50\/60,
 html.theme-warm-paper .bg-rose-50\/70,
 html.theme-warm-paper .bg-rose-50\/80,
 html.theme-warm-paper .bg-rose-100\/60 {
-  background-color: rgba(222, 91, 109, 0.08) !important;
+  background-color: rgba(163, 82, 41, 0.08) !important;
 }
 html.theme-warm-paper .ring-rose-400,
 html.theme-warm-paper .ring-rose-500,
 html.theme-warm-paper .ring-rose-600 {
-  --tw-ring-color: rgba(222, 91, 109, 0.35) !important;
+  --tw-ring-color: rgba(163, 82, 41, 0.35) !important;
 }
 html.theme-warm-paper .accent-rose-600 {
-  accent-color: #de5b6d !important;
+  accent-color: #a35229 !important;
 }
 html.theme-warm-paper .fill-rose-600,
 html.theme-warm-paper .fill-rose-400 {
-  fill: #de5b6d !important;
+  fill: #a35229 !important;
 }
 
 /* 8. Controls & Modals */
 html.theme-warm-paper .shadow-modal {
-  background-color: #ffffff !important;
-  border: 1px solid #e3dbd0 !important;
+  background-color: #fdfcf7 !important;
+  border: 1px solid #e5ded2 !important;
   box-shadow: 0 20px 35px -5px rgba(60, 45, 30, 0.12), 0 8px 12px -6px rgba(60, 45, 30, 0.06) !important;
 }
 html.theme-warm-paper input[type="text"],
@@ -816,9 +822,9 @@ html.theme-warm-paper input[type="number"],
 html.theme-warm-paper input[type="search"],
 html.theme-warm-paper textarea,
 html.theme-warm-paper select {
-  background-color: #ffffff !important;
-  border-color: #e2dbd0 !important;
-  color: #1f1c19 !important;
+  background-color: #fdfcf7 !important;
+  border-color: #e2dbce !important;
+  color: #24201d !important;
 }
 html.theme-warm-paper input[type="text"]:focus,
 html.theme-warm-paper input[type="number"]:focus,
@@ -829,13 +835,13 @@ html.theme-warm-paper select:focus {
   box-shadow: 0 0 0 2px color-mix(in oklab, var(--command-palette-focus) 22%, transparent) !important;
 }
 html.theme-warm-paper input[type="checkbox"]:checked {
-  background-color: #4d8b61 !important;
-  border-color: #4d8b61 !important;
+  background-color: #a35229 !important;
+  border-color: #a35229 !important;
 }
 
 /* 9. TipTap & Scrollbars */
-html.theme-warm-paper ::-webkit-scrollbar-thumb { background: #d6cfc4; }
-html.theme-warm-paper ::-webkit-scrollbar-thumb:hover { background: #beb6ab; }
+html.theme-warm-paper ::-webkit-scrollbar-thumb { background: #d8cfc2; }
+html.theme-warm-paper ::-webkit-scrollbar-thumb:hover { background: #c2b7a6; }
 
 
 /* ==========================================================================
@@ -1082,7 +1088,7 @@ html.dark {
 }
 
 html.theme-warm-paper {
-  --command-palette-focus: #de5b6d;
+  --command-palette-focus: #a35229;
 }
 
 html.theme-nordic-frost {

@@ -91,8 +91,8 @@ export const THEME_CONFIG_LIST: ThemeConfig[] = [
   {
     id: 'warm_paper',
     title: '暖沙纸境',
-    desc: '温润燕麦暖纸与莫兰迪暖红，治愈护眼书卷手感',
-    colors: ['#faf7f2', '#f0ebe4', '#de5b6d', '#6b5fb5'],
+    desc: '温润燕麦暖纸与复古焦糖陶木，护眼书卷手感',
+    colors: ['#f7f4ed', '#fdfcf7', '#a35229', '#385674'],
   },
   {
     id: 'light',
