@@ -304,6 +304,7 @@ export class NativeApp {
       || requestIp
       || 'unknown';
     const context = new NativeContext(request, { ...this.env, CLIENT_IP: clientIp });
+    context.header('Cache-Control', 'no-store');
     const routeHandlers = [...this.middlewares, ...match.route.handlers];
     let index = -1;
     const next = async (nextIndex: number): Promise<Response> => {

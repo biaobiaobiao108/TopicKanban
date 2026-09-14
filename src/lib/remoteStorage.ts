@@ -49,8 +49,55 @@ export const MAX_BACKUP_IMPORT_BYTES = 5 * 1024 * 1024;
 let bootstrapPromise: Promise<BootstrapData> | null = null;
 let bootstrapToken: string | null = null;
 const draftUploadQueues = new Map<string, Promise<Draft>>();
-const knownDraftVersions = new Map<string, number>();
-const knownCitationSignatures = new Map<string, string>();
+
+class BoundedMemoryCache<K, V> {
+  private readonly entries = new Map<K, { value: V; expiresAt: number }>();
+
+  constructor(private readonly maxEntries: number, private readonly ttlMs: number) {}
+
+  private prune(now = Date.now()): void {
+    for (const [key, entry] of this.entries) {
+      if (entry.expiresAt <= now) this.entries.delete(key);
+    }
+    while (this.entries.size > this.maxEntries) {
+      const oldestKey = this.entries.keys().next().value as K | undefined;
+      if (oldestKey === undefined) break;
+      this.entries.delete(oldestKey);
+    }
+  }
+
+  get(key: K): V | undefined {
+    const entry = this.entries.get(key);
+    if (!entry || entry.expiresAt <= Date.now()) {
+      if (entry) this.entries.delete(key);
+      return undefined;
+    }
+    this.entries.delete(key);
+    this.entries.set(key, entry);
+    return entry.value;
+  }
+
+  set(key: K, value: V): void {
+    const now = Date.now();
+    this.prune(now);
+    this.entries.delete(key);
+    this.entries.set(key, { value, expiresAt: now + this.ttlMs });
+    this.prune(now);
+  }
+
+  delete(key: K): void {
+    this.entries.delete(key);
+  }
+
+  clear(): void {
+    this.entries.clear();
+  }
+}
+
+const KNOWN_STATE_CACHE_MAX_ENTRIES = 256;
+const KNOWN_STATE_CACHE_TTL_MS = 30 * 60 * 1000;
+const knownDraftVersions = new BoundedMemoryCache<string, number>(KNOWN_STATE_CACHE_MAX_ENTRIES, KNOWN_STATE_CACHE_TTL_MS);
+const knownCitationSignatures = new BoundedMemoryCache<string, string>(KNOWN_STATE_CACHE_MAX_ENTRIES, KNOWN_STATE_CACHE_TTL_MS);
 let remoteStorageMemoryGeneration = 0;
 
 export interface BackupImportResult {

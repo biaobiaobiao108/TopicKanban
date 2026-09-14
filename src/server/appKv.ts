@@ -99,6 +99,26 @@ export class AppKV {
     this.deleteStmt.run(key);
   }
 
+  async updateQuickDropsIndex(update: (ids: string[]) => string[]): Promise<string[]> {
+    const save = this.db.sqlite.transaction(() => {
+      const row = this.getStmt.get('quick_drops_index') as KvRow | undefined;
+      let current: string[] = [];
+      if (row && (!row.expires_at || row.expires_at > Date.now())) {
+        try {
+          const parsed = JSON.parse(row.value);
+          if (Array.isArray(parsed)) current = parsed.filter((id): id is string => typeof id === 'string');
+        } catch {
+          current = [];
+        }
+      }
+      const next = update([...current]);
+      const normalized = Array.from(new Set(next.filter((id): id is string => typeof id === 'string' && id.length > 0))).slice(0, 100);
+      this.putStmt.run('quick_drops_index', JSON.stringify(normalized), Date.now() + 86400 * 30 * 1000);
+      return normalized;
+    });
+    return save();
+  }
+
   async replaceTopicShare(topicId: string, token: string, value: string, expirationTtl: number): Promise<void> {
     const expiresAt = Date.now() + expirationTtl * 1000;
     const replace = this.db.sqlite.transaction(() => {

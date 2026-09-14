@@ -1,7 +1,7 @@
 import type { PaginatedPublishedVideos, PublishedVideo, Topic } from '../../types';
 import type { SqliteDatabase, SqlitePreparedStatement } from '../sqlite';
 import { bind } from './shared';
-import { loadTopic } from './topics';
+import { loadTopicBatch } from './topics';
 import {
   analyzePeoplePerformance,
   analyzeTagPerformance,
@@ -19,17 +19,30 @@ interface PageOptions {
   query?: string;
 }
 
-async function loadAnalyticsTopics(db: SqliteDatabase): Promise<AnalyticsTopic[]> {
+async function loadAnalyticsTopics(
+  db: SqliteDatabase,
+  range: 'all' | '90d' | 'year',
+  cutoff?: string,
+): Promise<AnalyticsTopic[]> {
+  const eligibility = {
+    sql: `t.deleted_at IS NULL AND EXISTS (
+      SELECT 1 FROM published_videos av
+      WHERE av.topic_id = t.id${range === 'all' ? '' : ' AND av.published_at >= ?'}
+    )`,
+    values: (range === 'all' ? [] : [cutoff]) as unknown[],
+  };
   const [topicResult, peopleResult, tagResult] = await db.batch([
-    db.prepare(`SELECT id, score_character, score_conflict, score_contrast, score_material, score_story,
+    db.prepare(`SELECT t.id, t.score_character, t.score_conflict, t.score_contrast, t.score_material, t.score_story,
       COALESCE((SELECT word_count FROM drafts d WHERE d.topic_id = t.id LIMIT 1), 0) AS draft_word_count
-      FROM topics t WHERE t.deleted_at IS NULL`),
+      FROM topics t WHERE ${eligibility.sql}`).bind(...eligibility.values),
     db.prepare(`SELECT tp.topic_id, p.id, p.name
       FROM topic_people tp INNER JOIN people p ON p.id = tp.person_id
-      INNER JOIN topics t ON t.id = tp.topic_id AND t.deleted_at IS NULL`),
+      INNER JOIN topics t ON t.id = tp.topic_id
+      WHERE ${eligibility.sql}`).bind(...eligibility.values),
     db.prepare(`SELECT tt.topic_id, tg.id, tg.name
       FROM topic_tags tt INNER JOIN tags tg ON tg.id = tt.tag_id
-      INNER JOIN topics t ON t.id = tt.topic_id AND t.deleted_at IS NULL`),
+      INNER JOIN topics t ON t.id = tt.topic_id
+      WHERE ${eligibility.sql}`).bind(...eligibility.values),
   ]);
   const peopleByTopic = new Map<string, Array<{ id: string; name: string }>>();
   const tagsByTopic = new Map<string, Array<{ id: string; name: string }>>();
@@ -74,24 +87,25 @@ export async function loadPublishedAnalytics(
   db: SqliteDatabase,
   options: PageOptions & { range: 'all' | '90d' | 'year' },
 ): Promise<PublishedAnalyticsPayload> {
-  const result = await db.prepare(`SELECT v.*, t.title AS topic_title
+  const cutoffDate = options.range === 'all' ? null : new Date();
+  if (cutoffDate) cutoffDate.setDate(cutoffDate.getDate() - (options.range === '90d' ? 90 : 365));
+  const cutoff = cutoffDate?.toISOString();
+  const videoFilter = cutoff ? 'WHERE v.published_at >= ?' : '';
+  const result = await db.prepare(`SELECT v.id, v.topic_id, v.title, v.published_at,
+      v.views, v.likes, v.coins, v.favorites, v.comments
     FROM published_videos v
-    LEFT JOIN topics t ON t.id = v.topic_id
-    ORDER BY v.published_at DESC, v.updated_at DESC, v.id DESC`).all<PublishedVideo>();
-  const allVideos = result.results || [];
-  const topics = await loadAnalyticsTopics(db);
-  const filteredVideos = options.range === 'all'
-    ? allVideos
-    : (() => {
-      const cutoff = new Date();
-      cutoff.setDate(cutoff.getDate() - (options.range === '90d' ? 90 : 365));
-      return allVideos.filter((video) => {
-        const publishedAt = video.published_at ? new Date(video.published_at) : null;
-        return publishedAt && !Number.isNaN(publishedAt.getTime()) && publishedAt >= cutoff;
-      });
-    })();
+    ${videoFilter}
+    ORDER BY v.published_at DESC, v.updated_at DESC, v.id DESC`).bind(...(cutoff ? [cutoff] : [])).all<PublishedVideo>();
+  const queriedVideos = result.results || [];
+  const allVideos = cutoffDate
+    ? queriedVideos.filter((video) => {
+      const publishedAt = video.published_at ? new Date(video.published_at) : null;
+      return publishedAt && !Number.isNaN(publishedAt.getTime()) && publishedAt >= cutoffDate;
+    })
+    : queriedVideos;
+  const topics = await loadAnalyticsTopics(db, options.range, cutoff);
   const topicMap = new Map(topics.map((topic) => [topic.id, topic]));
-  const ranking = filteredVideos
+  const ranking = allVideos
     .map((video) => {
       const topic = video.topic_id ? topicMap.get(video.topic_id) || null : null;
       return {
@@ -107,18 +121,38 @@ export async function loadPublishedAnalytics(
   const offset = (options.page - 1) * options.pageSize;
   const pageRanking = ranking.slice(offset, offset + options.pageSize);
   const fullTopicIds = Array.from(new Set(pageRanking.map((row) => row.topic?.id).filter((id): id is string => Boolean(id))));
-  const fullTopics = await Promise.all(fullTopicIds.map((id) => loadTopic(db, id)));
-  const fullTopicMap = new Map(fullTopics.filter((topic): topic is Topic => Boolean(topic)).map((topic) => [topic.id, topic]));
+  const overview = calculateChannelOverview(allVideos, topics);
+  const fullVideoIds = Array.from(new Set([
+    ...pageRanking.map((row) => row.video.id),
+    overview.topViewedVideo?.id,
+    overview.topCoinedVideo?.id,
+  ].filter((id): id is string => Boolean(id))));
+  const [fullTopics, fullVideoResult] = await Promise.all([
+    loadTopicBatch(db, fullTopicIds),
+    fullVideoIds.length > 0
+      ? bind(db, `SELECT v.*, t.title AS topic_title
+        FROM published_videos v LEFT JOIN topics t ON t.id = v.topic_id
+        WHERE v.id IN (${fullVideoIds.map(() => '?').join(',')})`, fullVideoIds).all<PublishedVideo>()
+      : Promise.resolve({ results: [] as PublishedVideo[] }),
+  ]);
+  const fullTopicMap = new Map(fullTopics.map((topic) => [topic.id, topic]));
+  const fullVideoMap = new Map(fullVideoResult.results.map((video) => [video.id, video]));
+  const completeOverview = {
+    ...overview,
+    topViewedVideo: overview.topViewedVideo ? fullVideoMap.get(overview.topViewedVideo.id) || overview.topViewedVideo : null,
+    topCoinedVideo: overview.topCoinedVideo ? fullVideoMap.get(overview.topCoinedVideo.id) || overview.topCoinedVideo : null,
+  };
 
   return {
-    totalVideos: filteredVideos.length,
-    overview: calculateChannelOverview(filteredVideos, topics),
-    correlation: analyzeTopicModelCorrelation(filteredVideos, topics),
-    people: analyzePeoplePerformance(filteredVideos, topics),
-    tags: analyzeTagPerformance(filteredVideos, topics),
-    insights: generateAnalyticsInsights(filteredVideos, topics),
+    totalVideos: allVideos.length,
+    overview: completeOverview,
+    correlation: analyzeTopicModelCorrelation(allVideos, topics),
+    people: analyzePeoplePerformance(allVideos, topics),
+    tags: analyzeTagPerformance(allVideos, topics),
+    insights: generateAnalyticsInsights(allVideos, topics),
     ranking: pageRanking.map((row) => ({
       ...row,
+      video: fullVideoMap.get(row.video.id) || row.video,
       topic: row.topic ? fullTopicMap.get(row.topic.id) || null : null,
     })),
     ranking_total: ranking.length,

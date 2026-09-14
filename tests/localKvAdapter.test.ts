@@ -56,4 +56,14 @@ describe('AppKV (SQLite)', () => {
     expect(listRes.keys.length).toBe(2);
     expect(listRes.keys.map((k) => k.name)).toEqual(['drop:1', 'drop:2']);
   });
+
+  it('updates the quick-drop index transactionally and keeps every entry', async () => {
+    await Promise.all(Array.from({ length: 20 }, (_, index) => (
+      kv.updateQuickDropsIndex((ids) => [`drop-${index}`, ...ids])
+    )));
+
+    const index = await kv.get<string[]>('quick_drops_index', 'json');
+    expect(index).toHaveLength(20);
+    expect(new Set(index)).toEqual(new Set(Array.from({ length: 20 }, (_, item) => `drop-${item}`)));
+  });
 });

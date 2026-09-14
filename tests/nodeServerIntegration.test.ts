@@ -815,6 +815,13 @@ describe('Bun Server Integration (Local SQLite & API)', () => {
       topicIds.push(topic.id);
       // Soft delete it
       await app.request(`/api/topics/${topic.id}`, { method: 'DELETE', headers });
+      if (i === 0) {
+        sqlite.query('INSERT INTO _kv_store (key, value, expires_at) VALUES (?, ?, ?)').run(
+          'share:stale-before-permanent-delete',
+          JSON.stringify({ topic_id: topic.id, token: 'stale-before-permanent-delete' }),
+          Date.now() + 86_400_000,
+        );
+      }
     }
 
     // Permanently delete all 30 topics in batch
@@ -832,6 +839,7 @@ describe('Bun Server Integration (Local SQLite & API)', () => {
     const trashRes = await app.request('/api/topics/trash', { headers });
     const trashList = await trashRes.json() as unknown[];
     expect(trashList.length).toBe(0);
+    expect((await app.request('/api/public/share/stale-before-permanent-delete')).status).toBe(404);
   });
 
   it('rolls back every permanent deletion when a later topic fails', async () => {

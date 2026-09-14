@@ -111,7 +111,7 @@ bun run test:e2e
 | **服务端与校验** | Bun 原生 HTTP Server + Zod 4 声明式校验管道 + 按领域组织的原生路由 | `app.ts` 负责组合，`schemas.ts` 统一契约校验，`routes/` 负责 HTTP 行为，`repositories/` 负责 SQLite 持久化 |
 | **主业务持久库** | SQLite (`bun:sqlite` + WAL) | 选题、素材、时间线、人物、文案、发布包、商单等业务表 |
 | **键值与临时库** | SQLite `_kv_store` 表 | 全局偏好、审稿快照、在线锁、快投箱 |
-| **测试与构建** | Bun (`bun test` + `Bun.build()`) | 124 项全量测试，前后端统一构建 |
+| **测试与构建** | Bun (`bun test` + `Bun.build()`) | 142 项单元与集成测试、58 项 E2E，前后端统一构建 |
 
 ---
 
@@ -240,7 +240,7 @@ bun install
 # 2. 启动本地全栈开发环境 (Bun HTML Bundler + Bun API，3030 端口)
 bun run dev
 
-# 3. 运行全量自动化测试套件 (114 项单元与集成测试)
+# 3. 运行全量自动化测试套件 (142 项单元与集成测试)
 bun test
 
 # 4. 运行 Playwright E2E（Playwright CLI 使用 Bun 运行时）
@@ -321,7 +321,7 @@ kanban/
 │   ├── types/index.ts                   # 领域模型与 TypeScript 契约
 │   ├── App.tsx                          # 路由分发入口
 │   └── main.tsx                         # DOM 挂载入口
-├── tests/                               # 114 项 bun:test 自动化单元与集成测试套件
+├── tests/                               # 142 项 bun:test 自动化单元与集成测试套件
 ├── docs/                                # GitHub Pages 静态展示落地页与文档
 │   ├── index.html                       # 独立产品落地页 (含交互沙盒与现代化动画)
 │   ├── icon.png                         # 落地页高清应用图标

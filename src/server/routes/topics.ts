@@ -25,8 +25,13 @@ import {
   setTopicPinned,
   softDeleteTopic,
   TopicNotInTrashError,
+  ensureTopicsInTrash,
   updateTopic,
 } from '../repositories';
+
+async function revokeTopicShares(env: { KV: { deleteTopicShares: (topicId: string) => Promise<number> } }, ids: string[]): Promise<void> {
+  for (const id of ids) await env.KV.deleteTopicShares(id);
+}
 
 export function registerTopicRoutes(app: NativeApp): void {
   app.get('/topics', async (c) => {
@@ -156,7 +161,10 @@ export function registerTopicRoutes(app: NativeApp): void {
 
   app.delete('/topics/:id', async (c) => {
     try {
-      await softDeleteTopic(requireDb(c), c.req.param('id'));
+      const topicId = c.req.param('id');
+      // 先撤销外部快照，确保删除失败时不会留下仍可访问的审稿链接。
+      await revokeTopicShares(c.env, [topicId]);
+      await softDeleteTopic(requireDb(c), topicId);
       return c.json({ success: true });
     } catch (error) {
       return jsonError(c, error);
@@ -177,7 +185,11 @@ export function registerTopicRoutes(app: NativeApp): void {
 
   app.delete('/topics/:id/permanent', async (c) => {
     try {
-      await permanentlyDeleteTrashedTopics(requireDb(c), [c.req.param('id')]);
+      const db = requireDb(c);
+      const topicId = c.req.param('id');
+      await ensureTopicsInTrash(db, [topicId]);
+      await revokeTopicShares(c.env, [topicId]);
+      await permanentlyDeleteTrashedTopics(db, [topicId]);
       return c.json({ success: true });
     } catch (error) {
       if (error instanceof TopicNotInTrashError) return c.json({ error: error.message }, 409);
@@ -195,6 +207,8 @@ export function registerTopicRoutes(app: NativeApp): void {
       if (ids.length > 200) return c.json({ error: 'Cannot delete more than 200 topics at once' }, 400);
       const uniqueIds = Array.from(new Set(ids));
       if (uniqueIds.length !== ids.length) return c.json({ error: 'Duplicate topic ids are not allowed' }, 400);
+      await ensureTopicsInTrash(db, uniqueIds);
+      await revokeTopicShares(c.env, uniqueIds);
       await permanentlyDeleteTrashedTopics(db, uniqueIds);
       return c.json({ success: true, count: uniqueIds.length });
     } catch (error) {
@@ -208,6 +222,7 @@ export function registerTopicRoutes(app: NativeApp): void {
       const db = requireDb(c);
       const ids = await listTrashedTopicIds(db);
       if (ids.length === 0) return c.json({ success: true, count: 0 });
+      await revokeTopicShares(c.env, ids);
       await permanentlyDeleteTrashedTopics(db, ids);
       return c.json({ success: true, count: ids.length });
     } catch (error) {

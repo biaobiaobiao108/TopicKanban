@@ -240,7 +240,6 @@ export function registerSystemRoutes(app: NativeApp): void {
       const validation = validateBackupData(data);
       if (!validation.success) return c.json({ error: validation.error }, 400);
       await replaceAllData(requireDb(c), validation.data);
-      await c.env.KV.put('app_settings', JSON.stringify(validation.data.settings));
       return c.json({ success: true });
     } catch (error) {
       if (error instanceof BackupImportLimitError) return jsonError(c, error, 413);

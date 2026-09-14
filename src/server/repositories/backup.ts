@@ -8,15 +8,18 @@ import type {
   DraftCitation,
   Person,
   PersonRelationship,
+  PublishedVideo,
   PublishPackageRecord,
   Source,
+  Tag,
   TimelineEvent,
   TopicTodo,
+  Topic,
 } from '../../types';
+import { DEFAULT_APP_SETTINGS } from '../../types';
 import type { SqliteDatabase, SqlitePreparedStatement } from '../sqlite';
 import { bind } from './shared';
-import { loadBootstrap } from './bootstrap';
-import { loadTopics, topicStatement } from './topics';
+import { topicStatement } from './topics';
 import { topicTodoStatement } from './todos';
 import { personStatement, relationshipStatement } from './people';
 import { sourceStatement, timelineStatement } from './workspace';
@@ -29,6 +32,7 @@ import {
 
 export const MAX_IMPORT_STATEMENTS = 5000;
 export const MAX_IMPORT_BYTES = 5 * 1024 * 1024;
+const BACKUP_RESTORE_FIXED_STATEMENTS = 20;
 
 export interface BackupImportSummary {
   bytes: number;
@@ -54,7 +58,7 @@ export function getBackupImportSummary(data: BackupData): BackupImportSummary {
     (count, topic) => count + (topic.tags?.length || 0) + (topic.people?.length || 0),
     0
   );
-  const statements = 17 + data.tags.length + data.people.length + data.topics.length + topicRelations
+  const statements = BACKUP_RESTORE_FIXED_STATEMENTS + data.tags.length + data.people.length + data.topics.length + topicRelations
     + data.sources.length + data.timeline.length
     + data.timeline.reduce((count, event) => count + (event.person_ids?.length || 0), 0)
     + data.drafts.length + data.citations.length
@@ -95,6 +99,12 @@ export function assertBackupImportWithinLimits(data: BackupData): BackupImportSu
 export async function replaceAllData(db: SqliteDatabase, data: BackupData): Promise<void> {
   assertBackupImportWithinLimits(data);
   const statements: SqlitePreparedStatement[] = [
+    db.prepare(`CREATE TABLE IF NOT EXISTS _kv_store (
+      key TEXT PRIMARY KEY,
+      value TEXT NOT NULL,
+      expires_at INTEGER
+    )`),
+    db.prepare("DELETE FROM _kv_store WHERE key LIKE 'share:%' OR key LIKE 'topic_share:%'"),
     db.prepare('DELETE FROM commercial_deal_activities'),
     db.prepare('DELETE FROM commercial_deal_topics'),
     db.prepare('DELETE FROM commercial_deals'),
@@ -154,60 +164,106 @@ export async function replaceAllData(db: SqliteDatabase, data: BackupData): Prom
   (data.commercial_deals || []).forEach((deal) => statements.push(commercialDealStatement(db, deal)));
   (data.commercial_deal_topics || []).forEach((relation) => statements.push(commercialDealTopicStatement(db, relation)));
   (data.commercial_deal_activities || []).forEach((activity) => statements.push(commercialDealActivityStatement(db, activity)));
+  statements.push(bind(db, `INSERT INTO _kv_store (key, value, expires_at) VALUES (?, ?, NULL)
+    ON CONFLICT(key) DO UPDATE SET value = excluded.value, expires_at = excluded.expires_at`, [
+    'app_settings', JSON.stringify(data.settings),
+  ]));
 
   await db.batch(statements);
 }
 
-export async function exportAllData(db: SqliteDatabase, kvSettings?: AppSettings): Promise<BackupData> {
-  const [bootstrap, allTopics, details] = await Promise.all([
-    loadBootstrap(db, kvSettings, { includeTopics: false }),
-    loadTopics(db, 'all'),
-    db.batch([
-      db.prepare('SELECT * FROM sources ORDER BY created_at DESC'),
-      db.prepare('SELECT * FROM timeline_events ORDER BY topic_id, sort_order'),
-      db.prepare('SELECT * FROM drafts ORDER BY updated_at DESC'),
-      db.prepare('SELECT * FROM draft_citations ORDER BY created_at DESC'),
-      db.prepare('SELECT timeline_event_id, person_id FROM timeline_event_people'),
-      db.prepare('SELECT * FROM publish_packages ORDER BY updated_at DESC'),
-      db.prepare('SELECT * FROM commercial_deals ORDER BY updated_at DESC'),
-      db.prepare('SELECT * FROM commercial_deal_topics ORDER BY created_at ASC'),
-      db.prepare('SELECT * FROM commercial_deal_activities ORDER BY created_at ASC'),
-      db.prepare('SELECT * FROM topic_todos ORDER BY topic_id, sort_order, created_at'),
-    ]),
-  ]);
-  const personIdsByEvent = new Map<string, string[]>();
-  (details[4].results as unknown as Array<{ timeline_event_id: string; person_id: string }>).forEach((row) => {
-    personIdsByEvent.set(row.timeline_event_id, [
-      ...(personIdsByEvent.get(row.timeline_event_id) || []),
-      row.person_id,
-    ]);
+function loadTopicsForBackup(db: SqliteDatabase): Topic[] {
+  const query = <T>(sql: string): T[] => db.sqlite.query(sql).all() as T[];
+  const topicRows = query<Topic>(`SELECT t.*,
+    (SELECT COUNT(*) FROM sources s WHERE s.topic_id = t.id) AS sources_count,
+    (SELECT COUNT(*) FROM sources s WHERE s.topic_id = t.id AND s.verification_status = 'confirmed') AS verified_sources_count,
+    (SELECT COUNT(*) FROM timeline_events e WHERE e.topic_id = t.id) AS timeline_count,
+    (SELECT COUNT(*) FROM commercial_deal_topics cdt WHERE cdt.topic_id = t.id) AS commercial_deals_count,
+    COALESCE((SELECT word_count FROM drafts d WHERE d.topic_id = t.id LIMIT 1), 0) AS draft_word_count
+    FROM topics t ORDER BY t.is_pinned DESC, t.sort_order ASC, t.updated_at DESC`);
+  const topicTags = query<{ topic_id: string; tag_id: string }>('SELECT topic_id, tag_id FROM topic_tags');
+  const topicPeople = query<{ topic_id: string; person_id: string }>('SELECT topic_id, person_id FROM topic_people');
+  const tags = query<Tag>('SELECT id, name, color FROM tags');
+  const people = query<Person>('SELECT * FROM people');
+  const currentTodos = query<TopicTodo>(`SELECT * FROM topic_todos
+    WHERE completed_at IS NULL ORDER BY topic_id ASC, sort_order ASC, created_at ASC`);
+  const tagMap = new Map(tags.map((tag) => [tag.id, tag]));
+  const personMap = new Map(people.map((person) => [person.id, person]));
+  const tagsByTopic = new Map<string, Tag[]>();
+  const peopleByTopic = new Map<string, Person[]>();
+  const currentTodoByTopic = new Map<string, TopicTodo>();
+  topicTags.forEach(({ topic_id, tag_id }) => {
+    const tag = tagMap.get(tag_id);
+    if (tag) tagsByTopic.set(topic_id, [...(tagsByTopic.get(topic_id) || []), tag]);
   });
-  const timeline = (details[1].results as unknown as TimelineEvent[]).map((event) => ({
-    ...event,
-    person_ids: personIdsByEvent.get(event.id) || [],
+  topicPeople.forEach(({ topic_id, person_id }) => {
+    const person = personMap.get(person_id);
+    if (person) peopleByTopic.set(topic_id, [...(peopleByTopic.get(topic_id) || []), person]);
+  });
+  currentTodos.forEach((todo) => {
+    if (!currentTodoByTopic.has(todo.topic_id)) currentTodoByTopic.set(todo.topic_id, todo);
+  });
+  return topicRows.map((topic) => ({
+    ...topic,
+    tags: tagsByTopic.get(topic.id) || [],
+    people: peopleByTopic.get(topic.id) || [],
+    current_todo: currentTodoByTopic.get(topic.id) || null,
   }));
-  const publishPackages = (details[5].results as unknown as Array<Record<string, unknown>>).map((row) => ({
-    ...row,
-    title_traditional_auto: Number(row.title_traditional_auto) === 1,
-    description_traditional_auto: Number(row.description_traditional_auto) === 1,
-  })) as unknown as PublishPackageRecord[];
-  return {
-    version: '2.0',
-    export_at: new Date().toISOString(),
-    topics: allTopics,
-    sources: details[0].results as unknown as Source[],
-    timeline,
-    people: bootstrap.people,
-    relationships: bootstrap.relationships,
-    drafts: details[2].results as unknown as Draft[],
-    citations: details[3].results as unknown as DraftCitation[],
-    tags: bootstrap.tags,
-    published: bootstrap.published,
-    publish_packages: publishPackages,
-    commercial_deals: details[6].results as unknown as CommercialDeal[],
-    commercial_deal_topics: details[7].results as unknown as CommercialDealTopic[],
-    commercial_deal_activities: details[8].results as unknown as CommercialDealActivity[],
-    todos: details[9].results as unknown as TopicTodo[],
-    settings: kvSettings || bootstrap.settings,
-  };
+}
+
+export async function exportAllData(db: SqliteDatabase, kvSettings?: AppSettings): Promise<BackupData> {
+  const exportAt = new Date().toISOString();
+  return db.sqlite.transaction(() => {
+    const query = <T>(sql: string): T[] => db.sqlite.query(sql).all() as T[];
+    const allTopics = loadTopicsForBackup(db);
+    const people = query<Person>(`SELECT p.*,
+      (SELECT COUNT(*) FROM topic_people tp WHERE tp.person_id = p.id) AS related_topics_count
+      FROM people p ORDER BY p.updated_at DESC`);
+    const relationships = query<PersonRelationship>(`SELECT r.*, a.name AS person_a_name, b.name AS person_b_name
+      FROM person_relationships r
+      LEFT JOIN people a ON a.id = r.person_a_id
+      LEFT JOIN people b ON b.id = r.person_b_id
+      ORDER BY r.created_at DESC`);
+    const published = query<PublishedVideo>(`SELECT v.*, t.title AS topic_title FROM published_videos v
+      LEFT JOIN topics t ON t.id = v.topic_id ORDER BY v.published_at DESC, v.updated_at DESC`);
+    const tags = query<Tag>('SELECT id, name, color FROM tags ORDER BY name ASC');
+    const sources = query<Source>('SELECT * FROM sources ORDER BY created_at DESC');
+    const timelineRows = query<TimelineEvent>('SELECT * FROM timeline_events ORDER BY topic_id, sort_order');
+    const drafts = query<Draft>('SELECT * FROM drafts ORDER BY updated_at DESC');
+    const citations = query<DraftCitation>('SELECT * FROM draft_citations ORDER BY created_at DESC');
+    const personIdsByEvent = new Map<string, string[]>();
+    query<{ timeline_event_id: string; person_id: string }>('SELECT timeline_event_id, person_id FROM timeline_event_people')
+      .forEach((row) => personIdsByEvent.set(row.timeline_event_id, [
+        ...(personIdsByEvent.get(row.timeline_event_id) || []), row.person_id,
+      ]));
+    const timeline = timelineRows.map((event) => ({ ...event, person_ids: personIdsByEvent.get(event.id) || [] }));
+    const publishPackages = query<Record<string, unknown>>('SELECT * FROM publish_packages ORDER BY updated_at DESC').map((row) => ({
+      ...row,
+      title_traditional_auto: Number(row.title_traditional_auto) === 1,
+      description_traditional_auto: Number(row.description_traditional_auto) === 1,
+    })) as unknown as PublishPackageRecord[];
+    const commercialDeals = query<CommercialDeal>('SELECT * FROM commercial_deals ORDER BY updated_at DESC');
+    const commercialDealTopics = query<CommercialDealTopic>('SELECT * FROM commercial_deal_topics ORDER BY created_at ASC');
+    const commercialDealActivities = query<CommercialDealActivity>('SELECT * FROM commercial_deal_activities ORDER BY created_at ASC');
+    const todos = query<TopicTodo>('SELECT * FROM topic_todos ORDER BY topic_id, sort_order, created_at');
+    return {
+      version: '2.0',
+      export_at: exportAt,
+      topics: allTopics,
+      sources,
+      timeline,
+      people,
+      relationships,
+      drafts,
+      citations,
+      tags,
+      published,
+      publish_packages: publishPackages,
+      commercial_deals: commercialDeals,
+      commercial_deal_topics: commercialDealTopics,
+      commercial_deal_activities: commercialDealActivities,
+      todos,
+      settings: kvSettings || DEFAULT_APP_SETTINGS,
+    };
+  })();
 }

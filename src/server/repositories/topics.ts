@@ -102,6 +102,17 @@ export async function loadActiveTopicCount(db: SqliteDatabase): Promise<number> 
 export class TopicNotInTrashError extends Error {}
 export class TopicPinInvalidStateError extends Error {}
 
+export async function ensureTopicsInTrash(db: SqliteDatabase, ids: string[]): Promise<void> {
+  if (ids.length === 0) return;
+  const placeholders = ids.map(() => '?').join(', ');
+  const result = await bind(db,
+    `SELECT id FROM topics WHERE deleted_at IS NOT NULL AND id IN (${placeholders})`, ids
+  ).all<{ id: string }>();
+  if (result.results.length !== ids.length) {
+    throw new TopicNotInTrashError('All topics must be in trash before permanent deletion');
+  }
+}
+
 export async function setTopicPinned(
   db: SqliteDatabase,
   id: string,
@@ -147,13 +158,7 @@ function permanentDeleteStatements(db: SqliteDatabase, id: string): SqlitePrepar
 
 export async function permanentlyDeleteTrashedTopics(db: SqliteDatabase, ids: string[]): Promise<void> {
   if (ids.length === 0) return;
-  const placeholders = ids.map(() => '?').join(', ');
-  const result = await bind(db,
-    `SELECT id FROM topics WHERE deleted_at IS NOT NULL AND id IN (${placeholders})`, ids
-  ).all<{ id: string }>();
-  if (result.results.length !== ids.length) {
-    throw new TopicNotInTrashError('All topics must be in trash before permanent deletion');
-  }
+  await ensureTopicsInTrash(db, ids);
 
   await db.batch(ids.flatMap((id) => permanentDeleteStatements(db, id)));
 }
@@ -320,6 +325,54 @@ export async function loadTopic(db: SqliteDatabase, id: string): Promise<Topic |
     people: (results[2].results as unknown as Person[]) || [],
     current_todo: ((results[3].results as unknown as TopicTodo[])[0] || null),
   };
+}
+
+export async function loadTopicBatch(db: SqliteDatabase, ids: string[]): Promise<Topic[]> {
+  if (ids.length === 0) return [];
+  const placeholders = ids.map(() => '?').join(',');
+  const results = await db.batch([
+    bind(db, `SELECT t.*,
+      (SELECT COUNT(*) FROM sources s WHERE s.topic_id = t.id) AS sources_count,
+      (SELECT COUNT(*) FROM sources s WHERE s.topic_id = t.id AND s.verification_status = 'confirmed') AS verified_sources_count,
+      (SELECT COUNT(*) FROM timeline_events e WHERE e.topic_id = t.id) AS timeline_count,
+      (SELECT COUNT(*) FROM commercial_deal_topics cdt WHERE cdt.topic_id = t.id) AS commercial_deals_count,
+      COALESCE((SELECT word_count FROM drafts d WHERE d.topic_id = t.id LIMIT 1), 0) AS draft_word_count
+      FROM topics t WHERE t.deleted_at IS NULL AND t.id IN (${placeholders})`, ids),
+    bind(db, `SELECT tt.topic_id, tg.* FROM topic_tags tt
+      INNER JOIN tags tg ON tg.id = tt.tag_id
+      WHERE tt.topic_id IN (${placeholders})`, ids),
+    bind(db, `SELECT tp.topic_id, p.* FROM topic_people tp
+      INNER JOIN people p ON p.id = tp.person_id
+      WHERE tp.topic_id IN (${placeholders})`, ids),
+    bind(db, `SELECT * FROM topic_todos
+      WHERE topic_id IN (${placeholders}) AND completed_at IS NULL
+      ORDER BY topic_id ASC, sort_order ASC, created_at ASC`, ids),
+  ]);
+
+  const topics = results[0].results as unknown as Topic[];
+  const tagsByTopic = new Map<string, Tag[]>();
+  const peopleByTopic = new Map<string, Person[]>();
+  const currentTodoByTopic = new Map<string, TopicTodo>();
+  (results[1].results as unknown as Array<Tag & { topic_id: string }>).forEach((tag) => {
+    tagsByTopic.set(tag.topic_id, [...(tagsByTopic.get(tag.topic_id) || []), tag]);
+  });
+  (results[2].results as unknown as Array<Person & { topic_id: string }>).forEach((person) => {
+    peopleByTopic.set(person.topic_id, [...(peopleByTopic.get(person.topic_id) || []), person]);
+  });
+  (results[3].results as unknown as TopicTodo[]).forEach((todo) => {
+    if (!currentTodoByTopic.has(todo.topic_id)) currentTodoByTopic.set(todo.topic_id, todo);
+  });
+
+  const topicById = new Map(topics.map((topic) => [topic.id, topic]));
+  return ids
+    .map((id) => topicById.get(id))
+    .filter((topic): topic is Topic => Boolean(topic))
+    .map((topic) => ({
+      ...topic,
+      tags: tagsByTopic.get(topic.id) || [],
+      people: peopleByTopic.get(topic.id) || [],
+      current_todo: currentTodoByTopic.get(topic.id) || null,
+    }));
 }
 
 export function topicStatement(db: SqliteDatabase, topic: Partial<Topic> & { id: string; title: string }): SqlitePreparedStatement {

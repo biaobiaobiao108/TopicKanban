@@ -40,9 +40,7 @@ export function registerQuickDropRoutes(app: NativeApp): void {
         created_at: new Date().toISOString(),
       };
       await c.env.KV.put(`drop:${id}`, JSON.stringify(item), { expirationTtl: 86400 * 7 });
-      const listIndex = (await c.env.KV.get<string[]>('quick_drops_index', 'json')) || [];
-      const updatedIndex = [id, ...listIndex.filter((itemKey) => itemKey !== id)].slice(0, 100);
-      await c.env.KV.put('quick_drops_index', JSON.stringify(updatedIndex), { expirationTtl: 86400 * 30 });
+      await c.env.KV.updateQuickDropsIndex((listIndex) => [id, ...listIndex.filter((itemKey) => itemKey !== id)]);
       return c.json({ success: true, item, message: '灵感投递成功！已暂存至工作台快投箱' }, 201);
     } catch (error) {
       return jsonError(c, error);
@@ -65,7 +63,8 @@ export function registerQuickDropRoutes(app: NativeApp): void {
       const validIdSet = new Set(validIds);
       const orderedValidIds = listIndex.filter((id) => validIdSet.has(id));
       if (orderedValidIds.length !== listIndex.length) {
-        await c.env.KV.put('quick_drops_index', JSON.stringify(orderedValidIds), { expirationTtl: 86400 * 30 });
+        const staleIds = new Set(listIndex.filter((id) => !validIdSet.has(id)));
+        await c.env.KV.updateQuickDropsIndex((current) => current.filter((id) => !staleIds.has(id)));
       }
       return c.json({ items });
     } catch (error) {
@@ -77,8 +76,7 @@ export function registerQuickDropRoutes(app: NativeApp): void {
     try {
       const id = c.req.param('id');
       await c.env.KV.delete(`drop:${id}`);
-      const listIndex = (await c.env.KV.get<string[]>('quick_drops_index', 'json')) || [];
-      await c.env.KV.put('quick_drops_index', JSON.stringify(listIndex.filter((itemKey) => itemKey !== id)), { expirationTtl: 86400 * 30 });
+      await c.env.KV.updateQuickDropsIndex((listIndex) => listIndex.filter((itemKey) => itemKey !== id));
       return c.json({ success: true });
     } catch (error) {
       return jsonError(c, error);

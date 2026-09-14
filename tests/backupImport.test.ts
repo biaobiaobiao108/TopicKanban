@@ -40,12 +40,12 @@ describe('backup import limits', () => {
       }],
     });
 
-    expect(getBackupImportSummary(backup)).toMatchObject({ topics: 1, statements: 20 });
+    expect(getBackupImportSummary(backup)).toMatchObject({ topics: 1, statements: 23 });
   });
 
   it('accepts a backup at the atomic statement limit', () => {
     const backup = createBackup({
-      tags: Array.from({ length: MAX_IMPORT_STATEMENTS - 17 }, (_, index) => ({ id: `tag-${index}`, name: `标签 ${index}` })),
+      tags: Array.from({ length: MAX_IMPORT_STATEMENTS - 20 }, (_, index) => ({ id: `tag-${index}`, name: `标签 ${index}` })),
     });
 
     expect(assertBackupImportWithinLimits(backup).statements).toBe(MAX_IMPORT_STATEMENTS);
@@ -53,7 +53,7 @@ describe('backup import limits', () => {
 
   it('rejects a backup exceeding the atomic statement limit before writes begin', () => {
     const backup = createBackup({
-      tags: Array.from({ length: MAX_IMPORT_STATEMENTS - 16 }, (_, index) => ({ id: `tag-${index}`, name: `标签 ${index}` })),
+      tags: Array.from({ length: MAX_IMPORT_STATEMENTS - 19 }, (_, index) => ({ id: `tag-${index}`, name: `标签 ${index}` })),
     });
 
     expect(() => assertBackupImportWithinLimits(backup)).toThrow('超过单次原子恢复上限');
@@ -62,6 +62,9 @@ describe('backup import limits', () => {
   it('rolls back the complete restore when a later write violates a constraint', async () => {
     const sqlite = new Database(':memory:');
     sqlite.exec(await Bun.file('drizzle/0000_schema.sql').text());
+    sqlite.exec(`CREATE TABLE _kv_store (key TEXT PRIMARY KEY, value TEXT NOT NULL, expires_at INTEGER)`);
+    sqlite.query('INSERT INTO _kv_store (key, value) VALUES (?, ?)').run('app_settings', JSON.stringify({ theme: 'dark' }));
+    sqlite.query('INSERT INTO _kv_store (key, value) VALUES (?, ?)').run('share:old-share', JSON.stringify({ topic_id: 'old-topic' }));
     sqlite.query(`INSERT INTO topics (id, title, created_at, updated_at) VALUES (?, ?, ?, ?)`)
       .run('old-topic', '旧数据', '2026-01-01T00:00:00.000Z', '2026-01-01T00:00:00.000Z');
 
@@ -76,6 +79,8 @@ describe('backup import limits', () => {
       await expect(replaceAllData(new SqliteDatabase(sqlite), backup)).rejects.toThrow();
       expect(sqlite.query('SELECT id, title FROM topics WHERE id = ?').get('old-topic')).toEqual({ id: 'old-topic', title: '旧数据' });
       expect(sqlite.query('SELECT COUNT(*) AS count FROM tags').get()).toEqual({ count: 0 });
+      expect(sqlite.query('SELECT value FROM _kv_store WHERE key = ?').get('app_settings')).toEqual({ value: JSON.stringify({ theme: 'dark' }) });
+      expect(sqlite.query('SELECT key FROM _kv_store WHERE key = ?').get('share:old-share')).toEqual({ key: 'share:old-share' });
     } finally {
       sqlite.close();
     }

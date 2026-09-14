@@ -142,6 +142,10 @@ export function requireDb(c: { env: ApiBindings }): SqliteDatabase {
 }
 
 export function jsonError(c: any, error: unknown, status = 500) {
+  if (status >= 500) {
+    console.error('[API error]', error);
+    return c.json({ error: 'Internal server error' }, status);
+  }
   const message = error instanceof Error ? error.message : 'Unknown error';
   return c.json({ error: message }, status);
 }
