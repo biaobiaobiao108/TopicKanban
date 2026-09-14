@@ -224,6 +224,13 @@ describe('Bun Server Integration (Local SQLite & API)', () => {
     const secondShareData = await secondShareRes.json() as { token: string };
     expect(secondShareRes.status).toBe(200);
     expect(secondShareData.token).not.toBe(shareData.token);
+    expect((await app.request(`/api/public/share/${shareData.token}`)).status).toBe(404);
+    const legacyToken = 'rv-legacy-share-token';
+    sqlite.query('INSERT INTO _kv_store (key, value, expires_at) VALUES (?, ?, ?)').run(
+      `share:${legacyToken}`,
+      JSON.stringify({ topic_id: topic.id, token: legacyToken }),
+      Date.now() + 86_400_000,
+    );
 
     const mismatchedDeleteRes = await app.request(`/api/topics/not-the-topic/share/${secondShareData.token}`, {
       method: 'DELETE',
@@ -238,6 +245,7 @@ describe('Bun Server Integration (Local SQLite & API)', () => {
     });
     expect(validDeleteRes.status).toBe(200);
     expect((await app.request(`/api/public/share/${secondShareData.token}`)).status).toBe(404);
+    expect((await app.request(`/api/public/share/${legacyToken}`)).status).toBe(404);
 
     const invalidSourceRes = await app.request('/api/sources', {
       method: 'POST',
@@ -726,6 +734,67 @@ describe('Bun Server Integration (Local SQLite & API)', () => {
     });
     const aData = await aAgain.json() as { is_locked: boolean };
     expect(aData.is_locked).toBe(false);
+
+    const missingClientRelease = await app.request('/api/topics/topic-1/presence', { method: 'DELETE', headers });
+    expect(missingClientRelease.status).toBe(400);
+    const wrongClientRelease = await app.request('/api/topics/topic-1/presence?client_id=client-b', { method: 'DELETE', headers });
+    expect(wrongClientRelease.status).toBe(409);
+    const ownerRelease = await app.request('/api/topics/topic-1/presence?client_id=client-a', { method: 'DELETE', headers });
+    expect(ownerRelease.status).toBe(200);
+
+    const concurrent = await Promise.all(['client-c', 'client-d'].map((clientId) => app.request('/api/topics/topic-1/presence', {
+      method: 'POST', headers, body: JSON.stringify({ client_id: clientId, device_name: clientId }),
+    })));
+    const concurrentResults = await Promise.all(concurrent.map((response) => response.json() as Promise<{ is_locked: boolean }>));
+    expect(concurrentResults.filter((result) => !result.is_locked)).toHaveLength(1);
+    expect(concurrentResults.filter((result) => result.is_locked)).toHaveLength(1);
+  });
+
+  it('returns every commercial deal in a bounded calendar range', async () => {
+    const loginRes = await app.request('/api/auth/login', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ password: testPassword }),
+    });
+    const { token } = await loginRes.json() as { token: string };
+    const headers = { Authorization: `Bearer ${token}` };
+    const now = new Date().toISOString();
+    const insert = sqlite.query(`INSERT INTO commercial_deals (
+      id, title, delivery_due_date, created_at, updated_at
+    ) VALUES (?, ?, ?, ?, ?)`);
+    for (let index = 0; index < 105; index += 1) {
+      insert.run(`calendar-deal-${index}`, `日历商单 ${index}`, '2026-09-20', now, now);
+    }
+    insert.run('calendar-outside', '范围外商单', '2026-12-20', now, now);
+
+    const response = await app.request('/api/deals/calendar?start=2026-09-01&end=2026-10-12', { headers });
+    expect(response.status).toBe(200);
+    const items = await response.json() as Array<{ id: string }>;
+    expect(items).toHaveLength(105);
+    expect(items.some((item) => item.id === 'calendar-outside')).toBe(false);
+    expect((await app.request('/api/deals/calendar?start=2026-01-01&end=2026-12-31', { headers })).status).toBe(400);
+  });
+
+  it('searches published-video topic options beyond the first page and excludes linked topics', async () => {
+    const loginRes = await app.request('/api/auth/login', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ password: testPassword }),
+    });
+    const { token } = await loginRes.json() as { token: string };
+    const headers = { Authorization: `Bearer ${token}` };
+    const now = new Date().toISOString();
+    for (let index = 0; index < 101; index += 1) {
+      const topicId = `published-option-topic-${index}`;
+      sqlite.query(`INSERT INTO topics (id, title, created_at, updated_at) VALUES (?, ?, ?, ?)`)
+        .run(topicId, index === 100 ? '唯一可用的深分页选题' : `已占用选题 ${index}`, now, now);
+      if (index < 100) {
+        sqlite.query(`INSERT INTO published_videos (id, topic_id, title, updated_at) VALUES (?, ?, ?, ?)`)
+          .run(`published-option-video-${index}`, topicId, `已发布视频 ${index}`, now);
+      }
+    }
+
+    const response = await app.request('/api/topics?scope=all&page=1&page_size=10&q=深分页&available_for_published=true', { headers });
+    expect(response.status).toBe(200);
+    const data = await response.json() as { items: Array<{ id: string }>; total: number };
+    expect(data.total).toBe(1);
+    expect(data.items.map((topic) => topic.id)).toEqual(['published-option-topic-100']);
   });
 
   it('handles batch permanent deletion across multiple topics correctly', async () => {

@@ -10,7 +10,7 @@ import {
   DragEndEvent,
 } from '@dnd-kit/core';
 import { Topic, CommercialDeal, PublishedVideo, Tag, Priority, TopicStatus } from '../../types';
-import { fetchCommercialDealPage, fetchPublishedVideos, fetchTags } from '../../lib/storage';
+import { fetchCommercialDealsForCalendar, fetchPublishedVideos, fetchTags } from '../../lib/storage';
 import { PageHeader } from '../layout/PageHeader';
 import { useSearchParams } from 'react-router-dom';
 import {
@@ -134,6 +134,11 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
 
   const year = currentDate.getFullYear();
   const monthIndex = currentDate.getMonth();
+  const monthDays = useMemo(() => getMonthGridDays(year, monthIndex), [year, monthIndex]);
+  const weekDays = useMemo(() => getWeekDays(currentDate), [currentDate]);
+  const visibleDays = viewMode === 'month' ? monthDays : weekDays;
+  const calendarRangeStart = visibleDays[0]?.date || getBeijingDateString(currentDate);
+  const calendarRangeEnd = visibleDays[visibleDays.length - 1]?.date || calendarRangeStart;
 
   // Navigation handlers
   const handlePrev = () => {
@@ -167,11 +172,12 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
     initialData: publishedList.length > 0 ? publishedList : undefined,
   });
 
-  // Fetch commercial deals via query for live auto-sync across all months/weeks
+  // Fetch only the visible commercial-deal date range so no paginated records are omitted.
   const dealsQuery = useQuery({
-    queryKey: ['commercial-deals-calendar'],
-    queryFn: () => fetchCommercialDealPage({ scope: 'all', page: 1, page_size: 100 }).then((res) => res.items),
-    initialData: deals.length > 0 ? deals : undefined,
+    queryKey: ['commercial-deals-calendar', calendarRangeStart, calendarRangeEnd],
+    queryFn: () => fetchCommercialDealsForCalendar(calendarRangeStart, calendarRangeEnd),
+    enabled: filters.showDeals,
+    subscribed: filters.showDeals,
   });
 
   // Fetch tags via query for live auto-sync
@@ -182,12 +188,12 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
   });
 
   const effectivePublishedList = publishedQuery.data || publishedList || [];
-  const effectiveDeals = dealsQuery.data || deals || [];
+  const fallbackDeals = useMemo(() => deals.filter((deal) => (
+    [deal.delivery_due_date, deal.publish_date, deal.next_action_due_date]
+      .some((date) => Boolean(date && date >= calendarRangeStart && date <= calendarRangeEnd))
+  )), [calendarRangeEnd, calendarRangeStart, deals]);
+  const effectiveDeals = dealsQuery.data || fallbackDeals;
   const effectiveTags = tagsQuery.data || availableTags || [];
-
-  // Days grid
-  const monthDays = useMemo(() => getMonthGridDays(year, monthIndex), [year, monthIndex]);
-  const weekDays = useMemo(() => getWeekDays(currentDate), [currentDate]);
 
   // Extract all calendar events by date
   const eventsMap = useMemo(() => {

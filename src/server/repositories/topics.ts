@@ -168,6 +168,8 @@ export interface TopicPageOptions {
   personId?: string;
   sort?: 'title' | 'status' | 'priority' | 'score' | 'words' | 'updated_at' | 'created_at' | 'sort_order';
   direction?: 'asc' | 'desc';
+  availableForPublished?: boolean;
+  publishedVideoId?: string;
 }
 
 function buildTopicFilterConditions(options: TopicPageOptions): { conditions: string[]; values: unknown[] } {
@@ -186,6 +188,14 @@ function buildTopicFilterConditions(options: TopicPageOptions): { conditions: st
   if (options.priority) { conditions.push('t.priority = ?'); values.push(options.priority); }
   if (options.tagId) { conditions.push('EXISTS (SELECT 1 FROM topic_tags ft WHERE ft.topic_id = t.id AND ft.tag_id = ?)'); values.push(options.tagId); }
   if (options.personId) { conditions.push('EXISTS (SELECT 1 FROM topic_people fp WHERE fp.topic_id = t.id AND fp.person_id = ?)'); values.push(options.personId); }
+  if (options.availableForPublished) {
+    if (options.publishedVideoId) {
+      conditions.push('NOT EXISTS (SELECT 1 FROM published_videos fpv WHERE fpv.topic_id = t.id AND fpv.id != ?)');
+      values.push(options.publishedVideoId);
+    } else {
+      conditions.push('NOT EXISTS (SELECT 1 FROM published_videos fpv WHERE fpv.topic_id = t.id)');
+    }
+  }
   if (options.query) {
     const pattern = `%${options.query.replace(/[\\%_]/g, '\\$&')}%`;
     conditions.push(`(t.title LIKE ? ESCAPE '\\' OR t.summary LIKE ? ESCAPE '\\' OR t.hook LIKE ? ESCAPE '\\'

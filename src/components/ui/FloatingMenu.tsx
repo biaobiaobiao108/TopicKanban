@@ -89,6 +89,6 @@ export const FloatingMenu: React.FC<FloatingMenuProps> = ({
     >
       {children}
     </div>,
-    document.body,
+    anchorRef.current?.closest('dialog') || document.body,
   );
 };

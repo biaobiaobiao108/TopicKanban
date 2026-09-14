@@ -6,6 +6,11 @@ interface KvRow {
   expires_at: number | null;
 }
 
+export interface JsonLeaseResult<T> {
+  acquired: boolean;
+  current: T | null;
+}
+
 export type AppKvValueType = 'text' | 'json' | 'arrayBuffer';
 export type AppKvGetOptions = AppKvValueType | { type?: AppKvValueType };
 
@@ -92,6 +97,90 @@ export class AppKV {
 
   async delete(key: string): Promise<void> {
     this.deleteStmt.run(key);
+  }
+
+  async replaceTopicShare(topicId: string, token: string, value: string, expirationTtl: number): Promise<void> {
+    const expiresAt = Date.now() + expirationTtl * 1000;
+    const replace = this.db.sqlite.transaction(() => {
+      const shareRows = this.db.sqlite.query("SELECT key, value FROM _kv_store WHERE key LIKE 'share:%'")
+        .all() as Array<Pick<KvRow, 'key' | 'value'>>;
+      for (const row of shareRows) {
+        try {
+          const snapshot = JSON.parse(row.value) as { topic_id?: string };
+          if (snapshot.topic_id === topicId) this.deleteStmt.run(row.key);
+        } catch {
+          // Leave unrelated malformed values untouched; normal expiry cleanup still applies.
+        }
+      }
+      this.putStmt.run(`share:${token}`, value, expiresAt);
+      this.putStmt.run(`topic_share:${topicId}`, token, expiresAt);
+    });
+    replace();
+  }
+
+  async deleteTopicShares(topicId: string): Promise<number> {
+    const remove = this.db.sqlite.transaction(() => {
+      const shareRows = this.db.sqlite.query("SELECT key, value FROM _kv_store WHERE key LIKE 'share:%'")
+        .all() as Array<Pick<KvRow, 'key' | 'value'>>;
+      let deleted = 0;
+      for (const row of shareRows) {
+        try {
+          const snapshot = JSON.parse(row.value) as { topic_id?: string };
+          if (snapshot.topic_id !== topicId) continue;
+          deleted += Number(this.deleteStmt.run(row.key).changes || 0);
+        } catch {
+          // Ignore malformed snapshots that cannot be attributed to this topic.
+        }
+      }
+      this.deleteStmt.run(`topic_share:${topicId}`);
+      return deleted;
+    });
+    return remove();
+  }
+
+  async acquireJsonLease<T extends { client_id: string }>(
+    key: string,
+    clientId: string,
+    value: T,
+    expirationTtl: number,
+  ): Promise<JsonLeaseResult<T>> {
+    const now = Date.now();
+    const acquire = this.db.sqlite.transaction((): JsonLeaseResult<T> => {
+      const row = this.getStmt.get(key) as KvRow | undefined;
+      if (row?.expires_at && row.expires_at <= now) {
+        this.deleteStmt.run(key);
+      } else if (row) {
+        try {
+          const current = JSON.parse(row.value) as T;
+          if (current.client_id !== clientId) return { acquired: false, current };
+        } catch {
+          this.deleteStmt.run(key);
+        }
+      }
+      this.putStmt.run(key, JSON.stringify(value), now + expirationTtl * 1000);
+      return { acquired: true, current: value };
+    });
+    return acquire();
+  }
+
+  async releaseJsonLease(key: string, clientId: string): Promise<'released' | 'missing' | 'not_owner'> {
+    const now = Date.now();
+    const release = this.db.sqlite.transaction((): 'released' | 'missing' | 'not_owner' => {
+      const row = this.getStmt.get(key) as KvRow | undefined;
+      if (!row || (row.expires_at !== null && row.expires_at <= now)) {
+        if (row) this.deleteStmt.run(key);
+        return 'missing';
+      }
+      try {
+        const current = JSON.parse(row.value) as { client_id?: string };
+        if (current.client_id !== clientId) return 'not_owner';
+      } catch {
+        return 'not_owner';
+      }
+      this.deleteStmt.run(key);
+      return 'released';
+    });
+    return release();
   }
 
   async list(options?: { prefix?: string; limit?: number }): Promise<{ keys: Array<{ name: string; expiration?: number }>; list_complete: boolean }> {

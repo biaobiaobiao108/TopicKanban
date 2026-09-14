@@ -1,4 +1,4 @@
-import React, { useState, useRef, useMemo, useEffect } from 'react';
+import React, { useState, useRef, useMemo, useEffect, useDeferredValue } from 'react';
 import { keepPreviousData, useQuery, useQueryClient } from '@tanstack/react-query';
 import { PublishedVideo, Topic } from '../../types';
 import { Modal } from '../ui/Modal';
@@ -23,7 +23,7 @@ import {
   BarChart2,
   Sparkles,
 } from 'lucide-react';
-import { fetchPublishedVideoPage, fetchPublishedVideos, fetchTopicPage } from '../../lib/storage';
+import { fetchPublishedVideoPage, fetchTopic, fetchTopicPage } from '../../lib/storage';
 
 const AnalyticsDashboard = React.lazy(() =>
   import('./AnalyticsDashboard').then((m) => ({ default: m.AnalyticsDashboard }))
@@ -52,8 +52,8 @@ export const PublishedView: React.FC<PublishedViewProps> = ({
   const [editingVideo, setEditingVideo] = useState<PublishedVideo | null>(null);
   const [viewMode, setViewMode] = useState<'cards' | 'analytics'>('cards');
   const [page, setPage] = useState(1);
-  const [formPublished, setFormPublished] = useState<PublishedVideo[]>([]);
-  const [topicOptions, setTopicOptions] = useState<Topic[]>(topics);
+  const [topicOptions, setTopicOptions] = useState<Topic[]>([]);
+  const [selectedTopicOption, setSelectedTopicOption] = useState<Topic | null>(null);
   const pageQuery = useQuery({
     queryKey: ['published-page', page],
     queryFn: () => fetchPublishedVideoPage(page, 30),
@@ -80,6 +80,25 @@ export const PublishedView: React.FC<PublishedViewProps> = ({
   const [submitError, setSubmitError] = useState<string | null>(null);
 
   const [topicSearchQuery, setTopicSearchQuery] = useState('');
+  const deferredTopicSearchQuery = useDeferredValue(topicSearchQuery.trim());
+  const topicOptionsQuery = useQuery({
+    queryKey: ['published-topic-options', editingVideo?.id || 'new', deferredTopicSearchQuery],
+    queryFn: () => fetchTopicPage({
+      scope: 'all',
+      page: 1,
+      page_size: 50,
+      q: deferredTopicSearchQuery,
+      available_for_published: true,
+      published_video_id: editingVideo?.id,
+      sort: 'updated_at',
+      direction: 'desc',
+    }),
+    enabled: isModalOpen,
+    subscribed: isModalOpen,
+    placeholderData: keepPreviousData,
+    staleTime: 30_000,
+    gcTime: 60_000,
+  });
 
   // Fetch & Sync State
   const [isFetchingBili, setIsFetchingBili] = useState(false);
@@ -105,43 +124,28 @@ export const PublishedView: React.FC<PublishedViewProps> = ({
     ]);
   };
 
-  const topicMap = useMemo(() => new Map([...topics, ...topicOptions].map((t) => [t.id, t])), [topics, topicOptions]);
-  const availableTopics = topicOptions.length > 0 ? topicOptions : topics;
-
-  // Filter out topics that are already linked to other published videos
+  const remoteTopicOptions = topicOptionsQuery.data?.items || topicOptions;
   const selectableTopics = useMemo(() => {
-    const usedTopicIds = new Set(
-      formPublished
-        .filter((v) => (editingVideo ? v.id !== editingVideo.id : true))
-        .map((v) => v.topic_id)
-        .filter(Boolean)
-    );
-    return availableTopics.filter((t) => !usedTopicIds.has(t.id));
-  }, [availableTopics, formPublished, editingVideo]);
-
-  // Filter selectable topics by search query
-  const filteredSelectableTopics = useMemo(() => {
-    const q = topicSearchQuery.trim().toLowerCase();
-    if (!q) return selectableTopics;
-    return selectableTopics.filter((t) => {
-      const titleMatch = t.title.toLowerCase().includes(q);
-      const summaryMatch = (t.summary || '').toLowerCase().includes(q);
-      const nextActionMatch = (t.current_todo?.title || '').toLowerCase().includes(q);
-      const tagMatch = t.tags?.some((tag) => tag.name.toLowerCase().includes(q));
-      return titleMatch || summaryMatch || nextActionMatch || tagMatch;
-    });
-  }, [selectableTopics, topicSearchQuery]);
+    if (deferredTopicSearchQuery || !selectedTopicOption || remoteTopicOptions.some((topic) => topic.id === selectedTopicOption.id)) {
+      return remoteTopicOptions;
+    }
+    return [selectedTopicOption, ...remoteTopicOptions];
+  }, [deferredTopicSearchQuery, remoteTopicOptions, selectedTopicOption]);
+  const topicMap = useMemo(() => new Map(
+    [...topics, ...topicOptions, ...remoteTopicOptions, ...(selectedTopicOption ? [selectedTopicOption] : [])]
+      .map((topic) => [topic.id, topic]),
+  ), [topics, topicOptions, remoteTopicOptions, selectedTopicOption]);
+  const availableTopicTotal = topicOptionsQuery.data?.total ?? topicOptions.length;
 
   const openAddModal = async () => {
     setEditingVideo(null);
     setModalCoverUrl(null);
-    const existingPublished = await fetchPublishedVideos();
-    setFormPublished(existingPublished);
-    const usedTopicIds = new Set(existingPublished.map((v) => v.topic_id).filter(Boolean));
-    const topicPage = await fetchTopicPage({ scope: 'all', page: 1, page_size: 100, q: '' });
+    const topicPage = await fetchTopicPage({
+      scope: 'all', page: 1, page_size: 50, q: '', available_for_published: true,
+    });
     setTopicOptions(topicPage.items);
-    const available = topicPage.items.filter((t) => !usedTopicIds.has(t.id));
-    const defaultTopic = available[0] || null;
+    const defaultTopic = topicPage.items[0] || null;
+    setSelectedTopicOption(defaultTopic);
 
     setTopicId(defaultTopic?.id || '');
     setTitle(defaultTopic?.title || '');
@@ -162,8 +166,15 @@ export const PublishedView: React.FC<PublishedViewProps> = ({
   };
 
   const openEditModal = async (v: PublishedVideo) => {
-    const topicPage = await fetchTopicPage({ scope: 'all', page: 1, page_size: 100, q: '' });
+    const [topicPage, linkedTopic] = await Promise.all([
+      fetchTopicPage({
+        scope: 'all', page: 1, page_size: 50, q: '', available_for_published: true,
+        published_video_id: v.id,
+      }),
+      v.topic_id ? fetchTopic(v.topic_id).catch(() => null) : Promise.resolve(null),
+    ]);
     setTopicOptions(topicPage.items);
+    setSelectedTopicOption(linkedTopic);
     setEditingVideo(v);
     setTopicId(v.topic_id || '');
     setTitle(v.title);
@@ -511,9 +522,9 @@ export const PublishedView: React.FC<PublishedViewProps> = ({
                 <label id="published-topic-label" className="block text-xs font-semibold text-stone-700 dark:text-stone-300">
                   对应选题 <span className="text-stone-400 dark:text-stone-500 font-normal">（自动过滤已关联选题）</span>
                 </label>
-                {selectableTopics.length > 0 && (
+                {availableTopicTotal > 0 && (
                   <span className="text-[11px] text-stone-400 dark:text-stone-500">
-                    <span className="font-mono tabular-nums">{selectableTopics.length}</span> 个可用选题
+                    <span className="font-mono tabular-nums">{availableTopicTotal}</span> 个可用选题
                   </span>
                 )}
               </div>
@@ -527,13 +538,16 @@ export const PublishedView: React.FC<PublishedViewProps> = ({
                     setTopicId(nextTopicId);
                     if (nextTopicId) {
                       const selectedTopic = topicMap.get(nextTopicId);
+                      setSelectedTopicOption(selectedTopic || null);
                       if (selectedTopic && (!title.trim() || !editingVideo)) setTitle(selectedTopic.title);
+                    } else {
+                      setSelectedTopicOption(null);
                     }
                     setTopicSearchQuery('');
                   }}
                   options={[
                     { value: '', label: '不关联任何选题（独立归档视频）' },
-                    ...filteredSelectableTopics.map((topic) => ({ value: topic.id, label: topic.title })),
+                    ...selectableTopics.map((topic) => ({ value: topic.id, label: topic.title })),
                   ]}
                   searchable
                   searchPlaceholder="搜索选题标题、看点、赛道标签..."
@@ -569,7 +583,9 @@ export const PublishedView: React.FC<PublishedViewProps> = ({
                       </div>
                     );
                   }}
-                  emptyState={selectableTopics.length === 0 ? (
+                  emptyState={topicOptionsQuery.isFetching ? (
+                    <div className="py-6 text-center text-xs text-stone-400 dark:text-stone-500">正在搜索选题…</div>
+                  ) : availableTopicTotal === 0 && !topicSearchQuery.trim() ? (
                     <div className="py-6 text-center text-xs text-stone-400 dark:text-stone-500 space-y-1"><p className="font-semibold text-stone-600 dark:text-stone-400">所有选题均已关联视频</p><p className="text-[11px]">可选择「不关联任何选题」或前往看板新建选题</p></div>
                   ) : (
                     <div className="py-6 text-center text-xs text-stone-400 dark:text-stone-500">未找到匹配「{topicSearchQuery}」的可用选题</div>

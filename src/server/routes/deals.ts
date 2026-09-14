@@ -17,6 +17,7 @@ import {
   loadCommercialDeal,
   loadCommercialDealFocus,
   loadCommercialDealPage,
+  loadCommercialDealsForCalendar,
   loadCommercialDealsByTopicId,
   publishedVideoExists,
   replaceCommercialDealTopics,
@@ -40,6 +41,26 @@ export function registerDealRoutes(app: NativeApp): void {
         page, pageSize, scope: scope as 'active' | 'closed' | 'all',
         query: c.req.query('q')?.slice(0, 200), status, paymentStatus,
       }));
+    } catch (error) {
+      return jsonError(c, error, 400);
+    }
+  });
+
+  app.get('/deals/calendar', async (c) => {
+    try {
+      const start = c.req.query('start') || '';
+      const end = c.req.query('end') || '';
+      const isIsoDate = (value: string) => {
+        if (!/^\d{4}-\d{2}-\d{2}$/.test(value)) return false;
+        const parsed = new Date(`${value}T00:00:00Z`);
+        return !Number.isNaN(parsed.getTime()) && parsed.toISOString().slice(0, 10) === value;
+      };
+      if (!isIsoDate(start) || !isIsoDate(end) || start > end) {
+        return c.json({ error: 'start and end must be a valid ascending ISO date range' }, 400);
+      }
+      const rangeDays = (Date.parse(`${end}T00:00:00Z`) - Date.parse(`${start}T00:00:00Z`)) / 86_400_000;
+      if (rangeDays > 62) return c.json({ error: 'Calendar date range must not exceed 62 days' }, 400);
+      return c.json(await loadCommercialDealsForCalendar(requireDb(c), start, end));
     } catch (error) {
       return jsonError(c, error, 400);
     }

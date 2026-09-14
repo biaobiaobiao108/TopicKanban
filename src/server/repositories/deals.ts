@@ -138,6 +138,23 @@ export async function loadCommercialDealPage(db: SqliteDatabase, options: Commer
   };
 }
 
+export async function loadCommercialDealsForCalendar(
+  db: SqliteDatabase,
+  startDate: string,
+  endDate: string,
+): Promise<CommercialDeal[]> {
+  const result = await db.prepare(`SELECT ${commercialDealProjection()}
+    FROM commercial_deals d
+    WHERE d.delivery_due_date BETWEEN ? AND ?
+      OR d.publish_date BETWEEN ? AND ?
+      OR d.next_action_due_date BETWEEN ? AND ?
+    ORDER BY COALESCE(d.delivery_due_date, d.publish_date, d.next_action_due_date) ASC,
+      d.updated_at DESC, d.id DESC`)
+    .bind(startDate, endDate, startDate, endDate, startDate, endDate)
+    .all<Record<string, unknown>>();
+  return result.results.map(normalizeCommercialDeal);
+}
+
 export async function loadCommercialDeal(db: SqliteDatabase, id: string): Promise<CommercialDealDetail | null> {
   const [dealRow, topicsResult, activitiesResult] = await db.batch([
     bind(db, `SELECT ${commercialDealProjection()} FROM commercial_deals d WHERE d.id = ? LIMIT 1`, [id]),

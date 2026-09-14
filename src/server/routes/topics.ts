@@ -44,12 +44,18 @@ export function registerTopicRoutes(app: NativeApp): void {
       if (!isOneOf(sortValue, ['title', 'status', 'priority', 'score', 'words', 'updated_at', 'created_at', 'sort_order'])) return c.json({ error: 'Invalid sort' }, 400);
       const directionValue = c.req.query('direction') || 'desc';
       if (!isOneOf(directionValue, ['asc', 'desc'])) return c.json({ error: 'Invalid direction' }, 400);
+      const availableForPublishedValue = c.req.query('available_for_published');
+      if (availableForPublishedValue && !isOneOf(availableForPublishedValue, ['true', 'false'])) {
+        return c.json({ error: 'available_for_published must be true or false' }, 400);
+      }
+      const publishedVideoId = c.req.query('published_video_id')?.trim().slice(0, 200);
       return c.json(await loadTopicPage(requireDb(c), {
         scope: scopeValue as 'active' | 'archived' | 'trash' | 'all', page, pageSize,
         query: c.req.query('q')?.slice(0, 200), status, priority,
         tagId: c.req.query('tag_id'), personId: c.req.query('person_id'),
         sort: sortValue as 'title' | 'status' | 'priority' | 'score' | 'words' | 'updated_at' | 'created_at' | 'sort_order',
         direction: directionValue as 'asc' | 'desc',
+        availableForPublished: availableForPublishedValue === 'true', publishedVideoId,
       }));
     } catch (error) {
       return jsonError(c, error, 400);

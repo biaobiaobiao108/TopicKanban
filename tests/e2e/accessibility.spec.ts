@@ -165,3 +165,28 @@ test('指令面板和快速新建弹层支持焦点循环与恢复', async ({ pa
     await expect(commandPaletteTrigger).toBeFocused();
   }
 });
+
+test('商单弹窗中的 Portal 下拉保持在模态焦点边界内', async ({ page }) => {
+  await login(page);
+  await page.goto('/deals');
+  await page.getByRole('button', { name: '记录新商单' }).click();
+
+  const dialog = page.getByRole('dialog', { name: '记录新商单' });
+  await expect(dialog).toBeVisible();
+  const sourceSelect = dialog.getByRole('combobox', { name: '商单来源' });
+  await sourceSelect.click();
+  await expect(dialog.getByRole('listbox', { name: '商单来源' })).toBeVisible();
+  await expect(page.locator(':focus')).toHaveRole('option');
+
+  await page.keyboard.press('Tab');
+  await expect.poll(() => page.evaluate(() => {
+    const activeElement = document.activeElement;
+    const openDialog = document.querySelector('dialog[open]');
+    return Boolean(activeElement && openDialog?.contains(activeElement));
+  })).toBe(true);
+
+  await page.keyboard.press('Escape');
+  await expect(dialog.getByRole('listbox', { name: '商单来源' })).toBeHidden();
+  await page.keyboard.press('Escape');
+  await expect(dialog).toBeHidden();
+});

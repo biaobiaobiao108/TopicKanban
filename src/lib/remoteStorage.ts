@@ -150,6 +150,10 @@ export async function fetchTopics(): Promise<Topic[]> {
   return (await fetchBootstrap()).topics;
 }
 
+export function fetchTopic(id: string): Promise<Topic> {
+  return apiRequest<Topic>(`/api/topics/${encodeURIComponent(id)}`);
+}
+
 export interface TopicPageParams {
   scope?: 'active' | 'archived' | 'trash' | 'all';
   page?: number;
@@ -161,6 +165,8 @@ export interface TopicPageParams {
   person_id?: string;
   sort?: string;
   direction?: 'asc' | 'desc';
+  available_for_published?: boolean;
+  published_video_id?: string;
 }
 
 export function fetchTopicPage(params: TopicPageParams): Promise<PaginatedTopics> {
@@ -194,6 +200,11 @@ export function fetchCommercialDealPage(params: CommercialDealPageParams = {}): 
     if (value !== undefined && value !== '') query.set(key, String(value));
   });
   return apiRequest<PaginatedCommercialDeals>(`/api/deals/page?${query.toString()}`);
+}
+
+export function fetchCommercialDealsForCalendar(start: string, end: string): Promise<CommercialDeal[]> {
+  const query = new URLSearchParams({ start, end });
+  return apiRequest<CommercialDeal[]>(`/api/deals/calendar?${query.toString()}`);
 }
 
 export function fetchCommercialDealFocus(): Promise<DealFocusData> {
