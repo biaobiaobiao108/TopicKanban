@@ -181,6 +181,9 @@ async function mockWorkspace(page: Page, options: { includeCalendarContent?: boo
       }),
     });
   });
+  await page.route('**/api/deals/calendar*', async (route) => {
+    await route.fulfill({ contentType: 'application/json', body: JSON.stringify([deal]) });
+  });
   await page.route(`**/api/deals/${deal.id}`, async (route) => {
     await route.fulfill({ contentType: 'application/json', body: JSON.stringify(dealDetail) });
   });
