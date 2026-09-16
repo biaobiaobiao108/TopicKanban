@@ -1,5 +1,6 @@
 import React, { useEffect, useId, useRef } from 'react';
 import { createPortal } from 'react-dom';
+import { FloatingScrollbar } from './FloatingScrollbar';
 import { X } from 'lucide-react';
 
 interface ModalProps {
@@ -114,24 +115,26 @@ export const Modal: React.FC<ModalProps> = ({
 
         {/* Modal Container */}
         <div
-          className={`relative min-w-0 w-full ${maxWidthClasses[maxWidth]} bg-white dark:bg-stone-900 rounded-2xl shadow-modal border border-stone-200/80 dark:border-stone-800 overflow-hidden flex flex-col max-h-[90dvh] z-10 modal-dialog-modern animate-in fade-in zoom-in-95 duration-200 ease-editorial-out transition-colors`}
+          className={`relative min-w-0 w-full ${maxWidthClasses[maxWidth]} bg-[var(--surface)] rounded-[var(--radius-md)] shadow-modal border border-[var(--line)] overflow-hidden flex flex-col max-h-[90dvh] z-10 modal-dialog-modern animate-in fade-in zoom-in-95 duration-200 ease-editorial-out transition-colors`}
           onClick={(event) => event.stopPropagation()}
         >
           {/* Header */}
-          <div className="flex min-w-0 items-center justify-between gap-3 px-6 py-4 border-b border-stone-200/70 dark:border-stone-800 bg-stone-50/70 dark:bg-stone-900/90">
-            <h3 id={titleId} className="min-w-0 flex-1 break-words text-lg font-bold text-stone-900 dark:text-stone-100 leading-tight">{title}</h3>
+          <div className="flex min-w-0 items-center justify-between gap-3 px-6 py-4 border-b border-[var(--line)] bg-[var(--surface)]">
+            <h3 id={titleId} className="min-w-0 flex-1 break-words text-base font-semibold text-[var(--ink)] leading-snug">{title}</h3>
             <button
               type="button"
               aria-label="关闭弹窗"
               onClick={handleClose}
-              className="shrink-0 text-stone-400 dark:text-stone-500 hover:text-stone-700 dark:hover:text-stone-300 p-1.5 rounded-lg hover:bg-stone-100 dark:hover:bg-stone-800 transition-colors cursor-pointer"
+              className="shrink-0 text-[var(--ink-muted)] hover:text-[var(--ink)] p-1.5 rounded-[var(--radius-sm)] hover:bg-[var(--canvas)] transition-colors cursor-pointer"
             >
-              <X className="w-5 h-5" />
+              <X className="w-4 h-4" />
             </button>
           </div>
 
-          {/* Content */}
-          <div className="min-w-0 p-6 overflow-y-auto overscroll-contain [scrollbar-gutter:stable]">{children}</div>
+          {/* Content with FloatingScrollbar */}
+          <FloatingScrollbar className="min-w-0 p-6 overscroll-contain">
+            {children}
+          </FloatingScrollbar>
         </div>
       </div>
     </dialog>

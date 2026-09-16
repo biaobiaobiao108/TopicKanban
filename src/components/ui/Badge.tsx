@@ -2,50 +2,44 @@ import React from 'react';
 import { Priority, TopicStatus, VerificationStatus, PlatformType } from '../../types';
 
 export const StatusBadge: React.FC<{ status: TopicStatus; size?: 'sm' | 'md' }> = ({ status, size = 'sm' }) => {
-  const configs: Record<TopicStatus, { label: string; bg: string; text: string; dot: string }> = {
+  const configs: Record<TopicStatus, { label: string; dot: string; text: string }> = {
     inbox: {
       label: '收集箱',
-      bg: 'bg-stone-500/10 dark:bg-stone-800/80',
-      text: 'text-stone-700 dark:text-stone-300',
-      dot: 'bg-stone-400 dark:bg-stone-500',
+      dot: 'bg-[var(--ink-muted)] opacity-60',
+      text: 'text-[var(--ink-muted)]',
     },
     approved: {
       label: '已立项',
-      bg: 'bg-emerald-500/10 dark:bg-emerald-950/40',
-      text: 'text-emerald-700 dark:text-emerald-300',
-      dot: 'bg-emerald-500 dark:bg-emerald-400',
+      dot: 'bg-[var(--accent)]',
+      text: 'text-[var(--accent)] font-medium',
     },
     scripting: {
       label: '写稿中',
-      bg: 'bg-indigo-500/10 dark:bg-indigo-950/40',
-      text: 'text-indigo-700 dark:text-indigo-300',
-      dot: 'bg-indigo-500 dark:bg-indigo-400',
+      dot: 'bg-[#9b6a2f]',
+      text: 'text-[#9b6a2f] dark:text-[#c49258] font-medium',
     },
     production: {
       label: '待制作',
-      bg: 'bg-purple-500/10 dark:bg-purple-950/40',
-      text: 'text-purple-700 dark:text-purple-300',
-      dot: 'bg-purple-500 dark:bg-purple-400',
+      dot: 'bg-[#6b4f73]',
+      text: 'text-[#6b4f73] dark:text-[#a882b3] font-medium',
     },
     published: {
       label: '已发布',
-      bg: 'bg-teal-500/10 dark:bg-teal-950/40',
-      text: 'text-teal-700 dark:text-teal-300',
-      dot: 'bg-teal-500 dark:bg-teal-400',
+      dot: 'bg-[var(--accent)]',
+      text: 'text-[var(--accent)] font-medium',
     },
     icebox: {
       label: '搁置',
-      bg: 'bg-stone-500/10 dark:bg-stone-800/50',
-      text: 'text-stone-500 dark:text-stone-400',
-      dot: 'bg-stone-300 dark:bg-stone-600',
+      dot: 'bg-[var(--ink-muted)] opacity-40',
+      text: 'text-[var(--ink-muted)] opacity-75',
     },
   };
 
   const c = configs[status] || configs.inbox;
-  const padding = size === 'sm' ? 'px-2 py-0.5 text-xs' : 'px-2.5 py-1 text-sm';
+  const textSize = size === 'sm' ? 'text-[11px]' : 'text-xs';
 
   return (
-    <span className={`inline-flex items-center gap-1.5 rounded-full font-medium select-none ${c.bg} ${c.text} ${padding}`}>
+    <span className={`inline-flex items-center gap-1.5 select-none ${textSize} ${c.text}`}>
       <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${c.dot}`} />
       <span>{c.label}</span>
     </span>
@@ -53,33 +47,33 @@ export const StatusBadge: React.FC<{ status: TopicStatus; size?: 'sm' | 'md' }> 
 };
 
 export const PriorityBadge: React.FC<{ priority: Priority; showLabel?: boolean }> = ({ priority, showLabel = true }) => {
-  const configs: Record<Priority, { label: string; bg: string; dot: string }> = {
+  const configs: Record<Priority, { label: string; dot: string; text: string }> = {
     high: {
       label: '高',
-      bg: 'bg-rose-500/10 dark:bg-rose-950/40 text-rose-700 dark:text-rose-300 font-semibold',
-      dot: 'bg-rose-500 dark:bg-rose-400',
+      dot: 'bg-[var(--h1-color)]',
+      text: 'text-[var(--h1-color)] font-semibold',
     },
     medium: {
       label: '中',
-      bg: 'bg-amber-500/10 dark:bg-amber-950/40 text-amber-700 dark:text-amber-300 font-medium',
-      dot: 'bg-amber-500 dark:bg-amber-400',
+      dot: 'bg-[var(--accent)]',
+      text: 'text-[var(--ink)] font-medium',
     },
     low: {
       label: '低',
-      bg: 'bg-stone-500/10 dark:bg-stone-800/70 text-stone-600 dark:text-stone-300 font-medium',
-      dot: 'bg-stone-400 dark:bg-stone-500',
+      dot: 'bg-[var(--ink-muted)] opacity-60',
+      text: 'text-[var(--ink-muted)] font-normal',
     },
     none: {
       label: '无',
-      bg: 'bg-stone-500/5 dark:bg-stone-800/40 text-stone-400 dark:text-stone-500 font-normal',
-      dot: 'bg-stone-300 dark:bg-stone-600',
+      dot: 'bg-[var(--ink-muted)] opacity-30',
+      text: 'text-[var(--ink-muted)] opacity-60 font-normal',
     },
   };
 
   const c = configs[priority] || configs.none;
 
   return (
-    <span className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-xs whitespace-nowrap select-none ${c.bg}`}>
+    <span className={`inline-flex items-center gap-1 text-[11px] whitespace-nowrap select-none ${c.text}`}>
       <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${c.dot}`} />
       {showLabel && <span>{c.label}</span>}
     </span>
@@ -87,28 +81,28 @@ export const PriorityBadge: React.FC<{ priority: Priority; showLabel?: boolean }
 };
 
 export const VerificationBadge: React.FC<{ status: VerificationStatus }> = ({ status }) => {
-  const configs: Record<VerificationStatus, { label: string; bg: string; icon: string }> = {
+  const configs: Record<VerificationStatus, { label: string; icon: string; text: string }> = {
     confirmed: {
       label: '已确认',
-      bg: 'bg-emerald-500/10 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 font-medium',
       icon: '✓',
+      text: 'text-[var(--accent)] font-medium',
     },
     unverified: {
       label: '待核实',
-      bg: 'bg-amber-500/10 dark:bg-amber-950/40 text-amber-700 dark:text-amber-300 font-medium',
       icon: '?',
+      text: 'text-[#9b6a2f] dark:text-[#c49258] font-medium',
     },
     rejected: {
       label: '不采用',
-      bg: 'bg-stone-500/10 dark:bg-stone-800/60 text-stone-400 dark:text-stone-500 line-through font-normal',
       icon: '✕',
+      text: 'text-[var(--ink-muted)] line-through opacity-70 font-normal',
     },
   };
 
   const c = configs[status] || configs.unverified;
   return (
-    <span className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs select-none ${c.bg}`}>
-      <span className="font-bold text-[11px]">{c.icon}</span>
+    <span className={`inline-flex items-center gap-1 text-xs select-none ${c.text}`}>
+      <span className="font-mono text-[11px]">{c.icon}</span>
       <span>{c.label}</span>
     </span>
   );
@@ -130,15 +124,15 @@ export const PlatformBadge: React.FC<{ platform: PlatformType }> = ({ platform }
   };
 
   return (
-    <span className="inline-flex items-center px-2 py-0.5 rounded-md bg-stone-100 dark:bg-stone-800 text-stone-600 dark:text-stone-300 text-xs font-medium select-none">
+    <span className="inline-flex items-center px-1.5 py-0.5 rounded-[var(--radius-sm)] bg-[var(--canvas)] border border-[var(--line)] text-[var(--ink-muted)] text-[11px] font-normal select-none">
       {names[platform] || platform}
     </span>
   );
 };
 
 export const TagPill: React.FC<{ name: string; onRemove?: () => void }> = ({ name, onRemove }) => (
-  <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-stone-100/90 dark:bg-stone-800/90 text-stone-600 dark:text-stone-300 rounded-md text-xs font-medium select-none transition-colors">
-    #{name}
+  <span className="inline-flex items-center gap-1 px-1.5 py-0.5 bg-[var(--canvas)] border border-[var(--line)] text-[var(--ink-muted)] hover:text-[var(--ink)] rounded-[var(--radius-sm)] text-xs font-normal select-none transition-colors">
+    <span>#{name}</span>
     {onRemove && (
       <button
         type="button"
@@ -146,7 +140,8 @@ export const TagPill: React.FC<{ name: string; onRemove?: () => void }> = ({ nam
           e.stopPropagation();
           onRemove();
         }}
-        className="hover:text-stone-900 dark:hover:text-stone-100 text-stone-400 dark:text-stone-500 ml-0.5 cursor-pointer"
+        className="hover:text-[var(--h1-color)] text-[var(--ink-muted)] ml-0.5 cursor-pointer"
+        aria-label={`移除标签 ${name}`}
       >
         ×
       </button>
