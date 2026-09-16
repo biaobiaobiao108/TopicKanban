@@ -192,6 +192,10 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
   const [activeCardWidth, setActiveCardWidth] = useState<number | null>(null);
   const [isReorderPending, setIsReorderPending] = useState(false);
   const snapshotRef = useRef<BoardSnapshot | null>(null);
+  // Dnd-kit can dispatch the final event before React commits the last
+  // onDragOver state update. Keep a synchronous drag-only board so the end
+  // handler never falls back to the previous render's column structure.
+  const dragBoardRef = useRef<BoardSnapshot | null>(null);
 
   // Filters
   const [priorityFilter, setPriorityFilter] = useState<Priority | 'all'>('all');
@@ -408,6 +412,7 @@ class NonTouchPointerSensor extends PointerSensor {
   const restoreSnapshot = () => {
     const snapshot = snapshotRef.current;
     if (!snapshot) {
+      dragBoardRef.current = null;
       setIsReorderPending(false);
       return;
     }
@@ -415,6 +420,7 @@ class NonTouchPointerSensor extends PointerSensor {
     setTopicsMap(snapshot.topics);
     setLoadedTopicsByStatus(snapshot.loadedTopicsByStatus);
     snapshotRef.current = null;
+    dragBoardRef.current = null;
     setActiveId(null);
     setActiveCardWidth(null);
     setIsReorderPending(false);
@@ -473,7 +479,9 @@ class NonTouchPointerSensor extends PointerSensor {
 
   const handleDragStart = (event: DragStartEvent) => {
     const { active } = event;
-    snapshotRef.current = cloneBoard(columns, topicsMap, loadedTopicsByStatus);
+    const snapshot = cloneBoard(columns, topicsMap, loadedTopicsByStatus);
+    snapshotRef.current = snapshot;
+    dragBoardRef.current = cloneBoard(snapshot.columns, snapshot.topics, snapshot.loadedTopicsByStatus);
     setActiveId(String(active.id));
 
     // Measure current card's layout width for pixel-perfect DragOverlay
@@ -491,16 +499,23 @@ class NonTouchPointerSensor extends PointerSensor {
     const overKey = String(over.id);
     if (activeKey === overKey) return;
 
-    const source = findContainer(columns, activeKey);
-    const target = findContainer(columns, overKey);
+    const dragBoard = dragBoardRef.current;
+    if (!dragBoard) return;
+    const source = findContainer(dragBoard.columns, activeKey);
+    const target = findContainer(dragBoard.columns, overKey);
     if (!source || !target || source === target) return;
 
-    setColumns((current) => moveBetweenColumns(current, activeKey, overKey, target));
-    setTopicsMap((current) => {
-      const item = current[activeKey];
-      if (!item) return current;
-      return { ...current, [activeKey]: { ...item, status: target } };
-    });
+    const nextColumns = moveBetweenColumns(dragBoard.columns, activeKey, overKey, target);
+    const item = dragBoard.topics[activeKey];
+    if (!item) return;
+    const nextTopicsMap = { ...dragBoard.topics, [activeKey]: { ...item, status: target } };
+    dragBoardRef.current = {
+      ...dragBoard,
+      columns: nextColumns,
+      topics: nextTopicsMap,
+    };
+    setColumns(nextColumns);
+    setTopicsMap(nextTopicsMap);
   };
 
   const handleDragEnd = async (event: DragEndEvent) => {
@@ -519,38 +534,52 @@ class NonTouchPointerSensor extends PointerSensor {
 
     const activeKey = String(active.id);
     const overKey = String(over.id);
+    const dragBoard = dragBoardRef.current;
+    const dragColumns = dragBoard?.columns || columns;
+    const dragTopicsMap = dragBoard?.topics || topicsMap;
+    const dragLoadedTopicsByStatus = dragBoard?.loadedTopicsByStatus || loadedTopicsByStatus;
     const source = findContainer(snapshot.columns, activeKey);
-    const target = findContainer(columns, overKey);
+    const target = findContainer(dragColumns, overKey);
     if (!source || !target) {
       restoreSnapshot();
       return;
     }
 
-    let nextColumns = columns;
+    let nextColumns = dragColumns;
     if (source === target && activeKey !== overKey) {
-      const oldIndex = columns[source].indexOf(activeKey);
-      const newIndex = columns[target].indexOf(overKey);
+      const oldIndex = dragColumns[source].indexOf(activeKey);
+      const newIndex = dragColumns[target].indexOf(overKey);
       if (oldIndex !== -1 && newIndex !== -1) {
-        nextColumns = { ...columns, [source]: arrayMove(columns[source], oldIndex, newIndex) };
+        nextColumns = { ...dragColumns, [source]: arrayMove(dragColumns[source], oldIndex, newIndex) };
       }
+    } else if (source !== target && !dragColumns[target].includes(activeKey)) {
+      // If the pointer is released before the final onDragOver commit, move
+      // the card from the authoritative snapshot into the release target.
+      nextColumns = moveBetweenColumns(dragColumns, activeKey, overKey, target);
     }
 
-    const activeTopic = topicsMap[activeKey];
+    const activeTopic = dragTopicsMap[activeKey];
     if (!activeTopic) {
       restoreSnapshot();
       return;
     }
 
     const nextTopicsMap = {
-      ...topicsMap,
+      ...dragTopicsMap,
       [activeKey]: { ...activeTopic, status: target },
     };
+    const nextLoadedTopicsByStatus = reorderLoadedTopics(dragLoadedTopicsByStatus, nextColumns, nextTopicsMap);
 
     setIsReorderPending(true);
     setActiveId(null);
     setColumns(nextColumns);
     setTopicsMap(nextTopicsMap);
-    setLoadedTopicsByStatus((current) => reorderLoadedTopics(current, nextColumns, nextTopicsMap));
+    setLoadedTopicsByStatus(nextLoadedTopicsByStatus);
+    dragBoardRef.current = {
+      columns: nextColumns,
+      topics: nextTopicsMap,
+      loadedTopicsByStatus: nextLoadedTopicsByStatus,
+    };
 
     if (sortBy !== 'sort_order') {
       setSortBy('sort_order');
@@ -576,6 +605,7 @@ class NonTouchPointerSensor extends PointerSensor {
       optimisticUpdateQueryCache(updates);
       await onReorderTopics(updates);
       snapshotRef.current = null;
+      dragBoardRef.current = null;
       setIsReorderPending(false);
     } catch {
       restoreSnapshot();
@@ -602,6 +632,7 @@ class NonTouchPointerSensor extends PointerSensor {
     setColumns(nextColumns);
     setTopicsMap(nextTopicsMap);
     setLoadedTopicsByStatus((current) => reorderLoadedTopics(current, nextColumns, nextTopicsMap));
+    dragBoardRef.current = null;
     setIsReorderPending(true);
 
     const updates: Array<{ id: string; status: TopicStatus; sort_order: number }> = [];
@@ -641,7 +672,8 @@ class NonTouchPointerSensor extends PointerSensor {
     selectedTagId !== 'all' ||
     selectedPersonId !== 'all' ||
     sortBy !== 'sort_order';
-  const isDragDisabled = isMobileViewport || isReorderPending || Boolean(searchTerm) || priorityFilter !== 'all' || selectedTagId !== 'all' || selectedPersonId !== 'all';
+  const isColumnDataSettling = columnQueries.some((query) => query.isPending || query.isPlaceholderData);
+  const isDragDisabled = isMobileViewport || isColumnDataSettling || isReorderPending || Boolean(searchTerm) || priorityFilter !== 'all' || selectedTagId !== 'all' || selectedPersonId !== 'all';
 
   const handleResetFilters = () => {
     setPriorityFilter('all');

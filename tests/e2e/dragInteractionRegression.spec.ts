@@ -64,12 +64,19 @@ function makeTopic(
 
 async function mockWorkspace(
   page: Page,
-  options: { failReorder?: boolean; calendar?: boolean; delayReorder?: boolean } = {},
+  options: {
+    failReorder?: boolean;
+    calendar?: boolean;
+    delayReorder?: boolean;
+    delayColumnStatus?: TestTopic['status'];
+  } = {},
 ) {
   const state: {
     topics: TestTopic[];
     reorderRequests: Array<Array<{ id: string; status: TestTopic['status']; sort_order: number }>>;
+    columnPageRequests: string[];
     releaseReorder: () => void;
+    releaseColumnPage: () => void;
   } = {
     topics: options.calendar
       ? [makeTopic('e2e-calendar-drag-topic', '日历拖拽回归选题', 'production', 1)]
@@ -79,7 +86,9 @@ async function mockWorkspace(
           makeTopic('e2e-kanban-approved', '已立项目标卡片', 'approved', 1),
         ],
     reorderRequests: [],
+    columnPageRequests: [],
     releaseReorder: () => {},
+    releaseColumnPage: () => {},
   };
   const settings = {
     reading_speed: 280,
@@ -91,6 +100,11 @@ async function mockWorkspace(
   const reorderReleased = options.delayReorder
     ? new Promise<void>((resolve) => {
       state.releaseReorder = () => resolve();
+    })
+    : Promise.resolve();
+  const columnPageReleased = options.delayColumnStatus
+    ? new Promise<void>((resolve) => {
+      state.releaseColumnPage = () => resolve();
     })
     : Promise.resolve();
 
@@ -133,6 +147,8 @@ async function mockWorkspace(
   await page.route('**/api/topics?*', async (route) => {
     const url = new URL(route.request().url());
     const status = url.searchParams.get('status');
+    if (status) state.columnPageRequests.push(status);
+    if (status === options.delayColumnStatus) await columnPageReleased;
     const items = state.topics
       .filter((topic) => !status || topic.status === status)
       .filter((topic) => !topic.deleted_at)
@@ -272,6 +288,20 @@ test('看板跨列拖拽在保存响应前保留目标卡片', async ({ page }) 
 
   state.releaseReorder();
   await expect.poll(() => state.topics.find((topic) => topic.id === 'e2e-kanban-one')?.status).toBe('approved');
+});
+
+test('看板首屏分页未完成时不启动拖拽', async ({ page }) => {
+  const state = await mockWorkspace(page, { delayColumnStatus: 'approved' });
+  await login(page);
+  await page.goto('/kanban');
+
+  const source = page.locator('[data-topic-id="e2e-kanban-one"]');
+  await expect.poll(() => state.columnPageRequests.filter((status) => status === 'approved').length).toBeGreaterThan(0);
+  await expect(source).toBeVisible();
+  await expect(source).toHaveAttribute('tabindex', '-1');
+
+  state.releaseColumnPage();
+  await expect(source).toHaveAttribute('tabindex', '0');
 });
 
 test('看板拖拽保存失败时恢复列、卡片和已加载列表', async ({ page }) => {
