@@ -221,29 +221,31 @@ test('直接打开选题详情时不再显示独立返回栏', async ({ page }) 
   await expect(page.getByRole('heading', { name: topic.title, exact: true })).toBeVisible();
 });
 
-test('文案沉浸写作模式会隐藏全局顶栏', async ({ page }) => {
+test('工作台不再渲染全局顶栏且文案支持沉浸写作', async ({ page }) => {
   await mockWorkspace(page);
   await login(page);
   await page.goto(`/topics/${topic.id}?tab=script`);
 
+  await expect(page.locator('.pwa-navbar')).toHaveCount(0);
   const enterZenButton = page.getByRole('button', { name: '沉浸写作', exact: true });
   await expect(enterZenButton).toBeVisible();
   await enterZenButton.click();
 
   await expect(page.locator('html')).toHaveClass(/script-editor-zen-mode/);
-  await expect(page.locator('.pwa-navbar')).toBeHidden();
+  await expect(page.locator('.pwa-navbar')).toHaveCount(0);
   await expect(page.getByRole('button', { name: /退出沉浸/ })).toBeVisible();
 
   await page.keyboard.press('Escape');
   await expect(page.locator('html')).not.toHaveClass(/script-editor-zen-mode/);
-  await expect(page.locator('.pwa-navbar')).toBeVisible();
+  await expect(page.locator('.pwa-navbar')).toHaveCount(0);
 });
 
-test('移动端顶栏、底部阶段菜单和更多菜单均不超出视口', async ({ page }) => {
+test('移动端无全局顶栏且底部阶段菜单和更多菜单均不超出视口', async ({ page }) => {
   await mockWorkspace(page);
   await login(page);
   await page.setViewportSize({ width: 390, height: 844 });
   await page.goto(`/topics/${topic.id}?tab=overview`);
+  await expect(page.locator('.navbar-container')).toHaveCount(0);
 
   const statusTrigger = page.getByTitle('修改选题生产阶段');
   await statusTrigger.click();

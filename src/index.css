@@ -507,14 +507,6 @@ mark, .mark-highlight {
 }
 
 /* Modern Fluid Chrome & Glass Surfaces */
-.glass-header {
-  background-color: var(--nav-glass-bg);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
-  border-bottom: 1px solid var(--border-divider);
-  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.015), 0 4px 16px -4px rgba(0, 0, 0, 0.02);
-}
-
 .glass-sidebar {
   background-color: var(--sidebar-glass-bg);
   backdrop-filter: blur(16px);
@@ -792,8 +784,6 @@ html.theme-warm-paper .detail-subtabs-container button:not(.border-rose-600) {
 /* 5. Outer Framework */
 html.theme-warm-paper aside.sidebar-container,
 html.theme-warm-paper .sidebar-container,
-html.theme-warm-paper header.navbar-container,
-html.theme-warm-paper .navbar-container,
 html.theme-warm-paper .mobile-drawer-container,
 html.theme-warm-paper .mobile-nav-container,
 html.theme-warm-paper .script-editor-toolbar {
@@ -1023,8 +1013,6 @@ html.theme-nordic-frost .detail-subtabs-container button:not(.border-rose-600) {
 /* 5. Outer Framework */
 html.theme-nordic-frost aside.sidebar-container,
 html.theme-nordic-frost .sidebar-container,
-html.theme-nordic-frost header.navbar-container,
-html.theme-nordic-frost .navbar-container,
 html.theme-nordic-frost .mobile-drawer-container,
 html.theme-nordic-frost .mobile-nav-container,
 html.theme-nordic-frost .script-editor-toolbar {
@@ -1339,8 +1327,7 @@ select:focus {
   view-transition-name: page-content;
 }
 
-/* Zen writing mode owns the viewport, so the global app chrome must not sit above it. */
-html.script-editor-zen-mode .pwa-navbar,
+/* Zen writing mode owns the viewport, so the install prompt must not sit above it. */
 html.script-editor-zen-mode .pwa-install-banner {
   display: none !important;
 }
@@ -1421,8 +1408,7 @@ html.script-editor-zen-mode .pwa-install-banner {
     background: var(--bg-primary);
   }
 
-  .pwa-navbar {
-    height: calc(3.25rem + env(safe-area-inset-top));
+  .pwa-main-shell {
     padding-top: env(safe-area-inset-top);
   }
 

@@ -10,6 +10,7 @@ import {
   Settings,
   Search,
   Plus,
+  Smartphone,
   LogOut
 } from 'lucide-react';
 import { FloatingScrollbar } from '../ui/FloatingScrollbar';
@@ -21,8 +22,10 @@ interface SidebarProps {
   onNavigate: (view: NavView) => void;
   onOpenQuickCreate: () => void;
   onOpenCommandPalette: () => void;
+  onOpenQuickDrops?: () => void;
   onLogout?: () => void;
   topicCount: number;
+  quickDropCount?: number;
 }
 
 export const Sidebar: React.FC<SidebarProps> = ({
@@ -30,8 +33,10 @@ export const Sidebar: React.FC<SidebarProps> = ({
   onNavigate,
   onOpenQuickCreate,
   onOpenCommandPalette,
+  onOpenQuickDrops,
   onLogout,
   topicCount,
+  quickDropCount = 0,
 }) => {
   const navItems = [
     { id: 'today' as NavView, label: '今日聚焦', icon: Calendar, badge: null },
@@ -46,7 +51,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
   ];
 
   return (
-    <aside className="sidebar-container hidden md:flex w-64 glass-sidebar flex-col h-dvh shrink-0 select-none transition-colors">
+    <aside className="sidebar-container hidden md:flex w-64 glass-sidebar flex-col h-full shrink-0 select-none transition-colors">
       {/* Brand Header */}
       <div className="p-4 pb-3">
         <div className="flex items-center gap-3">
@@ -77,6 +82,32 @@ export const Sidebar: React.FC<SidebarProps> = ({
             <span>全局搜索与指令</span>
             <kbd className="ml-auto text-[11px] bg-[var(--canvas)] text-stone-600 dark:text-stone-400 border border-[var(--line)] px-1.5 py-0.5 rounded-[var(--radius-sm)] font-mono">Ctrl+/</kbd>
           </button>
+
+          {onOpenQuickDrops && (
+            <button
+              type="button"
+              onClick={onOpenQuickDrops}
+              aria-label={quickDropCount > 0 ? `手机快投箱中有 ${quickDropCount} 条未处理灵感` : '打开手机快投灵感箱'}
+              title={quickDropCount > 0 ? `手机快投箱中有 ${quickDropCount} 条未处理灵感` : '打开手机快投灵感箱'}
+              className={`w-full flex items-center justify-between gap-2 px-3.5 py-2 rounded-[var(--radius-sm)] text-[13px] font-medium border transition-colors cursor-pointer ${
+                quickDropCount > 0
+                  ? 'bg-rose-50 dark:bg-rose-950/40 border-rose-200 dark:border-rose-900/60 text-rose-800 dark:text-rose-200 shadow-2xs'
+                  : 'bg-[var(--canvas)] hover:bg-[var(--surface)] text-stone-700 dark:text-stone-300 border-[var(--line)]'
+              }`}
+            >
+              <span className="flex min-w-0 items-center gap-2">
+                <Smartphone className={`h-4 w-4 shrink-0 ${quickDropCount > 0 ? 'text-rose-600 dark:text-rose-400' : 'text-stone-500 dark:text-stone-400'}`} aria-hidden="true" />
+                <span className="truncate">手机快投灵感箱</span>
+              </span>
+              {quickDropCount > 0 ? (
+                <span className="min-w-5 h-5 shrink-0 px-1 rounded-full bg-rose-600 text-white text-[10px] font-mono font-bold flex items-center justify-center">
+                  {quickDropCount}
+                </span>
+              ) : (
+                <span className="shrink-0 text-[10px] text-stone-400 dark:text-stone-500 font-normal">7天暂存</span>
+              )}
+            </button>
+          )}
         </div>
       </div>
 

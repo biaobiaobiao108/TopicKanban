@@ -25,7 +25,7 @@ async function expectNoHorizontalOverflow(page: Page) {
   expect(layout.mainScrollWidth).toBeLessThanOrEqual(layout.mainClientWidth + 1);
 }
 
-test('移动底栏在手机宽度内只显示核心入口，顶部新增入口仅保留桌面端', async ({ page }) => {
+test('移动底栏在手机宽度内保留核心入口与菜单，工作台不再渲染全局顶栏', async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 });
   await login(page);
 
@@ -35,14 +35,15 @@ test('移动底栏在手机宽度内只显示核心入口，顶部新增入口�
 
     const bottomNav = page.getByTestId('mobile-bottom-nav');
     await expect(bottomNav).toBeVisible();
-    await expect(bottomNav.locator('button')).toHaveCount(5);
+    await expect(bottomNav.locator('button')).toHaveCount(6);
     await expect(bottomNav.locator('button[aria-label="今日"]')).toHaveCount(1);
     await expect(bottomNav.locator('button[aria-label^="看板"]')).toHaveCount(1);
     await expect(bottomNav.locator('button[aria-label="商单"]')).toHaveCount(1);
     await expect(bottomNav.locator('button[aria-label="设置"]')).toHaveCount(1);
+    await expect(bottomNav.getByRole('button', { name: '打开菜单', exact: true })).toBeVisible();
     await expect(bottomNav.getByRole('button', { name: '新建选题', exact: true })).toBeVisible();
     await expect(bottomNav.locator('button[aria-label^="日历"]')).toHaveCount(0);
-    await expect(page.locator('.navbar-container button[aria-label="新选题"]')).toBeHidden();
+    await expect(page.locator('.navbar-container')).toHaveCount(0);
 
     const layout = await bottomNav.evaluate((element) => {
       const nav = element.getBoundingClientRect();
@@ -61,7 +62,8 @@ test('移动底栏在手机宽度内只显示核心入口，顶部新增入口�
   await page.setViewportSize({ width: 1024, height: 768 });
   await page.goto('/today');
   await expect(page.getByTestId('mobile-bottom-nav')).toBeHidden();
-  await expect(page.locator('.navbar-container button[aria-label="新选题"]')).toBeVisible();
+  await expect(page.locator('.navbar-container')).toHaveCount(0);
+  await expect(page.locator('aside').getByRole('button', { name: /打开手机快投灵感箱|手机快投箱中有/ })).toBeVisible();
 });
 
 test('移动端抽屉保留次级页面入口', async ({ page }) => {

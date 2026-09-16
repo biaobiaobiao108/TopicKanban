@@ -44,7 +44,6 @@ import {
 import { isAuthenticated, logout } from './lib/auth';
 import { LoginView } from './components/auth/LoginView';
 import { Sidebar, NavView } from './components/layout/Sidebar';
-import { Navbar } from './components/layout/Navbar';
 import { MobileBottomNav, MobileDrawer } from './components/layout/MobileNav';
 import { CommandPalette } from './components/layout/CommandPalette';
 import { QuickCreateModal } from './components/layout/QuickCreateModal';
@@ -936,23 +935,14 @@ function WorkspaceApp({ isAuth, setIsAuth }: WorkspaceAppProps) {
         onNavigate={navigateToView}
         onOpenQuickCreate={openInboxQuickCreate}
         onOpenCommandPalette={() => setIsCommandPaletteOpen(true)}
+        onOpenQuickDrops={() => setIsQuickDropDrawerOpen(true)}
         onLogout={handleLogout}
         topicCount={topicCount}
+        quickDropCount={quickDropCount}
       />
 
       {/* Main Content Area */}
-      <div className="flex-1 flex flex-col h-dvh overflow-hidden min-w-0">
-        {/* Top Navbar */}
-        <Navbar
-          currentView={currentView}
-          onOpenQuickCreate={openInboxQuickCreate}
-          onOpenCommandPalette={() => setIsCommandPaletteOpen(true)}
-          onOpenMobileDrawer={() => setIsMobileDrawerOpen(true)}
-          onOpenQuickDrops={() => setIsQuickDropDrawerOpen(true)}
-          quickDropCount={quickDropCount}
-          searchTerm={searchTerm}
-          onSearchChange={setSearchTerm}
-        />
+      <div className="pwa-main-shell flex-1 flex flex-col h-full overflow-hidden min-w-0">
         <PwaInstallPromptBanner />
 
         {/* View Router */}
@@ -1140,6 +1130,7 @@ function WorkspaceApp({ isAuth, setIsAuth }: WorkspaceAppProps) {
         currentView={currentView}
         onNavigate={navigateToView}
         onOpenQuickCreate={openInboxQuickCreate}
+        onOpenMobileDrawer={() => setIsMobileDrawerOpen(true)}
         topicCount={topicCount}
       />}
 

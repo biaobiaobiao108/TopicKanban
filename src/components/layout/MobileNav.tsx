@@ -10,9 +10,9 @@ import {
   Database,
   Settings,
   Plus,
+  Menu,
   LogOut,
   X,
-  ShieldCheck,
   Search,
   Smartphone,
 } from 'lucide-react';
@@ -23,6 +23,7 @@ interface MobileBottomNavProps {
   currentView: NavView;
   onNavigate: (view: NavView) => void;
   onOpenQuickCreate: () => void;
+  onOpenMobileDrawer: () => void;
   topicCount: number;
 }
 
@@ -30,6 +31,7 @@ export const MobileBottomNav: React.FC<MobileBottomNavProps> = ({
   currentView,
   onNavigate,
   onOpenQuickCreate,
+  onOpenMobileDrawer,
   topicCount,
 }) => {
   const items: { id: NavView; label: string; icon: React.ComponentType<{ className?: string }>; badge?: number | null }[] = [
@@ -43,7 +45,7 @@ export const MobileBottomNav: React.FC<MobileBottomNavProps> = ({
     <nav
       data-testid="mobile-bottom-nav"
       aria-label="移动端主导航"
-      className="mobile-nav-container md:hidden fixed bottom-0 left-0 right-0 z-40 grid grid-cols-5 items-center bg-[var(--nav-glass-bg)] px-2 pt-1.5 pb-[max(0.5rem,env(safe-area-inset-bottom))] backdrop-blur-lg border-t border-stone-200/40 dark:border-stone-800/40 shadow-nav-ambient transition-colors"
+      className="mobile-nav-container md:hidden fixed bottom-0 left-0 right-0 z-40 grid grid-cols-6 items-center bg-[var(--nav-glass-bg)] px-2 pt-1.5 pb-[max(0.5rem,env(safe-area-inset-bottom))] backdrop-blur-lg border-t border-stone-200/40 dark:border-stone-800/40 shadow-nav-ambient transition-colors"
     >
       {items.map((item) => {
         const Icon = item.icon;
@@ -70,6 +72,17 @@ export const MobileBottomNav: React.FC<MobileBottomNavProps> = ({
           </button>
         );
       })}
+
+      <button
+        type="button"
+        onClick={onOpenMobileDrawer}
+        aria-label="打开菜单"
+        className="mobile-nav-item flex min-h-11 w-full min-w-0 touch-manipulation flex-col items-center justify-center rounded-lg px-0.5 py-1 text-stone-600 transition-colors hover:text-stone-900 dark:text-stone-400 dark:hover:text-white"
+        title="打开菜单"
+      >
+        <Menu className="h-5 w-5 stroke-2" aria-hidden="true" />
+        <span className="mt-0.5 text-[10px]">菜单</span>
+      </button>
 
       {/* Floating Create Button */}
       <button
