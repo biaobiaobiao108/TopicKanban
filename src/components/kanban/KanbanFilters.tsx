@@ -35,9 +35,9 @@ export const KanbanFilters: React.FC<KanbanFiltersProps> = ({
   hasActiveFilters,
 }) => {
   return (
-    <div data-testid="kanban-filters" className="flex items-center justify-between flex-wrap gap-3 pb-3 md:border-b border-stone-200 dark:border-stone-800 transition-colors">
+    <div data-testid="kanban-filters" className="flex items-center justify-between flex-wrap gap-3 pb-3 md:border-b border-[var(--line)] transition-colors">
       <div className="flex items-center gap-2.5 flex-wrap text-xs">
-        <span className="font-semibold text-stone-600 dark:text-stone-400 flex items-center gap-1">
+        <span className="font-medium text-[var(--ink-muted)] flex items-center gap-1">
           <Filter className="w-3.5 h-3.5" />
           筛选:
         </span>
@@ -50,10 +50,10 @@ export const KanbanFilters: React.FC<KanbanFiltersProps> = ({
           size="sm"
           options={[
             { value: 'all', label: '所有优先级' },
-            { value: 'high', label: '高优', dot: 'bg-rose-500', description: '重点攻坚' },
-            { value: 'medium', label: '中优', dot: 'bg-amber-500', description: '标准节奏' },
-            { value: 'low', label: '低优', dot: 'bg-blue-500', description: '空闲跟进' },
-            { value: 'none', label: '无优先级', dot: 'bg-stone-300 dark:bg-stone-600', description: '未设定' },
+            { value: 'high', label: '高优', dot: 'bg-[var(--h1-color)]', description: '重点攻坚' },
+            { value: 'medium', label: '中优', dot: 'bg-[var(--accent)]', description: '标准节奏' },
+            { value: 'low', label: '低优', dot: 'bg-[var(--ink-muted)] opacity-60', description: '空闲跟进' },
+            { value: 'none', label: '无优先级', dot: 'bg-[var(--ink-muted)] opacity-30', description: '未设定' },
           ]}
         />
 
@@ -86,7 +86,7 @@ export const KanbanFilters: React.FC<KanbanFiltersProps> = ({
         {hasActiveFilters && (
           <button
             onClick={onResetFilters}
-            className="flex items-center gap-1 text-rose-600 dark:text-rose-400 hover:text-rose-700 dark:hover:text-rose-300 bg-rose-50 dark:bg-rose-950/40 border border-rose-200/60 dark:border-rose-900/60 px-2 py-1 rounded-md font-medium cursor-pointer transition-colors"
+            className="flex items-center gap-1 text-[var(--h1-color)] hover:opacity-85 bg-[var(--surface)] border border-[var(--line)] px-2 py-1 rounded-[var(--radius-sm)] font-normal cursor-pointer transition-colors"
           >
             <X className="w-3 h-3" />
             重置筛选

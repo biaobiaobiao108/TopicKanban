@@ -745,7 +745,7 @@ class NonTouchPointerSensor extends PointerSensor {
       </div>
 
       {/* Mobile Stage Selector Pill Bar (iPhone Safari optimized) */}
-      <div data-testid="kanban-mobile-stage-tabs" className="md:hidden flex shrink-0 items-center gap-1.5 overflow-x-auto no-scrollbar -mx-2 rounded-2xl bg-stone-100/70 p-1 transition-colors dark:bg-stone-800/70">
+      <div data-testid="kanban-mobile-stage-tabs" className="md:hidden flex shrink-0 items-center gap-1.5 overflow-x-auto no-scrollbar -mx-2 rounded-[var(--radius-sm)] bg-[var(--canvas)] border border-[var(--line)] p-1 transition-colors">
         {ACTIVE_COLUMNS.map((col) => {
           const count = columnTotalCounts[col.status] || 0;
           const isActive = mobileActiveStage === col.status;
@@ -753,15 +753,15 @@ class NonTouchPointerSensor extends PointerSensor {
             <button
               key={col.status}
               onClick={() => setMobileActiveStage(col.status)}
-              className={`shrink-0 text-xs font-semibold px-3 py-1.5 rounded-full flex items-center gap-1.5 transition-colors cursor-pointer ${
+              className={`shrink-0 text-xs font-medium px-2.5 py-1 rounded-[var(--radius-sm)] flex items-center gap-1.5 transition-colors cursor-pointer ${
                 isActive
-                  ? 'bg-rose-600 text-white shadow-2xs font-bold'
-                  : 'bg-stone-100 dark:bg-stone-800 text-stone-600 dark:text-stone-300 hover:bg-stone-200/80 dark:hover:bg-stone-700'
+                  ? 'bg-[var(--accent)] text-white shadow-2xs'
+                  : 'text-[var(--ink-muted)] hover:text-[var(--ink)] hover:bg-[var(--surface)]'
               }`}
             >
               <span>{col.label}</span>
-              <span className={`text-[10px] px-1.5 py-0.2 rounded-full font-mono ${
-                isActive ? 'bg-rose-700 dark:bg-rose-800 text-white font-bold' : 'bg-stone-200 dark:bg-stone-700 text-stone-700 dark:text-stone-300'
+              <span className={`text-[10px] px-1 py-0.2 rounded-[var(--radius-sm)] tabular-nums ${
+                isActive ? 'bg-[var(--accent-dark)] text-white' : 'text-[var(--ink-muted)] opacity-75'
               }`}>
                 {count}
               </span>
