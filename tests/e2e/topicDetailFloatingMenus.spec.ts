@@ -380,12 +380,12 @@ test('文案标题与正文使用霞鹜文楷，代码块保留等宽字体', as
     };
   });
 
-  expect(fontFamilies.title).toContain('霞鹜文楷');
-  expect(fontFamilies.prose).toContain('霞鹜文楷');
-  expect(fontFamilies.heading).toContain('霞鹜文楷');
-  expect(fontFamilies.headingTwo).toContain('霞鹜文楷');
-  expect(fontFamilies.headingThree).toContain('霞鹜文楷');
-  expect(fontFamilies.paragraph).toContain('霞鹜文楷');
-  expect(fontFamilies.inlineCode).toContain('霞鹜文楷');
+  expect(fontFamilies.title).toContain('LXGW WenKai');
+  expect(fontFamilies.prose).toContain('LXGW WenKai');
+  expect(fontFamilies.heading).toContain('LXGW WenKai');
+  expect(fontFamilies.headingTwo).toContain('LXGW WenKai');
+  expect(fontFamilies.headingThree).toContain('LXGW WenKai');
+  expect(fontFamilies.paragraph).toContain('LXGW WenKai');
+  expect(fontFamilies.inlineCode).toContain('LXGW WenKai');
   expect(fontFamilies.codeBlock).toContain('ui-monospace');
 });

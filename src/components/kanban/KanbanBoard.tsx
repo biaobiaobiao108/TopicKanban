@@ -477,6 +477,16 @@ class NonTouchPointerSensor extends PointerSensor {
     });
   }, [queryClient, topicsMap]);
 
+  const captureKanbanQueryCache = () => queryClient.getQueriesData<PaginatedTopics>({
+    queryKey: ['kanban-column-page'],
+  });
+
+  const restoreKanbanQueryCache = (snapshot: Array<[readonly unknown[], PaginatedTopics | undefined]>) => {
+    snapshot.forEach(([queryKey, data]) => {
+      queryClient.setQueryData<PaginatedTopics>(queryKey, data);
+    });
+  };
+
   const handleDragStart = (event: DragStartEvent) => {
     const { active } = event;
     const snapshot = cloneBoard(columns, topicsMap, loadedTopicsByStatus);
@@ -598,6 +608,7 @@ class NonTouchPointerSensor extends PointerSensor {
       });
     }
 
+    const queryCacheSnapshot = captureKanbanQueryCache();
     try {
       // Stop an older page response from overwriting the optimistic board
       // while the reorder request is in flight.
@@ -608,6 +619,7 @@ class NonTouchPointerSensor extends PointerSensor {
       dragBoardRef.current = null;
       setIsReorderPending(false);
     } catch {
+      restoreKanbanQueryCache(queryCacheSnapshot);
       restoreSnapshot();
     }
   };
@@ -643,12 +655,14 @@ class NonTouchPointerSensor extends PointerSensor {
       updates.push({ id, status: topic.status, sort_order: idx + 1 });
     });
 
+    const queryCacheSnapshot = captureKanbanQueryCache();
     try {
       await queryClient.cancelQueries({ queryKey: ['kanban-column-page'] });
       optimisticUpdateQueryCache(updates);
       await onReorderTopics(updates);
       setIsReorderPending(false);
     } catch {
+      restoreKanbanQueryCache(queryCacheSnapshot);
       setColumns(snapshot.columns);
       setTopicsMap(snapshot.topics);
       setLoadedTopicsByStatus(snapshot.loadedTopicsByStatus);

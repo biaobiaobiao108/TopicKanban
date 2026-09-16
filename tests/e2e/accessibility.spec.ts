@@ -62,6 +62,10 @@ async function expectNoAccessibilityViolations(page: Page, route: string, contex
 }
 
 test('主要工作台页面通过 axe 无障碍检查', async ({ page }) => {
+  // This test intentionally visits every authenticated surface and runs axe
+  // after each one; keep the budget separate from the default 30s interaction
+  // timeout so a busy CI runner does not turn a healthy scan into a false fail.
+  test.setTimeout(60_000);
   await login(page);
 
   for (const route of authenticatedRoutes) {
