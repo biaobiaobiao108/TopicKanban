@@ -44,11 +44,13 @@ const draft = {
 const typographyDraft = {
   ...draft,
   title: '霞鹜文楷排版回归',
-  content_html: '<h1>卷首标题</h1><p>正文段落 <strong>重点文字</strong> 与 <code>inline()</code>。</p><pre><code>const sample = true;</code></pre>',
+  content_html: '<h1>卷首标题</h1><h2>第二层标题</h2><h3>第三层标题</h3><p>正文段落 <strong>重点文字</strong> 与 <code>inline()</code>。</p><pre><code>const sample = true;</code></pre>',
   content_json: JSON.stringify({
     type: 'doc',
     content: [
       { type: 'heading', attrs: { level: 1 }, content: [{ type: 'text', text: '卷首标题' }] },
+      { type: 'heading', attrs: { level: 2 }, content: [{ type: 'text', text: '第二层标题' }] },
+      { type: 'heading', attrs: { level: 3 }, content: [{ type: 'text', text: '第三层标题' }] },
       {
         type: 'paragraph',
         content: [
@@ -250,6 +252,23 @@ test('工作台不再渲染全局顶栏且文案支持沉浸写作', async ({ pa
   await page.goto(`/topics/${topic.id}?tab=script`);
 
   await expect(page.locator('.pwa-navbar')).toHaveCount(0);
+  const topicActions = page.getByRole('button', { name: '选题操作', exact: true });
+  await expect(topicActions).toBeVisible();
+  await topicActions.click();
+  const topicActionsMenu = page.locator('[aria-label="选题更多操作"]');
+  await expect(topicActionsMenu).toContainText('导出 Markdown 档案');
+  await page.keyboard.press('Escape');
+  await expect(topicActionsMenu).toHaveCount(0);
+
+  const outlineToggle = page.locator('button[aria-label="展开/收起文案大纲与章节定位"]');
+  await outlineToggle.click();
+  const outlinePanel = page.locator('#script-outline');
+  await expect(outlinePanel.getByRole('heading', { name: '文案大纲', exact: true })).toBeVisible();
+  await expect(outlinePanel).toContainText('1 个章节');
+  await expect(outlinePanel.locator('.script-outline-item--level-1')).toHaveCount(1);
+  await outlinePanel.getByRole('button', { name: '收起文案大纲', exact: true }).click();
+  await expect(outlinePanel).toHaveCount(0);
+
   const enterZenButton = page.getByRole('button', { name: '沉浸写作', exact: true });
   await expect(enterZenButton).toBeVisible();
   await enterZenButton.click();
@@ -336,12 +355,16 @@ test('文案标题与正文使用霞鹜文楷，代码块保留等宽字体', as
 
   await expect(page.locator('#script-draft-title')).toHaveValue('霞鹜文楷排版回归');
   await expect(page.locator('.ProseMirror h1')).toHaveText('卷首标题');
+  await expect(page.locator('.ProseMirror h2')).toHaveText('第二层标题');
+  await expect(page.locator('.ProseMirror h3')).toHaveText('第三层标题');
   await expect(page.locator('.ProseMirror pre code')).toHaveText('const sample = true;');
 
   const fontFamilies = await page.evaluate(() => {
     const title = document.querySelector<HTMLElement>('#script-draft-title');
     const prose = document.querySelector<HTMLElement>('.script-editor-canvas-container .ProseMirror');
     const heading = prose?.querySelector<HTMLElement>('h1');
+    const headingTwo = prose?.querySelector<HTMLElement>('h2');
+    const headingThree = prose?.querySelector<HTMLElement>('h3');
     const paragraph = prose?.querySelector<HTMLElement>('p');
     const inlineCode = prose?.querySelector<HTMLElement>('p code');
     const codeBlock = prose?.querySelector<HTMLElement>('pre');
@@ -349,6 +372,8 @@ test('文案标题与正文使用霞鹜文楷，代码块保留等宽字体', as
       title: title ? getComputedStyle(title).fontFamily : '',
       prose: prose ? getComputedStyle(prose).fontFamily : '',
       heading: heading ? getComputedStyle(heading).fontFamily : '',
+      headingTwo: headingTwo ? getComputedStyle(headingTwo).fontFamily : '',
+      headingThree: headingThree ? getComputedStyle(headingThree).fontFamily : '',
       paragraph: paragraph ? getComputedStyle(paragraph).fontFamily : '',
       inlineCode: inlineCode ? getComputedStyle(inlineCode).fontFamily : '',
       codeBlock: codeBlock ? getComputedStyle(codeBlock).fontFamily : '',
@@ -358,6 +383,8 @@ test('文案标题与正文使用霞鹜文楷，代码块保留等宽字体', as
   expect(fontFamilies.title).toContain('霞鹜文楷');
   expect(fontFamilies.prose).toContain('霞鹜文楷');
   expect(fontFamilies.heading).toContain('霞鹜文楷');
+  expect(fontFamilies.headingTwo).toContain('霞鹜文楷');
+  expect(fontFamilies.headingThree).toContain('霞鹜文楷');
   expect(fontFamilies.paragraph).toContain('霞鹜文楷');
   expect(fontFamilies.inlineCode).toContain('霞鹜文楷');
   expect(fontFamilies.codeBlock).toContain('ui-monospace');

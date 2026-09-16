@@ -341,7 +341,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
 
   return (
     <div className="flex min-h-0 min-w-0 h-full w-full flex-1 flex-col overflow-y-auto mobile-bottom-nav-content transition-colors md:pb-8">
-      <div className="w-full max-w-5xl mx-auto px-4 sm:px-8 py-5 sm:py-8 space-y-6 sm:space-y-8">
+      <div className="mx-auto w-full max-w-5xl px-4 py-5 space-y-6 sm:px-8 sm:py-7 sm:space-y-7">
         <PageHeader
           title="偏好设置与数据管理"
           icon={Settings}

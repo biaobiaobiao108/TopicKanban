@@ -10,6 +10,8 @@ import {
   FileText,
   Zap,
   AlertTriangle,
+  MoreHorizontal,
+  Archive,
 } from 'lucide-react';
 import { getCurrentActionAgeDays, getCurrentActionWarning } from '../../lib/topicMetrics';
 import { FloatingMenu } from '../ui/FloatingMenu';
@@ -53,11 +55,14 @@ export const TopicDetailHeader: React.FC<TopicDetailHeaderProps> = ({
   const [title, setTitle] = useState(topic.title);
   const [isStatusMenuOpen, setIsStatusMenuOpen] = useState(false);
   const [isPriorityMenuOpen, setIsPriorityMenuOpen] = useState(false);
+  const [isMoreMenuOpen, setIsMoreMenuOpen] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const statusTriggerRef = useRef<HTMLButtonElement | null>(null);
   const priorityTriggerRef = useRef<HTMLButtonElement | null>(null);
+  const moreTriggerRef = useRef<HTMLButtonElement | null>(null);
   const statusMenuId = useId();
   const priorityMenuId = useId();
+  const moreMenuId = useId();
 
   useEffect(() => {
     setTitle(topic.title);
@@ -75,15 +80,15 @@ export const TopicDetailHeader: React.FC<TopicDetailHeaderProps> = ({
   };
 
   return (
-    <div data-testid="topic-detail-header" data-page-header className="shrink-0 border-b border-[var(--line)] bg-[var(--canvas)] transition-colors">
-      <div className="mx-auto flex w-full max-w-7xl flex-col gap-4 px-4 py-5 sm:px-8 sm:py-6">
-        <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+    <div data-testid="topic-detail-header" data-page-header className="workbench-header shrink-0 border-b border-[var(--line)] bg-[var(--canvas)] transition-colors">
+      <div className="mx-auto flex w-full max-w-7xl flex-col gap-2.5 px-4 py-3 sm:px-8 sm:py-3.5">
+        <div className="flex flex-col gap-2.5 lg:flex-row lg:items-center lg:justify-between">
       {/* Left group: Title & Inline Editor + Status & Priority + Current Action Capsule */}
-      <div className="flex min-w-0 w-full flex-1 flex-wrap items-center gap-3 sm:gap-4 lg:flex-nowrap">
-        <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-rose-500/10 text-rose-600 ring-1 ring-rose-500/15 dark:text-rose-400">
-          <FileText className="h-5 w-5" aria-hidden="true" />
+      <div className="flex min-w-0 w-full flex-1 flex-wrap items-center gap-2.5 sm:gap-3 lg:flex-nowrap">
+        <span className="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-rose-500/10 text-rose-600 ring-1 ring-rose-500/15 dark:text-rose-400">
+          <FileText className="h-4.5 w-4.5" aria-hidden="true" />
         </span>
-        <div className="flex min-w-0 flex-1 flex-wrap items-center gap-2.5 sm:gap-3 lg:flex-nowrap">
+        <div className="flex min-w-0 flex-1 flex-wrap items-center gap-2 sm:gap-2.5 lg:flex-nowrap">
         {/* Title area & Inline Editor */}
         <div className="flex w-full min-w-0 max-w-full items-center gap-1.5 lg:flex-1 lg:shrink">
           {isEditingTitle ? (
@@ -118,7 +123,7 @@ export const TopicDetailHeader: React.FC<TopicDetailHeaderProps> = ({
               <h1
                 onClick={() => setIsEditingTitle(true)}
                 title="点击快速编辑标题"
-                className="min-w-0 truncate font-serif text-xl font-bold leading-tight tracking-tight text-[var(--h1-color)] transition-opacity hover:opacity-85 sm:text-2xl"
+                className="min-w-0 truncate font-serif text-lg font-bold leading-tight tracking-tight text-[var(--h1-color)] transition-opacity hover:opacity-85 sm:text-xl"
               >
                 {topic.title}
               </h1>
@@ -134,7 +139,7 @@ export const TopicDetailHeader: React.FC<TopicDetailHeaderProps> = ({
           )}
         </div>
 
-        <div className="mt-0 flex min-w-0 flex-wrap items-center gap-2.5 sm:gap-3 lg:flex-nowrap">
+        <div className="mt-0 flex min-w-0 flex-wrap items-center gap-1.5 sm:gap-2 lg:flex-nowrap">
         {/* Status Dropdown Trigger (Borderless with hover border) */}
         <div className="relative z-10 shrink-0">
           <button
@@ -343,65 +348,121 @@ export const TopicDetailHeader: React.FC<TopicDetailHeaderProps> = ({
       </div>
 
       {/* Right group: Actions Toolbar */}
-      <div className="flex w-full flex-wrap items-center justify-start gap-1.5 border-t border-[var(--line)] pt-3 lg:w-auto lg:shrink-0 lg:flex-nowrap lg:justify-end lg:border-t-0 lg:pt-0">
-        {/* Archive / Restore toggle */}
-        {topic.status === 'published' || topic.status === 'icebox' ? (
-          <button
-            type="button"
-            onClick={() => onUpdateTopic({ status: 'approved' })}
-            className="flex items-center gap-1 px-2.5 py-1 rounded-[var(--radius-sm)] text-xs border border-transparent hover:border-[var(--line)] bg-transparent hover:bg-[var(--canvas)] text-[var(--accent)] transition-colors cursor-pointer"
-            title="从归档中恢复至已立项（重返全景看板）"
-          >
-            <span>↩ 恢复</span>
-          </button>
-        ) : (
-          <button
-            type="button"
-            onClick={() => setIsStatusMenuOpen(true)}
-            className="flex items-center gap-1 px-2.5 py-1 rounded-[var(--radius-sm)] text-xs border border-transparent hover:border-[var(--line)] bg-transparent text-[var(--ink-muted)] hover:text-[var(--ink)] hover:bg-[var(--canvas)] transition-colors cursor-pointer"
-            title="将此选题移入归档库（将从全景看板中移出）"
-          >
-            <span>📦 归档</span>
-          </button>
-        )}
-
-        {/* Export single topic markdown */}
-        {onExportMarkdown && (
-          <button
-            type="button"
-            onClick={onExportMarkdown}
-            className="flex items-center gap-1 px-2.5 py-1 rounded-[var(--radius-sm)] text-xs border border-transparent hover:border-[var(--line)] bg-transparent text-[var(--ink-muted)] hover:text-[var(--ink)] hover:bg-[var(--canvas)] transition-colors cursor-pointer"
-            title="导出包含设定、事实链、时间线与文案的 Markdown 档案"
-          >
-            <FileDown className="w-3.5 h-3.5 text-[var(--ink-muted)]" />
-            <span className="hidden sm:inline">导出</span>
-          </button>
-        )}
-
-        {/* Pin toggle */}
+      <div className="flex w-full flex-wrap items-center justify-start gap-1.5 border-t border-[var(--line)] pt-2 lg:w-auto lg:shrink-0 lg:flex-nowrap lg:justify-end lg:border-t-0 lg:pt-0">
         <button
           type="button"
-          onClick={() => onUpdateTopic({ is_pinned: topic.is_pinned ? 0 : 1 })}
-          className={`flex items-center gap-1 px-2.5 py-1 rounded-[var(--radius-sm)] text-xs border transition-all cursor-pointer ${
-            topic.is_pinned
-              ? 'bg-[var(--canvas)] text-[#9b6a2f] dark:text-[#c49258] border-[var(--line)]'
-              : 'border-transparent hover:border-[var(--line)] bg-transparent text-[var(--ink-muted)] hover:text-[var(--ink)] hover:bg-[var(--canvas)]'
+          ref={moreTriggerRef}
+          aria-expanded={isMoreMenuOpen}
+          aria-controls={isMoreMenuOpen ? moreMenuId : undefined}
+          aria-label="选题操作"
+          onClick={() => {
+            setIsMoreMenuOpen((current) => !current);
+            setIsStatusMenuOpen(false);
+            setIsPriorityMenuOpen(false);
+          }}
+          className={`inline-flex min-h-9 items-center gap-1.5 rounded-xl border px-2.5 text-xs font-semibold transition-colors cursor-pointer ${
+            isMoreMenuOpen
+              ? 'border-[var(--line)] bg-[var(--surface)] text-[var(--ink)]'
+              : 'border-transparent bg-transparent text-[var(--ink-muted)] hover:border-[var(--line)] hover:bg-[var(--surface)] hover:text-[var(--ink)]'
           }`}
-          title={topic.is_pinned ? '取消置顶' : '置顶选题'}
+          title="更多选题操作"
         >
-          <Pin className={`w-3.5 h-3.5 ${topic.is_pinned ? 'fill-current' : ''}`} />
-          <span className="hidden sm:inline">{topic.is_pinned ? '已置顶' : '置顶'}</span>
+          <MoreHorizontal className="h-4 w-4" aria-hidden="true" />
+          <span>更多</span>
         </button>
 
-        {/* Delete topic */}
-        <button
-          type="button"
-          onClick={() => setIsDeleteDialogOpen(true)}
-          className="flex items-center gap-1 p-1 text-[var(--ink-muted)] hover:text-[var(--h1-color)] hover:bg-[var(--canvas)] rounded-[var(--radius-sm)] border border-transparent hover:border-[var(--line)] transition-colors cursor-pointer"
-          title="移入回收站"
+        <FloatingMenu
+          isOpen={isMoreMenuOpen}
+          anchorRef={moreTriggerRef}
+          onClose={() => setIsMoreMenuOpen(false)}
+          id={moreMenuId}
+          ariaLabel="选题更多操作"
+          width={216}
+          minWidth={216}
+          maxHeight={280}
+          align="right"
+          className="animate-in fade-in zoom-in-95 duration-100"
         >
-          <Trash2 className="w-3.5 h-3.5" />
-        </button>
+          <FloatingScrollbar className="space-y-0.5 p-1.5" wrapperClassName="min-h-0 flex-none">
+            <div className="px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider text-[var(--ink-muted)]">
+              选题操作
+            </div>
+
+            {topic.status === 'published' || topic.status === 'icebox' ? (
+              <button
+                type="button"
+                onClick={() => {
+                  setIsMoreMenuOpen(false);
+                  void onUpdateTopic({ status: 'approved' });
+                }}
+                className="flex min-h-9 w-full items-center gap-2 rounded-xl px-2.5 py-1.5 text-left text-xs font-medium text-[var(--accent)] transition-colors hover:bg-[var(--accent-soft)] cursor-pointer"
+                title="从归档中恢复至已立项（重返全景看板）"
+              >
+                <span className="grid h-4 w-4 place-items-center text-sm" aria-hidden="true">↩</span>
+                <span>恢复至已立项</span>
+              </button>
+            ) : (
+              <button
+                type="button"
+                onClick={() => {
+                  setIsMoreMenuOpen(false);
+                  setIsStatusMenuOpen(true);
+                }}
+                className="flex min-h-9 w-full items-center gap-2 rounded-xl px-2.5 py-1.5 text-left text-xs font-medium text-[var(--ink)] transition-colors hover:bg-[var(--canvas)] cursor-pointer"
+                title="将此选题移入归档库（将从全景看板中移出）"
+              >
+                <Archive className="h-3.5 w-3.5 text-[var(--ink-muted)]" aria-hidden="true" />
+                <span>选择归档状态</span>
+              </button>
+            )}
+
+            {onExportMarkdown && (
+              <button
+                type="button"
+                onClick={() => {
+                  setIsMoreMenuOpen(false);
+                  onExportMarkdown();
+                }}
+                className="flex min-h-9 w-full items-center gap-2 rounded-xl px-2.5 py-1.5 text-left text-xs font-medium text-[var(--ink)] transition-colors hover:bg-[var(--canvas)] cursor-pointer"
+                title="导出包含设定、事实链、时间线与文案的 Markdown 档案"
+              >
+                <FileDown className="h-3.5 w-3.5 text-[var(--ink-muted)]" aria-hidden="true" />
+                <span>导出 Markdown 档案</span>
+              </button>
+            )}
+
+            <button
+              type="button"
+              onClick={() => {
+                setIsMoreMenuOpen(false);
+                void onUpdateTopic({ is_pinned: topic.is_pinned ? 0 : 1 });
+              }}
+              className={`flex min-h-9 w-full items-center gap-2 rounded-xl px-2.5 py-1.5 text-left text-xs font-medium transition-colors cursor-pointer ${
+                topic.is_pinned
+                  ? 'bg-[var(--accent-soft)] text-[var(--accent-dark)]'
+                  : 'text-[var(--ink)] hover:bg-[var(--canvas)]'
+              }`}
+              title={topic.is_pinned ? '取消置顶' : '置顶选题'}
+            >
+              <Pin className={`h-3.5 w-3.5 ${topic.is_pinned ? 'fill-current' : 'text-[var(--ink-muted)]'}`} aria-hidden="true" />
+              <span>{topic.is_pinned ? '取消置顶' : '置顶选题'}</span>
+            </button>
+
+            <div className="my-1 border-t border-[var(--line)]" />
+            <button
+              type="button"
+              onClick={() => {
+                setIsMoreMenuOpen(false);
+                setIsDeleteDialogOpen(true);
+              }}
+              className="flex min-h-9 w-full items-center gap-2 rounded-xl px-2.5 py-1.5 text-left text-xs font-medium text-[var(--h1-color)] transition-colors hover:bg-[var(--accent-soft)] cursor-pointer"
+              title="移入回收站"
+            >
+              <Trash2 className="h-3.5 w-3.5" aria-hidden="true" />
+              <span>移入回收站</span>
+            </button>
+          </FloatingScrollbar>
+        </FloatingMenu>
       </div>
         </div>
       </div>

@@ -676,7 +676,7 @@ class NonTouchPointerSensor extends PointerSensor {
   };
 
   return (
-    <div data-testid="kanban-page" className="flex min-h-0 h-full w-full min-w-0 flex-1 flex-col gap-4 overflow-y-auto overscroll-contain px-4 py-4 mobile-bottom-nav-content sm:px-6">
+    <div data-testid="kanban-page" className="mx-auto flex min-h-0 h-full w-full max-w-7xl min-w-0 flex-1 flex-col gap-5 overflow-y-auto overscroll-contain px-4 py-5 mobile-bottom-nav-content sm:gap-7 sm:px-8 sm:py-7">
       <PageHeader title="选题全景看板" icon={KanbanSquare} />
 
       {/* Filters Bar & View Switcher */}

@@ -562,7 +562,7 @@ function CommercialDealsView({ topics, onCreateTopicFromDeal }: Pick<DealsViewPr
 
   return (
     <div className="min-h-0 min-w-0 flex-1 overflow-y-auto overscroll-contain mobile-bottom-nav-content md:pb-8">
-      <div className="mx-auto max-w-7xl space-y-6 px-4 py-5 sm:px-8 sm:py-8">
+      <div className="mx-auto max-w-7xl space-y-6 px-4 py-5 sm:px-8 sm:py-7">
         <PageHeader
           title="商单中心"
           icon={Handshake}

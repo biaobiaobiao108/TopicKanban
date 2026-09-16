@@ -232,7 +232,7 @@ export const TagsView: React.FC<TagsViewProps> = ({
 
   return (
     <div data-testid="tags-page" className="min-h-0 min-w-0 flex-1 w-full h-full overflow-y-auto overscroll-contain mobile-bottom-nav-content bg-[var(--canvas)] transition-colors md:overflow-hidden md:pb-8">
-      <div className="mx-auto flex min-h-full w-full max-w-7xl flex-col gap-6 px-4 py-6 sm:gap-8 sm:px-8 sm:py-8">
+      <div className="mx-auto flex min-h-full w-full max-w-7xl flex-col gap-5 px-4 py-5 sm:gap-7 sm:px-8 sm:py-7">
         <PageHeader
           title="标签与创作赛道资产"
           icon={Hash}

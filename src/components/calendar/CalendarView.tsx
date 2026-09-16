@@ -245,7 +245,7 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
   return (
     <DndContext sensors={sensors} onDragStart={handleDragStart} onDragEnd={handleDragEnd}>
       <div className="flex h-full min-h-0 min-w-0 flex-1 overflow-y-auto overscroll-contain bg-[var(--canvas)] transition-colors">
-        <div className="mx-auto flex h-full min-h-0 w-full max-w-7xl flex-col gap-6 px-4 py-5 sm:gap-8 sm:px-8 sm:py-8">
+        <div className="mx-auto flex h-full min-h-0 w-full max-w-7xl flex-col gap-5 px-4 py-5 sm:gap-7 sm:px-8 sm:py-7">
           <PageHeader
             title="选题日历"
             icon={CalendarDays}

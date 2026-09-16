@@ -345,6 +345,8 @@ html.dark .script-citation::after {
     --accent-soft: rgba(47, 92, 78, 0.10);
     --accent-dark: #1d3e34;
     --h1-color: #9e3228;
+    --h2-color: #2d5c48;
+    --h3-color: #35566b;
     --radius-sm: 6px;
     --radius-md: 12px;
     --radius-lg: 16px;
@@ -374,6 +376,8 @@ html.dark .script-citation::after {
     --accent-soft: rgba(56, 86, 116, 0.10);
     --accent-dark: #22374b;
     --h1-color: #8c421e;
+    --h2-color: #327c94;
+    --h3-color: #3b8ca7;
 
     --bg-primary: var(--canvas);
     --bg-surface: var(--surface);
@@ -399,6 +403,8 @@ html.dark .script-citation::after {
     --accent-soft: rgba(45, 122, 100, 0.10);
     --accent-dark: #1b4b3d;
     --h1-color: #a34133;
+    --h2-color: #0284c7;
+    --h3-color: #0f766e;
 
     --bg-primary: var(--canvas);
     --bg-surface: var(--surface);
@@ -424,6 +430,8 @@ html.dark .script-citation::after {
     --accent-soft: rgba(78, 135, 117, 0.18);
     --accent-dark: #6db09b;
     --h1-color: #d65a50;
+    --h2-color: #8fc5b1;
+    --h3-color: #9fb6c5;
 
     --bg-primary: var(--canvas);
     --bg-surface: var(--surface);
@@ -475,8 +483,12 @@ html.dark .script-citation::after {
 }
 
 .prose h2, .prose h3, .ProseMirror h2, .ProseMirror h3 {
-  color: var(--ink) !important;
+  color: var(--h2-color) !important;
   font-weight: 600 !important;
+}
+
+.prose h3, .ProseMirror h3 {
+  color: var(--h3-color) !important;
 }
 
 .prose blockquote, .ProseMirror blockquote, blockquote.quote-block {

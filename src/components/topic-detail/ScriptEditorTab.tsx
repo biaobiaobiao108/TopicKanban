@@ -487,7 +487,7 @@ export const ScriptEditorTab: React.FC<ScriptEditorTabProps> = ({
     content: initialDraft?.content_html || '<p></p>',
     editorProps: {
       attributes: {
-        class: 'prose prose-stone max-w-none focus:outline-none min-h-[500px] text-stone-900 dark:text-stone-100 font-normal',
+        class: 'script-editor-font-stack prose prose-stone max-w-none focus:outline-none min-h-[500px] text-stone-900 dark:text-stone-100 font-normal',
       },
       handleScrollToSelection: () => isTypewriterActiveRef.current,
     },
@@ -919,7 +919,7 @@ export const ScriptEditorTab: React.FC<ScriptEditorTabProps> = ({
 
       {/* Top Floating / Fixed Toolbar (左右空间对称排布) */}
       {!isZenMode && (
-        <div className="script-editor-toolbar z-30 flex shrink-0 flex-wrap items-center justify-between gap-2 border-b border-[var(--line)] bg-[var(--surface)]/95 px-3 py-2 shadow-2xs backdrop-blur-md transition-colors sm:px-6">
+        <div className="script-editor-toolbar z-30 flex shrink-0 flex-wrap items-center justify-between gap-1.5 border-b border-[var(--line)] bg-[var(--surface)]/95 px-3 py-1.5 shadow-2xs backdrop-blur-md transition-colors sm:flex-nowrap sm:px-6">
           {/* Left: Outline trigger & Auto save status */}
           <div className="flex items-center gap-2.5">
             {/* Outline Toggle (左侧触发) */}
@@ -1328,10 +1328,10 @@ export const ScriptEditorTab: React.FC<ScriptEditorTabProps> = ({
             className={`w-full max-w-4xl px-6 sm:px-12 md:px-16 transition-all ${
               isTypewriterActive
                 ? 'pt-8 sm:pt-12'
-                : 'pt-8 pb-36 sm:pt-12 sm:pb-48'
+                : 'pt-6 pb-36 sm:pt-8 sm:pb-48'
             }`}
           >
-            <div className="mb-4 border-b border-[var(--line)] pb-3">
+            <div className="mb-3 border-b border-[var(--line)] pb-2">
               <label htmlFor="script-draft-title" className="sr-only">文案标题</label>
               <input
                 id="script-draft-title"
@@ -1339,7 +1339,7 @@ export const ScriptEditorTab: React.FC<ScriptEditorTabProps> = ({
                 value={draftTitle}
                 onChange={(event) => handleDraftTitleChange(event.target.value)}
                 maxLength={200}
-                className="script-editor-title min-h-12 w-full border-0 bg-transparent px-0 text-2xl font-medium tracking-tight text-[var(--h1-color)] outline-none placeholder:text-[var(--ink-muted)]/40 focus:ring-0 sm:text-3xl"
+                className="script-editor-title min-h-10 w-full border-0 bg-transparent px-0 text-2xl font-semibold tracking-tight text-[var(--h1-color)] outline-none placeholder:text-[var(--ink-muted)]/40 focus:ring-0 sm:text-3xl"
                 placeholder="输入这期视频的文案标题"
               />
             </div>

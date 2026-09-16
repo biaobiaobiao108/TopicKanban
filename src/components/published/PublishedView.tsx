@@ -375,7 +375,7 @@ export const PublishedView: React.FC<PublishedViewProps> = ({
           title={backLabel || '返回上一页'}
         />
       )}
-      <div className="max-w-7xl mx-auto px-4 sm:px-8 py-6 sm:py-8 space-y-6 sm:space-y-8">
+      <div className="mx-auto max-w-7xl px-4 py-5 space-y-6 sm:px-8 sm:py-7 sm:space-y-7">
         <PageHeader
           title="已发布视频复盘与数据沉淀"
           icon={Film}
