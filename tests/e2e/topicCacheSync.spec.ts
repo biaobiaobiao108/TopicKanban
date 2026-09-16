@@ -29,7 +29,7 @@ test('topic mutations stay synchronized across today, database and kanban naviga
   const countBefore = readTopicCount(await kanbanNav.innerText());
   const title = `E2E缓存同步-${Date.now()}`;
 
-  await page.getByRole('button', { name: '新建选题' }).click();
+  await page.getByTestId('sidebar-quick-actions').getByRole('button', { name: '新建选题', exact: true }).click();
   const quickCreateDialog = page.getByRole('dialog', { name: '新建选题' });
   await quickCreateDialog.getByLabel(/选题标题/).fill(title);
   await quickCreateDialog.getByLabel(/一句话概述/).fill('用于验证核心字段提交。');
@@ -72,7 +72,7 @@ test('topic date edits are visible on kanban before delayed saves finish', async
   await login(page);
 
   const title = `E2E日期即时同步-${Date.now()}`;
-  await page.getByRole('button', { name: '新建选题' }).click();
+  await page.getByTestId('sidebar-quick-actions').getByRole('button', { name: '新建选题', exact: true }).click();
   await page.getByRole('dialog', { name: '新建选题' }).getByLabel(/选题标题/).fill(title);
   await page.getByRole('button', { name: '立即创建' }).click();
   await page.getByRole('navigation').getByRole('button', { name: /选题看板/ }).click();

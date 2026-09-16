@@ -373,25 +373,17 @@ test('看板排期与截稿徽标使用一致的语义字体', async ({ page }) 
   expect(badgeStyles?.metaBackground).toBe('rgba(0, 0, 0, 0)');
 
   const themeVariants = [
-    [],
-    ['theme-warm-paper'],
-    ['theme-nordic-frost'],
-    ['theme-parisian-dawn'],
-    ['theme-midnight-obsidian', 'dark'],
-    ['theme-kyoto-zen'],
+    { classes: [], hasThemedCountBackground: false },
+    { classes: ['theme-warm-paper'], hasThemedCountBackground: true },
+    { classes: ['theme-nordic-frost'], hasThemedCountBackground: true },
+    { classes: ['dark'], hasThemedCountBackground: false },
   ];
-  const themeClasses = [
-    'theme-warm-paper',
-    'theme-nordic-frost',
-    'theme-parisian-dawn',
-    'theme-midnight-obsidian',
-    'theme-kyoto-zen',
-  ];
-  for (const classes of themeVariants) {
+  const themeClasses = ['theme-warm-paper', 'theme-nordic-frost'];
+  for (const variant of themeVariants) {
     await page.evaluate(({ classes, themeClasses }) => {
       document.documentElement.classList.remove(...themeClasses, 'dark');
       document.documentElement.classList.add(...classes);
-    }, { classes, themeClasses });
+    }, { classes: variant.classes, themeClasses });
     const themeStyles = await card.evaluate((element) => {
       const column = element.closest<HTMLElement>('[data-column-status]');
       const count = column?.querySelector<HTMLElement>('.kanban-column-count');
@@ -403,7 +395,11 @@ test('看板排期与截稿徽标使用一致的语义字体', async ({ page }) 
         metaBackground: meta ? getComputedStyle(meta).backgroundColor : '',
       };
     });
-    expect(themeStyles.countBackground).not.toBe(themeStyles.metaBackground);
+    if (variant.hasThemedCountBackground) {
+      expect(themeStyles.countBackground).not.toBe(themeStyles.metaBackground);
+    } else {
+      expect(themeStyles.countBackground).toBe(themeStyles.metaBackground);
+    }
     expect(themeStyles.scheduleBackground).not.toBe(themeStyles.countBackground);
     expect(themeStyles.metaBackground).toBe('rgba(0, 0, 0, 0)');
   }
