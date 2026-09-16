@@ -1,4 +1,5 @@
 import React, { useId, useState, useEffect, useLayoutEffect, useRef, useCallback } from 'react';
+import { createPortal } from 'react-dom';
 import { useEditor, EditorContent } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
 import Placeholder from '@tiptap/extension-placeholder';
@@ -883,8 +884,9 @@ export const ScriptEditorTab: React.FC<ScriptEditorTabProps> = ({
 
   if (!editor) return null;
 
-  return (
+  const editorSurface = (
     <div
+      data-testid="script-editor-surface"
       className={
         isZenMode
           ? 'pwa-fullscreen-surface fixed inset-0 z-50 flex flex-col bg-[var(--canvas)] transition-all duration-300 ease-in-out'
@@ -1464,4 +1466,10 @@ export const ScriptEditorTab: React.FC<ScriptEditorTabProps> = ({
       </Modal>
     </div>
   );
+
+  if (isZenMode && typeof document !== 'undefined') {
+    return createPortal(editorSurface, document.body);
+  }
+
+  return editorSurface;
 };

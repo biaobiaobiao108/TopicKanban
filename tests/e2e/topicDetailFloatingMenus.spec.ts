@@ -274,6 +274,9 @@ test('工作台不再渲染全局顶栏且文案支持沉浸写作', async ({ pa
   await enterZenButton.click();
 
   await expect(page.locator('html')).toHaveClass(/script-editor-zen-mode/);
+  const zenSurface = page.getByTestId('script-editor-surface');
+  await expect(zenSurface).toBeVisible();
+  expect(await zenSurface.evaluate((element) => element.parentElement === document.body)).toBe(true);
   await expect(page.locator('.pwa-navbar')).toHaveCount(0);
   await expect(page.getByRole('button', { name: /退出沉浸/ })).toBeVisible();
 
