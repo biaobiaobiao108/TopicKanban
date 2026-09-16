@@ -254,14 +254,14 @@ export const MobileDrawer: React.FC<MobileDrawerProps> = ({
                     onClose();
                   }}
                   aria-current={isActive ? 'page' : undefined}
-                  className={`w-full min-h-11 touch-manipulation flex items-center justify-between px-3 py-2.5 rounded-xl text-sm font-medium transition-colors cursor-pointer ${
+                  className={`w-full min-h-11 touch-manipulation flex items-center justify-between px-3 py-2.5 rounded-xl text-[15px] font-medium transition-colors cursor-pointer ${
                     isActive
-                      ? 'bg-rose-500/10 dark:bg-rose-950/40 text-rose-900 dark:text-rose-100 font-bold shadow-2xs'
-                      : 'text-stone-600 dark:text-stone-300 hover:bg-stone-200/40 dark:hover:bg-stone-800/50 hover:text-stone-900 dark:hover:text-stone-100'
+                      ? 'bg-rose-500/10 dark:bg-rose-950/40 text-rose-900 dark:text-rose-100 font-semibold shadow-2xs'
+                      : 'text-stone-700 dark:text-stone-200 hover:bg-stone-200/40 dark:hover:bg-stone-800/50 hover:text-stone-950 dark:hover:text-white'
                   }`}
                 >
                   <div className="flex items-center gap-3">
-                    <Icon className={`w-4 h-4 transition-colors ${isActive ? 'text-rose-600 dark:text-rose-400' : 'text-stone-400 dark:text-stone-500'}`} />
+                    <Icon className={`w-4.5 h-4.5 transition-colors shrink-0 ${isActive ? 'text-rose-600 dark:text-rose-400' : 'text-stone-500 dark:text-stone-400'}`} />
                     <span>{item.label}</span>
                   </div>
                   {typeof item.badge === 'number' && item.badge > 0 && (

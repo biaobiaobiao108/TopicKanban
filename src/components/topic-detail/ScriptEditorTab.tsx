@@ -1196,13 +1196,13 @@ export const ScriptEditorTab: React.FC<ScriptEditorTabProps> = ({
                 type="button"
                 onClick={toggleOutlinePanel}
                 aria-label="展开/收起文案大纲"
-                className="flex items-center gap-1.5 rounded-[var(--radius-sm)] border border-transparent hover:border-[var(--line)] bg-[var(--surface)]/90 backdrop-blur-md px-2.5 py-1.5 text-xs font-medium text-[var(--ink-muted)] hover:text-[var(--ink)] shadow-2xs hover:shadow-xs transition-all cursor-pointer"
+                className="flex items-center gap-2 rounded-full border border-[var(--line)] bg-[var(--surface)]/95 hover:bg-[var(--canvas)] backdrop-blur-md px-4 py-2 text-xs font-medium text-stone-700 dark:text-stone-200 hover:text-stone-950 dark:hover:text-white shadow-md hover:shadow-lg hover:-translate-y-0.5 transition-all cursor-pointer"
                 title="大纲章节快速定位"
               >
-                <Compass className="h-3.5 w-3.5 text-[var(--accent)]" />
+                <Compass className="h-4 w-4 text-[var(--accent)]" />
                 <span>大纲</span>
                 {outline.flatItems.length > 0 && (
-                  <span className="text-[10px] font-mono text-[var(--ink-muted)] tabular-nums">
+                  <span className="text-[11px] font-mono text-stone-500 dark:text-stone-400 tabular-nums">
                     {outline.flatItems.length}
                   </span>
                 )}
@@ -1211,19 +1211,19 @@ export const ScriptEditorTab: React.FC<ScriptEditorTabProps> = ({
           )}
 
           {/* Top-Right: Floating Controls & Exit Button */}
-          <div className={`fixed right-5 sm:right-8 top-5 sm:top-7 z-40 flex items-center gap-1.5 transition-all duration-300 ${isReferenceOpen ? 'mr-80 sm:mr-96' : ''} ${isTypingZen ? 'opacity-25 hover:opacity-100' : 'opacity-100'}`}>
+          <div className={`fixed right-5 sm:right-8 top-5 sm:top-7 z-40 flex items-center gap-2 transition-all duration-300 ${isReferenceOpen ? 'mr-80 sm:mr-96' : ''} ${isTypingZen ? 'opacity-25 hover:opacity-100' : 'opacity-100'}`}>
             {/* Unified Focus Typewriter Mode Toggle (仅在沉浸写作中出现) */}
             <button
               type="button"
               onClick={() => setIsFocusTypewriterMode((prev) => !prev)}
-              className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-[var(--radius-sm)] text-xs font-medium border backdrop-blur-md shadow-2xs transition-all cursor-pointer ${
+              className={`flex items-center gap-1.5 px-3.5 py-2 rounded-full text-xs backdrop-blur-md shadow-md hover:shadow-lg hover:-translate-y-0.5 transition-all cursor-pointer ${
                 isFocusTypewriterMode
-                  ? 'border-[var(--line)] bg-[var(--canvas)] text-[var(--ink)]'
-                  : 'border-transparent hover:border-[var(--line)] bg-[var(--surface)]/90 text-[var(--ink-muted)] hover:text-[var(--ink)]'
+                  ? 'border border-[var(--accent)]/40 bg-[var(--accent-soft)] text-[var(--accent-dark)] font-semibold'
+                  : 'border border-[var(--line)] bg-[var(--surface)]/95 text-stone-700 dark:text-stone-200 hover:text-stone-950 dark:hover:text-white hover:bg-[var(--canvas)] font-medium'
               }`}
               title={isFocusTypewriterMode ? '关闭专注打字（当前已开启居中与段落高亮）' : '开启专注打字（打字机居中 + 当前行实时高亮）'}
             >
-              <Target className="w-3.5 h-3.5 text-[var(--accent)]" />
+              <Target className="w-4 h-4 text-[var(--accent)]" />
               <span>{isFocusTypewriterMode ? '专注打字：开' : '专注打字：关'}</span>
             </button>
 
@@ -1232,13 +1232,13 @@ export const ScriptEditorTab: React.FC<ScriptEditorTabProps> = ({
                 type="button"
                 onClick={toggleReferencePanel}
                 aria-label="展开/收起事实参考"
-                className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-[var(--radius-sm)] border border-transparent hover:border-[var(--line)] bg-[var(--surface)]/90 backdrop-blur-md text-xs font-medium text-[var(--ink-muted)] hover:text-[var(--ink)] shadow-2xs hover:shadow-xs transition-all cursor-pointer"
+                className="flex items-center gap-1.5 px-3.5 py-2 rounded-full border border-[var(--line)] bg-[var(--surface)]/95 hover:bg-[var(--canvas)] backdrop-blur-md text-xs font-medium text-stone-700 dark:text-stone-200 hover:text-stone-950 dark:hover:text-white shadow-md hover:shadow-lg hover:-translate-y-0.5 transition-all cursor-pointer"
                 title="展开/收起边写边看事实参考抽屉"
               >
-                <BookOpen className="w-3.5 h-3.5 text-[var(--accent)]" />
+                <BookOpen className="w-4 h-4 text-[var(--accent)]" />
                 <span className="hidden sm:inline">事实参考</span>
                 {citationHealth && citationHealth.unverifiedCount > 0 && (
-                  <span className="text-[10px] text-amber-700 dark:text-amber-400 font-mono font-medium">
+                  <span className="text-[11px] text-amber-700 dark:text-amber-400 font-mono font-semibold">
                     {citationHealth.unverifiedCount}
                   </span>
                 )}
@@ -1248,30 +1248,30 @@ export const ScriptEditorTab: React.FC<ScriptEditorTabProps> = ({
             <button
               type="button"
               onClick={() => setIsZenMode(false)}
-              className="flex items-center gap-1 px-2.5 py-1.5 rounded-[var(--radius-sm)] border border-transparent hover:border-[var(--line)] bg-[var(--surface)]/90 hover:bg-[var(--canvas)] backdrop-blur-md text-xs font-medium text-[var(--ink)] shadow-2xs hover:shadow-xs transition-all cursor-pointer"
+              className="flex items-center gap-1.5 px-3.5 py-2 rounded-full border border-[var(--line)] bg-[var(--surface)]/95 hover:bg-[var(--canvas)] backdrop-blur-md text-xs font-medium text-stone-800 dark:text-stone-100 shadow-md hover:shadow-lg hover:-translate-y-0.5 transition-all cursor-pointer"
               title="退出沉浸写作模式 (Esc)"
             >
-              <Minimize2 className="w-3.5 h-3.5" />
+              <Minimize2 className="w-4 h-4" />
               <span className="hidden sm:inline">退出沉浸</span>
-              <kbd className="text-[10px] font-mono bg-black/5 dark:bg-white/10 px-1 py-0.2 rounded text-[var(--ink-muted)] ml-0.5">Esc</kbd>
+              <kbd className="text-[10px] font-mono bg-black/5 dark:bg-white/10 px-1.5 py-0.5 rounded-full text-stone-600 dark:text-stone-300 ml-0.5">Esc</kbd>
             </button>
           </div>
 
           {/* Bottom-Right: Floating Stats */}
-          <div className={`fixed right-5 sm:right-8 bottom-5 sm:bottom-7 z-40 flex items-center gap-2 bg-[var(--surface)]/90 backdrop-blur-md border border-[var(--line)] text-[var(--ink)] px-3 py-1 rounded-[var(--radius-sm)] text-xs font-mono shadow-2xs transition-all duration-300 select-none ${isReferenceOpen ? 'mr-80 sm:mr-96' : ''} ${isTypingZen ? 'opacity-25 hover:opacity-100' : 'opacity-100'}`}>
-            <span className="font-semibold text-[var(--ink)] font-mono">
-              {charCount.toLocaleString()} <span className="font-normal text-[var(--ink-muted)] text-[11px]">字</span>
+          <div className={`fixed right-5 sm:right-8 bottom-5 sm:bottom-7 z-40 flex items-center gap-2.5 bg-[var(--surface)]/95 backdrop-blur-md border border-[var(--line)] text-stone-800 dark:text-stone-200 px-4 py-2 rounded-full text-xs font-mono shadow-md hover:shadow-lg transition-all duration-300 select-none ${isReferenceOpen ? 'mr-80 sm:mr-96' : ''} ${isTypingZen ? 'opacity-25 hover:opacity-100' : 'opacity-100'}`}>
+            <span className="font-semibold text-stone-900 dark:text-stone-100 font-mono">
+              {charCount.toLocaleString()} <span className="font-normal text-stone-500 dark:text-stone-400 text-[11px]">字</span>
             </span>
             <span className="opacity-40">·</span>
             <span
-              className="flex items-center gap-1 text-[var(--ink-muted)] font-mono text-[11px]"
+              className="flex items-center gap-1.5 text-stone-600 dark:text-stone-300 font-mono text-[11px]"
               title={`预估时长（按 ${effectiveSpeed} 字/分钟计算）`}
             >
-              <Clock className="w-3 h-3 text-[var(--ink-muted)] shrink-0" />
+              <Clock className="w-3.5 h-3.5 text-stone-500 dark:text-stone-400 shrink-0" />
               <span>{estMinutes}分{estSeconds}秒</span>
             </span>
             <span className="text-stone-300 dark:text-stone-700">·</span>
-            <div className="flex items-center gap-1 text-[10px] text-stone-500 dark:text-stone-400 font-medium">
+            <div className="flex items-center gap-1 text-[11px] text-stone-600 dark:text-stone-400 font-medium">
               {saveStatus === 'saving' && (
                 <span className="flex items-center gap-1 text-amber-600 dark:text-amber-400" title="正在同步至云端...">
                   <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse" />
