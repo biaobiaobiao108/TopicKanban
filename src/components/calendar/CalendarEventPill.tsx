@@ -24,7 +24,8 @@ function EventStatusBadge({ event }: { event: CalendarEventItem }) {
   if (event.type === 'commercial_deal') {
     const status = event.status as CommercialDealStatus;
     return (
-      <span className={`inline-flex max-w-full items-center truncate rounded-full px-2 py-0.5 text-[10px] font-bold ${DEAL_STATUS_CLASSES[status] || DEAL_STATUS_CLASSES.communicating}`}>
+      <span className="inline-flex max-w-full items-center gap-1 truncate text-[11px] text-[var(--ink-muted)]">
+        <span className="w-1.5 h-1.5 rounded-full bg-indigo-500 shrink-0" />
         {DEAL_STATUS_LABELS[status] || status}
       </span>
     );
@@ -81,12 +82,12 @@ export const CalendarEventPill: React.FC<CalendarEventPillProps> = ({
             title={`计划发布：${event.title}`}
             data-testid="calendar-event"
             data-calendar-event-type={event.type}
-            className="flex w-full min-w-0 items-center gap-1.5 rounded-lg border border-rose-200/50 bg-rose-500/10 px-2 py-0.5 text-left text-[11px] font-medium leading-4 text-rose-800 shadow-2xs transition-colors hover:bg-rose-500/20 hover:text-rose-900 dark:border-rose-900/40 dark:bg-rose-950/40 dark:text-rose-200 dark:hover:bg-rose-900/50 dark:hover:text-white"
+            className="flex w-full min-w-0 items-center gap-1.5 rounded-[var(--radius-sm)] border border-transparent hover:border-[var(--line)] bg-transparent hover:bg-[var(--canvas)] px-1.5 py-0.5 text-left text-[11px] leading-4 text-[var(--ink)] transition-all cursor-pointer"
           >
-            <span className="w-1.5 h-1.5 rounded-full bg-rose-600 dark:bg-rose-400 shrink-0" />
+            <span className="w-1.5 h-1.5 rounded-full bg-[var(--accent)] shrink-0" />
             <span className="min-w-0 flex-1 truncate">{event.title}</span>
             {event.status && event.status !== 'inbox' && (
-              <span className="hidden shrink-0 text-[10px] text-rose-800 dark:text-rose-200 xl:inline">
+              <span className="hidden shrink-0 text-[10px] text-[var(--ink-muted)] xl:inline">
                 {event.status === 'scripting' ? '写稿' : event.status === 'production' ? '制作' : '已立项'}
               </span>
             )}
@@ -101,9 +102,9 @@ export const CalendarEventPill: React.FC<CalendarEventPillProps> = ({
             title={event.title}
             data-testid="calendar-event"
             data-calendar-event-type={event.type}
-            className="flex w-full min-w-0 items-center gap-1.5 rounded-lg border border-amber-200/50 bg-amber-500/10 px-2 py-0.5 text-left text-[11px] font-medium leading-4 text-amber-800 transition-colors hover:bg-amber-500/20 dark:border-amber-900/40 dark:bg-amber-950/40 dark:text-amber-300 dark:hover:bg-amber-900/50"
+            className="flex w-full min-w-0 items-center gap-1.5 rounded-[var(--radius-sm)] border border-transparent hover:border-[var(--line)] bg-transparent hover:bg-[var(--canvas)] px-1.5 py-0.5 text-left text-[11px] leading-4 text-[var(--ink)] transition-all cursor-pointer"
           >
-            <AlertCircle className="w-3 h-3 text-amber-600 dark:text-amber-400 shrink-0" />
+            <span className="w-1.5 h-1.5 rounded-full bg-amber-500 shrink-0" />
             <span className="min-w-0 flex-1 truncate">{event.title}</span>
           </button>
         );
@@ -116,20 +117,19 @@ export const CalendarEventPill: React.FC<CalendarEventPillProps> = ({
             title={`${event.title}${event.status ? ` · ${DEAL_STATUS_LABELS[event.status as CommercialDealStatus] || event.status}` : ''}`}
             data-testid="calendar-event"
             data-calendar-event-type={event.type}
-            className="w-full min-w-0 rounded-lg border border-indigo-200/50 bg-indigo-500/10 px-2 py-1.5 text-left text-xs font-semibold text-indigo-700 shadow-2xs transition-colors hover:bg-indigo-500/20 dark:border-indigo-900/40 dark:bg-indigo-950/40 dark:text-indigo-300 dark:hover:bg-indigo-900/50"
+            className="w-full min-w-0 rounded-[var(--radius-sm)] border border-transparent hover:border-[var(--line)] bg-transparent hover:bg-[var(--canvas)] px-1.5 py-0.5 text-left text-[11px] leading-4 text-[var(--ink)] transition-all cursor-pointer"
           >
             <span className="flex min-w-0 items-center gap-1.5">
-              <Handshake className="h-3 w-3 shrink-0 text-indigo-600 dark:text-indigo-400" />
+              <span className="w-1.5 h-1.5 rounded-full bg-indigo-500 shrink-0" />
               <span data-testid="calendar-event-title" className="min-w-0 flex-1 truncate">{event.title}</span>
               {typeof event.amount_cents === 'number' && event.amount_cents > 0 && (
-                <span className="max-w-[4.5rem] shrink-0 truncate font-mono text-[10px] text-indigo-600 dark:text-indigo-400">
+                <span className="max-w-[4.5rem] shrink-0 truncate font-mono text-[10px] text-[var(--ink-muted)]">
                   ¥{(event.amount_cents / 100).toLocaleString()}
                 </span>
               )}
             </span>
             {event.status && (
-              <span className="mt-1 flex min-w-0 items-center gap-1 pl-[1.125rem] text-[10px] font-semibold text-indigo-600 dark:text-indigo-300">
-                <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-indigo-500 dark:bg-indigo-400" />
+              <span className="mt-0.5 flex min-w-0 items-center gap-1 pl-3 text-[10px] text-[var(--ink-muted)]">
                 <span className="truncate">{DEAL_STATUS_LABELS[event.status as CommercialDealStatus] || event.status}</span>
               </span>
             )}
@@ -144,13 +144,13 @@ export const CalendarEventPill: React.FC<CalendarEventPillProps> = ({
             title={`已上线：${event.title}`}
             data-testid="calendar-event"
             data-calendar-event-type={event.type}
-            className="flex w-full min-w-0 items-center gap-1.5 rounded-lg border border-emerald-200/50 bg-emerald-500/10 px-2 py-0.5 text-left text-[11px] font-medium text-emerald-800 transition-colors hover:bg-emerald-500/20 dark:border-emerald-900/40 dark:bg-emerald-950/40 dark:text-emerald-300 dark:hover:bg-emerald-900/50"
+            className="flex w-full min-w-0 items-center gap-1.5 rounded-[var(--radius-sm)] border border-transparent hover:border-[var(--line)] bg-transparent hover:bg-[var(--canvas)] px-1.5 py-0.5 text-left text-[11px] leading-4 text-[var(--ink)] transition-all cursor-pointer"
           >
-            <Film className="w-3 h-3 text-emerald-600 dark:text-emerald-400 shrink-0" />
+            <span className="w-1.5 h-1.5 rounded-full bg-teal-500 shrink-0" />
             <span className="min-w-0 flex-1 truncate">{event.title}</span>
             {typeof event.views === 'number' && event.views > 0 && (
-              <span className="text-[10px] text-emerald-600 dark:text-emerald-400 shrink-0">
-                <span className="font-mono tabular-nums">{event.views >= 10000 ? `${(event.views / 10000).toFixed(1)}w` : event.views}</span>播
+              <span className="text-[10px] text-[var(--ink-muted)] shrink-0 font-mono">
+                {event.views >= 10000 ? `${(event.views / 10000).toFixed(1)}w` : event.views}播
               </span>
             )}
           </button>
@@ -169,29 +169,29 @@ export const CalendarEventPill: React.FC<CalendarEventPillProps> = ({
       aria-label={`打开日历事项：${event.title}`}
       data-testid="calendar-event"
       data-calendar-event-type={event.type}
-      className={`p-3 rounded-xl border transition-all cursor-pointer shadow-2xs hover:shadow-card hover:-translate-y-0.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rose-500/60 ${
-        event.type === 'planned_publish'
-          ? 'bg-rose-500/[0.04] dark:bg-rose-950/20 border-rose-200/70 dark:border-rose-900/40'
-          : event.type === 'commercial_deal'
-            ? 'bg-indigo-500/[0.04] dark:bg-indigo-950/20 border-indigo-200/70 dark:border-indigo-900/40'
-            : event.type === 'published'
-              ? 'bg-emerald-500/[0.04] dark:bg-emerald-950/20 border-emerald-200/70 dark:border-emerald-900/40'
-              : 'bg-stone-500/[0.03] dark:bg-stone-800/40 border-stone-200/70 dark:border-stone-700/60'
-      }`}
+      className="p-3 rounded-[var(--radius-sm)] border border-[var(--line)] bg-[var(--surface)] hover:bg-[var(--canvas)] transition-all cursor-pointer shadow-2xs hover:shadow-card hover:-translate-y-0.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]"
     >
       <div className="mb-1 flex min-w-0 items-center justify-between gap-2">
-        <div className="flex min-w-0 flex-wrap items-center gap-1.5">
+        <div className="flex min-w-0 flex-wrap items-center gap-2">
           {event.type === 'planned_publish' && (
-            <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-rose-600 text-white">计划发布</span>
+            <span className="inline-flex items-center gap-1 text-[11px] font-medium text-[var(--ink-muted)]">
+              <span className="w-1.5 h-1.5 rounded-full bg-[var(--accent)]" /> 计划发布
+            </span>
           )}
           {event.type === 'commercial_deal' && (
-            <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-indigo-600 text-white">商单交付</span>
+            <span className="inline-flex items-center gap-1 text-[11px] font-medium text-[var(--ink-muted)]">
+              <span className="w-1.5 h-1.5 rounded-full bg-indigo-500" /> 商单交付
+            </span>
           )}
           {event.type === 'deadline' && (
-            <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-700 text-white">制作截止</span>
+            <span className="inline-flex items-center gap-1 text-[11px] font-medium text-[var(--ink-muted)]">
+              <span className="w-1.5 h-1.5 rounded-full bg-amber-500" /> 制作截止
+            </span>
           )}
           {event.type === 'published' && (
-            <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-700 text-white">已上线</span>
+            <span className="inline-flex items-center gap-1 text-[11px] font-medium text-[var(--ink-muted)]">
+              <span className="w-1.5 h-1.5 rounded-full bg-teal-500" /> 已上线
+            </span>
           )}
           <EventStatusBadge event={event} />
         </div>

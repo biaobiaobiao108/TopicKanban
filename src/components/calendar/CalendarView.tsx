@@ -253,25 +253,25 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
                 title="选题日历"
                 icon={CalendarDays}
                 badge={
-                  <span className="rounded-full bg-rose-500/10 px-2.5 py-1 text-xs font-semibold text-rose-700 dark:bg-rose-950/40 dark:text-rose-300">
+                  <span className="text-xs font-mono text-[var(--ink-muted)]">
                     发片排期
                   </span>
                 }
               />
 
               {/* Month navigation controls */}
-              <div className="flex items-center gap-1 bg-stone-100 dark:bg-stone-800 rounded-xl p-1 shadow-2xs">
+              <div className="flex items-center gap-0.5 border border-[var(--line)] bg-[var(--surface)] rounded-[var(--radius-sm)] p-0.5">
                 <button
                   type="button"
                   onClick={handlePrev}
                   aria-label="上一周期"
                   title="上一周期"
-                  className="p-1 rounded-lg hover:bg-white dark:hover:bg-stone-700 text-stone-600 dark:text-stone-300 transition-colors cursor-pointer"
+                  className="p-1 rounded-[var(--radius-sm)] hover:bg-[var(--canvas)] text-[var(--ink-muted)] hover:text-[var(--ink)] transition-colors cursor-pointer"
                 >
                   <ChevronLeft className="w-4 h-4" aria-hidden="true" />
                 </button>
 
-                <span className="text-xs sm:text-sm font-bold px-2 text-stone-900 dark:text-stone-100 min-w-[75px] text-center">
+                <span className="text-xs sm:text-sm font-semibold px-2 text-[var(--ink)] min-w-[75px] text-center">
                   <span className="font-mono tabular-nums">{year}</span>年{' '}
                   <span className="font-mono tabular-nums">{monthIndex + 1}</span>月
                 </span>
@@ -281,7 +281,7 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
                   onClick={handleNext}
                   aria-label="下一周期"
                   title="下一周期"
-                  className="p-1 rounded-lg hover:bg-white dark:hover:bg-stone-700 text-stone-600 dark:text-stone-300 transition-colors cursor-pointer"
+                  className="p-1 rounded-[var(--radius-sm)] hover:bg-[var(--canvas)] text-[var(--ink-muted)] hover:text-[var(--ink)] transition-colors cursor-pointer"
                 >
                   <ChevronRight className="w-4 h-4" aria-hidden="true" />
                 </button>
@@ -290,7 +290,7 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
               <button
                 type="button"
                 onClick={handleToday}
-                className="text-xs font-semibold px-2.5 py-1.5 rounded-xl border border-stone-200 dark:border-stone-700 hover:bg-stone-100 dark:hover:bg-stone-800 text-stone-700 dark:text-stone-300 transition-colors cursor-pointer"
+                className="text-xs font-medium px-2.5 py-1.5 rounded-[var(--radius-sm)] border border-transparent hover:border-[var(--line)] bg-transparent hover:bg-[var(--canvas)] text-[var(--ink-muted)] hover:text-[var(--ink)] transition-all cursor-pointer"
               >
                 回到今天
               </button>
@@ -299,14 +299,14 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
             {/* Right: View Switcher + Unscheduled Pool Toggle */}
             <div className="flex items-center gap-2 flex-wrap sm:flex-nowrap">
               {/* View Switcher */}
-              <div className="flex items-center gap-1 bg-stone-100 dark:bg-stone-800 rounded-xl p-1 text-xs font-semibold">
+              <div className="flex items-center gap-0.5 border border-[var(--line)] bg-[var(--canvas)] rounded-[var(--radius-sm)] p-0.5 text-xs font-medium">
                 <button
                   type="button"
                   onClick={() => setViewMode('month')}
-                  className={`px-3 py-1.5 rounded-lg transition-all cursor-pointer ${
+                  className={`px-2.5 py-1 rounded-[var(--radius-sm)] transition-all cursor-pointer ${
                     viewMode === 'month'
-                      ? 'bg-white dark:bg-stone-700 text-stone-900 dark:text-stone-100 font-bold shadow-2xs'
-                      : 'text-stone-600 dark:text-stone-400 hover:text-stone-900'
+                      ? 'bg-[var(--surface)] text-[var(--ink)] font-semibold shadow-2xs'
+                      : 'text-[var(--ink-muted)] hover:text-[var(--ink)]'
                   }`}
                 >
                   月视图
@@ -314,10 +314,10 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
                 <button
                   type="button"
                   onClick={() => setViewMode('week')}
-                  className={`px-3 py-1.5 rounded-lg transition-all cursor-pointer ${
+                  className={`px-2.5 py-1 rounded-[var(--radius-sm)] transition-all cursor-pointer ${
                     viewMode === 'week'
-                      ? 'bg-white dark:bg-stone-700 text-stone-900 dark:text-stone-100 font-bold shadow-2xs'
-                      : 'text-stone-600 dark:text-stone-400 hover:text-stone-900'
+                      ? 'bg-[var(--surface)] text-[var(--ink)] font-semibold shadow-2xs'
+                      : 'text-[var(--ink-muted)] hover:text-[var(--ink)]'
                   }`}
                 >
                   周视图
@@ -325,10 +325,10 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
                 <button
                   type="button"
                   onClick={() => setViewMode('agenda')}
-                  className={`px-3 py-1.5 rounded-lg transition-all cursor-pointer ${
+                  className={`px-2.5 py-1 rounded-[var(--radius-sm)] transition-all cursor-pointer ${
                     viewMode === 'agenda'
-                      ? 'bg-white dark:bg-stone-700 text-stone-900 dark:text-stone-100 font-bold shadow-2xs'
-                      : 'text-stone-600 dark:text-stone-400 hover:text-stone-900'
+                      ? 'bg-[var(--surface)] text-[var(--ink)] font-semibold shadow-2xs'
+                      : 'text-[var(--ink-muted)] hover:text-[var(--ink)]'
                   }`}
                 >
                   日程流
@@ -339,15 +339,15 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
               <button
                 type="button"
                 onClick={() => setIsPoolOpen((prev) => !prev)}
-                className={`flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-xl border transition-all cursor-pointer ${
+                className={`flex items-center gap-1.5 text-xs font-medium px-2.5 py-1.5 rounded-[var(--radius-sm)] border transition-all cursor-pointer ${
                   isPoolOpen
-                    ? 'bg-rose-50 dark:bg-rose-950/40 border-rose-300 dark:border-rose-800 text-rose-700 dark:text-rose-300 shadow-2xs'
-                    : 'bg-white dark:bg-stone-900 border-stone-200 dark:border-stone-700 text-stone-700 dark:text-stone-300 hover:bg-stone-50'
+                    ? 'border-[var(--line)] bg-[var(--canvas)] text-[var(--ink)]'
+                    : 'border-transparent hover:border-[var(--line)] bg-transparent hover:bg-[var(--canvas)] text-[var(--ink-muted)] hover:text-[var(--ink)]'
                 }`}
               >
-                <Inbox className="w-3.5 h-3.5" />
+                <Inbox className="w-3.5 h-3.5 text-[var(--accent)]" />
                 <span>待排期池</span>
-                <span className="font-mono tabular-nums font-bold bg-rose-600 text-white text-[10px] px-1.5 py-0.2 rounded-full">
+                <span className="font-mono tabular-nums text-[10px] text-[var(--ink-muted)]">
                   {unscheduledTopics.length}
                 </span>
               </button>
@@ -355,71 +355,78 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
           </div>
 
           {/* Subheader: Month Stats & Layer Filter Toggles */}
-          <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-2.5 pt-2 border-t border-stone-100 dark:border-stone-800/80">
+          <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-2.5 pt-2 border-t border-[var(--line)]">
             {/* Stats Chips */}
-            <div className="flex items-center gap-2 sm:gap-3 text-xs text-stone-600 dark:text-stone-400 overflow-x-auto">
-              <span className="font-semibold text-stone-900 dark:text-stone-100">本月生产：</span>
-              <span className="inline-flex items-center gap-1 bg-rose-500/10 text-rose-700 dark:text-rose-300 px-2 py-0.5 rounded-md font-medium">
-                计划发片 <strong className="font-mono tabular-nums">{monthStats.plannedPublishCount}</strong>
+            <div className="flex items-center gap-3 sm:gap-4 text-xs text-[var(--ink-muted)] overflow-x-auto select-none">
+              <span className="font-medium text-[var(--ink)]">本月生产：</span>
+              <span className="inline-flex items-center gap-1.5">
+                <span className="w-1.5 h-1.5 rounded-full bg-[var(--accent)] shrink-0" />
+                计划发片 <strong className="font-mono tabular-nums text-[var(--ink)]">{monthStats.plannedPublishCount}</strong>
               </span>
-              <span className="inline-flex items-center gap-1 bg-indigo-500/10 text-indigo-700 dark:text-indigo-300 px-2 py-0.5 rounded-md font-medium">
-                商单履约 <strong className="font-mono tabular-nums">{monthStats.commercialDealCount}</strong>
+              <span className="inline-flex items-center gap-1.5">
+                <span className="w-1.5 h-1.5 rounded-full bg-indigo-500 shrink-0" />
+                商单履约 <strong className="font-mono tabular-nums text-[var(--ink)]">{monthStats.commercialDealCount}</strong>
               </span>
-              <span className="inline-flex items-center gap-1 bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 px-2 py-0.5 rounded-md font-medium">
-                已发视频 <strong className="font-mono tabular-nums">{monthStats.publishedVideoCount}</strong>
+              <span className="inline-flex items-center gap-1.5">
+                <span className="w-1.5 h-1.5 rounded-full bg-teal-500 shrink-0" />
+                已发视频 <strong className="font-mono tabular-nums text-[var(--ink)]">{monthStats.publishedVideoCount}</strong>
               </span>
             </div>
 
             {/* Layer Filter Pills */}
-            <div className="flex items-center gap-1.5 overflow-x-auto text-xs">
-              <span className="text-[11px] font-semibold text-stone-500 dark:text-stone-400 shrink-0">图层：</span>
+            <div className="flex items-center gap-1 overflow-x-auto text-xs">
+              <span className="text-[11px] font-medium text-[var(--ink-muted)] shrink-0">图层：</span>
 
               <button
                 type="button"
                 onClick={() => handleToggleLayer('showPlannedPublish')}
-                className={`px-2.5 py-1 rounded-lg font-semibold transition-all cursor-pointer shrink-0 flex items-center gap-1 ${
+                className={`px-2 py-1 rounded-[var(--radius-sm)] border transition-all cursor-pointer shrink-0 flex items-center gap-1.5 ${
                   filters.showPlannedPublish
-                    ? 'bg-rose-600 text-white shadow-2xs'
-                    : 'bg-stone-100 dark:bg-stone-800 text-stone-600 dark:text-stone-400 line-through'
+                    ? 'border-transparent hover:border-[var(--line)] bg-transparent hover:bg-[var(--canvas)] text-[var(--ink)] font-medium'
+                    : 'border-transparent text-[var(--ink-muted)] opacity-40 line-through hover:opacity-75'
                 }`}
               >
-                <span>🎬 计划发片</span>
+                <span className="w-1.5 h-1.5 rounded-full bg-[var(--accent)] shrink-0" />
+                <span>计划发片</span>
               </button>
 
               <button
                 type="button"
                 onClick={() => handleToggleLayer('showDeadlines')}
-                className={`px-2.5 py-1 rounded-lg font-semibold transition-all cursor-pointer shrink-0 flex items-center gap-1 ${
+                className={`px-2 py-1 rounded-[var(--radius-sm)] border transition-all cursor-pointer shrink-0 flex items-center gap-1.5 ${
                   filters.showDeadlines
-                    ? 'bg-amber-700 text-white shadow-2xs'
-                    : 'bg-stone-100 dark:bg-stone-800 text-stone-600 dark:text-stone-400 line-through'
+                    ? 'border-transparent hover:border-[var(--line)] bg-transparent hover:bg-[var(--canvas)] text-[var(--ink)] font-medium'
+                    : 'border-transparent text-[var(--ink-muted)] opacity-40 line-through hover:opacity-75'
                 }`}
               >
-                <span>⏰ 制作截止</span>
+                <span className="w-1.5 h-1.5 rounded-full bg-amber-500 shrink-0" />
+                <span>制作截止</span>
               </button>
 
               <button
                 type="button"
                 onClick={() => handleToggleLayer('showDeals')}
-                className={`px-2.5 py-1 rounded-lg font-semibold transition-all cursor-pointer shrink-0 flex items-center gap-1 ${
+                className={`px-2 py-1 rounded-[var(--radius-sm)] border transition-all cursor-pointer shrink-0 flex items-center gap-1.5 ${
                   filters.showDeals
-                    ? 'bg-indigo-700 text-white shadow-2xs'
-                    : 'bg-stone-100 dark:bg-stone-800 text-stone-600 dark:text-stone-400 line-through'
+                    ? 'border-transparent hover:border-[var(--line)] bg-transparent hover:bg-[var(--canvas)] text-[var(--ink)] font-medium'
+                    : 'border-transparent text-[var(--ink-muted)] opacity-40 line-through hover:opacity-75'
                 }`}
               >
-                <span>🤝 商单 DDL</span>
+                <span className="w-1.5 h-1.5 rounded-full bg-indigo-500 shrink-0" />
+                <span>商单 DDL</span>
               </button>
 
               <button
                 type="button"
                 onClick={() => handleToggleLayer('showPublished')}
-                className={`px-2.5 py-1 rounded-lg font-semibold transition-all cursor-pointer shrink-0 flex items-center gap-1 ${
+                className={`px-2 py-1 rounded-[var(--radius-sm)] border transition-all cursor-pointer shrink-0 flex items-center gap-1.5 ${
                   filters.showPublished
-                    ? 'bg-emerald-700 text-white shadow-2xs'
-                    : 'bg-stone-100 dark:bg-stone-800 text-stone-600 dark:text-stone-400 line-through'
+                    ? 'border-transparent hover:border-[var(--line)] bg-transparent hover:bg-[var(--canvas)] text-[var(--ink)] font-medium'
+                    : 'border-transparent text-[var(--ink-muted)] opacity-40 line-through hover:opacity-75'
                 }`}
               >
-                <span>📺 历史已发</span>
+                <span className="w-1.5 h-1.5 rounded-full bg-teal-500 shrink-0" />
+                <span>历史已发</span>
               </button>
 
             </div>

@@ -74,14 +74,14 @@ function MonthCellDroppable({
               onDateClick(cell.date);
             }}
             aria-label={`在 ${cell.date} 排期定档`}
-            className={`text-xs font-bold font-mono px-1.5 py-0.5 rounded-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rose-500/60 cursor-pointer ${
+            className={`text-xs font-mono px-1.5 py-0.5 rounded-[var(--radius-sm)] focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[var(--accent)] cursor-pointer transition-colors ${
               cell.isToday
-                ? 'bg-rose-600 text-white shadow-2xs font-extrabold'
+                ? 'bg-[var(--accent)] text-white shadow-2xs font-semibold'
                 : cell.isCurrentMonth
                   ? cell.isWeekend
-                    ? 'text-rose-700/80 dark:text-rose-400'
-                    : 'text-stone-800 dark:text-stone-200'
-                : 'text-stone-600 dark:text-stone-400'
+                    ? 'text-[var(--ink-muted)]'
+                    : 'text-[var(--ink)]'
+                : 'text-[var(--ink-muted)] opacity-50'
             }`}
           >
             {cell.dayNumber}
@@ -97,7 +97,7 @@ function MonthCellDroppable({
                 e.stopPropagation();
                 onShowAllEvents(cell.date, events);
               }}
-              className="inline-flex shrink-0 items-center rounded-full bg-rose-500/10 px-1.5 py-0.5 text-[10px] font-bold leading-none text-rose-800 transition-colors hover:bg-rose-500/20 hover:text-rose-900 dark:bg-rose-950/40 dark:text-rose-200 dark:hover:bg-rose-900/60 dark:hover:text-white cursor-pointer"
+              className="inline-flex shrink-0 items-center rounded-[var(--radius-sm)] border border-transparent hover:border-[var(--line)] bg-transparent hover:bg-[var(--canvas)] px-1 py-0.5 text-[10px] font-mono text-[var(--ink-muted)] hover:text-[var(--ink)] cursor-pointer transition-colors"
             >
               +{hiddenCount}
             </button>

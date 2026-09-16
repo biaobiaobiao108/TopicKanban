@@ -252,8 +252,28 @@ export const ImeMarkdownSafeExtension = Extension.create({
     if (this.editor.schema.nodes.blockquote) {
       rules.push(
         wrappingInputRule({
-          find: /^\s*[>＞][\s\u3000]$/,
+          find: /^\s*[>＞》〉][\s\u3000]$/,
           type: this.editor.schema.nodes.blockquote,
+        })
+      );
+    }
+
+    if (this.editor.schema.nodes.bulletList) {
+      rules.push(
+        wrappingInputRule({
+          find: /^\s*([*＊·•])[\s\u3000]$/,
+          type: this.editor.schema.nodes.bulletList,
+        })
+      );
+    }
+
+    if (this.editor.schema.nodes.orderedList) {
+      rules.push(
+        wrappingInputRule({
+          find: /^(\d+)[.、．][\s\u3000]$/,
+          type: this.editor.schema.nodes.orderedList,
+          getAttributes: (match) => ({ start: +match[1] }),
+          joinPredicate: (match, node) => node.childCount + node.attrs.start === +match[1],
         })
       );
     }

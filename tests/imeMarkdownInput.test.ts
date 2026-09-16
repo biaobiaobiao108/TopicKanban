@@ -122,7 +122,7 @@ describe('ImeMarkdownSafeExtension 纯逻辑与自愈规则测试', () => {
     expect(nextState.doc.textContent).toBe('引用文字');
   });
 
-  it('全角 Markdown 正则校验：支持 ＃ 与 ＞', () => {
+  it('全角与中文符号 Markdown 正则校验：支持 ＃、＞、》、〉、· 与 1、', () => {
     const headingRegex = /^[#＃]{1,6}[\s\u3000]$/;
     expect(headingRegex.test('# ')).toBe(true);
     expect(headingRegex.test('## ')).toBe(true);
@@ -130,9 +130,22 @@ describe('ImeMarkdownSafeExtension 纯逻辑与自愈规则测试', () => {
     expect(headingRegex.test('＃＃ ')).toBe(true);
     expect(headingRegex.test('＃＃　')).toBe(true); // 全角空格
 
-    const blockquoteRegex = /^\s*[>＞][\s\u3000]$/;
+    const blockquoteRegex = /^\s*[>＞》〉][\s\u3000]$/;
     expect(blockquoteRegex.test('> ')).toBe(true);
     expect(blockquoteRegex.test('＞ ')).toBe(true);
     expect(blockquoteRegex.test('＞　')).toBe(true); // 全角空格
+    expect(blockquoteRegex.test('》 ')).toBe(true); // 中文书名号右括号
+    expect(blockquoteRegex.test('》　')).toBe(true);
+    expect(blockquoteRegex.test('〉 ')).toBe(true);
+
+    const bulletRegex = /^\s*([*＊·•])[\s\u3000]$/;
+    expect(bulletRegex.test('* ')).toBe(true);
+    expect(bulletRegex.test('＊ ')).toBe(true);
+    expect(bulletRegex.test('· ')).toBe(true); // 中文间隔号
+
+    const orderedRegex = /^(\d+)[.、．][\s\u3000]$/;
+    expect(orderedRegex.test('1. ')).toBe(true);
+    expect(orderedRegex.test('1、 ')).toBe(true); // 顿号
+    expect(orderedRegex.test('1． ')).toBe(true); // 全角点
   });
 });

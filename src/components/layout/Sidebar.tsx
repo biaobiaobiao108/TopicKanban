@@ -53,7 +53,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
             <img src="/icon.png" alt="工作台 Logo" width={32} height={32} className="w-full h-full object-cover rounded-[var(--radius-sm)]" />
           </div>
           <div>
-            <h1 className="font-serif text-[var(--h1-color)] text-base font-normal tracking-wide leading-tight">选题生产工作台</h1>
+            <h1 className="font-serif text-[var(--h1-color)] text-lg font-medium tracking-wide leading-snug">选题生产工作台</h1>
           </div>
         </div>
 
@@ -81,7 +81,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
 
       {/* Main Navigation */}
       <nav className="flex-1 p-3 space-y-0.5 overflow-y-auto no-scrollbar">
-        <div className="text-[11px] font-medium text-[var(--ink-muted)] px-3 py-1 uppercase tracking-wider">
+        <div className="text-xs font-medium text-[var(--ink-muted)] px-3 py-1.5 uppercase tracking-wider">
           工作台模块
         </div>
         {navItems.map((item) => {
@@ -93,7 +93,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
               key={item.id}
               onClick={() => onNavigate(item.id)}
               aria-current={isActive ? 'page' : undefined}
-              className={`group relative w-full flex items-center justify-between px-3 py-2 rounded-[var(--radius-sm)] text-xs transition-all cursor-pointer ${
+              className={`group relative w-full flex items-center justify-between px-3 py-2 rounded-[var(--radius-sm)] text-[13px] sm:text-sm transition-all cursor-pointer ${
                 isActive
                   ? 'bg-[var(--accent-soft)] text-[var(--accent-dark)] font-medium'
                   : 'text-[var(--ink-muted)] hover:bg-[var(--surface)] hover:text-[var(--ink)] font-normal'

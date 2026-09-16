@@ -126,7 +126,7 @@ export const TopicDetailHeader: React.FC<TopicDetailHeaderProps> = ({
           )}
         </div>
 
-        {/* Status Dropdown Trigger (Compact Pill) */}
+        {/* Status Dropdown Trigger (Borderless with hover border) */}
         <div className="relative z-10 shrink-0">
           <button
             type="button"
@@ -137,12 +137,12 @@ export const TopicDetailHeader: React.FC<TopicDetailHeaderProps> = ({
               setIsStatusMenuOpen(!isStatusMenuOpen);
               setIsPriorityMenuOpen(false);
             }}
-            className="inline-flex items-center gap-1.5 text-xs font-semibold text-stone-700 dark:text-stone-200 bg-stone-100 dark:bg-stone-800 hover:bg-stone-200/80 dark:hover:bg-stone-700 px-3 py-1 rounded-full transition-colors cursor-pointer select-none"
+            className="inline-flex items-center gap-1.5 text-xs font-medium text-[var(--ink)] border border-transparent hover:border-[var(--line)] bg-transparent hover:bg-[var(--canvas)] px-2 py-1 rounded-[var(--radius-sm)] transition-all cursor-pointer select-none"
             title="修改选题生产阶段"
           >
             <span className={`w-2 h-2 rounded-full ${statusDots[topic.status] || 'bg-stone-400'}`} />
             <span>{statusLabel}</span>
-            <ChevronDown className="w-3 h-3 text-stone-400 dark:text-stone-500" />
+            <ChevronDown className="w-3 h-3 text-[var(--ink-muted)]" />
           </button>
 
           <FloatingMenu
@@ -158,31 +158,34 @@ export const TopicDetailHeader: React.FC<TopicDetailHeaderProps> = ({
           >
             <div className="min-h-0 overflow-y-auto overscroll-contain p-1.5 space-y-0.5">
               <div className="px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider text-stone-400 dark:text-stone-500">
-                活跃生产阶段
+                活跃阶段
               </div>
-              {COLUMNS.filter((c) => c.status !== 'published' && c.status !== 'icebox').map((c) => (
-                <button
-                  key={c.status}
-                  type="button"
-                  onClick={() => {
-                    setIsStatusMenuOpen(false);
-                    void onUpdateTopic({ status: c.status });
-                  }}
-                  className={`w-full min-h-9 text-left px-2.5 py-1.5 rounded-xl text-xs font-medium flex items-center justify-between transition-colors cursor-pointer ${
-                    topic.status === c.status
-                      ? 'bg-stone-100 dark:bg-stone-800 text-stone-900 dark:text-stone-100 font-bold'
-                      : 'text-stone-600 dark:text-stone-400 hover:bg-stone-50 dark:hover:bg-stone-800 hover:text-stone-900 dark:hover:text-stone-100'
-                  }`}
-                >
-                  <div className="flex items-center gap-2">
-                    <span className={`w-2 h-2 rounded-full ${statusDots[c.status]}`} />
-                    <span>{c.label}</span>
-                  </div>
-                  {topic.status === c.status && <span className="text-rose-600 dark:text-rose-400 text-xs">✓</span>}
-                </button>
-              ))}
+              {COLUMNS.map((column) => {
+                const isSelected = topic.status === column.status;
+                return (
+                  <button
+                    key={column.status}
+                    type="button"
+                    onClick={() => {
+                      setIsStatusMenuOpen(false);
+                      void onUpdateTopic({ status: column.status });
+                    }}
+                    className={`w-full min-h-9 text-left px-2.5 py-1.5 rounded-xl text-xs font-medium flex items-center justify-between transition-colors cursor-pointer ${
+                      isSelected
+                        ? 'bg-[var(--accent-soft)] text-[var(--accent-dark)] font-bold'
+                        : 'text-stone-600 dark:text-stone-400 hover:bg-stone-50 dark:hover:bg-stone-800 hover:text-stone-900 dark:hover:text-stone-100'
+                    }`}
+                  >
+                    <div className="flex items-center gap-2">
+                      <span className={`w-2 h-2 rounded-full ${statusDots[column.status]}`} />
+                      <span>{column.label}</span>
+                    </div>
+                    {isSelected && <span className="text-[var(--accent)] text-xs">✓</span>}
+                  </button>
+                );
+              })}
 
-              <div className="my-1 border-t border-stone-100 dark:border-stone-800" />
+              <div className="my-1 border-t border-[var(--line)]" />
               <div className="px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider text-stone-400 dark:text-stone-500">
                 归档状态
               </div>
@@ -195,7 +198,7 @@ export const TopicDetailHeader: React.FC<TopicDetailHeaderProps> = ({
                 }}
                 className={`w-full min-h-9 text-left px-2.5 py-1.5 rounded-xl text-xs font-medium flex items-center justify-between transition-colors cursor-pointer ${
                   topic.status === 'published'
-                    ? 'bg-stone-100 dark:bg-stone-800 text-stone-900 dark:text-stone-100 font-bold'
+                    ? 'bg-[var(--accent-soft)] text-[var(--accent-dark)] font-bold'
                     : 'text-stone-600 dark:text-stone-400 hover:bg-emerald-50 dark:hover:bg-emerald-950/40 hover:text-emerald-800 dark:hover:text-emerald-300'
                 }`}
               >
@@ -203,7 +206,7 @@ export const TopicDetailHeader: React.FC<TopicDetailHeaderProps> = ({
                   <span className="w-2 h-2 rounded-full bg-teal-500" />
                   <span>已发布</span>
                 </div>
-                {topic.status === 'published' && <span className="text-emerald-600 dark:text-emerald-400 text-xs">✓</span>}
+                {topic.status === 'published' && <span className="text-[var(--accent)] text-xs">✓</span>}
               </button>
 
               <button
@@ -214,7 +217,7 @@ export const TopicDetailHeader: React.FC<TopicDetailHeaderProps> = ({
                 }}
                 className={`w-full min-h-9 text-left px-2.5 py-1.5 rounded-xl text-xs font-medium flex items-center justify-between transition-colors cursor-pointer ${
                   topic.status === 'icebox'
-                    ? 'bg-stone-100 dark:bg-stone-800 text-stone-900 dark:text-stone-100 font-bold'
+                    ? 'bg-[var(--accent-soft)] text-[var(--accent-dark)] font-bold'
                     : 'text-stone-600 dark:text-stone-400 hover:bg-stone-100 dark:hover:bg-stone-800 hover:text-stone-900 dark:hover:text-stone-100'
                 }`}
               >
@@ -228,7 +231,7 @@ export const TopicDetailHeader: React.FC<TopicDetailHeaderProps> = ({
           </FloatingMenu>
         </div>
 
-        {/* Priority Dropdown Trigger (Compact Pill) */}
+        {/* Priority Dropdown Trigger (Borderless with hover border) */}
         <div className="relative z-10 shrink-0">
           <button
             type="button"
@@ -239,12 +242,12 @@ export const TopicDetailHeader: React.FC<TopicDetailHeaderProps> = ({
               setIsPriorityMenuOpen(!isPriorityMenuOpen);
               setIsStatusMenuOpen(false);
             }}
-            className="inline-flex items-center gap-1.5 text-xs font-semibold text-stone-700 dark:text-stone-200 bg-stone-100 dark:bg-stone-800 hover:bg-stone-200/80 dark:hover:bg-stone-700 px-3 py-1 rounded-full transition-colors cursor-pointer select-none"
+            className="inline-flex items-center gap-1.5 text-xs font-medium text-[var(--ink)] border border-transparent hover:border-[var(--line)] bg-transparent hover:bg-[var(--canvas)] px-2 py-1 rounded-[var(--radius-sm)] transition-all cursor-pointer select-none"
             title="设置选题优先级"
           >
             <span className={`w-2 h-2 rounded-full ${priorityConfig[topic.priority]?.dot || 'bg-stone-300'}`} />
             <span>{priorityConfig[topic.priority]?.label || '未设'}</span>
-            <ChevronDown className="w-3 h-3 text-stone-400 dark:text-stone-500" />
+            <ChevronDown className="w-3 h-3 text-[var(--ink-muted)]" />
           </button>
 
           <FloatingMenu
@@ -275,7 +278,7 @@ export const TopicDetailHeader: React.FC<TopicDetailHeaderProps> = ({
                     }}
                     className={`w-full min-h-9 text-left px-2.5 py-1.5 rounded-xl text-xs font-medium flex items-center justify-between transition-colors cursor-pointer ${
                       isSelected
-                        ? 'bg-stone-100 dark:bg-stone-800 text-stone-900 dark:text-stone-100 font-bold'
+                        ? 'bg-[var(--accent-soft)] text-[var(--accent-dark)] font-bold'
                         : 'text-stone-600 dark:text-stone-400 hover:bg-stone-50 dark:hover:bg-stone-800 hover:text-stone-900 dark:hover:text-stone-100'
                     }`}
                   >
@@ -284,7 +287,7 @@ export const TopicDetailHeader: React.FC<TopicDetailHeaderProps> = ({
                       <span className="shrink-0">{cfg.label}</span>
                       <span className="min-w-0 truncate text-[10px] text-stone-400 font-normal">({cfg.desc})</span>
                     </div>
-                    {isSelected && <span className="text-rose-600 dark:text-rose-400 text-xs">✓</span>}
+                    {isSelected && <span className="text-[var(--accent)] text-xs">✓</span>}
                   </button>
                 );
               })}
@@ -292,31 +295,32 @@ export const TopicDetailHeader: React.FC<TopicDetailHeaderProps> = ({
           </FloatingMenu>
         </div>
 
-        {/* Current Action Capsule: Literary Notebook Minimal Action */}
-        <div className="shrink-0 min-w-0 max-w-[220px] sm:max-w-sm lg:max-w-lg">
+        {/* Current Action: Literary Notebook Minimal Action */}
+        <div className="shrink-0 min-w-0 max-w-[240px] sm:max-w-sm lg:max-w-lg">
           {topic.current_todo ? (
             <button
               type="button"
               onClick={onOpenCurrentAction}
-              className="group inline-flex items-center gap-2 px-2.5 py-1 rounded-[var(--radius-sm)] border border-[var(--line)] bg-[var(--canvas)] hover:bg-[var(--surface)] text-xs text-[var(--ink)] transition-all cursor-pointer max-w-full truncate"
+              className="group inline-flex items-center gap-2 px-2.5 py-1 rounded-[var(--radius-sm)] border border-transparent hover:border-[var(--line)] bg-transparent hover:bg-[var(--canvas)] transition-all cursor-pointer max-w-full truncate"
               title={`当前行动：${topic.current_todo.title} (已持续 ${actionDays} 天) - 点击完成或编辑`}
             >
-              <div className="w-1.5 h-1.5 rounded-full bg-[var(--accent)] shrink-0" />
-              <span className="truncate">{topic.current_todo.title}</span>
-              {warning && (
-                <span className="text-[10px] text-[#9b6a2f] font-medium shrink-0">
-                  {warning}
+              <span className="w-1.5 h-1.5 rounded-full bg-[var(--accent)] shrink-0" />
+              <span className="truncate text-xs sm:text-[13px] font-medium text-[var(--ink)]">{topic.current_todo.title}</span>
+              {actionDays >= 5 ? (
+                <span className="text-[11px] text-amber-700 dark:text-amber-400 font-mono font-medium shrink-0">
+                  停滞 {actionDays}d
+                </span>
+              ) : (
+                <span className="text-[11px] tabular-nums text-[var(--ink-muted)] opacity-75 font-mono shrink-0">
+                  {actionDays}d
                 </span>
               )}
-              <span className="text-[10px] tabular-nums text-[var(--ink-muted)] opacity-75 shrink-0">
-                {actionDays}d
-              </span>
             </button>
           ) : (
             <button
               type="button"
               onClick={onOpenCurrentAction}
-              className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-[var(--radius-sm)] border border-dashed border-[var(--line)] bg-[var(--canvas)]/60 hover:bg-[var(--canvas)] text-xs text-[var(--ink-muted)] hover:text-[var(--ink)] transition-all cursor-pointer"
+              className="inline-flex items-center gap-1.5 px-2 py-1 rounded-[var(--radius-sm)] border border-transparent hover:border-[var(--line)] bg-transparent hover:bg-[var(--canvas)] text-xs text-[var(--ink-muted)] hover:text-[var(--ink)] transition-all cursor-pointer"
               title="当前选题尚未设置当前行动，点击打开执行清单"
             >
               <Zap className="w-3.5 h-3.5 text-[var(--accent)]" />
@@ -328,13 +332,13 @@ export const TopicDetailHeader: React.FC<TopicDetailHeaderProps> = ({
       </div>
 
       {/* Right group: Actions Toolbar */}
-      <div className="flex w-full items-center justify-end gap-1.5 xl:w-auto xl:shrink-0">
+      <div className="flex w-full items-center justify-end gap-1 xl:w-auto xl:shrink-0">
         {/* Archive / Restore toggle */}
         {topic.status === 'published' || topic.status === 'icebox' ? (
           <button
             type="button"
             onClick={() => onUpdateTopic({ status: 'approved' })}
-            className="flex items-center gap-1 px-2.5 py-1 rounded-[var(--radius-sm)] text-xs border border-[var(--line)] bg-[var(--surface)] text-[var(--accent)] hover:bg-[var(--canvas)] transition-colors cursor-pointer"
+            className="flex items-center gap-1 px-2.5 py-1 rounded-[var(--radius-sm)] text-xs border border-transparent hover:border-[var(--line)] bg-transparent hover:bg-[var(--canvas)] text-[var(--accent)] transition-colors cursor-pointer"
             title="从归档中恢复至已立项（重返全景看板）"
           >
             <span>↩ 恢复</span>
@@ -343,7 +347,7 @@ export const TopicDetailHeader: React.FC<TopicDetailHeaderProps> = ({
           <button
             type="button"
             onClick={() => setIsStatusMenuOpen(true)}
-            className="flex items-center gap-1 px-2.5 py-1 rounded-[var(--radius-sm)] text-xs border border-[var(--line)] bg-[var(--surface)] text-[var(--ink-muted)] hover:text-[var(--ink)] hover:bg-[var(--canvas)] transition-colors cursor-pointer"
+            className="flex items-center gap-1 px-2.5 py-1 rounded-[var(--radius-sm)] text-xs border border-transparent hover:border-[var(--line)] bg-transparent text-[var(--ink-muted)] hover:text-[var(--ink)] hover:bg-[var(--canvas)] transition-colors cursor-pointer"
             title="将此选题移入归档库（将从全景看板中移出）"
           >
             <span>📦 归档</span>
@@ -355,7 +359,7 @@ export const TopicDetailHeader: React.FC<TopicDetailHeaderProps> = ({
           <button
             type="button"
             onClick={onExportMarkdown}
-            className="flex items-center gap-1 px-2.5 py-1 rounded-[var(--radius-sm)] text-xs border border-[var(--line)] bg-[var(--surface)] text-[var(--ink-muted)] hover:text-[var(--ink)] hover:bg-[var(--canvas)] transition-colors cursor-pointer"
+            className="flex items-center gap-1 px-2.5 py-1 rounded-[var(--radius-sm)] text-xs border border-transparent hover:border-[var(--line)] bg-transparent text-[var(--ink-muted)] hover:text-[var(--ink)] hover:bg-[var(--canvas)] transition-colors cursor-pointer"
             title="导出包含设定、事实链、时间线与文案的 Markdown 档案"
           >
             <FileDown className="w-3.5 h-3.5 text-[var(--ink-muted)]" />
@@ -367,10 +371,10 @@ export const TopicDetailHeader: React.FC<TopicDetailHeaderProps> = ({
         <button
           type="button"
           onClick={() => onUpdateTopic({ is_pinned: topic.is_pinned ? 0 : 1 })}
-          className={`flex items-center gap-1 px-2.5 py-1 rounded-[var(--radius-sm)] text-xs border border-[var(--line)] transition-all cursor-pointer ${
+          className={`flex items-center gap-1 px-2.5 py-1 rounded-[var(--radius-sm)] text-xs border transition-all cursor-pointer ${
             topic.is_pinned
-              ? 'bg-[var(--canvas)] text-[#9b6a2f] dark:text-[#c49258]'
-              : 'bg-[var(--surface)] text-[var(--ink-muted)] hover:text-[var(--ink)] hover:bg-[var(--canvas)]'
+              ? 'bg-[var(--canvas)] text-[#9b6a2f] dark:text-[#c49258] border-[var(--line)]'
+              : 'border-transparent hover:border-[var(--line)] bg-transparent text-[var(--ink-muted)] hover:text-[var(--ink)] hover:bg-[var(--canvas)]'
           }`}
           title={topic.is_pinned ? '取消置顶' : '置顶选题'}
         >

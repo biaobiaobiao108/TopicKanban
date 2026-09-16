@@ -927,17 +927,17 @@ export const ScriptEditorTab: React.FC<ScriptEditorTabProps> = ({
               onClick={toggleOutlinePanel}
               aria-label="展开/收起文案大纲与章节定位"
               aria-pressed={isOutlineOpen}
-              className={`flex items-center gap-1.5 rounded-xl border px-3 py-1 text-xs font-semibold transition-all cursor-pointer ${
+              className={`flex items-center gap-1.5 rounded-[var(--radius-sm)] border px-2.5 py-1 text-xs font-medium transition-all cursor-pointer ${
                 isOutlineOpen
-                  ? 'border-rose-300 dark:border-rose-800 bg-rose-50 dark:bg-rose-950/60 text-rose-700 dark:text-rose-300 shadow-2xs'
-                  : 'border-stone-200 dark:border-stone-700 bg-white dark:bg-stone-800 text-stone-700 dark:text-stone-300 hover:bg-stone-50 dark:hover:bg-stone-700/80 shadow-2xs'
+                  ? 'border-[var(--line)] bg-[var(--canvas)] text-[var(--ink)]'
+                  : 'border-transparent hover:border-[var(--line)] bg-transparent hover:bg-[var(--canvas)] text-[var(--ink-muted)] hover:text-[var(--ink)]'
               }`}
               title="展开/收起文案大纲与章节定位 (Esc 收起)"
             >
-              <Compass className="h-3.5 w-3.5 text-rose-500" />
+              <Compass className="h-3.5 w-3.5 text-[var(--accent)]" />
               <span>大纲</span>
               {outline.flatItems.length > 0 && (
-                <span className="rounded-full bg-rose-100 dark:bg-rose-900/60 px-1.5 text-[10px] font-bold text-rose-800 dark:text-rose-200 font-mono">
+                <span className="text-[10px] font-mono text-[var(--ink-muted)] tabular-nums">
                   {outline.flatItems.length}
                 </span>
               )}
@@ -979,18 +979,18 @@ export const ScriptEditorTab: React.FC<ScriptEditorTabProps> = ({
           </div>
 
           {/* Right: Reference trigger, Metrics, Voiceover Cues & Utilities */}
-          <div className="flex items-center gap-2 flex-wrap">
-            {/* Word count & Estimated duration pill */}
-            <div className="flex items-center gap-1.5 bg-stone-100/90 dark:bg-stone-800/80 border border-stone-200/80 dark:border-stone-700 px-2.5 py-1 rounded-xl text-xs">
-              <span className="font-mono text-stone-800 dark:text-stone-200 font-bold px-0.5">
-                {charCount.toLocaleString()} <span className="font-normal text-stone-500 dark:text-stone-400 text-[11px]">字</span>
+          <div className="flex items-center gap-1.5 flex-wrap">
+            {/* Word count & Estimated duration */}
+            <div className="flex items-center gap-1.5 px-2 py-1 text-xs text-[var(--ink-muted)] font-mono select-none">
+              <span className="text-[var(--ink)] font-semibold">
+                {charCount.toLocaleString()} <span className="font-normal text-[var(--ink-muted)] text-[11px]">字</span>
               </span>
-              <span className="text-stone-300 dark:text-stone-600">·</span>
+              <span className="opacity-40">·</span>
               <span
-                className="flex items-center gap-1 text-rose-700 dark:text-rose-400 font-semibold font-mono text-[11px]"
+                className="flex items-center gap-1 text-[var(--ink-muted)] font-mono text-[11px]"
                 title={`预估时长（按偏好设置 ${effectiveSpeed} 字/分钟计算）`}
               >
-                <Clock className="w-3 h-3 text-rose-500 shrink-0" />
+                <Clock className="w-3 h-3 text-[var(--ink-muted)] shrink-0" />
                 <span>{estMinutes}分{estSeconds}秒</span>
               </span>
             </div>
@@ -1000,17 +1000,17 @@ export const ScriptEditorTab: React.FC<ScriptEditorTabProps> = ({
               <button
                 type="button"
                 onClick={toggleReferencePanel}
-                className={`flex items-center gap-1.5 px-3 py-1 rounded-xl text-xs font-semibold border transition-all cursor-pointer ${
+                className={`flex items-center gap-1.5 px-2.5 py-1 rounded-[var(--radius-sm)] text-xs font-medium border transition-all cursor-pointer ${
                   isReferenceOpen
-                    ? 'bg-rose-50 dark:bg-rose-950/60 text-rose-700 dark:text-rose-300 border-rose-300 dark:border-rose-800 shadow-2xs'
-                    : 'bg-white dark:bg-stone-800 text-stone-700 dark:text-stone-300 border-stone-200 dark:border-stone-700 hover:bg-stone-50 dark:hover:bg-stone-700/80 shadow-2xs'
+                    ? 'border-[var(--line)] bg-[var(--canvas)] text-[var(--ink)]'
+                    : 'border-transparent hover:border-[var(--line)] bg-transparent hover:bg-[var(--canvas)] text-[var(--ink-muted)] hover:text-[var(--ink)]'
                 }`}
                 title="展开/收起右侧事实参考资料抽屉"
               >
-                <BookOpen className="w-3.5 h-3.5 text-rose-500" />
+                <BookOpen className="w-3.5 h-3.5 text-[var(--accent)]" />
                 <span className="hidden sm:inline">事实参考</span>
                 {citationHealth && citationHealth.unverifiedCount > 0 && (
-                  <span className="rounded-full bg-amber-100 dark:bg-amber-950/60 px-1.5 text-[10px] text-amber-800 dark:text-amber-300 font-mono font-bold">
+                  <span className="text-[10px] text-amber-700 dark:text-amber-400 font-mono font-medium">
                     {citationHealth.unverifiedCount}
                   </span>
                 )}
@@ -1025,14 +1025,14 @@ export const ScriptEditorTab: React.FC<ScriptEditorTabProps> = ({
                 aria-expanded={isCueMenuOpen}
                 aria-controls={isCueMenuOpen ? cueMenuId : undefined}
                 onClick={() => setIsCueMenuOpen((prev) => !prev)}
-                className={`flex items-center gap-1 px-2.5 py-1 rounded-xl text-xs font-semibold border transition-all cursor-pointer ${
+                className={`flex items-center gap-1 px-2.5 py-1 rounded-[var(--radius-sm)] text-xs font-medium border transition-all cursor-pointer ${
                   isCueMenuOpen
-                    ? 'bg-rose-50 dark:bg-rose-950/60 border-rose-300 dark:border-rose-800 text-rose-700 dark:text-rose-300 shadow-2xs'
-                    : 'bg-white dark:bg-stone-800 border-stone-200 dark:border-stone-700 text-stone-700 dark:text-stone-300 hover:bg-stone-50 dark:hover:bg-stone-700/80 shadow-2xs'
+                    ? 'border-[var(--line)] bg-[var(--canvas)] text-[var(--ink)]'
+                    : 'border-transparent hover:border-[var(--line)] bg-transparent hover:bg-[var(--canvas)] text-[var(--ink-muted)] hover:text-[var(--ink)]'
                 }`}
                 title="插入演播配音气口标记（展开后常驻，可连续打标）"
               >
-                <Mic className="w-3.5 h-3.5 text-rose-500" />
+                <Mic className="w-3.5 h-3.5 text-[var(--accent)]" />
                 <span className="hidden sm:inline">气口</span>
               </button>
 
@@ -1050,7 +1050,7 @@ export const ScriptEditorTab: React.FC<ScriptEditorTabProps> = ({
               >
                 <div className="min-h-0 overflow-y-auto p-2.5">
                   <div className="flex items-center justify-between text-[10px] font-bold text-stone-400 dark:text-stone-500 px-1 py-0.5 uppercase tracking-wider border-b border-stone-100 dark:border-stone-800 pb-1.5 mb-1.5">
-                    <div className="flex items-center gap-1 text-rose-600 dark:text-rose-400">
+                    <div className="flex items-center gap-1 text-[var(--accent)]">
                       <Mic className="w-3 h-3" />
                       <span>气口库 · 连续打标</span>
                     </div>
@@ -1081,13 +1081,13 @@ export const ScriptEditorTab: React.FC<ScriptEditorTabProps> = ({
                           className={`w-full min-h-9 text-left px-2.5 py-1.5 rounded-lg text-xs font-medium flex items-center justify-between group transition-colors cursor-pointer ${
                             isJustInserted
                               ? 'bg-emerald-50 dark:bg-emerald-950/40 text-emerald-800 dark:text-emerald-300'
-                              : 'text-stone-700 dark:text-stone-200 hover:bg-rose-50 dark:hover:bg-rose-950/50 hover:text-rose-600 dark:hover:text-rose-300'
+                              : 'text-stone-700 dark:text-stone-200 hover:bg-[var(--canvas)] hover:text-[var(--ink)]'
                           }`}
                         >
                           <div className="flex items-center gap-1.5 truncate">
-                            <span className="text-[11px] px-1.5 py-0.5 rounded bg-rose-100 dark:bg-rose-950 text-rose-700 dark:text-rose-300 font-mono font-semibold">🎙️ {cue}</span>
+                            <span className="text-[11px] px-1.5 py-0.5 rounded bg-[var(--canvas)] border border-[var(--line)] text-[var(--ink)] font-mono font-medium">🎙️ {cue}</span>
                           </div>
-                          <span className="text-[10px] text-stone-400 group-hover:text-rose-500 opacity-0 group-hover:opacity-100 font-mono">
+                          <span className="text-[10px] text-stone-400 group-hover:text-[var(--accent)] opacity-0 group-hover:opacity-100 font-mono">
                             {isJustInserted ? '已加' : '插入'}
                           </span>
                         </button>
@@ -1104,10 +1104,10 @@ export const ScriptEditorTab: React.FC<ScriptEditorTabProps> = ({
               onClick={handleShareReviewClick}
               disabled={isGeneratingShare}
               aria-label={isGeneratingShare ? '正在生成审稿链接' : '生成外部审稿链接'}
-              className="flex items-center gap-1.5 text-xs font-semibold bg-white dark:bg-stone-800 hover:bg-stone-50 dark:hover:bg-stone-700 text-stone-700 dark:text-stone-300 border border-stone-200 dark:border-stone-700 px-2.5 py-1 rounded-xl shadow-2xs transition-colors cursor-pointer disabled:opacity-60"
+              className="flex items-center gap-1.5 text-xs font-medium border border-transparent hover:border-[var(--line)] bg-transparent hover:bg-[var(--canvas)] text-[var(--ink-muted)] hover:text-[var(--ink)] px-2.5 py-1 rounded-[var(--radius-sm)] transition-all cursor-pointer disabled:opacity-50"
               title="一键生成免登录外部审稿快照并自动复制链接"
             >
-              <Share2 className={`w-3.5 h-3.5 text-rose-500 ${isGeneratingShare ? 'animate-spin' : ''}`} />
+              <Share2 className={`w-3.5 h-3.5 text-[var(--accent)] ${isGeneratingShare ? 'animate-spin' : ''}`} />
               <span className="hidden sm:inline">{isGeneratingShare ? '生成中…' : '分享'}</span>
             </button>
 
@@ -1115,7 +1115,7 @@ export const ScriptEditorTab: React.FC<ScriptEditorTabProps> = ({
             <button
               type="button"
               onClick={copyFullScript}
-              className="p-1.5 rounded-xl text-xs font-semibold bg-white dark:bg-stone-800 hover:bg-stone-50 dark:hover:bg-stone-700 text-stone-700 dark:text-stone-300 border border-stone-200 dark:border-stone-700 shadow-2xs transition-colors cursor-pointer"
+              className="p-1 rounded-[var(--radius-sm)] text-xs border border-transparent hover:border-[var(--line)] bg-transparent hover:bg-[var(--canvas)] text-[var(--ink-muted)] hover:text-[var(--ink)] transition-all cursor-pointer"
               title="复制文案全文"
             >
               {copied ? <Check className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
@@ -1125,18 +1125,18 @@ export const ScriptEditorTab: React.FC<ScriptEditorTabProps> = ({
             <button
               type="button"
               onClick={() => setIsZenMode(true)}
-              className="flex items-center gap-1.5 px-3 py-1 rounded-xl text-xs font-semibold bg-white dark:bg-stone-800 text-stone-700 dark:text-stone-300 border border-stone-200 dark:border-stone-700 hover:bg-stone-50 dark:hover:bg-stone-700/80 shadow-2xs transition-all cursor-pointer"
+              className="flex items-center gap-1.5 px-2.5 py-1 rounded-[var(--radius-sm)] text-xs font-medium border border-transparent hover:border-[var(--line)] bg-transparent hover:bg-[var(--canvas)] text-[var(--ink-muted)] hover:text-[var(--ink)] transition-all cursor-pointer"
               title="开启沉浸写作模式 (Cmd/Ctrl + Shift + F)"
             >
-              <Maximize2 className="w-3.5 h-3.5 text-rose-500" />
+              <Maximize2 className="w-3.5 h-3.5 text-[var(--accent)]" />
               <span className="hidden sm:inline">沉浸写作</span>
             </button>
 
-            {/* Teleprompter Fullscreen Button */}
+            {/* Teleprompter Button */}
             <button
               type="button"
               onClick={() => setIsTeleprompterOpen(true)}
-              className="flex items-center gap-1.5 px-3.5 py-1 rounded-xl text-xs font-bold bg-rose-600 hover:bg-rose-700 active:scale-95 text-white shadow-2xs transition-all cursor-pointer"
+              className="flex items-center gap-1.5 px-2.5 py-1 rounded-[var(--radius-sm)] text-xs font-medium border border-transparent hover:border-[var(--line)] bg-[var(--accent-soft)] hover:bg-[var(--accent)] text-[var(--accent-dark)] hover:text-white transition-all cursor-pointer"
               title="开启全屏沉浸录音提词器 (Cmd/Ctrl + Shift + P)"
             >
               <Mic className="w-3.5 h-3.5" />
@@ -1196,13 +1196,13 @@ export const ScriptEditorTab: React.FC<ScriptEditorTabProps> = ({
                 type="button"
                 onClick={toggleOutlinePanel}
                 aria-label="展开/收起文案大纲"
-                className="flex items-center gap-1.5 rounded-2xl border px-3.5 py-2 text-xs font-semibold backdrop-blur-xl shadow-lg transition-all cursor-pointer hover:scale-[1.03] active:scale-[0.98] bg-white/90 dark:bg-stone-900/90 border-stone-200/80 dark:border-stone-700/80 text-stone-700 dark:text-stone-200 hover:bg-white dark:hover:bg-stone-800"
+                className="flex items-center gap-1.5 rounded-[var(--radius-sm)] border border-transparent hover:border-[var(--line)] bg-[var(--surface)]/90 backdrop-blur-md px-2.5 py-1.5 text-xs font-medium text-[var(--ink-muted)] hover:text-[var(--ink)] shadow-2xs hover:shadow-xs transition-all cursor-pointer"
                 title="大纲章节快速定位"
               >
-                <Compass className="h-4 w-4 text-rose-500" />
+                <Compass className="h-3.5 w-3.5 text-[var(--accent)]" />
                 <span>大纲</span>
                 {outline.flatItems.length > 0 && (
-                  <span className="rounded-full px-1.5 text-[10px] font-bold font-mono bg-rose-100 dark:bg-rose-900/60 text-rose-800 dark:text-rose-200">
+                  <span className="text-[10px] font-mono text-[var(--ink-muted)] tabular-nums">
                     {outline.flatItems.length}
                   </span>
                 )}
@@ -1211,19 +1211,19 @@ export const ScriptEditorTab: React.FC<ScriptEditorTabProps> = ({
           )}
 
           {/* Top-Right: Floating Controls & Exit Button */}
-          <div className={`fixed right-5 sm:right-8 top-5 sm:top-7 z-40 flex items-center gap-2.5 transition-all duration-300 ${isReferenceOpen ? 'mr-80 sm:mr-96' : ''} ${isTypingZen ? 'opacity-25 hover:opacity-100' : 'opacity-100'}`}>
+          <div className={`fixed right-5 sm:right-8 top-5 sm:top-7 z-40 flex items-center gap-1.5 transition-all duration-300 ${isReferenceOpen ? 'mr-80 sm:mr-96' : ''} ${isTypingZen ? 'opacity-25 hover:opacity-100' : 'opacity-100'}`}>
             {/* Unified Focus Typewriter Mode Toggle (仅在沉浸写作中出现) */}
             <button
               type="button"
               onClick={() => setIsFocusTypewriterMode((prev) => !prev)}
-              className={`flex items-center gap-1.5 px-3.5 py-2 rounded-2xl text-xs font-semibold border backdrop-blur-xl shadow-lg transition-all cursor-pointer hover:scale-[1.03] active:scale-[0.98] ${
+              className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-[var(--radius-sm)] text-xs font-medium border backdrop-blur-md shadow-2xs transition-all cursor-pointer ${
                 isFocusTypewriterMode
-                  ? 'bg-rose-50/90 dark:bg-rose-950/80 text-rose-700 dark:text-rose-300 border-rose-300 dark:border-rose-800 shadow-2xs'
-                  : 'bg-white/90 dark:bg-stone-900/90 border-stone-200/80 dark:border-stone-700/80 text-stone-700 dark:text-stone-200'
+                  ? 'border-[var(--line)] bg-[var(--canvas)] text-[var(--ink)]'
+                  : 'border-transparent hover:border-[var(--line)] bg-[var(--surface)]/90 text-[var(--ink-muted)] hover:text-[var(--ink)]'
               }`}
               title={isFocusTypewriterMode ? '关闭专注打字（当前已开启居中与段落高亮）' : '开启专注打字（打字机居中 + 当前行实时高亮）'}
             >
-              <Target className="w-3.5 h-3.5 text-rose-500" />
+              <Target className="w-3.5 h-3.5 text-[var(--accent)]" />
               <span>{isFocusTypewriterMode ? '专注打字：开' : '专注打字：关'}</span>
             </button>
 
@@ -1232,13 +1232,13 @@ export const ScriptEditorTab: React.FC<ScriptEditorTabProps> = ({
                 type="button"
                 onClick={toggleReferencePanel}
                 aria-label="展开/收起事实参考"
-                className="flex items-center gap-1.5 px-3.5 py-2 rounded-2xl text-xs font-semibold border backdrop-blur-xl shadow-lg transition-all cursor-pointer hover:scale-[1.03] active:scale-[0.98] bg-white/90 dark:bg-stone-900/90 border-stone-200/80 dark:border-stone-700/80 text-stone-700 dark:text-stone-200 hover:bg-white dark:hover:bg-stone-800"
+                className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-[var(--radius-sm)] border border-transparent hover:border-[var(--line)] bg-[var(--surface)]/90 backdrop-blur-md text-xs font-medium text-[var(--ink-muted)] hover:text-[var(--ink)] shadow-2xs hover:shadow-xs transition-all cursor-pointer"
                 title="展开/收起边写边看事实参考抽屉"
               >
-                <BookOpen className="w-3.5 h-3.5 text-rose-500" />
+                <BookOpen className="w-3.5 h-3.5 text-[var(--accent)]" />
                 <span className="hidden sm:inline">事实参考</span>
                 {citationHealth && citationHealth.unverifiedCount > 0 && (
-                  <span className="rounded-full bg-amber-100 dark:bg-amber-950/60 px-1.5 text-[10px] text-amber-800 dark:text-amber-300 font-mono font-bold">
+                  <span className="text-[10px] text-amber-700 dark:text-amber-400 font-mono font-medium">
                     {citationHealth.unverifiedCount}
                   </span>
                 )}
@@ -1248,26 +1248,26 @@ export const ScriptEditorTab: React.FC<ScriptEditorTabProps> = ({
             <button
               type="button"
               onClick={() => setIsZenMode(false)}
-              className="flex items-center gap-1 px-3.5 py-2 rounded-2xl text-xs font-semibold border bg-stone-900/90 dark:bg-stone-800/90 hover:bg-stone-900 dark:hover:bg-stone-700 text-white border-stone-700/80 backdrop-blur-xl shadow-lg transition-all cursor-pointer hover:scale-[1.03] active:scale-[0.98]"
+              className="flex items-center gap-1 px-2.5 py-1.5 rounded-[var(--radius-sm)] border border-transparent hover:border-[var(--line)] bg-[var(--surface)]/90 hover:bg-[var(--canvas)] backdrop-blur-md text-xs font-medium text-[var(--ink)] shadow-2xs hover:shadow-xs transition-all cursor-pointer"
               title="退出沉浸写作模式 (Esc)"
             >
               <Minimize2 className="w-3.5 h-3.5" />
               <span className="hidden sm:inline">退出沉浸</span>
-              <kbd className="text-[10px] font-mono bg-white/20 px-1 py-0.2 rounded text-white/90 ml-0.5">Esc</kbd>
+              <kbd className="text-[10px] font-mono bg-black/5 dark:bg-white/10 px-1 py-0.2 rounded text-[var(--ink-muted)] ml-0.5">Esc</kbd>
             </button>
           </div>
 
-          {/* Bottom-Right: Floating Stats Capsule */}
-          <div className={`fixed right-5 sm:right-8 bottom-5 sm:bottom-7 z-40 flex items-center gap-2.5 bg-white/95 dark:bg-stone-900/95 backdrop-blur-xl border border-stone-200/90 dark:border-stone-700/80 text-stone-800 dark:text-stone-100 px-4 py-2 rounded-full text-xs font-mono shadow-xl transition-all duration-300 select-none ${isReferenceOpen ? 'mr-80 sm:mr-96' : ''} ${isTypingZen ? 'opacity-25 hover:opacity-100' : 'opacity-100'}`}>
-            <span className="font-bold text-stone-900 dark:text-stone-100 font-mono">
-              {charCount.toLocaleString()} <span className="font-normal text-stone-400 dark:text-stone-500 text-[11px]">字</span>
+          {/* Bottom-Right: Floating Stats */}
+          <div className={`fixed right-5 sm:right-8 bottom-5 sm:bottom-7 z-40 flex items-center gap-2 bg-[var(--surface)]/90 backdrop-blur-md border border-[var(--line)] text-[var(--ink)] px-3 py-1 rounded-[var(--radius-sm)] text-xs font-mono shadow-2xs transition-all duration-300 select-none ${isReferenceOpen ? 'mr-80 sm:mr-96' : ''} ${isTypingZen ? 'opacity-25 hover:opacity-100' : 'opacity-100'}`}>
+            <span className="font-semibold text-[var(--ink)] font-mono">
+              {charCount.toLocaleString()} <span className="font-normal text-[var(--ink-muted)] text-[11px]">字</span>
             </span>
-            <span className="text-stone-300 dark:text-stone-700">·</span>
+            <span className="opacity-40">·</span>
             <span
-              className="flex items-center gap-1 text-rose-600 dark:text-rose-400 font-bold font-mono text-[11px]"
+              className="flex items-center gap-1 text-[var(--ink-muted)] font-mono text-[11px]"
               title={`预估时长（按 ${effectiveSpeed} 字/分钟计算）`}
             >
-              <Clock className="w-3 h-3 text-rose-500 shrink-0" />
+              <Clock className="w-3 h-3 text-[var(--ink-muted)] shrink-0" />
               <span>{estMinutes}分{estSeconds}秒</span>
             </span>
             <span className="text-stone-300 dark:text-stone-700">·</span>
