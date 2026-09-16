@@ -271,6 +271,8 @@ test('日历未排期池拖拽到日期后不保留释放动画', async ({ page 
   await page.setViewportSize({ width: 1280, height: 900 });
   await page.goto('/calendar?view=month&date=2026-09-03');
 
+  await expect(page.locator('[aria-labelledby="unscheduled-topic-pool-title"]')).toHaveCount(0);
+  await page.getByRole('button', { name: /待排期池/ }).click();
   const card = page.getByTestId('unscheduled-topic-card');
   const handle = card.getByRole('button', { name: /拖拽「日历拖拽回归选题」/ });
   const targetDate = page.locator('[data-testid="calendar-month-cell"][data-date="2026-09-10"]');

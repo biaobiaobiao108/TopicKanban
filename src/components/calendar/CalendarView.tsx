@@ -91,9 +91,7 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
   const [currentDate, setCurrentDate] = useState<Date>(() => parseCalendarDate(searchParams.get('date')) || new Date());
   const [viewMode, setViewMode] = useState<CalendarViewMode>(() => parseCalendarView(searchParams.get('view')));
   const [filters, setFilters] = useState<CalendarLayerFilters>(DEFAULT_CALENDAR_LAYERS);
-  const [isPoolOpen, setIsPoolOpen] = useState<boolean>(() => (
-    typeof window === 'undefined' ? true : window.matchMedia('(min-width: 640px)').matches
-  ));
+  const [isPoolOpen, setIsPoolOpen] = useState(false);
   const [draggedTopic, setDraggedTopic] = useState<Topic | null>(null);
 
   // Modal State
