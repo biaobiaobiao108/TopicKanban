@@ -64,50 +64,57 @@ export const Sidebar: React.FC<SidebarProps> = ({
         </div>
 
         {/* Quick actions in sidebar */}
-        <div className="mt-3.5 space-y-2">
+        <div data-testid="sidebar-quick-actions" className="mt-4 border-t border-[var(--line)]/70 pt-3">
           <button
+            type="button"
             onClick={onOpenQuickCreate}
-            className="w-full flex items-center justify-center gap-2 bg-[var(--accent)] hover:bg-[var(--accent-dark)] text-white px-3.5 py-2.5 rounded-[var(--radius-sm)] text-[13px] font-semibold transition-all shadow-2xs cursor-pointer active:scale-[0.98]"
+            aria-label="新建选题"
+            title="新建选题（快捷键：N）"
+            className="group flex min-h-10 w-full items-center gap-2 rounded-[var(--radius-sm)] bg-[var(--accent)] px-3.5 py-2.5 text-[13px] font-semibold text-white shadow-2xs transition-all hover:bg-[var(--accent-dark)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]/40 active:scale-[0.98] cursor-pointer"
           >
-            <Plus className="w-4 h-4 stroke-[2.5]" />
+            <Plus className="h-4 w-4 shrink-0 stroke-[2.5]" aria-hidden="true" />
             <span>新建选题</span>
-            <kbd className="ml-auto text-[11px] bg-black/20 text-white px-1.5 py-0.5 rounded-[var(--radius-sm)] font-mono font-medium">N</kbd>
+            <kbd className="ml-auto rounded-[var(--radius-sm)] bg-black/20 px-1.5 py-0.5 text-[11px] font-mono font-medium text-white">N</kbd>
           </button>
 
-          <button
-            onClick={onOpenCommandPalette}
-            className="w-full flex items-center gap-2 bg-[var(--surface)] hover:bg-[var(--canvas)] text-stone-700 dark:text-stone-300 hover:text-stone-950 dark:hover:text-white px-3.5 py-2 rounded-[var(--radius-sm)] text-[13px] font-medium border border-[var(--line)] transition-colors cursor-pointer"
-          >
-            <Search className="w-4 h-4 text-stone-500 dark:text-stone-400" />
-            <span>全局搜索与指令</span>
-            <kbd className="ml-auto text-[11px] bg-[var(--canvas)] text-stone-600 dark:text-stone-400 border border-[var(--line)] px-1.5 py-0.5 rounded-[var(--radius-sm)] font-mono">Ctrl+/</kbd>
-          </button>
-
-          {onOpenQuickDrops && (
+          <div className="mt-1.5 grid grid-cols-2 gap-1.5">
             <button
               type="button"
-              onClick={onOpenQuickDrops}
-              aria-label={quickDropCount > 0 ? `手机快投箱中有 ${quickDropCount} 条未处理灵感` : '打开手机快投灵感箱'}
-              title={quickDropCount > 0 ? `手机快投箱中有 ${quickDropCount} 条未处理灵感` : '打开手机快投灵感箱'}
-              className={`w-full flex items-center justify-between gap-2 px-3.5 py-2 rounded-[var(--radius-sm)] text-[13px] font-medium border transition-colors cursor-pointer ${
-                quickDropCount > 0
-                  ? 'bg-rose-50 dark:bg-rose-950/40 border-rose-200 dark:border-rose-900/60 text-rose-800 dark:text-rose-200 shadow-2xs'
-                  : 'bg-[var(--canvas)] hover:bg-[var(--surface)] text-stone-700 dark:text-stone-300 border-[var(--line)]'
-              }`}
+              onClick={onOpenCommandPalette}
+              aria-label="全局搜索与指令"
+              title="全局搜索与指令（快捷键：Ctrl+/ 或 Cmd+/）"
+              className="group flex min-h-9 min-w-0 items-center gap-1.5 rounded-[var(--radius-sm)] border border-transparent bg-[var(--surface)]/60 px-2.5 py-2 text-[12px] font-medium text-stone-700 transition-colors hover:bg-[var(--surface)] hover:text-stone-950 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]/40 dark:text-stone-300 dark:hover:text-white cursor-pointer"
             >
-              <span className="flex min-w-0 items-center gap-2">
-                <Smartphone className={`h-4 w-4 shrink-0 ${quickDropCount > 0 ? 'text-rose-600 dark:text-rose-400' : 'text-stone-500 dark:text-stone-400'}`} aria-hidden="true" />
-                <span className="truncate">手机快投灵感箱</span>
-              </span>
-              {quickDropCount > 0 ? (
-                <span className="min-w-5 h-5 shrink-0 px-1 rounded-full bg-rose-600 text-white text-[10px] font-mono font-bold flex items-center justify-center">
-                  {quickDropCount}
-                </span>
-              ) : (
-                <span className="shrink-0 text-[10px] text-stone-400 dark:text-stone-500 font-normal">7天暂存</span>
-              )}
+              <Search className="h-3.5 w-3.5 shrink-0 text-stone-500 transition-colors group-hover:text-stone-800 dark:text-stone-400 dark:group-hover:text-stone-200" aria-hidden="true" />
+              <span className="truncate">搜索</span>
             </button>
-          )}
+
+            {onOpenQuickDrops && (
+              <button
+                type="button"
+                onClick={onOpenQuickDrops}
+                aria-label={quickDropCount > 0 ? `手机快投箱中有 ${quickDropCount} 条未处理灵感` : '打开手机快投灵感箱'}
+                title={quickDropCount > 0 ? `手机快投箱中有 ${quickDropCount} 条未处理灵感` : '打开手机快投灵感箱（7天暂存）'}
+                className={`group flex min-h-9 min-w-0 items-center justify-between gap-1.5 rounded-[var(--radius-sm)] border px-2.5 py-2 text-[12px] font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]/40 cursor-pointer ${
+                  quickDropCount > 0
+                    ? 'border-rose-200 bg-rose-50 text-rose-800 shadow-2xs dark:border-rose-900/60 dark:bg-rose-950/40 dark:text-rose-200'
+                    : 'border-transparent bg-[var(--surface)]/60 text-stone-700 hover:bg-[var(--surface)] hover:text-stone-950 dark:text-stone-300 dark:hover:text-white'
+                }`}
+              >
+                <span className="flex min-w-0 items-center gap-1.5">
+                  <Smartphone className={`h-3.5 w-3.5 shrink-0 ${quickDropCount > 0 ? 'text-rose-600 dark:text-rose-400' : 'text-stone-500 dark:text-stone-400'}`} aria-hidden="true" />
+                  <span className="truncate">快投箱</span>
+                </span>
+                {quickDropCount > 0 ? (
+                  <span className="flex h-5 min-w-5 shrink-0 items-center justify-center rounded-full bg-rose-600 px-1 text-[10px] font-mono font-bold text-white">
+                    {quickDropCount}
+                  </span>
+                ) : (
+                  <span className="shrink-0 text-[10px] font-normal text-stone-400 dark:text-stone-500">7天</span>
+                )}
+              </button>
+            )}
+          </div>
         </div>
       </div>
 

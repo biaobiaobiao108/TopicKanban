@@ -63,7 +63,30 @@ test('移动底栏在手机宽度内保留核心入口与菜单，工作台不�
   await page.goto('/today');
   await expect(page.getByTestId('mobile-bottom-nav')).toBeHidden();
   await expect(page.locator('.navbar-container')).toHaveCount(0);
-  await expect(page.locator('aside').getByRole('button', { name: /打开手机快投灵感箱|手机快投箱中有/ })).toBeVisible();
+  const sidebarActions = page.getByTestId('sidebar-quick-actions');
+  await expect(sidebarActions).toBeVisible();
+  const createButton = sidebarActions.getByRole('button', { name: '新建选题', exact: true });
+  const searchButton = sidebarActions.getByRole('button', { name: '全局搜索与指令', exact: true });
+  const quickDropButton = sidebarActions.getByRole('button', { name: /打开手机快投灵感箱|手机快投箱中有/ });
+  await expect(createButton).toBeVisible();
+  await expect(searchButton).toBeVisible();
+  await expect(quickDropButton).toBeVisible();
+  const actionLayout = await sidebarActions.evaluate((element) => {
+    const buttonRects = [...element.querySelectorAll<HTMLButtonElement>('button')].map((button) => {
+      const rect = button.getBoundingClientRect();
+      return { top: rect.top, left: rect.left, right: rect.right, width: rect.width, height: rect.height };
+    });
+    return { buttonRects };
+  });
+  expect(actionLayout.buttonRects).toHaveLength(3);
+  expect(actionLayout.buttonRects[0].height).toBeGreaterThan(actionLayout.buttonRects[1].height);
+  expect(actionLayout.buttonRects[0].top).toBeLessThan(actionLayout.buttonRects[1].top);
+  expect(Math.abs(actionLayout.buttonRects[1].top - actionLayout.buttonRects[2].top)).toBeLessThanOrEqual(1);
+  const sidebarRect = await page.locator('aside.sidebar-container').evaluate((element) => {
+    const rect = element.getBoundingClientRect();
+    return { left: rect.left, right: rect.right };
+  });
+  expect(actionLayout.buttonRects.every((button) => button.width > 0 && button.left >= sidebarRect.left && button.right <= sidebarRect.right + 1)).toBe(true);
 });
 
 test('移动端抽屉保留次级页面入口', async ({ page }) => {
@@ -73,6 +96,23 @@ test('移动端抽屉保留次级页面入口', async ({ page }) => {
 
   const drawer = page.getByRole('dialog', { name: '移动端导航菜单' });
   await expect(drawer).toBeVisible();
+  const drawerActions = drawer.getByTestId('mobile-drawer-quick-actions');
+  await expect(drawerActions.getByRole('button', { name: '新建选题', exact: true })).toBeVisible();
+  await expect(drawerActions.getByRole('button', { name: '全局搜索与指令', exact: true })).toBeVisible();
+  await expect(drawerActions.getByRole('button', { name: /打开手机快投灵感箱|手机快投箱中有/ })).toBeVisible();
+  const drawerActionLayout = await drawerActions.evaluate((element) => {
+    const buttonRects = [...element.querySelectorAll<HTMLButtonElement>('button')]
+      .slice(0, 3)
+      .map((button) => {
+        const rect = button.getBoundingClientRect();
+        return { top: rect.top, left: rect.left, right: rect.right, width: rect.width };
+      });
+    return { buttonRects };
+  });
+  expect(drawerActionLayout.buttonRects).toHaveLength(3);
+  expect(drawerActionLayout.buttonRects[0].top).toBeLessThan(drawerActionLayout.buttonRects[1].top);
+  expect(Math.abs(drawerActionLayout.buttonRects[1].top - drawerActionLayout.buttonRects[2].top)).toBeLessThanOrEqual(1);
+  expect(drawerActionLayout.buttonRects.every((button) => button.left >= 0 && button.right <= 390)).toBe(true);
   for (const label of ['选题日历', '标签与赛道', '人物档案库', '已发布视频']) {
     await expect(drawer.getByRole('button', { name: label, exact: true })).toBeVisible();
   }

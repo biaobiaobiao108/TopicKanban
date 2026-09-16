@@ -202,56 +202,67 @@ export const MobileDrawer: React.FC<MobileDrawerProps> = ({
           </div>
 
           {/* Quick Buttons */}
-          <div className="space-y-2">
+          <div data-testid="mobile-drawer-quick-actions" className="space-y-2.5">
             <button
+              type="button"
               onClick={() => {
                 onClose();
                 onOpenQuickCreate();
               }}
-              className="w-full flex items-center justify-center gap-2 bg-rose-600 hover:bg-rose-700 text-white py-2.5 rounded-xl text-xs font-semibold shadow-soft-pill cursor-pointer active:scale-[0.98] transition-all"
+              aria-label="新建选题"
+              title="新建选题（快捷键：N）"
+              className="flex min-h-11 w-full items-center justify-center gap-2 rounded-xl bg-[var(--accent)] py-2.5 text-xs font-semibold text-white shadow-soft-pill transition-all hover:bg-[var(--accent-dark)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]/40 active:scale-[0.98] cursor-pointer"
             >
-              <Plus className="w-4 h-4 stroke-[2.5]" />
+              <Plus className="h-4 w-4 stroke-[2.5]" aria-hidden="true" />
               <span>新建选题</span>
             </button>
 
-            {onOpenQuickDrops && (
+            <div className="grid grid-cols-2 gap-2">
               <button
+                type="button"
                 onClick={() => {
                   onClose();
-                  onOpenQuickDrops();
+                  onOpenCommandPalette();
                 }}
-                className={`w-full flex items-center justify-between py-2 px-3 rounded-xl text-xs font-semibold border transition-colors cursor-pointer ${
-                  quickDropCount > 0
-                    ? 'bg-rose-50 dark:bg-rose-950/40 border-rose-200 dark:border-rose-900/60 text-rose-800 dark:text-rose-200 shadow-2xs'
-                    : 'bg-stone-100/60 dark:bg-stone-800/60 text-stone-700 dark:text-stone-300 border-stone-200/40 dark:border-stone-700/40 hover:bg-stone-100 dark:hover:bg-stone-750'
-                }`}
+                aria-label="全局搜索与指令"
+                title="全局搜索与指令（快捷键：Ctrl+/ 或 Cmd+/）"
+                className={`group flex min-h-11 min-w-0 items-center gap-1.5 rounded-xl border border-transparent bg-[var(--surface)]/60 px-3 py-2 text-xs font-medium text-stone-700 transition-colors hover:bg-[var(--surface)] hover:text-stone-950 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]/40 dark:text-stone-300 dark:hover:text-white cursor-pointer ${onOpenQuickDrops ? '' : 'col-span-2'}`}
               >
-                <div className="flex items-center gap-2">
-                  <Smartphone className={`w-3.5 h-3.5 ${quickDropCount > 0 ? 'text-rose-600 dark:text-rose-400' : 'text-stone-500 dark:text-stone-400'}`} />
-                  <span>手机快投灵感箱</span>
-                </div>
-                {quickDropCount > 0 ? (
-                  <span className="min-w-4 h-4 px-1 rounded-full bg-rose-600 text-white text-[10px] font-mono font-bold flex items-center justify-center">
-                    {quickDropCount}
-                  </span>
-                ) : (
-                  <span className="text-[10px] text-stone-400 dark:text-stone-500 font-normal">7天暂存</span>
-                )}
+                <Search className="h-3.5 w-3.5 shrink-0 text-stone-500 transition-colors group-hover:text-stone-800 dark:text-stone-400 dark:group-hover:text-stone-200" aria-hidden="true" />
+                <span className="truncate">搜索</span>
               </button>
-            )}
+
+              {onOpenQuickDrops && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    onClose();
+                    onOpenQuickDrops();
+                  }}
+                  aria-label={quickDropCount > 0 ? `手机快投箱中有 ${quickDropCount} 条未处理灵感` : '打开手机快投灵感箱'}
+                  title={quickDropCount > 0 ? `手机快投箱中有 ${quickDropCount} 条未处理灵感` : '打开手机快投灵感箱（7天暂存）'}
+                  className={`group flex min-h-11 min-w-0 items-center justify-between gap-1.5 rounded-xl border px-3 py-2 text-xs font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]/40 cursor-pointer ${
+                    quickDropCount > 0
+                      ? 'border-rose-200 bg-rose-50 text-rose-800 shadow-2xs dark:border-rose-900/60 dark:bg-rose-950/40 dark:text-rose-200'
+                      : 'border-transparent bg-[var(--surface)]/60 text-stone-700 hover:bg-[var(--surface)] dark:text-stone-300 dark:hover:text-white'
+                  }`}
+                >
+                  <span className="flex min-w-0 items-center gap-1.5">
+                    <Smartphone className={`h-3.5 w-3.5 shrink-0 ${quickDropCount > 0 ? 'text-rose-600 dark:text-rose-400' : 'text-stone-500 dark:text-stone-400'}`} aria-hidden="true" />
+                    <span className="truncate">快投箱</span>
+                  </span>
+                  {quickDropCount > 0 ? (
+                    <span className="flex h-5 min-w-5 shrink-0 items-center justify-center rounded-full bg-rose-600 px-1 text-[10px] font-mono font-bold text-white">
+                      {quickDropCount}
+                    </span>
+                  ) : (
+                    <span className="shrink-0 text-[10px] font-normal text-stone-400 dark:text-stone-500">7天</span>
+                  )}
+                </button>
+              )}
+            </div>
 
             <PwaInstallButton variant="menu" />
-
-            <button
-              onClick={() => {
-                onClose();
-                onOpenCommandPalette();
-              }}
-              className="w-full flex items-center gap-2 bg-stone-100/60 dark:bg-stone-800/60 text-stone-700 dark:text-stone-300 py-2 px-3 rounded-xl text-xs font-medium border border-stone-200/40 dark:border-stone-700/40 hover:bg-stone-100 dark:hover:bg-stone-750 transition-colors cursor-pointer"
-            >
-              <Search className="w-3.5 h-3.5 text-stone-400 dark:text-stone-500" />
-              <span>全局搜索与指令</span>
-            </button>
           </div>
 
           {/* Navigation Links */}
