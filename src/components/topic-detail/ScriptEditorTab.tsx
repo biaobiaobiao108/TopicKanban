@@ -887,8 +887,8 @@ export const ScriptEditorTab: React.FC<ScriptEditorTabProps> = ({
     <div
       className={
         isZenMode
-          ? 'pwa-fullscreen-surface fixed inset-0 z-50 bg-[#fafaf9] dark:bg-[#0c0a09] flex flex-col transition-all duration-300 ease-in-out'
-          : 'w-full h-full flex flex-col'
+          ? 'pwa-fullscreen-surface fixed inset-0 z-50 flex flex-col bg-[var(--canvas)] transition-all duration-300 ease-in-out'
+          : 'flex h-full w-full flex-col'
       }
     >
       <Modal
@@ -919,7 +919,7 @@ export const ScriptEditorTab: React.FC<ScriptEditorTabProps> = ({
 
       {/* Top Floating / Fixed Toolbar (左右空间对称排布) */}
       {!isZenMode && (
-        <div className="script-editor-toolbar bg-white/95 dark:bg-stone-900/95 backdrop-blur-md border-b border-stone-200/80 dark:border-stone-800 px-3 sm:px-6 py-2 flex items-center justify-between flex-wrap gap-2 shrink-0 z-30 shadow-2xs transition-colors">
+        <div className="script-editor-toolbar z-30 flex shrink-0 flex-wrap items-center justify-between gap-2 border-b border-[var(--line)] bg-[var(--surface)]/95 px-3 py-2 shadow-2xs backdrop-blur-md transition-colors sm:px-6">
           {/* Left: Outline trigger & Auto save status */}
           <div className="flex items-center gap-2.5">
             {/* Outline Toggle (左侧触发) */}
@@ -1339,7 +1339,7 @@ export const ScriptEditorTab: React.FC<ScriptEditorTabProps> = ({
                 value={draftTitle}
                 onChange={(event) => handleDraftTitleChange(event.target.value)}
                 maxLength={200}
-                className="min-h-12 w-full border-0 bg-transparent px-0 font-serif text-2xl font-medium tracking-tight text-[var(--h1-color)] outline-none placeholder:text-[var(--ink-muted)]/40 focus:ring-0 sm:text-3xl"
+                className="script-editor-title min-h-12 w-full border-0 bg-transparent px-0 text-2xl font-medium tracking-tight text-[var(--h1-color)] outline-none placeholder:text-[var(--ink-muted)]/40 focus:ring-0 sm:text-3xl"
                 placeholder="输入这期视频的文案标题"
               />
             </div>

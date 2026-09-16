@@ -7,6 +7,7 @@ import {
   Edit2,
   ChevronDown,
   FileDown,
+  FileText,
   Zap,
   AlertTriangle,
 } from 'lucide-react';
@@ -74,13 +75,19 @@ export const TopicDetailHeader: React.FC<TopicDetailHeaderProps> = ({
   };
 
   return (
-    <div className="bg-[var(--surface)] border-b border-[var(--line)] px-4 sm:px-8 py-2.5 shrink-0 flex flex-col gap-2 xl:flex-row xl:items-center xl:justify-between transition-colors">
+    <div data-testid="topic-detail-header" data-page-header className="shrink-0 border-b border-[var(--line)] bg-[var(--canvas)] transition-colors">
+      <div className="mx-auto flex w-full max-w-7xl flex-col gap-4 px-4 py-5 sm:px-8 sm:py-6">
+        <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
       {/* Left group: Title & Inline Editor + Status & Priority + Current Action Capsule */}
-      <div className="flex w-full flex-wrap items-center gap-2.5 sm:gap-3.5 min-w-0 xl:w-auto xl:flex-1 xl:flex-nowrap">
+      <div className="flex min-w-0 w-full flex-1 flex-wrap items-center gap-3 sm:gap-4 lg:flex-nowrap">
+        <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-rose-500/10 text-rose-600 ring-1 ring-rose-500/15 dark:text-rose-400">
+          <FileText className="h-5 w-5" aria-hidden="true" />
+        </span>
+        <div className="flex min-w-0 flex-1 flex-wrap items-center gap-2.5 sm:gap-3 lg:flex-nowrap">
         {/* Title area & Inline Editor */}
-        <div className="min-w-[5.5rem] max-w-[150px] sm:max-w-xs lg:max-w-md flex flex-1 items-center gap-1.5 xl:shrink">
+        <div className="flex w-full min-w-0 max-w-full items-center gap-1.5 lg:flex-1 lg:shrink">
           {isEditingTitle ? (
-            <div className="flex items-center gap-2 w-full">
+            <div className="flex w-full items-center gap-2">
               <input
                 type="text"
                 id="topic-title"
@@ -97,7 +104,7 @@ export const TopicDetailHeader: React.FC<TopicDetailHeaderProps> = ({
                     setIsEditingTitle(false);
                   }
                 }}
-                className="text-sm sm:text-base font-serif text-[var(--h1-color)] border-b border-[var(--h1-color)] bg-transparent outline-none pb-0.5 w-full"
+                className="w-full border-b border-[var(--h1-color)] bg-transparent pb-1 font-serif text-xl text-[var(--h1-color)] outline-none sm:text-2xl"
               />
               <button
                 onClick={handleSaveTitle}
@@ -108,13 +115,13 @@ export const TopicDetailHeader: React.FC<TopicDetailHeaderProps> = ({
             </div>
           ) : (
             <div className="flex items-center gap-1.5 min-w-0 max-w-full">
-              <h2
+              <h1
                 onClick={() => setIsEditingTitle(true)}
                 title="点击快速编辑标题"
-                className="text-sm sm:text-base font-serif text-[var(--h1-color)] truncate cursor-pointer hover:opacity-85 transition-opacity font-normal"
+                className="min-w-0 truncate font-serif text-xl font-bold leading-tight tracking-tight text-[var(--h1-color)] transition-opacity hover:opacity-85 sm:text-2xl"
               >
                 {topic.title}
-              </h2>
+              </h1>
               <button
                 onClick={() => setIsEditingTitle(true)}
                 className="text-[var(--ink-muted)] hover:text-[var(--ink)] p-1 rounded-[var(--radius-sm)] shrink-0 cursor-pointer transition-colors"
@@ -127,6 +134,7 @@ export const TopicDetailHeader: React.FC<TopicDetailHeaderProps> = ({
           )}
         </div>
 
+        <div className="mt-0 flex min-w-0 flex-wrap items-center gap-2.5 sm:gap-3 lg:flex-nowrap">
         {/* Status Dropdown Trigger (Borderless with hover border) */}
         <div className="relative z-10 shrink-0">
           <button
@@ -297,7 +305,7 @@ export const TopicDetailHeader: React.FC<TopicDetailHeaderProps> = ({
         </div>
 
         {/* Current Action: Literary Notebook Minimal Action */}
-        <div className="shrink-0 min-w-0 max-w-[240px] sm:max-w-sm lg:max-w-lg">
+        <div className="min-w-0 max-w-full shrink-0 sm:max-w-sm lg:max-w-lg">
           {topic.current_todo ? (
             <button
               type="button"
@@ -330,10 +338,12 @@ export const TopicDetailHeader: React.FC<TopicDetailHeaderProps> = ({
             </button>
           )}
         </div>
+        </div>
+        </div>
       </div>
 
       {/* Right group: Actions Toolbar */}
-      <div className="flex w-full items-center justify-end gap-1 xl:w-auto xl:shrink-0">
+      <div className="flex w-full flex-wrap items-center justify-start gap-1.5 border-t border-[var(--line)] pt-3 lg:w-auto lg:shrink-0 lg:flex-nowrap lg:justify-end lg:border-t-0 lg:pt-0">
         {/* Archive / Restore toggle */}
         {topic.status === 'published' || topic.status === 'icebox' ? (
           <button
@@ -392,6 +402,8 @@ export const TopicDetailHeader: React.FC<TopicDetailHeaderProps> = ({
         >
           <Trash2 className="w-3.5 h-3.5" />
         </button>
+      </div>
+        </div>
       </div>
 
       <ConfirmDialog

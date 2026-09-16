@@ -42,10 +42,10 @@ function DraggableTopicCard({
       style={style}
       data-testid="unscheduled-topic-card"
       data-topic-id={topic.id}
-      className={`p-3 rounded-xl border border-stone-200/70 dark:border-stone-800 bg-white dark:bg-stone-900 shadow-2xs hover:shadow-card hover:border-stone-300 dark:hover:border-stone-700 flex flex-col gap-2 group ${
+      className={`group flex flex-col gap-2 rounded-xl border border-[var(--line)] bg-[var(--surface)] p-3 shadow-2xs transition-all hover:border-[var(--accent)]/40 hover:shadow-card ${
         isDragging
           ? 'transition-none will-change-transform ring-2 ring-rose-500 shadow-xl'
-          : 'transition-all duration-200'
+          : 'duration-200'
       }`}
     >
       <div className="flex items-center justify-between gap-1.5">
@@ -67,7 +67,7 @@ function DraggableTopicCard({
             }
           }}
           title="按住拖拽至日历定档"
-          className="rounded p-1 text-stone-400 transition-colors hover:bg-stone-100 hover:text-stone-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-rose-500 dark:hover:bg-stone-800 dark:hover:text-stone-200"
+          className="rounded-lg p-1.5 text-[var(--ink-muted)] transition-colors hover:bg-[var(--canvas)] hover:text-[var(--ink)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-rose-500"
         >
           <GripVertical className="w-3.5 h-3.5" aria-hidden="true" />
         </button>
@@ -76,18 +76,18 @@ function DraggableTopicCard({
       <button
         type="button"
         onClick={() => onOpenDetail(topic.id)}
-        className="w-full text-left text-xs font-bold leading-snug text-stone-900 transition-colors hover:text-rose-600 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-rose-500 dark:text-stone-100 dark:hover:text-rose-400"
+        className="w-full text-left text-xs font-bold leading-snug text-[var(--ink)] transition-colors hover:text-rose-600 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-rose-500"
       >
         {topic.title}
       </button>
 
       {topic.current_todo && (
-        <div className="text-[11px] text-stone-500 dark:text-stone-400 truncate bg-stone-500/[0.03] dark:bg-stone-800/40 px-2 py-1 rounded-md">
+        <div className="truncate rounded-lg bg-[var(--canvas)] px-2 py-1 text-[11px] text-[var(--ink-muted)]">
           当前行动: {topic.current_todo.title}
         </div>
       )}
 
-      <div className="flex items-center justify-between pt-1 border-t border-stone-100 dark:border-stone-800/80 text-[10px] text-stone-600 dark:text-stone-400">
+      <div className="flex items-center justify-between border-t border-[var(--line)] pt-1 text-[10px] text-[var(--ink-muted)]">
         <span>
           {(topic.draft_word_count || 0) > 0 ? <><span className="font-mono tabular-nums">{topic.draft_word_count}</span>字</> : '未动笔'}
         </span>
@@ -95,7 +95,7 @@ function DraggableTopicCard({
         <button
           type="button"
           onClick={() => onScheduleTopic(topic)}
-          className="inline-flex items-center gap-1 text-[11px] font-semibold text-rose-600 dark:text-rose-400 hover:text-rose-700 dark:hover:text-rose-300 hover:bg-rose-50 dark:hover:bg-rose-950/40 px-2 py-0.5 rounded-md transition-colors cursor-pointer"
+          className="inline-flex cursor-pointer items-center gap-1 rounded-lg px-2 py-1 text-[11px] font-semibold text-rose-600 transition-colors hover:bg-rose-500/10 hover:text-rose-700"
         >
           <CalendarPlus className="w-3 h-3" />
           <span>定档</span>
@@ -194,13 +194,13 @@ export const UnscheduledTopicPool: React.FC<UnscheduledTopicPoolProps> = ({
       role={isMobileDrawer ? 'dialog' : 'complementary'}
       aria-modal={isMobileDrawer ? true : undefined}
       aria-labelledby="unscheduled-topic-pool-title"
-      className="absolute inset-y-0 right-0 z-20 flex h-full w-full max-w-80 flex-col border-l border-stone-200/70 bg-white/95 shadow-subtle backdrop-blur-sm transition-colors select-none dark:border-stone-800 dark:bg-stone-900/95 sm:relative sm:inset-auto sm:w-80 sm:shrink-0"
+      className="absolute inset-y-0 right-0 z-20 flex h-full w-full max-w-80 select-none flex-col rounded-2xl border border-[var(--line)] bg-[var(--surface)] shadow-card backdrop-blur-sm transition-colors sm:relative sm:inset-auto sm:w-80 sm:shrink-0"
     >
       {/* Header */}
-      <div className="p-4 border-b border-stone-200/70 dark:border-stone-800 flex items-center justify-between">
+      <div className="flex items-center justify-between border-b border-[var(--line)] p-4">
         <div className="flex items-center gap-2">
-          <h2 id="unscheduled-topic-pool-title" className="text-sm font-bold text-stone-900 dark:text-stone-100">待排期选题池</h2>
-          <span className="text-xs font-mono font-bold bg-rose-500/10 text-rose-700 dark:text-rose-300 px-2 py-0.5 rounded-full">
+          <h2 id="unscheduled-topic-pool-title" className="text-sm font-bold text-[var(--ink)]">待排期选题池</h2>
+          <span className="rounded-full bg-rose-500/10 px-2 py-0.5 font-mono text-xs font-bold text-rose-700 dark:text-rose-300">
             {unscheduledTopics.length}
           </span>
         </div>
@@ -210,16 +210,16 @@ export const UnscheduledTopicPool: React.FC<UnscheduledTopicPoolProps> = ({
           type="button"
           onClick={onClose}
           aria-label="关闭待排期选题池"
-          className="p-1 rounded-lg text-stone-400 hover:text-stone-700 dark:hover:text-stone-200 hover:bg-stone-100 dark:hover:bg-stone-800 transition-colors cursor-pointer"
+          className="cursor-pointer rounded-lg p-1.5 text-[var(--ink-muted)] transition-colors hover:bg-[var(--canvas)] hover:text-[var(--ink)]"
         >
           <X className="w-4 h-4" />
         </button>
       </div>
 
       {/* Filter & Search Bar */}
-      <div className="p-3 border-b border-stone-200/70 dark:border-stone-800 space-y-2">
+      <div className="space-y-2 border-b border-[var(--line)] p-3">
         <div className="relative">
-          <Search className="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-stone-400" />
+          <Search className="absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-[var(--ink-muted)]" aria-hidden="true" />
           <input
             type="text"
             aria-label="搜索待排期选题"
@@ -227,7 +227,7 @@ export const UnscheduledTopicPool: React.FC<UnscheduledTopicPoolProps> = ({
             placeholder="搜索待排期选题..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="w-full pl-8 pr-3 py-1.5 rounded-xl text-xs bg-stone-500/[0.04] dark:bg-stone-800 border border-stone-200/80 dark:border-stone-700 focus:outline-none focus:border-rose-500 text-stone-900 dark:text-stone-100"
+            className="min-h-10 w-full rounded-xl border border-[var(--line)] bg-[var(--canvas)] px-3 pl-8 text-xs text-[var(--ink)] focus:border-rose-500 focus:outline-none"
           />
         </div>
 
@@ -247,8 +247,8 @@ export const UnscheduledTopicPool: React.FC<UnscheduledTopicPoolProps> = ({
               aria-pressed={statusFilter === item.id}
               className={`px-2 py-1 rounded-lg font-semibold transition-colors cursor-pointer shrink-0 ${
                 statusFilter === item.id
-                  ? 'bg-stone-900 text-white dark:bg-rose-600'
-                  : 'bg-stone-100 dark:bg-stone-800 text-stone-600 dark:text-stone-400 hover:bg-stone-200/60 dark:hover:bg-stone-700'
+                  ? 'bg-[var(--accent)] text-white'
+                  : 'bg-[var(--canvas)] text-[var(--ink-muted)] hover:bg-[var(--surface)] hover:text-[var(--ink)]'
               }`}
             >
               {item.label}
@@ -258,8 +258,8 @@ export const UnscheduledTopicPool: React.FC<UnscheduledTopicPoolProps> = ({
       </div>
 
       {/* Topics Stream */}
-      <FloatingScrollbar className="p-3 space-y-2.5" wrapperClassName="flex-1 min-h-0">
-        <div className="text-[11px] text-stone-500 dark:text-stone-400 px-1">
+      <FloatingScrollbar className="space-y-2.5 p-3" wrapperClassName="min-h-0 flex-1">
+        <div className="px-1 text-[11px] text-[var(--ink-muted)]">
           💡 提示：按住卡片右侧把手可直接拖拽至左侧日历日期定档
         </div>
 
@@ -273,7 +273,7 @@ export const UnscheduledTopicPool: React.FC<UnscheduledTopicPoolProps> = ({
         ))}
 
         {unscheduledTopics.length === 0 && (
-          <div className="py-12 text-center text-xs text-stone-500 dark:text-stone-400">
+          <div className="py-12 text-center text-xs text-[var(--ink-muted)]">
             {search || statusFilter !== 'all' ? '无匹配选题' : '所有活跃选题均已定档！'}
           </div>
         )}

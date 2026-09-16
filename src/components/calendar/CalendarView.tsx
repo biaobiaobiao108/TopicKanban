@@ -244,118 +244,99 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
 
   return (
     <DndContext sensors={sensors} onDragStart={handleDragStart} onDragEnd={handleDragEnd}>
-      <div className="flex-1 flex flex-col h-full min-w-0 bg-[#fafaf9] dark:bg-[#0c0a09] overflow-hidden">
-        {/* Top Header */}
-        <div className="px-4 sm:px-8 pt-4 pb-3 space-y-3 shrink-0 border-b border-stone-200/70 dark:border-stone-800 bg-white/70 dark:bg-stone-900/70 backdrop-blur-sm">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-            <div className="flex items-center gap-3">
-              <PageHeader
-                title="选题日历"
-                icon={CalendarDays}
-                badge={
-                  <span className="text-xs font-mono text-[var(--ink-muted)]">
-                    发片排期
+      <div className="flex h-full min-h-0 min-w-0 flex-1 overflow-y-auto overscroll-contain bg-[var(--canvas)] transition-colors">
+        <div className="mx-auto flex h-full min-h-0 w-full max-w-7xl flex-col gap-6 px-4 py-5 sm:gap-8 sm:px-8 sm:py-8">
+          <PageHeader
+            title="选题日历"
+            icon={CalendarDays}
+            badge={(
+              <span className="rounded-full bg-rose-500/10 px-2.5 py-1 font-mono text-xs font-semibold text-rose-800 dark:bg-rose-950/40 dark:text-rose-300">
+                发片排期
+              </span>
+            )}
+            actions={(
+              <>
+                {/* Month navigation controls */}
+                <div aria-label="月份导航" className="inline-flex min-h-10 items-center gap-0.5 rounded-xl border border-[var(--line)] bg-[var(--surface)] p-1">
+                  <button
+                    type="button"
+                    onClick={handlePrev}
+                    aria-label="上一周期"
+                    title="上一周期"
+                    className="grid h-8 w-8 place-items-center rounded-lg text-[var(--ink-muted)] transition-colors hover:bg-[var(--canvas)] hover:text-[var(--ink)]"
+                  >
+                    <ChevronLeft className="h-4 w-4" aria-hidden="true" />
+                  </button>
+
+                  <span className="min-w-[78px] px-2 text-center text-xs font-semibold text-[var(--ink)] sm:text-sm">
+                    <span className="font-mono tabular-nums">{year}</span>年{' '}
+                    <span className="font-mono tabular-nums">{monthIndex + 1}</span>月
                   </span>
-                }
-              />
 
-              {/* Month navigation controls */}
-              <div className="flex items-center gap-0.5 border border-[var(--line)] bg-[var(--surface)] rounded-[var(--radius-sm)] p-0.5">
+                  <button
+                    type="button"
+                    onClick={handleNext}
+                    aria-label="下一周期"
+                    title="下一周期"
+                    className="grid h-8 w-8 place-items-center rounded-lg text-[var(--ink-muted)] transition-colors hover:bg-[var(--canvas)] hover:text-[var(--ink)]"
+                  >
+                    <ChevronRight className="h-4 w-4" aria-hidden="true" />
+                  </button>
+                </div>
+
                 <button
                   type="button"
-                  onClick={handlePrev}
-                  aria-label="上一周期"
-                  title="上一周期"
-                  className="p-1 rounded-[var(--radius-sm)] hover:bg-[var(--canvas)] text-[var(--ink-muted)] hover:text-[var(--ink)] transition-colors cursor-pointer"
+                  onClick={handleToday}
+                  className="inline-flex min-h-10 items-center justify-center rounded-xl border border-transparent px-3 text-xs font-semibold text-[var(--ink-muted)] transition-colors hover:border-[var(--line)] hover:bg-[var(--surface)] hover:text-[var(--ink)]"
                 >
-                  <ChevronLeft className="w-4 h-4" aria-hidden="true" />
+                  回到今天
                 </button>
 
-                <span className="text-xs sm:text-sm font-semibold px-2 text-[var(--ink)] min-w-[75px] text-center">
-                  <span className="font-mono tabular-nums">{year}</span>年{' '}
-                  <span className="font-mono tabular-nums">{monthIndex + 1}</span>月
-                </span>
+                {/* View Switcher */}
+                <div className="inline-flex min-h-10 items-center gap-0.5 rounded-xl border border-[var(--line)] bg-[var(--canvas)] p-1 text-xs font-medium">
+                  {([
+                    ['month', '月视图'],
+                    ['week', '周视图'],
+                    ['agenda', '日程流'],
+                  ] as const).map(([mode, label]) => (
+                    <button
+                      key={mode}
+                      type="button"
+                      onClick={() => setViewMode(mode)}
+                      className={`rounded-lg px-2.5 py-1.5 transition-all ${
+                        viewMode === mode
+                          ? 'bg-[var(--surface)] font-semibold text-[var(--ink)] shadow-2xs'
+                          : 'text-[var(--ink-muted)] hover:text-[var(--ink)]'
+                      }`}
+                    >
+                      {label}
+                    </button>
+                  ))}
+                </div>
 
+                {/* Toggle Unscheduled Drawer */}
                 <button
                   type="button"
-                  onClick={handleNext}
-                  aria-label="下一周期"
-                  title="下一周期"
-                  className="p-1 rounded-[var(--radius-sm)] hover:bg-[var(--canvas)] text-[var(--ink-muted)] hover:text-[var(--ink)] transition-colors cursor-pointer"
-                >
-                  <ChevronRight className="w-4 h-4" aria-hidden="true" />
-                </button>
-              </div>
-
-              <button
-                type="button"
-                onClick={handleToday}
-                className="text-xs font-medium px-2.5 py-1.5 rounded-[var(--radius-sm)] border border-transparent hover:border-[var(--line)] bg-transparent hover:bg-[var(--canvas)] text-[var(--ink-muted)] hover:text-[var(--ink)] transition-all cursor-pointer"
-              >
-                回到今天
-              </button>
-            </div>
-
-            {/* Right: View Switcher + Unscheduled Pool Toggle */}
-            <div className="flex items-center gap-2 flex-wrap sm:flex-nowrap">
-              {/* View Switcher */}
-              <div className="flex items-center gap-0.5 border border-[var(--line)] bg-[var(--canvas)] rounded-[var(--radius-sm)] p-0.5 text-xs font-medium">
-                <button
-                  type="button"
-                  onClick={() => setViewMode('month')}
-                  className={`px-2.5 py-1 rounded-[var(--radius-sm)] transition-all cursor-pointer ${
-                    viewMode === 'month'
-                      ? 'bg-[var(--surface)] text-[var(--ink)] font-semibold shadow-2xs'
-                      : 'text-[var(--ink-muted)] hover:text-[var(--ink)]'
+                  onClick={() => setIsPoolOpen((prev) => !prev)}
+                  className={`inline-flex min-h-10 items-center justify-center gap-1.5 rounded-xl border px-3 text-xs font-semibold transition-all ${
+                    isPoolOpen
+                      ? 'border-[var(--line)] bg-[var(--surface)] text-[var(--ink)] shadow-2xs'
+                      : 'border-transparent text-[var(--ink-muted)] hover:border-[var(--line)] hover:bg-[var(--surface)] hover:text-[var(--ink)]'
                   }`}
                 >
-                  月视图
+                  <Inbox className="h-3.5 w-3.5 text-[var(--accent)]" aria-hidden="true" />
+                  <span>待排期池</span>
+                  <span className="font-mono text-[10px] tabular-nums text-[var(--ink-muted)]">
+                    {unscheduledTopics.length}
+                  </span>
                 </button>
-                <button
-                  type="button"
-                  onClick={() => setViewMode('week')}
-                  className={`px-2.5 py-1 rounded-[var(--radius-sm)] transition-all cursor-pointer ${
-                    viewMode === 'week'
-                      ? 'bg-[var(--surface)] text-[var(--ink)] font-semibold shadow-2xs'
-                      : 'text-[var(--ink-muted)] hover:text-[var(--ink)]'
-                  }`}
-                >
-                  周视图
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setViewMode('agenda')}
-                  className={`px-2.5 py-1 rounded-[var(--radius-sm)] transition-all cursor-pointer ${
-                    viewMode === 'agenda'
-                      ? 'bg-[var(--surface)] text-[var(--ink)] font-semibold shadow-2xs'
-                      : 'text-[var(--ink-muted)] hover:text-[var(--ink)]'
-                  }`}
-                >
-                  日程流
-                </button>
-              </div>
+              </>
+            )}
+          />
 
-              {/* Toggle Unscheduled Drawer */}
-              <button
-                type="button"
-                onClick={() => setIsPoolOpen((prev) => !prev)}
-                className={`flex items-center gap-1.5 text-xs font-medium px-2.5 py-1.5 rounded-[var(--radius-sm)] border transition-all cursor-pointer ${
-                  isPoolOpen
-                    ? 'border-[var(--line)] bg-[var(--canvas)] text-[var(--ink)]'
-                    : 'border-transparent hover:border-[var(--line)] bg-transparent hover:bg-[var(--canvas)] text-[var(--ink-muted)] hover:text-[var(--ink)]'
-                }`}
-              >
-                <Inbox className="w-3.5 h-3.5 text-[var(--accent)]" />
-                <span>待排期池</span>
-                <span className="font-mono tabular-nums text-[10px] text-[var(--ink-muted)]">
-                  {unscheduledTopics.length}
-                </span>
-              </button>
-            </div>
-          </div>
-
-          {/* Subheader: Month Stats & Layer Filter Toggles */}
-          <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-2.5 pt-2 border-t border-[var(--line)]">
+          <section aria-label="日历视图与排期池" className="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden rounded-2xl border border-[var(--line)] bg-[var(--surface)] shadow-2xs">
+            {/* Subheader: Month Stats & Layer Filter Toggles */}
+            <div className="flex shrink-0 flex-col gap-3 border-b border-[var(--line)] bg-[var(--surface)]/70 px-4 py-3 sm:px-5 lg:flex-row lg:items-center lg:justify-between">
             {/* Stats Chips */}
             <div className="flex items-center gap-3 sm:gap-4 text-xs text-[var(--ink-muted)] overflow-x-auto select-none">
               <span className="font-medium text-[var(--ink)]">本月生产：</span>
@@ -430,11 +411,10 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
               </button>
 
             </div>
-          </div>
-        </div>
+            </div>
 
         {/* Calendar Body Area + Side Pool */}
-        <div className="relative flex min-h-0 flex-1 gap-4 overflow-hidden p-3 sm:p-6 mobile-bottom-nav-content">
+        <div className="relative flex min-h-0 flex-1 gap-4 overflow-hidden p-3 mobile-bottom-nav-content sm:p-5">
           {/* Main Grid View */}
           {viewMode === 'month' && (
             <CalendarMonthGrid
@@ -477,6 +457,8 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
             onOpenDetail={onOpenDetail}
             onScheduleTopic={(topic) => setActionModal({ date: getBeijingDateString(new Date()), topic })}
           />
+        </div>
+        </section>
         </div>
 
         {/* Drag Overlay */}

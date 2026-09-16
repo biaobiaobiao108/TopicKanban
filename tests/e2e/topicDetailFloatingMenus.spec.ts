@@ -41,6 +41,29 @@ const draft = {
   updated_at: '2026-08-25T00:00:00.000Z',
 };
 
+const typographyDraft = {
+  ...draft,
+  title: '霞鹜文楷排版回归',
+  content_html: '<h1>卷首标题</h1><p>正文段落 <strong>重点文字</strong> 与 <code>inline()</code>。</p><pre><code>const sample = true;</code></pre>',
+  content_json: JSON.stringify({
+    type: 'doc',
+    content: [
+      { type: 'heading', attrs: { level: 1 }, content: [{ type: 'text', text: '卷首标题' }] },
+      {
+        type: 'paragraph',
+        content: [
+          { type: 'text', text: '正文段落 ' },
+          { type: 'text', marks: [{ type: 'bold' }], text: '重点文字' },
+          { type: 'text', text: ' 与 ' },
+          { type: 'text', marks: [{ type: 'code' }], text: 'inline()' },
+          { type: 'text', text: '。' },
+        ],
+      },
+      { type: 'codeBlock', content: [{ type: 'text', text: 'const sample = true;' }] },
+    ],
+  }),
+};
+
 async function mockWorkspace(page: Page, workspaceDraft = draft) {
   let currentTopic = { ...topic };
   await page.route('**/api/bootstrap**', async (route) => {
@@ -304,4 +327,38 @@ test('没有已有草稿时文案正文不重复显示选题名称', async ({ pa
   await expect(editor).toBeVisible();
   await expect(editor.locator('h1')).toHaveCount(0);
   await expect(editor).not.toContainText(`【开场】${topic.title}`);
+});
+
+test('文案标题与正文使用霞鹜文楷，代码块保留等宽字体', async ({ page }) => {
+  await mockWorkspace(page, typographyDraft);
+  await login(page);
+  await page.goto(`/topics/${topic.id}?tab=script`);
+
+  await expect(page.locator('#script-draft-title')).toHaveValue('霞鹜文楷排版回归');
+  await expect(page.locator('.ProseMirror h1')).toHaveText('卷首标题');
+  await expect(page.locator('.ProseMirror pre code')).toHaveText('const sample = true;');
+
+  const fontFamilies = await page.evaluate(() => {
+    const title = document.querySelector<HTMLElement>('#script-draft-title');
+    const prose = document.querySelector<HTMLElement>('.script-editor-canvas-container .ProseMirror');
+    const heading = prose?.querySelector<HTMLElement>('h1');
+    const paragraph = prose?.querySelector<HTMLElement>('p');
+    const inlineCode = prose?.querySelector<HTMLElement>('p code');
+    const codeBlock = prose?.querySelector<HTMLElement>('pre');
+    return {
+      title: title ? getComputedStyle(title).fontFamily : '',
+      prose: prose ? getComputedStyle(prose).fontFamily : '',
+      heading: heading ? getComputedStyle(heading).fontFamily : '',
+      paragraph: paragraph ? getComputedStyle(paragraph).fontFamily : '',
+      inlineCode: inlineCode ? getComputedStyle(inlineCode).fontFamily : '',
+      codeBlock: codeBlock ? getComputedStyle(codeBlock).fontFamily : '',
+    };
+  });
+
+  expect(fontFamilies.title).toContain('霞鹜文楷');
+  expect(fontFamilies.prose).toContain('霞鹜文楷');
+  expect(fontFamilies.heading).toContain('霞鹜文楷');
+  expect(fontFamilies.paragraph).toContain('霞鹜文楷');
+  expect(fontFamilies.inlineCode).toContain('霞鹜文楷');
+  expect(fontFamilies.codeBlock).toContain('ui-monospace');
 });

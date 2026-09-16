@@ -149,7 +149,7 @@ export const CalendarMonthGrid: React.FC<CalendarMonthGridProps> = ({
   const [activeDateModal, setActiveDateModal] = useState<{ date: string; events: CalendarEventItem[] } | null>(null);
 
   return (
-    <div className="flex min-h-0 flex-1 flex-col min-w-0 overflow-hidden rounded-2xl border border-stone-200/70 bg-white shadow-2xs dark:border-stone-800 dark:bg-stone-900">
+    <div className="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden rounded-2xl border border-[var(--line)] bg-[var(--surface)] shadow-2xs">
       {/* 7-Column Header */}
       <div className="grid grid-cols-7 border-b border-stone-200/70 dark:border-stone-800 bg-stone-50 dark:bg-stone-900/90 select-none">
         {WEEK_HEADERS.map((name, i) => (

@@ -465,7 +465,7 @@ export const TopicDetailView: React.FC<TopicDetailViewProps> = ({
   };
 
   return (
-    <div className="flex-1 flex flex-col h-full min-h-0 overflow-hidden bg-[#fafaf9] dark:bg-[#0c0a09] transition-colors">
+    <div className="flex h-full min-h-0 flex-1 flex-col overflow-hidden bg-[var(--canvas)] transition-colors">
       <Modal
         isOpen={Boolean(draftRecovery)}
         onClose={() => undefined}
@@ -503,8 +503,8 @@ export const TopicDetailView: React.FC<TopicDetailViewProps> = ({
       />
 
       {/* Sub Tabs Navigation (Scrollable on mobile) */}
-      <div ref={detailSubtabsRef} className="detail-subtabs-container bg-[var(--surface)] border-b border-[var(--line)] px-4 sm:px-8 shrink-0 overflow-x-auto no-scrollbar transition-colors">
-        <div className="flex items-center gap-1 min-w-max">
+      <div ref={detailSubtabsRef} className="detail-subtabs-container shrink-0 overflow-x-auto border-b border-[var(--line)] bg-[var(--surface)] transition-colors no-scrollbar">
+        <div className="mx-auto flex min-w-max max-w-7xl items-center gap-1 px-4 sm:px-8">
           {tabs.map((tab) => {
             const Icon = tab.icon;
             const isActive = activeTab === tab.id;
@@ -686,7 +686,7 @@ export const TopicDetailView: React.FC<TopicDetailViewProps> = ({
         )}
       </div>
 
-      <div className="fixed inset-x-0 bottom-0 z-40 border-t border-stone-200 dark:border-stone-800 bg-white/95 dark:bg-stone-900/95 px-2 pt-2 pb-[max(0.5rem,env(safe-area-inset-bottom))] backdrop-blur-md md:hidden transition-colors">
+      <div className="fixed inset-x-0 bottom-0 z-40 border-t border-[var(--line)] bg-[var(--surface)]/95 px-2 pb-[max(0.5rem,env(safe-area-inset-bottom))] pt-2 backdrop-blur-md transition-colors md:hidden">
         <FloatingMenu
           isOpen={isStageMenuOpen}
           anchorRef={stageTriggerRef}

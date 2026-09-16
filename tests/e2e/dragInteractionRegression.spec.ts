@@ -268,6 +268,7 @@ test('看板拖拽保存失败时恢复列、卡片和已加载列表', async ({
 test('日历未排期池拖拽到日期后不保留释放动画', async ({ page }) => {
   const state = await mockWorkspace(page, { calendar: true });
   await login(page);
+  await page.setViewportSize({ width: 1280, height: 900 });
   await page.goto('/calendar?view=month&date=2026-09-03');
 
   const card = page.getByTestId('unscheduled-topic-card');
@@ -275,6 +276,18 @@ test('日历未排期池拖拽到日期后不保留释放动画', async ({ page 
   const targetDate = page.locator('[data-testid="calendar-month-cell"][data-date="2026-09-10"]');
   await expect(card).toBeVisible();
   await expect(targetDate).toBeVisible();
+
+  const cardRadii = await page.evaluate(() => {
+    const pool = document.querySelector<HTMLElement>('[aria-labelledby="unscheduled-topic-pool-title"]');
+    const monthGrid = document.querySelector<HTMLElement>('[data-testid="calendar-month-grid"]')?.parentElement?.parentElement;
+    return {
+      pool: pool ? getComputedStyle(pool).borderTopLeftRadius : '',
+      monthGrid: monthGrid ? getComputedStyle(monthGrid).borderTopLeftRadius : '',
+    };
+  });
+  expect(cardRadii.pool).toBe(cardRadii.monthGrid);
+  expect(cardRadii.pool).not.toBe('0px');
+
   await dragPointer(page, handle, card, targetDate);
 
   await expect(page.getByTestId('calendar-drag-overlay')).toHaveCount(0);
