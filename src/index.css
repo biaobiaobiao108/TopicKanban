@@ -796,9 +796,7 @@ html.theme-warm-paper header.navbar-container,
 html.theme-warm-paper .navbar-container,
 html.theme-warm-paper .mobile-drawer-container,
 html.theme-warm-paper .mobile-nav-container,
-html.theme-warm-paper .script-editor-toolbar,
-html.theme-warm-paper .script-reference-drawer,
-html.theme-warm-paper .script-outline-panel {
+html.theme-warm-paper .script-editor-toolbar {
   background-color: #f2ece1 !important;
   border-color: #e5ded2 !important;
 }
@@ -1029,14 +1027,14 @@ html.theme-nordic-frost header.navbar-container,
 html.theme-nordic-frost .navbar-container,
 html.theme-nordic-frost .mobile-drawer-container,
 html.theme-nordic-frost .mobile-nav-container,
-html.theme-nordic-frost .script-editor-toolbar,
-html.theme-nordic-frost .script-reference-drawer,
-html.theme-nordic-frost .script-outline-panel {
+html.theme-nordic-frost .script-editor-toolbar {
   background-color: #edf2f2 !important;
   border-color: #dce5e5 !important;
 }
 
-.tags-sidebar-panel {
+.tags-sidebar-panel,
+.script-outline-panel,
+.script-reference-drawer {
   background-color: var(--canvas) !important;
 }
 

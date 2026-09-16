@@ -76,19 +76,19 @@ export const ScriptReferenceDrawer: React.FC<ScriptReferenceDrawerProps> = ({
           : hasOutlineContent || filteredTimeline.length > 0 || filteredPeople.length > 0 || filteredSources.length > 0;
 
   return (
-    <div className="script-reference-drawer absolute right-3 sm:right-4 top-3 sm:top-4 bottom-3 sm:bottom-4 z-30 flex w-80 sm:w-96 flex-col rounded-2xl bg-white/95 dark:bg-stone-900/95 backdrop-blur-xl border border-stone-200/70 dark:border-stone-800/80 shadow-card animate-in slide-in-from-right duration-200 overflow-hidden">
+    <div className="script-reference-drawer absolute right-3 sm:right-4 top-3 sm:top-4 bottom-3 sm:bottom-4 z-30 flex w-80 sm:w-96 flex-col rounded-xl bg-[var(--canvas)] border border-[var(--line)] shadow-md animate-in slide-in-from-right duration-200 overflow-hidden">
       {/* Header */}
-      <div className="flex shrink-0 items-center justify-between gap-2 h-12 px-3.5 border-b border-stone-100 dark:border-stone-800/70 bg-stone-50/50 dark:bg-stone-800/50">
+      <div className="flex shrink-0 items-center justify-between gap-2 h-11 px-3.5 border-b border-[var(--line)] bg-[var(--canvas)]">
         <div className="flex items-center gap-2 min-w-0">
-          <div className="p-1 rounded-lg bg-rose-50 dark:bg-rose-950/60 text-rose-600 dark:text-rose-400">
+          <div className="p-1 rounded-[var(--radius-sm)] bg-[var(--accent-soft)] text-[var(--accent-dark)]">
             <BookOpen className="w-3.5 h-3.5 shrink-0" />
           </div>
-          <h3 className="shrink-0 text-xs font-bold tracking-wide text-stone-800 dark:text-stone-100">事实参考资料</h3>
+          <h3 className="shrink-0 text-xs font-bold tracking-wide text-[var(--ink)]">事实参考资料</h3>
         </div>
         <button
           type="button"
           onClick={onClose}
-          className="p-1 text-stone-400 dark:text-stone-500 hover:text-stone-800 dark:hover:text-stone-200 rounded-lg hover:bg-stone-100 dark:hover:bg-stone-800 cursor-pointer transition-colors"
+          className="p-1 text-stone-500 dark:text-stone-400 hover:text-[var(--ink)] rounded-[var(--radius-sm)] hover:bg-[var(--surface)] cursor-pointer transition-colors"
           title="收起事实参考 (Esc)"
         >
           <X className="w-3.5 h-3.5" />
@@ -96,7 +96,7 @@ export const ScriptReferenceDrawer: React.FC<ScriptReferenceDrawerProps> = ({
       </div>
 
       {/* Search Input */}
-      <div className="px-3.5 py-2 shrink-0 border-b border-stone-100/80 dark:border-stone-800/60 bg-stone-50/20 dark:bg-stone-900/20">
+      <div className="px-3.5 py-2 shrink-0 border-b border-[var(--line)] bg-[var(--canvas)]">
         <div className="relative">
           <Search className="w-3.5 h-3.5 absolute left-2.5 top-2.5 text-stone-400 dark:text-stone-500" />
           <input
@@ -104,13 +104,13 @@ export const ScriptReferenceDrawer: React.FC<ScriptReferenceDrawerProps> = ({
             placeholder="搜索时间线、人物语录、资料..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full pl-8 pr-3 py-1.5 bg-stone-100/80 dark:bg-stone-800/80 border border-stone-200/60 dark:border-stone-700/60 rounded-xl text-xs text-stone-800 dark:text-stone-100 placeholder:text-stone-400 dark:placeholder:text-stone-500 focus:bg-white dark:focus:bg-stone-800 focus:outline-none focus:border-rose-500 transition-colors"
+            className="w-full pl-8 pr-3 py-1.5 bg-[var(--surface)] border border-[var(--line)] rounded-[var(--radius-sm)] text-xs text-[var(--ink)] placeholder:text-stone-400 dark:placeholder:text-stone-500 focus:outline-none focus:border-[var(--accent)] transition-colors"
           />
         </div>
       </div>
 
-      {/* Tabs (Capsules) */}
-      <div className="flex items-center gap-1 px-3.5 py-1.5 text-xs overflow-x-auto no-scrollbar shrink-0 bg-stone-50/40 dark:bg-stone-800/40">
+      {/* Tabs */}
+      <div className="flex items-center gap-1 px-3.5 py-1.5 text-xs overflow-x-auto no-scrollbar shrink-0 border-b border-[var(--line)] bg-[var(--canvas)]">
         {[
           { id: 'all', label: '全部' },
           { id: 'timeline', label: `时间线 (${timeline.length})` },
@@ -122,10 +122,10 @@ export const ScriptReferenceDrawer: React.FC<ScriptReferenceDrawerProps> = ({
             key={tab.id}
             type="button"
             onClick={() => setActiveTab(tab.id as RefTab)}
-            className={`px-2 py-1 rounded-[var(--radius-sm)] shrink-0 text-[11px] font-medium transition-all cursor-pointer ${
+            className={`px-2.5 py-1 rounded-[var(--radius-sm)] shrink-0 text-[11px] transition-all cursor-pointer ${
               activeTab === tab.id
-                ? 'bg-[var(--accent)] text-white shadow-2xs'
-                : 'text-[var(--ink-muted)] hover:text-[var(--ink)] hover:bg-[var(--canvas)]'
+                ? 'bg-[var(--surface)] border border-[var(--line)] text-[var(--ink)] font-semibold shadow-2xs'
+                : 'border border-transparent hover:border-[var(--line)] bg-transparent hover:bg-[var(--surface)] text-stone-600 dark:text-stone-400 hover:text-stone-900 dark:hover:text-stone-100 font-medium'
             }`}
           >
             {tab.label}
@@ -144,42 +144,42 @@ export const ScriptReferenceDrawer: React.FC<ScriptReferenceDrawerProps> = ({
             </div>
 
             {showHook && topic.hook && (
-              <div className="bg-[var(--canvas)] border border-[var(--line)] p-2.5 rounded-[var(--radius-sm)] space-y-1.5">
+              <div className="bg-[var(--surface)] border border-[var(--line)] p-3 rounded-[var(--radius-sm)] shadow-2xs space-y-2">
                 <div className="flex items-center justify-between text-[var(--ink)] font-medium text-xs">
-                  <span>🎯 黄金 3 秒 Hook</span>
+                  <span className="font-semibold text-stone-900 dark:text-stone-100">🎯 黄金 3 秒 Hook</span>
                   <button
                     type="button"
                     onClick={() => void handleInsert('hook', {
                       reference_type: 'outline', reference_id: 'hook', reference_title: '核心 Hook',
                       reference_snapshot: topic.hook, quoted_text: topic.hook, verification_status: 'confirmed',
                     })}
-                    className="text-[10px] bg-[var(--surface)] border border-[var(--line)] hover:border-[var(--accent)] text-[var(--ink-muted)] hover:text-[var(--accent)] px-1.5 py-0.5 rounded-[var(--radius-sm)] flex items-center gap-0.5 cursor-pointer font-normal"
+                    className="text-[10px] bg-[var(--surface)] hover:bg-[var(--canvas)] border border-[var(--line)] hover:border-[var(--accent)] text-stone-600 dark:text-stone-400 hover:text-[var(--accent)] px-2 py-0.5 rounded-[var(--radius-sm)] flex items-center gap-0.5 cursor-pointer font-medium"
                   >
                     {insertedId === 'hook' ? <Check className="w-2.5 h-2.5 text-[var(--accent)]" /> : <Plus className="w-2.5 h-2.5" />}
                     <span>插入</span>
                   </button>
                 </div>
-                <p className="text-[var(--ink)] leading-relaxed italic text-[11px]">{topic.hook}</p>
+                <p className="text-stone-800 dark:text-stone-200 leading-relaxed italic text-[11px] bg-[var(--canvas)] p-2 rounded-[var(--radius-sm)] border border-[var(--line)]">{topic.hook}</p>
               </div>
             )}
 
             {showStoryline && topic.storyline && (
-              <div className="bg-[var(--canvas)] border border-[var(--line)] p-2.5 rounded-[var(--radius-sm)] space-y-1.5">
+              <div className="bg-[var(--surface)] border border-[var(--line)] p-3 rounded-[var(--radius-sm)] shadow-2xs space-y-2">
                 <div className="flex items-center justify-between text-[var(--ink)] font-medium text-xs">
-                  <span>📖 故事主线阶段</span>
+                  <span className="font-semibold text-stone-900 dark:text-stone-100">📖 故事主线阶段</span>
                   <button
                     type="button"
                     onClick={() => void handleInsert('storyline', {
                       reference_type: 'outline', reference_id: 'storyline', reference_title: '故事主线',
                       reference_snapshot: topic.storyline, quoted_text: topic.storyline, verification_status: 'confirmed',
                     })}
-                    className="text-[10px] bg-[var(--surface)] border border-[var(--line)] hover:border-[var(--accent)] text-[var(--ink-muted)] hover:text-[var(--accent)] px-1.5 py-0.5 rounded-[var(--radius-sm)] flex items-center gap-0.5 cursor-pointer font-normal"
+                    className="text-[10px] bg-[var(--surface)] hover:bg-[var(--canvas)] border border-[var(--line)] hover:border-[var(--accent)] text-stone-600 dark:text-stone-400 hover:text-[var(--accent)] px-2 py-0.5 rounded-[var(--radius-sm)] flex items-center gap-0.5 cursor-pointer font-medium"
                   >
                     {insertedId === 'storyline' ? <Check className="w-2.5 h-2.5 text-[var(--accent)]" /> : <Plus className="w-2.5 h-2.5" />}
                     <span>插入</span>
                   </button>
                 </div>
-                <p className="text-[var(--ink)] leading-relaxed whitespace-pre-wrap text-[11px]">{topic.storyline}</p>
+                <p className="text-stone-800 dark:text-stone-200 leading-relaxed whitespace-pre-wrap text-[11px] bg-[var(--canvas)] p-2 rounded-[var(--radius-sm)] border border-[var(--line)]">{topic.storyline}</p>
               </div>
             )}
           </div>
@@ -194,12 +194,12 @@ export const ScriptReferenceDrawer: React.FC<ScriptReferenceDrawerProps> = ({
             </div>
 
             {filteredPeople.map((person) => (
-              <div key={person.id} className="bg-[var(--canvas)] border border-[var(--line)] p-2.5 rounded-[var(--radius-sm)] space-y-2">
+              <div key={person.id} className="bg-[var(--surface)] border border-[var(--line)] p-3 rounded-[var(--radius-sm)] shadow-2xs space-y-2">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-1.5">
-                    <span className="font-medium text-[var(--ink)] text-xs">{person.name}</span>
+                    <span className="font-semibold text-stone-900 dark:text-stone-100 text-xs">{person.name}</span>
                     {person.identity && (
-                      <span className="text-[10px] bg-[var(--surface)] border border-[var(--line)] text-[var(--ink-muted)] px-1.5 py-0.2 rounded-[var(--radius-sm)] font-normal">
+                      <span className="text-[10px] bg-[var(--canvas)] border border-[var(--line)] text-stone-600 dark:text-stone-400 px-1.5 py-0.2 rounded-[var(--radius-sm)] font-medium">
                         {person.identity}
                       </span>
                     )}
@@ -207,7 +207,7 @@ export const ScriptReferenceDrawer: React.FC<ScriptReferenceDrawerProps> = ({
                 </div>
 
                 {person.quotes ? (
-                  <div className="bg-[var(--surface)] p-2 rounded-[var(--radius-sm)] border border-[var(--line)] space-y-1">
+                  <div className="bg-[var(--canvas)] p-2 rounded-[var(--radius-sm)] border border-[var(--line)] space-y-1">
                     <div className="flex items-center justify-between text-[var(--accent)] font-medium text-[11px]">
                       <span className="flex items-center gap-1">
                         <Quote className="w-2.5 h-2.5" /> 经典原话
@@ -219,16 +219,16 @@ export const ScriptReferenceDrawer: React.FC<ScriptReferenceDrawerProps> = ({
                           reference_snapshot: `“${person.quotes}” —— ${person.name}`,
                           quoted_text: `“${person.quotes}” —— ${person.name}`, verification_status: 'confirmed',
                         })}
-                        className="text-[10px] bg-[var(--canvas)] border border-[var(--line)] hover:border-[var(--accent)] text-[var(--ink-muted)] hover:text-[var(--accent)] px-1.5 py-0.5 rounded-[var(--radius-sm)] flex items-center gap-0.5 cursor-pointer font-normal"
+                        className="text-[10px] bg-[var(--surface)] hover:bg-[var(--canvas)] border border-[var(--line)] hover:border-[var(--accent)] text-stone-600 dark:text-stone-400 hover:text-[var(--accent)] px-2 py-0.5 rounded-[var(--radius-sm)] flex items-center gap-0.5 cursor-pointer font-medium"
                       >
                         {insertedId === `quote-${person.id}` ? <Check className="w-2.5 h-2.5 text-[var(--accent)]" /> : <Plus className="w-2.5 h-2.5" />}
                         <span>插入引用</span>
                       </button>
                     </div>
-                    <p className="text-[var(--ink)] italic leading-relaxed text-[11px]">“{person.quotes}”</p>
+                    <p className="text-stone-800 dark:text-stone-200 italic leading-relaxed text-[11px]">“{person.quotes}”</p>
                   </div>
                 ) : (
-                  <p className="text-[11px] text-[var(--ink-muted)]">{person.description || '暂无语录记录'}</p>
+                  <p className="text-[11px] text-stone-500 dark:text-stone-400">{person.description || '暂无语录记录'}</p>
                 )}
               </div>
             ))}
@@ -245,9 +245,9 @@ export const ScriptReferenceDrawer: React.FC<ScriptReferenceDrawerProps> = ({
 
             <div className="space-y-2 border-l border-[var(--line)] ml-1.5 pl-2.5">
               {filteredTimeline.map((item) => (
-                <div key={item.id} className="relative group bg-[var(--canvas)] p-2.5 rounded-[var(--radius-sm)] border border-[var(--line)] space-y-1">
+                <div key={item.id} className="relative group bg-[var(--surface)] p-3 rounded-[var(--radius-sm)] border border-[var(--line)] shadow-2xs space-y-1.5">
                   <div className="flex items-center justify-between">
-                    <span className="font-mono text-[var(--ink-muted)] bg-[var(--surface)] border border-[var(--line)] px-1.5 py-0.5 rounded-[var(--radius-sm)] text-[10px]">
+                    <span className="font-mono text-stone-600 dark:text-stone-400 bg-[var(--canvas)] border border-[var(--line)] px-1.5 py-0.5 rounded-[var(--radius-sm)] text-[10px]">
                       {item.event_date}
                     </span>
                     <button
@@ -258,15 +258,15 @@ export const ScriptReferenceDrawer: React.FC<ScriptReferenceDrawerProps> = ({
                         quoted_text: `【${item.event_date}】${item.title}：${item.description || ''}`,
                         verification_status: item.verification_status,
                       })}
-                      className="text-[10px] bg-[var(--surface)] border border-[var(--line)] hover:border-[var(--accent)] text-[var(--ink-muted)] hover:text-[var(--accent)] px-1.5 py-0.5 rounded-[var(--radius-sm)] flex items-center gap-0.5 cursor-pointer font-normal"
+                      className="text-[10px] bg-[var(--surface)] hover:bg-[var(--canvas)] border border-[var(--line)] hover:border-[var(--accent)] text-stone-600 dark:text-stone-400 hover:text-[var(--accent)] px-2 py-0.5 rounded-[var(--radius-sm)] flex items-center gap-0.5 cursor-pointer font-medium"
                     >
                       {insertedId === `time-${item.id}` ? <Check className="w-2.5 h-2.5 text-[var(--accent)]" /> : <Plus className="w-2.5 h-2.5" />}
                       <span>引用</span>
                     </button>
                   </div>
-                  <h4 className="font-medium text-[var(--ink)] text-xs">{item.title}</h4>
+                  <h4 className="font-semibold text-stone-900 dark:text-stone-100 text-xs">{item.title}</h4>
                   {item.description && (
-                    <p className="text-[var(--ink-muted)] leading-relaxed text-[11px]">{item.description}</p>
+                    <p className="text-stone-600 dark:text-stone-400 leading-relaxed text-[11px]">{item.description}</p>
                   )}
                   <div className="flex gap-2 text-[10px]">
                     <span className={item.verification_status === 'confirmed' ? 'text-[var(--accent)] font-medium' : 'text-[#9b6a2f] dark:text-[#c49258]'}>
@@ -289,9 +289,9 @@ export const ScriptReferenceDrawer: React.FC<ScriptReferenceDrawerProps> = ({
             </div>
 
             {filteredSources.map((source) => (
-              <div key={source.id} className="bg-[var(--canvas)] border border-[var(--line)] p-2.5 rounded-[var(--radius-sm)] space-y-1.5">
+              <div key={source.id} className="bg-[var(--surface)] border border-[var(--line)] p-3 rounded-[var(--radius-sm)] shadow-2xs space-y-2">
                 <div className="flex items-start justify-between gap-1">
-                  <div className="font-medium text-[var(--ink)] text-xs truncate">{source.title}</div>
+                  <div className="font-semibold text-stone-900 dark:text-stone-100 text-xs truncate">{source.title}</div>
                   <button
                     type="button"
                     onClick={() => void handleInsert(`src-${source.id}`, {
@@ -299,14 +299,14 @@ export const ScriptReferenceDrawer: React.FC<ScriptReferenceDrawerProps> = ({
                       reference_snapshot: source.content || source.title, quoted_text: source.content || source.title,
                       verification_status: source.verification_status,
                     })}
-                    className="text-[10px] bg-[var(--surface)] border border-[var(--line)] hover:border-[var(--accent)] text-[var(--ink-muted)] hover:text-[var(--accent)] px-1.5 py-0.5 rounded-[var(--radius-sm)] shrink-0 flex items-center gap-0.5 cursor-pointer font-normal"
+                    className="text-[10px] bg-[var(--surface)] hover:bg-[var(--canvas)] border border-[var(--line)] hover:border-[var(--accent)] text-stone-600 dark:text-stone-400 hover:text-[var(--accent)] px-2 py-0.5 rounded-[var(--radius-sm)] shrink-0 flex items-center gap-0.5 cursor-pointer font-medium"
                   >
                     {insertedId === `src-${source.id}` ? <Check className="w-2.5 h-2.5 text-[var(--accent)]" /> : <Plus className="w-2.5 h-2.5" />}
                     <span>插入</span>
                   </button>
                 </div>
                 {source.content && (
-                  <p className="text-[var(--ink-muted)] line-clamp-3 text-[11px] bg-[var(--surface)] p-2 rounded-[var(--radius-sm)] border border-[var(--line)]">
+                  <p className="text-stone-600 dark:text-stone-400 line-clamp-3 text-[11px] bg-[var(--canvas)] p-2 rounded-[var(--radius-sm)] border border-[var(--line)]">
                     {source.content}
                   </p>
                 )}
@@ -323,7 +323,7 @@ export const ScriptReferenceDrawer: React.FC<ScriptReferenceDrawerProps> = ({
 
         {/* Empty state */}
         {!hasVisibleContent && (
-          <div className="py-12 text-center text-stone-400 dark:text-stone-500 text-xs">
+          <div className="py-12 text-center text-stone-500 dark:text-stone-400 text-xs">
             暂无匹配的事实资料
           </div>
         )}
