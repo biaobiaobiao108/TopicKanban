@@ -268,7 +268,7 @@ export const TagsView: React.FC<TagsViewProps> = ({
       </div>
 
       {/* 2. Main Content Grid (Master-Detail Split) */}
-      <div className="flex min-h-0 flex-1 flex-col md:flex-row overflow-visible md:overflow-hidden">
+      <div className="flex min-h-0 flex-1 flex-col md:flex-row overflow-visible md:overflow-hidden bg-[var(--canvas)]">
         {/* Left / Tag Selector List Panel (w-80) - background aligned with right */}
         <div className="tags-sidebar-panel hidden w-full md:flex md:w-80 border-r border-[var(--line)] bg-[var(--canvas)] flex-col shrink-0 h-64 md:h-full overflow-hidden">
           {/* Search Box */}
@@ -290,7 +290,7 @@ export const TagsView: React.FC<TagsViewProps> = ({
           </div>
 
           {/* Tags List */}
-          <div className="flex-1 overflow-y-auto p-2 space-y-1">
+          <div className="flex-1 overflow-y-auto p-2 space-y-1 bg-[var(--canvas)]">
             {visibleTags.map((tag) => {
               const isSelected = activeTag?.id === tag.id;
               const stats = tagStatsMap.get(tag.id);
@@ -376,7 +376,7 @@ export const TagsView: React.FC<TagsViewProps> = ({
           )}
         </div>
 
-        <div data-testid="tags-mobile-picker" className="md:hidden shrink-0 border-b border-stone-200/70 bg-white p-4 dark:border-stone-800 dark:bg-stone-900">
+        <div data-testid="tags-mobile-picker" className="md:hidden shrink-0 border-b border-[var(--line)] bg-[var(--canvas)] p-4">
           <div className="mb-2 flex items-center justify-between gap-3">
             <span id="mobile-tag-picker-label" className="text-xs font-bold text-stone-700 dark:text-stone-300">当前赛道</span>
             <span className="text-[11px] text-stone-400 dark:text-stone-500">共 {tags.length} 个标签</span>
