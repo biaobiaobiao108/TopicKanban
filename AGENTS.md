@@ -94,16 +94,23 @@
 
 ---
 
-## 🎨 四、UI/UX 与温润编辑部设计系统 (The Editorial Design System)
+## 🎨 四、UI/UX 与文人笔记设计系统 (The Literary Editorial Design System)
 
-1. **视觉风格（温润编辑部微质感 Warm Editorial Clean）**：
-   * 保持温润、克制、明亮的浅色编辑部调性（Stone 灰度 + Rose 主强调色）。
-   * **容器卡片**：统一采用 `rounded-2xl border border-stone-200/70 dark:border-stone-800 bg-white dark:bg-stone-900 shadow-2xs`。
-   * **悬停交互**：卡片支持轻盈微抬升 `hover:shadow-card hover:-translate-y-0.5 transition-all duration-200`。
-   * **胶囊徽章 (Tinted Pills)**：状态徽标统一为透底色药丸 `bg-{color}-500/10 text-{color}-700 dark:text-{color}-300 rounded-full font-bold px-2.5 py-0.5 text-xs`。
-   * **表单控件**：输入框与文本域统一为 `rounded-xl border border-stone-200/80 dark:border-stone-700 bg-stone-500/[0.03] dark:bg-stone-800 text-stone-900 dark:text-stone-100 focus:bg-white dark:focus:bg-stone-800 focus:border-rose-500`。
-   * **表单尺寸与提示**：同一组输入控件必须统一 `min-height`、内边距和行高；日期字段默认使用 `min-h-10`。字段格式说明放在 `placeholder` 或帮助文本中，不把冗长格式说明塞进 label；占位符必须明显弱于正文，统一使用 `placeholder:text-stone-400/60 dark:placeholder:text-stone-500/60`，且不能替代可见 label。
-   * **主行动按钮**：`rounded-xl bg-rose-600 hover:bg-rose-700 active:scale-[0.98] text-white font-bold shadow-2xs`。
+1. **风格基调（文人笔记的内敛、克制与纯净质感）**：
+   * **核心色彩系统**：暖白画布（`--canvas`）、白色表面（`--surface`）、石墨文字（`--ink`）、次要微墨（`--ink-muted`）、极细淡线（`--line`）、复古松柏军绿（`--accent` 聚焦/行动强调色）、沉敛朱砂红（`--h1-color` 正文 H1 卷首印章点睛）。
+   * **容器与层级（去表格化、去繁复线条与硬框）**：
+     - 优先依靠留白、自然底色层级（`--canvas` 与 `--surface`）组织信息，避免生硬突兀的粗边框、重阴影与多余的装饰实线；
+     - 侧栏与抽屉（大纲、事实参考、标签栏等）背景与画布背景 `--canvas` 对齐融合；抽屉内部采用自然表面卡片（`--surface`）或轻柔微底色，严禁出现贯穿纵向标尺线、每行底部进度线条等密集表格斑马线与多层嵌套方盒；
+     - 摘录与引用采用出版物规范的左侧单立引线（`border-l-2 border-[var(--accent)]`）或柔和无边框画布背景，杜绝封闭硬方框。
+   * **按钮与交互控件（克制、微交互与无框化）**：
+     - 避免五颜六色、生硬刻板的大胶囊；常规操作按钮、状态徽标与顶栏微操作统一采用无边框轻量微晶片，默认纯净，鼠标悬浮时才平滑响应轻边框或微浅底；
+     - 仅在沉浸写作浮动工具栏等明确需要独立悬浮层次的场景保留圆角胶囊与柔和阴影；
+     - 分段器与 Tab 标签页采用无外边框设计，依靠激活项浅底色（`bg-[var(--surface)]` 或 `bg-[var(--accent)]/10`）体现选中。
+   * **表单控件**：输入框与文本域采用自然浅底微圆角（`rounded-xl bg-stone-500/[0.03] dark:bg-stone-800`，聚焦时呈现松柏强调色）；同一组输入控件统一 `min-height`、内边距和行高；占位符统一使用 `placeholder:text-stone-400 dark:placeholder:text-stone-500`。
+   * **排版与中文输入**：
+     - 左侧主导航与工作台顶栏当前行动模块字号适中清晰，状态表述简洁（杜绝冗余重复，如“14天 14d”）；
+     - 文案编辑器全面兼容中文输入习惯，Markdown 快捷语法对中文全角符号（如 `》` 触发引用块）保持宽容与流畅解析。
+
 2. **全站 UI 统一组件约束**：
    * 全站所有下拉选择交互必须统一使用 `CustomSelect` 自定义组件，严禁在业务界面中使用系统原生 `<select>` 标签。
    * 全站所有日期输入交互必须统一使用 `DateInput` 自定义组件（支持输入 8 位连续数字如 `20260831` 或 ISO 标准串 `2026-08-31`），严禁使用系统原生 `<input type="date">`，避免部分浏览器在直接键入数字时将年份解析为六位数（如 `202608-03-01`）。
@@ -112,6 +119,7 @@
      - 全站所有二次确认与破坏性操作（如移入回收站、永久删除、批量删除、覆盖恢复数据备份等）必须统一使用 `ConfirmDialog` 模态组件（内置 `danger` 玫瑰红、`warning` 琥珀黄、`primary` 墨石黑三种语义色调与异步 `isLoading` 状态）；
      - 所有即时状态轻提示必须统一使用 `useToast`（支持 `success`、`error`、`info`），**严禁在任何业务界面中使用浏览器原生 `window.confirm`、`window.alert` 或 `window.prompt`**；
      - 所有自定义模态弹窗（`Modal` / `ConfirmDialog`）必须通过 `createPortal` 挂载到 `document.body`，且必须内置 `Escape` 键监听、焦点锁定（Focus trap）与 `body` 滚动穿透锁定。
+   * **滚动容器规范**：弹窗尺寸与布局保持稳定防跳变；全站所有局部滚动容器统一使用 `FloatingScrollbar` 组件并隐藏原生滚动条。
    * **异步列表操作**：禁止用共享 `isBusy` / `loading` 状态同时切换整列列表项的 `disabled`、透明度或视觉 class；新增、完成、编辑、删除等操作只锁定目标项，新增表单使用自身 `isSubmitting` 防重复。操作期间未受影响项的 checkbox、DOM 节点和布局必须保持稳定，避免整列闪烁。
 3. **移动端深度适配 (Mobile First on iOS Safari)**：
    * 必须保持 iPhone Safari 兼容性（包括 `safe-area-inset-bottom` 适配、底部导航 Dock、侧滑抽屉、触控点尺寸）。
