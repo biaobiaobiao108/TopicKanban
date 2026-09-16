@@ -538,6 +538,22 @@ interface PendingDraftRecord {
   cached_at: string;
 }
 
+interface PendingDraftMemoryCache {
+  currentStorageValue: string | null;
+  legacyStorageValue: string | null;
+  records: Record<string, PendingDraftRecord>;
+}
+
+let pendingDraftMemoryCache: PendingDraftMemoryCache | null = null;
+
+if (typeof window !== 'undefined') {
+  window.addEventListener('storage', (event) => {
+    if (event.key === PENDING_DRAFTS_KEY || event.key === LEGACY_PENDING_DRAFTS_KEY) {
+      pendingDraftMemoryCache = null;
+    }
+  });
+}
+
 function isPendingDraftRecord(value: unknown): value is PendingDraftRecord {
   if (!value || typeof value !== 'object') return false;
   const candidate = value as Partial<PendingDraftRecord>;
@@ -568,23 +584,36 @@ function boundPendingDrafts(records: Record<string, PendingDraftRecord>, now = D
 
 function readPendingDrafts(): Record<string, PendingDraftRecord> {
   try {
-    const current = JSON.parse(localStorage.getItem(PENDING_DRAFTS_KEY) || '{}') as Record<string, unknown>;
+    const currentStorageValue = localStorage.getItem(PENDING_DRAFTS_KEY);
+    const legacyStorageValue = localStorage.getItem(LEGACY_PENDING_DRAFTS_KEY);
+    if (pendingDraftMemoryCache
+      && pendingDraftMemoryCache.currentStorageValue === currentStorageValue
+      && pendingDraftMemoryCache.legacyStorageValue === legacyStorageValue) {
+      return pendingDraftMemoryCache.records;
+    }
+
+    const current = JSON.parse(currentStorageValue || '{}') as Record<string, unknown>;
     const validCurrent = Object.fromEntries(
       Object.entries(current).filter(([, record]) => isPendingDraftRecord(record))
     ) as Record<string, PendingDraftRecord>;
-    if (Object.keys(validCurrent).length > 0) return boundPendingDrafts(validCurrent);
-    const legacy = JSON.parse(localStorage.getItem(LEGACY_PENDING_DRAFTS_KEY) || '{}') as Record<string, unknown>;
-    const migrated = Object.fromEntries(Object.entries(legacy)
-      .filter(([, draft]) => draft && typeof draft === 'object')
-      .map(([topicId, draft]) => {
-        const typedDraft = draft as Draft;
-        return [topicId, {
-          draft: typedDraft,
-          base_version: typedDraft.version || 0,
-          cached_at: typedDraft.updated_at,
-        }];
-      })) as Record<string, PendingDraftRecord>;
-    return boundPendingDrafts(migrated);
+    const records = Object.keys(validCurrent).length > 0
+      ? boundPendingDrafts(validCurrent)
+      : (() => {
+        const legacy = JSON.parse(legacyStorageValue || '{}') as Record<string, unknown>;
+        const migrated = Object.fromEntries(Object.entries(legacy)
+          .filter(([, draft]) => draft && typeof draft === 'object')
+          .map(([topicId, draft]) => {
+            const typedDraft = draft as Draft;
+            return [topicId, {
+              draft: typedDraft,
+              base_version: typedDraft.version || 0,
+              cached_at: typedDraft.updated_at,
+            }];
+          })) as Record<string, PendingDraftRecord>;
+        return boundPendingDrafts(migrated);
+      })();
+    pendingDraftMemoryCache = { currentStorageValue, legacyStorageValue, records };
+    return records;
   } catch {
     return {};
   }
@@ -595,8 +624,15 @@ function writePendingDraft(record: PendingDraftRecord | null, topicId: string): 
     const pending = readPendingDrafts();
     if (record) pending[topicId] = record;
     else delete pending[topicId];
-    localStorage.setItem(PENDING_DRAFTS_KEY, JSON.stringify(boundPendingDrafts(pending)));
+    const bounded = boundPendingDrafts(pending);
+    const serialized = JSON.stringify(bounded);
+    localStorage.setItem(PENDING_DRAFTS_KEY, serialized);
     localStorage.removeItem(LEGACY_PENDING_DRAFTS_KEY);
+    pendingDraftMemoryCache = {
+      currentStorageValue: serialized,
+      legacyStorageValue: null,
+      records: bounded,
+    };
   } catch (error) {
     console.error('Draft recovery cache write failed', error);
   }

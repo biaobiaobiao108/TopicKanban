@@ -4,6 +4,15 @@ import { bind } from './shared';
 
 const MAX_TOPIC_BATCH_QUERY_IDS = 500;
 
+function appendToRelationMap<T>(map: Map<string, T[]>, key: string, value: T): void {
+  const values = map.get(key);
+  if (values) {
+    values.push(value);
+  } else {
+    map.set(key, [value]);
+  }
+}
+
 export async function loadTopics(db: SqliteDatabase, scope: 'active' | 'trash' | 'all' = 'active'): Promise<Topic[]> {
   const topicFilter = scope === 'active'
     ? 'WHERE t.deleted_at IS NULL'
@@ -19,37 +28,38 @@ export async function loadTopics(db: SqliteDatabase, scope: 'active' | 'trash' |
       COALESCE((SELECT word_count FROM drafts d WHERE d.topic_id = t.id LIMIT 1), 0) AS draft_word_count
       FROM topics t ${topicFilter}
       ORDER BY t.is_pinned DESC, t.sort_order ASC, t.updated_at DESC`),
-    db.prepare('SELECT topic_id, tag_id FROM topic_tags'),
-    db.prepare('SELECT topic_id, person_id FROM topic_people'),
-    db.prepare('SELECT id, name, color FROM tags'),
-    db.prepare('SELECT * FROM people'),
+    db.prepare(`SELECT tt.topic_id, tg.*
+      FROM topic_tags tt
+      INNER JOIN tags tg ON tg.id = tt.tag_id
+      INNER JOIN topics t ON t.id = tt.topic_id
+      ${topicFilter}`),
+    db.prepare(`SELECT tp.topic_id, p.*
+      FROM topic_people tp
+      INNER JOIN people p ON p.id = tp.person_id
+      INNER JOIN topics t ON t.id = tp.topic_id
+      ${topicFilter}`),
     db.prepare(`SELECT * FROM topic_todos
       WHERE completed_at IS NULL
+        AND topic_id IN (SELECT t.id FROM topics t ${topicFilter})
       ORDER BY topic_id ASC, sort_order ASC, created_at ASC`),
   ]);
 
   const topicRows = results[0].results as unknown as Topic[];
-  const topicTags = results[1].results as unknown as Array<{ topic_id: string; tag_id: string }>;
-  const topicPeople = results[2].results as unknown as Array<{ topic_id: string; person_id: string }>;
-  const tags = results[3].results as unknown as Tag[];
-  const people = results[4].results as unknown as Person[];
-  const currentTodos = results[5].results as unknown as TopicTodo[];
+  const topicTags = results[1].results as unknown as Array<Tag & { topic_id: string }>;
+  const topicPeople = results[2].results as unknown as Array<Person & { topic_id: string }>;
+  const currentTodos = results[3].results as unknown as TopicTodo[];
   const currentTodoByTopic = new Map<string, TopicTodo>();
   currentTodos.forEach((todo) => {
     if (!currentTodoByTopic.has(todo.topic_id)) currentTodoByTopic.set(todo.topic_id, todo);
   });
-  const tagMap = new Map(tags.map((tag) => [tag.id, tag]));
-  const personMap = new Map(people.map((person) => [person.id, person]));
   const tagsByTopic = new Map<string, Tag[]>();
   const peopleByTopic = new Map<string, Person[]>();
 
-  topicTags.forEach(({ topic_id, tag_id }) => {
-    const tag = tagMap.get(tag_id);
-    if (tag) tagsByTopic.set(topic_id, [...(tagsByTopic.get(topic_id) || []), tag]);
+  topicTags.forEach(({ topic_id, ...tag }) => {
+    appendToRelationMap(tagsByTopic, topic_id, tag);
   });
-  topicPeople.forEach(({ topic_id, person_id }) => {
-    const person = personMap.get(person_id);
-    if (person) peopleByTopic.set(topic_id, [...(peopleByTopic.get(topic_id) || []), person]);
+  topicPeople.forEach(({ topic_id, ...person }) => {
+    appendToRelationMap(peopleByTopic, topic_id, person);
   });
 
   return topicRows.map((topic) => ({
@@ -273,9 +283,17 @@ export async function loadTopicPage(db: SqliteDatabase, options: TopicPageOption
     (currentTodoResult.results as unknown as TopicTodo[]).forEach((todo) => {
       if (!currentTodoByTopic.has(todo.topic_id)) currentTodoByTopic.set(todo.topic_id, todo);
     });
+    const tagsByTopic = new Map<string, Array<Tag & { topic_id: string }>>();
+    const peopleByTopic = new Map<string, Array<Person & { topic_id: string }>>();
+    (tagResult.results as unknown as Array<Tag & { topic_id: string }>).forEach((tag) => {
+      appendToRelationMap(tagsByTopic, tag.topic_id, tag);
+    });
+    (personResult.results as unknown as Array<Person & { topic_id: string }>).forEach((person) => {
+      appendToRelationMap(peopleByTopic, person.topic_id, person);
+    });
     rows.forEach((topic) => {
-      topic.tags = (tagResult.results as unknown as Array<Tag & { topic_id: string }>).filter((tag) => tag.topic_id === topic.id);
-      topic.people = (personResult.results as unknown as Array<Person & { topic_id: string }>).filter((person) => person.topic_id === topic.id);
+      topic.tags = tagsByTopic.get(topic.id) || [];
+      topic.people = peopleByTopic.get(topic.id) || [];
       topic.current_todo = currentTodoByTopic.get(topic.id) || null;
     });
   }
@@ -364,10 +382,10 @@ export async function loadTopicBatch(db: SqliteDatabase, ids: string[]): Promise
   const peopleByTopic = new Map<string, Person[]>();
   const currentTodoByTopic = new Map<string, TopicTodo>();
   (results[1].results as unknown as Array<Tag & { topic_id: string }>).forEach((tag) => {
-    tagsByTopic.set(tag.topic_id, [...(tagsByTopic.get(tag.topic_id) || []), tag]);
+    appendToRelationMap(tagsByTopic, tag.topic_id, tag);
   });
   (results[2].results as unknown as Array<Person & { topic_id: string }>).forEach((person) => {
-    peopleByTopic.set(person.topic_id, [...(peopleByTopic.get(person.topic_id) || []), person]);
+    appendToRelationMap(peopleByTopic, person.topic_id, person);
   });
   (results[3].results as unknown as TopicTodo[]).forEach((todo) => {
     if (!currentTodoByTopic.has(todo.topic_id)) currentTodoByTopic.set(todo.topic_id, todo);

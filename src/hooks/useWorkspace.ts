@@ -61,8 +61,10 @@ export function useWorkspace(enabled: boolean, view: string = 'today') {
     queryClient.setQueryData<BootstrapData>(['workspace'], (current) => current ? updater(current) : current);
   }, [queryClient]);
 
-  const createEntitySetter = useCallback(<T,>(key: keyof BootstrapData, queryKey?: string[]) => (
-    updater: SetStateAction<T[]>
+  const updateEntity = useCallback(<T,>(
+    key: keyof BootstrapData,
+    queryKey: string[] | undefined,
+    updater: SetStateAction<T[]>,
   ) => {
     if (queryKey) {
       queryClient.setQueryData<T[]>(queryKey, (current = []) => (
@@ -78,11 +80,21 @@ export function useWorkspace(enabled: boolean, view: string = 'today') {
     });
   }, [queryClient, updateWorkspace]);
 
-  const setTopics = createEntitySetter<Topic>('topics');
-  const setPeople = createEntitySetter<Person>('people', ['people']);
-  const setRelationships = createEntitySetter<PersonRelationship>('relationships', ['relationships']);
-  const setPublishedList = createEntitySetter<PublishedVideo>('published', ['published']);
-  const setTags = createEntitySetter<Tag>('tags', ['tags']);
+  const setTopics = useCallback((updater: SetStateAction<Topic[]>) => {
+    updateEntity('topics', undefined, updater);
+  }, [updateEntity]);
+  const setPeople = useCallback((updater: SetStateAction<Person[]>) => {
+    updateEntity('people', ['people'], updater);
+  }, [updateEntity]);
+  const setRelationships = useCallback((updater: SetStateAction<PersonRelationship[]>) => {
+    updateEntity('relationships', ['relationships'], updater);
+  }, [updateEntity]);
+  const setPublishedList = useCallback((updater: SetStateAction<PublishedVideo[]>) => {
+    updateEntity('published', ['published'], updater);
+  }, [updateEntity]);
+  const setTags = useCallback((updater: SetStateAction<Tag[]>) => {
+    updateEntity('tags', ['tags'], updater);
+  }, [updateEntity]);
   const setTrashedTopics = useCallback((updater: SetStateAction<Topic[]>) => {
     queryClient.setQueryData<Topic[]>(['topics', 'trash'], (current = []) => (
       typeof updater === 'function' ? updater(current) : updater

@@ -33,6 +33,27 @@ const DEAL_STATUS_LABELS: Record<CommercialDeal['status'], string> = {
   archived: '归档',
 };
 
+function compareFocusTopics(a: Topic, b: Topic): number {
+  if (a.is_pinned !== b.is_pinned) return (b.is_pinned || 0) - (a.is_pinned || 0);
+  const activeDiff = Number(ACTIVE_FOCUS_STATUSES.has(b.status)) - Number(ACTIVE_FOCUS_STATUSES.has(a.status));
+  if (activeDiff !== 0) return activeDiff;
+  if (FOCUS_PRIORITY[a.priority] !== FOCUS_PRIORITY[b.priority]) {
+    return FOCUS_PRIORITY[b.priority] - FOCUS_PRIORITY[a.priority];
+  }
+  return new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime();
+}
+
+function takeMostRecentTopics(topics: Topic[], limit: number): Topic[] {
+  if (limit <= 0) return [];
+  const recent: Topic[] = [];
+  topics.forEach((topic) => {
+    recent.push(topic);
+    recent.sort((a, b) => new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime());
+    if (recent.length > limit) recent.pop();
+  });
+  return recent;
+}
+
 function DealFocusCard({ deal, onOpen }: { deal: CommercialDeal; onOpen: () => void }) {
   const deliveryDate = useActionDateDisplay(deal.delivery_due_date, !['delivered', 'archived'].includes(deal.status));
   const isDue = deliveryDate.state === 'today' || deliveryDate.state === 'overdue';
@@ -100,39 +121,32 @@ export const TodayView: React.FC<TodayViewProps> = ({
 
   // Main focus: the unique active pin first, then production stage, priority and recency.
   const focusTopic = useMemo(() => {
-    return [...activeTopics]
-      .sort((a, b) => {
-        if (a.is_pinned !== b.is_pinned) return (b.is_pinned || 0) - (a.is_pinned || 0);
-        const activeDiff = Number(ACTIVE_FOCUS_STATUSES.has(b.status)) - Number(ACTIVE_FOCUS_STATUSES.has(a.status));
-        if (activeDiff !== 0) return activeDiff;
-        if (FOCUS_PRIORITY[a.priority] !== FOCUS_PRIORITY[b.priority]) {
-          return FOCUS_PRIORITY[b.priority] - FOCUS_PRIORITY[a.priority];
-        }
-        return new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime();
-      })[0] || null;
+    return activeTopics.reduce<Topic | null>((best, topic) => {
+      if (!best || compareFocusTopics(topic, best) < 0) return topic;
+      return best;
+    }, null);
   }, [activeTopics]);
 
   const actionProgress = useMemo(() => {
-    const missingAction = activeTopics.filter((topic) => !topic.current_todo);
-    const staleAction = activeTopics.filter((topic) => topic.current_todo && getCurrentActionAgeDays(topic) >= staleActionDays);
-    const attention = [
-      ...missingAction,
-      ...staleAction.filter((topic) => !missingAction.some((item) => item.id === topic.id)),
-    ].slice(0, 3);
+    const missingAction: Topic[] = [];
+    const staleAction: Topic[] = [];
+    activeTopics.forEach((topic) => {
+      if (!topic.current_todo) {
+        missingAction.push(topic);
+      } else if (getCurrentActionAgeDays(topic) >= staleActionDays) {
+        staleAction.push(topic);
+      }
+    });
     return {
       missingAction,
       staleAction,
-      attention,
+      attention: [...missingAction, ...staleAction].slice(0, 3),
       covered: activeTopics.length - missingAction.length,
     };
   }, [activeTopics, staleActionDays]);
 
   // Recently updated stream
-  const recentUpdates = useMemo(() => {
-    return [...topics]
-      .sort((a, b) => new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime())
-      .slice(0, 8);
-  }, [topics]);
+  const recentUpdates = useMemo(() => takeMostRecentTopics(topics, 8), [topics]);
   const focusDeals = useMemo(() => {
     const seen = new Set<string>();
     return [...dealFocus.due_items, ...dealFocus.unpaid_items].filter((deal) => {

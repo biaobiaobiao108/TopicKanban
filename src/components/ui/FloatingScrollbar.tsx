@@ -42,15 +42,21 @@ export const FloatingScrollbar = forwardRef<HTMLDivElement, FloatingScrollbarPro
     const [isDragging, setIsDragging] = useState(false);
 
     const hideTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+    const metricsFrameRef = useRef<number | null>(null);
+    const isVisibleRef = useRef(false);
     const dragStartYRef = useRef(0);
     const dragStartScrollTopRef = useRef(0);
 
     const showThumb = useCallback(() => {
-      setIsVisible(true);
+      if (!isVisibleRef.current) {
+        isVisibleRef.current = true;
+        setIsVisible(true);
+      }
       if (hideTimerRef.current) {
         clearTimeout(hideTimerRef.current);
       }
       hideTimerRef.current = setTimeout(() => {
+        isVisibleRef.current = false;
         setIsVisible(false);
       }, autoHideDelay);
     }, [autoHideDelay]);
@@ -61,12 +67,12 @@ export const FloatingScrollbar = forwardRef<HTMLDivElement, FloatingScrollbarPro
 
       const { scrollTop, scrollHeight, clientHeight } = container;
       if (scrollHeight <= clientHeight + 2) {
-        setIsScrollable(false);
-        setThumbHeight(0);
+        setIsScrollable((current) => current ? false : current);
+        setThumbHeight((current) => current === 0 ? current : 0);
         return;
       }
 
-      setIsScrollable(true);
+      setIsScrollable((current) => current ? current : true);
       const computedThumbHeight = Math.max(
         minThumbSize,
         Math.round((clientHeight / scrollHeight) * clientHeight)
@@ -75,12 +81,24 @@ export const FloatingScrollbar = forwardRef<HTMLDivElement, FloatingScrollbarPro
       const maxThumbTop = clientHeight - computedThumbHeight - 4; // 2px top & bottom margin
       const computedThumbTop = 2 + (scrollTop / maxScrollTop) * maxThumbTop;
 
-      setThumbHeight(computedThumbHeight);
-      setThumbTop(computedThumbTop);
+      setThumbHeight((current) => current === computedThumbHeight ? current : computedThumbHeight);
+      setThumbTop((current) => Math.abs(current - computedThumbTop) < 0.5 ? current : computedThumbTop);
     }, [minThumbSize]);
 
+    const scheduleScrollMetrics = useCallback(() => {
+      if (typeof window === 'undefined' || typeof window.requestAnimationFrame !== 'function') {
+        updateScrollMetrics();
+        return;
+      }
+      if (metricsFrameRef.current !== null) return;
+      metricsFrameRef.current = window.requestAnimationFrame(() => {
+        metricsFrameRef.current = null;
+        updateScrollMetrics();
+      });
+    }, [updateScrollMetrics]);
+
     const handleScroll = (e: React.UIEvent<HTMLDivElement>) => {
-      updateScrollMetrics();
+      scheduleScrollMetrics();
       showThumb();
       if (onScroll) {
         onScroll(e);
@@ -94,22 +112,29 @@ export const FloatingScrollbar = forwardRef<HTMLDivElement, FloatingScrollbarPro
 
       updateScrollMetrics();
 
-      const observer = new ResizeObserver(() => {
-        updateScrollMetrics();
+      const observer = typeof ResizeObserver === 'undefined' ? null : new ResizeObserver(() => {
+        scheduleScrollMetrics();
       });
 
-      observer.observe(container);
-      if (container.firstElementChild) {
-        observer.observe(container.firstElementChild);
+      if (observer) {
+        observer.observe(container);
+        if (container.firstElementChild) {
+          observer.observe(container.firstElementChild);
+        }
       }
 
       return () => {
-        observer.disconnect();
+        observer?.disconnect();
+        if (metricsFrameRef.current !== null && typeof window !== 'undefined') {
+          window.cancelAnimationFrame(metricsFrameRef.current);
+          metricsFrameRef.current = null;
+        }
         if (hideTimerRef.current) {
           clearTimeout(hideTimerRef.current);
+          hideTimerRef.current = null;
         }
       };
-    }, [updateScrollMetrics]);
+    }, [scheduleScrollMetrics, updateScrollMetrics]);
 
     // Handle thumb dragging
     const handleThumbPointerDown = (e: React.PointerEvent<HTMLDivElement>) => {
@@ -120,6 +145,7 @@ export const FloatingScrollbar = forwardRef<HTMLDivElement, FloatingScrollbarPro
       if (!container) return;
 
       setIsDragging(true);
+      isVisibleRef.current = true;
       setIsVisible(true);
       if (hideTimerRef.current) {
         clearTimeout(hideTimerRef.current);
@@ -165,7 +191,7 @@ export const FloatingScrollbar = forwardRef<HTMLDivElement, FloatingScrollbarPro
         className={`relative min-h-0 min-w-0 flex-1 overflow-hidden ${wrapperClassName}`}
         style={wrapperStyle}
         onPointerEnter={() => {
-          updateScrollMetrics();
+          scheduleScrollMetrics();
           showThumb();
         }}
       >
