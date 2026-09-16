@@ -134,9 +134,16 @@ export const ScriptOutlinePanel: React.FC<ScriptOutlinePanelProps> = ({
   };
 
   return (
-    <aside className="script-outline-panel absolute left-3 sm:left-4 top-3 sm:top-4 bottom-3 sm:bottom-4 z-30 flex w-72 sm:w-80 flex-col rounded-xl bg-[var(--canvas)] border border-[var(--line)] shadow-md animate-in slide-in-from-left duration-200 overflow-hidden">
-      {/* Ambient Header */}
-      <div className="flex shrink-0 items-center justify-between gap-2 h-11 px-3.5 border-b border-[var(--line)] bg-[var(--canvas)]">
+    <>
+      {/* Mobile/Tablet Backdrop for light-dismiss */}
+      <div
+        className="fixed inset-0 z-20 bg-black/15 dark:bg-black/40 xl:hidden backdrop-blur-xs transition-opacity animate-in fade-in duration-150"
+        onClick={onClose}
+        aria-hidden="true"
+      />
+      <aside className="script-outline-panel absolute left-0 top-0 bottom-0 h-full z-30 flex w-72 sm:w-80 flex-col border-r border-[var(--line)] bg-[var(--canvas)] shadow-xl xl:shadow-none animate-in slide-in-from-left duration-200 overflow-hidden">
+        {/* Ambient Header */}
+        <div className="flex shrink-0 items-center justify-between gap-2 h-11 px-3.5 border-b border-[var(--line)] bg-[var(--canvas)]">
         <div className="flex items-center gap-2 min-w-0">
           <div className="p-1 rounded-[var(--radius-sm)] bg-[var(--accent-soft)] text-[var(--accent-dark)]">
             <Compass className="h-3.5 w-3.5 shrink-0" />
@@ -228,5 +235,6 @@ export const ScriptOutlinePanel: React.FC<ScriptOutlinePanelProps> = ({
         )}
       </FloatingScrollbar>
     </aside>
-  );
+  </>
+);
 };
