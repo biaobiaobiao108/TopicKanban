@@ -325,13 +325,13 @@
 .script-editor-title,
 .script-editor-font-stack,
 .script-editor-canvas-container .tiptap {
-  font-family: "霞鹜文楷", "LXGW WenKai", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  font-family: "LXGW WenKai", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
   font-synthesis: weight;
   font-size-adjust: from-font;
 }
 
 .script-editor-font-stack :where(p, h1, h2, h3, h4, h5, h6, blockquote, ul, ol, li, strong, em, a, code, mark, span) {
-  font-family: "霞鹜文楷", "LXGW WenKai", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif !important;
+  font-family: "LXGW WenKai", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif !important;
   font-synthesis: weight;
   font-size-adjust: from-font;
 }
@@ -344,11 +344,11 @@
 }
 
 .script-editor-canvas-container .tiptap code {
-  font-family: "霞鹜文楷", "LXGW WenKai", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif !important;
+  font-family: "LXGW WenKai", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif !important;
 }
 
 .script-editor-canvas-container .tiptap h1 {
-  font-family: "霞鹜文楷", "LXGW WenKai", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif !important;
+  font-family: "LXGW WenKai", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif !important;
   color: var(--h1-color) !important;
 }
 
