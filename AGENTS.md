@@ -161,6 +161,8 @@ bun run test:e2e
 
 其中 `test:e2e` 已通过 `bun run --bun playwright test` 强制 Playwright 在 Bun 运行时下执行。
 
+* **Chrome E2E 约定**：依赖本机 Chrome 的 E2E 测试不在本地执行，也不要为此修改 Chrome 配置；推送到 GitHub 后由 CI 运行，以 GitHub Actions 结果为准。
+
 * **本地开发**：`bun run dev`（启动 Bun HTML Bundler 热重载与本地 Bun API 的单进程全栈服务）
 * **分级验证命令指引**：
   * **按需局部单测（日常开发首选）**：`bun test tests/<module>.test.ts` 或 `bun test <filter>`（毫秒级定向反馈）；
