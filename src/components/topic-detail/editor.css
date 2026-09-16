@@ -26,9 +26,8 @@
   align-items: center;
   justify-content: space-between;
   gap: 12px;
-  padding: 16px 16px 13px;
-  border-bottom: 1px solid var(--line);
-  background: var(--surface);
+  padding: 16px 16px 14px;
+  background: transparent;
 }
 
 .script-outline-heading {
@@ -48,7 +47,6 @@
   margin: 4px 0 0;
   overflow: hidden;
   color: var(--ink-muted);
-  font-family: ui-monospace, SFMono-Regular, Consolas, "Liberation Mono", monospace;
   font-size: 0.68rem;
   font-variant-numeric: tabular-nums;
   line-height: 1.35;
@@ -63,7 +61,7 @@
   gap: 4px;
   min-height: 32px;
   padding: 0 7px;
-  border: 1px solid transparent;
+  border: 0;
   border-radius: var(--radius-sm);
   background: transparent;
   color: var(--ink-muted);
@@ -71,11 +69,10 @@
   font-weight: 600;
   white-space: nowrap;
   cursor: pointer;
-  transition: color 150ms ease, background-color 150ms ease, border-color 150ms ease, transform 150ms ease;
+  transition: color 150ms ease, background-color 150ms ease, transform 150ms ease;
 }
 
 .script-outline-back-button:hover {
-  border-color: var(--line);
   background: var(--canvas);
   color: var(--accent-dark);
   transform: translateX(-1px);
@@ -90,7 +87,7 @@
 
 .script-outline-scroll {
   height: 100%;
-  padding: 14px 16px 26px;
+  padding: 12px 16px 26px;
 }
 
 .script-outline-content,
@@ -104,39 +101,18 @@
   position: relative;
   display: flex;
   flex-direction: column;
-  gap: 2px;
+  gap: 4px;
   margin: 0;
   padding: 0;
   list-style: none;
 }
 
 .script-outline-list .script-outline-list {
-  margin-top: 2px;
+  margin-top: 4px;
 }
 
 .script-outline-item {
   position: relative;
-}
-
-.script-outline-item--level-2::before,
-.script-outline-item--level-3::before,
-.script-outline-item--level-3::after {
-  position: absolute;
-  top: 0;
-  bottom: 0;
-  width: 1px;
-  background: color-mix(in srgb, var(--ink) 10%, transparent);
-  content: "";
-  pointer-events: none;
-}
-
-.script-outline-item--level-2::before,
-.script-outline-item--level-3::before {
-  left: 13px;
-}
-
-.script-outline-item--level-3::after {
-  left: 26px;
 }
 
 .script-outline-item-button {
@@ -146,12 +122,12 @@
   width: 100%;
   max-width: 100%;
   min-width: 0;
-  border: 1px solid transparent;
+  border: 0;
   border-radius: var(--radius-sm);
   background: transparent;
   text-align: left;
   cursor: pointer;
-  transition: background-color 150ms ease, border-color 150ms ease, color 150ms ease, transform 150ms ease;
+  transition: background-color 150ms ease, color 150ms ease, transform 150ms ease, box-shadow 150ms ease;
 }
 
 .script-outline-item--level-1 .script-outline-item-button {
@@ -238,14 +214,13 @@
 }
 
 .script-outline-item-button:hover {
-  border-color: var(--line);
-  background: var(--canvas);
+  background: color-mix(in srgb, var(--surface) 78%, transparent);
   transform: translateX(1px);
 }
 
 .script-outline-item-button[aria-current="true"] {
-  border-color: color-mix(in srgb, currentColor 16%, transparent);
   background: var(--accent-soft);
+  box-shadow: inset 2px 0 0 var(--accent);
 }
 
 .script-outline-item-button[aria-current="true"] .script-outline-item-stats {
@@ -265,8 +240,8 @@
   justify-content: space-between;
   gap: 8px;
   min-height: 33px;
-  margin-bottom: 4px;
-  padding: 7px 10px;
+  margin-bottom: 6px;
+  padding: 3px 8px 5px;
   border-radius: var(--radius-sm);
   color: var(--ink-muted);
   font-size: 0.76rem;
@@ -274,9 +249,7 @@
 }
 
 .script-outline-footer {
-  margin-top: 14px;
-  padding-top: 12px;
-  border-top: 1px solid var(--line);
+  margin-top: 18px;
 }
 
 .script-outline-insert-button {

@@ -62,15 +62,17 @@ function TagMetricCard({
   };
 
   return (
-    <div className="rounded-2xl border border-[var(--line)] bg-[var(--surface)] p-4 shadow-2xs sm:p-5">
-      <div className="flex items-center justify-between gap-3">
-        <span className={`grid h-9 w-9 shrink-0 place-items-center rounded-xl ${tones[tone]}`}>
-          {icon}
-        </span>
-        <span className="truncate text-[11px] font-medium text-[var(--ink-muted)]">{detail}</span>
+    <div className="flex h-full min-h-[4.5rem] items-center gap-2 rounded-2xl border border-[var(--line)] bg-[var(--surface)] px-3 py-3 shadow-2xs sm:gap-3 sm:px-4">
+      <span className={`grid h-7 w-7 shrink-0 place-items-center rounded-lg sm:h-8 sm:w-8 ${tones[tone]}`}>
+        {icon}
+      </span>
+      <div className="min-w-0 flex-1">
+        <p className="min-w-0 truncate text-[11px] font-semibold leading-tight text-[var(--ink-muted)]">{label}</p>
+        <div className="mt-1 flex min-w-0 items-baseline gap-1.5">
+          <p className="min-w-0 truncate text-[1.05rem] font-bold leading-tight tracking-tight text-[var(--ink)] sm:text-lg">{value}</p>
+          <span className="shrink-0 text-[10px] font-medium leading-tight text-[var(--ink-muted)]">{detail}</span>
+        </div>
       </div>
-      <p className="mt-3 text-xs font-semibold text-[var(--ink-muted)]">{label}</p>
-      <p className="mt-1 min-w-0 truncate text-xl font-bold tracking-tight text-[var(--ink)]">{value}</p>
     </div>
   );
 }
@@ -248,7 +250,7 @@ export const TagsView: React.FC<TagsViewProps> = ({
           )}
         />
 
-        <section aria-label="标签资产概览" className="tags-metrics-container grid grid-cols-2 gap-3 lg:grid-cols-4">
+        <section aria-label="标签资产概览" className="tags-metrics-container grid grid-cols-2 gap-2.5 lg:grid-cols-4">
           <TagMetricCard
             icon={<Layers className="h-4 w-4" aria-hidden="true" />}
             label="赛道标签总数"
