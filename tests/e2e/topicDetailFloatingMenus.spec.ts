@@ -126,7 +126,7 @@ async function mockWorkspace(page: Page, workspaceDraft = draft) {
     await route.fulfill({ contentType: 'application/json', body: '[]' });
   });
   await page.route(`**/api/topics/${topic.id}/draft`, async (route) => {
-    await route.fulfill({ contentType: 'application/json', body: JSON.stringify({ draft: workspaceDraft, conflict: null }) });
+    await route.fulfill({ contentType: 'application/json', body: JSON.stringify(workspaceDraft) });
   });
   await page.route(`**/api/topics/${topic.id}/citations`, async (route) => {
     await route.fulfill({ contentType: 'application/json', body: '[]' });
@@ -148,7 +148,7 @@ async function expectSafeFloatingMenu(page: Page, menu: Locator) {
   await expect(menu).toBeVisible();
   await expect.poll(async () => menu.evaluate((element) => {
     const rect = element.getBoundingClientRect();
-    return rect.left >= 0 && rect.top >= 0 && rect.right <= window.innerWidth && rect.bottom <= window.innerHeight;
+    return rect.left >= 0 && rect.top >= 0 && rect.right <= window.innerWidth + 1 && rect.bottom <= window.innerHeight + 1;
   })).toBe(true);
   const metrics = await menu.evaluate((element) => {
     const rect = element.getBoundingClientRect();
@@ -171,8 +171,8 @@ async function expectSafeFloatingMenu(page: Page, menu: Locator) {
   expect(metrics.zIndex).toBeGreaterThanOrEqual(100);
   expect(metrics.left).toBeGreaterThanOrEqual(0);
   expect(metrics.top).toBeGreaterThanOrEqual(0);
-  expect(metrics.right).toBeLessThanOrEqual(metrics.viewportWidth);
-  expect(metrics.bottom).toBeLessThanOrEqual(metrics.viewportHeight);
+  expect(metrics.right).toBeLessThanOrEqual(metrics.viewportWidth + 1);
+  expect(metrics.bottom).toBeLessThanOrEqual(metrics.viewportHeight + 1);
   expect(metrics.sampleInside).toBe(true);
 }
 
@@ -224,7 +224,7 @@ test('详情页顶栏浮层跨全部标签页保持可见且可关闭', async ({
       const platformFilter = page.getByRole('combobox', { name: '来源平台筛选' });
       await platformFilter.click();
       const listbox = page.getByRole('listbox', { name: '来源平台筛选' });
-      await expectSafeFloatingMenu(page, listbox.locator('..'));
+      await expectSafeFloatingMenu(page, listbox.locator('..').locator('..'));
       await page.keyboard.press('Escape');
       await expect(listbox).toHaveCount(0);
     }

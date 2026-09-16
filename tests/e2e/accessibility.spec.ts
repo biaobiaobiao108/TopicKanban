@@ -105,7 +105,7 @@ test('指令面板和快速新建弹层支持焦点循环与恢复', async ({ pa
   await login(page);
   await page.waitForTimeout(100);
 
-  const quickCreateTrigger = page.locator('button[aria-label="新选题"]:visible').first();
+  const quickCreateTrigger = page.locator('button[aria-label="新建选题"]:visible').first();
   await quickCreateTrigger.focus();
   await quickCreateTrigger.click();
   const quickCreateDialog = page.getByRole('dialog', { name: '新建选题' });

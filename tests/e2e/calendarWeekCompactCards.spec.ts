@@ -200,7 +200,7 @@ async function mockWorkspace(page: Page, options: { includeCalendarContent?: boo
     await route.fulfill({ contentType: 'application/json', body: '[]' });
   });
   await page.route(`**/api/topics/${calendarTopic.id}/draft`, async (route) => {
-    await route.fulfill({ contentType: 'application/json', body: JSON.stringify({ draft: null, conflict: null }) });
+    await route.fulfill({ contentType: 'application/json', body: 'null' });
   });
   await page.route(`**/api/topics/${calendarTopic.id}/citations`, async (route) => {
     await route.fulfill({ contentType: 'application/json', body: '[]' });
@@ -267,7 +267,7 @@ test('周视图按日期纵向排列并展示舒展商单卡片', async ({ page 
   await expect(backButton).toBeVisible();
   await backButton.click();
   await expect(page).toHaveURL('/calendar?view=week&date=2026-08-28');
-  await expect(page.getByRole('button', { name: '周视图' })).toHaveClass(/bg-white/);
+  await expect(page.getByRole('button', { name: '周视图' })).toHaveClass(/bg-\[var\(--surface\)\]/);
   expect(pageErrors).toEqual([]);
 });
 
@@ -326,6 +326,8 @@ test('看板排期与截稿徽标使用一致的语义字体', async ({ page }) 
     const deadlineStyle = getComputedStyle(deadline);
     const scheduleDate = schedule.querySelector<HTMLElement>('time');
     const deadlineDate = deadline.querySelector<HTMLElement>('time');
+    const scheduleIcon = schedule.querySelector<SVGElement>('svg');
+    const deadlineIcon = deadline.querySelector<SVGElement>('svg');
 
     return {
       schedule: {
@@ -348,13 +350,13 @@ test('看板排期与截稿徽标使用一致的语义字体', async ({ page }) 
         scheduleVariant: scheduleDate ? getComputedStyle(scheduleDate).fontVariantNumeric : '',
         deadlineVariant: deadlineDate ? getComputedStyle(deadlineDate).fontVariantNumeric : '',
       },
-      colors: {
-        schedule: scheduleStyle.color,
-        deadline: deadlineStyle.color,
-      },
       classNames: {
         schedule: schedule.className,
         deadline: deadline.className,
+      },
+      iconColors: {
+        schedule: scheduleIcon ? getComputedStyle(scheduleIcon).color : '',
+        deadline: deadlineIcon ? getComputedStyle(deadlineIcon).color : '',
       },
       metaBackground: getComputedStyle(meta).backgroundColor,
     };
@@ -362,10 +364,9 @@ test('看板排期与截稿徽标使用一致的语义字体', async ({ page }) 
 
   expect(badgeStyles).not.toBeNull();
   expect(badgeStyles?.schedule).toEqual(badgeStyles?.deadline);
-  expect(badgeStyles?.classNames.schedule).toContain('text-rose-');
-  expect(badgeStyles?.classNames.deadline).toContain('text-amber-');
+  expect(badgeStyles?.classNames.schedule).toEqual(badgeStyles?.classNames.deadline);
   expect(badgeStyles?.schedule.fontFamily).not.toContain('JetBrains Mono');
-  expect(badgeStyles?.colors.schedule).not.toBe(badgeStyles?.colors.deadline);
+  expect(badgeStyles?.iconColors.schedule).not.toBe(badgeStyles?.iconColors.deadline);
   expect(badgeStyles?.dates.scheduleFontFamily).toBe(badgeStyles?.dates.deadlineFontFamily);
   expect(badgeStyles?.dates.scheduleVariant).toContain('tabular-nums');
   expect(badgeStyles?.dates.deadlineVariant).toContain('tabular-nums');
@@ -534,7 +535,7 @@ test('日历各类事项跳转后都能返回原周视图', async ({ page }) => 
   await expect(publishedBackButton).toBeVisible();
   await publishedBackButton.click();
   await expect(page).toHaveURL(calendarUrl);
-  await expect(page.getByRole('button', { name: '周视图' })).toHaveClass(/bg-white/);
+  await expect(page.getByRole('button', { name: '周视图' })).toHaveClass(/bg-\[var\(--surface\)\]/);
   expect(new Set(backBarHeights)).toEqual(new Set([64]));
   expect(pageErrors).toEqual([]);
 });

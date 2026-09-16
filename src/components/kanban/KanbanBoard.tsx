@@ -745,7 +745,7 @@ class NonTouchPointerSensor extends PointerSensor {
       </div>
 
       {/* Mobile Stage Selector Pill Bar (iPhone Safari optimized) */}
-      <div data-testid="kanban-mobile-stage-tabs" className="md:hidden flex shrink-0 items-center gap-1.5 overflow-x-auto no-scrollbar -mx-2 rounded-[var(--radius-sm)] bg-[var(--canvas)] border border-[var(--line)] p-1 transition-colors">
+      <div data-testid="kanban-mobile-stage-tabs" className="md:hidden flex min-h-9 shrink-0 items-center gap-1.5 overflow-x-auto no-scrollbar -mx-2 rounded-[var(--radius-sm)] bg-[var(--canvas)] p-1 transition-colors">
         {ACTIVE_COLUMNS.map((col) => {
           const count = columnTotalCounts[col.status] || 0;
           const isActive = mobileActiveStage === col.status;

@@ -154,7 +154,7 @@ async function mockWorkspace(page: Page, options: { withCurrentTodo?: boolean; c
     await route.fulfill({ contentType: 'application/json', body: '[]' });
   });
   await page.route(`**/api/topics/${topic.id}/draft`, async (route) => {
-    await route.fulfill({ contentType: 'application/json', body: JSON.stringify({ draft: null, conflict: null }) });
+    await route.fulfill({ contentType: 'application/json', body: 'null' });
   });
   await page.route(`**/api/topics/${topic.id}/citations`, async (route) => {
     await route.fulfill({ contentType: 'application/json', body: '[]' });
