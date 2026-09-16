@@ -142,34 +142,22 @@ export const ScriptOutlinePanel: React.FC<ScriptOutlinePanelProps> = ({
         aria-hidden="true"
       />
       <aside className="script-outline-panel absolute left-0 top-0 bottom-0 h-full z-30 flex w-72 sm:w-80 flex-col border-r border-[var(--line)] bg-[var(--canvas)] shadow-xl xl:shadow-none animate-in slide-in-from-left duration-200 overflow-hidden">
-        {/* Ambient Header */}
-        <div className="flex shrink-0 items-center justify-between gap-2 h-11 px-3.5 border-b border-[var(--line)] bg-[var(--canvas)]">
-        <div className="flex items-center gap-2 min-w-0">
-          <div className="p-1 rounded-[var(--radius-sm)] bg-[var(--accent-soft)] text-[var(--accent-dark)]">
-            <Compass className="h-3.5 w-3.5 shrink-0" />
-          </div>
-          <h3 className="shrink-0 text-xs font-bold tracking-wide text-[var(--ink)]">叙事大纲</h3>
-          {outline.flatItems.length > 0 && (
-            <span className="rounded-full bg-[var(--surface)] border border-[var(--line)] px-1.5 py-0.2 font-mono text-[10px] font-semibold text-stone-700 dark:text-stone-300">
-              {outline.flatItems.length}
-            </span>
-          )}
-        </div>
-        <div className="flex items-center gap-1.5 shrink-0">
-          <span className="truncate font-mono text-[10px] tabular-nums text-stone-500 dark:text-stone-400">
-            {formatOutlineDuration(outline.totalDurationSeconds)}
+        {/* Top Utility Strip (Title header removed) */}
+        <div className="flex shrink-0 items-center justify-between px-3 py-2 border-b border-[var(--line)] bg-[var(--canvas)]">
+          <span className="font-mono text-[11px] text-stone-500 dark:text-stone-400 tabular-nums">
+            预估 {formatOutlineDuration(outline.totalDurationSeconds)}
+            {outline.flatItems.length > 0 && ` · ${outline.flatItems.length} 章节`}
           </span>
           <button
             type="button"
             aria-label="收起文案大纲"
             onClick={onClose}
-            className="p-1 text-stone-500 dark:text-stone-400 transition-colors hover:text-[var(--ink)] rounded-[var(--radius-sm)] hover:bg-[var(--surface)] cursor-pointer"
+            className="p-1 text-stone-500 dark:text-stone-400 hover:text-[var(--ink)] rounded-[var(--radius-sm)] hover:bg-[var(--surface)] cursor-pointer transition-colors"
             title="收起文案大纲 (Esc)"
           >
-            <X className="h-3.5 w-3.5" />
+            <X className="w-3.5 h-3.5" />
           </button>
         </div>
-      </div>
 
       {/* Navigation List */}
       <FloatingScrollbar className="p-3 space-y-2" wrapperClassName="flex-1 min-h-0">

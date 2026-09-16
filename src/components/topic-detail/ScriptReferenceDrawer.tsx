@@ -10,7 +10,6 @@ import {
   X,
   Plus,
   Check,
-  BookOpen,
 } from 'lucide-react';
 
 interface ScriptReferenceDrawerProps {
@@ -84,37 +83,28 @@ export const ScriptReferenceDrawer: React.FC<ScriptReferenceDrawerProps> = ({
         aria-hidden="true"
       />
       <aside className="script-reference-drawer absolute right-0 top-0 bottom-0 h-full z-30 flex w-80 sm:w-96 flex-col border-l border-[var(--line)] bg-[var(--canvas)] shadow-xl xl:shadow-none animate-in slide-in-from-right duration-200 overflow-hidden">
-        {/* Header */}
-        <div className="flex shrink-0 items-center justify-between gap-2 h-11 px-3.5 border-b border-[var(--line)] bg-[var(--canvas)]">
-        <div className="flex items-center gap-2 min-w-0">
-          <div className="p-1 rounded-[var(--radius-sm)] bg-[var(--accent-soft)] text-[var(--accent-dark)]">
-            <BookOpen className="w-3.5 h-3.5 shrink-0" />
+        {/* Search Input & Close */}
+        <div className="px-3 py-2 shrink-0 border-b border-[var(--line)] bg-[var(--canvas)] flex items-center gap-2">
+          <div className="relative flex-1">
+            <Search className="w-3.5 h-3.5 absolute left-2.5 top-2 text-stone-400 dark:text-stone-500" />
+            <input
+              type="text"
+              placeholder="搜索时间线、人物语录、资料..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="w-full pl-8 pr-3 py-1.5 bg-[var(--surface)] border border-[var(--line)] rounded-[var(--radius-sm)] text-xs text-[var(--ink)] placeholder:text-stone-400 dark:placeholder:text-stone-500 focus:outline-none focus:border-[var(--accent)] transition-colors"
+            />
           </div>
-          <h3 className="shrink-0 text-xs font-bold tracking-wide text-[var(--ink)]">事实参考资料</h3>
+          <button
+            type="button"
+            onClick={onClose}
+            className="p-1 text-stone-500 dark:text-stone-400 hover:text-[var(--ink)] rounded-[var(--radius-sm)] hover:bg-[var(--surface)] cursor-pointer transition-colors shrink-0"
+            title="收起事实参考 (Esc)"
+            aria-label="收起事实参考"
+          >
+            <X className="w-3.5 h-3.5" />
+          </button>
         </div>
-        <button
-          type="button"
-          onClick={onClose}
-          className="p-1 text-stone-500 dark:text-stone-400 hover:text-[var(--ink)] rounded-[var(--radius-sm)] hover:bg-[var(--surface)] cursor-pointer transition-colors"
-          title="收起事实参考 (Esc)"
-        >
-          <X className="w-3.5 h-3.5" />
-        </button>
-      </div>
-
-      {/* Search Input */}
-      <div className="px-3.5 py-2 shrink-0 border-b border-[var(--line)] bg-[var(--canvas)]">
-        <div className="relative">
-          <Search className="w-3.5 h-3.5 absolute left-2.5 top-2.5 text-stone-400 dark:text-stone-500" />
-          <input
-            type="text"
-            placeholder="搜索时间线、人物语录、资料..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full pl-8 pr-3 py-1.5 bg-[var(--surface)] border border-[var(--line)] rounded-[var(--radius-sm)] text-xs text-[var(--ink)] placeholder:text-stone-400 dark:placeholder:text-stone-500 focus:outline-none focus:border-[var(--accent)] transition-colors"
-          />
-        </div>
-      </div>
 
       {/* Tabs */}
       <div className="flex items-center gap-1 px-3.5 py-1.5 text-xs overflow-x-auto no-scrollbar shrink-0 border-b border-[var(--line)] bg-[var(--canvas)]">
