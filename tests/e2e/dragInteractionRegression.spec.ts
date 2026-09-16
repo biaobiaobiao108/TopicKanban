@@ -64,11 +64,12 @@ function makeTopic(
 
 async function mockWorkspace(
   page: Page,
-  options: { failReorder?: boolean; calendar?: boolean } = {},
+  options: { failReorder?: boolean; calendar?: boolean; delayReorder?: boolean } = {},
 ) {
   const state: {
     topics: TestTopic[];
     reorderRequests: Array<Array<{ id: string; status: TestTopic['status']; sort_order: number }>>;
+    releaseReorder: () => void;
   } = {
     topics: options.calendar
       ? [makeTopic('e2e-calendar-drag-topic', '日历拖拽回归选题', 'production', 1)]
@@ -78,6 +79,7 @@ async function mockWorkspace(
           makeTopic('e2e-kanban-approved', '已立项目标卡片', 'approved', 1),
         ],
     reorderRequests: [],
+    releaseReorder: () => {},
   };
   const settings = {
     reading_speed: 280,
@@ -86,6 +88,11 @@ async function mockWorkspace(
     default_share_ttl_days: 3,
     voiceover_cues: [],
   };
+  const reorderReleased = options.delayReorder
+    ? new Promise<void>((resolve) => {
+      state.releaseReorder = () => resolve();
+    })
+    : Promise.resolve();
 
   await page.route('**/api/bootstrap**', async (route) => {
     await route.fulfill({
@@ -142,6 +149,7 @@ async function mockWorkspace(
     if (pathname.endsWith('/reorder/batch')) {
       const body = request.postDataJSON() as { updates: Array<{ id: string; status: TestTopic['status']; sort_order: number }> };
       state.reorderRequests.push(body.updates);
+      await reorderReleased;
       if (options.failReorder) {
         await route.fulfill({ status: 500, contentType: 'application/json', body: JSON.stringify({ error: '模拟拖拽保存失败' }) });
         return;
@@ -247,6 +255,23 @@ test('看板跨列拖拽同时更新原列和目标列顺序', async ({ page }) 
     { id: 'e2e-kanban-approved', status: 'approved', sort_order: 2 },
     { id: 'e2e-kanban-two', status: 'inbox', sort_order: 1 },
   ]));
+});
+
+test('看板跨列拖拽在保存响应前保留目标卡片', async ({ page }) => {
+  const state = await mockWorkspace(page, { delayReorder: true });
+  await login(page);
+  await page.goto('/kanban');
+
+  const source = page.locator('[data-topic-id="e2e-kanban-one"]');
+  const targetColumn = page.locator('[data-column-status="approved"]');
+  await expect(source).toBeVisible();
+  await dragPointer(page, source, source, targetColumn);
+
+  await expect.poll(() => state.reorderRequests.length).toBe(1);
+  await expect(page.locator('[data-column-status="approved"] [data-topic-id="e2e-kanban-one"]')).toBeVisible();
+
+  state.releaseReorder();
+  await expect.poll(() => state.topics.find((topic) => topic.id === 'e2e-kanban-one')?.status).toBe('approved');
 });
 
 test('看板拖拽保存失败时恢复列、卡片和已加载列表', async ({ page }) => {

@@ -190,6 +190,7 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
   ));
   const [activeId, setActiveId] = useState<string | null>(null);
   const [activeCardWidth, setActiveCardWidth] = useState<number | null>(null);
+  const [isReorderPending, setIsReorderPending] = useState(false);
   const snapshotRef = useRef<BoardSnapshot | null>(null);
 
   // Filters
@@ -228,12 +229,16 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
 
   useEffect(() => {
     setColumnPages(Object.fromEntries(activeStatuses.map((status) => [status, 1])) as Record<TopicStatus, number>);
-    setLoadedTopicsByStatus(Object.fromEntries(activeStatuses.map((status) => [status, []])) as unknown as Record<TopicStatus, Topic[]>);
     mobileStageAutoSelectedRef.current = false;
     setMobileActiveStage('inbox');
   }, [searchTerm, priorityFilter, selectedTagId, selectedPersonId, sortBy]);
 
   useEffect(() => {
+    // A reorder updates the visible board before the server responds. Ignore
+    // query snapshots from an older request until the mutation has settled so
+    // an in-flight page response cannot temporarily erase the moved card.
+    if (activeId || isReorderPending) return;
+
     const parentTopicsById = new Map(topics.map((topic) => [topic.id, topic]));
     setLoadedTopicsByStatus((current) => {
       let changed = false;
@@ -282,7 +287,7 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
 
       return changed ? next : current;
     });
-  }, [columnPages, columnQuerySignature, topics]);
+  }, [activeId, columnPages, columnQuerySignature, isReorderPending, topics]);
 
   const pagedTopics = useMemo(
     () => activeStatuses.flatMap((status) => loadedTopicsByStatus[status] || []),
@@ -317,11 +322,11 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
 
   // Sync external topics into local state when not dragging
   useEffect(() => {
-    if (!activeId) {
+    if (!activeId && !isReorderPending) {
       setTopicsMap(createTopicMap(boardTopics));
       setColumns(createColumns(boardTopics));
     }
-  }, [boardTopics, activeId]);
+  }, [boardTopics, activeId, isReorderPending]);
 
 class NonTouchPointerSensor extends PointerSensor {
   static activators = [
@@ -402,13 +407,17 @@ class NonTouchPointerSensor extends PointerSensor {
 
   const restoreSnapshot = () => {
     const snapshot = snapshotRef.current;
-    if (!snapshot) return;
+    if (!snapshot) {
+      setIsReorderPending(false);
+      return;
+    }
     setColumns(snapshot.columns);
     setTopicsMap(snapshot.topics);
     setLoadedTopicsByStatus(snapshot.loadedTopicsByStatus);
     snapshotRef.current = null;
     setActiveId(null);
     setActiveCardWidth(null);
+    setIsReorderPending(false);
   };
 
   const optimisticUpdateQueryCache = useCallback((updates: Array<{ id: string; status: TopicStatus; sort_order: number }>) => {
@@ -537,6 +546,7 @@ class NonTouchPointerSensor extends PointerSensor {
       [activeKey]: { ...activeTopic, status: target },
     };
 
+    setIsReorderPending(true);
     setActiveId(null);
     setColumns(nextColumns);
     setTopicsMap(nextTopicsMap);
@@ -559,11 +569,14 @@ class NonTouchPointerSensor extends PointerSensor {
       });
     }
 
-    optimisticUpdateQueryCache(updates);
-
     try {
+      // Stop an older page response from overwriting the optimistic board
+      // while the reorder request is in flight.
+      await queryClient.cancelQueries({ queryKey: ['kanban-column-page'] });
+      optimisticUpdateQueryCache(updates);
       await onReorderTopics(updates);
       snapshotRef.current = null;
+      setIsReorderPending(false);
     } catch {
       restoreSnapshot();
     }
@@ -589,6 +602,7 @@ class NonTouchPointerSensor extends PointerSensor {
     setColumns(nextColumns);
     setTopicsMap(nextTopicsMap);
     setLoadedTopicsByStatus((current) => reorderLoadedTopics(current, nextColumns, nextTopicsMap));
+    setIsReorderPending(true);
 
     const updates: Array<{ id: string; status: TopicStatus; sort_order: number }> = [];
     nextColumns[targetStatus].forEach((id, idx) => {
@@ -598,14 +612,16 @@ class NonTouchPointerSensor extends PointerSensor {
       updates.push({ id, status: topic.status, sort_order: idx + 1 });
     });
 
-    optimisticUpdateQueryCache(updates);
-
     try {
+      await queryClient.cancelQueries({ queryKey: ['kanban-column-page'] });
+      optimisticUpdateQueryCache(updates);
       await onReorderTopics(updates);
+      setIsReorderPending(false);
     } catch {
       setColumns(snapshot.columns);
       setTopicsMap(snapshot.topics);
       setLoadedTopicsByStatus(snapshot.loadedTopicsByStatus);
+      setIsReorderPending(false);
     }
   };
 
@@ -625,7 +641,7 @@ class NonTouchPointerSensor extends PointerSensor {
     selectedTagId !== 'all' ||
     selectedPersonId !== 'all' ||
     sortBy !== 'sort_order';
-  const isDragDisabled = isMobileViewport || Boolean(searchTerm) || priorityFilter !== 'all' || selectedTagId !== 'all' || selectedPersonId !== 'all';
+  const isDragDisabled = isMobileViewport || isReorderPending || Boolean(searchTerm) || priorityFilter !== 'all' || selectedTagId !== 'all' || selectedPersonId !== 'all';
 
   const handleResetFilters = () => {
     setPriorityFilter('all');
