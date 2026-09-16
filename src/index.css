@@ -467,6 +467,35 @@ html.dark .script-citation::after {
   }
 }
 
+/* Literary Notebook Prose, Excerpts & Seals */
+.prose h1, .ProseMirror h1 {
+  font-family: Georgia, Cambria, "Songti SC", "SimSun", serif !important;
+  color: var(--h1-color) !important;
+  font-weight: 500 !important;
+}
+
+.prose h2, .prose h3, .ProseMirror h2, .ProseMirror h3 {
+  color: var(--ink) !important;
+  font-weight: 600 !important;
+}
+
+.prose blockquote, .ProseMirror blockquote, blockquote.quote-block {
+  background-color: var(--canvas) !important;
+  border-left: 2px solid var(--accent) !important;
+  border-radius: var(--radius-sm) !important;
+  color: var(--ink) !important;
+  padding: 0.6rem 1rem !important;
+  font-style: normal !important;
+  margin: 1rem 0 !important;
+}
+
+mark, .mark-highlight {
+  background-color: var(--accent-soft) !important;
+  color: var(--accent-dark) !important;
+  border-radius: var(--radius-sm) !important;
+  padding: 0.1rem 0.35rem !important;
+}
+
 /* FloatingScrollbar & Scrollbar Hiding Utilities */
 .no-scrollbar::-webkit-scrollbar {
   display: none !important;

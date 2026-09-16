@@ -73,7 +73,7 @@ export const TopicDetailHeader: React.FC<TopicDetailHeaderProps> = ({
   };
 
   return (
-    <div className="bg-white/95 dark:bg-stone-900/95 backdrop-blur-sm border-b border-stone-200/80 dark:border-stone-800 px-4 sm:px-8 py-2.5 shrink-0 flex flex-col gap-2 xl:flex-row xl:items-center xl:justify-between transition-colors">
+    <div className="bg-[var(--surface)] border-b border-[var(--line)] px-4 sm:px-8 py-2.5 shrink-0 flex flex-col gap-2 xl:flex-row xl:items-center xl:justify-between transition-colors">
       {/* Left group: Title & Inline Editor + Status & Priority + Current Action Capsule */}
       <div className="flex w-full flex-wrap items-center gap-2.5 sm:gap-3.5 min-w-0 xl:w-auto xl:flex-1 xl:flex-nowrap">
         {/* Title area & Inline Editor */}
@@ -96,33 +96,31 @@ export const TopicDetailHeader: React.FC<TopicDetailHeaderProps> = ({
                     setIsEditingTitle(false);
                   }
                 }}
-                className="text-sm sm:text-base font-bold text-stone-900 dark:text-stone-100 border-b-2 border-rose-500 bg-transparent outline-none pb-0.5 w-full"
+                className="text-sm sm:text-base font-serif text-[var(--h1-color)] border-b border-[var(--h1-color)] bg-transparent outline-none pb-0.5 w-full"
               />
               <button
-                type="button"
                 onClick={handleSaveTitle}
-                className="px-3 py-1 bg-rose-600 hover:bg-rose-700 text-white rounded-lg text-xs font-semibold shrink-0 cursor-pointer shadow-2xs"
+                className="text-xs text-[var(--accent)] hover:underline shrink-0 cursor-pointer font-medium"
               >
                 保存
               </button>
             </div>
           ) : (
-            <div className="flex items-center gap-1.5 min-w-0 group">
-              <h1
+            <div className="flex items-center gap-1.5 min-w-0 max-w-full">
+              <h2
                 onClick={() => setIsEditingTitle(true)}
-                className="text-sm sm:text-base font-bold text-stone-900 dark:text-stone-100 tracking-tight truncate cursor-pointer hover:text-rose-600 dark:hover:text-rose-400 transition-colors"
-                title="点击编辑标题"
+                title="点击快速编辑标题"
+                className="text-sm sm:text-base font-serif text-[var(--h1-color)] truncate cursor-pointer hover:opacity-85 transition-opacity font-normal"
               >
                 {topic.title}
-              </h1>
+              </h2>
               <button
-                type="button"
                 onClick={() => setIsEditingTitle(true)}
-                aria-label="修改选题标题"
-                className="opacity-60 sm:opacity-0 group-hover:opacity-100 text-stone-400 dark:text-stone-500 hover:text-stone-700 dark:hover:text-stone-300 p-0.5 rounded-lg transition-opacity cursor-pointer shrink-0"
-                title="修改标题"
+                className="text-[var(--ink-muted)] hover:text-[var(--ink)] p-1 rounded-[var(--radius-sm)] shrink-0 cursor-pointer transition-colors"
+                title="编辑标题"
+                aria-label="编辑选题标题"
               >
-                <Edit2 className="w-3 h-3" />
+                <Edit2 className="w-3.5 h-3.5" />
               </button>
             </div>
           )}
@@ -294,27 +292,23 @@ export const TopicDetailHeader: React.FC<TopicDetailHeaderProps> = ({
           </FloatingMenu>
         </div>
 
-        {/* Current Action Capsule: Highly Prominent Hero Pill */}
+        {/* Current Action Capsule: Literary Notebook Minimal Action */}
         <div className="shrink-0 min-w-0 max-w-[220px] sm:max-w-sm lg:max-w-lg">
           {topic.current_todo ? (
             <button
               type="button"
               onClick={onOpenCurrentAction}
-              className={`group inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full text-xs sm:text-[13px] font-bold transition-all cursor-pointer shadow-xs hover:shadow-subtle active:scale-[0.98] max-w-full truncate ${
-                warning
-                  ? 'bg-amber-700 hover:bg-amber-800 text-white dark:bg-amber-800 dark:hover:bg-amber-700 dark:text-white'
-                  : 'bg-stone-900 hover:bg-stone-800 text-white dark:bg-rose-600 dark:hover:bg-rose-700'
-              }`}
-              title={`当前核心行动：${topic.current_todo.title} (已持续 ${actionDays} 天) - 点击完成或编辑`}
+              className="group inline-flex items-center gap-2 px-2.5 py-1 rounded-[var(--radius-sm)] border border-[var(--line)] bg-[var(--canvas)] hover:bg-[var(--surface)] text-xs text-[var(--ink)] transition-all cursor-pointer max-w-full truncate"
+              title={`当前行动：${topic.current_todo.title} (已持续 ${actionDays} 天) - 点击完成或编辑`}
             >
-              <Zap className={`w-3.5 h-3.5 sm:w-4 sm:h-4 shrink-0 ${warning ? 'text-amber-950 dark:text-amber-200 fill-current' : 'text-amber-300 fill-amber-300 animate-pulse'}`} />
-              <span className="truncate text-white">{topic.current_todo.title}</span>
+              <div className="w-1.5 h-1.5 rounded-full bg-[var(--accent)] shrink-0" />
+              <span className="truncate">{topic.current_todo.title}</span>
               {warning && (
-                <span className="text-[10px] font-extrabold bg-black/20 dark:bg-black/30 text-white px-1.5 py-0.5 rounded-full shrink-0">
+                <span className="text-[10px] text-[#9b6a2f] font-medium shrink-0">
                   {warning}
                 </span>
               )}
-              <span className="text-[10px] sm:text-[11px] font-mono font-bold bg-white/20 dark:bg-black/20 px-2 py-0.5 rounded-full shrink-0">
+              <span className="text-[10px] tabular-nums text-[var(--ink-muted)] opacity-75 shrink-0">
                 {actionDays}d
               </span>
             </button>
@@ -322,16 +316,12 @@ export const TopicDetailHeader: React.FC<TopicDetailHeaderProps> = ({
             <button
               type="button"
               onClick={onOpenCurrentAction}
-              className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-rose-600 hover:bg-rose-700 active:scale-[0.98] text-white text-xs sm:text-[13px] font-bold transition-all cursor-pointer shadow-xs"
+              className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-[var(--radius-sm)] border border-dashed border-[var(--line)] bg-[var(--canvas)]/60 hover:bg-[var(--canvas)] text-xs text-[var(--ink-muted)] hover:text-[var(--ink)] transition-all cursor-pointer"
               title="当前选题尚未设置当前行动，点击打开执行清单"
             >
-              <span className="relative flex h-2 w-2 shrink-0">
-                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-300 opacity-75" />
-                <span className="relative inline-flex rounded-full h-2 w-2 bg-amber-300" />
-              </span>
-              <Zap className="w-3.5 h-3.5 text-amber-300 fill-amber-300" />
-              <span className="hidden sm:inline">设置当前行动</span>
-              <span className="sm:hidden">加行动</span>
+              <Zap className="w-3.5 h-3.5 text-[var(--accent)]" />
+              <span className="hidden sm:inline">设置行动</span>
+              <span className="sm:hidden">+行动</span>
             </button>
           )}
         </div>
@@ -344,7 +334,7 @@ export const TopicDetailHeader: React.FC<TopicDetailHeaderProps> = ({
           <button
             type="button"
             onClick={() => onUpdateTopic({ status: 'approved' })}
-            className="flex items-center gap-1 px-3 py-1.5 rounded-xl text-xs font-semibold bg-emerald-500/10 text-emerald-800 dark:text-emerald-300 hover:bg-emerald-500/20 transition-colors cursor-pointer"
+            className="flex items-center gap-1 px-2.5 py-1 rounded-[var(--radius-sm)] text-xs border border-[var(--line)] bg-[var(--surface)] text-[var(--accent)] hover:bg-[var(--canvas)] transition-colors cursor-pointer"
             title="从归档中恢复至已立项（重返全景看板）"
           >
             <span>↩ 恢复</span>
@@ -353,7 +343,7 @@ export const TopicDetailHeader: React.FC<TopicDetailHeaderProps> = ({
           <button
             type="button"
             onClick={() => setIsStatusMenuOpen(true)}
-            className="flex items-center gap-1 px-3 py-1.5 rounded-xl text-xs font-semibold bg-stone-100 dark:bg-stone-800 text-stone-700 dark:text-stone-300 hover:bg-stone-200/80 dark:hover:bg-stone-700 transition-colors cursor-pointer"
+            className="flex items-center gap-1 px-2.5 py-1 rounded-[var(--radius-sm)] text-xs border border-[var(--line)] bg-[var(--surface)] text-[var(--ink-muted)] hover:text-[var(--ink)] hover:bg-[var(--canvas)] transition-colors cursor-pointer"
             title="将此选题移入归档库（将从全景看板中移出）"
           >
             <span>📦 归档</span>
@@ -365,10 +355,10 @@ export const TopicDetailHeader: React.FC<TopicDetailHeaderProps> = ({
           <button
             type="button"
             onClick={onExportMarkdown}
-            className="flex items-center gap-1 px-3 py-1.5 rounded-xl text-xs font-semibold bg-stone-100 dark:bg-stone-800 text-stone-700 dark:text-stone-300 hover:bg-stone-200/80 dark:hover:bg-stone-700 transition-colors cursor-pointer"
+            className="flex items-center gap-1 px-2.5 py-1 rounded-[var(--radius-sm)] text-xs border border-[var(--line)] bg-[var(--surface)] text-[var(--ink-muted)] hover:text-[var(--ink)] hover:bg-[var(--canvas)] transition-colors cursor-pointer"
             title="导出包含设定、事实链、时间线与文案的 Markdown 档案"
           >
-            <FileDown className="w-3.5 h-3.5 text-stone-500 dark:text-stone-400" />
+            <FileDown className="w-3.5 h-3.5 text-[var(--ink-muted)]" />
             <span className="hidden sm:inline">导出</span>
           </button>
         )}
@@ -377,14 +367,14 @@ export const TopicDetailHeader: React.FC<TopicDetailHeaderProps> = ({
         <button
           type="button"
           onClick={() => onUpdateTopic({ is_pinned: topic.is_pinned ? 0 : 1 })}
-          className={`flex items-center gap-1 px-3 py-1.5 rounded-xl text-xs font-semibold transition-all cursor-pointer ${
+          className={`flex items-center gap-1 px-2.5 py-1 rounded-[var(--radius-sm)] text-xs border border-[var(--line)] transition-all cursor-pointer ${
             topic.is_pinned
-              ? 'bg-amber-500/15 text-amber-800 dark:text-amber-300'
-              : 'bg-stone-100 dark:bg-stone-800 text-stone-600 dark:text-stone-300 hover:bg-stone-200/80 dark:hover:bg-stone-700'
+              ? 'bg-[var(--canvas)] text-[#9b6a2f] dark:text-[#c49258]'
+              : 'bg-[var(--surface)] text-[var(--ink-muted)] hover:text-[var(--ink)] hover:bg-[var(--canvas)]'
           }`}
           title={topic.is_pinned ? '取消置顶' : '置顶选题'}
         >
-          <Pin className={`w-3.5 h-3.5 ${topic.is_pinned ? 'fill-amber-600 dark:fill-amber-400 text-amber-600 dark:text-amber-400' : ''}`} />
+          <Pin className={`w-3.5 h-3.5 ${topic.is_pinned ? 'fill-current' : ''}`} />
           <span className="hidden sm:inline">{topic.is_pinned ? '已置顶' : '置顶'}</span>
         </button>
 
@@ -392,10 +382,10 @@ export const TopicDetailHeader: React.FC<TopicDetailHeaderProps> = ({
         <button
           type="button"
           onClick={() => setIsDeleteDialogOpen(true)}
-          className="flex items-center gap-1 p-1.5 text-stone-400 dark:text-stone-500 hover:text-red-600 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/40 rounded-xl transition-colors cursor-pointer"
+          className="flex items-center gap-1 p-1 text-[var(--ink-muted)] hover:text-[var(--h1-color)] hover:bg-[var(--canvas)] rounded-[var(--radius-sm)] border border-transparent hover:border-[var(--line)] transition-colors cursor-pointer"
           title="移入回收站"
         >
-          <Trash2 className="w-4 h-4" />
+          <Trash2 className="w-3.5 h-3.5" />
         </button>
       </div>
 

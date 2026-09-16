@@ -1319,7 +1319,7 @@ export const ScriptEditorTab: React.FC<ScriptEditorTabProps> = ({
             ['--script-editor-font-size' as string]: FONT_SIZE_MAP[settings?.editor_font_size || 'standard'],
             ['--script-editor-line-height' as string]: LINE_HEIGHT_MAP[settings?.editor_line_height || 'relaxed'],
           }}
-          className={`script-editor-canvas-container flex-1 overflow-y-auto bg-white dark:bg-stone-900 flex justify-center cursor-text transition-colors ${
+          className={`script-editor-canvas-container flex-1 overflow-y-auto no-scrollbar bg-[var(--canvas)] flex justify-center cursor-text transition-colors ${
             isTypewriterActive ? 'script-editor-focus-mode' : ''
           }`}
         >
@@ -1330,7 +1330,7 @@ export const ScriptEditorTab: React.FC<ScriptEditorTabProps> = ({
                 : 'pt-8 pb-36 sm:pt-12 sm:pb-48'
             }`}
           >
-            <div className="mb-4 border-b border-stone-200/80 pb-3 dark:border-stone-800">
+            <div className="mb-4 border-b border-[var(--line)] pb-3">
               <label htmlFor="script-draft-title" className="sr-only">文案标题</label>
               <input
                 id="script-draft-title"
@@ -1338,7 +1338,7 @@ export const ScriptEditorTab: React.FC<ScriptEditorTabProps> = ({
                 value={draftTitle}
                 onChange={(event) => handleDraftTitleChange(event.target.value)}
                 maxLength={200}
-                className="min-h-12 w-full border-0 bg-transparent px-0 text-2xl font-bold tracking-tight text-stone-900 outline-none placeholder:text-stone-300 focus:ring-0 dark:text-stone-100 dark:placeholder:text-stone-600 sm:text-3xl"
+                className="min-h-12 w-full border-0 bg-transparent px-0 font-serif text-2xl font-medium tracking-tight text-[var(--h1-color)] outline-none placeholder:text-[var(--ink-muted)]/40 focus:ring-0 sm:text-3xl"
                 placeholder="输入这期视频的文案标题"
               />
             </div>

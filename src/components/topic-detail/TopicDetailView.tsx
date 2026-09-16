@@ -474,8 +474,8 @@ export const TopicDetailView: React.FC<TopicDetailViewProps> = ({
         {draftRecovery && (
           <div className="space-y-4">
             <div className="grid gap-3 sm:grid-cols-2">
-              <div className="rounded-xl border border-rose-200 dark:border-rose-900/60 bg-rose-50 dark:bg-rose-950/40 p-4">
-                <div className="font-semibold text-rose-900 dark:text-rose-200">浏览器本地草稿</div>
+              <div className="rounded-xl border border-[var(--accent)]/30 bg-[var(--accent-soft)] p-4">
+                <div className="font-semibold text-[var(--accent-dark)]">浏览器本地草稿</div>
                 <div className="mt-2 text-xs text-stone-600 dark:text-stone-300">{draftRecovery.local.word_count} 字 · {new Date(draftRecovery.local.updated_at).toLocaleString()}</div>
               </div>
               <div className="rounded-xl border border-stone-200 dark:border-stone-800 bg-stone-50 dark:bg-stone-800/60 p-4">
@@ -486,7 +486,7 @@ export const TopicDetailView: React.FC<TopicDetailViewProps> = ({
             <p className="text-sm text-stone-600 dark:text-stone-300">选择本地版本会立即覆盖当前云端文案；选择云端版本会清除这份本地待同步草稿。</p>
             <div className="flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
               <button type="button" disabled={isResolvingDraft} onClick={() => void handleResolveDraftRecovery('remote')} className="rounded-lg border border-stone-300 dark:border-stone-700 bg-white dark:bg-stone-800 px-4 py-2 text-sm font-semibold text-stone-700 dark:text-stone-300 disabled:opacity-50 cursor-pointer">使用云端版本</button>
-              <button type="button" disabled={isResolvingDraft} onClick={() => void handleResolveDraftRecovery('local')} className="rounded-lg bg-rose-600 hover:bg-rose-700 px-4 py-2 text-sm font-semibold text-white disabled:opacity-50 cursor-pointer">{isResolvingDraft ? '正在处理…' : '使用本地版本'}</button>
+              <button type="button" disabled={isResolvingDraft} onClick={() => void handleResolveDraftRecovery('local')} className="rounded-lg bg-[var(--accent)] hover:bg-[var(--accent-dark)] px-4 py-2 text-sm font-semibold text-white disabled:opacity-50 cursor-pointer">{isResolvingDraft ? '正在处理…' : '使用本地版本'}</button>
             </div>
           </div>
         )}
@@ -502,7 +502,7 @@ export const TopicDetailView: React.FC<TopicDetailViewProps> = ({
       />
 
       {/* Sub Tabs Navigation (Scrollable on mobile) */}
-      <div ref={detailSubtabsRef} className="detail-subtabs-container bg-white dark:bg-stone-900 border-b border-stone-200 dark:border-stone-800 px-4 sm:px-8 shrink-0 overflow-x-auto no-scrollbar transition-colors">
+      <div ref={detailSubtabsRef} className="detail-subtabs-container bg-[var(--surface)] border-b border-[var(--line)] px-4 sm:px-8 shrink-0 overflow-x-auto no-scrollbar transition-colors">
         <div className="flex items-center gap-1 min-w-max">
           {tabs.map((tab) => {
             const Icon = tab.icon;
@@ -516,14 +516,14 @@ export const TopicDetailView: React.FC<TopicDetailViewProps> = ({
                 aria-current={isActive ? 'page' : undefined}
                 className={`flex min-h-9 sm:min-h-10 items-center gap-1.5 border-b-2 px-2.5 sm:px-3 text-xs sm:text-[13px] font-semibold transition-all cursor-pointer touch-manipulation ${
                   isActive
-                    ? 'border-rose-700 text-rose-800 dark:border-rose-300 dark:text-rose-200 bg-rose-50/30 dark:bg-rose-950/20'
-                    : 'border-transparent text-stone-500 dark:text-stone-400 hover:text-stone-900 dark:hover:text-stone-100 hover:border-stone-300 dark:hover:border-stone-700'
+                    ? 'border-[var(--accent)] text-[var(--ink)] bg-[var(--accent-soft)]/50'
+                    : 'border-transparent text-[var(--ink-muted)] hover:text-[var(--ink)] hover:border-[var(--line)]'
                 }`}
               >
-                <Icon className={`w-3.5 h-3.5 sm:w-4 sm:h-4 ${isActive ? 'text-rose-800 dark:text-rose-200' : 'text-stone-400 dark:text-stone-500'}`} />
+                <Icon className={`w-3.5 h-3.5 sm:w-4 sm:h-4 ${isActive ? 'text-[var(--accent)]' : 'text-[var(--ink-muted)] opacity-70'}`} />
                 <span>{tab.label}</span>
                 {typeof tab.count === 'number' && tab.count > 0 && (
-                  <span className="text-[10px] sm:text-[11px] bg-stone-100 dark:bg-stone-800 text-stone-600 dark:text-stone-300 px-1.5 py-0.2 rounded-full font-mono">
+                  <span className="text-[10px] sm:text-[11px] bg-[var(--canvas)] text-[var(--ink-muted)] border border-[var(--line)] px-1.5 py-0.2 rounded-full font-mono">
                     {tab.count}
                   </span>
                 )}
@@ -710,8 +710,8 @@ export const TopicDetailView: React.FC<TopicDetailViewProps> = ({
                   }}
                   className={`min-h-11 rounded-lg border px-2 text-xs font-semibold cursor-pointer transition-colors ${
                     topic.status === column.status
-                      ? 'border-rose-300 dark:border-rose-800 bg-rose-50 dark:bg-rose-950/60 text-rose-700 dark:text-rose-300'
-                      : 'border-stone-200 dark:border-stone-700 bg-stone-50 dark:bg-stone-800 text-stone-700 dark:text-stone-300 hover:bg-stone-100 dark:hover:bg-stone-700'
+                      ? 'border-[var(--accent)] bg-[var(--accent-soft)] text-[var(--accent-dark)]'
+                      : 'border-[var(--line)] bg-[var(--surface)] text-[var(--ink)] hover:bg-[var(--canvas)]'
                   }`}
                 >
                   {column.label}
@@ -752,7 +752,7 @@ export const TopicDetailView: React.FC<TopicDetailViewProps> = ({
           <button
             type="button"
             onClick={() => setIsActionDialogOpen(true)}
-            className="flex min-h-12 flex-col items-center justify-center gap-0.5 rounded-xl bg-rose-600 hover:bg-rose-700 px-1 text-[10px] font-bold text-white cursor-pointer shadow-2xs"
+            className="flex min-h-12 flex-col items-center justify-center gap-0.5 rounded-xl bg-[var(--accent)] hover:bg-[var(--accent-dark)] px-1 text-[10px] font-bold text-white cursor-pointer shadow-2xs"
           >
             <CheckCircle2 className="h-4 w-4" /> 当前行动
           </button>

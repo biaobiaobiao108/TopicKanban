@@ -57,24 +57,24 @@ const STORY_STRUCTURE_CARD_STYLES: Record<StoryStructureKey, {
   focus: string;
 }> = {
   qi: {
-    header: 'text-emerald-800 dark:text-emerald-400',
-    badge: 'bg-emerald-500/15 text-emerald-700 dark:text-emerald-300',
-    focus: 'focus:border-emerald-500',
+    header: 'text-[var(--accent-dark)]',
+    badge: 'bg-[var(--accent-soft)] text-[var(--accent-dark)] border border-[var(--line)]',
+    focus: 'focus:border-[var(--accent)]',
   },
   cheng: {
-    header: 'text-blue-800 dark:text-blue-400',
-    badge: 'bg-blue-500/15 text-blue-700 dark:text-blue-300',
-    focus: 'focus:border-blue-500',
+    header: 'text-[var(--ink)]',
+    badge: 'bg-[var(--canvas)] text-[var(--ink-muted)] border border-[var(--line)]',
+    focus: 'focus:border-[var(--accent)]',
   },
   zhuan: {
-    header: 'text-rose-800 dark:text-rose-400',
-    badge: 'bg-rose-500/15 text-rose-700 dark:text-rose-300',
-    focus: 'focus:border-rose-500',
+    header: 'text-[var(--h1-color)]',
+    badge: 'bg-[var(--h1-color)]/10 text-[var(--h1-color)] border border-[var(--h1-color)]/20',
+    focus: 'focus:border-[var(--h1-color)]',
   },
   he: {
-    header: 'text-purple-800 dark:text-purple-400',
-    badge: 'bg-purple-500/15 text-purple-700 dark:text-purple-300',
-    focus: 'focus:border-purple-500',
+    header: 'text-[var(--accent-dark)]',
+    badge: 'bg-[var(--accent-soft)] text-[var(--accent-dark)] border border-[var(--line)]',
+    focus: 'focus:border-[var(--accent)]',
   },
 };
 
