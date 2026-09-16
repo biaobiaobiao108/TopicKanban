@@ -37,26 +37,25 @@ html.theme-change-in-progress *::after {
 }
 
 .script-citation {
-  border-bottom: 2px solid rgb(251 113 133 / 0.55);
-  background: rgb(255 241 242 / 0.8);
-  border-radius: 0.2rem;
+  border-bottom: 1.5px solid var(--accent);
+  background: var(--accent-soft);
+  border-radius: var(--radius-sm);
+  padding: 0.05rem 0.25rem;
+  transition: background-color 150ms ease;
+}
+
+.script-citation:hover {
+  background: rgba(47, 92, 78, 0.16);
 }
 
 html.dark .script-citation {
-  background: rgb(244 63 94 / 0.15);
-  border-bottom-color: rgb(244 63 94 / 0.7);
+  background: var(--accent-soft);
+  border-bottom-color: var(--accent);
 }
 
-html.theme-warm-paper .script-citation {
-  background: rgba(56, 86, 116, 0.12);
-  border-bottom-color: rgba(56, 86, 116, 0.65);
+html.dark .script-citation:hover {
+  background: rgba(78, 135, 117, 0.26);
 }
-
-html.theme-nordic-frost .script-citation {
-  background: rgba(45, 122, 100, 0.12);
-  border-bottom-color: rgba(45, 122, 100, 0.65);
-}
-
 
 .inline-voiceover-cue {
   display: inline-flex;
@@ -64,50 +63,35 @@ html.theme-nordic-frost .script-citation {
   gap: 0.25rem;
   margin-left: 0.25rem;
   margin-right: 0.25rem;
-  padding: 0.1rem 0.5rem;
-  border-radius: 9999px;
+  padding: 0.1rem 0.45rem;
+  border-radius: var(--radius-sm);
   font-size: 0.75rem;
-  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
-  font-weight: 700;
+  font-weight: 600;
   vertical-align: baseline;
   user-select: none;
   cursor: default;
-  background-color: #ffe4e6;
-  color: #9f1239;
-  border: 1px solid #fda4af;
+  background-color: var(--accent-soft);
+  color: var(--accent-dark);
+  border: 1px solid var(--accent);
 }
 
 html.dark .inline-voiceover-cue {
-  background-color: rgba(76, 5, 25, 0.8);
-  color: #fda4af;
-  border-color: rgba(159, 18, 57, 0.8);
-}
-
-html.theme-warm-paper .inline-voiceover-cue {
-  background-color: rgba(163, 82, 41, 0.1);
-  color: #8c421e;
-  border-color: rgba(163, 82, 41, 0.25);
+  background-color: var(--accent-soft);
+  color: var(--accent-dark);
+  border-color: var(--accent);
 }
 
 .script-citation::after {
   content: "〔" attr(data-reference-title) "〕";
   margin-left: 0.2rem;
-  color: rgb(190 24 93);
-  font-size: 0.68em;
-  font-weight: 700;
+  color: var(--accent-dark);
+  font-size: 0.72em;
+  font-weight: 600;
   vertical-align: super;
 }
 
 html.dark .script-citation::after {
-  color: rgb(251 113 133);
-}
-
-html.theme-warm-paper .script-citation::after {
-  color: #385674;
-}
-
-html.theme-nordic-frost .script-citation::after {
-  color: #2d7a64;
+  color: var(--accent-dark);
 }
 
 
@@ -351,72 +335,116 @@ html.theme-nordic-frost .script-citation::after {
 
 @layer base {
   :root {
-    --bg-primary: #fbfbf9;
-    --bg-surface: #ffffff;
-    --bg-sidebar: #fbfbfa;
-    --text-primary: #1c1917;
-    --text-secondary: #78716c;
-    --border-subtle: #eae8e4;
-    --border-divider: rgba(228, 224, 218, 0.55);
-    --nav-glass-bg: rgba(255, 255, 255, 0.85);
-    --sidebar-glass-bg: rgba(251, 251, 250, 0.88);
-    --scrollbar-thumb: #d6d3d1;
+    /* Literary Notebook Design Tokens (文人笔记核心设计系统) */
+    --canvas: #f9f8f5;
+    --surface: #ffffff;
+    --ink: #252827;
+    --ink-muted: #757a78;
+    --line: rgba(37, 40, 39, 0.08);
+    --accent: #2f5c4e;
+    --accent-soft: rgba(47, 92, 78, 0.10);
+    --accent-dark: #1d3e34;
+    --h1-color: #9e3228;
+    --radius-sm: 6px;
+    --radius-md: 12px;
+    --radius-lg: 16px;
+
+    /* Legacy mapping for smooth compatibility */
+    --bg-primary: var(--canvas);
+    --bg-surface: var(--surface);
+    --bg-sidebar: #f5f4ef;
+    --text-primary: var(--ink);
+    --text-secondary: var(--ink-muted);
+    --border-subtle: var(--line);
+    --border-divider: var(--line);
+    --nav-glass-bg: rgba(249, 248, 245, 0.90);
+    --sidebar-glass-bg: rgba(245, 244, 239, 0.92);
+    --scrollbar-thumb: rgba(37, 40, 39, 0.18);
     --scrollbar-track: transparent;
     color-scheme: light;
   }
 
   html.theme-warm-paper {
-    --bg-primary: #f7f4ed;
-    --bg-surface: #fdfcf7;
+    --canvas: #f7f4ed;
+    --surface: #fdfcf7;
+    --ink: #2d2926;
+    --ink-muted: #7d756c;
+    --line: rgba(45, 41, 38, 0.08);
+    --accent: #385674;
+    --accent-soft: rgba(56, 86, 116, 0.10);
+    --accent-dark: #22374b;
+    --h1-color: #8c421e;
+
+    --bg-primary: var(--canvas);
+    --bg-surface: var(--surface);
     --bg-sidebar: #f2ece1;
-    --text-primary: #2d2926;
-    --text-secondary: #7d756c;
-    --border-subtle: #eae2d5;
-    --border-divider: rgba(224, 216, 203, 0.6);
-    --nav-glass-bg: rgba(253, 252, 247, 0.85);
-    --sidebar-glass-bg: rgba(242, 236, 225, 0.88);
-    --scrollbar-thumb: #d8cfc2;
+    --text-primary: var(--ink);
+    --text-secondary: var(--ink-muted);
+    --border-subtle: var(--line);
+    --border-divider: var(--line);
+    --nav-glass-bg: rgba(253, 252, 247, 0.90);
+    --sidebar-glass-bg: rgba(242, 236, 225, 0.92);
+    --scrollbar-thumb: rgba(45, 41, 38, 0.18);
     --scrollbar-track: transparent;
     color-scheme: light;
   }
 
   html.theme-nordic-frost {
-    --bg-primary: #f6faf9;
-    --bg-surface: #ffffff;
+    --canvas: #f6faf9;
+    --surface: #ffffff;
+    --ink: #1a2424;
+    --ink-muted: #5f7474;
+    --line: rgba(26, 36, 36, 0.08);
+    --accent: #2d7a64;
+    --accent-soft: rgba(45, 122, 100, 0.10);
+    --accent-dark: #1b4b3d;
+    --h1-color: #a34133;
+
+    --bg-primary: var(--canvas);
+    --bg-surface: var(--surface);
     --bg-sidebar: #f0f5f4;
-    --text-primary: #1a2424;
-    --text-secondary: #5f7474;
-    --border-subtle: #dae4e2;
-    --border-divider: rgba(218, 228, 226, 0.6);
-    --nav-glass-bg: rgba(255, 255, 255, 0.85);
-    --sidebar-glass-bg: rgba(240, 245, 244, 0.88);
-    --scrollbar-thumb: #c8d8d8;
+    --text-primary: var(--ink);
+    --text-secondary: var(--ink-muted);
+    --border-subtle: var(--line);
+    --border-divider: var(--line);
+    --nav-glass-bg: rgba(255, 255, 255, 0.90);
+    --sidebar-glass-bg: rgba(240, 245, 244, 0.92);
+    --scrollbar-thumb: rgba(26, 36, 36, 0.18);
     --scrollbar-track: transparent;
     color-scheme: light;
   }
 
-
   html.dark {
-    --bg-primary: #12100e;
-    --bg-surface: #1a1715;
-    --bg-sidebar: #151312;
-    --text-primary: #f5f5f4;
-    --text-secondary: #a8a29e;
-    --border-subtle: #2d2825;
-    --border-divider: rgba(55, 49, 45, 0.55);
-    --nav-glass-bg: rgba(26, 23, 21, 0.85);
-    --sidebar-glass-bg: rgba(21, 19, 18, 0.88);
-    --scrollbar-thumb: #44403c;
+    --canvas: #141615;
+    --surface: #1c1f1e;
+    --ink: #e8eae9;
+    --ink-muted: #9ba19e;
+    --line: rgba(255, 255, 255, 0.08);
+    --accent: #4e8775;
+    --accent-soft: rgba(78, 135, 117, 0.18);
+    --accent-dark: #6db09b;
+    --h1-color: #d65a50;
+
+    --bg-primary: var(--canvas);
+    --bg-surface: var(--surface);
+    --bg-sidebar: #181b1a;
+    --text-primary: var(--ink);
+    --text-secondary: var(--ink-muted);
+    --border-subtle: var(--line);
+    --border-divider: var(--line);
+    --nav-glass-bg: rgba(20, 22, 21, 0.90);
+    --sidebar-glass-bg: rgba(24, 27, 26, 0.92);
+    --scrollbar-thumb: rgba(255, 255, 255, 0.18);
     --scrollbar-track: transparent;
     color-scheme: dark;
   }
 
   @media (prefers-contrast: more) {
     :root {
-      --scrollbar-thumb: #78716c;
+      --scrollbar-thumb: #757a78;
     }
     html.dark {
-      --scrollbar-thumb: #a8a29e;
+      --scrollbar-thumb: #9ba19e;
     }
   }
 
@@ -426,12 +454,27 @@ html.theme-nordic-frost .script-citation::after {
   }
 
   body {
-    background-color: var(--bg-primary);
-    color: var(--text-primary);
+    background-color: var(--canvas);
+    color: var(--ink);
     font-feature-settings: "cv02", "cv03", "cv04", "cv11";
     -webkit-tap-highlight-color: transparent;
     transition: background-color 0.15s ease, color 0.15s ease;
   }
+
+  h1, .font-seal, .title-seal {
+    font-family: Georgia, Cambria, "Songti SC", "SimSun", serif;
+    color: var(--h1-color);
+  }
+}
+
+/* FloatingScrollbar & Scrollbar Hiding Utilities */
+.no-scrollbar::-webkit-scrollbar {
+  display: none !important;
+}
+
+.no-scrollbar {
+  -ms-overflow-style: none !important;
+  scrollbar-width: none !important;
 }
 
 /* Modern Fluid Chrome & Glass Surfaces */

@@ -8,17 +8,34 @@ export default {
   theme: {
     extend: {
       colors: {
-        background: '#fafaf9', // warm light neutral (stone-50)
-        surface: '#ffffff',
-        muted: '#f5f5f4',
-        border: '#e7e5e4', // stone-200
+        canvas: 'var(--canvas)',
+        surface: 'var(--surface)',
+        ink: {
+          DEFAULT: 'var(--ink)',
+          muted: 'var(--ink-muted)',
+        },
+        line: 'var(--line)',
+        accent: {
+          DEFAULT: 'var(--accent)',
+          soft: 'var(--accent-soft)',
+          dark: 'var(--accent-dark)',
+        },
+        'h1-color': 'var(--h1-color)',
+        background: 'var(--canvas)',
+        muted: 'var(--canvas)',
+        border: 'var(--line)',
         brand: {
-          50: '#fff1f2',
-          100: '#ffe4e6',
-          500: '#f43f5e',
-          600: '#e11d48',
-          700: '#be123c',
+          50: 'var(--accent-soft)',
+          100: 'rgba(47, 92, 78, 0.15)',
+          500: 'var(--accent)',
+          600: 'var(--accent)',
+          700: 'var(--accent-dark)',
         }
+      },
+      borderRadius: {
+        'radius-sm': 'var(--radius-sm, 6px)',
+        'radius-md': 'var(--radius-md, 12px)',
+        'radius-lg': 'var(--radius-lg, 16px)',
       },
       fontFamily: {
         sans: [
@@ -38,11 +55,11 @@ export default {
       boxShadow: {
         '2xs': '0 1px 2px 0 rgba(0, 0, 0, 0.02)',
         subtle: '0 1px 3px 0 rgba(0, 0, 0, 0.02), 0 1px 2px -1px rgba(0, 0, 0, 0.02)',
-        card: '0 1px 3px 0 rgba(0, 0, 0, 0.03), 0 4px 12px -2px rgba(0, 0, 0, 0.025)',
-        'card-hover': '0 8px 24px -4px rgba(0, 0, 0, 0.06), 0 2px 8px -2px rgba(0, 0, 0, 0.03)',
-        modal: '0 24px 38px -6px rgba(0, 0, 0, 0.12), 0 10px 16px -6px rgba(0, 0, 0, 0.06)',
-        'nav-ambient': '0 1px 2px 0 rgba(0, 0, 0, 0.02), 0 4px 16px -4px rgba(0, 0, 0, 0.025)',
-        'soft-pill': '0 2px 8px -1px rgba(225, 29, 72, 0.18)',
+        card: '0 1px 3px 0 rgba(0, 0, 0, 0.02)',
+        'card-hover': '0 4px 12px -2px rgba(37, 40, 39, 0.05)',
+        modal: '0 16px 36px -8px rgba(37, 40, 39, 0.12), 0 4px 12px -2px rgba(37, 40, 39, 0.06)',
+        'nav-ambient': '0 1px 2px 0 rgba(0, 0, 0, 0.02)',
+        'soft-pill': '0 2px 8px -1px rgba(47, 92, 78, 0.12)',
       },
       transitionTimingFunction: {
         'editorial-out': 'cubic-bezier(0.16, 1, 0.3, 1)',
