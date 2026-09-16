@@ -25,6 +25,7 @@ import {
   setTopicPinned,
   softDeleteTopic,
   TopicNotInTrashError,
+  TopicReorderInvalidStateError,
   ensureTopicsInTrash,
   updateTopic,
 } from '../repositories';
@@ -221,10 +222,10 @@ export function registerTopicRoutes(app: NativeApp): void {
     try {
       const db = requireDb(c);
       const ids = await listTrashedTopicIds(db);
-      if (ids.length === 0) return c.json({ success: true, count: 0 });
+      if (ids.length === 0) return c.json({ success: true, count: 0, ids: [] });
       await revokeTopicShares(c.env, ids);
       await permanentlyDeleteTrashedTopics(db, ids);
-      return c.json({ success: true, count: ids.length });
+      return c.json({ success: true, count: ids.length, ids });
     } catch (error) {
       if (error instanceof TopicNotInTrashError) return c.json({ error: error.message }, 409);
       return jsonError(c, error);
@@ -233,14 +234,22 @@ export function registerTopicRoutes(app: NativeApp): void {
 
   app.patch('/topics/reorder/batch', async (c) => {
     try {
-      const { updates } = await c.req.json<{ updates?: Array<{ id: string; status: TopicStatus; sort_order: number }> }>();
+      const { updates } = await c.req.json<{ updates?: unknown }>();
       if (!Array.isArray(updates)) return c.json({ error: 'Updates are required' }, 400);
       if (updates.length > MAX_BATCH_SIZE) return c.json({ error: `At most ${MAX_BATCH_SIZE} updates are allowed` }, 400);
-      if (updates.some((update) => !isTopicStatus(update.status))) return c.json({ error: 'Invalid topic status' }, 400);
-      if (updates.some((update) => !isNonNegativeInteger(update.sort_order))) return c.json({ error: 'Invalid sort order' }, 400);
-      const updatedAt = await reorderTopics(requireDb(c), updates);
+      if (updates.some((update) => !update || typeof update !== 'object')) return c.json({ error: 'Invalid topic update' }, 400);
+      const typedUpdates = updates as Array<{ id?: unknown; status?: unknown; sort_order?: unknown }>;
+      if (typedUpdates.some((update) => typeof update.id !== 'string' || update.id.trim().length === 0)) {
+        return c.json({ error: 'Each topic update requires a non-empty id' }, 400);
+      }
+      const ids = typedUpdates.map((update) => update.id as string);
+      if (new Set(ids).size !== ids.length) return c.json({ error: 'Duplicate topic ids are not allowed' }, 400);
+      if (typedUpdates.some((update) => !isTopicStatus(update.status))) return c.json({ error: 'Invalid topic status' }, 400);
+      if (typedUpdates.some((update) => !isNonNegativeInteger(update.sort_order))) return c.json({ error: 'Invalid sort order' }, 400);
+      const updatedAt = await reorderTopics(requireDb(c), typedUpdates as Array<{ id: string; status: TopicStatus; sort_order: number }>);
       return c.json({ success: true, updated_at: updatedAt });
     } catch (error) {
+      if (error instanceof TopicReorderInvalidStateError) return c.json({ error: error.message }, 400);
       return jsonError(c, error, 400);
     }
   });

@@ -12,6 +12,7 @@ import { ScriptOutlinePanel } from './ScriptOutlinePanel';
 import { Modal } from '../ui/Modal';
 import { useToast } from '../ui/Toast';
 import { FloatingMenu } from '../ui/FloatingMenu';
+import { FloatingScrollbar } from '../ui/FloatingScrollbar';
 import {
   Clock,
   CheckCircle2,
@@ -1048,7 +1049,7 @@ export const ScriptEditorTab: React.FC<ScriptEditorTabProps> = ({
                 align="right"
                 className="animate-in fade-in zoom-in-95 duration-100 font-sans"
               >
-                <div className="min-h-0 overflow-y-auto p-2.5">
+                <FloatingScrollbar className="p-2.5" wrapperClassName="min-h-0 flex-none">
                   <div className="flex items-center justify-between text-[10px] font-bold text-stone-400 dark:text-stone-500 px-1 py-0.5 uppercase tracking-wider border-b border-stone-100 dark:border-stone-800 pb-1.5 mb-1.5">
                     <div className="flex items-center gap-1 text-[var(--accent)]">
                       <Mic className="w-3 h-3" />
@@ -1094,7 +1095,7 @@ export const ScriptEditorTab: React.FC<ScriptEditorTabProps> = ({
                       );
                     })}
                   </div>
-                </div>
+                </FloatingScrollbar>
               </FloatingMenu>
             </div>
 
@@ -1313,13 +1314,13 @@ export const ScriptEditorTab: React.FC<ScriptEditorTabProps> = ({
         />
 
         {/* Main Writing Canvas */}
-        <div
+        <FloatingScrollbar
           ref={scrollContainerRef}
           style={{
             ['--script-editor-font-size' as string]: FONT_SIZE_MAP[settings?.editor_font_size || 'standard'],
             ['--script-editor-line-height' as string]: LINE_HEIGHT_MAP[settings?.editor_line_height || 'relaxed'],
           }}
-          className={`script-editor-canvas-container flex-1 overflow-y-auto no-scrollbar bg-[var(--canvas)] flex justify-center cursor-text transition-colors ${
+          className={`script-editor-canvas-container bg-[var(--canvas)] flex justify-center cursor-text transition-colors ${
             isTypewriterActive ? 'script-editor-focus-mode' : ''
           }`}
         >
@@ -1348,7 +1349,7 @@ export const ScriptEditorTab: React.FC<ScriptEditorTabProps> = ({
             />
             {isTypewriterActive && <div ref={typewriterBottomSpacerRef} aria-hidden="true" />}
           </div>
-        </div>
+        </FloatingScrollbar>
 
         {/* Side Reference Drawer */}
         {topic && (

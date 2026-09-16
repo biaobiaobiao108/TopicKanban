@@ -14,6 +14,7 @@ import {
 import { getCurrentActionAgeDays, getCurrentActionWarning } from '../../lib/topicMetrics';
 import { ActionDateText } from '../ui/ActionDate';
 import { useActionDateDisplay, type ActionDateDisplay } from '../../lib/actionDate';
+import { FloatingScrollbar } from '../ui/FloatingScrollbar';
 
 interface KanbanCardProps {
   topic: Topic;
@@ -304,15 +305,17 @@ const KanbanCardComponent: React.FC<KanbanCardProps> = ({
               </button>
 
               {isStatusMenuOpen && statusMenuPosition && createPortal(
-                <div
-                  ref={statusMenuRef}
+                <FloatingScrollbar
+                  wrapperRef={statusMenuRef}
                   onClick={(e) => e.stopPropagation()}
-                  style={{
+                  wrapperStyle={{
+                    position: 'fixed',
                     top: statusMenuPosition.top,
                     left: statusMenuPosition.left,
                     maxHeight: statusMenuPosition.maxHeight,
                   }}
-                  className="fixed z-[100] w-36 max-w-[calc(100vw-1rem)] overflow-y-auto overscroll-contain bg-[var(--surface)] rounded-[var(--radius-md)] shadow-modal border border-[var(--line)] p-1.5 space-y-0.5 animate-in fade-in zoom-in-95 duration-150 ease-editorial-out"
+                  className="p-1.5 space-y-0.5"
+                  wrapperClassName="fixed z-[100] w-36 max-w-[calc(100vw-1rem)] flex-none bg-[var(--surface)] rounded-[var(--radius-md)] shadow-modal border border-[var(--line)] animate-in fade-in zoom-in-95 duration-150 ease-editorial-out"
                 >
                   <div className="px-2.5 py-1 text-[10px] font-semibold tracking-wider text-[var(--ink-muted)] uppercase">
                     活跃生产阶段
@@ -372,7 +375,7 @@ const KanbanCardComponent: React.FC<KanbanCardProps> = ({
                     <span>搁置</span>
                     {topic.status === 'icebox' && <span className="text-[var(--ink-muted)] text-xs">✓</span>}
                   </button>
-                </div>,
+                </FloatingScrollbar>,
                 document.body
               )}
             </div>

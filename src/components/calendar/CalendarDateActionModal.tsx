@@ -5,6 +5,7 @@ import { Topic, Priority, TopicStatus, Tag } from '../../types';
 import { Calendar, Plus, Check, Trash2, Clock, Sparkles } from 'lucide-react';
 import { StatusBadge, PriorityBadge } from '../ui/Badge';
 import { getActionDateDisplay, useBeijingToday } from '../../lib/actionDate';
+import { FloatingScrollbar } from '../ui/FloatingScrollbar';
 
 interface CalendarDateActionModalProps {
   isOpen: boolean;
@@ -147,7 +148,7 @@ export const CalendarDateActionModal: React.FC<CalendarDateActionModalProps> = (
               <label className="block text-xs font-bold text-stone-700 dark:text-stone-300 mb-1.5">
                 选择要定档的选题 <span className="text-rose-500">*</span>
               </label>
-              <div className="space-y-1.5 max-h-48 overflow-y-auto pr-1">
+              <FloatingScrollbar className="space-y-1.5 pr-1" wrapperClassName="max-h-48 flex-none">
                 {unscheduledTopics.map((topic) => {
                   const isSelected = selectedTopicId === topic.id;
                   return (
@@ -195,7 +196,7 @@ export const CalendarDateActionModal: React.FC<CalendarDateActionModalProps> = (
                     暂无可定档的未排期选题，请切换到「新建选题」
                   </div>
                 )}
-              </div>
+              </FloatingScrollbar>
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2 border-t border-stone-100 dark:border-stone-800">

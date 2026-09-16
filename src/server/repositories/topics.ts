@@ -2,6 +2,8 @@ import type { PaginatedTopics, Person, Tag, Topic, TopicPinMutationResult, Topic
 import type { SqliteDatabase, SqlitePreparedStatement } from '../sqlite';
 import { bind } from './shared';
 
+const MAX_TOPIC_BATCH_QUERY_IDS = 500;
+
 export async function loadTopics(db: SqliteDatabase, scope: 'active' | 'trash' | 'all' = 'active'): Promise<Topic[]> {
   const topicFilter = scope === 'active'
     ? 'WHERE t.deleted_at IS NULL'
@@ -85,7 +87,7 @@ export async function loadTodayFocus(db: SqliteDatabase): Promise<{ topics: Topi
     ...(recentResult.results as unknown as Array<{ id: string }>).map((row) => row.id),
     ...(allActiveResult.results as unknown as Array<{ id: string }>).map((row) => row.id),
   ]));
-  const loadedTopics = await loadTopics(db, 'active');
+  const loadedTopics = await loadTopicBatch(db, orderedIds);
   const topicsById = new Map(loadedTopics.map((topic) => [topic.id, topic]));
   return {
     topics: orderedIds.map((id) => topicsById.get(id)).filter((topic): topic is Topic => Boolean(topic)),
@@ -101,6 +103,7 @@ export async function loadActiveTopicCount(db: SqliteDatabase): Promise<number> 
 }
 export class TopicNotInTrashError extends Error {}
 export class TopicPinInvalidStateError extends Error {}
+export class TopicReorderInvalidStateError extends Error {}
 
 export async function ensureTopicsInTrash(db: SqliteDatabase, ids: string[]): Promise<void> {
   if (ids.length === 0) return;
@@ -329,6 +332,13 @@ export async function loadTopic(db: SqliteDatabase, id: string): Promise<Topic |
 
 export async function loadTopicBatch(db: SqliteDatabase, ids: string[]): Promise<Topic[]> {
   if (ids.length === 0) return [];
+  if (ids.length > MAX_TOPIC_BATCH_QUERY_IDS) {
+    const topics: Topic[] = [];
+    for (let index = 0; index < ids.length; index += MAX_TOPIC_BATCH_QUERY_IDS) {
+      topics.push(...await loadTopicBatch(db, ids.slice(index, index + MAX_TOPIC_BATCH_QUERY_IDS)));
+    }
+    return topics;
+  }
   const placeholders = ids.map(() => '?').join(',');
   const results = await db.batch([
     bind(db, `SELECT t.*,
@@ -502,7 +512,20 @@ export async function reorderTopics(
 ): Promise<string> {
   const now = new Date().toISOString();
   if (updates.length === 0) return now;
-  const affectedStatuses = Array.from(new Set(updates.map((update) => update.status)));
+  const updateIds = updates.map((update) => update.id);
+  if (new Set(updateIds).size !== updateIds.length) {
+    throw new TopicReorderInvalidStateError('Duplicate topic ids are not allowed');
+  }
+  const updatePlaceholders = updateIds.map(() => '?').join(',');
+  const updatedTopics = await db.prepare(`SELECT id, status FROM topics
+    WHERE deleted_at IS NULL AND id IN (${updatePlaceholders})`).bind(...updateIds).all<{ id: string; status: TopicStatus }>();
+  if (updatedTopics.results.length !== updateIds.length) {
+    throw new TopicReorderInvalidStateError('All topics must exist and be active before reordering');
+  }
+  const affectedStatuses = Array.from(new Set([
+    ...updates.map((update) => update.status),
+    ...updatedTopics.results.map((topic) => topic.status),
+  ]));
   const placeholders = affectedStatuses.map(() => '?').join(',');
   const existing = await db.prepare(`SELECT id, status FROM topics
     WHERE deleted_at IS NULL AND status IN (${placeholders})

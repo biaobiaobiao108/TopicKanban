@@ -1,4 +1,4 @@
-import type { NativeApp } from '../native';
+import type { NativeApp, NativeMiddleware } from '../native';
 import { bodyLimit } from '../native';
 import type { QuickDropItem } from '../../types';
 import {
@@ -9,8 +9,38 @@ import {
 import { isSafeExternalHttpUrl } from '../../lib/urlSafety';
 import { normalizeQuickDropUrl } from '../../lib/quickDrop';
 
+const QUICK_DROP_RATE_WINDOW_MS = 60_000;
+const QUICK_DROP_RATE_LIMIT = 120;
+const QUICK_DROP_RATE_MAX_ENTRIES = 10_000;
+const quickDropRate = new Map<string, { count: number; resetAt: number }>();
+
+const quickDropRateLimit: NativeMiddleware = async (c, next) => {
+  const now = Date.now();
+  for (const [key, value] of quickDropRate) {
+    if (value.resetAt <= now) quickDropRate.delete(key);
+  }
+  while (quickDropRate.size >= QUICK_DROP_RATE_MAX_ENTRIES) {
+    const oldestKey = quickDropRate.keys().next().value as string | undefined;
+    if (oldestKey === undefined) break;
+    quickDropRate.delete(oldestKey);
+  }
+
+  const clientIp = c.env.CLIENT_IP || 'unknown';
+  const current = quickDropRate.get(clientIp);
+  if (!current || current.resetAt <= now) {
+    quickDropRate.set(clientIp, { count: 1, resetAt: now + QUICK_DROP_RATE_WINDOW_MS });
+    return next();
+  }
+  if (current.count >= QUICK_DROP_RATE_LIMIT) {
+    c.header('Retry-After', String(Math.max(1, Math.ceil((current.resetAt - now) / 1000))));
+    return c.json({ error: '快投请求过于频繁，请稍后再试' }, 429);
+  }
+  current.count += 1;
+  return next();
+};
+
 export function registerQuickDropRoutes(app: NativeApp): void {
-  app.post('/inbox/quick-drop', bodyLimit({
+  app.post('/inbox/quick-drop', quickDropRateLimit, bodyLimit({
     maxSize: MAX_QUICK_DROP_REQUEST_BYTES,
     onError: (c) => c.json({ error: 'Quick drop request body is too large' }, 413),
   }), async (c) => {
@@ -39,8 +69,7 @@ export function registerQuickDropRoutes(app: NativeApp): void {
         source: rawSource,
         created_at: new Date().toISOString(),
       };
-      await c.env.KV.put(`drop:${id}`, JSON.stringify(item), { expirationTtl: 86400 * 7 });
-      await c.env.KV.updateQuickDropsIndex((listIndex) => [id, ...listIndex.filter((itemKey) => itemKey !== id)]);
+      await c.env.KV.putQuickDrop(id, JSON.stringify(item), 86400 * 7);
       return c.json({ success: true, item, message: '灵感投递成功！已暂存至工作台快投箱' }, 201);
     } catch (error) {
       return jsonError(c, error);
@@ -49,7 +78,13 @@ export function registerQuickDropRoutes(app: NativeApp): void {
 
   app.get('/inbox/quick-drops', async (c) => {
     try {
-      const listIndex = (await c.env.KV.get<string[]>('quick_drops_index', 'json')) || [];
+      const rawListIndex = (await c.env.KV.get<unknown>('quick_drops_index', 'json')) || [];
+      const listIndex = Array.from(new Set(
+        (Array.isArray(rawListIndex) ? rawListIndex : []).filter((id): id is string => typeof id === 'string' && id.length > 0)
+      )).slice(0, 100);
+      if (!Array.isArray(rawListIndex) || listIndex.length !== rawListIndex.length) {
+        await c.env.KV.updateQuickDropsIndex(() => listIndex);
+      }
       const items: QuickDropItem[] = [];
       const validIds: string[] = [];
       await Promise.all(listIndex.map(async (id) => {

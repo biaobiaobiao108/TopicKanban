@@ -45,6 +45,9 @@ import type { PublishedAnalyticsPayload } from './videoAnalytics';
 
 const PENDING_DRAFTS_KEY = 'topic_kanban_pending_drafts_v3';
 const LEGACY_PENDING_DRAFTS_KEY = 'topic_kanban_pending_drafts_v2';
+const PENDING_DRAFT_MAX_ENTRIES = 8;
+const PENDING_DRAFT_MAX_BYTES = 3 * 1024 * 1024;
+const PENDING_DRAFT_TTL_MS = 7 * 24 * 60 * 60 * 1000;
 export const MAX_BACKUP_IMPORT_BYTES = 5 * 1024 * 1024;
 let bootstrapPromise: Promise<BootstrapData> | null = null;
 let bootstrapToken: string | null = null;
@@ -175,6 +178,7 @@ export function clearRemoteStorageMemoryCaches(): void {
 export function clearRemoteStorageTopicCaches(topicId: string): void {
   knownDraftVersions.delete(topicId);
   knownCitationSignatures.delete(topicId);
+  writePendingDraft(null, topicId);
 }
 
 export function fetchBootstrap(scope: 'full' | 'core' = 'full'): Promise<BootstrapData> {
@@ -425,7 +429,8 @@ export async function permanentlyDeleteTopicsBatch(ids: string[]): Promise<void>
 }
 
 export async function emptyTrash(): Promise<void> {
-  await apiRequest('/api/topics/trash/empty', jsonRequest('POST', {}));
+  const result = await apiRequest<{ ids?: string[] }>('/api/topics/trash/empty', jsonRequest('POST', {}));
+  result.ids?.filter((id): id is string => typeof id === 'string').forEach(clearRemoteStorageTopicCaches);
   clearRemoteStorageMemoryCaches();
   invalidateBootstrap();
 }
@@ -533,16 +538,53 @@ interface PendingDraftRecord {
   cached_at: string;
 }
 
+function isPendingDraftRecord(value: unknown): value is PendingDraftRecord {
+  if (!value || typeof value !== 'object') return false;
+  const candidate = value as Partial<PendingDraftRecord>;
+  return Boolean(candidate.draft && typeof candidate.draft === 'object')
+    && typeof candidate.base_version === 'number'
+    && Number.isSafeInteger(candidate.base_version)
+    && typeof candidate.cached_at === 'string'
+    && Number.isFinite(Date.parse(candidate.cached_at));
+}
+
+function boundPendingDrafts(records: Record<string, PendingDraftRecord>, now = Date.now()): Record<string, PendingDraftRecord> {
+  const sorted = Object.entries(records)
+    .filter(([, record]) => {
+      if (!isPendingDraftRecord(record)) return false;
+      const age = now - Date.parse(record.cached_at);
+      return age >= 0 && age <= PENDING_DRAFT_TTL_MS;
+    })
+    .sort(([, left], [, right]) => Date.parse(right.cached_at) - Date.parse(left.cached_at));
+  const bounded: Record<string, PendingDraftRecord> = {};
+  for (const [topicId, record] of sorted) {
+    if (Object.keys(bounded).length >= PENDING_DRAFT_MAX_ENTRIES) break;
+    const candidate = { ...bounded, [topicId]: record };
+    if (new TextEncoder().encode(JSON.stringify(candidate)).byteLength > PENDING_DRAFT_MAX_BYTES) break;
+    bounded[topicId] = record;
+  }
+  return bounded;
+}
+
 function readPendingDrafts(): Record<string, PendingDraftRecord> {
   try {
-    const current = JSON.parse(localStorage.getItem(PENDING_DRAFTS_KEY) || '{}') as Record<string, PendingDraftRecord>;
-    if (Object.keys(current).length > 0) return current;
-    const legacy = JSON.parse(localStorage.getItem(LEGACY_PENDING_DRAFTS_KEY) || '{}') as Record<string, Draft>;
-    return Object.fromEntries(Object.entries(legacy).map(([topicId, draft]) => [topicId, {
-      draft,
-      base_version: draft.version || 0,
-      cached_at: draft.updated_at,
-    }]));
+    const current = JSON.parse(localStorage.getItem(PENDING_DRAFTS_KEY) || '{}') as Record<string, unknown>;
+    const validCurrent = Object.fromEntries(
+      Object.entries(current).filter(([, record]) => isPendingDraftRecord(record))
+    ) as Record<string, PendingDraftRecord>;
+    if (Object.keys(validCurrent).length > 0) return boundPendingDrafts(validCurrent);
+    const legacy = JSON.parse(localStorage.getItem(LEGACY_PENDING_DRAFTS_KEY) || '{}') as Record<string, unknown>;
+    const migrated = Object.fromEntries(Object.entries(legacy)
+      .filter(([, draft]) => draft && typeof draft === 'object')
+      .map(([topicId, draft]) => {
+        const typedDraft = draft as Draft;
+        return [topicId, {
+          draft: typedDraft,
+          base_version: typedDraft.version || 0,
+          cached_at: typedDraft.updated_at,
+        }];
+      })) as Record<string, PendingDraftRecord>;
+    return boundPendingDrafts(migrated);
   } catch {
     return {};
   }
@@ -553,7 +595,7 @@ function writePendingDraft(record: PendingDraftRecord | null, topicId: string): 
     const pending = readPendingDrafts();
     if (record) pending[topicId] = record;
     else delete pending[topicId];
-    localStorage.setItem(PENDING_DRAFTS_KEY, JSON.stringify(pending));
+    localStorage.setItem(PENDING_DRAFTS_KEY, JSON.stringify(boundPendingDrafts(pending)));
     localStorage.removeItem(LEGACY_PENDING_DRAFTS_KEY);
   } catch (error) {
     console.error('Draft recovery cache write failed', error);

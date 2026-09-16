@@ -2,6 +2,7 @@ import React, { useEffect, useId, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { Check, ChevronDown, Search } from 'lucide-react';
 import { useFloatingPosition } from '../../hooks/useFloatingPosition';
+import { FloatingScrollbar } from './FloatingScrollbar';
 
 export interface SelectOption {
   value: string;
@@ -292,7 +293,7 @@ export const CustomSelect: React.FC<CustomSelectProps> = ({
             </div>
           )}
 
-          <div id={listboxId} role="listbox" aria-label={ariaLabel || selectedOption?.label || placeholder} className="min-h-0 min-w-0 flex-1 overflow-y-auto overscroll-contain p-1.5 space-y-0.5">
+          <FloatingScrollbar id={listboxId} role="listbox" aria-label={ariaLabel || selectedOption?.label || placeholder} className="p-1.5 space-y-0.5" wrapperClassName="min-h-0 min-w-0 flex-1">
             {options.length === 0 ? emptyState : options.map((option, index) => {
               const isSelected = option.value === value;
               const isFocused = focusedIndex === index;
@@ -328,7 +329,7 @@ export const CustomSelect: React.FC<CustomSelectProps> = ({
                 </button>
               );
             })}
-          </div>
+          </FloatingScrollbar>
         </div>,
         containerRef.current?.closest('dialog') || document.body,
       )}

@@ -37,6 +37,7 @@ import {
 } from '../../lib/storage';
 import { Modal } from '../ui/Modal';
 import { FloatingMenu } from '../ui/FloatingMenu';
+import { FloatingScrollbar } from '../ui/FloatingScrollbar';
 import { LayoutDashboard, FileSearch, Clock, Users, PenTool, FileText, Handshake, CheckCircle2, GitBranch, MoreHorizontal, ListTodo } from 'lucide-react';
 
 interface TopicDetailViewProps {
@@ -697,7 +698,7 @@ export const TopicDetailView: React.FC<TopicDetailViewProps> = ({
           maxHeight={320}
           className="w-[calc(100vw-1rem)] animate-in fade-in zoom-in-95 duration-100"
         >
-          <div className="min-h-0 overflow-y-auto p-2">
+          <FloatingScrollbar className="p-2" wrapperClassName="min-h-0 flex-none">
             <div className="px-2 pb-1 text-[11px] font-bold text-stone-400 dark:text-stone-500">切换生产阶段</div>
             <div className="grid grid-cols-3 gap-1.5">
               {COLUMNS.map((column) => (
@@ -718,7 +719,7 @@ export const TopicDetailView: React.FC<TopicDetailViewProps> = ({
                 </button>
               ))}
             </div>
-          </div>
+          </FloatingScrollbar>
         </FloatingMenu>
         <FloatingMenu
           isOpen={isMoreMenuOpen}
@@ -732,7 +733,7 @@ export const TopicDetailView: React.FC<TopicDetailViewProps> = ({
           align="right"
           className="animate-in fade-in zoom-in-95 duration-100 p-2"
         >
-          <div className="min-h-0 max-h-full overflow-y-auto">
+          <FloatingScrollbar wrapperClassName="min-h-0 max-h-full flex-none">
             {tabs.filter((tab) => tab.id !== 'script').map((tab) => (
               <button
                 key={tab.id}
@@ -746,7 +747,7 @@ export const TopicDetailView: React.FC<TopicDetailViewProps> = ({
                 <tab.icon className="h-4 w-4 text-stone-400 dark:text-stone-500" /> {tab.label}
               </button>
             ))}
-          </div>
+          </FloatingScrollbar>
         </FloatingMenu>
         <div className="grid grid-cols-4 gap-1">
           <button

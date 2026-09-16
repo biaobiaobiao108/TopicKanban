@@ -9,6 +9,8 @@ import type {
 import type { SqliteDatabase, SqlitePreparedStatement } from '../sqlite';
 import { bind } from './shared';
 
+export class TimelineReorderInvalidStateError extends Error {}
+
 function normalizePublishPackageRecord(row: Record<string, unknown> | null): PublishPackageRecord | null {
   if (!row) return null;
   return {
@@ -165,6 +167,20 @@ export async function updateTimelineEvent(
 export async function reorderTimelineEvents(db: SqliteDatabase, events: TimelineEvent[]): Promise<string> {
   const now = new Date().toISOString();
   if (events.length > 0) {
+    const eventIds = events.map((event) => event.id);
+    if (new Set(eventIds).size !== eventIds.length) {
+      throw new TimelineReorderInvalidStateError('Duplicate timeline event ids are not allowed');
+    }
+    const placeholders = eventIds.map(() => '?').join(',');
+    const existing = await db.prepare(`SELECT id, topic_id FROM timeline_events WHERE id IN (${placeholders})`)
+      .bind(...eventIds).all<{ id: string; topic_id: string }>();
+    if (existing.results.length !== eventIds.length) {
+      throw new TimelineReorderInvalidStateError('All timeline events must exist before reordering');
+    }
+    const requestedTopicIds = new Set(events.map((event) => event.topic_id));
+    if (requestedTopicIds.size !== 1 || existing.results.some((event) => event.topic_id !== events[0]?.topic_id)) {
+      throw new TimelineReorderInvalidStateError('Timeline events must belong to the same topic');
+    }
     await db.batch(events.map((event, index) => bind(
       db,
       'UPDATE timeline_events SET sort_order = ?, updated_at = ? WHERE id = ?',

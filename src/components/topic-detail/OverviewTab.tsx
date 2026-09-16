@@ -6,6 +6,7 @@ import { useToast } from '../ui/Toast';
 import { getCurrentActionAgeDays, getCurrentActionWarning } from '../../lib/topicMetrics';
 import { useActionDateDisplay } from '../../lib/actionDate';
 import { ActionDateText } from '../ui/ActionDate';
+import { FloatingScrollbar } from '../ui/FloatingScrollbar';
 import {
   buildStoryStructureSectionsHtml,
   buildStoryStructureTimelineSteps,
@@ -841,7 +842,7 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({
               <span className="text-[11px] text-stone-600 dark:text-stone-400">共 <span className="font-mono tabular-nums">{allPeople.length}</span> 人</span>
             </div>
 
-            <div className="flex flex-wrap gap-1.5 max-h-36 overflow-y-auto pr-1">
+            <FloatingScrollbar className="flex flex-wrap gap-1.5 pr-1" wrapperClassName="max-h-36 flex-none">
               {allPeople.map((p) => {
                 const isSelected = topic.people?.some((tp) => tp.id === p.id);
                 return (
@@ -862,7 +863,7 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({
                   </button>
                 );
               })}
-            </div>
+            </FloatingScrollbar>
           </div>
         </div>
 
@@ -942,7 +943,7 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({
               <span className="text-[11px] text-stone-400 dark:text-stone-500">共 <span className="font-mono tabular-nums">{allTags.length}</span> 个</span>
             </div>
 
-            <div className="flex flex-wrap gap-1.5 max-h-32 overflow-y-auto pr-1">
+            <FloatingScrollbar className="flex flex-wrap gap-1.5 pr-1" wrapperClassName="max-h-32 flex-none">
               {allTags.map((tag) => {
                 const isSelected = topic.tags?.some((t) => t.id === tag.id);
                 return (
@@ -960,7 +961,7 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({
                   </button>
                 );
               })}
-            </div>
+            </FloatingScrollbar>
           </div>
         </div>
       </div>

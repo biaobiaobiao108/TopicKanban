@@ -43,6 +43,7 @@ import { PageHeader } from '../layout/PageHeader';
 import { BackNavigationBar } from '../layout/BackNavigationBar';
 import { ActionDate, ActionDateText } from '../ui/ActionDate';
 import { useActionDateDisplay } from '../../lib/actionDate';
+import { FloatingScrollbar } from '../ui/FloatingScrollbar';
 
 const ACTIVE_STATUSES: CommercialDealStatus[] = ['communicating', 'producing'];
 const STATUS_FLOW: CommercialDealStatus[] = ['communicating', 'producing', 'delivered', 'archived'];
@@ -1488,7 +1489,7 @@ function CommercialDealDetailView({
                 {availableTopics.length > 0 && (
                   <div>
                     <span className="mb-1.5 block text-xs font-semibold text-stone-500 dark:text-stone-400">系列关联选题</span>
-                    <div className="max-h-44 space-y-1 overflow-y-auto rounded-xl border border-stone-200/70 p-2 dark:border-stone-700">
+                    <FloatingScrollbar className="space-y-1 rounded-xl border border-stone-200/70 p-2 dark:border-stone-700" wrapperClassName="max-h-44 flex-none">
                       {availableTopics.map((topic) => {
                         const checked = linkedTopicIds.has(topic.id);
                         return (
@@ -1515,7 +1516,7 @@ function CommercialDealDetailView({
                           </label>
                         );
                       })}
-                    </div>
+                    </FloatingScrollbar>
                   </div>
                 )}
               </div>

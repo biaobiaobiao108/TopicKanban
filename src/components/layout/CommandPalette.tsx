@@ -29,6 +29,7 @@ import { NavView } from './Sidebar';
 import { StatusBadge, PriorityBadge } from '../ui/Badge';
 import { fetchTopicPage } from '../../lib/storage';
 import { THEME_CONFIG_LIST } from '../../lib/theme';
+import { FloatingScrollbar } from '../ui/FloatingScrollbar';
 
 interface CommandPaletteProps {
   isOpen: boolean;
@@ -923,7 +924,7 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
         </div>
 
         {/* Results List */}
-        <div className="max-h-[480px] overflow-y-auto overscroll-contain p-2 space-y-1 divide-y divide-stone-50 dark:divide-stone-800/60">
+        <FloatingScrollbar className="p-2 space-y-1 divide-y divide-stone-50 dark:divide-stone-800/60" wrapperClassName="max-h-[480px] flex-none">
           {items.map((item, index) => {
             const isSelected = index === selectedIndex;
             const Icon = item.icon;
@@ -993,7 +994,7 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
               </div>
             </div>
           )}
-        </div>
+        </FloatingScrollbar>
 
         {/* Footer Keybinding Hints Bar */}
         <div className="px-4 py-2.5 bg-stone-50 dark:bg-stone-900/90 border-t border-stone-200 dark:border-stone-800 flex items-center justify-between text-[11px] text-stone-600 dark:text-stone-400 font-medium shrink-0 flex-wrap gap-2">

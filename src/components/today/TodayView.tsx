@@ -22,6 +22,7 @@ import { PageHeader } from '../layout/PageHeader';
 import { getCurrentActionAgeDays, getCurrentActionWarning } from '../../lib/topicMetrics';
 import { useActionDateDisplay } from '../../lib/actionDate';
 import { ActionDateText } from '../ui/ActionDate';
+import { FloatingScrollbar } from '../ui/FloatingScrollbar';
 
 const FOCUS_PRIORITY = { high: 3, medium: 2, low: 1, none: 0 };
 const ACTIVE_FOCUS_STATUSES = new Set(['approved', 'scripting', 'production']);
@@ -349,7 +350,7 @@ export const TodayView: React.FC<TodayViewProps> = ({
                 <div className="h-full rounded-full bg-gradient-to-r from-rose-500 to-rose-400 transition-[width] duration-300 motion-reduce:transition-none" style={{ width: `${activeTopics.length ? (actionProgress.covered / activeTopics.length) * 100 : 0}%` }} />
               </div>
 
-              <div data-testid="today-action-progress-scroll" role="region" tabIndex={0} aria-label="行动推进列表" className="today-focus-scroll mt-4 min-h-0 flex-1 overflow-y-auto divide-y divide-stone-100 dark:divide-stone-800/70">
+              <FloatingScrollbar data-testid="today-action-progress-scroll" role="region" tabIndex={0} aria-label="行动推进列表" className="today-focus-scroll divide-y divide-stone-100 dark:divide-stone-800/70" wrapperClassName="mt-4 flex-1 min-h-0">
                 {actionProgress.attention.length > 0 ? actionProgress.attention.map((topic) => {
                   const hasAction = Boolean(topic.current_todo);
                   return (
@@ -371,7 +372,7 @@ export const TodayView: React.FC<TodayViewProps> = ({
                     <p className="mt-1 text-xs text-stone-600 dark:text-stone-400">继续从主推选题开始推进即可。</p>
                   </div>
                 )}
-              </div>
+              </FloatingScrollbar>
 
               {actionProgress.attention.length > 0 && (
                 <div data-testid="today-action-progress-footer" className="mt-3 border-t border-stone-100 pt-3 text-[11px] text-stone-600 dark:border-stone-800/70 dark:text-stone-400">
@@ -397,7 +398,7 @@ export const TodayView: React.FC<TodayViewProps> = ({
             </div>
 
             <div data-testid="today-recent-activity-panel" className="today-recent-updates-panel flex min-h-0 flex-1 flex-col overflow-hidden rounded-2xl border border-stone-200/70 bg-white/80 p-4 shadow-2xs dark:border-stone-800 dark:bg-stone-900/80">
-              <div data-testid="today-recent-activity-scroll" role="region" tabIndex={0} aria-label="近期活跃轨迹列表" className="today-focus-scroll min-h-0 flex-1 overflow-y-auto divide-y divide-stone-100 dark:divide-stone-800/70">
+              <FloatingScrollbar data-testid="today-recent-activity-scroll" role="region" tabIndex={0} aria-label="近期活跃轨迹列表" className="today-focus-scroll divide-y divide-stone-100 dark:divide-stone-800/70" wrapperClassName="flex-1 min-h-0">
                 {recentUpdates.map((t) => (
                   <button
                     type="button"
@@ -428,7 +429,7 @@ export const TodayView: React.FC<TodayViewProps> = ({
                     </span>
                   </button>
                 ))}
-              </div>
+              </FloatingScrollbar>
               <div data-testid="today-recent-activity-footer" className="mt-3 shrink-0 border-t border-stone-100 pt-3 text-[11px] text-stone-600 dark:border-stone-800/70 dark:text-stone-400">
                 <div className="flex items-center justify-between gap-3 font-semibold">
                   <span className="flex items-center gap-1.5">

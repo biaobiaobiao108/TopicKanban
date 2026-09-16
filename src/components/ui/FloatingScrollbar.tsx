@@ -11,6 +11,8 @@ export interface FloatingScrollbarProps extends React.HTMLAttributes<HTMLDivElem
   children: React.ReactNode;
   className?: string;
   wrapperClassName?: string;
+  wrapperStyle?: React.CSSProperties;
+  wrapperRef?: React.Ref<HTMLDivElement>;
   autoHideDelay?: number;
   minThumbSize?: number;
 }
@@ -21,6 +23,8 @@ export const FloatingScrollbar = forwardRef<HTMLDivElement, FloatingScrollbarPro
       children,
       className = '',
       wrapperClassName = '',
+      wrapperStyle,
+      wrapperRef,
       autoHideDelay = 1200,
       minThumbSize = 28,
       onScroll,
@@ -157,7 +161,9 @@ export const FloatingScrollbar = forwardRef<HTMLDivElement, FloatingScrollbarPro
 
     return (
       <div
+        ref={wrapperRef}
         className={`relative min-h-0 min-w-0 flex-1 overflow-hidden ${wrapperClassName}`}
+        style={wrapperStyle}
         onPointerEnter={() => {
           updateScrollMetrics();
           showThumb();

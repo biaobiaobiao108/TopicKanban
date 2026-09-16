@@ -24,6 +24,7 @@ import {
   loadTimelineEvents,
   loadTopicWorkspace,
   reorderTimelineEvents,
+  TimelineReorderInvalidStateError,
   updateSource,
   updateTimelineEvent,
 } from '../repositories';
@@ -159,12 +160,23 @@ export function registerWorkspaceRoutes(app: NativeApp): void {
 
   app.patch('/timeline/reorder/batch', async (c) => {
     try {
-      const { events } = await c.req.json<{ events?: TimelineEvent[] }>();
+      const { events } = await c.req.json<{ events?: unknown }>();
       if (!Array.isArray(events)) return c.json({ error: 'Events are required' }, 400);
       if (events.length > MAX_BATCH_SIZE) return c.json({ error: `At most ${MAX_BATCH_SIZE} events are allowed` }, 400);
-      const updatedAt = await reorderTimelineEvents(requireDb(c), events);
+      if (events.some((event) => !event || typeof event !== 'object')) return c.json({ error: 'Invalid timeline event' }, 400);
+      const typedEvents = events as Array<{ id?: unknown; topic_id?: unknown }>;
+      if (typedEvents.some((event) => typeof event.id !== 'string' || event.id.trim().length === 0)) {
+        return c.json({ error: 'Each timeline event requires a non-empty id' }, 400);
+      }
+      if (typedEvents.some((event) => typeof event.topic_id !== 'string' || event.topic_id.trim().length === 0)) {
+        return c.json({ error: 'Each timeline event requires a topic id' }, 400);
+      }
+      const ids = typedEvents.map((event) => event.id as string);
+      if (new Set(ids).size !== ids.length) return c.json({ error: 'Duplicate timeline event ids are not allowed' }, 400);
+      const updatedAt = await reorderTimelineEvents(requireDb(c), events as TimelineEvent[]);
       return c.json({ success: true, updated_at: updatedAt });
     } catch (error) {
+      if (error instanceof TimelineReorderInvalidStateError) return c.json({ error: error.message }, 400);
       return jsonError(c, error, 400);
     }
   });

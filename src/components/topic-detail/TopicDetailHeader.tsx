@@ -13,6 +13,7 @@ import {
 import { getCurrentActionAgeDays, getCurrentActionWarning } from '../../lib/topicMetrics';
 import { FloatingMenu } from '../ui/FloatingMenu';
 import { ConfirmDialog } from '../ui/ConfirmDialog';
+import { FloatingScrollbar } from '../ui/FloatingScrollbar';
 
 const statusDots: Record<TopicStatus, string> = {
   inbox: 'bg-stone-400',
@@ -156,7 +157,7 @@ export const TopicDetailHeader: React.FC<TopicDetailHeaderProps> = ({
             maxHeight={320}
             className="animate-in fade-in zoom-in-95 duration-100"
           >
-            <div className="min-h-0 overflow-y-auto overscroll-contain p-1.5 space-y-0.5">
+            <FloatingScrollbar className="p-1.5 space-y-0.5" wrapperClassName="min-h-0 flex-none">
               <div className="px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider text-stone-400 dark:text-stone-500">
                 活跃阶段
               </div>
@@ -227,7 +228,7 @@ export const TopicDetailHeader: React.FC<TopicDetailHeaderProps> = ({
                 </div>
                 {topic.status === 'icebox' && <span className="text-stone-600 dark:text-stone-400 text-xs">✓</span>}
               </button>
-            </div>
+            </FloatingScrollbar>
           </FloatingMenu>
         </div>
 
@@ -261,7 +262,7 @@ export const TopicDetailHeader: React.FC<TopicDetailHeaderProps> = ({
             maxHeight={240}
             className="animate-in fade-in zoom-in-95 duration-100"
           >
-            <div className="min-h-0 overflow-y-auto overscroll-contain p-1.5 space-y-0.5">
+            <FloatingScrollbar className="p-1.5 space-y-0.5" wrapperClassName="min-h-0 flex-none">
               <div className="px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider text-stone-400 dark:text-stone-500">
                 优先级设定
               </div>
@@ -291,7 +292,7 @@ export const TopicDetailHeader: React.FC<TopicDetailHeaderProps> = ({
                   </button>
                 );
               })}
-            </div>
+            </FloatingScrollbar>
           </FloatingMenu>
         </div>
 

@@ -4,6 +4,7 @@ import { CSS } from '@dnd-kit/utilities';
 import { Topic, TopicStatus } from '../../types';
 import { StatusBadge, PriorityBadge } from '../ui/Badge';
 import { Search, GripVertical, CalendarPlus, X, Filter } from 'lucide-react';
+import { FloatingScrollbar } from '../ui/FloatingScrollbar';
 
 interface UnscheduledTopicPoolProps {
   topics: Topic[];
@@ -257,7 +258,7 @@ export const UnscheduledTopicPool: React.FC<UnscheduledTopicPoolProps> = ({
       </div>
 
       {/* Topics Stream */}
-      <div className="flex-1 p-3 space-y-2.5 overflow-y-auto min-h-0">
+      <FloatingScrollbar className="p-3 space-y-2.5" wrapperClassName="flex-1 min-h-0">
         <div className="text-[11px] text-stone-500 dark:text-stone-400 px-1">
           💡 提示：按住卡片右侧把手可直接拖拽至左侧日历日期定档
         </div>
@@ -276,7 +277,7 @@ export const UnscheduledTopicPool: React.FC<UnscheduledTopicPoolProps> = ({
             {search || statusFilter !== 'all' ? '无匹配选题' : '所有活跃选题均已定档！'}
           </div>
         )}
-      </div>
+      </FloatingScrollbar>
     </aside>
   );
 };

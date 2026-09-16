@@ -4,6 +4,7 @@ import { CalendarEventItem } from './CalendarTypes';
 import { CalendarEventPill } from './CalendarEventPill';
 import { Plus, Calendar as CalendarIcon } from 'lucide-react';
 import { getActionDateDisplay, useBeijingToday } from '../../lib/actionDate';
+import { FloatingScrollbar } from '../ui/FloatingScrollbar';
 
 interface CalendarAgendaViewProps {
   days: WeekDayCell[];
@@ -68,7 +69,7 @@ export const CalendarAgendaView: React.FC<CalendarAgendaViewProps> = ({
       </div>
 
       {/* Selected Date Agenda Content */}
-      <div className="flex-1 p-4 overflow-y-auto space-y-4">
+      <FloatingScrollbar className="p-4 space-y-4" wrapperClassName="flex-1">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
             <CalendarIcon className="w-4 h-4 text-rose-600 dark:text-rose-400" />
@@ -116,7 +117,7 @@ export const CalendarAgendaView: React.FC<CalendarAgendaViewProps> = ({
             </button>
           </div>
         )}
-      </div>
+      </FloatingScrollbar>
     </div>
   );
 };

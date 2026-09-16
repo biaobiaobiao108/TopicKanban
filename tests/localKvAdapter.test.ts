@@ -66,4 +66,17 @@ describe('AppKV (SQLite)', () => {
     expect(index).toHaveLength(20);
     expect(new Set(index)).toEqual(new Set(Array.from({ length: 20 }, (_, item) => `drop-${item}`)));
   });
+
+  it('removes quick-drop backing rows that fall outside the bounded index', async () => {
+    for (let index = 0; index < 101; index += 1) {
+      await kv.put(`drop:${index}`, `item ${index}`);
+      await kv.updateQuickDropsIndex((ids) => [String(index), ...ids]);
+    }
+
+    const index = await kv.get<string[]>('quick_drops_index', 'json');
+    const backingRows = sqlite.query("SELECT key FROM _kv_store WHERE key LIKE 'drop:%'").all() as Array<{ key: string }>;
+    expect(index).toHaveLength(100);
+    expect(backingRows).toHaveLength(100);
+    expect(new Set(backingRows.map((row) => row.key.slice('drop:'.length)))).toEqual(new Set(index));
+  });
 });

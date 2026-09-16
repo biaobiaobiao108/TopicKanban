@@ -4,6 +4,7 @@ import { QuickDropItem } from '../../types';
 import { fetchQuickDrops, deleteQuickDrop } from '../../lib/storage';
 import { sanitizeExternalHttpUrl } from '../../lib/urlSafety';
 import { normalizeQuickDropUrl } from '../../lib/quickDrop';
+import { FloatingScrollbar } from '../ui/FloatingScrollbar';
 import {
   Inbox,
   X,
@@ -179,7 +180,7 @@ export const QuickDropDrawer: React.FC<QuickDropDrawerProps> = ({
         </div>
 
         {/* List Content */}
-        <div className="flex-1 overflow-y-auto overscroll-contain p-4 space-y-3">
+        <FloatingScrollbar className="p-4 space-y-3" wrapperClassName="flex-1">
           {drops.length === 0 ? (
             <div className="text-center py-16 px-4 space-y-3">
               <div className="w-12 h-12 rounded-2xl bg-stone-100 dark:bg-stone-800 text-stone-400 dark:text-stone-500 flex items-center justify-center mx-auto">
@@ -252,7 +253,7 @@ export const QuickDropDrawer: React.FC<QuickDropDrawerProps> = ({
               );
             })
           )}
-        </div>
+        </FloatingScrollbar>
 
         {/* Footer info */}
         <div className="p-3 border-t border-stone-200/70 dark:border-stone-800 bg-stone-50 dark:bg-stone-900/90 text-[11px] text-stone-400 dark:text-stone-500 text-center">

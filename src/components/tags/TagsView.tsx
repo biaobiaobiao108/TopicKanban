@@ -27,6 +27,7 @@ import { fetchTagsPage, fetchTopicPage } from '../../lib/storage';
 import { PageHeader } from '../layout/PageHeader';
 import { CustomSelect, type SelectOption } from '../ui/CustomSelect';
 import { ConfirmDialog } from '../ui/ConfirmDialog';
+import { FloatingScrollbar } from '../ui/FloatingScrollbar';
 
 interface TagsViewProps {
   tags: Tag[];
@@ -290,7 +291,7 @@ export const TagsView: React.FC<TagsViewProps> = ({
           </div>
 
           {/* Tags List */}
-          <div className="flex-1 overflow-y-auto p-2 space-y-1 bg-[var(--canvas)]">
+          <FloatingScrollbar className="p-2 space-y-1 bg-[var(--canvas)]" wrapperClassName="flex-1">
             {visibleTags.map((tag) => {
               const isSelected = activeTag?.id === tag.id;
               const stats = tagStatsMap.get(tag.id);
@@ -366,7 +367,7 @@ export const TagsView: React.FC<TagsViewProps> = ({
                 暂无匹配标签
               </div>
             )}
-          </div>
+          </FloatingScrollbar>
           {totalTags > 0 && (
             <div className="flex shrink-0 items-center justify-center gap-2 border-t border-[var(--line)] bg-[var(--canvas)] px-2 py-2 text-[11px] text-[var(--ink-muted)]">
               <button type="button" disabled={tagPage <= 1 || tagsPageQuery.isFetching} onClick={() => setTagPage((current) => Math.max(1, current - 1))} className="rounded-[var(--radius-sm)] border border-[var(--line)] bg-[var(--surface)] px-2 py-1 font-medium disabled:cursor-not-allowed disabled:opacity-40">上一页</button>
@@ -466,7 +467,7 @@ export const TagsView: React.FC<TagsViewProps> = ({
               </div>
 
               {/* Topics Grid */}
-              <div key={`${activeTag.id}-${topicStatusFilter}-${topicPage}`} data-testid="tags-topic-stream" className="mobile-scroll-reveal flex-none md:flex-1 overflow-visible md:overflow-y-auto p-4 sm:p-6">
+              <FloatingScrollbar key={`${activeTag.id}-${topicStatusFilter}-${topicPage}`} data-testid="tags-topic-stream" className="mobile-scroll-reveal p-4 sm:p-6" wrapperClassName="flex-none md:flex-1 md:min-h-0">
                 <div className="grid min-w-0 grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
                   {activeTagTopics.map((topic) => (
                     <div
@@ -534,7 +535,7 @@ export const TagsView: React.FC<TagsViewProps> = ({
                     <button type="button" disabled={topicPage >= (tagTopicsPageQuery.data?.total_pages || 1) || tagTopicsPageQuery.isFetching} onClick={() => setTopicPage((current) => current + 1)} className="min-h-9 rounded-[var(--radius-sm)] border border-[var(--line)] bg-[var(--surface)] px-3 py-1.5 font-medium hover:bg-[var(--canvas)] disabled:cursor-not-allowed disabled:opacity-40 text-[var(--ink)]">下一页</button>
                   </div>
                 )}
-              </div>
+              </FloatingScrollbar>
             </>
           ) : (
             <div className="flex-1 flex items-center justify-center p-12 text-[var(--ink-muted)] text-sm">

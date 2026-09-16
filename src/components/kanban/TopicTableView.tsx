@@ -24,6 +24,7 @@ import { CustomSelect } from '../ui/CustomSelect';
 import { FloatingMenu } from '../ui/FloatingMenu';
 import { ConfirmDialog } from '../ui/ConfirmDialog';
 import { useToast } from '../ui/Toast';
+import { FloatingScrollbar } from '../ui/FloatingScrollbar';
 
 interface TopicTableViewProps {
   topics: Topic[];
@@ -572,7 +573,7 @@ export const TopicTableView: React.FC<TopicTableViewProps> = ({
             <div className="px-2 pb-1 text-[10px] font-bold text-stone-400 dark:text-stone-500">
               标题列始终显示并冻结
             </div>
-            <div className="space-y-0.5 overflow-y-auto max-h-[300px]">
+            <FloatingScrollbar className="space-y-0.5" wrapperClassName="max-h-[300px] flex-none">
               {ALL_COLUMN_KEYS.map((column) => (
                 <label
                   key={column}
@@ -593,7 +594,7 @@ export const TopicTableView: React.FC<TopicTableViewProps> = ({
                   <span>{COLUMN_LABELS[column]}</span>
                 </label>
               ))}
-            </div>
+            </FloatingScrollbar>
           </FloatingMenu>
         </div>
       </div>
@@ -673,8 +674,7 @@ export const TopicTableView: React.FC<TopicTableViewProps> = ({
       )}
 
       {/* Mobile Card List */}
-      <div className="flex-1 min-h-0 overflow-y-auto overscroll-contain md:hidden">
-        <div className="space-y-3 p-3 pb-[max(5rem,var(--mobile-bottom-nav-clearance))]">
+      <FloatingScrollbar className="space-y-3 p-3 pb-[max(5rem,var(--mobile-bottom-nav-clearance))]" wrapperClassName="flex-1 min-h-0 md:hidden">
           {sortedTopics.map((topic) => {
             const totalScore =
               (topic.score_character || 0) +
@@ -833,11 +833,13 @@ export const TopicTableView: React.FC<TopicTableViewProps> = ({
               {archiveScope === 'trash' ? '回收站为空' : archiveScope === 'archived' ? '归档库暂无已发布或搁置的选题' : '暂无匹配的选题数据'}
             </div>
           )}
-        </div>
-      </div>
+      </FloatingScrollbar>
 
       {/* Table Scroll Container */}
-      <div className="topic-table-container hidden flex-1 overflow-x-auto overflow-y-auto overscroll-contain min-h-0 md:block">
+      <FloatingScrollbar
+        className="topic-table-container w-full min-w-full overflow-x-auto overscroll-contain"
+        wrapperClassName="hidden flex-1 min-h-0 md:block"
+      >
         <table className="w-full text-left border-collapse text-xs">
           {/* Table Header */}
           <thead className="table-header-row bg-stone-50/90 dark:bg-stone-900/95 backdrop-blur-xs sticky top-0 z-10 border-b border-stone-200 dark:border-stone-800 text-stone-600 dark:text-stone-300 font-semibold select-none">
@@ -1181,7 +1183,7 @@ export const TopicTableView: React.FC<TopicTableViewProps> = ({
             )}
           </tbody>
         </table>
-      </div>
+      </FloatingScrollbar>
 
       {/* Table Summary Footer */}
       <div className="hidden p-3.5 bg-stone-50 dark:bg-stone-900/90 border-t border-stone-200 dark:border-stone-800 md:flex items-center justify-between text-xs text-stone-500 dark:text-stone-400 font-medium shrink-0 flex-wrap gap-2">

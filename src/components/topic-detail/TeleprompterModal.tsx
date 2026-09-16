@@ -20,6 +20,7 @@ import {
   Keyboard
 } from 'lucide-react';
 import { ScriptOutline, OutlineItem, formatOutlineDuration } from '../../lib/outline';
+import { FloatingScrollbar } from '../ui/FloatingScrollbar';
 
 interface TeleprompterModalProps {
   isOpen: boolean;
@@ -783,10 +784,10 @@ function renderScriptTextWithCues(text: string, isDark: boolean): React.ReactNod
         </div>
 
         {/* Scrollable Script Container */}
-        <div
+        <FloatingScrollbar
           ref={scrollableRef}
           onScroll={handleManualScroll}
-          className={`w-full h-full overflow-y-auto overscroll-contain px-6 sm:px-16 md:px-24 lg:px-36 py-12 scroll-auto ${
+          className={`w-full h-full overscroll-contain px-6 sm:px-16 md:px-24 lg:px-36 py-12 scroll-auto ${
             isMirror ? 'scale-x-[-1]' : ''
           }`}
           style={{ scrollbarWidth: 'none' }}
@@ -859,12 +860,14 @@ function renderScriptTextWithCues(text: string, isDark: boolean): React.ReactNod
               <span>重新开始录制</span>
             </button>
           </div>
-        </div>
+        </FloatingScrollbar>
 
         {/* 3. Floating Chapter Outline Drawer */}
         {isOutlineOpen && (
-          <aside
-            className={`absolute left-0 top-0 bottom-0 w-80 max-w-[85vw] border-r p-5 overflow-y-auto shadow-2xl z-30 transition-all ${
+          <FloatingScrollbar
+            className="p-5"
+            wrapperStyle={{ position: 'absolute' }}
+            wrapperClassName={`absolute left-0 top-0 bottom-0 w-80 max-w-[85vw] flex-none border-r shadow-2xl z-30 transition-all ${
               isDark ? 'bg-[#141210] border-stone-800 text-stone-100' : 'bg-white border-stone-200 text-stone-900'
             }`}
           >
@@ -900,7 +903,7 @@ function renderScriptTextWithCues(text: string, isDark: boolean): React.ReactNod
                 </button>
               ))}
             </div>
-          </aside>
+          </FloatingScrollbar>
         )}
 
         {/* 4. Keyboard Shortcuts Overlay */}

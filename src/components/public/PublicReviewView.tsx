@@ -11,6 +11,7 @@ import {
   AlertCircle,
   Compass,
 } from 'lucide-react';
+import { FloatingScrollbar } from '../ui/FloatingScrollbar';
 
 interface OutlineSection {
   id: string;
@@ -355,51 +356,53 @@ export const PublicReviewView: React.FC<PublicReviewViewProps> = ({ token: propT
                 </span>
               </div>
 
-              <nav className="space-y-0.5 text-xs max-h-[calc(100vh-180px)] overflow-y-auto pr-1">
-                {outlineItems.map((item) => {
-                  const isActive = activeOutlineId === item.id;
-                  return (
-                    <button
-                      key={item.id}
-                      type="button"
-                      onClick={() => handleSelectHeading(item)}
-                      className={`group relative w-full rounded-lg py-2 pr-2 text-left transition-colors cursor-pointer focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-rose-400/70 ${
-                        isActive ? 'bg-rose-50/80 dark:bg-rose-950/60 text-rose-900 dark:text-rose-100 shadow-2xs' : 'hover:bg-stone-50/90 dark:hover:bg-stone-800/80 text-stone-700 dark:text-stone-300'
-                      }`}
-                    >
-                      {isActive && (
-                        <span
-                          aria-hidden="true"
-                          className="absolute inset-y-1.5 left-0 w-0.5 rounded-full bg-rose-500"
-                        />
-                      )}
-                      <div className={LEVEL_INDENT[item.level]}>
-                        <div className="flex items-start gap-2">
+              <nav aria-label="审稿大纲" className="max-h-[calc(100vh-180px)]">
+                <FloatingScrollbar className="space-y-0.5 text-xs pr-1" wrapperClassName="max-h-[calc(100vh-180px)] flex-none">
+                  {outlineItems.map((item) => {
+                    const isActive = activeOutlineId === item.id;
+                    return (
+                      <button
+                        key={item.id}
+                        type="button"
+                        onClick={() => handleSelectHeading(item)}
+                        className={`group relative w-full rounded-lg py-2 pr-2 text-left transition-colors cursor-pointer focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-rose-400/70 ${
+                          isActive ? 'bg-rose-50/80 dark:bg-rose-950/60 text-rose-900 dark:text-rose-100 shadow-2xs' : 'hover:bg-stone-50/90 dark:hover:bg-stone-800/80 text-stone-700 dark:text-stone-300'
+                        }`}
+                      >
+                        {isActive && (
                           <span
-                            className={`min-w-0 flex-1 truncate transition-colors ${
-                              isActive
-                                ? `${LEVEL_TEXT[item.level]} text-rose-700 dark:text-rose-300 font-bold`
-                                : `${LEVEL_TEXT[item.level]} text-stone-700 dark:text-stone-300 group-hover:text-stone-950 dark:group-hover:text-stone-100`
-                            }`}
-                            title={item.title}
-                          >
-                            {item.title}
-                          </span>
-                          <span className="w-10 shrink-0 pt-0.5 text-right">
+                            aria-hidden="true"
+                            className="absolute inset-y-1.5 left-0 w-0.5 rounded-full bg-rose-500"
+                          />
+                        )}
+                        <div className={LEVEL_INDENT[item.level]}>
+                          <div className="flex items-start gap-2">
                             <span
-                              className={`block font-mono text-[10px] leading-none tabular-nums ${
-                                isActive ? 'font-bold text-rose-600 dark:text-rose-400' : 'text-stone-400 dark:text-stone-500'
+                              className={`min-w-0 flex-1 truncate transition-colors ${
+                                isActive
+                                  ? `${LEVEL_TEXT[item.level]} text-rose-700 dark:text-rose-300 font-bold`
+                                  : `${LEVEL_TEXT[item.level]} text-stone-700 dark:text-stone-300 group-hover:text-stone-950 dark:group-hover:text-stone-100`
                               }`}
+                              title={item.title}
                             >
-                              {item.percentage}%
+                              {item.title}
                             </span>
-                            <OutlineProgress percentage={item.percentage} active={isActive} />
-                          </span>
+                            <span className="w-10 shrink-0 pt-0.5 text-right">
+                              <span
+                                className={`block font-mono text-[10px] leading-none tabular-nums ${
+                                  isActive ? 'font-bold text-rose-600 dark:text-rose-400' : 'text-stone-400 dark:text-stone-500'
+                                }`}
+                              >
+                                {item.percentage}%
+                              </span>
+                              <OutlineProgress percentage={item.percentage} active={isActive} />
+                            </span>
+                          </div>
                         </div>
-                      </div>
-                    </button>
-                  );
-                })}
+                      </button>
+                    );
+                  })}
+                </FloatingScrollbar>
               </nav>
             </div>
           </aside>

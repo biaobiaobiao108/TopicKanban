@@ -6,6 +6,7 @@ import { CalendarEventPill } from './CalendarEventPill';
 import { Plus } from 'lucide-react';
 import { Modal } from '../ui/Modal';
 import { getActionDateDisplay, useBeijingToday } from '../../lib/actionDate';
+import { FloatingScrollbar } from '../ui/FloatingScrollbar';
 
 interface CalendarMonthGridProps {
   days: MonthDayCell[];
@@ -164,9 +165,10 @@ export const CalendarMonthGrid: React.FC<CalendarMonthGridProps> = ({
       </div>
 
       {/* Grid of days */}
-      <div
+      <FloatingScrollbar
         data-testid="calendar-month-grid"
-        className="grid min-h-0 min-w-0 flex-1 grid-cols-7 auto-rows-[max-content] touch-pan-y overflow-y-auto overscroll-contain"
+        className="grid min-h-0 min-w-0 grid-cols-7 auto-rows-[max-content] touch-pan-y overscroll-contain"
+        wrapperClassName="flex-1 min-h-0"
       >
         {days.map((cell) => {
           const events = eventsMap.get(cell.date) || [];
@@ -183,7 +185,7 @@ export const CalendarMonthGrid: React.FC<CalendarMonthGridProps> = ({
             />
           );
         })}
-      </div>
+      </FloatingScrollbar>
 
       {/* Day Events Overview Modal (if clicking +X 更多) */}
       {activeDateModal && (
@@ -193,7 +195,7 @@ export const CalendarMonthGrid: React.FC<CalendarMonthGridProps> = ({
           title={`📅 ${getActionDateDisplay(activeDateModal.date, { today }).text || activeDateModal.date} 全部排期与事项`}
           maxWidth="md"
         >
-          <div className="space-y-2.5 max-h-[60vh] overflow-y-auto pr-1">
+          <FloatingScrollbar className="space-y-2.5 pr-1" wrapperClassName="max-h-[60vh] flex-none">
             {activeDateModal.events.map((ev) => (
               <CalendarEventPill
                 key={ev.id}
@@ -213,7 +215,7 @@ export const CalendarMonthGrid: React.FC<CalendarMonthGridProps> = ({
                 }}
               />
             ))}
-          </div>
+          </FloatingScrollbar>
         </Modal>
       )}
     </div>

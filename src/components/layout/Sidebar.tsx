@@ -12,6 +12,7 @@ import {
   Plus,
   LogOut
 } from 'lucide-react';
+import { FloatingScrollbar } from '../ui/FloatingScrollbar';
 
 export type NavView = 'today' | 'calendar' | 'kanban' | 'people' | 'tags' | 'published' | 'deals' | 'database' | 'settings' | 'topic-detail';
 
@@ -80,41 +81,43 @@ export const Sidebar: React.FC<SidebarProps> = ({
       </div>
 
       {/* Main Navigation */}
-      <nav className="flex-1 p-3 space-y-1 overflow-y-auto no-scrollbar">
-        <div className="text-xs font-bold text-stone-500 dark:text-stone-400 px-3.5 py-2 uppercase tracking-wider">
-          工作台模块
-        </div>
-        {navItems.map((item) => {
-          const Icon = item.icon;
-          const isActive = currentView === item.id;
-          return (
-            <button
-              type="button"
-              key={item.id}
-              onClick={() => onNavigate(item.id)}
-              aria-current={isActive ? 'page' : undefined}
-              className={`group relative w-full flex items-center justify-between px-3.5 py-2.5 rounded-[var(--radius-sm)] text-[14px] sm:text-[15px] transition-all cursor-pointer ${
-                isActive
-                  ? 'bg-[var(--accent-soft)] text-[var(--accent-dark)] font-semibold shadow-2xs'
-                  : 'text-stone-700 dark:text-stone-200 hover:bg-[var(--surface)] hover:text-stone-950 dark:hover:text-white font-medium'
-              }`}
-            >
-              <div className="flex items-center gap-3">
-                <Icon className={`w-4.5 h-4.5 transition-colors shrink-0 ${isActive ? 'text-[var(--accent)]' : 'text-stone-500 dark:text-stone-400 group-hover:text-stone-800 dark:group-hover:text-stone-200'}`} />
-                <span className="tracking-wide">{item.label}</span>
-              </div>
-              {typeof item.badge === 'number' && item.badge > 0 && (
-                <span className={`text-xs px-2 py-0.5 rounded-[var(--radius-sm)] tabular-nums font-semibold transition-colors ${
+      <nav aria-label="工作台模块" className="flex-1 min-h-0">
+        <FloatingScrollbar className="p-3 space-y-1" wrapperClassName="h-full">
+          <div className="text-xs font-bold text-stone-500 dark:text-stone-400 px-3.5 py-2 uppercase tracking-wider">
+            工作台模块
+          </div>
+          {navItems.map((item) => {
+            const Icon = item.icon;
+            const isActive = currentView === item.id;
+            return (
+              <button
+                type="button"
+                key={item.id}
+                onClick={() => onNavigate(item.id)}
+                aria-current={isActive ? 'page' : undefined}
+                className={`group relative w-full flex items-center justify-between px-3.5 py-2.5 rounded-[var(--radius-sm)] text-[14px] sm:text-[15px] transition-all cursor-pointer ${
                   isActive
-                    ? 'bg-[var(--accent)] text-white shadow-2xs'
-                    : 'bg-stone-200/80 dark:bg-stone-800 text-stone-700 dark:text-stone-300'
-                }`}>
-                  {item.badge}
-                </span>
-              )}
-            </button>
-          );
-        })}
+                    ? 'bg-[var(--accent-soft)] text-[var(--accent-dark)] font-semibold shadow-2xs'
+                    : 'text-stone-700 dark:text-stone-200 hover:bg-[var(--surface)] hover:text-stone-950 dark:hover:text-white font-medium'
+                }`}
+              >
+                <div className="flex items-center gap-3">
+                  <Icon className={`w-4.5 h-4.5 transition-colors shrink-0 ${isActive ? 'text-[var(--accent)]' : 'text-stone-500 dark:text-stone-400 group-hover:text-stone-800 dark:group-hover:text-stone-200'}`} />
+                  <span className="tracking-wide">{item.label}</span>
+                </div>
+                {typeof item.badge === 'number' && item.badge > 0 && (
+                  <span className={`text-xs px-2 py-0.5 rounded-[var(--radius-sm)] tabular-nums font-semibold transition-colors ${
+                    isActive
+                      ? 'bg-[var(--accent)] text-white shadow-2xs'
+                      : 'bg-stone-200/80 dark:bg-stone-800 text-stone-700 dark:text-stone-300'
+                  }`}>
+                    {item.badge}
+                  </span>
+                )}
+              </button>
+            );
+          })}
+        </FloatingScrollbar>
       </nav>
 
       {/* Footer Info & Logout */}

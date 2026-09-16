@@ -4,6 +4,7 @@ import { WeekDayCell } from './calendarUtils';
 import { CalendarEventItem } from './CalendarTypes';
 import { CalendarEventPill } from './CalendarEventPill';
 import { Plus } from 'lucide-react';
+import { FloatingScrollbar } from '../ui/FloatingScrollbar';
 
 interface CalendarWeekGridProps {
   days: WeekDayCell[];
@@ -104,14 +105,15 @@ export const CalendarWeekGrid: React.FC<CalendarWeekGridProps> = ({
   onOpenPublished,
 }) => {
   return (
-    <div
+    <FloatingScrollbar
       data-testid="calendar-week-grid"
-      className="flex min-h-0 min-w-0 flex-1 flex-col overflow-y-auto overscroll-contain rounded-2xl border border-stone-200/70 bg-white shadow-2xs [scrollbar-gutter:stable] dark:border-stone-800 dark:bg-stone-900"
+      className="flex min-h-0 min-w-0 flex-col overscroll-contain"
+      wrapperClassName="flex-1 min-h-0 rounded-2xl border border-stone-200/70 bg-white shadow-2xs [scrollbar-gutter:stable] dark:border-stone-800 dark:bg-stone-900"
     >
       {days.map((day) => {
         const events = eventsMap.get(day.date) || [];
         return <WeekDayRow key={day.date} day={day} events={events} onDateClick={onDateClick} onOpenTopic={onOpenTopic} onOpenDeal={onOpenDeal} onOpenPublished={onOpenPublished} />;
       })}
-    </div>
+    </FloatingScrollbar>
   );
 };

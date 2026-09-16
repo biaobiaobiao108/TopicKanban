@@ -77,6 +77,7 @@ export class AppKV {
   }
 
   async put(key: string, value: string | ArrayBuffer | ArrayBufferView | ReadableStream, options?: { expirationTtl?: number; expiration?: number }): Promise<void> {
+    this.cleanExpired();
     let textValue = '';
     if (typeof value === 'string') {
       textValue = value;
@@ -99,22 +100,45 @@ export class AppKV {
     this.deleteStmt.run(key);
   }
 
-  async updateQuickDropsIndex(update: (ids: string[]) => string[]): Promise<string[]> {
+  private readQuickDropsIndex(now: number): string[] {
+    const row = this.getStmt.get('quick_drops_index') as KvRow | undefined;
+    if (!row || (row.expires_at !== null && row.expires_at <= now)) return [];
+    try {
+      const parsed = JSON.parse(row.value);
+      return Array.isArray(parsed) ? parsed.filter((id): id is string => typeof id === 'string') : [];
+    } catch {
+      return [];
+    }
+  }
+
+  private persistQuickDropsIndex(ids: string[], now: number): string[] {
+    const normalized = Array.from(new Set(ids.filter((id): id is string => typeof id === 'string' && id.length > 0))).slice(0, 100);
+    const keepKeys = new Set(normalized.map((id) => `drop:${id}`));
+    const dropRows = this.db.sqlite.query("SELECT key FROM _kv_store WHERE key LIKE 'drop:%'").all() as Array<{ key?: string }>;
+    dropRows.forEach((dropRow) => {
+      if (typeof dropRow.key === 'string' && !keepKeys.has(dropRow.key)) this.deleteStmt.run(dropRow.key);
+    });
+    this.putStmt.run('quick_drops_index', JSON.stringify(normalized), now + 86400 * 30 * 1000);
+    return normalized;
+  }
+
+  async putQuickDrop(id: string, value: string, expirationTtl: number): Promise<void> {
+    this.cleanExpired();
+    const now = Date.now();
     const save = this.db.sqlite.transaction(() => {
-      const row = this.getStmt.get('quick_drops_index') as KvRow | undefined;
-      let current: string[] = [];
-      if (row && (!row.expires_at || row.expires_at > Date.now())) {
-        try {
-          const parsed = JSON.parse(row.value);
-          if (Array.isArray(parsed)) current = parsed.filter((id): id is string => typeof id === 'string');
-        } catch {
-          current = [];
-        }
-      }
-      const next = update([...current]);
-      const normalized = Array.from(new Set(next.filter((id): id is string => typeof id === 'string' && id.length > 0))).slice(0, 100);
-      this.putStmt.run('quick_drops_index', JSON.stringify(normalized), Date.now() + 86400 * 30 * 1000);
-      return normalized;
+      this.putStmt.run(`drop:${id}`, value, now + expirationTtl * 1000);
+      const current = this.readQuickDropsIndex(now);
+      this.persistQuickDropsIndex([id, ...current.filter((itemId) => itemId !== id)], now);
+    });
+    save();
+  }
+
+  async updateQuickDropsIndex(update: (ids: string[]) => string[]): Promise<string[]> {
+    this.cleanExpired();
+    const now = Date.now();
+    const save = this.db.sqlite.transaction(() => {
+      const current = this.readQuickDropsIndex(now);
+      return this.persistQuickDropsIndex(update([...current]), now);
     });
     return save();
   }

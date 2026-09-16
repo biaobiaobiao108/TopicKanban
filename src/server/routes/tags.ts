@@ -34,6 +34,7 @@ export function registerTagRoutes(app: NativeApp): void {
       const body = await c.req.json<{ name?: string; color?: string }>();
       if (!body.name?.trim()) return c.json({ error: 'Name is required' }, 400);
       if (body.name.trim().length > 40) return c.json({ error: 'Name exceeds 40 characters' }, 400);
+      if (body.color !== undefined && (typeof body.color !== 'string' || body.color.length > 50)) return c.json({ error: 'Color exceeds 50 characters' }, 400);
       const tag: Tag = { id: createId('tag'), name: body.name.trim(), color: body.color || 'stone' };
       const existing = await insertTag(requireDb(c), tag);
       return existing ? c.json(existing) : c.json(tag, 201);
@@ -48,6 +49,7 @@ export function registerTagRoutes(app: NativeApp): void {
       const name = body.name?.trim();
       if (!name) return c.json({ error: 'Name is required' }, 400);
       if (name.length > 40) return c.json({ error: 'Name exceeds 40 characters' }, 400);
+      if (body.color !== undefined && (typeof body.color !== 'string' || body.color.length > 50)) return c.json({ error: 'Color exceeds 50 characters' }, 400);
       const result = await updateTag(requireDb(c), c.req.param('id'), { name, color: body.color || 'stone' });
       if (result === 'duplicate') return c.json({ error: 'Tag name already exists' }, 409);
       return result ? c.json(result) : c.json({ error: 'Not found' }, 404);
