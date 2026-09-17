@@ -6,8 +6,6 @@ yarn-debug.log*
 yarn-error.log*
 pnpm-debug.log*
 lerna-debug.log*
-playwright-report/
-test-results/
 
 # Diagnostic / OS files
 .DS_Store
@@ -40,5 +38,4 @@ dist-ssr/
 !.dev.vars.example
 
 # test
-test-results/
 data/

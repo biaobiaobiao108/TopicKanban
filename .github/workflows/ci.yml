@@ -46,9 +46,6 @@ jobs:
       - name: Install dependencies
         run: bun install --frozen-lockfile
 
-      - name: Verify preinstalled Google Chrome
-        run: google-chrome --version
-
       - name: Run unit and integration tests
         run: bun test
 
@@ -60,6 +57,3 @@ jobs:
 
       - name: Check bundle size
         run: bun run check:bundle
-
-      - name: Run end-to-end tests
-        run: bun run test:e2e

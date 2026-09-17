@@ -84,18 +84,6 @@
 
 本项目本地开发、依赖管理、测试、构建和 CLI 工具统一优先使用 Bun。只要 Bun 已经支持对应工具，就不要改用 Node.js、npm 或 npx。
 
-对于带有 Node.js shebang 的 CLI（例如 Playwright），必须显式使用 Bun 运行：
-
-```bash
-bun run --bun playwright test
-```
-
-项目的 E2E 快捷命令已内置该设置，因此直接执行下面的命令也会让 Playwright CLI 使用 Bun 运行时：
-
-```bash
-bun run test:e2e
-```
-
 只有工具明确不兼容 Bun 时，才允许退回 Node.js，并应在相关文档或脚本中说明原因。
 
 ---
@@ -111,7 +99,7 @@ bun run test:e2e
 | **服务端与校验** | Bun 原生 HTTP Server + Zod 4 声明式校验管道 + 按领域组织的原生路由 | `app.ts` 负责组合，`schemas.ts` 统一契约校验，`routes/` 负责 HTTP 行为，`repositories/` 负责 SQLite 持久化 |
 | **主业务持久库** | SQLite (`bun:sqlite` + WAL) | 选题、素材、时间线、人物、文案、发布包、商单等业务表 |
 | **键值与临时库** | SQLite `_kv_store` 表 | 全局偏好、审稿快照、在线锁、快投箱 |
-| **测试与构建** | Bun (`bun test` + `Bun.build()`) | 142 项单元与集成测试、58 项 E2E，前后端统一构建 |
+| **测试与构建** | Bun (`bun test` + `Bun.build()`) | 单元与集成测试、类型校验、前后端统一构建 |
 
 ---
 
@@ -240,16 +228,13 @@ bun install
 # 2. 启动本地全栈开发环境 (Bun HTML Bundler + Bun API，3030 端口)
 bun run dev
 
-# 3. 运行全量自动化测试套件 (142 项单元与集成测试)
+# 3. 运行全量自动化测试套件
 bun test
 
-# 4. 运行 Playwright E2E（Playwright CLI 使用 Bun 运行时）
-bun run test:e2e
-
-# 5. 生产构建打包 (Bun HTML Bundler 全栈 Bundle)
+# 4. 生产构建打包 (Bun HTML Bundler 全栈 Bundle)
 bun run build
 
-# 6. 本地生产单机运行
+# 5. 本地生产单机运行
 bun run start
 ```
 
@@ -321,7 +306,7 @@ kanban/
 │   ├── types/index.ts                   # 领域模型与 TypeScript 契约
 │   ├── App.tsx                          # 路由分发入口
 │   └── main.tsx                         # DOM 挂载入口
-├── tests/                               # 142 项 bun:test 自动化单元与集成测试套件
+├── tests/                               # bun:test 自动化单元与集成测试套件
 ├── docs/                                # GitHub Pages 静态展示落地页与文档
 │   ├── index.html                       # 独立产品落地页 (含交互沙盒与现代化动画)
 │   ├── icon.png                         # 落地页高清应用图标

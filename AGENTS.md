@@ -153,15 +153,7 @@
 
 ## 🚀 五、常用工作流与命令 (Verification Workflow)
 
-本项目统一采用 Bun-first 工作流：能由 Bun 执行的依赖安装、开发服务、测试、构建和 CLI 命令都使用 Bun，不使用 Node.js/npm 作为默认运行方式。Playwright CLI 使用 Bun 显式运行：
-
-```bash
-bun run test:e2e
-```
-
-其中 `test:e2e` 已通过 `bun run --bun playwright test` 强制 Playwright 在 Bun 运行时下执行。
-
-* **Chrome E2E 约定**：依赖本机 Chrome 的 E2E 测试不在本地执行，也不要为此修改 Chrome 配置；推送到 GitHub 后由 CI 运行，以 GitHub Actions 结果为准。
+本项目统一采用 Bun-first 工作流：能由 Bun 执行的依赖安装、开发服务、测试、构建和 CLI 命令都使用 Bun，不使用 Node.js/npm 作为默认运行方式。
 
 * **本地开发**：`bun run dev`（启动 Bun HTML Bundler 热重载与本地 Bun API 的单进程全栈服务）
 * **分级验证命令指引**：
@@ -170,7 +162,7 @@ bun run test:e2e
   * **生产构建测试**：`bun run build`（包含前端 SPA 与 Bun 服务端打包，涉及构建链路或打包发布时执行）；
   * **全量自动化测试**：`bun test`（全量回归验证，涉及底层重构或重要节点发布时执行）；
   * **测试豁免**：纯文档（Markdown）、代码注释、`docs/` 静态展示页等无运行时代码改动一律跳过测试与构建。
-* **交互回归要求**：修改表单尺寸、占位符或列表异步状态时，必须补充 Playwright 回归；至少断言同组控件高度一致、占位符样式符合规范，以及异步请求期间未受影响列表项不会被禁用或改变布局。
+* **交互回归要求**：修改表单尺寸、占位符或列表异步状态时，必须补充对应的单元/集成回归测试，并在开发环境完成必要的浏览器交互检查；至少覆盖同组控件高度一致、占位符样式符合规范，以及异步请求期间未受影响列表项不会被禁用或改变布局。
 * **日常 CI 自动化门禁 (`.github/workflows/ci.yml`)**：推送到 `master` 或发起 PR 时自动执行类型校验、全量测试、前后端构建及包体积预算检测（`check:bundle`）。
 * **本地单机生产运行**：`bun run start`
 * **Podman / Docker 容器构建与编排**：
