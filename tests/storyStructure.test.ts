@@ -1,6 +1,5 @@
 import { describe, expect, it } from 'bun:test';
 import {
-  buildStoryStructureDraftHtml,
   buildStoryStructureSectionsHtml,
   buildStoryStructureTimelineSteps,
   parseStorylineToActs,
@@ -48,12 +47,10 @@ describe('storyStructure', () => {
 
   it('uses the same neutral copy for draft sections and timeline steps', () => {
     const sectionsHtml = buildStoryStructureSectionsHtml(acts);
-    const draftHtml = buildStoryStructureDraftHtml('测试选题', '测试看点');
     const timelineSteps = buildStoryStructureTimelineSteps(acts);
 
     expect(sectionsHtml).toContain('<h2>第一段：开始</h2>');
     expect(sectionsHtml).toContain('<h2>第四段：收束</h2>');
-    expect(draftHtml).toContain('<h2>第二段：发展</h2>');
     expect(timelineSteps.map((step) => step.title)).toEqual([
       '第一段：开始',
       '第二段：发展',
@@ -61,7 +58,7 @@ describe('storyStructure', () => {
       '第四段：收束',
     ]);
 
-    const generatedCopy = `${draftHtml}${timelineSteps.map((step) => step.desc).join('')}`;
+    const generatedCopy = `${sectionsHtml}${timelineSteps.map((step) => step.desc).join('')}`;
     expect(generatedCopy).not.toMatch(/荒诞|人设崩塌|名场面|流量讽刺|滑竿/);
   });
 });

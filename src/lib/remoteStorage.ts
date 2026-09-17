@@ -100,7 +100,6 @@ class BoundedMemoryCache<K, V> {
 const KNOWN_STATE_CACHE_MAX_ENTRIES = 256;
 const KNOWN_STATE_CACHE_TTL_MS = 30 * 60 * 1000;
 const knownDraftVersions = new BoundedMemoryCache<string, number>(KNOWN_STATE_CACHE_MAX_ENTRIES, KNOWN_STATE_CACHE_TTL_MS);
-const knownCitationSignatures = new BoundedMemoryCache<string, string>(KNOWN_STATE_CACHE_MAX_ENTRIES, KNOWN_STATE_CACHE_TTL_MS);
 let remoteStorageMemoryGeneration = 0;
 
 export interface BackupImportResult {
@@ -172,12 +171,10 @@ export function clearRemoteStorageMemoryCaches(): void {
   bootstrapPromise = null;
   bootstrapToken = null;
   knownDraftVersions.clear();
-  knownCitationSignatures.clear();
 }
 
 export function clearRemoteStorageTopicCaches(topicId: string): void {
   knownDraftVersions.delete(topicId);
-  knownCitationSignatures.delete(topicId);
   writePendingDraft(null, topicId);
 }
 
@@ -467,6 +464,15 @@ export async function saveTimelineEvent(
   return saved;
 }
 
+export async function saveTimelineEvents(
+  data: Array<Partial<TimelineEvent> & { topic_id: string; title: string }>
+): Promise<TimelineEvent[]> {
+  if (data.length === 0) return [];
+  const result = await apiRequest<{ events: TimelineEvent[] }>('/api/timeline/batch', jsonRequest('POST', { events: data }));
+  invalidateBootstrap();
+  return result.events;
+}
+
 export async function reorderTimelineEvents(events: TimelineEvent[]): Promise<void> {
   await apiRequest('/api/timeline/reorder/batch', jsonRequest('PATCH', { events }));
 }
@@ -711,9 +717,6 @@ export async function fetchDraftByTopicId(topicId: string): Promise<DraftLoadRes
 export async function fetchTopicWorkspace(topicId: string): Promise<TopicWorkspaceLoad> {
   const generation = remoteStorageMemoryGeneration;
   const data = await apiRequest<TopicWorkspaceData>(`/api/topics/${encodeURIComponent(topicId)}/workspace`);
-  if (generation === remoteStorageMemoryGeneration) {
-    knownCitationSignatures.set(topicId, data.citations.map((citation) => citation.id).sort().join(','));
-  }
   return { ...data, draft: mergePendingDraft(topicId, data.draft, generation) };
 }
 
@@ -748,52 +751,11 @@ export async function resolveDraftRecovery(
 }
 
 export function fetchDraftCitations(topicId: string): Promise<DraftCitation[]> {
-  const generation = remoteStorageMemoryGeneration;
-  return apiRequest<DraftCitation[]>(`/api/topics/${encodeURIComponent(topicId)}/citations`).then((citations) => {
-    if (generation === remoteStorageMemoryGeneration) {
-      knownCitationSignatures.set(topicId, citations.map((citation) => citation.id).sort().join(','));
-    }
-    return citations;
-  });
+  return apiRequest<DraftCitation[]>(`/api/topics/${encodeURIComponent(topicId)}/citations`);
 }
 
 export function saveDraftCitation(topicId: string, input: CitationInput): Promise<DraftCitation> {
   return apiRequest(`/api/topics/${encodeURIComponent(topicId)}/citations`, jsonRequest('POST', input));
-}
-
-function extractCitationIds(contentJson: string): string[] {
-  try {
-    const ids = new Set<string>();
-    const visit = (value: unknown) => {
-      if (!value || typeof value !== 'object') return;
-      const node = value as { marks?: Array<{ type?: string; attrs?: { citationId?: unknown } }>; content?: unknown[] };
-      node.marks?.forEach((mark) => {
-        if (mark.type === 'citation' && typeof mark.attrs?.citationId === 'string') ids.add(mark.attrs.citationId);
-      });
-      node.content?.forEach(visit);
-    };
-    visit(JSON.parse(contentJson));
-    return [...ids].sort();
-  } catch {
-    return [];
-  }
-}
-
-async function syncActiveCitations(topicId: string, contentJson: string): Promise<void> {
-  try {
-    const generation = remoteStorageMemoryGeneration;
-    const activeIds = extractCitationIds(contentJson);
-    const signature = activeIds.join(',');
-    if (knownCitationSignatures.get(topicId) === signature) return;
-    await apiRequest(`/api/topics/${encodeURIComponent(topicId)}/citations/active`, jsonRequest('PUT', {
-      active_ids: activeIds,
-    }));
-    if (generation === remoteStorageMemoryGeneration) {
-      knownCitationSignatures.set(topicId, signature);
-    }
-  } catch (error) {
-    console.warn('同步活跃引用失败 (不影响正文保存):', error);
-  }
 }
 
 export async function saveDraft(
@@ -805,7 +767,6 @@ export async function saveDraft(
 ): Promise<Draft> {
   const draft = cacheDraftLocally(topicId, contentHtml, contentJson, wordCount, title);
   const saved = await enqueueDraftUpload(draft);
-  await syncActiveCitations(topicId, contentJson);
   return saved;
 }
 

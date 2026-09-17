@@ -37,7 +37,6 @@ import { VoiceoverCueNode } from './VoiceoverCueNode';
 import { ImeMarkdownSafeExtension } from './ImeMarkdownSafeExtension';
 import { getCitationHealth } from '../../lib/citations';
 import { resolvePublicUrl } from '../../lib/publicUrl';
-import { buildStoryStructureDraftHtml } from '../../lib/storyStructure';
 import {
   createShareSnapshot,
   deleteShareSnapshot,
@@ -895,19 +894,6 @@ export const ScriptEditorTab: React.FC<ScriptEditorTabProps> = ({
     }
   };
 
-  const handleInjectFourActOutline = () => {
-    if (!editor) return;
-    const hookText = topic?.hook || '在此写下能让观众迅速理解这条选题的核心问题或看点...';
-    const template = buildStoryStructureDraftHtml(topicTitle, hookText);
-    const currentText = editor.getText().trim();
-    if (!currentText) {
-      editor.commands.setContent(template);
-    } else {
-      editor.commands.insertContent(template);
-    }
-    showToast({ message: '已插入故事结构模板', tone: 'success' });
-  };
-
   useEffect(() => () => {
     outlineHighlightAnimationRef.current?.cancel();
     if (copyFeedbackTimeoutRef.current) clearTimeout(copyFeedbackTimeoutRef.current);
@@ -1372,7 +1358,6 @@ export const ScriptEditorTab: React.FC<ScriptEditorTabProps> = ({
           activeItemId={activeOutlineItemId}
           onClose={() => setIsOutlineOpen(false)}
           onSelectHeading={handleSelectOutlineItem}
-          onInjectFourActOutline={handleInjectFourActOutline}
         />
 
         {/* Main Writing Canvas */}

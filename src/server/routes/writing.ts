@@ -146,18 +146,6 @@ export function registerWritingRoutes(app: NativeApp): void {
     }
   });
 
-  app.put('/topics/:id/citations/active', async (c) => {
-    try {
-      const { active_ids: activeIds } = await c.req.json<{ active_ids?: unknown }>();
-      if (!Array.isArray(activeIds) || activeIds.length > 500 || activeIds.some((id) => typeof id !== 'string')) {
-        return c.json({ error: 'active_ids must be an array of citation IDs' }, 400);
-      }
-      return c.json({ success: true, count: activeIds.length });
-    } catch (error) {
-      return jsonError(c, error, 400);
-    }
-  });
-
   app.delete('/citations/:id', async (c) => {
     try {
       await deleteCitation(requireDb(c), c.req.param('id'));

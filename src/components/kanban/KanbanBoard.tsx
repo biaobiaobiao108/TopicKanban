@@ -22,6 +22,7 @@ import { ACTIVE_COLUMNS } from './columns';
 import { AlertTriangle, KanbanSquare } from 'lucide-react';
 import { PageHeader } from '../layout/PageHeader';
 import { getCurrentActionAgeDays, isActiveTopic } from '../../lib/topicMetrics';
+import { matchesTopicSearch } from '../../lib/topicSearch';
 import { fetchTopicPage } from '../../lib/storage';
 
 const activeStatuses: TopicStatus[] = ['inbox', 'approved', 'scripting', 'production'];
@@ -366,16 +367,7 @@ class NonTouchPointerSensor extends PointerSensor {
       const ids = (columns[status] || []).filter((id) => {
         const topic = topicsMap[id];
         if (!topic) return false;
-        if (searchTerm) {
-          const q = searchTerm.toLowerCase();
-          const matchTitle = topic.title.toLowerCase().includes(q);
-          const matchSummary = topic.summary?.toLowerCase().includes(q);
-          const matchHook = topic.hook?.toLowerCase().includes(q);
-          const matchAction = topic.current_todo?.title.toLowerCase().includes(q);
-          const matchPerson = topic.people?.some((p) => p.name.toLowerCase().includes(q));
-          const matchTag = topic.tags?.some((t) => t.name.toLowerCase().includes(q));
-          if (!matchTitle && !matchSummary && !matchHook && !matchAction && !matchPerson && !matchTag) return false;
-        }
+        if (!matchesTopicSearch(topic, searchTerm)) return false;
         if (priorityFilter !== 'all' && topic.priority !== priorityFilter) return false;
         if (selectedTagId !== 'all' && !topic.tags?.some((t) => t.id === selectedTagId)) return false;
         if (selectedPersonId !== 'all' && !topic.people?.some((p) => p.id === selectedPersonId)) return false;

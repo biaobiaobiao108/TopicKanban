@@ -1,5 +1,5 @@
 import type { NativeApp } from '../native';
-import type { Topic, TopicStatus } from '../../types';
+import type { TopicStatus } from '../../types';
 import { isTopicStatus } from '../../types';
 import {
   MAX_BATCH_SIZE,
@@ -7,9 +7,9 @@ import {
   isNonNegativeInteger,
   isOneOf,
   jsonError,
+  parseTopicCreate,
+  parseTopicUpdate,
   requireDb,
-  validateTextFields,
-  validateTopicFields,
 } from '../apiShared';
 import {
   insertTopic,
@@ -27,6 +27,7 @@ import {
   TopicNotInTrashError,
   TopicReorderInvalidStateError,
   ensureTopicsInTrash,
+  TopicAlreadyExistsError,
   updateTopic,
 } from '../repositories';
 
@@ -114,15 +115,11 @@ export function registerTopicRoutes(app: NativeApp): void {
   app.post('/topics', async (c) => {
     try {
       const db = requireDb(c);
-      const body = await c.req.json<Partial<Topic> & {
-        initial_todo?: { title?: unknown };
-      }>();
-      if (!body.title?.trim()) return c.json({ error: 'Title is required' }, 400);
-      const validationError = validateTopicFields(body);
-      if (validationError) return c.json({ error: validationError }, 400);
+      const parsed = parseTopicCreate(await c.req.json<unknown>());
+      if (!parsed.success) return c.json({ error: parsed.error }, 400);
+      const body = parsed.data;
       if (body.initial_todo) {
-        const todoTextError = validateTextFields(body.initial_todo as Record<string, unknown>, { title: [200, true] });
-        if (todoTextError) return c.json({ error: `initial_todo.${todoTextError}` }, 400);
+        body.initial_todo.title = body.initial_todo.title.trim();
       }
       const now = new Date().toISOString();
       const id = body.id || createId('topic');
@@ -141,6 +138,7 @@ export function registerTopicRoutes(app: NativeApp): void {
       );
       return c.json(await loadTopic(db, id), 201);
     } catch (error) {
+      if (error instanceof TopicAlreadyExistsError) return c.json({ error: error.message }, 409);
       return jsonError(c, error, 400);
     }
   });
@@ -149,10 +147,9 @@ export function registerTopicRoutes(app: NativeApp): void {
     try {
       const db = requireDb(c);
       const id = c.req.param('id');
-      const body = await c.req.json<Partial<Topic>>();
-      const validationError = validateTopicFields(body);
-      if (validationError) return c.json({ error: validationError }, 400);
-      await updateTopic(db, id, body);
+      const parsed = parseTopicUpdate(await c.req.json<unknown>());
+      if (!parsed.success) return c.json({ error: parsed.error }, 400);
+      await updateTopic(db, id, parsed.data);
       const topic = await loadTopic(db, id);
       return topic ? c.json(topic) : c.json({ error: 'Not found' }, 404);
     } catch (error) {

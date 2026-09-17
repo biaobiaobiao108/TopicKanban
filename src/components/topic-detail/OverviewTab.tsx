@@ -48,8 +48,8 @@ interface OverviewTabProps {
   onSavePerson?: (personData: Partial<Person> & { name: string }) => Promise<Person>;
   onSaveTag?: (tagName: string, color?: string) => Promise<Tag>;
   onOpenCurrentAction: () => void;
-  onInjectOutlineIntoDraft?: (outlineHtml: string) => Promise<void>;
-  onConvertStorylineToTimeline?: (steps: Array<{ title: string; desc: string }>) => Promise<void>;
+  onInjectOutlineIntoDraft?: (outlineHtml: string) => Promise<boolean>;
+  onConvertStorylineToTimeline?: (steps: Array<{ title: string; desc: string }>) => Promise<boolean>;
 }
 
 const STORY_STRUCTURE_CARD_STYLES: Record<StoryStructureKey, {
@@ -102,6 +102,8 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({
   const [storylineMode, setStorylineMode] = useState<'acts' | 'raw'>('acts');
   const [isWhyNowExpanded, setIsWhyNowExpanded] = useState(Boolean(topic.why_now));
   const [bridgeStatus, setBridgeStatus] = useState<string | null>(null);
+  const [isInjectingOutline, setIsInjectingOutline] = useState(false);
+  const [isConvertingToTimeline, setIsConvertingToTimeline] = useState(false);
   const { showToast } = useToast();
 
   // Tag creation state
@@ -349,24 +351,40 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({
 
   // Pipeline Bridge 1: Inject Four-Act Outline into Draft
   const handleInjectIntoDraft = async () => {
-    if (!onInjectOutlineIntoDraft) return;
+    if (!onInjectOutlineIntoDraft || isInjectingOutline) return;
     const outlineHtml = buildStoryStructureSectionsHtml(acts);
-    setBridgeStatus('已将故事结构导入文案草稿并跳转！');
-    await onInjectOutlineIntoDraft(outlineHtml);
+    setIsInjectingOutline(true);
+    setBridgeStatus('正在导入文案草稿…');
+    try {
+      const success = await onInjectOutlineIntoDraft(outlineHtml);
+      setBridgeStatus(success ? '已将故事结构导入文案草稿并跳转！' : null);
+    } catch {
+      setBridgeStatus(null);
+    } finally {
+      setIsInjectingOutline(false);
+    }
   };
 
   // Pipeline Bridge 2: Convert Four-Act Outline into Timeline Events
   const handleConvertToTimeline = async () => {
-    if (!onConvertStorylineToTimeline) return;
+    if (!onConvertStorylineToTimeline || isConvertingToTimeline) return;
     const steps = buildStoryStructureTimelineSteps(acts);
 
-    if (steps.length === 0) {
+    if (!Object.values(acts).some((value) => value.trim())) {
       showToast({ message: '请先在故事结构中填写至少一个阶段的内容！', tone: 'info' });
       return;
     }
 
-    setBridgeStatus('已将故事结构拆分为时间线！');
-    await onConvertStorylineToTimeline(steps);
+    setIsConvertingToTimeline(true);
+    setBridgeStatus('正在拆分故事结构…');
+    try {
+      const success = await onConvertStorylineToTimeline(steps);
+      setBridgeStatus(success ? '已将故事结构拆分为时间线！' : null);
+    } catch {
+      setBridgeStatus(null);
+    } finally {
+      setIsConvertingToTimeline(false);
+    }
   };
 
   return (
@@ -590,24 +608,26 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({
               {onInjectOutlineIntoDraft && (
                 <button
                   type="button"
+                  disabled={isInjectingOutline}
                   onClick={handleInjectIntoDraft}
-                  className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-stone-900 dark:bg-rose-600 hover:bg-stone-800 dark:hover:bg-rose-700 text-white text-xs font-bold transition-all shadow-2xs cursor-pointer active:scale-[0.98]"
+                  className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-stone-900 dark:bg-rose-600 hover:bg-stone-800 dark:hover:bg-rose-700 text-white text-xs font-bold transition-all shadow-2xs cursor-pointer active:scale-[0.98] disabled:cursor-wait disabled:opacity-60"
                   title="将故事结构直接导入文案编辑器"
                 >
                   <FileText className="w-3.5 h-3.5" />
-                  <span>导入文案草稿</span>
+                  <span>{isInjectingOutline ? '正在导入…' : '导入文案草稿'}</span>
                 </button>
               )}
 
               {onConvertStorylineToTimeline && (
                 <button
                   type="button"
+                  disabled={isConvertingToTimeline}
                   onClick={handleConvertToTimeline}
-                  className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-stone-100 dark:bg-stone-800 hover:bg-stone-200/80 dark:hover:bg-stone-700 text-stone-700 dark:text-stone-300 text-xs font-semibold transition-colors cursor-pointer"
+                  className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-stone-100 dark:bg-stone-800 hover:bg-stone-200/80 dark:hover:bg-stone-700 text-stone-700 dark:text-stone-300 text-xs font-semibold transition-colors cursor-pointer disabled:cursor-wait disabled:opacity-60"
                   title="将故事结构拆分为时间线节点"
                 >
                   <Calendar className="w-3.5 h-3.5 text-stone-500" />
-                  <span>拆成时间线</span>
+                  <span>{isConvertingToTimeline ? '正在拆分…' : '拆成时间线'}</span>
                 </button>
               )}
             </div>

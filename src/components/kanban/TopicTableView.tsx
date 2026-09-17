@@ -23,6 +23,7 @@ import {
 import { CustomSelect } from '../ui/CustomSelect';
 import { FloatingMenu } from '../ui/FloatingMenu';
 import { ConfirmDialog } from '../ui/ConfirmDialog';
+import { Modal } from '../ui/Modal';
 import { useToast } from '../ui/Toast';
 import { FloatingScrollbar } from '../ui/FloatingScrollbar';
 
@@ -192,15 +193,6 @@ export const TopicTableView: React.FC<TopicTableViewProps> = ({
     setViewSaved(true);
     window.setTimeout(() => setViewSaved(false), 1600);
   };
-
-  useEffect(() => {
-    if (!archiveTopicId) return;
-    const handleKeyDown = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') setArchiveTopicId(null);
-    };
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [archiveTopicId]);
 
   useEffect(() => setPage(1), [archiveScope, searchTerm, sortCol, sortDir]);
   useEffect(() => setSelectedIds(new Set()), [archiveScope, page, searchTerm, sortCol, sortDir]);
@@ -1208,51 +1200,45 @@ export const TopicTableView: React.FC<TopicTableViewProps> = ({
         <button type="button" disabled={page >= (pageQuery.data?.total_pages || 1) || pageQuery.isFetching} onClick={() => setPage((value) => value + 1)} className="rounded-lg border border-stone-200 dark:border-stone-700 bg-white dark:bg-stone-800 text-stone-700 dark:text-stone-200 px-3 py-2 disabled:opacity-40">下一页</button>
       </div>
 
-      {archiveTopicId && (
-        <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-stone-900/25 px-4 backdrop-blur-xs"
-          onClick={() => setArchiveTopicId(null)}
-        >
-          <div
-            role="dialog"
-            aria-modal="true"
-            aria-labelledby="archive-dialog-title"
-            className="w-full max-w-sm rounded-2xl border border-stone-200 dark:border-stone-800 bg-white dark:bg-stone-900 p-5 shadow-modal"
-            onClick={(event) => event.stopPropagation()}
+      <Modal
+        isOpen={Boolean(archiveTopicId)}
+        onClose={() => setArchiveTopicId(null)}
+        title="归档选题"
+        maxWidth="sm"
+      >
+        <p className="text-xs leading-relaxed text-stone-500 dark:text-stone-400">请选择归档状态；取消不会修改当前选题。</p>
+        <div className="mt-4 grid grid-cols-2 gap-2">
+          <button
+            type="button"
+            onClick={() => {
+              const topicId = archiveTopicId;
+              setArchiveTopicId(null);
+              if (topicId) void updateTopicStatus(topicId, 'published');
+            }}
+            className="rounded-xl bg-emerald-600 px-3 py-2 text-sm font-semibold text-white transition-colors hover:bg-emerald-700"
           >
-            <h3 id="archive-dialog-title" className="text-base font-bold text-stone-900 dark:text-stone-100">归档选题</h3>
-            <p className="mt-1 text-xs leading-relaxed text-stone-500 dark:text-stone-400">请选择归档状态；取消不会修改当前选题。</p>
-            <div className="mt-4 grid grid-cols-2 gap-2">
-              <button
-                onClick={() => {
-                  const topicId = archiveTopicId;
-                  setArchiveTopicId(null);
-                  void updateTopicStatus(topicId, 'published');
-                }}
-                className="rounded-xl bg-emerald-600 px-3 py-2 text-sm font-semibold text-white transition-colors hover:bg-emerald-700"
-              >
-                已发布
-              </button>
-              <button
-                onClick={() => {
-                  const topicId = archiveTopicId;
-                  setArchiveTopicId(null);
-                  void updateTopicStatus(topicId, 'icebox');
-                }}
-                className="rounded-xl bg-stone-800 px-3 py-2 text-sm font-semibold text-white transition-colors hover:bg-stone-900"
-              >
-                搁置
-              </button>
-            </div>
-            <button
-              onClick={() => setArchiveTopicId(null)}
-              className="mt-2 w-full rounded-xl border border-stone-200 dark:border-stone-700 px-3 py-2 text-sm font-semibold text-stone-600 dark:text-stone-300 transition-colors hover:bg-stone-50 dark:hover:bg-stone-800"
-            >
-              取消
-            </button>
-          </div>
+            已发布
+          </button>
+          <button
+            type="button"
+            onClick={() => {
+              const topicId = archiveTopicId;
+              setArchiveTopicId(null);
+              if (topicId) void updateTopicStatus(topicId, 'icebox');
+            }}
+            className="rounded-xl bg-stone-800 px-3 py-2 text-sm font-semibold text-white transition-colors hover:bg-stone-900"
+          >
+            搁置
+          </button>
         </div>
-      )}
+        <button
+          type="button"
+          onClick={() => setArchiveTopicId(null)}
+          className="mt-2 w-full rounded-xl border border-stone-200 dark:border-stone-700 px-3 py-2 text-sm font-semibold text-stone-600 dark:text-stone-300 transition-colors hover:bg-stone-50 dark:hover:bg-stone-800"
+        >
+          取消
+        </button>
+      </Modal>
 
       {/* Confirmation Dialog */}
       <ConfirmDialog

@@ -77,13 +77,13 @@ export const topicCreateSchema = z.object({
   tags: z.array(z.object({ id: z.string() })).optional(),
   people: z.array(z.object({ id: z.string() })).optional(),
   created_at: z.string().optional(),
-});
+}).strict();
 
 export const topicUpdateSchema = topicCreateSchema.partial().extend({
   title: textField('title', 200, false).refine((val) => val === undefined || val.trim().length > 0, {
     message: 'title is required',
   }).optional(),
-});
+}).strict();
 
 export const commercialDealSchema = (requireTitle = false) =>
   z.object({

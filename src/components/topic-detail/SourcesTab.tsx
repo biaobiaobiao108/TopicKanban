@@ -26,7 +26,7 @@ interface SourcesTabProps {
   sources: Source[];
   onSaveSource: (source: Partial<Source> & { topic_id: string; title: string }) => Promise<void>;
   onDeleteSource: (sourceId: string) => Promise<void>;
-  onConvertToTimeline?: (source: Source) => Promise<void>;
+  onConvertToTimeline?: (source: Source) => Promise<boolean>;
 }
 
 const PLATFORM_OPTIONS: { value: PlatformType | 'all'; label: string }[] = [
@@ -58,6 +58,7 @@ export const SourcesTab: React.FC<SourcesTabProps> = ({
   const [searchQuery, setSearchQuery] = useState('');
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const [timelineConvertedId, setTimelineConvertedId] = useState<string | null>(null);
+  const [pendingTimelineSourceId, setPendingTimelineSourceId] = useState<string | null>(null);
   const [smartPasteInput, setSmartPasteInput] = useState('');
   const [isParsingUrl, setIsParsingUrl] = useState(false);
   const parseRequestIdRef = useRef(0);
@@ -360,15 +361,29 @@ export const SourcesTab: React.FC<SourcesTabProps> = ({
                 {/* Convert to Timeline Event Button */}
                 {onConvertToTimeline && (
                   <button
-                    onClick={() => {
-                      onConvertToTimeline(s);
-                      setTimelineConvertedId(s.id);
-                      setTimeout(() => setTimelineConvertedId(null), 2000);
+                    type="button"
+                    disabled={pendingTimelineSourceId === s.id || timelineConvertedId === s.id}
+                    onClick={async () => {
+                      if (pendingTimelineSourceId) return;
+                      setPendingTimelineSourceId(s.id);
+                      try {
+                        const success = await onConvertToTimeline(s);
+                        if (success) {
+                          setTimelineConvertedId(s.id);
+                          setTimeout(() => setTimelineConvertedId(null), 2000);
+                        }
+                      } catch {
+                        // The parent reports the request error; this action stays retryable.
+                      } finally {
+                        setPendingTimelineSourceId(null);
+                      }
                     }}
-                    className="inline-flex items-center gap-0.5 text-[10px] font-semibold text-stone-500 dark:text-stone-400 hover:text-rose-600 dark:hover:text-rose-400 transition-colors cursor-pointer"
+                    className="inline-flex items-center gap-0.5 text-[10px] font-semibold text-stone-500 dark:text-stone-400 hover:text-rose-600 dark:hover:text-rose-400 transition-colors cursor-pointer disabled:cursor-wait disabled:opacity-60"
                     title="一键将本条素材沉淀为故事时间线事件"
                   >
-                    {timelineConvertedId === s.id ? (
+                    {pendingTimelineSourceId === s.id ? (
+                      <span className="text-stone-500 dark:text-stone-400">沉淀中…</span>
+                    ) : timelineConvertedId === s.id ? (
                       <>
                         <Check className="w-3 h-3 text-emerald-600 dark:text-emerald-400" />
                         <span className="text-emerald-600 dark:text-emerald-400 font-semibold">已入线</span>

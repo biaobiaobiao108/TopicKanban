@@ -115,10 +115,6 @@ export function buildStoryStructureSectionsHtml(acts: StoryStructureActs): strin
     .join('');
 }
 
-export function buildStoryStructureDraftHtml(topicTitle: string, hookText: string): string {
-  return `<h1>【黄金Hook】${topicTitle}</h1><p>${hookText}</p>${buildStoryStructureSectionsHtml({ ...EMPTY_STORY_STRUCTURE })}`;
-}
-
 export function buildStoryStructureTimelineSteps(acts: StoryStructureActs): Array<{ title: string; desc: string }> {
   return STORY_STRUCTURE_STEPS.map((step) => ({
     title: step.sectionTitle,

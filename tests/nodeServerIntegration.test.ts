@@ -698,6 +698,88 @@ describe('Bun Server Integration (Local SQLite & API)', () => {
       .toEqual({ title: '原始事件标题' });
   });
 
+  it('rejects topic lifecycle fields and never overwrites an existing topic on create', async () => {
+    const loginRes = await app.request('/api/auth/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ password: testPassword }),
+    });
+    const { token } = await loginRes.json() as { token: string };
+    const headers = { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' };
+
+    const firstCreateRes = await app.request('/api/topics', {
+      method: 'POST',
+      headers,
+      body: JSON.stringify({ id: 'topic-create-integrity', title: '原始选题' }),
+    });
+    expect(firstCreateRes.status).toBe(201);
+
+    const duplicateCreateRes = await app.request('/api/topics', {
+      method: 'POST',
+      headers,
+      body: JSON.stringify({ id: 'topic-create-integrity', title: '不应覆盖原始选题' }),
+    });
+    expect(duplicateCreateRes.status).toBe(409);
+    expect(sqlite.query('SELECT title, deleted_at FROM topics WHERE id = ?').get('topic-create-integrity'))
+      .toEqual({ title: '原始选题', deleted_at: null });
+
+    const createWithLifecycleFieldRes = await app.request('/api/topics', {
+      method: 'POST',
+      headers,
+      body: JSON.stringify({ title: '不应隐藏的选题', deleted_at: '2026-09-18T00:00:00.000Z' }),
+    });
+    expect(createWithLifecycleFieldRes.status).toBe(400);
+
+    const patchWithLifecycleFieldRes = await app.request('/api/topics/topic-create-integrity', {
+      method: 'PATCH',
+      headers,
+      body: JSON.stringify({ deleted_at: '2026-09-18T00:00:00.000Z' }),
+    });
+    expect(patchWithLifecycleFieldRes.status).toBe(400);
+    expect(sqlite.query('SELECT deleted_at FROM topics WHERE id = ?').get('topic-create-integrity'))
+      .toEqual({ deleted_at: null });
+  });
+
+  it('creates story timeline events in one atomic batch', async () => {
+    const now = new Date().toISOString();
+    sqlite.query(`INSERT INTO topics (id, title, created_at, updated_at)
+      VALUES (?, ?, ?, ?)`).run('timeline-batch-topic', '时间线批量事务测试', now, now);
+
+    const loginRes = await app.request('/api/auth/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ password: testPassword }),
+    });
+    const { token } = await loginRes.json() as { token: string };
+    const headers = { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' };
+
+    const failedBatchRes = await app.request('/api/timeline/batch', {
+      method: 'POST',
+      headers,
+      body: JSON.stringify({ events: [
+        { topic_id: 'timeline-batch-topic', title: '第一段' },
+        { topic_id: 'timeline-batch-topic', title: '第二段', person_ids: ['missing-person-id'] },
+      ] }),
+    });
+    expect(failedBatchRes.status).toBe(400);
+    expect(sqlite.query('SELECT COUNT(*) AS count FROM timeline_events WHERE topic_id = ?').get('timeline-batch-topic'))
+      .toEqual({ count: 0 });
+
+    const successBatchRes = await app.request('/api/timeline/batch', {
+      method: 'POST',
+      headers,
+      body: JSON.stringify({ events: [
+        { topic_id: 'timeline-batch-topic', title: '第一段' },
+        { topic_id: 'timeline-batch-topic', title: '第二段' },
+      ] }),
+    });
+    expect(successBatchRes.status).toBe(201);
+    const successBody = await successBatchRes.json() as { events: Array<{ topic_id: string; title: string; sort_order: number }> };
+    expect(successBody.events).toHaveLength(2);
+    expect(successBody.events.map((event) => event.title)).toEqual(['第一段', '第二段']);
+    expect(successBody.events.map((event) => event.sort_order)).toEqual([1, 2]);
+  });
+
   it('keeps the first active presence lease when another client reports', async () => {
     const first = await app.request('/api/topics/topic-1/presence', {
       method: 'POST',

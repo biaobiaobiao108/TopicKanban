@@ -19,6 +19,7 @@ import type {
   TopicPinMutationResult,
   TopicTodoMutationResult,
 } from '../types';
+import { matchesTopicSearch } from './topicSearch';
 
 type TopicList = PaginatedTopics;
 type TagListItem = Tag & {
@@ -84,7 +85,7 @@ function updateTopicLists(queryClient: QueryClient, topicId: string, updater: (t
 
 function topicMatchesKanbanQuery(topic: Topic, queryKey: readonly unknown[]): boolean {
   const status = queryKey[1];
-  const searchTerm = typeof queryKey[2] === 'string' ? queryKey[2].trim().toLowerCase() : '';
+  const searchTerm = typeof queryKey[2] === 'string' ? queryKey[2] : '';
   const priority = queryKey[3];
   const tagId = queryKey[4];
   const personId = queryKey[5];
@@ -92,10 +93,7 @@ function topicMatchesKanbanQuery(topic: Topic, queryKey: readonly unknown[]): bo
   if (priority && priority !== 'all' && topic.priority !== priority) return false;
   if (tagId && tagId !== 'all' && !topic.tags?.some((tag) => tag.id === tagId)) return false;
   if (personId && personId !== 'all' && !topic.people?.some((person) => person.id === personId)) return false;
-  if (!searchTerm) return true;
-  return [topic.title, topic.summary, topic.hook, topic.current_todo?.title].some((value) => value?.toLowerCase().includes(searchTerm))
-    || Boolean(topic.people?.some((person) => person.name.toLowerCase().includes(searchTerm)))
-    || Boolean(topic.tags?.some((tag) => tag.name.toLowerCase().includes(searchTerm)));
+  return matchesTopicSearch(topic, searchTerm);
 }
 
 function updateKanbanTopicCaches(queryClient: QueryClient, topicId: string, updates: Partial<Topic>) {

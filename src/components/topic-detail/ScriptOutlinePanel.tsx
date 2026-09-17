@@ -1,5 +1,5 @@
 import React, { useEffect, useRef } from 'react';
-import { Compass, Sparkles, X } from 'lucide-react';
+import { Compass, X } from 'lucide-react';
 import { formatOutlineDuration, type OutlineItem, type ScriptOutline } from '../../lib/outline';
 import { FloatingScrollbar } from '../ui/FloatingScrollbar';
 
@@ -9,7 +9,6 @@ interface ScriptOutlinePanelProps {
   activeItemId: string | null;
   onClose: () => void;
   onSelectHeading: (item: OutlineItem) => void;
-  onInjectFourActOutline?: () => void;
 }
 
 interface OutlineBranchProps {
@@ -71,7 +70,6 @@ export const ScriptOutlinePanel: React.FC<ScriptOutlinePanelProps> = ({
   activeItemId,
   onClose,
   onSelectHeading,
-  onInjectFourActOutline,
 }) => {
   const outlineScrollRef = useRef<HTMLDivElement | null>(null);
 
@@ -144,17 +142,6 @@ export const ScriptOutlinePanel: React.FC<ScriptOutlinePanelProps> = ({
                 <Compass className="h-4 w-4" />
               </div>
               <p>在正文使用 H1、H2、H3，即可自动生成层级大纲与时长占比。</p>
-
-              {onInjectFourActOutline && (
-                <button
-                  type="button"
-                  onClick={onInjectFourActOutline}
-                  className="script-outline-insert-button"
-                >
-                  <Sparkles className="h-3.5 w-3.5" aria-hidden="true" />
-                  <span>插入故事结构</span>
-                </button>
-              )}
             </div>
           ) : (
             <div className="script-outline-content">
@@ -174,18 +161,6 @@ export const ScriptOutlinePanel: React.FC<ScriptOutlinePanelProps> = ({
                 onSelectHeading={handleSelectHeading}
               />
 
-              {onInjectFourActOutline && (
-                <div className="script-outline-footer">
-                  <button
-                    type="button"
-                    onClick={onInjectFourActOutline}
-                    className="script-outline-insert-button"
-                  >
-                    <Sparkles className="h-3 w-3" aria-hidden="true" />
-                    <span>追加故事结构</span>
-                  </button>
-                </div>
-              )}
             </div>
           )}
         </FloatingScrollbar>

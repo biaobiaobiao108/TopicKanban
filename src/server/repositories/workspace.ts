@@ -132,11 +132,16 @@ export function timelineStatement(db: SqliteDatabase, event: TimelineEvent): Sql
     ]);
 }
 
-export async function insertTimelineEvent(db: SqliteDatabase, event: TimelineEvent): Promise<void> {
-  await db.batch([
+export async function insertTimelineEvents(db: SqliteDatabase, events: TimelineEvent[]): Promise<void> {
+  if (events.length === 0) return;
+  await db.batch(events.flatMap((event) => [
     timelineStatement(db, event),
     ...replaceTimelinePeopleStatements(db, event.id, event.person_ids || []),
-  ]);
+  ]));
+}
+
+export async function insertTimelineEvent(db: SqliteDatabase, event: TimelineEvent): Promise<void> {
+  await insertTimelineEvents(db, [event]);
 }
 
 export async function updateTimelineEvent(

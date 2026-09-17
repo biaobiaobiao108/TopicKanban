@@ -3,6 +3,15 @@ import type { SqliteDatabase, SqlitePreparedStatement } from '../sqlite';
 import { bind } from './shared';
 
 const MAX_TOPIC_BATCH_QUERY_IDS = 500;
+type TopicCoreInput = Partial<Omit<Topic, 'current_todo' | 'tags' | 'people'>> & {
+  id: string;
+  title: string;
+};
+type TopicRelationInput = { id: string };
+type TopicUpdateInput = Partial<Omit<Topic, 'current_todo' | 'tags' | 'people'>> & {
+  tags?: TopicRelationInput[];
+  people?: TopicRelationInput[];
+};
 
 function appendToRelationMap<T>(map: Map<string, T[]>, key: string, value: T): void {
   const values = map.get(key);
@@ -114,6 +123,7 @@ export async function loadActiveTopicCount(db: SqliteDatabase): Promise<number> 
 export class TopicNotInTrashError extends Error {}
 export class TopicPinInvalidStateError extends Error {}
 export class TopicReorderInvalidStateError extends Error {}
+export class TopicAlreadyExistsError extends Error {}
 
 export async function ensureTopicsInTrash(db: SqliteDatabase, ids: string[]): Promise<void> {
   if (ids.length === 0) return;
@@ -403,14 +413,13 @@ export async function loadTopicBatch(db: SqliteDatabase, ids: string[]): Promise
     }));
 }
 
-export function topicStatement(db: SqliteDatabase, topic: Partial<Topic> & { id: string; title: string }): SqlitePreparedStatement {
+function buildTopicStatement(
+  db: SqliteDatabase,
+  topic: TopicCoreInput,
+  upsert: boolean,
+): SqlitePreparedStatement {
   const now = new Date().toISOString();
-  return bind(db, `INSERT INTO topics (
-    id, title, summary, hook, storyline, why_now, status, priority,
-    target_publish_date, deadline,
-    score_character, score_conflict, score_contrast, score_material, score_story,
-    is_pinned, sort_order, created_at, updated_at, published_at, deleted_at
-  ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+  const conflictClause = upsert ? `
   ON CONFLICT(id) DO UPDATE SET
     title=excluded.title, summary=excluded.summary, hook=excluded.hook, storyline=excluded.storyline,
     why_now=excluded.why_now, status=excluded.status, priority=excluded.priority,
@@ -419,7 +428,14 @@ export function topicStatement(db: SqliteDatabase, topic: Partial<Topic> & { id:
     score_conflict=excluded.score_conflict, score_contrast=excluded.score_contrast,
     score_material=excluded.score_material, score_story=excluded.score_story,
     is_pinned=excluded.is_pinned, sort_order=excluded.sort_order, updated_at=excluded.updated_at,
-    published_at=excluded.published_at, deleted_at=excluded.deleted_at`, [
+    published_at=excluded.published_at, deleted_at=excluded.deleted_at` : '';
+  return bind(db, `INSERT INTO topics (
+    id, title, summary, hook, storyline, why_now, status, priority,
+    target_publish_date, deadline,
+    score_character, score_conflict, score_contrast, score_material, score_story,
+    is_pinned, sort_order, created_at, updated_at, published_at, deleted_at
+  ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+  ${conflictClause}`, [
     topic.id, topic.title, topic.summary ?? '', topic.hook ?? '', topic.storyline ?? '', topic.why_now ?? '',
     topic.status ?? 'inbox', topic.priority ?? 'medium',
     topic.target_publish_date ?? null, topic.deadline ?? null,
@@ -428,18 +444,30 @@ export function topicStatement(db: SqliteDatabase, topic: Partial<Topic> & { id:
     topic.created_at ?? now, now, topic.published_at ?? null, topic.deleted_at ?? null,
   ]);
 }
+
+export function topicStatement(db: SqliteDatabase, topic: TopicCoreInput): SqlitePreparedStatement {
+  return buildTopicStatement(db, topic, true);
+}
+
+function topicInsertStatement(db: SqliteDatabase, topic: TopicCoreInput): SqlitePreparedStatement {
+  return buildTopicStatement(db, topic, false);
+}
+
 export async function insertTopic(
   db: SqliteDatabase,
-  topic: Partial<Topic> & { id: string; title: string },
+  topic: TopicCoreInput,
   tagIds: string[] = [],
   personIds: string[] = [],
   initialTodo?: { id: string; title: string }
 ): Promise<void> {
+  const existing = await db.prepare('SELECT id FROM topics WHERE id = ?').bind(topic.id).first<{ id: string }>();
+  if (existing) throw new TopicAlreadyExistsError('Topic already exists');
+
   const isActive = !topic.deleted_at && !['published', 'icebox'].includes(topic.status || 'inbox');
   const batch: SqlitePreparedStatement[] = [
     ...(topic.is_pinned === 1 && isActive ? [bind(db, `UPDATE topics SET is_pinned = 0
       WHERE deleted_at IS NULL AND status NOT IN ('published', 'icebox')`, [])] : []),
-    topicStatement(db, { ...topic, is_pinned: topic.is_pinned === 1 && isActive ? 1 : 0 }),
+    topicInsertStatement(db, { ...topic, is_pinned: topic.is_pinned === 1 && isActive ? 1 : 0 }),
   ];
   if (initialTodo) {
     const now = new Date().toISOString();
@@ -459,13 +487,20 @@ export async function insertTopic(
     'INSERT OR IGNORE INTO topic_people (id, topic_id, person_id, role) VALUES (?, ?, ?, ?)',
     [`${topic.id}:${personId}`, topic.id, personId, '']
   )));
-  await db.batch(batch);
+  try {
+    await db.batch(batch);
+  } catch (error) {
+    if (error instanceof Error && error.message.includes('UNIQUE constraint failed: topics.id')) {
+      throw new TopicAlreadyExistsError('Topic already exists');
+    }
+    throw error;
+  }
 }
 
 export async function updateTopic(
   db: SqliteDatabase,
   id: string,
-  body: Partial<Topic>
+  body: TopicUpdateInput
 ): Promise<void> {
   const existing = await db.prepare('SELECT status, deleted_at FROM topics WHERE id = ?').bind(id).first<{ status: TopicStatus; deleted_at?: string | null }>();
   const requestedStatus = (body.status || existing?.status || 'inbox') as TopicStatus;
@@ -487,7 +522,7 @@ export async function updateTopic(
   if (fields.length > 0) {
     const values = fields.map((field) => field === 'is_pinned' && shouldClearPin && !hasPinField
       ? 0
-      : body[field as keyof Topic]);
+      : body[field as keyof TopicUpdateInput]);
     batch.push(bind(db,
       `UPDATE topics SET ${fields.map((field) => `${field} = ?`).join(', ')}, updated_at = ? WHERE id = ?`,
       [...values, new Date().toISOString(), id]

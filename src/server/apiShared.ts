@@ -66,8 +66,16 @@ import {
 } from './schemas';
 
 export function validateTopicFields(body: Record<string, unknown>): string | null {
-  const result = parseWithZod(topicUpdateSchema, body);
+  const result = parseTopicUpdate(body);
   return result.success ? null : result.error;
+}
+
+export function parseTopicCreate(body: unknown) {
+  return parseWithZod(topicCreateSchema, body);
+}
+
+export function parseTopicUpdate(body: unknown) {
+  return parseWithZod(topicUpdateSchema, body);
 }
 
 export function validateCommercialDealFields(body: Record<string, unknown>, requireTitle = false): string | null {

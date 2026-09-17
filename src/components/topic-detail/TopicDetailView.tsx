@@ -19,6 +19,7 @@ import {
   deleteSource,
   fetchTimelineByTopicId,
   saveTimelineEvent,
+  saveTimelineEvents,
   deleteTimelineEvent,
   reorderTimelineEvents,
   fetchDraftByTopicId,
@@ -415,9 +416,9 @@ export const TopicDetailView: React.FC<TopicDetailViewProps> = ({
     URL.revokeObjectURL(url);
   };
 
-  const handleConvertSourceToTimeline = async (source: Source) => {
+  const handleConvertSourceToTimeline = async (source: Source): Promise<boolean> => {
     try {
-      await saveTimelineEvent({
+      const saved = await saveTimelineEvent({
         topic_id: topic.id,
         title: source.title,
         description: source.content || (source.notes ? `【备注】${source.notes}` : ''),
@@ -425,42 +426,60 @@ export const TopicDetailView: React.FC<TopicDetailViewProps> = ({
         date_precision: source.published_at ? (source.published_at.length >= 10 ? 'exact' : 'year_month') : 'unknown',
         verification_status: source.verification_status,
       });
-      const updated = await fetchTimelineByTopicId(topic.id);
-      queryClient.setQueryData(['topic-timeline', topic.id], updated);
-      onTopicMetricsChange(topic.id, { timeline_count: updated.length });
+      try {
+        const updated = await fetchTimelineByTopicId(topic.id);
+        queryClient.setQueryData(['topic-timeline', topic.id], updated);
+        onTopicMetricsChange(topic.id, { timeline_count: updated.length });
+      } catch {
+        queryClient.setQueryData<TimelineEvent[]>(['topic-timeline', topic.id], (current) => (
+          current ? [...current, saved] : [saved]
+        ));
+        void queryClient.invalidateQueries({ queryKey: ['topic-timeline', topic.id] });
+      }
+      return true;
     } catch (err) {
       setOperationError(err instanceof Error ? `流转时间线事件失败：${err.message}` : '流转时间线事件失败');
+      return false;
     }
   };
 
-  const handleInjectOutlineIntoDraft = async (outlineHtml: string) => {
+  const handleInjectOutlineIntoDraft = async (outlineHtml: string): Promise<boolean> => {
     try {
       const existing = await fetchDraftByTopicId(topic.id);
       queryClient.setQueryData(['topic-draft', topic.id], existing);
       setPendingOutlineHtml(outlineHtml);
       setActiveTab('script');
+      return true;
     } catch (err) {
       setOperationError(err instanceof Error ? `注入文案草稿失败：${err.message}` : '注入文案草稿失败');
+      return false;
     }
   };
 
-  const handleConvertStorylineToTimeline = async (steps: Array<{ title: string; desc: string }>) => {
+  const handleConvertStorylineToTimeline = async (steps: Array<{ title: string; desc: string }>): Promise<boolean> => {
     try {
-      for (const step of steps) {
-        await saveTimelineEvent({
-          topic_id: topic.id,
-          title: step.title,
-          description: step.desc,
-          date_precision: 'unknown',
-          verification_status: 'confirmed',
-        });
+      const created = await saveTimelineEvents(steps.map((step) => ({
+        topic_id: topic.id,
+        title: step.title,
+        description: step.desc,
+        date_precision: 'unknown' as const,
+        verification_status: 'confirmed' as const,
+      })));
+      try {
+        const updated = await fetchTimelineByTopicId(topic.id);
+        queryClient.setQueryData(['topic-timeline', topic.id], updated);
+        onTopicMetricsChange(topic.id, { timeline_count: updated.length });
+      } catch {
+        queryClient.setQueryData<TimelineEvent[]>(['topic-timeline', topic.id], (current) => (
+          current ? [...current, ...created] : created
+        ));
+        void queryClient.invalidateQueries({ queryKey: ['topic-timeline', topic.id] });
       }
-      const updated = await fetchTimelineByTopicId(topic.id);
-      queryClient.setQueryData(['topic-timeline', topic.id], updated);
-      onTopicMetricsChange(topic.id, { timeline_count: updated.length });
       setActiveTab('timeline');
+      return true;
     } catch (err) {
       setOperationError(err instanceof Error ? `流转时间线失败：${err.message}` : '流转时间线失败');
+      return false;
     }
   };
 
