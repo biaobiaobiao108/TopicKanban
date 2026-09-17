@@ -24,13 +24,14 @@
   display: flex;
   flex: none;
   align-items: center;
-  justify-content: space-between;
+  justify-content: flex-start;
   gap: 12px;
   padding: 16px 16px 14px;
   background: transparent;
 }
 
 .script-outline-heading {
+  flex: 1;
   min-width: 0;
 }
 
@@ -54,31 +55,28 @@
   white-space: nowrap;
 }
 
-.script-outline-back-button {
+.script-outline-close-button {
   display: inline-flex;
   flex: none;
   align-items: center;
-  gap: 4px;
-  min-height: 32px;
-  padding: 0 7px;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  padding: 6px;
   border: 0;
-  border-radius: var(--radius-sm);
+  border-radius: 8px;
   background: transparent;
   color: var(--ink-muted);
-  font-size: 0.72rem;
-  font-weight: 600;
-  white-space: nowrap;
   cursor: pointer;
-  transition: color 150ms ease, background-color 150ms ease, transform 150ms ease;
+  transition: color 150ms ease, background-color 150ms ease;
 }
 
-.script-outline-back-button:hover {
-  background: var(--canvas);
-  color: var(--accent-dark);
-  transform: translateX(-1px);
+.script-outline-close-button:hover {
+  background: color-mix(in srgb, var(--ink) 5%, transparent);
+  color: var(--ink);
 }
 
-.script-outline-back-button:focus-visible,
+.script-outline-close-button:focus-visible,
 .script-outline-item-button:focus-visible,
 .script-outline-insert-button:focus-visible {
   outline: 3px solid color-mix(in srgb, var(--accent) 28%, transparent);

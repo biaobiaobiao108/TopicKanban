@@ -1,5 +1,5 @@
-import React from 'react';
-import { ChevronLeft, Compass, Sparkles } from 'lucide-react';
+import React, { useEffect, useRef } from 'react';
+import { Compass, Sparkles, X } from 'lucide-react';
 import { formatOutlineDuration, type OutlineItem, type ScriptOutline } from '../../lib/outline';
 import { FloatingScrollbar } from '../ui/FloatingScrollbar';
 
@@ -73,6 +73,27 @@ export const ScriptOutlinePanel: React.FC<ScriptOutlinePanelProps> = ({
   onSelectHeading,
   onInjectFourActOutline,
 }) => {
+  const outlineScrollRef = useRef<HTMLDivElement | null>(null);
+
+  useEffect(() => {
+    if (!isOpen || !activeItemId) return;
+
+    const container = outlineScrollRef.current;
+    if (!container) return;
+
+    const activeButton = Array.from(
+      container.querySelectorAll<HTMLButtonElement>('[data-outline-id]')
+    ).find((button) => button.dataset.outlineId === activeItemId);
+    if (!activeButton) return;
+
+    const containerRect = container.getBoundingClientRect();
+    const buttonRect = activeButton.getBoundingClientRect();
+    const isOutsideViewport = buttonRect.top < containerRect.top || buttonRect.bottom > containerRect.bottom;
+    if (isOutsideViewport) {
+      activeButton.scrollIntoView({ block: 'nearest', behavior: 'auto' });
+    }
+  }, [activeItemId, isOpen, outline]);
+
   if (!isOpen) return null;
 
   const handleSelectHeading = (item: OutlineItem) => {
@@ -93,6 +114,15 @@ export const ScriptOutlinePanel: React.FC<ScriptOutlinePanelProps> = ({
         className="script-outline-panel absolute inset-y-0 left-0 z-30 flex h-full w-72 flex-col overflow-hidden border-r border-[var(--line)] shadow-xl animate-in slide-in-from-left duration-200 sm:w-80 xl:shadow-none"
       >
         <header className="script-outline-header">
+          <button
+            type="button"
+            aria-label="退出文案大纲"
+            onClick={onClose}
+            className="script-outline-close-button"
+            title="退出文案大纲 (Esc)"
+          >
+            <X className="h-3.5 w-3.5" aria-hidden="true" />
+          </button>
           <div className="script-outline-heading">
             <h2 id="script-outline-title">文案大纲</h2>
             <p>
@@ -101,19 +131,13 @@ export const ScriptOutlinePanel: React.FC<ScriptOutlinePanelProps> = ({
                 : '当前文案暂无标题'}
             </p>
           </div>
-          <button
-            type="button"
-            aria-label="收起文案大纲"
-            onClick={onClose}
-            className="script-outline-back-button"
-            title="返回文案编辑器 (Esc)"
-          >
-            <ChevronLeft className="h-4 w-4" aria-hidden="true" />
-            <span>返回文案</span>
-          </button>
         </header>
 
-        <FloatingScrollbar className="script-outline-scroll" wrapperClassName="flex-1 min-h-0">
+        <FloatingScrollbar
+          ref={outlineScrollRef}
+          className="script-outline-scroll"
+          wrapperClassName="flex-1 min-h-0"
+        >
           {!outline.hasHeadings ? (
             <div className="script-outline-empty">
               <div className="script-outline-empty-mark" aria-hidden="true">

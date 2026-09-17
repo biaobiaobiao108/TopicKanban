@@ -66,6 +66,26 @@ const typographyDraft = {
   }),
 };
 
+const scrollSpySections = Array.from({ length: 12 }, (_, index) => ({
+  title: `第 ${index + 1} 章`,
+  body: '滚动定位回归测试内容，用于撑开编辑器和大纲的可滚动区域。'.repeat(30),
+}));
+
+const scrollSpyDraft = {
+  ...draft,
+  title: '大纲滚动定位回归',
+  content_html: scrollSpySections
+    .map((section) => `<h2>${section.title}</h2><p>${section.body}</p>`)
+    .join(''),
+  content_json: JSON.stringify({
+    type: 'doc',
+    content: scrollSpySections.flatMap((section) => [
+      { type: 'heading', attrs: { level: 2 }, content: [{ type: 'text', text: section.title }] },
+      { type: 'paragraph', content: [{ type: 'text', text: section.body }] },
+    ]),
+  }),
+};
+
 async function mockWorkspace(page: Page, workspaceDraft = draft) {
   let currentTopic = { ...topic };
   await page.route('**/api/bootstrap**', async (route) => {
@@ -266,7 +286,7 @@ test('工作台不再渲染全局顶栏且文案支持沉浸写作', async ({ pa
   await expect(outlinePanel.getByRole('heading', { name: '文案大纲', exact: true })).toBeVisible();
   await expect(outlinePanel).toContainText('1 个章节');
   await expect(outlinePanel.locator('.script-outline-item--level-1')).toHaveCount(1);
-  await outlinePanel.getByRole('button', { name: '收起文案大纲', exact: true }).click();
+  await outlinePanel.getByRole('button', { name: '退出文案大纲', exact: true }).click();
   await expect(outlinePanel).toHaveCount(0);
 
   const enterZenButton = page.getByRole('button', { name: '沉浸写作', exact: true });
@@ -283,6 +303,30 @@ test('工作台不再渲染全局顶栏且文案支持沉浸写作', async ({ pa
   await page.keyboard.press('Escape');
   await expect(page.locator('html')).not.toHaveClass(/script-editor-zen-mode/);
   await expect(page.locator('.pwa-navbar')).toHaveCount(0);
+});
+
+test('文案大纲会随编辑器滚动高亮并自动跟随', async ({ page }) => {
+  await mockWorkspace(page, scrollSpyDraft);
+  await login(page);
+  await page.goto(`/topics/${topic.id}?tab=script`);
+
+  await page.locator('button[aria-label="展开/收起文案大纲与章节定位"]').click();
+  const outlinePanel = page.locator('#script-outline');
+  await expect(outlinePanel).toContainText('12 个章节');
+
+  await page.locator('.script-editor-canvas-container').evaluate((element) => {
+    element.scrollTop = element.scrollHeight;
+  });
+
+  const lastChapter = outlinePanel.getByRole('button', { name: /第 12 章/ });
+  await expect(lastChapter).toHaveAttribute('aria-current', 'true');
+  await expect.poll(async () => outlinePanel.locator('.script-outline-scroll').evaluate((container) => {
+    const activeItem = container.querySelector<HTMLElement>('[aria-current="true"]');
+    if (!activeItem) return false;
+    const containerRect = container.getBoundingClientRect();
+    const itemRect = activeItem.getBoundingClientRect();
+    return itemRect.top >= containerRect.top && itemRect.bottom <= containerRect.bottom;
+  })).toBe(true);
 });
 
 test('移动端无全局顶栏且底部阶段菜单和更多菜单均不超出视口', async ({ page }) => {

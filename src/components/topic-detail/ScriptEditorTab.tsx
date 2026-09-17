@@ -230,6 +230,7 @@ export const ScriptEditorTab: React.FC<ScriptEditorTabProps> = ({
   const effectiveSpeed = readingSpeed || 280;
   const readingSpeedRef = useRef(effectiveSpeed);
   const outlineDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const outlineScrollSyncFrameRef = useRef<number | null>(null);
   const copyFeedbackTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const lastInjectedOutlineRef = useRef<string | null>(null);
 
@@ -560,6 +561,65 @@ export const ScriptEditorTab: React.FC<ScriptEditorTabProps> = ({
       editor.off('selectionUpdate', handleSelectionUpdate);
     };
   }, [editor]);
+
+  const syncOutlineWithEditorScroll = useCallback(() => {
+    const container = scrollContainerRef.current;
+    const items = outlineRef.current.flatItems;
+    if (!editor || !container || items.length === 0) return;
+
+    const containerRect = container.getBoundingClientRect();
+    const activationLine = containerRect.top + Math.min(160, Math.max(64, containerRect.height * 0.3));
+    let activeItemId: string | null = null;
+    let firstVisibleItemId: string | null = null;
+
+    for (const item of items) {
+      const headingElement = editor.view.nodeDOM(item.nodePos);
+      if (!(headingElement instanceof HTMLElement)) continue;
+
+      const headingRect = headingElement.getBoundingClientRect();
+      if (
+        firstVisibleItemId === null
+        && headingRect.bottom > containerRect.top
+        && headingRect.top < containerRect.bottom
+      ) {
+        firstVisibleItemId = item.id;
+      }
+      if (headingRect.top <= activationLine) {
+        activeItemId = item.id;
+        continue;
+      }
+      break;
+    }
+
+    const nextActiveItemId = activeItemId || firstVisibleItemId;
+    setActiveOutlineItemId((current) => current === nextActiveItemId ? current : nextActiveItemId);
+  }, [editor]);
+
+  useEffect(() => {
+    if (!editor) return;
+
+    const container = scrollContainerRef.current;
+    if (!container) return;
+
+    const scheduleOutlineSync = () => {
+      if (outlineScrollSyncFrameRef.current !== null) return;
+      outlineScrollSyncFrameRef.current = window.requestAnimationFrame(() => {
+        outlineScrollSyncFrameRef.current = null;
+        syncOutlineWithEditorScroll();
+      });
+    };
+
+    scheduleOutlineSync();
+    container.addEventListener('scroll', scheduleOutlineSync, { passive: true });
+
+    return () => {
+      container.removeEventListener('scroll', scheduleOutlineSync);
+      if (outlineScrollSyncFrameRef.current !== null) {
+        window.cancelAnimationFrame(outlineScrollSyncFrameRef.current);
+        outlineScrollSyncFrameRef.current = null;
+      }
+    };
+  }, [editor, outline, syncOutlineWithEditorScroll]);
 
   useEffect(() => {
     if (!editor || !pendingOutlineHtml || lastInjectedOutlineRef.current === pendingOutlineHtml) return;
