@@ -231,4 +231,40 @@ describe('Storage Optimization & Compaction', () => {
     expect(vacuumData.after.freelist_count).toBe(0);
     expect(vacuumData.message).toBeDefined();
   });
+
+  it('does not automatically vacuum on permanent deletions and reuses freelist pages naturally', async () => {
+    await insertTopic(db, {
+      id: 'topic-freelist-test',
+      title: '空闲页复用测试选题 '.repeat(30),
+      summary: '摘要内容 '.repeat(50),
+      status: 'inbox',
+      priority: 'medium',
+      score_character: 1,
+      score_conflict: 1,
+      score_contrast: 1,
+      score_material: 1,
+      score_story: 1,
+      is_pinned: 0,
+      sort_order: 0,
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+    });
+    await softDeleteTopic(db, 'topic-freelist-test');
+
+    const deleteRes = await app.request('/api/topics/topic-freelist-test/permanent', {
+      method: 'DELETE',
+      headers: authHeaders,
+    });
+    expect(deleteRes.status).toBe(200);
+
+    const statsAfterDelete = await getStorageStats(db);
+    expect(statsAfterDelete.trashed_topics_count).toBe(0);
+
+    const insertRes = await app.request('/api/topics', {
+      method: 'POST',
+      headers: authHeaders,
+      body: JSON.stringify({ title: '复用空闲页新选题' }),
+    });
+    expect(insertRes.status).toBe(201);
+  });
 });

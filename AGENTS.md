@@ -77,17 +77,18 @@
 * **大文件避免重复序列化**：备份下载直接以 JSON Blob 响应；导入仅在客户端状态中保留 `File` 与摘要，保持 5 MB 限制，确认恢复时再读取和提交文件内容。
 * **体验与数据契约优先**：以上治理不得改变 Today 返回结构、备份字段、编辑器自动保存、防冲突校验、拖拽行为或用户可见数据量；新增优化应优先减少长期驻留和重复副本。
 
-### 2.2 存储碎片收敛与物理空间回收规范 (Storage Compaction & Vacuum Policy)
-* **SQLite 空间物理回收**：SQLite 默认不自动收缩磁盘文件。在下列场景中必须联动执行 `PRAGMA wal_checkpoint(TRUNCATE)` 与 `VACUUM`，确保将释放的空闲页真正归还给宿主机操作系统：
-  1. **清空回收站**（`POST /api/topics/trash/empty`）成功后；
-  2. **批量或单个永久删除选题**（`permanentlyDeleteTrashedTopics`）成功后；
-  3. **全量备份恢复覆盖**（`replaceAllData`）成功后（防止旧表全量清空残留巨大空洞页）；
-  4. **系统维护主动整理**（`POST /api/system/storage/vacuum`）。
+### 2.2 存储碎片收敛、空闲页复用与物理收缩规范 (Storage Compaction & Freelist Policy)
+* **空闲页复用优先原则 (Freelist-first)**：
+  - SQLite 的 Freelist（内部空闲页池）是边写边改场景下极速复用、避免频繁向操作系统申请磁盘扇区的核心机制；
+  - 单个/批量永久删除选题（`permanentlyDeleteTrashedTopics`）、清空回收站以及回收站超期清理**均采用标准 SQL `DELETE`，严禁在日常删除业务流中自动调用 `VACUUM`**，杜绝全库克隆重写导致的写放大（SSD 磨损）与并发排他写锁阻塞；
+  - 释放的页面自然保留在内部 Freelist 中，供后续新建选题、修改正文和添加素材时直接原地复用。
+* **主动收缩与物理归还 (Manual VACUUM)**：
+  - 仅在用户通过系统设置主动触发整理（`POST /api/system/storage/vacuum`）时，才执行 `PRAGMA wal_checkpoint(TRUNCATE)` 与 `VACUUM`，将释放的空闲页截断归还宿主机操作系统；
+  - 设置面板通过 `GET /api/system/storage` 提供真实的物理文件大小、WAL 大小与空闲页指标，让用户知情并自主决定何时整理。
 * **回收站生命周期治理**：
   - 选题软删除进入回收站后，遵循 `app_settings.trash_retention_days` 设定（默认 30 天，0 为从不清理）；
-  - 进入回收站视图时自动识别并物理级联清除超期选题，清理后自动执行收缩，杜绝废弃历史文案与素材无限积压。
-* **高频租约内存化隔离**：协同编辑锁等秒级高频心跳交互数据严禁频繁落盘写 SQLite，必须由内存 LeaseMap 进行并发控制。
-* **物理监控透明度**：通过 `GET /api/system/storage` 提供真实的物理文件大小、WAL 大小与空闲页指标，并在设置面板直观呈现。
+  - 进入回收站视图时自动识别并物理级联清除超期选题，释放页面进入 Freelist 自然复用，杜绝废弃历史文案与素材无限积压。
+* **高频租约内存化隔离**：协同编辑锁等秒级高频心跳交互数据严禁落盘写 SQLite，必须由内存 LeaseMap 进行并发控制。
 
 ### 3. 本地开发与反代公网域名规范 (Local Bun Server & Public Base URL)
 * **本地开发 (`bun run dev`)**：Bun HTML Bundler 热重载与 Bun.serve 在同一进程运行于 3030 端口，页面、静态资源和 `/api` 由同一个服务同源提供；不再使用独立前端开发服务器或跨端口代理。本地开发默认密码为 `admin`。

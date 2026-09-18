@@ -100,15 +100,5 @@ export async function purgeExpiredTrashTopics(
   }
 
   await permanentlyDeleteTrashedTopics(db, ids);
-  try {
-    db.sqlite.exec(`
-      PRAGMA wal_checkpoint(TRUNCATE);
-      VACUUM;
-      PRAGMA wal_checkpoint(TRUNCATE);
-    `);
-  } catch {
-    // Vacuum failure should not prevent return
-  }
-
   return { purged_count: ids.length, purged_ids: ids };
 }

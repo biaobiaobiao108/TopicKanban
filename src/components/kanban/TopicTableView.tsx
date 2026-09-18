@@ -390,7 +390,7 @@ export const TopicTableView: React.FC<TopicTableViewProps> = ({
     setConfirmDialog({
       isOpen: true,
       title: '清空回收站',
-      description: `确定要清空回收站吗？\n\n将永久删除回收站内的全部 ${trashCount} 个选题，并自动整理压缩数据库释放磁盘空间。此操作无法撤销！`,
+      description: `确定要清空回收站吗？\n\n将永久删除回收站内的全部 ${trashCount} 个选题，此操作无法撤销！`,
       confirmText: '清空回收站',
       tone: 'danger',
       onConfirm: async () => {
@@ -406,7 +406,7 @@ export const TopicTableView: React.FC<TopicTableViewProps> = ({
           }
           setSelectedIds(new Set());
           setConfirmDialog((prev) => ({ ...prev, isOpen: false }));
-          showToast({ message: `已清空回收站并释放磁盘空间`, tone: 'info' });
+          showToast({ message: `已清空回收站`, tone: 'info' });
         } finally {
           setIsBulkUpdating(false);
         }

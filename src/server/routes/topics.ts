@@ -30,7 +30,6 @@ import {
   ensureTopicsInTrash,
   TopicAlreadyExistsError,
   updateTopic,
-  vacuumDatabase,
 } from '../repositories';
 import type { AppSettings } from '../../types';
 
@@ -201,11 +200,6 @@ export function registerTopicRoutes(app: NativeApp): void {
       await ensureTopicsInTrash(db, [topicId]);
       await revokeTopicShares(c.env, [topicId]);
       await permanentlyDeleteTrashedTopics(db, [topicId]);
-      try {
-        await vacuumDatabase(db);
-      } catch {
-        // vacuum failure should not fail response
-      }
       return c.json({ success: true });
     } catch (error) {
       if (error instanceof TopicNotInTrashError) return c.json({ error: error.message }, 409);
@@ -226,11 +220,6 @@ export function registerTopicRoutes(app: NativeApp): void {
       await ensureTopicsInTrash(db, uniqueIds);
       await revokeTopicShares(c.env, uniqueIds);
       await permanentlyDeleteTrashedTopics(db, uniqueIds);
-      try {
-        await vacuumDatabase(db);
-      } catch {
-        // vacuum failure should not fail response
-      }
       return c.json({ success: true, count: uniqueIds.length });
     } catch (error) {
       if (error instanceof TopicNotInTrashError) return c.json({ error: error.message }, 409);
@@ -245,11 +234,6 @@ export function registerTopicRoutes(app: NativeApp): void {
       if (ids.length === 0) return c.json({ success: true, count: 0, ids: [] });
       await revokeTopicShares(c.env, ids);
       await permanentlyDeleteTrashedTopics(db, ids);
-      try {
-        await vacuumDatabase(db);
-      } catch {
-        // vacuum failure should not fail response
-      }
       return c.json({ success: true, count: ids.length, ids });
     } catch (error) {
       if (error instanceof TopicNotInTrashError) return c.json({ error: error.message }, 409);

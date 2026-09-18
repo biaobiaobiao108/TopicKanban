@@ -248,11 +248,6 @@ export function registerSystemRoutes(app: NativeApp): void {
       const validation = validateBackupData(data);
       if (!validation.success) return c.json({ error: validation.error }, 400);
       await replaceAllData(requireDb(c), validation.data);
-      try {
-        await vacuumDatabase(requireDb(c));
-      } catch {
-        // vacuum failure should not fail backup restore
-      }
       return c.json({ success: true });
     } catch (error) {
       if (error instanceof BackupImportLimitError) return jsonError(c, error, 413);
