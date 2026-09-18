@@ -104,9 +104,11 @@ export class SqlitePreparedStatement {
 
 export class SqliteDatabase {
   readonly sqlite: Database;
+  readonly dbFilePath?: string;
 
-  constructor(sqlite: Database) {
+  constructor(sqlite: Database, dbFilePath?: string) {
     this.sqlite = sqlite;
+    this.dbFilePath = dbFilePath;
   }
 
   prepare(query: string): SqlitePreparedStatement {
@@ -306,5 +308,5 @@ export async function initializeSqliteDatabase(dbFilePath: string, schemaDir?: s
   `);
   migrateLegacySchema(sqlite);
 
-  return { db: new SqliteDatabase(sqlite), sqlite };
+  return { db: new SqliteDatabase(sqlite, dbFilePath), sqlite };
 }

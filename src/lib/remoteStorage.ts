@@ -26,6 +26,8 @@ import type {
   PublishPackageSaveInput,
   Source,
   Tag,
+  StorageStats,
+  StorageOptimizeResult,
   TimelineEvent,
   Topic,
   TopicPinMutationResult,
@@ -872,6 +874,16 @@ export async function saveSettings(settings: AppSettings): Promise<AppSettings> 
   const saved = await apiRequest<AppSettings>('/api/settings', jsonRequest('PUT', settings));
   invalidateBootstrap();
   return saved;
+}
+
+export async function fetchStorageStats(): Promise<StorageStats> {
+  return apiRequest<StorageStats>('/api/system/storage');
+}
+
+export async function optimizeStorage(): Promise<StorageOptimizeResult> {
+  const result = await apiRequest<StorageOptimizeResult>('/api/system/storage/vacuum', jsonRequest('POST', {}));
+  invalidateBootstrap();
+  return result;
 }
 
 export async function exportBackupData(): Promise<Blob> {

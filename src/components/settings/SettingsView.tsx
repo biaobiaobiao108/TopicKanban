@@ -7,14 +7,17 @@ import {
   BackupData,
   DEFAULT_APP_SETTINGS,
   DEFAULT_VOICEOVER_CUES,
+  StorageStats,
+  StorageOptimizeResult,
 } from '../../types';
 import { validateBackupData } from '../../lib/backupValidation';
-import { exportBackupData, importBackupData, exportScriptsMarkdown, MAX_BACKUP_IMPORT_BYTES } from '../../lib/storage';
+import { exportBackupData, importBackupData, exportScriptsMarkdown, fetchStorageStats, optimizeStorage, MAX_BACKUP_IMPORT_BYTES } from '../../lib/storage';
 import { authenticatedFetch } from '../../lib/auth';
 import { applyTheme } from '../../lib/theme';
 import { resolvePublicUrl } from '../../lib/publicUrl';
 import { PageHeader } from '../layout/PageHeader';
 import { ConfirmDialog } from '../ui/ConfirmDialog';
+import { useToast } from '../ui/Toast';
 import { PwaInstallCard } from '../ui/PwaInstall';
 import {
   Settings,
@@ -88,12 +91,20 @@ function formatBackupSummary(data: BackupData): string {
   return `选题 ${data.topics.length}、资料 ${data.sources.length}、时间线 ${data.timeline.length}、人物 ${data.people.length}、草稿 ${data.drafts.length}、引用 ${data.citations.length}、标签 ${data.tags.length}、视频 ${data.published.length}`;
 }
 
+function formatBytes(bytes: number): string {
+  if (bytes <= 0) return '0 B';
+  if (bytes < 1024) return `${bytes} B`;
+  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
+  return `${(bytes / (1024 * 1024)).toFixed(2)} MB`;
+}
+
 export const SettingsView: React.FC<SettingsViewProps> = ({
   settings,
   onSaveSettings,
   onReloadAllData,
   onLogout,
 }) => {
+  const { showToast } = useToast();
   const [readingSpeed, setReadingSpeed] = useState(settings.reading_speed || DEFAULT_APP_SETTINGS.reading_speed);
   const [selectedTheme, setSelectedTheme] = useState<AppTheme>(settings.theme || DEFAULT_APP_SETTINGS.theme);
   const [editorFontSize, setEditorFontSize] = useState<EditorFontSize>(settings.editor_font_size || DEFAULT_APP_SETTINGS.editor_font_size || 'standard');
@@ -101,10 +112,16 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
   const [typewriterDefault, setTypewriterDefault] = useState<boolean>(settings.typewriter_mode_default ?? DEFAULT_APP_SETTINGS.typewriter_mode_default ?? false);
   const [staleActionDays, setStaleActionDays] = useState<number>(settings.stale_action_days || DEFAULT_APP_SETTINGS.stale_action_days || 5);
   const [defaultShareTtl, setDefaultShareTtl] = useState<number>(settings.default_share_ttl_days || DEFAULT_APP_SETTINGS.default_share_ttl_days || 3);
+  const [trashRetentionDays, setTrashRetentionDays] = useState<number>(settings.trash_retention_days ?? 30);
   const [reviewerBranding, setReviewerBranding] = useState<string>(settings.reviewer_branding || '');
   const [publicBaseUrl, setPublicBaseUrl] = useState<string>(settings.public_base_url || '');
   const [voiceoverCues, setVoiceoverCues] = useState<string[]>(settings.voiceover_cues || DEFAULT_VOICEOVER_CUES);
   const [newCueInput, setNewCueInput] = useState('');
+
+  const [storageStats, setStorageStats] = useState<StorageStats | null>(null);
+  const [isLoadingStorage, setIsLoadingStorage] = useState(false);
+  const [isOptimizingStorage, setIsOptimizingStorage] = useState(false);
+  const [isOptimizeDialogOpen, setIsOptimizeDialogOpen] = useState(false);
 
   const [savedSuccess, setSavedSuccess] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
@@ -125,6 +142,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
     setTypewriterDefault(settings.typewriter_mode_default ?? false);
     setStaleActionDays(settings.stale_action_days || 5);
     setDefaultShareTtl(settings.default_share_ttl_days || 3);
+    setTrashRetentionDays(settings.trash_retention_days ?? 30);
     setReviewerBranding(settings.reviewer_branding || '');
     setPublicBaseUrl(settings.public_base_url || '');
     setVoiceoverCues(settings.voiceover_cues || DEFAULT_VOICEOVER_CUES);
@@ -190,14 +208,52 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
     }
   }, []);
 
+  const loadStorageStats = useCallback(async () => {
+    setIsLoadingStorage(true);
+    try {
+      const stats = await fetchStorageStats();
+      if (isMountedRef.current) setStorageStats(stats);
+    } catch {
+      // ignore
+    } finally {
+      if (isMountedRef.current) setIsLoadingStorage(false);
+    }
+  }, []);
+
+  const handleConfirmOptimize = async () => {
+    setIsOptimizingStorage(true);
+    try {
+      const result = await optimizeStorage();
+      if (isMountedRef.current) {
+        setStorageStats(result.after);
+        setIsOptimizeDialogOpen(false);
+      }
+      showToast({
+        message: result.reclaimed_bytes > 0
+          ? `存储压缩完成，已释放 ${formatBytes(result.reclaimed_bytes)} 磁盘空间`
+          : '数据库已完成重整，当前处于最佳紧凑状态',
+        tone: 'success',
+      });
+      void checkRuntimeStatus();
+    } catch (err) {
+      showToast({
+        message: err instanceof Error ? `压缩失败：${err.message}` : '压缩失败',
+        tone: 'error',
+      });
+    } finally {
+      if (isMountedRef.current) setIsOptimizingStorage(false);
+    }
+  };
+
   useEffect(() => {
     void checkRuntimeStatus();
+    void loadStorageStats();
     return () => {
       isMountedRef.current = false;
       healthControllerRef.current?.abort();
       timeoutIdsRef.current.forEach(clearTimeout);
     };
-  }, [checkRuntimeStatus]);
+  }, [checkRuntimeStatus, loadStorageStats]);
 
   const handleSelectTheme = (theme: AppTheme) => {
     setSelectedTheme(theme);
@@ -235,6 +291,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
         typewriter_mode_default: typewriterDefault,
         stale_action_days: Number(staleActionDays),
         default_share_ttl_days: Number(defaultShareTtl),
+        trash_retention_days: Number(trashRetentionDays),
         reviewer_branding: reviewerBranding.trim(),
         public_base_url: publicBaseUrl.trim().replace(/\/+$/, ''),
         voiceover_cues: voiceoverCues,
@@ -840,6 +897,42 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                 })}
               </div>
             </div>
+
+            {/* Trash Retention Days */}
+            <div className="space-y-2 sm:col-span-2 pt-2 border-t border-stone-100 dark:border-stone-800">
+              <label className="text-xs sm:text-sm font-bold text-stone-800 dark:text-stone-200 flex items-center gap-1.5">
+                <Trash2 className="w-4 h-4 text-rose-500" />
+                <span>回收站废弃选题保留期限</span>
+              </label>
+              <p className="text-[11px] text-stone-400 dark:text-stone-500">
+                移入回收站超过设定天数的废弃选题将在打开回收站时自动彻底清除，并回收碎片空间
+              </p>
+              <div className="grid grid-cols-5 gap-1.5">
+                {[
+                  { days: 7, label: '7 天' },
+                  { days: 14, label: '14 天' },
+                  { days: 30, label: '30 天 (推荐)' },
+                  { days: 60, label: '60 天' },
+                  { days: 0, label: '从不清理' },
+                ].map((opt) => {
+                  const isSelected = trashRetentionDays === opt.days;
+                  return (
+                    <button
+                      key={opt.days}
+                      type="button"
+                      onClick={() => setTrashRetentionDays(opt.days)}
+                      className={`p-2.5 rounded-xl border text-center text-xs transition-all cursor-pointer ${
+                        isSelected
+                          ? 'border-rose-500 bg-rose-500/10 dark:bg-rose-950/40 text-rose-900 dark:text-rose-200 font-bold shadow-2xs'
+                          : 'border-stone-200/70 dark:border-stone-700 bg-stone-500/[0.03] dark:bg-stone-800/60 text-stone-700 dark:text-stone-300'
+                      }`}
+                    >
+                      {opt.label}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
           </div>
 
           {/* Reviewer Branding / Watermark */}
@@ -909,33 +1002,87 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
             </p>
           </div>
 
-          {/* Infrastructure Storage Status */}
-          <div className="bg-white dark:bg-stone-900 rounded-2xl border border-stone-200/70 dark:border-stone-800 p-5 space-y-3 shadow-2xs transition-colors">
+          {/* Infrastructure Storage Status & Vacuum Optimization */}
+          <div className="bg-white dark:bg-stone-900 rounded-2xl border border-stone-200/70 dark:border-stone-800 p-5 space-y-4 shadow-2xs transition-colors">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <Database className="w-4 h-4 text-blue-600 dark:text-blue-400" />
-                <h2 className="text-sm font-bold text-stone-900 dark:text-stone-100">数据库与存储实时探测</h2>
+                <h2 className="text-sm font-bold text-stone-900 dark:text-stone-100">数据库存储与物理收缩</h2>
               </div>
               <button
-                onClick={checkRuntimeStatus}
-                disabled={runtimeStatus.isChecking}
+                onClick={() => {
+                  void checkRuntimeStatus();
+                  void loadStorageStats();
+                }}
+                disabled={runtimeStatus.isChecking || isLoadingStorage}
                 className="p-1 rounded-lg text-stone-400 hover:text-stone-700 dark:hover:text-stone-200 cursor-pointer"
-                title="重新检测"
+                title="重新检测存储状态"
               >
-                <RefreshCw className={`w-3.5 h-3.5 ${runtimeStatus.isChecking ? 'animate-spin' : ''}`} />
+                <RefreshCw className={`w-3.5 h-3.5 ${runtimeStatus.isChecking || isLoadingStorage ? 'animate-spin' : ''}`} />
               </button>
             </div>
+
             <div className="flex items-center gap-2">
               <span className={`w-2 h-2 rounded-full ${runtimeStatus.databaseConnected && runtimeStatus.kvConnected ? 'bg-emerald-500' : 'bg-amber-500'}`} />
               <span className="text-xs font-semibold text-stone-700 dark:text-stone-300">
                 {runtimeStatus.databaseConnected && runtimeStatus.kvConnected
-                  ? 'Bun + SQLite 本地服务正常运行中'
+                  ? 'Bun + SQLite 本地引擎正常运行中'
                   : '后端服务未连通'}
               </span>
             </div>
-            <p className="text-[11px] text-stone-400 dark:text-stone-500 truncate">
-              {runtimeStatus.databaseMessage}
-            </p>
+
+            {storageStats ? (
+              <div className="space-y-2.5 pt-1">
+                <div className="grid grid-cols-2 gap-2 text-xs">
+                  <div className="p-2.5 rounded-xl bg-stone-500/[0.03] dark:bg-stone-800/60 border border-stone-200/60 dark:border-stone-700/60">
+                    <span className="text-[11px] text-stone-400 dark:text-stone-500 block">主数据库文件</span>
+                    <span className="font-mono font-bold text-stone-800 dark:text-stone-200">
+                      {formatBytes(storageStats.db_file_bytes)}
+                    </span>
+                  </div>
+                  <div className="p-2.5 rounded-xl bg-stone-500/[0.03] dark:bg-stone-800/60 border border-stone-200/60 dark:border-stone-700/60">
+                    <span className="text-[11px] text-stone-400 dark:text-stone-500 block">WAL 预写日志</span>
+                    <span className="font-mono font-bold text-stone-800 dark:text-stone-200">
+                      {formatBytes(storageStats.wal_file_bytes)}
+                    </span>
+                  </div>
+                </div>
+
+                <div className="p-2.5 rounded-xl bg-stone-500/[0.03] dark:bg-stone-800/60 border border-stone-200/60 dark:border-stone-700/60 flex items-center justify-between text-xs">
+                  <span className="text-stone-500 dark:text-stone-400 text-[11px]">
+                    可收缩空闲页 (Freelist)：
+                  </span>
+                  <span className="font-mono text-stone-800 dark:text-stone-200 font-semibold">
+                    {storageStats.freelist_count > 0 ? (
+                      <span className="text-amber-600 dark:text-amber-400 font-bold">
+                        {storageStats.freelist_count} 页 ({formatBytes(storageStats.freelist_bytes)})
+                      </span>
+                    ) : (
+                      <span className="text-emerald-600 dark:text-emerald-400">已完全紧凑</span>
+                    )}
+                  </span>
+                </div>
+
+                <div className="flex items-center justify-between pt-1">
+                  <span className="text-[11px] text-stone-400 dark:text-stone-500">
+                    回收站积压：<strong className="text-stone-700 dark:text-stone-300">{storageStats.trashed_topics_count}</strong> 个选题
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => setIsOptimizeDialogOpen(true)}
+                    disabled={isOptimizingStorage}
+                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-stone-900 dark:bg-stone-100 hover:bg-stone-800 dark:hover:bg-white text-white dark:text-stone-900 text-xs font-semibold transition-all shadow-2xs cursor-pointer disabled:opacity-50"
+                  >
+                    <Sparkles className="w-3.5 h-3.5 text-amber-400 dark:text-amber-600" />
+                    <span>{isOptimizingStorage ? '正在收缩...' : '整理并压缩存储 (VACUUM)'}</span>
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <p className="text-[11px] text-stone-400 dark:text-stone-500 truncate">
+                {runtimeStatus.databaseMessage}
+              </p>
+            )}
           </div>
         </div>
 
@@ -1048,6 +1195,21 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
         confirmText="覆盖并恢复备份"
         tone="danger"
         isLoading={isImporting}
+      />
+
+      <ConfirmDialog
+        isOpen={isOptimizeDialogOpen}
+        onClose={() => setIsOptimizeDialogOpen(false)}
+        onConfirm={handleConfirmOptimize}
+        title="整理并压缩数据库存储 (VACUUM)"
+        description={
+          storageStats
+            ? `将执行 SQLite 空间整理与 WAL 日志归档，回收被删除笔记、草稿与历史操作释放的空闲碎片，将磁盘空间物理归还给操作系统。\n\n当前存储情况：\n• 数据库文件：${formatBytes(storageStats.db_file_bytes)}\n• WAL 日志文件：${formatBytes(storageStats.wal_file_bytes)}\n• 可回收空闲碎片：${storageStats.freelist_count} 页 (${formatBytes(storageStats.freelist_bytes)})\n• 回收站选题：${storageStats.trashed_topics_count} 个\n\n确定立即执行压缩整理吗？`
+            : '将执行 SQLite 空间整理与 WAL 日志归档，回收空闲磁盘页并归还给操作系统。确定立即执行吗？'
+        }
+        confirmText="立即压缩整理"
+        tone="primary"
+        isLoading={isOptimizingStorage}
       />
     </div>
   );

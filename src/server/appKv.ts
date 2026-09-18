@@ -21,6 +21,7 @@ export class AppKV {
   private readonly deleteStmt: SqliteStatement;
   private readonly listStmt: SqliteStatement;
   private readonly cleanupStmt: SqliteStatement;
+  private readonly memoryLeases = new Map<string, { value: unknown; clientId: string; expiresAt: number }>();
 
   constructor(db: SqliteDatabase) {
     this.db = db;
@@ -32,6 +33,13 @@ export class AppKV {
       );
       CREATE INDEX IF NOT EXISTS idx_kv_expires_at ON _kv_store(expires_at);
     `);
+
+    // Clean legacy lock rows from SQLite store to reduce database bloat
+    try {
+      this.db.sqlite.exec("DELETE FROM _kv_store WHERE key LIKE 'lock:%'");
+    } catch {
+      // Ignore cleanup error
+    }
 
     this.getStmt = this.db.sqlite.query('SELECT value, expires_at FROM _kv_store WHERE key = ?') as unknown as SqliteStatement;
     this.putStmt = this.db.sqlite.query(`
@@ -45,10 +53,14 @@ export class AppKV {
   }
 
   private cleanExpired(): void {
+    const now = Date.now();
     try {
-      this.cleanupStmt.run(Date.now());
+      this.cleanupStmt.run(now);
     } catch {
       // Expiry cleanup should never block normal reads.
+    }
+    for (const [key, lease] of this.memoryLeases) {
+      if (lease.expiresAt <= now) this.memoryLeases.delete(key);
     }
   }
 
@@ -189,42 +201,34 @@ export class AppKV {
     expirationTtl: number,
   ): Promise<JsonLeaseResult<T>> {
     const now = Date.now();
-    const acquire = this.db.sqlite.transaction((): JsonLeaseResult<T> => {
-      const row = this.getStmt.get(key) as KvRow | undefined;
-      if (row?.expires_at && row.expires_at <= now) {
-        this.deleteStmt.run(key);
-      } else if (row) {
-        try {
-          const current = JSON.parse(row.value) as T;
-          if (current.client_id !== clientId) return { acquired: false, current };
-        } catch {
-          this.deleteStmt.run(key);
-        }
+    this.cleanExpired();
+    const existing = this.memoryLeases.get(key);
+    if (existing && existing.expiresAt > now) {
+      if (existing.clientId !== clientId) {
+        return { acquired: false, current: existing.value as T };
       }
-      this.putStmt.run(key, JSON.stringify(value), now + expirationTtl * 1000);
-      return { acquired: true, current: value };
+    }
+    this.memoryLeases.set(key, {
+      value,
+      clientId,
+      expiresAt: now + expirationTtl * 1000,
     });
-    return acquire();
+    return { acquired: true, current: value };
   }
 
   async releaseJsonLease(key: string, clientId: string): Promise<'released' | 'missing' | 'not_owner'> {
     const now = Date.now();
-    const release = this.db.sqlite.transaction((): 'released' | 'missing' | 'not_owner' => {
-      const row = this.getStmt.get(key) as KvRow | undefined;
-      if (!row || (row.expires_at !== null && row.expires_at <= now)) {
-        if (row) this.deleteStmt.run(key);
-        return 'missing';
-      }
-      try {
-        const current = JSON.parse(row.value) as { client_id?: string };
-        if (current.client_id !== clientId) return 'not_owner';
-      } catch {
-        return 'not_owner';
-      }
-      this.deleteStmt.run(key);
-      return 'released';
-    });
-    return release();
+    this.cleanExpired();
+    const existing = this.memoryLeases.get(key);
+    if (!existing || existing.expiresAt <= now) {
+      this.memoryLeases.delete(key);
+      return 'missing';
+    }
+    if (existing.clientId !== clientId) {
+      return 'not_owner';
+    }
+    this.memoryLeases.delete(key);
+    return 'released';
   }
 
   async list(options?: { prefix?: string; limit?: number }): Promise<{ keys: Array<{ name: string; expiration?: number }>; list_complete: boolean }> {

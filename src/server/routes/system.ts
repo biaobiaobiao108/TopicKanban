@@ -4,9 +4,12 @@ import { DEFAULT_APP_SETTINGS, DEFAULT_VOICEOVER_CUES, APP_THEMES, type AppTheme
 import type { AppKV } from '../appKv';
 import {
   BackupImportLimitError,
+  countDatabaseTables,
   exportAllData,
+  getStorageStats,
   loadBootstrap,
   replaceAllData,
+  vacuumDatabase,
 } from '../repositories';
 import { validateBackupData } from '../../lib/backupValidation';
 import type { ApiBindings } from '../apiShared';
@@ -17,7 +20,6 @@ import {
   jsonError,
   requireDb,
 } from '../apiShared';
-import { countDatabaseTables } from '../repositories';
 
 export function sanitizeAppSettings(
   settings?: Partial<AppSettings> | null,
@@ -78,6 +80,11 @@ export function sanitizeAppSettings(
     ? settings.voiceover_cues.map((s) => String(s).slice(0, 50).trim()).filter(Boolean)
     : (DEFAULT_APP_SETTINGS.voiceover_cues || DEFAULT_VOICEOVER_CUES);
 
+  const trashDays = Number(settings.trash_retention_days);
+  const trashRetentionDays = Number.isFinite(trashDays) && trashDays >= 0 && trashDays <= 365
+    ? trashDays
+    : (DEFAULT_APP_SETTINGS.trash_retention_days ?? 30);
+
   return {
     reading_speed: readingSpeed,
     theme,
@@ -89,6 +96,7 @@ export function sanitizeAppSettings(
     reviewer_branding: reviewerBranding,
     public_base_url: publicBaseUrl,
     voiceover_cues: voiceoverCues,
+    trash_retention_days: trashRetentionDays,
   };
 }
 
@@ -240,10 +248,33 @@ export function registerSystemRoutes(app: NativeApp): void {
       const validation = validateBackupData(data);
       if (!validation.success) return c.json({ error: validation.error }, 400);
       await replaceAllData(requireDb(c), validation.data);
+      try {
+        await vacuumDatabase(requireDb(c));
+      } catch {
+        // vacuum failure should not fail backup restore
+      }
       return c.json({ success: true });
     } catch (error) {
       if (error instanceof BackupImportLimitError) return jsonError(c, error, 413);
       return jsonError(c, error, 400);
+    }
+  });
+
+  app.get('/system/storage', async (c) => {
+    try {
+      const stats = await getStorageStats(requireDb(c));
+      return c.json(stats);
+    } catch (error) {
+      return jsonError(c, error);
+    }
+  });
+
+  app.post('/system/storage/vacuum', async (c) => {
+    try {
+      const result = await vacuumDatabase(requireDb(c));
+      return c.json(result);
+    } catch (error) {
+      return jsonError(c, error);
     }
   });
 

@@ -431,6 +431,7 @@ export interface AppSettings {
   reviewer_branding?: string;
   public_base_url?: string; // Reverse proxy or custom public domain e.g. "https://kanban.example.com"
   voiceover_cues?: string[]; // Custom cue tags for voiceover teleprompter
+  trash_retention_days?: number; // Days to keep topics in trash before auto purge (default 30, 0 = never)
 }
 
 export const DEFAULT_APP_SETTINGS: AppSettings = {
@@ -444,7 +445,27 @@ export const DEFAULT_APP_SETTINGS: AppSettings = {
   reviewer_branding: '',
   public_base_url: '',
   voiceover_cues: DEFAULT_VOICEOVER_CUES,
+  trash_retention_days: 30,
 };
+
+export interface StorageStats {
+  db_file_bytes: number;
+  wal_file_bytes: number;
+  total_bytes: number;
+  page_size: number;
+  page_count: number;
+  freelist_count: number;
+  freelist_bytes: number;
+  trashed_topics_count: number;
+  active_topics_count: number;
+}
+
+export interface StorageOptimizeResult {
+  before: StorageStats;
+  after: StorageStats;
+  reclaimed_bytes: number;
+  message: string;
+}
 
 export interface BootstrapData {
   topics: Topic[];

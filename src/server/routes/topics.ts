@@ -20,6 +20,7 @@ import {
   loadTopicPage,
   loadTrashedTopics,
   permanentlyDeleteTrashedTopics,
+  purgeExpiredTrashTopics,
   reorderTopics,
   restoreTopic,
   setTopicPinned,
@@ -29,7 +30,9 @@ import {
   ensureTopicsInTrash,
   TopicAlreadyExistsError,
   updateTopic,
+  vacuumDatabase,
 } from '../repositories';
+import type { AppSettings } from '../../types';
 
 async function revokeTopicShares(env: { KV: { deleteTopicShares: (topicId: string) => Promise<number> } }, ids: string[]): Promise<void> {
   for (const id of ids) await env.KV.deleteTopicShares(id);
@@ -87,7 +90,17 @@ export function registerTopicRoutes(app: NativeApp): void {
 
   app.get('/topics/trash', async (c) => {
     try {
-      return c.json(await loadTrashedTopics(requireDb(c)));
+      const db = requireDb(c);
+      try {
+        const settings = await c.env.KV.get<AppSettings>('app_settings', 'json');
+        const retentionDays = Number(settings?.trash_retention_days ?? 30);
+        if (retentionDays > 0) {
+          await purgeExpiredTrashTopics(db, retentionDays);
+        }
+      } catch {
+        // Expiry purge failure should not block loading trashed topics
+      }
+      return c.json(await loadTrashedTopics(db));
     } catch (error) {
       return jsonError(c, error);
     }
@@ -188,6 +201,11 @@ export function registerTopicRoutes(app: NativeApp): void {
       await ensureTopicsInTrash(db, [topicId]);
       await revokeTopicShares(c.env, [topicId]);
       await permanentlyDeleteTrashedTopics(db, [topicId]);
+      try {
+        await vacuumDatabase(db);
+      } catch {
+        // vacuum failure should not fail response
+      }
       return c.json({ success: true });
     } catch (error) {
       if (error instanceof TopicNotInTrashError) return c.json({ error: error.message }, 409);
@@ -208,6 +226,11 @@ export function registerTopicRoutes(app: NativeApp): void {
       await ensureTopicsInTrash(db, uniqueIds);
       await revokeTopicShares(c.env, uniqueIds);
       await permanentlyDeleteTrashedTopics(db, uniqueIds);
+      try {
+        await vacuumDatabase(db);
+      } catch {
+        // vacuum failure should not fail response
+      }
       return c.json({ success: true, count: uniqueIds.length });
     } catch (error) {
       if (error instanceof TopicNotInTrashError) return c.json({ error: error.message }, 409);
@@ -222,6 +245,11 @@ export function registerTopicRoutes(app: NativeApp): void {
       if (ids.length === 0) return c.json({ success: true, count: 0, ids: [] });
       await revokeTopicShares(c.env, ids);
       await permanentlyDeleteTrashedTopics(db, ids);
+      try {
+        await vacuumDatabase(db);
+      } catch {
+        // vacuum failure should not fail response
+      }
       return c.json({ success: true, count: ids.length, ids });
     } catch (error) {
       if (error instanceof TopicNotInTrashError) return c.json({ error: error.message }, 409);
