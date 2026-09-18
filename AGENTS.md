@@ -63,9 +63,9 @@
 #### 存储分工原则：
 * **主业务持久库 (`DB` / SQLite)**：负责强关系型业务资产（`topics`, `topic_todos`, `sources`, `timeline_events`, `people`, `person_relationships`, `drafts`, `draft_citations`, `tags`, `topic_tags`, `published_videos`, `commercial_deals`, `commercial_deal_activities`）。
 * **键值存储 (`KV` / `_kv_store`)**：负责非关系型全局配置与轻量交互数据：
-  1. **全局偏好设置** (`app_settings`：语速、主题、排版、演播气口库 `voiceover_cues`、反代公网域名 `public_base_url`、停滞阈值 `stale_days` 等)；
+  1. **全局偏好设置** (`app_settings`：语速、主题、排版、演播气口库 `voiceover_cues`、反代公网域名 `public_base_url`、停滞阈值 `stale_days`、回收站保留天数 `trash_retention_days` 等)；
   2. **免登录外部审稿只读快照** (`share:*` / `topic_share:*`：支持设定 TTL 自动物理销毁)；
-  3. **多端编辑在线感知防踩踏锁** (`lock:*`：维持 30s TTL 租约心跳)；
+  3. **多端编辑在线感知防踩踏锁** (`lock:*`：由 `AppKV` 内部的内存 LeaseMap 隔离维护，维持 30s TTL 租约心跳，零磁盘 I/O 以杜绝高频碎片与 WAL 膨胀)；
   4. **手机/快捷指令碎片灵感快投箱** (`drop:*` / `quick_drops_index`：7 天自动生命周期)。
 * **开发约束**：新增任何用户个性化配置项，一律扩展至 `app_settings`，避免污染主业务关系表。
 
@@ -76,6 +76,18 @@
 * **服务端控制峰值**：批量数据优先一次加载并通过 ID Map 恢复排序，禁止对同一批实体执行并发 N+1 详情加载；备份导出不得重复加载完整 bootstrap，分析接口只查询实际需要的字段。
 * **大文件避免重复序列化**：备份下载直接以 JSON Blob 响应；导入仅在客户端状态中保留 `File` 与摘要，保持 5 MB 限制，确认恢复时再读取和提交文件内容。
 * **体验与数据契约优先**：以上治理不得改变 Today 返回结构、备份字段、编辑器自动保存、防冲突校验、拖拽行为或用户可见数据量；新增优化应优先减少长期驻留和重复副本。
+
+### 2.2 存储碎片收敛与物理空间回收规范 (Storage Compaction & Vacuum Policy)
+* **SQLite 空间物理回收**：SQLite 默认不自动收缩磁盘文件。在下列场景中必须联动执行 `PRAGMA wal_checkpoint(TRUNCATE)` 与 `VACUUM`，确保将释放的空闲页真正归还给宿主机操作系统：
+  1. **清空回收站**（`POST /api/topics/trash/empty`）成功后；
+  2. **批量或单个永久删除选题**（`permanentlyDeleteTrashedTopics`）成功后；
+  3. **全量备份恢复覆盖**（`replaceAllData`）成功后（防止旧表全量清空残留巨大空洞页）；
+  4. **系统维护主动整理**（`POST /api/system/storage/vacuum`）。
+* **回收站生命周期治理**：
+  - 选题软删除进入回收站后，遵循 `app_settings.trash_retention_days` 设定（默认 30 天，0 为从不清理）；
+  - 进入回收站视图时自动识别并物理级联清除超期选题，清理后自动执行收缩，杜绝废弃历史文案与素材无限积压。
+* **高频租约内存化隔离**：协同编辑锁等秒级高频心跳交互数据严禁频繁落盘写 SQLite，必须由内存 LeaseMap 进行并发控制。
+* **物理监控透明度**：通过 `GET /api/system/storage` 提供真实的物理文件大小、WAL 大小与空闲页指标，并在设置面板直观呈现。
 
 ### 3. 本地开发与反代公网域名规范 (Local Bun Server & Public Base URL)
 * **本地开发 (`bun run dev`)**：Bun HTML Bundler 热重载与 Bun.serve 在同一进程运行于 3030 端口，页面、静态资源和 `/api` 由同一个服务同源提供；不再使用独立前端开发服务器或跨端口代理。本地开发默认密码为 `admin`。
