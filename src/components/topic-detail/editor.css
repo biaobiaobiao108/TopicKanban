@@ -293,15 +293,13 @@
 .script-editor-title,
 .script-editor-font-stack,
 .script-editor-canvas-container .tiptap {
-  font-family: "LXGW WenKai", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
   font-synthesis: weight;
-  font-size-adjust: from-font;
 }
 
 .script-editor-font-stack :where(p, h1, h2, h3, h4, h5, h6, blockquote, ul, ol, li, strong, em, a, code, mark, span) {
-  font-family: "LXGW WenKai", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif !important;
+  font-family: inherit !important;
   font-synthesis: weight;
-  font-size-adjust: from-font;
 }
 
 .tiptap {
@@ -312,11 +310,12 @@
 }
 
 .script-editor-canvas-container .tiptap code {
-  font-family: "LXGW WenKai", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif !important;
+  font-family: ui-monospace, SFMono-Regular, Consolas, "Liberation Mono", monospace !important;
+  font-synthesis: none;
 }
 
 .script-editor-canvas-container .tiptap h1 {
-  font-family: "LXGW WenKai", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif !important;
+  font-family: inherit !important;
   color: var(--h1-color) !important;
 }
 

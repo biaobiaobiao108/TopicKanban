@@ -8,17 +8,19 @@ describe('Production security headers', () => {
     expect(pagesHeaders).toContain("connect-src 'self' https://api.bilibili.com https://www.youtube.com");
   });
 
-  it('loads the editor web font stylesheet and allows its CDN resources', async () => {
+  it('uses system fonts for the editor without allowing the removed font CDN', async () => {
     const indexHtml = await Bun.file('index.html').text();
+    const editorStyles = await Bun.file('src/components/topic-detail/editor.css').text();
     const serverSource = await Bun.file('src/server/server.ts').text();
     const pagesHeaders = await Bun.file('public/_headers').text();
-    const fontStylesheet = 'https://cdn.jsdelivr.net/npm/@callmebill/lxgw-wenkai-web@latest/style.css';
 
-    expect(indexHtml).toContain(`<link rel="stylesheet" href="${fontStylesheet}" />`);
+    expect(indexHtml).not.toContain('lxgw-wenkai');
+    expect(editorStyles).not.toContain('LXGW WenKai');
+    expect(editorStyles).toContain('font-family: system-ui');
     for (const source of [serverSource, pagesHeaders]) {
       expect(source).toContain('style-src');
       expect(source).toContain('font-src');
-      expect(source).toContain('https://cdn.jsdelivr.net');
+      expect(source).not.toContain('https://cdn.jsdelivr.net');
     }
   });
 
