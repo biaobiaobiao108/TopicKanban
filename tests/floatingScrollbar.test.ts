@@ -17,5 +17,8 @@ describe('FloatingScrollbar 组件服务端渲染与结构契约', () => {
     expect(html).toContain('test-scroll-area');
     expect(html).toContain('测试文本');
     expect(html).toContain('overflow-y-auto');
+    expect(html).toContain(' flex ');
+    expect(html).toContain('flex-col');
+    expect(html).toContain('flex-1');
   });
 });

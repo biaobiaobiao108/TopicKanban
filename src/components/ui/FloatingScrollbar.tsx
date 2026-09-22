@@ -188,7 +188,7 @@ export const FloatingScrollbar = forwardRef<HTMLDivElement, FloatingScrollbarPro
     return (
       <div
         ref={wrapperRef}
-        className={`relative min-h-0 min-w-0 flex-1 overflow-hidden ${wrapperClassName}`}
+        className={`relative min-h-0 min-w-0 flex flex-1 flex-col overflow-hidden ${wrapperClassName}`}
         style={wrapperStyle}
         onPointerEnter={() => {
           scheduleScrollMetrics();
@@ -198,7 +198,7 @@ export const FloatingScrollbar = forwardRef<HTMLDivElement, FloatingScrollbarPro
         <div
           ref={scrollContainerRef}
           onScroll={handleScroll}
-          className={`no-scrollbar h-full w-full min-h-0 min-w-0 overflow-y-auto overscroll-contain ${className}`}
+          className={`no-scrollbar w-full min-h-0 min-w-0 flex-1 overflow-y-auto overscroll-contain ${className}`}
           {...props}
         >
           {children}
