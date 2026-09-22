@@ -267,11 +267,11 @@ const backupSchema = z.object({
   citations: z.array(citationSchema),
   tags: z.array(tagSchema),
   published: z.array(publishedSchema),
-  publish_packages: z.array(publishPackageSchema).optional(),
-  commercial_deals: z.array(commercialDealSchema).optional(),
-  commercial_deal_topics: z.array(commercialDealTopicSchema).optional(),
-  commercial_deal_activities: z.array(commercialDealActivitySchema).optional(),
-  todos: z.array(todoSchema).optional(),
+  publish_packages: z.array(publishPackageSchema),
+  commercial_deals: z.array(commercialDealSchema),
+  commercial_deal_topics: z.array(commercialDealTopicSchema),
+  commercial_deal_activities: z.array(commercialDealActivitySchema),
+  todos: z.array(todoSchema),
   settings: settingsSchema,
 }).superRefine((data, ctx) => {
   const addIssue = (path: Array<string | number>, message: string) => ctx.addIssue({ code: 'custom', path, message });

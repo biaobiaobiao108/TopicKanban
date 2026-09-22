@@ -15,6 +15,11 @@ function createBackup(overrides: Partial<BackupData> = {}): BackupData {
     citations: [],
     tags: [],
     published: [],
+    publish_packages: [],
+    commercial_deals: [],
+    commercial_deal_topics: [],
+    commercial_deal_activities: [],
+    todos: [],
     settings: { reading_speed: 280, theme: 'light' },
     ...overrides,
   };

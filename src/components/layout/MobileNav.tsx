@@ -45,7 +45,7 @@ export const MobileBottomNav: React.FC<MobileBottomNavProps> = ({
     <nav
       data-testid="mobile-bottom-nav"
       aria-label="移动端主导航"
-      className="mobile-nav-container md:hidden fixed bottom-0 left-0 right-0 z-40 grid grid-cols-6 items-center bg-[var(--nav-glass-bg)] px-2 pt-1.5 pb-[max(0.5rem,env(safe-area-inset-bottom))] backdrop-blur-lg border-t border-stone-200/40 dark:border-stone-800/40 shadow-nav-ambient transition-colors"
+      className="mobile-nav-container md:hidden fixed bottom-0 left-0 right-0 z-40 grid grid-cols-6 items-center bg-[var(--nav-surface)] px-2 pt-1.5 pb-[max(0.5rem,env(safe-area-inset-bottom))] backdrop-blur-lg border-t border-stone-200/40 dark:border-stone-800/40 shadow-nav-ambient transition-colors"
     >
       {items.map((item) => {
         const Icon = item.icon;

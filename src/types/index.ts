@@ -550,7 +550,7 @@ export interface PaginatedPublishedVideos extends PageMeta {
 }
 
 export interface BackupData {
-  version: string;
+  version: '2.0';
   export_at: string;
   topics: Topic[];
   sources: Source[];
@@ -561,11 +561,11 @@ export interface BackupData {
   citations: DraftCitation[];
   tags: Tag[];
   published: PublishedVideo[];
-  publish_packages?: PublishPackageRecord[];
-  commercial_deals?: CommercialDeal[];
-  commercial_deal_topics?: CommercialDealTopic[];
-  commercial_deal_activities?: CommercialDealActivity[];
-  todos?: TopicTodo[];
+  publish_packages: PublishPackageRecord[];
+  commercial_deals: CommercialDeal[];
+  commercial_deal_topics: CommercialDealTopic[];
+  commercial_deal_activities: CommercialDealActivity[];
+  todos: TopicTodo[];
   settings: AppSettings;
 }
 

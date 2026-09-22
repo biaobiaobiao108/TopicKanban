@@ -417,8 +417,8 @@ describe('Bun Server Integration (Local SQLite & API)', () => {
     expect((await backupDownload.json() as { topics?: unknown[] }).topics).toBeDefined();
     const fullBackupPayload = await (await app.request('/api/backup', {
       headers: { Authorization: `Bearer ${authToken}` },
-    })).json() as { data: { publish_packages?: Array<{ topic_id: string; title_simplified: string; title_traditional_auto: boolean }>; todos?: Array<{ topic_id: string; title: string }> } };
-    expect(fullBackupPayload.data.publish_packages?.[0]).toMatchObject({
+    })).json() as { data: { publish_packages: Array<{ topic_id: string; title_simplified: string; title_traditional_auto: boolean }>; todos: Array<{ topic_id: string; title: string }> } };
+    expect(fullBackupPayload.data.publish_packages[0]).toMatchObject({
       topic_id: topic.id,
       title_simplified: '简体发布标题',
       title_traditional_auto: true,

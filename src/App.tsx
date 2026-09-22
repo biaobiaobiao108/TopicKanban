@@ -866,7 +866,7 @@ function WorkspaceApp({ isAuth, setIsAuth }: WorkspaceAppProps) {
   const activeTopic = topics.find((t) => t.id === activeTopicId);
 
   return (
-    <div className="pwa-app-shell pwa-app-shell-enter flex h-dvh w-full bg-[var(--bg-primary)] text-stone-900 dark:text-stone-100 overflow-hidden font-sans transition-colors">
+    <div className="pwa-app-shell pwa-app-shell-enter flex h-dvh w-full bg-[var(--canvas)] text-stone-900 dark:text-stone-100 overflow-hidden font-sans transition-colors">
       <a href="#main-content" className="skip-link">跳到主要内容</a>
       {/* Desktop Sidebar (Hidden on mobile) */}
       <Sidebar

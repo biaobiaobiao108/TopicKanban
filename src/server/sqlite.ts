@@ -133,189 +133,30 @@ export class SqliteDatabase {
   }
 }
 
-const CURRENT_SCHEMA_VERSION = 2;
+export const CURRENT_SCHEMA_VERSION = 2;
 
-function tableExists(sqlite: Database, tableName: string): boolean {
-  return Boolean(sqlite.query("SELECT 1 FROM sqlite_master WHERE type = 'table' AND name = ? LIMIT 1").get(tableName));
+function schemaObjectExists(sqlite: Database, name: string): boolean {
+  return Boolean(sqlite.query("SELECT 1 FROM sqlite_master WHERE name = ? LIMIT 1").get(name));
 }
 
-function columnExists(sqlite: Database, tableName: string, columnName: string): boolean {
-  if (!tableExists(sqlite, tableName)) return false;
-  const columns = sqlite.query(`PRAGMA table_info(${tableName})`).all() as Array<{ name: string }>;
-  return columns.some((column) => column.name === columnName);
-}
-
-function migrateLegacySchema(sqlite: Database): void {
+function assertCurrentSchema(sqlite: Database): void {
   const versionRow = sqlite.query('PRAGMA user_version').get() as { user_version?: number } | undefined;
-  const currentVersion = Number(versionRow?.user_version || 0);
-  if (currentVersion >= CURRENT_SCHEMA_VERSION) return;
+  const actualVersion = Number(versionRow?.user_version || 0);
+  if (actualVersion !== CURRENT_SCHEMA_VERSION) {
+    throw new Error(
+      `SQLite schema version mismatch: expected baseline v${CURRENT_SCHEMA_VERSION}, found v${actualVersion}. `
+      + 'This project no longer migrates legacy databases; recreate the local database from drizzle/0000_schema.sql.',
+    );
+  }
 
-  const migrate = sqlite.transaction(() => {
-    if (!columnExists(sqlite, 'topics', 'target_publish_date')) {
-      sqlite.exec('ALTER TABLE topics ADD COLUMN target_publish_date TEXT');
-    }
-    if (!columnExists(sqlite, 'topics', 'deadline')) {
-      sqlite.exec('ALTER TABLE topics ADD COLUMN deadline TEXT');
-    }
-    if (!columnExists(sqlite, 'timeline_events', 'contrast_tag')) {
-      sqlite.exec("ALTER TABLE timeline_events ADD COLUMN contrast_tag TEXT NOT NULL DEFAULT ''");
-    }
-
-    sqlite.exec(`
-      CREATE INDEX IF NOT EXISTS idx_topics_target_publish_date ON topics(target_publish_date);
-      CREATE INDEX IF NOT EXISTS idx_topics_deadline ON topics(deadline);
-
-      CREATE TABLE IF NOT EXISTS topic_todos (
-        id TEXT PRIMARY KEY,
-        topic_id TEXT NOT NULL,
-        title TEXT NOT NULL,
-        is_current INTEGER NOT NULL DEFAULT 0 CHECK (is_current IN (0, 1)),
-        current_started_at TEXT,
-        completed_at TEXT,
-        sort_order INTEGER NOT NULL DEFAULT 0 CHECK (sort_order >= 0),
-        created_at TEXT NOT NULL,
-        updated_at TEXT NOT NULL,
-        CHECK (completed_at IS NULL OR is_current = 0),
-        FOREIGN KEY (topic_id) REFERENCES topics(id) ON DELETE CASCADE
-      );
-      CREATE INDEX IF NOT EXISTS idx_topic_todos_topic_order ON topic_todos(topic_id, sort_order, created_at);
-      CREATE UNIQUE INDEX IF NOT EXISTS idx_topic_todos_current
-        ON topic_todos(topic_id)
-        WHERE is_current = 1 AND completed_at IS NULL;
-
-      CREATE TABLE IF NOT EXISTS publish_packages (
-        id TEXT PRIMARY KEY,
-        topic_id TEXT NOT NULL UNIQUE,
-        version INTEGER NOT NULL DEFAULT 1 CHECK (version >= 1),
-        title_simplified TEXT NOT NULL DEFAULT '',
-        title_traditional TEXT NOT NULL DEFAULT '',
-        description_simplified TEXT NOT NULL DEFAULT '',
-        description_traditional TEXT NOT NULL DEFAULT '',
-        title_traditional_auto INTEGER NOT NULL DEFAULT 1 CHECK (title_traditional_auto IN (0, 1)),
-        description_traditional_auto INTEGER NOT NULL DEFAULT 1 CHECK (description_traditional_auto IN (0, 1)),
-        content_json TEXT NOT NULL DEFAULT '{}',
-        updated_at TEXT NOT NULL,
-        FOREIGN KEY (topic_id) REFERENCES topics(id) ON DELETE CASCADE
-      );
-      CREATE INDEX IF NOT EXISTS idx_publish_packages_updated_at ON publish_packages(updated_at);
-
-      CREATE TABLE IF NOT EXISTS commercial_deals (
-        id TEXT PRIMARY KEY,
-        title TEXT NOT NULL,
-        brand_name TEXT NOT NULL DEFAULT '',
-        agency_name TEXT NOT NULL DEFAULT '',
-        contact_name TEXT NOT NULL DEFAULT '',
-        contact_channel TEXT NOT NULL DEFAULT '',
-        source TEXT NOT NULL DEFAULT 'other' CHECK (source IN ('huahuo', 'brand_direct', 'agency', 'mcn', 'other')),
-        deliverable_type TEXT NOT NULL DEFAULT 'custom_video' CHECK (deliverable_type IN ('custom_video', 'dynamic', 'live', 'offline_activity', 'other')),
-        status TEXT NOT NULL DEFAULT 'communicating' CHECK (status IN ('communicating', 'producing', 'delivered', 'archived')),
-        contract_status TEXT NOT NULL DEFAULT 'not_started' CHECK (contract_status IN ('not_started', 'drafting', 'signed')),
-        contract_summary TEXT NOT NULL DEFAULT '',
-        brief TEXT NOT NULL DEFAULT '',
-        requirements TEXT NOT NULL DEFAULT '',
-        restrictions TEXT NOT NULL DEFAULT '',
-        amount_cents INTEGER NOT NULL DEFAULT 0 CHECK (amount_cents >= 0),
-        payment_status TEXT NOT NULL DEFAULT 'unpaid' CHECK (payment_status IN ('unpaid', 'paid')),
-        paid_at TEXT,
-        delivery_due_date TEXT,
-        publish_date TEXT,
-        next_action TEXT NOT NULL DEFAULT '',
-        next_action_due_date TEXT,
-        published_video_id TEXT,
-        created_at TEXT NOT NULL,
-        updated_at TEXT NOT NULL,
-        FOREIGN KEY (published_video_id) REFERENCES published_videos(id) ON DELETE SET NULL
-      );
-      CREATE TABLE IF NOT EXISTS commercial_deal_topics (
-        id TEXT PRIMARY KEY,
-        deal_id TEXT NOT NULL,
-        topic_id TEXT NOT NULL,
-        relation_role TEXT NOT NULL DEFAULT 'related' CHECK (relation_role IN ('primary', 'related')),
-        created_at TEXT NOT NULL,
-        UNIQUE (deal_id, topic_id),
-        FOREIGN KEY (deal_id) REFERENCES commercial_deals(id) ON DELETE CASCADE,
-        FOREIGN KEY (topic_id) REFERENCES topics(id) ON DELETE CASCADE
-      );
-      CREATE TABLE IF NOT EXISTS commercial_deal_activities (
-        id TEXT PRIMARY KEY,
-        deal_id TEXT NOT NULL,
-        kind TEXT NOT NULL DEFAULT 'note' CHECK (kind IN ('note', 'status_change', 'payment')),
-        content TEXT NOT NULL,
-        created_at TEXT NOT NULL,
-        FOREIGN KEY (deal_id) REFERENCES commercial_deals(id) ON DELETE CASCADE
-      );
-      CREATE INDEX IF NOT EXISTS idx_commercial_deals_status ON commercial_deals(status, updated_at);
-      CREATE INDEX IF NOT EXISTS idx_commercial_deals_due_date ON commercial_deals(delivery_due_date);
-      CREATE INDEX IF NOT EXISTS idx_commercial_deals_payment ON commercial_deals(payment_status, updated_at);
-      CREATE INDEX IF NOT EXISTS idx_commercial_deals_published_video ON commercial_deals(published_video_id);
-      CREATE INDEX IF NOT EXISTS idx_commercial_deal_topics_topic ON commercial_deal_topics(topic_id);
-      CREATE INDEX IF NOT EXISTS idx_commercial_deal_topics_deal ON commercial_deal_topics(deal_id);
-      CREATE UNIQUE INDEX IF NOT EXISTS idx_commercial_deal_primary_topic
-        ON commercial_deal_topics(deal_id)
-        WHERE relation_role = 'primary';
-      CREATE INDEX IF NOT EXISTS idx_commercial_deal_activities_deal ON commercial_deal_activities(deal_id, created_at);
-    `);
-
-    if (['title', 'summary', 'hook', 'storyline', 'why_now'].every((column) => columnExists(sqlite, 'topics', column))) {
-      sqlite.exec(`
-        CREATE INDEX IF NOT EXISTS idx_topics_active_updated
-          ON topics(updated_at DESC, id DESC)
-          WHERE deleted_at IS NULL AND status NOT IN ('published', 'icebox');
-        CREATE INDEX IF NOT EXISTS idx_topics_active_focus
-          ON topics(is_pinned DESC, priority, updated_at DESC, id DESC)
-          WHERE deleted_at IS NULL AND status NOT IN ('published', 'icebox');
-        CREATE INDEX IF NOT EXISTS idx_topic_todos_current_age
-          ON topic_todos(topic_id, current_started_at)
-          WHERE is_current = 1 AND completed_at IS NULL;
-
-        CREATE VIRTUAL TABLE IF NOT EXISTS topic_search USING fts5(
-          topic_id UNINDEXED,
-          title,
-          summary,
-          hook,
-          storyline,
-          why_now,
-          tokenize = 'trigram'
-        );
-
-        CREATE TRIGGER IF NOT EXISTS topic_search_ai AFTER INSERT ON topics BEGIN
-          INSERT INTO topic_search(topic_id, title, summary, hook, storyline, why_now)
-          VALUES (NEW.id, NEW.title, NEW.summary, NEW.hook, NEW.storyline, NEW.why_now);
-        END;
-
-        CREATE TRIGGER IF NOT EXISTS topic_search_au AFTER UPDATE OF title, summary, hook, storyline, why_now ON topics BEGIN
-          DELETE FROM topic_search WHERE topic_id = OLD.id;
-          INSERT INTO topic_search(topic_id, title, summary, hook, storyline, why_now)
-          VALUES (NEW.id, NEW.title, NEW.summary, NEW.hook, NEW.storyline, NEW.why_now);
-        END;
-
-        CREATE TRIGGER IF NOT EXISTS topic_search_ad AFTER DELETE ON topics BEGIN
-          DELETE FROM topic_search WHERE topic_id = OLD.id;
-        END;
-
-        DELETE FROM topic_search;
-        INSERT INTO topic_search(topic_id, title, summary, hook, storyline, why_now)
-        SELECT id, title, summary, hook, storyline, why_now FROM topics;
-      `);
-    }
-
-    if (columnExists(sqlite, 'topics', 'next_action')) {
-      const timestampExpression = columnExists(sqlite, 'topics', 'next_action_updated_at')
-        ? 'COALESCE(next_action_updated_at, updated_at, created_at)'
-        : 'COALESCE(updated_at, created_at)';
-      sqlite.exec(`INSERT OR IGNORE INTO topic_todos (
-          id, topic_id, title, is_current, current_started_at, sort_order, created_at, updated_at
-        )
-        SELECT 'legacy-todo-' || id, id, TRIM(next_action), 1, ${timestampExpression}, 0,
-          ${timestampExpression}, ${timestampExpression}
-        FROM topics
-        WHERE TRIM(COALESCE(next_action, '')) != ''
-          AND NOT EXISTS (SELECT 1 FROM topic_todos tt WHERE tt.topic_id = topics.id)`);
-    }
-
-    sqlite.exec(`PRAGMA user_version = ${CURRENT_SCHEMA_VERSION}`);
-  });
-  migrate();
+  const requiredObjects = ['topics', 'topic_todos', 'topic_search', 'publish_packages', 'commercial_deals', '_kv_store'];
+  const missingObjects = requiredObjects.filter((name) => !schemaObjectExists(sqlite, name));
+  if (missingObjects.length > 0) {
+    throw new Error(
+      `SQLite schema is incomplete: missing ${missingObjects.join(', ')}. `
+      + 'Recreate the local database from drizzle/0000_schema.sql.',
+    );
+  }
 }
 
 export async function initializeSqliteDatabase(dbFilePath: string, schemaDir?: string): Promise<{ db: SqliteDatabase; sqlite: Database }> {
@@ -349,7 +190,13 @@ export async function initializeSqliteDatabase(dbFilePath: string, schemaDir?: s
     );
     CREATE INDEX IF NOT EXISTS idx_kv_expires_at ON _kv_store(expires_at);
   `);
-  migrateLegacySchema(sqlite);
+
+  try {
+    assertCurrentSchema(sqlite);
+  } catch (error) {
+    sqlite.close();
+    throw error;
+  }
 
   return { db: new SqliteDatabase(sqlite, dbFilePath), sqlite };
 }

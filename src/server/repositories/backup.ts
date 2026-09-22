@@ -62,9 +62,9 @@ export function getBackupImportSummary(data: BackupData): BackupImportSummary {
     + data.sources.length + data.timeline.length
     + data.timeline.reduce((count, event) => count + (event.person_ids?.length || 0), 0)
     + data.drafts.length + data.citations.length
-    + data.relationships.length + data.published.length + (data.publish_packages?.length || 0)
-    + (data.commercial_deals?.length || 0) + (data.commercial_deal_topics?.length || 0)
-    + (data.commercial_deal_activities?.length || 0) + (data.todos?.length || 0);
+    + data.relationships.length + data.published.length + data.publish_packages.length
+    + data.commercial_deals.length + data.commercial_deal_topics.length
+    + data.commercial_deal_activities.length + data.todos.length;
 
   return {
     bytes: new TextEncoder().encode(JSON.stringify(data)).byteLength,
@@ -77,11 +77,11 @@ export function getBackupImportSummary(data: BackupData): BackupImportSummary {
     citations: data.citations.length,
     tags: data.tags.length,
     published: data.published.length,
-    publish_packages: data.publish_packages?.length || 0,
-    commercial_deals: data.commercial_deals?.length || 0,
-    commercial_deal_topics: data.commercial_deal_topics?.length || 0,
-    commercial_deal_activities: data.commercial_deal_activities?.length || 0,
-    todos: data.todos?.length || 0,
+    publish_packages: data.publish_packages.length,
+    commercial_deals: data.commercial_deals.length,
+    commercial_deal_topics: data.commercial_deal_topics.length,
+    commercial_deal_activities: data.commercial_deal_activities.length,
+    todos: data.todos.length,
   };
 }
 
@@ -142,7 +142,7 @@ export async function replaceAllData(db: SqliteDatabase, data: BackupData): Prom
       [`${topic.id}:${person.id}`, topic.id, person.id, '']
     )));
   });
-  (data.todos || []).forEach((todo) => statements.push(topicTodoStatement(db, todo)));
+  data.todos.forEach((todo) => statements.push(topicTodoStatement(db, todo)));
   data.sources.forEach((source) => statements.push(sourceStatement(db, source)));
   data.timeline.forEach((event) => {
     statements.push(timelineStatement(db, event));
@@ -160,10 +160,10 @@ export async function replaceAllData(db: SqliteDatabase, data: BackupData): Prom
     video.id, video.topic_id, video.title, video.url, video.bvid, video.published_at,
     video.views, video.likes, video.coins, video.favorites, video.comments, video.notes, video.updated_at,
   ])));
-  (data.publish_packages || []).forEach((publishPackage) => statements.push(publishPackageStatement(db, publishPackage)));
-  (data.commercial_deals || []).forEach((deal) => statements.push(commercialDealStatement(db, deal)));
-  (data.commercial_deal_topics || []).forEach((relation) => statements.push(commercialDealTopicStatement(db, relation)));
-  (data.commercial_deal_activities || []).forEach((activity) => statements.push(commercialDealActivityStatement(db, activity)));
+  data.publish_packages.forEach((publishPackage) => statements.push(publishPackageStatement(db, publishPackage)));
+  data.commercial_deals.forEach((deal) => statements.push(commercialDealStatement(db, deal)));
+  data.commercial_deal_topics.forEach((relation) => statements.push(commercialDealTopicStatement(db, relation)));
+  data.commercial_deal_activities.forEach((activity) => statements.push(commercialDealActivityStatement(db, activity)));
   statements.push(bind(db, `INSERT INTO _kv_store (key, value, expires_at) VALUES (?, ?, NULL)
     ON CONFLICT(key) DO UPDATE SET value = excluded.value, expires_at = excluded.expires_at`, [
     'app_settings', JSON.stringify(data.settings),
@@ -247,7 +247,7 @@ export async function exportAllData(db: SqliteDatabase, kvSettings?: AppSettings
     const commercialDealActivities = query<CommercialDealActivity>('SELECT * FROM commercial_deal_activities ORDER BY created_at ASC');
     const todos = query<TopicTodo>('SELECT * FROM topic_todos ORDER BY topic_id, sort_order, created_at');
     return {
-      version: '2.0',
+      version: '2.0' as const,
       export_at: exportAt,
       topics: allTopics,
       sources,

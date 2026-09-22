@@ -34,13 +34,6 @@ export class AppKV {
       CREATE INDEX IF NOT EXISTS idx_kv_expires_at ON _kv_store(expires_at);
     `);
 
-    // Clean legacy lock rows from SQLite store to reduce database bloat
-    try {
-      this.db.sqlite.exec("DELETE FROM _kv_store WHERE key LIKE 'lock:%'");
-    } catch {
-      // Ignore cleanup error
-    }
-
     this.getStmt = this.db.sqlite.query('SELECT value, expires_at FROM _kv_store WHERE key = ?') as unknown as SqliteStatement;
     this.putStmt = this.db.sqlite.query(`
       INSERT INTO _kv_store (key, value, expires_at)

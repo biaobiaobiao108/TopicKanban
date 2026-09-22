@@ -308,3 +308,5 @@ END;
 
 INSERT INTO topic_search(topic_id, title, summary, hook, storyline, why_now)
 SELECT id, title, summary, hook, storyline, why_now FROM topics;
+
+PRAGMA user_version = 2;
