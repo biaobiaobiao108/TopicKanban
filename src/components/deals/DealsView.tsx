@@ -43,7 +43,7 @@ import { ConfirmDialog } from '../ui/ConfirmDialog';
 import { PageHeader } from '../layout/PageHeader';
 import { BackNavigationBar } from '../layout/BackNavigationBar';
 import { ActionDate, ActionDateText } from '../ui/ActionDate';
-import { useActionDateDisplay } from '../../lib/actionDate';
+import { formatBeijingDateTime, useActionDateDisplay } from '../../lib/actionDate';
 import { FloatingScrollbar } from '../ui/FloatingScrollbar';
 
 const ACTIVE_STATUSES: CommercialDealStatus[] = ['communicating', 'producing'];
@@ -1548,7 +1548,7 @@ function CommercialDealDetailView({
                         {item.kind === 'payment' ? '回款' : item.kind === 'status_change' ? '阶段' : '沟通'}
                       </span>
                       <time className="shrink-0 text-[11px] text-stone-400" dateTime={item.created_at}>
-                        {new Date(item.created_at).toLocaleString('zh-CN', {
+                        {formatBeijingDateTime(item.created_at, 'zh-CN', {
                           month: 'numeric',
                           day: 'numeric',
                           hour: '2-digit',

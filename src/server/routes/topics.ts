@@ -14,13 +14,13 @@ import {
 import {
   insertTopic,
   listTrashedTopicIds,
+  listExpiredTrashTopicIds,
   loadTodayFocus,
   loadActiveTopicCount,
   loadTopic,
   loadTopicPage,
   loadTrashedTopics,
   permanentlyDeleteTrashedTopics,
-  purgeExpiredTrashTopics,
   reorderTopics,
   restoreTopic,
   setTopicPinned,
@@ -101,7 +101,11 @@ export function registerTopicRoutes(app: NativeApp): void {
         const settings = await c.env.KV.get<AppSettings>('app_settings', 'json');
         const retentionDays = Number(settings?.trash_retention_days ?? 30);
         if (retentionDays > 0) {
-          await purgeExpiredTrashTopics(db, retentionDays);
+          const expiredIds = await listExpiredTrashTopicIds(db, retentionDays);
+          if (expiredIds.length > 0) {
+            await revokeTopicShares(c.env, expiredIds);
+            await permanentlyDeleteTrashedTopics(db, expiredIds);
+          }
         }
       } catch {
         // Expiry purge failure should not block loading trashed topics
@@ -179,9 +183,11 @@ export function registerTopicRoutes(app: NativeApp): void {
   app.delete('/topics/:id', async (c) => {
     try {
       const topicId = c.req.param('id');
-      // 先撤销外部快照，确保删除失败时不会留下仍可访问的审稿链接。
+      // 先撤销现有快照，避免清理失败时仍完成删除。
       await revokeTopicShares(c.env, [topicId]);
       await softDeleteTopic(requireDb(c), topicId);
+      // 再撤销一次以覆盖并发分享；分享创建路由也会在写入后复查选题状态。
+      await revokeTopicShares(c.env, [topicId]);
       return c.json({ success: true });
     } catch (error) {
       return jsonError(c, error);

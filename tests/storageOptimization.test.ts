@@ -7,7 +7,6 @@ import { NativeApp } from '../src/server/native';
 import {
   getStorageStats,
   vacuumDatabase,
-  purgeExpiredTrashTopics,
   insertTopic,
   softDeleteTopic,
   permanentlyDeleteTrashedTopics,
@@ -117,7 +116,7 @@ describe('Storage Optimization & Compaction', () => {
     expect(result.after.freelist_bytes).toBe(0);
   });
 
-  it('purges expired trash topics based on retentionDays', async () => {
+  it('purges expired trash topics and revokes their public review snapshots', async () => {
     const now = Date.now();
     const oldDate = new Date(now - 40 * 86400 * 1000).toISOString(); // 40 days ago
     const recentDate = new Date(now - 5 * 86400 * 1000).toISOString(); // 5 days ago
@@ -158,10 +157,18 @@ describe('Storage Optimization & Compaction', () => {
     });
     sqlite.query('UPDATE topics SET deleted_at = ? WHERE id = ?').run(recentDate, 'topic-recent-trash');
 
-    // Purge topics older than 30 days
-    const purgeResult = await purgeExpiredTrashTopics(db, 30);
-    expect(purgeResult.purged_count).toBe(1);
-    expect(purgeResult.purged_ids).toEqual(['topic-old-trash']);
+    const expiredShareToken = 'expired-trash-review-link';
+    sqlite.query('INSERT INTO _kv_store (key, value, expires_at) VALUES (?, ?, ?)').run(
+      `share:${expiredShareToken}`,
+      JSON.stringify({ topic_id: 'topic-old-trash', token: expiredShareToken }),
+      Date.now() + 86_400_000,
+    );
+
+    const trashResponse = await app.request('/api/topics/trash', { headers: authHeaders });
+    expect(trashResponse.status).toBe(200);
+    const trashList = await trashResponse.json() as Array<{ id: string }>;
+    expect(trashList.map((topic) => topic.id)).toEqual(['topic-recent-trash']);
+    expect((await app.request(`/api/public/share/${expiredShareToken}`)).status).toBe(404);
 
     const remaining = sqlite.query('SELECT id FROM topics WHERE deleted_at IS NOT NULL').all() as Array<{ id: string }>;
     expect(remaining.map((r) => r.id)).toEqual(['topic-recent-trash']);

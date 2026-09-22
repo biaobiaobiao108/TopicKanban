@@ -1,5 +1,6 @@
 import type { NativeApp } from '../native';
 import type { PublishedVideo } from '../../types';
+import { getBeijingDateString } from '../../lib/beijingTime';
 import {
   createId,
   hasInvalidValue,
@@ -76,7 +77,7 @@ export function registerPublishedRoutes(app: NativeApp): void {
       const topicId = typeof body.topic_id === 'string' && body.topic_id.trim() ? body.topic_id.trim() : null;
       const video: PublishedVideo = {
         id: body.id || createId('pub'), topic_id: topicId, title: body.title.trim(),
-        url: body.url || '', bvid: body.bvid || '', published_at: body.published_at || now.slice(0, 10),
+        url: body.url || '', bvid: body.bvid || '', published_at: body.published_at || getBeijingDateString(),
         views: body.views || 0, likes: body.likes || 0, coins: body.coins || 0,
         favorites: body.favorites || 0, comments: body.comments || 0, notes: body.notes || '', updated_at: now,
       };

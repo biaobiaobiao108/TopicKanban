@@ -19,7 +19,8 @@ export function registerSharingRoutes(app: NativeApp): void {
       const id = c.req.param('id');
       const body = await c.req.json<{ ttl_seconds?: number }>().catch(() => ({ ttl_seconds: 86400 * 3 }));
       const ttl = Math.min(2592000, Math.max(300, Number(body.ttl_seconds) || 86400 * 3));
-      const topic = await loadTopic(requireDb(c), id);
+      const db = requireDb(c);
+      const topic = await loadTopic(db, id);
       if (!topic) return c.json({ error: 'Topic not found' }, 404);
       const draft = await loadDraft(requireDb(c), id);
       const settings = await c.env.KV.get<{
@@ -48,6 +49,10 @@ export function registerSharingRoutes(app: NativeApp): void {
         expires_at: expiresAt,
       };
       await c.env.KV.replaceTopicShare(id, token, JSON.stringify(snapshot), ttl);
+      if (!await loadTopic(db, id)) {
+        await c.env.KV.deleteTopicShares(id);
+        return c.json({ error: 'Topic not found' }, 404);
+      }
       const fullUrl = resolveServerPublicUrl(`/share/${token}`, {
         configuredUrl: publicBaseUrl,
         trustProxyHeaders: c.env.TRUST_PROXY_HEADERS,

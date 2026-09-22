@@ -2,6 +2,7 @@ import React, { useEffect, useState, useMemo, useRef } from 'react';
 import { useParams, Link, useLocation } from 'react-router-dom';
 import { fetchPublicShareSnapshot } from '../../lib/storage';
 import { sanitizeReviewHtml } from '../../lib/sanitizeHtml';
+import { formatBeijingDateTime } from '../../lib/actionDate';
 import type { ShareSnapshot } from '../../types';
 import {
   Clock,
@@ -437,7 +438,7 @@ export const PublicReviewView: React.FC<PublicReviewViewProps> = ({ token: propT
           <footer className="pt-8 mt-8 border-t border-stone-100 dark:border-stone-800 flex items-center justify-between text-xs text-stone-400 dark:text-stone-500">
             <span>选题生产工作台 · 审稿快照</span>
             <span className="text-[11px]">
-              有效期至：<time dateTime={snapshot.expires_at} className="font-mono tabular-nums">{new Date(snapshot.expires_at).toLocaleString()}</time>
+              有效期至：<time dateTime={snapshot.expires_at} className="font-mono tabular-nums">{formatBeijingDateTime(snapshot.expires_at)}</time>
             </span>
           </footer>
         </article>

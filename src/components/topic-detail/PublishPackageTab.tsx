@@ -35,6 +35,7 @@ import {
 import { toTraditionalChinese, toTraditionalChineseAsync, getTraditionalConverter } from '../../lib/traditionalChinese';
 import { PublishPackageConflictError } from '../../lib/storage';
 import { useToast } from '../ui/Toast';
+import { formatBeijingDateTime } from '../../lib/actionDate';
 
 interface PublishPackageTabProps {
   topic: Topic;
@@ -375,7 +376,7 @@ export const PublishPackageTab: React.FC<PublishPackageTabProps> = ({
           </div>
           <div className="flex flex-wrap items-center gap-2 text-xs text-rose-900/75 dark:text-rose-200/80" aria-live="polite">
             <span>{packageData.word_count.toLocaleString()} 字</span><span aria-hidden="true">·</span><span>预计 {Math.floor(packageData.estimated_duration_seconds / 60)} 分 {String(packageData.estimated_duration_seconds % 60).padStart(2, '0')} 秒</span>
-            {lastSavedAt && <><span aria-hidden="true">·</span><span>发布包保存于 {new Date(lastSavedAt).toLocaleString()}</span></>}
+            {lastSavedAt && <><span aria-hidden="true">·</span><span>发布包保存于 {formatBeijingDateTime(lastSavedAt)}</span></>}
             <span className="inline-flex items-center gap-1 font-semibold" title={saveStatusLabel}><SaveStatusIcon className="h-3.5 w-3.5" aria-hidden="true" />{saveStatusLabel}</span>
           </div>
         </div>

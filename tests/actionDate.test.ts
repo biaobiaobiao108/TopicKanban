@@ -1,5 +1,12 @@
 import { describe, expect, it } from 'bun:test';
-import { getActionDateDisplay, getBeijingDateString } from '../src/lib/actionDate';
+import {
+  addBeijingCalendarDays,
+  createBeijingCalendarDate,
+  formatBeijingDateTime,
+  getActionDateDisplay,
+  getBeijingDateString,
+  getBeijingWeekday,
+} from '../src/lib/actionDate';
 
 describe('行动日期展示', () => {
   const today = '2026-08-31';
@@ -46,5 +53,17 @@ describe('行动日期展示', () => {
   it('按北京时间计算自然日，避免 UTC 跨日误判', () => {
     expect(getBeijingDateString(new Date('2026-08-31T15:59:59.000Z'))).toBe('2026-08-31');
     expect(getBeijingDateString(new Date('2026-08-31T16:00:00.000Z'))).toBe('2026-09-01');
+  });
+
+  it('以北京时间进行日历日期的创建、星期和加减日计算', () => {
+    expect(getBeijingWeekday('2026-08-31')).toBe(1);
+    expect(addBeijingCalendarDays('2026-08-31', 4)).toBe('2026-09-04');
+    expect(getBeijingDateString(createBeijingCalendarDate('2026-09-01'))).toBe('2026-09-01');
+  });
+
+  it('固定用北京时间格式化日期时间，不依赖运行设备时区', () => {
+    expect(formatBeijingDateTime('2026-08-31T15:59:00.000Z', 'en-GB', {
+      day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit', hourCycle: 'h23',
+    })).toContain('31/08/2026, 23:59');
   });
 });

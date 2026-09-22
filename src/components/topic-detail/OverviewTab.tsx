@@ -4,7 +4,7 @@ import { Modal } from '../ui/Modal';
 import { DateInput } from '../ui/DateInput';
 import { useToast } from '../ui/Toast';
 import { getCurrentActionAgeDays, getCurrentActionWarning } from '../../lib/topicMetrics';
-import { useActionDateDisplay } from '../../lib/actionDate';
+import { addBeijingCalendarDays, getBeijingDateString, getBeijingWeekday, useActionDateDisplay } from '../../lib/actionDate';
 import { ActionDateText } from '../ui/ActionDate';
 import { FloatingScrollbar } from '../ui/FloatingScrollbar';
 import {
@@ -737,9 +737,9 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({
               {/* Quick date presets */}
               <div className="flex items-center gap-1 flex-wrap pt-0.5">
                 {[
-                  { label: '本周五', val: (() => { const d = new Date(); const diff = (5 - d.getDay() + 7) % 7; d.setDate(d.getDate() + (diff === 0 ? 7 : diff)); return d.toLocaleDateString('en-CA', { timeZone: 'Asia/Shanghai' }); })() },
-                  { label: '本周末', val: (() => { const d = new Date(); const diff = d.getDay() === 0 ? 0 : 7 - d.getDay(); d.setDate(d.getDate() + diff); return d.toLocaleDateString('en-CA', { timeZone: 'Asia/Shanghai' }); })() },
-                  { label: '下周五', val: (() => { const d = new Date(); const diff = ((5 - d.getDay() + 7) % 7) + 7; d.setDate(d.getDate() + diff); return d.toLocaleDateString('en-CA', { timeZone: 'Asia/Shanghai' }); })() },
+                  { label: '本周五', val: (() => { const today = getBeijingDateString(); const weekday = getBeijingWeekday(today); const diff = (5 - weekday + 7) % 7; return addBeijingCalendarDays(today, diff === 0 ? 7 : diff); })() },
+                  { label: '本周末', val: (() => { const today = getBeijingDateString(); const weekday = getBeijingWeekday(today); return addBeijingCalendarDays(today, weekday === 0 ? 0 : 7 - weekday); })() },
+                  { label: '下周五', val: (() => { const today = getBeijingDateString(); const weekday = getBeijingWeekday(today); return addBeijingCalendarDays(today, ((5 - weekday + 7) % 7) + 7); })() },
                 ].map((preset) => (
                   <button
                     key={preset.label}

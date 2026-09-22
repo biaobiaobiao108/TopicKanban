@@ -4,6 +4,7 @@ import { QuickDropItem } from '../../types';
 import { fetchQuickDrops, deleteQuickDrop } from '../../lib/storage';
 import { sanitizeExternalHttpUrl } from '../../lib/urlSafety';
 import { normalizeQuickDropUrl } from '../../lib/quickDrop';
+import { formatBeijingDateTime } from '../../lib/actionDate';
 import { FloatingScrollbar } from '../ui/FloatingScrollbar';
 import {
   Inbox,
@@ -207,7 +208,7 @@ export const QuickDropDrawer: React.FC<QuickDropDrawerProps> = ({
                   </span>
                   <span className="text-[10px] font-mono text-stone-400 dark:text-stone-500 flex items-center gap-1">
                     <Clock className="w-3 h-3" />
-                    {new Date(item.created_at).toLocaleString([], { month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' })}
+                    {formatBeijingDateTime(item.created_at, 'zh-CN', { month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' })}
                   </span>
                 </div>
 

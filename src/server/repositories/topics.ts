@@ -91,7 +91,7 @@ export async function loadTodayFocus(db: SqliteDatabase, staleActionDays = 5): P
   const activeCondition = "t.deleted_at IS NULL AND t.status NOT IN ('published', 'icebox')";
   const safeStaleDays = Math.max(1, Math.min(30, Math.trunc(staleActionDays)));
   const currentTodoJoin = 'LEFT JOIN topic_todos tt ON tt.topic_id = t.id AND tt.is_current = 1 AND tt.completed_at IS NULL';
-  const staleExpression = "julianday('now', '+8 hours') - julianday(COALESCE(tt.current_started_at, t.updated_at))";
+  const staleExpression = "julianday('now') - julianday(COALESCE(tt.current_started_at, t.updated_at))";
   const [focusResult, priorityResult, recentResult, progressResult, attentionResult] = await db.batch([
     db.prepare(`SELECT t.id FROM topics t WHERE ${activeCondition}
       ORDER BY t.is_pinned DESC,
@@ -534,6 +534,7 @@ export async function updateTopic(
   body: TopicUpdateInput
 ): Promise<void> {
   const existing = await db.prepare('SELECT status, deleted_at FROM topics WHERE id = ?').bind(id).first<{ status: TopicStatus; deleted_at?: string | null }>();
+  if (!existing) return;
   const requestedStatus = (body.status || existing?.status || 'inbox') as TopicStatus;
   const isActive = !existing?.deleted_at && !['published', 'icebox'].includes(requestedStatus);
   if (body.is_pinned === 1 && !isActive) throw new TopicPinInvalidStateError('Only active topics can be pinned');

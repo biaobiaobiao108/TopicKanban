@@ -26,6 +26,7 @@ import { ConfirmDialog } from '../ui/ConfirmDialog';
 import { Modal } from '../ui/Modal';
 import { useToast } from '../ui/Toast';
 import { FloatingScrollbar } from '../ui/FloatingScrollbar';
+import { getBeijingDateString } from '../../lib/beijingTime';
 
 interface TopicTableViewProps {
   topics: Topic[];
@@ -438,7 +439,7 @@ export const TopicTableView: React.FC<TopicTableViewProps> = ({
       if (diffMins < 60) return `${diffMins}分钟前`;
       if (diffHours < 24) return `${diffHours}小时前`;
       if (diffDays < 7) return `${diffDays}天前`;
-      return iso.slice(5, 10);
+      return getBeijingDateString(d).slice(5, 10) || iso.slice(5, 10);
     } catch {
       return iso.slice(0, 10);
     }

@@ -80,4 +80,22 @@ describe('Topic pin API', () => {
     });
     expect(rejected.status).toBe(400);
   });
+
+  it('does not clear the current pin when pinning a missing topic through topic update', async () => {
+    const createResponse = await app.request('/api/topics', {
+      method: 'POST', headers, body: JSON.stringify({ title: '仍应保持置顶的选题' }),
+    });
+    const topic = await createResponse.json() as { id: string };
+    const pinResponse = await app.request(`/api/topics/${topic.id}/pin`, {
+      method: 'POST', headers, body: JSON.stringify({ is_pinned: 1 }),
+    });
+    expect(pinResponse.status).toBe(200);
+
+    const missingUpdate = await app.request('/api/topics/topic-does-not-exist', {
+      method: 'PATCH', headers, body: JSON.stringify({ is_pinned: 1 }),
+    });
+    expect(missingUpdate.status).toBe(404);
+    const stored = sqlite.query('SELECT is_pinned FROM topics WHERE id = ?').get(topic.id) as { is_pinned: number };
+    expect(stored.is_pinned).toBe(1);
+  });
 });

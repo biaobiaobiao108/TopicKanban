@@ -68,6 +68,7 @@ import { PageHeader } from './components/layout/PageHeader';
 import { PwaInstallPromptBanner } from './components/ui/PwaInstall';
 import { Database } from 'lucide-react';
 import { invalidateQueryGroups } from './lib/topicQueryCache';
+import { getBeijingDateString } from './lib/actionDate';
 import { useTopicTodoActions } from './hooks/useTopicTodoActions';
 
 const VIEW_PATHS: Record<Exclude<NavView, 'topic-detail'>, string> = {
@@ -845,7 +846,7 @@ function WorkspaceApp({ isAuth, setIsAuth }: WorkspaceAppProps) {
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
-      a.download = `bilibili-kanban-backup-${new Date().toISOString().slice(0, 10)}.json`;
+      a.download = `bilibili-kanban-backup-${getBeijingDateString()}.json`;
       a.click();
       URL.revokeObjectURL(url);
     } catch {
@@ -860,7 +861,7 @@ function WorkspaceApp({ isAuth, setIsAuth }: WorkspaceAppProps) {
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
-      a.download = `bilibili-scripts-archive-${new Date().toISOString().slice(0, 10)}.md`;
+      a.download = `bilibili-scripts-archive-${getBeijingDateString()}.md`;
       a.click();
       URL.revokeObjectURL(url);
     } catch {

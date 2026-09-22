@@ -39,6 +39,7 @@ import {
 import { Modal } from '../ui/Modal';
 import { FloatingMenu } from '../ui/FloatingMenu';
 import { FloatingScrollbar } from '../ui/FloatingScrollbar';
+import { formatBeijingDateTime } from '../../lib/actionDate';
 import { LayoutDashboard, FileSearch, Clock, Users, PenTool, FileText, Handshake, CheckCircle2, GitBranch, MoreHorizontal, ListTodo } from 'lucide-react';
 
 interface TopicDetailViewProps {
@@ -496,11 +497,11 @@ export const TopicDetailView: React.FC<TopicDetailViewProps> = ({
             <div className="grid gap-3 sm:grid-cols-2">
               <div className="rounded-xl border border-[var(--accent)]/30 bg-[var(--accent-soft)] p-4">
                 <div className="font-semibold text-[var(--accent-dark)]">浏览器本地草稿</div>
-                <div className="mt-2 text-xs text-stone-600 dark:text-stone-300">{draftRecovery.local.word_count} 字 · {new Date(draftRecovery.local.updated_at).toLocaleString()}</div>
+                <div className="mt-2 text-xs text-stone-600 dark:text-stone-300">{draftRecovery.local.word_count} 字 · {formatBeijingDateTime(draftRecovery.local.updated_at)}</div>
               </div>
               <div className="rounded-xl border border-stone-200 dark:border-stone-800 bg-stone-50 dark:bg-stone-800/60 p-4">
                 <div className="font-semibold text-stone-900 dark:text-stone-100">云端文案</div>
-                <div className="mt-2 text-xs text-stone-600 dark:text-stone-300">{draftRecovery.remote ? `${draftRecovery.remote.word_count} 字 · ${new Date(draftRecovery.remote.updated_at).toLocaleString()}` : '云端尚无文案'}</div>
+                <div className="mt-2 text-xs text-stone-600 dark:text-stone-300">{draftRecovery.remote ? `${draftRecovery.remote.word_count} 字 · ${formatBeijingDateTime(draftRecovery.remote.updated_at)}` : '云端尚无文案'}</div>
               </div>
             </div>
             <p className="text-sm text-stone-600 dark:text-stone-300">选择本地版本会立即覆盖当前云端文案；选择云端版本会清除这份本地待同步草稿。</p>

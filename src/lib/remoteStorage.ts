@@ -44,6 +44,7 @@ import type {
 } from '../types';
 import { authenticatedFetch, getAuthToken } from './auth';
 import type { PublishedAnalyticsPayload } from './videoAnalytics';
+import { formatBeijingDateTime } from './actionDate';
 
 const PENDING_DRAFTS_KEY = 'topic_kanban_pending_drafts_v3';
 const LEGACY_PENDING_DRAFTS_KEY = 'topic_kanban_pending_drafts_v2';
@@ -920,7 +921,7 @@ export async function exportScriptsMarkdown(): Promise<string> {
 
   const lines: string[] = [];
   lines.push(`# 选题文案全量归档合辑 (Markdown Archive)`);
-  lines.push(`> 导出时间：${new Date().toLocaleString()} | 语速基准：${readingSpeed} 字/分钟 | 总选题数：${topics.length}`);
+  lines.push(`> 导出时间：${formatBeijingDateTime(new Date())} | 语速基准：${readingSpeed} 字/分钟 | 总选题数：${topics.length}`);
   lines.push(``);
   lines.push(`---`);
   lines.push(``);
@@ -970,7 +971,7 @@ export function exportSingleTopicMarkdown(
   readingSpeed = 280
 ): string {
   const lines: string[] = [];
-  const now = new Date().toLocaleString();
+  const now = formatBeijingDateTime(new Date());
   const draft = workspaceData.draft;
   const wordCount = draft?.word_count || topic.draft_word_count || 0;
   const estMinutes = (wordCount / readingSpeed).toFixed(1);

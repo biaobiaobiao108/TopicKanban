@@ -1,16 +1,11 @@
 import { useMemo, useSyncExternalStore } from 'react';
 import { isValidIsoDate } from './dateInput';
+import { BEIJING_TIME_ZONE, getBeijingDateString } from './beijingTime';
 
-const BEIJING_TIME_ZONE = 'Asia/Shanghai';
+export { getBeijingDateString } from './beijingTime';
+
 const DAY_MS = 24 * 60 * 60 * 1000;
 const ISO_DATE_PATTERN = /^(\d{4})-(\d{2})-(\d{2})$/;
-
-const beijingDateFormatter = new Intl.DateTimeFormat('en-US', {
-  timeZone: BEIJING_TIME_ZONE,
-  year: 'numeric',
-  month: '2-digit',
-  day: '2-digit',
-});
 
 export type ActionDateState = 'empty' | 'invalid' | 'inactive' | 'future' | 'today' | 'overdue';
 
@@ -27,20 +22,36 @@ export interface ActionDateOptions {
   active?: boolean;
 }
 
-function getDateParts(date: Date): { year: string; month: string; day: string } {
-  const parts = beijingDateFormatter.formatToParts(date);
-  return {
-    year: parts.find((part) => part.type === 'year')?.value || '',
-    month: parts.find((part) => part.type === 'month')?.value || '',
-    day: parts.find((part) => part.type === 'day')?.value || '',
-  };
+export function formatBeijingDateTime(
+  value: Date | string | null | undefined,
+  locales: Intl.LocalesArgument = 'zh-CN',
+  options: Intl.DateTimeFormatOptions = { year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' },
+): string {
+  if (value === null || value === undefined || value === '') return '';
+  const date = value instanceof Date ? value : new Date(value);
+  if (!Number.isFinite(date.getTime())) return '';
+  return new Intl.DateTimeFormat(locales, { ...options, timeZone: BEIJING_TIME_ZONE }).format(date);
 }
 
-export function getBeijingDateString(dateInput?: Date | string | null): string {
-  const date = dateInput ? (typeof dateInput === 'string' ? new Date(dateInput) : dateInput) : new Date();
-  if (!Number.isFinite(date.getTime())) return '';
-  const { year, month, day } = getDateParts(date);
-  return year && month && day ? `${year}-${month}-${day}` : '';
+export function addBeijingCalendarDays(value: string, days: number): string {
+  const ordinal = getDateOrdinal(value);
+  if (ordinal === null || !Number.isFinite(days)) return '';
+  const date = new Date((ordinal + Math.trunc(days)) * DAY_MS);
+  return `${date.getUTCFullYear()}-${String(date.getUTCMonth() + 1).padStart(2, '0')}-${String(date.getUTCDate()).padStart(2, '0')}`;
+}
+
+export function getBeijingWeekday(value?: Date | string | null): number {
+  const ordinal = getDateOrdinal(getBeijingDateString(value));
+  return ordinal === null ? Number.NaN : new Date(ordinal * DAY_MS).getUTCDay();
+}
+
+export function createBeijingCalendarDate(value?: Date | string | null): Date {
+  const dateString = typeof value === 'string' && ISO_DATE_PATTERN.test(value) && isValidIsoDate(value)
+    ? value
+    : getBeijingDateString(value);
+  const match = ISO_DATE_PATTERN.exec(dateString);
+  if (!match || !isValidIsoDate(dateString)) return new Date(Number.NaN);
+  return new Date(Date.UTC(Number(match[1]), Number(match[2]) - 1, Number(match[3]), 12));
 }
 
 function getDateOrdinal(value: string): number | null {

@@ -15,6 +15,7 @@ import { exportBackupData, importBackupData, exportScriptsMarkdown, fetchStorage
 import { authenticatedFetch } from '../../lib/auth';
 import { applyTheme } from '../../lib/theme';
 import { resolvePublicUrl } from '../../lib/publicUrl';
+import { formatBeijingDateTime, getBeijingDateString } from '../../lib/actionDate';
 import { PageHeader } from '../layout/PageHeader';
 import { ConfirmDialog } from '../ui/ConfirmDialog';
 import { useToast } from '../ui/Toast';
@@ -186,7 +187,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
           databaseTables: data.database?.tables,
           kvConnected: data.kv?.connected || false,
           kvMessage: data.kv?.message || '键值存储状态未知',
-          lastChecked: new Date().toLocaleTimeString(),
+          lastChecked: formatBeijingDateTime(new Date(), 'zh-CN', { hour: '2-digit', minute: '2-digit', second: '2-digit' }),
         });
       } else {
         throw new Error('API 返回异常状态码');
@@ -200,7 +201,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
         databaseMessage: '后端服务未连接，请确认 Bun 服务正常运行',
         kvConnected: false,
         kvMessage: '键值存储状态未知',
-        lastChecked: new Date().toLocaleTimeString(),
+        lastChecked: formatBeijingDateTime(new Date(), 'zh-CN', { hour: '2-digit', minute: '2-digit', second: '2-digit' }),
       });
     } finally {
       if (timeoutId) clearTimeout(timeoutId);
@@ -313,7 +314,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
-      a.download = `bilibili-kanban-backup-${new Date().toISOString().slice(0, 10)}.json`;
+      a.download = `bilibili-kanban-backup-${getBeijingDateString()}.json`;
       a.click();
       URL.revokeObjectURL(url);
     } catch (error) {
@@ -331,7 +332,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
-      a.download = `bilibili-scripts-archive-${new Date().toISOString().slice(0, 10)}.md`;
+      a.download = `bilibili-scripts-archive-${getBeijingDateString()}.md`;
       a.click();
       URL.revokeObjectURL(url);
     } catch (error) {

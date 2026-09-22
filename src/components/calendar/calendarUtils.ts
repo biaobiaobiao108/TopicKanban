@@ -97,7 +97,7 @@ const WEEKDAY_NAMES = ['周一', '周二', '周三', '周四', '周五', '周六
  */
 export function getWeekDays(baseDate: Date): WeekDayCell[] {
   const todayStr = getBeijingDateString(new Date());
-  const baseIso = getBeijingDateString(baseDate) || formatIsoDate(baseDate.getFullYear(), baseDate.getMonth(), baseDate.getDate());
+  const baseIso = getBeijingDateString(baseDate) || formatIsoDate(baseDate.getUTCFullYear(), baseDate.getUTCMonth(), baseDate.getUTCDate());
   const [bYear, bMonth, bDay] = baseIso.split('-').map(Number);
   const baseUtc = new Date(Date.UTC(bYear, bMonth - 1, bDay));
   

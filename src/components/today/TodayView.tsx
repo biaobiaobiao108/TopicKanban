@@ -20,7 +20,7 @@ import { TodoQuickActionDialog } from '../topic-detail/TodoQuickActionDialog';
 import type { TopicTodoActions } from '../topic-detail/todoTypes';
 import { PageHeader } from '../layout/PageHeader';
 import { getCurrentActionAgeDays, getCurrentActionWarning } from '../../lib/topicMetrics';
-import { useActionDateDisplay } from '../../lib/actionDate';
+import { formatBeijingDateTime, useActionDateDisplay } from '../../lib/actionDate';
 import { ActionDateText } from '../ui/ActionDate';
 import { FloatingScrollbar } from '../ui/FloatingScrollbar';
 
@@ -446,7 +446,7 @@ export const TodayView: React.FC<TodayViewProps> = ({
 
                     <span className="shrink-0 text-[11px] text-stone-600 dark:text-stone-400">
                       <time dateTime={t.updated_at} className="tabular-nums">
-                        {new Date(t.updated_at).toLocaleDateString('zh-CN', { month: 'numeric', day: 'numeric' })}
+                        {formatBeijingDateTime(t.updated_at, 'zh-CN', { month: 'numeric', day: 'numeric' })}
                       </time>
                     </span>
                   </button>

@@ -9,6 +9,7 @@ import type { ApiBindings } from '../src/server/apiShared';
 describe('Bun Server Integration (Local SQLite & API)', () => {
   let sqlite: Database;
   let app: NativeApp;
+  let kv: AppKV;
   const testPassword = 'test_secret_pass';
   const testDropToken = 'test_drop_token';
   const publicBaseUrl = 'https://kanban.example.com';
@@ -20,7 +21,7 @@ describe('Bun Server Integration (Local SQLite & API)', () => {
     sqlite.exec(schemaSql);
 
     const db = new SqliteDatabase(sqlite);
-    const kv = new AppKV(db);
+    kv = new AppKV(db);
 
     const bindings: ApiBindings = {
       DB: db,
@@ -35,6 +36,46 @@ describe('Bun Server Integration (Local SQLite & API)', () => {
 
   afterEach(() => {
     sqlite.close();
+  });
+
+  it('removes a share snapshot created concurrently with topic deletion', async () => {
+    const loginRes = await app.request('/api/auth/login', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ password: testPassword }),
+    });
+    const { token: authToken } = await loginRes.json() as { token: string };
+    const headers = { Authorization: `Bearer ${authToken}`, 'Content-Type': 'application/json' };
+    const createRes = await app.request('/api/topics', {
+      method: 'POST', headers, body: JSON.stringify({ title: '并发删除与审稿分享' }),
+    });
+    const topic = await createRes.json() as { id: string };
+    const originalReplace = kv.replaceTopicShare.bind(kv);
+    let token = '';
+    let writeStarted!: () => void;
+    let releaseWrite!: () => void;
+    const started = new Promise<void>((resolve) => { writeStarted = resolve; });
+    const writeGate = new Promise<void>((resolve) => { releaseWrite = resolve; });
+    kv.replaceTopicShare = async (topicId, shareToken, value, expirationTtl) => {
+      token = shareToken;
+      writeStarted();
+      await writeGate;
+      await originalReplace(topicId, shareToken, value, expirationTtl);
+    };
+
+    try {
+      const sharePending = app.request(`/api/topics/${topic.id}/share`, {
+        method: 'POST', headers, body: JSON.stringify({ ttl_seconds: 86400 }),
+      });
+      await started;
+      const deleteResponse = await app.request(`/api/topics/${topic.id}`, { method: 'DELETE', headers });
+      expect(deleteResponse.status).toBe(200);
+      releaseWrite();
+      const shareResponse = await sharePending;
+      expect(shareResponse.status).toBe(404);
+      expect((await app.request(`/api/public/share/${token}`)).status).toBe(404);
+    } finally {
+      releaseWrite();
+      kv.replaceTopicShare = originalReplace;
+    }
   });
 
   it('runs full authentication, health check, topic CRUD and share flow', async () => {

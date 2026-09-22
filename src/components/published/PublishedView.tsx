@@ -24,6 +24,7 @@ import {
   Sparkles,
 } from 'lucide-react';
 import { fetchPublishedVideoPage, fetchTopic, fetchTopicPage } from '../../lib/storage';
+import { getBeijingDateString } from '../../lib/actionDate';
 
 const AnalyticsDashboard = React.lazy(() =>
   import('./AnalyticsDashboard').then((m) => ({ default: m.AnalyticsDashboard }))
@@ -151,7 +152,7 @@ export const PublishedView: React.FC<PublishedViewProps> = ({
     setTitle(defaultTopic?.title || '');
     setBvid('');
     setUrl('');
-    setPublishedAt(new Date().toISOString().slice(0, 10));
+    setPublishedAt(getBeijingDateString());
     setViews(0);
     setLikes(0);
     setCoins(0);

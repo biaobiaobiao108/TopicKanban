@@ -44,6 +44,7 @@ import { CalendarAgendaView } from './CalendarAgendaView';
 import { UnscheduledTopicPool } from './UnscheduledTopicPool';
 import { CalendarDateActionModal } from './CalendarDateActionModal';
 import { StatusBadge, PriorityBadge } from '../ui/Badge';
+import { createBeijingCalendarDate } from '../../lib/actionDate';
 
 interface CalendarViewProps {
   topics: Topic[];
@@ -67,9 +68,8 @@ interface CalendarViewProps {
 
 function parseCalendarDate(value: string | null): Date | null {
   if (!value || !/^\d{4}-\d{2}-\d{2}$/.test(value)) return null;
-  const [year, month, day] = value.split('-').map(Number);
-  const date = new Date(year, month - 1, day, 12);
-  return date.getFullYear() === year && date.getMonth() === month - 1 && date.getDate() === day ? date : null;
+  const date = createBeijingCalendarDate(value);
+  return Number.isFinite(date.getTime()) ? date : null;
 }
 
 function parseCalendarView(value: string | null): CalendarViewMode {
@@ -88,7 +88,7 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
   onCreateTopic,
 }) => {
   const [searchParams, setSearchParams] = useSearchParams();
-  const [currentDate, setCurrentDate] = useState<Date>(() => parseCalendarDate(searchParams.get('date')) || new Date());
+  const [currentDate, setCurrentDate] = useState<Date>(() => parseCalendarDate(searchParams.get('date')) || createBeijingCalendarDate());
   const [viewMode, setViewMode] = useState<CalendarViewMode>(() => parseCalendarView(searchParams.get('view')));
   const [filters, setFilters] = useState<CalendarLayerFilters>(DEFAULT_CALENDAR_LAYERS);
   const [isPoolOpen, setIsPoolOpen] = useState(false);
@@ -130,8 +130,8 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
     })
   );
 
-  const year = currentDate.getFullYear();
-  const monthIndex = currentDate.getMonth();
+  const year = currentDate.getUTCFullYear();
+  const monthIndex = currentDate.getUTCMonth();
   const monthDays = useMemo(() => getMonthGridDays(year, monthIndex), [year, monthIndex]);
   const weekDays = useMemo(() => getWeekDays(currentDate), [currentDate]);
   const visibleDays = viewMode === 'month' ? monthDays : weekDays;
@@ -142,9 +142,9 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
   const handlePrev = () => {
     const next = new Date(currentDate);
     if (viewMode === 'month') {
-      next.setMonth(next.getMonth() - 1);
+      next.setUTCMonth(next.getUTCMonth() - 1);
     } else {
-      next.setDate(next.getDate() - 7);
+      next.setUTCDate(next.getUTCDate() - 7);
     }
     setCurrentDate(next);
   };
@@ -152,15 +152,15 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
   const handleNext = () => {
     const next = new Date(currentDate);
     if (viewMode === 'month') {
-      next.setMonth(next.getMonth() + 1);
+      next.setUTCMonth(next.getUTCMonth() + 1);
     } else {
-      next.setDate(next.getDate() + 7);
+      next.setUTCDate(next.getUTCDate() + 7);
     }
     setCurrentDate(next);
   };
 
   const handleToday = () => {
-    setCurrentDate(new Date());
+    setCurrentDate(createBeijingCalendarDate());
   };
 
   // Fetch published videos via query for live auto-sync

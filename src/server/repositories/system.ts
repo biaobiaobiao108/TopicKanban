@@ -84,17 +84,21 @@ export async function vacuumDatabase(db: SqliteDatabase): Promise<StorageOptimiz
   };
 }
 
-export async function purgeExpiredTrashTopics(
-  db: SqliteDatabase,
-  retentionDays: number
-): Promise<{ purged_count: number; purged_ids: string[] }> {
+export async function listExpiredTrashTopicIds(db: SqliteDatabase, retentionDays: number): Promise<string[]> {
   if (retentionDays <= 0) {
-    return { purged_count: 0, purged_ids: [] };
+    return [];
   }
 
   const cutoff = new Date(Date.now() - retentionDays * 86400 * 1000).toISOString();
   const rows = db.sqlite.query('SELECT id FROM topics WHERE deleted_at IS NOT NULL AND deleted_at <= ?').all(cutoff) as Array<{ id?: string }>;
-  const ids = rows.map((r) => String(r.id || '')).filter(Boolean);
+  return rows.map((r) => String(r.id || '')).filter(Boolean);
+}
+
+export async function purgeExpiredTrashTopics(
+  db: SqliteDatabase,
+  retentionDays: number
+): Promise<{ purged_count: number; purged_ids: string[] }> {
+  const ids = await listExpiredTrashTopicIds(db, retentionDays);
   if (ids.length === 0) {
     return { purged_count: 0, purged_ids: [] };
   }

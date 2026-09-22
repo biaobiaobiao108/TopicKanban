@@ -37,6 +37,7 @@ import { VoiceoverCueNode } from './VoiceoverCueNode';
 import { ImeMarkdownSafeExtension } from './ImeMarkdownSafeExtension';
 import { getCitationHealth } from '../../lib/citations';
 import { resolvePublicUrl } from '../../lib/publicUrl';
+import { formatBeijingDateTime } from '../../lib/actionDate';
 import {
   createShareSnapshot,
   deleteShareSnapshot,
@@ -183,7 +184,7 @@ export const ScriptEditorTab: React.FC<ScriptEditorTabProps> = ({
   const [saveStatus, setSaveStatus] = useState<'saved' | 'saving' | 'unsaved' | 'local' | 'pending' | 'conflict'>('saved');
   const [draftConflict, setDraftConflict] = useState<Draft | null>(null);
   const [lastSavedTime, setLastSavedTime] = useState<string>(
-    initialDraft?.updated_at ? new Date(initialDraft.updated_at).toLocaleTimeString() : '刚刚'
+    initialDraft?.updated_at ? formatBeijingDateTime(initialDraft.updated_at, 'zh-CN', { hour: '2-digit', minute: '2-digit', second: '2-digit' }) : '刚刚'
   );
   const [copied, setCopied] = useState(false);
   const [isZenMode, setIsZenMode] = useState(false);
@@ -250,7 +251,7 @@ export const ScriptEditorTab: React.FC<ScriptEditorTabProps> = ({
           if (savingVersion === editVersionRef.current) {
             hasUnsavedChangesRef.current = false;
             setSaveStatus('saved');
-            setLastSavedTime(new Date().toLocaleTimeString());
+            setLastSavedTime(formatBeijingDateTime(new Date(), 'zh-CN', { hour: '2-digit', minute: '2-digit', second: '2-digit' }));
           } else {
             setSaveStatus('unsaved');
           }
@@ -655,7 +656,7 @@ export const ScriptEditorTab: React.FC<ScriptEditorTabProps> = ({
         await onSaveDraft(topicId, latest.html, latest.json, latest.wordCount, latest.title);
         hasUnsavedChangesRef.current = false;
         setSaveStatus('saved');
-        setLastSavedTime(new Date().toLocaleTimeString());
+        setLastSavedTime(formatBeijingDateTime(new Date(), 'zh-CN', { hour: '2-digit', minute: '2-digit', second: '2-digit' }));
         setDraftConflict(null);
       } catch (error) {
         console.error(error);
@@ -674,7 +675,7 @@ export const ScriptEditorTab: React.FC<ScriptEditorTabProps> = ({
     draftTitleRef.current = draftConflict.title || topicTitle;
     hasUnsavedChangesRef.current = false;
     setSaveStatus('saved');
-    setLastSavedTime(new Date(draftConflict.updated_at).toLocaleTimeString());
+    setLastSavedTime(formatBeijingDateTime(draftConflict.updated_at, 'zh-CN', { hour: '2-digit', minute: '2-digit', second: '2-digit' }));
     setDraftConflict(null);
   };
 
@@ -954,7 +955,7 @@ export const ScriptEditorTab: React.FC<ScriptEditorTabProps> = ({
               </div>
               <div className="rounded-xl border border-stone-200 dark:border-stone-800 bg-stone-50 dark:bg-stone-800/60 p-4">
                 <div className="font-semibold text-stone-900 dark:text-stone-100">云端最新版本</div>
-                <div className="mt-2 text-xs text-stone-600 dark:text-stone-300">{draftConflict.word_count} 字 · {new Date(draftConflict.updated_at).toLocaleString()}</div>
+                <div className="mt-2 text-xs text-stone-600 dark:text-stone-300">{draftConflict.word_count} 字 · {formatBeijingDateTime(draftConflict.updated_at)}</div>
               </div>
             </div>
             <div className="flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
@@ -1448,7 +1449,7 @@ export const ScriptEditorTab: React.FC<ScriptEditorTabProps> = ({
               <div className="flex items-center justify-between text-[11px]">
                 <span className="text-stone-500 dark:text-stone-400">有效截止时间：</span>
                 <span className="font-mono text-emerald-700 dark:text-emerald-400 font-bold">
-                  {new Date(currentShare.expires_at).toLocaleString([], {
+                  {formatBeijingDateTime(currentShare.expires_at, 'zh-CN', {
                     month: 'numeric',
                     day: 'numeric',
                     hour: '2-digit',

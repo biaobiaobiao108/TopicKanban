@@ -121,8 +121,8 @@ export async function loadPublishedAnalytics(
   const cached = readPublishedAnalyticsCache(cacheKey);
   if (cached) return cached;
 
-  const cutoffDate = options.range === 'all' ? null : new Date();
-  if (cutoffDate) cutoffDate.setDate(cutoffDate.getDate() - (options.range === '90d' ? 90 : 365));
+  const rangeDays = options.range === '90d' ? 90 : 365;
+  const cutoffDate = options.range === 'all' ? null : new Date(Date.now() - rangeDays * 24 * 60 * 60 * 1000);
   const cutoff = cutoffDate?.toISOString();
   const videoFilter = cutoff ? 'WHERE v.published_at >= ?' : '';
   const result = await db.prepare(`SELECT v.id, v.topic_id, v.title, v.published_at,
