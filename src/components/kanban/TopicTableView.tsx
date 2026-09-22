@@ -138,7 +138,7 @@ function TableStatusCell({
             type="button"
             onClick={async () => {
               setIsOpen(false);
-              await updateTopicStatus(topic.id, col.status);
+              await updateTopicStatus(topic.id, col.status).catch(() => undefined);
             }}
             className={`w-full text-left px-2 py-1.5 rounded-lg text-xs font-medium flex items-center justify-between transition-colors cursor-pointer ${
               topic.status === col.status
@@ -608,7 +608,7 @@ export const TopicTableView: React.FC<TopicTableViewProps> = ({
             />
             <button
               type="button"
-              onClick={() => void applyBulkStatus()}
+              onClick={() => void applyBulkStatus().catch(() => undefined)}
               disabled={isBulkUpdating}
               className="min-h-9 rounded-lg bg-rose-600 px-3 text-xs font-bold text-white hover:bg-rose-700 disabled:opacity-50 transition-colors shadow-2xs cursor-pointer"
             >
@@ -727,7 +727,7 @@ export const TopicTableView: React.FC<TopicTableViewProps> = ({
                 <div className="mt-3 flex items-center gap-2">
                   <CustomSelect
                     value={topic.status}
-                    onChange={(val) => void updateTopicStatus(topic.id, val as TopicStatus)}
+                    onChange={(val) => void updateTopicStatus(topic.id, val as TopicStatus).catch(() => undefined)}
                     ariaLabel={`修改「${topic.title}」阶段`}
                     size="sm"
                     options={COLUMNS.map((column) => ({ value: column.status, label: column.label }))}
@@ -789,7 +789,7 @@ export const TopicTableView: React.FC<TopicTableViewProps> = ({
                     </>
                   ) : isArchived ? (
                     <button
-                      onClick={() => void updateTopicStatus(topic.id, 'approved')}
+                      onClick={() => void updateTopicStatus(topic.id, 'approved').catch(() => undefined)}
                       className="flex min-h-10 items-center gap-1.5 rounded-xl border border-emerald-200 dark:border-emerald-800 px-3 text-xs font-semibold text-emerald-700 dark:text-emerald-300"
                     >
                       <RotateCcw className="h-4 w-4" /> 恢复立项
@@ -982,6 +982,10 @@ export const TopicTableView: React.FC<TopicTableViewProps> = ({
                   >
                     <button
                       type="button"
+                      onClick={(event) => {
+                        event.stopPropagation();
+                        if (archiveScope !== 'trash' && !isArchived) void togglePin(topic.id);
+                      }}
                       disabled={archiveScope === 'trash' || isArchived}
                       title={isArchived ? '归档选题不可设为主推' : topic.is_pinned ? '取消置顶' : '置顶选题'}
                       className={`p-1 rounded transition-colors ${isArchived ? 'cursor-not-allowed opacity-30' : 'cursor-pointer'} ${
@@ -1032,7 +1036,10 @@ export const TopicTableView: React.FC<TopicTableViewProps> = ({
                   {isColumnVisible('current_action') && <td className={`${rowPadding} px-3`}>
                     <button
                       type="button"
-                      onClick={() => onOpenCurrentAction(topic.id)}
+                      onClick={(event) => {
+                        event.stopPropagation();
+                        onOpenCurrentAction(topic.id);
+                      }}
                       className={`inline-flex max-w-[240px] items-center gap-1.5 truncate rounded-lg px-2.5 py-1 text-left text-[11px] font-semibold transition-colors cursor-pointer ${topic.current_todo ? 'bg-rose-500/10 text-rose-950 hover:bg-rose-500/20 dark:bg-rose-500/15 dark:text-rose-200' : 'bg-stone-500/5 text-stone-500 hover:bg-stone-500/10 dark:text-stone-400'}`}
                       title="管理当前行动"
                     >
@@ -1136,7 +1143,7 @@ export const TopicTableView: React.FC<TopicTableViewProps> = ({
                         </>
                       ) : isArchived ? (
                         <button
-                            onClick={() => void updateTopicStatus(topic.id, 'approved')}
+                          onClick={() => void updateTopicStatus(topic.id, 'approved').catch(() => undefined)}
                           className="p-1.5 text-emerald-600 dark:text-emerald-400 hover:text-emerald-800 dark:hover:text-emerald-300 hover:bg-emerald-50 dark:hover:bg-emerald-950/40 rounded-lg transition-colors cursor-pointer"
                           title="从归档中恢复至已立项（重返全景看板）"
                         >
@@ -1213,7 +1220,7 @@ export const TopicTableView: React.FC<TopicTableViewProps> = ({
             onClick={() => {
               const topicId = archiveTopicId;
               setArchiveTopicId(null);
-              if (topicId) void updateTopicStatus(topicId, 'published');
+              if (topicId) void updateTopicStatus(topicId, 'published').catch(() => undefined);
             }}
             className="rounded-xl bg-emerald-600 px-3 py-2 text-sm font-semibold text-white transition-colors hover:bg-emerald-700"
           >
@@ -1224,7 +1231,7 @@ export const TopicTableView: React.FC<TopicTableViewProps> = ({
             onClick={() => {
               const topicId = archiveTopicId;
               setArchiveTopicId(null);
-              if (topicId) void updateTopicStatus(topicId, 'icebox');
+              if (topicId) void updateTopicStatus(topicId, 'icebox').catch(() => undefined);
             }}
             className="rounded-xl bg-stone-800 px-3 py-2 text-sm font-semibold text-white transition-colors hover:bg-stone-900"
           >

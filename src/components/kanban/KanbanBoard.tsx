@@ -164,7 +164,7 @@ function reorderLoadedTopics(
 interface KanbanBoardProps {
   topics: Topic[];
   onOpenDetail: (topicId: string) => void;
-  onDeleteTopic: (topicId: string) => void;
+  onDeleteTopic: (topicId: string) => void | Promise<void>;
   onTogglePin: (topicId: string) => void;
   onUpdateTopicStatus: (topicId: string, status: TopicStatus, sortOrder?: number) => Promise<void>;
   onReorderTopics: (updates: Array<{ id: string; status: TopicStatus; sort_order: number }>) => Promise<void>;
@@ -702,7 +702,9 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
     activeStatuses.map((status) => [status, () => loadMoreColumn(status)]),
   ) as Record<TopicStatus, () => void>, [loadMoreColumn]);
 
-  const handleColumnDelete = useCallback((topicId: string) => {
+  const handleColumnDelete = useCallback(async (topicId: string) => {
+    const snapshot = cloneBoard(columns, topicsMap, loadedTopicsByStatus);
+    const previousColumnQueries = queryClient.getQueriesData<PaginatedTopics>({ queryKey: ['kanban-column-page'] });
     setLoadedTopicsByStatus((current) => {
       const next = { ...current };
       activeStatuses.forEach((s) => {
@@ -718,10 +720,19 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
         total: Math.max(0, old.total - (old.items.some((t) => t.id === topicId) ? 1 : 0)),
       } : old
     );
-    void Promise.resolve(onDeleteTopic(topicId));
-  }, [onDeleteTopic, queryClient]);
+    try {
+      await onDeleteTopic(topicId);
+    } catch (error) {
+      setColumns(snapshot.columns);
+      setTopicsMap(snapshot.topics);
+      setLoadedTopicsByStatus(snapshot.loadedTopicsByStatus);
+      previousColumnQueries.forEach(([queryKey, data]) => queryClient.setQueryData(queryKey, data));
+      throw error;
+    }
+  }, [columns, loadedTopicsByStatus, onDeleteTopic, queryClient, topicsMap]);
 
-  const handleColumnStatusUpdate = useCallback((topicId: string, status: TopicStatus) => {
+  const handleColumnStatusUpdate = useCallback(async (topicId: string, status: TopicStatus) => {
+    const snapshot = cloneBoard(columns, topicsMap, loadedTopicsByStatus);
     setLoadedTopicsByStatus((current) => {
       const next = { ...current };
       const item = topicsMap[topicId] ? { ...topicsMap[topicId], status } : undefined;
@@ -736,8 +747,15 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
       return next;
     });
     optimisticUpdateQueryCache([{ id: topicId, status, sort_order: 1 }]);
-    void onUpdateTopicStatus(topicId, status);
-  }, [onUpdateTopicStatus, optimisticUpdateQueryCache, topicsMap]);
+    try {
+      await onUpdateTopicStatus(topicId, status);
+    } catch (error) {
+      setColumns(snapshot.columns);
+      setTopicsMap(snapshot.topics);
+      setLoadedTopicsByStatus(snapshot.loadedTopicsByStatus);
+      throw error;
+    }
+  }, [columns, loadedTopicsByStatus, onUpdateTopicStatus, optimisticUpdateQueryCache, topicsMap]);
 
   return (
     <div data-testid="kanban-page" className="mx-auto flex min-h-0 h-full w-full max-w-7xl min-w-0 flex-1 flex-col gap-5 overflow-y-auto overscroll-contain px-4 py-5 mobile-bottom-nav-content sm:gap-7 sm:px-8 sm:py-7">

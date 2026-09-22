@@ -20,9 +20,9 @@ interface KanbanCardProps {
   topic: Topic;
   onOpenDetail: (topicId: string) => void;
   onOpenCurrentAction?: (topicId: string) => void;
-  onDeleteTopic: (topicId: string) => void;
+  onDeleteTopic: (topicId: string) => void | Promise<void>;
   onTogglePin: (topicId: string) => void;
-  onUpdateStatus?: (topicId: string, status: TopicStatus) => void;
+  onUpdateStatus?: (topicId: string, status: TopicStatus) => void | Promise<void>;
   onKeyboardMove?: (topic: Topic, direction: -1 | 1) => void;
   sortableDisabled?: boolean;
   staleThresholdDays?: number;
@@ -107,6 +107,11 @@ const KanbanCardComponent: React.FC<KanbanCardProps> = ({
 }) => {
   const [isStatusMenuOpen, setIsStatusMenuOpen] = useState(false);
   const [statusMenuPosition, setStatusMenuPosition] = useState<StatusMenuPosition | null>(null);
+
+  const requestStatusUpdate = (status: TopicStatus) => {
+    setIsStatusMenuOpen(false);
+    void Promise.resolve().then(() => onUpdateStatus?.(topic.id, status)).catch(() => undefined);
+  };
   const statusTriggerRef = useRef<HTMLButtonElement>(null);
   const statusMenuRef = useRef<HTMLDivElement>(null);
   const {
@@ -324,10 +329,7 @@ const KanbanCardComponent: React.FC<KanbanCardProps> = ({
                     <button
                       key={c.status}
                       type="button"
-                      onClick={() => {
-                        setIsStatusMenuOpen(false);
-                        onUpdateStatus(topic.id, c.status);
-                      }}
+                      onClick={() => requestStatusUpdate(c.status)}
                       className={`w-full text-left px-2.5 py-1.5 rounded-[var(--radius-sm)] text-xs flex items-center justify-between transition-colors cursor-pointer ${
                         topic.status === c.status
                           ? 'bg-[var(--accent-soft)] text-[var(--accent-dark)] font-medium'
@@ -346,10 +348,7 @@ const KanbanCardComponent: React.FC<KanbanCardProps> = ({
 
                   <button
                     type="button"
-                    onClick={() => {
-                      setIsStatusMenuOpen(false);
-                      onUpdateStatus(topic.id, 'published');
-                    }}
+                    onClick={() => requestStatusUpdate('published')}
                     className={`w-full text-left px-2.5 py-1.5 rounded-[var(--radius-sm)] text-xs flex items-center justify-between transition-colors cursor-pointer ${
                       topic.status === 'published'
                         ? 'bg-[var(--accent-soft)] text-[var(--accent-dark)] font-medium'
@@ -362,10 +361,7 @@ const KanbanCardComponent: React.FC<KanbanCardProps> = ({
 
                   <button
                     type="button"
-                    onClick={() => {
-                      setIsStatusMenuOpen(false);
-                      onUpdateStatus(topic.id, 'icebox');
-                    }}
+                    onClick={() => requestStatusUpdate('icebox')}
                     className={`w-full text-left px-2.5 py-1.5 rounded-[var(--radius-sm)] text-xs flex items-center justify-between transition-colors cursor-pointer ${
                       topic.status === 'icebox'
                         ? 'bg-[var(--canvas)] text-[var(--ink)] font-medium'

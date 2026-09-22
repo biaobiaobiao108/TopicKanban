@@ -25,6 +25,7 @@ import {
   removeTopicCaches,
   replaceTopicTodoCaches,
   replaceTopicPinCaches,
+  findTopicInCaches,
   updateCommercialDealCaches,
   updatePersonCaches,
   updatePublishedCaches,
@@ -70,6 +71,21 @@ function baseWorkspace(topics: Topic[] = []): BootstrapData {
 }
 
 describe('跨视图实体缓存同步', () => {
+  it('优先从当前视图的分页缓存解析选题，避免工作区旧快照覆盖当前卡片', () => {
+    const queryClient = new QueryClient();
+    const current = topic('topic-from-kanban', { title: '当前看板版本' });
+    queryClient.setQueryData<BootstrapData>(['workspace'], baseWorkspace([
+      { ...current, title: '旧工作区版本' },
+    ]));
+    queryClient.setQueryData<PaginatedTopics>(
+      ['kanban-column-page', 'production', '', 'all', 'all', 'all', 'sort_order', 1],
+      page([current]),
+    );
+
+    expect(findTopicInCaches(queryClient, current.id)).toEqual(current);
+    expect(findTopicInCaches(queryClient, 'missing')).toBeUndefined();
+  });
+
   it('同步唯一主推选题并清除旧主推缓存', () => {
     const queryClient = new QueryClient();
     const oldPinned = topic('topic-old', { is_pinned: 1 });

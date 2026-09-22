@@ -138,6 +138,35 @@ function removeTopicFromLists(queryClient: QueryClient, topicId: string) {
   });
 }
 
+/**
+ * Resolve a topic from whichever scoped query currently owns the visible list.
+ * Some views intentionally avoid loading the full workspace bootstrap, so
+ * global actions must not assume that `['workspace']` contains the card.
+ */
+export function findTopicInCaches(queryClient: QueryClient, topicId: string): Topic | undefined {
+  for (const queryKey of topicListKeys) {
+    const listTopic = queryClient
+      .getQueriesData<{ items?: Topic[] }>({ queryKey })
+      .flatMap(([, data]) => data?.items || [])
+      .find((topic) => topic.id === topicId);
+    if (listTopic) return listTopic;
+  }
+
+  const todayTopic = queryClient
+    .getQueriesData<TodayFocusData>({ queryKey: ['today-focus'] })
+    .flatMap(([, data]) => data?.topics || [])
+    .find((topic) => topic.id === topicId);
+  if (todayTopic) return todayTopic;
+
+  const workspaceTopic = queryClient
+    .getQueryData<BootstrapData>(['workspace'])
+    ?.topics
+    .find((topic) => topic.id === topicId);
+  if (workspaceTopic) return workspaceTopic;
+
+  return undefined;
+}
+
 function updateTopicCollections(queryClient: QueryClient, topicId: string, updater: (topic: Topic) => Topic) {
   queryClient.setQueryData<BootstrapData>(['workspace'], (current) => current
     ? { ...current, topics: mapItems(current.topics, topicId, updater) || [] }

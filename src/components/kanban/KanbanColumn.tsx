@@ -16,10 +16,10 @@ interface KanbanColumnProps {
   onLoadMore?: () => void;
   onOpenDetail: (topicId: string) => void;
   onOpenCurrentAction?: (topicId: string) => void;
-  onDeleteTopic: (topicId: string) => void;
+  onDeleteTopic: (topicId: string) => void | Promise<void>;
   onTogglePin: (topicId: string) => void;
   onQuickAddTopic: (status: TopicStatus) => void;
-  onUpdateStatus?: (topicId: string, status: TopicStatus) => void;
+  onUpdateStatus?: (topicId: string, status: TopicStatus) => void | Promise<void>;
   onKeyboardMove?: (topic: Topic, direction: -1 | 1) => void;
   sortableDisabled?: boolean;
   staleThresholdDays?: number;

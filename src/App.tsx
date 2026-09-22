@@ -58,6 +58,7 @@ import {
   updatePublishedCaches,
   updateTagCaches,
   updateTopicCaches,
+  findTopicInCaches,
   replaceTopicTodoCaches,
   replaceTopicPinCaches,
 } from './lib/queryCacheSync';
@@ -506,7 +507,9 @@ function WorkspaceApp({ isAuth, setIsAuth }: WorkspaceAppProps) {
 
   const topicTodoActions = useTopicTodoActions(handleTopicTodoMutation);
   const quickActionTopic = quickActionTopicId
-    ? topics.find((topic) => topic.id === quickActionTopicId) || null
+    ? topics.find((topic) => topic.id === quickActionTopicId)
+      || findTopicInCaches(queryClient, quickActionTopicId)
+      || null
     : null;
 
   const handleUpdateTopic = async (updates: Partial<Topic>) => {
@@ -549,12 +552,14 @@ function WorkspaceApp({ isAuth, setIsAuth }: WorkspaceAppProps) {
   };
 
   const handleDeleteTopic = async (topicId: string) => {
-    const deleted = topics.find((topic) => topic.id === topicId);
+    const deleted = topics.find((topic) => topic.id === topicId)
+      || findTopicInCaches(queryClient, topicId);
     await deleteTopic(topicId);
     setTopics((prev) => {
       const trashedTopicItem = prev.find((topic) => topic.id === topicId);
-      if (trashedTopicItem) {
-        setTrashedTopics((trash) => [{ ...trashedTopicItem, deleted_at: new Date().toISOString() }, ...trash]);
+      const trashedTopic = trashedTopicItem || deleted;
+      if (trashedTopic) {
+        setTrashedTopics((trash) => [{ ...trashedTopic, deleted_at: new Date().toISOString() }, ...trash]);
       }
       return prev.filter((t) => t.id !== topicId);
     });
@@ -607,7 +612,8 @@ function WorkspaceApp({ isAuth, setIsAuth }: WorkspaceAppProps) {
   };
 
   const handleTogglePin = async (topicId: string) => {
-    const topic = topics.find((t) => t.id === topicId);
+    const topic = topics.find((t) => t.id === topicId)
+      || findTopicInCaches(queryClient, topicId);
     if (!topic) return;
     const nextPin: 0 | 1 = topic.is_pinned === 1 ? 0 : 1;
     if (nextPin === 1 && ['published', 'icebox'].includes(topic.status)) {
@@ -646,6 +652,9 @@ function WorkspaceApp({ isAuth, setIsAuth }: WorkspaceAppProps) {
     } catch (error) {
       setTopics(previousTopics);
       previousTopics.forEach((item) => replaceTopicCaches(queryClient, item));
+      if (!previousTopics.some((item) => item.id === topic.id)) {
+        replaceTopicCaches(queryClient, topic);
+      }
       showToast({ tone: 'error', message: error instanceof Error ? error.message : '主推设置失败，请稍后重试' });
     }
   };
@@ -656,6 +665,8 @@ function WorkspaceApp({ isAuth, setIsAuth }: WorkspaceAppProps) {
     sortOrder?: number
   ) => {
     const previousTopics = topics;
+    const previousTopic = topics.find((topic) => topic.id === topicId)
+      || findTopicInCaches(queryClient, topicId);
     const topicUpdate: Partial<Topic> = {
       status,
       ...(typeof sortOrder === 'number' ? { sort_order: sortOrder } : {}),
@@ -668,8 +679,8 @@ function WorkspaceApp({ isAuth, setIsAuth }: WorkspaceAppProps) {
       await updateTopicStatus(topicId, status, sortOrder);
     } catch (err) {
       setTopics(previousTopics);
-      const previous = previousTopics.find((topic) => topic.id === topicId);
-      if (previous) replaceTopicCaches(queryClient, previous);
+      if (previousTopic) replaceTopicCaches(queryClient, previousTopic);
+      showToast({ tone: 'error', message: err instanceof Error ? err.message : '阶段更新失败，请稍后重试' });
       throw err;
     }
     await refreshTopics({ includeLists: true });
