@@ -20,6 +20,7 @@ import { PageHeader } from '../layout/PageHeader';
 import { CustomSelect, type SelectOption } from '../ui/CustomSelect';
 import { ConfirmDialog } from '../ui/ConfirmDialog';
 import { FloatingScrollbar } from '../ui/FloatingScrollbar';
+import { invalidateQueryGroups } from '../../lib/topicQueryCache';
 
 interface TagsViewProps {
   tags: Tag[];
@@ -205,11 +206,7 @@ export const TagsView: React.FC<TagsViewProps> = ({
     if (!name) return;
 
     const saved = await onSaveTag(name, tagColorInput, editingTag?.id);
-    await queryClient.invalidateQueries({ queryKey: ['tags'] });
-    await queryClient.invalidateQueries({ queryKey: ['tags-page'] });
-    await queryClient.invalidateQueries({ queryKey: ['tags-options'] });
-    await queryClient.invalidateQueries({ queryKey: ['tag-topics-page'] });
-    await queryClient.invalidateQueries({ queryKey: ['workspace'] });
+    await invalidateQueryGroups(queryClient, [['tags'], ['tags-page'], ['tags-options'], ['tag-topics-page'], ['workspace']]);
     setSelectedTagId(saved.id);
     setIsModalOpen(false);
   };
@@ -222,11 +219,7 @@ export const TagsView: React.FC<TagsViewProps> = ({
       setSelectedTagId(remaining[0]?.id || null);
     }
     if (visibleTags.length === 1 && tagPage > 1) setTagPage((current) => current - 1);
-    await queryClient.invalidateQueries({ queryKey: ['tags'] });
-    await queryClient.invalidateQueries({ queryKey: ['tags-page'] });
-    await queryClient.invalidateQueries({ queryKey: ['tags-options'] });
-    await queryClient.invalidateQueries({ queryKey: ['tag-topics-page'] });
-    await queryClient.invalidateQueries({ queryKey: ['workspace'] });
+    await invalidateQueryGroups(queryClient, [['tags'], ['tags-page'], ['tags-options'], ['tag-topics-page'], ['workspace']]);
     setDeletingTag(null);
   };
 

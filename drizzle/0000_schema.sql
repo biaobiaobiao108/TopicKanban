@@ -270,3 +270,41 @@ CREATE UNIQUE INDEX idx_commercial_deal_primary_topic
   ON commercial_deal_topics(deal_id)
   WHERE relation_role = 'primary';
 CREATE INDEX idx_commercial_deal_activities_deal ON commercial_deal_activities(deal_id, created_at);
+
+CREATE INDEX idx_topics_active_updated
+  ON topics(updated_at DESC, id DESC)
+  WHERE deleted_at IS NULL AND status NOT IN ('published', 'icebox');
+CREATE INDEX idx_topics_active_focus
+  ON topics(is_pinned DESC, priority, updated_at DESC, id DESC)
+  WHERE deleted_at IS NULL AND status NOT IN ('published', 'icebox');
+CREATE INDEX idx_topic_todos_current_age
+  ON topic_todos(topic_id, current_started_at)
+  WHERE is_current = 1 AND completed_at IS NULL;
+
+CREATE VIRTUAL TABLE topic_search USING fts5(
+  topic_id UNINDEXED,
+  title,
+  summary,
+  hook,
+  storyline,
+  why_now,
+  tokenize = 'trigram'
+);
+
+CREATE TRIGGER topic_search_ai AFTER INSERT ON topics BEGIN
+  INSERT INTO topic_search(topic_id, title, summary, hook, storyline, why_now)
+  VALUES (NEW.id, NEW.title, NEW.summary, NEW.hook, NEW.storyline, NEW.why_now);
+END;
+
+CREATE TRIGGER topic_search_au AFTER UPDATE OF title, summary, hook, storyline, why_now ON topics BEGIN
+  DELETE FROM topic_search WHERE topic_id = OLD.id;
+  INSERT INTO topic_search(topic_id, title, summary, hook, storyline, why_now)
+  VALUES (NEW.id, NEW.title, NEW.summary, NEW.hook, NEW.storyline, NEW.why_now);
+END;
+
+CREATE TRIGGER topic_search_ad AFTER DELETE ON topics BEGIN
+  DELETE FROM topic_search WHERE topic_id = OLD.id;
+END;
+
+INSERT INTO topic_search(topic_id, title, summary, hook, storyline, why_now)
+SELECT id, title, summary, hook, storyline, why_now FROM topics;

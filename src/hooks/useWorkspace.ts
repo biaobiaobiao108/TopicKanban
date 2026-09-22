@@ -1,4 +1,4 @@
-import { useCallback, useEffect, type SetStateAction } from 'react';
+import { useCallback, type SetStateAction } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import type {
   AppSettings,
@@ -11,7 +11,7 @@ import type {
   Topic,
 } from '../types';
 import { fetchActiveTopicCount, fetchBootstrap, fetchCommercialDealFocus, fetchPeople, fetchRelationships, fetchTags, fetchTagsPage, fetchPublishedVideos, fetchTrashedTopics, fetchTodayFocus, fetchSettings, invalidateBootstrap, clearRemoteStorageMemoryCaches } from '../lib/storage';
-import { refreshTopicData } from '../lib/topicQueryCache';
+import { refreshTopicData, type RefreshTopicDataOptions } from '../lib/topicQueryCache';
 
 export function useWorkspace(enabled: boolean, view: string = 'today') {
   const queryClient = useQueryClient();
@@ -30,10 +30,19 @@ export function useWorkspace(enabled: boolean, view: string = 'today') {
     enabled: workspaceEnabled,
     subscribed: workspaceEnabled,
   });
-  const todayQuery = useQuery({ queryKey: ['today-focus'], queryFn: fetchTodayFocus, enabled: todayEnabled, subscribed: todayEnabled });
+  const settingsQuery = useQuery({ queryKey: ['settings'], queryFn: fetchSettings, enabled, subscribed: enabled });
+  const configuredStaleDays = Number(settingsQuery.data?.stale_action_days);
+  const staleActionDays = Number.isFinite(configuredStaleDays)
+    ? Math.max(1, Math.min(30, Math.trunc(configuredStaleDays)))
+    : 5;
+  const todayQuery = useQuery({
+    queryKey: ['today-focus', staleActionDays],
+    queryFn: () => fetchTodayFocus(staleActionDays),
+    enabled: todayEnabled,
+    subscribed: todayEnabled,
+  });
   const activeTopicCountQuery = useQuery({ queryKey: ['active-topic-count'], queryFn: fetchActiveTopicCount, enabled, subscribed: enabled });
   const dealFocusQuery = useQuery<DealFocusData>({ queryKey: ['deal-focus'], queryFn: fetchCommercialDealFocus, enabled: dealFocusEnabled, subscribed: dealFocusEnabled });
-  const settingsQuery = useQuery({ queryKey: ['settings'], queryFn: fetchSettings, enabled, subscribed: enabled });
   const peopleQuery = useQuery({ queryKey: ['people'], queryFn: fetchPeople, enabled: peopleEnabled, subscribed: peopleEnabled });
   const relationshipsQuery = useQuery({ queryKey: ['relationships'], queryFn: fetchRelationships, enabled: relationshipsEnabled, subscribed: relationshipsEnabled });
   const tagsQuery = useQuery({ queryKey: ['tags'], queryFn: fetchTags, enabled: tagsEnabled, subscribed: tagsEnabled });
@@ -101,23 +110,6 @@ export function useWorkspace(enabled: boolean, view: string = 'today') {
     ));
   }, [queryClient]);
 
-  useEffect(() => {
-    if (peopleQuery.data) {
-      updateWorkspace((current) => ({ ...current, people: peopleQuery.data }));
-    }
-    if (relationshipsQuery.data) {
-      updateWorkspace((current) => ({ ...current, relationships: relationshipsQuery.data }));
-    }
-    if (tagsQuery.data) {
-      updateWorkspace((current) => ({ ...current, tags: tagsQuery.data }));
-    }
-    if (publishedQuery.data) {
-      updateWorkspace((current) => ({ ...current, published: publishedQuery.data }));
-    }
-    if (settingsQuery.data) {
-      updateWorkspace((current) => ({ ...current, settings: settingsQuery.data }));
-    }
-  }, [peopleQuery.data, relationshipsQuery.data, tagsQuery.data, publishedQuery.data, settingsQuery.data, updateWorkspace]);
   const setSettings = useCallback((settings: AppSettings) => {
     queryClient.setQueryData<AppSettings>(['settings'], settings);
     updateWorkspace((current) => ({ ...current, settings }));
@@ -138,7 +130,7 @@ export function useWorkspace(enabled: boolean, view: string = 'today') {
     await Promise.all(requests);
   }, [view, workspaceQuery.refetch, todayQuery.refetch, activeTopicCountQuery.refetch, settingsQuery.refetch, trashQuery.refetch, peopleQuery.refetch, relationshipsQuery.refetch, tagsQuery.refetch, tagOptionsQuery.refetch, dealFocusQuery.refetch]);
 
-  const refreshTopics = useCallback(() => refreshTopicData(queryClient), [queryClient]);
+  const refreshTopics = useCallback((options?: RefreshTopicDataOptions) => refreshTopicData(queryClient, options), [queryClient]);
   const clear = useCallback(() => {
     queryClient.clear();
     clearRemoteStorageMemoryCaches();
@@ -147,6 +139,8 @@ export function useWorkspace(enabled: boolean, view: string = 'today') {
   const errorValue = workspaceQuery.error || todayQuery.error || activeTopicCountQuery.error || dealFocusQuery.error || settingsQuery.error || trashQuery.error || peopleQuery.error || relationshipsQuery.error || tagsQuery.error || tagOptionsQuery.error || publishedQuery.error;
   return {
     topics: view === 'today' ? (todayQuery.data?.topics || workspace?.topics || []) : (workspace?.topics || []),
+    todayAttentionTopics: todayQuery.data?.attention_topics || [],
+    todayActionProgress: todayQuery.data?.action_progress,
     dealFocus: dealFocusQuery.data || { due_items: [], unpaid_items: [], total_active: 0 },
     topicCount: activeTopicCountQuery.data?.active_count ?? todayQuery.data?.total_active ?? workspace?.topics.length ?? 0,
     trashedTopics: trashQuery.data || [],

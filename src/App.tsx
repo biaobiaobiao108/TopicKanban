@@ -31,13 +31,6 @@ import {
   saveTag,
   deleteTag,
   saveSettings,
-  updateTopicTodo,
-  setTopicTodoCurrent,
-  completeTopicTodo,
-  reopenTopicTodo,
-  deleteTopicTodo,
-  reorderTopicTodos,
-  saveTopicTodo,
   exportBackupData,
   exportScriptsMarkdown,
 } from './lib/storage';
@@ -73,6 +66,8 @@ import { useToast } from './components/ui/Toast';
 import { PageHeader } from './components/layout/PageHeader';
 import { PwaInstallPromptBanner } from './components/ui/PwaInstall';
 import { Database } from 'lucide-react';
+import { invalidateQueryGroups } from './lib/topicQueryCache';
+import { useTopicTodoActions } from './hooks/useTopicTodoActions';
 
 const VIEW_PATHS: Record<Exclude<NavView, 'topic-detail'>, string> = {
   today: '/today',
@@ -182,6 +177,8 @@ function WorkspaceApp({ isAuth, setIsAuth }: WorkspaceAppProps) {
     publishedList,
     settings,
     dealFocus,
+    todayAttentionTopics,
+    todayActionProgress,
     isLoading: isLoadingData,
     error: loadError,
     reload: loadAllData,
@@ -484,7 +481,7 @@ function WorkspaceApp({ isAuth, setIsAuth }: WorkspaceAppProps) {
       tags: resolvedTags,
     });
     setTopics((prev) => [newTopic, ...prev]);
-    await refreshTopics();
+    await refreshTopics({ includeLists: true });
   };
 
   const handleCreateTopicFromDeal = async (topicData: { title: string; summary: string }): Promise<Topic> => {
@@ -497,52 +494,17 @@ function WorkspaceApp({ isAuth, setIsAuth }: WorkspaceAppProps) {
       status: 'inbox',
     });
     setTopics((prev) => [newTopic, ...prev]);
-    await refreshTopics();
+    await refreshTopics({ includeLists: true });
     return newTopic;
   };
 
-  const handleTopicTodoMutation = (result: TopicTodoMutationResult) => {
+  const handleTopicTodoMutation = useCallback((result: TopicTodoMutationResult) => {
     setTopics((prev) => prev.map((topic) => (topic.id === result.topic.id ? result.topic : topic)));
     replaceTopicTodoCaches(queryClient, result);
-  };
+    void refreshTopics();
+  }, [queryClient, refreshTopics, setTopics]);
 
-  const topicTodoActions = {
-    createTodo: async (topicId: string, input: { title: string }) => {
-      const result = await saveTopicTodo({ topic_id: topicId, ...input });
-      handleTopicTodoMutation(result);
-      return result;
-    },
-    updateTodo: async (todoId: string, updates: Parameters<typeof updateTopicTodo>[1]) => {
-      const result = await updateTopicTodo(todoId, updates);
-      handleTopicTodoMutation(result);
-      return result;
-    },
-    setCurrentTodo: async (todoId: string) => {
-      const result = await setTopicTodoCurrent(todoId);
-      handleTopicTodoMutation(result);
-      return result;
-    },
-    completeTodo: async (todoId: string) => {
-      const result = await completeTopicTodo(todoId);
-      handleTopicTodoMutation(result);
-      return result;
-    },
-    reopenTodo: async (todoId: string) => {
-      const result = await reopenTopicTodo(todoId);
-      handleTopicTodoMutation(result);
-      return result;
-    },
-    deleteTodo: async (todoId: string) => {
-      const result = await deleteTopicTodo(todoId);
-      handleTopicTodoMutation(result);
-      return result;
-    },
-    reorderTodos: async (topicId: string, ids: string[]) => {
-      const result = await reorderTopicTodos(topicId, ids);
-      handleTopicTodoMutation(result);
-      return result;
-    },
-  };
+  const topicTodoActions = useTopicTodoActions(handleTopicTodoMutation);
   const quickActionTopic = quickActionTopicId
     ? topics.find((topic) => topic.id === quickActionTopicId) || null
     : null;
@@ -597,7 +559,7 @@ function WorkspaceApp({ isAuth, setIsAuth }: WorkspaceAppProps) {
       return prev.filter((t) => t.id !== topicId);
     });
     removeTopicCaches(queryClient, topicId);
-    await refreshTopics();
+    await refreshTopics({ includeLists: true });
     if (activeTopicId === topicId) {
       navigate('/kanban');
     }
@@ -611,7 +573,7 @@ function WorkspaceApp({ isAuth, setIsAuth }: WorkspaceAppProps) {
           setTrashedTopics((prev) => prev.filter((topic) => topic.id !== topicId));
           setTopics((prev) => [restored, ...prev]);
           replaceTopicCaches(queryClient, restored);
-          await refreshTopics();
+          await refreshTopics({ includeLists: true });
         },
       });
     }
@@ -622,26 +584,26 @@ function WorkspaceApp({ isAuth, setIsAuth }: WorkspaceAppProps) {
     setTrashedTopics((prev) => prev.filter((topic) => topic.id !== topicId));
     setTopics((prev) => [restored, ...prev]);
     replaceTopicCaches(queryClient, restored);
-    await refreshTopics();
+    await refreshTopics({ includeLists: true });
   };
 
   const handlePermanentlyDeleteTopic = async (topicId: string) => {
     await permanentlyDeleteTopic(topicId);
     setTrashedTopics((prev) => prev.filter((topic) => topic.id !== topicId));
-    await refreshTopics();
+    await refreshTopics({ includeLists: true });
   };
 
   const handlePermanentlyDeleteTopicsBatch = async (ids: string[]) => {
     await permanentlyDeleteTopicsBatch(ids);
     const idSet = new Set(ids);
     setTrashedTopics((prev) => prev.filter((topic) => !idSet.has(topic.id)));
-    await refreshTopics();
+    await refreshTopics({ includeLists: true });
   };
 
   const handleEmptyTrash = async () => {
     await emptyTrash();
     setTrashedTopics([]);
-    await refreshTopics();
+    await refreshTopics({ includeLists: true });
   };
 
   const handleTogglePin = async (topicId: string) => {
@@ -680,7 +642,7 @@ function WorkspaceApp({ isAuth, setIsAuth }: WorkspaceAppProps) {
         return result.cleared_topic_ids.includes(item.id) ? { ...item, is_pinned: 0 } : item;
       }));
       replaceTopicPinCaches(queryClient, result);
-      await refreshTopics();
+      await refreshTopics({ includeLists: true });
     } catch (error) {
       setTopics(previousTopics);
       previousTopics.forEach((item) => replaceTopicCaches(queryClient, item));
@@ -710,7 +672,7 @@ function WorkspaceApp({ isAuth, setIsAuth }: WorkspaceAppProps) {
       if (previous) replaceTopicCaches(queryClient, previous);
       throw err;
     }
-    await refreshTopics();
+    await refreshTopics({ includeLists: true });
   };
 
   const handleReorderTopics = async (
@@ -731,7 +693,7 @@ function WorkspaceApp({ isAuth, setIsAuth }: WorkspaceAppProps) {
       previousTopics.forEach((topic) => replaceTopicCaches(queryClient, topic));
       throw err;
     }
-    await refreshTopics();
+    await refreshTopics({ includeLists: true });
   };
 
   const handleQuickAddInStatus = (status: TopicStatus) => {
@@ -757,10 +719,7 @@ function WorkspaceApp({ isAuth, setIsAuth }: WorkspaceAppProps) {
       return [saved, ...prev];
     });
     updatePersonCaches(queryClient, saved);
-    await queryClient.invalidateQueries({ queryKey: ['people'] });
-    await queryClient.invalidateQueries({ queryKey: ['people-options'] });
-    await queryClient.invalidateQueries({ queryKey: ['people-page'] });
-    await queryClient.invalidateQueries({ queryKey: ['workspace'] });
+    await invalidateQueryGroups(queryClient, [['people'], ['people-options'], ['people-page'], ['workspace']]);
     return saved;
   };
 
@@ -775,11 +734,7 @@ function WorkspaceApp({ isAuth, setIsAuth }: WorkspaceAppProps) {
       people: topic.people?.filter((person) => person.id !== personId),
     })));
     removePersonCaches(queryClient, personId);
-    await queryClient.invalidateQueries({ queryKey: ['people'] });
-    await queryClient.invalidateQueries({ queryKey: ['people-options'] });
-    await queryClient.invalidateQueries({ queryKey: ['people-page'] });
-    await queryClient.invalidateQueries({ queryKey: ['relationships'] });
-    await queryClient.invalidateQueries({ queryKey: ['workspace'] });
+    await invalidateQueryGroups(queryClient, [['people'], ['people-options'], ['people-page'], ['relationships'], ['workspace']]);
   };
 
   // Handlers for Tags
@@ -801,11 +756,7 @@ function WorkspaceApp({ isAuth, setIsAuth }: WorkspaceAppProps) {
       );
     }
     updateTagCaches(queryClient, newTag);
-    await queryClient.invalidateQueries({ queryKey: ['tags'] });
-    await queryClient.invalidateQueries({ queryKey: ['tags-page'] });
-    await queryClient.invalidateQueries({ queryKey: ['tags-options'] });
-    await queryClient.invalidateQueries({ queryKey: ['tag-topics-page'] });
-    await queryClient.invalidateQueries({ queryKey: ['workspace'] });
+    await invalidateQueryGroups(queryClient, [['tags'], ['tags-page'], ['tags-options'], ['tag-topics-page'], ['workspace']]);
     return newTag;
   };
 
@@ -819,11 +770,7 @@ function WorkspaceApp({ isAuth, setIsAuth }: WorkspaceAppProps) {
       }))
     );
     removeTagCaches(queryClient, tagId);
-    await queryClient.invalidateQueries({ queryKey: ['tags'] });
-    await queryClient.invalidateQueries({ queryKey: ['tags-page'] });
-    await queryClient.invalidateQueries({ queryKey: ['tags-options'] });
-    await queryClient.invalidateQueries({ queryKey: ['tag-topics-page'] });
-    await queryClient.invalidateQueries({ queryKey: ['workspace'] });
+    await invalidateQueryGroups(queryClient, [['tags'], ['tags-page'], ['tags-options'], ['tag-topics-page'], ['workspace']]);
   };
 
   const handleSaveRelationship = async (relData: Partial<PersonRelationship> & {
@@ -837,17 +784,13 @@ function WorkspaceApp({ isAuth, setIsAuth }: WorkspaceAppProps) {
       if (exists) return prev.map((r) => (r.id === saved.id ? saved : r));
       return [saved, ...prev];
     });
-    await queryClient.invalidateQueries({ queryKey: ['relationships'] });
-    await queryClient.invalidateQueries({ queryKey: ['people-page'] });
-    await queryClient.invalidateQueries({ queryKey: ['workspace'] });
+    await invalidateQueryGroups(queryClient, [['relationships'], ['people-page'], ['workspace']]);
   };
 
   const handleDeleteRelationship = async (relId: string) => {
     await deleteRelationship(relId);
     setRelationships((prev) => prev.filter((r) => r.id !== relId));
-    await queryClient.invalidateQueries({ queryKey: ['relationships'] });
-    await queryClient.invalidateQueries({ queryKey: ['people-page'] });
-    await queryClient.invalidateQueries({ queryKey: ['workspace'] });
+    await invalidateQueryGroups(queryClient, [['relationships'], ['people-page'], ['workspace']]);
   };
 
   // Handlers for Published
@@ -859,18 +802,14 @@ function WorkspaceApp({ isAuth, setIsAuth }: WorkspaceAppProps) {
       return [saved, ...prev];
     });
     updatePublishedCaches(queryClient, saved);
-    await queryClient.invalidateQueries({ queryKey: ['published'] });
-    await queryClient.invalidateQueries({ queryKey: ['published-page'] });
-    await queryClient.invalidateQueries({ queryKey: ['published-analytics'] });
+    await invalidateQueryGroups(queryClient, [['published'], ['published-page'], ['published-analytics']]);
   };
 
   const handleDeletePublished = async (pubId: string) => {
     await deletePublishedVideo(pubId);
     setPublishedList((prev) => prev.filter((p) => p.id !== pubId));
     removePublishedCaches(queryClient, pubId);
-    await queryClient.invalidateQueries({ queryKey: ['published'] });
-    await queryClient.invalidateQueries({ queryKey: ['published-page'] });
-    await queryClient.invalidateQueries({ queryKey: ['published-analytics'] });
+    await invalidateQueryGroups(queryClient, [['published'], ['published-page'], ['published-analytics']]);
   };
 
   // Handlers for Settings
@@ -963,6 +902,8 @@ function WorkspaceApp({ isAuth, setIsAuth }: WorkspaceAppProps) {
           {currentView === 'today' && (
             <TodayView
               topics={topics}
+              attentionTopics={todayAttentionTopics}
+              todayActionProgress={todayActionProgress}
               todoActions={topicTodoActions}
               dealFocus={dealFocus}
               staleActionDays={settings.stale_action_days || 5}

@@ -1,5 +1,7 @@
 const CACHE_NAME = 'topic-kanban-shell-v1';
 const PRECACHE_URLS = [];
+const MAX_RUNTIME_ASSETS = 80;
+const PRECACHED_PATHS = new Set(PRECACHE_URLS);
 
 const isSameOrigin = (request) => new URL(request.url).origin === self.location.origin;
 const isApiRequest = (url) => url.pathname === '/api' || url.pathname.startsWith('/api/');
@@ -16,6 +18,15 @@ async function cacheResponse(request, response) {
   if (!response || !response.ok || response.type !== 'basic') return response;
   const cache = await caches.open(CACHE_NAME);
   await cache.put(request, response.clone());
+  const assetRequests = (await cache.keys()).filter((cachedRequest) => {
+    const cachedPath = new URL(cachedRequest.url).pathname;
+    return cachedPath.startsWith('/assets/') && !PRECACHED_PATHS.has(cachedPath);
+  });
+  if (assetRequests.length > MAX_RUNTIME_ASSETS) {
+    await Promise.all(assetRequests
+      .slice(0, assetRequests.length - MAX_RUNTIME_ASSETS)
+      .map((cachedRequest) => cache.delete(cachedRequest)));
+  }
   return response;
 }
 

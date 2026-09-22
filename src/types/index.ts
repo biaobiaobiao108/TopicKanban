@@ -493,8 +493,19 @@ export interface PaginatedTopics {
   };
 }
 
+export interface TodayActionProgress {
+  active_count: number;
+  covered_count: number;
+  missing_action_count: number;
+  stale_action_count: number;
+}
+
 export interface TodayFocusData {
+  /** Bounded focus and recent cards used by the Today screen. */
   topics: Topic[];
+  /** Bounded attention cards; totals live in action_progress. */
+  attention_topics?: Topic[];
+  action_progress?: TodayActionProgress;
   total_active: number;
 }
 

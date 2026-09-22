@@ -73,7 +73,14 @@ export function registerTopicRoutes(app: NativeApp): void {
 
   app.get('/today/focus', async (c) => {
     try {
-      return c.json(await loadTodayFocus(requireDb(c)));
+      const rawStaleDays = c.req.query('stale_action_days');
+      const staleActionDays = rawStaleDays
+        ? Number.parseInt(rawStaleDays, 10)
+        : 5;
+      if (!Number.isInteger(staleActionDays) || staleActionDays < 1 || staleActionDays > 30) {
+        return c.json({ error: 'stale_action_days must be an integer between 1 and 30' }, 400);
+      }
+      return c.json(await loadTodayFocus(requireDb(c), staleActionDays));
     } catch (error) {
       return jsonError(c, error, 400);
     }

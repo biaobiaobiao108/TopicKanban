@@ -119,6 +119,17 @@ function cloneBoard(
   };
 }
 
+class NonTouchPointerSensor extends PointerSensor {
+  static activators = [
+    {
+      eventName: 'onPointerDown' as const,
+      handler: ({ nativeEvent: event }: { nativeEvent: PointerEvent }) => {
+        return event.isPrimary && event.button === 0 && event.pointerType !== 'touch';
+      },
+    },
+  ];
+}
+
 function moveBetweenColumns(
   columns: BoardColumns,
   activeId: string,
@@ -333,17 +344,6 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
     }
   }, [boardTopics, activeId, isReorderPending]);
 
-class NonTouchPointerSensor extends PointerSensor {
-  static activators = [
-    {
-      eventName: 'onPointerDown' as const,
-      handler: ({ nativeEvent: event }: { nativeEvent: PointerEvent }) => {
-        return event.isPrimary && event.button === 0 && event.pointerType !== 'touch';
-      },
-    },
-  ];
-}
-
   const sensors = useSensors(
     useSensor(NonTouchPointerSensor, {
       activationConstraint: {
@@ -398,6 +398,13 @@ class NonTouchPointerSensor extends PointerSensor {
       return result;
     }, {} as BoardColumns);
   }, [columns, topicsMap, searchTerm, priorityFilter, selectedTagId, selectedPersonId, sortBy, activeId]);
+
+  const visibleColumnTopics = useMemo(() => Object.fromEntries(
+    activeStatuses.map((status) => [
+      status,
+      (visibleColumnIds[status] || []).map((id) => topicsMap[id]).filter(Boolean),
+    ]),
+  ) as Record<TopicStatus, Topic[]>, [topicsMap, visibleColumnIds]);
 
   const activeTopic = activeId ? topicsMap[activeId] : null;
 
@@ -620,7 +627,7 @@ class NonTouchPointerSensor extends PointerSensor {
     restoreSnapshot();
   };
 
-  const handleKeyboardMove = async (topic: Topic, direction: -1 | 1) => {
+  const handleKeyboardMove = useCallback(async (topic: Topic, direction: -1 | 1) => {
     const currentIndex = activeStatuses.indexOf(topic.status);
     if (currentIndex === -1) return;
     const targetStatus = activeStatuses[currentIndex + direction];
@@ -660,14 +667,14 @@ class NonTouchPointerSensor extends PointerSensor {
       setLoadedTopicsByStatus(snapshot.loadedTopicsByStatus);
       setIsReorderPending(false);
     }
-  };
+  }, [columns, loadedTopicsByStatus, onReorderTopics, optimisticUpdateQueryCache, queryClient, topicsMap]);
 
   // WIP and stale action stats
   const approvedCount = (columns.approved || []).length;
   const scriptingCount = (columns.scripting || []).length;
-  const stagnantTopics = boardTopics
+  const stagnantTopics = useMemo(() => boardTopics
     .filter((topic) => isActiveTopic(topic) && getCurrentActionAgeDays(topic) >= staleActionDays)
-    .sort((a, b) => getCurrentActionAgeDays(b) - getCurrentActionAgeDays(a));
+    .sort((a, b) => getCurrentActionAgeDays(b) - getCurrentActionAgeDays(a)), [boardTopics, staleActionDays]);
   const wipWarnings = [
     approvedCount > 5 ? `已立项 ${approvedCount} 个，超过建议上限 5 个` : null,
     scriptingCount > 2 ? `写稿中 ${scriptingCount} 个，超过建议上限 2 个` : null,
@@ -681,18 +688,21 @@ class NonTouchPointerSensor extends PointerSensor {
   const isColumnDataSettling = columnQueries.some((query) => query.isPending || query.isPlaceholderData);
   const isDragDisabled = isMobileViewport || isColumnDataSettling || isReorderPending || Boolean(searchTerm) || priorityFilter !== 'all' || selectedTagId !== 'all' || selectedPersonId !== 'all';
 
-  const handleResetFilters = () => {
+  const handleResetFilters = useCallback(() => {
     setPriorityFilter('all');
     setSelectedTagId('all');
     setSelectedPersonId('all');
     setSortBy('sort_order');
-  };
+  }, []);
 
-  const loadMoreColumn = (status: TopicStatus) => {
+  const loadMoreColumn = useCallback((status: TopicStatus) => {
     setColumnPages((current) => ({ ...current, [status]: current[status] + 1 }));
-  };
+  }, []);
+  const loadMoreHandlers = useMemo(() => Object.fromEntries(
+    activeStatuses.map((status) => [status, () => loadMoreColumn(status)]),
+  ) as Record<TopicStatus, () => void>, [loadMoreColumn]);
 
-  const handleColumnDelete = (topicId: string) => {
+  const handleColumnDelete = useCallback((topicId: string) => {
     setLoadedTopicsByStatus((current) => {
       const next = { ...current };
       activeStatuses.forEach((s) => {
@@ -709,9 +719,9 @@ class NonTouchPointerSensor extends PointerSensor {
       } : old
     );
     void Promise.resolve(onDeleteTopic(topicId));
-  };
+  }, [onDeleteTopic, queryClient]);
 
-  const handleColumnStatusUpdate = (topicId: string, status: TopicStatus) => {
+  const handleColumnStatusUpdate = useCallback((topicId: string, status: TopicStatus) => {
     setLoadedTopicsByStatus((current) => {
       const next = { ...current };
       const item = topicsMap[topicId] ? { ...topicsMap[topicId], status } : undefined;
@@ -727,7 +737,7 @@ class NonTouchPointerSensor extends PointerSensor {
     });
     optimisticUpdateQueryCache([{ id: topicId, status, sort_order: 1 }]);
     void onUpdateTopicStatus(topicId, status);
-  };
+  }, [onUpdateTopicStatus, optimisticUpdateQueryCache, topicsMap]);
 
   return (
     <div data-testid="kanban-page" className="mx-auto flex min-h-0 h-full w-full max-w-7xl min-w-0 flex-1 flex-col gap-5 overflow-y-auto overscroll-contain px-4 py-5 mobile-bottom-nav-content sm:gap-7 sm:px-8 sm:py-7">
@@ -837,8 +847,7 @@ class NonTouchPointerSensor extends PointerSensor {
         {isMobileViewport ? (
           <div key={mobileActiveStage} data-testid="kanban-mobile-stage" className="mobile-stage-enter min-w-0">
             {ACTIVE_COLUMNS.filter((c) => c.status === mobileActiveStage).map((col) => {
-              const ids = visibleColumnIds[col.status] || [];
-              const colTopics = ids.map((id) => topicsMap[id]).filter(Boolean);
+              const colTopics = visibleColumnTopics[col.status] || [];
               return (
                 <KanbanColumn
                   key={col.status}
@@ -851,7 +860,7 @@ class NonTouchPointerSensor extends PointerSensor {
                   totalCount={columnTotalCounts[col.status] || 0}
                   hasMore={(columnTotalCounts[col.status] || 0) > (loadedTopicsByStatus[col.status]?.length || colTopics.length)}
                   isLoadingMore={columnQueries[activeStatuses.indexOf(col.status)]?.isFetching && columnPages[col.status] > 1}
-                  onLoadMore={() => loadMoreColumn(col.status)}
+                  onLoadMore={loadMoreHandlers[col.status]}
                   onDeleteTopic={handleColumnDelete}
                   onTogglePin={onTogglePin}
                   onQuickAddTopic={onQuickAddTopic}
@@ -868,8 +877,7 @@ class NonTouchPointerSensor extends PointerSensor {
           /* Desktop four-column board; drag and drop remains available here. */
           <div data-testid="kanban-desktop-board" className="min-w-0 grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
             {ACTIVE_COLUMNS.map((col) => {
-              const ids = visibleColumnIds[col.status] || [];
-              const colTopics = ids.map((id) => topicsMap[id]).filter(Boolean);
+              const colTopics = visibleColumnTopics[col.status] || [];
               return (
                 <div key={col.status} className="min-w-0">
                   <KanbanColumn
@@ -882,7 +890,7 @@ class NonTouchPointerSensor extends PointerSensor {
                     totalCount={columnTotalCounts[col.status] || 0}
                     hasMore={(columnTotalCounts[col.status] || 0) > (loadedTopicsByStatus[col.status]?.length || colTopics.length)}
                     isLoadingMore={columnQueries[activeStatuses.indexOf(col.status)]?.isFetching && columnPages[col.status] > 1}
-                    onLoadMore={() => loadMoreColumn(col.status)}
+                    onLoadMore={loadMoreHandlers[col.status]}
                     onDeleteTopic={handleColumnDelete}
                     onTogglePin={onTogglePin}
                     onQuickAddTopic={onQuickAddTopic}

@@ -19,6 +19,36 @@ interface PageOptions {
   query?: string;
 }
 
+const ANALYTICS_CACHE_TTL_MS = 30_000;
+const ANALYTICS_CACHE_MAX_ENTRIES = 12;
+const analyticsCache = new Map<string, { expiresAt: number; payload: PublishedAnalyticsPayload }>();
+
+export function invalidatePublishedAnalyticsCache(): void {
+  analyticsCache.clear();
+}
+
+function readPublishedAnalyticsCache(key: string): PublishedAnalyticsPayload | null {
+  const entry = analyticsCache.get(key);
+  if (!entry) return null;
+  if (entry.expiresAt <= Date.now()) {
+    analyticsCache.delete(key);
+    return null;
+  }
+  analyticsCache.delete(key);
+  analyticsCache.set(key, entry);
+  return entry.payload;
+}
+
+function writePublishedAnalyticsCache(key: string, payload: PublishedAnalyticsPayload): void {
+  analyticsCache.delete(key);
+  analyticsCache.set(key, { expiresAt: Date.now() + ANALYTICS_CACHE_TTL_MS, payload });
+  while (analyticsCache.size > ANALYTICS_CACHE_MAX_ENTRIES) {
+    const oldestKey = analyticsCache.keys().next().value as string | undefined;
+    if (!oldestKey) break;
+    analyticsCache.delete(oldestKey);
+  }
+}
+
 async function loadAnalyticsTopics(
   db: SqliteDatabase,
   range: 'all' | '90d' | 'year',
@@ -87,6 +117,10 @@ export async function loadPublishedAnalytics(
   db: SqliteDatabase,
   options: PageOptions & { range: 'all' | '90d' | 'year' },
 ): Promise<PublishedAnalyticsPayload> {
+  const cacheKey = `${options.range}:${options.page}:${options.pageSize}`;
+  const cached = readPublishedAnalyticsCache(cacheKey);
+  if (cached) return cached;
+
   const cutoffDate = options.range === 'all' ? null : new Date();
   if (cutoffDate) cutoffDate.setDate(cutoffDate.getDate() - (options.range === '90d' ? 90 : 365));
   const cutoff = cutoffDate?.toISOString();
@@ -143,7 +177,7 @@ export async function loadPublishedAnalytics(
     topCoinedVideo: overview.topCoinedVideo ? fullVideoMap.get(overview.topCoinedVideo.id) || overview.topCoinedVideo : null,
   };
 
-  return {
+  const payload: PublishedAnalyticsPayload = {
     totalVideos: allVideos.length,
     overview: completeOverview,
     correlation: analyzeTopicModelCorrelation(allVideos, topics),
@@ -159,6 +193,8 @@ export async function loadPublishedAnalytics(
     ranking_page: options.page,
     ranking_page_size: options.pageSize,
   };
+  writePublishedAnalyticsCache(cacheKey, payload);
+  return payload;
 }
 export function publishedStatement(db: SqliteDatabase, video: PublishedVideo): SqlitePreparedStatement {
   return bind(db, `INSERT INTO published_videos (

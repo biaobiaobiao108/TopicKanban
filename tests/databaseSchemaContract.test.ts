@@ -29,7 +29,9 @@ describe('Database schema contract', () => {
         'commercial_deal_activities', 'commercial_deal_topics', 'commercial_deals',
         'draft_citations', 'drafts', 'people', 'person_relationships', 'publish_packages',
         'published_videos', 'sources', 'tags', 'timeline_event_people', 'timeline_events',
-        'topic_people', 'topic_tags', 'topic_todos', 'topics',
+        'topic_people', 'topic_search', 'topic_search_config', 'topic_search_content',
+        'topic_search_data', 'topic_search_docsize', 'topic_search_idx', 'topic_tags',
+        'topic_todos', 'topics',
       ]);
 
       const sourceColumns = sqlite.query('PRAGMA table_info(sources)').all() as Array<{ name: string }>;
@@ -74,7 +76,7 @@ describe('Database schema contract', () => {
       expect(sqlite.query("SELECT name FROM sqlite_master WHERE type = 'table' AND name = 'commercial_deal_activities'").get()).not.toBeNull();
 
       expect(sqlite.query("SELECT name FROM sqlite_master WHERE type = 'table' AND name = '_schema_migrations'").get()).toBeNull();
-      expect(sqlite.query('PRAGMA user_version').get()).toEqual({ user_version: 1 });
+      expect(sqlite.query('PRAGMA user_version').get()).toEqual({ user_version: 2 });
       sqlite.query("INSERT INTO commercial_deals (id, title, created_at, updated_at) VALUES ('valid', '有效商单', '2026-08-27', '2026-08-27')").run();
       expect(() => sqlite.query("INSERT INTO commercial_deals (id, title, status, created_at, updated_at) VALUES ('invalid', '非法阶段', 'reviewing', '2026-08-27', '2026-08-27')").run()).toThrow();
     } finally {
@@ -120,7 +122,7 @@ describe('Database schema contract', () => {
 
     const first = await initializeSqliteDatabase(dbPath, schemaDir);
     try {
-      expect(first.sqlite.query('PRAGMA user_version').get()).toEqual({ user_version: 1 });
+      expect(first.sqlite.query('PRAGMA user_version').get()).toEqual({ user_version: 2 });
       expect(first.sqlite.query('SELECT target_publish_date, deadline FROM topics WHERE id = ?').get('legacy-topic'))
         .toEqual({ target_publish_date: null, deadline: null });
       expect(first.sqlite.query('SELECT contrast_tag FROM timeline_events WHERE id = ?').get('legacy-event'))

@@ -1051,9 +1051,14 @@ describe('Bun Server Integration (Local SQLite & API)', () => {
     expect(tagsData.summary).toEqual({ tagged_topics: 31, total_topics: 31 });
 
     const todayFocus = await app.request('/api/today/focus', { headers });
-    const todayData = await todayFocus.json() as { topics: unknown[]; total_active: number };
+    const todayData = await todayFocus.json() as {
+      topics: unknown[];
+      total_active: number;
+      action_progress?: { active_count: number; covered_count: number };
+    };
     expect(todayData.total_active).toBe(31);
-    expect(todayData.topics).toHaveLength(31);
+    expect(todayData.topics.length).toBeLessThanOrEqual(14);
+    expect(todayData.action_progress).toMatchObject({ active_count: 31 });
 
     const topicSummary = await app.request('/api/topics/summary', { headers });
     const summaryData = await topicSummary.json() as { active_count: number };

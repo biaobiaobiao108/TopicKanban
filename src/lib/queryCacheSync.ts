@@ -83,6 +83,12 @@ function updateTopicLists(queryClient: QueryClient, topicId: string, updater: (t
   });
 }
 
+function updateTodayFocusCollections(queryClient: QueryClient, updater: (current: TodayFocusData) => TodayFocusData) {
+  queryClient.setQueriesData<TodayFocusData>({ queryKey: ['today-focus'] }, (current) => (
+    current ? updater(current) : current
+  ));
+}
+
 function topicMatchesKanbanQuery(topic: Topic, queryKey: readonly unknown[]): boolean {
   const status = queryKey[1];
   const searchTerm = typeof queryKey[2] === 'string' ? queryKey[2] : '';
@@ -136,9 +142,11 @@ function updateTopicCollections(queryClient: QueryClient, topicId: string, updat
   queryClient.setQueryData<BootstrapData>(['workspace'], (current) => current
     ? { ...current, topics: mapItems(current.topics, topicId, updater) || [] }
     : current);
-  queryClient.setQueryData<TodayFocusData>(['today-focus'], (current) => current
-    ? { ...current, topics: mapItems(current.topics, topicId, updater) || [] }
-    : current);
+  updateTodayFocusCollections(queryClient, (current) => ({
+    ...current,
+    topics: mapItems(current.topics, topicId, updater) || [],
+    attention_topics: mapItems(current.attention_topics, topicId, updater),
+  }));
   updateTopicLists(queryClient, topicId, updater);
 }
 
@@ -146,9 +154,11 @@ function mapTopicCollections(queryClient: QueryClient, updater: (topic: Topic) =
   queryClient.setQueryData<BootstrapData>(['workspace'], (current) => current
     ? { ...current, topics: current.topics.map(updater) }
     : current);
-  queryClient.setQueryData<TodayFocusData>(['today-focus'], (current) => current
-    ? { ...current, topics: current.topics.map(updater) }
-    : current);
+  updateTodayFocusCollections(queryClient, (current) => ({
+    ...current,
+    topics: current.topics.map(updater),
+    attention_topics: current.attention_topics?.map(updater),
+  }));
   mapTopicLists(queryClient, updater);
 }
 
@@ -179,9 +189,11 @@ export function removeTopicCaches(queryClient: QueryClient, topicId: string) {
   queryClient.setQueryData<BootstrapData>(['workspace'], (current) => current
     ? { ...current, topics: removeItems(current.topics, topicId) || [] }
     : current);
-  queryClient.setQueryData<TodayFocusData>(['today-focus'], (current) => current
-    ? { ...current, topics: removeItems(current.topics, topicId) || [] }
-    : current);
+  updateTodayFocusCollections(queryClient, (current) => ({
+    ...current,
+    topics: removeItems(current.topics, topicId) || [],
+    attention_topics: removeItems(current.attention_topics, topicId),
+  }));
   removeTopicFromLists(queryClient, topicId);
 }
 

@@ -35,6 +35,7 @@ import {
 import { extractBvid } from '../../lib/bilibili';
 import { sanitizeExternalHttpUrl } from '../../lib/urlSafety';
 import { removeCommercialDealCaches, updateCommercialDealCaches } from '../../lib/queryCacheSync';
+import { invalidateQueryGroups } from '../../lib/topicQueryCache';
 import { Modal } from '../ui/Modal';
 import { DateInput } from '../ui/DateInput';
 import { CustomSelect, type SelectOption, type SelectRenderState } from '../ui/CustomSelect';
@@ -534,11 +535,7 @@ function CommercialDealsView({ topics, onCreateTopicFromDeal }: Pick<DealsViewPr
 
   const handleSaved = (deal: CommercialDealDetail) => {
     updateCommercialDealCaches(queryClient, deal);
-    void queryClient.invalidateQueries({ queryKey: ['commercial-deal-page'] });
-    void queryClient.invalidateQueries({ queryKey: ['deal-focus'] });
-    void queryClient.invalidateQueries({ queryKey: ['commercial-deals-calendar'] });
-    void queryClient.invalidateQueries({ queryKey: ['topic-deals'] });
-    void queryClient.invalidateQueries({ queryKey: ['workspace'] });
+    void invalidateQueryGroups(queryClient, [['commercial-deal-page'], ['deal-focus'], ['commercial-deals-calendar'], ['topic-deals'], ['workspace']]);
     queryClient.setQueryData(['commercial-deal', deal.id], deal);
   };
   const handleStatusFilter = (value: string) => {
@@ -905,11 +902,7 @@ function CommercialDealDetailView({
 
   const updateDealCache = (saved: CommercialDealDetail) => {
     updateCommercialDealCaches(queryClient, saved);
-    void queryClient.invalidateQueries({ queryKey: ['commercial-deal-page'] });
-    void queryClient.invalidateQueries({ queryKey: ['deal-focus'] });
-    void queryClient.invalidateQueries({ queryKey: ['commercial-deals-calendar'] });
-    void queryClient.invalidateQueries({ queryKey: ['topic-deals'] });
-    void queryClient.invalidateQueries({ queryKey: ['workspace'] });
+    void invalidateQueryGroups(queryClient, [['commercial-deal-page'], ['deal-focus'], ['commercial-deals-calendar'], ['topic-deals'], ['workspace']]);
   };
   const setField = <K extends keyof DealFormState>(key: K, value: DealFormState[K]) => {
     setForm((current) => ({ ...current, [key]: value }));
@@ -1024,13 +1017,7 @@ function CommercialDealDetailView({
     try {
       await deleteCommercialDeal(deal.id);
       removeCommercialDealCaches(queryClient, deal.id);
-      await queryClient.invalidateQueries({
-        queryKey: ['commercial-deal-page'],
-      });
-      await queryClient.invalidateQueries({ queryKey: ['deal-focus'] });
-      await queryClient.invalidateQueries({ queryKey: ['commercial-deals-calendar'] });
-      await queryClient.invalidateQueries({ queryKey: ['topic-deals'] });
-      await queryClient.invalidateQueries({ queryKey: ['workspace'] });
+      await invalidateQueryGroups(queryClient, [['commercial-deal-page'], ['deal-focus'], ['commercial-deals-calendar'], ['topic-deals'], ['workspace']]);
       setIsDeleteModalOpen(false);
       navigate('/deals');
     } catch (error) {

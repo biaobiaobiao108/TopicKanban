@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from 'react';
-import { CommercialDeal, DealFocusData, Topic } from '../../types';
+import { CommercialDeal, DealFocusData, TodayActionProgress, Topic } from '../../types';
 import { StatusBadge, PriorityBadge, TagPill } from '../ui/Badge';
 import {
   Flame,
@@ -45,13 +45,10 @@ function compareFocusTopics(a: Topic, b: Topic): number {
 
 function takeMostRecentTopics(topics: Topic[], limit: number): Topic[] {
   if (limit <= 0) return [];
-  const recent: Topic[] = [];
-  topics.forEach((topic) => {
-    recent.push(topic);
-    recent.sort((a, b) => new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime());
-    if (recent.length > limit) recent.pop();
-  });
-  return recent;
+  return topics
+    .slice()
+    .sort((a, b) => new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime())
+    .slice(0, limit);
 }
 
 function DealFocusCard({ deal, onOpen }: { deal: CommercialDeal; onOpen: () => void }) {
@@ -91,6 +88,8 @@ function DealFocusCard({ deal, onOpen }: { deal: CommercialDeal; onOpen: () => v
 
 interface TodayViewProps {
   topics: Topic[];
+  attentionTopics?: Topic[];
+  todayActionProgress?: TodayActionProgress;
   dealFocus?: DealFocusData;
   staleActionDays?: number;
   onOpenDetail: (topicId: string, tab?: 'todos') => void;
@@ -103,6 +102,8 @@ interface TodayViewProps {
 
 export const TodayView: React.FC<TodayViewProps> = ({
   topics,
+  attentionTopics = [],
+  todayActionProgress,
   dealFocus = { due_items: [], unpaid_items: [], total_active: 0 },
   staleActionDays = 5,
   onOpenDetail,
@@ -128,9 +129,10 @@ export const TodayView: React.FC<TodayViewProps> = ({
   }, [activeTopics]);
 
   const actionProgress = useMemo(() => {
+    const attentionSource = todayActionProgress ? attentionTopics : activeTopics;
     const missingAction: Topic[] = [];
     const staleAction: Topic[] = [];
-    activeTopics.forEach((topic) => {
+    attentionSource.forEach((topic) => {
       if (!topic.current_todo) {
         missingAction.push(topic);
       } else if (getCurrentActionAgeDays(topic) >= staleActionDays) {
@@ -140,10 +142,16 @@ export const TodayView: React.FC<TodayViewProps> = ({
     return {
       missingAction,
       staleAction,
-      attention: [...missingAction, ...staleAction].slice(0, 3),
-      covered: activeTopics.length - missingAction.length,
+      attention: todayActionProgress ? attentionTopics.slice(0, 3) : [...missingAction, ...staleAction].slice(0, 3),
+      covered: todayActionProgress?.covered_count ?? (activeTopics.length - missingAction.length),
+      activeCount: todayActionProgress?.active_count ?? activeTopics.length,
+      missingCount: todayActionProgress?.missing_action_count ?? missingAction.length,
+      staleCount: todayActionProgress?.stale_action_count ?? staleAction.length,
     };
-  }, [activeTopics, staleActionDays]);
+  }, [activeTopics, attentionTopics, staleActionDays, todayActionProgress]);
+
+  const activeTopicTotal = actionProgress.activeCount;
+  const coveragePercent = activeTopicTotal ? Math.round((actionProgress.covered / activeTopicTotal) * 100) : 0;
 
   // Recently updated stream
   const recentUpdates = useMemo(() => takeMostRecentTopics(topics, 8), [topics]);
@@ -343,25 +351,25 @@ export const TodayView: React.FC<TodayViewProps> = ({
               <h2 id="today-action-progress-heading" className="flex items-center gap-2 text-base font-bold text-stone-900 dark:text-stone-100">
                 <ListChecks className="h-4 w-4 text-rose-600 dark:text-rose-400" />
                 <span>行动推进</span>
-                <span className="rounded-full bg-stone-200/60 px-2 py-0.5 text-xs font-mono font-bold tabular-nums text-stone-700 dark:bg-stone-800 dark:text-stone-300">{activeTopics.length}</span>
+                <span className="rounded-full bg-stone-200/60 px-2 py-0.5 text-xs font-mono font-bold tabular-nums text-stone-700 dark:bg-stone-800 dark:text-stone-300">{activeTopicTotal}</span>
               </h2>
-              <span className="text-[11px] font-semibold text-stone-600 dark:text-stone-400">{actionProgress.covered}/{activeTopics.length || 0} 已落地</span>
+              <span className="text-[11px] font-semibold text-stone-600 dark:text-stone-400">{actionProgress.covered}/{activeTopicTotal || 0} 已落地</span>
             </div>
 
             <div data-testid="today-action-progress-panel" className="flex min-h-0 flex-1 flex-col overflow-hidden rounded-2xl border border-stone-200/70 bg-white/80 p-4 shadow-2xs dark:border-stone-800 dark:bg-stone-900/80">
               <div className="flex items-end justify-between gap-3">
                 <div>
-                  <div className="text-2xl font-bold tracking-tight text-stone-900 dark:text-stone-100">{activeTopics.length ? Math.round((actionProgress.covered / activeTopics.length) * 100) : 0}%</div>
+                  <div className="text-2xl font-bold tracking-tight text-stone-900 dark:text-stone-100">{coveragePercent}%</div>
                   <p className="mt-0.5 text-xs text-stone-600 dark:text-stone-400">活跃选题已有明确下一步</p>
                 </div>
                 <div className="flex items-center gap-1.5 text-[11px] text-stone-600 dark:text-stone-400">
                   <span className="h-2 w-2 rounded-full bg-amber-400" />
-                  <span>{actionProgress.staleAction.length} 条需重新推进</span>
+                  <span>{actionProgress.staleCount} 条需重新推进</span>
                 </div>
               </div>
 
-              <div className="mt-3 h-2 overflow-hidden rounded-full bg-stone-100 dark:bg-stone-800" aria-label={`当前行动覆盖率 ${activeTopics.length ? Math.round((actionProgress.covered / activeTopics.length) * 100) : 0}%`} role="progressbar" aria-valuemin={0} aria-valuemax={100} aria-valuenow={activeTopics.length ? Math.round((actionProgress.covered / activeTopics.length) * 100) : 0}>
-                <div className="h-full rounded-full bg-gradient-to-r from-rose-500 to-rose-400 transition-[width] duration-300 motion-reduce:transition-none" style={{ width: `${activeTopics.length ? (actionProgress.covered / activeTopics.length) * 100 : 0}%` }} />
+              <div className="mt-3 h-2 overflow-hidden rounded-full bg-stone-100 dark:bg-stone-800" aria-label={`当前行动覆盖率 ${coveragePercent}%`} role="progressbar" aria-valuemin={0} aria-valuemax={100} aria-valuenow={coveragePercent}>
+                <div className="h-full rounded-full bg-gradient-to-r from-rose-500 to-rose-400 transition-[width] duration-300 motion-reduce:transition-none" style={{ width: `${coveragePercent}%` }} />
               </div>
 
               <FloatingScrollbar data-testid="today-action-progress-scroll" role="region" tabIndex={0} aria-label="行动推进列表" className="today-focus-scroll divide-y divide-stone-100 dark:divide-stone-800/70" wrapperClassName="mt-4 flex-1 min-h-0">
@@ -392,10 +400,10 @@ export const TodayView: React.FC<TodayViewProps> = ({
                 <div data-testid="today-action-progress-footer" className="mt-3 border-t border-stone-100 pt-3 text-[11px] text-stone-600 dark:border-stone-800/70 dark:text-stone-400">
                   <div className="flex items-center justify-between gap-3 font-semibold">
                     <span className="flex items-center gap-1.5">
-                      {actionProgress.missingAction.length > 0 ? <Zap className="h-3.5 w-3.5 text-rose-500 dark:text-rose-400" aria-hidden="true" /> : <AlertTriangle className="h-3.5 w-3.5 text-amber-500 dark:text-amber-400" aria-hidden="true" />}
-                      <span>{actionProgress.missingAction.length > 0 ? '等待补充行动' : '需要重新推进'}</span>
+                      {actionProgress.missingCount > 0 ? <Zap className="h-3.5 w-3.5 text-rose-500 dark:text-rose-400" aria-hidden="true" /> : <AlertTriangle className="h-3.5 w-3.5 text-amber-500 dark:text-amber-400" aria-hidden="true" />}
+                      <span>{actionProgress.missingCount > 0 ? '等待补充行动' : '需要重新推进'}</span>
                     </span>
-                    <span data-testid="today-action-progress-count" className="font-mono tabular-nums text-stone-700 dark:text-stone-300">{actionProgress.missingAction.length > 0 ? actionProgress.missingAction.length : actionProgress.staleAction.length}</span>
+                    <span data-testid="today-action-progress-count" className="font-mono tabular-nums text-stone-700 dark:text-stone-300">{actionProgress.missingCount > 0 ? actionProgress.missingCount : actionProgress.staleCount}</span>
                   </div>
                 </div>
               )}

@@ -47,8 +47,6 @@ if (!frontendResult.success) {
   process.exit(1);
 }
 
-const assetsDir = joinPath(distDir, 'assets');
-
 const serverResult = await Bun.build({
   entrypoints: [joinPath(projectRoot, 'src/server/server.ts')],
   target: 'bun',
@@ -80,6 +78,11 @@ for (const relativePath of await listFiles(publicDir, '**/*')) {
   );
 }
 
+const indexHtml = await Bun.file(joinPath(distDir, 'index.html')).text();
+const initialAssetUrls = Array.from(
+  indexHtml.matchAll(/(?:src|href)="(\/assets\/[^"?#]+)"/g),
+  (match) => match[1],
+);
 const precacheUrls = [
   '/',
   '/index.html',
@@ -89,20 +92,28 @@ const precacheUrls = [
   '/icon-512.png',
   '/apple-touch-icon.png',
   '/favicon.ico',
-  ...(await listFiles(assetsDir)).sort().map((fileName) => `/assets/${fileName}`),
+  ...initialAssetUrls,
 ];
 const serviceWorkerPath = joinPath(distDir, 'sw.js');
 if (await Bun.file(serviceWorkerPath).exists()) {
   const serviceWorkerSource = await Bun.file(serviceWorkerPath).text();
   const precacheDeclaration = 'const PRECACHE_URLS = [];';
+  const cacheNameDeclaration = "const CACHE_NAME = 'topic-kanban-shell-v1';";
   if (!serviceWorkerSource.includes(precacheDeclaration)) {
     throw new Error('Service Worker precache placeholder is missing.');
   }
+  if (!serviceWorkerSource.includes(cacheNameDeclaration)) {
+    throw new Error('Service Worker cache name placeholder is missing.');
+  }
+  const buildVersion = `v${Date.now()}`;
   await Bun.write(
     serviceWorkerPath,
     serviceWorkerSource.replace(
       precacheDeclaration,
       `const PRECACHE_URLS = ${JSON.stringify(precacheUrls)};`,
+    ).replace(
+      cacheNameDeclaration,
+      `const CACHE_NAME = 'topic-kanban-shell-${buildVersion}';`,
     ),
   );
 }

@@ -8,6 +8,7 @@ import {
   replaceCommercialDealTopics,
 } from '../../lib/storage';
 import { updateCommercialDealCaches } from '../../lib/queryCacheSync';
+import { invalidateQueryGroups } from '../../lib/topicQueryCache';
 import { ActionDate } from '../ui/ActionDate';
 
 const STATUS_LABELS: Record<CommercialDeal['status'], string> = {
@@ -49,15 +50,10 @@ export const CommercialDealsTab: React.FC<CommercialDealsTabProps> = ({ topic, o
         : remaining.filter((relation) => relation.topic_id !== primaryTopicId).map((relation) => relation.topic_id);
       const saved = await replaceCommercialDealTopics(dealId, primaryTopicId, relatedTopicIds);
       updateCommercialDealCaches(queryClient, saved);
-      await queryClient.invalidateQueries({ queryKey: ['topic-deals'] });
+      await invalidateQueryGroups(queryClient, [['topic-deals'], ['commercial-deal', dealId], ['commercial-deal-page'], ['deal-focus'], ['commercial-deals-calendar'], ['workspace']]);
       onTopicMetricsChange?.(topic.id, {
         commercial_deals_count: queryClient.getQueryData<CommercialDeal[]>(['topic-deals', topic.id])?.length || 0,
       });
-      await queryClient.invalidateQueries({ queryKey: ['commercial-deal', dealId] });
-      await queryClient.invalidateQueries({ queryKey: ['commercial-deal-page'] });
-      await queryClient.invalidateQueries({ queryKey: ['deal-focus'] });
-      await queryClient.invalidateQueries({ queryKey: ['commercial-deals-calendar'] });
-      await queryClient.invalidateQueries({ queryKey: ['workspace'] });
     } catch (reason) {
       setError(reason instanceof Error ? reason.message : '更新商单关联失败');
     } finally {
@@ -77,15 +73,10 @@ export const CommercialDealsTab: React.FC<CommercialDealsTabProps> = ({ topic, o
       const detail = await fetchCommercialDeal(deal.id);
       const saved = await replaceCommercialDealTopics(deal.id, detail.primary_topic_id || created.id, detail.topics.filter((relation) => relation.topic_id !== detail.primary_topic_id).map((relation) => relation.topic_id).concat(detail.primary_topic_id && detail.primary_topic_id !== created.id ? [detail.primary_topic_id] : []));
       updateCommercialDealCaches(queryClient, saved);
-      await queryClient.invalidateQueries({ queryKey: ['topic-deals'] });
+      await invalidateQueryGroups(queryClient, [['topic-deals'], ['commercial-deal', deal.id], ['commercial-deal-page'], ['deal-focus'], ['commercial-deals-calendar'], ['workspace']]);
       onTopicMetricsChange?.(topic.id, {
         commercial_deals_count: queryClient.getQueryData<CommercialDeal[]>(['topic-deals', topic.id])?.length || 0,
       });
-      await queryClient.invalidateQueries({ queryKey: ['commercial-deal', deal.id] });
-      await queryClient.invalidateQueries({ queryKey: ['commercial-deal-page'] });
-      await queryClient.invalidateQueries({ queryKey: ['deal-focus'] });
-      await queryClient.invalidateQueries({ queryKey: ['commercial-deals-calendar'] });
-      await queryClient.invalidateQueries({ queryKey: ['workspace'] });
       onOpenDeal(deal.id);
     } catch (reason) {
       setError(reason instanceof Error ? reason.message : '从商单创建选题失败');

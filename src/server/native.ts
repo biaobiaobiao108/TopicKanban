@@ -306,6 +306,7 @@ export class NativeApp {
     const context = new NativeContext(request, { ...this.env, CLIENT_IP: clientIp });
     context.header('Cache-Control', 'no-store');
     const routeHandlers = [...this.middlewares, ...match.route.handlers];
+    const startedAt = performance.now();
     let index = -1;
     const next = async (nextIndex: number): Promise<Response> => {
       if (nextIndex <= index) throw new Error('next() called multiple times');
@@ -314,7 +315,9 @@ export class NativeApp {
       if (!handler) return context.text('Not Found', 404);
       return handler(context, () => next(nextIndex + 1));
     };
-    return context.withHeaders(await next(0));
+    const response = await next(0);
+    context.header('Server-Timing', `app;dur=${(performance.now() - startedAt).toFixed(1)}`);
+    return context.withHeaders(response);
   }
 
   async fetch(request: Request, requestIp?: string): Promise<Response> {

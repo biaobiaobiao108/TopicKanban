@@ -37,7 +37,7 @@ const columnHeaders: Record<TopicStatus, { dot: string }> = {
   icebox: { dot: 'bg-[var(--ink-muted)] opacity-40' },
 };
 
-export const KanbanColumn: React.FC<KanbanColumnProps> = ({
+const KanbanColumnComponent: React.FC<KanbanColumnProps> = ({
   status,
   label,
   description,
@@ -189,3 +189,5 @@ export const KanbanColumn: React.FC<KanbanColumnProps> = ({
     </div>
   );
 };
+
+export const KanbanColumn = React.memo(KanbanColumnComponent);

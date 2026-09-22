@@ -12,6 +12,7 @@ import {
 import {
   deletePublishedVideo,
   insertPublishedVideo,
+  invalidatePublishedAnalyticsCache,
   loadBootstrap,
   loadPublishedAnalytics,
   loadPublishedPage,
@@ -80,6 +81,7 @@ export function registerPublishedRoutes(app: NativeApp): void {
         favorites: body.favorites || 0, comments: body.comments || 0, notes: body.notes || '', updated_at: now,
       };
       await insertPublishedVideo(requireDb(c), video);
+      invalidatePublishedAnalyticsCache();
       return c.json(video, 201);
     } catch (error) {
       return jsonError(c, error, 400);
@@ -106,6 +108,7 @@ export function registerPublishedRoutes(app: NativeApp): void {
         }
       }
       const video = await updatePublishedVideo(requireDb(c), c.req.param('id'), body);
+      if (video) invalidatePublishedAnalyticsCache();
       return video ? c.json(video) : c.json({ error: 'Not found' }, 404);
     } catch (error) {
       return jsonError(c, error, 400);
@@ -115,6 +118,7 @@ export function registerPublishedRoutes(app: NativeApp): void {
   app.delete('/published/:id', async (c) => {
     try {
       await deletePublishedVideo(requireDb(c), c.req.param('id'));
+      invalidatePublishedAnalyticsCache();
       return c.json({ success: true });
     } catch (error) {
       return jsonError(c, error);

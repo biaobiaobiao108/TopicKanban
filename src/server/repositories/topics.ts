@@ -1,4 +1,4 @@
-import type { PaginatedTopics, Person, Tag, Topic, TopicPinMutationResult, TopicStatus, TopicTodo } from '../../types';
+import type { PaginatedTopics, Person, Tag, TodayActionProgress, TodayFocusData, Topic, TopicPinMutationResult, TopicStatus, TopicTodo } from '../../types';
 import type { SqliteDatabase, SqlitePreparedStatement } from '../sqlite';
 import { bind } from './shared';
 
@@ -20,6 +20,10 @@ function appendToRelationMap<T>(map: Map<string, T[]>, key: string, value: T): v
   } else {
     map.set(key, [value]);
   }
+}
+
+function buildFtsSearchQuery(value: string): string {
+  return `"${value.trim().replace(/"/g, '""')}"`;
 }
 
 export async function loadTopics(db: SqliteDatabase, scope: 'active' | 'trash' | 'all' = 'active'): Promise<Topic[]> {
@@ -83,9 +87,12 @@ export async function loadTrashedTopics(db: SqliteDatabase): Promise<Topic[]> {
   return loadTopics(db, 'trash');
 }
 
-export async function loadTodayFocus(db: SqliteDatabase): Promise<{ topics: Topic[]; total_active: number }> {
+export async function loadTodayFocus(db: SqliteDatabase, staleActionDays = 5): Promise<TodayFocusData> {
   const activeCondition = "t.deleted_at IS NULL AND t.status NOT IN ('published', 'icebox')";
-  const [focusResult, priorityResult, recentResult, countResult, allActiveResult] = await db.batch([
+  const safeStaleDays = Math.max(1, Math.min(30, Math.trunc(staleActionDays)));
+  const currentTodoJoin = 'LEFT JOIN topic_todos tt ON tt.topic_id = t.id AND tt.is_current = 1 AND tt.completed_at IS NULL';
+  const staleExpression = "julianday('now', '+8 hours') - julianday(COALESCE(tt.current_started_at, t.updated_at))";
+  const [focusResult, priorityResult, recentResult, progressResult, attentionResult] = await db.batch([
     db.prepare(`SELECT t.id FROM topics t WHERE ${activeCondition}
       ORDER BY t.is_pinned DESC,
         CASE WHEN t.status IN ('approved', 'scripting', 'production') THEN 1 ELSE 0 END DESC,
@@ -96,21 +103,37 @@ export async function loadTodayFocus(db: SqliteDatabase): Promise<{ topics: Topi
         CASE t.priority WHEN 'high' THEN 3 WHEN 'medium' THEN 2 WHEN 'low' THEN 1 ELSE 0 END DESC,
         t.updated_at DESC, t.id DESC LIMIT 5`),
     db.prepare(`SELECT t.id FROM topics t WHERE t.deleted_at IS NULL ORDER BY t.updated_at DESC, t.id DESC LIMIT 8`),
-    db.prepare(`SELECT COUNT(*) AS count FROM topics t WHERE ${activeCondition}`),
-    db.prepare(`SELECT t.id FROM topics t WHERE ${activeCondition}
-      ORDER BY t.updated_at DESC, t.id DESC`),
+    db.prepare(`SELECT
+        COUNT(*) AS active_count,
+        COALESCE(SUM(CASE WHEN tt.id IS NOT NULL THEN 1 ELSE 0 END), 0) AS covered_count,
+        COALESCE(SUM(CASE WHEN tt.id IS NULL THEN 1 ELSE 0 END), 0) AS missing_action_count,
+        COALESCE(SUM(CASE WHEN tt.id IS NOT NULL AND ${staleExpression} >= ? THEN 1 ELSE 0 END), 0) AS stale_action_count
+      FROM topics t ${currentTodoJoin} WHERE ${activeCondition}`).bind(safeStaleDays),
+    db.prepare(`SELECT t.id FROM topics t ${currentTodoJoin}
+      WHERE ${activeCondition}
+        AND (tt.id IS NULL OR ${staleExpression} >= ?)
+      ORDER BY CASE WHEN tt.id IS NULL THEN 0 ELSE 1 END, t.updated_at DESC, t.id DESC LIMIT 3`).bind(safeStaleDays),
   ]);
   const orderedIds = Array.from(new Set([
     ...(focusResult.results as unknown as Array<{ id: string }>).map((row) => row.id),
     ...(priorityResult.results as unknown as Array<{ id: string }>).map((row) => row.id),
     ...(recentResult.results as unknown as Array<{ id: string }>).map((row) => row.id),
-    ...(allActiveResult.results as unknown as Array<{ id: string }>).map((row) => row.id),
   ]));
-  const loadedTopics = await loadTopicBatch(db, orderedIds);
+  const attentionIds = (attentionResult.results as unknown as Array<{ id: string }>).map((row) => row.id);
+  const loadedTopics = await loadTopicBatch(db, Array.from(new Set([...orderedIds, ...attentionIds])));
   const topicsById = new Map(loadedTopics.map((topic) => [topic.id, topic]));
+  const progressRow = (progressResult.results[0] || {}) as Partial<TodayActionProgress>;
+  const actionProgress: TodayActionProgress = {
+    active_count: Number(progressRow.active_count || 0),
+    covered_count: Number(progressRow.covered_count || 0),
+    missing_action_count: Number(progressRow.missing_action_count || 0),
+    stale_action_count: Number(progressRow.stale_action_count || 0),
+  };
   return {
     topics: orderedIds.map((id) => topicsById.get(id)).filter((topic): topic is Topic => Boolean(topic)),
-    total_active: Number((countResult.results[0] as { count?: number } | undefined)?.count || 0),
+    attention_topics: attentionIds.map((id) => topicsById.get(id)).filter((topic): topic is Topic => Boolean(topic)),
+    action_progress: actionProgress,
+    total_active: actionProgress.active_count,
   };
 }
 
@@ -224,16 +247,24 @@ function buildTopicFilterConditions(options: TopicPageOptions): { conditions: st
       conditions.push('NOT EXISTS (SELECT 1 FROM published_videos fpv WHERE fpv.topic_id = t.id)');
     }
   }
-  if (options.query) {
-    const pattern = `%${options.query.replace(/[\\%_]/g, '\\$&')}%`;
-    conditions.push(`(t.title LIKE ? ESCAPE '\\' OR t.summary LIKE ? ESCAPE '\\' OR t.hook LIKE ? ESCAPE '\\'
-      OR t.storyline LIKE ? ESCAPE '\\'
-      OR EXISTS (SELECT 1 FROM topic_todos stt WHERE stt.topic_id = t.id
+  if (options.query?.trim()) {
+    const query = options.query.trim();
+    const pattern = `%${query.replace(/[\\%_]/g, '\\$&')}%`;
+    const relatedSearch = `EXISTS (SELECT 1 FROM topic_todos stt WHERE stt.topic_id = t.id
         AND stt.title LIKE ? ESCAPE '\\')
       OR EXISTS (SELECT 1 FROM topic_tags st INNER JOIN tags sg ON sg.id = st.tag_id WHERE st.topic_id = t.id AND sg.name LIKE ? ESCAPE '\\')
       OR EXISTS (SELECT 1 FROM topic_people sp INNER JOIN people spp ON spp.id = sp.person_id WHERE sp.topic_id = t.id
-        AND (spp.name LIKE ? ESCAPE '\\' OR spp.aliases LIKE ? ESCAPE '\\' OR spp.identity LIKE ? ESCAPE '\\')))`);
-    values.push(pattern, pattern, pattern, pattern, pattern, pattern, pattern, pattern, pattern);
+        AND (spp.name LIKE ? ESCAPE '\\' OR spp.aliases LIKE ? ESCAPE '\\' OR spp.identity LIKE ? ESCAPE '\\'))`;
+    if (query.length >= 3) {
+      conditions.push(`(t.id IN (SELECT ts.topic_id FROM topic_search ts WHERE topic_search MATCH ?)
+        OR ${relatedSearch})`);
+      values.push(buildFtsSearchQuery(query), pattern, pattern, pattern, pattern, pattern);
+    } else {
+      conditions.push(`(t.title LIKE ? ESCAPE '\\' OR t.summary LIKE ? ESCAPE '\\' OR t.hook LIKE ? ESCAPE '\\'
+        OR t.storyline LIKE ? ESCAPE '\\' OR t.why_now LIKE ? ESCAPE '\\'
+        OR ${relatedSearch})`);
+      values.push(pattern, pattern, pattern, pattern, pattern, pattern, pattern, pattern, pattern, pattern);
+    }
   }
   return { conditions, values };
 }
@@ -259,12 +290,12 @@ export async function loadTopicPage(db: SqliteDatabase, options: TopicPageOption
   const sort = sortExpressions[options.sort || 'updated_at'];
   const direction = options.direction === 'asc' ? 'ASC' : 'DESC';
   const offset = (options.page - 1) * options.pageSize;
-  const [countResult, summaryResult, scopeCountsResult, rowsResult] = await db.batch([
-    bind(db, `SELECT COUNT(*) AS count FROM topics t ${where}`, values),
+  const [summaryResult, scopeCountsResult, rowsResult] = await db.batch([
     bind(db, `SELECT
-      COALESCE(SUM(COALESCE((SELECT word_count FROM drafts d WHERE d.topic_id = t.id LIMIT 1), 0)), 0) AS total_words,
+      COUNT(*) AS count,
+      COALESCE(SUM(COALESCE(d.word_count, 0)), 0) AS total_words,
       COALESCE(SUM(CASE WHEN t.deleted_at IS NULL AND t.status IN ('scripting', 'production') THEN 1 ELSE 0 END), 0) AS in_scripting_count
-      FROM topics t ${where}`, values),
+      FROM topics t LEFT JOIN drafts d ON d.topic_id = t.id ${where}`, values),
     bind(db, `SELECT
       COALESCE(SUM(CASE WHEN t.deleted_at IS NULL AND t.status NOT IN ('published', 'icebox') THEN 1 ELSE 0 END), 0) AS active,
       COALESCE(SUM(CASE WHEN t.deleted_at IS NULL AND t.status IN ('published', 'icebox') THEN 1 ELSE 0 END), 0) AS archived,
@@ -307,8 +338,8 @@ export async function loadTopicPage(db: SqliteDatabase, options: TopicPageOption
       topic.current_todo = currentTodoByTopic.get(topic.id) || null;
     });
   }
-  const total = Number((countResult.results[0] as { count?: number } | undefined)?.count || 0);
-  const summaryRow = summaryResult.results[0] as { total_words?: number; in_scripting_count?: number } | undefined;
+  const summaryRow = summaryResult.results[0] as { count?: number; total_words?: number; in_scripting_count?: number } | undefined;
+  const total = Number(summaryRow?.count || 0);
   const scopeCountsRow = scopeCountsResult.results[0] as { active?: number; archived?: number; trash?: number } | undefined;
   return {
     items: rows,

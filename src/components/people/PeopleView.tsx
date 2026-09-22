@@ -23,6 +23,7 @@ import { ConfirmDialog } from '../ui/ConfirmDialog';
 import { PageHeader } from '../layout/PageHeader';
 import { fetchPeopleOptions, fetchPeoplePage } from '../../lib/storage';
 import { sanitizeExternalHttpUrl } from '../../lib/urlSafety';
+import { invalidateQueryGroups } from '../../lib/topicQueryCache';
 
 interface PeopleViewProps {
   people: Person[];
@@ -115,8 +116,7 @@ export const PeopleView: React.FC<PeopleViewProps> = ({
       notes: notes.trim(),
     });
 
-    await queryClient.invalidateQueries({ queryKey: ['people-page'] });
-    await queryClient.invalidateQueries({ queryKey: ['people-options'] });
+    await invalidateQueryGroups(queryClient, [['people-page'], ['people-options']]);
 
     setIsPersonModalOpen(false);
   };
@@ -132,9 +132,7 @@ export const PeopleView: React.FC<PeopleViewProps> = ({
       description: relDesc.trim(),
     });
 
-    await queryClient.invalidateQueries({ queryKey: ['relationships'] });
-    await queryClient.invalidateQueries({ queryKey: ['people-page'] });
-    await queryClient.invalidateQueries({ queryKey: ['workspace'] });
+    await invalidateQueryGroups(queryClient, [['relationships'], ['people-page'], ['workspace']]);
 
     setIsRelModalOpen(false);
   };
@@ -591,11 +589,7 @@ export const PeopleView: React.FC<PeopleViewProps> = ({
             if (!deletingPerson) return;
             await onDeletePerson(deletingPerson.id);
             if (filteredPeople.length === 1 && page > 1) setPage((current) => current - 1);
-            await queryClient.invalidateQueries({ queryKey: ['people-page'] });
-            await queryClient.invalidateQueries({ queryKey: ['people-options'] });
-            await queryClient.invalidateQueries({ queryKey: ['people'] });
-            await queryClient.invalidateQueries({ queryKey: ['relationships'] });
-            await queryClient.invalidateQueries({ queryKey: ['workspace'] });
+            await invalidateQueryGroups(queryClient, [['people-page'], ['people-options'], ['people'], ['relationships'], ['workspace']]);
             setDeletingPerson(null);
             showToast({ message: `已删除人物档案「${deletingPerson.name}」`, tone: 'info' });
           }}
@@ -611,8 +605,7 @@ export const PeopleView: React.FC<PeopleViewProps> = ({
           onConfirm={async () => {
             if (!deletingRel) return;
             await onDeleteRelationship(deletingRel.id);
-            await queryClient.invalidateQueries({ queryKey: ['relationships'] });
-            await queryClient.invalidateQueries({ queryKey: ['workspace'] });
+            await invalidateQueryGroups(queryClient, [['relationships'], ['workspace']]);
             showToast({ message: `已解除关系「${deletingRel.label}」`, tone: 'info' });
             setDeletingRel(null);
           }}
