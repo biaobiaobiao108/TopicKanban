@@ -174,6 +174,63 @@ describe('Storage Optimization & Compaction', () => {
     expect(remaining.map((r) => r.id)).toEqual(['topic-recent-trash']);
   });
 
+  it('purges expired trash topics when requesting paginated topics with scope=trash', async () => {
+    const now = Date.now();
+    const oldDate = new Date(now - 45 * 86400 * 1000).toISOString();
+    const recentDate = new Date(now - 3 * 86400 * 1000).toISOString();
+
+    await insertTopic(db, {
+      id: 'topic-old-trash-page',
+      title: '45天前已删除选题',
+      status: 'inbox',
+      priority: 'low',
+      score_character: 0,
+      score_conflict: 0,
+      score_contrast: 0,
+      score_material: 0,
+      score_story: 0,
+      is_pinned: 0,
+      sort_order: 0,
+      created_at: oldDate,
+      updated_at: oldDate,
+    });
+    sqlite.query('UPDATE topics SET deleted_at = ? WHERE id = ?').run(oldDate, 'topic-old-trash-page');
+
+    await insertTopic(db, {
+      id: 'topic-recent-trash-page',
+      title: '3天前已删除选题',
+      status: 'inbox',
+      priority: 'low',
+      score_character: 0,
+      score_conflict: 0,
+      score_contrast: 0,
+      score_material: 0,
+      score_story: 0,
+      is_pinned: 0,
+      sort_order: 1,
+      created_at: recentDate,
+      updated_at: recentDate,
+    });
+    sqlite.query('UPDATE topics SET deleted_at = ? WHERE id = ?').run(recentDate, 'topic-recent-trash-page');
+
+    const expiredShareToken = 'expired-trash-page-share';
+    sqlite.query('INSERT INTO _kv_store (key, value, expires_at) VALUES (?, ?, ?)').run(
+      `share:${expiredShareToken}`,
+      JSON.stringify({ topic_id: 'topic-old-trash-page', token: expiredShareToken }),
+      Date.now() + 86_400_000,
+    );
+
+    const pageResponse = await app.request('/api/topics?scope=trash&page=1&page_size=50', { headers: authHeaders });
+    expect(pageResponse.status).toBe(200);
+    const pageData = await pageResponse.json() as { items: Array<{ id: string }>; scope_counts: { trash: number } };
+    expect(pageData.items.map((item) => item.id)).toEqual(['topic-recent-trash-page']);
+    expect(pageData.scope_counts.trash).toBe(1);
+    expect((await app.request(`/api/public/share/${expiredShareToken}`)).status).toBe(404);
+
+    const remaining = sqlite.query('SELECT id FROM topics WHERE deleted_at IS NOT NULL').all() as Array<{ id: string }>;
+    expect(remaining.map((r) => r.id)).toEqual(['topic-recent-trash-page']);
+  });
+
   it('manages high-frequency presence locks in memory without hitting SQLite tables', async () => {
     const lease1 = await kv.acquireJsonLease(
       'lock:topic-writer-1',

@@ -10,6 +10,7 @@ import {
   parseTopicCreate,
   parseTopicUpdate,
   requireDb,
+  type ApiBindings,
 } from '../apiShared';
 import {
   insertTopic,
@@ -33,8 +34,24 @@ import {
 } from '../repositories';
 import type { AppSettings } from '../../types';
 
-async function revokeTopicShares(env: { KV: { deleteTopicShares: (topicId: string) => Promise<number> } }, ids: string[]): Promise<void> {
+async function revokeTopicShares(env: ApiBindings, ids: string[]): Promise<void> {
   for (const id of ids) await env.KV.deleteTopicShares(id);
+}
+
+async function purgeExpiredTrashIfConfigured(db: ReturnType<typeof requireDb>, env: ApiBindings): Promise<void> {
+  try {
+    const settings = await env.KV.get<AppSettings>('app_settings', 'json');
+    const retentionDays = Number(settings?.trash_retention_days ?? 30);
+    if (retentionDays > 0) {
+      const expiredIds = await listExpiredTrashTopicIds(db, retentionDays);
+      if (expiredIds.length > 0) {
+        await revokeTopicShares(env, expiredIds);
+        await permanentlyDeleteTrashedTopics(db, expiredIds);
+      }
+    }
+  } catch {
+    // Expiry purge failure should not block loading topics
+  }
 }
 
 export function registerTopicRoutes(app: NativeApp): void {
@@ -58,7 +75,11 @@ export function registerTopicRoutes(app: NativeApp): void {
         return c.json({ error: 'available_for_published must be true or false' }, 400);
       }
       const publishedVideoId = c.req.query('published_video_id')?.trim().slice(0, 200);
-      return c.json(await loadTopicPage(requireDb(c), {
+      const db = requireDb(c);
+      if (scopeValue === 'trash') {
+        await purgeExpiredTrashIfConfigured(db, c.env);
+      }
+      return c.json(await loadTopicPage(db, {
         scope: scopeValue as 'active' | 'archived' | 'trash' | 'all', page, pageSize,
         query: c.req.query('q')?.slice(0, 200), status, priority,
         tagId: c.req.query('tag_id'), personId: c.req.query('person_id'),
@@ -97,19 +118,7 @@ export function registerTopicRoutes(app: NativeApp): void {
   app.get('/topics/trash', async (c) => {
     try {
       const db = requireDb(c);
-      try {
-        const settings = await c.env.KV.get<AppSettings>('app_settings', 'json');
-        const retentionDays = Number(settings?.trash_retention_days ?? 30);
-        if (retentionDays > 0) {
-          const expiredIds = await listExpiredTrashTopicIds(db, retentionDays);
-          if (expiredIds.length > 0) {
-            await revokeTopicShares(c.env, expiredIds);
-            await permanentlyDeleteTrashedTopics(db, expiredIds);
-          }
-        }
-      } catch {
-        // Expiry purge failure should not block loading trashed topics
-      }
+      await purgeExpiredTrashIfConfigured(db, c.env);
       return c.json(await loadTrashedTopics(db));
     } catch (error) {
       return jsonError(c, error);
