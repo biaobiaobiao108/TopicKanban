@@ -34,6 +34,7 @@ import {
 } from '../../lib/publishPackage';
 import { toTraditionalChinese, toTraditionalChineseAsync, getTraditionalConverter } from '../../lib/traditionalChinese';
 import { PublishPackageConflictError } from '../../lib/storage';
+import { copyTextToClipboard } from '../../lib/clipboard';
 import { useToast } from '../ui/Toast';
 import { formatBeijingDateTime } from '../../lib/actionDate';
 
@@ -291,14 +292,16 @@ export const PublishPackageTab: React.FC<PublishPackageTabProps> = ({
 
   const copyText = async (label: string, text: string) => {
     setFallbackText(text);
-    try {
-      if (!navigator.clipboard?.writeText) throw new Error('Clipboard unavailable');
-      await navigator.clipboard.writeText(text);
+    const copied = await copyTextToClipboard(text);
+    if (copied) {
       showToast({ message: `已复制${label}`, tone: 'success' });
-    } catch {
-      showToast({ message: `无法直接复制${label}，已保留文本供手动选择`, tone: 'info' });
-      requestAnimationFrame(() => fallbackRef.current?.focus());
+      return;
     }
+    showToast({ message: `无法直接复制${label}，已选中文本，请按 ⌘C 或 Ctrl+C 复制`, tone: 'info' });
+    requestAnimationFrame(() => {
+      fallbackRef.current?.focus();
+      fallbackRef.current?.select();
+    });
   };
 
   const download = (content: string, extension: 'md' | 'txt', label: string) => {

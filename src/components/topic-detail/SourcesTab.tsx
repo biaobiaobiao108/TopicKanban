@@ -18,6 +18,7 @@ import {
 import { CustomSelect } from '../ui/CustomSelect';
 import { ConfirmDialog } from '../ui/ConfirmDialog';
 import { parseClientMetadata } from '../../lib/clientUrlParser';
+import { copyTextToClipboard } from '../../lib/clipboard';
 import { sanitizeExternalHttpUrl } from '../../lib/urlSafety';
 import { useToast } from '../ui/Toast';
 
@@ -187,8 +188,12 @@ export const SourcesTab: React.FC<SourcesTabProps> = ({
     setIsDeleteSelectedModalOpen(true);
   };
 
-  const copyUrl = (id: string, link: string) => {
-    navigator.clipboard.writeText(link);
+  const copyUrl = async (id: string, link: string) => {
+    const copied = await copyTextToClipboard(link);
+    if (!copied) {
+      showToast({ message: '无法复制链接，请检查浏览器剪贴板权限后重试', tone: 'info' });
+      return;
+    }
     setCopiedId(id);
     setTimeout(() => setCopiedId(null), 1500);
   };

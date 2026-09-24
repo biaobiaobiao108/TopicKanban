@@ -191,10 +191,14 @@ export function createImeMarkdownSafePlugin(): Plugin<ImeSafePluginState> {
 
     appendTransaction(transactions, _oldState, newState) {
       const docChanged = transactions.some((tr) => tr.docChanged);
-      if (!docChanged) return null;
+      const compositionEnded = transactions.some((tr) => {
+        const meta = tr.getMeta(ImeMarkdownSafePluginKey) as { isComposing?: boolean } | undefined;
+        return meta?.isComposing === false;
+      });
+      if (!docChanged && !compositionEnded) return null;
 
       const pluginState = ImeMarkdownSafePluginKey.getState(newState);
-      if (!pluginState) return null;
+      if (!pluginState || pluginState.isComposing) return null;
 
       const { $from } = newState.selection;
       const targetInfo = getTargetBlockInfo($from);

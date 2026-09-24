@@ -5,6 +5,7 @@ export type PwaInstallOutcome = 'accepted' | 'dismissed' | null;
 export interface PwaInstallSnapshot {
   canPrompt: boolean;
   isIOS: boolean;
+  isMacSafari: boolean;
   isInstallable: boolean;
   isSecureContext: boolean;
   isStandalone: boolean;
@@ -25,6 +26,7 @@ let initialized = false;
 let snapshot: PwaInstallSnapshot = {
   canPrompt: false,
   isIOS: false,
+  isMacSafari: false,
   isInstallable: false,
   isSecureContext: false,
   isStandalone: false,
@@ -74,6 +76,14 @@ function isIOSDevice(): boolean {
   return isAppleMobile || isIPadDesktopMode;
 }
 
+export function detectMacSafari(userAgent: string, platform: string, maxTouchPoints: number): boolean {
+  const isIPadDesktopMode = platform === 'MacIntel' && maxTouchPoints > 1;
+  const isMac = /Macintosh|Mac OS X/i.test(userAgent) || platform === 'MacIntel';
+  const isSafari = /Safari/i.test(userAgent)
+    && !/(Chrome|Chromium|CriOS|Edg|OPR|Firefox|FxiOS)/i.test(userAgent);
+  return isMac && !isIPadDesktopMode && isSafari;
+}
+
 function isStandaloneDisplay(): boolean {
   if (typeof window === 'undefined' || typeof navigator === 'undefined') return false;
   const standaloneNavigator = navigator as Navigator & { standalone?: boolean };
@@ -92,6 +102,8 @@ function isSecurePwaContext(): boolean {
 
 function readSnapshot(): PwaInstallSnapshot {
   const isIOS = isIOSDevice();
+  const isMacSafari = typeof navigator !== 'undefined'
+    && detectMacSafari(navigator.userAgent || '', navigator.platform || '', navigator.maxTouchPoints || 0);
   const isStandalone = isStandaloneDisplay();
   const isSupported = typeof navigator !== 'undefined'
     && ('serviceWorker' in navigator || isIOS || deferredInstallPrompt !== null);
@@ -99,7 +111,8 @@ function readSnapshot(): PwaInstallSnapshot {
   return {
     canPrompt,
     isIOS,
-    isInstallable: !isStandalone && (isIOS || canPrompt),
+    isMacSafari,
+    isInstallable: !isStandalone && (isIOS || isMacSafari || canPrompt),
     isSecureContext: isSecurePwaContext(),
     isStandalone,
     isSupported,
@@ -111,6 +124,7 @@ function refreshSnapshot(): void {
   if (
     next.canPrompt === snapshot.canPrompt
     && next.isIOS === snapshot.isIOS
+    && next.isMacSafari === snapshot.isMacSafari
     && next.isInstallable === snapshot.isInstallable
     && next.isSecureContext === snapshot.isSecureContext
     && next.isStandalone === snapshot.isStandalone

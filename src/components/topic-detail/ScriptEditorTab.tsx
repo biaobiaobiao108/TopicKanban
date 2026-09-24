@@ -36,6 +36,7 @@ import { CitationMark } from './CitationMark';
 import { VoiceoverCueNode } from './VoiceoverCueNode';
 import { ImeMarkdownSafeExtension } from './ImeMarkdownSafeExtension';
 import { getCitationHealth } from '../../lib/citations';
+import { copyTextToClipboard } from '../../lib/clipboard';
 import { resolvePublicUrl } from '../../lib/publicUrl';
 import { formatBeijingDateTime } from '../../lib/actionDate';
 import {
@@ -313,6 +314,8 @@ export const ScriptEditorTab: React.FC<ScriptEditorTabProps> = ({
   const [currentShare, setCurrentShare] = useState<{ token: string; url: string; expires_at: string } | null>(null);
   const [isGeneratingShare, setIsGeneratingShare] = useState(false);
   const [shareCopied, setShareCopied] = useState(false);
+  const shareLinkInputRef = useRef<HTMLInputElement | null>(null);
+  const shareCopyFeedbackTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // Presence Heartbeat Effect
   useEffect(() => {
@@ -366,15 +369,8 @@ export const ScriptEditorTab: React.FC<ScriptEditorTabProps> = ({
       const result = await createShareSnapshot(topicId, ttlSeconds);
       const fullUrl = resolvePublicUrl(result.url, settings?.public_base_url) || (result as { full_url?: string }).full_url || `${window.location.origin}${result.url}`;
       setCurrentShare({ token: result.token, url: fullUrl, expires_at: result.expires_at });
+      setShareCopied(false);
       setIsShareModalOpen(true);
-
-      try {
-        await navigator.clipboard.writeText(fullUrl);
-        setShareCopied(true);
-        setTimeout(() => setShareCopied(false), 2500);
-      } catch {
-        // clipboard write may need manual copy fallback
-      }
     } catch (err) {
       showToast({ message: err instanceof Error ? err.message : '生成审稿链接失败', tone: 'error' });
     } finally {
@@ -384,13 +380,19 @@ export const ScriptEditorTab: React.FC<ScriptEditorTabProps> = ({
 
   const handleCopyShareLink = async () => {
     if (!currentShare) return;
-    try {
-      await navigator.clipboard.writeText(currentShare.url);
-      setShareCopied(true);
-      setTimeout(() => setShareCopied(false), 2000);
-    } catch {
-      // ignore
+    const copied = await copyTextToClipboard(currentShare.url);
+    if (!copied) {
+      setShareCopied(false);
+      showToast({ message: '无法直接复制，链接已选中，请按 ⌘C 或 Ctrl+C 复制', tone: 'info' });
+      requestAnimationFrame(() => {
+        shareLinkInputRef.current?.focus();
+        shareLinkInputRef.current?.select();
+      });
+      return;
     }
+    setShareCopied(true);
+    if (shareCopyFeedbackTimeoutRef.current) clearTimeout(shareCopyFeedbackTimeoutRef.current);
+    shareCopyFeedbackTimeoutRef.current = setTimeout(() => setShareCopied(false), 2000);
   };
 
   const handleDeleteShare = async () => {
@@ -898,13 +900,19 @@ export const ScriptEditorTab: React.FC<ScriptEditorTabProps> = ({
   useEffect(() => () => {
     outlineHighlightAnimationRef.current?.cancel();
     if (copyFeedbackTimeoutRef.current) clearTimeout(copyFeedbackTimeoutRef.current);
+    if (shareCopyFeedbackTimeoutRef.current) clearTimeout(shareCopyFeedbackTimeoutRef.current);
     if (zenTypingTimeoutRef.current) clearTimeout(zenTypingTimeoutRef.current);
   }, []);
 
-  const copyFullScript = () => {
+  const copyFullScript = async () => {
     if (!editor) return;
     const text = editor.getText();
-    navigator.clipboard.writeText(text);
+    const copied = await copyTextToClipboard(text);
+    if (!copied) {
+      editor.commands.selectAll();
+      showToast({ message: '无法直接复制，已选中文案，请按 ⌘C 或 Ctrl+C 复制', tone: 'info' });
+      return;
+    }
     setCopied(true);
     if (copyFeedbackTimeoutRef.current) clearTimeout(copyFeedbackTimeoutRef.current);
     copyFeedbackTimeoutRef.current = setTimeout(() => setCopied(false), 2000);
@@ -1155,7 +1163,7 @@ export const ScriptEditorTab: React.FC<ScriptEditorTabProps> = ({
               disabled={isGeneratingShare}
               aria-label={isGeneratingShare ? '正在生成审稿链接' : '生成外部审稿链接'}
               className="flex items-center gap-1.5 text-xs font-medium border border-transparent hover:border-[var(--line)] bg-transparent hover:bg-[var(--canvas)] text-[var(--ink-muted)] hover:text-[var(--ink)] px-2.5 py-1 rounded-[var(--radius-sm)] transition-all cursor-pointer disabled:opacity-50"
-              title="一键生成免登录外部审稿快照并自动复制链接"
+              title="生成免登录外部审稿链接"
             >
               <Share2 className={`w-3.5 h-3.5 text-[var(--accent)] ${isGeneratingShare ? 'animate-spin' : ''}`} />
               <span className="hidden sm:inline">{isGeneratingShare ? '生成中…' : '分享'}</span>
@@ -1442,7 +1450,7 @@ export const ScriptEditorTab: React.FC<ScriptEditorTabProps> = ({
             {shareCopied && (
               <div className="flex items-center gap-1.5 text-emerald-600 dark:text-emerald-400 font-semibold" role="status">
                 <Check className="w-3.5 h-3.5" />
-                已自动复制
+                已复制
               </div>
             )}
             <div className="p-3 bg-stone-50 dark:bg-stone-800/60 rounded-xl border border-stone-200 dark:border-stone-700/80 space-y-2">
@@ -1459,6 +1467,7 @@ export const ScriptEditorTab: React.FC<ScriptEditorTabProps> = ({
               </div>
               <div className="flex items-center gap-2">
                 <input
+                  ref={shareLinkInputRef}
                   type="text"
                   readOnly
                   aria-label="外部审稿链接"

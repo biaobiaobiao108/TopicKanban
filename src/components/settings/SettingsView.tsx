@@ -15,6 +15,7 @@ import { exportBackupData, importBackupData, exportScriptsMarkdown, fetchStorage
 import { authenticatedFetch } from '../../lib/auth';
 import { applyTheme } from '../../lib/theme';
 import { resolvePublicUrl } from '../../lib/publicUrl';
+import { copyTextToClipboard } from '../../lib/clipboard';
 import { formatBeijingDateTime, getBeijingDateString } from '../../lib/actionDate';
 import { PageHeader } from '../layout/PageHeader';
 import { ConfirmDialog } from '../ui/ConfirmDialog';
@@ -1103,7 +1104,11 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                 type="button"
                 onClick={async () => {
                   const url = resolvePublicUrl('/api/inbox/quick-drop', publicBaseUrl);
-                  await navigator.clipboard.writeText(url);
+                  const copied = await copyTextToClipboard(url);
+                  if (!copied) {
+                    showToast({ message: '无法复制接口地址，请检查浏览器剪贴板权限后重试', tone: 'info' });
+                    return;
+                  }
                   setIsCopiedDropUrl(true);
                   setTimeout(() => setIsCopiedDropUrl(false), 2000);
                 }}

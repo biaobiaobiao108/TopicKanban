@@ -2,6 +2,7 @@ import React, { useEffect, useState, useMemo, useRef } from 'react';
 import { useParams, Link, useLocation } from 'react-router-dom';
 import { fetchPublicShareSnapshot } from '../../lib/storage';
 import { sanitizeReviewHtml } from '../../lib/sanitizeHtml';
+import { copyTextToClipboard } from '../../lib/clipboard';
 import { formatBeijingDateTime } from '../../lib/actionDate';
 import type { ShareSnapshot } from '../../types';
 import {
@@ -13,6 +14,7 @@ import {
   Compass,
 } from 'lucide-react';
 import { FloatingScrollbar } from '../ui/FloatingScrollbar';
+import { useToast } from '../ui/Toast';
 
 interface OutlineSection {
   id: string;
@@ -115,6 +117,7 @@ interface PublicReviewViewProps {
 }
 
 export const PublicReviewView: React.FC<PublicReviewViewProps> = ({ token: propToken }) => {
+  const { showToast } = useToast();
   const { token: routeToken } = useParams<{ token: string }>();
   const location = useLocation();
   const token = propToken || routeToken || location.pathname.replace(/^\/share\/?/, '') || '';
@@ -236,16 +239,16 @@ export const PublicReviewView: React.FC<PublicReviewViewProps> = ({ token: propT
 
   const handleCopyText = async () => {
     if (!snapshot) return;
-    try {
-      const tempEl = document.createElement('div');
-      tempEl.innerHTML = sanitizeReviewHtml(snapshot.content_html);
-      const plainText = `${snapshot.topic_title}\n\n${tempEl.textContent || tempEl.innerText || ''}`;
-      await navigator.clipboard.writeText(plainText);
-      setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
-    } catch {
-      // ignore
+    const tempEl = document.createElement('div');
+    tempEl.innerHTML = sanitizeReviewHtml(snapshot.content_html);
+    const plainText = `${snapshot.topic_title}\n\n${tempEl.textContent || tempEl.innerText || ''}`;
+    const copied = await copyTextToClipboard(plainText);
+    if (!copied) {
+      showToast({ message: '无法复制审稿文案，请检查浏览器剪贴板权限后重试', tone: 'info' });
+      return;
     }
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
   };
 
   const minutes = snapshot

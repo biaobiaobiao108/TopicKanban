@@ -103,6 +103,23 @@ describe('ImeMarkdownSafeExtension 纯逻辑与自愈规则测试', () => {
     expect(ImeMarkdownSafePluginKey.getState(newState)?.convertedBlockPos).toBeNull();
   });
 
+  it('输入法组合过程中不改写文本，并在组合结束后清理泄漏拼音', () => {
+    const plugin = createImeMarkdownSafePlugin();
+    let state = EditorState.create({ schema: testSchema, plugins: [plugin] });
+
+    state = state.apply(state.tr.setBlockType(1, 1, testSchema.nodes.heading, { level: 2 }));
+    state = state.apply(state.tr.setMeta(ImeMarkdownSafePluginKey, { isComposing: true }));
+    state = state.apply(state.tr.insertText('b标题', 1));
+
+    expect(state.doc.textContent).toBe('b标题');
+    expect(ImeMarkdownSafePluginKey.getState(state)?.isComposing).toBe(true);
+
+    state = state.apply(state.tr.setMeta(ImeMarkdownSafePluginKey, { isComposing: false }));
+
+    expect(state.doc.textContent).toBe('标题');
+    expect(ImeMarkdownSafePluginKey.getState(state)?.isComposing).toBe(false);
+  });
+
   it('引用块与列表项首字母泄漏模拟自愈 (y引用 -> 引用)', () => {
     const plugin = createImeMarkdownSafePlugin();
     let state = EditorState.create({

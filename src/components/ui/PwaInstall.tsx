@@ -8,7 +8,7 @@ import {
 import { Modal } from './Modal';
 import { useToast } from './Toast';
 
-type InstallHelpMode = 'ios' | 'manual';
+type InstallHelpMode = 'ios' | 'macos_safari' | 'manual';
 type InstallButtonVariant = 'menu' | 'inline';
 
 interface InstallHelpModalProps {
@@ -18,7 +18,7 @@ interface InstallHelpModalProps {
 }
 
 const InstallHelpModal: React.FC<InstallHelpModalProps> = ({ mode, isOpen, onClose }) => (
-  <Modal isOpen={isOpen} onClose={onClose} title="安装到手机" maxWidth="sm">
+  <Modal isOpen={isOpen} onClose={onClose} title={mode === 'macos_safari' ? '添加到程序坞' : '安装到设备'} maxWidth="sm">
     <div className="space-y-4 text-sm leading-6 text-stone-700 dark:text-stone-300">
       {mode === 'ios' ? (
         <>
@@ -35,6 +35,20 @@ const InstallHelpModal: React.FC<InstallHelpModalProps> = ({ mode, isOpen, onClo
             <li className="flex items-start gap-3">
               <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-rose-500/10 text-rose-700 dark:text-rose-300"><Smartphone className="h-4 w-4" /></span>
               <span><strong className="text-stone-900 dark:text-stone-100">确认添加</strong><br />从主屏幕图标打开后，会以独立 App 窗口运行。</span>
+            </li>
+          </ol>
+        </>
+      ) : mode === 'macos_safari' ? (
+        <>
+          <p>Safari 可以把工作台添加为独立网页应用：</p>
+          <ol className="space-y-3">
+            <li className="flex items-start gap-3">
+              <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-rose-500/10 text-rose-700 dark:text-rose-300"><Plus className="h-4 w-4" /></span>
+              <span><strong className="text-stone-900 dark:text-stone-100">打开添加菜单</strong><br />在 Safari 菜单栏选择“文件”→“添加到程序坞”，或从工具栏分享菜单选择“添加到程序坞”。</span>
+            </li>
+            <li className="flex items-start gap-3">
+              <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-rose-500/10 text-rose-700 dark:text-rose-300"><Smartphone className="h-4 w-4" /></span>
+              <span><strong className="text-stone-900 dark:text-stone-100">确认添加</strong><br />之后可从程序坞或 Spotlight 独立打开工作台。</span>
             </li>
           </ol>
         </>
@@ -56,15 +70,15 @@ interface PwaInstallButtonProps {
 }
 
 export const PwaInstallButton: React.FC<PwaInstallButtonProps> = ({ variant = 'inline' }) => {
-  const { canPrompt, isIOS, isSecureContext, isStandalone, isSupported, promptInstall } = usePwaInstall();
+  const { canPrompt, isIOS, isMacSafari, isSecureContext, isStandalone, isSupported, promptInstall } = usePwaInstall();
   const { showToast } = useToast();
   const [helpMode, setHelpMode] = useState<InstallHelpMode | null>(null);
 
   if (isStandalone) return null;
 
-  const openHelp = () => setHelpMode(isIOS ? 'ios' : 'manual');
+  const openHelp = () => setHelpMode(isIOS ? 'ios' : isMacSafari ? 'macos_safari' : 'manual');
   const handleInstall = async () => {
-    if (isIOS || !canPrompt) {
+    if (isIOS || isMacSafari || !canPrompt) {
       openHelp();
       return;
     }
@@ -78,7 +92,13 @@ export const PwaInstallButton: React.FC<PwaInstallButtonProps> = ({ variant = 'i
     }
   };
 
-  const label = isIOS ? '添加到主屏幕' : canPrompt ? '安装到手机' : '查看安装说明';
+  const label = isIOS
+    ? '添加到主屏幕'
+    : isMacSafari
+      ? '添加到程序坞'
+      : canPrompt
+        ? '安装到设备'
+        : '查看安装说明';
   const buttonClass = variant === 'menu'
     ? 'flex min-h-11 w-full items-center gap-2 rounded-xl border border-stone-200 bg-stone-50 px-3 py-2 text-xs font-semibold text-stone-700 transition-colors hover:bg-stone-100 dark:border-stone-700 dark:bg-stone-800 dark:text-stone-300 dark:hover:bg-stone-750'
     : 'inline-flex min-h-11 items-center gap-2 rounded-xl bg-rose-600 px-4 py-2 text-xs font-bold text-white shadow-2xs transition-all hover:bg-rose-700 active:scale-[0.98]';
@@ -105,7 +125,7 @@ export const PwaInstallButton: React.FC<PwaInstallButtonProps> = ({ variant = 'i
 };
 
 export const PwaInstallCard: React.FC = () => {
-  const { isStandalone } = usePwaInstall();
+  const { isIOS, isMacSafari, isStandalone } = usePwaInstall();
 
   return (
     <section className="rounded-2xl border border-stone-200/70 bg-white p-5 shadow-2xs transition-colors dark:border-stone-800 dark:bg-stone-900 sm:p-6">
@@ -113,9 +133,15 @@ export const PwaInstallCard: React.FC = () => {
         <div className="flex items-start gap-3">
           <span className="rounded-xl bg-rose-500/10 p-1.5 text-rose-600 dark:text-rose-400"><Smartphone className="h-5 w-5" /></span>
           <div>
-            <h2 className="text-base font-bold text-stone-900 dark:text-stone-100">安装到手机</h2>
+            <h2 className="text-base font-bold text-stone-900 dark:text-stone-100">安装到设备</h2>
             <p className="mt-1 text-xs leading-5 text-stone-600 dark:text-stone-400">
-              {isStandalone ? '当前已作为独立 App 运行。' : '安装后可从主屏幕直接打开，获得更接近原生 App 的使用体验。'}
+              {isStandalone
+                ? '当前已作为独立 App 运行。'
+                : isMacSafari
+                  ? '可将工作台添加到程序坞，从独立窗口打开。'
+                  : isIOS
+                    ? '添加到主屏幕后，可像 App 一样独立打开。'
+                    : '安装后可从设备启动，获得独立窗口体验。'}
             </p>
           </div>
         </div>
@@ -126,7 +152,7 @@ export const PwaInstallCard: React.FC = () => {
 };
 
 export const PwaInstallPromptBanner: React.FC = () => {
-  const { isInstallable, isIOS, isStandalone } = usePwaInstall();
+  const { isInstallable, isIOS, isMacSafari, isStandalone } = usePwaInstall();
   const [isDismissed, setIsDismissed] = useState(isPwaInstallBannerDismissed);
   const [isClosing, setIsClosing] = useState(false);
 
@@ -144,7 +170,11 @@ export const PwaInstallPromptBanner: React.FC = () => {
     <div className={`pwa-install-banner ${isClosing ? 'pwa-install-banner-closing' : ''} border-b border-rose-200/80 bg-rose-50/90 px-4 py-2.5 dark:border-rose-900/60 dark:bg-rose-950/30 sm:px-6`}>
       <div className="mx-auto flex max-w-7xl items-center gap-3 text-xs text-rose-950 dark:text-rose-100">
         <Smartphone className="h-4 w-4 shrink-0 text-rose-600 dark:text-rose-400" aria-hidden="true" />
-        <p className="min-w-0 flex-1">{isIOS ? '把选题工作台添加到主屏幕，随时像 App 一样打开。' : '把选题工作台安装到设备，获得独立 App 窗口。'}</p>
+        <p className="min-w-0 flex-1">{isIOS
+          ? '把选题工作台添加到主屏幕，随时像 App 一样打开。'
+          : isMacSafari
+            ? '将选题工作台添加到程序坞，在独立窗口中使用。'
+            : '把选题工作台安装到设备，获得独立 App 窗口。'}</p>
         <PwaInstallButton />
         <button
           type="button"
