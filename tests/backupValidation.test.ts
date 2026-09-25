@@ -68,6 +68,18 @@ describe('backup schema validation', () => {
     expect(validateBackupData(createBackup())).toMatchObject({ success: true });
   });
 
+  it('preserves the recycle-bin retention policy when validating a backup', () => {
+    const result = validateBackupData(createBackup({
+      settings: { reading_speed: 280, theme: 'light', trash_retention_days: 0 },
+    }));
+    expect(result.success).toBe(true);
+    if (result.success) expect(result.data.settings.trash_retention_days).toBe(0);
+
+    expect(validateBackupData(createBackup({
+      settings: { reading_speed: 280, theme: 'light', trash_retention_days: 366 },
+    })).success).toBe(false);
+  });
+
   it('rejects version 2 backups because Todo states are absent from that format', () => {
     const result = validateBackupData({ ...createBackup(), version: '2.0' } as unknown as BackupData);
     expect(result.success).toBe(false);

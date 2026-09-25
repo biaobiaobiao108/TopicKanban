@@ -771,6 +771,8 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
 
   // Keyboard navigation
   const handleKeyDown = (e: React.KeyboardEvent) => {
+    // Safari can report the confirming Enter after compositionend; 229 catches that keydown.
+    if (e.nativeEvent.isComposing || e.nativeEvent.keyCode === 229) return;
     if (e.key === 'Escape') {
       e.preventDefault();
       onClose();

@@ -119,7 +119,7 @@ describe('Bun Server Integration (Local SQLite & API)', () => {
         title: '测试爆款人物解说',
         hook: '三年从顶流到退圈的戏剧反差',
         summary: '梳理核心争议事件与反转脉络',
-        status: 'scripting',
+        status: 'inbox',
         priority: 'high',
         initial_todo: { title: '核对核心争议原片' },
       }),

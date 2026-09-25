@@ -290,12 +290,12 @@ export async function loadTopicPage(db: SqliteDatabase, options: TopicPageOption
   const sort = sortExpressions[options.sort || 'updated_at'];
   const direction = options.direction === 'asc' ? 'ASC' : 'DESC';
   const offset = (options.page - 1) * options.pageSize;
-  const [summaryResult, scopeCountsResult, rowsResult] = await db.batch([
-    bind(db, `SELECT
-      COUNT(*) AS count,
+  const [countResult, summaryResult, scopeCountsResult, rowsResult] = await db.batch([
+    bind(db, `SELECT COUNT(*) AS count FROM topics t ${where}`, values),
+    db.prepare(`SELECT
       COALESCE(SUM(COALESCE(d.word_count, 0)), 0) AS total_words,
-      COALESCE(SUM(CASE WHEN t.deleted_at IS NULL AND t.status IN ('scripting', 'production') THEN 1 ELSE 0 END), 0) AS in_scripting_count
-      FROM topics t LEFT JOIN drafts d ON d.topic_id = t.id ${where}`, values),
+      COALESCE(SUM(CASE WHEN t.status = 'scripting' THEN 1 ELSE 0 END), 0) AS in_scripting_count
+      FROM topics t LEFT JOIN drafts d ON d.topic_id = t.id WHERE t.deleted_at IS NULL`),
     bind(db, `SELECT
       COALESCE(SUM(CASE WHEN t.deleted_at IS NULL AND t.status NOT IN ('published', 'icebox') THEN 1 ELSE 0 END), 0) AS active,
       COALESCE(SUM(CASE WHEN t.deleted_at IS NULL AND t.status IN ('published', 'icebox') THEN 1 ELSE 0 END), 0) AS archived,
@@ -338,8 +338,8 @@ export async function loadTopicPage(db: SqliteDatabase, options: TopicPageOption
       topic.current_todo = currentTodoByTopic.get(topic.id) || null;
     });
   }
-  const summaryRow = summaryResult.results[0] as { count?: number; total_words?: number; in_scripting_count?: number } | undefined;
-  const total = Number(summaryRow?.count || 0);
+  const summaryRow = summaryResult.results[0] as { total_words?: number; in_scripting_count?: number } | undefined;
+  const total = Number((countResult.results[0] as { count?: number } | undefined)?.count || 0);
   const scopeCountsRow = scopeCountsResult.results[0] as { active?: number; archived?: number; trash?: number } | undefined;
   return {
     items: rows,
