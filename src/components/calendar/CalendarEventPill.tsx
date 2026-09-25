@@ -88,7 +88,7 @@ export const CalendarEventPill: React.FC<CalendarEventPillProps> = ({
             <span className="min-w-0 flex-1 truncate">{event.title}</span>
             {event.status && event.status !== 'inbox' && (
               <span className="hidden shrink-0 text-[10px] text-[var(--ink-muted)] xl:inline">
-                {event.status === 'scripting' ? '写稿' : event.status === 'production' ? '制作' : '已立项'}
+                {event.status === 'scripting' ? '写稿' : event.status === 'production' ? '制作' : event.status === 'published' ? '已发布' : '搁置'}
               </span>
             )}
           </button>

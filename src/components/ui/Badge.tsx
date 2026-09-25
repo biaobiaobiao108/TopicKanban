@@ -8,11 +8,6 @@ export const StatusBadge: React.FC<{ status: TopicStatus; size?: 'sm' | 'md' }> 
       dot: 'bg-[var(--ink-muted)] opacity-60',
       text: 'text-[var(--ink-muted)]',
     },
-    approved: {
-      label: '已立项',
-      dot: 'bg-[var(--accent)]',
-      text: 'text-[var(--accent)] font-medium',
-    },
     scripting: {
       label: '写稿中',
       dot: 'bg-[#9b6a2f]',

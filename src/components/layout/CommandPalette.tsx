@@ -19,7 +19,6 @@ import {
   Download,
   Palette,
   Keyboard,
-  CheckCircle2,
   Sparkles,
   HelpCircle,
   Check,
@@ -487,20 +486,6 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
             icon: Sparkles,
             onSelect: () => {
               onFilterStatus('production');
-              onNavigate('kanban');
-              onClose();
-            },
-          },
-          {
-            id: 'filter-approved',
-            category: 'action',
-            categoryLabel: '生命周期直达',
-            title: '看板筛选：已立项 (Approved)',
-            subtitle: '筛选已立项的选题',
-            keywords: ['已立项', 'approved', '立项', '开工', '筛选'],
-            icon: CheckCircle2,
-            onSelect: () => {
-              onFilterStatus('approved');
               onNavigate('kanban');
               onClose();
             },

@@ -1,6 +1,5 @@
 export const TOPIC_STATUSES = [
   'inbox',
-  'approved',
   'scripting',
   'production',
   'published',

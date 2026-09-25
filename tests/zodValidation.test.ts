@@ -11,7 +11,7 @@ describe('Zod validation pipeline', () => {
   it('validates valid topic payload successfully', () => {
     const payload = {
       title: '从零构建视频生产看板',
-      status: 'approved',
+      status: 'scripting',
       priority: 'high',
       is_pinned: 1,
       sort_order: 10,
@@ -29,7 +29,7 @@ describe('Zod validation pipeline', () => {
     expect(res.success).toBe(true);
     if (res.success) {
       expect(res.data.title).toBe('从零构建视频生产看板');
-      expect(res.data.status).toBe('approved');
+      expect(res.data.status).toBe('scripting');
     }
   });
 

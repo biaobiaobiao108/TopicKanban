@@ -95,7 +95,7 @@ export async function loadTodayFocus(db: SqliteDatabase, staleActionDays = 5): P
   const [focusResult, priorityResult, recentResult, progressResult, attentionResult] = await db.batch([
     db.prepare(`SELECT t.id FROM topics t WHERE ${activeCondition}
       ORDER BY t.is_pinned DESC,
-        CASE WHEN t.status IN ('approved', 'scripting', 'production') THEN 1 ELSE 0 END DESC,
+        CASE WHEN t.status IN ('scripting', 'production') THEN 1 ELSE 0 END DESC,
         CASE t.priority WHEN 'high' THEN 3 WHEN 'medium' THEN 2 WHEN 'low' THEN 1 ELSE 0 END DESC,
         t.updated_at DESC, t.id DESC LIMIT 1`),
     db.prepare(`SELECT t.id FROM topics t WHERE ${activeCondition}

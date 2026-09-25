@@ -25,7 +25,7 @@ import { getCurrentActionAgeDays, isActiveTopic } from '../../lib/topicMetrics';
 import { matchesTopicSearch } from '../../lib/topicSearch';
 import { fetchTopicPage } from '../../lib/storage';
 
-const activeStatuses: TopicStatus[] = ['inbox', 'approved', 'scripting', 'production'];
+const activeStatuses: TopicStatus[] = ['inbox', 'scripting', 'production'];
 const MOBILE_VIEWPORT_QUERY = '(max-width: 767px)';
 
 function subscribeToMobileViewport(callback: () => void): () => void {
@@ -670,13 +670,11 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
   }, [columns, loadedTopicsByStatus, onReorderTopics, optimisticUpdateQueryCache, queryClient, topicsMap]);
 
   // WIP and stale action stats
-  const approvedCount = (columns.approved || []).length;
   const scriptingCount = (columns.scripting || []).length;
   const stagnantTopics = useMemo(() => boardTopics
     .filter((topic) => isActiveTopic(topic) && getCurrentActionAgeDays(topic) >= staleActionDays)
     .sort((a, b) => getCurrentActionAgeDays(b) - getCurrentActionAgeDays(a)), [boardTopics, staleActionDays]);
   const wipWarnings = [
-    approvedCount > 5 ? `已立项 ${approvedCount} 个，超过建议上限 5 个` : null,
     scriptingCount > 2 ? `写稿中 ${scriptingCount} 个，超过建议上限 2 个` : null,
   ].filter((warning): warning is string => Boolean(warning));
 

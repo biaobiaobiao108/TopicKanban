@@ -11,7 +11,7 @@ import {
   ArrowDown,
   ArrowRight,
   Trash2,
-  Sparkles,
+  Zap,
   ChevronDown,
   Archive,
   RotateCcw,
@@ -88,11 +88,10 @@ const PRIORITY_ORDER: Record<Priority, number> = {
 
 const STATUS_ORDER: Record<TopicStatus, number> = {
   inbox: 1,
-  approved: 2,
-  scripting: 3,
-  production: 4,
-  published: 5,
-  icebox: 6,
+  scripting: 2,
+  production: 3,
+  published: 4,
+  icebox: 5,
 };
 
 function TableStatusCell({
@@ -148,7 +147,7 @@ function TableStatusCell({
             }`}
           >
             <span>{col.label}</span>
-            {topic.status === col.status && <span className="text-rose-600 dark:text-rose-400">✓</span>}
+            {topic.status === col.status && <span className="text-[var(--accent)]">✓</span>}
           </button>
         ))}
       </FloatingMenu>
@@ -180,7 +179,7 @@ export const TopicTableView: React.FC<TopicTableViewProps> = ({
   const [isColumnMenuOpen, setIsColumnMenuOpen] = useState(false);
   const columnButtonRef = useRef<HTMLButtonElement>(null);
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
-  const [bulkStatus, setBulkStatus] = useState<TopicStatus>('approved');
+  const [bulkStatus, setBulkStatus] = useState<TopicStatus>('inbox');
   const [isBulkUpdating, setIsBulkUpdating] = useState(false);
   const [viewSaved, setViewSaved] = useState(false);
   const { showToast } = useToast();
@@ -420,9 +419,9 @@ export const TopicTableView: React.FC<TopicTableViewProps> = ({
       return <ArrowUpDown className="w-3 h-3 text-stone-300 opacity-0 group-hover:opacity-100 transition-opacity" />;
     }
     return sortDir === 'asc' ? (
-      <ArrowUp className="w-3 h-3 text-rose-600" />
+      <ArrowUp className="w-3 h-3 text-[var(--accent)]" />
     ) : (
-      <ArrowDown className="w-3 h-3 text-rose-600" />
+      <ArrowDown className="w-3 h-3 text-[var(--accent)]" />
     );
   };
 
@@ -449,63 +448,63 @@ export const TopicTableView: React.FC<TopicTableViewProps> = ({
   const inScriptingCount = pageQuery.data?.summary?.in_scripting_count || 0;
 
   return (
-    <div className="flex-1 flex flex-col bg-white dark:bg-stone-900 rounded-2xl border border-stone-200/70 dark:border-stone-800 overflow-hidden shadow-2xs min-h-0 transition-colors">
+    <div className="flex-1 flex flex-col bg-[var(--surface)] rounded-[var(--radius-md)] border border-[var(--line)] overflow-hidden min-h-0 transition-colors">
       {/* Scope Filter Header */}
-      <div className="table-scope-tabs-container px-4 py-2.5 bg-stone-50/70 dark:bg-stone-900/90 border-b border-stone-200/70 dark:border-stone-800 flex items-center justify-between flex-wrap gap-2 shrink-0">
-        <div className="flex items-center gap-1 bg-stone-200/60 dark:bg-stone-800 p-0.5 rounded-xl text-xs font-semibold">
+      <div className="table-scope-tabs-container px-4 py-2.5 bg-[var(--canvas)]/55 border-b border-[var(--line)] flex items-center justify-between flex-wrap gap-2 shrink-0">
+        <div className="flex items-center gap-0.5 text-xs font-medium">
           <button
             onClick={() => setArchiveScope('active')}
-            className={`px-3 py-1 rounded-lg transition-all cursor-pointer flex items-center gap-1.5 ${
+            className={`px-3 py-1.5 rounded-[var(--radius-sm)] transition-colors cursor-pointer flex items-center gap-1.5 ${
               archiveScope === 'active'
-                ? 'bg-white dark:bg-stone-700 text-stone-900 dark:text-stone-100 shadow-2xs'
-                : 'text-stone-600 dark:text-stone-400 hover:text-stone-900 dark:hover:text-stone-100'
+                ? 'bg-[var(--surface)] text-[var(--ink)]'
+                : 'text-[var(--ink-muted)] hover:bg-[var(--surface)]/70 hover:text-[var(--ink)]'
             }`}
           >
-            <span>🔥 活跃推进中</span>
-            <span className="text-[10px] font-mono bg-rose-500/10 text-rose-700 dark:text-rose-300 px-1.5 py-0.2 rounded-full font-bold">
+            <span>活跃推进中</span>
+            <span className="text-[10px] tabular-nums text-[var(--ink-muted)]">
               {activeCount}
             </span>
           </button>
 
           <button
             onClick={() => setArchiveScope('archived')}
-            className={`px-3 py-1 rounded-lg transition-all cursor-pointer flex items-center gap-1.5 ${
+            className={`px-3 py-1.5 rounded-[var(--radius-sm)] transition-colors cursor-pointer flex items-center gap-1.5 ${
               archiveScope === 'archived'
-                ? 'bg-white dark:bg-stone-700 text-stone-900 dark:text-stone-100 shadow-2xs'
-                : 'text-stone-600 dark:text-stone-400 hover:text-stone-900 dark:hover:text-stone-100'
+                ? 'bg-[var(--surface)] text-[var(--ink)]'
+                : 'text-[var(--ink-muted)] hover:bg-[var(--surface)]/70 hover:text-[var(--ink)]'
             }`}
           >
-            <span>📦 归档</span>
-            <span className="text-[10px] font-mono bg-stone-300 dark:bg-stone-700 text-stone-700 dark:text-stone-300 px-1.5 py-0.2 rounded-full">
+            <span>归档</span>
+            <span className="text-[10px] tabular-nums text-[var(--ink-muted)]">
               {archivedCount}
             </span>
           </button>
 
           <button
             onClick={() => setArchiveScope('all')}
-            className={`px-3 py-1 rounded-md transition-all cursor-pointer flex items-center gap-1.5 ${
+            className={`px-3 py-1.5 rounded-[var(--radius-sm)] transition-colors cursor-pointer flex items-center gap-1.5 ${
               archiveScope === 'all'
-                ? 'bg-white dark:bg-stone-700 text-stone-900 dark:text-stone-100 shadow-2xs'
-                : 'text-stone-600 dark:text-stone-400 hover:text-stone-900 dark:hover:text-stone-100'
+                ? 'bg-[var(--surface)] text-[var(--ink)]'
+                : 'text-[var(--ink-muted)] hover:bg-[var(--surface)]/70 hover:text-[var(--ink)]'
             }`}
           >
             <span>全部选题</span>
-            <span className="text-[10px] font-mono bg-stone-300 dark:bg-stone-700 text-stone-700 dark:text-stone-300 px-1.5 py-0.2 rounded-full">
+            <span className="text-[10px] tabular-nums text-[var(--ink-muted)]">
               {activeCount + archivedCount}
             </span>
           </button>
 
           <button
             onClick={() => setArchiveScope('trash')}
-            className={`px-3 py-1 rounded-md transition-all cursor-pointer flex items-center gap-1.5 ${
+            className={`px-3 py-1.5 rounded-[var(--radius-sm)] transition-colors cursor-pointer flex items-center gap-1.5 ${
               archiveScope === 'trash'
-                ? 'bg-white dark:bg-stone-700 text-red-700 dark:text-red-400 shadow-2xs'
-                : 'text-stone-600 dark:text-stone-400 hover:text-red-700 dark:hover:text-red-400'
+                ? 'bg-[var(--surface)] text-[var(--h1-color)]'
+                : 'text-[var(--ink-muted)] hover:bg-[var(--surface)]/70 hover:text-[var(--h1-color)]'
             }`}
           >
-            <span>🗑 回收站</span>
+            <span>回收站</span>
             {trashCount > 0 && (
-              <span className="text-[10px] font-mono bg-red-100 dark:bg-red-950/60 text-red-700 dark:text-red-300 px-1.5 py-0.2 rounded-full">
+              <span className="text-[10px] tabular-nums text-[var(--h1-color)]">
                 {trashCount}
               </span>
             )}
@@ -518,7 +517,7 @@ export const TopicTableView: React.FC<TopicTableViewProps> = ({
               type="button"
               onClick={() => void handleEmptyTrash()}
               disabled={isBulkUpdating}
-              className="flex min-h-9 items-center gap-1.5 rounded-lg border border-red-200 dark:border-red-900/60 bg-red-50 dark:bg-red-950/40 hover:bg-red-100 dark:hover:bg-red-950/70 px-2.5 text-[11px] font-bold text-red-700 dark:text-red-300 transition-colors cursor-pointer disabled:opacity-50"
+              className="flex min-h-9 items-center gap-1.5 rounded-[var(--radius-sm)] px-2.5 text-[11px] font-medium text-[var(--h1-color)] transition-colors hover:bg-[var(--canvas)] cursor-pointer disabled:opacity-50"
               title="彻底永久删除回收站内的全部选题"
             >
               <Trash2 className="h-3.5 w-3.5 text-red-600 dark:text-red-400" />
@@ -530,7 +529,7 @@ export const TopicTableView: React.FC<TopicTableViewProps> = ({
             <button
               type="button"
               onClick={() => setDensity((previous) => previous === 'compact' ? 'comfortable' : 'compact')}
-              className="flex min-h-9 items-center gap-1.5 rounded-lg border border-stone-200 dark:border-stone-700 bg-white dark:bg-stone-800 px-2.5 text-[11px] font-semibold text-stone-600 dark:text-stone-300 hover:bg-stone-100 dark:hover:bg-stone-700 cursor-pointer"
+              className="flex min-h-9 items-center gap-1.5 rounded-[var(--radius-sm)] px-2.5 text-[11px] font-medium text-[var(--ink-muted)] hover:bg-[var(--surface)] hover:text-[var(--ink)] cursor-pointer"
               title="切换表格行密度"
             >
               <Rows3 className="h-3.5 w-3.5" /> {density === 'compact' ? '紧凑' : '舒适'}
@@ -539,14 +538,14 @@ export const TopicTableView: React.FC<TopicTableViewProps> = ({
               ref={columnButtonRef}
               type="button"
               onClick={() => setIsColumnMenuOpen((previous) => !previous)}
-              className="flex min-h-9 items-center gap-1.5 rounded-lg border border-stone-200 dark:border-stone-700 bg-white dark:bg-stone-800 px-2.5 text-[11px] font-semibold text-stone-600 dark:text-stone-300 hover:bg-stone-100 dark:hover:bg-stone-700 cursor-pointer"
+              className="flex min-h-9 items-center gap-1.5 rounded-[var(--radius-sm)] px-2.5 text-[11px] font-medium text-[var(--ink-muted)] hover:bg-[var(--surface)] hover:text-[var(--ink)] cursor-pointer"
             >
               <Columns3 className="h-3.5 w-3.5" /> 显示列
             </button>
             <button
               type="button"
               onClick={saveCurrentView}
-              className="flex min-h-9 items-center gap-1.5 rounded-lg bg-stone-900 dark:bg-rose-600 hover:bg-stone-800 dark:hover:bg-rose-700 px-2.5 text-[11px] font-semibold text-white cursor-pointer"
+              className="flex min-h-9 items-center gap-1.5 rounded-[var(--radius-sm)] px-2.5 text-[11px] font-medium text-[var(--accent)] hover:bg-[var(--surface)] cursor-pointer"
             >
               <Bookmark className="h-3.5 w-3.5" /> {viewSaved ? '已保存' : '保存当前视图'}
             </button>
@@ -582,7 +581,7 @@ export const TopicTableView: React.FC<TopicTableViewProps> = ({
                           : [...previous, column]
                       )
                     }
-                    className="accent-rose-600"
+                    className="accent-[var(--accent)]"
                   />
                   <span>{COLUMN_LABELS[column]}</span>
                 </label>
@@ -594,9 +593,9 @@ export const TopicTableView: React.FC<TopicTableViewProps> = ({
 
       {/* 1. Bulk action bar for active / archived scopes */}
       {selectedIds.size > 0 && archiveScope !== 'trash' && (
-        <div className="shrink-0 flex items-center justify-between gap-2 border-b border-rose-200 dark:border-rose-900/60 bg-rose-50 dark:bg-rose-950/40 px-4 py-2 flex-wrap text-xs">
-          <div className="flex items-center gap-1.5 font-bold text-rose-900 dark:text-rose-200">
-            <CheckSquare className="h-4 w-4 text-rose-700 dark:text-rose-400 shrink-0" />
+        <div className="shrink-0 flex items-center justify-between gap-2 border-b border-[var(--line)] bg-[var(--canvas)]/60 px-4 py-2 flex-wrap text-xs">
+          <div className="flex items-center gap-1.5 font-medium text-[var(--ink)]">
+            <CheckSquare className="h-4 w-4 text-[var(--accent)] shrink-0" />
             <span>已选择 {selectedIds.size} 个选题</span>
           </div>
           <div className="flex items-center gap-2 ml-auto flex-wrap">
@@ -611,7 +610,7 @@ export const TopicTableView: React.FC<TopicTableViewProps> = ({
               type="button"
               onClick={() => void applyBulkStatus().catch(() => undefined)}
               disabled={isBulkUpdating}
-              className="min-h-9 rounded-lg bg-rose-600 px-3 text-xs font-bold text-white hover:bg-rose-700 disabled:opacity-50 transition-colors shadow-2xs cursor-pointer"
+              className="min-h-9 rounded-[var(--radius-sm)] bg-[var(--accent)] px-3 text-xs font-medium text-white hover:opacity-90 disabled:opacity-50 transition-colors cursor-pointer"
             >
               {isBulkUpdating ? '更新中…' : '批量修改阶段'}
             </button>
@@ -619,7 +618,7 @@ export const TopicTableView: React.FC<TopicTableViewProps> = ({
               type="button"
               onClick={handleBulkTrash}
               disabled={isBulkUpdating}
-              className="min-h-9 inline-flex items-center gap-1.5 rounded-lg border border-red-200 dark:border-red-800 bg-white dark:bg-stone-900 px-3 text-xs font-bold text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/40 disabled:opacity-50 transition-colors cursor-pointer"
+              className="min-h-9 inline-flex items-center gap-1.5 rounded-[var(--radius-sm)] px-3 text-xs font-medium text-[var(--h1-color)] hover:bg-[var(--surface)] disabled:opacity-50 transition-colors cursor-pointer"
             >
               <Trash2 className="h-3.5 w-3.5" />
               <span>{isBulkUpdating ? '处理中…' : '批量移入回收站'}</span>
@@ -631,9 +630,9 @@ export const TopicTableView: React.FC<TopicTableViewProps> = ({
 
       {/* 2. Bulk action bar for TRASH scope */}
       {selectedIds.size > 0 && archiveScope === 'trash' && (
-        <div className="shrink-0 flex items-center justify-between gap-2 border-b border-red-200 dark:border-red-900/60 bg-red-50 dark:bg-red-950/40 px-4 py-2 flex-wrap text-xs">
-          <div className="flex items-center gap-1.5 font-bold text-red-900 dark:text-red-200">
-            <CheckSquare className="h-4 w-4 text-red-700 dark:text-red-400 shrink-0" />
+        <div className="shrink-0 flex items-center justify-between gap-2 border-b border-[var(--line)] bg-[var(--canvas)]/60 px-4 py-2 flex-wrap text-xs">
+          <div className="flex items-center gap-1.5 font-medium text-[var(--ink)]">
+            <CheckSquare className="h-4 w-4 text-[var(--ink-muted)] shrink-0" />
             <span>已选择 {selectedIds.size} 个回收站选题</span>
           </div>
           <div className="flex items-center gap-2 ml-auto flex-wrap">
@@ -641,7 +640,7 @@ export const TopicTableView: React.FC<TopicTableViewProps> = ({
               type="button"
               onClick={() => void handleBulkRestore()}
               disabled={isBulkUpdating}
-              className="flex items-center gap-1 min-h-9 rounded-lg bg-emerald-600 px-3 text-xs font-bold text-white hover:bg-emerald-700 disabled:opacity-50 transition-colors shadow-2xs cursor-pointer"
+              className="flex items-center gap-1 min-h-9 rounded-[var(--radius-sm)] px-3 text-xs font-medium text-[var(--accent)] hover:bg-[var(--surface)] disabled:opacity-50 transition-colors cursor-pointer"
             >
               <RotateCcw className="h-3.5 w-3.5" />
               <span>{isBulkUpdating ? '恢复中…' : '批量恢复'}</span>
@@ -650,7 +649,7 @@ export const TopicTableView: React.FC<TopicTableViewProps> = ({
               type="button"
               onClick={() => void handleBulkPermanentDelete()}
               disabled={isBulkUpdating}
-              className="flex items-center gap-1 min-h-9 rounded-lg bg-red-600 px-3 text-xs font-bold text-white hover:bg-red-700 disabled:opacity-50 transition-colors shadow-2xs cursor-pointer"
+              className="flex items-center gap-1 min-h-9 rounded-[var(--radius-sm)] px-3 text-xs font-medium text-[var(--h1-color)] hover:bg-[var(--surface)] disabled:opacity-50 transition-colors cursor-pointer"
             >
               <Trash2 className="h-3.5 w-3.5" />
               <span>{isBulkUpdating ? '删除中…' : '批量永久删除'}</span>
@@ -681,7 +680,7 @@ export const TopicTableView: React.FC<TopicTableViewProps> = ({
             const isArchived = topic.status === 'published' || topic.status === 'icebox';
 
             return (
-              <article key={topic.id} className="rounded-2xl border border-stone-200 dark:border-stone-800 bg-white dark:bg-stone-900 p-4 shadow-subtle cv-card">
+              <article key={topic.id} className="rounded-[var(--radius-md)] border border-[var(--line)] bg-[var(--surface)] p-4 cv-card">
                 <div className="flex items-start justify-between gap-3">
                   <div className="flex items-start gap-2.5 min-w-0 flex-1">
                     <input
@@ -696,14 +695,14 @@ export const TopicTableView: React.FC<TopicTableViewProps> = ({
                           return next;
                         });
                       }}
-                      className="mt-1 h-4 w-4 rounded border-stone-300 accent-rose-600 shrink-0 cursor-pointer"
+                      className="mt-1 h-4 w-4 rounded border-stone-300 accent-[var(--accent)] shrink-0 cursor-pointer"
                       aria-label={`选择选题「${topic.title}」`}
                     />
                     <button
                       onClick={() => archiveScope !== 'trash' && onOpenDetail(topic.id)}
                       className="min-w-0 flex-1 text-left"
                     >
-                      <span className="block truncate text-base font-bold text-stone-900 dark:text-stone-100">{topic.title}</span>
+                      <span className="block truncate text-base font-semibold text-[var(--ink)]">{topic.title}</span>
                       {(topic.summary || topic.hook) && (
                         <span className="mt-1 block line-clamp-2 text-xs leading-relaxed text-stone-500 dark:text-stone-400">
                           {topic.summary || topic.hook}
@@ -716,12 +715,12 @@ export const TopicTableView: React.FC<TopicTableViewProps> = ({
                     disabled={archiveScope === 'trash' || isArchived}
                     className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border transition-colors ${
                       topic.is_pinned
-                        ? 'border-rose-200 dark:border-rose-800 bg-rose-50 dark:bg-rose-950/40 text-rose-600 dark:text-rose-400'
-                        : 'border-stone-200 dark:border-stone-700 text-stone-400 dark:text-stone-500'
+                        ? 'border-[var(--accent)]/25 bg-[var(--accent-soft)] text-[var(--accent)]'
+                        : 'border-[var(--line)] text-[var(--ink-muted)]'
                     }`}
                     title={isArchived ? '归档选题不可设为主推' : topic.is_pinned ? '取消置顶' : '置顶选题'}
                   >
-                    <Pin className={`h-4 w-4 ${topic.is_pinned ? 'fill-rose-600' : ''}`} />
+                    <Pin className={`h-4 w-4 ${topic.is_pinned ? 'fill-current' : ''}`} />
                   </button>
                 </div>
 
@@ -737,38 +736,38 @@ export const TopicTableView: React.FC<TopicTableViewProps> = ({
                   <span className="ml-auto text-[11px] text-stone-600 dark:text-stone-400">{formatRelativeTime(topic.updated_at)}</span>
                 </div>
 
-                <div className="mt-3 rounded-xl border border-rose-100 dark:border-rose-900/60 bg-rose-50/60 dark:bg-rose-950/40 px-3 py-2 text-xs text-stone-700 dark:text-stone-300">
-                  <span className="font-semibold text-rose-700 dark:text-rose-300">当前行动：</span>
+                <div className="mt-3 rounded-r-[var(--radius-sm)] border-l-2 border-[var(--accent)] bg-[var(--canvas)]/60 px-3 py-2 text-xs text-[var(--ink)]">
+                  <span className="font-medium text-[var(--accent)]">当前行动：</span>
                   {topic.current_todo?.title || '未设置当前行动'}
                 </div>
 
                 {(topic.tags?.length || topic.people?.length) ? (
                   <div className="mt-3 flex flex-wrap gap-1.5">
                     {topic.tags?.slice(0, 3).map((tag) => (
-                      <span key={tag.id || tag.name} className="rounded-md border border-stone-200 dark:border-stone-700 bg-stone-50 dark:bg-stone-800 px-2 py-1 text-[10px] text-stone-600 dark:text-stone-300">
+                      <span key={tag.id || tag.name} className="rounded-md bg-[var(--canvas)] px-2 py-1 text-[10px] text-[var(--ink-muted)]">
                         #{tag.name}
                       </span>
                     ))}
                     {topic.people?.slice(0, 2).map((person) => (
-                      <span key={person.id} className="rounded-md border border-stone-200 dark:border-stone-700 bg-stone-50 dark:bg-stone-800 px-2 py-1 text-[10px] text-stone-600 dark:text-stone-300">
-                        👤 {person.name}
+                      <span key={person.id} className="rounded-md bg-[var(--canvas)] px-2 py-1 text-[10px] text-[var(--ink-muted)]">
+                        {person.name}
                       </span>
                     ))}
                   </div>
                 ) : null}
 
-                <div className="mt-3 grid grid-cols-3 divide-x divide-stone-100 dark:divide-stone-700 rounded-xl bg-stone-50 dark:bg-stone-800/60 py-2 text-center">
+                <div className="mt-3 grid grid-cols-3 divide-x divide-[var(--line)] rounded-[var(--radius-sm)] bg-[var(--canvas)]/65 py-2 text-center">
                   <div>
                     <div className="text-[10px] text-stone-600 dark:text-stone-400">故事评分</div>
-                    <div className="mt-0.5 font-mono text-xs font-bold text-stone-800 dark:text-stone-200">{totalScore || '—'}{totalScore ? '/10' : ''}</div>
+                    <div className="mt-0.5 font-mono text-xs font-medium text-[var(--ink)]">{totalScore || '—'}{totalScore ? '/10' : ''}</div>
                   </div>
                   <div>
                     <div className="text-[10px] text-stone-600 dark:text-stone-400">文案字数</div>
-                    <div className="mt-0.5 font-mono text-xs font-bold text-stone-800 dark:text-stone-200">{(topic.draft_word_count || 0).toLocaleString()}</div>
+                    <div className="mt-0.5 font-mono text-xs font-medium text-[var(--ink)]">{(topic.draft_word_count || 0).toLocaleString()}</div>
                   </div>
                   <div>
                     <div className="text-[10px] text-stone-600 dark:text-stone-400">预估时长</div>
-                    <div className="mt-0.5 text-xs font-bold text-stone-800 dark:text-stone-200"><span className="font-mono tabular-nums">{minutes}</span> 分钟</div>
+                    <div className="mt-0.5 text-xs font-medium text-[var(--ink)]"><span className="font-mono tabular-nums">{minutes}</span> 分钟</div>
                   </div>
                 </div>
 
@@ -790,28 +789,28 @@ export const TopicTableView: React.FC<TopicTableViewProps> = ({
                     </>
                   ) : isArchived ? (
                     <button
-                      onClick={() => void updateTopicStatus(topic.id, 'approved').catch(() => undefined)}
-                      className="flex min-h-10 items-center gap-1.5 rounded-xl border border-emerald-200 dark:border-emerald-800 px-3 text-xs font-semibold text-emerald-700 dark:text-emerald-300"
+                      onClick={() => void updateTopicStatus(topic.id, 'inbox').catch(() => undefined)}
+                      className="flex min-h-10 items-center gap-1.5 rounded-[var(--radius-sm)] px-3 text-xs font-medium text-[var(--accent)] hover:bg-[var(--canvas)]"
                     >
-                      <RotateCcw className="h-4 w-4" /> 恢复立项
+                      <RotateCcw className="h-4 w-4" /> 恢复至收集箱
                     </button>
                   ) : (
                     <button
                       onClick={() => setArchiveTopicId(topic.id)}
-                      className="flex min-h-10 items-center gap-1.5 rounded-xl border border-stone-200 dark:border-stone-700 px-3 text-xs font-semibold text-stone-600 dark:text-stone-300"
+                      className="flex min-h-10 items-center gap-1.5 rounded-[var(--radius-sm)] px-3 text-xs font-medium text-[var(--ink-muted)] hover:bg-[var(--canvas)]"
                     >
                       <Archive className="h-4 w-4" /> 归档
                     </button>
                   )}
                   {archiveScope !== 'trash' && <button
                     onClick={() => onOpenDetail(topic.id)}
-                    className="flex min-h-10 items-center gap-1.5 rounded-xl bg-stone-900 px-3 text-xs font-semibold text-white"
+                    className="flex min-h-10 items-center gap-1.5 rounded-[var(--radius-sm)] bg-[var(--accent)] px-3 text-xs font-medium text-white hover:opacity-90"
                   >
                     打开工作台 <ArrowRight className="h-4 w-4" />
                   </button>}
                   {archiveScope !== 'trash' && <button
                     onClick={() => requestDeleteTopic(topic)}
-                    className="flex h-10 w-10 items-center justify-center rounded-xl border border-red-100 dark:border-red-900/60 text-red-500 dark:text-red-400 cursor-pointer"
+                    className="flex h-10 w-10 items-center justify-center rounded-[var(--radius-sm)] text-[var(--h1-color)] hover:bg-[var(--canvas)] cursor-pointer"
                     title="移入回收站"
                   >
                     <Trash2 className="h-4 w-4" />
@@ -835,7 +834,7 @@ export const TopicTableView: React.FC<TopicTableViewProps> = ({
       >
         <table className="w-full text-left border-collapse text-xs">
           {/* Table Header */}
-          <thead className="table-header-row bg-stone-50/90 dark:bg-stone-900/95 backdrop-blur-xs sticky top-0 z-10 border-b border-stone-200 dark:border-stone-800 text-stone-600 dark:text-stone-300 font-semibold select-none">
+          <thead className="table-header-row bg-[var(--canvas)]/85 sticky top-0 z-10 border-b border-[var(--line)] text-[var(--ink-muted)] font-medium select-none">
             <tr>
               <th className="w-10 px-3 py-3 text-center">
                 <input
@@ -843,10 +842,10 @@ export const TopicTableView: React.FC<TopicTableViewProps> = ({
                   aria-label="选择当前页全部选题"
                   checked={allVisibleSelected}
                   onChange={toggleSelectAll}
-                  className="accent-rose-600"
+                  className="accent-[var(--accent)]"
                 />
               </th>
-              <th className="py-3 px-3 w-10 text-center">📌</th>
+              <th className="py-3 px-3 w-10 text-center"><Pin className="mx-auto h-3.5 w-3.5" aria-label="置顶" /></th>
 
               <th
                 onClick={() => handleHeaderClick('title')}
@@ -944,20 +943,20 @@ export const TopicTableView: React.FC<TopicTableViewProps> = ({
                 <tr
                   key={topic.id}
                   onClick={() => archiveScope !== 'trash' && onOpenDetail(topic.id)}
-                  className={`transition-all duration-150 ease-out group cv-auto ${
+                  className={`transition-colors duration-150 group cv-auto ${
                     archiveScope === 'trash' ? '' : 'cursor-pointer'
                   } ${
                     selectedIds.has(topic.id)
-                      ? 'bg-rose-50/70 hover:bg-rose-100/60 dark:bg-rose-950/35 dark:hover:bg-rose-900/40'
-                      : 'hover:bg-stone-100/70 dark:hover:bg-stone-800/60'
+                      ? 'bg-[var(--accent-soft)]/65 hover:bg-[var(--accent-soft)]'
+                      : 'hover:bg-[var(--canvas)]/75'
                   }`}
                 >
                   <td
                     onClick={(event) => event.stopPropagation()}
                     className={`${rowPadding} px-3 text-center border-l-2 transition-colors ${
                       selectedIds.has(topic.id)
-                        ? 'border-rose-600 dark:border-rose-400'
-                        : 'border-transparent group-hover:border-rose-400 dark:group-hover:border-rose-500'
+                        ? 'border-[var(--accent)]'
+                        : 'border-transparent group-hover:border-[var(--accent)]/35'
                     }`}
                   >
                     <input
@@ -970,7 +969,7 @@ export const TopicTableView: React.FC<TopicTableViewProps> = ({
                         else next.add(topic.id);
                         return next;
                       })}
-                      className="accent-rose-600 cursor-pointer"
+                      className="accent-[var(--accent)] cursor-pointer"
                     />
                   </td>
                   {/* 1. Pin / Index */}
@@ -991,18 +990,18 @@ export const TopicTableView: React.FC<TopicTableViewProps> = ({
                       title={isArchived ? '归档选题不可设为主推' : topic.is_pinned ? '取消置顶' : '置顶选题'}
                       className={`p-1 rounded transition-colors ${isArchived ? 'cursor-not-allowed opacity-30' : 'cursor-pointer'} ${
                         topic.is_pinned
-                          ? 'text-rose-600 dark:text-rose-400 hover:text-stone-400'
+                          ? 'text-[var(--accent)] hover:text-[var(--ink-muted)]'
                           : 'text-stone-300 dark:text-stone-600 hover:text-stone-600 dark:hover:text-stone-300 opacity-0 group-hover:opacity-100'
                       }`}
                     >
-                      <Pin className={`w-3.5 h-3.5 ${topic.is_pinned ? 'fill-rose-600 dark:fill-rose-400' : ''}`} />
+                      <Pin className={`w-3.5 h-3.5 ${topic.is_pinned ? 'fill-current' : ''}`} />
                     </button>
                   </td>
 
                   {/* 2. Title & Hook */}
                   <td className={`${rowPadding} px-3`}>
                     <div className="space-y-0.5 max-w-sm">
-                      <div className="flex items-center gap-1.5 font-bold text-stone-900 dark:text-stone-100 text-xs line-clamp-1 group-hover:text-rose-600 dark:group-hover:text-rose-400 transition-colors">
+                      <div className="flex items-center gap-1.5 font-semibold text-[var(--ink)] text-xs line-clamp-1 group-hover:text-[var(--accent)] transition-colors">
                         <span>{topic.title}</span>
                       </div>
                       {topic.summary ? (
@@ -1041,10 +1040,10 @@ export const TopicTableView: React.FC<TopicTableViewProps> = ({
                         event.stopPropagation();
                         onOpenCurrentAction(topic.id);
                       }}
-                      className={`inline-flex max-w-[240px] items-center gap-1.5 truncate rounded-lg px-2.5 py-1 text-left text-[11px] font-semibold transition-colors cursor-pointer ${topic.current_todo ? 'bg-rose-500/10 text-rose-950 hover:bg-rose-500/20 dark:bg-rose-500/15 dark:text-rose-200' : 'bg-stone-500/5 text-stone-500 hover:bg-stone-500/10 dark:text-stone-400'}`}
+                      className={`inline-flex max-w-[240px] items-center gap-1.5 truncate rounded-[var(--radius-sm)] px-2 py-1 text-left text-[11px] font-medium transition-colors cursor-pointer ${topic.current_todo ? 'bg-[var(--accent-soft)]/60 text-[var(--accent-dark)] hover:bg-[var(--accent-soft)]' : 'text-[var(--ink-muted)] hover:bg-[var(--canvas)]'}`}
                       title="管理当前行动"
                     >
-                      <span className={topic.current_todo ? 'text-rose-600 dark:text-rose-400' : 'text-stone-400'}>⚡</span>
+                      <Zap className={`h-3 w-3 shrink-0 ${topic.current_todo ? 'text-[var(--accent)]' : 'text-[var(--ink-muted)]'}`} aria-hidden="true" />
                       <span className="truncate">{topic.current_todo?.title || '未设置当前行动'}</span>
                     </button>
                   </td>}
@@ -1077,9 +1076,9 @@ export const TopicTableView: React.FC<TopicTableViewProps> = ({
                         topic.people.slice(0, 2).map((person) => (
                           <span
                             key={person.id}
-                            className="inline-flex items-center text-[10px] font-medium bg-stone-100 dark:bg-stone-800 text-stone-700 dark:text-stone-300 px-2 py-0.5 rounded-md select-none"
+                            className="inline-flex items-center text-[10px] text-[var(--ink-muted)] px-1 py-0.5 select-none"
                           >
-                            👤 {person.name}
+                            {person.name}
                           </span>
                         ))
                       ) : (
@@ -1091,10 +1090,9 @@ export const TopicTableView: React.FC<TopicTableViewProps> = ({
                   {/* 8. Story Rating Score */}
                   {isColumnVisible('score') && <td className={`${rowPadding} px-3 text-center`}>
                     {totalScore > 0 ? (
-                      <div className="inline-flex items-center gap-1 font-mono font-bold text-xs bg-amber-500/10 text-amber-900 dark:text-amber-300 px-2.5 py-0.5 rounded-full select-none">
-                        <Sparkles className="w-3 h-3 text-amber-500" />
+                      <div className="inline-flex items-center gap-1 font-mono font-medium text-xs text-[var(--ink)] select-none">
                         <span>{totalScore}</span>
-                        <span className="text-[10px] text-amber-600/70 dark:text-amber-400/70 font-normal">/10</span>
+                        <span className="text-[10px] text-[var(--ink-muted)] font-normal">/10</span>
                       </div>
                     ) : (
                       <span className="text-stone-600 dark:text-stone-400 text-[11px]">未评分</span>
@@ -1144,9 +1142,9 @@ export const TopicTableView: React.FC<TopicTableViewProps> = ({
                         </>
                       ) : isArchived ? (
                         <button
-                          onClick={() => void updateTopicStatus(topic.id, 'approved').catch(() => undefined)}
-                          className="p-1.5 text-emerald-600 dark:text-emerald-400 hover:text-emerald-800 dark:hover:text-emerald-300 hover:bg-emerald-50 dark:hover:bg-emerald-950/40 rounded-lg transition-colors cursor-pointer"
-                          title="从归档中恢复至已立项（重返全景看板）"
+                          onClick={() => void updateTopicStatus(topic.id, 'inbox').catch(() => undefined)}
+                          className="p-1.5 text-[var(--accent)] hover:bg-[var(--canvas)] rounded-[var(--radius-sm)] transition-colors cursor-pointer"
+                          title="从归档中恢复至收集箱"
                         >
                           <RotateCcw className="w-3.5 h-3.5" />
                         </button>
@@ -1186,26 +1184,26 @@ export const TopicTableView: React.FC<TopicTableViewProps> = ({
       </FloatingScrollbar>
 
       {/* Table Summary Footer */}
-      <div className="hidden p-3.5 bg-stone-50 dark:bg-stone-900/90 border-t border-stone-200 dark:border-stone-800 md:flex items-center justify-between text-xs text-stone-500 dark:text-stone-400 font-medium shrink-0 flex-wrap gap-2">
+      <div className="hidden p-3.5 bg-[var(--canvas)]/55 border-t border-[var(--line)] md:flex items-center justify-between text-xs text-[var(--ink-muted)] font-medium shrink-0 flex-wrap gap-2">
         <div className="flex items-center gap-4">
-          <span>当前页：<strong className="text-stone-900 dark:text-stone-100"><span className="font-mono tabular-nums">{sortedTopics.length}</span> 个选题</strong></span>
+          <span>当前页：<strong className="text-[var(--ink)]"><span className="font-mono tabular-nums">{sortedTopics.length}</span> 个选题</strong></span>
           <span>•</span>
-          <span>全库活跃生产：<strong className="text-indigo-700 dark:text-indigo-300"><span className="font-mono tabular-nums">{inScriptingCount}</span> 篇</strong></span>
+          <span>全库写稿中：<strong className="text-[var(--accent)]"><span className="font-mono tabular-nums">{inScriptingCount}</span> 篇</strong></span>
           <span>•</span>
-          <span>全库累计文案：<strong className="text-stone-900 dark:text-stone-100"><span className="font-mono tabular-nums">{totalWords.toLocaleString()}</span> 字</strong></span>
+          <span>全库累计文案：<strong className="text-[var(--ink)]"><span className="font-mono tabular-nums">{totalWords.toLocaleString()}</span> 字</strong></span>
         </div>
 
         <div className="flex items-center gap-2">
-          <button type="button" disabled={page <= 1 || pageQuery.isFetching} onClick={() => setPage((value) => Math.max(1, value - 1))} className="rounded-lg border border-stone-200 dark:border-stone-700 bg-white dark:bg-stone-800 text-stone-700 dark:text-stone-200 px-2.5 py-1.5 disabled:opacity-40">上一页</button>
+          <button type="button" disabled={page <= 1 || pageQuery.isFetching} onClick={() => setPage((value) => Math.max(1, value - 1))} className="rounded-[var(--radius-sm)] px-2.5 py-1.5 text-[var(--ink-muted)] hover:bg-[var(--surface)] disabled:opacity-40">上一页</button>
           <span><span className="font-mono tabular-nums">{page} / {Math.max(1, pageQuery.data?.total_pages || 1)}</span> · 共 <span className="font-mono tabular-nums">{pageQuery.data?.total || 0}</span> 条</span>
-          <button type="button" disabled={page >= (pageQuery.data?.total_pages || 1) || pageQuery.isFetching} onClick={() => setPage((value) => value + 1)} className="rounded-lg border border-stone-200 dark:border-stone-700 bg-white dark:bg-stone-800 text-stone-700 dark:text-stone-200 px-2.5 py-1.5 disabled:opacity-40">下一页</button>
+          <button type="button" disabled={page >= (pageQuery.data?.total_pages || 1) || pageQuery.isFetching} onClick={() => setPage((value) => value + 1)} className="rounded-[var(--radius-sm)] px-2.5 py-1.5 text-[var(--ink-muted)] hover:bg-[var(--surface)] disabled:opacity-40">下一页</button>
         </div>
       </div>
 
-      <div className="flex items-center justify-center gap-2 border-t border-stone-200 dark:border-stone-800 bg-stone-50 dark:bg-stone-900/90 p-3 text-xs md:hidden">
-        <button type="button" disabled={page <= 1 || pageQuery.isFetching} onClick={() => setPage((value) => Math.max(1, value - 1))} className="rounded-lg border border-stone-200 dark:border-stone-700 bg-white dark:bg-stone-800 text-stone-700 dark:text-stone-200 px-3 py-2 disabled:opacity-40">上一页</button>
+      <div className="flex items-center justify-center gap-2 border-t border-[var(--line)] bg-[var(--canvas)]/55 p-3 text-xs md:hidden">
+        <button type="button" disabled={page <= 1 || pageQuery.isFetching} onClick={() => setPage((value) => Math.max(1, value - 1))} className="rounded-[var(--radius-sm)] px-3 py-2 text-[var(--ink-muted)] hover:bg-[var(--surface)] disabled:opacity-40">上一页</button>
         <span className="text-stone-500 dark:text-stone-400 font-mono tabular-nums">{page} / {Math.max(1, pageQuery.data?.total_pages || 1)}</span>
-        <button type="button" disabled={page >= (pageQuery.data?.total_pages || 1) || pageQuery.isFetching} onClick={() => setPage((value) => value + 1)} className="rounded-lg border border-stone-200 dark:border-stone-700 bg-white dark:bg-stone-800 text-stone-700 dark:text-stone-200 px-3 py-2 disabled:opacity-40">下一页</button>
+        <button type="button" disabled={page >= (pageQuery.data?.total_pages || 1) || pageQuery.isFetching} onClick={() => setPage((value) => value + 1)} className="rounded-[var(--radius-sm)] px-3 py-2 text-[var(--ink-muted)] hover:bg-[var(--surface)] disabled:opacity-40">下一页</button>
       </div>
 
       <Modal
@@ -1223,7 +1221,7 @@ export const TopicTableView: React.FC<TopicTableViewProps> = ({
               setArchiveTopicId(null);
               if (topicId) void updateTopicStatus(topicId, 'published').catch(() => undefined);
             }}
-            className="rounded-xl bg-emerald-600 px-3 py-2 text-sm font-semibold text-white transition-colors hover:bg-emerald-700"
+            className="rounded-[var(--radius-sm)] bg-[var(--accent)] px-3 py-2 text-sm font-medium text-white transition-colors hover:opacity-90"
           >
             已发布
           </button>
@@ -1234,7 +1232,7 @@ export const TopicTableView: React.FC<TopicTableViewProps> = ({
               setArchiveTopicId(null);
               if (topicId) void updateTopicStatus(topicId, 'icebox').catch(() => undefined);
             }}
-            className="rounded-xl bg-stone-800 px-3 py-2 text-sm font-semibold text-white transition-colors hover:bg-stone-900"
+            className="rounded-[var(--radius-sm)] border border-[var(--line)] bg-[var(--canvas)] px-3 py-2 text-sm font-medium text-[var(--ink)] transition-colors hover:bg-[var(--surface)]"
           >
             搁置
           </button>

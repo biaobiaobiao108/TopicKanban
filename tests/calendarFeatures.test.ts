@@ -75,7 +75,7 @@ describe('Calendar utilities and event extraction', () => {
         hook: '',
         storyline: '',
         why_now: '',
-        status: 'approved',
+        status: 'scripting',
         priority: 'medium',
         score_character: 1,
         score_conflict: 1,

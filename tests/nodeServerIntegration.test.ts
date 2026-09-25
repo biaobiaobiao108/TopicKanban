@@ -119,7 +119,7 @@ describe('Bun Server Integration (Local SQLite & API)', () => {
         title: '测试爆款人物解说',
         hook: '三年从顶流到退圈的戏剧反差',
         summary: '梳理核心争议事件与反转脉络',
-        status: 'approved',
+        status: 'scripting',
         priority: 'high',
         initial_todo: { title: '核对核心争议原片' },
       }),
@@ -502,7 +502,7 @@ describe('Bun Server Integration (Local SQLite & API)', () => {
     const topic = await topicResponse.json() as { id: string; status: string };
     const relatedTopicResponse = await app.request('/api/topics', {
       method: 'POST', headers,
-      body: JSON.stringify({ title: '商单系列选题', status: 'approved' }),
+      body: JSON.stringify({ title: '商单系列选题', status: 'scripting' }),
     });
     const relatedTopic = await relatedTopicResponse.json() as { id: string };
 
@@ -1040,7 +1040,7 @@ describe('Bun Server Integration (Local SQLite & API)', () => {
       sqlite.query(`INSERT INTO people (id, name, created_at, updated_at)
         VALUES (?, ?, ?, ?)`).run(`person-${index}`, `人物 ${index}`, now, now);
       sqlite.query(`INSERT INTO topics (id, title, status, created_at, updated_at)
-        VALUES (?, ?, 'approved', ?, ?)`).run(`topic-${index}`, `分页选题 ${index}`, now, now);
+        VALUES (?, ?, 'scripting', ?, ?)`).run(`topic-${index}`, `分页选题 ${index}`, now, now);
     }
     sqlite.query(`INSERT INTO tags (id, name, color, created_at) VALUES (?, ?, ?, ?)`)
       .run('tag-pagination', '分页赛道', 'rose', now);

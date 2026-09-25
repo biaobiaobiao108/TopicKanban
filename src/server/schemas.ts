@@ -3,7 +3,7 @@ import { isTopicStatus } from '../types';
 import { isValidIsoDate } from '../lib/dateInput';
 import { isSafeExternalHttpUrl } from '../lib/urlSafety';
 
-export const TOPIC_STATUSES = ['inbox', 'approved', 'scripting', 'production', 'published', 'icebox'] as const;
+export const TOPIC_STATUSES = ['inbox', 'scripting', 'production', 'published', 'icebox'] as const;
 export const PRIORITIES = ['high', 'medium', 'low', 'none'] as const;
 
 export const COMMERCIAL_DEAL_STATUSES = ['communicating', 'producing', 'delivered', 'archived'] as const;

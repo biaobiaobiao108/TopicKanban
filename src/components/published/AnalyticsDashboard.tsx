@@ -341,7 +341,7 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({
             <div className="p-3.5 rounded-xl bg-amber-500/10 border border-amber-500/20 text-xs text-amber-900 dark:text-amber-200 flex items-start gap-2">
               <Sparkles className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
               <div className="leading-relaxed">
-                <strong>立项小贴士：</strong> 选题进入「已立项」阶段前，建议确保【{correlation.strongestHitFactor}】得分不低于 4 分，能显著提高完播与出圈概率。
+                <strong>开写前小贴士：</strong> 选题开始写稿前，建议确保【{correlation.strongestHitFactor}】得分不低于 4 分，能显著提高完播与出圈概率。
               </div>
             </div>
           )}

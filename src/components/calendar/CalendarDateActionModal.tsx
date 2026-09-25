@@ -51,7 +51,7 @@ export const CalendarDateActionModal: React.FC<CalendarDateActionModalProps> = (
   const [newTitle, setNewTitle] = useState('');
   const [newSummary, setNewSummary] = useState('');
   const [newPriority, setNewPriority] = useState<Priority>('medium');
-  const [newStatus, setNewStatus] = useState<TopicStatus>('approved');
+  const [newStatus, setNewStatus] = useState<TopicStatus>('inbox');
 
   const handleSaveSchedule = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -294,7 +294,7 @@ export const CalendarDateActionModal: React.FC<CalendarDateActionModalProps> = (
                   初始阶段
                 </label>
                 <div className="flex gap-1">
-                  {(['inbox', 'approved', 'scripting'] as TopicStatus[]).map((s) => (
+                  {(['inbox', 'scripting', 'production'] as TopicStatus[]).map((s) => (
                     <button
                       key={s}
                       type="button"
@@ -305,7 +305,7 @@ export const CalendarDateActionModal: React.FC<CalendarDateActionModalProps> = (
                           : 'bg-stone-100 dark:bg-stone-800 text-stone-600 dark:text-stone-400'
                       }`}
                     >
-                      {s === 'inbox' ? '收集箱' : s === 'approved' ? '已立项' : '写稿中'}
+                      {s === 'inbox' ? '收集箱' : s === 'scripting' ? '写稿中' : '待制作'}
                     </button>
                   ))}
                 </div>

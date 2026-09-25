@@ -166,7 +166,7 @@ export const TagsView: React.FC<TagsViewProps> = ({
 
   // Topics belonging to active selected tag
   const topicStatus = topicStatusFilter === 'in_progress'
-    ? 'approved,scripting,production'
+    ? 'scripting,production'
     : topicStatusFilter === 'pending' ? 'inbox'
       : topicStatusFilter === 'published' ? 'published,icebox' : undefined;
   const tagTopicsPageQuery = useQuery({

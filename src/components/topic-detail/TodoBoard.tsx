@@ -68,6 +68,7 @@ const ColumnTodoComposer: React.FC<{
       if (await onCreate(value, status)) setTitle('');
     } finally {
       setIsSubmitting(false);
+      requestAnimationFrame(() => inputRef.current?.focus({ preventScroll: true }));
     }
   };
 

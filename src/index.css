@@ -700,7 +700,7 @@ html.theme-warm-paper .today-priority-item:hover {
   box-shadow: 0 4px 14px rgba(60, 45, 30, 0.07) !important;
 }
 
-/* 3. Kanban Board & 4 Columns (Vintage Book Stages) */
+/* 3. Kanban Board & 3 Columns (Vintage Book Stages) */
 html.theme-warm-paper .kanban-column-container[data-column-status="inbox"] {
   background-color: #faf3eb !important;
   border-color: #ede1d3 !important;
@@ -709,16 +709,6 @@ html.theme-warm-paper .kanban-column-container[data-column-status="inbox"] {
 html.theme-warm-paper .kanban-column-container[data-column-status="inbox"] .kanban-column-count {
   background-color: #f4e3d1 !important;
   color: #7f4922 !important;
-}
-
-html.theme-warm-paper .kanban-column-container[data-column-status="approved"] {
-  background-color: #f1f5f0 !important;
-  border-color: #dbe6db !important;
-  border-top-color: #cbdecc !important;
-}
-html.theme-warm-paper .kanban-column-container[data-column-status="approved"] .kanban-column-count {
-  background-color: #e0ece0 !important;
-  color: #2b5c37 !important;
 }
 
 html.theme-warm-paper .kanban-column-container[data-column-status="scripting"] {
@@ -938,16 +928,6 @@ html.theme-nordic-frost .kanban-column-container[data-column-status="inbox"] {
 html.theme-nordic-frost .kanban-column-container[data-column-status="inbox"] .kanban-column-count {
   background-color: #dfebf0 !important;
   color: #335766 !important;
-}
-
-html.theme-nordic-frost .kanban-column-container[data-column-status="approved"] {
-  background-color: #eaf4ed !important;
-  border-color: #d0e7d7 !important;
-  border-top-color: #c2e2cb !important;
-}
-html.theme-nordic-frost .kanban-column-container[data-column-status="approved"] .kanban-column-count {
-  background-color: #d4ebd8 !important;
-  color: #1c5c36 !important;
 }
 
 html.theme-nordic-frost .kanban-column-container[data-column-status="scripting"] {

@@ -41,7 +41,7 @@ describe('batch reorder validation', () => {
       return await response.json() as { id: string };
     };
     const inbox = await create('收集箱选题', 'inbox');
-    const approved = await create('已立项选题', 'approved');
+    const scripting = await create('写稿中选题', 'scripting');
 
     const unknown = await app.request('/api/topics/reorder/batch', {
       method: 'PATCH', headers,
@@ -53,18 +53,18 @@ describe('batch reorder validation', () => {
       method: 'PATCH', headers,
       body: JSON.stringify({ updates: [
         { id: inbox.id, status: 'inbox', sort_order: 1 },
-        { id: inbox.id, status: 'approved', sort_order: 1 },
+        { id: inbox.id, status: 'scripting', sort_order: 1 },
       ] }),
     });
     expect(duplicate.status).toBe(400);
 
     const moved = await app.request('/api/topics/reorder/batch', {
       method: 'PATCH', headers,
-      body: JSON.stringify({ updates: [{ id: inbox.id, status: 'approved', sort_order: 1 }] }),
+      body: JSON.stringify({ updates: [{ id: inbox.id, status: 'scripting', sort_order: 1 }] }),
     });
     expect(moved.status).toBe(200);
-    expect(sqlite.query('SELECT status, sort_order FROM topics WHERE id = ?').get(inbox.id)).toEqual({ status: 'approved', sort_order: 1 });
-    expect(sqlite.query('SELECT status, sort_order FROM topics WHERE id = ?').get(approved.id)).toEqual({ status: 'approved', sort_order: 2 });
+    expect(sqlite.query('SELECT status, sort_order FROM topics WHERE id = ?').get(inbox.id)).toEqual({ status: 'scripting', sort_order: 1 });
+    expect(sqlite.query('SELECT status, sort_order FROM topics WHERE id = ?').get(scripting.id)).toEqual({ status: 'scripting', sort_order: 2 });
   });
 
   it('rejects unknown, duplicate, and cross-topic timeline event IDs', async () => {

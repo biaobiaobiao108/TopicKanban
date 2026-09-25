@@ -30,7 +30,6 @@ const DEFAULT_LIMIT = 8;
 
 const columnHeaders: Record<TopicStatus, { dot: string }> = {
   inbox: { dot: 'bg-[var(--ink-muted)] opacity-60' },
-  approved: { dot: 'bg-[var(--accent)]' },
   scripting: { dot: 'bg-[#9b6a2f] dark:bg-[#c49258]' },
   production: { dot: 'bg-[#6b4f73] dark:bg-[#a882b3]' },
   published: { dot: 'bg-[var(--accent)]' },

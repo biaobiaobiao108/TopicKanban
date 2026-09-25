@@ -247,7 +247,6 @@ font-family: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
 | 状态 | 默认语义色 |
 | --- | --- |
 | 收集箱/次要 | Stone |
-| 已立项/已确认/成功 | Emerald |
 | 写稿中/信息 | Indigo 或 Sky |
 | 待制作/准备中 | Purple |
 | 已发布/已上线 | Teal |

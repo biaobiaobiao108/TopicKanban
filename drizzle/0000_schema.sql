@@ -7,7 +7,7 @@ CREATE TABLE topics (
   hook TEXT NOT NULL DEFAULT '',
   storyline TEXT NOT NULL DEFAULT '',
   why_now TEXT NOT NULL DEFAULT '',
-  status TEXT NOT NULL DEFAULT 'inbox' CHECK (status IN ('inbox', 'approved', 'scripting', 'production', 'published', 'icebox')),
+  status TEXT NOT NULL DEFAULT 'inbox' CHECK (status IN ('inbox', 'scripting', 'production', 'published', 'icebox')),
   priority TEXT NOT NULL DEFAULT 'medium' CHECK (priority IN ('high', 'medium', 'low', 'none')),
   target_publish_date TEXT,
   deadline TEXT,

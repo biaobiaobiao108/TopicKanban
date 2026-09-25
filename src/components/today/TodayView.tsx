@@ -25,7 +25,7 @@ import { ActionDateText } from '../ui/ActionDate';
 import { FloatingScrollbar } from '../ui/FloatingScrollbar';
 
 const FOCUS_PRIORITY = { high: 3, medium: 2, low: 1, none: 0 };
-const ACTIVE_FOCUS_STATUSES = new Set(['approved', 'scripting', 'production']);
+const ACTIVE_FOCUS_STATUSES = new Set(['scripting', 'production']);
 const DEAL_STATUS_LABELS: Record<CommercialDeal['status'], string> = {
   communicating: '沟通中',
   producing: '制作中',

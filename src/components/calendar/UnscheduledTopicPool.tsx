@@ -235,9 +235,8 @@ export const UnscheduledTopicPool: React.FC<UnscheduledTopicPoolProps> = ({
         <div className="flex items-center gap-1 overflow-x-auto text-[11px]">
           {[
             { id: 'all', label: '全部' },
-            { id: 'approved', label: '已立项' },
             { id: 'scripting', label: '写稿中' },
-            { id: 'production', label: '制作中' },
+            { id: 'production', label: '待制作' },
             { id: 'inbox', label: '收集箱' },
           ].map((item) => (
             <button

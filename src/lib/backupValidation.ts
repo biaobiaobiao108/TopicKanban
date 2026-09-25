@@ -38,7 +38,7 @@ const topicSchema = z.object({
   hook: mediumText,
   storyline: longText,
   why_now: mediumText,
-  status: z.enum(['inbox', 'approved', 'scripting', 'production', 'published', 'icebox']),
+  status: z.enum(['inbox', 'scripting', 'production', 'published', 'icebox']),
   priority: z.enum(['high', 'medium', 'low', 'none']),
   target_publish_date: optionalDateOnly,
   deadline: optionalDateOnly,

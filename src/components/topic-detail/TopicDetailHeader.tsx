@@ -20,7 +20,6 @@ import { FloatingScrollbar } from '../ui/FloatingScrollbar';
 
 const statusDots: Record<TopicStatus, string> = {
   inbox: 'bg-stone-400',
-  approved: 'bg-emerald-500',
   scripting: 'bg-indigo-500',
   production: 'bg-purple-500',
   published: 'bg-teal-500',
@@ -393,13 +392,13 @@ export const TopicDetailHeader: React.FC<TopicDetailHeaderProps> = ({
                 type="button"
                 onClick={() => {
                   setIsMoreMenuOpen(false);
-                  void onUpdateTopic({ status: 'approved' });
+                  void onUpdateTopic({ status: 'inbox' });
                 }}
                 className="flex min-h-9 w-full items-center gap-2 rounded-xl px-2.5 py-1.5 text-left text-xs font-medium text-[var(--accent)] transition-colors hover:bg-[var(--accent-soft)] cursor-pointer"
-                title="从归档中恢复至已立项（重返全景看板）"
+                title="从归档中恢复至收集箱"
               >
                 <span className="grid h-4 w-4 place-items-center text-sm" aria-hidden="true">↩</span>
-                <span>恢复至已立项</span>
+                <span>恢复至收集箱</span>
               </button>
             ) : (
               <button

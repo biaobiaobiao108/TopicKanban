@@ -132,14 +132,14 @@ describe('跨视图实体缓存同步', () => {
     const current = topic('topic-1', { title: '旧标题' });
     const key = (status: Topic['status']) => ['kanban-column-page', status, '', 'all', 'all', 'all', 'sort_order', 1];
     queryClient.setQueryData<PaginatedTopics>(key('production'), page([current]));
-    queryClient.setQueryData<PaginatedTopics>(key('approved'), page([]));
+    queryClient.setQueryData<PaginatedTopics>(key('scripting'), page([]));
 
-    updateTopicCaches(queryClient, current.id, { status: 'approved', title: '新标题' });
+    updateTopicCaches(queryClient, current.id, { status: 'scripting', title: '新标题' });
 
     expect(queryClient.getQueryData<PaginatedTopics>(key('production'))?.items).toEqual([]);
     expect(queryClient.getQueryData<PaginatedTopics>(key('production'))?.total).toBe(0);
-    expect(queryClient.getQueryData<PaginatedTopics>(key('approved'))?.items[0].title).toBe('新标题');
-    expect(queryClient.getQueryData<PaginatedTopics>(key('approved'))?.total).toBe(1);
+    expect(queryClient.getQueryData<PaginatedTopics>(key('scripting'))?.items[0].title).toBe('新标题');
+    expect(queryClient.getQueryData<PaginatedTopics>(key('scripting'))?.total).toBe(1);
   });
 
   it('Todo 变更同步当前选题和执行看板缓存', () => {

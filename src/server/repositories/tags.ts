@@ -27,7 +27,7 @@ export async function loadTagsPage(db: SqliteDatabase, options: PageOptions): Pr
       INNER JOIN topics t ON t.id = tt.topic_id`),
     bind(db, `SELECT tg.id, tg.name, tg.color,
       COUNT(DISTINCT CASE WHEN t.deleted_at IS NULL THEN t.id END) AS tag_count,
-      COUNT(DISTINCT CASE WHEN t.deleted_at IS NULL AND t.status IN ('approved', 'scripting', 'production') THEN t.id END) AS in_progress_count,
+      COUNT(DISTINCT CASE WHEN t.deleted_at IS NULL AND t.status IN ('scripting', 'production') THEN t.id END) AS in_progress_count,
       COUNT(DISTINCT CASE WHEN t.deleted_at IS NULL AND t.status = 'published' THEN t.id END) AS published_count,
       COALESCE(SUM(CASE WHEN t.deleted_at IS NULL THEN COALESCE((SELECT word_count FROM drafts d WHERE d.topic_id = t.id LIMIT 1), 0) ELSE 0 END), 0) AS words_total,
       COALESCE(AVG(CASE WHEN t.deleted_at IS NULL THEN
