@@ -36,9 +36,9 @@ describe('Topic Todo board API', () => {
     return await response.json() as { id: string; current_todo?: TopicTodo | null };
   };
 
-  const createTodo = async (topicId: string, title: string) => {
+  const createTodo = async (topicId: string, title: string, status?: 'todo' | 'in_progress') => {
     const response = await app.request(`/api/topics/${topicId}/todos`, {
-      method: 'POST', headers, body: JSON.stringify({ title }),
+      method: 'POST', headers, body: JSON.stringify({ title, ...(status ? { status } : {}) }),
     });
     expect(response.status).toBe(201);
     return await response.json() as TopicTodoMutationResult;
@@ -57,6 +57,38 @@ describe('Topic Todo board API', () => {
     expect(second.todos.find((todo) => todo.title === '整理关键时间线')).toMatchObject({ status: 'todo', is_current: 0 });
     expect(third.todos.filter((todo) => todo.status === 'todo').map((todo) => todo.title)).toEqual(['整理关键时间线', '写出开场段落']);
     expect(third.topic.current_todo?.title).toBe('先看原始资料');
+  });
+
+  it('creates in the requested lane and only replaces current action when in progress was empty', async () => {
+    const activeTopic = await createTopic('已有当前行动的选题', '继续查找资料');
+    const appended = await createTodo(activeTopic.id, '补充采访信息', 'in_progress');
+    const currentId = appended.todos.find((todo) => todo.title === '继续查找资料')!.id;
+    const appendedTodo = appended.todos.find((todo) => todo.title === '补充采访信息')!;
+    expect(appended.todos.filter((todo) => todo.status === 'in_progress').map((todo) => todo.title)).toEqual(['继续查找资料', '补充采访信息']);
+    expect(appended.topic.current_todo?.id).toBe(currentId);
+    expect(appendedTodo).toMatchObject({ status: 'in_progress', is_current: 0, current_started_at: null });
+
+    const emptyTopic = await createTopic('没有进行中事项的选题');
+    const started = await createTodo(emptyTopic.id, '开始核对关键事实', 'in_progress');
+    const firstAction = started.todos.find((todo) => todo.title === '开始核对关键事实')!;
+    expect(firstAction).toMatchObject({ status: 'in_progress', is_current: 1 });
+    expect(firstAction.current_started_at).toBeTruthy();
+    expect(started.topic.current_todo?.id).toBe(firstAction.id);
+  });
+
+  it('rejects invalid creation statuses, including completed', async () => {
+    const topic = await createTopic('状态校验选题');
+    const completed = await app.request(`/api/topics/${topic.id}/todos`, {
+      method: 'POST', headers, body: JSON.stringify({ title: '不允许直接已完成', status: 'completed' }),
+    });
+    const invalid = await app.request(`/api/topics/${topic.id}/todos`, {
+      method: 'POST', headers, body: JSON.stringify({ title: '无效状态', status: 'blocked' }),
+    });
+    expect(completed.status).toBe(400);
+    expect(invalid.status).toBe(400);
+    const todos = await app.request(`/api/topics/${topic.id}/todos`, { headers });
+    expect(todos.status).toBe(200);
+    expect(await todos.json()).toEqual([]);
   });
 
   it('allows any number of in-progress items and keeps the first ordered item as current', async () => {

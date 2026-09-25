@@ -7,7 +7,7 @@ import {
   requireDb,
   validateTextFields,
 } from '../apiShared';
-import { parseWithZod, todoBoardLayoutSchema } from '../schemas';
+import { parseWithZod, topicTodoCreateSchema, todoBoardLayoutSchema } from '../schemas';
 import {
   completeTopicTodo,
   deleteTopicTodo,
@@ -47,15 +47,14 @@ export function registerTodoRoutes(app: NativeApp): void {
   app.post('/topics/:id/todos', async (c) => {
     try {
       const db = requireDb(c);
-      const body = await c.req.json<Record<string, unknown>>();
-      const validationError = validateTodoFields(body, true);
-      if (validationError) return c.json({ error: validationError }, 400);
+      const parsed = parseWithZod(topicTodoCreateSchema, await c.req.json());
+      if (!parsed.success) return jsonValidationError(c, parsed.error, parsed.issues);
       const now = new Date().toISOString();
       const todo: TopicTodo = {
         id: createId('todo'),
         topic_id: c.req.param('id'),
-        title: String(body.title).trim(),
-        status: 'todo',
+        title: parsed.data.title.trim(),
+        status: parsed.data.status || 'todo',
         is_current: 0,
         current_started_at: null,
         completed_at: null,

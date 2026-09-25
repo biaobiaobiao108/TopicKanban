@@ -53,6 +53,13 @@ export const textField = (fieldName: string, maxLength: number, required = false
   return schema.max(maxLength, `${fieldName} exceeds ${maxLength} characters`);
 };
 
+export const topicTodoCreateSchema = z.object({
+  title: textField('title', 200, true),
+  status: z.enum(['todo', 'in_progress'], {
+    message: 'Invalid Todo status',
+  }).optional(),
+}).strict();
+
 export const topicCreateSchema = z.object({
   id: z.string().optional(),
   title: textField('title', 200, true),

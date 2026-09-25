@@ -350,10 +350,12 @@ export function fetchAllTopicTodos(): Promise<TopicTodo[]> {
 export function saveTopicTodo(data: {
   topic_id: string;
   title: string;
+  status?: 'todo' | 'in_progress';
 }): Promise<TopicTodoMutationResult> {
+  const { topic_id, ...payload } = data;
   return apiRequest<TopicTodoMutationResult>(
-    `/api/topics/${encodeURIComponent(data.topic_id)}/todos`,
-    jsonRequest('POST', data),
+    `/api/topics/${encodeURIComponent(topic_id)}/todos`,
+    jsonRequest('POST', payload),
   );
 }
 

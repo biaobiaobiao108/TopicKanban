@@ -177,16 +177,20 @@ export async function updateTopicTodoBoard(
 }
 
 export async function insertTopicTodo(db: SqliteDatabase, todo: TopicTodo): Promise<TopicTodoMutationResult> {
+  if (todo.status !== 'todo' && todo.status !== 'in_progress') {
+    throw new TopicTodoInvalidStateError('New Todo must be todo or in progress');
+  }
   const existing = await loadTopicTodoRows(db, todo.topic_id);
   const nextTodo: TopicTodo = {
     ...todo,
-    status: 'todo',
+    status: todo.status,
     is_current: 0,
     current_started_at: null,
     completed_at: null,
   };
   const layout = boardLayoutFromTodos(existing);
-  layout.todo_ids = [...layout.todo_ids, nextTodo.id];
+  const targetIds = todo.status === 'in_progress' ? layout.in_progress_ids : layout.todo_ids;
+  targetIds.push(nextTodo.id);
   const nextTodos = [...existing, nextTodo];
   return persistBoardLayout(db, todo.topic_id, existing, nextTodos, layout, todo.updated_at, [
     topicTodoStatement(db, nextTodo),

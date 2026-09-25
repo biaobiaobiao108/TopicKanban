@@ -14,7 +14,7 @@ import type { TopicTodoActions } from '../components/topic-detail/todoTypes';
 export function useTopicTodoActions(
   onMutation: (result: TopicTodoMutationResult) => void,
 ): TopicTodoActions {
-  const createTodo = useCallback(async (topicId: string, input: { title: string }) => {
+  const createTodo = useCallback(async (topicId: string, input: { title: string; status?: 'todo' | 'in_progress' }) => {
     const result = await saveTopicTodo({ topic_id: topicId, ...input });
     onMutation(result);
     return result;

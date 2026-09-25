@@ -1,4 +1,4 @@
-import React, { useEffect, useId, useMemo, useRef, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import {
   DndContext,
@@ -10,12 +10,13 @@ import {
   useDroppable,
   useSensor,
   useSensors,
+  type DragOverEvent,
   type DragEndEvent,
   type DragStartEvent,
 } from '@dnd-kit/core';
 import { SortableContext, sortableKeyboardCoordinates, useSortable, verticalListSortingStrategy } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
-import { ArrowRightLeft, Check, GripVertical, KanbanSquare, MoreHorizontal, Pencil, Trash2, Zap } from 'lucide-react';
+import { ArrowRightLeft, Check, KanbanSquare, MoreHorizontal, Pencil, Plus, Trash2, Zap } from 'lucide-react';
 import type { Topic, TopicTodo, TopicTodoBoardLayout, TopicTodoStatus } from '../../types';
 import { ConfirmDialog } from '../ui/ConfirmDialog';
 import { FloatingMenu } from '../ui/FloatingMenu';
@@ -39,11 +40,17 @@ class NonTouchPointerSensor extends PointerSensor {
   }];
 }
 
-const BoardComposer: React.FC<{ onCreate: (title: string) => Promise<boolean> }> = ({ onCreate }) => {
+type TodoCreateStatus = Extract<TopicTodoStatus, 'todo' | 'in_progress'>;
+
+const ColumnTodoComposer: React.FC<{
+  status: TodoCreateStatus;
+  onCreate: (title: string, status: TodoCreateStatus) => Promise<boolean>;
+  onCancel: () => void;
+}> = ({ status, onCreate, onCancel }) => {
   const [title, setTitle] = useState('');
   const [error, setError] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const id = useId();
+  const id = `todo-board-create-${status}`;
   const inputRef = useRef<HTMLInputElement>(null);
 
   const submit = async (event: React.FormEvent<HTMLFormElement>) => {
@@ -58,37 +65,46 @@ const BoardComposer: React.FC<{ onCreate: (title: string) => Promise<boolean> }>
     setIsSubmitting(true);
     setError('');
     try {
-      if (await onCreate(value)) setTitle('');
+      if (await onCreate(value, status)) setTitle('');
     } finally {
       setIsSubmitting(false);
     }
   };
 
   return (
-    <form onSubmit={(event) => void submit(event)} noValidate className="space-y-1.5">
-      <label htmlFor={id} className="sr-only">添加待办事项</label>
-      <div className="todo-composer-shell flex min-h-11 items-center gap-2 rounded-xl px-3">
-        <span aria-hidden="true" className="todo-composer-icon flex h-7 w-7 shrink-0 items-center justify-center rounded-lg">＋</span>
+    <form onSubmit={(event) => void submit(event)} noValidate className="todo-board-composer rounded-[var(--radius-md)] border border-[var(--line)] bg-[var(--surface)] p-3 shadow-2xs">
+      <label htmlFor={id} className="mb-2 block text-xs font-medium text-[var(--ink-muted)]">添加到{status === 'todo' ? '待办' : '进行中'}</label>
+      <div className="flex min-w-0 flex-wrap items-center gap-2">
         <input
           ref={inputRef}
           id={id}
+          autoFocus
           value={title}
           onChange={(event) => { setTitle(event.target.value); setError(''); }}
+          onKeyDown={(event) => {
+            event.stopPropagation();
+            if (event.key === 'Escape') { event.preventDefault(); onCancel(); }
+          }}
+          onPointerDown={(event) => event.stopPropagation()}
+          onTouchStart={(event) => event.stopPropagation()}
           disabled={isSubmitting}
           maxLength={200}
           enterKeyHint="done"
           autoComplete="off"
-          placeholder="添加一条待办，按 Enter 保存"
-          className="todo-composer-input min-w-0 flex-1 bg-transparent py-1.5 text-base text-stone-900 outline-none placeholder:text-stone-400 dark:text-stone-100 sm:text-sm"
+          placeholder="写下下一步行动"
+          className="todo-composer-input min-h-9 min-w-0 flex-1 rounded-[var(--radius-sm)] bg-stone-500/[0.03] px-2.5 py-1.5 text-base text-[var(--ink)] outline-none ring-1 ring-transparent transition focus:ring-[var(--accent)]/40 placeholder:text-stone-400 dark:bg-stone-800 dark:placeholder:text-stone-500 sm:text-sm"
           aria-describedby={`${id}-help`}
           aria-invalid={Boolean(error)}
         />
-        <button type="submit" disabled={isSubmitting || !title.trim()} className="rounded-lg px-2 py-1 text-xs font-semibold text-[var(--accent)] hover:bg-[var(--accent)]/10 disabled:cursor-not-allowed disabled:opacity-40">
-          {isSubmitting ? '添加中…' : '添加'}
-        </button>
+        <div className="flex shrink-0 items-center gap-1">
+          <button type="submit" disabled={isSubmitting || !title.trim()} className="min-h-9 rounded-[var(--radius-sm)] bg-[var(--accent)] px-3 text-xs font-semibold text-white transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-40">
+            {isSubmitting ? '添加中…' : '添加'}
+          </button>
+          <button type="button" onClick={onCancel} disabled={isSubmitting} className="min-h-9 rounded-[var(--radius-sm)] px-2.5 text-xs text-[var(--ink-muted)] transition hover:bg-[var(--canvas)] hover:text-[var(--ink)] disabled:opacity-40">取消</button>
+        </div>
       </div>
-      <p id={`${id}-help`} aria-live="polite" className="px-1 text-[11px] leading-4 text-stone-500 dark:text-stone-400">
-        {error || '新建事项会进入待办列，标题最多 200 字'}
+      <p id={`${id}-help`} aria-live="polite" className="mt-1.5 text-[11px] leading-4 text-[var(--ink-muted)]">
+        {error || '按 Enter 添加，Esc 取消'}
       </p>
     </form>
   );
@@ -123,11 +139,13 @@ const InlineTitleEditor: React.FC<{
         value={value}
         onChange={(event) => { setValue(event.target.value); setError(''); }}
         onKeyDown={(event) => {
+          event.stopPropagation();
           if (event.key === 'Enter') { event.preventDefault(); void commit(); }
           if (event.key === 'Escape') { event.preventDefault(); onCancel(); }
         }}
         onBlur={() => { if (value.trim()) void commit(); }}
         onPointerDown={(event) => event.stopPropagation()}
+        onTouchStart={(event) => event.stopPropagation()}
         maxLength={200}
         aria-label="编辑待办标题"
         aria-invalid={Boolean(error)}
@@ -166,25 +184,24 @@ const SortableTodoCard: React.FC<SortableTodoCardProps> = ({ todo, status, isCur
     <article
       ref={setNodeRef}
       style={{ transform: CSS.Transform.toString(transform), transition }}
+      {...attributes}
+      {...listeners}
+      tabIndex={isBusy ? -1 : attributes.tabIndex}
+      role="group"
+      aria-label={`${todo.title}，${TODO_BOARD_COLUMNS.find((column) => column.status === status)?.label || ''}`}
       data-testid="todo-board-card"
       data-todo-id={todo.id}
       data-current={isCurrent ? 'true' : undefined}
       aria-current={isCurrent ? 'true' : undefined}
-      className={`group relative flex min-w-0 select-none touch-manipulation flex-col gap-2.5 rounded-[var(--radius-md)] border p-3.5 shadow-2xs transition-all duration-150 ${isDragging ? 'border-dashed bg-[var(--canvas)] opacity-35 shadow-none' : isCompleted ? 'border-[var(--line)] bg-[var(--canvas)]/55' : 'border-[var(--line)] bg-[var(--surface)] hover:border-[var(--accent)]/35 hover:shadow-subtle'}`}
+      className={`group relative flex min-w-0 select-none touch-manipulation flex-col gap-2.5 rounded-[var(--radius-md)] border p-3.5 shadow-2xs focus:outline-none focus-visible:ring-1 focus-visible:ring-[var(--accent)] ${isDragging ? 'pointer-events-none border-dashed border-[var(--line)] bg-[var(--canvas)] opacity-30 shadow-none scale-[0.98] transition-none will-change-transform' : `transition-all duration-150 ${isBusy ? 'cursor-default' : 'cursor-grab active:cursor-grabbing'} ${isCompleted ? 'border-[var(--line)] bg-[var(--canvas)]/55 hover:border-[var(--accent)]/35 hover:shadow-subtle' : 'border-[var(--line)] bg-[var(--surface)] hover:border-[var(--accent)]/35 hover:shadow-subtle'}`}`}
     >
       <div className="flex min-w-0 items-start gap-2">
         <button
           type="button"
-          {...attributes}
-          {...listeners}
-          aria-label={`拖动排序：${todo.title}`}
-          className="mt-0.5 flex h-7 w-6 shrink-0 touch-none items-center justify-center rounded-[var(--radius-sm)] text-[var(--ink-muted)]/70 hover:bg-[var(--canvas)] hover:text-[var(--ink)] focus-visible:outline-2 focus-visible:outline-[var(--accent)] active:cursor-grabbing"
-        >
-          <GripVertical className="h-4 w-4" aria-hidden="true" />
-        </button>
-        <button
-          type="button"
           onClick={onToggleComplete}
+          onPointerDown={(event) => event.stopPropagation()}
+          onTouchStart={(event) => event.stopPropagation()}
+          onKeyDown={(event) => event.stopPropagation()}
           disabled={isBusy}
           aria-label={isCompleted ? `恢复为待办：${todo.title}` : `完成待办：${todo.title}`}
           className={`mt-1 flex h-4 w-4 shrink-0 items-center justify-center rounded-full border transition-colors disabled:cursor-wait ${isCompleted ? 'border-[var(--accent)] bg-[var(--accent)] text-white' : 'border-[var(--line)] hover:border-[var(--accent)]'}`}
@@ -203,7 +220,12 @@ const SortableTodoCard: React.FC<SortableTodoCardProps> = ({ todo, status, isCur
           )}
         </div>
         {!isEditing && (
-          <div className="flex shrink-0 items-center gap-0.5 opacity-100 sm:opacity-65 sm:transition-opacity sm:group-hover:opacity-100">
+          <div
+            className="flex shrink-0 items-center gap-0.5 opacity-100 sm:opacity-65 sm:transition-opacity sm:group-hover:opacity-100"
+            onPointerDown={(event) => event.stopPropagation()}
+            onTouchStart={(event) => event.stopPropagation()}
+            onKeyDown={(event) => event.stopPropagation()}
+          >
             <button type="button" onClick={onEdit} disabled={isBusy} aria-label={`编辑：${todo.title}`} className="flex h-8 w-8 items-center justify-center rounded-[var(--radius-sm)] text-[var(--ink-muted)] hover:bg-[var(--canvas)] hover:text-[var(--ink)] disabled:opacity-40">
               <Pencil className="h-4 w-4" aria-hidden="true" />
             </button>
@@ -248,7 +270,11 @@ const TodoBoardColumn: React.FC<{
   status: TopicTodoStatus;
   ids: string[];
   children: React.ReactNode;
-}> = ({ status, ids, children }) => {
+  isComposerOpen: boolean;
+  onQuickAdd: () => void;
+  onCancelAdd: () => void;
+  onCreate: (title: string, status: TodoCreateStatus) => Promise<boolean>;
+}> = ({ status, ids, children, isComposerOpen, onQuickAdd, onCancelAdd, onCreate }) => {
   const column = TODO_BOARD_COLUMNS.find((item) => item.status === status)!;
   const { setNodeRef, isOver } = useDroppable({ id: `column:${status}`, data: { type: 'column', status } });
   return (
@@ -257,7 +283,7 @@ const TodoBoardColumn: React.FC<{
       data-testid="todo-board-column"
       data-column-status={status}
       aria-label={`${column.label}，${ids.length} 条`}
-      className={`kanban-column-container todo-board-column flex min-h-[220px] min-w-0 flex-col rounded-[var(--radius-md)] border p-3 transition-colors duration-150 ${isOver ? 'border-[var(--accent)] ring-1 ring-[var(--accent)]/30 bg-[var(--accent-soft)] shadow-subtle' : 'border-[var(--line)] bg-[var(--canvas)]/60 hover:bg-[var(--canvas)]'}`}
+      className={`kanban-column-container todo-board-column flex min-h-[220px] w-full min-w-0 flex-col rounded-[var(--radius-md)] border p-3 transition-colors duration-150 ${isOver ? 'border-[var(--accent)] ring-1 ring-[var(--accent)]/30 bg-[var(--accent-soft)] shadow-subtle' : 'border-[var(--line)] bg-[var(--canvas)]/60 hover:bg-[var(--canvas)]'}`}
     >
       <header className="mb-2.5 flex items-center justify-between gap-2 px-1.5 py-1">
         <div className="flex min-w-0 items-center gap-2">
@@ -265,18 +291,31 @@ const TodoBoardColumn: React.FC<{
           <h3 className="text-[13.5px] font-semibold tracking-tight text-[var(--ink)]">{column.label}</h3>
           <span className="kanban-column-count ml-0.5 text-xs tabular-nums text-[var(--ink-muted)]">{ids.length}</span>
         </div>
+        {status !== 'completed' && (
+          <button
+            type="button"
+            onClick={onQuickAdd}
+            aria-label={`在${column.label}中新增待办`}
+            aria-expanded={isComposerOpen}
+            title={`在${column.label}中新增待办`}
+            className="flex h-7 w-7 shrink-0 items-center justify-center rounded-[var(--radius-sm)] text-[var(--ink-muted)] transition-colors hover:bg-[var(--surface)] hover:text-[var(--ink)]"
+          >
+            <Plus className="h-3.5 w-3.5" aria-hidden="true" />
+          </button>
+        )}
       </header>
       <SortableContext items={ids} strategy={verticalListSortingStrategy}>
         <div className="mobile-scroll-reveal min-h-[140px] min-w-0 flex-1 space-y-2.5">
           {children}
           {ids.length === 0 && <div className={`flex h-24 flex-col items-center justify-center rounded-[var(--radius-sm)] border border-dashed p-3 text-center text-xs transition-colors duration-150 ${isOver ? 'border-[var(--accent)] bg-[var(--accent-soft)] text-[var(--accent)]' : 'border-[var(--line)] bg-[var(--surface)]/50 text-[var(--ink-muted)]'}`}><span className="font-medium">{isOver ? '松开以移入此列' : '暂无待办'}</span><span className="mt-0.5 text-[11px] opacity-75">{isOver ? `将事项归入「${column.label}」` : '拖动事项至此可调整进度'}</span></div>}
+          {isComposerOpen && status !== 'completed' && <ColumnTodoComposer status={status} onCreate={onCreate} onCancel={onCancelAdd} />}
         </div>
       </SortableContext>
     </section>
   );
 };
 
-function layoutFromDragEvent(event: DragEndEvent, current: TopicTodoBoardLayout): TopicTodoBoardLayout | null {
+function layoutFromDragEvent(event: Pick<DragEndEvent, 'active' | 'over'> | Pick<DragOverEvent, 'active' | 'over'>, current: TopicTodoBoardLayout): TopicTodoBoardLayout | null {
   const { active, over } = event;
   if (!over || active.id === over.id) return null;
   const todoId = String(active.id);
@@ -299,15 +338,20 @@ export const TodoBoard: React.FC<TodoBoardProps> = ({ topic, todos, actions, isL
   const [localLayout, setLocalLayout] = useState<TopicTodoBoardLayout | null>(null);
   const [activeTodoId, setActiveTodoId] = useState<string | null>(null);
   const [editingTodoId, setEditingTodoId] = useState<string | null>(null);
+  const [composerStatus, setComposerStatus] = useState<TodoCreateStatus | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<TopicTodo | null>(null);
   const [busyTodoIds, setBusyTodoIds] = useState<Set<string>>(new Set());
   const [busyBoardCount, setBusyBoardCount] = useState(0);
+  const [activeCardWidth, setActiveCardWidth] = useState<number | null>(null);
   const [isDesktop, setIsDesktop] = useState(false);
   const boardQueueRef = useRef<Promise<void>>(Promise.resolve());
   const pendingBoardCountRef = useRef(0);
   const pendingBoardTodoCountsRef = useRef(new Map<string, number>());
   const localRevisionRef = useRef(0);
   const operationIdsRef = useRef(new Set<string>());
+  const dragStartLayoutRef = useRef<TopicTodoBoardLayout | null>(null);
+  const dragLayoutRef = useRef<TopicTodoBoardLayout | null>(null);
+  const lastDragOverIdRef = useRef<string | null>(null);
   const sourceLayout = useMemo(() => getTodoBoardLayout(todos), [todos]);
   const layout = localLayout || sourceLayout;
   const todoById = useMemo(() => new Map(todos.map((todo) => [todo.id, todo])), [todos]);
@@ -389,11 +433,67 @@ export const TodoBoard: React.FC<TodoBoardProps> = ({ topic, todos, actions, isL
     }
   };
 
-  const handleDragStart = (event: DragStartEvent) => setActiveTodoId(String(event.active.id));
+  const handleDragStart = (event: DragStartEvent) => {
+    dragStartLayoutRef.current = layout;
+    dragLayoutRef.current = layout;
+    lastDragOverIdRef.current = null;
+    const activeId = String(event.active.id);
+    const cardElement = Array.from(document.querySelectorAll<HTMLElement>('[data-todo-id]'))
+      .find((element) => element.dataset.todoId === activeId);
+    setActiveCardWidth(cardElement?.getBoundingClientRect().width || null);
+    setActiveTodoId(activeId);
+  };
+
+  const handleDragOver = (event: DragOverEvent) => {
+    if (!event.over || !dragLayoutRef.current) {
+      lastDragOverIdRef.current = null;
+      return;
+    }
+    const overId = String(event.over.id);
+    if (overId === String(event.active.id)) return;
+    const overData = event.over.data.current as { type?: string } | undefined;
+    if (overData?.type === 'todo' && lastDragOverIdRef.current === overId) return;
+
+    const current = dragLayoutRef.current;
+    const next = layoutFromDragEvent(event, current);
+    if (next && JSON.stringify(next) !== JSON.stringify(current)) {
+      dragLayoutRef.current = next;
+      setLocalLayout(next);
+    }
+    lastDragOverIdRef.current = overData?.type === 'todo' ? overId : null;
+  };
+
   const handleDragEnd = (event: DragEndEvent) => {
     setActiveTodoId(null);
-    const next = layoutFromDragEvent(event, layout);
-    if (next && JSON.stringify(next) !== JSON.stringify(layout)) void saveBoard(next, String(event.active.id));
+    setActiveCardWidth(null);
+    const start = dragStartLayoutRef.current;
+    let next = dragLayoutRef.current || start || layout;
+    const overId = event.over ? String(event.over.id) : null;
+    if (event.over && overId !== lastDragOverIdRef.current) {
+      next = layoutFromDragEvent(event, next) || next;
+    }
+    dragStartLayoutRef.current = null;
+    dragLayoutRef.current = null;
+    lastDragOverIdRef.current = null;
+
+    if (!event.over) {
+      setLocalLayout(pendingBoardCountRef.current > 0 ? start : null);
+      return;
+    }
+    if (start && JSON.stringify(next) !== JSON.stringify(start)) {
+      void saveBoard(next, String(event.active.id));
+    } else if (pendingBoardCountRef.current === 0) {
+      setLocalLayout(null);
+    }
+  };
+
+  const handleDragCancel = () => {
+    setActiveTodoId(null);
+    setActiveCardWidth(null);
+    setLocalLayout(pendingBoardCountRef.current > 0 ? dragStartLayoutRef.current : null);
+    dragStartLayoutRef.current = null;
+    dragLayoutRef.current = null;
+    lastDragOverIdRef.current = null;
   };
 
   const beginEdit = (todoId: string) => setEditingTodoId(todoId);
@@ -402,7 +502,7 @@ export const TodoBoard: React.FC<TodoBoardProps> = ({ topic, todos, actions, isL
     return success;
   });
 
-  const createTodo = (title: string) => withTodoLock('__new_todo__', () => actions.createTodo(topic.id, { title }));
+  const createTodo = (title: string, status: TodoCreateStatus) => withTodoLock('__new_todo__', () => actions.createTodo(topic.id, { title, status }));
   const statusesToDisplay = isDesktop ? TODO_BOARD_COLUMNS.map((column) => column.status) : [mobileStatus];
   const showCard = (todoId: string, status: TopicTodoStatus, currentTodoId: string | null) => {
     const todo = todoById.get(todoId);
@@ -439,7 +539,6 @@ export const TodoBoard: React.FC<TodoBoardProps> = ({ topic, todos, actions, isL
         <div className="rounded-2xl bg-[var(--surface)] p-8 text-center text-sm text-[var(--ink-muted)]">正在加载执行看板…</div>
       ) : (
         <>
-          <BoardComposer onCreate={createTodo} />
           <div data-testid="todo-board-mobile-stage-tabs" className="flex min-h-9 items-center gap-1.5 overflow-x-auto rounded-[var(--radius-sm)] bg-[var(--canvas)] p-1 lg:hidden">
             {TODO_BOARD_COLUMNS.map((column) => (
               <button
@@ -458,8 +557,9 @@ export const TodoBoard: React.FC<TodoBoardProps> = ({ topic, todos, actions, isL
             sensors={sensors}
             collisionDetection={closestCorners}
             onDragStart={handleDragStart}
+            onDragOver={handleDragOver}
             onDragEnd={handleDragEnd}
-            onDragCancel={() => setActiveTodoId(null)}
+            onDragCancel={handleDragCancel}
           >
             <div className="grid min-w-0 grid-cols-1 gap-3 lg:grid-cols-3 lg:gap-4" data-testid="todo-board-grid">
               {TODO_BOARD_COLUMNS.filter((column) => statusesToDisplay.includes(column.status)).map((column) => {
@@ -467,7 +567,14 @@ export const TodoBoard: React.FC<TodoBoardProps> = ({ topic, todos, actions, isL
                 const currentId = column.status === 'in_progress' ? ids[0] || null : null;
                 return (
                   <div key={column.status} className="min-w-0">
-                    <TodoBoardColumn status={column.status} ids={ids}>
+                    <TodoBoardColumn
+                      status={column.status}
+                      ids={ids}
+                      isComposerOpen={composerStatus === column.status}
+                      onQuickAdd={() => setComposerStatus((current) => current === column.status ? null : column.status as TodoCreateStatus)}
+                      onCancelAdd={() => setComposerStatus(null)}
+                      onCreate={createTodo}
+                    >
                       {ids.map((id) => showCard(id, column.status, currentId))}
                     </TodoBoardColumn>
                   </div>
@@ -477,9 +584,9 @@ export const TodoBoard: React.FC<TodoBoardProps> = ({ topic, todos, actions, isL
             {typeof document !== 'undefined' && createPortal(
               <DragOverlay dropAnimation={null}>
                 {activeTodo ? (
-                  <div className="pointer-events-none rotate-[1deg] rounded-[var(--radius-md)] border border-[var(--accent)]/40 bg-[var(--surface)] px-4 py-3 shadow-modal">
-                    <div className="flex items-center gap-2 text-sm font-semibold text-[var(--ink)]"><GripVertical className="h-4 w-4 text-stone-400" />{activeTodo.title}</div>
-                    {activeTodoId === layout.in_progress_ids[0] && <span className="ml-6 mt-1 inline-flex items-center gap-1 text-[10px] font-semibold text-[var(--accent)]"><Zap className="h-3 w-3" />当前行动</span>}
+                  <div style={activeCardWidth ? { width: activeCardWidth } : undefined} className="pointer-events-none rotate-[1deg] rounded-[var(--radius-md)] border border-[var(--accent)]/40 bg-[var(--surface)] p-3.5 shadow-modal">
+                    <div className="text-sm font-semibold text-[var(--ink)]">{activeTodo.title}</div>
+                    {activeTodoId === layout.in_progress_ids[0] && <span className="mt-1 inline-flex items-center gap-1 text-[10px] font-semibold text-[var(--accent)]"><Zap className="h-3 w-3" />当前行动</span>}
                   </div>
                 ) : null}
               </DragOverlay>,
