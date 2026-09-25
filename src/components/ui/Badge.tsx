@@ -41,7 +41,7 @@ export const StatusBadge: React.FC<{ status: TopicStatus; size?: 'sm' | 'md' }> 
   );
 };
 
-export const PriorityBadge: React.FC<{ priority: Priority; showLabel?: boolean }> = ({ priority, showLabel = true }) => {
+export const PriorityBadge: React.FC<{ priority: Priority; showLabel?: boolean; showDot?: boolean }> = ({ priority, showLabel = true, showDot = true }) => {
   const configs: Record<Priority, { label: string; dot: string; text: string }> = {
     high: {
       label: '高',
@@ -69,7 +69,7 @@ export const PriorityBadge: React.FC<{ priority: Priority; showLabel?: boolean }
 
   return (
     <span className={`inline-flex items-center gap-1 text-[11px] whitespace-nowrap select-none ${c.text}`}>
-      <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${c.dot}`} />
+      {showDot && <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${c.dot}`} />}
       {showLabel && <span>{c.label}</span>}
     </span>
   );

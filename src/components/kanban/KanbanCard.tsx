@@ -185,23 +185,17 @@ const KanbanCardComponent: React.FC<KanbanCardProps> = ({
       <div
         className="relative bg-[var(--surface)] rounded-[var(--radius-md)] border-2 border-[var(--accent)] p-3.5 shadow-modal ring-2 ring-[var(--accent)]/15 scale-[1.02] rotate-[1deg] opacity-98 cursor-grabbing flex flex-col gap-2.5 select-none pointer-events-none w-full transition-transform duration-75"
       >
-        {/* Top row: Priority & Pin */}
-        <div className="flex items-center justify-between gap-1.5 flex-wrap">
-          <div className="flex items-center gap-2 flex-wrap">
-            {topic.is_pinned === 1 && (
-              <span className="inline-flex items-center gap-1 text-[11px] font-medium text-[#9b6a2f] dark:text-[#c49258]">
-                <Pin className="w-3 h-3 fill-current" />
-                置顶
-              </span>
-            )}
-            <PriorityBadge priority={topic.priority} />
-          </div>
-        </div>
-
         {/* Main Title */}
-        <h3 className="text-[14.5px] font-medium text-[var(--ink)] leading-snug tracking-tight line-clamp-2">
+        <h3 className="text-[15px] font-semibold text-[var(--ink)] leading-snug tracking-tight line-clamp-2">
           {topic.title}
         </h3>
+
+        {topic.is_pinned === 1 && (
+          <span className="inline-flex items-center gap-1 text-[11px] font-medium text-[#9b6a2f] dark:text-[#c49258]">
+            <Pin className="w-3 h-3 fill-current" />
+            置顶
+          </span>
+        )}
 
         {/* Current Action Highlight Bar */}
         {topic.current_todo ? (
@@ -215,9 +209,12 @@ const KanbanCardComponent: React.FC<KanbanCardProps> = ({
         ) : null}
 
         <div className="flex items-center justify-between gap-2 text-[11px]">
-          <span className={actionWarning ? 'font-medium text-[#9b6a2f] dark:text-[#c49258]' : 'text-[var(--ink-muted)]'}>
+          <div className="flex min-w-0 items-center gap-2">
+            <span className={`min-w-0 truncate ${actionWarning ? 'font-medium text-[#9b6a2f] dark:text-[#c49258]' : 'text-[var(--ink-muted)]'}`}>
             {actionWarning || `行动持续 ${getCurrentActionAgeDays(topic)} 天`}
-          </span>
+            </span>
+            <PriorityBadge priority={topic.priority} showDot={false} />
+          </div>
           <div data-testid="topic-card-meta" className="flex items-center gap-1.5 text-[var(--ink-muted)]">
             {(topic.sources_count || 0) > 0 && (
               <span><span className={CARD_META_VALUE_CLASS}>{topic.sources_count}</span>资料</span>
@@ -270,7 +267,12 @@ const KanbanCardComponent: React.FC<KanbanCardProps> = ({
         topic.is_pinned && !isDragging ? 'bg-[var(--canvas)]/40' : ''
       }`}
     >
-      {/* Top row: Priority, Pin & Quick Stage */}
+      {/* Main Title */}
+      <h3 className="text-[15px] font-semibold text-[var(--ink)] leading-snug tracking-tight group-hover:text-[var(--accent)] transition-colors line-clamp-2 text-pretty">
+        {topic.title}
+      </h3>
+
+      {/* Pin & Quick Stage */}
       <div className="flex items-center justify-between gap-1.5 flex-wrap">
         <div className="flex items-center gap-1.5 flex-wrap">
           {topic.is_pinned === 1 && (
@@ -279,7 +281,6 @@ const KanbanCardComponent: React.FC<KanbanCardProps> = ({
               置顶
             </span>
           )}
-          <PriorityBadge priority={topic.priority} />
         </div>
 
         <div className="flex items-center gap-1.5">
@@ -379,11 +380,6 @@ const KanbanCardComponent: React.FC<KanbanCardProps> = ({
         </div>
       </div>
 
-      {/* Main Title */}
-      <h3 className="text-[14.5px] font-medium text-[var(--ink)] leading-snug tracking-tight group-hover:text-[var(--accent)] transition-colors line-clamp-2 text-pretty">
-        {topic.title}
-      </h3>
-
       {/* Current Action Highlight Bar */}
       {topic.current_todo ? (
         <button
@@ -408,9 +404,12 @@ const KanbanCardComponent: React.FC<KanbanCardProps> = ({
       )}
 
       <div className="flex items-center justify-between gap-2 text-[11px]">
-        <span className={actionWarning ? 'font-medium text-[#9b6a2f] dark:text-[#c49258]' : 'text-[var(--ink-muted)]'}>
+        <div className="flex min-w-0 items-center gap-2">
+          <span className={`min-w-0 truncate ${actionWarning ? 'font-medium text-[#9b6a2f] dark:text-[#c49258]' : 'text-[var(--ink-muted)]'}`}>
           {actionWarning || `行动持续 ${getCurrentActionAgeDays(topic)} 天`}
-        </span>
+          </span>
+          <PriorityBadge priority={topic.priority} showDot={false} />
+        </div>
         <div data-testid="topic-card-meta" className="flex items-center gap-1.5 text-[var(--ink-muted)]">
           {(topic.sources_count || 0) > 0 && (
             <span><span className={CARD_META_VALUE_CLASS}>{topic.sources_count}</span>资料</span>
