@@ -185,17 +185,12 @@ const KanbanCardComponent: React.FC<KanbanCardProps> = ({
       <div
         className="relative bg-[var(--surface)] rounded-[var(--radius-md)] border-2 border-[var(--accent)] p-3.5 shadow-modal ring-2 ring-[var(--accent)]/15 scale-[1.02] rotate-[1deg] opacity-98 cursor-grabbing flex flex-col gap-2.5 select-none pointer-events-none w-full transition-transform duration-75"
       >
-        {/* Main Title */}
-        <h3 className="text-[15px] font-semibold text-[var(--ink)] leading-snug tracking-tight line-clamp-2">
-          {topic.title}
-        </h3>
-
-        {topic.is_pinned === 1 && (
-          <span className="inline-flex items-center gap-1 text-[11px] font-medium text-[#9b6a2f] dark:text-[#c49258]">
-            <Pin className="w-3 h-3 fill-current" />
-            置顶
-          </span>
-        )}
+        <div className="flex items-start justify-between gap-2">
+          <h3 className="min-w-0 flex-1 text-[15px] font-semibold text-[var(--ink)] leading-snug tracking-tight line-clamp-2">
+            {topic.title}
+          </h3>
+          {topic.is_pinned === 1 && <Pin className="mt-0.5 h-3.5 w-3.5 shrink-0 fill-[#9b6a2f] text-[#9b6a2f]" aria-label="置顶" />}
+        </div>
 
         {/* Current Action Highlight Bar */}
         {topic.current_todo ? (
@@ -267,23 +262,12 @@ const KanbanCardComponent: React.FC<KanbanCardProps> = ({
         topic.is_pinned && !isDragging ? 'bg-[var(--canvas)]/40' : ''
       }`}
     >
-      {/* Main Title */}
-      <h3 className="text-[15px] font-semibold text-[var(--ink)] leading-snug tracking-tight group-hover:text-[var(--accent)] transition-colors line-clamp-2 text-pretty">
-        {topic.title}
-      </h3>
-
-      {/* Pin & Quick Stage */}
-      <div className="flex items-center justify-between gap-1.5 flex-wrap">
-        <div className="flex items-center gap-1.5 flex-wrap">
-          {topic.is_pinned === 1 && (
-            <span className="inline-flex items-center gap-1 text-[11px] font-medium text-[#9b6a2f] dark:text-[#c49258]">
-              <Pin className="w-3 h-3 fill-current" />
-              置顶
-            </span>
-          )}
-        </div>
-
-        <div className="flex items-center gap-1.5">
+      {/* Main Title and Quick Stage */}
+      <div className="flex items-start justify-between gap-2">
+        <h3 className="min-w-0 flex-1 text-[15px] font-semibold text-[var(--ink)] leading-snug tracking-tight group-hover:text-[var(--accent)] transition-colors line-clamp-2 text-pretty">
+          {topic.title}
+        </h3>
+        <div className="shrink-0">
           {/* Direct Status Selector Dropdown */}
           {onUpdateStatus && (
             <div className="relative">
@@ -301,8 +285,10 @@ const KanbanCardComponent: React.FC<KanbanCardProps> = ({
                 }}
                 aria-expanded={isStatusMenuOpen}
                 aria-label="快速流转阶段"
-                className={`inline-flex items-center gap-0.5 text-[11px] font-medium text-[var(--ink-muted)] hover:text-[var(--ink)] bg-[var(--surface)] hover:bg-[var(--canvas)] border border-[var(--line)] px-1.5 py-0.5 rounded-[var(--radius-sm)] transition-all cursor-pointer ${
-                  isStatusMenuOpen ? 'opacity-100' : 'opacity-0 group-hover:opacity-100 focus:opacity-100'
+                onPointerDown={(event) => event.stopPropagation()}
+                onTouchStart={(event) => event.stopPropagation()}
+                className={`inline-flex min-h-8 items-center gap-1 rounded-[var(--radius-sm)] px-2 text-[11px] font-medium text-[var(--ink-muted)] transition-colors cursor-pointer hover:bg-[var(--canvas)] hover:text-[var(--ink)] focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[var(--accent)] ${
+                  isStatusMenuOpen ? 'bg-[var(--canvas)] text-[var(--ink)]' : ''
                 }`}
                 title="快速流转阶段"
               >
