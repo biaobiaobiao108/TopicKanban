@@ -850,7 +850,7 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
         })}
       </div>
 
-      {/* DND Context & Board Grid (4 Active Columns) */}
+      {/* DND Context & Board Grid (3 Active Columns) */}
       <DndContext
         key={isMobileViewport ? 'mobile' : 'desktop'}
         collisionDetection={closestCorners}
@@ -890,8 +890,8 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
             })}
           </div>
         ) : (
-          /* Desktop four-column board; drag and drop remains available here. */
-          <div data-testid="kanban-desktop-board" className="min-w-0 grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
+          /* Desktop three-column board; drag and drop remains available here. */
+          <div data-testid="kanban-desktop-board" className="min-w-0 grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
             {ACTIVE_COLUMNS.map((col) => {
               const colTopics = visibleColumnTopics[col.status] || [];
               return (
