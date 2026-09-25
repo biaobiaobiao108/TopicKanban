@@ -4,7 +4,7 @@ import { validateBackupData } from '../src/lib/backupValidation';
 
 function createBackup(overrides: Partial<BackupData> = {}): BackupData {
   return {
-    version: '2.0',
+    version: '3.0',
     export_at: '2026-01-01T00:00:00.000Z',
     topics: [],
     sources: [],
@@ -52,6 +52,7 @@ function createTodo(id: string, topicId: string, overrides: Partial<TopicTodo> =
     id,
     topic_id: topicId,
     title: `待办 ${id}`,
+    status: 'todo',
     is_current: 0,
     current_started_at: null,
     completed_at: null,
@@ -63,25 +64,58 @@ function createTodo(id: string, topicId: string, overrides: Partial<TopicTodo> =
 }
 
 describe('backup schema validation', () => {
-  it('accepts a valid version 2 backup', () => {
+  it('accepts a valid version 3 backup', () => {
     expect(validateBackupData(createBackup())).toMatchObject({ success: true });
+  });
+
+  it('rejects version 2 backups because Todo states are absent from that format', () => {
+    const result = validateBackupData({ ...createBackup(), version: '2.0' } as unknown as BackupData);
+    expect(result.success).toBe(false);
+    if (!result.success) expect(result.error).toContain('version');
   });
 
   it('validates Todo references and the single current action constraint', () => {
     const topic = createTopic('topic-todo');
     const current = createTodo('todo-current', topic.id, {
+      status: 'in_progress',
       is_current: 1,
       current_started_at: '2026-01-02T00:00:00.000Z',
     });
     expect(validateBackupData(createBackup({ topics: [topic], todos: [current] })).success).toBe(true);
 
+    const otherInProgress = createTodo('todo-in-progress', topic.id, { status: 'in_progress', sort_order: 2 });
+    expect(validateBackupData(createBackup({ topics: [topic], todos: [current, otherInProgress] })).success).toBe(true);
+
     const duplicateCurrent = validateBackupData(createBackup({
       topics: [topic],
-      todos: [current, createTodo('todo-duplicate', topic.id, { is_current: 1 })],
+      todos: [current, createTodo('todo-duplicate', topic.id, { status: 'in_progress', is_current: 1, sort_order: 2 })],
     }));
     expect(duplicateCurrent.success).toBe(false);
     if (!duplicateCurrent.success) expect(duplicateCurrent.error).toContain('一个选题只能有一个当前 Todo');
 
+  });
+
+  it('requires the first in-progress Todo to be the current action', () => {
+    const topic = createTopic('topic-todo-order');
+    const result = validateBackupData(createBackup({
+      topics: [topic],
+      todos: [
+        createTodo('todo-later', topic.id, { status: 'in_progress', sort_order: 2, is_current: 1 }),
+        createTodo('todo-first', topic.id, { status: 'in_progress', sort_order: 1 }),
+      ],
+    }));
+    expect(result.success).toBe(false);
+    if (!result.success) expect(result.error).toContain('进行中首项必须是当前行动');
+  });
+
+  it('requires current_started_at to exist only on the current action', () => {
+    const topic = createTopic('topic-current-time');
+    const result = validateBackupData(createBackup({
+      topics: [topic],
+      todos: [createTodo('todo-without-current-time', topic.id, { status: 'in_progress', is_current: 1 })],
+    }));
+    expect(result.success).toBe(false);
+    if (!result.success) expect(result.error).toContain('当前行动开始时间必须且只能记录在当前行动上');
   });
 
   it('rejects malformed entity fields before import', () => {

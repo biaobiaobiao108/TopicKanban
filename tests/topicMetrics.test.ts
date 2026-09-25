@@ -8,6 +8,7 @@ describe('topicMetrics - current Todo action', () => {
     status: 'scripting', priority: 'medium',
     current_todo: {
       id: 'todo-1', topic_id: 'topic-1', title: '核实争议原片',
+      status: 'in_progress',
       is_current: 1, current_started_at: '2026-08-20T10:00:00.000Z', completed_at: null,
       sort_order: 1, created_at: '2026-08-20T10:00:00.000Z', updated_at: '2026-08-20T10:00:00.000Z',
     },

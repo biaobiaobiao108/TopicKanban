@@ -35,7 +35,7 @@ describe('选题搜索字段一致性', () => {
     } as Person;
     const searchableTopic = topic({
       storyline: '故事转折关键词',
-      current_todo: { id: 'todo-search', topic_id: 'topic-search', title: '待核对行动', is_current: 1, sort_order: 1, created_at: '', updated_at: '' },
+      current_todo: { id: 'todo-search', topic_id: 'topic-search', title: '待核对行动', status: 'in_progress', is_current: 1, sort_order: 1, created_at: '', updated_at: '' },
       people: [person],
       tags: [{ id: 'tag-search', name: '分类关键词' } as Tag],
     });

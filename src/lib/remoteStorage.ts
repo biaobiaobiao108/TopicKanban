@@ -32,6 +32,7 @@ import type {
   Topic,
   TopicPinMutationResult,
   TopicTodo,
+  TopicTodoBoardLayout,
   TopicTodoMutationResult,
   TopicStatus,
   TopicWorkspaceData,
@@ -379,10 +380,10 @@ export function deleteTopicTodo(id: string): Promise<TopicTodoMutationResult> {
   return apiRequest<TopicTodoMutationResult>(`/api/todos/${encodeURIComponent(id)}`, { method: 'DELETE' });
 }
 
-export function reorderTopicTodos(topicId: string, ids: string[]): Promise<TopicTodoMutationResult> {
+export function updateTopicTodoBoard(topicId: string, layout: TopicTodoBoardLayout): Promise<TopicTodoMutationResult> {
   return apiRequest<TopicTodoMutationResult>(
-    `/api/topics/${encodeURIComponent(topicId)}/todos/reorder`,
-    jsonRequest('PATCH', { ids }),
+    `/api/topics/${encodeURIComponent(topicId)}/todos/board`,
+    jsonRequest('PATCH', layout),
   );
 }
 

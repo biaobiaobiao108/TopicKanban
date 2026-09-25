@@ -186,7 +186,7 @@ function loadTopicsForBackup(db: SqliteDatabase): Topic[] {
   const tags = query<Tag>('SELECT id, name, color FROM tags');
   const people = query<Person>('SELECT * FROM people');
   const currentTodos = query<TopicTodo>(`SELECT * FROM topic_todos
-    WHERE completed_at IS NULL ORDER BY topic_id ASC, sort_order ASC, created_at ASC`);
+    WHERE status = 'in_progress' AND is_current = 1 ORDER BY topic_id ASC`);
   const tagMap = new Map(tags.map((tag) => [tag.id, tag]));
   const personMap = new Map(people.map((person) => [person.id, person]));
   const tagsByTopic = new Map<string, Tag[]>();
@@ -245,9 +245,11 @@ export async function exportAllData(db: SqliteDatabase, kvSettings?: AppSettings
     const commercialDeals = query<CommercialDeal>('SELECT * FROM commercial_deals ORDER BY updated_at DESC');
     const commercialDealTopics = query<CommercialDealTopic>('SELECT * FROM commercial_deal_topics ORDER BY created_at ASC');
     const commercialDealActivities = query<CommercialDealActivity>('SELECT * FROM commercial_deal_activities ORDER BY created_at ASC');
-    const todos = query<TopicTodo>('SELECT * FROM topic_todos ORDER BY topic_id, sort_order, created_at');
+    const todos = query<TopicTodo>(`SELECT * FROM topic_todos ORDER BY topic_id,
+      CASE status WHEN 'todo' THEN 0 WHEN 'in_progress' THEN 1 ELSE 2 END,
+      sort_order, created_at`);
     return {
-      version: '2.0' as const,
+      version: '3.0' as const,
       export_at: exportAt,
       topics: allTopics,
       sources,

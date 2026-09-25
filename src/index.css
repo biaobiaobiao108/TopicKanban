@@ -747,19 +747,19 @@ html.theme-warm-paper .table-scope-tabs-container,
 html.theme-warm-paper .tags-header-banner,
 html.theme-warm-paper .script-editor-canvas-container {
   background-color: #f7f4ed !important;
-  border-bottom-color: #e2dbce !important;
+  border-bottom-color: transparent !important;
 }
 
-html.theme-warm-paper .detail-subtabs-container button.border-rose-600,
+html.theme-warm-paper .detail-subtabs-container button.is-active,
 html.theme-warm-paper .table-scope-tabs-container button.is-active {
   background-color: #fdfcf7 !important;
-  border: 1px solid #e0d8cb !important;
+  border: 1px solid transparent !important;
   box-shadow: 0 1px 3px rgba(60, 45, 30, 0.05) !important;
   color: #24201d !important;
   font-weight: 700 !important;
 }
 
-html.theme-warm-paper .detail-subtabs-container button:not(.border-rose-600) {
+html.theme-warm-paper .detail-subtabs-container button:not(.is-active) {
   border-color: transparent !important;
   color: #7d756c !important;
 }
@@ -975,20 +975,20 @@ html.theme-nordic-frost .detail-subtabs-container,
 html.theme-nordic-frost .tags-header-banner,
 html.theme-nordic-frost .table-scope-tabs-container,
 html.theme-nordic-frost .script-editor-canvas-container {
-  background-color: #f8fafb !important;
-  border-bottom-color: #dce5e5 !important;
+  background-color: #f6faf9 !important;
+  border-bottom-color: transparent !important;
 }
 
-html.theme-nordic-frost .detail-subtabs-container button.border-rose-600,
+html.theme-nordic-frost .detail-subtabs-container button.is-active,
 html.theme-nordic-frost .table-scope-tabs-container button.is-active {
   background-color: #ffffff !important;
-  border: 1px solid #d8e2e2 !important;
+  border: 1px solid transparent !important;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04) !important;
   color: #1a2424 !important;
   font-weight: 700 !important;
 }
 
-html.theme-nordic-frost .detail-subtabs-container button:not(.border-rose-600) {
+html.theme-nordic-frost .detail-subtabs-container button:not(.is-active) {
   border-color: transparent !important;
   color: #5f7474 !important;
 }
@@ -1180,24 +1180,25 @@ body.todo-dragging * {
 }
 
 .todo-current-badge {
-  background-color: var(--todo-accent) !important;
+  background-color: var(--accent-soft) !important;
+  color: var(--accent) !important;
 }
 
 .todo-composer-shell {
   border: 1px solid var(--line);
-  background-color: color-mix(in oklab, var(--todo-accent) 6%, var(--surface));
+  background-color: color-mix(in oklab, var(--accent) 6%, var(--surface));
   box-shadow: none;
 }
 
 .todo-composer-shell:focus-within {
-  border-color: var(--line);
-  background-color: color-mix(in oklab, var(--todo-accent) 9%, var(--surface));
+  border-color: color-mix(in oklab, var(--accent) 45%, var(--line));
+  background-color: color-mix(in oklab, var(--accent) 9%, var(--surface));
   box-shadow: none;
 }
 
 .todo-composer-icon {
-  background-color: color-mix(in oklab, var(--todo-accent) 13%, transparent);
-  color: var(--todo-accent);
+  background-color: color-mix(in oklab, var(--accent) 13%, transparent);
+  color: var(--accent);
 }
 
 .todo-inline-editor-shell {
@@ -1245,7 +1246,7 @@ html.dark input.todo-inline-editor-input {
   appearance: none;
   -webkit-appearance: none;
   -webkit-tap-highlight-color: transparent;
-  caret-color: var(--todo-accent);
+  caret-color: var(--accent);
 }
 
 .todo-composer-input:focus,

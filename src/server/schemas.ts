@@ -12,6 +12,17 @@ export const COMMERCIAL_DEAL_DELIVERABLE_TYPES = ['custom_video', 'dynamic', 'li
 export const COMMERCIAL_DEAL_SOURCES = ['huahuo', 'brand_direct', 'agency', 'mcn', 'other'] as const;
 export const COMMERCIAL_DEAL_CONTRACT_STATUSES = ['not_started', 'drafting', 'signed'] as const;
 
+export const todoBoardLayoutSchema = z.object({
+  todo_ids: z.array(z.string().min(1)),
+  in_progress_ids: z.array(z.string().min(1)),
+  completed_ids: z.array(z.string().min(1)),
+}).strict().superRefine((layout, ctx) => {
+  const allIds = [...layout.todo_ids, ...layout.in_progress_ids, ...layout.completed_ids];
+  if (new Set(allIds).size !== allIds.length) {
+    ctx.addIssue({ code: 'custom', path: [], message: 'A Todo may appear in only one board column' });
+  }
+});
+
 export const nullableIsoDate = (fieldName: string) =>
   z.union([z.string(), z.null()])
     .optional()

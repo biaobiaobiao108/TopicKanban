@@ -133,7 +133,7 @@ export class SqliteDatabase {
   }
 }
 
-export const CURRENT_SCHEMA_VERSION = 2;
+export const CURRENT_SCHEMA_VERSION = 3;
 
 function schemaObjectExists(sqlite: Database, name: string): boolean {
   return Boolean(sqlite.query("SELECT 1 FROM sqlite_master WHERE name = ? LIMIT 1").get(name));

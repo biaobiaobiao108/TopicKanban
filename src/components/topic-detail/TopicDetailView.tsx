@@ -10,7 +10,7 @@ import { TimelineTab } from './TimelineTab';
 import { PeopleTab } from './PeopleTab';
 import { CommercialDealsTab } from './CommercialDealsTab';
 import { TodoQuickActionDialog } from './TodoQuickActionDialog';
-import { TodoListTab } from './TodoListTab';
+import { TodoBoard } from './TodoBoard';
 import type { TopicTodoActions } from './todoTypes';
 import { COLUMNS } from '../kanban/columns';
 import {
@@ -40,7 +40,7 @@ import { Modal } from '../ui/Modal';
 import { FloatingMenu } from '../ui/FloatingMenu';
 import { FloatingScrollbar } from '../ui/FloatingScrollbar';
 import { formatBeijingDateTime } from '../../lib/actionDate';
-import { LayoutDashboard, FileSearch, Clock, Users, PenTool, FileText, Handshake, CheckCircle2, GitBranch, MoreHorizontal, ListTodo } from 'lucide-react';
+import { LayoutDashboard, FileSearch, Clock, Users, PenTool, FileText, Handshake, CheckCircle2, GitBranch, MoreHorizontal, KanbanSquare } from 'lucide-react';
 
 interface TopicDetailViewProps {
   topic: Topic;
@@ -369,7 +369,7 @@ export const TopicDetailView: React.FC<TopicDetailViewProps> = ({
 
   const tabs: { id: DetailTab; label: string; icon: React.ComponentType<{ className?: string }>; count?: number }[] = [
     { id: 'overview', label: '选题概览', icon: LayoutDashboard },
-    { id: 'todos', label: '执行清单', icon: ListTodo, count: todos.filter((todo) => !todo.completed_at).length },
+    { id: 'todos', label: '执行看板', icon: KanbanSquare, count: todos.filter((todo) => todo.status !== 'completed').length },
     { id: 'sources', label: '资料与素材', icon: FileSearch, count: sources.length },
     { id: 'timeline', label: '故事时间线', icon: Clock, count: timeline.length },
     { id: 'people', label: '人物与关系', icon: Users, count: topic.people?.length || 0 },
@@ -523,8 +523,8 @@ export const TopicDetailView: React.FC<TopicDetailViewProps> = ({
       />
 
       {/* Sub Tabs Navigation (Scrollable on mobile) */}
-      <div ref={detailSubtabsRef} className="detail-subtabs-container shrink-0 overflow-x-auto border-b border-[var(--line)] bg-[var(--surface)] transition-colors no-scrollbar">
-        <div className="mx-auto flex min-w-max max-w-7xl items-center gap-1 px-4 sm:px-8">
+      <div ref={detailSubtabsRef} className="detail-subtabs-container shrink-0 overflow-x-auto bg-[var(--canvas)] transition-colors no-scrollbar">
+        <div className="mx-auto flex min-w-max max-w-7xl items-center gap-1.5 px-3 py-2 sm:px-8">
           {tabs.map((tab) => {
             const Icon = tab.icon;
             const isActive = activeTab === tab.id;
@@ -535,16 +535,16 @@ export const TopicDetailView: React.FC<TopicDetailViewProps> = ({
                 onClick={() => void handleNavigateToTab(tab.id)}
                 disabled={isFlushingDraft}
                 aria-current={isActive ? 'page' : undefined}
-                className={`flex min-h-9 sm:min-h-10 items-center gap-1.5 border-b-2 px-2.5 sm:px-3 text-xs sm:text-[13px] font-semibold transition-all cursor-pointer touch-manipulation ${
+                className={`flex min-h-9 items-center gap-1.5 rounded-[var(--radius-sm)] border border-transparent px-2.5 sm:px-3 text-xs sm:text-[13px] font-medium transition-colors cursor-pointer touch-manipulation ${isActive ? 'is-active' : ''} ${
                   isActive
-                    ? 'border-[var(--accent)] text-[var(--ink)] bg-[var(--accent-soft)]/50'
-                    : 'border-transparent text-[var(--ink-muted)] hover:text-[var(--ink)] hover:border-[var(--line)]'
+                    ? 'bg-[var(--surface)] text-[var(--ink)] shadow-2xs'
+                    : 'text-[var(--ink-muted)] hover:bg-[var(--surface)]/60 hover:text-[var(--ink)]'
                 }`}
               >
-                <Icon className={`w-3.5 h-3.5 sm:w-4 sm:h-4 ${isActive ? 'text-[var(--accent)]' : 'text-[var(--ink-muted)] opacity-70'}`} />
+                <Icon className={`w-3.5 h-3.5 ${isActive ? 'text-[var(--accent)]' : 'text-[var(--ink-muted)] opacity-70'}`} />
                 <span>{tab.label}</span>
                 {typeof tab.count === 'number' && tab.count > 0 && (
-                  <span className="text-[10px] sm:text-[11px] bg-[var(--canvas)] text-[var(--ink-muted)] border border-[var(--line)] px-1.5 py-0.2 rounded-full font-mono">
+                  <span className="ml-0.5 text-[10px] tabular-nums text-[var(--ink-muted)] opacity-75">
                     {tab.count}
                   </span>
                 )}
@@ -587,7 +587,7 @@ export const TopicDetailView: React.FC<TopicDetailViewProps> = ({
 
         {activeTab === 'todos' && (
           <div key="todos" className="view-tab-transition">
-            <TodoListTab topic={topic} todos={todos} actions={todoActions} isLoading={todosQuery.isLoading} />
+            <TodoBoard topic={topic} todos={todos} actions={todoActions} isLoading={todosQuery.isLoading} />
           </div>
         )}
 
@@ -822,7 +822,7 @@ export const TopicDetailView: React.FC<TopicDetailViewProps> = ({
         topic={metricTopic}
         todo={metricTopic.current_todo}
         onClose={() => setIsActionDialogOpen(false)}
-        onOpenTodoList={() => {
+        onOpenTodoBoard={() => {
           setIsActionDialogOpen(false);
           setActiveTab('todos');
         }}

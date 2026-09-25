@@ -1,22 +1,23 @@
 import type { NativeApp } from '../native';
-import type { TopicTodo } from '../../types';
+import type { TopicTodo, TopicTodoBoardLayout } from '../../types';
 import {
   createId,
   jsonError,
+  jsonValidationError,
   requireDb,
   validateTextFields,
 } from '../apiShared';
+import { parseWithZod, todoBoardLayoutSchema } from '../schemas';
 import {
   completeTopicTodo,
   deleteTopicTodo,
-  getNextTodoSortOrder,
   loadAllTopicTodos,
   insertTopicTodo,
   loadTopicTodos,
   reopenTopicTodo,
-  reorderTopicTodos,
   setCurrentTopicTodo,
   updateTopicTodo,
+  updateTopicTodoBoard,
 } from '../repositories';
 
 function validateTodoFields(body: Record<string, unknown>, requireTitle = false): string | null {
@@ -54,10 +55,11 @@ export function registerTodoRoutes(app: NativeApp): void {
         id: createId('todo'),
         topic_id: c.req.param('id'),
         title: String(body.title).trim(),
+        status: 'todo',
         is_current: 0,
         current_started_at: null,
         completed_at: null,
-        sort_order: await getNextTodoSortOrder(db, c.req.param('id')),
+        sort_order: 0,
         created_at: now,
         updated_at: now,
       };
@@ -115,16 +117,15 @@ export function registerTodoRoutes(app: NativeApp): void {
     }
   });
 
-  app.patch('/topics/:id/todos/reorder', async (c) => {
+  app.patch('/topics/:id/todos/board', async (c) => {
     try {
-      const body = await c.req.json<{ ids?: unknown }>();
-      if (!Array.isArray(body.ids) || body.ids.some((id) => typeof id !== 'string' || !id.trim())) {
-        return c.json({ error: 'ids array is required' }, 400);
-      }
-      if (body.ids.length > 200 || new Set(body.ids).size !== body.ids.length) {
-        return c.json({ error: 'Invalid Todo order' }, 400);
-      }
-      return c.json(await reorderTopicTodos(requireDb(c), c.req.param('id'), body.ids));
+      const parsed = parseWithZod(todoBoardLayoutSchema, await c.req.json());
+      if (!parsed.success) return jsonValidationError(c, parsed.error, parsed.issues);
+      return c.json(await updateTopicTodoBoard(
+        requireDb(c),
+        c.req.param('id'),
+        parsed.data as TopicTodoBoardLayout,
+      ));
     } catch (error) {
       return jsonError(c, error, 400);
     }

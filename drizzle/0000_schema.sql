@@ -31,17 +31,20 @@ CREATE TABLE topic_todos (
   id TEXT PRIMARY KEY,
   topic_id TEXT NOT NULL,
   title TEXT NOT NULL,
+  status TEXT NOT NULL DEFAULT 'todo' CHECK (status IN ('todo', 'in_progress', 'completed')),
   is_current INTEGER NOT NULL DEFAULT 0 CHECK (is_current IN (0, 1)),
   current_started_at TEXT,
   completed_at TEXT,
   sort_order INTEGER NOT NULL DEFAULT 0 CHECK (sort_order >= 0),
   created_at TEXT NOT NULL,
-  updated_at TEXT NOT NULL,
-  CHECK (completed_at IS NULL OR is_current = 0),
+    updated_at TEXT NOT NULL,
+    CHECK ((status = 'completed') = (completed_at IS NOT NULL)),
+    CHECK (is_current = 0 OR (status = 'in_progress' AND completed_at IS NULL)),
+    CHECK ((is_current = 1) = (current_started_at IS NOT NULL)),
   FOREIGN KEY (topic_id) REFERENCES topics(id) ON DELETE CASCADE
 );
 
-CREATE INDEX idx_topic_todos_topic_order ON topic_todos(topic_id, sort_order, created_at);
+CREATE INDEX idx_topic_todos_topic_status_order ON topic_todos(topic_id, status, sort_order, created_at);
 CREATE UNIQUE INDEX idx_topic_todos_current
   ON topic_todos(topic_id)
   WHERE is_current = 1 AND completed_at IS NULL;
@@ -279,7 +282,7 @@ CREATE INDEX idx_topics_active_focus
   WHERE deleted_at IS NULL AND status NOT IN ('published', 'icebox');
 CREATE INDEX idx_topic_todos_current_age
   ON topic_todos(topic_id, current_started_at)
-  WHERE is_current = 1 AND completed_at IS NULL;
+  WHERE is_current = 1 AND status = 'in_progress' AND completed_at IS NULL;
 
 CREATE VIRTUAL TABLE topic_search USING fts5(
   topic_id UNINDEXED,
@@ -309,4 +312,4 @@ END;
 INSERT INTO topic_search(topic_id, title, summary, hook, storyline, why_now)
 SELECT id, title, summary, hook, storyline, why_now FROM topics;
 
-PRAGMA user_version = 2;
+PRAGMA user_version = 3;

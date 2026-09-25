@@ -52,9 +52,9 @@ export async function loadTopics(db: SqliteDatabase, scope: 'active' | 'trash' |
       INNER JOIN topics t ON t.id = tp.topic_id
       ${topicFilter}`),
     db.prepare(`SELECT * FROM topic_todos
-      WHERE completed_at IS NULL
+      WHERE status = 'in_progress' AND is_current = 1
         AND topic_id IN (SELECT t.id FROM topics t ${topicFilter})
-      ORDER BY topic_id ASC, sort_order ASC, created_at ASC`),
+      ORDER BY topic_id ASC`),
   ]);
 
   const topicRows = results[0].results as unknown as Topic[];
@@ -90,7 +90,7 @@ export async function loadTrashedTopics(db: SqliteDatabase): Promise<Topic[]> {
 export async function loadTodayFocus(db: SqliteDatabase, staleActionDays = 5): Promise<TodayFocusData> {
   const activeCondition = "t.deleted_at IS NULL AND t.status NOT IN ('published', 'icebox')";
   const safeStaleDays = Math.max(1, Math.min(30, Math.trunc(staleActionDays)));
-  const currentTodoJoin = 'LEFT JOIN topic_todos tt ON tt.topic_id = t.id AND tt.is_current = 1 AND tt.completed_at IS NULL';
+  const currentTodoJoin = "LEFT JOIN topic_todos tt ON tt.topic_id = t.id AND tt.status = 'in_progress' AND tt.is_current = 1";
   const staleExpression = "julianday('now') - julianday(COALESCE(tt.current_started_at, t.updated_at))";
   const [focusResult, priorityResult, recentResult, progressResult, attentionResult] = await db.batch([
     db.prepare(`SELECT t.id FROM topics t WHERE ${activeCondition}
@@ -317,8 +317,8 @@ export async function loadTopicPage(db: SqliteDatabase, options: TopicPageOption
       bind(db, `SELECT tt.topic_id, tg.* FROM topic_tags tt INNER JOIN tags tg ON tg.id = tt.tag_id WHERE tt.topic_id IN (${placeholders})`, ids),
       bind(db, `SELECT tp.topic_id, p.* FROM topic_people tp INNER JOIN people p ON p.id = tp.person_id WHERE tp.topic_id IN (${placeholders})`, ids),
       bind(db, `SELECT * FROM topic_todos
-        WHERE completed_at IS NULL AND topic_id IN (${placeholders})
-        ORDER BY topic_id ASC, sort_order ASC, created_at ASC`, ids),
+        WHERE status = 'in_progress' AND is_current = 1 AND topic_id IN (${placeholders})
+        ORDER BY topic_id ASC`, ids),
     ]);
     const currentTodoByTopic = new Map<string, TopicTodo>();
     (currentTodoResult.results as unknown as TopicTodo[]).forEach((todo) => {
@@ -374,8 +374,8 @@ export async function loadTopic(db: SqliteDatabase, id: string): Promise<Topic |
       INNER JOIN topic_people tp ON tp.person_id = p.id
       WHERE tp.topic_id = ?`, [id]),
     bind(db, `SELECT * FROM topic_todos
-      WHERE topic_id = ? AND completed_at IS NULL
-      ORDER BY sort_order ASC, created_at ASC LIMIT 1`, [id]),
+      WHERE topic_id = ? AND status = 'in_progress' AND is_current = 1
+      LIMIT 1`, [id]),
   ]);
 
   const topic = (results[0].results as unknown as Topic[])[0];
@@ -414,8 +414,8 @@ export async function loadTopicBatch(db: SqliteDatabase, ids: string[]): Promise
       INNER JOIN people p ON p.id = tp.person_id
       WHERE tp.topic_id IN (${placeholders})`, ids),
     bind(db, `SELECT * FROM topic_todos
-      WHERE topic_id IN (${placeholders}) AND completed_at IS NULL
-      ORDER BY topic_id ASC, sort_order ASC, created_at ASC`, ids),
+      WHERE topic_id IN (${placeholders}) AND status = 'in_progress' AND is_current = 1
+      ORDER BY topic_id ASC`, ids),
   ]);
 
   const topics = results[0].results as unknown as Topic[];
@@ -503,9 +503,9 @@ export async function insertTopic(
   if (initialTodo) {
     const now = new Date().toISOString();
     batch.push(bind(db, `INSERT INTO topic_todos (
-      id, topic_id, title, is_current, current_started_at,
+      id, topic_id, title, status, is_current, current_started_at,
       completed_at, sort_order, created_at, updated_at
-    ) VALUES (?, ?, ?, 1, ?, NULL, 1, ?, ?)`, [
+    ) VALUES (?, ?, ?, 'in_progress', 1, ?, NULL, 1, ?, ?)`, [
       initialTodo.id, topic.id, initialTodo.title,
       now, now, now,
     ]));

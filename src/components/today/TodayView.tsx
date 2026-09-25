@@ -472,7 +472,7 @@ export const TodayView: React.FC<TodayViewProps> = ({
           topic={topics.find((topic) => topic.id === actionTopic.id) || actionTopic}
           todo={(topics.find((topic) => topic.id === actionTopic.id) || actionTopic).current_todo}
           onClose={() => setActionTopic(null)}
-          onOpenTodoList={() => {
+          onOpenTodoBoard={() => {
             setActionTopic(null);
             onOpenDetail(actionTopic.id, 'todos');
           }}

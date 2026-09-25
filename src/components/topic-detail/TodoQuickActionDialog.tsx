@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { CheckCircle2, ListTodo, Zap } from 'lucide-react';
+import { CheckCircle2, KanbanSquare, Zap } from 'lucide-react';
 import type { Topic, TopicTodo } from '../../types';
 import { getCurrentActionAgeDays } from '../../lib/topicMetrics';
 import { Modal } from '../ui/Modal';
@@ -10,7 +10,7 @@ interface TodoQuickActionDialogProps {
   topic: Topic;
   todo: TopicTodo | null | undefined;
   onClose: () => void;
-  onOpenTodoList: () => void;
+  onOpenTodoBoard: () => void;
   actions: Pick<TopicTodoActions, 'updateTodo' | 'completeTodo'>;
 }
 
@@ -19,7 +19,7 @@ export const TodoQuickActionDialog: React.FC<TodoQuickActionDialogProps> = ({
   topic,
   todo,
   onClose,
-  onOpenTodoList,
+  onOpenTodoBoard,
   actions,
 }) => {
   const [title, setTitle] = useState('');
@@ -59,12 +59,12 @@ export const TodoQuickActionDialog: React.FC<TodoQuickActionDialogProps> = ({
       <Modal isOpen={isOpen} onClose={onClose} title="当前行动" maxWidth="sm">
         <div className="space-y-5">
           <div className="rounded-2xl border border-stone-200/80 dark:border-stone-800 bg-stone-50/80 dark:bg-stone-800/40 p-4 text-sm leading-relaxed text-stone-600 dark:text-stone-300">
-            这个选题还没有设置当前行动。可以先在执行清单中添加待办，再选择其中一条作为当前行动。
+            这个选题还没有设置当前行动。可以先在执行看板中把待办移入进行中，第一项会成为当前行动。
           </div>
           <div className="flex justify-end gap-2 border-t border-stone-200/70 dark:border-stone-800 pt-4">
             <button type="button" onClick={onClose} className="min-h-10 rounded-xl px-4 text-xs font-semibold text-stone-600 hover:bg-stone-100 dark:text-stone-300 dark:hover:bg-stone-800 cursor-pointer">关闭</button>
-            <button type="button" onClick={() => { onClose(); onOpenTodoList(); }} className="min-h-10 rounded-xl bg-rose-600 px-4 text-xs font-bold text-white hover:bg-rose-700 cursor-pointer flex items-center gap-1.5">
-              <ListTodo className="h-4 w-4" />打开执行清单
+            <button type="button" onClick={() => { onClose(); onOpenTodoBoard(); }} className="min-h-10 rounded-xl bg-rose-600 px-4 text-xs font-bold text-white hover:bg-rose-700 cursor-pointer flex items-center gap-1.5">
+              <KanbanSquare className="h-4 w-4" />打开执行看板
             </button>
           </div>
         </div>
@@ -93,7 +93,7 @@ export const TodoQuickActionDialog: React.FC<TodoQuickActionDialogProps> = ({
             <CheckCircle2 className="h-4 w-4" />完成当前行动
           </button>
           <div className="flex justify-end gap-2">
-            <button type="button" onClick={onOpenTodoList} disabled={saving} className="min-h-10 rounded-xl px-3.5 text-xs font-semibold text-stone-600 hover:bg-stone-100 disabled:opacity-50 dark:text-stone-300 dark:hover:bg-stone-800 cursor-pointer"><ListTodo className="mr-1 inline h-4 w-4" />执行清单</button>
+            <button type="button" onClick={onOpenTodoBoard} disabled={saving} className="min-h-10 rounded-xl px-3.5 text-xs font-semibold text-stone-600 hover:bg-stone-100 disabled:opacity-50 dark:text-stone-300 dark:hover:bg-stone-800 cursor-pointer"><KanbanSquare className="mr-1 inline h-4 w-4" />执行看板</button>
             <button type="button" onClick={onClose} className="min-h-10 rounded-xl px-3.5 text-xs font-semibold text-stone-600 hover:bg-stone-100 dark:text-stone-300 dark:hover:bg-stone-800 cursor-pointer">取消</button>
             <button type="button" onClick={() => void handleSave()} disabled={saving || !title.trim()} className="min-h-10 rounded-xl bg-rose-600 px-4 text-xs font-bold text-white hover:bg-rose-700 disabled:opacity-50 cursor-pointer">{saving ? '保存中…' : '保存修改'}</button>
           </div>

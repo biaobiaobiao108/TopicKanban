@@ -17,6 +17,8 @@ export type Priority = 'high' | 'medium' | 'low' | 'none';
 
 export type VerificationStatus = 'confirmed' | 'unverified' | 'rejected';
 
+export type TopicTodoStatus = 'todo' | 'in_progress' | 'completed';
+
 export type DatePrecision = 'exact' | 'year_month' | 'year' | 'unknown';
 
 export type PlatformType =
@@ -36,6 +38,7 @@ export interface TopicTodo {
   id: string;
   topic_id: string;
   title: string;
+  status: TopicTodoStatus;
   is_current: number; // 0 or 1
   current_started_at?: string | null;
   completed_at?: string | null;
@@ -550,7 +553,7 @@ export interface PaginatedPublishedVideos extends PageMeta {
 }
 
 export interface BackupData {
-  version: '2.0';
+  version: '3.0';
   export_at: string;
   topics: Topic[];
   sources: Source[];
@@ -572,6 +575,12 @@ export interface BackupData {
 export interface TopicTodoMutationResult {
   topic: Topic;
   todos: TopicTodo[];
+}
+
+export interface TopicTodoBoardLayout {
+  todo_ids: string[];
+  in_progress_ids: string[];
+  completed_ids: string[];
 }
 
 export interface TopicPinMutationResult {

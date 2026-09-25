@@ -1118,7 +1118,7 @@ function WorkspaceApp({ isAuth, setIsAuth }: WorkspaceAppProps) {
           topic={quickActionTopic}
           todo={quickActionTopic.current_todo}
           onClose={() => setQuickActionTopicId(null)}
-          onOpenTodoList={() => {
+          onOpenTodoBoard={() => {
             setQuickActionTopicId(null);
             handleOpenDetail(quickActionTopic.id, 'todos');
           }}

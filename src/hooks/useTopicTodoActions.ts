@@ -4,10 +4,10 @@ import {
   completeTopicTodo,
   deleteTopicTodo,
   reopenTopicTodo,
-  reorderTopicTodos,
   saveTopicTodo,
   setTopicTodoCurrent,
   updateTopicTodo,
+  updateTopicTodoBoard,
 } from '../lib/storage';
 import type { TopicTodoActions } from '../components/topic-detail/todoTypes';
 
@@ -44,8 +44,8 @@ export function useTopicTodoActions(
     onMutation(result);
     return result;
   }, [onMutation]);
-  const reorderTodos = useCallback(async (topicId: string, ids: string[]) => {
-    const result = await reorderTopicTodos(topicId, ids);
+  const updateBoard = useCallback(async (topicId: string, layout: Parameters<typeof updateTopicTodoBoard>[1]) => {
+    const result = await updateTopicTodoBoard(topicId, layout);
     onMutation(result);
     return result;
   }, [onMutation]);
@@ -57,6 +57,6 @@ export function useTopicTodoActions(
     completeTodo,
     reopenTodo,
     deleteTodo,
-    reorderTodos,
-  }), [completeTodo, createTodo, deleteTodo, reopenTodo, reorderTodos, setCurrentTodo, updateTodo]);
+    updateBoard,
+  }), [completeTodo, createTodo, deleteTodo, reopenTodo, setCurrentTodo, updateBoard, updateTodo]);
 }

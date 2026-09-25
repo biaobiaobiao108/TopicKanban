@@ -49,11 +49,15 @@ describe('Database schema contract', () => {
 
       const todoColumns = sqlite.query('PRAGMA table_info(topic_todos)').all() as Array<{ name: string }>;
       expect(todoColumns.map((column) => column.name)).toEqual([
-        'id', 'topic_id', 'title', 'is_current', 'current_started_at',
+        'id', 'topic_id', 'title', 'status', 'is_current', 'current_started_at',
         'completed_at', 'sort_order', 'created_at', 'updated_at',
       ]);
       const currentIndex = sqlite.query("SELECT sql FROM sqlite_master WHERE type = 'index' AND name = 'idx_topic_todos_current'").get() as { sql: string };
       expect(currentIndex.sql).toMatch(/WHERE is_current\s*=\s*1 AND completed_at IS NULL/);
+      const todoTable = sqlite.query("SELECT sql FROM sqlite_master WHERE type = 'table' AND name = 'topic_todos'").get() as { sql: string };
+      expect(todoTable.sql).toContain("(is_current = 1) = (current_started_at IS NOT NULL)");
+      const statusIndex = sqlite.query("SELECT sql FROM sqlite_master WHERE type = 'index' AND name = 'idx_topic_todos_topic_status_order'").get() as { sql: string };
+      expect(statusIndex.sql).toContain('topic_id, status, sort_order');
 
       const publishedTopicColumn = sqlite.query('PRAGMA table_info(published_videos)')
         .all() as Array<{ name: string; notnull: number }>;
@@ -76,7 +80,7 @@ describe('Database schema contract', () => {
       expect(sqlite.query("SELECT name FROM sqlite_master WHERE type = 'table' AND name = 'commercial_deal_activities'").get()).not.toBeNull();
 
       expect(sqlite.query("SELECT name FROM sqlite_master WHERE type = 'table' AND name = '_schema_migrations'").get()).toBeNull();
-      expect(sqlite.query('PRAGMA user_version').get()).toEqual({ user_version: 2 });
+      expect(sqlite.query('PRAGMA user_version').get()).toEqual({ user_version: 3 });
       sqlite.query("INSERT INTO commercial_deals (id, title, created_at, updated_at) VALUES ('valid', '有效商单', '2026-08-27', '2026-08-27')").run();
       expect(() => sqlite.query("INSERT INTO commercial_deals (id, title, status, created_at, updated_at) VALUES ('invalid', '非法阶段', 'reviewing', '2026-08-27', '2026-08-27')").run()).toThrow();
     } finally {

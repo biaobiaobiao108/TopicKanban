@@ -335,7 +335,7 @@ export const TopicDetailHeader: React.FC<TopicDetailHeaderProps> = ({
               type="button"
               onClick={onOpenCurrentAction}
               className="inline-flex items-center gap-1.5 px-2 py-1 rounded-[var(--radius-sm)] border border-transparent hover:border-[var(--line)] bg-transparent hover:bg-[var(--canvas)] text-xs text-[var(--ink-muted)] hover:text-[var(--ink)] transition-all cursor-pointer"
-              title="当前选题尚未设置当前行动，点击打开执行清单"
+              title="当前选题尚未设置当前行动，点击打开执行看板"
             >
               <Zap className="w-3.5 h-3.5 text-[var(--accent)]" />
               <span className="hidden sm:inline">设置行动</span>

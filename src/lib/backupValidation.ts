@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { type BackupData, APP_THEMES } from '../types';
+import { type BackupData, type TopicTodo, APP_THEMES } from '../types';
 import { isValidIsoDate } from './dateInput';
 
 const id = z.string().trim().min(1, 'ID 不能为空').max(200, 'ID 不能超过 200 字符');
@@ -61,6 +61,7 @@ const todoSchema = z.object({
   id,
   topic_id: id,
   title: shortText.trim().min(1, 'Todo 标题不能为空'),
+  status: z.enum(['todo', 'in_progress', 'completed']),
   is_current: z.union([z.literal(0), z.literal(1)]),
   current_started_at: optionalTimestamp,
   completed_at: optionalTimestamp,
@@ -256,7 +257,7 @@ const settingsSchema = z.object({
 });
 
 const backupSchema = z.object({
-  version: z.literal('2.0'),
+  version: z.literal('3.0'),
   export_at: timestamp,
   topics: z.array(topicSchema),
   sources: z.array(sourceSchema),
@@ -312,15 +313,31 @@ const backupSchema = z.object({
   data.drafts.forEach((item, index) => requireTopic(item.topic_id, ['drafts', index, 'topic_id']));
   data.citations.forEach((item, index) => requireTopic(item.topic_id, ['citations', index, 'topic_id']));
   const currentTodoTopics = new Set<string>();
+  const inProgressTodosByTopic = new Map<string, TopicTodo[]>();
   (data.todos || []).forEach((item, index) => {
     requireTopic(item.topic_id, ['todos', index, 'topic_id']);
-    if (item.is_current === 1 && item.completed_at) {
-      addIssue(['todos', index, 'is_current'], '已完成 Todo 不能设为当前行动');
+    if ((item.status === 'completed') !== Boolean(item.completed_at)) {
+      addIssue(['todos', index, 'status'], 'Todo 状态与完成时间不一致');
+    }
+    if (item.is_current === 1 && item.status !== 'in_progress') {
+      addIssue(['todos', index, 'is_current'], '只有进行中的 Todo 可以是当前行动');
+    }
+    if ((item.is_current === 1) !== Boolean(item.current_started_at)) {
+      addIssue(['todos', index, 'current_started_at'], '当前行动开始时间必须且只能记录在当前行动上');
     }
     if (item.is_current === 1 && currentTodoTopics.has(item.topic_id)) {
       addIssue(['todos', index, 'is_current'], `一个选题只能有一个当前 Todo：${item.topic_id}`);
     }
     if (item.is_current === 1) currentTodoTopics.add(item.topic_id);
+    if (item.status === 'in_progress') {
+      inProgressTodosByTopic.set(item.topic_id, [...(inProgressTodosByTopic.get(item.topic_id) || []), item]);
+    }
+  });
+  inProgressTodosByTopic.forEach((items, topicId) => {
+    const ordered = [...items].sort((a, b) => a.sort_order - b.sort_order || a.created_at.localeCompare(b.created_at));
+    if (ordered[0]?.is_current !== 1) {
+      addIssue(['todos'], `进行中首项必须是当前行动：${topicId}`);
+    }
   });
   data.published.forEach((item, index) => {
     if (item.topic_id) requireTopic(item.topic_id, ['published', index, 'topic_id']);

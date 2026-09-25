@@ -142,11 +142,12 @@ describe('跨视图实体缓存同步', () => {
     expect(queryClient.getQueryData<PaginatedTopics>(key('approved'))?.total).toBe(1);
   });
 
-  it('Todo 变更同步当前选题和详情清单缓存', () => {
+  it('Todo 变更同步当前选题和执行看板缓存', () => {
     const queryClient = new QueryClient();
     const current = topic('topic-1');
     const todo = {
       id: 'todo-1', topic_id: current.id, title: '核对原始资料',
+      status: 'in_progress',
       is_current: 1, current_started_at: '2026-08-25T00:00:00.000Z', completed_at: null,
       sort_order: 1, created_at: '2026-08-25T00:00:00.000Z', updated_at: '2026-08-25T00:00:00.000Z',
     } satisfies TopicTodo;
