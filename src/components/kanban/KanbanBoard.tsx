@@ -25,6 +25,7 @@ import { KanbanFilters, SortField } from './KanbanFilters';
 import { ACTIVE_COLUMNS } from './columns';
 import { CheckCircle2, KanbanSquare, Snowflake } from 'lucide-react';
 import { PageHeader } from '../layout/PageHeader';
+import { rollbackFailedKanbanPage } from '../../lib/kanbanPagination';
 import { matchesTopicSearch } from '../../lib/topicSearch';
 import { fetchTopicPage } from '../../lib/storage';
 
@@ -344,6 +345,28 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
   }, [searchTerm, priorityFilter, selectedTagId, selectedPersonId, sortBy]);
 
   useEffect(() => {
+    const failedPages: Array<{ status: TopicStatus; requestedPage: number }> = [];
+    activeStatuses.forEach((status, index) => {
+      const requestedPage = loadingMorePage[status];
+      if (requestedPage === undefined || columnPages[status] !== requestedPage) return;
+      if (columnQueries[index]?.isError) failedPages.push({ status, requestedPage });
+    });
+
+    if (failedPages.length > 0) {
+      setColumnPages((current) => {
+        let changed = false;
+        const next = { ...current };
+        failedPages.forEach(({ status, requestedPage }) => {
+          const rolledBackPage = rollbackFailedKanbanPage(next[status], requestedPage);
+          if (rolledBackPage !== next[status]) {
+            next[status] = rolledBackPage;
+            changed = true;
+          }
+        });
+        return changed ? next : current;
+      });
+    }
+
     setLoadingMorePage((current) => {
       let changed = false;
       const next = { ...current };
@@ -358,7 +381,7 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
       });
       return changed ? next : current;
     });
-  }, [columnLoadStateSignature, columnPages]);
+  }, [columnLoadStateSignature, columnPages, loadingMorePage]);
 
   useEffect(() => {
     // A reorder updates the visible board before the server responds. Ignore
