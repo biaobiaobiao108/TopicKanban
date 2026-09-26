@@ -978,7 +978,7 @@ export const ScriptEditorTab: React.FC<ScriptEditorTabProps> = ({
 
       {/* Top Floating / Fixed Toolbar (左右空间对称排布) */}
       {!isZenMode && (
-        <div className="script-editor-toolbar z-30 flex shrink-0 flex-wrap items-center justify-between gap-1.5 border-b border-[var(--line)] bg-[var(--surface)]/95 px-3 py-1.5 shadow-2xs backdrop-blur-md transition-colors sm:flex-nowrap sm:px-6">
+        <div className="script-editor-toolbar z-30 flex shrink-0 flex-wrap items-center justify-between gap-1.5 border-b border-[var(--line)] bg-[var(--canvas)] px-3 py-1 shadow-none transition-colors sm:flex-nowrap sm:px-6">
           {/* Left: Outline trigger & Auto save status */}
           <div className="flex items-center gap-2.5">
             {/* Outline Toggle (左侧触发) */}

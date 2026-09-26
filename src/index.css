@@ -766,7 +766,6 @@ html.theme-warm-paper .script-editor-canvas-container {
   border-bottom-color: transparent !important;
 }
 
-html.theme-warm-paper .detail-subtabs-container button.is-active,
 html.theme-warm-paper .table-scope-tabs-container button.is-active {
   background-color: #fdfcf7 !important;
   border: 1px solid transparent !important;
@@ -784,8 +783,7 @@ html.theme-warm-paper .detail-subtabs-container button:not(.is-active) {
 html.theme-warm-paper aside.sidebar-container,
 html.theme-warm-paper .sidebar-container,
 html.theme-warm-paper .mobile-drawer-container,
-html.theme-warm-paper .mobile-nav-container,
-html.theme-warm-paper .script-editor-toolbar {
+html.theme-warm-paper .mobile-nav-container {
   background-color: #f2ece1 !important;
   border-color: #e5ded2 !important;
 }
@@ -934,7 +932,6 @@ html.theme-nordic-frost .script-editor-canvas-container {
   border-bottom-color: transparent !important;
 }
 
-html.theme-nordic-frost .detail-subtabs-container button.is-active,
 html.theme-nordic-frost .table-scope-tabs-container button.is-active {
   background-color: #ffffff !important;
   border: 1px solid transparent !important;
@@ -952,8 +949,7 @@ html.theme-nordic-frost .detail-subtabs-container button:not(.is-active) {
 html.theme-nordic-frost aside.sidebar-container,
 html.theme-nordic-frost .sidebar-container,
 html.theme-nordic-frost .mobile-drawer-container,
-html.theme-nordic-frost .mobile-nav-container,
-html.theme-nordic-frost .script-editor-toolbar {
+html.theme-nordic-frost .mobile-nav-container {
   background-color: #edf2f2 !important;
   border-color: #dce5e5 !important;
 }

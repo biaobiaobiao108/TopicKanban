@@ -79,17 +79,15 @@ export const TopicDetailHeader: React.FC<TopicDetailHeaderProps> = ({
   };
 
   return (
-    <div data-testid="topic-detail-header" data-page-header className="workbench-header shrink-0 border-b border-[var(--line)] bg-[var(--canvas)] transition-colors">
-      <div className="mx-auto flex w-full max-w-7xl flex-col gap-2.5 px-4 py-3 sm:px-8 sm:py-3.5">
-        <div className="flex flex-col gap-2.5 lg:flex-row lg:items-center lg:justify-between">
-      {/* Left group: Title & Inline Editor + Status & Priority + Current Action Capsule */}
-      <div className="flex min-w-0 w-full flex-1 flex-wrap items-center gap-2.5 sm:gap-3 lg:flex-nowrap">
-        <span className="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-[var(--accent-soft)] text-[var(--accent)]">
-          <FileText className="h-4.5 w-4.5" aria-hidden="true" />
+    <div data-testid="topic-detail-header" data-page-header className="workbench-header shrink-0 bg-[var(--canvas)] transition-colors">
+      <div className="mx-auto grid w-full max-w-7xl grid-cols-[minmax(0,1fr)_auto] items-center gap-x-2.5 gap-y-1.5 px-4 py-2 sm:gap-x-3 sm:px-8 sm:py-2.5 lg:grid-cols-[minmax(12rem,0.9fr)_minmax(0,1.5fr)_auto] lg:gap-x-4">
+        {/* Title row: keep the file mark beside the title at every width. */}
+        <div className="flex min-w-0 items-center gap-2.5">
+        <span className="grid h-8 w-8 shrink-0 place-items-center rounded-lg bg-[var(--accent-soft)] text-[var(--accent)]">
+          <FileText className="h-4 w-4" aria-hidden="true" />
         </span>
-        <div className="flex min-w-0 flex-1 flex-wrap items-center gap-2 sm:gap-2.5 lg:flex-nowrap">
         {/* Title area & Inline Editor */}
-        <div className="flex w-full min-w-0 max-w-full items-center gap-1.5 lg:flex-1 lg:shrink">
+        <div className="flex min-w-0 max-w-full flex-1 items-center gap-1.5">
           {isEditingTitle ? (
             <div className="flex w-full items-center gap-2">
               <input
@@ -137,8 +135,9 @@ export const TopicDetailHeader: React.FC<TopicDetailHeaderProps> = ({
             </div>
           )}
         </div>
+        </div>
 
-        <div className="mt-0 flex min-w-0 flex-wrap items-center gap-1.5 sm:gap-2 lg:flex-nowrap">
+        <div className="col-span-2 flex min-w-0 flex-wrap items-center gap-1.5 pl-10 sm:gap-2 lg:col-span-1 lg:col-start-2 lg:row-start-1 lg:flex-nowrap lg:pl-0">
         {/* Status Dropdown Trigger (Borderless with hover border) */}
         <div className="relative z-10 shrink-0">
           <button
@@ -309,7 +308,7 @@ export const TopicDetailHeader: React.FC<TopicDetailHeaderProps> = ({
         </div>
 
         {/* Current Action: Literary Notebook Minimal Action */}
-        <div className="min-w-0 max-w-full shrink-0 sm:max-w-sm lg:max-w-lg">
+        <div className="min-w-0 max-w-full sm:max-w-sm lg:max-w-lg">
           {topic.current_todo ? (
             <button
               type="button"
@@ -343,11 +342,8 @@ export const TopicDetailHeader: React.FC<TopicDetailHeaderProps> = ({
           )}
         </div>
         </div>
-        </div>
-      </div>
-
       {/* Right group: Actions Toolbar */}
-      <div className="flex w-full flex-wrap items-center justify-start gap-1.5 border-t border-[var(--line)] pt-2 lg:w-auto lg:shrink-0 lg:flex-nowrap lg:justify-end lg:border-t-0 lg:pt-0">
+      <div className="col-start-2 row-start-1 flex shrink-0 items-center justify-end gap-1.5 lg:col-start-3">
         <button
           type="button"
           ref={moreTriggerRef}
@@ -464,7 +460,6 @@ export const TopicDetailHeader: React.FC<TopicDetailHeaderProps> = ({
         </FloatingMenu>
       </div>
         </div>
-      </div>
 
       <ConfirmDialog
         isOpen={isDeleteDialogOpen}

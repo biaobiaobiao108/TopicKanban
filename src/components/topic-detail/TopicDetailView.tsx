@@ -512,45 +512,47 @@ export const TopicDetailView: React.FC<TopicDetailViewProps> = ({
           </div>
         )}
       </Modal>
-      {/* Fixed Topic Detail Header */}
-      <TopicDetailHeader
-        topic={metricTopic}
-        onBack={onBack}
-        onUpdateTopic={onUpdateTopic}
-        onDeleteTopic={onDeleteTopic}
-        onExportMarkdown={handleExportMarkdown}
-        onOpenCurrentAction={() => setIsActionDialogOpen(true)}
-      />
+      {/* Topic context: identity and module navigation share one compact surface. */}
+      <div className="topic-detail-context-shell shrink-0 border-b border-[var(--line)] bg-[var(--canvas)] transition-colors">
+        <TopicDetailHeader
+          topic={metricTopic}
+          onBack={onBack}
+          onUpdateTopic={onUpdateTopic}
+          onDeleteTopic={onDeleteTopic}
+          onExportMarkdown={handleExportMarkdown}
+          onOpenCurrentAction={() => setIsActionDialogOpen(true)}
+        />
 
-      {/* Sub Tabs Navigation (Scrollable on mobile) */}
-      <div ref={detailSubtabsRef} className="detail-subtabs-container shrink-0 overflow-x-auto bg-[var(--canvas)] transition-colors no-scrollbar">
-        <div className="mx-auto flex min-w-max max-w-7xl items-center gap-1.5 px-3 py-2 sm:px-8">
-          {tabs.map((tab) => {
-            const Icon = tab.icon;
-            const isActive = activeTab === tab.id;
-            return (
-              <button
-                key={tab.id}
-                ref={isActive ? activeSubtabRef : undefined}
-                onClick={() => void handleNavigateToTab(tab.id)}
-                disabled={isFlushingDraft}
-                aria-current={isActive ? 'page' : undefined}
-                className={`flex min-h-9 items-center gap-1.5 rounded-[var(--radius-sm)] border border-transparent px-2.5 sm:px-3 text-xs sm:text-[13px] font-medium transition-colors cursor-pointer touch-manipulation ${isActive ? 'is-active' : ''} ${
-                  isActive
-                    ? 'bg-[var(--surface)] text-[var(--ink)] shadow-2xs'
-                    : 'text-[var(--ink-muted)] hover:bg-[var(--surface)]/60 hover:text-[var(--ink)]'
-                }`}
-              >
-                <Icon className={`w-3.5 h-3.5 ${isActive ? 'text-[var(--accent)]' : 'text-[var(--ink-muted)] opacity-70'}`} />
-                <span>{tab.label}</span>
-                {typeof tab.count === 'number' && tab.count > 0 && (
-                  <span className="ml-0.5 text-[10px] tabular-nums text-[var(--ink-muted)] opacity-75">
-                    {tab.count}
-                  </span>
-                )}
-              </button>
-            );
-          })}
+        {/* Sub Tabs Navigation (Scrollable on mobile) */}
+        <div ref={detailSubtabsRef} className="detail-subtabs-container shrink-0 overflow-x-auto bg-transparent transition-colors no-scrollbar">
+          <div className="mx-auto flex min-w-max max-w-7xl items-center gap-1 px-4 pb-1.5 sm:px-8">
+            {tabs.map((tab) => {
+              const Icon = tab.icon;
+              const isActive = activeTab === tab.id;
+              return (
+                <button
+                  key={tab.id}
+                  ref={isActive ? activeSubtabRef : undefined}
+                  onClick={() => void handleNavigateToTab(tab.id)}
+                  disabled={isFlushingDraft}
+                  aria-current={isActive ? 'page' : undefined}
+                  className={`flex min-h-9 items-center gap-1.5 rounded-[var(--radius-sm)] border-0 px-2.5 text-xs font-medium transition-colors cursor-pointer touch-manipulation sm:px-3 sm:text-[13px] ${isActive ? 'is-active' : ''} ${
+                    isActive
+                      ? 'bg-[var(--accent-soft)] text-[var(--accent-dark)] font-semibold'
+                      : 'bg-transparent text-[var(--ink-muted)] hover:bg-[var(--surface)]/60 hover:text-[var(--ink)]'
+                  }`}
+                >
+                  <Icon className={`w-3.5 h-3.5 ${isActive ? 'text-[var(--accent)]' : 'text-[var(--ink-muted)] opacity-70'}`} />
+                  <span>{tab.label}</span>
+                  {typeof tab.count === 'number' && tab.count > 0 && (
+                    <span className="ml-0.5 text-[10px] tabular-nums text-[var(--ink-muted)] opacity-75">
+                      {tab.count}
+                    </span>
+                  )}
+                </button>
+              );
+            })}
+          </div>
         </div>
       </div>
 
