@@ -183,7 +183,7 @@ const KanbanCardComponent: React.FC<KanbanCardProps> = ({
   if (isOverlay) {
     return (
       <div
-        className="relative bg-[var(--surface)] rounded-[var(--radius-md)] border-2 border-[var(--accent)] p-3.5 shadow-modal ring-2 ring-[var(--accent)]/15 scale-[1.02] rotate-[1deg] opacity-98 cursor-grabbing flex flex-col gap-2.5 select-none pointer-events-none w-full transition-transform duration-75"
+        className="relative bg-[var(--surface)] rounded-[var(--radius-md)] border border-[var(--accent)]/70 p-3.5 shadow-modal ring-1 ring-[var(--accent)]/20 scale-[1.02] rotate-[1deg] opacity-98 cursor-grabbing flex flex-col gap-2.5 select-none pointer-events-none w-full transition-transform duration-75"
       >
         <div className="flex items-start justify-between gap-2">
           <h3 className="min-w-0 flex-1 text-[15px] font-semibold text-[var(--ink)] leading-snug tracking-tight line-clamp-2">

@@ -245,7 +245,10 @@ const publishPackageSchema = z.object({
 
 const settingsSchema = z.object({
   reading_speed: z.number().positive().max(1_000),
-  theme: z.enum(APP_THEMES),
+  theme: z.preprocess(
+    (value) => value === 'light' ? 'nordic_frost' : value,
+    z.enum(APP_THEMES),
+  ),
   editor_font_size: z.enum(['compact', 'standard', 'large']).optional(),
   editor_line_height: z.enum(['normal', 'relaxed', 'loose']).optional(),
   typewriter_mode_default: z.boolean().optional(),

@@ -402,7 +402,6 @@ export interface DealFocusData {
 export const APP_THEMES = [
   'nordic_frost',
   'warm_paper',
-  'light',
   'dark',
   'system',
 ] as const;
@@ -438,7 +437,7 @@ export interface AppSettings {
 
 export const DEFAULT_APP_SETTINGS: AppSettings = {
   reading_speed: 280,
-  theme: 'light',
+  theme: 'nordic_frost',
   editor_font_size: 'standard',
   editor_line_height: 'relaxed',
   typewriter_mode_default: false,

@@ -45,7 +45,7 @@ html.theme-change-in-progress *::after {
 }
 
 .script-citation:hover {
-  background: rgba(47, 92, 78, 0.16);
+  background: color-mix(in oklab, var(--accent) 16%, transparent);
 }
 
 html.dark .script-citation {
@@ -54,7 +54,7 @@ html.dark .script-citation {
 }
 
 html.dark .script-citation:hover {
-  background: rgba(78, 135, 117, 0.26);
+  background: color-mix(in oklab, var(--accent) 24%, transparent);
 }
 
 .inline-voiceover-cue {
@@ -336,26 +336,26 @@ html.dark .script-citation::after {
 @layer base {
   :root {
     /* Literary Notebook Design Tokens (文人笔记核心设计系统) */
-    --canvas: #f6f4ef;
+    --canvas: #f6faf9;
     --surface: #ffffff;
-    --ink: #222923;
-    --ink-muted: #68716b;
-    --line: rgba(34, 41, 35, 0.09);
-    --accent: #365f4d;
-    --accent-soft: rgba(54, 95, 77, 0.10);
-    --accent-dark: #284838;
-    --h1-color: #b14b36;
-    --h2-color: #365f4d;
-    --h3-color: #526c60;
+    --ink: #1a2424;
+    --ink-muted: #5f7474;
+    --line: rgba(26, 36, 36, 0.08);
+    --accent: #356b5b;
+    --accent-soft: rgba(53, 107, 91, 0.10);
+    --accent-dark: #285344;
+    --h1-color: #a34133;
+    --h2-color: #0284c7;
+    --h3-color: #0f766e;
     --radius-sm: 8px;
     --radius-md: 12px;
     --radius-lg: 18px;
-    --control-surface: rgba(34, 41, 35, 0.025);
-    --focus-ring: rgba(54, 95, 77, 0.35);
+    --control-surface: rgba(26, 48, 44, 0.025);
+    --focus-ring: rgba(53, 107, 91, 0.34);
 
-    --nav-surface: rgba(246, 244, 239, 0.94);
-    --sidebar-surface: rgba(246, 244, 239, 0.96);
-    --scrollbar-thumb: rgba(34, 41, 35, 0.18);
+    --nav-surface: rgba(255, 255, 255, 0.90);
+    --sidebar-surface: rgba(240, 245, 244, 0.92);
+    --scrollbar-thumb: rgba(26, 36, 36, 0.18);
     --scrollbar-track: transparent;
     color-scheme: light;
   }
@@ -405,25 +405,43 @@ html.dark .script-citation::after {
   }
 
   html.dark {
-    --canvas: #141615;
-    --surface: #1c1f1e;
-    --ink: #e8eae9;
-    --ink-muted: #9ba19e;
-    --line: rgba(255, 255, 255, 0.08);
-    --accent: #76a891;
-    --accent-soft: rgba(118, 168, 145, 0.16);
-    --accent-dark: #9bc5ae;
-    --h1-color: #d65a50;
-    --h2-color: #8fc5b1;
-    --h3-color: #9fb6c5;
-    --control-surface: rgba(255, 255, 255, 0.035);
-    --focus-ring: rgba(118, 168, 145, 0.38);
+    --canvas: #1a1b26;
+    --surface: #24283b;
+    --ink: #c0caf5;
+    --ink-muted: #a9b1d6;
+    --line: rgba(65, 72, 104, 0.58);
+    --accent: #7aa2f7;
+    --accent-soft: rgba(122, 162, 247, 0.16);
+    --accent-dark: #89b4fa;
+    --h1-color: #bb9af7;
+    --h2-color: #7dcfff;
+    --h3-color: #9ece6a;
+    --control-surface: rgba(31, 35, 53, 0.88);
+    --focus-ring: rgba(122, 162, 247, 0.42);
 
-    --nav-surface: rgba(20, 22, 21, 0.90);
-    --sidebar-surface: rgba(24, 27, 26, 0.92);
-    --scrollbar-thumb: rgba(255, 255, 255, 0.18);
+    --nav-surface: rgba(26, 27, 38, 0.94);
+    --sidebar-surface: rgba(31, 35, 53, 0.94);
+    --scrollbar-thumb: rgba(169, 177, 214, 0.28);
     --scrollbar-track: transparent;
+
+    /* Keep existing Tailwind stone utilities inside the Tokyo Night palette. */
+    --color-stone-50: #c0caf5;
+    --color-stone-100: #b4bfeb;
+    --color-stone-200: #a9b1d6;
+    --color-stone-300: #9aa5ce;
+    --color-stone-400: #9aa5ce;
+    --color-stone-500: #9aa5ce;
+    --color-stone-600: #414868;
+    --color-stone-700: #353b58;
+    --color-stone-800: #292e42;
+    --color-stone-900: #24283b;
+    --color-stone-950: #1a1b26;
     color-scheme: dark;
+  }
+
+  html.dark [class~="dark:text-stone-600"],
+  html.dark [class~="dark:text-stone-700"] {
+    color: #9aa5ce !important;
   }
 
   @media (prefers-contrast: more) {
@@ -431,7 +449,7 @@ html.dark .script-citation::after {
       --scrollbar-thumb: #757a78;
     }
     html.dark {
-      --scrollbar-thumb: #9ba19e;
+      --scrollbar-thumb: #a9b1d6;
     }
   }
 

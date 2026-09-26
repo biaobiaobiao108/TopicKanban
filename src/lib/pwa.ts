@@ -34,10 +34,9 @@ let snapshot: PwaInstallSnapshot = {
 };
 
 const PWA_SURFACE_COLORS: Record<Exclude<AppTheme, 'system'>, string> = {
-  light: '#f6f4ef',
   warm_paper: '#fdfcf7',
-  nordic_frost: '#ffffff',
-  dark: '#1c1917',
+  nordic_frost: '#f6faf9',
+  dark: '#1a1b26',
 };
 
 function ensureMeta(name: string): HTMLMetaElement {
@@ -54,7 +53,7 @@ export function syncPwaChrome(theme: AppTheme, resolvedDark = false): void {
 
   const isDark = theme === 'dark' || (theme === 'system' && resolvedDark);
   const themeColor = theme === 'system'
-    ? (isDark ? PWA_SURFACE_COLORS.dark : PWA_SURFACE_COLORS.light)
+    ? (isDark ? PWA_SURFACE_COLORS.dark : PWA_SURFACE_COLORS.nordic_frost)
     : PWA_SURFACE_COLORS[theme];
 
   ensureMeta('theme-color').setAttribute('content', themeColor);

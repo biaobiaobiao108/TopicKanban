@@ -148,7 +148,7 @@ export function useWorkspace(enabled: boolean, view: string = 'today') {
     relationships: relationshipsQuery.data || workspace?.relationships || [],
     publishedList: publishedQuery.data || workspace?.published || [],
     tags: tagsQuery.data || tagOptionsQuery.data || workspace?.tags || [],
-    settings: settingsQuery.data || workspace?.settings || { reading_speed: 280, theme: 'light' },
+    settings: settingsQuery.data || workspace?.settings || { reading_speed: 280, theme: 'nordic_frost' },
     isLoading: (todayEnabled && todayQuery.isLoading)
       || (enabled && activeTopicCountQuery.isLoading)
       || (dealFocusEnabled && dealFocusQuery.isLoading)

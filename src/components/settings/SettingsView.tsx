@@ -43,7 +43,6 @@ import {
   Copy,
   Check,
   Palette,
-  Sun,
   Moon,
   Laptop,
   BookOpen,
@@ -467,18 +466,11 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                   colors: ['#f7f4ed', '#fdfcf7', '#365f4d', '#6c655c'],
                 },
                 {
-                  id: 'light' as const,
-                  title: '经典浅色',
-                  desc: '暖白纸面、石墨文字与松柏绿强调色',
-                  icon: Sun,
-                  colors: ['#f6f4ef', '#ffffff', '#365f4d', '#68716b'],
-                },
-                {
                   id: 'dark' as const,
-                  title: '深色专注',
-                  desc: '深色画布与柔和松柏绿，适合夜间写稿',
+                  title: 'Tokyo Night',
+                  desc: '靛蓝夜色画布与柔和蓝紫强调色，适合夜间写稿',
                   icon: Moon,
-                  colors: ['#141615', '#1c1f1e', '#76a891', '#9ba19e'],
+                  colors: ['#1a1b26', '#24283b', '#7aa2f7', '#a9b1d6'],
                 },
                 {
                   id: 'system' as const,
@@ -496,7 +488,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                     onClick={() => handleSelectTheme(themeOpt.id)}
                     className={`p-3.5 rounded-2xl border text-left transition-all cursor-pointer space-y-2 relative flex flex-col justify-between ${
                       isSelected
-                        ? 'border-[var(--accent)]/35 bg-[var(--accent-soft)] shadow-2xs ring-1 ring-[var(--accent)]/25'
+                        ? 'border-[var(--accent)]/45 bg-[var(--accent-soft)]'
                         : 'border-stone-200/70 dark:border-stone-700 bg-white dark:bg-stone-800/80 hover:bg-stone-50/80 dark:hover:bg-stone-800 hover:border-stone-300 dark:hover:border-stone-600 shadow-2xs'
                     }`}
                   >
@@ -578,7 +570,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                         onClick={() => setEditorFontSize(opt.id)}
                         className={`p-2.5 rounded-xl border text-center transition-all cursor-pointer ${
                           isSelected
-                          ? 'border-[var(--accent)]/35 bg-[var(--accent-soft)] text-[var(--ink)] font-bold shadow-2xs ring-1 ring-[var(--accent)]/25'
+                          ? 'border-[var(--accent)]/45 bg-[var(--accent-soft)] text-[var(--ink)] font-bold'
                             : 'border-stone-200/70 dark:border-stone-700 bg-stone-500/[0.03] dark:bg-stone-800/60 text-stone-700 dark:text-stone-300 hover:bg-stone-100'
                         }`}
                       >
@@ -610,7 +602,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                         onClick={() => setEditorLineHeight(opt.id)}
                         className={`p-2.5 rounded-xl border text-center transition-all cursor-pointer ${
                           isSelected
-                          ? 'border-[var(--accent)]/35 bg-[var(--accent-soft)] text-[var(--ink)] font-bold shadow-2xs ring-1 ring-[var(--accent)]/25'
+                          ? 'border-[var(--accent)]/45 bg-[var(--accent-soft)] text-[var(--ink)] font-bold'
                             : 'border-stone-200/70 dark:border-stone-700 bg-stone-500/[0.03] dark:bg-stone-800/60 text-stone-700 dark:text-stone-300 hover:bg-stone-100'
                         }`}
                       >

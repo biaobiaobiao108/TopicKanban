@@ -171,7 +171,7 @@ export const CalendarDateActionModal: React.FC<CalendarDateActionModalProps> = (
                       aria-label={`选择选题：${topic.title}`}
                       className={`p-2.5 rounded-xl border transition-all cursor-pointer flex items-center justify-between gap-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--focus-ring)] ${
                         isSelected
-                          ? 'border-[var(--accent)] bg-[var(--accent-soft)] ring-1 ring-[var(--accent)] shadow-2xs'
+                          ? 'border-[var(--accent)]/45 bg-[var(--accent-soft)]'
                           : 'border-stone-200/80 dark:border-stone-800 hover:border-stone-300 dark:hover:border-stone-700'
                       }`}
                     >

@@ -31,22 +31,22 @@ const priorityOptions: Array<{
   {
     value: 'high',
     label: '高',
-    activeClass: 'bg-amber-50 dark:bg-amber-950/60 border-amber-500 text-amber-800 dark:text-amber-200 ring-2 ring-amber-200 dark:ring-amber-800 font-bold shadow-xs',
+    activeClass: 'bg-amber-50 dark:bg-amber-950/60 border-amber-500/70 text-amber-800 dark:text-amber-200 ring-1 ring-amber-500/15 font-bold shadow-2xs',
   },
   {
     value: 'medium',
     label: '中',
-    activeClass: 'bg-amber-50 dark:bg-amber-950/60 border-amber-500 text-amber-800 dark:text-amber-200 ring-2 ring-amber-200 dark:ring-amber-800 font-bold shadow-xs',
+    activeClass: 'bg-amber-50 dark:bg-amber-950/60 border-amber-500/70 text-amber-800 dark:text-amber-200 ring-1 ring-amber-500/15 font-bold shadow-2xs',
   },
   {
     value: 'low',
     label: '低',
-    activeClass: 'bg-emerald-50 dark:bg-emerald-950/60 border-emerald-500 text-emerald-800 dark:text-emerald-200 ring-2 ring-emerald-200 dark:ring-emerald-800 font-bold shadow-xs',
+    activeClass: 'bg-emerald-50 dark:bg-emerald-950/60 border-emerald-500/70 text-emerald-800 dark:text-emerald-200 ring-1 ring-emerald-500/15 font-bold shadow-2xs',
   },
   {
     value: 'none',
     label: '无',
-    activeClass: 'bg-stone-100 dark:bg-stone-800 border-stone-400 dark:border-stone-600 text-stone-800 dark:text-stone-200 ring-2 ring-stone-200 dark:ring-stone-700 font-bold shadow-xs',
+    activeClass: 'bg-stone-100 dark:bg-stone-800 border-stone-400 dark:border-stone-600 text-stone-800 dark:text-stone-200 ring-1 ring-stone-500/15 font-bold shadow-2xs',
   },
 ];
 

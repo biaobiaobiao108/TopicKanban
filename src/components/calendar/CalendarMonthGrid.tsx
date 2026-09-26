@@ -57,11 +57,11 @@ function MonthCellDroppable({
           : 'bg-stone-50/50 dark:bg-stone-950/40 text-stone-400 dark:text-stone-600'
       } ${
         cell.isToday
-          ? 'ring-2 ring-inset ring-[var(--accent)]/70 bg-[var(--accent-soft)]/25'
+          ? 'bg-[var(--accent-soft)]/25'
           : ''
       } ${
         isOver
-          ? 'bg-[var(--accent-soft)] ring-2 ring-inset ring-[var(--accent)]'
+          ? 'bg-[var(--accent-soft)] ring-1 ring-inset ring-[var(--accent)]/75'
           : ''
       }`}
     >

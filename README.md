@@ -76,8 +76,8 @@
 * **深度复盘罗盘**：自动生成 5D 故事评估与成片播放量的关联双柱图，智能提炼爆款选题的决定性因子。
 
 ### 11. 🎨 温润编辑部设计系统与主题生态 (Editorial Design System)
-* **温润微质感**：基于 Stone 灰度与 Rose 玫瑰红强调色打造，采用大圆角（`rounded-2xl`）、微投影（`shadow-2xs`）与透底色药丸（Tinted Pills）。
-* **5 套温润编辑部主题随心换**：北欧冷杉（推荐）、暖沙纸境、经典浅色、深色夜间、跟随系统。
+* **温润微质感**：基于 Stone 灰度、北欧松柏绿行动色和克制的语义状态色打造，采用大圆角（`rounded-2xl`）、微投影（`shadow-2xs`）与透底色药丸（Tinted Pills）。
+* **3 套温润编辑部主题随心换**：默认北欧冷杉、暖沙纸境、Tokyo Night 深色，并可跟随系统切换深浅模式。
 * **全局指令搜索面板 (`Cmd/Ctrl + /` 或 `/`)**：支持全拼搜索，并通过 `#` 查赛道、`@` 查人物、`>` 执行快捷动作、`?` 调出快捷键大全。
 
 ### 12. ⚡ Bun-first 运行时规范
@@ -282,7 +282,7 @@ kanban/
 │   │   ├── clientUrlParser.ts           # 全站客户端直连解析（Bilibili JSONP / YouTube CORS）
 │   │   ├── publicUrl.ts                 # 反代公网域名推导与规范化
 │   │   ├── remoteStorage.ts             # REST API 通信门面
-│   │   ├── theme.ts                     # 5 套温润编辑部主题调色板配置
+│   │   ├── theme.ts                     # 3 套主题与系统模式配置
 │   │   └── auth.ts                      # Web Crypto HMAC-SHA256 Token 鉴权
 │   ├── server/
 │   │   ├── app.ts                       # API 应用组合与鉴权中间件

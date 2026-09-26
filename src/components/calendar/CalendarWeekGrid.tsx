@@ -42,7 +42,7 @@ function WeekDayRow({
       data-date={day.date}
       className={`grid min-w-0 grid-cols-[6.5rem_minmax(0,1fr)] sm:grid-cols-[8.5rem_minmax(0,1fr)] border-b border-stone-200/70 last:border-b-0 dark:border-stone-800 transition-colors ${
         day.isToday ? 'bg-[var(--accent-soft)]/25' : 'bg-white dark:bg-stone-900'
-      } ${isOver ? 'bg-[var(--accent-soft)] ring-2 ring-inset ring-[var(--accent)]' : ''}`}
+      } ${isOver ? 'bg-[var(--accent-soft)] ring-1 ring-inset ring-[var(--accent)]/75' : ''}`}
     >
       {/* Header */}
       <div

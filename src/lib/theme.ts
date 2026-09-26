@@ -4,7 +4,7 @@ import { syncPwaChrome } from './pwa';
 let systemThemeListener: ((e: MediaQueryListEvent) => void) | null = null;
 let mediaQueryList: MediaQueryList | null = null;
 
-export function applyTheme(theme: AppTheme = 'light'): void {
+export function applyTheme(theme: AppTheme = 'nordic_frost'): void {
   if (typeof window === 'undefined' || typeof document === 'undefined') return;
 
   const root = document.documentElement;
@@ -39,17 +39,16 @@ export function applyTheme(theme: AppTheme = 'light'): void {
     root.classList.remove('dark');
     root.classList.add('theme-warm-paper');
     root.style.colorScheme = 'light';
-  } else if (theme === 'light') {
-    root.classList.remove('dark');
-    root.style.colorScheme = 'light';
   } else if (theme === 'system') {
     mediaQueryList = window.matchMedia('(prefers-color-scheme: dark)');
     const updateSystemTheme = (matchesDark: boolean) => {
       if (matchesDark) {
+        root.classList.remove('theme-nordic-frost');
         root.classList.add('dark');
         root.style.colorScheme = 'dark';
       } else {
         root.classList.remove('dark');
+        root.classList.add('theme-nordic-frost');
         root.style.colorScheme = 'light';
       }
       syncPwaChrome('system', matchesDark);
@@ -95,16 +94,10 @@ export const THEME_CONFIG_LIST: ThemeConfig[] = [
     colors: ['#f7f4ed', '#fdfcf7', '#365f4d', '#6c655c'],
   },
   {
-    id: 'light',
-    title: '经典浅色',
-    desc: '暖白纸面、石墨文字与松柏绿强调色',
-    colors: ['#f6f4ef', '#ffffff', '#365f4d', '#68716b'],
-  },
-  {
     id: 'dark',
-    title: '深色专注',
-    desc: '深色画布与柔和松柏绿，适合夜间写稿',
-    colors: ['#141615', '#1c1f1e', '#76a891', '#9ba19e'],
+    title: 'Tokyo Night',
+    desc: '靛蓝夜色画布与柔和蓝紫强调色，适合夜间写稿',
+    colors: ['#1a1b26', '#24283b', '#7aa2f7', '#a9b1d6'],
   },
   {
     id: 'system',

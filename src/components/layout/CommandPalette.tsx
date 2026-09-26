@@ -413,7 +413,7 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
       },
     });
 
-    // Theme Actions (All 8 canonical themes from THEME_CONFIG_LIST with full synonyms)
+    // Theme actions use the canonical options from THEME_CONFIG_LIST.
     const themeActions: SelectableItem[] = THEME_CONFIG_LIST.map((t) => {
       const isCurrent = currentTheme === t.id;
       const isDarkType = t.id.includes('dark') || t.id.includes('obsidian');

@@ -44,7 +44,7 @@ function DraggableTopicCard({
       data-topic-id={topic.id}
       className={`group flex flex-col gap-2 rounded-xl border border-[var(--line)] bg-[var(--surface)] p-3 shadow-2xs transition-all hover:border-[var(--accent)]/40 hover:shadow-card ${
         isDragging
-          ? 'transition-none will-change-transform ring-2 ring-[var(--accent)] shadow-xl'
+          ? 'transition-none will-change-transform ring-1 ring-[var(--accent)]/70 shadow-card'
           : 'duration-200'
       }`}
     >
