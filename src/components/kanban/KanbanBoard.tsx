@@ -23,9 +23,8 @@ import { KanbanColumn } from './KanbanColumn';
 import { KanbanCard } from './KanbanCard';
 import { KanbanFilters, SortField } from './KanbanFilters';
 import { ACTIVE_COLUMNS } from './columns';
-import { AlertTriangle, CheckCircle2, KanbanSquare, Snowflake, X } from 'lucide-react';
+import { CheckCircle2, KanbanSquare, Snowflake } from 'lucide-react';
 import { PageHeader } from '../layout/PageHeader';
-import { getCurrentActionAgeDays, isActiveTopic } from '../../lib/topicMetrics';
 import { matchesTopicSearch } from '../../lib/topicSearch';
 import { fetchTopicPage } from '../../lib/storage';
 
@@ -88,7 +87,7 @@ const TopicFlowDropTarget: React.FC<{ status: 'icebox' | 'published' }> = ({ sta
       data-over={isOver ? 'true' : 'false'}
       role="group"
       aria-label={`拖到这里将选题流转到${label}`}
-      className={`pointer-events-auto fixed bottom-0 z-[60] h-36 w-36 select-none text-[var(--ink-muted)] transition-colors md:bottom-4 ${isLeft ? 'left-4 md:left-[17rem]' : 'right-4'}`}
+      className={`pointer-events-auto fixed bottom-0 z-[60] h-36 w-36 select-none text-[var(--ink-muted)] transition-colors ${isLeft ? 'left-0 md:left-64' : 'right-0'}`}
       style={{
         clipPath: `circle(144px at ${isLeft ? '0%' : '100%'} 100%)`,
       }}
@@ -294,7 +293,6 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
   const [isReorderPending, setIsReorderPending] = useState(false);
   const [loadingMorePage, setLoadingMorePage] = useState<Partial<Record<TopicStatus, number>>>({});
   const [revealedTopic, setRevealedTopic] = useState<{ id: string; status: TopicStatus } | null>(null);
-  const [isWipReminderDismissed, setIsWipReminderDismissed] = useState(false);
   const snapshotRef = useRef<BoardSnapshot | null>(null);
   // Dnd-kit can dispatch the final event before React commits the last
   // onDragOver state update. Keep a synchronous drag-only board so the end
@@ -873,15 +871,6 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
     }
   }, [columns, loadedTopicsByStatus, onReorderTopics, optimisticUpdateQueryCache, queryClient, topicsMap]);
 
-  // WIP and stale action stats
-  const scriptingCount = (columns.scripting || []).length;
-  const stagnantTopics = useMemo(() => boardTopics
-    .filter((topic) => isActiveTopic(topic) && getCurrentActionAgeDays(topic) >= staleActionDays)
-    .sort((a, b) => getCurrentActionAgeDays(b) - getCurrentActionAgeDays(a)), [boardTopics, staleActionDays]);
-  const wipWarnings = [
-    scriptingCount > 2 ? `写稿中 ${scriptingCount} 个，超过建议上限 2 个` : null,
-  ].filter((warning): warning is string => Boolean(warning));
-
   const hasActiveFilters =
     priorityFilter !== 'all' ||
     selectedTagId !== 'all' ||
@@ -975,43 +964,6 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
           </div>
         )}
 
-        {!isWipReminderDismissed && (wipWarnings.length > 0 || stagnantTopics.length > 0) && (
-          <div className="rounded-xl border border-amber-200 dark:border-amber-900/60 bg-amber-50 dark:bg-amber-950/40 p-3 sm:p-4">
-            <div className="flex items-start gap-3">
-              <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-amber-700 dark:text-amber-300" />
-              <div className="min-w-0 flex-1">
-                <div className="text-xs font-bold text-amber-900 dark:text-amber-200">在制品提醒：先收尾，再开新坑</div>
-                <div className="mt-1 flex flex-wrap gap-x-4 gap-y-1 text-xs text-amber-800 dark:text-amber-200">
-                  {wipWarnings.map((warning) => <span key={warning}>{warning}</span>)}
-                  {stagnantTopics.length > 0 && <span>{stagnantTopics.length} 个选题已停滞 {staleActionDays} 天以上</span>}
-                </div>
-                {stagnantTopics.length > 0 && (
-                  <div className="mt-2 flex flex-wrap gap-2">
-                    {stagnantTopics.slice(0, 3).map((topic) => (
-                      <button
-                        key={topic.id}
-                        type="button"
-                        onClick={() => onOpenDetail(topic.id)}
-                        className="rounded-md border border-amber-200 dark:border-amber-900/60 bg-white dark:bg-stone-800 px-2 py-1 text-[11px] font-semibold text-stone-700 dark:text-stone-200 hover:border-amber-400 dark:hover:border-amber-600 hover:text-amber-900 dark:hover:text-amber-200 cursor-pointer"
-                      >
-                        {topic.title} · {getCurrentActionAgeDays(topic)} 天
-                      </button>
-                    ))}
-                  </div>
-                )}
-              </div>
-              <button
-                type="button"
-                onClick={() => setIsWipReminderDismissed(true)}
-                aria-label="关闭在制品提醒"
-                title="关闭提醒"
-                className="-mr-1 -mt-1 inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-[var(--radius-sm)] text-amber-700 transition-colors hover:bg-amber-100 hover:text-amber-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-600 dark:text-amber-300 dark:hover:bg-amber-900/50 dark:hover:text-amber-100"
-              >
-                <X className="h-4 w-4" aria-hidden="true" />
-              </button>
-            </div>
-          </div>
-        )}
       </div>
 
       {/* Mobile Stage Selector Pill Bar (iPhone Safari optimized) */}

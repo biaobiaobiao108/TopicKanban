@@ -335,7 +335,7 @@ const TodoDeleteDropZone: React.FC = () => {
       role="status"
       aria-live="polite"
       aria-atomic="true"
-      className="pointer-events-auto fixed right-3 bottom-[calc(var(--mobile-bottom-nav-clearance)_+_0.75rem)] z-[60] h-36 w-36 select-none text-[var(--ink-muted)] transition-colors md:right-4 md:bottom-4"
+      className="pointer-events-auto fixed right-0 bottom-[var(--mobile-bottom-nav-clearance)] z-[60] h-36 w-36 select-none text-[var(--ink-muted)] transition-colors md:bottom-0"
       style={{ clipPath: 'circle(144px at 100% 100%)' }}
     >
       <div
