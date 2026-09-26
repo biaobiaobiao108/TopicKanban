@@ -3,7 +3,6 @@ import './editor.css';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useSearchParams } from 'react-router-dom';
 import { CitationInput, Topic, Source, TimelineEvent, Person, PersonRelationship, Draft, DraftCitation, DraftRecoveryConflict, Tag, AppSettings, PublishPackageSaveInput, PublishPackageRecord, TopicTodo } from '../../types';
-import { TopicDetailHeader } from './TopicDetailHeader';
 import { OverviewTab } from './OverviewTab';
 import { SourcesTab } from './SourcesTab';
 import { TimelineTab } from './TimelineTab';
@@ -512,17 +511,8 @@ export const TopicDetailView: React.FC<TopicDetailViewProps> = ({
           </div>
         )}
       </Modal>
-      {/* Topic context: identity and module navigation share one compact surface. */}
+      {/* Module navigation stays visible across topic detail sections. */}
       <div className="topic-detail-context-shell shrink-0 border-b border-[var(--line)] bg-[var(--canvas)] transition-colors">
-        <TopicDetailHeader
-          topic={metricTopic}
-          onBack={onBack}
-          onUpdateTopic={onUpdateTopic}
-          onDeleteTopic={onDeleteTopic}
-          onExportMarkdown={handleExportMarkdown}
-          onOpenCurrentAction={() => setIsActionDialogOpen(true)}
-        />
-
         {/* Sub Tabs Navigation (Scrollable on mobile) */}
         <div ref={detailSubtabsRef} className="detail-subtabs-container shrink-0 overflow-x-auto bg-transparent transition-colors no-scrollbar">
           <div className="mx-auto flex min-w-max max-w-7xl items-center gap-1 px-4 pb-1.5 sm:px-8">
@@ -576,6 +566,9 @@ export const TopicDetailView: React.FC<TopicDetailViewProps> = ({
             <OverviewTab
               topic={topic}
               onUpdateTopic={onUpdateTopic}
+              onBack={onBack}
+              onDeleteTopic={onDeleteTopic}
+              onExportMarkdown={handleExportMarkdown}
               allPeople={allPeople}
               allTags={allTags}
               onSavePerson={onSavePerson}

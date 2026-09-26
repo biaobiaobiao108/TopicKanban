@@ -3,6 +3,7 @@ import { Topic, Person, Tag } from '../../types';
 import { Modal } from '../ui/Modal';
 import { DateInput } from '../ui/DateInput';
 import { useToast } from '../ui/Toast';
+import { TopicDetailHeader } from './TopicDetailHeader';
 import { getCurrentActionAgeDays, getCurrentActionWarning } from '../../lib/topicMetrics';
 import { addBeijingCalendarDays, getBeijingDateString, getBeijingWeekday, useActionDateDisplay } from '../../lib/actionDate';
 import { ActionDateText } from '../ui/ActionDate';
@@ -43,6 +44,9 @@ import {
 interface OverviewTabProps {
   topic: Topic;
   onUpdateTopic: (updates: Partial<Topic>) => Promise<void>;
+  onBack: () => void;
+  onDeleteTopic: (topicId: string) => Promise<void>;
+  onExportMarkdown: () => void;
   allPeople: Person[];
   allTags: Tag[];
   onSavePerson?: (personData: Partial<Person> & { name: string }) => Promise<Person>;
@@ -82,6 +86,9 @@ const STORY_STRUCTURE_CARD_STYLES: Record<StoryStructureKey, {
 export const OverviewTab: React.FC<OverviewTabProps> = ({
   topic,
   onUpdateTopic,
+  onBack,
+  onDeleteTopic,
+  onExportMarkdown,
   allPeople,
   allTags,
   onSavePerson,
@@ -389,6 +396,14 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({
 
   return (
     <div className="grid grid-cols-1 xl:grid-cols-12 gap-6 py-4 items-start">
+      <TopicDetailHeader
+        topic={topic}
+        onBack={onBack}
+        onUpdateTopic={onUpdateTopic}
+        onDeleteTopic={onDeleteTopic}
+        onExportMarkdown={onExportMarkdown}
+      />
+
       {/* Left Main Column: Topic Positioning & Story Structure (7 / 12) */}
       <div className="xl:col-span-7 space-y-6">
         {/* 1. 选题定位卡 */}
