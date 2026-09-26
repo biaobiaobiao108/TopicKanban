@@ -7,19 +7,20 @@ import {
   PointerSensor,
   TouchSensor,
   closestCorners,
+  pointerWithin,
   useDroppable,
   useSensor,
   useSensors,
+  type CollisionDetection,
   type DragOverEvent,
   type DragEndEvent,
   type DragStartEvent,
 } from '@dnd-kit/core';
 import { SortableContext, sortableKeyboardCoordinates, useSortable, verticalListSortingStrategy } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
-import { ArrowRightLeft, Check, KanbanSquare, MoreHorizontal, Pencil, Plus, Trash2, Zap } from 'lucide-react';
+import { KanbanSquare, Plus, Trash2, Zap } from 'lucide-react';
 import type { Topic, TopicTodo, TopicTodoBoardLayout, TopicTodoStatus } from '../../types';
 import { ConfirmDialog } from '../ui/ConfirmDialog';
-import { FloatingMenu } from '../ui/FloatingMenu';
 import { useToast } from '../ui/Toast';
 import type { TopicTodoActions } from './todoTypes';
 import { findTodoStatus, getTodoBoardLayout, moveTodoOnBoard, reorderTodoInColumn, TODO_BOARD_COLUMNS } from './todoBoardUtils';
@@ -32,6 +33,7 @@ interface TodoBoardProps {
 }
 
 const laneKey = (status: TopicTodoStatus): 'todo_ids' | 'in_progress_ids' | 'completed_ids' => `${status}_ids` as 'todo_ids' | 'in_progress_ids' | 'completed_ids';
+const TODO_DELETE_ZONE_ID = 'todo-delete-zone';
 
 class NonTouchPointerSensor extends PointerSensor {
   static activators = [{
@@ -120,16 +122,23 @@ const InlineTitleEditor: React.FC<{
   const [error, setError] = useState('');
   const inputRef = useRef<HTMLInputElement>(null);
   const savingRef = useRef(false);
-  useEffect(() => { setValue(initialValue); setError(''); }, [initialValue]);
+  const cancelledRef = useRef(false);
+  useEffect(() => { setValue(initialValue); setError(''); cancelledRef.current = false; }, [initialValue]);
 
   const commit = async () => {
     if (savingRef.current) return;
     const title = value.trim();
     if (!title) { setError('待办标题不能为空'); inputRef.current?.focus(); return; }
+    if (title === initialValue) { onCancel(); return; }
     savingRef.current = true;
     const saved = await onSave(title);
     savingRef.current = false;
     if (!saved) inputRef.current?.focus();
+  };
+
+  const cancel = () => {
+    cancelledRef.current = true;
+    onCancel();
   };
 
   return (
@@ -142,9 +151,9 @@ const InlineTitleEditor: React.FC<{
         onKeyDown={(event) => {
           event.stopPropagation();
           if (event.key === 'Enter') { event.preventDefault(); void commit(); }
-          if (event.key === 'Escape') { event.preventDefault(); onCancel(); }
+          if (event.key === 'Escape') { event.preventDefault(); cancel(); }
         }}
-        onBlur={() => { if (value.trim()) void commit(); }}
+        onBlur={() => { if (!cancelledRef.current && value.trim()) void commit(); }}
         onPointerDown={(event) => event.stopPropagation()}
         onTouchStart={(event) => event.stopPropagation()}
         maxLength={200}
@@ -166,14 +175,9 @@ interface SortableTodoCardProps {
   onEdit: () => void;
   onSave: (title: string) => Promise<boolean>;
   onCancelEdit: () => void;
-  onToggleComplete: () => void;
-  onMove: (status: TopicTodoStatus) => void;
-  onDelete: () => void;
 }
 
-const SortableTodoCard: React.FC<SortableTodoCardProps> = ({ todo, status, isCurrent, isEditing, isBusy, onEdit, onSave, onCancelEdit, onToggleComplete, onMove, onDelete }) => {
-  const [moveMenuOpen, setMoveMenuOpen] = useState(false);
-  const moveButtonRef = useRef<HTMLButtonElement>(null);
+const SortableTodoCard: React.FC<SortableTodoCardProps> = ({ todo, status, isCurrent, isEditing, isBusy, onEdit, onSave, onCancelEdit }) => {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
     id: todo.id,
     data: { type: 'todo', status },
@@ -187,28 +191,31 @@ const SortableTodoCard: React.FC<SortableTodoCardProps> = ({ todo, status, isCur
       style={{ transform: CSS.Transform.toString(transform), transition }}
       {...attributes}
       {...listeners}
+      onDoubleClick={(event) => {
+        if (isEditing || isBusy) return;
+        event.preventDefault();
+        event.stopPropagation();
+        onEdit();
+      }}
+      onKeyDown={(event) => {
+        if (event.key === 'Enter' && !isEditing && !isBusy && !isDragging) {
+          event.preventDefault();
+          event.stopPropagation();
+          onEdit();
+          return;
+        }
+        listeners?.onKeyDown?.(event);
+      }}
       tabIndex={isBusy ? -1 : attributes.tabIndex}
-      role="group"
-      aria-label={`${todo.title}，${TODO_BOARD_COLUMNS.find((column) => column.status === status)?.label || ''}`}
+      role={isEditing ? 'group' : attributes.role}
+      aria-label={`${todo.title}，${TODO_BOARD_COLUMNS.find((column) => column.status === status)?.label || ''}${isEditing ? '' : '，按 Enter 编辑，按空格拖动'}`}
       data-testid="todo-board-card"
       data-todo-id={todo.id}
       data-current={isCurrent ? 'true' : undefined}
       aria-current={isCurrent ? 'true' : undefined}
       className={`group relative flex min-w-0 select-none touch-manipulation flex-col gap-2.5 rounded-[var(--radius-md)] border p-3.5 shadow-2xs focus:outline-none focus-visible:ring-1 focus-visible:ring-[var(--accent)] ${isDragging ? 'pointer-events-none border-dashed border-[var(--line)] bg-[var(--canvas)] opacity-30 shadow-none scale-[0.98] transition-none will-change-transform' : `transition-all duration-150 ${isBusy ? 'cursor-default' : 'cursor-grab active:cursor-grabbing'} ${isCompleted ? 'border-[var(--line)] bg-[var(--canvas)]/55 hover:border-[var(--accent)]/35 hover:shadow-subtle' : 'border-[var(--line)] bg-[var(--surface)] hover:border-[var(--accent)]/35 hover:shadow-subtle'}`}`}
     >
-      <div className="flex min-w-0 items-start gap-2">
-        <button
-          type="button"
-          onClick={onToggleComplete}
-          onPointerDown={(event) => event.stopPropagation()}
-          onTouchStart={(event) => event.stopPropagation()}
-          onKeyDown={(event) => event.stopPropagation()}
-          disabled={isBusy}
-          aria-label={isCompleted ? `恢复为待办：${todo.title}` : `完成待办：${todo.title}`}
-          className={`mt-1 flex h-4 w-4 shrink-0 items-center justify-center rounded-full border transition-colors disabled:cursor-wait ${isCompleted ? 'border-[var(--accent)] bg-[var(--accent)] text-white' : 'border-[var(--line)] hover:border-[var(--accent)]'}`}
-        >
-          {isCompleted && <Check className="h-3 w-3" aria-hidden="true" />}
-        </button>
+      <div className="flex min-w-0 items-start">
         <div className="min-w-0 flex-1 py-0.5">
           {isEditing ? (
             <InlineTitleEditor initialValue={todo.title} onSave={onSave} onCancel={onCancelEdit} />
@@ -220,48 +227,6 @@ const SortableTodoCard: React.FC<SortableTodoCardProps> = ({ todo, status, isCur
             </div>
           )}
         </div>
-        {!isEditing && (
-          <div
-            className="flex shrink-0 items-center gap-0.5 opacity-100 sm:opacity-65 sm:transition-opacity sm:group-hover:opacity-100"
-            onPointerDown={(event) => event.stopPropagation()}
-            onTouchStart={(event) => event.stopPropagation()}
-            onKeyDown={(event) => event.stopPropagation()}
-          >
-            <button type="button" onClick={onEdit} disabled={isBusy} aria-label={`编辑：${todo.title}`} className="flex h-8 w-8 items-center justify-center rounded-[var(--radius-sm)] text-[var(--ink-muted)] hover:bg-[var(--canvas)] hover:text-[var(--ink)] disabled:opacity-40">
-              <Pencil className="h-4 w-4" aria-hidden="true" />
-            </button>
-            <button
-              ref={moveButtonRef}
-              type="button"
-              onClick={() => setMoveMenuOpen((open) => !open)}
-              disabled={isBusy}
-              aria-label={`移动“${todo.title}”`}
-              aria-expanded={moveMenuOpen}
-              className="flex h-8 w-8 items-center justify-center rounded-[var(--radius-sm)] text-[var(--ink-muted)] hover:bg-[var(--canvas)] hover:text-[var(--ink)] disabled:opacity-40"
-            >
-              <MoreHorizontal className="h-4 w-4" aria-hidden="true" />
-            </button>
-            <FloatingMenu isOpen={moveMenuOpen} anchorRef={moveButtonRef} onClose={() => setMoveMenuOpen(false)} align="right" width={156} ariaLabel="移动待办">
-              <div className="p-1.5">
-                <p className="px-2 py-1 text-[10px] font-semibold text-stone-400">移动到</p>
-                {TODO_BOARD_COLUMNS.filter((column) => column.status !== status).map((column) => (
-                  <button
-                    key={column.status}
-                    type="button"
-                    role="menuitem"
-                    onClick={() => { setMoveMenuOpen(false); onMove(column.status); }}
-                    className="flex min-h-9 w-full items-center justify-between rounded-[var(--radius-sm)] px-2 text-left text-xs text-[var(--ink)] hover:bg-[var(--canvas)]"
-                  >
-                    <span>{column.label}</span><ArrowRightLeft className="h-3.5 w-3.5 text-stone-400" aria-hidden="true" />
-                  </button>
-                ))}
-              </div>
-            </FloatingMenu>
-            <button type="button" onClick={onDelete} disabled={isBusy} aria-label={`删除：${todo.title}`} className="flex h-8 w-8 items-center justify-center rounded-[var(--radius-sm)] text-[var(--ink-muted)] hover:bg-red-50 hover:text-red-600 disabled:opacity-40 dark:hover:bg-red-950/30 dark:hover:text-red-400">
-              <Trash2 className="h-4 w-4" aria-hidden="true" />
-            </button>
-          </div>
-        )}
       </div>
     </article>
   );
@@ -314,6 +279,78 @@ const TodoBoardColumn: React.FC<{
       </SortableContext>
     </section>
   );
+};
+
+const TodoBoardStageTab: React.FC<{
+  status: TopicTodoStatus;
+  count: number;
+  isActive: boolean;
+  isDragging: boolean;
+  isDesktop: boolean;
+  onSelect: () => void;
+}> = ({ status, count, isActive, isDragging, isDesktop, onSelect }) => {
+  const column = TODO_BOARD_COLUMNS.find((item) => item.status === status)!;
+  const { setNodeRef, isOver } = useDroppable({
+    id: `stage-tab:${status}`,
+    data: { type: 'column', status },
+    disabled: isDesktop,
+  });
+  const isDropTarget = isDragging && isOver;
+
+  return (
+    <button
+      ref={setNodeRef}
+      type="button"
+      data-testid="todo-board-stage-tab"
+      data-stage-status={status}
+      onClick={onSelect}
+      aria-pressed={isActive}
+      className={`flex min-h-8 shrink-0 items-center gap-1.5 rounded-[var(--radius-sm)] px-2.5 text-xs font-medium transition-colors ${
+        isDropTarget
+          ? 'bg-[var(--accent-soft)] text-[var(--accent-dark)] ring-1 ring-[var(--accent)]/50'
+          : isActive
+            ? 'bg-[var(--accent)] text-white shadow-2xs'
+            : 'text-[var(--ink-muted)] hover:bg-[var(--surface)] hover:text-[var(--ink)]'
+      }`}
+    >
+      <span>{column.label}</span>
+      <span className={`rounded-[var(--radius-sm)] px-1 text-[10px] tabular-nums ${isActive ? 'bg-[var(--accent-dark)] text-white' : 'text-[var(--ink-muted)] opacity-75'}`}>
+        {count}
+      </span>
+    </button>
+  );
+};
+
+const TodoDeleteDropZone: React.FC = () => {
+  const { setNodeRef, isOver } = useDroppable({
+    id: TODO_DELETE_ZONE_ID,
+    data: { type: 'delete' },
+  });
+
+  return (
+    <div
+      ref={setNodeRef}
+      data-testid="todo-board-delete-zone"
+      data-over={isOver ? 'true' : 'false'}
+      role="status"
+      aria-live="polite"
+      aria-atomic="true"
+      className={`pointer-events-auto fixed inset-x-4 bottom-[calc(var(--mobile-bottom-nav-clearance)_+_0.75rem)] z-[60] mx-auto flex min-h-14 max-w-sm items-center justify-center gap-2 rounded-2xl border border-dashed px-5 py-3 text-sm font-semibold shadow-lg backdrop-blur-md transition-colors md:bottom-4 ${
+        isOver
+          ? 'border-red-400 bg-red-50/95 text-red-700 dark:border-red-700 dark:bg-red-950/90 dark:text-red-300'
+          : 'border-[var(--line)] bg-[var(--surface)]/95 text-[var(--ink-muted)]'
+      }`}
+    >
+      <Trash2 className="h-4 w-4 shrink-0" aria-hidden="true" />
+      <span>{isOver ? '松开以移入回收站' : '拖到这里删除'}</span>
+    </div>
+  );
+};
+
+const todoBoardCollisionDetection: CollisionDetection = (args) => {
+  const pointerCollisions = pointerWithin(args);
+  const deleteZoneCollision = pointerCollisions.find((collision) => String(collision.id) === TODO_DELETE_ZONE_ID);
+  return deleteZoneCollision ? [deleteZoneCollision] : closestCorners(args);
 };
 
 function layoutFromDragEvent(event: Pick<DragEndEvent, 'active' | 'over'> | Pick<DragOverEvent, 'active' | 'over'>, current: TopicTodoBoardLayout): TopicTodoBoardLayout | null {
@@ -426,14 +463,6 @@ export const TodoBoard: React.FC<TodoBoardProps> = ({ topic, todos, actions, isL
     });
   };
 
-  const moveTodo = (todoId: string, status: TopicTodoStatus) => {
-    const next = moveTodoOnBoard(layout, todoId, status);
-    if (JSON.stringify(next) !== JSON.stringify(layout)) {
-      if (!isDesktop) setMobileStatus(status);
-      void saveBoard(next, todoId);
-    }
-  };
-
   const handleDragStart = (event: DragStartEvent) => {
     dragStartLayoutRef.current = layout;
     dragLayoutRef.current = layout;
@@ -452,8 +481,12 @@ export const TodoBoard: React.FC<TodoBoardProps> = ({ topic, todos, actions, isL
     }
     const overId = String(event.over.id);
     if (overId === String(event.active.id)) return;
-    const overData = event.over.data.current as { type?: string } | undefined;
+    const overData = event.over.data.current as { type?: string; status?: TopicTodoStatus } | undefined;
     if (overData?.type === 'todo' && lastDragOverIdRef.current === overId) return;
+
+    if (!isDesktop && overData?.type === 'column' && overData.status) {
+      setMobileStatus(overData.status);
+    }
 
     const current = dragLayoutRef.current;
     const next = layoutFromDragEvent(event, current);
@@ -465,6 +498,8 @@ export const TodoBoard: React.FC<TodoBoardProps> = ({ topic, todos, actions, isL
   };
 
   const handleDragEnd = (event: DragEndEvent) => {
+    const activeId = String(event.active.id);
+    const droppedOnDeleteZone = (event.over?.data.current as { type?: string } | undefined)?.type === 'delete';
     setActiveTodoId(null);
     setActiveCardWidth(null);
     const start = dragStartLayoutRef.current;
@@ -477,9 +512,20 @@ export const TodoBoard: React.FC<TodoBoardProps> = ({ topic, todos, actions, isL
     dragLayoutRef.current = null;
     lastDragOverIdRef.current = null;
 
+    if (droppedOnDeleteZone) {
+      setLocalLayout(pendingBoardCountRef.current > 0 ? start : null);
+      const todo = todoById.get(activeId);
+      if (todo) setDeleteTarget(todo);
+      return;
+    }
+
     if (!event.over) {
       setLocalLayout(pendingBoardCountRef.current > 0 ? start : null);
       return;
+    }
+    if (!isDesktop) {
+      const targetStatus = findTodoStatus(next, activeId);
+      if (targetStatus) setMobileStatus(targetStatus);
     }
     if (start && JSON.stringify(next) !== JSON.stringify(start)) {
       void saveBoard(next, String(event.active.id));
@@ -519,9 +565,6 @@ export const TodoBoard: React.FC<TodoBoardProps> = ({ topic, todos, actions, isL
         onEdit={() => beginEdit(todo.id)}
         onSave={(title) => saveTitle(todo, title)}
         onCancelEdit={() => setEditingTodoId(null)}
-        onToggleComplete={() => void withTodoLock(todo.id, () => status === 'completed' ? actions.reopenTodo(todo.id) : actions.completeTodo(todo.id))}
-        onMove={(nextStatus) => moveTodo(todo.id, nextStatus)}
-        onDelete={() => setDeleteTarget(todo)}
       />
     );
   };
@@ -540,28 +583,28 @@ export const TodoBoard: React.FC<TodoBoardProps> = ({ topic, todos, actions, isL
         <div className="rounded-2xl bg-[var(--surface)] p-8 text-center text-sm text-[var(--ink-muted)]">正在加载执行看板…</div>
       ) : (
         <>
-          <div data-testid="todo-board-mobile-stage-tabs" className="flex min-h-9 items-center gap-1.5 overflow-x-auto rounded-[var(--radius-sm)] bg-[var(--canvas)] p-1 lg:hidden">
-            {TODO_BOARD_COLUMNS.map((column) => (
-              <button
-                key={column.status}
-                type="button"
-                onClick={() => setMobileStatus(column.status)}
-                aria-pressed={mobileStatus === column.status}
-                className={`flex min-h-8 shrink-0 items-center gap-1.5 rounded-[var(--radius-sm)] px-2.5 text-xs font-medium transition-colors ${mobileStatus === column.status ? 'bg-[var(--accent)] text-white shadow-2xs' : 'text-[var(--ink-muted)] hover:bg-[var(--surface)] hover:text-[var(--ink)]'}`}
-              >
-                <span>{column.label}</span><span className={`rounded-[var(--radius-sm)] px-1 text-[10px] tabular-nums ${mobileStatus === column.status ? 'bg-[var(--accent-dark)] text-white' : 'text-[var(--ink-muted)] opacity-75'}`}>{laneCounts[column.status]}</span>
-              </button>
-            ))}
-          </div>
-
           <DndContext
             sensors={sensors}
-            collisionDetection={closestCorners}
+            collisionDetection={todoBoardCollisionDetection}
             onDragStart={handleDragStart}
             onDragOver={handleDragOver}
             onDragEnd={handleDragEnd}
             onDragCancel={handleDragCancel}
           >
+            <div data-testid="todo-board-mobile-stage-tabs" className="flex min-h-9 items-center gap-1.5 overflow-x-auto rounded-[var(--radius-sm)] bg-[var(--canvas)] p-1 lg:hidden">
+              {TODO_BOARD_COLUMNS.map((column) => (
+                <TodoBoardStageTab
+                  key={column.status}
+                  status={column.status}
+                  count={laneCounts[column.status]}
+                  isActive={mobileStatus === column.status}
+                  isDragging={Boolean(activeTodoId)}
+                  isDesktop={isDesktop}
+                  onSelect={() => setMobileStatus(column.status)}
+                />
+              ))}
+            </div>
+
             <div className="grid min-w-0 grid-cols-1 gap-3 lg:grid-cols-3 lg:gap-4" data-testid="todo-board-grid">
               {TODO_BOARD_COLUMNS.filter((column) => statusesToDisplay.includes(column.status)).map((column) => {
                 const ids = layout[laneKey(column.status)];
@@ -582,6 +625,10 @@ export const TodoBoard: React.FC<TodoBoardProps> = ({ topic, todos, actions, isL
                 );
               })}
             </div>
+            {activeTodoId && typeof document !== 'undefined' && createPortal(
+              <TodoDeleteDropZone />,
+              document.body,
+            )}
             {typeof document !== 'undefined' && createPortal(
               <DragOverlay dropAnimation={null}>
                 {activeTodo ? (
