@@ -1,20 +1,16 @@
-import React, { useEffect, useLayoutEffect, useRef, useState } from 'react';
-import { createPortal } from 'react-dom';
+import React from 'react';
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
-import { Topic, TopicStatus } from '../../types';
+import { Topic } from '../../types';
 import { PriorityBadge } from '../ui/Badge';
-import { COLUMNS } from './columns';
 import {
   Pin,
-  ChevronDown,
   Calendar,
   Clock,
 } from 'lucide-react';
 import { getCurrentActionAgeDays, getCurrentActionWarning } from '../../lib/topicMetrics';
 import { ActionDateText } from '../ui/ActionDate';
 import { useActionDateDisplay, type ActionDateDisplay } from '../../lib/actionDate';
-import { FloatingScrollbar } from '../ui/FloatingScrollbar';
 
 interface KanbanCardProps {
   topic: Topic;
@@ -22,7 +18,6 @@ interface KanbanCardProps {
   onOpenCurrentAction?: (topicId: string) => void;
   onDeleteTopic: (topicId: string) => void | Promise<void>;
   onTogglePin: (topicId: string) => void;
-  onUpdateStatus?: (topicId: string, status: TopicStatus) => void | Promise<void>;
   onKeyboardMove?: (topic: Topic, direction: -1 | 1) => void;
   sortableDisabled?: boolean;
   staleThresholdDays?: number;
@@ -30,43 +25,8 @@ interface KanbanCardProps {
   mobileMotion?: boolean;
 }
 
-interface StatusMenuPosition {
-  top: number;
-  left: number;
-  maxHeight: number;
-}
-
-const STATUS_MENU_WIDTH = 144;
-const VIEWPORT_MARGIN = 8;
-const STATUS_MENU_GAP = 6;
 const CARD_META_VALUE_CLASS = 'tabular-nums';
 const SCHEDULE_BADGE_CLASS = 'inline-flex items-center gap-1 rounded-[var(--radius-sm)] px-1.5 py-0.5 text-[11px] font-sans leading-4 whitespace-nowrap border border-[var(--line)] bg-[var(--canvas)] text-[var(--ink-muted)]';
-
-function getStatusMenuPosition(
-  trigger: HTMLElement,
-  menuHeight = 0
-): StatusMenuPosition {
-  const triggerRect = trigger.getBoundingClientRect();
-  const viewportWidth = document.documentElement.clientWidth;
-  const viewportHeight = window.innerHeight;
-  const menuWidth = Math.min(STATUS_MENU_WIDTH, viewportWidth - VIEWPORT_MARGIN * 2);
-  const left = Math.min(
-    Math.max(VIEWPORT_MARGIN, triggerRect.right - menuWidth),
-    viewportWidth - menuWidth - VIEWPORT_MARGIN
-  );
-  const spaceBelow = viewportHeight - triggerRect.bottom - STATUS_MENU_GAP - VIEWPORT_MARGIN;
-  const spaceAbove = triggerRect.top - STATUS_MENU_GAP - VIEWPORT_MARGIN;
-  const shouldOpenAbove = menuHeight > 0 && menuHeight > spaceBelow && spaceAbove > spaceBelow;
-  const top = shouldOpenAbove
-    ? Math.max(VIEWPORT_MARGIN, triggerRect.top - STATUS_MENU_GAP - Math.min(menuHeight, spaceAbove))
-    : triggerRect.bottom + STATUS_MENU_GAP;
-
-  return {
-    top,
-    left,
-    maxHeight: Math.max(120, shouldOpenAbove ? spaceAbove : spaceBelow),
-  };
-}
 
 const TopicScheduleBadges: React.FC<{
   scheduleDate: ActionDateDisplay;
@@ -98,22 +58,12 @@ const KanbanCardComponent: React.FC<KanbanCardProps> = ({
   onOpenCurrentAction,
   onDeleteTopic,
   onTogglePin,
-  onUpdateStatus,
   onKeyboardMove,
   sortableDisabled = false,
   staleThresholdDays = 5,
   isOverlay = false,
   mobileMotion = false,
 }) => {
-  const [isStatusMenuOpen, setIsStatusMenuOpen] = useState(false);
-  const [statusMenuPosition, setStatusMenuPosition] = useState<StatusMenuPosition | null>(null);
-
-  const requestStatusUpdate = (status: TopicStatus) => {
-    setIsStatusMenuOpen(false);
-    void Promise.resolve().then(() => onUpdateStatus?.(topic.id, status)).catch(() => undefined);
-  };
-  const statusTriggerRef = useRef<HTMLButtonElement>(null);
-  const statusMenuRef = useRef<HTMLDivElement>(null);
   const {
     attributes,
     listeners,
@@ -141,43 +91,6 @@ const KanbanCardComponent: React.FC<KanbanCardProps> = ({
   const activeTopicDates = topic.status !== 'published' && topic.status !== 'icebox';
   const scheduleDate = useActionDateDisplay(topic.target_publish_date, activeTopicDates);
   const deadlineDate = useActionDateDisplay(topic.deadline, activeTopicDates);
-
-  useLayoutEffect(() => {
-    if (!isStatusMenuOpen || !statusTriggerRef.current) return;
-
-    const updatePosition = () => {
-      if (!statusTriggerRef.current) return;
-      setStatusMenuPosition(getStatusMenuPosition(statusTriggerRef.current, statusMenuRef.current?.offsetHeight || 0));
-    };
-
-    updatePosition();
-    window.addEventListener('resize', updatePosition);
-    window.addEventListener('scroll', updatePosition, true);
-    return () => {
-      window.removeEventListener('resize', updatePosition);
-      window.removeEventListener('scroll', updatePosition, true);
-    };
-  }, [isStatusMenuOpen]);
-
-  useEffect(() => {
-    if (!isStatusMenuOpen) return;
-
-    const closeOnOutsideInteraction = (event: PointerEvent) => {
-      const target = event.target as Node;
-      if (statusTriggerRef.current?.contains(target) || statusMenuRef.current?.contains(target)) return;
-      setIsStatusMenuOpen(false);
-    };
-    const closeOnEscape = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') setIsStatusMenuOpen(false);
-    };
-
-    document.addEventListener('pointerdown', closeOnOutsideInteraction);
-    document.addEventListener('keydown', closeOnEscape);
-    return () => {
-      document.removeEventListener('pointerdown', closeOnOutsideInteraction);
-      document.removeEventListener('keydown', closeOnEscape);
-    };
-  }, [isStatusMenuOpen]);
 
   // Floating Overlay State (inside DragOverlay)
   if (isOverlay) {
@@ -267,103 +180,6 @@ const KanbanCardComponent: React.FC<KanbanCardProps> = ({
         <h3 className="min-w-0 flex-1 text-[15px] font-semibold text-[var(--ink)] leading-snug tracking-tight group-hover:text-[var(--accent)] transition-colors line-clamp-2 text-pretty">
           {topic.title}
         </h3>
-        <div className="shrink-0">
-          {/* Direct Status Selector Dropdown */}
-          {onUpdateStatus && (
-            <div className="relative">
-              <button
-                type="button"
-                ref={statusTriggerRef}
-                onClick={(e) => {
-                  e.stopPropagation();
-                  if (isStatusMenuOpen) {
-                    setIsStatusMenuOpen(false);
-                    return;
-                  }
-                  setStatusMenuPosition(getStatusMenuPosition(e.currentTarget));
-                  setIsStatusMenuOpen(true);
-                }}
-                aria-expanded={isStatusMenuOpen}
-                aria-label="快速流转阶段"
-                onPointerDown={(event) => event.stopPropagation()}
-                onTouchStart={(event) => event.stopPropagation()}
-                className={`inline-flex min-h-8 items-center gap-1 rounded-[var(--radius-sm)] px-2 text-[11px] font-medium text-[var(--ink-muted)] transition-colors cursor-pointer hover:bg-[var(--canvas)] hover:text-[var(--ink)] focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[var(--accent)] ${
-                  isStatusMenuOpen ? 'bg-[var(--canvas)] text-[var(--ink)]' : ''
-                }`}
-                title="快速流转阶段"
-              >
-                <span>流转</span>
-                <ChevronDown className="w-3 h-3 text-[var(--ink-muted)]" aria-hidden="true" />
-              </button>
-
-              {isStatusMenuOpen && statusMenuPosition && createPortal(
-                <FloatingScrollbar
-                  wrapperRef={statusMenuRef}
-                  onClick={(e) => e.stopPropagation()}
-                  wrapperStyle={{
-                    position: 'fixed',
-                    top: statusMenuPosition.top,
-                    left: statusMenuPosition.left,
-                    maxHeight: statusMenuPosition.maxHeight,
-                  }}
-                  className="p-1.5 space-y-0.5"
-                  wrapperClassName="fixed z-[100] w-36 max-w-[calc(100vw-1rem)] flex-none bg-[var(--surface)] rounded-[var(--radius-md)] shadow-modal border border-[var(--line)] animate-in fade-in zoom-in-95 duration-150 ease-editorial-out"
-                >
-                  <div className="px-2.5 py-1 text-[10px] font-semibold tracking-wider text-[var(--ink-muted)] uppercase">
-                    活跃生产阶段
-                  </div>
-                  {COLUMNS.filter((c) => c.status !== 'published' && c.status !== 'icebox').map((c) => (
-                    <button
-                      key={c.status}
-                      type="button"
-                      onClick={() => requestStatusUpdate(c.status)}
-                      className={`w-full text-left px-2.5 py-1.5 rounded-[var(--radius-sm)] text-xs flex items-center justify-between transition-colors cursor-pointer ${
-                        topic.status === c.status
-                          ? 'bg-[var(--accent-soft)] text-[var(--accent-dark)] font-medium'
-                          : 'text-[var(--ink-muted)] hover:bg-[var(--canvas)] hover:text-[var(--ink)] font-normal'
-                      }`}
-                    >
-                      <span>{c.label}</span>
-                      {topic.status === c.status && <span className="text-[var(--accent)] text-xs">✓</span>}
-                    </button>
-                  ))}
-
-                  <div className="my-1 border-t border-[var(--line)]" />
-                  <div className="px-2.5 py-1 text-[10px] font-semibold tracking-wider text-[var(--ink-muted)] uppercase">
-                    归档状态
-                  </div>
-
-                  <button
-                    type="button"
-                    onClick={() => requestStatusUpdate('published')}
-                    className={`w-full text-left px-2.5 py-1.5 rounded-[var(--radius-sm)] text-xs flex items-center justify-between transition-colors cursor-pointer ${
-                      topic.status === 'published'
-                        ? 'bg-[var(--accent-soft)] text-[var(--accent-dark)] font-medium'
-                        : 'text-[var(--ink-muted)] hover:bg-[var(--canvas)] hover:text-[var(--ink)] font-normal'
-                    }`}
-                  >
-                    <span>已发布</span>
-                    {topic.status === 'published' && <span className="text-[var(--accent)] text-xs">✓</span>}
-                  </button>
-
-                  <button
-                    type="button"
-                    onClick={() => requestStatusUpdate('icebox')}
-                    className={`w-full text-left px-2.5 py-1.5 rounded-[var(--radius-sm)] text-xs flex items-center justify-between transition-colors cursor-pointer ${
-                      topic.status === 'icebox'
-                        ? 'bg-[var(--canvas)] text-[var(--ink)] font-medium'
-                        : 'text-[var(--ink-muted)] hover:bg-[var(--canvas)] hover:text-[var(--ink)] font-normal'
-                    }`}
-                  >
-                    <span>搁置</span>
-                    {topic.status === 'icebox' && <span className="text-[var(--ink-muted)] text-xs">✓</span>}
-                  </button>
-                </FloatingScrollbar>,
-                document.body
-              )}
-            </div>
-          )}
-        </div>
       </div>
 
       {/* Current Action Highlight Bar */}

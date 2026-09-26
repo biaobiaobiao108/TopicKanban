@@ -1,6 +1,8 @@
 import React, { useState, useRef, useEffect, useMemo, useCallback, useSyncExternalStore } from 'react';
+import { createPortal } from 'react-dom';
 import { keepPreviousData, useQueries, useQueryClient } from '@tanstack/react-query';
 import {
+  CollisionDetection,
   DndContext,
   DragOverlay,
   KeyboardSensor,
@@ -8,10 +10,12 @@ import {
   TouchSensor,
   useSensor,
   useSensors,
+  useDroppable,
   DragStartEvent,
   DragOverEvent,
   DragEndEvent,
   closestCorners,
+  pointerWithin,
 } from '@dnd-kit/core';
 import { arrayMove, sortableKeyboardCoordinates } from '@dnd-kit/sortable';
 import { Topic, TopicStatus, Priority, Tag, Person, PaginatedTopics } from '../../types';
@@ -19,14 +23,99 @@ import { KanbanColumn } from './KanbanColumn';
 import { KanbanCard } from './KanbanCard';
 import { KanbanFilters, SortField } from './KanbanFilters';
 import { ACTIVE_COLUMNS } from './columns';
-import { AlertTriangle, KanbanSquare } from 'lucide-react';
+import { AlertTriangle, CheckCircle2, KanbanSquare, Snowflake, X } from 'lucide-react';
 import { PageHeader } from '../layout/PageHeader';
 import { getCurrentActionAgeDays, isActiveTopic } from '../../lib/topicMetrics';
 import { matchesTopicSearch } from '../../lib/topicSearch';
 import { fetchTopicPage } from '../../lib/storage';
 
 const activeStatuses: TopicStatus[] = ['inbox', 'scripting', 'production'];
+const terminalStatuses: Array<'icebox' | 'published'> = ['icebox', 'published'];
+const terminalDropIds: Record<'icebox' | 'published', string> = {
+  icebox: 'topic-flow-icebox',
+  published: 'topic-flow-published',
+};
 const MOBILE_VIEWPORT_QUERY = '(max-width: 767px)';
+
+function isPointerInsideCornerFan(
+  args: Parameters<CollisionDetection>[0],
+  id: string,
+  corner: 'left' | 'right',
+): boolean {
+  const point = args.pointerCoordinates;
+  const rect = args.droppableRects.get(id);
+  if (!point || !rect) return false;
+
+  const horizontalDistance = corner === 'left' ? point.x - rect.left : rect.right - point.x;
+  const verticalDistance = rect.bottom - point.y;
+  const radius = Math.min(rect.width, rect.height);
+  return horizontalDistance >= 0
+    && verticalDistance >= 0
+    && horizontalDistance ** 2 + verticalDistance ** 2 <= radius ** 2;
+}
+
+const kanbanCollisionDetection: CollisionDetection = (args) => {
+  const pointerCollisions = pointerWithin(args);
+  const terminalDrop = pointerCollisions.find((collision) => {
+    const status = terminalStatuses.find((candidate) => terminalDropIds[candidate] === String(collision.id));
+    if (!status) return false;
+    return isPointerInsideCornerFan(args, String(collision.id), status === 'icebox' ? 'left' : 'right');
+  });
+  if (terminalDrop) return [terminalDrop];
+
+  if (!args.pointerCoordinates) return closestCorners(args);
+  const terminalIds = new Set(Object.values(terminalDropIds));
+  return closestCorners({
+    ...args,
+    droppableContainers: args.droppableContainers.filter((container) => !terminalIds.has(String(container.id))),
+    droppableRects: new Map([...args.droppableRects].filter(([id]) => !terminalIds.has(String(id)))),
+  });
+};
+
+const TopicFlowDropTarget: React.FC<{ status: 'icebox' | 'published' }> = ({ status }) => {
+  const { setNodeRef, isOver } = useDroppable({
+    id: terminalDropIds[status],
+    data: { type: 'terminal-status', status },
+  });
+  const Icon = status === 'icebox' ? Snowflake : CheckCircle2;
+  const label = status === 'icebox' ? '搁置' : '已发布';
+  const isLeft = status === 'icebox';
+
+  return (
+    <div
+      ref={setNodeRef}
+      data-testid={`kanban-flow-target-${status}`}
+      data-over={isOver ? 'true' : 'false'}
+      role="group"
+      aria-label={`拖到这里将选题流转到${label}`}
+      className={`pointer-events-auto fixed bottom-0 z-[60] h-36 w-36 select-none text-[var(--ink-muted)] transition-colors md:bottom-4 ${isLeft ? 'left-4 md:left-[17rem]' : 'right-4'}`}
+      style={{
+        clipPath: `circle(144px at ${isLeft ? '0%' : '100%'} 100%)`,
+      }}
+    >
+      <div
+        className={`absolute inset-0 transition-colors ${isOver ? 'bg-[var(--line)]' : 'bg-[var(--line)]/75'}`}
+        aria-hidden="true"
+      />
+      <div
+        className={`absolute inset-[1px] transition-colors ${isOver ? 'bg-[var(--accent-soft)] text-[var(--accent-dark)]' : 'bg-[var(--surface)]/95'}`}
+        style={{ clipPath: `circle(142px at ${isLeft ? '0%' : '100%'} 100%)` }}
+        aria-hidden="true"
+      />
+      <div className={`absolute bottom-5 z-10 flex max-w-[104px] flex-col gap-1 text-xs font-semibold leading-tight ${isLeft ? 'left-5 items-start text-left' : 'right-5 items-end text-right'}`}>
+        <Icon className={`h-4 w-4 ${isOver ? 'text-[var(--accent)]' : ''}`} aria-hidden="true" />
+        <span>{isOver ? `松开以${label}` : label}</span>
+      </div>
+    </div>
+  );
+};
+
+const TopicFlowDropZone: React.FC = () => (
+  <div data-testid="kanban-flow-drop-zone" role="group" aria-label="阶段流转区域：左下角搁置，右下角已发布">
+    <TopicFlowDropTarget status="icebox" />
+    <TopicFlowDropTarget status="published" />
+  </div>
+);
 
 function subscribeToMobileViewport(callback: () => void): () => void {
   if (typeof window === 'undefined') return () => {};
@@ -203,6 +292,9 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
   const [activeId, setActiveId] = useState<string | null>(null);
   const [activeCardWidth, setActiveCardWidth] = useState<number | null>(null);
   const [isReorderPending, setIsReorderPending] = useState(false);
+  const [loadingMorePage, setLoadingMorePage] = useState<Partial<Record<TopicStatus, number>>>({});
+  const [revealedTopic, setRevealedTopic] = useState<{ id: string; status: TopicStatus } | null>(null);
+  const [isWipReminderDismissed, setIsWipReminderDismissed] = useState(false);
   const snapshotRef = useRef<BoardSnapshot | null>(null);
   // Dnd-kit can dispatch the final event before React commits the last
   // onDragOver state update. Keep a synchronous drag-only board so the end
@@ -242,12 +334,33 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
   const columnQuerySignature = columnQueries.map((query) => (
     `${query.dataUpdatedAt}:${query.isPlaceholderData ? 'placeholder' : 'ready'}`
   )).join('|');
+  const columnLoadStateSignature = columnQueries.map((query) => (
+    `${query.isFetching ? 'fetching' : 'idle'}:${query.isPlaceholderData ? 'placeholder' : 'ready'}:${query.isError ? 'error' : 'ok'}`
+  )).join('|');
 
   useEffect(() => {
     setColumnPages(Object.fromEntries(activeStatuses.map((status) => [status, 1])) as Record<TopicStatus, number>);
+    setLoadingMorePage({});
     mobileStageAutoSelectedRef.current = false;
     setMobileActiveStage('inbox');
   }, [searchTerm, priorityFilter, selectedTagId, selectedPersonId, sortBy]);
+
+  useEffect(() => {
+    setLoadingMorePage((current) => {
+      let changed = false;
+      const next = { ...current };
+      activeStatuses.forEach((status, index) => {
+        const requestedPage = next[status];
+        if (requestedPage === undefined) return;
+        const query = columnQueries[index];
+        if (columnPages[status] !== requestedPage || query?.isError || (query && !query.isFetching && !query.isPlaceholderData)) {
+          delete next[status];
+          changed = true;
+        }
+      });
+      return changed ? next : current;
+    });
+  }, [columnLoadStateSignature, columnPages]);
 
   useEffect(() => {
     // A reorder updates the visible board before the server responds. Ignore
@@ -272,10 +385,28 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
         const currentPage = columnPages[status] || 1;
         if (currentPage === 1) {
           const currentList = current[status] || [];
+          const revealTopicFromCurrent = revealedTopic?.status === status
+            ? currentList.find((topic) => topic.id === revealedTopic.id)
+            : undefined;
+          const revealTopicFromParent = revealedTopic?.status === status
+            ? parentTopicsById.get(revealedTopic.id)
+            : undefined;
+          const revealTopicSource = revealTopicFromCurrent || revealTopicFromParent;
+          const retainedRevealTopic = revealTopicSource
+            ? { ...revealTopicSource, ...revealTopicFromParent, status }
+            : undefined;
+          const revealMatchesFilters = retainedRevealTopic
+            && matchesTopicSearch(retainedRevealTopic, searchTerm)
+            && (priorityFilter === 'all' || retainedRevealTopic.priority === priorityFilter)
+            && (selectedTagId === 'all' || retainedRevealTopic.tags?.some((tag) => tag.id === selectedTagId))
+            && (selectedPersonId === 'all' || retainedRevealTopic.people?.some((person) => person.id === selectedPersonId));
+          const pageOneItems = retainedRevealTopic && revealMatchesFilters && !mergedItems.some((topic) => topic.id === retainedRevealTopic.id)
+            ? [...mergedItems, retainedRevealTopic].sort((a, b) => (a.sort_order || 0) - (b.sort_order || 0))
+            : mergedItems;
           const currentSig = currentList.map(topicSyncSignature).join(',');
-          const newSig = mergedItems.map(topicSyncSignature).join(',');
+          const newSig = pageOneItems.map(topicSyncSignature).join(',');
           if (currentSig !== newSig) {
-            next[status] = mergedItems;
+            next[status] = pageOneItems;
             changed = true;
           }
         } else {
@@ -303,7 +434,7 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
 
       return changed ? next : current;
     });
-  }, [activeId, columnPages, columnQuerySignature, isReorderPending, topics]);
+  }, [activeId, columnPages, columnQuerySignature, isReorderPending, priorityFilter, revealedTopic, searchTerm, selectedPersonId, selectedTagId, topics]);
 
   const pagedTopics = useMemo(
     () => activeStatuses.flatMap((status) => loadedTopicsByStatus[status] || []),
@@ -413,6 +544,7 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
     if (!snapshot) {
       dragBoardRef.current = null;
       setIsReorderPending(false);
+      setRevealedTopic(null);
       return;
     }
     setColumns(snapshot.columns);
@@ -423,6 +555,7 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
     setActiveId(null);
     setActiveCardWidth(null);
     setIsReorderPending(false);
+    setRevealedTopic(null);
   };
 
   const optimisticUpdateQueryCache = useCallback((updates: Array<{ id: string; status: TopicStatus; sort_order: number }>) => {
@@ -492,6 +625,7 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
     snapshotRef.current = snapshot;
     dragBoardRef.current = cloneBoard(snapshot.columns, snapshot.topics, snapshot.loadedTopicsByStatus);
     setActiveId(String(active.id));
+    setRevealedTopic(null);
 
     // Measure current card's layout width for pixel-perfect DragOverlay
     const cardEl = document.querySelector(`[data-topic-id="${active.id}"]`);
@@ -527,6 +661,55 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
     setTopicsMap(nextTopicsMap);
   };
 
+  const handleTerminalStatusDrop = async (topicId: string, status: 'icebox' | 'published') => {
+    const snapshot = snapshotRef.current;
+    if (!snapshot) {
+      setActiveId(null);
+      setActiveCardWidth(null);
+      return;
+    }
+
+    const topic = snapshot.topics[topicId];
+    if (!topic) {
+      restoreSnapshot();
+      return;
+    }
+
+    const nextColumns = cloneColumns(snapshot.columns);
+    activeStatuses.forEach((activeStatus) => {
+      nextColumns[activeStatus] = nextColumns[activeStatus].filter((id) => id !== topicId);
+    });
+    const nextTopicsMap = { ...snapshot.topics, [topicId]: { ...topic, status } };
+    const nextLoadedTopicsByStatus = cloneLoadedTopicsByStatus(snapshot.loadedTopicsByStatus);
+    activeStatuses.forEach((activeStatus) => {
+      nextLoadedTopicsByStatus[activeStatus] = nextLoadedTopicsByStatus[activeStatus].filter((item) => item.id !== topicId);
+    });
+    const queryCacheSnapshot = captureKanbanQueryCache();
+
+    setActiveId(null);
+    setActiveCardWidth(null);
+    setIsReorderPending(true);
+    setColumns(nextColumns);
+    setTopicsMap(nextTopicsMap);
+    setLoadedTopicsByStatus(nextLoadedTopicsByStatus);
+    setRevealedTopic(null);
+    snapshotRef.current = null;
+    dragBoardRef.current = null;
+
+    try {
+      await queryClient.cancelQueries({ queryKey: ['kanban-column-page'] });
+      optimisticUpdateQueryCache([{ id: topicId, status, sort_order: 1 }]);
+      await onUpdateTopicStatus(topicId, status);
+    } catch {
+      restoreKanbanQueryCache(queryCacheSnapshot);
+      setColumns(snapshot.columns);
+      setTopicsMap(snapshot.topics);
+      setLoadedTopicsByStatus(snapshot.loadedTopicsByStatus);
+    } finally {
+      setIsReorderPending(false);
+    }
+  };
+
   const handleDragEnd = async (event: DragEndEvent) => {
     const { active, over } = event;
     setActiveCardWidth(null);
@@ -543,6 +726,12 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
 
     const activeKey = String(active.id);
     const overKey = String(over.id);
+    const overData = over.data.current as { type?: string; status?: TopicStatus } | undefined;
+    if (overData?.type === 'terminal-status' && (overData.status === 'icebox' || overData.status === 'published')) {
+      await handleTerminalStatusDrop(activeKey, overData.status);
+      return;
+    }
+
     const dragBoard = dragBoardRef.current;
     const dragColumns = dragBoard?.columns || columns;
     const dragTopicsMap = dragBoard?.topics || topicsMap;
@@ -577,26 +766,6 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
       ...dragTopicsMap,
       [activeKey]: { ...activeTopic, status: target },
     };
-    const nextLoadedTopicsByStatus = reorderLoadedTopics(dragLoadedTopicsByStatus, nextColumns, nextTopicsMap);
-
-    setIsReorderPending(true);
-    setActiveId(null);
-    setColumns(nextColumns);
-    setTopicsMap(nextTopicsMap);
-    setLoadedTopicsByStatus(nextLoadedTopicsByStatus);
-    dragBoardRef.current = {
-      columns: nextColumns,
-      topics: nextTopicsMap,
-      loadedTopicsByStatus: nextLoadedTopicsByStatus,
-    };
-
-    if (sortBy !== 'sort_order') {
-      setSortBy('sort_order');
-      setDragSortNotice(true);
-      if (dragNoticeTimerRef.current) clearTimeout(dragNoticeTimerRef.current);
-      dragNoticeTimerRef.current = setTimeout(() => setDragSortNotice(false), 3500);
-    }
-
     const updates: Array<{ id: string; status: TopicStatus; sort_order: number }> = [];
     nextColumns[target].forEach((id, idx) => {
       updates.push({ id, status: target, sort_order: idx + 1 });
@@ -605,6 +774,32 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
       nextColumns[source].forEach((id, idx) => {
         updates.push({ id, status: source, sort_order: idx + 1 });
       });
+    }
+
+    const orderedTopicsMap = { ...nextTopicsMap };
+    updates.forEach(({ id, status, sort_order }) => {
+      const topic = orderedTopicsMap[id];
+      if (topic) orderedTopicsMap[id] = { ...topic, status, sort_order };
+    });
+    const nextLoadedTopicsByStatus = reorderLoadedTopics(dragLoadedTopicsByStatus, nextColumns, orderedTopicsMap);
+
+    setIsReorderPending(true);
+    setActiveId(null);
+    setColumns(nextColumns);
+    setTopicsMap(orderedTopicsMap);
+    setLoadedTopicsByStatus(nextLoadedTopicsByStatus);
+    setRevealedTopic(source !== target ? { id: activeKey, status: target } : null);
+    dragBoardRef.current = {
+      columns: nextColumns,
+      topics: orderedTopicsMap,
+      loadedTopicsByStatus: nextLoadedTopicsByStatus,
+    };
+
+    if (sortBy !== 'sort_order') {
+      setSortBy('sort_order');
+      setDragSortNotice(true);
+      if (dragNoticeTimerRef.current) clearTimeout(dragNoticeTimerRef.current);
+      dragNoticeTimerRef.current = setTimeout(() => setDragSortNotice(false), 3500);
     }
 
     const queryCacheSnapshot = captureKanbanQueryCache();
@@ -640,12 +835,6 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
       [topic.id]: { ...topic, status: targetStatus },
     };
 
-    setColumns(nextColumns);
-    setTopicsMap(nextTopicsMap);
-    setLoadedTopicsByStatus((current) => reorderLoadedTopics(current, nextColumns, nextTopicsMap));
-    dragBoardRef.current = null;
-    setIsReorderPending(true);
-
     const updates: Array<{ id: string; status: TopicStatus; sort_order: number }> = [];
     nextColumns[targetStatus].forEach((id, idx) => {
       updates.push({ id, status: targetStatus, sort_order: idx + 1 });
@@ -653,6 +842,20 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
     nextColumns[topic.status].forEach((id, idx) => {
       updates.push({ id, status: topic.status, sort_order: idx + 1 });
     });
+
+    const orderedTopicsMap = { ...nextTopicsMap };
+    updates.forEach(({ id, status, sort_order }) => {
+      const currentTopic = orderedTopicsMap[id];
+      if (currentTopic) orderedTopicsMap[id] = { ...currentTopic, status, sort_order };
+    });
+    const nextLoadedTopicsByStatus = reorderLoadedTopics(loadedTopicsByStatus, nextColumns, orderedTopicsMap);
+
+    setColumns(nextColumns);
+    setTopicsMap(orderedTopicsMap);
+    setLoadedTopicsByStatus(nextLoadedTopicsByStatus);
+    setRevealedTopic({ id: topic.id, status: targetStatus });
+    dragBoardRef.current = null;
+    setIsReorderPending(true);
 
     const queryCacheSnapshot = captureKanbanQueryCache();
     try {
@@ -665,6 +868,7 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
       setColumns(snapshot.columns);
       setTopicsMap(snapshot.topics);
       setLoadedTopicsByStatus(snapshot.loadedTopicsByStatus);
+      setRevealedTopic(null);
       setIsReorderPending(false);
     }
   }, [columns, loadedTopicsByStatus, onReorderTopics, optimisticUpdateQueryCache, queryClient, topicsMap]);
@@ -694,8 +898,11 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
   }, []);
 
   const loadMoreColumn = useCallback((status: TopicStatus) => {
-    setColumnPages((current) => ({ ...current, [status]: current[status] + 1 }));
-  }, []);
+    if (loadingMorePage[status] !== undefined) return;
+    const nextPage = columnPages[status] + 1;
+    setLoadingMorePage((current) => ({ ...current, [status]: nextPage }));
+    setColumnPages((current) => ({ ...current, [status]: nextPage }));
+  }, [columnPages, loadingMorePage]);
   const loadMoreHandlers = useMemo(() => Object.fromEntries(
     activeStatuses.map((status) => [status, () => loadMoreColumn(status)]),
   ) as Record<TopicStatus, () => void>, [loadMoreColumn]);
@@ -728,32 +935,6 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
       throw error;
     }
   }, [columns, loadedTopicsByStatus, onDeleteTopic, queryClient, topicsMap]);
-
-  const handleColumnStatusUpdate = useCallback(async (topicId: string, status: TopicStatus) => {
-    const snapshot = cloneBoard(columns, topicsMap, loadedTopicsByStatus);
-    setLoadedTopicsByStatus((current) => {
-      const next = { ...current };
-      const item = topicsMap[topicId] ? { ...topicsMap[topicId], status } : undefined;
-      activeStatuses.forEach((s) => {
-        const remaining = (current[s] || []).filter((t) => t.id !== topicId);
-        if (s === status && item) {
-          next[s] = [...remaining, item];
-        } else {
-          next[s] = remaining;
-        }
-      });
-      return next;
-    });
-    optimisticUpdateQueryCache([{ id: topicId, status, sort_order: 1 }]);
-    try {
-      await onUpdateTopicStatus(topicId, status);
-    } catch (error) {
-      setColumns(snapshot.columns);
-      setTopicsMap(snapshot.topics);
-      setLoadedTopicsByStatus(snapshot.loadedTopicsByStatus);
-      throw error;
-    }
-  }, [columns, loadedTopicsByStatus, onUpdateTopicStatus, optimisticUpdateQueryCache, topicsMap]);
 
   return (
     <div data-testid="kanban-page" className="mx-auto flex min-h-0 h-full w-full max-w-7xl min-w-0 flex-1 flex-col gap-5 overflow-y-auto overscroll-contain px-4 py-5 mobile-bottom-nav-content sm:gap-7 sm:px-8 sm:py-7">
@@ -794,7 +975,7 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
           </div>
         )}
 
-        {(wipWarnings.length > 0 || stagnantTopics.length > 0) && (
+        {!isWipReminderDismissed && (wipWarnings.length > 0 || stagnantTopics.length > 0) && (
           <div className="rounded-xl border border-amber-200 dark:border-amber-900/60 bg-amber-50 dark:bg-amber-950/40 p-3 sm:p-4">
             <div className="flex items-start gap-3">
               <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-amber-700 dark:text-amber-300" />
@@ -819,6 +1000,15 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
                   </div>
                 )}
               </div>
+              <button
+                type="button"
+                onClick={() => setIsWipReminderDismissed(true)}
+                aria-label="关闭在制品提醒"
+                title="关闭提醒"
+                className="-mr-1 -mt-1 inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-[var(--radius-sm)] text-amber-700 transition-colors hover:bg-amber-100 hover:text-amber-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-600 dark:text-amber-300 dark:hover:bg-amber-900/50 dark:hover:text-amber-100"
+              >
+                <X className="h-4 w-4" aria-hidden="true" />
+              </button>
             </div>
           </div>
         )}
@@ -853,7 +1043,7 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
       {/* DND Context & Board Grid (3 Active Columns) */}
       <DndContext
         key={isMobileViewport ? 'mobile' : 'desktop'}
-        collisionDetection={closestCorners}
+        collisionDetection={kanbanCollisionDetection}
         onDragStart={handleDragStart}
         onDragOver={handleDragOver}
         onDragEnd={handleDragEnd}
@@ -873,14 +1063,14 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
                   topics={colTopics}
                   onOpenDetail={onOpenDetail}
                   onOpenCurrentAction={onOpenCurrentAction}
+                  revealTopicId={revealedTopic?.status === col.status ? revealedTopic.id : null}
                   totalCount={columnTotalCounts[col.status] || 0}
                   hasMore={(columnTotalCounts[col.status] || 0) > (loadedTopicsByStatus[col.status]?.length || colTopics.length)}
-                  isLoadingMore={columnQueries[activeStatuses.indexOf(col.status)]?.isFetching && columnPages[col.status] > 1}
+                  isLoadingMore={loadingMorePage[col.status] === columnPages[col.status]}
                   onLoadMore={loadMoreHandlers[col.status]}
                   onDeleteTopic={handleColumnDelete}
                   onTogglePin={onTogglePin}
                   onQuickAddTopic={onQuickAddTopic}
-                  onUpdateStatus={handleColumnStatusUpdate}
                   onKeyboardMove={handleKeyboardMove}
                   sortableDisabled
                   staleThresholdDays={staleActionDays}
@@ -903,14 +1093,14 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
                     topics={colTopics}
                     onOpenDetail={onOpenDetail}
                     onOpenCurrentAction={onOpenCurrentAction}
+                    revealTopicId={revealedTopic?.status === col.status ? revealedTopic.id : null}
                     totalCount={columnTotalCounts[col.status] || 0}
                     hasMore={(columnTotalCounts[col.status] || 0) > (loadedTopicsByStatus[col.status]?.length || colTopics.length)}
-                    isLoadingMore={columnQueries[activeStatuses.indexOf(col.status)]?.isFetching && columnPages[col.status] > 1}
+                    isLoadingMore={loadingMorePage[col.status] === columnPages[col.status]}
                     onLoadMore={loadMoreHandlers[col.status]}
                     onDeleteTopic={handleColumnDelete}
                     onTogglePin={onTogglePin}
                     onQuickAddTopic={onQuickAddTopic}
-                    onUpdateStatus={handleColumnStatusUpdate}
                     onKeyboardMove={handleKeyboardMove}
                     sortableDisabled={isDragDisabled}
                     staleThresholdDays={staleActionDays}
@@ -921,23 +1111,30 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
           </div>
         )}
 
-        <DragOverlay dropAnimation={null}>
-          {activeTopic ? (
-            <div
-              style={{ width: activeCardWidth ? `${activeCardWidth}px` : undefined }}
-              data-testid="kanban-drag-overlay"
-              className="pointer-events-none"
-            >
-              <KanbanCard
-                topic={activeTopic}
-                isOverlay
-                onOpenDetail={() => {}}
-                onDeleteTopic={() => {}}
-                onTogglePin={() => {}}
-              />
-            </div>
-          ) : null}
-        </DragOverlay>
+        {typeof document !== 'undefined' && createPortal(
+          <DragOverlay dropAnimation={null} zIndex={80}>
+            {activeTopic ? (
+              <div
+                style={{ width: activeCardWidth ? `${activeCardWidth}px` : undefined }}
+                data-testid="kanban-drag-overlay"
+                className="pointer-events-none"
+              >
+                <KanbanCard
+                  topic={activeTopic}
+                  isOverlay
+                  onOpenDetail={() => {}}
+                  onDeleteTopic={() => {}}
+                  onTogglePin={() => {}}
+                />
+              </div>
+            ) : null}
+          </DragOverlay>,
+          document.body,
+        )}
+        {activeId && typeof document !== 'undefined' && createPortal(
+          <TopicFlowDropZone />,
+          document.body,
+        )}
       </DndContext>
     </div>
   );

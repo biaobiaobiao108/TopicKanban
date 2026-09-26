@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useDroppable } from '@dnd-kit/core';
 import { SortableContext, verticalListSortingStrategy } from '@dnd-kit/sortable';
 import { Topic, TopicStatus } from '../../types';
@@ -14,12 +14,12 @@ interface KanbanColumnProps {
   hasMore?: boolean;
   isLoadingMore?: boolean;
   onLoadMore?: () => void;
+  revealTopicId?: string | null;
   onOpenDetail: (topicId: string) => void;
   onOpenCurrentAction?: (topicId: string) => void;
   onDeleteTopic: (topicId: string) => void | Promise<void>;
   onTogglePin: (topicId: string) => void;
   onQuickAddTopic: (status: TopicStatus) => void;
-  onUpdateStatus?: (topicId: string, status: TopicStatus) => void | Promise<void>;
   onKeyboardMove?: (topic: Topic, direction: -1 | 1) => void;
   sortableDisabled?: boolean;
   staleThresholdDays?: number;
@@ -45,18 +45,32 @@ const KanbanColumnComponent: React.FC<KanbanColumnProps> = ({
   hasMore = false,
   isLoadingMore = false,
   onLoadMore,
+  revealTopicId = null,
   onOpenDetail,
   onOpenCurrentAction,
   onDeleteTopic,
   onTogglePin,
   onQuickAddTopic,
-  onUpdateStatus,
   onKeyboardMove,
   sortableDisabled,
   staleThresholdDays = 5,
   mobileMode = false,
 }) => {
   const [isExpanded, setIsExpanded] = useState(false);
+
+  useEffect(() => {
+    if (!revealTopicId) return;
+    const topicIndex = topics.findIndex((topic) => topic.id === revealTopicId);
+    if (topicIndex < DEFAULT_LIMIT) return;
+
+    setIsExpanded(true);
+    const frame = window.requestAnimationFrame(() => {
+      const topicCard = Array.from(document.querySelectorAll<HTMLElement>('[data-topic-id]'))
+        .find((card) => card.dataset.topicId === revealTopicId);
+      topicCard?.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+    });
+    return () => window.cancelAnimationFrame(frame);
+  }, [revealTopicId, topics]);
 
   const { setNodeRef, isOver } = useDroppable({
     id: status,
@@ -114,7 +128,6 @@ const KanbanColumnComponent: React.FC<KanbanColumnProps> = ({
               onOpenCurrentAction={onOpenCurrentAction}
               onDeleteTopic={onDeleteTopic}
               onTogglePin={onTogglePin}
-              onUpdateStatus={onUpdateStatus}
               onKeyboardMove={onKeyboardMove}
               sortableDisabled={sortableDisabled}
               staleThresholdDays={staleThresholdDays}

@@ -335,14 +335,22 @@ const TodoDeleteDropZone: React.FC = () => {
       role="status"
       aria-live="polite"
       aria-atomic="true"
-      className={`pointer-events-auto fixed inset-x-4 bottom-[calc(var(--mobile-bottom-nav-clearance)_+_0.75rem)] z-[60] mx-auto flex min-h-14 max-w-sm items-center justify-center gap-2 rounded-2xl border border-dashed px-5 py-3 text-sm font-semibold shadow-lg backdrop-blur-md transition-colors md:bottom-4 ${
-        isOver
-          ? 'border-red-400 bg-red-50/95 text-red-700 dark:border-red-700 dark:bg-red-950/90 dark:text-red-300'
-          : 'border-[var(--line)] bg-[var(--surface)]/95 text-[var(--ink-muted)]'
-      }`}
+      className="pointer-events-auto fixed right-3 bottom-[calc(var(--mobile-bottom-nav-clearance)_+_0.75rem)] z-[60] h-36 w-36 select-none text-[var(--ink-muted)] transition-colors md:right-4 md:bottom-4"
+      style={{ clipPath: 'circle(144px at 100% 100%)' }}
     >
-      <Trash2 className="h-4 w-4 shrink-0" aria-hidden="true" />
-      <span>{isOver ? '松开以移入回收站' : '拖到这里删除'}</span>
+      <div
+        className={`absolute inset-0 transition-colors ${isOver ? 'bg-red-300/80 dark:bg-red-800/80' : 'bg-[var(--line)]/75'}`}
+        aria-hidden="true"
+      />
+      <div
+        className={`absolute inset-[1px] transition-colors ${isOver ? 'bg-red-50/95 text-red-700 dark:bg-red-950/90 dark:text-red-300' : 'bg-[var(--surface)]/95'}`}
+        style={{ clipPath: 'circle(142px at 100% 100%)' }}
+        aria-hidden="true"
+      />
+      <div className="absolute right-4 bottom-5 z-10 flex max-w-[104px] flex-col items-end gap-1 text-right text-[11px] font-semibold leading-tight">
+        <Trash2 className={`h-4 w-4 shrink-0 ${isOver ? 'text-red-600 dark:text-red-300' : ''}`} aria-hidden="true" />
+        <span>{isOver ? '松开以移入回收站' : '拖到这里删除'}</span>
+      </div>
     </div>
   );
 };
@@ -350,7 +358,23 @@ const TodoDeleteDropZone: React.FC = () => {
 const todoBoardCollisionDetection: CollisionDetection = (args) => {
   const pointerCollisions = pointerWithin(args);
   const deleteZoneCollision = pointerCollisions.find((collision) => String(collision.id) === TODO_DELETE_ZONE_ID);
-  return deleteZoneCollision ? [deleteZoneCollision] : closestCorners(args);
+  const point = args.pointerCoordinates;
+  const rect = args.droppableRects.get(TODO_DELETE_ZONE_ID);
+  if (deleteZoneCollision && point && rect) {
+    const horizontalDistance = rect.right - point.x;
+    const verticalDistance = rect.bottom - point.y;
+    const radius = Math.min(rect.width, rect.height);
+    if (horizontalDistance >= 0 && verticalDistance >= 0 && horizontalDistance ** 2 + verticalDistance ** 2 <= radius ** 2) {
+      return [deleteZoneCollision];
+    }
+  }
+
+  if (!point) return closestCorners(args);
+  return closestCorners({
+    ...args,
+    droppableContainers: args.droppableContainers.filter((container) => String(container.id) !== TODO_DELETE_ZONE_ID),
+    droppableRects: new Map([...args.droppableRects].filter(([id]) => String(id) !== TODO_DELETE_ZONE_ID)),
+  });
 };
 
 function layoutFromDragEvent(event: Pick<DragEndEvent, 'active' | 'over'> | Pick<DragOverEvent, 'active' | 'over'>, current: TopicTodoBoardLayout): TopicTodoBoardLayout | null {
