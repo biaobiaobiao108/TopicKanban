@@ -5,7 +5,7 @@ import { sanitizeAppSettings } from '../src/server/routes/system';
 describe('Settings KV Model and Sanitization', () => {
   it('should have valid DEFAULT_APP_SETTINGS', () => {
     expect(DEFAULT_APP_SETTINGS.reading_speed).toBe(280);
-    expect(DEFAULT_APP_SETTINGS.theme).toBe('light');
+    expect(DEFAULT_APP_SETTINGS.theme).toBe('nordic_frost');
     expect(DEFAULT_APP_SETTINGS.trash_retention_days).toBe(30);
   });
 
@@ -27,7 +27,7 @@ describe('Settings KV Model and Sanitization', () => {
   it('should fallback to defaults on empty or invalid inputs', () => {
     const settings = sanitizeAppSettings({ reading_speed: -50, theme: 'cyberpunk-neon' as never });
     expect(settings.reading_speed).toBe(280);
-    expect(settings.theme).toBe('light');
+    expect(settings.theme).toBe(DEFAULT_APP_SETTINGS.theme);
   });
 
   it('should accept system theme and all editorial theme presets', () => {
