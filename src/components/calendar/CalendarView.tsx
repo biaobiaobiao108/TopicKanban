@@ -248,7 +248,7 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
             title="选题日历"
             icon={CalendarDays}
             badge={(
-              <span className="rounded-full bg-rose-500/10 px-2.5 py-1 font-mono text-xs font-semibold text-rose-800 dark:bg-rose-950/40 dark:text-rose-300">
+              <span className="rounded-full bg-[var(--accent-soft)] px-2.5 py-1 font-mono text-xs font-semibold text-[var(--accent)]">
                 发片排期
               </span>
             )}
@@ -462,7 +462,7 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
         {/* Drag Overlay */}
         <DragOverlay dropAnimation={null}>
           {draggedTopic ? (
-            <div data-testid="calendar-drag-overlay" className="p-3 rounded-xl border border-rose-400 bg-white dark:bg-stone-900 shadow-2xl w-64 ring-2 ring-rose-500 select-none pointer-events-none">
+            <div data-testid="calendar-drag-overlay" className="p-3 rounded-xl border border-[var(--accent)] bg-[var(--surface)] shadow-2xl w-64 ring-2 ring-[var(--focus-ring)] select-none pointer-events-none">
               <div className="flex items-center gap-1.5 mb-1">
                 <StatusBadge status={draggedTopic.status} />
                 <PriorityBadge priority={draggedTopic.priority} />

@@ -50,7 +50,7 @@ export const KanbanFilters: React.FC<KanbanFiltersProps> = ({
           size="sm"
           options={[
             { value: 'all', label: '所有优先级' },
-            { value: 'high', label: '高优', dot: 'bg-[var(--h1-color)]', description: '重点攻坚' },
+            { value: 'high', label: '高优', dot: 'bg-amber-600 dark:bg-amber-400', description: '重点攻坚' },
             { value: 'medium', label: '中优', dot: 'bg-[var(--accent)]', description: '标准节奏' },
             { value: 'low', label: '低优', dot: 'bg-[var(--ink-muted)] opacity-60', description: '空闲跟进' },
             { value: 'none', label: '无优先级', dot: 'bg-[var(--ink-muted)] opacity-30', description: '未设定' },
@@ -86,7 +86,7 @@ export const KanbanFilters: React.FC<KanbanFiltersProps> = ({
         {hasActiveFilters && (
           <button
             onClick={onResetFilters}
-            className="flex items-center gap-1 text-[var(--h1-color)] hover:opacity-85 bg-[var(--surface)] border border-[var(--line)] px-2 py-1 rounded-[var(--radius-sm)] font-normal cursor-pointer transition-colors"
+            className="flex items-center gap-1 text-[var(--ink-muted)] hover:text-[var(--ink)] bg-[var(--surface)] border border-[var(--line)] px-2 py-1 rounded-[var(--radius-sm)] font-normal cursor-pointer transition-colors"
           >
             <X className="w-3 h-3" />
             重置筛选

@@ -795,7 +795,7 @@ export const TopicDetailView: React.FC<TopicDetailViewProps> = ({
             onClick={() => setActiveTab('script')}
             className={`flex min-h-12 flex-col items-center justify-center gap-0.5 rounded-xl px-1 text-[10px] font-semibold cursor-pointer transition-colors ${
               activeTab === 'script'
-                ? 'bg-stone-900 dark:bg-stone-100 text-white dark:text-stone-900 shadow-2xs'
+                ? 'bg-[var(--accent)] text-white shadow-2xs'
                 : 'text-stone-600 dark:text-stone-400 hover:bg-stone-100 dark:hover:bg-stone-800'
             }`}
           >

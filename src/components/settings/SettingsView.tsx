@@ -415,7 +415,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
               type="button"
               onClick={handleSaveAllPreferences}
               disabled={isSaving}
-              className="inline-flex min-h-12 items-center gap-1.5 rounded-xl bg-stone-900 px-4 text-xs font-bold text-white shadow-sm transition-all hover:bg-stone-800 disabled:opacity-50 dark:bg-rose-600 dark:hover:bg-rose-700 sm:text-sm"
+              className="inline-flex min-h-12 items-center gap-1.5 rounded-xl bg-[var(--accent)] px-4 text-xs font-bold text-white shadow-2xs transition-all hover:bg-[var(--accent-dark)] disabled:opacity-50 sm:text-sm"
             >
               <Zap className={`h-4 w-4 ${isSaving ? 'animate-spin' : ''}`} aria-hidden="true" />
               <span>{isSaving ? '正在保存…' : '保存全部偏好设置'}</span>
@@ -430,14 +430,14 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
         <div className="bg-white dark:bg-stone-900 rounded-2xl border border-stone-200/70 dark:border-stone-800 p-5 sm:p-6 space-y-5 shadow-2xs transition-colors">
           <div className="flex items-center justify-between border-b border-stone-100 dark:border-stone-800 pb-3">
             <div className="flex items-center gap-2">
-              <span className="p-1.5 rounded-xl bg-rose-500/10 text-rose-600 dark:text-rose-400">
+              <span className="p-1.5 rounded-xl bg-[var(--accent-soft)] text-[var(--accent)]">
                 <Palette className="w-5 h-5" />
               </span>
               <div>
                 <h2 className="text-base font-bold text-stone-900 dark:text-stone-100">视觉外观主题</h2>
               </div>
             </div>
-            <span className="text-[10px] font-mono font-bold bg-rose-500/10 text-rose-700 dark:text-rose-300 px-2.5 py-0.5 rounded-full">
+            <span className="text-[10px] font-mono font-bold bg-[var(--accent-soft)] text-[var(--accent-dark)] px-2.5 py-0.5 rounded-full">
               SQLite KV
             </span>
           </div>
@@ -454,31 +454,31 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                 {
                   id: 'nordic_frost' as const,
                   title: '北欧冷杉',
-                  desc: 'Craft / Linear 极简冷雾青与冷杉青绿，通透冷静',
+                  desc: '冷雾青画布与松柏绿操作色，清爽安静',
                   icon: Compass,
                   tag: '推荐',
-                  colors: ['#f8fafb', '#edf2f2', '#2d7a64', '#0ea5e9'],
+                  colors: ['#f6faf9', '#edf2f2', '#356b5b', '#5f7474'],
                 },
                 {
                   id: 'warm_paper' as const,
                   title: '暖沙纸境',
-                  desc: '温润燕麦暖纸与复古焦糖陶木，护眼书卷手感',
+                  desc: '温润暖纸画布与松柏绿操作色，适合长时间阅读',
                   icon: BookOpen,
-                  colors: ['#f7f4ed', '#fdfcf7', '#a35229', '#385674'],
+                  colors: ['#f7f4ed', '#fdfcf7', '#365f4d', '#6c655c'],
                 },
                 {
                   id: 'light' as const,
                   title: '经典浅色',
-                  desc: '瑞士杂志编辑部调性 (Stone 灰阶 + Rose 强调色)',
+                  desc: '暖白纸面、石墨文字与松柏绿强调色',
                   icon: Sun,
-                  colors: ['#fafaf9', '#ffffff', '#e11d48', '#78716c'],
+                  colors: ['#f6f4ef', '#ffffff', '#365f4d', '#68716b'],
                 },
                 {
                   id: 'dark' as const,
                   title: '深色专注',
-                  desc: '低照度暗黑风，沉浸夜间码字与写稿',
+                  desc: '深色画布与柔和松柏绿，适合夜间写稿',
                   icon: Moon,
-                  colors: ['#0c0a09', '#1c1917', '#f43f5e', '#a8a29e'],
+                  colors: ['#141615', '#1c1f1e', '#76a891', '#9ba19e'],
                 },
                 {
                   id: 'system' as const,
@@ -496,15 +496,15 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                     onClick={() => handleSelectTheme(themeOpt.id)}
                     className={`p-3.5 rounded-2xl border text-left transition-all cursor-pointer space-y-2 relative flex flex-col justify-between ${
                       isSelected
-                        ? 'border-rose-500 bg-rose-500/10 dark:bg-rose-950/40 shadow-2xs ring-1 ring-rose-500/30'
+                        ? 'border-[var(--accent)]/35 bg-[var(--accent-soft)] shadow-2xs ring-1 ring-[var(--accent)]/25'
                         : 'border-stone-200/70 dark:border-stone-700 bg-white dark:bg-stone-800/80 hover:bg-stone-50/80 dark:hover:bg-stone-800 hover:border-stone-300 dark:hover:border-stone-600 shadow-2xs'
                     }`}
                   >
                     <div className="space-y-1.5 w-full">
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-2">
-                          <Icon className={`w-4 h-4 ${isSelected ? 'text-rose-600 dark:text-rose-400' : 'text-stone-500 dark:text-stone-400'}`} />
-                          <span className={`text-xs font-bold ${isSelected ? 'text-rose-900 dark:text-rose-200' : 'text-stone-800 dark:text-stone-200'}`}>
+                          <Icon className={`w-4 h-4 ${isSelected ? 'text-[var(--accent)]' : 'text-stone-500 dark:text-stone-400'}`} />
+                          <span className={`text-xs font-bold ${isSelected ? 'text-[var(--ink)]' : 'text-stone-800 dark:text-stone-200'}`}>
                             {themeOpt.title}
                           </span>
                         </div>
@@ -515,7 +515,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                             </span>
                           )}
                           {isSelected && (
-                            <span className="w-2 h-2 rounded-full bg-rose-600 dark:bg-rose-400" />
+                            <span className="w-2 h-2 rounded-full bg-[var(--accent)]" />
                           )}
                         </div>
                       </div>
@@ -578,7 +578,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                         onClick={() => setEditorFontSize(opt.id)}
                         className={`p-2.5 rounded-xl border text-center transition-all cursor-pointer ${
                           isSelected
-                            ? 'border-rose-500 bg-rose-500/10 dark:bg-rose-950/40 text-rose-900 dark:text-rose-200 font-bold shadow-2xs ring-1 ring-rose-500/30'
+                          ? 'border-[var(--accent)]/35 bg-[var(--accent-soft)] text-[var(--ink)] font-bold shadow-2xs ring-1 ring-[var(--accent)]/25'
                             : 'border-stone-200/70 dark:border-stone-700 bg-stone-500/[0.03] dark:bg-stone-800/60 text-stone-700 dark:text-stone-300 hover:bg-stone-100'
                         }`}
                       >
@@ -610,7 +610,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                         onClick={() => setEditorLineHeight(opt.id)}
                         className={`p-2.5 rounded-xl border text-center transition-all cursor-pointer ${
                           isSelected
-                            ? 'border-rose-500 bg-rose-500/10 dark:bg-rose-950/40 text-rose-900 dark:text-rose-200 font-bold shadow-2xs ring-1 ring-rose-500/30'
+                          ? 'border-[var(--accent)]/35 bg-[var(--accent-soft)] text-[var(--ink)] font-bold shadow-2xs ring-1 ring-[var(--accent)]/25'
                             : 'border-stone-200/70 dark:border-stone-700 bg-stone-500/[0.03] dark:bg-stone-800/60 text-stone-700 dark:text-stone-300 hover:bg-stone-100'
                         }`}
                       >
@@ -627,7 +627,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
             <div className="p-3.5 sm:p-4 rounded-2xl bg-stone-500/[0.03] dark:bg-stone-800/50 border border-stone-200/70 dark:border-stone-700/80 space-y-2.5">
               <div className="flex items-center justify-between flex-wrap gap-2 text-xs">
                 <div className="flex items-center gap-1.5 font-bold text-stone-700 dark:text-stone-200">
-                  <Eye className="w-4 h-4 text-rose-500 dark:text-rose-400" />
+                  <Eye className="w-4 h-4 text-[var(--accent)]" />
                   <span>排版实时效果预览 (所见即所得)</span>
                 </div>
                 <div className="flex items-center gap-2 text-[11px] font-mono">
@@ -669,7 +669,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
               aria-label="默认开启打字机居中模式"
               aria-pressed={typewriterDefault}
               className={`w-12 h-6 flex items-center rounded-full p-1 cursor-pointer transition-colors duration-200 ease-in-out ${
-                typewriterDefault ? 'bg-rose-600' : 'bg-stone-300 dark:bg-stone-700'
+                typewriterDefault ? 'bg-[var(--accent)]' : 'bg-stone-300 dark:bg-stone-700'
               }`}
             >
               <div
@@ -684,7 +684,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
           <div className="p-4 sm:p-5 bg-stone-500/[0.03] dark:bg-stone-800/60 rounded-2xl border border-stone-200/70 dark:border-stone-700 space-y-3.5">
             <div className="flex items-center justify-between flex-wrap gap-2">
               <div className="flex items-center gap-2">
-                <Mic className="w-4 h-4 text-rose-600 dark:text-rose-400" />
+                <Mic className="w-4 h-4 text-[var(--accent)]" />
                 <div>
                   <h3 className="text-xs sm:text-sm font-bold text-stone-900 dark:text-stone-100">录音提词 · 演播气口标记库</h3>
                   <p className="text-[11px] text-stone-400 dark:text-stone-500">
@@ -708,7 +708,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                   key={cue}
                   className="inline-flex items-center gap-1.5 bg-white dark:bg-stone-900 text-stone-800 dark:text-stone-200 px-3 py-1 rounded-full text-xs font-mono font-semibold border border-stone-200/70 dark:border-stone-700 shadow-2xs group"
                 >
-                  <span className="text-rose-600 dark:text-rose-400 font-bold">[{cue}]</span>
+                  <span className="text-[var(--accent)] font-bold">[{cue}]</span>
                   <button
                     type="button"
                     onClick={() => handleRemoveVoiceoverCue(cue)}
@@ -730,12 +730,12 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                 value={newCueInput}
                 onChange={(e) => setNewCueInput(e.target.value)}
                 placeholder="输入新气口标记，如：高潮配乐、叹气、深吸气"
-                className="flex-1 px-3.5 py-2 bg-white dark:bg-stone-900 border border-stone-200/80 dark:border-stone-700 rounded-xl text-xs text-stone-900 dark:text-stone-100 placeholder:text-stone-400 focus:outline-none focus:border-rose-500"
+                className="flex-1 px-3.5 py-2 bg-white dark:bg-stone-900 border border-stone-200/80 dark:border-stone-700 rounded-xl text-xs text-stone-900 dark:text-stone-100 placeholder:text-stone-400 focus:outline-none focus:border-[var(--accent)]"
               />
               <button
                 type="submit"
                 disabled={!newCueInput.trim()}
-                className="inline-flex items-center gap-1 px-3.5 py-2 rounded-xl bg-rose-600 hover:bg-rose-700 text-white text-xs font-bold disabled:opacity-40 transition-all cursor-pointer shadow-2xs"
+                className="inline-flex items-center gap-1 px-3.5 py-2 rounded-xl bg-[var(--accent)] hover:bg-[var(--accent-dark)] text-white text-xs font-bold disabled:opacity-40 transition-all cursor-pointer shadow-2xs"
               >
                 <Plus className="w-3.5 h-3.5" />
                 <span>添加气口</span>
@@ -750,7 +750,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                 <Gauge className="w-4 h-4 text-stone-600 dark:text-stone-400" />
                 <label htmlFor="settings-reading-speed" className="text-xs sm:text-sm font-bold text-stone-800 dark:text-stone-200">文案朗读语速基准</label>
               </div>
-              <span className="font-mono font-bold text-xs sm:text-sm text-rose-700 dark:text-rose-300 bg-rose-500/10 dark:bg-rose-950/60 px-2.5 py-0.5 rounded-full">
+              <span className="font-mono font-bold text-xs sm:text-sm text-[var(--accent-dark)] bg-[var(--accent-soft)] px-2.5 py-0.5 rounded-full">
                 {readingSpeed} 字 / 分钟
               </span>
             </div>
@@ -763,11 +763,11 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                 onClick={() => setReadingSpeed(320)}
                 className={`inline-flex items-center gap-1 px-3 py-1.5 rounded-xl text-xs font-semibold transition-all cursor-pointer ${
                   readingSpeed === 320
-                    ? 'bg-rose-600 text-white shadow-2xs font-bold'
+                    ? 'bg-[var(--accent)] text-white shadow-2xs font-bold'
                     : 'bg-stone-100/80 dark:bg-stone-800 text-stone-700 dark:text-stone-300 hover:bg-stone-200/80'
                 }`}
               >
-                <Flame className="w-3 h-3 text-rose-400" />
+                <Flame className="w-3 h-3 text-[var(--accent)]" />
                 <span>快节奏吐槽 / 盘点 (320字)</span>
               </button>
 
@@ -776,7 +776,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                 onClick={() => setReadingSpeed(280)}
                 className={`inline-flex items-center gap-1 px-3 py-1.5 rounded-xl text-xs font-semibold transition-all cursor-pointer ${
                   readingSpeed === 280
-                    ? 'bg-rose-600 text-white shadow-2xs font-bold'
+                    ? 'bg-[var(--accent)] text-white shadow-2xs font-bold'
                     : 'bg-stone-100/80 dark:bg-stone-800 text-stone-700 dark:text-stone-300 hover:bg-stone-200/80'
                 }`}
               >
@@ -789,7 +789,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                 onClick={() => setReadingSpeed(240)}
                 className={`inline-flex items-center gap-1 px-3 py-1.5 rounded-xl text-xs font-semibold transition-all cursor-pointer ${
                   readingSpeed === 240
-                    ? 'bg-rose-600 text-white shadow-2xs font-bold'
+                    ? 'bg-[var(--accent)] text-white shadow-2xs font-bold'
                     : 'bg-stone-100/80 dark:bg-stone-800 text-stone-700 dark:text-stone-300 hover:bg-stone-200/80'
                 }`}
               >
@@ -807,7 +807,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
               step="10"
               value={readingSpeed}
               onChange={(e) => setReadingSpeed(Number(e.target.value))}
-              className="w-full h-2 bg-stone-200 dark:bg-stone-700 rounded-lg appearance-none cursor-pointer accent-rose-600"
+              className="w-full h-2 bg-stone-200 dark:bg-stone-700 rounded-lg appearance-none cursor-pointer accent-[var(--accent)]"
             />
 
             <div className="p-3 bg-stone-500/[0.03] dark:bg-stone-800/60 rounded-xl border border-stone-200/50 dark:border-stone-800 flex items-center justify-between text-xs">
@@ -856,7 +856,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                       onClick={() => setStaleActionDays(opt.days)}
                       className={`p-2.5 rounded-xl border text-center text-xs transition-all cursor-pointer ${
                         isSelected
-                          ? 'border-rose-500 bg-rose-500/10 dark:bg-rose-950/40 text-rose-900 dark:text-rose-200 font-bold shadow-2xs'
+                          ? 'border-[var(--accent)]/35 bg-[var(--accent-soft)] text-[var(--ink)] font-bold shadow-2xs'
                           : 'border-stone-200/70 dark:border-stone-700 bg-stone-500/[0.03] dark:bg-stone-800/60 text-stone-700 dark:text-stone-300'
                       }`}
                     >
@@ -925,7 +925,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                       onClick={() => setTrashRetentionDays(opt.days)}
                       className={`p-2.5 rounded-xl border text-center text-xs transition-all cursor-pointer ${
                         isSelected
-                          ? 'border-rose-500 bg-rose-500/10 dark:bg-rose-950/40 text-rose-900 dark:text-rose-200 font-bold shadow-2xs'
+                          ? 'border-[var(--accent)]/35 bg-[var(--accent-soft)] text-[var(--ink)] font-bold shadow-2xs'
                           : 'border-stone-200/70 dark:border-stone-700 bg-stone-500/[0.03] dark:bg-stone-800/60 text-stone-700 dark:text-stone-300'
                       }`}
                     >
@@ -950,7 +950,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
               placeholder="例如：B站 @良子说事 内部审稿样稿 · 请勿外传"
               value={reviewerBranding}
               onChange={(e) => setReviewerBranding(e.target.value)}
-              className="w-full px-3.5 py-2.5 rounded-xl bg-stone-500/[0.03] dark:bg-stone-800 border border-stone-200/80 dark:border-stone-700 text-xs sm:text-sm text-stone-900 dark:text-stone-100 placeholder:text-stone-400 focus:bg-white dark:focus:bg-stone-800 focus:border-rose-500 focus:outline-none"
+              className="w-full px-3.5 py-2.5 rounded-xl bg-[var(--control-surface)] dark:bg-stone-800 border border-stone-200/80 dark:border-stone-700 text-xs sm:text-sm text-stone-900 dark:text-stone-100 placeholder:text-stone-400 focus:bg-white dark:focus:bg-stone-800 focus:border-[var(--accent)] focus:outline-none"
             />
           </div>
 
@@ -958,7 +958,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
           <div className="space-y-2 pt-2 border-t border-stone-100 dark:border-stone-800">
             <div className="flex items-center justify-between">
               <label className="text-xs sm:text-sm font-bold text-stone-800 dark:text-stone-200 flex items-center gap-1.5">
-                <Globe className="w-4 h-4 text-rose-500" />
+                <Globe className="w-4 h-4 text-[var(--accent)]" />
                 <span>公开访问基准域名 (Public Base URL / 反代域名)</span>
               </label>
               {publicBaseUrl && (
@@ -975,7 +975,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
               placeholder="例如：https://kanban.example.com (留空则自动跟随当前访问地址)"
               value={publicBaseUrl}
               onChange={(e) => setPublicBaseUrl(e.target.value)}
-              className="w-full px-3.5 py-2.5 rounded-xl bg-stone-500/[0.03] dark:bg-stone-800 border border-stone-200/80 dark:border-stone-700 text-xs sm:text-sm text-stone-900 dark:text-stone-100 placeholder:text-stone-400 focus:bg-white dark:focus:bg-stone-800 focus:border-rose-500 focus:outline-none font-mono"
+              className="w-full px-3.5 py-2.5 rounded-xl bg-[var(--control-surface)] dark:bg-stone-800 border border-stone-200/80 dark:border-stone-700 text-xs sm:text-sm text-stone-900 dark:text-stone-100 placeholder:text-stone-400 focus:bg-white dark:focus:bg-stone-800 focus:border-[var(--accent)] focus:outline-none font-mono"
             />
           </div>
         </div>
@@ -986,7 +986,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
           <div className="bg-white dark:bg-stone-900 rounded-2xl border border-stone-200/70 dark:border-stone-800 p-5 space-y-3 shadow-2xs transition-colors">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
-                <KeyRound className="w-4 h-4 text-rose-600 dark:text-rose-500" />
+                <KeyRound className="w-4 h-4 text-[var(--accent)]" />
                 <h2 className="text-sm font-bold text-stone-900 dark:text-stone-100">访问控制与安全密码</h2>
               </div>
               {onLogout && (
@@ -1091,7 +1091,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
         {/* 5. Quick Drop Ingestion Configuration */}
         <div className="bg-white dark:bg-stone-900 rounded-2xl border border-stone-200/70 dark:border-stone-800 p-5 sm:p-6 space-y-4 shadow-2xs transition-colors">
           <div className="flex items-center gap-2">
-            <span className="p-1.5 rounded-xl bg-rose-500/10 text-rose-600 dark:text-rose-400">
+            <span className="p-1.5 rounded-xl bg-[var(--accent-soft)] text-[var(--accent)]">
               <Smartphone className="w-5 h-5" />
             </span>
             <h2 className="text-base font-bold text-stone-900 dark:text-stone-100">手机快捷指令 · 灵感碎片快投配置</h2>
@@ -1112,7 +1112,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                   setIsCopiedDropUrl(true);
                   setTimeout(() => setIsCopiedDropUrl(false), 2000);
                 }}
-                className="inline-flex items-center gap-1 text-[11px] font-semibold text-rose-600 dark:text-rose-400 hover:text-rose-700 dark:hover:text-rose-300 cursor-pointer"
+                className="inline-flex items-center gap-1 text-[11px] font-semibold text-[var(--accent)] hover:text-[var(--accent-dark)] cursor-pointer"
               >
                 {isCopiedDropUrl ? <Check className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
                 <span>{isCopiedDropUrl ? '已复制接口地址' : '复制地址'}</span>
@@ -1160,7 +1160,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
             <button
               onClick={handleExportJson}
               disabled={isExporting || isImporting || isExportingMd}
-              className="flex items-center gap-2 bg-stone-900 dark:bg-rose-600 hover:bg-stone-800 dark:hover:bg-rose-700 active:scale-[0.98] text-white px-4 py-2.5 rounded-xl text-xs sm:text-sm font-semibold transition-all shadow-2xs disabled:opacity-50 cursor-pointer"
+              className="flex items-center gap-2 bg-[var(--accent)] hover:bg-[var(--accent-dark)] active:scale-[0.98] text-white px-4 py-2.5 rounded-xl text-xs sm:text-sm font-semibold transition-all shadow-2xs disabled:opacity-50 cursor-pointer"
             >
               <Download className="w-4 h-4" />
               <span>{isExporting ? '正在导出...' : '下载全量备份 (.json)'}</span>
@@ -1172,7 +1172,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
               disabled={isExporting || isImporting || isExportingMd}
               className="flex items-center gap-2 bg-white dark:bg-stone-800 hover:bg-stone-50 dark:hover:bg-stone-700 text-stone-800 dark:text-stone-200 px-4 py-2.5 rounded-xl text-xs sm:text-sm font-semibold border border-stone-200/70 dark:border-stone-700 transition-colors shadow-2xs disabled:opacity-50 cursor-pointer"
             >
-              <FileText className="w-4 h-4 text-rose-600 dark:text-rose-400" />
+              <FileText className="w-4 h-4 text-[var(--accent)]" />
               <span>{isExportingMd ? '正在导出...' : '导出文案合辑 (.md)'}</span>
             </button>
 

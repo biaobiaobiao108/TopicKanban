@@ -44,7 +44,7 @@ function DraggableTopicCard({
       data-topic-id={topic.id}
       className={`group flex flex-col gap-2 rounded-xl border border-[var(--line)] bg-[var(--surface)] p-3 shadow-2xs transition-all hover:border-[var(--accent)]/40 hover:shadow-card ${
         isDragging
-          ? 'transition-none will-change-transform ring-2 ring-rose-500 shadow-xl'
+          ? 'transition-none will-change-transform ring-2 ring-[var(--accent)] shadow-xl'
           : 'duration-200'
       }`}
     >
@@ -67,7 +67,7 @@ function DraggableTopicCard({
             }
           }}
           title="按住拖拽至日历定档"
-          className="rounded-lg p-1.5 text-[var(--ink-muted)] transition-colors hover:bg-[var(--canvas)] hover:text-[var(--ink)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-rose-500"
+          className="rounded-lg p-1.5 text-[var(--ink-muted)] transition-colors hover:bg-[var(--canvas)] hover:text-[var(--ink)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-[var(--accent)]"
         >
           <GripVertical className="w-3.5 h-3.5" aria-hidden="true" />
         </button>
@@ -76,7 +76,7 @@ function DraggableTopicCard({
       <button
         type="button"
         onClick={() => onOpenDetail(topic.id)}
-        className="w-full text-left text-xs font-bold leading-snug text-[var(--ink)] transition-colors hover:text-rose-600 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-rose-500"
+        className="w-full text-left text-xs font-bold leading-snug text-[var(--ink)] transition-colors hover:text-[var(--accent)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-[var(--accent)]"
       >
         {topic.title}
       </button>
@@ -95,7 +95,7 @@ function DraggableTopicCard({
         <button
           type="button"
           onClick={() => onScheduleTopic(topic)}
-          className="inline-flex cursor-pointer items-center gap-1 rounded-lg px-2 py-1 text-[11px] font-semibold text-rose-600 transition-colors hover:bg-rose-500/10 hover:text-rose-700"
+          className="inline-flex cursor-pointer items-center gap-1 rounded-lg px-2 py-1 text-[11px] font-semibold text-[var(--accent)] transition-colors hover:bg-[var(--accent-soft)] hover:text-[var(--accent-dark)]"
         >
           <CalendarPlus className="w-3 h-3" />
           <span>定档</span>
@@ -200,7 +200,7 @@ export const UnscheduledTopicPool: React.FC<UnscheduledTopicPoolProps> = ({
       <div className="flex items-center justify-between border-b border-[var(--line)] p-4">
         <div className="flex items-center gap-2">
           <h2 id="unscheduled-topic-pool-title" className="text-sm font-bold text-[var(--ink)]">待排期选题池</h2>
-          <span className="rounded-full bg-rose-500/10 px-2 py-0.5 font-mono text-xs font-bold text-rose-700 dark:text-rose-300">
+          <span className="rounded-full bg-[var(--accent-soft)] px-2 py-0.5 font-mono text-xs font-bold text-[var(--accent)]">
             {unscheduledTopics.length}
           </span>
         </div>
@@ -227,7 +227,7 @@ export const UnscheduledTopicPool: React.FC<UnscheduledTopicPoolProps> = ({
             placeholder="搜索待排期选题..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="min-h-10 w-full rounded-xl border border-[var(--line)] bg-[var(--canvas)] px-3 pl-8 text-xs text-[var(--ink)] focus:border-rose-500 focus:outline-none"
+            className="min-h-10 w-full rounded-xl border border-[var(--line)] bg-[var(--canvas)] px-3 pl-8 text-xs text-[var(--ink)] focus:border-[var(--accent)] focus:outline-none"
           />
         </div>
 

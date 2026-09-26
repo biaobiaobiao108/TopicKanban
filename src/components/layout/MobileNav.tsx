@@ -58,14 +58,14 @@ export const MobileBottomNav: React.FC<MobileBottomNavProps> = ({
             aria-label={typeof item.badge === 'number' && item.badge > 0 ? `${item.label}，${item.badge}个选题` : item.label}
             className={`mobile-nav-item relative flex min-h-11 w-full min-w-0 touch-manipulation flex-col items-center justify-center rounded-lg px-0.5 py-1 transition-colors ${
               isActive
-                ? 'text-rose-600 dark:text-rose-400 font-bold'
+                ? 'text-[var(--accent)] font-bold'
                 : 'text-stone-600 dark:text-stone-400 hover:text-stone-900 dark:hover:text-white'
             }`}
           >
             <Icon className={`w-5 h-5 ${isActive ? 'stroke-[2.5]' : 'stroke-2'}`} />
             <span className="text-[10px] mt-0.5">{item.label}</span>
             {typeof item.badge === 'number' && item.badge > 0 && (
-              <span className="absolute top-0 right-1 min-w-4 h-4 px-1 bg-rose-600 dark:bg-rose-500 text-white rounded-full text-[9px] font-bold flex items-center justify-center font-mono">
+              <span className="absolute top-0 right-1 min-w-4 h-4 px-1 bg-[var(--accent)] text-white rounded-full text-[9px] font-bold flex items-center justify-center font-mono">
                 {item.badge}
               </span>
             )}
@@ -88,7 +88,7 @@ export const MobileBottomNav: React.FC<MobileBottomNavProps> = ({
       <button
         onClick={onOpenQuickCreate}
         aria-label="新建选题"
-        className="mobile-fab-create-button mx-auto flex h-11 w-11 shrink-0 touch-manipulation items-center justify-center rounded-full bg-rose-600 hover:bg-rose-700 text-white shadow-soft-pill transition-transform active:scale-95 cursor-pointer"
+        className="mobile-fab-create-button mx-auto flex h-11 w-11 shrink-0 touch-manipulation items-center justify-center rounded-full bg-[var(--accent)] hover:bg-[var(--accent-dark)] text-white shadow-soft-pill transition-transform active:scale-95 cursor-pointer"
         title="新建选题"
       >
         <Plus className="w-5 h-5 stroke-[2.5]" />
@@ -243,16 +243,16 @@ export const MobileDrawer: React.FC<MobileDrawerProps> = ({
                   title={quickDropCount > 0 ? `手机快投箱中有 ${quickDropCount} 条未处理灵感` : '打开手机快投灵感箱（7天暂存）'}
                   className={`group flex min-h-11 min-w-0 items-center justify-between gap-1.5 rounded-xl border px-3 py-2 text-xs font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]/40 cursor-pointer ${
                     quickDropCount > 0
-                      ? 'border-rose-200 bg-rose-50 text-rose-800 shadow-2xs dark:border-rose-900/60 dark:bg-rose-950/40 dark:text-rose-200'
+                      ? 'border-[var(--accent)]/15 bg-[var(--accent-soft)] text-[var(--accent-dark)] shadow-2xs'
                       : 'border-transparent bg-[var(--surface)]/60 text-stone-700 hover:bg-[var(--surface)] dark:text-stone-300 dark:hover:text-white'
                   }`}
                 >
                   <span className="flex min-w-0 items-center gap-1.5">
-                    <Smartphone className={`h-3.5 w-3.5 shrink-0 ${quickDropCount > 0 ? 'text-rose-600 dark:text-rose-400' : 'text-stone-500 dark:text-stone-400'}`} aria-hidden="true" />
+                    <Smartphone className={`h-3.5 w-3.5 shrink-0 ${quickDropCount > 0 ? 'text-[var(--accent)]' : 'text-stone-500 dark:text-stone-400'}`} aria-hidden="true" />
                     <span className="truncate">快投箱</span>
                   </span>
                   {quickDropCount > 0 ? (
-                    <span className="flex h-5 min-w-5 shrink-0 items-center justify-center rounded-full bg-rose-600 px-1 text-[10px] font-mono font-bold text-white">
+                    <span className="flex h-5 min-w-5 shrink-0 items-center justify-center rounded-full bg-[var(--accent)] px-1 text-[10px] font-mono font-bold text-white">
                       {quickDropCount}
                     </span>
                   ) : (
@@ -280,18 +280,18 @@ export const MobileDrawer: React.FC<MobileDrawerProps> = ({
                   aria-current={isActive ? 'page' : undefined}
                   className={`w-full min-h-11 touch-manipulation flex items-center justify-between px-3 py-2.5 rounded-xl text-[15px] font-medium transition-colors cursor-pointer ${
                     isActive
-                      ? 'bg-rose-500/10 dark:bg-rose-950/40 text-rose-900 dark:text-rose-100 font-semibold shadow-2xs'
+                      ? 'bg-[var(--surface)] text-[var(--ink)] font-semibold shadow-2xs'
                       : 'text-stone-700 dark:text-stone-200 hover:bg-stone-200/40 dark:hover:bg-stone-800/50 hover:text-stone-950 dark:hover:text-white'
                   }`}
                 >
                   <div className="flex items-center gap-3">
-                    <Icon className={`w-4.5 h-4.5 transition-colors shrink-0 ${isActive ? 'text-rose-600 dark:text-rose-400' : 'text-stone-500 dark:text-stone-400'}`} />
+                    <Icon className={`w-4.5 h-4.5 transition-colors shrink-0 ${isActive ? 'text-[var(--accent)]' : 'text-stone-500 dark:text-stone-400'}`} />
                     <span>{item.label}</span>
                   </div>
                   {typeof item.badge === 'number' && item.badge > 0 && (
                     <span className={`text-xs px-2 py-0.5 rounded-full font-mono font-bold transition-colors ${
                       isActive
-                        ? 'bg-rose-600 text-white shadow-2xs'
+                        ? 'bg-[var(--accent)] text-white shadow-2xs'
                         : 'bg-stone-200/70 dark:bg-stone-800 text-stone-700 dark:text-stone-300'
                     }`}>
                       {item.badge}

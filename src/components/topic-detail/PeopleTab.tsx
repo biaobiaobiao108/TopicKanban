@@ -112,7 +112,7 @@ export const PeopleTab: React.FC<PeopleTabProps> = ({
         <div className="flex items-center justify-between flex-wrap gap-3">
           <div>
             <h3 className="text-base font-bold text-stone-900 dark:text-stone-100 flex items-center gap-2">
-              <span className="p-1.5 rounded-xl bg-rose-500/10 text-rose-600 dark:text-rose-400">
+              <span className="p-1.5 rounded-xl bg-[var(--accent-soft)] text-[var(--accent)]">
                 <User className="w-4 h-4" />
               </span>
               <span>本期视频核心出场人物 ({topicPeople.length})</span>
@@ -122,7 +122,7 @@ export const PeopleTab: React.FC<PeopleTabProps> = ({
           <div className="flex items-center gap-2">
             <button
               onClick={openCreateModal}
-              className="flex items-center gap-1.5 text-xs font-bold text-white bg-rose-600 hover:bg-rose-700 active:scale-[0.98] px-3.5 py-2 rounded-xl shadow-2xs transition-all cursor-pointer"
+              className="flex items-center gap-1.5 text-xs font-bold text-white bg-[var(--accent)] hover:bg-[var(--accent-dark)] active:scale-[0.98] px-3.5 py-2 rounded-xl shadow-2xs transition-all cursor-pointer"
             >
               <UserPlus className="w-3.5 h-3.5" />
               <span>新建人物档案</span>
@@ -165,7 +165,7 @@ export const PeopleTab: React.FC<PeopleTabProps> = ({
                     <div>
                       <h4 className="text-base font-bold text-stone-900 dark:text-stone-100 leading-tight">{person.name}</h4>
                       {person.identity && (
-                        <span className="text-xs text-rose-700 dark:text-rose-300 font-semibold bg-rose-500/10 px-2 py-0.5 rounded-full inline-block mt-0.5">
+                        <span className="text-xs text-[var(--accent-dark)] font-semibold bg-[var(--accent-soft)] px-2 py-0.5 rounded-full inline-block mt-0.5">
                           {person.identity}
                         </span>
                       )}
@@ -194,7 +194,7 @@ export const PeopleTab: React.FC<PeopleTabProps> = ({
                 )}
 
                 {person.quotes && (
-                  <div className="text-xs text-stone-700 dark:text-stone-300 italic border-l-2 border-rose-500 pl-2.5 py-1 bg-rose-500/[0.05] rounded-r-lg">
+                  <div className="text-xs text-stone-700 dark:text-stone-300 italic border-l-2 border-[var(--accent)] pl-2.5 py-1 bg-[var(--accent-soft)]/45 rounded-r-lg">
                     "{person.quotes}"
                   </div>
                 )}
@@ -230,7 +230,7 @@ export const PeopleTab: React.FC<PeopleTabProps> = ({
               <div>当前尚未关联人物</div>
               <button
                 onClick={openCreateModal}
-                className="inline-flex items-center gap-1.5 text-xs font-semibold text-rose-600 dark:text-rose-400 bg-rose-500/10 hover:bg-rose-500/20 px-3.5 py-2 rounded-xl transition-colors cursor-pointer"
+                className="inline-flex items-center gap-1.5 text-xs font-semibold text-[var(--accent-dark)] bg-[var(--accent-soft)] hover:bg-[var(--surface)] px-3.5 py-2 rounded-xl transition-colors cursor-pointer"
               >
                 <Plus className="w-3.5 h-3.5" />
                 <span>立即新建并引入人物</span>
@@ -266,7 +266,7 @@ export const PeopleTab: React.FC<PeopleTabProps> = ({
 
                 <button
                   onClick={() => onToggleTopicPerson(person)}
-                  className="shrink-0 flex items-center gap-1 text-xs font-semibold text-rose-700 dark:text-rose-300 bg-rose-500/10 hover:bg-rose-500/20 px-2.5 py-1 rounded-xl transition-colors cursor-pointer"
+                  className="shrink-0 flex items-center gap-1 text-xs font-semibold text-[var(--accent-dark)] bg-[var(--accent-soft)] hover:bg-[var(--surface)] px-2.5 py-1 rounded-xl transition-colors cursor-pointer"
                 >
                   <Plus className="w-3 h-3" />
                   <span>引入</span>
@@ -293,7 +293,7 @@ export const PeopleTab: React.FC<PeopleTabProps> = ({
               <div className="space-y-1">
                 <div className="flex items-center gap-2 text-sm font-bold text-stone-900 dark:text-stone-100">
                   <span>{rel.person_a_name || '人物A'}</span>
-                  <span className="text-xs bg-rose-500/10 text-rose-700 dark:text-rose-300 font-semibold px-2.5 py-0.5 rounded-full">
+                  <span className="text-xs bg-[var(--accent-soft)] text-[var(--accent-dark)] font-semibold px-2.5 py-0.5 rounded-full">
                     {rel.relationship}
                   </span>
                   <span>{rel.person_b_name || '人物B'}</span>
@@ -322,7 +322,7 @@ export const PeopleTab: React.FC<PeopleTabProps> = ({
         <form onSubmit={handleSavePersonSubmit} className="space-y-4">
           <div className="space-y-1.5">
             <label className="block text-xs font-bold text-stone-800 dark:text-stone-200">
-              人物姓名 / 核心昵称 <span className="text-rose-500">*</span>
+              人物姓名 / 核心昵称 <span className="text-stone-400">*</span>
             </label>
             <input
               type="text"
@@ -331,7 +331,7 @@ export const PeopleTab: React.FC<PeopleTabProps> = ({
               placeholder="例如：大胃袋良子"
               value={name}
               onChange={(e) => setName(e.target.value)}
-              className="w-full px-3.5 py-2 bg-stone-500/[0.03] dark:bg-stone-800 border border-stone-200/80 dark:border-stone-700 rounded-xl text-sm text-stone-900 dark:text-stone-100 placeholder:text-stone-400 focus:bg-white dark:focus:bg-stone-800 focus:border-rose-500 focus:outline-none"
+              className="w-full px-3.5 py-2 bg-stone-500/[0.03] dark:bg-stone-800 border border-stone-200/80 dark:border-stone-700 rounded-xl text-sm text-stone-900 dark:text-stone-100 placeholder:text-stone-400 focus:bg-white dark:focus:bg-stone-800 focus:border-[var(--accent)] focus:outline-none"
             />
           </div>
 
@@ -343,7 +343,7 @@ export const PeopleTab: React.FC<PeopleTabProps> = ({
                 placeholder="例如：吃播网红 / 探店博主"
                 value={identity}
                 onChange={(e) => setIdentity(e.target.value)}
-                className="w-full px-3.5 py-2 bg-stone-500/[0.03] dark:bg-stone-800 border border-stone-200/80 dark:border-stone-700 rounded-xl text-sm text-stone-900 dark:text-stone-100 placeholder:text-stone-400 focus:bg-white dark:focus:bg-stone-800 focus:border-rose-500 focus:outline-none"
+                className="w-full px-3.5 py-2 bg-stone-500/[0.03] dark:bg-stone-800 border border-stone-200/80 dark:border-stone-700 rounded-xl text-sm text-stone-900 dark:text-stone-100 placeholder:text-stone-400 focus:bg-white dark:focus:bg-stone-800 focus:border-[var(--accent)] focus:outline-none"
               />
             </div>
 
@@ -354,7 +354,7 @@ export const PeopleTab: React.FC<PeopleTabProps> = ({
                 placeholder="例如：良子、峨眉山战神"
                 value={aliases}
                 onChange={(e) => setAliases(e.target.value)}
-                className="w-full px-3.5 py-2 bg-stone-500/[0.03] dark:bg-stone-800 border border-stone-200/80 dark:border-stone-700 rounded-xl text-sm text-stone-900 dark:text-stone-100 placeholder:text-stone-400 focus:bg-white dark:focus:bg-stone-800 focus:border-rose-500 focus:outline-none"
+                className="w-full px-3.5 py-2 bg-stone-500/[0.03] dark:bg-stone-800 border border-stone-200/80 dark:border-stone-700 rounded-xl text-sm text-stone-900 dark:text-stone-100 placeholder:text-stone-400 focus:bg-white dark:focus:bg-stone-800 focus:border-[var(--accent)] focus:outline-none"
               />
             </div>
           </div>
@@ -366,7 +366,7 @@ export const PeopleTab: React.FC<PeopleTabProps> = ({
               placeholder="例如：抖音 @大胃袋良子 (120w)、B站同名"
               value={platformAccounts}
               onChange={(e) => setPlatformAccounts(e.target.value)}
-              className="w-full px-3.5 py-2 bg-stone-500/[0.03] dark:bg-stone-800 border border-stone-200/80 dark:border-stone-700 rounded-xl text-sm text-stone-900 dark:text-stone-100 placeholder:text-stone-400 focus:bg-white dark:focus:bg-stone-800 focus:border-rose-500 focus:outline-none"
+              className="w-full px-3.5 py-2 bg-stone-500/[0.03] dark:bg-stone-800 border border-stone-200/80 dark:border-stone-700 rounded-xl text-sm text-stone-900 dark:text-stone-100 placeholder:text-stone-400 focus:bg-white dark:focus:bg-stone-800 focus:border-[var(--accent)] focus:outline-none"
             />
           </div>
 
@@ -377,7 +377,7 @@ export const PeopleTab: React.FC<PeopleTabProps> = ({
               placeholder="例如：“今天这顿必须拿下！”"
               value={quotes}
               onChange={(e) => setQuotes(e.target.value)}
-              className="w-full px-3.5 py-2 bg-stone-500/[0.03] dark:bg-stone-800 border border-stone-200/80 dark:border-stone-700 rounded-xl text-sm text-stone-900 dark:text-stone-100 placeholder:text-stone-400 focus:bg-white dark:focus:bg-stone-800 focus:border-rose-500 focus:outline-none"
+              className="w-full px-3.5 py-2 bg-stone-500/[0.03] dark:bg-stone-800 border border-stone-200/80 dark:border-stone-700 rounded-xl text-sm text-stone-900 dark:text-stone-100 placeholder:text-stone-400 focus:bg-white dark:focus:bg-stone-800 focus:border-[var(--accent)] focus:outline-none"
             />
           </div>
 
@@ -388,7 +388,7 @@ export const PeopleTab: React.FC<PeopleTabProps> = ({
               placeholder="简要概括该人物的生平经历、公共事件、人设演变..."
               value={description}
               onChange={(e) => setDescription(e.target.value)}
-              className="w-full px-3.5 py-2 bg-stone-500/[0.03] dark:bg-stone-800 border border-stone-200/80 dark:border-stone-700 rounded-xl text-sm text-stone-900 dark:text-stone-100 placeholder:text-stone-400 focus:bg-white dark:focus:bg-stone-800 focus:border-rose-500 focus:outline-none"
+              className="w-full px-3.5 py-2 bg-stone-500/[0.03] dark:bg-stone-800 border border-stone-200/80 dark:border-stone-700 rounded-xl text-sm text-stone-900 dark:text-stone-100 placeholder:text-stone-400 focus:bg-white dark:focus:bg-stone-800 focus:border-[var(--accent)] focus:outline-none"
             />
           </div>
 
@@ -403,7 +403,7 @@ export const PeopleTab: React.FC<PeopleTabProps> = ({
             <button
               type="submit"
               disabled={!name.trim()}
-              className="px-5 py-2 text-xs bg-rose-600 hover:bg-rose-700 text-white rounded-xl font-bold disabled:opacity-50 transition-all shadow-2xs cursor-pointer"
+              className="px-5 py-2 text-xs bg-[var(--accent)] hover:bg-[var(--accent-dark)] text-white rounded-xl font-bold disabled:opacity-50 transition-all shadow-2xs cursor-pointer"
             >
               {editingPerson ? '保存修改' : '创建并引入本期'}
             </button>

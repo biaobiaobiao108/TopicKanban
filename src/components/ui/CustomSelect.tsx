@@ -243,7 +243,7 @@ export const CustomSelect: React.FC<CustomSelectProps> = ({
         className={`flex items-center justify-between font-medium transition-all cursor-pointer ${sizeClasses[size]} ${
           disabled
             ? 'opacity-50 cursor-not-allowed bg-stone-100 dark:bg-stone-800 text-stone-400 border border-stone-200/60 dark:border-stone-700/60'
-            : 'bg-white dark:bg-stone-800 hover:bg-stone-50 dark:hover:bg-stone-700 text-stone-800 dark:text-stone-200 border border-stone-200/70 dark:border-stone-700/60 shadow-2xs hover:shadow-xs focus:outline-none focus:ring-2 focus:ring-rose-500/20'
+            : 'bg-[var(--surface)] hover:bg-[var(--canvas)] text-[var(--ink)] border border-[var(--line)] shadow-2xs hover:shadow-xs focus:outline-none focus:ring-2 focus:ring-[var(--accent)]/20'
         } ${buttonClassName}`}
       >
         <div className="flex min-w-0 flex-1 items-center gap-1.5 overflow-hidden">
@@ -309,7 +309,7 @@ export const CustomSelect: React.FC<CustomSelectProps> = ({
                   onFocus={() => setFocusedIndex(index)}
                   onKeyDown={handleOptionKeyDown}
                   onClick={() => selectOption(index)}
-                  className={`flex w-full min-w-0 max-w-full items-start justify-between gap-2 overflow-hidden rounded-xl px-2.5 py-1.5 text-left text-xs font-medium transition-colors cursor-pointer ${isSelected ? 'bg-rose-50 dark:bg-rose-950/40 text-rose-900 dark:text-rose-200 font-semibold' : 'text-stone-700 dark:text-stone-300 hover:bg-stone-100/80 dark:hover:bg-stone-800'} ${isFocused ? 'ring-1 ring-rose-500/30' : ''}`}
+                  className={`flex w-full min-w-0 max-w-full items-start justify-between gap-2 overflow-hidden rounded-xl px-2.5 py-1.5 text-left text-xs font-medium transition-colors cursor-pointer ${isSelected ? 'bg-[var(--accent-soft)] text-[var(--accent-dark)] font-semibold' : 'text-[var(--ink)] hover:bg-[var(--canvas)]'} ${isFocused ? 'ring-1 ring-[var(--accent)]/30' : ''}`}
                 >
                   {renderOption ? (
                     <div className="min-w-0 max-w-full flex-1 overflow-hidden">
@@ -325,7 +325,7 @@ export const CustomSelect: React.FC<CustomSelectProps> = ({
                       </div>
                     </div>
                   )}
-                  {!renderOption && isSelected && <Check className="w-3.5 h-3.5 text-rose-600 dark:text-rose-400 shrink-0 ml-2" aria-hidden="true" />}
+                  {!renderOption && isSelected && <Check className="w-3.5 h-3.5 text-[var(--accent)] shrink-0 ml-2" aria-hidden="true" />}
                 </button>
               );
             })}

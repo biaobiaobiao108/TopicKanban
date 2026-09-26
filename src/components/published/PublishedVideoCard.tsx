@@ -78,7 +78,7 @@ export const PublishedVideoCard: React.FC<PublishedVideoCardProps> = ({
               <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/10 to-transparent opacity-0 group-hover/cover:opacity-100 transition-opacity duration-300 pointer-events-none" />
 
               {/* Quick Watch Icon */}
-              <div className="absolute top-2 right-2 opacity-0 group-hover/cover:opacity-100 transition-opacity duration-200 bg-black/60 hover:bg-rose-600 text-white p-1.5 rounded-lg text-xs backdrop-blur-xs flex items-center gap-1 shadow-xs font-semibold">
+              <div className="absolute top-2 right-2 opacity-0 group-hover/cover:opacity-100 transition-opacity duration-200 bg-black/60 hover:bg-[var(--accent)] text-white p-1.5 rounded-lg text-xs backdrop-blur-xs flex items-center gap-1 shadow-xs font-semibold">
                 <ExternalLink className="w-3.5 h-3.5" />
                 <span className="text-[10px] pr-0.5 hidden sm:inline">打开</span>
               </div>
@@ -98,14 +98,14 @@ export const PublishedVideoCard: React.FC<PublishedVideoCardProps> = ({
           {/* Row 1: Header Row (BV + Topic + Actions) */}
           <div className="flex items-center justify-between gap-2">
             <div className="flex items-center gap-1.5 overflow-hidden min-w-0 flex-1">
-              <span className="text-[11px] font-mono font-bold text-rose-700 dark:text-rose-300 bg-rose-500/10 dark:bg-rose-950/60 border border-rose-500/20 px-2 py-0.5 rounded-full shrink-0">
+              <span className="text-[11px] font-mono font-bold text-[var(--accent)] bg-[var(--accent-soft)] px-2 py-0.5 rounded-full shrink-0">
                 {video.bvid || 'BVxxxxxx'}
               </span>
               {video.topic_title && (
                 <button
                   type="button"
                   onClick={() => video.topic_id && onSelectTopic(video.topic_id)}
-                  className="text-[11px] text-stone-600 dark:text-stone-300 hover:text-rose-600 dark:hover:text-rose-400 bg-stone-100 dark:bg-stone-800 hover:bg-rose-50 dark:hover:bg-rose-950/40 px-2 py-0.5 rounded-full truncate max-w-[130px] sm:max-w-[170px] transition-colors text-left cursor-pointer font-medium"
+                  className="text-[11px] text-stone-600 dark:text-stone-300 hover:text-[var(--accent)] bg-stone-100 dark:bg-stone-800 hover:bg-[var(--accent-soft)] px-2 py-0.5 rounded-full truncate max-w-[130px] sm:max-w-[170px] transition-colors text-left cursor-pointer font-medium"
                   title={`查看选题: ${video.topic_title}`}
                 >
                   选题: {video.topic_title}
@@ -119,11 +119,11 @@ export const PublishedVideoCard: React.FC<PublishedVideoCardProps> = ({
                   type="button"
                   onClick={onSync}
                   disabled={isSyncingThis || isBulkSyncing}
-                  className="p-1 text-stone-400 dark:text-stone-500 hover:text-rose-600 dark:hover:text-rose-400 rounded-lg hover:bg-rose-50 dark:hover:bg-rose-950/40 transition-colors disabled:opacity-50 cursor-pointer"
+                  className="p-1 text-stone-400 dark:text-stone-500 hover:text-[var(--accent)] rounded-lg hover:bg-[var(--accent-soft)] transition-colors disabled:opacity-50 cursor-pointer"
                   aria-label="从 B站 同步最新数据"
                   title="从 B站 同步最新数据"
                 >
-                  <RefreshCw aria-hidden="true" className={`w-3.5 h-3.5 ${isSyncingThis ? 'animate-spin text-rose-600 dark:text-rose-400' : ''}`} />
+                  <RefreshCw aria-hidden="true" className={`w-3.5 h-3.5 ${isSyncingThis ? 'animate-spin text-[var(--accent)]' : ''}`} />
                 </button>
               )}
               <button
@@ -150,7 +150,7 @@ export const PublishedVideoCard: React.FC<PublishedVideoCardProps> = ({
           {/* Row 2: Two-Line Title Slot without clipping */}
           <div className="min-h-[2.75rem] h-[2.75rem] flex items-start overflow-hidden">
             <p
-              className="text-xs sm:text-sm font-bold text-stone-900 dark:text-stone-100 leading-snug break-words line-clamp-2 hover:text-rose-600 dark:hover:text-rose-400 transition-colors"
+                className="text-xs sm:text-sm font-bold text-stone-900 dark:text-stone-100 leading-snug break-words line-clamp-2 hover:text-[var(--accent)] dark:hover:text-[var(--accent)] transition-colors"
               title={video.title}
             >
               {video.title}
@@ -175,7 +175,7 @@ export const PublishedVideoCard: React.FC<PublishedVideoCardProps> = ({
                   <ThumbsUp className="w-2.5 h-2.5" />
                   <span>点赞</span>
                 </div>
-                <div className="text-[11px] font-bold text-rose-700 dark:text-rose-400 leading-tight">
+                <div className="text-[11px] font-bold text-[var(--accent)] leading-tight">
                   {formatNumber(video.likes)}
                 </div>
               </div>
@@ -221,7 +221,7 @@ export const PublishedVideoCard: React.FC<PublishedVideoCardProps> = ({
                     {metrics.coinGrade}
                   </span>
                 </span>
-                <span className="inline-flex items-center gap-0.5 px-1.5 py-0.2 rounded bg-rose-500/10 text-rose-800 dark:text-rose-300 shrink-0">
+                <span className="inline-flex items-center gap-0.5 px-1.5 py-0.2 rounded bg-[var(--accent-soft)] text-[var(--accent)] shrink-0">
                   <span>三连</span>
                   <span className="font-bold">{metrics.tripleRate}%</span>
                 </span>
@@ -269,7 +269,7 @@ export const PublishedVideoCard: React.FC<PublishedVideoCardProps> = ({
                 href={safeUrl}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="flex items-center gap-1 text-rose-600 dark:text-rose-400 hover:text-rose-700 dark:hover:text-rose-300 font-semibold shrink-0"
+                className="flex items-center gap-1 text-[var(--accent)] hover:text-[var(--accent-dark)] font-semibold shrink-0"
               >
                 <span>成片</span>
                 <ExternalLink className="w-3 h-3" />

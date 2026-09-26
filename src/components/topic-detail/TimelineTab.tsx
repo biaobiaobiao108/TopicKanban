@@ -128,7 +128,7 @@ const SortableTimelineCard: React.FC<SortableTimelineCardProps> = ({
       className={`relative group ${isDragging ? 'opacity-50 z-30 scale-[1.01]' : 'opacity-100'}`}
     >
       {/* Timeline Node Dot on Left Axis */}
-      <div className="absolute -left-6 sm:-left-8 top-4 w-6 h-6 rounded-full bg-white dark:bg-stone-900 border-2 border-rose-600 dark:border-rose-500 flex items-center justify-center text-[10px] font-bold text-rose-700 dark:text-rose-400 shadow-2xs z-10 select-none">
+      <div className="absolute -left-6 sm:-left-8 top-4 w-6 h-6 rounded-full bg-[var(--surface)] border-2 border-[var(--accent)] flex items-center justify-center text-[10px] font-bold text-[var(--accent-dark)] shadow-2xs z-10 select-none">
         {index + 1}
       </div>
 
@@ -136,7 +136,7 @@ const SortableTimelineCard: React.FC<SortableTimelineCardProps> = ({
       <div className="bg-white dark:bg-stone-900 rounded-2xl border border-stone-200/70 dark:border-stone-800 p-4 sm:p-5 shadow-2xs hover:shadow-card hover:-translate-y-0.5 transition-all space-y-3">
         <div className="flex items-center justify-between gap-2 flex-wrap">
           <div className="flex items-center gap-2 flex-wrap">
-            <input type="checkbox" checked={selected} onChange={() => onToggle(event.id)} aria-label={`选择时间节点「${event.title}」`} className="h-4 w-4 rounded accent-rose-600 cursor-pointer" />
+            <input type="checkbox" checked={selected} onChange={() => onToggle(event.id)} aria-label={`选择时间节点「${event.title}」`} className="h-4 w-4 rounded accent-[var(--accent)] cursor-pointer" />
             {/* Drag Handle */}
             <button
               type="button"
@@ -153,7 +153,7 @@ const SortableTimelineCard: React.FC<SortableTimelineCardProps> = ({
               className={`text-xs font-mono font-bold px-2.5 py-0.5 rounded-full inline-flex items-center gap-1 ${
                 isUnknownDate
                   ? 'bg-stone-500/10 text-stone-600 dark:text-stone-400'
-                  : 'bg-rose-500/10 text-rose-700 dark:text-rose-300'
+                  : 'bg-[var(--accent-soft)] text-[var(--accent-dark)]'
               }`}
             >
               📅 {formatEventDate(event.event_date, event.date_precision)}
@@ -349,11 +349,11 @@ export const TimelineTab: React.FC<TimelineTabProps> = ({
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 bg-white dark:bg-stone-900 p-4 sm:p-5 rounded-2xl border border-stone-200/70 dark:border-stone-800 shadow-2xs transition-colors">
         <div>
           <h3 className="text-sm sm:text-base font-bold text-stone-900 dark:text-stone-100 flex items-center gap-2">
-            <span className="p-1.5 rounded-xl bg-rose-500/10 text-rose-600 dark:text-rose-400">
+            <span className="p-1.5 rounded-xl bg-[var(--accent-soft)] text-[var(--accent)]">
               <Clock className="w-4 h-4" />
             </span>
             <span>事件故事时间线</span>
-            <span className="text-xs font-mono font-bold bg-rose-500/10 text-rose-700 dark:text-rose-300 px-2.5 py-0.5 rounded-full">
+            <span className="text-xs font-mono font-bold bg-[var(--accent-soft)] text-[var(--accent-dark)] px-2.5 py-0.5 rounded-full">
               {timeline.length}
             </span>
           </h3>
@@ -407,7 +407,7 @@ export const TimelineTab: React.FC<TimelineTabProps> = ({
           <button
             type="button"
             onClick={openAddModal}
-            className="flex items-center gap-1.5 bg-rose-600 hover:bg-rose-700 active:scale-[0.98] text-white px-3.5 py-2 rounded-xl text-xs font-bold transition-all shadow-2xs cursor-pointer shrink-0"
+            className="flex items-center gap-1.5 bg-[var(--accent)] hover:bg-[var(--accent-dark)] active:scale-[0.98] text-white px-3.5 py-2 rounded-xl text-xs font-bold transition-all shadow-2xs cursor-pointer shrink-0"
           >
             <Plus className="w-4 h-4 stroke-[2.5]" />
             <span>添加节点</span>
@@ -470,7 +470,7 @@ export const TimelineTab: React.FC<TimelineTabProps> = ({
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
             <label htmlFor="timeline-title" className="block text-xs font-semibold text-stone-700 dark:text-stone-300 mb-1.5">
-              事件标题 <span className="text-rose-600">*</span>
+              事件标题 <span className="text-stone-400">*</span>
             </label>
             <input
               id="timeline-title"
@@ -581,7 +581,7 @@ export const TimelineTab: React.FC<TimelineTabProps> = ({
             </button>
             <button
               type="submit"
-              className="px-5 py-2 text-sm bg-stone-900 dark:bg-rose-600 hover:bg-stone-800 dark:hover:bg-rose-700 text-white rounded-lg font-medium cursor-pointer transition-colors"
+              className="px-5 py-2 text-sm bg-[var(--accent)] hover:bg-[var(--accent-dark)] text-white rounded-lg font-medium cursor-pointer transition-colors"
             >
               {editingEvent ? '更新节点' : '添加节点'}
             </button>

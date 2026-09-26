@@ -25,15 +25,15 @@ const InstallHelpModal: React.FC<InstallHelpModalProps> = ({ mode, isOpen, onClo
           <p>当前浏览器没有自动安装按钮，请按下面步骤将工作台添加到主屏幕：</p>
           <ol className="space-y-3">
             <li className="flex items-start gap-3">
-              <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-rose-500/10 text-rose-700 dark:text-rose-300"><Share className="h-4 w-4" /></span>
+              <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-[var(--accent-soft)] text-[var(--accent-dark)]"><Share className="h-4 w-4" /></span>
               <span><strong className="text-stone-900 dark:text-stone-100">打开分享菜单</strong><br />点击浏览器底部或顶部的分享按钮。</span>
             </li>
             <li className="flex items-start gap-3">
-              <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-rose-500/10 text-rose-700 dark:text-rose-300"><Plus className="h-4 w-4" /></span>
+              <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-[var(--accent-soft)] text-[var(--accent-dark)]"><Plus className="h-4 w-4" /></span>
               <span><strong className="text-stone-900 dark:text-stone-100">添加到主屏幕</strong><br />在分享菜单中选择“添加到主屏幕”。</span>
             </li>
             <li className="flex items-start gap-3">
-              <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-rose-500/10 text-rose-700 dark:text-rose-300"><Smartphone className="h-4 w-4" /></span>
+              <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-[var(--accent-soft)] text-[var(--accent-dark)]"><Smartphone className="h-4 w-4" /></span>
               <span><strong className="text-stone-900 dark:text-stone-100">确认添加</strong><br />从主屏幕图标打开后，会以独立 App 窗口运行。</span>
             </li>
           </ol>
@@ -43,11 +43,11 @@ const InstallHelpModal: React.FC<InstallHelpModalProps> = ({ mode, isOpen, onClo
           <p>Safari 可以把工作台添加为独立网页应用：</p>
           <ol className="space-y-3">
             <li className="flex items-start gap-3">
-              <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-rose-500/10 text-rose-700 dark:text-rose-300"><Plus className="h-4 w-4" /></span>
+              <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-[var(--accent-soft)] text-[var(--accent-dark)]"><Plus className="h-4 w-4" /></span>
               <span><strong className="text-stone-900 dark:text-stone-100">打开添加菜单</strong><br />在 Safari 菜单栏选择“文件”→“添加到程序坞”，或从工具栏分享菜单选择“添加到程序坞”。</span>
             </li>
             <li className="flex items-start gap-3">
-              <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-rose-500/10 text-rose-700 dark:text-rose-300"><Smartphone className="h-4 w-4" /></span>
+              <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-[var(--accent-soft)] text-[var(--accent-dark)]"><Smartphone className="h-4 w-4" /></span>
               <span><strong className="text-stone-900 dark:text-stone-100">确认添加</strong><br />之后可从程序坞或 Spotlight 独立打开工作台。</span>
             </li>
           </ol>
@@ -56,7 +56,7 @@ const InstallHelpModal: React.FC<InstallHelpModalProps> = ({ mode, isOpen, onClo
         <>
           <p>请打开浏览器菜单，选择“安装应用”“添加到主屏幕”或同类选项。</p>
           <div className="flex items-start gap-3 rounded-xl border border-stone-200/80 bg-stone-50 px-3 py-3 dark:border-stone-700 dark:bg-stone-800/70">
-            <MoreVertical className="mt-0.5 h-5 w-5 shrink-0 text-rose-600 dark:text-rose-400" />
+            <MoreVertical className="mt-0.5 h-5 w-5 shrink-0 text-[var(--accent)]" />
             <span>如果看不到安装选项，请确认当前地址使用 HTTPS，并优先使用最新版 Chrome、Edge 或 Samsung Internet。</span>
           </div>
         </>
@@ -101,7 +101,7 @@ export const PwaInstallButton: React.FC<PwaInstallButtonProps> = ({ variant = 'i
         : '查看安装说明';
   const buttonClass = variant === 'menu'
     ? 'flex min-h-11 w-full items-center gap-2 rounded-xl border border-stone-200 bg-stone-50 px-3 py-2 text-xs font-semibold text-stone-700 transition-colors hover:bg-stone-100 dark:border-stone-700 dark:bg-stone-800 dark:text-stone-300 dark:hover:bg-stone-750'
-    : 'inline-flex min-h-11 items-center gap-2 rounded-xl bg-rose-600 px-4 py-2 text-xs font-bold text-white shadow-2xs transition-all hover:bg-rose-700 active:scale-[0.98]';
+    : 'inline-flex min-h-11 items-center gap-2 rounded-xl bg-[var(--accent)] px-4 py-2 text-xs font-bold text-white shadow-2xs transition-all hover:bg-[var(--accent-dark)] active:scale-[0.98]';
 
   return (
     <>
@@ -131,7 +131,7 @@ export const PwaInstallCard: React.FC = () => {
     <section className="rounded-2xl border border-stone-200/70 bg-white p-5 shadow-2xs transition-colors dark:border-stone-800 dark:bg-stone-900 sm:p-6">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex items-start gap-3">
-          <span className="rounded-xl bg-rose-500/10 p-1.5 text-rose-600 dark:text-rose-400"><Smartphone className="h-5 w-5" /></span>
+          <span className="rounded-xl bg-[var(--accent-soft)] p-1.5 text-[var(--accent)]"><Smartphone className="h-5 w-5" /></span>
           <div>
             <h2 className="text-base font-bold text-stone-900 dark:text-stone-100">安装到设备</h2>
             <p className="mt-1 text-xs leading-5 text-stone-600 dark:text-stone-400">
@@ -167,9 +167,9 @@ export const PwaInstallPromptBanner: React.FC = () => {
   };
 
   return (
-    <div className={`pwa-install-banner ${isClosing ? 'pwa-install-banner-closing' : ''} border-b border-rose-200/80 bg-rose-50/90 px-4 py-2.5 dark:border-rose-900/60 dark:bg-rose-950/30 sm:px-6`}>
-      <div className="mx-auto flex max-w-7xl items-center gap-3 text-xs text-rose-950 dark:text-rose-100">
-        <Smartphone className="h-4 w-4 shrink-0 text-rose-600 dark:text-rose-400" aria-hidden="true" />
+    <div className={`pwa-install-banner ${isClosing ? 'pwa-install-banner-closing' : ''} border-b border-[var(--line)] bg-[var(--accent-soft)] px-4 py-2.5 sm:px-6`}>
+      <div className="mx-auto flex max-w-7xl items-center gap-3 text-xs text-[var(--ink)]">
+        <Smartphone className="h-4 w-4 shrink-0 text-[var(--accent)]" aria-hidden="true" />
         <p className="min-w-0 flex-1">{isIOS
           ? '把选题工作台添加到主屏幕，随时像 App 一样打开。'
           : isMacSafari
@@ -180,7 +180,7 @@ export const PwaInstallPromptBanner: React.FC = () => {
           type="button"
           aria-label="关闭安装提示"
           onClick={handleDismiss}
-          className="shrink-0 rounded-lg p-1.5 text-rose-700 transition-colors hover:bg-rose-100 dark:text-rose-300 dark:hover:bg-rose-900/40"
+          className="shrink-0 rounded-lg p-1.5 text-[var(--accent-dark)] transition-colors hover:bg-[var(--surface)]"
         >
           <X className="h-4 w-4" />
         </button>

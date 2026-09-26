@@ -541,7 +541,7 @@ export const TeleprompterModal: React.FC<TeleprompterModalProps> = ({
 
   if (!isOpen) return null;
 
-function renderScriptTextWithCues(text: string, isDark: boolean): React.ReactNode {
+function renderScriptTextWithCues(text: string): React.ReactNode {
   if (!text) return null;
   // Match bracketed voiceover cues e.g. [停顿 1s], [重音], [反讽语气], [BGM 起]
   const parts = text.split(/(\[[^\]\n]+\])/g);
@@ -553,11 +553,7 @@ function renderScriptTextWithCues(text: string, isDark: boolean): React.ReactNod
       return (
         <span
           key={`cue-${index}`}
-          className={`inline-flex items-center gap-1 mx-1.5 px-2.5 py-0.5 rounded-full text-xs font-mono font-bold tracking-wide uppercase align-middle select-none transition-all shadow-xs ${
-            isDark
-              ? 'bg-rose-950/80 text-rose-300 border border-rose-600/60 ring-1 ring-rose-500/20'
-              : 'bg-rose-100 text-rose-800 border border-rose-300 ring-1 ring-rose-400/20'
-          }`}
+          className="inline-flex items-center gap-1 mx-1.5 px-2.5 py-0.5 rounded-full text-xs font-mono font-bold tracking-wide uppercase align-middle select-none bg-[var(--accent-soft)] text-[var(--accent-dark)] border border-[var(--accent)]/20"
         >
           🎙️ {cueContent}
         </span>
@@ -586,15 +582,15 @@ function renderScriptTextWithCues(text: string, isDark: boolean): React.ReactNod
       aria-label="录音提词器"
       tabIndex={-1}
       className={`teleprompter-modal-root pwa-fullscreen-surface fixed inset-0 z-50 flex flex-col select-none transition-colors duration-300 ${
-        isDark ? 'dark is-dark bg-[#0c0a09] text-[#f5f5f4]' : 'is-light bg-[#fafaf9] text-stone-900'
+        isDark ? 'dark is-dark bg-[var(--canvas)] text-[var(--ink)]' : 'is-light bg-[var(--canvas)] text-[var(--ink)]'
       }`}
     >
       {/* 1. Top Control Bar (Solid high-contrast surface in both modes) */}
       <header
         className={`teleprompter-header shrink-0 flex items-center justify-between px-4 sm:px-8 py-3 border-b transition-colors z-20 shadow-xs ${
           isDark
-            ? 'bg-[#141210] border-stone-800 text-stone-100'
-            : 'bg-[#fafaf9] border-stone-200 text-stone-800'
+            ? 'bg-[var(--surface)] border-[var(--line)] text-[var(--ink)]'
+            : 'bg-[var(--surface)] border-[var(--line)] text-[var(--ink)]'
         }`}
       >
         {/* Left: Title & Chapter status */}
@@ -602,9 +598,9 @@ function renderScriptTextWithCues(text: string, isDark: boolean): React.ReactNod
           <div className="flex items-center gap-2">
             <span className="flex h-2.5 w-2.5 relative">
               {isPlaying && (
-                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-rose-400 opacity-75"></span>
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[var(--accent)] opacity-35"></span>
               )}
-              <span className={`relative inline-flex rounded-full h-2.5 w-2.5 ${isPlaying ? 'bg-rose-500' : 'bg-stone-500'}`}></span>
+              <span className={`relative inline-flex rounded-full h-2.5 w-2.5 ${isPlaying ? 'bg-[var(--accent)]' : 'bg-stone-500'}`}></span>
             </span>
             <h2 className={`text-sm sm:text-base font-bold truncate max-w-[200px] sm:max-w-[320px] ${
               isDark ? 'text-stone-100' : 'text-stone-900'
@@ -618,7 +614,7 @@ function renderScriptTextWithCues(text: string, isDark: boolean): React.ReactNod
               onClick={() => setIsOutlineOpen((prev) => !prev)}
               className={`flex items-center gap-1.5 text-xs font-semibold px-2.5 py-1 rounded-lg border transition-all cursor-pointer ${
                 isOutlineOpen
-                  ? 'bg-rose-600 border-rose-600 text-white shadow-xs'
+                  ? 'bg-[var(--accent)] border-[var(--accent)] text-white shadow-xs'
                   : isDark
                   ? 'bg-stone-900 border-stone-700/80 text-stone-200 hover:bg-stone-800 hover:text-white'
                   : 'bg-white border-stone-300 text-stone-700 hover:bg-stone-100'
@@ -633,8 +629,8 @@ function renderScriptTextWithCues(text: string, isDark: boolean): React.ReactNod
         {/* Center: Live Timer & Reading Pace Stats */}
         <div className="hidden md:flex items-center gap-4 text-xs font-mono">
           <div className="flex items-center gap-1.5">
-            <Clock className="w-3.5 h-3.5 text-rose-500" />
-            <span className="font-bold text-sm text-rose-500">{formatTimer(elapsedSeconds)}</span>
+            <Clock className="w-3.5 h-3.5 text-[var(--accent)]" />
+            <span className="font-bold text-sm text-[var(--accent)]">{formatTimer(elapsedSeconds)}</span>
             <span className={isDark ? 'text-stone-400' : 'text-stone-500'}>/ {formatTimer(estimatedTotalSeconds)}</span>
           </div>
 
@@ -661,15 +657,15 @@ function renderScriptTextWithCues(text: string, isDark: boolean): React.ReactNod
             <Gauge className={`w-3.5 h-3.5 ml-0.5 ${isDark ? 'text-stone-300' : 'text-stone-400'}`} />
             <button
               onClick={() => setSpeedMultiplierWithStorage((prev) => Math.max(0.4, Math.round((prev - 0.2) * 10) / 10))}
-              className={`px-1 font-bold cursor-pointer ${isDark ? 'hover:text-rose-400 text-stone-200' : 'hover:text-rose-500 text-stone-700'}`}
+              className={`px-1 font-bold cursor-pointer ${isDark ? 'hover:text-[var(--accent-dark)] text-stone-200' : 'hover:text-[var(--accent)] text-stone-700'}`}
               title="减速 (快捷键: -)"
             >
               -
             </button>
-            <span className="font-bold text-rose-500 px-0.5">{speedMultiplier.toFixed(1)}x</span>
+            <span className="font-bold text-[var(--accent)] px-0.5">{speedMultiplier.toFixed(1)}x</span>
             <button
               onClick={() => setSpeedMultiplierWithStorage((prev) => Math.min(3.0, Math.round((prev + 0.2) * 10) / 10))}
-              className={`px-1 font-bold cursor-pointer ${isDark ? 'hover:text-rose-400 text-stone-200' : 'hover:text-rose-500 text-stone-700'}`}
+              className={`px-1 font-bold cursor-pointer ${isDark ? 'hover:text-[var(--accent-dark)] text-stone-200' : 'hover:text-[var(--accent)] text-stone-700'}`}
               title="加速 (快捷键: +)"
             >
               +
@@ -687,7 +683,7 @@ function renderScriptTextWithCues(text: string, isDark: boolean): React.ReactNod
                 onClick={() => setFontLevelWithStorage(f.level)}
                 className={`px-1.5 py-0.5 rounded text-[11px] font-bold transition-colors cursor-pointer ${
                   fontLevel === f.level
-                    ? 'bg-rose-600 text-white shadow-xs'
+                    ? 'bg-[var(--accent)] text-white shadow-xs'
                     : isDark
                     ? 'text-stone-300 hover:text-white hover:bg-stone-800'
                     : 'text-stone-600 hover:text-stone-900 hover:bg-stone-100'
@@ -745,7 +741,7 @@ function renderScriptTextWithCues(text: string, isDark: boolean): React.ReactNod
             onClick={() => setShowKeyboardHelp((prev) => !prev)}
             className={`p-1.5 rounded-lg border transition-colors cursor-pointer ${
               showKeyboardHelp
-                ? 'bg-rose-600 border-rose-600 text-white shadow-xs'
+              ? 'bg-[var(--accent)] border-[var(--accent)] text-white shadow-xs'
                 : isDark
                 ? 'bg-stone-900 border-stone-700/80 hover:bg-stone-800 text-stone-200 hover:text-white'
                 : 'bg-white border-stone-300 hover:bg-stone-100 text-stone-700'
@@ -760,8 +756,8 @@ function renderScriptTextWithCues(text: string, isDark: boolean): React.ReactNod
             onClick={onClose}
             className={`p-1.5 rounded-lg border transition-colors ml-1 cursor-pointer ${
               isDark
-                ? 'bg-stone-900 border-stone-700/80 hover:bg-rose-600 hover:border-rose-600 text-stone-200 hover:text-white'
-                : 'bg-stone-100 border-stone-300 hover:bg-rose-600 hover:border-rose-600 text-stone-700 hover:text-white'
+                ? 'bg-stone-900 border-stone-700/80 hover:bg-[var(--accent)] hover:border-[var(--accent)] text-stone-200 hover:text-white'
+                : 'bg-stone-100 border-stone-300 hover:bg-[var(--accent)] hover:border-[var(--accent)] text-stone-700 hover:text-white'
             }`}
             title="退出提词模式 (Esc)"
           >
@@ -775,10 +771,10 @@ function renderScriptTextWithCues(text: string, isDark: boolean): React.ReactNod
         {/* Visual Focus Horizon Guide Line (Fixed in middle 38% of screen) */}
         <div
           className={`pointer-events-none absolute left-0 right-0 top-[38%] h-0.5 border-t border-dashed z-10 opacity-40 transition-colors ${
-            isDark ? 'border-rose-500/80 shadow-[0_0_12px_rgba(244,63,94,0.4)]' : 'border-rose-400/80'
+            'border-[var(--accent)]/60'
           }`}
         >
-          <div className="absolute right-4 -top-3 text-[10px] font-mono uppercase tracking-widest text-rose-500/80 font-bold">
+          <div className="absolute right-4 -top-3 text-[10px] font-mono tracking-wide text-[var(--accent)] font-bold">
             视线聚焦线
           </div>
         </div>
@@ -818,29 +814,29 @@ function renderScriptTextWithCues(text: string, isDark: boolean): React.ReactNod
                   }`}
                 >
                   {isHeading ? (
-                    <div className="pt-6 pb-2 border-b border-rose-500/30">
-                      <span className="text-xs font-mono font-bold uppercase tracking-wider text-rose-500 block mb-1">
+                    <div className="pt-6 pb-2 border-b border-[var(--line)]">
+                      <span className="text-xs font-mono font-bold tracking-wide text-[var(--accent)] block mb-1">
                         章节标记
                       </span>
                       <h3
                         className={`font-black tracking-tight ${
                           block.type === 'h1'
-                            ? 'text-3xl sm:text-5xl text-rose-500'
+                            ? 'text-3xl sm:text-5xl text-[var(--h1-color)]'
                             : isDark
                             ? 'text-2xl sm:text-4xl text-stone-100'
                             : 'text-2xl sm:text-4xl text-stone-800'
                         }`}
                       >
-                        {renderScriptTextWithCues(block.text, isDark)}
+                        {renderScriptTextWithCues(block.text)}
                       </h3>
                     </div>
                   ) : block.type === 'quote' ? (
-                    <blockquote className="border-l-4 border-amber-500 pl-4 sm:pl-6 italic text-amber-200/90">
-                      <p className={activeFont.sizeClass}>{renderScriptTextWithCues(block.text, isDark)}</p>
+                    <blockquote className="border-l-2 border-[var(--accent)] bg-[var(--canvas)]/50 pl-4 sm:pl-6 italic text-[var(--ink)]">
+                      <p className={activeFont.sizeClass}>{renderScriptTextWithCues(block.text)}</p>
                     </blockquote>
                   ) : (
                     <p className={`${activeFont.sizeClass} tracking-normal`}>
-                      {renderScriptTextWithCues(block.text, isDark)}
+                      {renderScriptTextWithCues(block.text)}
                     </p>
                   )}
                 </div>
@@ -850,7 +846,7 @@ function renderScriptTextWithCues(text: string, isDark: boolean): React.ReactNod
 
           {/* Bottom Padding so last line can reach the top */}
           <div className="h-[60vh] flex flex-col items-center justify-center text-center space-y-3 text-stone-500">
-            <CheckCircle2 className="w-12 h-12 text-rose-500 stroke-[1.5]" />
+            <CheckCircle2 className="w-12 h-12 text-[var(--accent)] stroke-[1.5]" />
             <p className="text-lg font-bold">🎉 全篇文案朗读完成！</p>
             <button
               onClick={handleReset}
@@ -868,12 +864,12 @@ function renderScriptTextWithCues(text: string, isDark: boolean): React.ReactNod
             className="p-5"
             wrapperStyle={{ position: 'absolute' }}
             wrapperClassName={`absolute left-0 top-0 bottom-0 w-80 max-w-[85vw] flex-none border-r shadow-2xl z-30 transition-all ${
-              isDark ? 'bg-[#141210] border-stone-800 text-stone-100' : 'bg-white border-stone-200 text-stone-900'
+              'bg-[var(--surface)] border-[var(--line)] text-[var(--ink)]'
             }`}
           >
             <div className={`flex items-center justify-between pb-4 border-b mb-4 ${isDark ? 'border-stone-800' : 'border-stone-200'}`}>
               <h3 className="font-bold text-sm flex items-center gap-2">
-                <Menu className="w-4 h-4 text-rose-500" />
+                <Menu className="w-4 h-4 text-[var(--accent)]" />
                 <span>章节大纲快速跳转</span>
               </h3>
               <button
@@ -894,7 +890,7 @@ function renderScriptTextWithCues(text: string, isDark: boolean): React.ReactNod
                   }`}
                 >
                   <div className="truncate pr-2">
-                    <span className="text-rose-500 font-bold mr-1.5">H{item.level}</span>
+                    <span className="text-[var(--accent)] font-bold mr-1.5">H{item.level}</span>
                     <span>{item.title}</span>
                   </div>
                   <span className={`font-mono text-[10px] shrink-0 ${isDark ? 'text-stone-400' : 'text-stone-500'}`}>
@@ -911,12 +907,12 @@ function renderScriptTextWithCues(text: string, isDark: boolean): React.ReactNod
           <div className="absolute inset-0 bg-black/70 backdrop-blur-sm z-40 flex items-center justify-center p-4">
             <div
               className={`max-w-md w-full rounded-2xl border p-6 shadow-2xl space-y-4 ${
-                isDark ? 'bg-[#1c1917] border-stone-800 text-stone-100' : 'bg-white border-stone-200 text-stone-900'
+                'bg-[var(--surface)] border-[var(--line)] text-[var(--ink)]'
               }`}
             >
               <div className={`flex items-center justify-between border-b pb-3 ${isDark ? 'border-stone-700' : 'border-stone-200'}`}>
                 <h4 className="font-bold flex items-center gap-2 text-base">
-                  <Keyboard className="w-5 h-5 text-rose-500" />
+                  <Keyboard className="w-5 h-5 text-[var(--accent)]" />
                   <span>提词器快捷键指南</span>
                 </h4>
                 <button onClick={() => setShowKeyboardHelp(false)} className={`p-1 cursor-pointer ${isDark ? 'text-stone-400 hover:text-stone-100' : 'text-stone-500 hover:text-stone-800'}`}>
@@ -927,42 +923,42 @@ function renderScriptTextWithCues(text: string, isDark: boolean): React.ReactNod
               <div className="grid grid-cols-2 gap-3 text-xs">
                 <div className={`flex items-center justify-between p-2 rounded ${isDark ? 'bg-stone-800/70 border border-stone-700/50' : 'bg-stone-100'}`}>
                   <span className={isDark ? 'text-stone-300' : 'text-stone-600'}>开始 / 暂停</span>
-                  <kbd className={`px-2 py-0.5 rounded font-mono font-bold ${isDark ? 'bg-stone-900 text-rose-400 border border-stone-700' : 'bg-white text-rose-600 border border-stone-300'}`}>Space</kbd>
+                  <kbd className={`px-2 py-0.5 rounded font-mono font-bold ${isDark ? 'bg-stone-900 text-[var(--accent-dark)] border border-stone-700' : 'bg-white text-[var(--accent)] border border-stone-300'}`}>Space</kbd>
                 </div>
                 <div className={`flex items-center justify-between p-2 rounded ${isDark ? 'bg-stone-800/70 border border-stone-700/50' : 'bg-stone-100'}`}>
                   <span className={isDark ? 'text-stone-300' : 'text-stone-600'}>微调滚动</span>
-                  <kbd className={`px-2 py-0.5 rounded font-mono font-bold ${isDark ? 'bg-stone-900 text-rose-400 border border-stone-700' : 'bg-white text-rose-600 border border-stone-300'}`}>↑ / ↓</kbd>
+                  <kbd className={`px-2 py-0.5 rounded font-mono font-bold ${isDark ? 'bg-stone-900 text-[var(--accent-dark)] border border-stone-700' : 'bg-white text-[var(--accent)] border border-stone-300'}`}>↑ / ↓</kbd>
                 </div>
                 <div className={`flex items-center justify-between p-2 rounded ${isDark ? 'bg-stone-800/70 border border-stone-700/50' : 'bg-stone-100'}`}>
                   <span className={isDark ? 'text-stone-300' : 'text-stone-600'}>滚屏加/减速</span>
-                  <kbd className={`px-2 py-0.5 rounded font-mono font-bold ${isDark ? 'bg-stone-900 text-rose-400 border border-stone-700' : 'bg-white text-rose-600 border border-stone-300'}`}>+ / -</kbd>
+                  <kbd className={`px-2 py-0.5 rounded font-mono font-bold ${isDark ? 'bg-stone-900 text-[var(--accent-dark)] border border-stone-700' : 'bg-white text-[var(--accent)] border border-stone-300'}`}>+ / -</kbd>
                 </div>
                 <div className={`flex items-center justify-between p-2 rounded ${isDark ? 'bg-stone-800/70 border border-stone-700/50' : 'bg-stone-100'}`}>
                   <span className={isDark ? 'text-stone-300' : 'text-stone-600'}>切换字号</span>
-                  <kbd className={`px-2 py-0.5 rounded font-mono font-bold ${isDark ? 'bg-stone-900 text-rose-400 border border-stone-700' : 'bg-white text-rose-600 border border-stone-300'}`}>1 ~ 4</kbd>
+                  <kbd className={`px-2 py-0.5 rounded font-mono font-bold ${isDark ? 'bg-stone-900 text-[var(--accent-dark)] border border-stone-700' : 'bg-white text-[var(--accent)] border border-stone-300'}`}>1 ~ 4</kbd>
                 </div>
                 <div className={`flex items-center justify-between p-2 rounded ${isDark ? 'bg-stone-800/70 border border-stone-700/50' : 'bg-stone-100'}`}>
                   <span className={isDark ? 'text-stone-300' : 'text-stone-600'}>重置回起点</span>
-                  <kbd className={`px-2 py-0.5 rounded font-mono font-bold ${isDark ? 'bg-stone-900 text-rose-400 border border-stone-700' : 'bg-white text-rose-600 border border-stone-300'}`}>R</kbd>
+                  <kbd className={`px-2 py-0.5 rounded font-mono font-bold ${isDark ? 'bg-stone-900 text-[var(--accent-dark)] border border-stone-700' : 'bg-white text-[var(--accent)] border border-stone-300'}`}>R</kbd>
                 </div>
                 <div className={`flex items-center justify-between p-2 rounded ${isDark ? 'bg-stone-800/70 border border-stone-700/50' : 'bg-stone-100'}`}>
                   <span className={isDark ? 'text-stone-300' : 'text-stone-600'}>深浅主题</span>
-                  <kbd className={`px-2 py-0.5 rounded font-mono font-bold ${isDark ? 'bg-stone-900 text-rose-400 border border-stone-700' : 'bg-white text-rose-600 border border-stone-300'}`}>T</kbd>
+                  <kbd className={`px-2 py-0.5 rounded font-mono font-bold ${isDark ? 'bg-stone-900 text-[var(--accent-dark)] border border-stone-700' : 'bg-white text-[var(--accent)] border border-stone-300'}`}>T</kbd>
                 </div>
                 <div className={`flex items-center justify-between p-2 rounded ${isDark ? 'bg-stone-800/70 border border-stone-700/50' : 'bg-stone-100'}`}>
                   <span className={isDark ? 'text-stone-300' : 'text-stone-600'}>镜像翻转</span>
-                  <kbd className={`px-2 py-0.5 rounded font-mono font-bold ${isDark ? 'bg-stone-900 text-rose-400 border border-stone-700' : 'bg-white text-rose-600 border border-stone-300'}`}>M</kbd>
+                  <kbd className={`px-2 py-0.5 rounded font-mono font-bold ${isDark ? 'bg-stone-900 text-[var(--accent-dark)] border border-stone-700' : 'bg-white text-[var(--accent)] border border-stone-300'}`}>M</kbd>
                 </div>
                 <div className={`flex items-center justify-between p-2 rounded ${isDark ? 'bg-stone-800/70 border border-stone-700/50' : 'bg-stone-100'}`}>
                   <span className={isDark ? 'text-stone-300' : 'text-stone-600'}>退出提词器</span>
-                  <kbd className={`px-2 py-0.5 rounded font-mono font-bold ${isDark ? 'bg-stone-900 text-rose-400 border border-stone-700' : 'bg-white text-rose-600 border border-stone-300'}`}>Esc</kbd>
+                  <kbd className={`px-2 py-0.5 rounded font-mono font-bold ${isDark ? 'bg-stone-900 text-[var(--accent-dark)] border border-stone-700' : 'bg-white text-[var(--accent)] border border-stone-300'}`}>Esc</kbd>
                 </div>
               </div>
 
               <div className="text-center pt-2">
                 <button
                   onClick={() => setShowKeyboardHelp(false)}
-                  className="w-full py-2 rounded-xl bg-rose-600 hover:bg-rose-700 text-white font-semibold text-xs transition-colors"
+                  className="w-full py-2 rounded-xl bg-[var(--accent)] hover:bg-[var(--accent-dark)] text-white font-semibold text-xs transition-colors"
                 >
                   知道了，继续录制
                 </button>
@@ -1000,7 +996,7 @@ function renderScriptTextWithCues(text: string, isDark: boolean): React.ReactNod
         <div className="flex items-center gap-3">
           <button
             onClick={() => setIsPlaying((prev) => !prev)}
-            className="flex items-center justify-center gap-2 bg-rose-600 hover:bg-rose-500 active:scale-95 text-white px-8 sm:px-12 py-2.5 sm:py-3 rounded-2xl font-bold text-sm sm:text-base transition-all shadow-lg shadow-rose-600/30 cursor-pointer"
+            className="flex items-center justify-center gap-2 bg-[var(--accent)] hover:bg-[var(--accent-dark)] active:scale-95 text-white px-8 sm:px-12 py-2.5 sm:py-3 rounded-xl font-bold text-sm sm:text-base transition-all shadow-2xs cursor-pointer"
           >
             {isPlaying ? (
               <>
@@ -1018,13 +1014,13 @@ function renderScriptTextWithCues(text: string, isDark: boolean): React.ReactNod
 
         {/* Right: Progress bar & Speed Tag */}
         <div className="flex items-center gap-3">
-          <div className="w-24 sm:w-36 bg-stone-800 rounded-full h-2 overflow-hidden hidden sm:block">
+          <div className="w-24 sm:w-36 bg-stone-200 dark:bg-stone-700 rounded-full h-2 overflow-hidden hidden sm:block">
             <div
-              className="bg-rose-500 h-full transition-all duration-200 rounded-full"
+              className="bg-[var(--accent)] h-full transition-all duration-200 rounded-full"
               style={{ width: `${scrollProgress}%` }}
             />
           </div>
-          <span className="font-mono text-xs font-bold text-rose-500">{scrollProgress}%</span>
+          <span className="font-mono text-xs font-bold text-[var(--accent)]">{scrollProgress}%</span>
         </div>
       </footer>
     </div>

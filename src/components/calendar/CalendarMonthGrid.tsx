@@ -57,11 +57,11 @@ function MonthCellDroppable({
           : 'bg-stone-50/50 dark:bg-stone-950/40 text-stone-400 dark:text-stone-600'
       } ${
         cell.isToday
-          ? 'ring-2 ring-inset ring-rose-500/80 dark:ring-rose-500 bg-rose-50/[0.04] dark:bg-rose-950/[0.12]'
+          ? 'ring-2 ring-inset ring-[var(--accent)]/70 bg-[var(--accent-soft)]/25'
           : ''
       } ${
         isOver
-          ? 'bg-rose-100/60 dark:bg-rose-950/60 ring-2 ring-inset ring-rose-600'
+          ? 'bg-[var(--accent-soft)] ring-2 ring-inset ring-[var(--accent)]'
           : ''
       }`}
     >
@@ -113,7 +113,7 @@ function MonthCellDroppable({
             onDateClick(cell.date);
           }}
           title="在此日期排期定档"
-          className="opacity-0 group-hover:opacity-100 hover:opacity-100 p-1 rounded-md text-stone-400 hover:text-rose-600 dark:hover:text-rose-400 hover:bg-stone-100 dark:hover:bg-stone-800 transition-all cursor-pointer"
+          className="opacity-0 group-hover:opacity-100 hover:opacity-100 p-1 rounded-md text-stone-400 hover:text-[var(--accent)] hover:bg-stone-100 dark:hover:bg-stone-800 transition-all cursor-pointer"
         >
           <Plus className="w-3.5 h-3.5" />
         </button>
@@ -156,7 +156,7 @@ export const CalendarMonthGrid: React.FC<CalendarMonthGridProps> = ({
           <div
             key={name}
             className={`py-2 text-center text-xs font-bold ${
-              i >= 5 ? 'text-rose-700/80 dark:text-rose-400' : 'text-stone-600 dark:text-stone-400'
+              i >= 5 ? 'text-stone-500 dark:text-stone-400' : 'text-stone-600 dark:text-stone-400'
             }`}
           >
             {name}

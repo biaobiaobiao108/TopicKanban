@@ -43,7 +43,7 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({
 
   if (analyticsQuery.isError) {
     return (
-      <div role="alert" className="rounded-2xl border border-rose-200 bg-rose-500/10 px-4 py-3 text-sm text-rose-800 dark:border-rose-900/60 dark:text-rose-200">
+      <div role="alert" className="rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800 dark:border-red-900/60 dark:bg-red-950/40 dark:text-red-200">
         复盘数据加载失败，请稍后重试。
       </div>
     );
@@ -52,7 +52,7 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({
   if (analyticsQuery.isLoading || !analyticsQuery.data) {
     return (
       <div className="flex items-center justify-center p-16 text-stone-400 dark:text-stone-500">
-        <BarChart3 className="w-6 h-6 animate-pulse text-rose-600 dark:text-rose-400 mr-2" />
+        <BarChart3 className="w-6 h-6 animate-pulse text-[var(--accent)] mr-2" />
         <span className="text-sm">正在载入复盘数据...</span>
       </div>
     );
@@ -78,7 +78,7 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({
 
   const renderGradeBadge = (grade: 'S' | 'A' | 'B' | 'C') => {
     const colors: Record<string, string> = {
-      S: 'bg-rose-500/15 text-rose-700 dark:text-rose-300 font-bold',
+      S: 'bg-[var(--accent-soft)] text-[var(--accent)] font-bold',
       A: 'bg-amber-500/15 text-amber-800 dark:text-amber-300 font-bold',
       B: 'bg-blue-500/15 text-blue-700 dark:text-blue-300 font-semibold',
       C: 'bg-stone-200/60 dark:bg-stone-800 text-stone-600 dark:text-stone-400',
@@ -127,7 +127,7 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({
       <section>
         <div className="flex items-center justify-between mb-3">
           <h3 className="text-xs font-bold uppercase tracking-wider text-stone-400 dark:text-stone-500 flex items-center gap-1.5">
-            <TrendingUp className="w-3.5 h-3.5 text-rose-600 dark:text-rose-400" />
+            <TrendingUp className="w-3.5 h-3.5 text-[var(--accent)]" />
             <span>全频道核心数据大盘</span>
           </h3>
           <span className="text-xs text-stone-400 dark:text-stone-500">已沉淀 <span className="font-mono tabular-nums">{overview.totalVideos}</span> 期视频</span>
@@ -138,7 +138,7 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({
           <div className="bg-white dark:bg-stone-900 p-4 rounded-2xl border border-stone-200/70 dark:border-stone-800 shadow-2xs space-y-1">
             <div className="text-xs font-semibold text-stone-500 dark:text-stone-400 flex items-center justify-between">
               <span>总播放量</span>
-              <Flame className="w-4 h-4 text-rose-500" />
+              <Flame className="w-4 h-4 text-[var(--accent)]" />
             </div>
             <div className="text-xl sm:text-2xl font-black font-mono text-stone-900 dark:text-stone-100">
               {formatViewsText(overview.totalViews)}
@@ -169,9 +169,9 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({
           <div className="bg-white dark:bg-stone-900 p-4 rounded-2xl border border-stone-200/70 dark:border-stone-800 shadow-2xs space-y-1">
             <div className="text-xs font-semibold text-stone-500 dark:text-stone-400 flex items-center justify-between">
               <span>平均三连率</span>
-              <ThumbsUp className="w-4 h-4 text-rose-500" />
+              <ThumbsUp className="w-4 h-4 text-[var(--accent)]" />
             </div>
-            <div className="text-xl sm:text-2xl font-black font-mono text-rose-600 dark:text-rose-400">
+            <div className="text-xl sm:text-2xl font-black font-mono text-[var(--accent)]">
               {overview.avgTripleRate}%
             </div>
             <div className="text-[11px] text-stone-400 dark:text-stone-500">
@@ -218,7 +218,7 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({
               <div className="flex items-center justify-between border-b border-stone-100 dark:border-stone-800 pb-3">
                 <div>
                   <h4 className="text-sm font-bold text-stone-900 dark:text-stone-100 flex items-center gap-2">
-                    <BarChart3 className="w-4 h-4 text-rose-600 dark:text-rose-400" />
+                    <BarChart3 className="w-4 h-4 text-[var(--accent)]" />
                     <span>5 维故事模型爆款相关性分析</span>
                   </h4>
                   <p className="text-xs text-stone-500 dark:text-stone-400 mt-0.5">
@@ -226,7 +226,7 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({
                   </p>
                 </div>
                 <div className="text-right">
-                  <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-rose-500/10 text-rose-700 dark:text-rose-300">
+                  <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-[var(--accent-soft)] text-[var(--accent)]">
                     第一驱动力: {correlation.strongestHitFactor}
                   </span>
                 </div>
@@ -244,7 +244,7 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({
                       <div className="flex items-center justify-between text-xs">
                         <span className="font-bold text-stone-800 dark:text-stone-200">{dim.label}</span>
                         <div className="flex items-center gap-2">
-                          <span className="text-rose-700 dark:text-rose-400 font-bold">
+                          <span className="text-[var(--accent)] font-bold">
                             爆款: <span className="font-mono tabular-nums">{dim.topHitsAverage.toFixed(1)}</span>分
                           </span>
                           <span className="text-stone-400">|</span>
@@ -271,9 +271,9 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({
                           style={{ width: `${allPercent}%` }}
                           title={`全频道均值: ${dim.allAverage}分`}
                         />
-                        {/* Top hit average bar (Rose primary) */}
+                        {/* Top hit average bar (pine accent) */}
                         <div
-                          className="absolute top-0 bottom-0 bg-rose-600 dark:bg-rose-500 rounded-full transition-all duration-500 opacity-90"
+                          className="absolute top-0 bottom-0 bg-[var(--accent)] rounded-full transition-all duration-500 opacity-90"
                           style={{ width: `${hitPercent}%` }}
                           title={`Top 爆款均值: ${dim.topHitsAverage}分`}
                         />
@@ -286,7 +286,7 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({
               <div className="flex items-center justify-between pt-2 border-t border-stone-100 dark:border-stone-800 text-[11px] text-stone-400 dark:text-stone-500">
                 <div className="flex items-center gap-3">
                   <span className="flex items-center gap-1">
-                    <span className="w-2.5 h-2.5 rounded-full bg-rose-600 inline-block" />
+                    <span className="w-2.5 h-2.5 rounded-full bg-[var(--accent)] inline-block" />
                     <span>Top 爆款选题均分</span>
                   </span>
                   <span className="flex items-center gap-1">
@@ -320,11 +320,11 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({
                 >
                   <div className="flex items-center justify-between">
                     <span className="text-xs font-bold text-stone-900 dark:text-stone-100 flex items-center gap-1.5">
-                      <CheckCircle2 className="w-3.5 h-3.5 text-rose-600 dark:text-rose-400 shrink-0" />
+                      <CheckCircle2 className="w-3.5 h-3.5 text-[var(--accent)] shrink-0" />
                       <span>{insight.title}</span>
                     </span>
                     {insight.badgeText && (
-                      <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-rose-500/10 text-rose-800 dark:text-rose-300">
+                      <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-[var(--accent-soft)] text-[var(--accent)]">
                         {insight.badgeText}
                       </span>
                     )}
@@ -444,7 +444,7 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({
                     <div className="text-xs font-bold text-stone-900 dark:text-stone-100 font-mono tabular-nums">
                       {formatViewsText(tag.totalViews)}
                     </div>
-                    <div className="text-[10px] text-rose-600 dark:text-rose-400 font-semibold">
+                    <div className="text-[10px] text-[var(--accent)] font-semibold">
                       三连率 <span className="font-mono tabular-nums">{tag.avgTripleRate}%</span>
                     </div>
                   </div>
@@ -460,7 +460,7 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({
         <div className="p-5 sm:p-6 border-b border-stone-100 dark:border-stone-800 flex items-center justify-between">
           <div>
             <h4 className="text-sm font-bold text-stone-900 dark:text-stone-100 flex items-center gap-2">
-              <Award className="w-4 h-4 text-rose-600 dark:text-rose-400" />
+              <Award className="w-4 h-4 text-[var(--accent)]" />
               <span>已发布视频深度复盘明细表</span>
             </h4>
             <p className="text-xs text-stone-500 dark:text-stone-400 mt-0.5">
@@ -497,7 +497,7 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({
                         {topic ? (
                           <button
                             onClick={() => onSelectTopic(topic.id)}
-                            className="font-bold text-stone-900 dark:text-stone-100 hover:text-rose-600 dark:hover:text-rose-400 text-left line-clamp-1 transition-colors cursor-pointer"
+                            className="font-bold text-stone-900 dark:text-stone-100 hover:text-[var(--accent)] text-left line-clamp-1 transition-colors cursor-pointer"
                             title={`点击进入选题详情「${video.title}」`}
                           >
                             {video.title}
@@ -529,7 +529,7 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({
                   {/* Triple Rate & Grade */}
                   <td className="py-3 px-3 text-center">
                     <div className="flex items-center justify-center gap-1">
-                      <span className="font-bold text-rose-600 dark:text-rose-400 font-mono tabular-nums">{deepMetrics.tripleRate}%</span>
+                      <span className="font-bold text-[var(--accent)] font-mono tabular-nums">{deepMetrics.tripleRate}%</span>
                       {renderGradeBadge(deepMetrics.tripleGrade)}
                     </div>
                   </td>

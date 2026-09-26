@@ -40,7 +40,7 @@ export const VoiceoverCueNode = Node.create({
       mergeAttributes(HTMLAttributes, {
         'data-cue': cue,
         'class':
-          'inline-voiceover-cue select-none inline-flex items-center gap-1 mx-1 px-2 py-0.5 rounded-full text-xs font-mono font-bold bg-rose-100 dark:bg-rose-950/80 text-rose-800 dark:text-rose-300 border border-rose-300 dark:border-rose-800/80 align-baseline cursor-default shadow-2xs',
+          'inline-voiceover-cue select-none inline-flex items-center gap-1 mx-1 px-2 py-0.5 rounded-full text-xs font-mono font-bold bg-[var(--accent-soft)] text-[var(--accent-dark)] border border-[var(--accent)]/25 align-baseline cursor-default shadow-2xs',
         'contenteditable': 'false',
       }),
       `🎙️ ${cue}`,

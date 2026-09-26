@@ -44,7 +44,7 @@ const OutlineProgress: React.FC<{ percentage: number; active?: boolean }> = ({
   <div className="mt-1.5 h-0.5 overflow-hidden rounded-full bg-stone-200/90">
     <div
       className={`h-full transition-[width,background-color] duration-200 ${
-        active ? 'bg-rose-500' : 'bg-stone-400/60'
+        active ? 'bg-[var(--accent)]' : 'bg-stone-400/60'
       }`}
       style={{ width: `${percentage}%` }}
     />
@@ -257,9 +257,9 @@ export const PublicReviewView: React.FC<PublicReviewViewProps> = ({ token: propT
 
   if (isLoading) {
     return (
-      <div className="min-h-dvh bg-stone-100 dark:bg-[#0c0a09] flex items-center justify-center p-4">
-        <div className="bg-white dark:bg-stone-900 p-8 rounded-2xl shadow-subtle border border-stone-200 dark:border-stone-800 text-center max-w-sm w-full space-y-4">
-          <div className="w-10 h-10 border-3 border-rose-600 border-t-transparent rounded-full animate-spin mx-auto" />
+      <div className="min-h-dvh bg-[var(--canvas)] flex items-center justify-center p-4">
+        <div className="bg-[var(--surface)] p-8 rounded-2xl shadow-subtle border border-[var(--line)] text-center max-w-sm w-full space-y-4">
+          <div className="w-10 h-10 border-3 border-[var(--accent)] border-t-transparent rounded-full animate-spin mx-auto" />
           <p className="text-sm font-semibold text-stone-700 dark:text-stone-300">正在从边缘节点加载审稿文案…</p>
         </div>
       </div>
@@ -268,8 +268,8 @@ export const PublicReviewView: React.FC<PublicReviewViewProps> = ({ token: propT
 
   if (error || !snapshot) {
     return (
-      <div className="min-h-dvh bg-stone-100 dark:bg-[#0c0a09] flex items-center justify-center p-4">
-        <div className="bg-white dark:bg-stone-900 p-8 rounded-2xl shadow-subtle border border-stone-200 dark:border-stone-800 text-center max-w-md w-full space-y-4">
+      <div className="min-h-dvh bg-[var(--canvas)] flex items-center justify-center p-4">
+        <div className="bg-[var(--surface)] p-8 rounded-2xl shadow-subtle border border-[var(--line)] text-center max-w-md w-full space-y-4">
           <div className="w-12 h-12 rounded-full bg-red-50 dark:bg-red-950/50 text-red-600 dark:text-red-400 flex items-center justify-center mx-auto">
             <AlertCircle className="w-6 h-6" />
           </div>
@@ -280,7 +280,7 @@ export const PublicReviewView: React.FC<PublicReviewViewProps> = ({ token: propT
           <div className="pt-2">
             <Link
               to="/login"
-              className="inline-flex items-center gap-1 text-xs font-bold text-rose-600 dark:text-rose-400 hover:text-rose-700 dark:hover:text-rose-300 underline"
+              className="inline-flex items-center gap-1 text-xs font-bold text-[var(--accent)] hover:text-[var(--accent-dark)] underline"
             >
               登录创作者工作台
             </Link>
@@ -291,18 +291,18 @@ export const PublicReviewView: React.FC<PublicReviewViewProps> = ({ token: propT
   }
 
   return (
-    <div className="min-h-dvh bg-[#fcfbf9] dark:bg-[#0c0a09] text-stone-900 dark:text-stone-100 flex flex-col antialiased transition-colors">
+    <div className="min-h-dvh bg-[var(--canvas)] text-[var(--ink)] flex flex-col antialiased transition-colors">
       {/* Top Floating Glass Header */}
-      <header className="sticky top-0 z-30 bg-[#fcfbf9]/90 dark:bg-[#0c0a09]/90 backdrop-blur-md border-b border-stone-200/80 dark:border-stone-800/80 px-4 sm:px-8 py-3">
+      <header className="sticky top-0 z-30 bg-[var(--canvas)]/90 backdrop-blur-md border-b border-[var(--line)] px-4 sm:px-8 py-3">
         <div className="max-w-5xl mx-auto flex items-center justify-between gap-4">
           <div className="flex items-center gap-3 min-w-0">
-            <div className="w-8 h-8 rounded-lg bg-rose-600 text-white flex items-center justify-center font-serif font-black text-sm shrink-0 shadow-xs">
+            <div className="w-8 h-8 rounded-lg bg-[var(--accent)] text-white flex items-center justify-center font-serif font-black text-sm shrink-0 shadow-2xs">
               审
             </div>
             <div className="min-w-0">
               <h1 className="text-sm sm:text-base font-bold text-stone-900 dark:text-stone-100 truncate flex items-center gap-2">
                 <span>{snapshot.topic_title}</span>
-                <span className="text-[10px] font-normal px-2 py-0.5 bg-rose-50 dark:bg-rose-950/60 text-rose-700 dark:text-rose-300 border border-rose-200/60 dark:border-rose-900/60 rounded-full shrink-0">
+                <span className="text-[10px] font-normal px-2 py-0.5 bg-[var(--accent-soft)] text-[var(--accent)] rounded-full shrink-0">
                   外部审稿版
                 </span>
               </h1>
@@ -311,7 +311,7 @@ export const PublicReviewView: React.FC<PublicReviewViewProps> = ({ token: propT
                   <FileText className="w-3 h-3 text-stone-400" /> <span className="font-mono tabular-nums">{snapshot.word_count.toLocaleString()}</span> 字
                 </span>
                 <span className="flex items-center gap-1">
-                  <Clock className="w-3 h-3 text-rose-500" /> 预估 <span className="font-mono tabular-nums">{minutes}</span> 分钟
+                  <Clock className="w-3 h-3 text-stone-500 dark:text-stone-400" /> 预估 <span className="font-mono tabular-nums">{minutes}</span> 分钟
                 </span>
                 {snapshot.reviewer_branding && (
                   <span className="text-stone-500 dark:text-stone-400 font-sans font-medium text-[11px] border-l border-stone-200 dark:border-stone-700 pl-2">
@@ -349,13 +349,13 @@ export const PublicReviewView: React.FC<PublicReviewViewProps> = ({ token: propT
         {/* Left Outline Navigation (Desktop) */}
         {outlineItems.length > 0 && (
           <aside className="hidden lg:block w-64 shrink-0">
-            <div className="sticky top-24 space-y-3 bg-white/80 dark:bg-stone-900/80 backdrop-blur-sm p-3.5 rounded-xl border border-stone-200/80 dark:border-stone-800/80 shadow-2xs">
+            <div className="sticky top-24 space-y-3 bg-[var(--surface)]/80 backdrop-blur-sm p-3.5 rounded-xl border border-[var(--line)] shadow-2xs">
               <div className="text-[11px] font-bold text-stone-400 dark:text-stone-500 tracking-wider flex items-center justify-between pb-2 border-b border-stone-100 dark:border-stone-800">
                 <div className="flex items-center gap-1.5">
-                  <Compass className="w-3.5 h-3.5 text-rose-600 dark:text-rose-400" />
+                  <Compass className="w-3.5 h-3.5 text-[var(--accent)]" />
                   <span>文案故事大纲</span>
                 </div>
-                <span className="text-[10px] bg-rose-50 dark:bg-rose-950/60 text-rose-700 dark:text-rose-300 px-1.5 py-0.5 rounded font-bold border border-rose-200/60 dark:border-rose-900/60">
+                <span className="text-[10px] bg-[var(--accent-soft)] text-[var(--accent)] px-1.5 py-0.5 rounded font-bold">
                   <span className="font-mono tabular-nums">{outlineItems.length}</span> 章节
                 </span>
               </div>
@@ -369,14 +369,14 @@ export const PublicReviewView: React.FC<PublicReviewViewProps> = ({ token: propT
                         key={item.id}
                         type="button"
                         onClick={() => handleSelectHeading(item)}
-                        className={`group relative w-full rounded-lg py-2 pr-2 text-left transition-colors cursor-pointer focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-rose-400/70 ${
-                          isActive ? 'bg-rose-50/80 dark:bg-rose-950/60 text-rose-900 dark:text-rose-100 shadow-2xs' : 'hover:bg-stone-50/90 dark:hover:bg-stone-800/80 text-stone-700 dark:text-stone-300'
+                        className={`group relative w-full rounded-lg py-2 pr-2 text-left transition-colors cursor-pointer focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[var(--focus-ring)] ${
+                          isActive ? 'bg-[var(--accent-soft)] text-[var(--ink)] shadow-2xs' : 'hover:bg-[var(--canvas)] text-stone-700 dark:text-stone-300'
                         }`}
                       >
                         {isActive && (
                           <span
                             aria-hidden="true"
-                            className="absolute inset-y-1.5 left-0 w-0.5 rounded-full bg-rose-500"
+                            className="absolute inset-y-1.5 left-0 w-0.5 rounded-full bg-[var(--accent)]"
                           />
                         )}
                         <div className={LEVEL_INDENT[item.level]}>
@@ -384,7 +384,7 @@ export const PublicReviewView: React.FC<PublicReviewViewProps> = ({ token: propT
                             <span
                               className={`min-w-0 flex-1 truncate transition-colors ${
                                 isActive
-                                  ? `${LEVEL_TEXT[item.level]} text-rose-700 dark:text-rose-300 font-bold`
+                                  ? `${LEVEL_TEXT[item.level]} text-[var(--accent)] font-bold`
                                   : `${LEVEL_TEXT[item.level]} text-stone-700 dark:text-stone-300 group-hover:text-stone-950 dark:group-hover:text-stone-100`
                               }`}
                               title={item.title}
@@ -394,7 +394,7 @@ export const PublicReviewView: React.FC<PublicReviewViewProps> = ({ token: propT
                             <span className="w-10 shrink-0 pt-0.5 text-right">
                               <span
                                 className={`block font-mono text-[10px] leading-none tabular-nums ${
-                                  isActive ? 'font-bold text-rose-600 dark:text-rose-400' : 'text-stone-400 dark:text-stone-500'
+                                  isActive ? 'font-bold text-[var(--accent)]' : 'text-stone-400 dark:text-stone-500'
                                 }`}
                               >
                                 {item.percentage}%
@@ -413,13 +413,13 @@ export const PublicReviewView: React.FC<PublicReviewViewProps> = ({ token: propT
         )}
 
         {/* Article Body */}
-        <article className="flex-1 min-w-0 bg-white dark:bg-stone-900 rounded-2xl border border-stone-200/80 dark:border-stone-800/80 p-6 sm:p-10 shadow-subtle space-y-6">
+        <article className="flex-1 min-w-0 bg-[var(--surface)] rounded-2xl border border-[var(--line)] p-6 sm:p-10 shadow-subtle space-y-6">
           {/* Header metadata summary */}
           {(snapshot.hook || snapshot.summary || snapshot.storyline) && (
             <div className="p-4 rounded-xl bg-stone-50/80 dark:bg-stone-800/60 border border-stone-200/60 dark:border-stone-700/60 space-y-2">
               {snapshot.hook && (
                 <div className="flex items-start gap-2">
-                  <span className="text-[10px] font-bold uppercase bg-rose-100 dark:bg-rose-950/60 text-rose-700 dark:text-rose-300 px-1.5 py-0.5 rounded tracking-wide shrink-0 border border-rose-200/60 dark:border-rose-900/60">
+                  <span className="text-[10px] font-bold uppercase bg-[var(--accent-soft)] text-[var(--accent)] px-1.5 py-0.5 rounded tracking-wide shrink-0">
                     核心反差 / 钩子
                   </span>
                   <p className="text-xs font-semibold text-stone-800 dark:text-stone-200">{snapshot.hook}</p>
@@ -433,7 +433,7 @@ export const PublicReviewView: React.FC<PublicReviewViewProps> = ({ token: propT
 
           {/* Rendered HTML with scroll-mt and animated headings */}
           <div
-            className="prose prose-stone dark:prose-invert max-w-none text-stone-800 dark:text-stone-200 leading-relaxed text-sm sm:text-base space-y-4 [&>h1]:text-xl [&>h1]:font-black [&>h1]:text-stone-900 dark:[&>h1]:text-stone-100 [&>h1]:mt-6 [&>h1]:mb-3 [&>h2]:text-lg [&>h2]:font-bold [&>h2]:text-stone-900 dark:[&>h2]:text-stone-100 [&>h2]:mt-5 [&>h2]:mb-2 [&>h3]:text-base [&>h3]:font-bold [&>h3]:text-stone-800 dark:[&>h3]:text-stone-200 [&>p]:leading-7 [&>blockquote]:border-l-4 [&>blockquote]:border-rose-500 [&>blockquote]:bg-rose-50/30 dark:[&>blockquote]:bg-rose-950/20 [&>blockquote]:py-2 [&>blockquote]:px-4 [&>blockquote]:rounded-r-lg [&>blockquote]:text-stone-700 dark:[&>blockquote]:text-stone-300 [&>blockquote]:italic"
+            className="prose prose-stone dark:prose-invert max-w-none text-stone-800 dark:text-stone-200 leading-relaxed text-sm sm:text-base space-y-4 [&>h1]:text-xl [&>h1]:font-black [&>h1]:text-stone-900 dark:[&>h1]:text-stone-100 [&>h1]:mt-6 [&>h1]:mb-3 [&>h2]:text-lg [&>h2]:font-bold [&>h2]:text-stone-900 dark:[&>h2]:text-stone-100 [&>h2]:mt-5 [&>h2]:mb-2 [&>h3]:text-base [&>h3]:font-bold [&>h3]:text-stone-800 dark:[&>h3]:text-stone-200 [&>p]:leading-7 [&>blockquote]:border-l-4 [&>blockquote]:border-[var(--accent)] [&>blockquote]:bg-[var(--accent-soft)]/30 [&>blockquote]:py-2 [&>blockquote]:px-4 [&>blockquote]:rounded-r-lg [&>blockquote]:text-stone-700 dark:[&>blockquote]:text-stone-300 [&>blockquote]:italic"
             dangerouslySetInnerHTML={{ __html: processedHtml }}
           />
 

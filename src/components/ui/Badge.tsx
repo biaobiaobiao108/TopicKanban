@@ -45,8 +45,8 @@ export const PriorityBadge: React.FC<{ priority: Priority; showLabel?: boolean; 
   const configs: Record<Priority, { label: string; dot: string; text: string }> = {
     high: {
       label: '高',
-      dot: 'bg-[var(--h1-color)]',
-      text: 'text-[var(--h1-color)] font-semibold',
+      dot: 'bg-amber-600 dark:bg-amber-400',
+      text: 'text-amber-800 dark:text-amber-300 font-semibold',
     },
     medium: {
       label: '中',

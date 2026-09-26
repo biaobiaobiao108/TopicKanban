@@ -390,7 +390,7 @@ export const PublishedView: React.FC<PublishedViewProps> = ({
                 className="inline-flex min-h-12 items-center gap-1.5 rounded-xl bg-stone-100/80 px-3.5 text-xs font-semibold text-stone-800 transition-colors hover:bg-stone-200/80 disabled:opacity-50 dark:bg-stone-800 dark:text-stone-200 dark:hover:bg-stone-700 sm:text-sm"
                 title="批量刷新所有包含 BV 号的视频数据"
               >
-                <RefreshCw className={`h-3.5 w-3.5 ${isBulkSyncing ? 'animate-spin text-rose-600' : 'text-stone-500 dark:text-stone-400'}`} aria-hidden="true" />
+                <RefreshCw className={`h-3.5 w-3.5 ${isBulkSyncing ? 'animate-spin text-[var(--accent)]' : 'text-stone-500 dark:text-stone-400'}`} aria-hidden="true" />
                 <span>{isBulkSyncing ? '同步中...' : '批量同步数据'}</span>
               </button>
             )}
@@ -398,7 +398,7 @@ export const PublishedView: React.FC<PublishedViewProps> = ({
             <button
               type="button"
               onClick={openAddModal}
-              className="inline-flex min-h-12 items-center gap-1.5 rounded-xl bg-rose-600 px-4 text-xs font-semibold text-white shadow-2xs transition-all hover:bg-rose-700 hover:shadow-xs active:scale-[0.98] sm:text-sm"
+              className="inline-flex min-h-12 items-center gap-1.5 rounded-xl bg-[var(--accent)] px-4 text-xs font-semibold text-white shadow-2xs transition-all hover:bg-[var(--accent-dark)] hover:shadow-xs active:scale-[0.98] sm:text-sm"
             >
               <Plus className="h-4 w-4 stroke-[2.5]" aria-hidden="true" />
               <span>归档已发布视频</span>
@@ -437,9 +437,9 @@ export const PublishedView: React.FC<PublishedViewProps> = ({
 
         {/* Bulk Sync Notification */}
         {bulkSyncMessage && (
-          <div className="bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-900/60 text-rose-800 dark:text-rose-300 px-4 py-2.5 rounded-xl text-xs sm:text-sm flex items-center gap-2 animate-in fade-in">
+          <div className="bg-[var(--surface)] border border-[var(--line)] text-[var(--ink)] px-4 py-2.5 rounded-xl text-xs sm:text-sm flex items-center gap-2 animate-in fade-in">
             {isBulkSyncing ? (
-              <Loader2 className="w-4 h-4 animate-spin text-rose-600 dark:text-rose-400 shrink-0" />
+              <Loader2 className="w-4 h-4 animate-spin text-[var(--accent)] shrink-0" />
             ) : (
               <CheckCircle2 className="w-4 h-4 text-emerald-600 dark:text-emerald-400 shrink-0" />
             )}
@@ -452,7 +452,7 @@ export const PublishedView: React.FC<PublishedViewProps> = ({
           <React.Suspense
             fallback={
               <div className="flex items-center justify-center p-16 text-stone-400 dark:text-stone-500">
-                <Loader2 className="w-6 h-6 animate-spin text-rose-600 dark:text-rose-400 mr-2" />
+                <Loader2 className="w-6 h-6 animate-spin text-[var(--accent)] mr-2" />
                 <span className="text-sm">正在载入选题分析看板...</span>
               </div>
             }
@@ -580,7 +580,7 @@ export const PublishedView: React.FC<PublishedViewProps> = ({
                           <div className="text-xs sm:text-sm font-semibold truncate leading-tight">{topic.title}</div>
                           {(topic.summary || topic.current_todo) && <div className="text-[11px] text-stone-400 dark:text-stone-500 truncate">{topic.current_todo ? `当前行动: ${topic.current_todo.title}` : topic.summary}</div>}
                         </div>
-                        <div className="flex items-center gap-1.5 shrink-0"><StatusBadge status={topic.status} size="sm" />{state.selected && <span className="text-rose-600 dark:text-rose-400">✓</span>}</div>
+                        <div className="flex items-center gap-1.5 shrink-0"><StatusBadge status={topic.status} size="sm" />{state.selected && <span className="text-[var(--accent)]">✓</span>}</div>
                       </div>
                     );
                   }}
@@ -598,7 +598,7 @@ export const PublishedView: React.FC<PublishedViewProps> = ({
                   aria-label="取消关联选题"
                   title="取消关联选题"
                   disabled={!topicId}
-                  className={`flex h-[42px] w-[42px] shrink-0 items-center justify-center rounded-lg border border-stone-300 bg-stone-50 text-stone-400 transition-colors hover:border-red-300 hover:bg-red-50 hover:text-red-600 focus:outline-none focus:ring-2 focus:ring-rose-500/20 dark:border-stone-700 dark:bg-stone-800 dark:hover:border-red-800 dark:hover:bg-red-950/40 dark:hover:text-red-400 ${topicId ? '' : 'invisible pointer-events-none'}`}
+                  className={`flex h-[42px] w-[42px] shrink-0 items-center justify-center rounded-lg border border-stone-300 bg-stone-50 text-stone-400 transition-colors hover:border-red-300 hover:bg-red-50 hover:text-red-600 focus:outline-none focus:ring-2 focus:ring-[var(--focus-ring)] dark:border-stone-700 dark:bg-stone-800 dark:hover:border-red-800 dark:hover:bg-red-950/40 dark:hover:text-red-400 ${topicId ? '' : 'invisible pointer-events-none'}`}
                 >
                   <X className="h-4 w-4" aria-hidden="true" />
                 </button>
@@ -606,7 +606,7 @@ export const PublishedView: React.FC<PublishedViewProps> = ({
             </div>
 
             {/* Quick Fetch Box */}
-            <div className="bg-rose-50/50 dark:bg-rose-950/30 border border-rose-200/80 dark:border-rose-900/60 p-3 rounded-xl space-y-2">
+            <div className="bg-[var(--control-surface)] border border-[var(--line)] p-3 rounded-xl space-y-2">
               <label htmlFor="published-bvid" className="block text-xs font-bold text-stone-800 dark:text-stone-200">
                 B站 BV 号 或 视频链接
               </label>
@@ -640,13 +640,13 @@ export const PublishedView: React.FC<PublishedViewProps> = ({
                       }
                     }
                   }}
-                   className="flex-1 px-3 py-1.5 bg-white dark:bg-stone-900 border border-stone-300 dark:border-stone-700 rounded-lg text-base text-stone-900 dark:text-stone-100 placeholder:text-stone-400 dark:placeholder:text-stone-500 focus:border-rose-500 dark:focus:border-rose-500 focus:outline-none font-mono"
+                   className="flex-1 px-3 py-1.5 bg-white dark:bg-stone-900 border border-stone-300 dark:border-stone-700 rounded-lg text-base text-stone-900 dark:text-stone-100 placeholder:text-stone-400 dark:placeholder:text-stone-500 focus:border-[var(--accent)] focus:outline-none font-mono"
                 />
                 <button
                   type="button"
                   onClick={() => void handleFetchBiliData()}
                   disabled={isFetchingBili || !bvid.trim()}
-                  className="flex items-center gap-1.5 bg-rose-600 hover:bg-rose-700 disabled:bg-rose-400 dark:disabled:bg-rose-900 text-white px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors shrink-0 shadow-2xs cursor-pointer"
+                  className="flex items-center gap-1.5 bg-[var(--accent)] hover:bg-[var(--accent-dark)] disabled:opacity-50 text-white px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors shrink-0 shadow-2xs cursor-pointer"
                 >
                   {isFetchingBili ? (
                     <Loader2 className="w-3.5 h-3.5 animate-spin" />
@@ -659,7 +659,7 @@ export const PublishedView: React.FC<PublishedViewProps> = ({
 
               {/* Real-time Cover Preview inside modal */}
               {modalCoverUrl && (
-                <div className="relative rounded-xl overflow-hidden border border-rose-200/80 dark:border-rose-900/60 bg-stone-100 dark:bg-stone-900 aspect-video max-h-44 w-full mt-2">
+                <div className="relative rounded-xl overflow-hidden border border-[var(--line)] bg-stone-100 dark:bg-stone-900 aspect-video max-h-44 w-full mt-2">
                   <img
                     src={modalCoverUrl}
                     alt="视频封面预览"
@@ -694,7 +694,7 @@ export const PublishedView: React.FC<PublishedViewProps> = ({
             {/* Title */}
             <div>
               <label htmlFor="published-title" className="block text-xs font-semibold text-stone-700 dark:text-stone-300 mb-1">
-                最终视频标题 <span className="text-rose-600 dark:text-rose-500">*</span>
+                最终视频标题 <span className="text-stone-400 dark:text-stone-500">*</span>
               </label>
               <input
                 id="published-title"
@@ -838,7 +838,7 @@ export const PublishedView: React.FC<PublishedViewProps> = ({
               <button
                 type="submit"
                 disabled={isSubmitting}
-                className="px-5 py-2 text-sm bg-stone-900 dark:bg-rose-600 hover:bg-stone-800 dark:hover:bg-rose-700 text-white rounded-lg font-medium shadow-xs disabled:cursor-not-allowed disabled:opacity-60 cursor-pointer transition-colors"
+                className="px-5 py-2 text-sm bg-[var(--accent)] hover:bg-[var(--accent-dark)] text-white rounded-lg font-medium shadow-xs disabled:cursor-not-allowed disabled:opacity-60 cursor-pointer transition-colors"
               >
                 {isSubmitting ? '正在保存…' : editingVideo ? '更新归档' : '立即归档'}
               </button>

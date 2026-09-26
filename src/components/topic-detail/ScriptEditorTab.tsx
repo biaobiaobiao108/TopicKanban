@@ -17,6 +17,8 @@ import { FloatingScrollbar } from '../ui/FloatingScrollbar';
 import {
   Clock,
   CheckCircle2,
+  Cloud,
+  Save,
   Copy,
   Check,
   Maximize2,
@@ -957,8 +959,8 @@ export const ScriptEditorTab: React.FC<ScriptEditorTabProps> = ({
         {draftConflict && (
           <div className="space-y-4">
             <div className="grid gap-3 sm:grid-cols-2">
-              <div className="rounded-xl border border-rose-200 dark:border-rose-900/60 bg-rose-50 dark:bg-rose-950/40 p-4">
-                <div className="font-semibold text-rose-900 dark:text-rose-200">当前本地文案</div>
+              <div className="rounded-xl border border-red-200 dark:border-red-900/60 bg-red-50 dark:bg-red-950/40 p-4">
+                <div className="font-semibold text-red-900 dark:text-red-200">当前本地文案</div>
                 <div className="mt-2 text-xs text-stone-600 dark:text-stone-300">{latestContentRef.current?.wordCount || 0} 字 · 尚未同步</div>
               </div>
               <div className="rounded-xl border border-stone-200 dark:border-stone-800 bg-stone-50 dark:bg-stone-800/60 p-4">
@@ -968,7 +970,7 @@ export const ScriptEditorTab: React.FC<ScriptEditorTabProps> = ({
             </div>
             <div className="flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
               <button type="button" onClick={() => void resolveDraftConflict('remote')} className="min-h-11 rounded-lg border border-stone-300 dark:border-stone-700 bg-white dark:bg-stone-800 px-4 py-2 text-sm font-semibold text-stone-700 dark:text-stone-200 hover:bg-stone-50 dark:hover:bg-stone-700">使用云端版本</button>
-              <button type="button" onClick={() => void resolveDraftConflict('local')} className="min-h-11 rounded-lg bg-rose-600 px-4 py-2 text-sm font-semibold text-white hover:bg-rose-700">保留本地文案</button>
+              <button type="button" onClick={() => void resolveDraftConflict('local')} className="min-h-11 rounded-lg bg-[var(--accent)] px-4 py-2 text-sm font-semibold text-white hover:bg-[var(--accent-dark)]">保留本地文案</button>
             </div>
           </div>
         )}
@@ -1002,36 +1004,18 @@ export const ScriptEditorTab: React.FC<ScriptEditorTabProps> = ({
             </button>
 
             {/* Auto save indicator */}
-            <div className="flex items-center text-[11px] font-medium transition-all select-none shrink-0 pl-1">
+            <div className="grid h-7 w-7 shrink-0 select-none place-items-center rounded-lg" aria-live="polite">
               {saveStatus === 'saving' && (
-                <div className="flex items-center gap-1.5 text-amber-600 dark:text-amber-400" title="正在同步至云端...">
-                  <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse" />
-                  <span className="hidden sm:inline text-stone-500 dark:text-stone-400">同步中</span>
-                </div>
+                <Cloud className="h-3.5 w-3.5 animate-pulse text-[var(--accent)]" aria-label="正在同步至云端" role="img" />
               )}
               {saveStatus === 'saved' && (
-                <div
-                  className="flex items-center gap-1 text-stone-400 dark:text-stone-500 hover:text-stone-600 dark:hover:text-stone-300 transition-colors"
-                  title={`云端已同步${lastSavedTime ? ` · ${lastSavedTime}` : ''}`}
-                >
-                  <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600/80 dark:text-emerald-400/80" />
-                  <span className="hidden sm:inline">已同步</span>
-                </div>
+                <CheckCircle2 className="h-3.5 w-3.5 text-emerald-600/80 dark:text-emerald-400/80" aria-label="云端已同步" role="img" />
               )}
               {(saveStatus === 'local' || saveStatus === 'unsaved' || saveStatus === 'pending') && (
-                <div
-                  className="flex items-center gap-1 text-stone-400 dark:text-stone-500 hover:text-stone-600 dark:hover:text-stone-300 transition-colors"
-                  title="本地草稿已实时安全暂存防丢"
-                >
-                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-500/70" />
-                  <span className="hidden sm:inline">已暂存</span>
-                </div>
+                <Save className="h-3.5 w-3.5 text-stone-500 dark:text-stone-400" aria-label="本地草稿已安全暂存" role="img" />
               )}
               {saveStatus === 'conflict' && (
-                <span className="flex items-center gap-1 text-red-700 dark:text-red-400 bg-red-50 dark:bg-red-950/50 border border-red-200 dark:border-red-900 px-2 py-0.5 rounded-md font-bold">
-                  <AlertTriangle className="w-3.5 h-3.5 text-red-600 dark:text-red-400" />
-                  <span>版本冲突</span>
-                </span>
+                <AlertTriangle className="h-3.5 w-3.5 text-red-600 dark:text-red-400" aria-label="检测到版本冲突" role="img" />
               )}
             </div>
           </div>
@@ -1329,30 +1313,18 @@ export const ScriptEditorTab: React.FC<ScriptEditorTabProps> = ({
               <span>{estMinutes}分{estSeconds}秒</span>
             </span>
             <span className="text-stone-300 dark:text-stone-700">·</span>
-            <div className="flex items-center gap-1 text-[11px] text-stone-600 dark:text-stone-400 font-medium">
+            <div className="grid h-6 w-6 shrink-0 place-items-center" aria-live="polite">
               {saveStatus === 'saving' && (
-                <span className="flex items-center gap-1 text-amber-600 dark:text-amber-400" title="正在同步至云端...">
-                  <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse" />
-                  <span className="hidden sm:inline">同步中</span>
-                </span>
+                <Cloud className="h-3.5 w-3.5 animate-pulse text-[var(--accent)]" aria-label="正在同步至云端" role="img" />
               )}
               {saveStatus === 'saved' && (
-                <span className="flex items-center gap-1 text-emerald-600 dark:text-emerald-400 font-semibold" title="云端已同步">
-                  <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500" />
-                  <span className="hidden sm:inline">已同步</span>
-                </span>
+                <CheckCircle2 className="h-3.5 w-3.5 text-emerald-500" aria-label="云端已同步" role="img" />
               )}
               {(saveStatus === 'local' || saveStatus === 'unsaved' || saveStatus === 'pending') && (
-                <span className="flex items-center gap-1 text-stone-600 dark:text-stone-400" title="本地已安全暂存">
-                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-500/80" />
-                  <span className="hidden sm:inline">已暂存</span>
-                </span>
+                <Save className="h-3.5 w-3.5 text-stone-500 dark:text-stone-400" aria-label="本地草稿已安全暂存" role="img" />
               )}
               {saveStatus === 'conflict' && (
-                <span className="flex items-center gap-1 text-red-600 dark:text-red-400 font-semibold" title="版本冲突">
-                  <AlertTriangle className="w-3.5 h-3.5 text-red-500" />
-                  <span className="hidden sm:inline">冲突</span>
-                </span>
+                <AlertTriangle className="h-3.5 w-3.5 text-red-500" aria-label="检测到版本冲突" role="img" />
               )}
             </div>
           </div>
@@ -1395,7 +1367,7 @@ export const ScriptEditorTab: React.FC<ScriptEditorTabProps> = ({
                 value={draftTitle}
                 onChange={(event) => handleDraftTitleChange(event.target.value)}
                 maxLength={200}
-                className="script-editor-title min-h-10 w-full border-0 bg-transparent px-0 text-2xl font-semibold tracking-tight text-[var(--h1-color)] outline-none placeholder:text-[var(--ink-muted)]/40 focus:ring-0 sm:text-3xl"
+                className="script-editor-title min-h-10 w-full border-0 bg-transparent px-0 text-2xl font-semibold tracking-tight text-[var(--ink)] outline-none placeholder:text-[var(--ink-muted)]/40 focus:ring-0 sm:text-3xl"
                 placeholder="输入这期视频的文案标题"
               />
             </div>
@@ -1477,7 +1449,7 @@ export const ScriptEditorTab: React.FC<ScriptEditorTabProps> = ({
                 <button
                   type="button"
                   onClick={handleCopyShareLink}
-                  className="px-3 py-1.5 rounded-lg bg-rose-600 hover:bg-rose-700 active:scale-95 text-white font-bold transition-all shrink-0 flex items-center gap-1 cursor-pointer shadow-2xs"
+                  className="px-3 py-1.5 rounded-lg bg-[var(--accent)] hover:bg-[var(--accent-dark)] active:scale-95 text-white font-bold transition-all shrink-0 flex items-center gap-1 cursor-pointer shadow-2xs"
                 >
                   {shareCopied ? <Check className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5" />}
                   <span>{shareCopied ? '已复制' : '复制'}</span>
@@ -1501,7 +1473,7 @@ export const ScriptEditorTab: React.FC<ScriptEditorTabProps> = ({
                   type="button"
                   onClick={() => void doGenerateShareSnapshot()}
                   disabled={isGeneratingShare}
-                  className="inline-flex items-center gap-1 font-semibold text-rose-600 dark:text-rose-400 hover:underline cursor-pointer disabled:opacity-50"
+                  className="inline-flex items-center gap-1 font-semibold text-[var(--accent)] hover:underline cursor-pointer disabled:opacity-50"
                 >
                   <RefreshCw className={`w-3 h-3 ${isGeneratingShare ? 'animate-spin' : ''}`} />
                   <span>同步最新草稿</span>

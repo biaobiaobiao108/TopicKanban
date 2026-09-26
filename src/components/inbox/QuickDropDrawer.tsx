@@ -143,13 +143,13 @@ export const QuickDropDrawer: React.FC<QuickDropDrawerProps> = ({
         {/* Header */}
         <div className="p-4 border-b border-stone-200/70 dark:border-stone-800 bg-stone-50/80 dark:bg-stone-900/90 flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <div className="p-2 bg-rose-500/10 text-rose-600 dark:text-rose-400 rounded-xl">
+            <div className="p-2 bg-[var(--accent-soft)] text-[var(--accent)] rounded-xl">
               <Smartphone className="w-4 h-4" />
             </div>
             <div>
               <h2 id="quick-drop-title" className="text-sm font-bold text-stone-900 dark:text-stone-100 flex items-center gap-2">
                 <span>手机快投灵感箱</span>
-                <span className="text-[10px] font-mono bg-rose-500/10 text-rose-700 dark:text-rose-300 px-2 py-0.5 rounded-full font-bold">
+                <span className="text-[10px] font-mono bg-[var(--accent-soft)] text-[var(--accent-dark)] px-2 py-0.5 rounded-full font-bold">
                   {drops.length}
                 </span>
               </h2>
@@ -222,7 +222,7 @@ export const QuickDropDrawer: React.FC<QuickDropDrawerProps> = ({
                       href={safeUrl}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="inline-flex items-center gap-1 text-[11px] text-rose-600 dark:text-rose-400 hover:text-rose-700 dark:hover:text-rose-300 truncate max-w-full font-mono underline"
+                      className="inline-flex items-center gap-1 text-[11px] text-[var(--accent)] hover:text-[var(--accent-dark)] truncate max-w-full font-mono underline"
                     >
                       <ExternalLink className="w-3 h-3 shrink-0" />
                       <span className="truncate">{normalizedUrl}</span>
@@ -234,7 +234,7 @@ export const QuickDropDrawer: React.FC<QuickDropDrawerProps> = ({
                   <button
                     type="button"
                     onClick={() => handleConvert(normalizedItem)}
-                    className="flex items-center gap-1 px-3.5 py-1.5 rounded-xl text-xs font-bold bg-rose-600 hover:bg-rose-700 active:scale-[0.98] text-white transition-all cursor-pointer shadow-2xs"
+                    className="flex items-center gap-1 px-3.5 py-1.5 rounded-xl text-xs font-bold bg-[var(--accent)] hover:bg-[var(--accent-dark)] active:scale-[0.98] text-white transition-all cursor-pointer shadow-2xs"
                   >
                     <Plus className="w-3.5 h-3.5 stroke-[2.5]" />
                     <span>转为收集箱选题</span>

@@ -27,7 +27,7 @@ const statusDots: Record<TopicStatus, string> = {
 };
 
 const priorityConfig: Record<Priority, { label: string; dot: string; desc: string }> = {
-  high: { label: '高优', dot: 'bg-rose-500', desc: '重点攻坚' },
+  high: { label: '高优', dot: 'bg-amber-600 dark:bg-amber-400', desc: '重点攻坚' },
   medium: { label: '中优', dot: 'bg-amber-500', desc: '标准节奏' },
   low: { label: '低优', dot: 'bg-blue-500', desc: '空闲跟进' },
   none: { label: '无优先级', dot: 'bg-stone-300 dark:bg-stone-600', desc: '未设定' },
@@ -84,7 +84,7 @@ export const TopicDetailHeader: React.FC<TopicDetailHeaderProps> = ({
         <div className="flex flex-col gap-2.5 lg:flex-row lg:items-center lg:justify-between">
       {/* Left group: Title & Inline Editor + Status & Priority + Current Action Capsule */}
       <div className="flex min-w-0 w-full flex-1 flex-wrap items-center gap-2.5 sm:gap-3 lg:flex-nowrap">
-        <span className="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-rose-500/10 text-rose-600 ring-1 ring-rose-500/15 dark:text-rose-400">
+        <span className="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-[var(--accent-soft)] text-[var(--accent)]">
           <FileText className="h-4.5 w-4.5" aria-hidden="true" />
         </span>
         <div className="flex min-w-0 flex-1 flex-wrap items-center gap-2 sm:gap-2.5 lg:flex-nowrap">
@@ -108,7 +108,7 @@ export const TopicDetailHeader: React.FC<TopicDetailHeaderProps> = ({
                     setIsEditingTitle(false);
                   }
                 }}
-                className="w-full border-b border-[var(--h1-color)] bg-transparent pb-1 font-serif text-xl text-[var(--h1-color)] outline-none sm:text-2xl"
+                className="w-full border-b border-[var(--accent)] bg-transparent pb-1 font-sans text-xl text-[var(--ink)] outline-none sm:text-2xl"
               />
               <button
                 onClick={handleSaveTitle}
@@ -122,7 +122,7 @@ export const TopicDetailHeader: React.FC<TopicDetailHeaderProps> = ({
               <h1
                 onClick={() => setIsEditingTitle(true)}
                 title="点击快速编辑标题"
-                className="min-w-0 truncate font-serif text-lg font-bold leading-tight tracking-tight text-[var(--h1-color)] transition-opacity hover:opacity-85 sm:text-xl"
+                className="min-w-0 truncate font-sans text-lg font-bold leading-tight tracking-tight text-[var(--ink)] transition-colors hover:text-[var(--accent)] sm:text-xl"
               >
                 {topic.title}
               </h1>

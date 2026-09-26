@@ -188,7 +188,7 @@ export const PeopleView: React.FC<PeopleViewProps> = ({
             <button
               type="button"
               onClick={openAddPersonModal}
-              className="inline-flex min-h-12 items-center gap-1.5 rounded-xl bg-rose-600 px-4 text-xs font-semibold text-white shadow-2xs transition-all hover:bg-rose-700 hover:shadow-xs active:scale-[0.98] sm:text-sm"
+              className="inline-flex min-h-12 items-center gap-1.5 rounded-xl bg-[var(--accent)] px-4 text-xs font-semibold text-white shadow-2xs transition-all hover:bg-[var(--accent-dark)] hover:shadow-xs active:scale-[0.98] sm:text-sm"
             >
               <Plus className="h-4 w-4 stroke-[2.5]" aria-hidden="true" />
               <span>新建人物档案</span>
@@ -209,7 +209,7 @@ export const PeopleView: React.FC<PeopleViewProps> = ({
             placeholder="搜索人物姓名、身份、别名或语录..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full pl-10 pr-3.5 py-2.5 bg-white dark:bg-stone-900 border border-stone-200/70 dark:border-stone-800 rounded-xl text-xs sm:text-sm text-stone-900 dark:text-stone-100 placeholder:text-stone-400 dark:placeholder:text-stone-500 focus:outline-none focus:border-rose-500 dark:focus:border-rose-500 shadow-2xs transition-colors"
+            className="w-full pl-10 pr-3.5 py-2.5 bg-white dark:bg-stone-900 border border-stone-200/70 dark:border-stone-800 rounded-xl text-xs sm:text-sm text-stone-900 dark:text-stone-100 placeholder:text-stone-400 dark:placeholder:text-stone-500 focus:outline-none focus:border-[var(--accent)] dark:focus:border-[var(--accent)] shadow-2xs transition-colors"
           />
         </div>
 
@@ -243,7 +243,7 @@ export const PeopleView: React.FC<PeopleViewProps> = ({
                           className="w-12 h-12 rounded-2xl object-cover border border-stone-200/70 dark:border-stone-700 shadow-2xs shrink-0"
                         />
                       ) : (
-                        <div className="w-12 h-12 rounded-2xl bg-rose-500/10 text-rose-700 dark:text-rose-300 flex items-center justify-center font-bold text-lg border border-rose-500/20 shrink-0">
+                        <div className="w-12 h-12 rounded-2xl bg-[var(--accent-soft)] text-[var(--accent-dark)] flex items-center justify-center font-bold text-lg border border-[var(--accent)]/15 shrink-0">
                           {person.name.slice(0, 1)}
                         </div>
                       )}
@@ -252,7 +252,7 @@ export const PeopleView: React.FC<PeopleViewProps> = ({
                           {person.name}
                         </h3>
                         {person.identity && (
-                          <span className="inline-block mt-1 text-[11px] text-rose-700 dark:text-rose-300 bg-rose-500/10 px-2 py-0.5 rounded-full font-semibold">
+                          <span className="inline-block mt-1 text-[11px] text-[var(--accent-dark)] bg-[var(--accent-soft)] px-2 py-0.5 rounded-full font-semibold">
                             {person.identity}
                           </span>
                         )}
@@ -295,7 +295,7 @@ export const PeopleView: React.FC<PeopleViewProps> = ({
                   )}
 
                   {person.quotes && (
-                    <div className="text-xs text-stone-700 dark:text-stone-300 italic border-l-2 border-rose-500 pl-3 bg-rose-500/[0.04] dark:bg-rose-950/20 py-2 rounded-r-xl">
+                    <div className="text-xs text-stone-700 dark:text-stone-300 italic border-l-2 border-[var(--accent)] pl-3 bg-[var(--accent-soft)]/45 py-2 rounded-r-xl">
                       “{person.quotes}”
                     </div>
                   )}
@@ -343,7 +343,7 @@ export const PeopleView: React.FC<PeopleViewProps> = ({
                         <button
                           key={t.id}
                           onClick={() => onSelectTopic(t.id)}
-                          className="w-full text-left text-xs font-medium text-stone-700 dark:text-stone-300 hover:text-rose-600 dark:hover:text-rose-400 truncate block transition-colors cursor-pointer"
+                          className="w-full text-left text-xs font-medium text-stone-700 dark:text-stone-300 hover:text-[var(--accent)] truncate block transition-colors cursor-pointer"
                         >
                           • {t.title}
                         </button>
@@ -380,7 +380,7 @@ export const PeopleView: React.FC<PeopleViewProps> = ({
           <form onSubmit={handlePersonSubmit} className="space-y-4">
             <div>
               <label htmlFor="person-name" className="block text-xs font-bold text-stone-800 dark:text-stone-200 mb-1">
-                姓名 / 核心称呼 <span className="text-rose-600">*</span>
+                姓名 / 核心称呼 <span className="text-stone-400">*</span>
               </label>
               <input
                 id="person-name"
@@ -391,7 +391,7 @@ export const PeopleView: React.FC<PeopleViewProps> = ({
                 placeholder="例如：大胃袋良子"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
-                className="w-full px-3.5 py-2.5 bg-stone-500/[0.03] dark:bg-stone-800 border border-stone-200/80 dark:border-stone-700 rounded-xl text-sm text-stone-900 dark:text-stone-100 placeholder:text-stone-400 dark:placeholder:text-stone-500 focus:bg-white dark:focus:bg-stone-800 focus:border-rose-500 focus:outline-none"
+                className="w-full px-3.5 py-2.5 bg-stone-500/[0.03] dark:bg-stone-800 border border-stone-200/80 dark:border-stone-700 rounded-xl text-sm text-stone-900 dark:text-stone-100 placeholder:text-stone-400 dark:placeholder:text-stone-500 focus:bg-white dark:focus:bg-stone-800 focus:border-[var(--accent)] focus:outline-none"
               />
             </div>
 
@@ -406,7 +406,7 @@ export const PeopleView: React.FC<PeopleViewProps> = ({
                   placeholder="良子, 峨眉山战神"
                   value={aliases}
                   onChange={(e) => setAliases(e.target.value)}
-                  className="w-full px-3.5 py-2.5 bg-stone-500/[0.03] dark:bg-stone-800 border border-stone-200/80 dark:border-stone-700 rounded-xl text-sm text-stone-900 dark:text-stone-100 placeholder:text-stone-400 dark:placeholder:text-stone-500 focus:bg-white dark:focus:bg-stone-800 focus:border-rose-500 focus:outline-none"
+                  className="w-full px-3.5 py-2.5 bg-stone-500/[0.03] dark:bg-stone-800 border border-stone-200/80 dark:border-stone-700 rounded-xl text-sm text-stone-900 dark:text-stone-100 placeholder:text-stone-400 dark:placeholder:text-stone-500 focus:bg-white dark:focus:bg-stone-800 focus:border-[var(--accent)] focus:outline-none"
                 />
               </div>
               <div>
@@ -419,7 +419,7 @@ export const PeopleView: React.FC<PeopleViewProps> = ({
                   placeholder="吃播博主 / 健身教练"
                   value={identity}
                   onChange={(e) => setIdentity(e.target.value)}
-                  className="w-full px-3.5 py-2.5 bg-stone-500/[0.03] dark:bg-stone-800 border border-stone-200/80 dark:border-stone-700 rounded-xl text-sm text-stone-900 dark:text-stone-100 placeholder:text-stone-400 dark:placeholder:text-stone-500 focus:bg-white dark:focus:bg-stone-800 focus:border-rose-500 focus:outline-none"
+                  className="w-full px-3.5 py-2.5 bg-stone-500/[0.03] dark:bg-stone-800 border border-stone-200/80 dark:border-stone-700 rounded-xl text-sm text-stone-900 dark:text-stone-100 placeholder:text-stone-400 dark:placeholder:text-stone-500 focus:bg-white dark:focus:bg-stone-800 focus:border-[var(--accent)] focus:outline-none"
                 />
               </div>
             </div>
@@ -434,7 +434,7 @@ export const PeopleView: React.FC<PeopleViewProps> = ({
                 placeholder="https://..."
                 value={avatarUrl}
                 onChange={(e) => setAvatarUrl(e.target.value)}
-                className="w-full px-3.5 py-2.5 bg-stone-500/[0.03] dark:bg-stone-800 border border-stone-200/80 dark:border-stone-700 rounded-xl text-sm text-stone-900 dark:text-stone-100 placeholder:text-stone-400 dark:placeholder:text-stone-500 focus:bg-white dark:focus:bg-stone-800 focus:border-rose-500 focus:outline-none"
+                className="w-full px-3.5 py-2.5 bg-stone-500/[0.03] dark:bg-stone-800 border border-stone-200/80 dark:border-stone-700 rounded-xl text-sm text-stone-900 dark:text-stone-100 placeholder:text-stone-400 dark:placeholder:text-stone-500 focus:bg-white dark:focus:bg-stone-800 focus:border-[var(--accent)] focus:outline-none"
               />
             </div>
 
@@ -448,7 +448,7 @@ export const PeopleView: React.FC<PeopleViewProps> = ({
                 placeholder="抖音: @良子大胃袋 (280w), B站: @良子吃不饱"
                 value={platformAccounts}
                 onChange={(e) => setPlatformAccounts(e.target.value)}
-                className="w-full px-3.5 py-2.5 bg-stone-500/[0.03] dark:bg-stone-800 border border-stone-200/80 dark:border-stone-700 rounded-xl text-sm text-stone-900 dark:text-stone-100 placeholder:text-stone-400 dark:placeholder:text-stone-500 focus:bg-white dark:focus:bg-stone-800 focus:border-rose-500 focus:outline-none"
+                className="w-full px-3.5 py-2.5 bg-stone-500/[0.03] dark:bg-stone-800 border border-stone-200/80 dark:border-stone-700 rounded-xl text-sm text-stone-900 dark:text-stone-100 placeholder:text-stone-400 dark:placeholder:text-stone-500 focus:bg-white dark:focus:bg-stone-800 focus:border-[var(--accent)] focus:outline-none"
               />
             </div>
 
@@ -462,7 +462,7 @@ export const PeopleView: React.FC<PeopleViewProps> = ({
                 placeholder="“这次上峨眉山，我不是来旅游的...”"
                 value={quotes}
                 onChange={(e) => setQuotes(e.target.value)}
-                className="w-full px-3.5 py-2.5 bg-stone-500/[0.03] dark:bg-stone-800 border border-stone-200/80 dark:border-stone-700 rounded-xl text-sm text-stone-900 dark:text-stone-100 placeholder:text-stone-400 dark:placeholder:text-stone-500 focus:bg-white dark:focus:bg-stone-800 focus:border-rose-500 focus:outline-none"
+                className="w-full px-3.5 py-2.5 bg-stone-500/[0.03] dark:bg-stone-800 border border-stone-200/80 dark:border-stone-700 rounded-xl text-sm text-stone-900 dark:text-stone-100 placeholder:text-stone-400 dark:placeholder:text-stone-500 focus:bg-white dark:focus:bg-stone-800 focus:border-[var(--accent)] focus:outline-none"
               />
             </div>
 
@@ -476,7 +476,7 @@ export const PeopleView: React.FC<PeopleViewProps> = ({
                 placeholder="记录该人物的行为特征、性格反差与过往核心黑历史..."
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
-                className="w-full px-3.5 py-2.5 bg-stone-500/[0.03] dark:bg-stone-800 border border-stone-200/80 dark:border-stone-700 rounded-xl text-sm text-stone-900 dark:text-stone-100 placeholder:text-stone-400 dark:placeholder:text-stone-500 focus:bg-white dark:focus:bg-stone-800 focus:border-rose-500 focus:outline-none resize-none"
+                className="w-full px-3.5 py-2.5 bg-stone-500/[0.03] dark:bg-stone-800 border border-stone-200/80 dark:border-stone-700 rounded-xl text-sm text-stone-900 dark:text-stone-100 placeholder:text-stone-400 dark:placeholder:text-stone-500 focus:bg-white dark:focus:bg-stone-800 focus:border-[var(--accent)] focus:outline-none resize-none"
               />
             </div>
 
@@ -490,7 +490,7 @@ export const PeopleView: React.FC<PeopleViewProps> = ({
               </button>
               <button
                 type="submit"
-                className="px-5 py-2 text-xs sm:text-sm bg-rose-600 hover:bg-rose-700 text-white rounded-xl font-bold cursor-pointer transition-all shadow-2xs"
+                className="px-5 py-2 text-xs sm:text-sm bg-[var(--accent)] hover:bg-[var(--accent-dark)] text-white rounded-xl font-bold cursor-pointer transition-all shadow-2xs"
               >
                 {editingPerson ? '更新档案' : '创建档案'}
               </button>
@@ -535,7 +535,7 @@ export const PeopleView: React.FC<PeopleViewProps> = ({
 
             <div>
               <label htmlFor="relationship-name" className="block text-xs font-bold text-stone-800 dark:text-stone-200 mb-1">
-                关系定性 <span className="text-rose-600">*</span>
+                关系定性 <span className="text-stone-400">*</span>
               </label>
               <input
                 id="relationship-name"
@@ -546,7 +546,7 @@ export const PeopleView: React.FC<PeopleViewProps> = ({
                 placeholder="例如：师徒反目 / 商业对手 / 前合伙人"
                 value={relName}
                 onChange={(e) => setRelName(e.target.value)}
-                className="w-full px-3.5 py-2.5 bg-stone-500/[0.03] dark:bg-stone-800 border border-stone-200/80 dark:border-stone-700 rounded-xl text-sm text-stone-900 dark:text-stone-100 placeholder:text-stone-400 dark:placeholder:text-stone-500 focus:bg-white dark:focus:bg-stone-800 focus:border-rose-500 focus:outline-none"
+                className="w-full px-3.5 py-2.5 bg-stone-500/[0.03] dark:bg-stone-800 border border-stone-200/80 dark:border-stone-700 rounded-xl text-sm text-stone-900 dark:text-stone-100 placeholder:text-stone-400 dark:placeholder:text-stone-500 focus:bg-white dark:focus:bg-stone-800 focus:border-[var(--accent)] focus:outline-none"
               />
             </div>
 
@@ -560,7 +560,7 @@ export const PeopleView: React.FC<PeopleViewProps> = ({
                 placeholder="简要说明双方爆发冲突或合作的关键时间点与事件..."
                 value={relDesc}
                 onChange={(e) => setRelDesc(e.target.value)}
-                className="w-full px-3.5 py-2.5 bg-stone-500/[0.03] dark:bg-stone-800 border border-stone-200/80 dark:border-stone-700 rounded-xl text-sm text-stone-900 dark:text-stone-100 placeholder:text-stone-400 dark:placeholder:text-stone-500 focus:bg-white dark:focus:bg-stone-800 focus:border-rose-500 focus:outline-none resize-none"
+                className="w-full px-3.5 py-2.5 bg-stone-500/[0.03] dark:bg-stone-800 border border-stone-200/80 dark:border-stone-700 rounded-xl text-sm text-stone-900 dark:text-stone-100 placeholder:text-stone-400 dark:placeholder:text-stone-500 focus:bg-white dark:focus:bg-stone-800 focus:border-[var(--accent)] focus:outline-none resize-none"
               />
             </div>
 
@@ -574,7 +574,7 @@ export const PeopleView: React.FC<PeopleViewProps> = ({
               </button>
               <button
                 type="submit"
-                className="px-5 py-2 text-xs sm:text-sm bg-rose-600 hover:bg-rose-700 text-white rounded-xl font-bold cursor-pointer transition-all shadow-2xs"
+                className="px-5 py-2 text-xs sm:text-sm bg-[var(--accent)] hover:bg-[var(--accent-dark)] text-white rounded-xl font-bold cursor-pointer transition-all shadow-2xs"
               >
                 保存关系
               </button>

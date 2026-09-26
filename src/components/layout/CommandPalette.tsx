@@ -440,7 +440,7 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
         extra: (
           <div className="flex items-center gap-1.5 shrink-0">
             {t.tag && (
-              <span className="text-[10px] px-1.5 py-0.5 rounded bg-rose-100 dark:bg-rose-950 text-rose-700 dark:text-rose-300 font-bold shrink-0">
+              <span className="text-[10px] px-1.5 py-0.5 rounded bg-[var(--accent-soft)] text-[var(--accent)] font-bold shrink-0">
                 {t.tag}
               </span>
             )}
@@ -841,7 +841,7 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
             className="command-palette-input w-full text-sm sm:text-base bg-transparent border-none outline-none text-stone-900 dark:text-stone-100 placeholder:text-stone-400 dark:placeholder:text-stone-500 font-medium"
           />
           {mode !== 'all' && (
-            <span className="mr-2 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-rose-500/10 text-rose-700 dark:text-rose-300 shrink-0 font-mono">
+            <span className="mr-2 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-[var(--accent-soft)] text-[var(--accent)] shrink-0 font-mono">
               {mode === 'tag' ? '# 赛道模式' : mode === 'person' ? '@ 人物模式' : mode === 'help' ? '? 快捷键模式' : '> 动作模式'}
             </span>
           )}
@@ -858,7 +858,7 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
             onClick={() => handleSetPrefix('')}
             className={`px-3 py-1 rounded-xl transition-all cursor-pointer shrink-0 ${
               mode === 'all' && !query
-                ? 'bg-rose-600 text-white shadow-2xs font-bold'
+                ? 'bg-[var(--accent-soft)] text-[var(--accent-dark)] shadow-2xs font-bold'
                 : 'bg-stone-500/[0.05] dark:bg-stone-700/60 hover:bg-stone-500/[0.1] dark:hover:bg-stone-600 text-stone-800 dark:text-stone-100 font-medium'
             }`}
           >
@@ -869,7 +869,7 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
             onClick={() => handleSetPrefix('> ')}
             className={`px-3 py-1 rounded-xl transition-all cursor-pointer shrink-0 font-mono ${
               mode === 'action'
-                ? 'bg-rose-600 text-white shadow-2xs font-bold'
+                ? 'bg-[var(--accent-soft)] text-[var(--accent-dark)] shadow-2xs font-bold'
                 : 'bg-stone-500/[0.05] dark:bg-stone-700/60 hover:bg-stone-500/[0.1] dark:hover:bg-stone-600 text-stone-800 dark:text-stone-100 font-medium'
             }`}
           >
@@ -880,7 +880,7 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
             onClick={() => handleSetPrefix('# ')}
             className={`px-3 py-1 rounded-xl transition-all cursor-pointer shrink-0 font-mono ${
               mode === 'tag'
-                ? 'bg-rose-600 text-white shadow-2xs font-bold'
+                ? 'bg-[var(--accent-soft)] text-[var(--accent-dark)] shadow-2xs font-bold'
                 : 'bg-stone-500/[0.05] dark:bg-stone-700/60 hover:bg-stone-500/[0.1] dark:hover:bg-stone-600 text-stone-800 dark:text-stone-100 font-medium'
             }`}
           >
@@ -891,7 +891,7 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
             onClick={() => handleSetPrefix('@ ')}
             className={`px-3 py-1 rounded-xl transition-all cursor-pointer shrink-0 font-mono ${
               mode === 'person'
-                ? 'bg-rose-600 text-white shadow-2xs font-bold'
+                ? 'bg-[var(--accent-soft)] text-[var(--accent-dark)] shadow-2xs font-bold'
                 : 'bg-stone-500/[0.05] dark:bg-stone-700/60 hover:bg-stone-500/[0.1] dark:hover:bg-stone-600 text-stone-800 dark:text-stone-100 font-medium'
             }`}
           >
@@ -902,7 +902,7 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
             onClick={() => handleSetPrefix('? ')}
             className={`px-3 py-1 rounded-xl transition-all cursor-pointer shrink-0 font-mono ${
               mode === 'help'
-                ? 'bg-rose-600 text-white shadow-2xs font-bold'
+                ? 'bg-[var(--accent-soft)] text-[var(--accent-dark)] shadow-2xs font-bold'
                 : 'bg-stone-500/[0.05] dark:bg-stone-700/60 hover:bg-stone-500/[0.1] dark:hover:bg-stone-600 text-stone-800 dark:text-stone-100 font-medium'
             }`}
           >
@@ -931,7 +931,7 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
                   onMouseEnter={() => setSelectedIndex(index)}
                   className={`w-full flex items-center justify-between px-3 py-1.5 rounded-xl text-left transition-all cursor-pointer group ${
                     isSelected
-                      ? 'bg-rose-50/70 dark:bg-rose-950/50 text-rose-950 dark:text-rose-100 ring-1 ring-rose-200 dark:ring-rose-800 shadow-2xs'
+                      ? 'bg-[var(--accent-soft)] text-[var(--ink)] ring-1 ring-[var(--focus-ring)] shadow-2xs'
                       : 'text-stone-700 dark:text-stone-300 hover:bg-stone-50 dark:hover:bg-stone-800/60'
                   }`}
                 >
@@ -939,7 +939,7 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
                     <div
                       className={`w-7 h-7 rounded-lg flex items-center justify-center shrink-0 mt-0.5 transition-colors ${
                         isSelected
-                          ? 'bg-rose-100 dark:bg-rose-900/60 text-rose-700 dark:text-rose-300'
+                          ? 'bg-[var(--surface)] text-[var(--accent)]'
                           : 'bg-stone-100 dark:bg-stone-800 text-stone-500 dark:text-stone-400 group-hover:bg-stone-200/80 dark:group-hover:bg-stone-700 group-hover:text-stone-800 dark:group-hover:text-stone-200'
                       }`}
                     >
@@ -964,7 +964,7 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
                     {item.extra}
                     <CornerDownLeft
                       className={`w-3.5 h-3.5 transition-opacity ${
-                        isSelected ? 'text-rose-600 dark:text-rose-400 opacity-100' : 'text-stone-300 dark:text-stone-600 opacity-0 group-hover:opacity-60'
+                        isSelected ? 'text-[var(--accent)] opacity-100' : 'text-stone-300 dark:text-stone-600 opacity-0 group-hover:opacity-60'
                       }`}
                     />
                   </div>

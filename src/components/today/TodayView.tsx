@@ -61,7 +61,7 @@ function DealFocusCard({ deal, onOpen }: { deal: CommercialDeal; onOpen: () => v
       onClick={onOpen}
       className="flex min-h-20 w-full items-center gap-3 rounded-2xl border border-stone-200/50 bg-white p-4 text-left shadow-2xs transition-all hover:-translate-y-0.5 hover:shadow-card dark:border-stone-800/60 dark:bg-stone-900"
     >
-      <span className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl ${isUnpaid ? 'bg-amber-500/10 text-amber-600 dark:text-amber-300' : 'bg-rose-500/10 text-rose-600 dark:text-rose-300'}`}>
+      <span className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl ${isUnpaid ? 'bg-amber-500/10 text-amber-600 dark:text-amber-300' : 'bg-[var(--accent-soft)] text-[var(--accent)]'}`}>
         {isUnpaid ? <WalletCards className="h-5 w-5" /> : <Handshake className="h-5 w-5" />}
       </span>
       <span className="min-w-0 flex-1">
@@ -170,12 +170,12 @@ export const TodayView: React.FC<TodayViewProps> = ({
         <PageHeader
           title="今日生产聚焦"
           icon={Calendar}
-          badge={<span className="rounded-full bg-rose-500/10 px-2.5 py-1 text-xs font-semibold text-rose-800 dark:bg-rose-950/40 dark:text-rose-300">专注当下</span>}
+          badge={<span className="rounded-full bg-[var(--accent-soft)] px-2.5 py-1 text-xs font-semibold text-[var(--accent-dark)]">专注当下</span>}
           actions={(
             <button
               type="button"
               onClick={onOpenQuickCreate}
-              className="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl bg-rose-600 hover:bg-rose-700 px-4 text-xs font-semibold text-white shadow-soft-pill hover:shadow-md transition-all active:scale-[0.98] sm:text-sm cursor-pointer"
+              className="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl bg-[var(--accent)] hover:bg-[var(--accent-dark)] px-4 text-xs font-semibold text-white shadow-2xs hover:shadow-subtle transition-all active:scale-[0.98] sm:text-sm cursor-pointer"
             >
               <Sparkles className="h-4 w-4 text-amber-200" aria-hidden="true" />
               <span>记录新灵感</span>
@@ -185,15 +185,15 @@ export const TodayView: React.FC<TodayViewProps> = ({
 
         {/* 1. Spotlight Feature Topic Card (Editorial Hero Spotlight) */}
         {focusTopic ? (
-          <div className="today-spotlight-card relative bg-gradient-to-br from-white via-white to-rose-50/20 dark:from-stone-900 dark:via-stone-900 dark:to-rose-950/20 rounded-3xl border border-stone-200/50 dark:border-stone-800/60 p-6 sm:p-8 shadow-card ring-1 ring-stone-900/[0.03] dark:ring-white/[0.04] overflow-hidden transition-all">
+          <div className="today-spotlight-card relative bg-[var(--surface)] rounded-3xl border border-[var(--line)] p-6 sm:p-8 shadow-subtle transition-all">
             {/* Subtle atmospheric glow */}
-            <div className="absolute -right-12 -top-12 w-48 h-48 bg-rose-500/5 dark:bg-rose-500/10 rounded-full blur-3xl pointer-events-none" />
+            <div className="absolute -right-12 -top-12 w-48 h-48 bg-[var(--accent-soft)] rounded-full blur-3xl pointer-events-none" />
 
             <div className="relative space-y-5 sm:space-y-6">
               {/* Header Badges & Pin */}
               <div className="flex items-center justify-between gap-2 flex-wrap">
                 <div className="flex items-center gap-2 flex-wrap">
-                  <span className="inline-flex items-center gap-1 text-xs font-bold text-white bg-rose-600 px-3 py-1 rounded-full shadow-2xs">
+                  <span className="inline-flex items-center gap-1 text-xs font-bold text-white bg-[var(--accent)] px-3 py-1 rounded-full shadow-2xs">
                     <Flame className="w-3.5 h-3.5" />
                     <span>主推选题</span>
                   </span>
@@ -220,7 +220,7 @@ export const TodayView: React.FC<TodayViewProps> = ({
                     <button
                       type="button"
                       onClick={() => void onTogglePin(focusTopic.id)}
-                      className={`inline-flex min-h-9 items-center gap-1.5 rounded-xl border px-2.5 text-xs font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rose-500/40 ${focusTopic.is_pinned === 1 ? 'border-amber-200 bg-amber-50 text-amber-800 hover:bg-amber-100 dark:border-amber-900/60 dark:bg-amber-950/30 dark:text-amber-300 dark:hover:bg-amber-950/50' : 'border-stone-200 bg-white text-stone-600 hover:border-rose-300 hover:text-rose-700 dark:border-stone-700 dark:bg-stone-900 dark:text-stone-300 dark:hover:border-rose-800 dark:hover:text-rose-300'}`}
+                      className={`inline-flex min-h-9 items-center gap-1.5 rounded-xl border px-2.5 text-xs font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]/30 ${focusTopic.is_pinned === 1 ? 'border-amber-200 bg-amber-50 text-amber-800 hover:bg-amber-100 dark:border-amber-900/60 dark:bg-amber-950/30 dark:text-amber-300 dark:hover:bg-amber-950/50' : 'border-[var(--line)] bg-[var(--surface)] text-[var(--ink-muted)] hover:border-[var(--accent)]/30 hover:text-[var(--accent-dark)]'}`}
                       title={focusTopic.is_pinned === 1 ? '取消主推' : '设为主推'}
                     >
                       <Pin className={`h-3.5 w-3.5 ${focusTopic.is_pinned === 1 ? 'fill-amber-500' : ''}`} aria-hidden="true" />
@@ -234,7 +234,7 @@ export const TodayView: React.FC<TodayViewProps> = ({
               <div>
                 <h2
                   onClick={() => onOpenDetail(focusTopic.id)}
-                  className="text-xl sm:text-2xl lg:text-3xl font-bold text-stone-900 dark:text-stone-100 hover:text-rose-600 dark:hover:text-rose-400 transition-colors cursor-pointer leading-tight text-pretty"
+                  className="text-xl sm:text-2xl lg:text-3xl font-bold text-stone-900 dark:text-stone-100 hover:text-[var(--accent)] transition-colors cursor-pointer leading-tight text-pretty"
                 >
                   {focusTopic.title}
                 </h2>
@@ -246,14 +246,14 @@ export const TodayView: React.FC<TodayViewProps> = ({
               </div>
 
               {/* Current Action Callout (Editorial Action Hero Tile) */}
-              <div className="bg-rose-500/[0.07] dark:bg-rose-500/[0.12] rounded-2xl p-5 sm:p-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 transition-colors">
+              <div className="bg-[var(--accent-soft)] rounded-2xl p-5 sm:p-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 transition-colors">
                 <div className="space-y-1.5 flex-1 min-w-0">
-                  <div className="text-xs font-bold uppercase tracking-wider text-rose-700 dark:text-rose-400 flex items-center gap-2">
+                  <div className="text-xs font-bold tracking-wide text-[var(--accent-dark)] flex items-center gap-2">
                     <span className="relative flex h-2 w-2 shrink-0">
-                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-rose-400 opacity-75"></span>
-                      <span className="relative inline-flex rounded-full h-2 w-2 bg-rose-600 dark:bg-rose-500"></span>
+                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[var(--accent)] opacity-35"></span>
+                      <span className="relative inline-flex rounded-full h-2 w-2 bg-[var(--accent)]"></span>
                     </span>
-                    <Zap className="w-3.5 h-3.5 fill-rose-500/20" />
+                    <Zap className="w-3.5 h-3.5 fill-[var(--accent)]/20" />
                     <span>当前核心行动</span>
                   </div>
                   <div className="text-base sm:text-lg font-bold text-stone-900 dark:text-stone-100 leading-snug">
@@ -264,7 +264,7 @@ export const TodayView: React.FC<TodayViewProps> = ({
                 <div className="flex w-full shrink-0 flex-col gap-2.5 sm:w-auto sm:flex-row">
                   <button
                     onClick={() => setActionTopic(focusTopic)}
-                    className="w-full sm:w-auto shrink-0 flex items-center justify-center gap-2 bg-rose-600 hover:bg-rose-700 text-white px-5 py-2.5 rounded-xl text-sm font-semibold transition-all shadow-2xs hover:shadow-xs active:scale-[0.98] cursor-pointer"
+                    className="w-full sm:w-auto shrink-0 flex items-center justify-center gap-2 bg-[var(--accent)] hover:bg-[var(--accent-dark)] text-white px-5 py-2.5 rounded-xl text-sm font-semibold transition-all shadow-2xs hover:shadow-xs active:scale-[0.98] cursor-pointer"
                   >
                     <CheckCircle2 className="w-4 h-4" />
                     <span>{focusTopic.current_todo ? '推进 / 完成行动' : '设置当前行动'}</span>
@@ -317,7 +317,7 @@ export const TodayView: React.FC<TodayViewProps> = ({
             <p className="text-stone-600 dark:text-stone-400">当前没有活跃选题，立即创建一个开启今日视频制作！</p>
             <button
               onClick={onOpenQuickCreate}
-              className="mt-4 px-5 py-2.5 bg-rose-600 hover:bg-rose-700 text-white rounded-xl text-sm font-semibold transition-all shadow-2xs cursor-pointer"
+              className="mt-4 px-5 py-2.5 bg-[var(--accent)] hover:bg-[var(--accent-dark)] text-white rounded-xl text-sm font-semibold transition-all shadow-2xs cursor-pointer"
             >
               + 新建选题
             </button>
@@ -329,13 +329,13 @@ export const TodayView: React.FC<TodayViewProps> = ({
             <div className="flex items-center justify-between gap-3">
               <div>
                 <h2 id="today-deals-heading" className="flex items-center gap-2 text-base font-bold text-stone-900 dark:text-stone-100">
-                  <Handshake className="h-4 w-4 text-rose-600 dark:text-rose-400" />
+                  <Handshake className="h-4 w-4 text-[var(--accent)]" />
                   商单待推进
-                  <span className="rounded-full bg-rose-500/10 px-2 py-0.5 text-xs font-mono font-bold text-rose-700 dark:text-rose-300">{focusDeals.length}</span>
+                  <span className="rounded-full bg-[var(--accent-soft)] px-2 py-0.5 text-xs font-mono font-bold text-[var(--accent-dark)]">{focusDeals.length}</span>
                 </h2>
                 <p className="mt-1 text-xs text-stone-600 dark:text-stone-400">交付节点、下一步行动与已交付未回款事项集中在这里。</p>
               </div>
-              <button type="button" onClick={() => onOpenDeal(focusDeals[0].id)} className="min-h-11 shrink-0 rounded-xl border border-stone-200 bg-white px-3 text-xs font-semibold text-stone-700 transition-colors hover:border-rose-300 hover:text-rose-700 dark:border-stone-700 dark:bg-stone-900 dark:text-stone-300 dark:hover:border-rose-800 dark:hover:text-rose-300">打开商单</button>
+              <button type="button" onClick={() => onOpenDeal(focusDeals[0].id)} className="min-h-11 shrink-0 rounded-xl border border-[var(--line)] bg-[var(--surface)] px-3 text-xs font-semibold text-[var(--ink-muted)] transition-colors hover:border-[var(--accent)]/35 hover:text-[var(--accent-dark)]">打开商单</button>
             </div>
             <div className="grid gap-3 md:grid-cols-2">
               {focusDeals.map((deal) => <DealFocusCard key={deal.id} deal={deal} onOpen={() => onOpenDeal(deal.id)} />)}
@@ -349,7 +349,7 @@ export const TodayView: React.FC<TodayViewProps> = ({
           <section aria-labelledby="today-action-progress-heading" data-testid="today-action-progress-column" className="flex h-[22rem] min-h-0 flex-col space-y-3.5">
             <div className="flex items-center justify-between gap-3">
               <h2 id="today-action-progress-heading" className="flex items-center gap-2 text-base font-bold text-stone-900 dark:text-stone-100">
-                <ListChecks className="h-4 w-4 text-rose-600 dark:text-rose-400" />
+                <ListChecks className="h-4 w-4 text-[var(--accent)]" />
                 <span>行动推进</span>
                 <span className="rounded-full bg-stone-200/60 px-2 py-0.5 text-xs font-mono font-bold tabular-nums text-stone-700 dark:bg-stone-800 dark:text-stone-300">{activeTopicTotal}</span>
               </h2>
@@ -369,15 +369,15 @@ export const TodayView: React.FC<TodayViewProps> = ({
               </div>
 
               <div className="mt-3 h-2 overflow-hidden rounded-full bg-stone-100 dark:bg-stone-800" aria-label={`当前行动覆盖率 ${coveragePercent}%`} role="progressbar" aria-valuemin={0} aria-valuemax={100} aria-valuenow={coveragePercent}>
-                <div className="h-full rounded-full bg-gradient-to-r from-rose-500 to-rose-400 transition-[width] duration-300 motion-reduce:transition-none" style={{ width: `${coveragePercent}%` }} />
+                <div className="h-full rounded-full bg-[var(--accent)] transition-[width] duration-300 motion-reduce:transition-none" style={{ width: `${coveragePercent}%` }} />
               </div>
 
               <FloatingScrollbar data-testid="today-action-progress-scroll" role="region" tabIndex={0} aria-label="行动推进列表" className="today-focus-scroll divide-y divide-stone-100 dark:divide-stone-800/70" wrapperClassName="mt-4 flex-1 min-h-0">
                 {actionProgress.attention.length > 0 ? actionProgress.attention.map((topic) => {
                   const hasAction = Boolean(topic.current_todo);
                   return (
-                    <button key={topic.id} type="button" onClick={() => onOpenDetail(topic.id, 'todos')} className="flex min-h-12 w-full items-center gap-3 py-2 text-left transition-colors hover:text-rose-700 dark:hover:text-rose-300">
-                      <span className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-lg ${hasAction ? 'bg-amber-500/10 text-amber-600 dark:text-amber-300' : 'bg-rose-500/10 text-rose-600 dark:text-rose-300'}`}>
+                    <button key={topic.id} type="button" onClick={() => onOpenDetail(topic.id, 'todos')} className="flex min-h-12 w-full items-center gap-3 py-2 text-left transition-colors hover:text-[var(--accent)]">
+                      <span className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-lg ${hasAction ? 'bg-amber-500/10 text-amber-600 dark:text-amber-300' : 'bg-[var(--accent-soft)] text-[var(--accent)]'}`}>
                         {hasAction ? <AlertTriangle className="h-3.5 w-3.5" aria-hidden="true" /> : <Zap className="h-3.5 w-3.5" aria-hidden="true" />}
                       </span>
                       <span className="min-w-0 flex-1">
@@ -400,7 +400,7 @@ export const TodayView: React.FC<TodayViewProps> = ({
                 <div data-testid="today-action-progress-footer" className="mt-3 border-t border-stone-100 pt-3 text-[11px] text-stone-600 dark:border-stone-800/70 dark:text-stone-400">
                   <div className="flex items-center justify-between gap-3 font-semibold">
                     <span className="flex items-center gap-1.5">
-                      {actionProgress.missingCount > 0 ? <Zap className="h-3.5 w-3.5 text-rose-500 dark:text-rose-400" aria-hidden="true" /> : <AlertTriangle className="h-3.5 w-3.5 text-amber-500 dark:text-amber-400" aria-hidden="true" />}
+                      {actionProgress.missingCount > 0 ? <Zap className="h-3.5 w-3.5 text-amber-500 dark:text-amber-400" aria-hidden="true" /> : <AlertTriangle className="h-3.5 w-3.5 text-amber-500 dark:text-amber-400" aria-hidden="true" />}
                       <span>{actionProgress.missingCount > 0 ? '等待补充行动' : '需要重新推进'}</span>
                     </span>
                     <span data-testid="today-action-progress-count" className="font-mono tabular-nums text-stone-700 dark:text-stone-300">{actionProgress.missingCount > 0 ? actionProgress.missingCount : actionProgress.staleCount}</span>
@@ -432,7 +432,7 @@ export const TodayView: React.FC<TodayViewProps> = ({
                   >
                     <span className="block min-w-0">
                       <span className="flex items-center gap-2">
-                        <span className="truncate text-xs font-semibold text-stone-900 transition-colors group-hover:text-rose-600 dark:text-stone-100 dark:group-hover:text-rose-400">
+                        <span className="truncate text-xs font-semibold text-stone-900 transition-colors group-hover:text-[var(--accent)] dark:text-stone-100">
                           {t.title}
                         </span>
                         <StatusBadge status={t.status} />
@@ -455,7 +455,7 @@ export const TodayView: React.FC<TodayViewProps> = ({
               <div data-testid="today-recent-activity-footer" className="mt-3 shrink-0 border-t border-stone-100 pt-3 text-[11px] text-stone-600 dark:border-stone-800/70 dark:text-stone-400">
                 <div className="flex items-center justify-between gap-3 font-semibold">
                   <span className="flex items-center gap-1.5">
-                    <Clock className="h-3.5 w-3.5 text-rose-500 dark:text-rose-400" aria-hidden="true" />
+                    <Clock className="h-3.5 w-3.5 text-stone-500 dark:text-stone-400" aria-hidden="true" />
                     <span>近期活跃选题</span>
                   </span>
                   <span data-testid="today-recent-activity-count" className="font-mono tabular-nums text-stone-700 dark:text-stone-300">{recentUpdates.length}</span>

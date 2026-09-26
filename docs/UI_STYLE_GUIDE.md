@@ -1,8 +1,8 @@
 # 前端 UI 风格指南
 
-> 版本：1.0 · 适用范围：本项目所有前端页面、组件和交互
+> 版本：2.0 · 适用范围：选题生产工作台的所有前端页面、组件与交互
 
-这是一套面向开发者的可执行 UI 规范。目标不是复制某一个页面，而是让新页面在不同业务场景下仍然保持一致的“温润编辑部”视觉：明亮、克制、清晰，有轻微质感，但不喧宾夺主。
+这是一套面向开发者的可执行 UI 规范。目标是延续 notebook 的暖白纸面、松柏绿和安静排版，同时保留 TopicKanban 的工作台结构、信息层级与业务行为。
 
 本文档中的“必须”表示不可偏离的约束；“推荐”表示默认方案，确有业务理由时可以调整，但应保持同一视觉语义。
 
@@ -11,8 +11,9 @@
 ### 1.1 核心气质
 
 - **温润编辑部**：使用 Stone 灰阶、柔和表面、轻边框和低强度阴影，像一张干净的编辑桌面。
+- **文人笔记基调**：以暖白画布、白色表面、石墨文字、松柏绿行动色与朱砂正文标题点缀构成整体视觉。
 - **信息优先**：标题、行动、状态和主要数据必须先于装饰元素被看见。
-- **轻质感**：通过圆角、留白、透明色和微妙悬停建立层级；避免厚重阴影、强渐变、发光边框和大面积纯色。
+- **轻质感**：通过留白、自然底色层级、细分隔线和微妙悬停建立层级；避免厚重阴影、强渐变、发光边框、密集表格线和多层嵌套方盒。
 - **可持续工作**：界面要适合长时间使用。正文对比度、字号、行高和移动端触控优先于视觉炫技。
 
 ### 1.2 必须遵守
@@ -27,24 +28,27 @@
 
 ### 2.1 基础色
 
-默认浅色主题使用以下颜色。使用 Tailwind 时优先使用语义化的 `stone-*`、`rose-*`、`emerald-*`、`amber-*` 等类；使用其他 CSS 框架时建立等价的设计令牌。
+经典浅色主题使用 notebook 暖白与松柏绿令牌。组件优先使用 CSS 语义令牌；状态色使用 `emerald-*`、`amber-*` 和 `red-*`，不要把 Rose 当作全局品牌强调色。
 
 | 语义 | 默认值 | 用途 |
 | --- | --- | --- |
-| 工作区背景 | `#fafaf9` | 页面画布、内容区背景 |
+| 工作区背景 | `#f6f4ef` | 暖白页面画布与融合式侧栏 |
 | 表面 | `#ffffff` | 卡片、侧栏、弹窗、输入控件 |
-| 主文字 | `#1c1917` | 标题、正文、重要数据 |
-| 次文字 | `#78716c` | 辅助说明、元信息、未激活状态 |
-| 弱边框 | `#e7e5e4` | 卡片边框、分隔线、控件边框 |
-| 品牌浅色 | `#fff1f2` | Rose 强调区域的浅色背景 |
-| 品牌主色 | `#e11d48` | 主按钮、激活状态、主要行动 |
-| 品牌深色 | `#be123c` | 悬停、深色文字或高强调场景 |
+| 主文字 | `#222923` | 标题、正文、重要数据 |
+| 次文字 | `#68716b` | 辅助说明、元信息、未激活状态 |
+| 弱边框 | `rgba(34, 41, 35, 0.09)` | 轻分隔、控件边界和卡片边界 |
+| 强调浅色 | `rgba(54, 95, 77, 0.10)` | 松柏绿行动的浅色选中背景 |
+| 强调色 | `#365f4d` | 主操作、焦点和当前行动 |
+| 强调深色 | `#284838` | 浅色主题中的强调文字和悬停 |
+| 正文 H1 点缀 | `#b14b36` | 文案正文 H1 与编辑器标题 |
 | 成功 | Emerald | 已确认、已完成、已上线 |
 | 警告 | Amber | 待核实、临近截止、需要注意 |
-| 危险 | Rose / Red | 逾期、错误、删除或破坏性操作 |
+| 危险 | Red | 错误、逾期、删除或破坏性操作 |
 | 信息 | Indigo / Sky | 辅助信息、写作中、技术提示 |
 
-深色主题的基础令牌为：工作区 `#0c0a09`、表面 `#1c1917`、主文字 `#f5f5f4`、次文字 `#a8a29e`、边框 `#292524`。深色表面仍需和背景形成层级，不要把所有区域都设成同一个黑色。
+朱砂色只用于编辑正文 H1 点缀及错误、危险语义；普通导航选中、按钮焦点与优先级不得使用朱砂色。
+
+深色主题的基础令牌为：工作区 `#141615`、表面 `#1c1f1e`、主文字 `#e8eae9`、次文字 `#9ba19e`、边框 `rgba(255, 255, 255, 0.08)`，强调色为 `#76a891`。深色表面仍需和背景形成层级，不要把所有区域都设成同一个黑色。
 
 ### 2.2 主题映射
 
@@ -52,11 +56,11 @@
 
 | 主题 | 工作区背景 | 表面 | 主强调色 | 辅助强调色 |
 | --- | --- | --- | --- | --- |
-| 经典浅色 `light` | `#fafaf9` | `#ffffff` | `#e11d48` | `#78716c` |
-| 深色夜间 `dark` | `#0c0a09` | `#1c1917` | `#f43f5e` | `#a8a29e` |
+| 经典浅色 `light` | `#f6f4ef` | `#ffffff` | `#365f4d` | `#68716b` |
+| 深色夜间 `dark` | `#141615` | `#1c1f1e` | `#76a891` | `#9ba19e` |
 | 跟随系统 `system` | 跟随系统 | 跟随系统 | 跟随系统 | 跟随系统 |
-| 暖沙纸境 `warm_paper` | `#f7f4ed` | `#fdfcf7` | `#a35229` | `#385674` |
-| 北欧冷杉 `nordic_frost` | `#f8fafb` | `#ffffff` | `#2d7a64` | `#0ea5e9` |
+| 暖沙纸境 `warm_paper` | `#f7f4ed` | `#fdfcf7` | `#365f4d` | `#6c655c` |
+| 北欧冷杉 `nordic_frost` | `#f6faf9` | `#ffffff` | `#356b5b` | `#5f7474` |
 
 新增主题时必须提供工作区背景、表面、主文字、次文字、边框、主强调色、悬停色和焦点色；禁止只替换按钮颜色而留下不可读的边框或文字。
 
@@ -176,7 +180,7 @@ font-family: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
   dark:border-stone-800">
   <div class="flex min-w-0 items-center gap-3">
     <span class="grid h-10 w-10 shrink-0 place-items-center rounded-xl
-      bg-rose-500/10 text-rose-600 dark:text-rose-400">
+      bg-[var(--accent-soft)] text-[var(--accent)]">
       <!-- Lucide icon, decorative -->
     </span>
     <h1 class="min-w-0 text-xl font-bold leading-tight tracking-tight
@@ -206,9 +210,9 @@ font-family: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
 
 ```html
 <button class="inline-flex min-h-11 items-center justify-center gap-2
-  rounded-xl bg-rose-600 px-4 text-sm font-bold text-white shadow-2xs
-  transition-all hover:bg-rose-700 hover:shadow-xs active:scale-[0.98]
-  focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rose-500
+  rounded-xl bg-[var(--accent)] px-4 text-sm font-bold text-white shadow-2xs
+  transition-all hover:bg-[var(--accent-dark)] hover:shadow-xs active:scale-[0.98]
+  focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]
   focus-visible:ring-offset-2">
   主要操作
 </button>
@@ -216,9 +220,9 @@ font-family: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
 
 按钮层级：
 
-- 主按钮：Rose 或当前主题主强调色，页面中应控制数量。
+- 主按钮：当前主题主强调色（浅色为松柏绿），页面中应控制数量。
 - 次按钮：白色/表面背景、Stone 文字和弱边框，用于并列或返回操作。
-- 危险按钮：只用于删除、移入回收站等破坏性操作，使用 Red/Rose，并配合确认弹窗。
+- 危险按钮：只用于删除、移入回收站等破坏性操作，使用 Red，并配合确认弹窗。
 - 图标按钮：必须有 `aria-label` 和 `title`，不可只让用户猜图标含义。
 - 加载状态必须禁用重复提交并保留按钮尺寸，避免界面跳动。
 
@@ -251,9 +255,9 @@ font-family: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
 | 待制作/准备中 | Purple |
 | 已发布/已上线 | Teal |
 | 待核实/临近截止 | Amber |
-| 逾期/错误/危险 | Rose 或 Red |
+| 逾期/错误/危险 | Red |
 
-优先级使用高（Rose）、中（Amber）、低/无（Stone）。标签胶囊保持中性背景，使用 `#标签` 或等价语义表达，不要把每个标签都变成高饱和色块。
+优先级使用高（Amber）、中（Amber 的浅色层级）、低/无（Stone）。普通选中与行动焦点使用当前主题的松柏绿。标签胶囊保持中性背景，使用 `#标签` 或等价语义表达，不要把每个标签都变成高饱和色块。
 
 ### 5.4 日期、时间与数据
 
@@ -271,7 +275,7 @@ font-family: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
 <input class="min-h-11 w-full rounded-xl border border-stone-200/80
   bg-stone-500/[0.03] px-3 text-sm text-stone-900
   placeholder:text-stone-400 focus:bg-white focus:outline-none
-  focus:ring-2 focus:ring-rose-500/20 focus:border-rose-500
+  focus:ring-2 focus:ring-[var(--focus-ring)] focus:border-[var(--accent)]
   dark:border-stone-700 dark:bg-stone-800 dark:text-stone-100
   dark:focus:bg-stone-800" />
 ```

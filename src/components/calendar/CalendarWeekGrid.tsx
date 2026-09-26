@@ -41,21 +41,21 @@ function WeekDayRow({
       data-testid="calendar-week-day"
       data-date={day.date}
       className={`grid min-w-0 grid-cols-[6.5rem_minmax(0,1fr)] sm:grid-cols-[8.5rem_minmax(0,1fr)] border-b border-stone-200/70 last:border-b-0 dark:border-stone-800 transition-colors ${
-        day.isToday ? 'bg-rose-50/[0.04] dark:bg-rose-950/[0.1]' : 'bg-white dark:bg-stone-900'
-      } ${isOver ? 'bg-rose-100/60 dark:bg-rose-950/60 ring-2 ring-inset ring-rose-600' : ''}`}
+        day.isToday ? 'bg-[var(--accent-soft)]/25' : 'bg-white dark:bg-stone-900'
+      } ${isOver ? 'bg-[var(--accent-soft)] ring-2 ring-inset ring-[var(--accent)]' : ''}`}
     >
       {/* Header */}
       <div
         className={`flex min-h-[8.5rem] flex-col items-center justify-center border-r border-stone-200/70 px-2 py-4 text-center select-none dark:border-stone-800 sm:px-4 ${
           day.isToday
-            ? 'bg-rose-50 dark:bg-rose-950/40 text-rose-700 dark:text-rose-300 font-bold'
+            ? 'bg-[var(--accent-soft)] text-[var(--accent-dark)] font-bold'
             : 'bg-stone-50 dark:bg-stone-900/90 text-stone-700 dark:text-stone-300'
         }`}
       >
         <div className="text-xs font-semibold text-stone-500 dark:text-stone-400">{day.dayName}</div>
         <div
           className={`inline-block mt-0.5 text-base font-bold font-mono px-2 py-0.5 rounded-lg ${
-            day.isToday ? 'bg-rose-600 text-white shadow-2xs' : ''
+            day.isToday ? 'bg-[var(--accent)] text-white shadow-2xs' : ''
           }`}
         >
           {day.dayNumber}

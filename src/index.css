@@ -336,24 +336,26 @@ html.dark .script-citation::after {
 @layer base {
   :root {
     /* Literary Notebook Design Tokens (文人笔记核心设计系统) */
-    --canvas: #f9f8f5;
+    --canvas: #f6f4ef;
     --surface: #ffffff;
-    --ink: #252827;
-    --ink-muted: #757a78;
-    --line: rgba(37, 40, 39, 0.08);
-    --accent: #2f5c4e;
-    --accent-soft: rgba(47, 92, 78, 0.10);
-    --accent-dark: #1d3e34;
-    --h1-color: #9e3228;
-    --h2-color: #2d5c48;
-    --h3-color: #35566b;
-    --radius-sm: 6px;
+    --ink: #222923;
+    --ink-muted: #68716b;
+    --line: rgba(34, 41, 35, 0.09);
+    --accent: #365f4d;
+    --accent-soft: rgba(54, 95, 77, 0.10);
+    --accent-dark: #284838;
+    --h1-color: #b14b36;
+    --h2-color: #365f4d;
+    --h3-color: #526c60;
+    --radius-sm: 8px;
     --radius-md: 12px;
-    --radius-lg: 16px;
+    --radius-lg: 18px;
+    --control-surface: rgba(34, 41, 35, 0.025);
+    --focus-ring: rgba(54, 95, 77, 0.35);
 
-    --nav-surface: rgba(249, 248, 245, 0.90);
-    --sidebar-surface: rgba(245, 244, 239, 0.92);
-    --scrollbar-thumb: rgba(37, 40, 39, 0.18);
+    --nav-surface: rgba(246, 244, 239, 0.94);
+    --sidebar-surface: rgba(246, 244, 239, 0.96);
+    --scrollbar-thumb: rgba(34, 41, 35, 0.18);
     --scrollbar-track: transparent;
     color-scheme: light;
   }
@@ -362,14 +364,16 @@ html.dark .script-citation::after {
     --canvas: #f7f4ed;
     --surface: #fdfcf7;
     --ink: #2d2926;
-    --ink-muted: #7d756c;
+    --ink-muted: #6c655c;
     --line: rgba(45, 41, 38, 0.08);
-    --accent: #385674;
-    --accent-soft: rgba(56, 86, 116, 0.10);
-    --accent-dark: #22374b;
-    --h1-color: #8c421e;
-    --h2-color: #327c94;
-    --h3-color: #3b8ca7;
+    --accent: #365f4d;
+    --accent-soft: rgba(54, 95, 77, 0.10);
+    --accent-dark: #284838;
+    --h1-color: #a04a32;
+    --h2-color: #365f4d;
+    --h3-color: #806b50;
+    --control-surface: rgba(34, 41, 35, 0.025);
+    --focus-ring: rgba(54, 95, 77, 0.35);
 
     --nav-surface: rgba(253, 252, 247, 0.90);
     --sidebar-surface: rgba(242, 236, 225, 0.92);
@@ -384,12 +388,14 @@ html.dark .script-citation::after {
     --ink: #1a2424;
     --ink-muted: #5f7474;
     --line: rgba(26, 36, 36, 0.08);
-    --accent: #2d7a64;
-    --accent-soft: rgba(45, 122, 100, 0.10);
-    --accent-dark: #1b4b3d;
+    --accent: #356b5b;
+    --accent-soft: rgba(53, 107, 91, 0.10);
+    --accent-dark: #285344;
     --h1-color: #a34133;
     --h2-color: #0284c7;
     --h3-color: #0f766e;
+    --control-surface: rgba(26, 48, 44, 0.025);
+    --focus-ring: rgba(53, 107, 91, 0.34);
 
     --nav-surface: rgba(255, 255, 255, 0.90);
     --sidebar-surface: rgba(240, 245, 244, 0.92);
@@ -404,12 +410,14 @@ html.dark .script-citation::after {
     --ink: #e8eae9;
     --ink-muted: #9ba19e;
     --line: rgba(255, 255, 255, 0.08);
-    --accent: #4e8775;
-    --accent-soft: rgba(78, 135, 117, 0.18);
-    --accent-dark: #6db09b;
+    --accent: #76a891;
+    --accent-soft: rgba(118, 168, 145, 0.16);
+    --accent-dark: #9bc5ae;
     --h1-color: #d65a50;
     --h2-color: #8fc5b1;
     --h3-color: #9fb6c5;
+    --control-surface: rgba(255, 255, 255, 0.035);
+    --focus-ring: rgba(118, 168, 145, 0.38);
 
     --nav-surface: rgba(20, 22, 21, 0.90);
     --sidebar-surface: rgba(24, 27, 26, 0.92);
@@ -440,7 +448,7 @@ html.dark .script-citation::after {
     transition: background-color 0.15s ease, color 0.15s ease;
   }
 
-  h1, .font-seal, .title-seal {
+  .font-seal, .title-seal {
     font-family: Georgia, Cambria, "Songti SC", "SimSun", serif;
     color: var(--h1-color);
   }
@@ -766,8 +774,8 @@ html.theme-warm-paper .script-editor-toolbar {
 
 html.theme-warm-paper .sidebar-brand-logo,
 html.theme-warm-paper .mobile-fab-create-button {
-  background-color: #a35229 !important;
-  box-shadow: 0 2px 8px rgba(163, 82, 41, 0.28) !important;
+  background-color: var(--accent) !important;
+  box-shadow: 0 2px 8px color-mix(in oklab, var(--accent) 26%, transparent) !important;
 }
 
 html.theme-warm-paper aside.sidebar-container nav button.bg-stone-100,
@@ -781,66 +789,15 @@ html.theme-warm-paper .tags-sidebar-panel .tag-menu-item.is-selected {
   font-weight: 700 !important;
 }
 
-/* 6. Primary Action Buttons & CTA (Caramel Terracotta #a35229) */
-html.theme-warm-paper .bg-rose-600,
-html.theme-warm-paper .bg-rose-500,
+/* 6. Primary Action Buttons & CTA */
 html.theme-warm-paper aside.sidebar-container button.bg-stone-900,
 html.theme-warm-paper .mobile-drawer-container button.bg-stone-900 {
-  background-color: #a35229 !important;
+  background-color: var(--accent) !important;
   color: #ffffff !important;
 }
-html.theme-warm-paper .hover\:bg-rose-700:hover,
 html.theme-warm-paper aside.sidebar-container button.bg-stone-900:hover,
 html.theme-warm-paper .mobile-drawer-container button.bg-stone-900:hover {
-  background-color: #8c421e !important;
-}
-html.theme-warm-paper .active\:bg-rose-800:active {
-  background-color: #783516 !important;
-}
-
-/* 7. Accent Highlights, Badges & Next Action */
-html.theme-warm-paper .text-rose-600,
-html.theme-warm-paper .text-rose-700,
-html.theme-warm-paper .text-rose-500,
-html.theme-warm-paper .text-rose-400,
-html.theme-warm-paper .group-hover\:text-rose-600 {
-  color: #a35229 !important;
-}
-html.theme-warm-paper .text-rose-900,
-html.theme-warm-paper .text-rose-800 {
-  color: #6d2e13 !important;
-}
-html.theme-warm-paper .border-rose-600,
-html.theme-warm-paper .border-rose-500,
-html.theme-warm-paper .border-rose-400 {
-  border-color: #a35229 !important;
-}
-html.theme-warm-paper .border-rose-300,
-html.theme-warm-paper .border-rose-200,
-html.theme-warm-paper .border-rose-100,
-html.theme-warm-paper .border-rose-200\/60,
-html.theme-warm-paper .border-rose-200\/70 {
-  border-color: rgba(163, 82, 41, 0.25) !important;
-}
-html.theme-warm-paper .bg-rose-50,
-html.theme-warm-paper .bg-rose-100,
-html.theme-warm-paper .bg-rose-50\/60,
-html.theme-warm-paper .bg-rose-50\/70,
-html.theme-warm-paper .bg-rose-50\/80,
-html.theme-warm-paper .bg-rose-100\/60 {
-  background-color: rgba(163, 82, 41, 0.08) !important;
-}
-html.theme-warm-paper .ring-rose-400,
-html.theme-warm-paper .ring-rose-500,
-html.theme-warm-paper .ring-rose-600 {
-  --tw-ring-color: rgba(163, 82, 41, 0.35) !important;
-}
-html.theme-warm-paper .accent-rose-600 {
-  accent-color: #a35229 !important;
-}
-html.theme-warm-paper .fill-rose-600,
-html.theme-warm-paper .fill-rose-400 {
-  fill: #a35229 !important;
+  background-color: var(--accent-dark) !important;
 }
 
 /* 8. Controls & Modals */
@@ -867,8 +824,8 @@ html.theme-warm-paper select:focus {
   box-shadow: 0 0 0 2px color-mix(in oklab, var(--command-palette-focus) 22%, transparent) !important;
 }
 html.theme-warm-paper input[type="checkbox"]:checked {
-  background-color: #a35229 !important;
-  border-color: #a35229 !important;
+  background-color: var(--accent) !important;
+  border-color: var(--accent) !important;
 }
 
 /* 9. TipTap & Scrollbars */
@@ -991,8 +948,8 @@ html.theme-nordic-frost .script-editor-toolbar {
 
 html.theme-nordic-frost .sidebar-brand-logo,
 html.theme-nordic-frost .mobile-fab-create-button {
-  background-color: #2d7a64 !important; /* 冷杉青绿 */
-  box-shadow: 0 2px 6px rgba(45, 122, 100, 0.25) !important;
+  background-color: var(--accent) !important;
+  box-shadow: 0 2px 6px color-mix(in oklab, var(--accent) 24%, transparent) !important;
 }
 
 html.theme-nordic-frost aside.sidebar-container nav button.bg-stone-100,
@@ -1006,66 +963,15 @@ html.theme-nordic-frost .tags-sidebar-panel .tag-menu-item.is-selected {
   font-weight: 700 !important;
 }
 
-/* 6. Primary Action Buttons & CTA (Spruce Teal #2d7a64) */
-html.theme-nordic-frost .bg-rose-600,
-html.theme-nordic-frost .bg-rose-500,
+/* 6. Primary Action Buttons & CTA */
 html.theme-nordic-frost aside.sidebar-container button.bg-stone-900,
 html.theme-nordic-frost .mobile-drawer-container button.bg-stone-900 {
-  background-color: #2d7a64 !important;
+  background-color: var(--accent) !important;
   color: #ffffff !important;
 }
-html.theme-nordic-frost .hover\:bg-rose-700:hover,
 html.theme-nordic-frost aside.sidebar-container button.bg-stone-900:hover,
 html.theme-nordic-frost .mobile-drawer-container button.bg-stone-900:hover {
-  background-color: #236351 !important;
-}
-html.theme-nordic-frost .active\:bg-rose-800:active {
-  background-color: #1c4f40 !important;
-}
-
-/* 7. Accent Highlights, Badges & Next Action */
-html.theme-nordic-frost .text-rose-600,
-html.theme-nordic-frost .text-rose-700,
-html.theme-nordic-frost .text-rose-500,
-html.theme-nordic-frost .text-rose-400,
-html.theme-nordic-frost .group-hover\:text-rose-600 {
-  color: #2d7a64 !important;
-}
-html.theme-nordic-frost .text-rose-900,
-html.theme-nordic-frost .text-rose-800 {
-  color: #1c5c36 !important;
-}
-html.theme-nordic-frost .border-rose-600,
-html.theme-nordic-frost .border-rose-500,
-html.theme-nordic-frost .border-rose-400 {
-  border-color: #2d7a64 !important;
-}
-html.theme-nordic-frost .border-rose-300,
-html.theme-nordic-frost .border-rose-200,
-html.theme-nordic-frost .border-rose-100,
-html.theme-nordic-frost .border-rose-200\/60,
-html.theme-nordic-frost .border-rose-200\/70 {
-  border-color: #c2e2cb !important;
-}
-html.theme-nordic-frost .bg-rose-50,
-html.theme-nordic-frost .bg-rose-100,
-html.theme-nordic-frost .bg-rose-50\/60,
-html.theme-nordic-frost .bg-rose-50\/70,
-html.theme-nordic-frost .bg-rose-50\/80,
-html.theme-nordic-frost .bg-rose-100\/60 {
-  background-color: #eaf4ed !important;
-}
-html.theme-nordic-frost .ring-rose-400,
-html.theme-nordic-frost .ring-rose-500,
-html.theme-nordic-frost .ring-rose-600 {
-  --tw-ring-color: rgba(45, 122, 100, 0.35) !important;
-}
-html.theme-nordic-frost .accent-rose-600 {
-  accent-color: #2d7a64 !important;
-}
-html.theme-nordic-frost .fill-rose-600,
-html.theme-nordic-frost .fill-rose-400 {
-  fill: #2d7a64 !important;
+  background-color: var(--accent-dark) !important;
 }
 
 /* 8. Controls & Modals */
@@ -1088,8 +994,8 @@ html.theme-nordic-frost select:focus {
   box-shadow: 0 0 0 2px color-mix(in oklab, var(--command-palette-focus) 22%, transparent) !important;
 }
 html.theme-nordic-frost input[type="checkbox"]:checked {
-  background-color: #2d7a64 !important;
-  border-color: #2d7a64 !important;
+  background-color: var(--accent) !important;
+  border-color: var(--accent) !important;
 }
 
 /* 9. TipTap & Scrollbars */
@@ -1103,19 +1009,13 @@ html.theme-nordic-frost ::-webkit-scrollbar-thumb:hover { background: #adc2c2; }
    Command Palette Search Input Focus Isolation
    ========================================================================== */
 :root {
-  --command-palette-focus: #e11d48;
+  --command-palette-focus: var(--accent);
 }
 
-html.dark {
-  --command-palette-focus: #f43f5e;
-}
-
-html.theme-warm-paper {
-  --command-palette-focus: #a35229;
-}
-
+html.dark,
+html.theme-warm-paper,
 html.theme-nordic-frost {
-  --command-palette-focus: #2d7a64;
+  --command-palette-focus: var(--accent);
 }
 
 
@@ -1147,6 +1047,22 @@ html[class*="theme-"] input.command-palette-input[data-keyboard-focused="true"]:
    ========================================================================== */
 :root {
   --todo-accent: var(--command-palette-focus);
+}
+
+/* Shared focus and control treatment for the notebook palette. */
+input:not([type="checkbox"]):not([type="radio"]):focus-visible,
+textarea:focus-visible,
+select:focus-visible,
+[role="combobox"]:focus-visible {
+  border-color: var(--accent) !important;
+  outline-color: var(--focus-ring);
+}
+
+input:not([type="checkbox"]):not([type="radio"]):focus,
+textarea:focus,
+select:focus,
+[role="combobox"]:focus {
+  border-color: var(--accent) !important;
 }
 
 .today-focus-scroll {

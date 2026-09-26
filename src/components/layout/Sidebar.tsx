@@ -59,7 +59,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
             <img src="/icon.png" alt="工作台 Logo" width={36} height={36} className="w-full h-full object-cover rounded-[var(--radius-sm)]" />
           </div>
           <div>
-            <h1 className="font-serif text-[var(--h1-color)] text-xl font-bold tracking-wide leading-snug">选题生产工作台</h1>
+            <h1 className="font-sans text-[var(--ink)] text-base font-bold tracking-tight leading-snug">选题生产工作台</h1>
           </div>
         </div>
 
@@ -97,16 +97,16 @@ export const Sidebar: React.FC<SidebarProps> = ({
                 title={quickDropCount > 0 ? `手机快投箱中有 ${quickDropCount} 条未处理灵感` : '打开手机快投灵感箱（7天暂存）'}
                 className={`group flex min-h-9 min-w-0 items-center justify-between gap-1.5 rounded-[var(--radius-sm)] border px-2.5 py-2 text-[12px] font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]/40 cursor-pointer ${
                   quickDropCount > 0
-                    ? 'border-rose-200 bg-rose-50 text-rose-800 shadow-2xs dark:border-rose-900/60 dark:bg-rose-950/40 dark:text-rose-200'
+                    ? 'border-[var(--accent)]/15 bg-[var(--accent-soft)] text-[var(--accent-dark)] shadow-2xs'
                     : 'border-transparent bg-[var(--surface)]/60 text-stone-700 hover:bg-[var(--surface)] hover:text-stone-950 dark:text-stone-300 dark:hover:text-white'
                 }`}
               >
                 <span className="flex min-w-0 items-center gap-1.5">
-                  <Smartphone className={`h-3.5 w-3.5 shrink-0 ${quickDropCount > 0 ? 'text-rose-600 dark:text-rose-400' : 'text-stone-500 dark:text-stone-400'}`} aria-hidden="true" />
+                  <Smartphone className={`h-3.5 w-3.5 shrink-0 ${quickDropCount > 0 ? 'text-[var(--accent)]' : 'text-stone-500 dark:text-stone-400'}`} aria-hidden="true" />
                   <span className="truncate">快投箱</span>
                 </span>
                 {quickDropCount > 0 ? (
-                  <span className="flex h-5 min-w-5 shrink-0 items-center justify-center rounded-full bg-rose-600 px-1 text-[10px] font-mono font-bold text-white">
+                  <span className="flex h-5 min-w-5 shrink-0 items-center justify-center rounded-full bg-[var(--accent)] px-1 text-[10px] font-mono font-bold text-white">
                     {quickDropCount}
                   </span>
                 ) : (
@@ -135,7 +135,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
                 aria-current={isActive ? 'page' : undefined}
                 className={`group relative w-full flex items-center justify-between px-3.5 py-2.5 rounded-[var(--radius-sm)] text-[14px] sm:text-[15px] transition-all cursor-pointer ${
                   isActive
-                    ? 'bg-[var(--accent-soft)] text-[var(--accent-dark)] font-semibold shadow-2xs'
+                    ? 'bg-[var(--surface)] text-[var(--ink)] font-semibold shadow-2xs'
                     : 'text-stone-700 dark:text-stone-200 hover:bg-[var(--surface)] hover:text-stone-950 dark:hover:text-white font-medium'
                 }`}
               >

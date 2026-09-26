@@ -152,7 +152,7 @@ const InlineTitleEditor: React.FC<{
         aria-invalid={Boolean(error)}
         className="todo-inline-editor-input min-h-8 w-full bg-transparent text-sm font-semibold text-stone-900 outline-none dark:text-stone-100"
       />
-      {error && <span role="alert" className="text-[11px] text-rose-600 dark:text-rose-400">{error}</span>}
+      {error && <span role="alert" className="text-[11px] text-red-600 dark:text-red-400">{error}</span>}
     </>
   );
 };
@@ -257,7 +257,7 @@ const SortableTodoCard: React.FC<SortableTodoCardProps> = ({ todo, status, isCur
                 ))}
               </div>
             </FloatingMenu>
-            <button type="button" onClick={onDelete} disabled={isBusy} aria-label={`删除：${todo.title}`} className="flex h-8 w-8 items-center justify-center rounded-[var(--radius-sm)] text-[var(--ink-muted)] hover:bg-rose-500/10 hover:text-rose-600 disabled:opacity-40 dark:hover:text-rose-400">
+            <button type="button" onClick={onDelete} disabled={isBusy} aria-label={`删除：${todo.title}`} className="flex h-8 w-8 items-center justify-center rounded-[var(--radius-sm)] text-[var(--ink-muted)] hover:bg-red-50 hover:text-red-600 disabled:opacity-40 dark:hover:bg-red-950/30 dark:hover:text-red-400">
               <Trash2 className="h-4 w-4" aria-hidden="true" />
             </button>
           </div>

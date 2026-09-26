@@ -235,7 +235,7 @@ export const TagsView: React.FC<TagsViewProps> = ({
             <button
               type="button"
               onClick={openCreateModal}
-              className="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl bg-rose-600 px-4 text-xs font-bold text-white shadow-2xs transition-all hover:bg-rose-700 active:scale-[0.98] sm:text-sm"
+              className="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl bg-[var(--accent)] px-4 text-xs font-bold text-white shadow-2xs transition-all hover:bg-[var(--accent-dark)] active:scale-[0.98] sm:text-sm"
             >
               <Plus className="h-4 w-4 stroke-[2.5]" aria-hidden="true" />
               <span>新建赛道标签</span>
@@ -442,7 +442,7 @@ export const TagsView: React.FC<TagsViewProps> = ({
 
                   <button
                     onClick={() => onQuickCreateTopicInTag(activeTag.name)}
-                    className="flex min-h-10 flex-1 cursor-pointer items-center justify-center gap-1.5 rounded-xl bg-rose-600 px-3.5 py-1.5 text-xs font-bold text-white shadow-2xs transition-colors hover:bg-rose-700 sm:flex-none"
+                    className="flex min-h-10 flex-1 cursor-pointer items-center justify-center gap-1.5 rounded-xl bg-[var(--accent)] px-3.5 py-1.5 text-xs font-bold text-white shadow-2xs transition-colors hover:bg-[var(--accent-dark)] sm:flex-none"
                   >
                     <Plus className="w-3.5 h-3.5" />
                     <span>为此赛道新建选题</span>
@@ -565,7 +565,7 @@ export const TagsView: React.FC<TagsViewProps> = ({
         <form onSubmit={handleSaveTagSubmit} className="space-y-4">
           <div>
             <label className="block text-xs font-bold text-stone-800 dark:text-stone-200 mb-1">
-              标签名称 <span className="text-rose-600">*</span>
+              标签名称 <span className="text-stone-400">*</span>
             </label>
             <div className="relative">
               <span className="absolute left-3 top-2.5 text-stone-400 font-bold">#</span>
@@ -576,7 +576,7 @@ export const TagsView: React.FC<TagsViewProps> = ({
                 placeholder="例如：网红打假"
                 value={tagNameInput}
                 onChange={(e) => setTagNameInput(e.target.value)}
-                className="w-full pl-7 pr-3.5 py-2.5 bg-stone-500/[0.03] dark:bg-stone-800 border border-stone-200/80 dark:border-stone-700 rounded-xl text-sm text-stone-900 dark:text-stone-100 placeholder:text-stone-400 dark:placeholder:text-stone-500 focus:bg-white dark:focus:bg-stone-800 focus:border-rose-500 focus:outline-none"
+                className="w-full pl-7 pr-3.5 py-2.5 bg-stone-500/[0.03] dark:bg-stone-800 border border-stone-200/80 dark:border-stone-700 rounded-xl text-sm text-stone-900 dark:text-stone-100 placeholder:text-stone-400 dark:placeholder:text-stone-500 focus:bg-white dark:focus:bg-stone-800 focus:border-[var(--accent)] focus:outline-none"
               />
             </div>
           </div>
@@ -593,7 +593,7 @@ export const TagsView: React.FC<TagsViewProps> = ({
                   onClick={() => setTagColorInput(c.id)}
                   className={`flex items-center gap-1.5 p-2 rounded-xl border text-xs font-medium transition-all cursor-pointer ${
                     tagColorInput === c.id
-                      ? 'border-rose-500 bg-rose-500/10 text-rose-800 dark:text-rose-200 font-bold'
+                      ? 'border-[var(--accent)] bg-[var(--accent-soft)] text-[var(--accent-dark)] dark:text-[var(--accent)] font-bold'
                       : 'border-stone-200/70 dark:border-stone-700 bg-stone-500/[0.03] dark:bg-stone-800 text-stone-700 dark:text-stone-300 hover:bg-stone-100'
                   }`}
                 >
@@ -614,7 +614,7 @@ export const TagsView: React.FC<TagsViewProps> = ({
             </button>
             <button
               type="submit"
-              className="px-5 py-2 text-xs sm:text-sm bg-rose-600 hover:bg-rose-700 text-white rounded-xl font-bold cursor-pointer transition-all shadow-2xs"
+              className="px-5 py-2 text-xs sm:text-sm bg-[var(--accent)] hover:bg-[var(--accent-dark)] text-white rounded-xl font-bold cursor-pointer transition-all shadow-2xs"
             >
               {editingTag ? '更新标签' : '保存标签'}
             </button>

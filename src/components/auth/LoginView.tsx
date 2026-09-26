@@ -63,7 +63,7 @@ export const LoginView: React.FC<LoginViewProps> = ({ onLoginSuccess }) => {
                 placeholder="请输入访问口令密码..."
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="w-full pl-3.5 pr-10 py-2.5 bg-stone-500/[0.03] dark:bg-stone-800 border border-stone-200/80 dark:border-stone-700 rounded-xl text-stone-900 dark:text-stone-100 text-sm focus:bg-white dark:focus:bg-stone-800 focus:border-rose-500 focus:outline-none transition-colors placeholder:text-stone-400"
+                className="w-full pl-3.5 pr-10 py-2.5 bg-[var(--control-surface)] dark:bg-stone-800 border border-stone-200/80 dark:border-stone-700 rounded-xl text-stone-900 dark:text-stone-100 text-sm focus:bg-white dark:focus:bg-stone-800 focus:border-[var(--accent)] focus:outline-none transition-colors placeholder:text-stone-400"
               />
               <button
                 type="button"
@@ -86,7 +86,7 @@ export const LoginView: React.FC<LoginViewProps> = ({ onLoginSuccess }) => {
           <button
             type="submit"
             disabled={!password || loading}
-            className="w-full flex items-center justify-center gap-2 bg-rose-600 hover:bg-rose-700 active:scale-[0.98] text-white py-3 rounded-xl text-sm font-bold transition-all disabled:opacity-50 shadow-2xs cursor-pointer"
+            className="w-full flex items-center justify-center gap-2 bg-[var(--accent)] hover:bg-[var(--accent-dark)] active:scale-[0.98] text-white py-3 rounded-xl text-sm font-bold transition-all disabled:opacity-50 shadow-2xs cursor-pointer"
           >
             <span>{loading ? '验证中...' : '进入工作台'}</span>
             <ArrowRight className="w-4 h-4" />

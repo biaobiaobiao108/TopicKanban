@@ -63,7 +63,7 @@ export const TodoQuickActionDialog: React.FC<TodoQuickActionDialogProps> = ({
           </div>
           <div className="flex justify-end gap-2 border-t border-stone-200/70 dark:border-stone-800 pt-4">
             <button type="button" onClick={onClose} className="min-h-10 rounded-xl px-4 text-xs font-semibold text-stone-600 hover:bg-stone-100 dark:text-stone-300 dark:hover:bg-stone-800 cursor-pointer">关闭</button>
-            <button type="button" onClick={() => { onClose(); onOpenTodoBoard(); }} className="min-h-10 rounded-xl bg-rose-600 px-4 text-xs font-bold text-white hover:bg-rose-700 cursor-pointer flex items-center gap-1.5">
+            <button type="button" onClick={() => { onClose(); onOpenTodoBoard(); }} className="min-h-10 rounded-xl bg-[var(--accent)] px-4 text-xs font-bold text-white hover:bg-[var(--accent-dark)] cursor-pointer flex items-center gap-1.5">
               <KanbanSquare className="h-4 w-4" />打开执行看板
             </button>
           </div>
@@ -75,10 +75,10 @@ export const TodoQuickActionDialog: React.FC<TodoQuickActionDialogProps> = ({
   return (
     <Modal isOpen={isOpen} onClose={onClose} title="编辑当前行动" maxWidth="md">
       <div className="space-y-4">
-        <div className="flex items-start gap-3 rounded-2xl border border-rose-200/70 bg-rose-50/70 p-4 dark:border-rose-900/50 dark:bg-rose-950/30">
-          <Zap className="mt-0.5 h-5 w-5 shrink-0 text-rose-600 dark:text-rose-400" />
+        <div className="flex items-start gap-3 rounded-2xl border border-[var(--line)] bg-[var(--accent-soft)] p-4">
+          <Zap className="mt-0.5 h-5 w-5 shrink-0 text-[var(--accent)]" />
           <div className="min-w-0 flex-1">
-            <div className="text-xs font-bold text-rose-700 dark:text-rose-300">正在推进</div>
+            <div className="text-xs font-bold text-[var(--accent)]">正在推进</div>
             <div className="mt-1 break-words text-sm font-semibold text-stone-900 dark:text-stone-100">{todo.title}</div>
             <div className="mt-1 text-[11px] text-stone-500 dark:text-stone-400">已持续 {getCurrentActionAgeDays(topic)} 天</div>
           </div>
@@ -86,7 +86,7 @@ export const TodoQuickActionDialog: React.FC<TodoQuickActionDialogProps> = ({
 
         <label className="block space-y-1.5">
           <span className="text-xs font-bold text-stone-700 dark:text-stone-300">行动标题</span>
-          <input value={title} onChange={(event) => setTitle(event.target.value)} autoFocus className="w-full rounded-xl border border-stone-200/80 bg-stone-500/[0.03] px-3.5 py-2.5 text-sm outline-none focus:border-rose-500 dark:border-stone-700 dark:bg-stone-800 dark:text-stone-100" />
+          <input value={title} onChange={(event) => setTitle(event.target.value)} autoFocus className="w-full rounded-xl border border-stone-200/80 bg-stone-500/[0.03] px-3.5 py-2.5 text-sm outline-none focus:border-[var(--accent)] dark:border-stone-700 dark:bg-stone-800 dark:text-stone-100" />
         </label>
         <div className="flex flex-col-reverse gap-2 border-t border-stone-200/70 pt-4 sm:flex-row sm:items-center sm:justify-between dark:border-stone-800">
           <button type="button" onClick={() => void handleComplete()} disabled={saving} className="inline-flex min-h-10 items-center justify-center gap-1.5 rounded-xl bg-emerald-500/10 px-3.5 text-xs font-bold text-emerald-700 hover:bg-emerald-500/20 disabled:opacity-50 dark:text-emerald-300 cursor-pointer">
@@ -95,7 +95,7 @@ export const TodoQuickActionDialog: React.FC<TodoQuickActionDialogProps> = ({
           <div className="flex justify-end gap-2">
             <button type="button" onClick={onOpenTodoBoard} disabled={saving} className="min-h-10 rounded-xl px-3.5 text-xs font-semibold text-stone-600 hover:bg-stone-100 disabled:opacity-50 dark:text-stone-300 dark:hover:bg-stone-800 cursor-pointer"><KanbanSquare className="mr-1 inline h-4 w-4" />执行看板</button>
             <button type="button" onClick={onClose} className="min-h-10 rounded-xl px-3.5 text-xs font-semibold text-stone-600 hover:bg-stone-100 dark:text-stone-300 dark:hover:bg-stone-800 cursor-pointer">取消</button>
-            <button type="button" onClick={() => void handleSave()} disabled={saving || !title.trim()} className="min-h-10 rounded-xl bg-rose-600 px-4 text-xs font-bold text-white hover:bg-rose-700 disabled:opacity-50 cursor-pointer">{saving ? '保存中…' : '保存修改'}</button>
+            <button type="button" onClick={() => void handleSave()} disabled={saving || !title.trim()} className="min-h-10 rounded-xl bg-[var(--accent)] px-4 text-xs font-bold text-white hover:bg-[var(--accent-dark)] disabled:opacity-50 cursor-pointer">{saving ? '保存中…' : '保存修改'}</button>
           </div>
         </div>
       </div>
