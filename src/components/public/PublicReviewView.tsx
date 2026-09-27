@@ -21,8 +21,6 @@ interface OutlineSection {
   index: number;
   title: string;
   level: 1 | 2 | 3;
-  charCount: number;
-  percentage: number;
 }
 
 const LEVEL_INDENT: Record<1 | 2 | 3, string> = {
@@ -37,61 +35,20 @@ const LEVEL_TEXT: Record<1 | 2 | 3, string> = {
   3: 'text-[11px] font-medium leading-4',
 };
 
-const OutlineProgress: React.FC<{ percentage: number; active?: boolean }> = ({
-  percentage,
-  active = false,
-}) => (
-  <div className="mt-1.5 h-0.5 overflow-hidden rounded-full bg-stone-200/90">
-    <div
-      className={`h-full transition-[width,background-color] duration-200 ${
-        active ? 'bg-[var(--accent)]' : 'bg-stone-400/60'
-      }`}
-      style={{ width: `${percentage}%` }}
-    />
-  </div>
-);
-
-function parseOutlineAndInjectIds(html: string): {
-  items: OutlineSection[];
-  processedHtml: string;
-  totalCharCount: number;
-} {
-  if (!html) return { items: [], processedHtml: '', totalCharCount: 0 };
+function parseOutlineAndInjectIds(html: string): { items: OutlineSection[]; processedHtml: string } {
+  if (!html) return { items: [], processedHtml: '' };
   const div = document.createElement('div');
   div.innerHTML = html;
 
   const headings = Array.from(div.querySelectorAll<HTMLElement>('h1, h2, h3'));
-  const totalCharCount = (div.textContent || '').replace(/\s+/g, '').length;
 
   if (headings.length === 0) {
-    return { items: [], processedHtml: html, totalCharCount };
-  }
-
-  // Calculate char count for each heading section
-  let currentHeadingIdx = -1;
-  const sectionCounts: number[] = new Array(headings.length).fill(0);
-
-  const walker = document.createTreeWalker(div, NodeFilter.SHOW_ELEMENT | NodeFilter.SHOW_TEXT);
-  let currentNode = walker.nextNode();
-  while (currentNode) {
-    if (currentNode.nodeType === Node.ELEMENT_NODE) {
-      const el = currentNode as HTMLElement;
-      const hIdx = headings.indexOf(el);
-      if (hIdx !== -1) {
-        currentHeadingIdx = hIdx;
-      }
-    } else if (currentNode.nodeType === Node.TEXT_NODE && currentHeadingIdx >= 0) {
-      const text = currentNode.textContent || '';
-      sectionCounts[currentHeadingIdx] += text.replace(/\s+/g, '').length;
-    }
-    currentNode = walker.nextNode();
+    return { items: [], processedHtml: html };
   }
 
   const items: OutlineSection[] = headings.map((heading, index) => {
     const level = (Number(heading.tagName[1]) || 1) as 1 | 2 | 3;
     const title = heading.textContent?.trim() || `段落 ${index + 1}`;
-    const count = sectionCounts[index] || 0;
-    const percentage = totalCharCount > 0 ? Math.round((count / totalCharCount) * 1000) / 10 : 0;
     const id = `review-heading-${index}`;
 
     // Inject ID and scroll margin to the DOM heading
@@ -104,12 +61,10 @@ function parseOutlineAndInjectIds(html: string): {
       index,
       title,
       level,
-      charCount: count,
-      percentage,
     };
   });
 
-  return { items, processedHtml: div.innerHTML, totalCharCount };
+  return { items, processedHtml: div.innerHTML };
 }
 
 interface PublicReviewViewProps {
@@ -163,7 +118,7 @@ export const PublicReviewView: React.FC<PublicReviewViewProps> = ({ token: propT
 
   // Parse outline and inject IDs into the HTML
   const { items: outlineItems, processedHtml } = useMemo(() => {
-    if (!snapshot?.content_html) return { items: [], processedHtml: '', totalCharCount: 0 };
+    if (!snapshot?.content_html) return { items: [], processedHtml: '' };
     return parseOutlineAndInjectIds(sanitizeReviewHtml(snapshot.content_html));
   }, [snapshot?.content_html]);
 
@@ -378,16 +333,6 @@ export const PublicReviewView: React.FC<PublicReviewViewProps> = ({ token: propT
                               title={item.title}
                             >
                               {item.title}
-                            </span>
-                            <span className="w-10 shrink-0 pt-0.5 text-right">
-                              <span
-                                className={`block font-mono text-[10px] leading-none tabular-nums ${
-                                  isActive ? 'font-bold text-[var(--accent)]' : 'text-stone-400 dark:text-stone-500'
-                                }`}
-                              >
-                                {item.percentage}%
-                              </span>
-                              <OutlineProgress percentage={item.percentage} active={isActive} />
                             </span>
                           </div>
                         </div>

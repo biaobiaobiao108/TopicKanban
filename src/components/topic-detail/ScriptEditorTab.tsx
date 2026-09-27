@@ -264,7 +264,6 @@ export const ScriptEditorTab: React.FC<ScriptEditorTabProps> = ({
   const outlineHighlightAnimationRef = useRef<Animation | null>(null);
   const outlineRef = useRef(EMPTY_SCRIPT_OUTLINE);
   const effectiveSpeed = readingSpeed || 280;
-  const readingSpeedRef = useRef(effectiveSpeed);
   const outlineDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const outlineScrollSyncFrameRef = useRef<number | null>(null);
   const copyFeedbackTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -443,7 +442,6 @@ export const ScriptEditorTab: React.FC<ScriptEditorTabProps> = ({
   };
 
   isTypewriterActiveRef.current = isTypewriterActive;
-  readingSpeedRef.current = effectiveSpeed;
 
   useEffect(() => {
     immediateSaveRef.current = onSaveDraftImmediately;
@@ -547,7 +545,7 @@ export const ScriptEditorTab: React.FC<ScriptEditorTabProps> = ({
       // Debounce outline computation for typing smoothness
       if (outlineDebounceRef.current) clearTimeout(outlineDebounceRef.current);
       outlineDebounceRef.current = setTimeout(() => {
-        const nextOutline = extractScriptOutline(editor, readingSpeedRef.current);
+        const nextOutline = extractScriptOutline(editor);
         outlineRef.current = nextOutline;
         setOutline(nextOutline);
         setActiveOutlineItemId(
@@ -589,13 +587,13 @@ export const ScriptEditorTab: React.FC<ScriptEditorTabProps> = ({
 
   useEffect(() => {
     if (!editor) return;
-    const nextOutline = extractScriptOutline(editor, effectiveSpeed);
+    const nextOutline = extractScriptOutline(editor);
     outlineRef.current = nextOutline;
     setOutline(nextOutline);
     setActiveOutlineItemId(
       findActiveOutlineItem(nextOutline, editor.state.selection.from)?.id || null
     );
-  }, [editor, effectiveSpeed]);
+  }, [editor]);
 
   useEffect(() => {
     if (!editor) return;

@@ -8,6 +8,7 @@ import { CalloutNode } from '../src/components/topic-detail/ScriptCalloutNode';
 import { ScriptLink } from '../src/components/topic-detail/ScriptLink';
 import { createTableExtensions } from '../src/components/topic-detail/ScriptTableExtensions';
 import { VoiceoverCueNode } from '../src/components/topic-detail/VoiceoverCueNode';
+import { detectAndCleanImeLeak } from '../src/components/topic-detail/ImeMarkdownSafeExtension';
 import { shouldParseMarkdownPaste } from '../src/components/topic-detail/scriptMarkdownPaste';
 import {
   filterScriptMarkdownCommands,
@@ -89,7 +90,15 @@ describe('script Markdown source', () => {
 
   it('detects Markdown pasted alongside rich clipboard HTML', () => {
     expect(shouldParseMarkdownPaste('# 标题\n\n- 项目', true)).toBe(true);
+    expect(shouldParseMarkdownPaste('＃ 标题\n\n》 引用', true)).toBe(true);
+    expect(shouldParseMarkdownPaste('【 】 待办', true)).toBe(true);
     expect(shouldParseMarkdownPaste('<p>普通富文本</p>', true)).toBe(false);
     expect(shouldParseMarkdownPaste('## 纯文本标题', false)).toBe(true);
+  });
+
+  it('only removes a tracked IME leak immediately after Markdown block conversion', () => {
+    expect(detectAndCleanImeLeak('bi标题', false, 'bi')).toEqual({ cleaned: 'bi标题', leaked: null });
+    expect(detectAndCleanImeLeak('bi标题', true, 'bi')).toEqual({ cleaned: '标题', leaked: 'bi' });
+    expect(detectAndCleanImeLeak('bi标题', true, 'b')).toEqual({ cleaned: 'bi标题', leaked: null });
   });
 });

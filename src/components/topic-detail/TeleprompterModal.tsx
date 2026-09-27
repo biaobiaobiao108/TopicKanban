@@ -4,8 +4,6 @@ import {
   Play,
   Pause,
   RotateCcw,
-  Sun,
-  Moon,
   Type,
   Gauge,
   X,
@@ -19,7 +17,7 @@ import {
   Minimize,
   Keyboard
 } from 'lucide-react';
-import { ScriptOutline, OutlineItem, formatOutlineDuration } from '../../lib/outline';
+import { ScriptOutline, OutlineItem } from '../../lib/outline';
 import { FloatingScrollbar } from '../ui/FloatingScrollbar';
 
 interface TeleprompterModalProps {
@@ -49,7 +47,6 @@ const FONT_SIZES = [
 
 const PREF_SPEED_KEY = 'teleprompter_pref_speed';
 const PREF_FONT_KEY = 'teleprompter_pref_font';
-const PREF_THEME_KEY = 'teleprompter_pref_theme';
 const PREF_MIRROR_KEY = 'teleprompter_pref_mirror';
 
 function getStoredNumber(key: string, fallback: number, min: number, max: number): number {
@@ -57,16 +54,6 @@ function getStoredNumber(key: string, fallback: number, min: number, max: number
   try {
     const v = Number(localStorage.getItem(key));
     return Number.isFinite(v) && v >= min && v <= max ? v : fallback;
-  } catch {
-    return fallback;
-  }
-}
-
-function getStoredString<T extends string>(key: string, fallback: T, allowed: readonly T[]): T {
-  if (typeof window === 'undefined') return fallback;
-  try {
-    const v = localStorage.getItem(key) as T;
-    return allowed.includes(v) ? v : fallback;
   } catch {
     return fallback;
   }
@@ -94,7 +81,6 @@ export const TeleprompterModal: React.FC<TeleprompterModalProps> = ({
   const [isPlaying, setIsPlaying] = useState(false);
   const [speedMultiplier, setSpeedMultiplier] = useState(() => getStoredNumber(PREF_SPEED_KEY, 1.0, 0.4, 3.0));
   const [fontLevel, setFontLevel] = useState<1 | 2 | 3 | 4>(() => getStoredNumber(PREF_FONT_KEY, 2, 1, 4) as 1 | 2 | 3 | 4);
-  const [theme, setTheme] = useState<'dark' | 'light'>(() => getStoredString(PREF_THEME_KEY, 'dark', ['dark', 'light'] as const));
   const [isMirror, setIsMirror] = useState(() => getStoredBool(PREF_MIRROR_KEY, false));
   const [isOutlineOpen, setIsOutlineOpen] = useState(false);
   const [showKeyboardHelp, setShowKeyboardHelp] = useState(false);
@@ -117,14 +103,6 @@ export const TeleprompterModal: React.FC<TeleprompterModalProps> = ({
     try { localStorage.setItem(PREF_FONT_KEY, String(level)); } catch {}
   }, []);
 
-  const setThemeWithStorage = useCallback((themeOrUpdater: 'dark' | 'light' | ((prev: 'dark' | 'light') => 'dark' | 'light')) => {
-    setTheme((prev) => {
-      const next = typeof themeOrUpdater === 'function' ? themeOrUpdater(prev) : themeOrUpdater;
-      try { localStorage.setItem(PREF_THEME_KEY, next); } catch {}
-      return next;
-    });
-  }, []);
-
   const setIsMirrorWithStorage = useCallback((mirrorOrUpdater: boolean | ((prev: boolean) => boolean)) => {
     setIsMirror((prev) => {
       const next = typeof mirrorOrUpdater === 'function' ? mirrorOrUpdater(prev) : mirrorOrUpdater;
@@ -138,9 +116,11 @@ export const TeleprompterModal: React.FC<TeleprompterModalProps> = ({
   const animationFrameRef = useRef<number | null>(null);
   const lastFrameTimeRef = useRef<number | null>(null);
   const timerIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const positionSaveTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const blockElementsRef = useRef<(HTMLDivElement | null)[]>([]);
   const preciseScrollTopRef = useRef<number>(0);
   const lastProgressUpdateRef = useRef<number>(0);
+  const lastPositionSaveRef = useRef<number>(0);
 
   // Parse HTML into discrete block sections
   const parsedBlocks = useMemo<ParsedBlock[]>(() => {
@@ -320,18 +300,52 @@ export const TeleprompterModal: React.FC<TeleprompterModalProps> = ({
     setActiveBlockIndex(closestIndex);
   }, []);
 
-  // Sync precise scroll accumulator when user manually scrolls
-  const handleManualScroll = useCallback(() => {
-    if (scrollableRef.current) {
-      preciseScrollTopRef.current = scrollableRef.current.scrollTop;
-      try {
-        localStorage.setItem(positionStorageKey, String(Math.round(scrollableRef.current.scrollTop)));
-      } catch {
-        // localStorage may be unavailable in private browsing.
-      }
-      updateScrollProgress();
+  const persistScrollPosition = useCallback(() => {
+    const container = scrollableRef.current;
+    if (!container) return;
+
+    lastPositionSaveRef.current = performance.now();
+    try {
+      localStorage.setItem(positionStorageKey, String(Math.round(container.scrollTop)));
+    } catch {
+      // localStorage may be unavailable in private browsing.
     }
-  }, [positionStorageKey, updateScrollProgress]);
+  }, [positionStorageKey]);
+
+  // Keep precise scrolling in sync without synchronously writing localStorage on every animation frame.
+  const handleManualScroll = useCallback(() => {
+    const container = scrollableRef.current;
+    if (!container) return;
+
+    preciseScrollTopRef.current = container.scrollTop;
+    if (isPlaying) {
+      if (performance.now() - lastPositionSaveRef.current >= 500) persistScrollPosition();
+      return;
+    }
+
+    updateScrollProgress();
+    if (positionSaveTimeoutRef.current) clearTimeout(positionSaveTimeoutRef.current);
+    positionSaveTimeoutRef.current = setTimeout(persistScrollPosition, 150);
+  }, [isPlaying, persistScrollPosition, updateScrollProgress]);
+
+  useEffect(() => () => {
+    if (positionSaveTimeoutRef.current) clearTimeout(positionSaveTimeoutRef.current);
+  }, []);
+
+  const handleTogglePlayback = useCallback(() => {
+    if (!isPlaying && scrollableRef.current) {
+      const container = scrollableRef.current;
+      const maxScroll = container.scrollHeight - container.clientHeight;
+
+      // If the saved position is at the end, starting playback begins a fresh pass.
+      if (maxScroll <= 2 || container.scrollTop >= maxScroll - 2) {
+        container.scrollTop = 0;
+        preciseScrollTopRef.current = 0;
+      }
+    }
+
+    setIsPlaying((current) => !current);
+  }, [isPlaying]);
 
   useEffect(() => {
     if (!isOpen) return;
@@ -375,6 +389,7 @@ export const TeleprompterModal: React.FC<TeleprompterModalProps> = ({
     const maxScroll = scrollHeight - clientHeight;
 
     if (container.scrollTop >= maxScroll - 2) {
+      persistScrollPosition();
       setIsPlaying(false);
       lastFrameTimeRef.current = null;
       return;
@@ -393,8 +408,10 @@ export const TeleprompterModal: React.FC<TeleprompterModalProps> = ({
       updateScrollProgress();
     }
 
+    if (timestamp - lastPositionSaveRef.current > 500) persistScrollPosition();
+
     animationFrameRef.current = requestAnimationFrame(stepScroll);
-  }, [isPlaying, readingSpeed, speedMultiplier, updateScrollProgress]);
+  }, [isPlaying, readingSpeed, speedMultiplier, persistScrollPosition, updateScrollProgress]);
 
   useEffect(() => {
     if (isPlaying) {
@@ -406,11 +423,16 @@ export const TeleprompterModal: React.FC<TeleprompterModalProps> = ({
     } else {
       if (animationFrameRef.current) cancelAnimationFrame(animationFrameRef.current);
       updateScrollProgress();
+      if (positionSaveTimeoutRef.current) {
+        clearTimeout(positionSaveTimeoutRef.current);
+        positionSaveTimeoutRef.current = null;
+      }
+      persistScrollPosition();
     }
     return () => {
       if (animationFrameRef.current) cancelAnimationFrame(animationFrameRef.current);
     };
-  }, [isPlaying, stepScroll, updateScrollProgress]);
+  }, [isPlaying, persistScrollPosition, stepScroll, updateScrollProgress]);
 
   // Reset scroll to top
   const handleReset = useCallback(() => {
@@ -418,9 +440,10 @@ export const TeleprompterModal: React.FC<TeleprompterModalProps> = ({
     setElapsedSeconds(0);
     preciseScrollTopRef.current = 0;
     if (scrollableRef.current) {
-      scrollableRef.current.scrollTo({ top: 0, behavior: 'smooth' });
+      scrollableRef.current.scrollTop = 0;
+      persistScrollPosition();
     }
-  }, []);
+  }, [persistScrollPosition]);
 
   // Jump to specific outline heading
   const handleJumpToChapter = (item: OutlineItem) => {
@@ -443,9 +466,11 @@ export const TeleprompterModal: React.FC<TeleprompterModalProps> = ({
 
     const handleKeyDown = (e: KeyboardEvent) => {
       // Prevent default on interactive keys
-      if (e.code === 'Space') {
+      if (e.code === 'Space' && !e.repeat) {
+        const target = e.target instanceof HTMLElement ? e.target : null;
+        if (target?.closest('button, a, input, textarea, select, [role="button"], [contenteditable="true"]')) return;
         e.preventDefault();
-        setIsPlaying((prev) => !prev);
+        handleTogglePlayback();
         return;
       }
       if (e.key === 'Escape') {
@@ -508,11 +533,6 @@ export const TeleprompterModal: React.FC<TeleprompterModalProps> = ({
         handleReset();
         return;
       }
-      if (e.key === 't' || e.key === 'T') {
-        e.preventDefault();
-        setThemeWithStorage((prev) => (prev === 'dark' ? 'light' : 'dark'));
-        return;
-      }
       if (e.key === 'm' || e.key === 'M') {
         e.preventDefault();
         setIsMirrorWithStorage((prev) => !prev);
@@ -537,7 +557,7 @@ export const TeleprompterModal: React.FC<TeleprompterModalProps> = ({
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [isOpen, isOutlineOpen, showKeyboardHelp, onClose, handleReset, toggleFullscreen, updateScrollProgress]);
+  }, [isOpen, isOutlineOpen, showKeyboardHelp, onClose, handleReset, handleTogglePlayback, toggleFullscreen, updateScrollProgress]);
 
   if (!isOpen) return null;
 
@@ -564,7 +584,7 @@ function renderScriptTextWithCues(text: string): React.ReactNode {
 }
 
   const activeFont = FONT_SIZES.find((f) => f.level === fontLevel) || FONT_SIZES[1];
-  const isDark = theme === 'dark';
+  const isDark = true;
 
   const formatTimer = (seconds: number) => {
     const mins = Math.floor(seconds / 60);
@@ -581,9 +601,7 @@ function renderScriptTextWithCues(text: string): React.ReactNode {
       aria-modal="true"
       aria-label="录音提词器"
       tabIndex={-1}
-      className={`teleprompter-modal-root pwa-fullscreen-surface fixed inset-0 z-50 flex flex-col select-none transition-colors duration-300 ${
-        isDark ? 'dark is-dark bg-[var(--canvas)] text-[var(--ink)]' : 'is-light bg-[var(--canvas)] text-[var(--ink)]'
-      }`}
+      className="teleprompter-modal-root tokyo-night dark is-dark pwa-fullscreen-surface fixed inset-0 z-50 flex flex-col select-none"
     >
       {/* 1. Top Control Bar (Solid high-contrast surface in both modes) */}
       <header
@@ -710,19 +728,6 @@ function renderScriptTextWithCues(text: string): React.ReactNode {
             <FlipHorizontal className="w-4 h-4" />
           </button>
 
-          {/* Theme Switcher */}
-          <button
-            onClick={() => setThemeWithStorage((prev) => (prev === 'dark' ? 'light' : 'dark'))}
-            className={`p-1.5 rounded-lg border transition-colors cursor-pointer ${
-              isDark
-                ? 'bg-stone-900 border-stone-700/80 hover:bg-stone-800 text-stone-200 hover:text-white'
-                : 'bg-white border-stone-300 hover:bg-stone-100 text-stone-700'
-            }`}
-            title="切换暗黑/浅色主题 (快捷键: T)"
-          >
-            {isDark ? <Sun className="w-4 h-4 text-amber-400" /> : <Moon className="w-4 h-4 text-stone-600" />}
-          </button>
-
           {/* Fullscreen Toggle */}
           <button
             onClick={toggleFullscreen}
@@ -767,7 +772,7 @@ function renderScriptTextWithCues(text: string): React.ReactNode {
       </header>
 
       {/* 2. Main Prompter Scroll Area */}
-      <div className="relative flex-1 overflow-hidden">
+      <div className="relative flex flex-col flex-1 min-h-0 overflow-hidden">
         {/* Visual Focus Horizon Guide Line (Fixed in middle 38% of screen) */}
         <div
           className={`pointer-events-none absolute left-0 right-0 top-[38%] h-0.5 border-t border-dashed z-10 opacity-40 transition-colors ${
@@ -893,9 +898,6 @@ function renderScriptTextWithCues(text: string): React.ReactNode {
                     <span className="text-[var(--accent)] font-bold mr-1.5">H{item.level}</span>
                     <span>{item.title}</span>
                   </div>
-                  <span className={`font-mono text-[10px] shrink-0 ${isDark ? 'text-stone-400' : 'text-stone-500'}`}>
-                    {formatOutlineDuration(item.durationSeconds)}
-                  </span>
                 </button>
               ))}
             </div>
@@ -942,12 +944,20 @@ function renderScriptTextWithCues(text: string): React.ReactNode {
                   <kbd className={`px-2 py-0.5 rounded font-mono font-bold ${isDark ? 'bg-stone-900 text-[var(--accent-dark)] border border-stone-700' : 'bg-white text-[var(--accent)] border border-stone-300'}`}>R</kbd>
                 </div>
                 <div className={`flex items-center justify-between p-2 rounded ${isDark ? 'bg-stone-800/70 border border-stone-700/50' : 'bg-stone-100'}`}>
-                  <span className={isDark ? 'text-stone-300' : 'text-stone-600'}>深浅主题</span>
-                  <kbd className={`px-2 py-0.5 rounded font-mono font-bold ${isDark ? 'bg-stone-900 text-[var(--accent-dark)] border border-stone-700' : 'bg-white text-[var(--accent)] border border-stone-300'}`}>T</kbd>
-                </div>
-                <div className={`flex items-center justify-between p-2 rounded ${isDark ? 'bg-stone-800/70 border border-stone-700/50' : 'bg-stone-100'}`}>
                   <span className={isDark ? 'text-stone-300' : 'text-stone-600'}>镜像翻转</span>
                   <kbd className={`px-2 py-0.5 rounded font-mono font-bold ${isDark ? 'bg-stone-900 text-[var(--accent-dark)] border border-stone-700' : 'bg-white text-[var(--accent)] border border-stone-300'}`}>M</kbd>
+                </div>
+                <div className={`flex items-center justify-between p-2 rounded ${isDark ? 'bg-stone-800/70 border border-stone-700/50' : 'bg-stone-100'}`}>
+                  <span className={isDark ? 'text-stone-300' : 'text-stone-600'}>章节大纲</span>
+                  <kbd className={`px-2 py-0.5 rounded font-mono font-bold ${isDark ? 'bg-stone-900 text-[var(--accent-dark)] border border-stone-700' : 'bg-white text-[var(--accent)] border border-stone-300'}`}>O</kbd>
+                </div>
+                <div className={`flex items-center justify-between p-2 rounded ${isDark ? 'bg-stone-800/70 border border-stone-700/50' : 'bg-stone-100'}`}>
+                  <span className={isDark ? 'text-stone-300' : 'text-stone-600'}>切换全屏</span>
+                  <kbd className={`px-2 py-0.5 rounded font-mono font-bold ${isDark ? 'bg-stone-900 text-[var(--accent-dark)] border border-stone-700' : 'bg-white text-[var(--accent)] border border-stone-300'}`}>F</kbd>
+                </div>
+                <div className={`flex items-center justify-between p-2 rounded ${isDark ? 'bg-stone-800/70 border border-stone-700/50' : 'bg-stone-100'}`}>
+                  <span className={isDark ? 'text-stone-300' : 'text-stone-600'}>快捷键指南</span>
+                  <kbd className={`px-2 py-0.5 rounded font-mono font-bold ${isDark ? 'bg-stone-900 text-[var(--accent-dark)] border border-stone-700' : 'bg-white text-[var(--accent)] border border-stone-300'}`}>?</kbd>
                 </div>
                 <div className={`flex items-center justify-between p-2 rounded ${isDark ? 'bg-stone-800/70 border border-stone-700/50' : 'bg-stone-100'}`}>
                   <span className={isDark ? 'text-stone-300' : 'text-stone-600'}>退出提词器</span>
@@ -995,7 +1005,7 @@ function renderScriptTextWithCues(text: string): React.ReactNode {
         {/* Center: Main Play / Pause Button */}
         <div className="flex items-center gap-3">
           <button
-            onClick={() => setIsPlaying((prev) => !prev)}
+            onClick={handleTogglePlayback}
             className="flex items-center justify-center gap-2 bg-[var(--accent)] hover:bg-[var(--accent-dark)] active:scale-95 text-white px-8 sm:px-12 py-2.5 sm:py-3 rounded-xl font-bold text-sm sm:text-base transition-all shadow-2xs cursor-pointer"
           >
             {isPlaying ? (

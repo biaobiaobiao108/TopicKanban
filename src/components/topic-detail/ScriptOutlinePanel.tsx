@@ -1,6 +1,6 @@
 import React, { useEffect, useRef } from 'react';
 import { Compass, ListTree, X } from 'lucide-react';
-import { formatOutlineDuration, type OutlineItem, type ScriptOutline } from '../../lib/outline';
+import type { OutlineItem, ScriptOutline } from '../../lib/outline';
 import { FloatingScrollbar } from '../ui/FloatingScrollbar';
 
 interface ScriptOutlinePanelProps {
@@ -11,13 +11,13 @@ interface ScriptOutlinePanelProps {
   onSelectHeading: (item: OutlineItem) => void;
 }
 
-interface OutlineBranchProps {
+interface OutlineListProps {
   items: OutlineItem[];
   activeItemId: string | null;
   onSelectHeading: (item: OutlineItem) => void;
 }
 
-const OutlineBranch: React.FC<OutlineBranchProps> = ({
+const OutlineList: React.FC<OutlineListProps> = ({
   items,
   activeItemId,
   onSelectHeading,
@@ -37,27 +37,15 @@ const OutlineBranch: React.FC<OutlineBranchProps> = ({
             onMouseDown={(event) => event.preventDefault()}
             onClick={() => onSelectHeading(item)}
             className="script-outline-item-button"
-            title={`${item.title} · ${formatOutlineDuration(item.durationSeconds)} · ${item.percentage}%`}
+            title={item.title}
           >
             <span
               className={`script-outline-level-marker script-outline-level-marker--${item.level}`}
               aria-hidden="true"
             >{item.level}</span>
             <span className="script-outline-item-title">{item.title}</span>
-            <span className="script-outline-item-stats" aria-label={`章节占比 ${item.percentage}%`}>
-              <span>{formatOutlineDuration(item.durationSeconds)}</span>
-              <span aria-hidden="true">·</span>
-              <span>{item.percentage}%</span>
-            </span>
           </button>
 
-          {item.children.length > 0 && (
-            <OutlineBranch
-              items={item.children}
-              activeItemId={activeItemId}
-              onSelectHeading={onSelectHeading}
-            />
-          )}
         </li>
       );
     })}
@@ -109,7 +97,7 @@ export const ScriptOutlinePanel: React.FC<ScriptOutlinePanelProps> = ({
       <aside
         id="script-outline"
         aria-labelledby="script-outline-title"
-        className="script-outline-panel absolute inset-y-0 left-0 z-30 flex h-full w-72 flex-col overflow-hidden border-r border-[var(--line)] shadow-xl animate-in slide-in-from-left duration-200 sm:w-80 xl:shadow-none"
+        className="script-outline-panel absolute inset-y-0 left-0 z-30 flex h-full w-[min(88vw,30rem)] flex-col overflow-hidden border-r border-[var(--line)] shadow-xl animate-in slide-in-from-left duration-200 sm:w-[min(42vw,44rem)] xl:shadow-none"
       >
         <header className="script-outline-header">
           <div className="script-outline-title-row">
@@ -120,9 +108,7 @@ export const ScriptOutlinePanel: React.FC<ScriptOutlinePanelProps> = ({
             )}
           </div>
           <p className="script-outline-summary">
-            {outline.flatItems.length > 0
-              ? `预估 ${formatOutlineDuration(outline.totalDurationSeconds)}`
-              : '当前文案暂无标题'}
+            {outline.flatItems.length > 0 ? '点击标题跳转到正文' : '当前文案暂无标题'}
           </p>
           <button
             type="button"
@@ -145,22 +131,12 @@ export const ScriptOutlinePanel: React.FC<ScriptOutlinePanelProps> = ({
               <div className="script-outline-empty-mark" aria-hidden="true">
                 <Compass className="h-4 w-4" />
               </div>
-              <p>在正文使用 H1、H2、H3，即可自动生成层级大纲与时长占比。</p>
+              <p>在正文使用 H1、H2、H3，即可自动生成层级大纲。</p>
             </div>
           ) : (
             <div className="script-outline-content">
-              {outline.leadCharCount > 0 && (
-                <div className="script-outline-lead">
-                  <span>导语 / 开篇</span>
-                  <span className="script-outline-item-stats">
-                    <span>{formatOutlineDuration(outline.leadDurationSeconds)}</span>
-                    <span aria-hidden="true">·</span>
-                    <span>{outline.leadPercentage}%</span>
-                  </span>
-                </div>
-              )}
-              <OutlineBranch
-                items={outline.items}
+              <OutlineList
+                items={outline.flatItems}
                 activeItemId={activeItemId}
                 onSelectHeading={handleSelectHeading}
               />

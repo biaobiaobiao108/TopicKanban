@@ -26,42 +26,42 @@ const testSchema = new Schema({
 describe('ImeMarkdownSafeExtension 纯逻辑与自愈规则测试', () => {
   it('detectAndCleanImeLeak: 准确识别并清洗单字母泄漏 (如 b标题 -> 标题)', () => {
     // 典型场景：用户输入 "## " 转为标题后，打 "biaoti" 泄漏了 'b'，随后上屏 '标题'
-    const res1 = detectAndCleanImeLeak('b标题', true);
+    const res1 = detectAndCleanImeLeak('b标题', true, 'b');
     expect(res1.leaked).toBe('b');
     expect(res1.cleaned).toBe('标题');
 
     // 两个字母的偶发泄漏 (如 bi标题 -> 标题)
-    const res2 = detectAndCleanImeLeak('bi标题', true);
+    const res2 = detectAndCleanImeLeak('bi标题', true, 'bi');
     expect(res2.leaked).toBe('bi');
     expect(res2.cleaned).toBe('标题');
 
     // 引用块首字母泄漏 (如 y引用 -> 引用)
-    const res3 = detectAndCleanImeLeak('y引用', true);
+    const res3 = detectAndCleanImeLeak('y引用', true, 'y');
     expect(res3.leaked).toBe('y');
     expect(res3.cleaned).toBe('引用');
 
     // 列表项首字母泄漏 (如 l列表 -> 列表)
-    const res4 = detectAndCleanImeLeak('l列表第一条', true);
+    const res4 = detectAndCleanImeLeak('l列表第一条', true, 'l');
     expect(res4.leaked).toBe('l');
     expect(res4.cleaned).toBe('列表第一条');
   });
 
   it('detectAndCleanImeLeak: 安全防误伤检测 (英文、大写、带空格等不应被误清洗)', () => {
     // 1. 纯英文单词不应被误删
-    expect(detectAndCleanImeLeak('app', true)).toEqual({ cleaned: 'app', leaked: null });
-    expect(detectAndCleanImeLeak('heading', true)).toEqual({ cleaned: 'heading', leaked: null });
+    expect(detectAndCleanImeLeak('app', true, 'a')).toEqual({ cleaned: 'app', leaked: null });
+    expect(detectAndCleanImeLeak('heading', true, 'he')).toEqual({ cleaned: 'heading', leaked: null });
 
     // 2. 大写英文字母开头（如 "B站动态"，非拼音小写泄漏）
-    expect(detectAndCleanImeLeak('B站动态', true)).toEqual({ cleaned: 'B站动态', leaked: null });
+    expect(detectAndCleanImeLeak('B站动态', true, 'b')).toEqual({ cleaned: 'B站动态', leaked: null });
 
     // 3. 带空格的英文加中文（如 "a 计划"）
-    expect(detectAndCleanImeLeak('a 计划', true)).toEqual({ cleaned: 'a 计划', leaked: null });
+    expect(detectAndCleanImeLeak('a 计划', true, 'a')).toEqual({ cleaned: 'a 计划', leaked: null });
 
     // 4. 英文单词加中文（如 "iPhone 评测"）
-    expect(detectAndCleanImeLeak('iPhone 评测', true)).toEqual({ cleaned: 'iPhone 评测', leaked: null });
+    expect(detectAndCleanImeLeak('iPhone 评测', true, 'i')).toEqual({ cleaned: 'iPhone 评测', leaked: null });
 
     // 5. 纯中文正常输入
-    expect(detectAndCleanImeLeak('正常标题', true)).toEqual({ cleaned: '正常标题', leaked: null });
+    expect(detectAndCleanImeLeak('正常标题', true, 'b')).toEqual({ cleaned: '正常标题', leaked: null });
   });
 
   it('createImeMarkdownSafePlugin: ProseMirror 状态机生命周期与自愈 Transaction 模拟', () => {
@@ -109,7 +109,8 @@ describe('ImeMarkdownSafeExtension 纯逻辑与自愈规则测试', () => {
 
     state = state.apply(state.tr.setBlockType(1, 1, testSchema.nodes.heading, { level: 2 }));
     state = state.apply(state.tr.setMeta(ImeMarkdownSafePluginKey, { isComposing: true }));
-    state = state.apply(state.tr.insertText('b标题', 1));
+    state = state.apply(state.tr.insertText('b', 1));
+    state = state.apply(state.tr.insertText('标题', 2));
 
     expect(state.doc.textContent).toBe('b标题');
     expect(ImeMarkdownSafePluginKey.getState(state)?.isComposing).toBe(true);

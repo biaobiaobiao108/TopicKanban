@@ -1,6 +1,6 @@
 import type { EditorView } from '@tiptap/pm/view';
 
-const MARKDOWN_PASTE_RE = /(?:^|\n)\s{0,3}(?:#{1,6}\s|[-+*]\s|\d+[.)]\s|>\s|```|~~~|-{3,}\s*$)|(?:\*\*[^*\n]+\*\*|__[^_\n]+__|~~[^~\n]+~~|`[^`\n]+`|\[[^\]\n]+\]\([^\)\n]+\))/u;
+const MARKDOWN_PASTE_RE = /(?:^|\n)\s{0,3}(?:[#＃]{1,6}[\s\u3000]|[-+*＊＋－·•][\s\u3000]|\d+[.)、．][\s\u3000]|(?:\[(?: |x|X)\]|【(?: |x|X)】)[\s\u3000]|[>＞》〉][\s\u3000]|```|~~~|(?:-{3,}|_{3,}|(?:\*\s*){3,})\s*$)|(?:\*\*[^*\n]+\*\*|__[^_\n]+__|~~[^~\n]+~~|`[^`\n]+`|\[[^\]\n]+\]\([^\)\n]+\))/u;
 
 export function shouldParseMarkdownPaste(text: string, hasHtml: boolean) {
   const trimmed = text.trim();

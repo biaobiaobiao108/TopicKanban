@@ -63,25 +63,21 @@ function getTargetBlockInfo($from: ResolvedPos) {
  */
 export function detectAndCleanImeLeak(
   text: string,
-  isWithinWindow = true
+  isWithinWindow = false,
+  expectedLeak: string | null = null
 ): { cleaned: string; leaked: string | null } {
+  if (!isWithinWindow || !expectedLeak) {
+    return { cleaned: text, leaked: null };
+  }
+
   // 匹配 1-2 个小写英文字母紧贴汉字（如 "b标题" 或 "bi标题"）
   const match = text.match(/^([a-z]{1,2})([\u4e00-\u9fa5\u3000-\u303f\uff00-\uffef]+)/);
-  if (!match) {
+  if (!match || match[1] !== expectedLeak) {
     return { cleaned: text, leaked: null };
   }
 
   const leaked = match[1];
-  // 仅在转换保护期内，或是新生成的短文本时执行自愈
-  const isShortBlock = text.length <= 25;
-  if (isWithinWindow || isShortBlock) {
-    return {
-      cleaned: text.slice(leaked.length),
-      leaked,
-    };
-  }
-
-  return { cleaned: text, leaked: null };
+  return { cleaned: text.slice(leaked.length), leaked };
 }
 
 /**
@@ -120,8 +116,8 @@ export function createImeMarkdownSafePlugin(): Plugin<ImeSafePluginState> {
             // 阶段一：识别刚被 Markdown 语法转换的空块（内容为 0）
             if (blockText.length === 0) {
               const oldFrom = Math.min(oldState.selection.from, oldState.doc.content.size);
-              const oldNode = oldState.doc.resolve(oldFrom).parent;
-              if (oldNode.type.name !== currentBlockType || state.convertedBlockPos === null) {
+              const oldTarget = getTargetBlockInfo(oldState.doc.resolve(oldFrom));
+              if (oldTarget?.type !== currentBlockType) {
                 state = {
                   ...state,
                   convertedBlockPos: blockStart,
@@ -208,11 +204,12 @@ export function createImeMarkdownSafePlugin(): Plugin<ImeSafePluginState> {
       const blockText = currentBlock.textContent;
 
       const now = Date.now();
+      const expectedLeak = pluginState.pendingLeakedChar;
       const isWithinConvertedWindow =
         pluginState.convertedBlockPos !== null &&
         now - pluginState.convertedBlockTime < 8000;
 
-      const { cleaned, leaked } = detectAndCleanImeLeak(blockText, isWithinConvertedWindow);
+      const { cleaned, leaked } = detectAndCleanImeLeak(blockText, isWithinConvertedWindow, expectedLeak);
 
       if (leaked && cleaned !== blockText) {
         const tr = newState.tr;
