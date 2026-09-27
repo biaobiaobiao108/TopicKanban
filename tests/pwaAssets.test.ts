@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it } from 'bun:test';
-import { startServer } from '../src/server/server';
+import { discoverStaticFiles, resolveServerPort, startServer } from '../src/server/server';
 
 let server: Awaited<ReturnType<typeof startServer>> | null = null;
 
@@ -21,6 +21,21 @@ afterEach(async () => {
 });
 
 describe('PWA static assets', () => {
+  it('keeps production PWA routes registered when the static directory is missing', async () => {
+    const staticFiles = await discoverStaticFiles('missing-production-static-root');
+
+    expect(staticFiles.has('manifest.webmanifest')).toBe(true);
+    expect(staticFiles.has('sw.js')).toBe(true);
+    expect(staticFiles.has('icon-192.png')).toBe(true);
+    expect(staticFiles.has('icon-512.png')).toBe(true);
+  });
+
+  it('uses the configured PORT while preserving explicit and default port behavior', () => {
+    expect(resolveServerPort('4180')).toBe(4180);
+    expect(resolveServerPort(undefined)).toBe(3030);
+    expect(resolveServerPort('4180', 0)).toBe(0);
+  });
+
   it('defines an installable standalone manifest and exact-size icons', async () => {
     const indexHtml = await Bun.file('index.html').text();
     expect(indexHtml).toContain('<link rel="manifest" href="./public/manifest.webmanifest" />');

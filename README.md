@@ -176,7 +176,7 @@ podman compose up -d --build
 
 ### 2. 反向代理（Reverse Proxy）配置
 
-当容器部署在 Nginx / Caddy / NPM 等反向代理后方时，建议配置 `PUBLIC_BASE_URL`。只有在代理会可靠覆盖并转发 `X-Forwarded-*` 请求头时，才显式设置 `TRUST_PROXY_HEADERS=true`；默认关闭可避免伪造请求头影响登录限流或分享链接域名。
+当容器部署在 Nginx / Caddy / NPM 等反向代理后方时，建议配置 `PUBLIC_BASE_URL`。只有在代理会可靠覆盖 `X-Real-IP`、`X-Forwarded-Proto` 和 `X-Forwarded-Host` 请求头时，才显式设置 `TRUST_PROXY_HEADERS=true`。登录限流只使用代理覆盖后的单值 `X-Real-IP`，不会把可由客户端注入的 `X-Forwarded-For` 链首当作客户端地址。
 
 #### Nginx 配置样例：
 ```nginx
@@ -193,7 +193,7 @@ server {
         proxy_pass http://127.0.0.1:3030;
         proxy_set_header Host $host;
         proxy_set_header X-Real-IP $remote_addr;
-        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-For $remote_addr;
         proxy_set_header X-Forwarded-Proto $scheme;
         proxy_set_header X-Forwarded-Host $host;
     }
@@ -203,7 +203,9 @@ server {
 #### Caddy 配置样例：
 ```caddyfile
 kanban.yourdomain.com {
-    reverse_proxy 127.0.0.1:3030
+    reverse_proxy 127.0.0.1:3030 {
+        header_up X-Real-IP {remote_host}
+    }
 }
 ```
 

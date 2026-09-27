@@ -43,6 +43,7 @@ import {
   Copy,
   Check,
   Palette,
+  Sun,
   Moon,
   Laptop,
   BookOpen,
@@ -464,6 +465,13 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                   desc: '温润暖纸画布与松柏绿操作色，适合长时间阅读',
                   icon: BookOpen,
                   colors: ['#f7f4ed', '#fdfcf7', '#365f4d', '#6c655c'],
+                },
+                {
+                  id: 'light' as const,
+                  title: '经典浅色',
+                  desc: '简洁的石色画布与清晰对比，保留经典浅色工作区观感',
+                  icon: Sun,
+                  colors: ['#fafaf9', '#ffffff', '#292524', '#78716c'],
                 },
                 {
                   id: 'dark' as const,

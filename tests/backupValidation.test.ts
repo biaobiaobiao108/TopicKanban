@@ -68,6 +68,18 @@ describe('backup schema validation', () => {
     expect(validateBackupData(createBackup())).toMatchObject({ success: true });
   });
 
+  it('rejects invalid recycle-bin timestamps while accepting valid ISO timestamps', () => {
+    const invalid = validateBackupData(createBackup({
+      topics: [{ ...createTopic('topic-invalid-trash-date'), deleted_at: 'not-a-timestamp' }],
+    }));
+    expect(invalid.success).toBe(false);
+    if (!invalid.success) expect(invalid.error).toContain('topics.0.deleted_at');
+
+    expect(validateBackupData(createBackup({
+      topics: [{ ...createTopic('topic-valid-trash-date'), deleted_at: '2026-01-02T03:04:05.000Z' }],
+    })).success).toBe(true);
+  });
+
   it('preserves the recycle-bin retention policy when validating a backup', () => {
     const result = validateBackupData(createBackup({
       settings: { reading_speed: 280, theme: 'light', trash_retention_days: 0 },

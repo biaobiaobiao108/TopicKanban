@@ -35,6 +35,7 @@ import {
   getBeijingDateString,
   getMonthGridDays,
   getWeekDays,
+  shiftCalendarMonth,
   extractCalendarEvents,
   calculateMonthStats,
 } from './calendarUtils';
@@ -142,21 +143,21 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
   const handlePrev = () => {
     const next = new Date(currentDate);
     if (viewMode === 'month') {
-      next.setUTCMonth(next.getUTCMonth() - 1);
+      setCurrentDate(shiftCalendarMonth(currentDate, -1));
     } else {
       next.setUTCDate(next.getUTCDate() - 7);
+      setCurrentDate(next);
     }
-    setCurrentDate(next);
   };
 
   const handleNext = () => {
     const next = new Date(currentDate);
     if (viewMode === 'month') {
-      next.setUTCMonth(next.getUTCMonth() + 1);
+      setCurrentDate(shiftCalendarMonth(currentDate, 1));
     } else {
       next.setUTCDate(next.getUTCDate() + 7);
+      setCurrentDate(next);
     }
-    setCurrentDate(next);
   };
 
   const handleToday = () => {

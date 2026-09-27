@@ -32,6 +32,7 @@ import {
   updateTagCaches,
   updateTopicCaches,
 } from '../src/lib/queryCacheSync';
+import { refreshTopicData } from '../src/lib/topicQueryCache';
 
 function topic(id: string, overrides: Partial<Topic> = {}): Topic {
   return {
@@ -71,6 +72,16 @@ function baseWorkspace(topics: Topic[] = []): BootstrapData {
 }
 
 describe('跨视图实体缓存同步', () => {
+  it('选题编辑后将标签筛选分页标记为过期以触发后台校正', async () => {
+    const queryClient = new QueryClient();
+    const tagTopicsKey = ['tag-topics-page', 'tag-1', 1];
+    queryClient.setQueryData(tagTopicsKey, page([topic('topic-1')]));
+
+    await refreshTopicData(queryClient, { includeLists: true });
+
+    expect(queryClient.getQueryState(tagTopicsKey)?.isInvalidated).toBe(true);
+  });
+
   it('优先从当前视图的分页缓存解析选题，避免工作区旧快照覆盖当前卡片', () => {
     const queryClient = new QueryClient();
     const current = topic('topic-from-kanban', { title: '当前看板版本' });

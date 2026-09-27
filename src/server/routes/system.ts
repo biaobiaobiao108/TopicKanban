@@ -43,11 +43,9 @@ export function sanitizeAppSettings(
     : DEFAULT_APP_SETTINGS.reading_speed;
 
   const storedTheme: unknown = settings.theme;
-  const theme = storedTheme === 'light'
-    ? 'nordic_frost'
-    : typeof storedTheme === 'string' && APP_THEMES.includes(storedTheme as AppTheme)
-      ? storedTheme as AppTheme
-      : DEFAULT_APP_SETTINGS.theme;
+  const theme = typeof storedTheme === 'string' && APP_THEMES.includes(storedTheme as AppTheme)
+    ? storedTheme as AppTheme
+    : DEFAULT_APP_SETTINGS.theme;
 
   const editorFontSize = typeof settings.editor_font_size === 'string' && validFontSizes.includes(settings.editor_font_size)
     ? settings.editor_font_size

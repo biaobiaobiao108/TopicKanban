@@ -12,6 +12,19 @@ export interface MonthDayCell {
   isWeekend: boolean;
 }
 
+/** Shift a calendar month without allowing short months to roll into the next one. */
+export function shiftCalendarMonth(date: Date, amount: number): Date {
+  if (!Number.isFinite(date.getTime()) || !Number.isFinite(amount)) return new Date(Number.NaN);
+
+  const shifted = new Date(date);
+  const originalDay = shifted.getUTCDate();
+  shifted.setUTCDate(1);
+  shifted.setUTCMonth(shifted.getUTCMonth() + Math.trunc(amount));
+  const lastDay = new Date(Date.UTC(shifted.getUTCFullYear(), shifted.getUTCMonth() + 1, 0)).getUTCDate();
+  shifted.setUTCDate(Math.min(originalDay, lastDay));
+  return shifted;
+}
+
 function formatIsoDate(year: number, monthIndex: number, day: number): string {
   return `${year}-${String(monthIndex + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
 }

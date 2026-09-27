@@ -254,6 +254,7 @@ function WorkspaceApp({ isAuth, setIsAuth }: WorkspaceAppProps) {
 
   useEffect(() => {
     const handleUnauthorized = () => {
+      window.dispatchEvent(new Event('kanban:logout'));
       clearWorkspace();
       setIsAuth(false);
     };
@@ -306,6 +307,7 @@ function WorkspaceApp({ isAuth, setIsAuth }: WorkspaceAppProps) {
   }, [isCommandPaletteOpen, isQuickCreateOpen]);
 
   const handleLogout = () => {
+    window.dispatchEvent(new Event('kanban:logout'));
     logout();
     clearWorkspace();
     setIsAuth(false);
@@ -531,7 +533,7 @@ function WorkspaceApp({ isAuth, setIsAuth }: WorkspaceAppProps) {
     const resolved = reconcileTopicMutation(activeTopicId, updates, updated, sequence);
     setTopics((prev) => prev.map((topic) => (topic.id === updated.id ? { ...topic, ...resolved } : topic)));
     updateTopicCaches(queryClient, updated.id, resolved);
-    await refreshTopics();
+    await refreshTopics({ includeLists: true });
   };
 
   const handleUpdateTopicById = async (topicId: string, updates: Partial<Topic>) => {
@@ -550,7 +552,7 @@ function WorkspaceApp({ isAuth, setIsAuth }: WorkspaceAppProps) {
     const resolved = reconcileTopicMutation(topicId, updates, updated, sequence);
     setTopics((prev) => prev.map((topic) => (topic.id === updated.id ? { ...topic, ...resolved } : topic)));
     updateTopicCaches(queryClient, updated.id, resolved);
-    await refreshTopics();
+    await refreshTopics({ includeLists: true });
   };
 
   const handleDeleteTopic = async (topicId: string) => {

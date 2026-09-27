@@ -285,30 +285,40 @@ export async function updateCommercialDeal(
   id: string,
   body: Record<string, unknown>
 ): Promise<CommercialDeal | null> {
-  const existing = await findCommercialDeal(db, id);
-  if (!existing) return null;
-  const fields = COMMERCIAL_DEAL_UPDATE_FIELDS.filter((field) => Object.prototype.hasOwnProperty.call(body, field));
-  const now = new Date().toISOString();
-  const batch: SqlitePreparedStatement[] = [];
-  if (fields.length > 0) {
-    batch.push(bind(db,
-      `UPDATE commercial_deals SET ${fields.map((field) => `${field} = ?`).join(', ')}, updated_at = ? WHERE id = ?`,
-      [...fields.map((field) => body[field]), now, id]
-    ));
-  }
-  if (body.status !== undefined && body.status !== existing.status) {
-    batch.push(commercialDealActivityStatement(db, {
-      id: createId('deal-activity'), deal_id: id, kind: 'status_change',
-      content: `阶段变更：${existing.status} → ${String(body.status)}`, created_at: now,
-    }));
-  }
-  if (body.payment_status !== undefined && body.payment_status !== existing.payment_status) {
-    batch.push(commercialDealActivityStatement(db, {
-      id: createId('deal-activity'), deal_id: id, kind: 'payment',
-      content: `回款状态：${existing.payment_status} → ${String(body.payment_status)}`, created_at: now,
-    }));
-  }
-  if (batch.length > 0) await db.batch(batch);
+  const updated = db.sqlite.transaction(() => {
+    // Read the previous state inside the same SQLite transaction as the update
+    // and activity writes. Otherwise concurrent patches can both report a
+    // transition from the same stale state.
+    const existing = db.sqlite.query(
+      'SELECT status, payment_status FROM commercial_deals WHERE id = ?'
+    ).get(id) as Pick<CommercialDeal, 'status' | 'payment_status'> | undefined;
+    if (!existing) return false;
+
+    const fields = COMMERCIAL_DEAL_UPDATE_FIELDS.filter((field) => Object.prototype.hasOwnProperty.call(body, field));
+    const now = new Date().toISOString();
+    const statements: SqlitePreparedStatement[] = [];
+    if (fields.length > 0) {
+      statements.push(bind(db,
+        `UPDATE commercial_deals SET ${fields.map((field) => `${field} = ?`).join(', ')}, updated_at = ? WHERE id = ?`,
+        [...fields.map((field) => body[field]), now, id]
+      ));
+    }
+    if (body.status !== undefined && body.status !== existing.status) {
+      statements.push(commercialDealActivityStatement(db, {
+        id: createId('deal-activity'), deal_id: id, kind: 'status_change',
+        content: `阶段变更：${existing.status} → ${String(body.status)}`, created_at: now,
+      }));
+    }
+    if (body.payment_status !== undefined && body.payment_status !== existing.payment_status) {
+      statements.push(commercialDealActivityStatement(db, {
+        id: createId('deal-activity'), deal_id: id, kind: 'payment',
+        content: `回款状态：${existing.payment_status} → ${String(body.payment_status)}`, created_at: now,
+      }));
+    }
+    statements.forEach((statement) => statement.executeSync());
+    return true;
+  })();
+  if (!updated) return null;
   return loadCommercialDeal(db, id);
 }
 

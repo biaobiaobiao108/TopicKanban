@@ -297,10 +297,13 @@ export class NativeApp {
   }
 
   private async dispatch(request: BunRequestLike, match: RouteMatch, requestIp?: string): Promise<Response> {
-    const forwardedFor = request.headers.get('x-forwarded-for')?.split(',')[0]?.trim();
     const forwardedRealIp = request.headers.get('x-real-ip')?.trim();
     const clientIp = this.env.CLIENT_IP
-      || (this.env.TRUST_PROXY_HEADERS ? forwardedFor || forwardedRealIp : undefined)
+      // X-Forwarded-For is an append-only proxy chain in common configurations
+      // (including $proxy_add_x_forwarded_for), so its leftmost value can be
+      // supplied by the client. Use the single-hop header that the edge proxy
+      // must overwrite instead.
+      || (this.env.TRUST_PROXY_HEADERS ? forwardedRealIp : undefined)
       || requestIp
       || 'unknown';
     const context = new NativeContext(request, { ...this.env, CLIENT_IP: clientIp });

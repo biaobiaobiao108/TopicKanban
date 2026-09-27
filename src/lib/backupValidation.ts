@@ -8,8 +8,25 @@ const mediumText = z.string().max(2_000);
 const longText = z.string().max(20_000);
 const timestamp = z.string().max(50);
 const optionalTimestamp = timestamp.nullable().optional();
+const deletedAtTimestamp = z.string().max(50).refine(isValidIsoTimestamp, '必须是有效的 ISO 8601 时间戳');
+const optionalDeletedAtTimestamp = deletedAtTimestamp.nullable().optional();
 const optionalDateOnly = z.string().refine(isValidIsoDate, '日期必须是有效的 YYYY-MM-DD').nullable().optional();
 const verificationStatus = z.enum(['confirmed', 'unverified', 'rejected']);
+
+function isValidIsoTimestamp(value: string): boolean {
+  const match = /^(\d{4}-\d{2}-\d{2})T(\d{2}):(\d{2}):(\d{2})(?:\.(\d{1,9}))?(Z|[+-]\d{2}:\d{2})$/.exec(value);
+  if (!match || !isValidIsoDate(match[1])) return false;
+
+  const hour = Number(match[2]);
+  const minute = Number(match[3]);
+  const second = Number(match[4]);
+  if (hour > 23 || minute > 59 || second > 59) return false;
+
+  if (match[6] === 'Z') return true;
+  const offsetHour = Number(match[6].slice(1, 3));
+  const offsetMinute = Number(match[6].slice(4, 6));
+  return offsetHour <= 23 && offsetMinute <= 59;
+}
 
 const tagSchema = z.object({
   id,
@@ -52,7 +69,7 @@ const topicSchema = z.object({
   created_at: timestamp,
   updated_at: timestamp,
   published_at: optionalTimestamp,
-  deleted_at: optionalTimestamp,
+  deleted_at: optionalDeletedAtTimestamp,
   tags: z.array(tagSchema).optional(),
   people: z.array(personSchema).optional(),
 }).passthrough();
@@ -246,10 +263,7 @@ const publishPackageSchema = z.object({
 
 const settingsSchema = z.object({
   reading_speed: z.number().positive().max(1_000),
-  theme: z.preprocess(
-    (value) => value === 'light' ? 'nordic_frost' : value,
-    z.enum(APP_THEMES),
-  ),
+  theme: z.enum(APP_THEMES),
   editor_font_size: z.enum(['compact', 'standard', 'large']).optional(),
   editor_line_height: z.enum(['normal', 'relaxed', 'loose']).optional(),
   typewriter_mode_default: z.boolean().optional(),

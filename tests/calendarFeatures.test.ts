@@ -5,11 +5,21 @@ import {
   extractCalendarEvents,
   calculateMonthStats,
   getBeijingDateString,
+  shiftCalendarMonth,
 } from '../src/components/calendar/calendarUtils';
 import { DEFAULT_CALENDAR_LAYERS } from '../src/components/calendar/CalendarTypes';
 import { Topic, CommercialDeal, PublishedVideo } from '../src/types';
 
 describe('Calendar utilities and event extraction', () => {
+  it('clamps month navigation to the last valid day of the destination month', () => {
+    expect(shiftCalendarMonth(new Date('2026-01-31T12:00:00.000Z'), 1).toISOString())
+      .toBe('2026-02-28T12:00:00.000Z');
+    expect(shiftCalendarMonth(new Date('2026-03-31T12:00:00.000Z'), -1).toISOString())
+      .toBe('2026-02-28T12:00:00.000Z');
+    expect(shiftCalendarMonth(new Date('2026-04-30T12:00:00.000Z'), 1).toISOString())
+      .toBe('2026-05-30T12:00:00.000Z');
+  });
+
   it('generates consistent month grid days starting on Monday', () => {
     // August 2026: Aug 1 is Saturday
     const days = getMonthGridDays(2026, 7); // 0-indexed month: 7 = August

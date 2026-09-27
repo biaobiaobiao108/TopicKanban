@@ -36,6 +36,7 @@ let snapshot: PwaInstallSnapshot = {
 const PWA_SURFACE_COLORS: Record<Exclude<AppTheme, 'system'>, string> = {
   warm_paper: '#fdfcf7',
   nordic_frost: '#f6faf9',
+  light: '#fafaf9',
   dark: '#1a1b26',
 };
 

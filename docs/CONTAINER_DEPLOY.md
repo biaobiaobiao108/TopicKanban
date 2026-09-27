@@ -28,7 +28,7 @@
          - APP_PASSWORD=your_secure_password      # 工作台访问密码
          - QUICK_DROP_TOKEN=your_quick_drop_token  # 手机快捷指令快投Token
          - PUBLIC_BASE_URL=https://kanban.yourdomain.com # 反向代理公网域名 (若无反代可留空)
-         - TRUST_PROXY_HEADERS=false                 # 仅在可信反代覆盖 X-Forwarded-* 时开启
+         - TRUST_PROXY_HEADERS=false                 # 仅在可信反代覆盖 X-Real-IP、X-Forwarded-Proto/Host 时开启
          - DATA_DIR=/app/data
        volumes:
          - ./data:/app/data
@@ -94,7 +94,7 @@ docker run -d \
 
 ## 🌐 二、反向代理（Reverse Proxy）配置样例
 
-为了实现外网 HTTPS 安全访问、免登录外部审稿链接及手机快捷指令随时随地投递灵感，建议使用反向代理。默认不信任客户端传入的转发头；请优先配置 `PUBLIC_BASE_URL`，只有在可信代理会覆盖这些头时才开启 `TRUST_PROXY_HEADERS=true`。
+为了实现外网 HTTPS 安全访问、免登录外部审稿链接及手机快捷指令随时随地投递灵感，建议使用反向代理。默认不信任客户端传入的转发头；请优先配置 `PUBLIC_BASE_URL`，只有在可信代理会覆盖 `X-Real-IP`、`X-Forwarded-Proto` 和 `X-Forwarded-Host` 时才开启 `TRUST_PROXY_HEADERS=true`。登录限流只使用单值 `X-Real-IP`，不使用可能保留客户端输入的 `X-Forwarded-For` 链首。
 
 HTTPS 也是手机 PWA 安装的正式要求。容器服务本身继续监听 HTTP `3030`，由 Nginx、Caddy 或 NPM 负责终止 TLS 并将 HTTPS 请求反向代理到该端口；不要使用普通的局域网 HTTP 地址测试手机安装。
 
@@ -126,7 +126,7 @@ server {
         proxy_pass http://127.0.0.1:3030;
         proxy_set_header Host $host;
         proxy_set_header X-Real-IP $remote_addr;
-        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-For $remote_addr;
         proxy_set_header X-Forwarded-Proto $scheme;
         proxy_set_header X-Forwarded-Host $host;
 
@@ -143,6 +143,7 @@ server {
 ```caddyfile
 kanban.yourdomain.com {
     reverse_proxy 127.0.0.1:3030 {
+        header_up X-Real-IP {remote_host}
         header_up X-Forwarded-Proto {scheme}
         header_up X-Forwarded-Host {host}
     }
@@ -170,12 +171,12 @@ kanban.yourdomain.com {
 | `APP_PASSWORD` | 建议 | 空 | 工作台访问密码 |
 | `QUICK_DROP_TOKEN` | 建议 | 空 | 手机/快捷指令灵感快投独立鉴权 Token |
 | `PUBLIC_BASE_URL` | 否 | 空 | 反向代理的公网基准域名（**必须包含协议头**，例如 `https://kanban.example.com`），优先级最高 |
-| `TRUST_PROXY_HEADERS` | 否 | `false` | 是否信任反向代理提供的 `X-Forwarded-For`、`X-Real-IP`、`X-Forwarded-Proto` 和 `X-Forwarded-Host` |
+| `TRUST_PROXY_HEADERS` | 否 | `false` | 是否信任反向代理覆盖后的 `X-Real-IP`、`X-Forwarded-Proto` 和 `X-Forwarded-Host`；登录限流忽略 `X-Forwarded-For` |
 
 > **提示**：
 > 1. `PUBLIC_BASE_URL` **必须包含完整的 `https://` 或 `http://` 协议前缀**（切勿填成裸域名 `kanban.example.com`），否则浏览器会将其误判为相对路径导致审稿外链跳转失效。
 > 2. `PUBLIC_BASE_URL` 也可以在进入工作台后，在**「偏好设置」->「选题生产流与外部审稿偏好」**中直接图形化填写和修改。
-> 3. 未配置 `PUBLIC_BASE_URL` 时，默认返回相对路径；如需根据转发头生成绝对分享链接，必须显式设置 `TRUST_PROXY_HEADERS=true`，并确保反向代理覆盖客户端传入的同名请求头。
+> 3. 未配置 `PUBLIC_BASE_URL` 时，默认返回相对路径；如需根据转发头生成绝对分享链接，必须显式设置 `TRUST_PROXY_HEADERS=true`，并确保反向代理覆盖客户端传入的同名请求头。登录限流的客户端地址仅来自代理覆盖后的 `X-Real-IP`。
 
 ---
 

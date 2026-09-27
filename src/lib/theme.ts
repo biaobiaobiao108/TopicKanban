@@ -25,7 +25,8 @@ export function applyTheme(theme: AppTheme = 'nordic_frost'): void {
   // Clear specific theme class tokens
   root.classList.remove(
     'theme-warm-paper',
-    'theme-nordic-frost'
+    'theme-nordic-frost',
+    'theme-light'
   );
 
   if (theme === 'dark') {
@@ -38,6 +39,10 @@ export function applyTheme(theme: AppTheme = 'nordic_frost'): void {
   } else if (theme === 'warm_paper') {
     root.classList.remove('dark');
     root.classList.add('theme-warm-paper');
+    root.style.colorScheme = 'light';
+  } else if (theme === 'light') {
+    root.classList.remove('dark');
+    root.classList.add('theme-light');
     root.style.colorScheme = 'light';
   } else if (theme === 'system') {
     mediaQueryList = window.matchMedia('(prefers-color-scheme: dark)');
@@ -92,6 +97,12 @@ export const THEME_CONFIG_LIST: ThemeConfig[] = [
     title: '暖沙纸境',
     desc: '温润暖纸画布与松柏绿操作色，适合长时间阅读',
     colors: ['#f7f4ed', '#fdfcf7', '#365f4d', '#6c655c'],
+  },
+  {
+    id: 'light',
+    title: '经典浅色',
+    desc: '简洁的石色画布与清晰对比，保留经典浅色工作区观感',
+    colors: ['#fafaf9', '#ffffff', '#292524', '#78716c'],
   },
   {
     id: 'dark',

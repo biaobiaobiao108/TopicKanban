@@ -20,8 +20,15 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
+  verify:
+    name: Verify before publishing
+    uses: ./.github/workflows/ci.yml
+    permissions:
+      contents: read
+
   release:
     name: Build, Publish and Release
+    needs: verify
     runs-on: ubuntu-latest
     timeout-minutes: 30
     permissions:

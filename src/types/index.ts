@@ -403,6 +403,7 @@ export interface DealFocusData {
 export const APP_THEMES = [
   'nordic_frost',
   'warm_paper',
+  'light',
   'dark',
   'system',
 ] as const;

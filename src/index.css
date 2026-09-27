@@ -404,6 +404,27 @@ html.dark .script-citation::after {
     color-scheme: light;
   }
 
+  html.theme-light {
+    --canvas: #fafaf9;
+    --surface: #ffffff;
+    --ink: #292524;
+    --ink-muted: #78716c;
+    --line: rgba(41, 37, 36, 0.10);
+    --accent: #365f4d;
+    --accent-soft: rgba(54, 95, 77, 0.09);
+    --accent-dark: #284838;
+    --h1-color: #a34133;
+    --h2-color: #0369a1;
+    --h3-color: #0f766e;
+    --control-surface: rgba(41, 37, 36, 0.025);
+    --focus-ring: rgba(54, 95, 77, 0.34);
+    --nav-surface: rgba(255, 255, 255, 0.92);
+    --sidebar-surface: rgba(245, 245, 244, 0.94);
+    --scrollbar-thumb: rgba(41, 37, 36, 0.18);
+    --scrollbar-track: transparent;
+    color-scheme: light;
+  }
+
   html.dark {
     --canvas: #1a1b26;
     --surface: #24283b;

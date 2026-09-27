@@ -91,6 +91,7 @@ export const TopicDetailView: React.FC<TopicDetailViewProps> = ({
   todoActions,
 }) => {
   const queryClient = useQueryClient();
+  const loggingOutRef = useRef(false);
   const [pendingOutlineHtml, setPendingOutlineHtml] = useState<string | null>(null);
   const [searchParams, setSearchParams] = useSearchParams();
   const rawTab = searchParams.get('tab');
@@ -129,6 +130,14 @@ export const TopicDetailView: React.FC<TopicDetailViewProps> = ({
   }, []);
   const onTopicMetricsChangeRef = useRef(onTopicMetricsChange);
   onTopicMetricsChangeRef.current = onTopicMetricsChange;
+
+  useEffect(() => {
+    const handleLogout = () => {
+      loggingOutRef.current = true;
+    };
+    window.addEventListener('kanban:logout', handleLogout);
+    return () => window.removeEventListener('kanban:logout', handleLogout);
+  }, []);
 
   const sourcesEnabled = activeTab === 'sources' || activeTab === 'script';
   const timelineEnabled = activeTab === 'timeline' || activeTab === 'script';
@@ -298,9 +307,11 @@ export const TopicDetailView: React.FC<TopicDetailViewProps> = ({
   ) => {
     try {
       const updated = await saveDraft(topicId, contentHtml, contentJson, wordCount, title, contentMarkdown);
+      if (loggingOutRef.current) return;
       queryClient.setQueryData(['topic-draft', topicId], { draft: updated, conflict: null });
       onDraftWordCountChange(topicId, wordCount);
     } catch (error) {
+      if (loggingOutRef.current) throw error;
       setOperationError(error instanceof Error ? `保存草稿失败：${error.message}` : '保存草稿失败');
       throw error;
     }
@@ -663,19 +674,23 @@ export const TopicDetailView: React.FC<TopicDetailViewProps> = ({
               onRegisterDraftFlush={registerDraftFlush}
               onCacheDraftLocally={(contentHtml, contentJson, wordCount, title, contentMarkdown) => {
                 const cached = cacheDraftLocally(topic.id, contentHtml, contentJson, wordCount, title, contentMarkdown);
-                queryClient.setQueryData(['topic-draft', topic.id], (prev?: { draft: Draft | null; conflict: DraftRecoveryConflict | null }) => ({
-                  draft: cached,
-                  conflict: prev?.conflict || null,
-                }));
-                onDraftWordCountChange(topic.id, wordCount);
+                if (!loggingOutRef.current) {
+                  queryClient.setQueryData(['topic-draft', topic.id], (prev?: { draft: Draft | null; conflict: DraftRecoveryConflict | null }) => ({
+                    draft: cached,
+                    conflict: prev?.conflict || null,
+                  }));
+                  onDraftWordCountChange(topic.id, wordCount);
+                }
               }}
               onSaveDraftImmediately={(contentHtml, contentJson, wordCount, title, contentMarkdown) => {
                 const updated = saveDraftImmediately(topic.id, contentHtml, contentJson, wordCount, title, contentMarkdown);
-                queryClient.setQueryData(['topic-draft', topic.id], (prev?: { draft: Draft | null; conflict: DraftRecoveryConflict | null }) => ({
-                  draft: updated,
-                  conflict: prev?.conflict || null,
-                }));
-                onDraftWordCountChange(topic.id, wordCount);
+                if (!loggingOutRef.current) {
+                  queryClient.setQueryData(['topic-draft', topic.id], (prev?: { draft: Draft | null; conflict: DraftRecoveryConflict | null }) => ({
+                    draft: updated,
+                    conflict: prev?.conflict || null,
+                  }));
+                  onDraftWordCountChange(topic.id, wordCount);
+                }
               }}
             />
           </React.Suspense>

@@ -145,7 +145,7 @@ const KanbanCardComponent: React.FC<KanbanCardProps> = ({
       style={style}
       {...sortableAttributes}
       {...listeners}
-      tabIndex={sortableDisabled ? -1 : 0}
+      tabIndex={0}
       role="group"
       aria-label={`${topic.title}，${topic.status}`}
       onKeyDown={(event) => {
@@ -155,7 +155,7 @@ const KanbanCardComponent: React.FC<KanbanCardProps> = ({
         } else if (event.key === 'ArrowRight' && onKeyboardMove) {
           event.preventDefault();
           onKeyboardMove(topic, 1);
-        } else if (event.key === 'Enter' && !isDragging) {
+        } else if (event.key === 'Enter' && event.target === event.currentTarget && !isDragging) {
           event.preventDefault();
           onOpenDetail(topic.id);
         }

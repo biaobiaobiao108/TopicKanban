@@ -46,6 +46,6 @@ EXPOSE 3030
 
 # Container Healthcheck
 HEALTHCHECK --interval=30s --timeout=5s --start-period=5s --retries=3 \
-  CMD bun -e "fetch('http://127.0.0.1:3030/api/health').then((response) => { if (!response.ok) process.exit(1); }).catch(() => process.exit(1))"
+  CMD ["bun", "-e", "fetch(`http://127.0.0.1:${Number(process.env.PORT) || 3030}/api/health`).then((response) => { if (!response.ok) process.exit(1); }).catch(() => process.exit(1))"]
 
 CMD ["bun", "dist/server.js"]

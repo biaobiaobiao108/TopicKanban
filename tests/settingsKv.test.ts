@@ -31,6 +31,7 @@ describe('Settings KV Model and Sanitization', () => {
   });
 
   it('should accept system theme and all editorial theme presets', () => {
+    expect(APP_THEMES).toEqual(['nordic_frost', 'warm_paper', 'light', 'dark', 'system']);
     for (const theme of APP_THEMES) {
       const settings = sanitizeAppSettings({ reading_speed: 260, theme });
       expect(settings.reading_speed).toBe(260);

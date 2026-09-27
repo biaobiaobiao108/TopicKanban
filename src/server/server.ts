@@ -10,6 +10,35 @@ export interface ServerOptions {
   port?: number;
 }
 
+const DEFAULT_STATIC_FILES = [
+  'icon.png',
+  'apple-touch-icon.png',
+  'favicon.ico',
+  '_headers',
+  'manifest.webmanifest',
+  'sw.js',
+  'icon-192.png',
+  'icon-512.png',
+];
+
+export function resolveServerPort(configuredPort?: string, explicitPort?: number): number {
+  return explicitPort ?? (Number(configuredPort) || 3030);
+}
+
+export async function discoverStaticFiles(staticRoot: string): Promise<Set<string>> {
+  const staticFiles = new Set(DEFAULT_STATIC_FILES);
+  try {
+    for await (const file of new Bun.Glob('*').scan({ cwd: staticRoot, onlyFiles: true, dot: true })) {
+      if (file !== 'index.html' && file !== 'server.js' && file !== 'assets') {
+        staticFiles.add(file);
+      }
+    }
+  } catch {
+    // The runner image may only contain dist/, so retain known static routes when a directory is absent.
+  }
+  return staticFiles;
+}
+
 export async function startServer(options: ServerOptions = {}) {
   process.title = 'topickanban';
 
@@ -20,8 +49,7 @@ export async function startServer(options: ServerOptions = {}) {
     ? options.development
     : (Bun.env.NODE_ENV === 'development' ? true : (Bun.env.NODE_ENV === 'production' ? false : !hasDist));
   const isProduction = !isDevelopment;
-  const defaultPort = 3030;
-  const port = options.port ?? (Number(Bun.env.PORT) || defaultPort);
+  const port = resolveServerPort(Bun.env.PORT, options.port);
   const dataDir = Bun.env.DATA_DIR || resolvePath(process.cwd(), 'data');
   const dbFilePath = joinPath(dataDir, 'kanban.db');
   const schemaDir = resolvePath(process.cwd(), 'drizzle');
@@ -111,16 +139,7 @@ export async function startServer(options: ServerOptions = {}) {
 
   const publicDir = resolvePath(process.cwd(), 'public');
   const staticRoot = isProduction && hasDist ? distPath : publicDir;
-  const staticFiles = new Set(['icon.png', 'apple-touch-icon.png', 'favicon.ico', '_headers']);
-  try {
-    for await (const file of new Bun.Glob('*').scan({ cwd: publicDir, onlyFiles: true, dot: true })) {
-      if (file !== 'index.html' && file !== 'server.js' && file !== 'assets') {
-        staticFiles.add(file);
-      }
-    }
-  } catch {
-    // Fall back to default static files if publicDir is not present (e.g. runner container)
-  }
+  const staticFiles = await discoverStaticFiles(staticRoot);
 
   for (const fileName of staticFiles) {
     const staticHeaders: HeadersInit = fileName === 'manifest.webmanifest'

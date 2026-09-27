@@ -693,7 +693,7 @@ describe('Bun Server Integration (Local SQLite & API)', () => {
     expect(results[10]).toBe(429);
   });
 
-  it('uses trusted forwarded client IPs for login rate limiting', async () => {
+  it('uses the trusted single-hop real IP instead of spoofable X-Forwarded-For for login rate limiting', async () => {
     const trustedApp = createApp({
       DB: new SqliteDatabase(sqlite),
       KV: new AppKV(new SqliteDatabase(sqlite)),
@@ -708,13 +708,15 @@ describe('Bun Server Integration (Local SQLite & API)', () => {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          'X-Real-IP': '203.0.113.88',
           'X-Forwarded-For': `203.0.113.${100 + index}`,
         },
         body: JSON.stringify({ password: 'wrong-password' }),
-      }), '127.0.0.1');
+      }), `198.51.100.${index + 1}`);
       results.push(response.status);
     }
-    expect(results).toEqual(Array(11).fill(401));
+    expect(results.slice(0, 10)).toEqual(Array(10).fill(401));
+    expect(results[10]).toBe(429);
   });
 
   it('rolls back timeline fields when replacing people fails', async () => {
