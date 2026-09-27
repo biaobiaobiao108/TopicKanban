@@ -25,7 +25,6 @@ import {
   Copy,
   Check,
   Maximize2,
-  Minimize2,
   BookOpen,
   Compass,
   AlertTriangle,
@@ -1012,8 +1011,6 @@ export const ScriptEditorTab: React.FC<ScriptEditorTabProps> = ({
     <div
       data-testid="script-editor-surface"
       data-script-zen-mode={String(isZenMode)}
-      data-script-outline-open={String(isOutlineOpen)}
-      data-script-reference-open={String(isReferenceOpen)}
       className={
         isZenMode
           ? 'script-editor-surface pwa-fullscreen-surface fixed inset-0 z-50 flex flex-col bg-[var(--canvas)] transition-all duration-300 ease-in-out'
@@ -1356,17 +1353,6 @@ export const ScriptEditorTab: React.FC<ScriptEditorTabProps> = ({
                 )}
               </button>
             )}
-
-            <button
-              type="button"
-              onClick={() => setIsZenMode(false)}
-              className="flex items-center gap-1.5 px-3.5 py-2 rounded-full border border-[var(--line)] bg-[var(--surface)]/95 hover:bg-[var(--canvas)] backdrop-blur-md text-xs font-medium text-stone-800 dark:text-stone-100 shadow-md hover:shadow-lg hover:-translate-y-0.5 transition-all cursor-pointer"
-              title="退出沉浸写作模式 (Esc)"
-            >
-              <Minimize2 className="w-4 h-4" />
-              <span className="hidden sm:inline">退出沉浸</span>
-              <kbd className="text-[10px] font-mono bg-black/5 dark:bg-white/10 px-1.5 py-0.5 rounded-full text-stone-600 dark:text-stone-300 ml-0.5">Esc</kbd>
-            </button>
           </div>
 
           {/* Bottom-Right: Floating Stats */}
@@ -1423,7 +1409,11 @@ export const ScriptEditorTab: React.FC<ScriptEditorTabProps> = ({
           }`}
         >
           <div
-            className={`min-w-0 w-full max-w-4xl px-6 sm:px-12 md:px-16 transition-all ${
+            className={`min-w-0 w-full transition-all ${
+              isZenMode
+                ? 'max-w-4xl px-6 sm:px-12 md:px-16'
+                : 'script-editor-stable-content'
+            } ${
               isTypewriterActive
                 ? 'pt-8 sm:pt-12'
                 : 'pt-6 pb-36 sm:pt-8 sm:pb-48'

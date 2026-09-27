@@ -2,16 +2,6 @@
 
 .script-editor-surface {
   --script-side-panel-width: clamp(11rem, 18vw, 15rem);
-  --script-editor-start-reserve: 0px;
-  --script-editor-end-reserve: 0px;
-}
-
-.script-editor-surface[data-script-zen-mode="false"][data-script-outline-open="true"] {
-  --script-editor-start-reserve: var(--script-side-panel-width);
-}
-
-.script-editor-surface[data-script-zen-mode="false"][data-script-reference-open="true"] {
-  --script-editor-end-reserve: var(--script-side-panel-width);
 }
 
 .script-outline-panel,
@@ -23,6 +13,24 @@
   margin-inline-end: var(--script-side-panel-width);
 }
 
+.script-editor-stable-content {
+  max-inline-size: 56rem;
+  margin-inline: auto;
+  padding-inline: 1.5rem;
+}
+
+@media (min-width: 640px) {
+  .script-editor-stable-content {
+    padding-inline: 3rem;
+  }
+}
+
+@media (min-width: 768px) {
+  .script-editor-stable-content {
+    padding-inline: 4rem;
+  }
+}
+
 @media (max-width: 767px) {
   .script-editor-surface {
     --script-side-panel-width: min(82vw, 18rem);
@@ -30,9 +38,9 @@
 }
 
 @media (min-width: 1024px) {
-  .script-editor-canvas-container {
-    padding-inline-start: var(--script-editor-start-reserve);
-    padding-inline-end: var(--script-editor-end-reserve);
+  .script-editor-surface[data-script-zen-mode="false"] .script-editor-stable-content {
+    max-inline-size: calc(56rem + var(--script-side-panel-width) + var(--script-side-panel-width));
+    padding-inline: var(--script-side-panel-width);
   }
 }
 
