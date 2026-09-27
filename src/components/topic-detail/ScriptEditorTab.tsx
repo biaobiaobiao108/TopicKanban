@@ -43,6 +43,7 @@ import { VoiceoverCueNode } from './VoiceoverCueNode';
 import { ImeMarkdownSafeExtension } from './ImeMarkdownSafeExtension';
 import { ScriptLink } from './ScriptLink';
 import { CalloutNode } from './ScriptCalloutNode';
+import { ScriptCodeBlock } from './ScriptCodeBlock';
 import { createTableExtensions } from './ScriptTableExtensions';
 import { CodeBlockDoubleEnter } from './ScriptCodeBlockEnter';
 import { ScriptMarkdownMenu } from './ScriptMarkdownMenu';
@@ -147,8 +148,9 @@ const SCRIPT_MARKDOWN_EXTENSIONS = [
   StarterKit.configure({
     heading: { levels: [1, 2, 3, 4, 5, 6] },
     link: false,
-    codeBlock: { exitOnTripleEnter: false },
+    codeBlock: false,
   }),
+  ScriptCodeBlock.configure({ exitOnTripleEnter: false }),
   CodeBlockDoubleEnter,
   ...createTableExtensions(),
   ScriptLink.configure({ openOnClick: false, autolink: true, linkOnPaste: true }),

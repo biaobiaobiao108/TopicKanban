@@ -355,7 +355,10 @@ export const ScriptMarkdownMenu = Extension.create({
       allowedPrefixes: null,
       findSuggestionMatch: findScriptMarkdownCommandMatch,
       allow: ({ editor, state }) => {
-        if (!editor.isEditable || editor.view.composing || !state.selection.empty) return false;
+        // Tiptap Suggestion tracks ProseMirror composition itself. Blocking while
+        // composing prevents the final IME text from refreshing the menu until
+        // the next keypress (for example, Backspace).
+        if (!editor.isEditable || !state.selection.empty) return false;
         const parentRole = state.selection.$from.node(-1)?.type.spec.tableRole;
         if (parentRole === 'cell' || parentRole === 'header_cell') return false;
         if (state.selection.$from.parent.type.spec.code || state.selection.$from.marks().some((mark) => mark.type.spec.code)) return false;

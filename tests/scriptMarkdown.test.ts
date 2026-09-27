@@ -6,12 +6,14 @@ import { MarkdownManager } from '@tiptap/markdown';
 import { CitationMark } from '../src/components/topic-detail/CitationMark';
 import { CalloutNode } from '../src/components/topic-detail/ScriptCalloutNode';
 import { ScriptLink } from '../src/components/topic-detail/ScriptLink';
+import { ScriptCodeBlock } from '../src/components/topic-detail/ScriptCodeBlock';
 import { createTableExtensions } from '../src/components/topic-detail/ScriptTableExtensions';
 import { VoiceoverCueNode } from '../src/components/topic-detail/VoiceoverCueNode';
 import { detectAndCleanImeLeak } from '../src/components/topic-detail/ImeMarkdownSafeExtension';
 import { shouldParseMarkdownPaste } from '../src/components/topic-detail/scriptMarkdownPaste';
 import {
   filterScriptMarkdownCommands,
+  findScriptMarkdownCommandMatch,
   getNextGroupedScriptMarkdownCommandIndex,
   getNextScriptMarkdownCommandIndex,
   groupScriptMarkdownCommands,
@@ -19,7 +21,8 @@ import {
 
 const markdown = new MarkdownManager({
   extensions: [
-    StarterKit.configure({ heading: { levels: [1, 2, 3, 4, 5, 6] }, link: false }),
+    StarterKit.configure({ heading: { levels: [1, 2, 3, 4, 5, 6] }, link: false, codeBlock: false }),
+    ScriptCodeBlock.configure({ exitOnTripleEnter: false }),
     ScriptLink,
     TaskList,
     TaskItem.configure({ nested: true }),
@@ -36,6 +39,10 @@ describe('script Markdown source', () => {
       '# 开场',
       '',
       '###### 六级标题',
+      '',
+      '```ts',
+      'const answer = 42;',
+      '```',
       '',
       '- [ ] 待核实镜头',
       '- [x] 已核实旁白',
@@ -58,6 +65,7 @@ describe('script Markdown source', () => {
     const json = JSON.stringify(document);
 
     expect(json).toContain('"level":6');
+    expect(json).toContain('"type":"codeBlock"');
     expect(json).toContain('"checked":false');
     expect(json).toContain('"checked":true');
     expect(json).toContain('"type":"table"');
@@ -65,6 +73,7 @@ describe('script Markdown source', () => {
     expect(json).toContain('"citationId":"source-1"');
     expect(json).toContain('"type":"voiceoverCue"');
     expect(serialized).toContain('###### 六级标题');
+    expect(serialized).toContain('```ts\nconst answer = 42;\n```');
     expect(serialized).toMatch(/\|\s*镜头\s*\|\s*旁白\s*\|/u);
     expect(serialized).toContain('> [!WARNING]');
     expect(serialized).toContain('[引用原文](citation:source-1 "来源标题")');
@@ -86,6 +95,20 @@ describe('script Markdown source', () => {
     expect(filterScriptMarkdownCommands('表格').map((command) => command.id)).toEqual(['table']);
     expect(filterScriptMarkdownCommands('checkbox').map((command) => command.id)).toEqual(['task-list']);
     expect(filterScriptMarkdownCommands('超链接').map((command) => command.id)).toEqual(['link']);
+  });
+
+  it('matches completed Chinese slash queries without requiring another keypress', () => {
+    const query = '/一级标题';
+    const match = findScriptMarkdownCommandMatch({
+      $position: {
+        pos: query.length + 1,
+        parentOffset: query.length,
+        parent: { textBetween: (from, to) => query.slice(from, to) },
+      },
+    });
+
+    expect(match?.query).toBe('一级标题');
+    expect(filterScriptMarkdownCommands(match?.query ?? '').map((command) => command.id)).toContain('heading-1');
   });
 
   it('detects Markdown pasted alongside rich clipboard HTML', () => {
