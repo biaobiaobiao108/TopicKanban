@@ -490,7 +490,7 @@ html.dark .script-citation::after {
 
 .prose blockquote, .ProseMirror blockquote, blockquote.quote-block {
   background-color: var(--canvas) !important;
-  border-left: 2px solid var(--accent) !important;
+  border: 1px solid var(--line) !important;
   border-radius: var(--radius-sm) !important;
   color: var(--ink) !important;
   padding: 0.6rem 1rem !important;

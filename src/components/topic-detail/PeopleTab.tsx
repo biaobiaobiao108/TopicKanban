@@ -194,7 +194,7 @@ export const PeopleTab: React.FC<PeopleTabProps> = ({
                 )}
 
                 {person.quotes && (
-                  <div className="text-xs text-stone-700 dark:text-stone-300 italic border-l-2 border-[var(--accent)] pl-2.5 py-1 bg-[var(--accent-soft)]/45 rounded-r-lg">
+                  <div className="text-xs text-stone-700 dark:text-stone-300 italic border border-[var(--line)] px-2.5 py-1 bg-[var(--accent-soft)]/45 rounded-lg">
                     "{person.quotes}"
                   </div>
                 )}

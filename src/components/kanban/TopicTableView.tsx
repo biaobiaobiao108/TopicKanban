@@ -736,7 +736,7 @@ export const TopicTableView: React.FC<TopicTableViewProps> = ({
                   <span className="ml-auto text-[11px] text-stone-600 dark:text-stone-400">{formatRelativeTime(topic.updated_at)}</span>
                 </div>
 
-                <div className="mt-3 rounded-r-[var(--radius-sm)] border-l-2 border-[var(--accent)] bg-[var(--canvas)]/60 px-3 py-2 text-xs text-[var(--ink)]">
+                <div className="mt-3 rounded-[var(--radius-sm)] border border-[var(--line)] bg-[var(--canvas)]/60 px-3 py-2 text-xs text-[var(--ink)]">
                   <span className="font-medium text-[var(--accent)]">当前行动：</span>
                   {topic.current_todo?.title || '未设置当前行动'}
                 </div>

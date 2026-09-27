@@ -205,7 +205,7 @@ export const ScriptReferenceDrawer: React.FC<ScriptReferenceDrawerProps> = ({
                   </div>
 
                   {person.quotes ? (
-                    <div className="border-l-2 border-[var(--accent)] bg-[var(--canvas)]/60 pl-3 pr-2.5 py-2 rounded-r-lg space-y-1.5">
+                    <div className="border border-[var(--line)] bg-[var(--canvas)]/60 px-3 py-2 rounded-lg space-y-1.5">
                       <div className="flex items-center justify-between text-[var(--accent-dark)] font-medium text-[11px]">
                         <span className="flex items-center gap-1">
                           <Quote className="w-2.5 h-2.5 text-[var(--accent)]" /> 经典原话

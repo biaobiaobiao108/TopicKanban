@@ -5,17 +5,21 @@ import TaskItem from '@tiptap/extension-task-item';
 import { MarkdownManager } from '@tiptap/markdown';
 import { CitationMark } from '../src/components/topic-detail/CitationMark';
 import { CalloutNode } from '../src/components/topic-detail/ScriptCalloutNode';
-import { ScriptImage } from '../src/components/topic-detail/ScriptImage';
 import { ScriptLink } from '../src/components/topic-detail/ScriptLink';
 import { createTableExtensions } from '../src/components/topic-detail/ScriptTableExtensions';
 import { VoiceoverCueNode } from '../src/components/topic-detail/VoiceoverCueNode';
 import { shouldParseMarkdownPaste } from '../src/components/topic-detail/scriptMarkdownPaste';
+import {
+  filterScriptMarkdownCommands,
+  getNextGroupedScriptMarkdownCommandIndex,
+  getNextScriptMarkdownCommandIndex,
+  groupScriptMarkdownCommands,
+} from '../src/components/topic-detail/ScriptMarkdownMenu';
 
 const markdown = new MarkdownManager({
   extensions: [
     StarterKit.configure({ heading: { levels: [1, 2, 3, 4, 5, 6] }, link: false }),
     ScriptLink,
-    ScriptImage,
     TaskList,
     TaskItem.configure({ nested: true }),
     ...createTableExtensions(),
@@ -42,8 +46,6 @@ describe('script Markdown source', () => {
       '> [!WARNING]',
       '> 需要复核的事实',
       '',
-      '![封面](https://example.test/cover.png "封面标题")',
-      '',
       '[公开资料](https://example.test/source "来源标题")',
       '[引用原文](citation:source-1 "来源标题")',
       '[cue cue="停顿"]',
@@ -64,9 +66,25 @@ describe('script Markdown source', () => {
     expect(serialized).toContain('###### 六级标题');
     expect(serialized).toMatch(/\|\s*镜头\s*\|\s*旁白\s*\|/u);
     expect(serialized).toContain('> [!WARNING]');
-    expect(serialized).toContain('![封面](https://example.test/cover.png "封面标题")');
     expect(serialized).toContain('[引用原文](citation:source-1 "来源标题")');
     expect(serialized).toContain('[cue cue="停顿"]');
+  });
+
+  it('groups the slash command directory and supports directional keyboard navigation', () => {
+    const commands = filterScriptMarkdownCommands('');
+    const columns = groupScriptMarkdownCommands(commands);
+
+    expect(columns).toHaveLength(3);
+    expect(columns.flatMap((column) => column.items.map((command) => command.id))).toEqual(commands.map((command) => command.id));
+    expect(getNextGroupedScriptMarkdownCommandIndex(0, 'ArrowDown', columns.map((column) => column.items))).toBe(1);
+    expect(getNextGroupedScriptMarkdownCommandIndex(0, 'ArrowRight', columns.map((column) => column.items))).toBe(columns[0].items.length);
+    expect(getNextScriptMarkdownCommandIndex(0, 'ArrowUp', 4)).toBe(3);
+  });
+
+  it('filters slash commands by Chinese names and Markdown aliases', () => {
+    expect(filterScriptMarkdownCommands('表格').map((command) => command.id)).toEqual(['table']);
+    expect(filterScriptMarkdownCommands('checkbox').map((command) => command.id)).toEqual(['task-list']);
+    expect(filterScriptMarkdownCommands('超链接').map((command) => command.id)).toEqual(['link']);
   });
 
   it('detects Markdown pasted alongside rich clipboard HTML', () => {

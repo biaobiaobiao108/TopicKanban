@@ -295,7 +295,7 @@ export const PeopleView: React.FC<PeopleViewProps> = ({
                   )}
 
                   {person.quotes && (
-                    <div className="text-xs text-stone-700 dark:text-stone-300 italic border-l-2 border-[var(--accent)] pl-3 bg-[var(--accent-soft)]/45 py-2 rounded-r-xl">
+                    <div className="text-xs text-stone-700 dark:text-stone-300 italic border border-[var(--line)] px-3 bg-[var(--accent-soft)]/45 py-2 rounded-xl">
                       “{person.quotes}”
                     </div>
                   )}

@@ -42,7 +42,6 @@ import { CitationMark } from './CitationMark';
 import { VoiceoverCueNode } from './VoiceoverCueNode';
 import { ImeMarkdownSafeExtension } from './ImeMarkdownSafeExtension';
 import { ScriptLink } from './ScriptLink';
-import { ScriptImage } from './ScriptImage';
 import { CalloutNode } from './ScriptCalloutNode';
 import { createTableExtensions } from './ScriptTableExtensions';
 import { CodeBlockDoubleEnter } from './ScriptCodeBlockEnter';
@@ -159,9 +158,6 @@ const SCRIPT_MARKDOWN_EXTENSIONS = [
   CitationMark,
   VoiceoverCueNode,
   FocusParagraphExtension,
-  ScriptImage.configure({
-    resize: { enabled: true, directions: ['bottom-right'], minWidth: 120, minHeight: 60, alwaysPreserveAspectRatio: true },
-  }),
   Markdown,
   CalloutNode,
   ScriptMarkdownMenu,
@@ -930,14 +926,8 @@ export const ScriptEditorTab: React.FC<ScriptEditorTabProps> = ({
         if (reduceMotion) return;
         outlineHighlightAnimationRef.current = headingElement.animate(
           [
-            {
-              backgroundColor: 'rgb(255 241 242 / 0.95)',
-              boxShadow: 'inset 4px 0 0 rgb(225 29 72 / 0.85)',
-            },
-            {
-              backgroundColor: 'transparent',
-              boxShadow: 'inset 4px 0 0 rgb(225 29 72 / 0)',
-            },
+            { backgroundColor: 'rgb(255 241 242 / 0.95)' },
+            { backgroundColor: 'transparent' },
           ],
           { duration: 1200, easing: 'ease-out' }
         );

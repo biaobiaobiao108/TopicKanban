@@ -6,7 +6,7 @@ import Suggestion from '@tiptap/suggestion';
 import type { SuggestionKeyDownProps, SuggestionMatch } from '@tiptap/suggestion';
 import {
   Bold, Bookmark, Code, Code2, Heading1, Heading2, Heading3, Heading4, Heading5, Heading6,
-  Info, Italic, Lightbulb, List, ListOrdered, ListTodo, Minus, Pilcrow, Quote,
+  Info, Italic, Lightbulb, Link2, List, ListOrdered, ListTodo, Minus, Pilcrow, Quote,
   ShieldAlert, Strikethrough, Table2, TriangleAlert, Underline,
 } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
@@ -15,7 +15,7 @@ import type { CalloutType } from './ScriptCalloutNode';
 
 type CommandAction = 'paragraph' | 'heading' | 'bulletList' | 'orderedList' | 'taskList'
   | 'blockquote' | 'codeBlock' | 'horizontalRule' | 'callout' | 'table'
-  | 'bold' | 'italic' | 'strike' | 'underline' | 'inlineCode';
+  | 'bold' | 'italic' | 'strike' | 'underline' | 'inlineCode' | 'link';
 
 type ScriptMarkdownCommand = {
   id: string;
@@ -27,6 +27,8 @@ type ScriptMarkdownCommand = {
   headingLevel?: 1 | 2 | 3 | 4 | 5 | 6;
   calloutType?: CalloutType;
 };
+
+const SCRIPT_MARKDOWN_COLUMN_COUNT = 3;
 
 const commandItems: ScriptMarkdownCommand[] = [
   { id: 'heading-1', label: '一级标题', description: '切换为 H1', keywords: ['h1', '标题1'], icon: Heading1, action: 'heading', headingLevel: 1 },
@@ -41,6 +43,7 @@ const commandItems: ScriptMarkdownCommand[] = [
   { id: 'strike', label: '删除线', description: '切换删除线标记', keywords: ['strike', 'strikethrough'], icon: Strikethrough, action: 'strike' },
   { id: 'underline', label: '下划线', description: '切换下划线标记（++文本++）', keywords: ['underline'], icon: Underline, action: 'underline' },
   { id: 'inline-code', label: '行内代码', description: '切换行内代码标记', keywords: ['inline code', 'code'], icon: Code, action: 'inlineCode' },
+  { id: 'link', label: '超链接', description: '插入可编辑的链接文字', keywords: ['link', '链接', '超链接'], icon: Link2, action: 'link' },
   { id: 'blockquote', label: '引用', description: '插入引用块', keywords: ['quote', 'blockquote'], icon: Quote, action: 'blockquote' },
   { id: 'code-block', label: '代码块', description: '插入代码围栏', keywords: ['code fence'], icon: Code2, action: 'codeBlock' },
   { id: 'horizontal-rule', label: '分隔线', description: '插入水平分隔线', keywords: ['divider', 'hr'], icon: Minus, action: 'horizontalRule' },
@@ -59,6 +62,83 @@ export function filterScriptMarkdownCommands(query: string) {
   const normalized = query.trim().toLocaleLowerCase();
   if (!normalized) return commandItems;
   return commandItems.filter((item) => `${item.label} ${item.description} ${item.keywords.join(' ')}`.toLocaleLowerCase().includes(normalized));
+}
+
+export function groupScriptMarkdownCommands(items: ScriptMarkdownCommand[]) {
+  const columnCount = Math.min(SCRIPT_MARKDOWN_COLUMN_COUNT, items.length);
+  if (!columnCount) return [];
+
+  const baseCount = Math.floor(items.length / columnCount);
+  const remainder = items.length % columnCount;
+  let offset = 0;
+
+  return Array.from({ length: columnCount }, (_, index) => {
+    const count = baseCount + (index < remainder ? 1 : 0);
+    const group = {
+      id: `column-${index + 1}`,
+      label: `命令第 ${index + 1} 列`,
+      startIndex: offset,
+      items: items.slice(offset, offset + count),
+    };
+    offset += count;
+    return group;
+  });
+}
+
+export function getNextGroupedScriptMarkdownCommandIndex(
+  current: number,
+  key: string,
+  groups: ScriptMarkdownCommand[][],
+  columns = SCRIPT_MARKDOWN_COLUMN_COUNT
+) {
+  const safeGroups = groups.filter((group) => group.length > 0);
+  const flatItems = safeGroups.flat();
+  if (!flatItems.length) return 0;
+
+  const currentIndex = Math.max(0, Math.min(current, flatItems.length - 1));
+  let offset = 0;
+  const groupIndex = safeGroups.findIndex((group) => {
+    const containsCurrent = currentIndex >= offset && currentIndex < offset + group.length;
+    offset += group.length;
+    return containsCurrent;
+  });
+  const currentOffset = safeGroups.slice(0, groupIndex).reduce((sum, group) => sum + group.length, 0);
+  const group = safeGroups[groupIndex];
+  const localIndex = currentIndex - currentOffset;
+  const rowCount = Math.ceil(safeGroups.length / Math.max(1, columns));
+
+  if (key === 'ArrowUp' && localIndex > 0) return currentOffset + localIndex - 1;
+  if (key === 'ArrowDown' && localIndex < group.length - 1) return currentOffset + localIndex + 1;
+  if ((key === 'ArrowUp' || key === 'ArrowDown') && rowCount > 1) {
+    const targetRow = (Math.floor(groupIndex / columns) + (key === 'ArrowUp' ? -1 : 1) + rowCount) % rowCount;
+    const targetGroupIndex = Math.min(targetRow * columns + (groupIndex % columns), safeGroups.length - 1);
+    const targetGroup = safeGroups[targetGroupIndex];
+    if (targetGroup) {
+      const targetOffset = safeGroups.slice(0, targetGroupIndex).reduce((sum, itemGroup) => sum + itemGroup.length, 0);
+      return targetOffset + (key === 'ArrowUp' ? targetGroup.length - 1 : 0);
+    }
+  }
+  if (key === 'ArrowUp') return currentOffset + group.length - 1;
+  if (key === 'ArrowDown') return currentOffset;
+  if (key !== 'ArrowLeft' && key !== 'ArrowRight') return currentIndex;
+
+  const groupRow = Math.floor(groupIndex / columns);
+  const groupColumn = groupIndex % columns;
+  const rowStart = groupRow * columns;
+  const rowSize = Math.min(columns, safeGroups.length - rowStart);
+  const targetGroupIndex = key === 'ArrowLeft'
+    ? rowStart + (groupColumn - 1 + rowSize) % rowSize
+    : rowStart + (groupColumn + 1) % rowSize;
+  const targetOffset = safeGroups.slice(0, targetGroupIndex).reduce((sum, itemGroup) => sum + itemGroup.length, 0);
+  return targetOffset + Math.min(localIndex, safeGroups[targetGroupIndex].length - 1);
+}
+
+export function getNextScriptMarkdownCommandIndex(current: number, key: string, itemCount: number) {
+  if (itemCount < 1) return 0;
+  const index = Math.max(0, Math.min(current, itemCount - 1));
+  if (key === 'ArrowUp') return (index + itemCount - 1) % itemCount;
+  if (key === 'ArrowDown') return (index + 1) % itemCount;
+  return index;
 }
 
 export function findScriptMarkdownCommandMatch(config: {
@@ -90,6 +170,17 @@ export function findScriptMarkdownCommandMatch(config: {
 }
 
 export function insertScriptMarkdownCommand(editor: Editor, range: { from: number; to: number }, item: ScriptMarkdownCommand) {
+  if (item.action === 'link') {
+    const position = range.from;
+    editor.chain()
+      .focus()
+      .deleteRange(range)
+      .insertContent({ type: 'text', text: '链接文字', marks: [{ type: 'link', attrs: { href: 'https://' } }] })
+      .setTextSelection({ from: position, to: position + 4 })
+      .run();
+    return;
+  }
+
   if (item.action === 'table') {
     editor.chain().focus().deleteRange(range).insertTable({ rows: 3, cols: 3, withHeaderRow: true }).run();
     return;
@@ -137,60 +228,116 @@ const CommandList = forwardRef<CommandListRef, CommandListProps>((props, ref) =>
   const selectedIndexRef = useRef(0);
   const [selectedIndex, setSelectedIndex] = useState(0);
   const listId = `script-markdown-commands-${useId().replace(/:/gu, '')}`;
+  const listRef = useRef<HTMLDivElement | null>(null);
+  const isDirectory = props.query.trim().length === 0;
+  const groups = groupScriptMarkdownCommands(props.items);
 
   useEffect(() => {
     selectedIndexRef.current = 0;
     setSelectedIndex(0);
   }, [props.items]);
 
+  useEffect(() => {
+    listRef.current?.querySelector<HTMLElement>("[aria-selected='true']")?.scrollIntoView({ block: 'nearest' });
+  }, [selectedIndex]);
+
+  const activeItemId = props.items[selectedIndex] ? `${listId}-option-${selectedIndex}` : undefined;
+
+  useEffect(() => {
+    const editorElement = props.editor.view.dom;
+    const previous = {
+      activeDescendant: editorElement.getAttribute('aria-activedescendant'),
+      autocomplete: editorElement.getAttribute('aria-autocomplete'),
+      controls: editorElement.getAttribute('aria-controls'),
+      hasPopup: editorElement.getAttribute('aria-haspopup'),
+    };
+    const restore = (attribute: string, value: string | null) => {
+      if (value === null) editorElement.removeAttribute(attribute);
+      else editorElement.setAttribute(attribute, value);
+    };
+
+    editorElement.setAttribute('aria-autocomplete', 'list');
+    editorElement.setAttribute('aria-controls', listId);
+    editorElement.setAttribute('aria-haspopup', 'listbox');
+    if (activeItemId) editorElement.setAttribute('aria-activedescendant', activeItemId);
+    else editorElement.removeAttribute('aria-activedescendant');
+
+    return () => {
+      if (editorElement.getAttribute('aria-activedescendant') === activeItemId) restore('aria-activedescendant', previous.activeDescendant);
+      if (editorElement.getAttribute('aria-autocomplete') === 'list') restore('aria-autocomplete', previous.autocomplete);
+      if (editorElement.getAttribute('aria-controls') === listId) restore('aria-controls', previous.controls);
+      if (editorElement.getAttribute('aria-haspopup') === 'listbox') restore('aria-haspopup', previous.hasPopup);
+    };
+  }, [activeItemId, listId, props.editor]);
+
+  const select = (index: number) => {
+    const item = props.items[index];
+    if (item) props.command(item);
+  };
+
   useImperativeHandle(ref, () => ({
     onKeyDown: ({ event }: SuggestionKeyDownProps) => {
       if (event.isComposing || event.keyCode === 229) return false;
-      if (event.key === 'ArrowDown' || event.key === 'ArrowUp') {
+      if (['ArrowDown', 'ArrowUp', 'ArrowLeft', 'ArrowRight'].includes(event.key)) {
         event.preventDefault();
-        const length = props.items.length;
-        if (!length) return true;
-        const next = (selectedIndexRef.current + (event.key === 'ArrowDown' ? 1 : length - 1)) % length;
+        if (!props.items.length) return true;
+        const next = isDirectory
+          ? getNextGroupedScriptMarkdownCommandIndex(
+            selectedIndexRef.current,
+            event.key,
+            groups.map((group) => group.items),
+            window.innerWidth <= 720 ? 2 : SCRIPT_MARKDOWN_COLUMN_COUNT
+          )
+          : getNextScriptMarkdownCommandIndex(selectedIndexRef.current, event.key, props.items.length);
         selectedIndexRef.current = next;
         setSelectedIndex(next);
         return true;
       }
       if (event.key === 'Enter' && props.items.length) {
         event.preventDefault();
-        props.command(props.items[selectedIndexRef.current] ?? props.items[0]);
+        select(Math.min(selectedIndexRef.current, props.items.length - 1));
         return true;
       }
       return false;
     },
-  }), [props.items, props.command]);
+  }), [groups, isDirectory, props.items, props.command]);
+
+  const renderItem = (item: ScriptMarkdownCommand, index: number) => {
+    const Icon = item.icon;
+    return (
+      <button
+        id={`${listId}-option-${index}`}
+        type="button"
+        role="option"
+        aria-selected={index === selectedIndex}
+        aria-label={`${item.label}，${item.description}`}
+        className={`script-markdown-menu-item script-markdown-menu-item--${isDirectory ? 'directory' : 'suggestion'}${index === selectedIndex ? ' is-selected' : ''}`}
+        key={item.id}
+        onMouseDown={(event) => event.preventDefault()}
+        onMouseEnter={() => { selectedIndexRef.current = index; setSelectedIndex(index); }}
+        onClick={() => select(index)}
+      >
+        <span className="script-markdown-menu-icon"><Icon size={16} strokeWidth={1.8} aria-hidden="true" /></span>
+        <span className="script-markdown-menu-copy">{item.label}</span>
+      </button>
+    );
+  };
 
   return (
-    <div className="script-markdown-menu" role="listbox" id={listId} aria-label="Markdown 插入命令">
-      <div className="script-markdown-menu-heading">Markdown 命令</div>
-      <FloatingScrollbar className="script-markdown-menu-list" wrapperClassName="script-markdown-menu-scroll">
-        {props.items.length ? props.items.map((item, index) => {
-          const Icon = item.icon;
-          return (
-            <button
-              type="button"
-              role="option"
-              aria-selected={index === selectedIndex}
-              className={`script-markdown-menu-item${index === selectedIndex ? ' is-selected' : ''}`}
-              key={item.id}
-              onMouseDown={(event) => event.preventDefault()}
-              onMouseEnter={() => { selectedIndexRef.current = index; setSelectedIndex(index); }}
-              onClick={() => props.command(item)}
-            >
-              <Icon size={16} strokeWidth={1.8} aria-hidden="true" />
-              <span className="script-markdown-menu-copy">
-                <span>{item.label}</span>
-                <small>{item.description}</small>
-              </span>
-            </button>
-          );
-        }) : <div className="script-markdown-menu-empty">没有匹配的命令</div>}
+    <div className={`script-markdown-menu script-markdown-menu--${isDirectory ? 'directory' : 'suggestions'}`} role="listbox" id={listId} aria-label="Markdown 插入命令">
+      <FloatingScrollbar
+        ref={listRef}
+        className={`script-markdown-menu-list script-markdown-menu-list--${isDirectory ? 'directory' : 'suggestions'}`}
+        wrapperClassName="script-markdown-menu-list-shell"
+      >
+        {props.items.length ? isDirectory ? groups.map((group) => (
+          <section className="script-markdown-menu-group" role="group" aria-label={group.label} key={group.id}>
+            <div className="script-markdown-menu-group-items">
+              {group.items.map((item, localIndex) => renderItem(item, group.startIndex + localIndex))}
+            </div>
+          </section>
+        )) : props.items.map(renderItem) : <div className="script-markdown-menu-empty" role="status">没有匹配的命令</div>}
       </FloatingScrollbar>
-      <div className="script-markdown-menu-footer"><kbd>↑</kbd><kbd>↓</kbd> 选择 <kbd>Enter</kbd> 确认 <kbd>Esc</kbd> 关闭</div>
     </div>
   );
 });
@@ -222,14 +369,16 @@ export const ScriptMarkdownMenu = Extension.create({
         let popup: HTMLDivElement | null = null;
         let activeClientRect: (() => DOMRect | null) | undefined;
         let positionFrame: number | null = null;
+        let currentQuery = '';
 
         const updatePosition = () => {
           if (!popup || !activeClientRect) return;
           const rect = activeClientRect();
           if (!rect) return;
           const padding = 12;
-          const width = Math.min(360, window.innerWidth - padding * 2);
-          const maxHeight = Math.min(380, window.innerHeight - padding * 2);
+          const isDirectory = currentQuery.trim().length === 0;
+          const width = Math.min(isDirectory ? 660 : 400, window.innerWidth - padding * 2);
+          const maxHeight = Math.min(isDirectory ? 500 : 340, window.innerHeight - padding * 2);
           popup.style.width = `${width}px`;
           popup.style.maxHeight = `${maxHeight}px`;
           const height = Math.min(popup.getBoundingClientRect().height || maxHeight, maxHeight);
@@ -259,6 +408,7 @@ export const ScriptMarkdownMenu = Extension.create({
           if (positionFrame !== null) window.cancelAnimationFrame(positionFrame);
           positionFrame = null;
           activeClientRect = undefined;
+          currentQuery = '';
           component?.destroy();
           component = null;
           popup?.remove();
@@ -269,11 +419,12 @@ export const ScriptMarkdownMenu = Extension.create({
           onStart: (props) => {
             destroy();
             popup = document.createElement('div');
-            popup.className = 'script-markdown-menu-portal';
+            popup.className = 'script-markdown-menu-container';
             document.body.appendChild(popup);
             component = new ReactRenderer(CommandList, { props, editor: props.editor });
             popup.appendChild(component.element);
             activeClientRect = props.clientRect as (() => DOMRect | null) | undefined;
+            currentQuery = props.query;
             window.addEventListener('resize', updatePosition);
             window.addEventListener('scroll', updatePosition, true);
             updatePosition();
@@ -282,10 +433,20 @@ export const ScriptMarkdownMenu = Extension.create({
           onUpdate: (props) => {
             component?.updateProps(props);
             activeClientRect = props.clientRect as (() => DOMRect | null) | undefined;
+            currentQuery = props.query;
             updatePosition();
             schedulePosition();
           },
-          onKeyDown: (props) => component?.ref?.onKeyDown(props) ?? false,
+          onKeyDown: (props) => {
+            if (props.event.isComposing || props.event.keyCode === 229) return false;
+            if (props.event.key === 'Escape') {
+              props.event.preventDefault();
+              props.event.stopPropagation();
+              destroy();
+              return true;
+            }
+            return component?.ref?.onKeyDown(props) ?? false;
+          },
           onExit: destroy,
         };
       },

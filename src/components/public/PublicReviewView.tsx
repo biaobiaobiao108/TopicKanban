@@ -223,14 +223,8 @@ export const PublicReviewView: React.FC<PublicReviewViewProps> = ({ token: propT
     if (!reduceMotion) {
       highlightAnimationRef.current = el.animate(
         [
-          {
-            backgroundColor: 'rgb(255 241 242 / 0.95)',
-            boxShadow: 'inset 4px 0 0 rgb(225 29 72 / 0.85)',
-          },
-          {
-            backgroundColor: 'transparent',
-            boxShadow: 'inset 4px 0 0 rgb(225 29 72 / 0)',
-          },
+          { backgroundColor: 'rgb(255 241 242 / 0.95)' },
+          { backgroundColor: 'transparent' },
         ],
         { duration: 1200, easing: 'ease-out' }
       );
@@ -373,12 +367,6 @@ export const PublicReviewView: React.FC<PublicReviewViewProps> = ({ token: propT
                           isActive ? 'bg-[var(--accent-soft)] text-[var(--ink)] shadow-2xs' : 'hover:bg-[var(--canvas)] text-stone-700 dark:text-stone-300'
                         }`}
                       >
-                        {isActive && (
-                          <span
-                            aria-hidden="true"
-                            className="absolute inset-y-1.5 left-0 w-0.5 rounded-full bg-[var(--accent)]"
-                          />
-                        )}
                         <div className={LEVEL_INDENT[item.level]}>
                           <div className="flex items-start gap-2">
                             <span
@@ -433,7 +421,7 @@ export const PublicReviewView: React.FC<PublicReviewViewProps> = ({ token: propT
 
           {/* Rendered HTML with scroll-mt and animated headings */}
           <div
-            className="prose prose-stone dark:prose-invert max-w-none text-stone-800 dark:text-stone-200 leading-relaxed text-sm sm:text-base space-y-4 [&>h1]:text-xl [&>h1]:font-black [&>h1]:text-stone-900 dark:[&>h1]:text-stone-100 [&>h1]:mt-6 [&>h1]:mb-3 [&>h2]:text-lg [&>h2]:font-bold [&>h2]:text-stone-900 dark:[&>h2]:text-stone-100 [&>h2]:mt-5 [&>h2]:mb-2 [&>h3]:text-base [&>h3]:font-bold [&>h3]:text-stone-800 dark:[&>h3]:text-stone-200 [&>p]:leading-7 [&>blockquote]:border-l-4 [&>blockquote]:border-[var(--accent)] [&>blockquote]:bg-[var(--accent-soft)]/30 [&>blockquote]:py-2 [&>blockquote]:px-4 [&>blockquote]:rounded-r-lg [&>blockquote]:text-stone-700 dark:[&>blockquote]:text-stone-300 [&>blockquote]:italic"
+            className="prose prose-stone dark:prose-invert max-w-none text-stone-800 dark:text-stone-200 leading-relaxed text-sm sm:text-base space-y-4 [&>h1]:text-xl [&>h1]:font-black [&>h1]:text-stone-900 dark:[&>h1]:text-stone-100 [&>h1]:mt-6 [&>h1]:mb-3 [&>h2]:text-lg [&>h2]:font-bold [&>h2]:text-stone-900 dark:[&>h2]:text-stone-100 [&>h2]:mt-5 [&>h2]:mb-2 [&>h3]:text-base [&>h3]:font-bold [&>h3]:text-stone-800 dark:[&>h3]:text-stone-200 [&>p]:leading-7 [&>blockquote]:border [&>blockquote]:border-[var(--line)] [&>blockquote]:bg-[var(--accent-soft)]/30 [&>blockquote]:py-2 [&>blockquote]:px-4 [&>blockquote]:rounded-lg [&>blockquote]:text-stone-700 dark:[&>blockquote]:text-stone-300 [&>blockquote]:italic"
             dangerouslySetInnerHTML={{ __html: processedHtml }}
           />
 

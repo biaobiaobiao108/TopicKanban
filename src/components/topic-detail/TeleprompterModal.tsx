@@ -831,7 +831,7 @@ function renderScriptTextWithCues(text: string): React.ReactNode {
                       </h3>
                     </div>
                   ) : block.type === 'quote' ? (
-                    <blockquote className="border-l-2 border-[var(--accent)] bg-[var(--canvas)]/50 pl-4 sm:pl-6 italic text-[var(--ink)]">
+                    <blockquote className="rounded-xl border border-[var(--line)] bg-[var(--canvas)]/50 p-3 sm:p-4 italic text-[var(--ink)]">
                       <p className={activeFont.sizeClass}>{renderScriptTextWithCues(block.text)}</p>
                     </blockquote>
                   ) : (

@@ -1,5 +1,5 @@
 import React, { useEffect, useRef } from 'react';
-import { Compass, X } from 'lucide-react';
+import { Compass, ListTree, X } from 'lucide-react';
 import { formatOutlineDuration, type OutlineItem, type ScriptOutline } from '../../lib/outline';
 import { FloatingScrollbar } from '../ui/FloatingScrollbar';
 
@@ -42,7 +42,7 @@ const OutlineBranch: React.FC<OutlineBranchProps> = ({
             <span
               className={`script-outline-level-marker script-outline-level-marker--${item.level}`}
               aria-hidden="true"
-            />
+            >{item.level}</span>
             <span className="script-outline-item-title">{item.title}</span>
             <span className="script-outline-item-stats" aria-label={`章节占比 ${item.percentage}%`}>
               <span>{formatOutlineDuration(item.durationSeconds)}</span>
@@ -112,6 +112,18 @@ export const ScriptOutlinePanel: React.FC<ScriptOutlinePanelProps> = ({
         className="script-outline-panel absolute inset-y-0 left-0 z-30 flex h-full w-72 flex-col overflow-hidden border-r border-[var(--line)] shadow-xl animate-in slide-in-from-left duration-200 sm:w-80 xl:shadow-none"
       >
         <header className="script-outline-header">
+          <div className="script-outline-title-row">
+            <ListTree className="script-outline-title-icon" aria-hidden="true" />
+            <h2 id="script-outline-title">文案大纲</h2>
+            {outline.flatItems.length > 0 && (
+              <span className="script-outline-count">{outline.flatItems.length}</span>
+            )}
+          </div>
+          <p className="script-outline-summary">
+            {outline.flatItems.length > 0
+              ? `预估 ${formatOutlineDuration(outline.totalDurationSeconds)}`
+              : '当前文案暂无标题'}
+          </p>
           <button
             type="button"
             aria-label="退出文案大纲"
@@ -121,14 +133,6 @@ export const ScriptOutlinePanel: React.FC<ScriptOutlinePanelProps> = ({
           >
             <X className="h-3.5 w-3.5" aria-hidden="true" />
           </button>
-          <div className="script-outline-heading">
-            <h2 id="script-outline-title">文案大纲</h2>
-            <p>
-              {outline.flatItems.length > 0
-                ? `${outline.flatItems.length} 个章节 · 预估 ${formatOutlineDuration(outline.totalDurationSeconds)}`
-                : '当前文案暂无标题'}
-            </p>
-          </div>
         </header>
 
         <FloatingScrollbar

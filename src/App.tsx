@@ -269,16 +269,17 @@ function WorkspaceApp({ isAuth, setIsAuth }: WorkspaceAppProps) {
         target.tagName === 'INPUT' ||
         target.tagName === 'TEXTAREA' ||
         target.isContentEditable;
+      const isScriptEditor = target.closest('.script-editor-canvas-container [contenteditable="true"]') !== null;
 
-      if (isInput) return;
-
-      // 1. Ctrl+/ / Cmd+/ to toggle Command Palette outside editable controls
-      if ((e.ctrlKey || e.metaKey) && !e.shiftKey && e.key === '/') {
+      // The command palette shortcut remains global, including while editing text.
+      if ((e.ctrlKey || e.metaKey) && !e.shiftKey && e.key === '/' && (!isInput || isScriptEditor)) {
         e.preventDefault();
         e.stopPropagation();
         setIsCommandPaletteOpen((prev) => !prev);
         return;
       }
+
+      if (isInput) return;
 
       // Prevent triggering global single-key shortcuts if a modal is already open
       const hasActiveModal =
