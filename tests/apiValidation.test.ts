@@ -10,6 +10,7 @@ import {
   validateExternalUrlField,
   verifyQuickDropCredential,
 } from '../src/server/apiShared';
+import { draftSaveSchema, parseWithZod } from '../src/server/schemas';
 
 describe('API validation boundaries', () => {
   it('rejects blank and oversized topic titles', () => {
@@ -19,10 +20,24 @@ describe('API validation boundaries', () => {
 
   it('accepts values at configured boundaries', () => {
     expect(validateTextFields({ title: 'x'.repeat(200) }, { title: [200, true] })).toBeNull();
-    expect(MAX_DRAFT_BYTES).toBe(2 * 1024 * 1024);
+    expect(MAX_DRAFT_BYTES).toBe(4 * 1024 * 1024);
     expect(MAX_BATCH_SIZE).toBe(200);
     expect(MAX_LOGIN_REQUEST_BYTES).toBe(16 * 1024);
     expect(MAX_QUICK_DROP_REQUEST_BYTES).toBe(64 * 1024);
+  });
+
+  it('requires Markdown draft content and bounds its word count', () => {
+    const valid = parseWithZod(draftSaveSchema, {
+      title: '文案',
+      content_markdown: '# 开场',
+      content_json: '{"type":"doc"}',
+      content_html: '<h1>开场</h1>',
+      word_count: 1,
+      base_version: 0,
+    });
+    expect(valid.success).toBe(true);
+    expect(parseWithZod(draftSaveSchema, { title: '文案' }).success).toBe(false);
+    expect(parseWithZod(draftSaveSchema, { content_markdown: '', word_count: 200_001 }).success).toBe(false);
   });
 
   it('rejects invalid score and sort values', () => {

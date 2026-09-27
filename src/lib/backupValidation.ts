@@ -115,14 +115,15 @@ const draftSchema = z.object({
   id,
   topic_id: id,
   title: shortText,
+  content_markdown: z.string().max(4 * 1024 * 1024),
   content_json: z.string().max(2 * 1024 * 1024),
   content_html: z.string().max(2 * 1024 * 1024),
   word_count: z.number().int().min(0).max(200_000),
   version: z.number().int().min(1),
   updated_at: timestamp,
 }).superRefine((draft, ctx) => {
-  const bytes = new TextEncoder().encode(`${draft.content_json}${draft.content_html}`).byteLength;
-  if (bytes > 2 * 1024 * 1024) ctx.addIssue({ code: 'custom', message: '草稿正文超过 2 MiB 限制' });
+  const bytes = new TextEncoder().encode(`${draft.content_markdown}${draft.content_json}${draft.content_html}`).byteLength;
+  if (bytes > 4 * 1024 * 1024) ctx.addIssue({ code: 'custom', message: '草稿正文超过 4 MiB 限制' });
   if (draft.content_json) {
     try {
       JSON.parse(draft.content_json);
@@ -261,7 +262,7 @@ const settingsSchema = z.object({
 });
 
 const backupSchema = z.object({
-  version: z.literal('3.0'),
+  version: z.literal('4.0'),
   export_at: timestamp,
   topics: z.array(topicSchema),
   sources: z.array(sourceSchema),

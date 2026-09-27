@@ -3,6 +3,7 @@ import { Mark, mergeAttributes } from '@tiptap/core';
 export const CitationMark = Mark.create({
   name: 'citation',
   inclusive: false,
+  markdownTokenName: 'citation',
   addAttributes() {
     return {
       citationId: {
@@ -22,5 +23,11 @@ export const CitationMark = Mark.create({
   },
   renderHTML({ HTMLAttributes }) {
     return ['span', mergeAttributes(HTMLAttributes, { class: 'script-citation' }), 0];
+  },
+  renderMarkdown(node, helpers) {
+    const citationId = encodeURIComponent(String(node.attrs?.citationId || ''));
+    const referenceTitle = String(node.attrs?.referenceTitle || '').replace(/\\/gu, '\\\\').replace(/"/gu, '\\"');
+    const title = referenceTitle ? ` "${referenceTitle}"` : '';
+    return `[${helpers.renderChildren(node)}](citation:${citationId}${title})`;
   },
 });

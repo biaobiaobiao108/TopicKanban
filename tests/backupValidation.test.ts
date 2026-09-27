@@ -4,7 +4,7 @@ import { validateBackupData } from '../src/lib/backupValidation';
 
 function createBackup(overrides: Partial<BackupData> = {}): BackupData {
   return {
-    version: '3.0',
+    version: '4.0',
     export_at: '2026-01-01T00:00:00.000Z',
     topics: [],
     sources: [],
@@ -64,7 +64,7 @@ function createTodo(id: string, topicId: string, overrides: Partial<TopicTodo> =
 }
 
 describe('backup schema validation', () => {
-  it('accepts a valid version 3 backup', () => {
+  it('accepts a valid version 4 backup with Markdown draft content', () => {
     expect(validateBackupData(createBackup())).toMatchObject({ success: true });
   });
 
@@ -80,8 +80,8 @@ describe('backup schema validation', () => {
     })).success).toBe(false);
   });
 
-  it('rejects version 2 backups because Todo states are absent from that format', () => {
-    const result = validateBackupData({ ...createBackup(), version: '2.0' } as unknown as BackupData);
+  it('rejects version 3 backups because they do not include the Markdown draft contract', () => {
+    const result = validateBackupData({ ...createBackup(), version: '3.0' } as unknown as BackupData);
     expect(result.success).toBe(false);
     if (!result.success) expect(result.error).toContain('version');
   });
@@ -160,7 +160,7 @@ describe('backup schema validation', () => {
     const result = validateBackupData(createBackup({
       topics: [topic, { ...topic }],
       drafts: [{
-        id: 'draft-1', topic_id: topic.id, title: '', content_json: '{bad json',
+        id: 'draft-1', topic_id: topic.id, title: '', content_markdown: '# 文案', content_json: '{bad json',
         content_html: '<p>正文</p>', word_count: 2, version: 1, updated_at: topic.updated_at,
       }],
     }));

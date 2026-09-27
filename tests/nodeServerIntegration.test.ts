@@ -138,6 +138,7 @@ describe('Bun Server Integration (Local SQLite & API)', () => {
       },
       body: JSON.stringify({
         title: '文案创作独立标题',
+        content_markdown: '# 第一幕\n\n镜头拉远……',
         content_html: '<h1>第一幕</h1><p>镜头拉远……</p>',
         content_json: JSON.stringify({ type: 'doc', content: [] }),
         word_count: 1500,
@@ -150,10 +151,11 @@ describe('Bun Server Integration (Local SQLite & API)', () => {
     });
     expect(workspaceRes.status).toBe(200);
     const initialWorkspace = await workspaceRes.json() as {
-      draft: { title: string } | null;
+      draft: { title: string; content_markdown: string } | null;
       publish_package: unknown;
     };
     expect(initialWorkspace.draft?.title).toBe('文案创作独立标题');
+    expect(initialWorkspace.draft?.content_markdown).toBe('# 第一幕\n\n镜头拉远……');
     expect(initialWorkspace.publish_package).toBeNull();
 
     const publishPackagePayload = {

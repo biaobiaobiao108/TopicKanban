@@ -3,7 +3,7 @@ import type { Editor } from '@tiptap/core';
 export interface OutlineItem {
   id: string;
   title: string;
-  level: 1 | 2 | 3;
+  level: 1 | 2 | 3 | 4 | 5 | 6;
   index: number;
   nodePos: number;
   textPos: number;
@@ -53,7 +53,7 @@ export function formatOutlineDuration(seconds: number): string {
 }
 
 /**
- * Builds a hierarchical H1/H2/H3 outline from the editor document.
+ * Builds a hierarchical H1-H6 outline from the editor document.
  * Percentages are calculated among siblings; heading text is excluded from body statistics.
  */
 export function extractScriptOutline(editor: Editor | null, readingSpeed = 280): ScriptOutline {
@@ -67,7 +67,7 @@ export function extractScriptOutline(editor: Editor | null, readingSpeed = 280):
 
   editor.state.doc.forEach((node, offset) => {
     if (node.type.name === 'heading') {
-      const level = Math.min(3, Math.max(1, Number(node.attrs.level) || 1)) as 1 | 2 | 3;
+      const level = Math.min(6, Math.max(1, Number(node.attrs.level) || 1)) as OutlineItem['level'];
       const item: MutableOutlineItem = {
         id: `heading-${offset}`,
         title: node.textContent.trim() || '未命名章节',

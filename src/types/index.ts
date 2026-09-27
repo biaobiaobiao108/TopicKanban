@@ -152,6 +152,7 @@ export interface Draft {
   id: string;
   topic_id: string;
   title: string;
+  content_markdown: string;
   content_json: string;
   content_html: string;
   word_count: number;
@@ -551,7 +552,7 @@ export interface PaginatedPublishedVideos extends PageMeta {
 }
 
 export interface BackupData {
-  version: '3.0';
+  version: '4.0';
   export_at: string;
   topics: Topic[];
   sources: Source[];

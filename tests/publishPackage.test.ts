@@ -58,6 +58,7 @@ const draft = (contentJson: string, contentHtml = '<h1>开场</h1><p>开场内�
   id: 'draft-1',
   topic_id: topic.id,
   title: topic.title,
+  content_markdown: '# 开场\n\n开场内容',
   content_json: contentJson,
   content_html: contentHtml,
   word_count: 560,

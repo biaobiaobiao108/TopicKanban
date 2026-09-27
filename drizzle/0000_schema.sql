@@ -127,6 +127,7 @@ CREATE TABLE drafts (
   id TEXT PRIMARY KEY,
   topic_id TEXT NOT NULL,
   title TEXT NOT NULL DEFAULT '',
+  content_markdown TEXT NOT NULL DEFAULT '',
   content_json TEXT NOT NULL DEFAULT '',
   content_html TEXT NOT NULL DEFAULT '',
   word_count INTEGER NOT NULL DEFAULT 0 CHECK (word_count >= 0),
@@ -312,4 +313,4 @@ END;
 INSERT INTO topic_search(topic_id, title, summary, hook, storyline, why_now)
 SELECT id, title, summary, hook, storyline, why_now FROM topics;
 
-PRAGMA user_version = 3;
+PRAGMA user_version = 4;

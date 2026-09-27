@@ -47,6 +47,7 @@ export async function saveDraft(
     id: existing?.id || body.id || createId('draft'),
     topic_id: topicId,
     title: body.title || '',
+    content_markdown: body.content_markdown || '',
     content_json: body.content_json || '',
     content_html: body.content_html || '',
     word_count: body.word_count || 0,
@@ -54,15 +55,15 @@ export async function saveDraft(
     updated_at: now,
   };
   const result = existing
-    ? await bind(db, `UPDATE drafts SET title = ?, content_json = ?, content_html = ?, word_count = ?,
+    ? await bind(db, `UPDATE drafts SET title = ?, content_markdown = ?, content_json = ?, content_html = ?, word_count = ?,
         version = version + 1, updated_at = ? WHERE topic_id = ? AND version = ?`, [
-      draft.title, draft.content_json, draft.content_html, draft.word_count,
+      draft.title, draft.content_markdown, draft.content_json, draft.content_html, draft.word_count,
       draft.updated_at, topicId, baseVersion,
     ]).run()
     : await bind(db, `INSERT INTO drafts
-        (id, topic_id, title, content_json, content_html, word_count, version, updated_at)
-        VALUES (?, ?, ?, ?, ?, ?, 1, ?) ON CONFLICT(topic_id) DO NOTHING`, [
-      draft.id, draft.topic_id, draft.title, draft.content_json, draft.content_html,
+        (id, topic_id, title, content_markdown, content_json, content_html, word_count, version, updated_at)
+        VALUES (?, ?, ?, ?, ?, ?, ?, 1, ?) ON CONFLICT(topic_id) DO NOTHING`, [
+      draft.id, draft.topic_id, draft.title, draft.content_markdown, draft.content_json, draft.content_html,
       draft.word_count, draft.updated_at,
     ]).run();
   if ((result.meta.changes || 0) === 0) {
@@ -155,9 +156,9 @@ export async function deleteCitation(db: SqliteDatabase, id: string): Promise<vo
 
 export function draftStatement(db: SqliteDatabase, draft: Draft): SqlitePreparedStatement {
   return bind(db, `INSERT INTO drafts (
-    id, topic_id, title, content_json, content_html, word_count, version, updated_at
-  ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)`, [
-    draft.id, draft.topic_id, draft.title, draft.content_json, draft.content_html,
+    id, topic_id, title, content_markdown, content_json, content_html, word_count, version, updated_at
+  ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`, [
+    draft.id, draft.topic_id, draft.title, draft.content_markdown, draft.content_json, draft.content_html,
     draft.word_count, draft.version || 1, draft.updated_at,
   ]);
 }

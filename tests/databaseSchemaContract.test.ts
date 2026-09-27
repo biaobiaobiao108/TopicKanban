@@ -80,7 +80,7 @@ describe('Database schema contract', () => {
       expect(sqlite.query("SELECT name FROM sqlite_master WHERE type = 'table' AND name = 'commercial_deal_activities'").get()).not.toBeNull();
 
       expect(sqlite.query("SELECT name FROM sqlite_master WHERE type = 'table' AND name = '_schema_migrations'").get()).toBeNull();
-      expect(sqlite.query('PRAGMA user_version').get()).toEqual({ user_version: 3 });
+      expect(sqlite.query('PRAGMA user_version').get()).toEqual({ user_version: 4 });
       sqlite.query("INSERT INTO commercial_deals (id, title, created_at, updated_at) VALUES ('valid', '有效商单', '2026-08-27', '2026-08-27')").run();
       expect(() => sqlite.query("INSERT INTO commercial_deals (id, title, status, created_at, updated_at) VALUES ('invalid', '非法阶段', 'reviewing', '2026-08-27', '2026-08-27')").run()).toThrow();
     } finally {

@@ -1,15 +1,16 @@
 import type { NativeApp } from '../native';
-import type { Draft, DraftCitation, PublishPackagePersistedContent } from '../../types';
+import type { DraftCitation, PublishPackagePersistedContent } from '../../types';
 import {
   MAX_DRAFT_BYTES,
   VERIFICATION_STATUSES,
   createId,
-  isNonNegativeInteger,
   isOneOf,
   jsonError,
+  jsonValidationError,
   requireDb,
   validateTextFields,
 } from '../apiShared';
+import { draftSaveSchema, parseWithZod } from '../schemas';
 import {
   deleteCitation,
   insertCitation,
@@ -75,12 +76,11 @@ export function registerWritingRoutes(app: NativeApp): void {
 
   app.put('/topics/:id/draft', async (c) => {
     try {
-      const body = await c.req.json<Partial<Draft> & { base_version?: number }>();
-      const draftBytes = new TextEncoder().encode(`${body.content_json || ''}${body.content_html || ''}`).byteLength;
-      if (draftBytes > MAX_DRAFT_BYTES) return c.json({ error: 'Draft exceeds 2 MiB' }, 413);
-      if (!isNonNegativeInteger(body.word_count ?? 0) || Number(body.word_count || 0) > 200000) {
-        return c.json({ error: 'word_count must be an integer from 0 to 200000' }, 400);
-      }
+      const parsed = parseWithZod(draftSaveSchema, await c.req.json());
+      if (!parsed.success) return jsonValidationError(c, parsed.error, parsed.issues);
+      const body = parsed.data;
+      const draftBytes = new TextEncoder().encode(`${body.content_markdown}${body.content_json || ''}${body.content_html || ''}`).byteLength;
+      if (draftBytes > MAX_DRAFT_BYTES) return c.json({ error: 'Draft exceeds 4 MiB' }, 413);
       if (body.content_json) {
         try { JSON.parse(body.content_json); } catch { return c.json({ error: 'content_json must be valid JSON' }, 400); }
       }

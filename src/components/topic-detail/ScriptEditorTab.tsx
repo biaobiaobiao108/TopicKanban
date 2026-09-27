@@ -2,9 +2,13 @@ import React, { useId, useState, useEffect, useLayoutEffect, useRef, useCallback
 import { createPortal } from 'react-dom';
 import { useEditor, EditorContent } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
+import { Markdown } from '@tiptap/markdown';
+import TaskList from '@tiptap/extension-task-list';
+import TaskItem from '@tiptap/extension-task-item';
 import Placeholder from '@tiptap/extension-placeholder';
 import CharacterCount from '@tiptap/extension-character-count';
 import { Extension } from '@tiptap/core';
+import type { Editor as TiptapEditor } from '@tiptap/core';
 import { Plugin, PluginKey } from '@tiptap/pm/state';
 import { Decoration, DecorationSet } from '@tiptap/pm/view';
 import { CitationInput, Draft, DraftCitation, Topic, TimelineEvent, Source, AppSettings, EditorFontSize, EditorLineHeight, DEFAULT_VOICEOVER_CUES } from '../../types';
@@ -37,6 +41,13 @@ import {
 import { CitationMark } from './CitationMark';
 import { VoiceoverCueNode } from './VoiceoverCueNode';
 import { ImeMarkdownSafeExtension } from './ImeMarkdownSafeExtension';
+import { ScriptLink } from './ScriptLink';
+import { ScriptImage } from './ScriptImage';
+import { CalloutNode } from './ScriptCalloutNode';
+import { createTableExtensions } from './ScriptTableExtensions';
+import { CodeBlockDoubleEnter } from './ScriptCodeBlockEnter';
+import { ScriptMarkdownMenu } from './ScriptMarkdownMenu';
+import { pastePlainTextIntoCodeBlock, shouldParseMarkdownPaste } from './scriptMarkdownPaste';
 import { getCitationHealth } from '../../lib/citations';
 import { copyTextToClipboard } from '../../lib/clipboard';
 import { resolvePublicUrl } from '../../lib/publicUrl';
@@ -132,6 +143,31 @@ const FocusParagraphExtension = Extension.create({
   },
 });
 
+const SCRIPT_MARKDOWN_EXTENSIONS = [
+  StarterKit.configure({
+    heading: { levels: [1, 2, 3, 4, 5, 6] },
+    link: false,
+    codeBlock: { exitOnTripleEnter: false },
+  }),
+  CodeBlockDoubleEnter,
+  ...createTableExtensions(),
+  ScriptLink.configure({ openOnClick: false, autolink: true, linkOnPaste: true }),
+  TaskList,
+  TaskItem.configure({ nested: true }),
+  Placeholder.configure({ placeholder: '在此撰写视频解说文案……支持 Markdown 快捷语法，输入 / 插入结构。' }),
+  CharacterCount,
+  CitationMark,
+  VoiceoverCueNode,
+  FocusParagraphExtension,
+  ScriptImage.configure({
+    resize: { enabled: true, directions: ['bottom-right'], minWidth: 120, minHeight: 60, alwaysPreserveAspectRatio: true },
+  }),
+  Markdown,
+  CalloutNode,
+  ScriptMarkdownMenu,
+  ImeMarkdownSafeExtension,
+];
+
 interface ScriptEditorTabProps {
   topicId: string;
   topicTitle: string;
@@ -149,10 +185,11 @@ interface ScriptEditorTabProps {
     contentHtml: string,
     contentJson: string,
     wordCount: number,
-    title: string
+    title: string,
+    contentMarkdown: string
   ) => Promise<void>;
-  onCacheDraftLocally: (contentHtml: string, contentJson: string, wordCount: number, title: string) => void;
-  onSaveDraftImmediately: (contentHtml: string, contentJson: string, wordCount: number, title: string) => void;
+  onCacheDraftLocally: (contentHtml: string, contentJson: string, wordCount: number, title: string, contentMarkdown: string) => void;
+  onSaveDraftImmediately: (contentHtml: string, contentJson: string, wordCount: number, title: string, contentMarkdown: string) => void;
   onSaveCitation: (input: CitationInput) => Promise<DraftCitation>;
   onRegisterDraftFlush?: (flush: (() => Promise<void>) | null) => void;
 }
@@ -222,7 +259,7 @@ export const ScriptEditorTab: React.FC<ScriptEditorTabProps> = ({
   const saveTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const localSaveTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const hasUnsavedChangesRef = useRef(false);
-  const latestContentRef = useRef<{ html: string; json: string; wordCount: number; title: string } | null>(null);
+  const latestContentRef = useRef<{ markdown: string; html: string; json: string; wordCount: number; title: string } | null>(null);
   const draftTitleRef = useRef(initialTitle);
   const draftSavePromiseRef = useRef<Promise<void> | null>(null);
   const immediateSaveRef = useRef(onSaveDraftImmediately);
@@ -236,6 +273,7 @@ export const ScriptEditorTab: React.FC<ScriptEditorTabProps> = ({
   const outlineScrollSyncFrameRef = useRef<number | null>(null);
   const copyFeedbackTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const lastInjectedOutlineRef = useRef<string | null>(null);
+  const markdownEditorRef = useRef<TiptapEditor | null>(null);
 
   const persistLatestDraft = useCallback(async () => {
     while (true) {
@@ -250,7 +288,7 @@ export const ScriptEditorTab: React.FC<ScriptEditorTabProps> = ({
       const savePromise = (async () => {
         setSaveStatus('saving');
         try {
-          await onSaveDraft(topicId, latest.html, latest.json, latest.wordCount, latest.title);
+          await onSaveDraft(topicId, latest.html, latest.json, latest.wordCount, latest.title, latest.markdown);
           if (savingVersion === editVersionRef.current) {
             hasUnsavedChangesRef.current = false;
             setSaveStatus('saved');
@@ -290,7 +328,7 @@ export const ScriptEditorTab: React.FC<ScriptEditorTabProps> = ({
     localSaveTimeoutRef.current = setTimeout(() => {
       const latest = latestContentRef.current;
       if (!latest) return;
-      localCacheRef.current(latest.html, latest.json, latest.wordCount, latest.title);
+      localCacheRef.current(latest.html, latest.json, latest.wordCount, latest.title, latest.markdown);
       setSaveStatus('local');
     }, 1500);
 
@@ -299,7 +337,7 @@ export const ScriptEditorTab: React.FC<ScriptEditorTabProps> = ({
     }, 45000);
   }, [persistLatestDraft]);
 
-  const markDraftChanged = useCallback((content: { html: string; json: string; wordCount: number; title: string }) => {
+  const markDraftChanged = useCallback((content: { markdown: string; html: string; json: string; wordCount: number; title: string }) => {
     editVersionRef.current += 1;
     latestContentRef.current = content;
     hasUnsavedChangesRef.current = true;
@@ -473,29 +511,36 @@ export const ScriptEditorTab: React.FC<ScriptEditorTabProps> = ({
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [isOutlineOpen, isReferenceOpen, isZenMode, isCueMenuOpen]);
 
-  // Initialize Tiptap
+  // Initialize Tiptap with Markdown as the source format.
   const editor = useEditor({
-    extensions: [
-      StarterKit.configure({
-        heading: {
-          levels: [1, 2, 3],
-        },
-      }),
-      Placeholder.configure({
-        placeholder: '在此撰写视频解说文案... 支持标准 Markdown 语法（# 标题，**加粗**，> 引用），可通过右侧抽屉插入事实参考。',
-      }),
-      CharacterCount,
-      CitationMark,
-      VoiceoverCueNode,
-      FocusParagraphExtension,
-      ImeMarkdownSafeExtension,
-    ],
-    content: initialDraft?.content_html || '<p></p>',
+    extensions: SCRIPT_MARKDOWN_EXTENSIONS,
+    content: initialDraft?.content_markdown || '',
+    contentType: 'markdown',
     editorProps: {
       attributes: {
         class: 'script-editor-font-stack prose prose-stone max-w-none focus:outline-none min-h-[500px] text-stone-900 dark:text-stone-100 font-normal',
       },
       handleScrollToSelection: () => isTypewriterActiveRef.current,
+      handlePaste: (view, event) => {
+        const text = event.clipboardData?.getData('text/plain') || '';
+        if (pastePlainTextIntoCodeBlock(view, text)) {
+          event.preventDefault();
+          return true;
+        }
+        const html = event.clipboardData?.getData('text/html') || '';
+        if (!shouldParseMarkdownPaste(text, Boolean(html))) return false;
+        const markdownParser = markdownEditorRef.current?.markdown;
+        if (!markdownParser) return false;
+        try {
+          const parsedDocument = view.state.schema.nodeFromJSON(markdownParser.parse(text));
+          const slice = parsedDocument.slice(0, parsedDocument.content.size);
+          view.dispatch(view.state.tr.replaceSelection(slice).setMeta('uiEvent', 'paste'));
+          event.preventDefault();
+          return true;
+        } catch {
+          return false;
+        }
+      },
     },
     onUpdate: ({ editor }) => {
       // Trigger Zen ambient respiration fade
@@ -516,6 +561,7 @@ export const ScriptEditorTab: React.FC<ScriptEditorTabProps> = ({
 
       const text = editor.getText();
       markDraftChanged({
+        markdown: (editor as TiptapEditor & { getMarkdown: () => string }).getMarkdown(),
         html: editor.getHTML(),
         json: JSON.stringify(editor.getJSON()),
         wordCount: text.replace(/\s+/g, '').length,
@@ -523,6 +569,7 @@ export const ScriptEditorTab: React.FC<ScriptEditorTabProps> = ({
       });
     },
   });
+  markdownEditorRef.current = editor;
 
   useEffect(() => {
     if (hasUnsavedChangesRef.current) return;
@@ -536,6 +583,7 @@ export const ScriptEditorTab: React.FC<ScriptEditorTabProps> = ({
     if (!editor) return;
     const text = editor.getText();
     markDraftChanged({
+      markdown: (editor as TiptapEditor & { getMarkdown: () => string }).getMarkdown(),
       html: editor.getHTML(),
       json: JSON.stringify(editor.getJSON()),
       wordCount: text.replace(/\s+/g, '').length,
@@ -638,8 +686,9 @@ export const ScriptEditorTab: React.FC<ScriptEditorTabProps> = ({
     const html = editor.getHTML();
     const json = JSON.stringify(editor.getJSON());
     const wordCount = text.replace(/\s+/g, '').length;
-    latestContentRef.current = { html, json, wordCount, title: draftTitleRef.current };
-    onSaveDraftImmediately(html, json, wordCount, draftTitleRef.current);
+    const markdown = (editor as TiptapEditor & { getMarkdown: () => string }).getMarkdown();
+    latestContentRef.current = { markdown, html, json, wordCount, title: draftTitleRef.current };
+    onSaveDraftImmediately(html, json, wordCount, draftTitleRef.current, markdown);
     onOutlineInjected?.();
     showToast({ message: '已将故事结构导入文案编辑器', tone: 'success' });
   }, [editor, onOutlineInjected, onSaveDraftImmediately, pendingOutlineHtml, showToast, topicTitle]);
@@ -657,7 +706,7 @@ export const ScriptEditorTab: React.FC<ScriptEditorTabProps> = ({
       try {
         const latest = latestContentRef.current;
         setSaveStatus('saving');
-        await onSaveDraft(topicId, latest.html, latest.json, latest.wordCount, latest.title);
+        await onSaveDraft(topicId, latest.html, latest.json, latest.wordCount, latest.title, latest.markdown);
         hasUnsavedChangesRef.current = false;
         setSaveStatus('saved');
         setLastSavedTime(formatBeijingDateTime(new Date(), 'zh-CN', { hour: '2-digit', minute: '2-digit', second: '2-digit' }));
@@ -668,8 +717,9 @@ export const ScriptEditorTab: React.FC<ScriptEditorTabProps> = ({
       }
       return;
     }
-    editor?.commands.setContent(draftConflict.content_html || '', { emitUpdate: false });
+    editor?.commands.setContent(draftConflict.content_markdown || '', { contentType: 'markdown', emitUpdate: false });
     latestContentRef.current = {
+      markdown: draftConflict.content_markdown,
       html: draftConflict.content_html,
       json: draftConflict.content_json,
       wordCount: draftConflict.word_count,
@@ -696,7 +746,7 @@ export const ScriptEditorTab: React.FC<ScriptEditorTabProps> = ({
         localSaveTimeoutRef.current = null;
       }
       const latest = latestContentRef.current;
-      immediateSaveRef.current(latest.html, latest.json, latest.wordCount, latest.title);
+      immediateSaveRef.current(latest.html, latest.json, latest.wordCount, latest.title, latest.markdown);
       hasUnsavedChangesRef.current = false;
     };
     const flushWhenHidden = () => {
@@ -871,7 +921,7 @@ export const ScriptEditorTab: React.FC<ScriptEditorTabProps> = ({
       setActiveOutlineItemId(item.id);
 
       requestAnimationFrame(() => {
-        const headingElement = editor.view.dom.querySelectorAll<HTMLElement>('h1, h2, h3')[item.index];
+        const headingElement = editor.view.dom.querySelectorAll<HTMLElement>('h1, h2, h3, h4, h5, h6')[item.index];
         if (!headingElement) return;
 
         const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;

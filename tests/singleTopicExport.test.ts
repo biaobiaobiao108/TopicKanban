@@ -67,6 +67,7 @@ describe('exportSingleTopicMarkdown utility', () => {
     id: 'draft-demo',
     topic_id: 'topic-demo',
     title: '文案初稿',
+    content_markdown: '# 开场\n\n这是一个**荒诞**的故事。\n\n> 真实比小说更离奇。',
     content_html: '<h1>开场</h1><p>这是一个<strong>荒诞</strong>的故事。</p><blockquote>真实比小说更离奇。</blockquote>',
     content_json: '{}',
     word_count: 560,

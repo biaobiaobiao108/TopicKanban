@@ -249,7 +249,7 @@ export async function exportAllData(db: SqliteDatabase, kvSettings?: AppSettings
       CASE status WHEN 'todo' THEN 0 WHEN 'in_progress' THEN 1 ELSE 2 END,
       sort_order, created_at`);
     return {
-      version: '3.0' as const,
+      version: '4.0' as const,
       export_at: exportAt,
       topics: allTopics,
       sources,

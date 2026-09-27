@@ -293,10 +293,11 @@ export const TopicDetailView: React.FC<TopicDetailViewProps> = ({
     contentHtml: string,
     contentJson: string,
     wordCount: number,
-    title: string
+    title: string,
+    contentMarkdown: string
   ) => {
     try {
-      const updated = await saveDraft(topicId, contentHtml, contentJson, wordCount, title);
+      const updated = await saveDraft(topicId, contentHtml, contentJson, wordCount, title, contentMarkdown);
       queryClient.setQueryData(['topic-draft', topicId], { draft: updated, conflict: null });
       onDraftWordCountChange(topicId, wordCount);
     } catch (error) {
@@ -660,16 +661,16 @@ export const TopicDetailView: React.FC<TopicDetailViewProps> = ({
               onSaveDraft={handleSaveDraft}
               onSaveCitation={handleSaveCitation}
               onRegisterDraftFlush={registerDraftFlush}
-              onCacheDraftLocally={(contentHtml, contentJson, wordCount, title) => {
-                const cached = cacheDraftLocally(topic.id, contentHtml, contentJson, wordCount, title);
+              onCacheDraftLocally={(contentHtml, contentJson, wordCount, title, contentMarkdown) => {
+                const cached = cacheDraftLocally(topic.id, contentHtml, contentJson, wordCount, title, contentMarkdown);
                 queryClient.setQueryData(['topic-draft', topic.id], (prev?: { draft: Draft | null; conflict: DraftRecoveryConflict | null }) => ({
                   draft: cached,
                   conflict: prev?.conflict || null,
                 }));
                 onDraftWordCountChange(topic.id, wordCount);
               }}
-              onSaveDraftImmediately={(contentHtml, contentJson, wordCount, title) => {
-                const updated = saveDraftImmediately(topic.id, contentHtml, contentJson, wordCount, title);
+              onSaveDraftImmediately={(contentHtml, contentJson, wordCount, title, contentMarkdown) => {
+                const updated = saveDraftImmediately(topic.id, contentHtml, contentJson, wordCount, title, contentMarkdown);
                 queryClient.setQueryData(['topic-draft', topic.id], (prev?: { draft: Draft | null; conflict: DraftRecoveryConflict | null }) => ({
                   draft: updated,
                   conflict: prev?.conflict || null,

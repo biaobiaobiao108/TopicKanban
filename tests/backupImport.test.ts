@@ -12,7 +12,7 @@ import { SqliteDatabase } from '../src/server/sqlite';
 
 function createBackup(overrides: Partial<BackupData> = {}): BackupData {
   return {
-    version: '3.0',
+    version: '4.0',
     export_at: '2026-01-01T00:00:00.000Z',
     topics: [],
     sources: [],
@@ -97,7 +97,7 @@ describe('backup import limits', () => {
     try {
       await replaceAllData(new SqliteDatabase(sqlite), backup);
       const exported = await exportAllData(new SqliteDatabase(sqlite));
-      expect(exported.version).toBe('3.0');
+      expect(exported.version).toBe('4.0');
       expect(exported.todos.map((todo) => [todo.id, todo.status, todo.sort_order])).toEqual([
         ['todo-first', 'todo', 1], ['todo-later', 'todo', 2],
         ['doing-current', 'in_progress', 1], ['doing-next', 'in_progress', 2],

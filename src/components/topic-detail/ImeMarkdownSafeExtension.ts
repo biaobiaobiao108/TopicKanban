@@ -247,7 +247,7 @@ export const ImeMarkdownSafeExtension = Extension.create({
           type: this.editor.schema.nodes.heading,
           getAttributes: (match) => {
             const hashCount = match[0].replace(/[\s\u3000]/g, '').length;
-            return { level: Math.min(Math.max(hashCount, 1), 3) };
+          return { level: Math.min(Math.max(hashCount, 1), 6) };
           },
         })
       );
@@ -265,7 +265,7 @@ export const ImeMarkdownSafeExtension = Extension.create({
     if (this.editor.schema.nodes.bulletList) {
       rules.push(
         wrappingInputRule({
-          find: /^\s*([*＊·•])[\s\u3000]$/,
+          find: /^\s*([-－+＋*＊·•])[\s\u3000]$/,
           type: this.editor.schema.nodes.bulletList,
         })
       );
@@ -278,6 +278,15 @@ export const ImeMarkdownSafeExtension = Extension.create({
           type: this.editor.schema.nodes.orderedList,
           getAttributes: (match) => ({ start: +match[1] }),
           joinPredicate: (match, node) => node.childCount + node.attrs.start === +match[1],
+        })
+      );
+    }
+
+    if (this.editor.schema.nodes.taskList) {
+      rules.push(
+        wrappingInputRule({
+          find: /^\s*(?:\[(?: |x|X)\]|【(?: |x|X)】)[\s\u3000]$/,
+          type: this.editor.schema.nodes.taskList,
         })
       );
     }

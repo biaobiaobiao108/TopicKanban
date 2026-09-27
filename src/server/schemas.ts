@@ -12,6 +12,19 @@ export const COMMERCIAL_DEAL_DELIVERABLE_TYPES = ['custom_video', 'dynamic', 'li
 export const COMMERCIAL_DEAL_SOURCES = ['huahuo', 'brand_direct', 'agency', 'mcn', 'other'] as const;
 export const COMMERCIAL_DEAL_CONTRACT_STATUSES = ['not_started', 'drafting', 'signed'] as const;
 
+export const draftSaveSchema = z.object({
+  id: z.string().optional(),
+  topic_id: z.string().optional(),
+  title: z.string().max(200).optional(),
+  content_markdown: z.string({ error: 'content_markdown must be a string' }),
+  content_json: z.string().optional(),
+  content_html: z.string().optional(),
+  word_count: z.number().int().min(0).max(200_000).optional(),
+  version: z.number().int().min(0).optional(),
+  updated_at: z.string().optional(),
+  base_version: z.number().int().min(0).optional(),
+});
+
 export const todoBoardLayoutSchema = z.object({
   todo_ids: z.array(z.string().min(1)),
   in_progress_ids: z.array(z.string().min(1)),

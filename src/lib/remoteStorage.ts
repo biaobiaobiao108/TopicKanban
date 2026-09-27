@@ -653,7 +653,9 @@ function writePendingDraft(record: PendingDraftRecord | null, topicId: string): 
 
 function clearPendingDraftIfCurrent(draft: Draft): void {
   const pending = readPendingDrafts()[draft.topic_id]?.draft;
-  if (pending?.updated_at === draft.updated_at && pending.content_json === draft.content_json) {
+  if (pending?.updated_at === draft.updated_at
+    && pending.content_markdown === draft.content_markdown
+    && pending.content_json === draft.content_json) {
     writePendingDraft(null, draft.topic_id);
   }
 }
@@ -770,9 +772,10 @@ export async function saveDraft(
   contentHtml: string,
   contentJson: string,
   wordCount: number,
-  title = ''
+  title: string,
+  contentMarkdown: string,
 ): Promise<Draft> {
-  const draft = cacheDraftLocally(topicId, contentHtml, contentJson, wordCount, title);
+  const draft = cacheDraftLocally(topicId, contentHtml, contentJson, wordCount, title, contentMarkdown);
   const saved = await enqueueDraftUpload(draft);
   return saved;
 }
@@ -782,7 +785,8 @@ export function cacheDraftLocally(
   contentHtml: string,
   contentJson: string,
   wordCount: number,
-  title = ''
+  title: string,
+  contentMarkdown: string,
 ): Draft {
   const previous = readPendingDrafts()[topicId];
   const baseVersion = knownDraftVersions.get(topicId) ?? previous?.base_version ?? 0;
@@ -790,6 +794,7 @@ export function cacheDraftLocally(
     id: previous?.draft.id || `pending-${topicId}`,
     topic_id: topicId,
     title,
+    content_markdown: contentMarkdown,
     content_html: contentHtml,
     content_json: contentJson,
     word_count: wordCount,
@@ -805,10 +810,11 @@ export function saveDraftImmediately(
   contentHtml: string,
   contentJson: string,
   wordCount: number,
-  title = ''
+  title: string,
+  contentMarkdown: string,
 ): Draft {
-  const draft = cacheDraftLocally(topicId, contentHtml, contentJson, wordCount, title);
-  const draftBytes = new TextEncoder().encode(`${draft.content_json || ''}${draft.content_html || ''}`).byteLength;
+  const draft = cacheDraftLocally(topicId, contentHtml, contentJson, wordCount, title, contentMarkdown);
+  const draftBytes = new TextEncoder().encode(`${draft.content_markdown || ''}${draft.content_json || ''}${draft.content_html || ''}`).byteLength;
   // 浏览器对 fetch({ keepalive: true }) 限制 payload 通常为 64KB (65536 bytes)
   const useKeepalive = draftBytes < 60000;
   void enqueueDraftUpload(draft, useKeepalive).catch(() => undefined);
@@ -930,7 +936,7 @@ export async function exportScriptsMarkdown(): Promise<string> {
   lines.push(``);
 
   // Filter drafts with meaningful content or topics with drafts
-  const draftsWithTopic = drafts.filter((d) => d.content_html || d.content_json);
+  const draftsWithTopic = drafts.filter((d) => d.content_markdown || d.content_html || d.content_json);
 
   if (draftsWithTopic.length === 0) {
     lines.push(`*暂无已撰写的文案草稿记录。*`);
@@ -942,7 +948,7 @@ export async function exportScriptsMarkdown(): Promise<string> {
     const title = draft.title || topic?.title || `未命名文案 ${idx + 1}`;
     const wordCount = draft.word_count || 0;
     const estMinutes = (wordCount / readingSpeed).toFixed(1);
-    const mdBody = htmlToCleanMarkdown(draft.content_html);
+    const mdBody = draft.content_markdown || htmlToCleanMarkdown(draft.content_html);
 
     lines.push(`## 【第 ${idx + 1} 篇】${title}`);
     if (topic) {
@@ -1063,8 +1069,8 @@ export function exportSingleTopicMarkdown(
   lines.push(``);
   lines.push(`---`);
   lines.push(``);
-  if (draft?.content_html) {
-    lines.push(htmlToCleanMarkdown(draft.content_html));
+  if (draft?.content_markdown || draft?.content_html) {
+    lines.push(draft.content_markdown || htmlToCleanMarkdown(draft.content_html));
   } else {
     lines.push(`*(暂无撰写的文案正文)*`);
   }

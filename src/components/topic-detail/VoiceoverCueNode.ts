@@ -1,7 +1,16 @@
-import { Node, mergeAttributes } from '@tiptap/core';
+import { createInlineMarkdownSpec, Node, mergeAttributes } from '@tiptap/core';
+
+const voiceoverCueMarkdown = createInlineMarkdownSpec({
+  nodeName: 'voiceoverCue',
+  name: 'cue',
+  selfClosing: true,
+  allowedAttributes: ['cue'],
+});
 
 export const VoiceoverCueNode = Node.create({
   name: 'voiceoverCue',
+  markdownTokenName: 'voiceoverCue',
+  ...voiceoverCueMarkdown,
   group: 'inline',
   inline: true,
   selectable: true,
