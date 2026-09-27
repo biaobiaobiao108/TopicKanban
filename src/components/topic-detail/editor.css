@@ -565,7 +565,7 @@ html.theme-kyoto-zen .tiptap hr { border-top-color: #dadfd5; }
 
 .script-editor-canvas-container .script-code-block pre {
   margin: 0;
-  padding: 2.8rem 1.1rem 1rem;
+  padding: 1rem 3.3rem 1rem 1.1rem;
 }
 
 .script-editor-canvas-container .script-code-block pre code {
