@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'bun:test';
-import StarterKit from '@tiptap/starter-kit';
+import { Editor } from '@tiptap/core';
 import TaskList from '@tiptap/extension-task-list';
 import TaskItem from '@tiptap/extension-task-item';
 import { MarkdownManager } from '@tiptap/markdown';
@@ -7,6 +7,7 @@ import { CitationMark } from '../src/components/topic-detail/CitationMark';
 import { CalloutNode } from '../src/components/topic-detail/ScriptCalloutNode';
 import { ScriptLink } from '../src/components/topic-detail/ScriptLink';
 import { ScriptCodeBlock } from '../src/components/topic-detail/ScriptCodeBlock';
+import { ScriptStarterKit } from '../src/components/topic-detail/ScriptStarterKit';
 import { createTableExtensions } from '../src/components/topic-detail/ScriptTableExtensions';
 import { VoiceoverCueNode } from '../src/components/topic-detail/VoiceoverCueNode';
 import { detectAndCleanImeLeak } from '../src/components/topic-detail/ImeMarkdownSafeExtension';
@@ -21,7 +22,7 @@ import {
 
 const markdown = new MarkdownManager({
   extensions: [
-    StarterKit.configure({ heading: { levels: [1, 2, 3, 4, 5, 6] }, link: false, codeBlock: false }),
+    ScriptStarterKit.configure({ heading: { levels: [1, 2, 3, 4, 5, 6] }, link: false, codeBlock: false }),
     ScriptCodeBlock.configure({ exitOnTripleEnter: false }),
     ScriptLink,
     TaskList,
@@ -34,6 +35,33 @@ const markdown = new MarkdownManager({
 });
 
 describe('script Markdown source', () => {
+  it('exits slash-menu inline formatting when a new line starts', () => {
+    const markCommands = [
+      ['bold', 'toggleBold'],
+      ['italic', 'toggleItalic'],
+      ['strike', 'toggleStrike'],
+      ['underline', 'toggleUnderline'],
+      ['code', 'toggleCode'],
+    ] as const;
+
+    for (const [markName, commandName] of markCommands) {
+      const editor = new Editor({
+        extensions: [ScriptStarterKit.configure({})],
+        content: { type: 'doc', content: [{ type: 'paragraph' }] },
+      });
+
+      editor.commands[commandName]();
+      editor.view.dispatch(editor.state.tr.insertText('格式文字'));
+      expect(editor.isActive(markName)).toBe(true);
+      editor.commands.splitBlock();
+
+      expect(editor.state.selection.$from.parent.type.name).toBe('paragraph');
+      expect(editor.isActive(markName)).toBe(false);
+      expect(editor.state.storedMarks?.some((mark) => mark.type.name === markName) ?? false).toBe(false);
+      editor.destroy();
+    }
+  });
+
   it('parses and serializes the editor block and inline features', () => {
     const source = [
       '# 开场',

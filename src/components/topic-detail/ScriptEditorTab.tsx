@@ -1,7 +1,6 @@
 import React, { useId, useState, useEffect, useLayoutEffect, useRef, useCallback } from 'react';
 import { createPortal } from 'react-dom';
 import { useEditor, EditorContent } from '@tiptap/react';
-import StarterKit from '@tiptap/starter-kit';
 import { Markdown } from '@tiptap/markdown';
 import TaskList from '@tiptap/extension-task-list';
 import TaskItem from '@tiptap/extension-task-item';
@@ -47,6 +46,7 @@ import { ScriptCodeBlock } from './ScriptCodeBlock';
 import { createTableExtensions } from './ScriptTableExtensions';
 import { CodeBlockDoubleEnter } from './ScriptCodeBlockEnter';
 import { ScriptMarkdownMenu } from './ScriptMarkdownMenu';
+import { ScriptStarterKit } from './ScriptStarterKit';
 import { TableEdgeControls } from './ScriptTableEdgeControls';
 import { pastePlainTextIntoCodeBlock, shouldParseMarkdownPaste } from './scriptMarkdownPaste';
 import { getCitationHealth } from '../../lib/citations';
@@ -145,7 +145,7 @@ const FocusParagraphExtension = Extension.create({
 });
 
 const SCRIPT_MARKDOWN_EXTENSIONS = [
-  StarterKit.configure({
+  ScriptStarterKit.configure({
     heading: { levels: [1, 2, 3, 4, 5, 6] },
     link: false,
     codeBlock: false,

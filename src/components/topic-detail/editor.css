@@ -125,7 +125,7 @@
 .script-outline-list {
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 6px;
   margin: 0;
   padding: 0;
   list-style: none;
@@ -138,7 +138,7 @@
 .script-outline-item-button {
   display: flex;
   align-items: center;
-  gap: 14px;
+  gap: 10px;
   width: 100%;
   max-width: 100%;
   min-width: 0;
@@ -178,55 +178,55 @@
 }
 
 .script-outline-item--level-1 .script-outline-item-button {
-  min-height: 72px;
-  padding: 12px 16px;
+  min-height: 56px;
+  padding: 10px 12px;
   color: var(--script-outline-level-color);
-  font-size: 1.55rem;
+  font-size: 1.1rem;
   font-weight: 700;
   letter-spacing: -0.015em;
 }
 
 .script-outline-item--level-2 .script-outline-item-button {
-  min-height: 60px;
-  padding: 10px 14px 10px 44px;
+  min-height: 48px;
+  padding: 8px 12px 8px 36px;
   color: var(--script-outline-level-color);
-  font-size: 1.48rem;
+  font-size: 1rem;
   font-weight: 650;
   letter-spacing: -0.012em;
 }
 
 .script-outline-item--level-3 .script-outline-item-button {
-  min-height: 58px;
-  padding: 10px 14px 10px 72px;
+  min-height: 44px;
+  padding: 8px 12px 8px 60px;
   color: var(--script-outline-level-color);
-  font-size: 1.38rem;
+  font-size: 0.95rem;
   font-weight: 450;
 }
 
 .script-outline-item--level-4 .script-outline-item-button,
 .script-outline-item--level-5 .script-outline-item-button,
 .script-outline-item--level-6 .script-outline-item-button {
-  min-height: 48px;
-  padding: 8px 14px 8px 100px;
+  min-height: 40px;
+  padding: 7px 12px 7px 84px;
   color: var(--script-outline-level-color);
-  font-size: 1.12rem;
+  font-size: 0.9rem;
   font-weight: 450;
 }
 
-.script-outline-item--level-5 .script-outline-item-button { padding-left: 128px; font-size: 1rem; }
-.script-outline-item--level-6 .script-outline-item-button { padding-left: 156px; font-size: 0.94rem; }
+.script-outline-item--level-5 .script-outline-item-button { padding-left: 108px; font-size: 0.875rem; }
+.script-outline-item--level-6 .script-outline-item-button { padding-left: 132px; font-size: 0.85rem; }
 
 .script-outline-level-marker {
   display: grid;
-  flex: 0 0 36px;
-  width: 36px;
-  height: 36px;
+  flex: 0 0 28px;
+  width: 28px;
+  height: 28px;
   place-items: center;
   border: 0;
   border-radius: 50%;
   background: var(--script-outline-marker-color);
   color: #4f5552;
-  font-size: 1.05rem;
+  font-size: 0.875rem;
   font-variant-numeric: tabular-nums;
   font-weight: 700;
   line-height: 1;
@@ -237,7 +237,7 @@
 .script-outline-item--level-5 .script-outline-level-marker,
 .script-outline-item--level-6 .script-outline-level-marker {
   color: var(--ink-muted);
-  font-size: 0.9rem;
+  font-size: 0.75rem;
 }
 
 .script-outline-item-title {
