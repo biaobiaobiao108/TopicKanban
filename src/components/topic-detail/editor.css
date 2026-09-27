@@ -178,55 +178,55 @@
 }
 
 .script-outline-item--level-1 .script-outline-item-button {
-  min-height: 56px;
-  padding: 10px 12px;
+  min-height: 48px;
+  padding: 8px 10px;
   color: var(--script-outline-level-color);
-  font-size: 1.1rem;
+  font-size: 0.95rem;
   font-weight: 700;
   letter-spacing: -0.015em;
 }
 
 .script-outline-item--level-2 .script-outline-item-button {
-  min-height: 48px;
-  padding: 8px 12px 8px 36px;
+  min-height: 44px;
+  padding: 7px 10px 7px 32px;
   color: var(--script-outline-level-color);
-  font-size: 1rem;
+  font-size: 0.9rem;
   font-weight: 650;
   letter-spacing: -0.012em;
 }
 
 .script-outline-item--level-3 .script-outline-item-button {
-  min-height: 44px;
-  padding: 8px 12px 8px 60px;
+  min-height: 40px;
+  padding: 6px 10px 6px 52px;
   color: var(--script-outline-level-color);
-  font-size: 0.95rem;
+  font-size: 0.85rem;
   font-weight: 450;
 }
 
 .script-outline-item--level-4 .script-outline-item-button,
 .script-outline-item--level-5 .script-outline-item-button,
 .script-outline-item--level-6 .script-outline-item-button {
-  min-height: 40px;
-  padding: 7px 12px 7px 84px;
+  min-height: 36px;
+  padding: 6px 10px 6px 72px;
   color: var(--script-outline-level-color);
-  font-size: 0.9rem;
+  font-size: 0.825rem;
   font-weight: 450;
 }
 
-.script-outline-item--level-5 .script-outline-item-button { padding-left: 108px; font-size: 0.875rem; }
-.script-outline-item--level-6 .script-outline-item-button { padding-left: 132px; font-size: 0.85rem; }
+.script-outline-item--level-5 .script-outline-item-button { padding-left: 92px; font-size: 0.8rem; }
+.script-outline-item--level-6 .script-outline-item-button { padding-left: 112px; font-size: 0.775rem; }
 
 .script-outline-level-marker {
   display: grid;
-  flex: 0 0 28px;
-  width: 28px;
-  height: 28px;
+  flex: 0 0 24px;
+  width: 24px;
+  height: 24px;
   place-items: center;
   border: 0;
   border-radius: 50%;
   background: var(--script-outline-marker-color);
   color: #4f5552;
-  font-size: 0.875rem;
+  font-size: 0.75rem;
   font-variant-numeric: tabular-nums;
   font-weight: 700;
   line-height: 1;
@@ -237,7 +237,7 @@
 .script-outline-item--level-5 .script-outline-level-marker,
 .script-outline-item--level-6 .script-outline-level-marker {
   color: var(--ink-muted);
-  font-size: 0.75rem;
+  font-size: 0.68rem;
 }
 
 .script-outline-item-title {

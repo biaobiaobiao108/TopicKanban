@@ -8,6 +8,7 @@ import { CalloutNode } from '../src/components/topic-detail/ScriptCalloutNode';
 import { ScriptLink } from '../src/components/topic-detail/ScriptLink';
 import { ScriptCodeBlock } from '../src/components/topic-detail/ScriptCodeBlock';
 import { ScriptStarterKit } from '../src/components/topic-detail/ScriptStarterKit';
+import { extractScriptOutline, findActiveOutlineItem } from '../src/lib/outline';
 import { createTableExtensions } from '../src/components/topic-detail/ScriptTableExtensions';
 import { VoiceoverCueNode } from '../src/components/topic-detail/VoiceoverCueNode';
 import { detectAndCleanImeLeak } from '../src/components/topic-detail/ImeMarkdownSafeExtension';
@@ -35,6 +36,37 @@ const markdown = new MarkdownManager({
 });
 
 describe('script Markdown source', () => {
+  it('tracks nested headings and keeps active positions current as earlier titles change', () => {
+    const editor = new Editor({
+      extensions: [ScriptStarterKit.configure({})],
+      content: {
+        type: 'doc',
+        content: [
+          { type: 'heading', attrs: { level: 1 }, content: [{ type: 'text', text: '开场' }] },
+          { type: 'paragraph', content: [{ type: 'text', text: '正文' }] },
+          {
+            type: 'blockquote',
+            content: [{ type: 'heading', attrs: { level: 2 }, content: [{ type: 'text', text: '内嵌标题' }] }],
+          },
+          { type: 'heading', attrs: { level: 2 }, content: [{ type: 'text', text: '后续标题' }] },
+        ],
+      },
+    });
+
+    const beforeEdit = extractScriptOutline(editor);
+    expect(beforeEdit.flatItems.map((item) => item.title)).toEqual(['开场', '内嵌标题', '后续标题']);
+    expect(beforeEdit.flatItems.map((item) => item.id)).toEqual(['heading-0', 'heading-1', 'heading-2']);
+
+    const lastHeading = beforeEdit.flatItems[2];
+    editor.view.dispatch(editor.state.tr.insertText('x', beforeEdit.flatItems[0].textPos));
+
+    const afterEdit = extractScriptOutline(editor);
+    expect(afterEdit.flatItems[2].id).toBe(lastHeading.id);
+    expect(afterEdit.flatItems[2].textPos).toBe(lastHeading.textPos + 1);
+    expect(findActiveOutlineItem(afterEdit, afterEdit.flatItems[2].textPos)?.id).toBe(lastHeading.id);
+    editor.destroy();
+  });
+
   it('exits slash-menu inline formatting when a new line starts', () => {
     const markCommands = [
       ['bold', 'toggleBold'],

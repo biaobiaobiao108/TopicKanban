@@ -266,6 +266,7 @@ export const ScriptEditorTab: React.FC<ScriptEditorTabProps> = ({
   const editVersionRef = useRef(0);
   const outlineHighlightAnimationRef = useRef<Animation | null>(null);
   const outlineRef = useRef(EMPTY_SCRIPT_OUTLINE);
+  const outlineActiveSourceRef = useRef<'selection' | 'scroll'>('selection');
   const effectiveSpeed = readingSpeed || 280;
   const outlineDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const outlineScrollSyncFrameRef = useRef<number | null>(null);
@@ -545,15 +546,18 @@ export const ScriptEditorTab: React.FC<ScriptEditorTabProps> = ({
       if (zenTypingTimeoutRef.current) clearTimeout(zenTypingTimeoutRef.current);
       zenTypingTimeoutRef.current = setTimeout(() => setIsTypingZen(false), 1400);
 
-      // Debounce outline computation for typing smoothness
+      // Keep positional metadata current so heading edits do not make the cursor
+      // appear to belong to the preceding heading while rendering stays debounced.
+      const nextOutline = extractScriptOutline(editor);
+      outlineRef.current = nextOutline;
+      outlineActiveSourceRef.current = 'selection';
+      setActiveOutlineItemId(
+        findActiveOutlineItem(nextOutline, editor.state.selection.from)?.id || null
+      );
+
       if (outlineDebounceRef.current) clearTimeout(outlineDebounceRef.current);
       outlineDebounceRef.current = setTimeout(() => {
-        const nextOutline = extractScriptOutline(editor);
-        outlineRef.current = nextOutline;
         setOutline(nextOutline);
-        setActiveOutlineItemId(
-          findActiveOutlineItem(nextOutline, editor.state.selection.from)?.id || null
-        );
       }, 250);
 
       const text = editor.getText();
@@ -592,6 +596,7 @@ export const ScriptEditorTab: React.FC<ScriptEditorTabProps> = ({
     if (!editor) return;
     const nextOutline = extractScriptOutline(editor);
     outlineRef.current = nextOutline;
+    outlineActiveSourceRef.current = 'selection';
     setOutline(nextOutline);
     setActiveOutlineItemId(
       findActiveOutlineItem(nextOutline, editor.state.selection.from)?.id || null
@@ -601,20 +606,24 @@ export const ScriptEditorTab: React.FC<ScriptEditorTabProps> = ({
   useEffect(() => {
     if (!editor) return;
     const handleSelectionUpdate = () => {
+      outlineActiveSourceRef.current = 'selection';
       setActiveOutlineItemId(
         findActiveOutlineItem(outlineRef.current, editor.state.selection.from)?.id || null
       );
     };
+    const handleEditorFocus = () => handleSelectionUpdate();
     editor.on('selectionUpdate', handleSelectionUpdate);
+    editor.on('focus', handleEditorFocus);
     return () => {
       editor.off('selectionUpdate', handleSelectionUpdate);
+      editor.off('focus', handleEditorFocus);
     };
   }, [editor]);
 
   const syncOutlineWithEditorScroll = useCallback(() => {
     const container = scrollContainerRef.current;
     const items = outlineRef.current.flatItems;
-    if (!editor || !container || items.length === 0) return;
+    if (!editor || !container || items.length === 0 || outlineActiveSourceRef.current !== 'scroll') return;
 
     const containerRect = container.getBoundingClientRect();
     const activationLine = containerRect.top + 32;
@@ -663,11 +672,21 @@ export const ScriptEditorTab: React.FC<ScriptEditorTabProps> = ({
       });
     };
 
+    const markScrollIntent = () => {
+      outlineActiveSourceRef.current = 'scroll';
+    };
+
     scheduleOutlineSync();
     container.addEventListener('scroll', scheduleOutlineSync, { passive: true });
+    container.addEventListener('wheel', markScrollIntent, { passive: true });
+    container.addEventListener('touchmove', markScrollIntent, { passive: true });
+    container.addEventListener('pointerdown', markScrollIntent);
 
     return () => {
       container.removeEventListener('scroll', scheduleOutlineSync);
+      container.removeEventListener('wheel', markScrollIntent);
+      container.removeEventListener('touchmove', markScrollIntent);
+      container.removeEventListener('pointerdown', markScrollIntent);
       if (outlineScrollSyncFrameRef.current !== null) {
         window.cancelAnimationFrame(outlineScrollSyncFrameRef.current);
         outlineScrollSyncFrameRef.current = null;
@@ -919,11 +938,13 @@ export const ScriptEditorTab: React.FC<ScriptEditorTabProps> = ({
     if (!editor) return;
 
     try {
-      editor.chain().focus().setTextSelection(item.textPos).run();
-      setActiveOutlineItemId(item.id);
+      const currentItem = outlineRef.current.flatItems.find((candidate) => candidate.id === item.id) || item;
+      outlineActiveSourceRef.current = 'selection';
+      editor.chain().focus().setTextSelection(currentItem.textPos).run();
+      setActiveOutlineItemId(currentItem.id);
 
       requestAnimationFrame(() => {
-        const headingElement = editor.view.dom.querySelectorAll<HTMLElement>('h1, h2, h3, h4, h5, h6')[item.index];
+        const headingElement = editor.view.dom.querySelectorAll<HTMLElement>('h1, h2, h3, h4, h5, h6')[currentItem.index];
         if (!headingElement) return;
 
         const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;

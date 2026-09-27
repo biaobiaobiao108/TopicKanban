@@ -123,10 +123,10 @@ export const QuickDropDrawer: React.FC<QuickDropDrawerProps> = ({
   if (!isOpen) return null;
 
   const drawerContent = (
-    <div className="fixed inset-0 z-50 overflow-hidden flex justify-end" role="presentation">
+    <div className="fixed inset-0 z-50 overflow-hidden" role="presentation">
       {/* Backdrop */}
       <div
-        className="fixed inset-0 bg-stone-900/30 backdrop-blur-xs transition-opacity animate-in fade-in duration-200"
+        className="absolute inset-0 bg-stone-900/30 backdrop-blur-xs transition-opacity animate-in fade-in duration-200"
         aria-hidden="true"
         onClick={onClose}
       />
@@ -138,7 +138,7 @@ export const QuickDropDrawer: React.FC<QuickDropDrawerProps> = ({
         aria-modal="true"
         aria-labelledby="quick-drop-title"
         tabIndex={-1}
-        className="relative w-full max-w-md bg-white dark:bg-stone-900 h-full shadow-2xl flex flex-col z-10 animate-in slide-in-from-right duration-250 ease-editorial-out transition-colors"
+        className="absolute inset-y-0 right-0 w-full max-w-md bg-white dark:bg-stone-900 shadow-2xl flex flex-col z-10 animate-in slide-in-from-right duration-250 ease-editorial-out transition-colors"
       >
         {/* Header */}
         <div className="p-4 border-b border-stone-200/70 dark:border-stone-800 bg-stone-50/80 dark:bg-stone-900/90 flex items-center justify-between">

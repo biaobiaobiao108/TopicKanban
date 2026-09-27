@@ -83,7 +83,7 @@ export const ScriptReferenceDrawer: React.FC<ScriptReferenceDrawerProps> = ({
         onClick={onClose}
         aria-hidden="true"
       />
-      <aside className="script-reference-drawer absolute right-0 top-0 bottom-0 h-full z-30 flex w-80 sm:w-96 flex-col border-l border-[var(--line)] bg-[var(--canvas)] shadow-xl xl:shadow-none animate-in slide-in-from-right duration-200 overflow-hidden">
+      <aside className="script-reference-drawer absolute right-0 top-0 bottom-0 h-full z-30 flex w-72 sm:w-80 flex-col border-l border-[var(--line)] bg-[var(--canvas)] shadow-xl xl:shadow-none animate-in slide-in-from-right duration-200 overflow-hidden">
         {/* Search Input & Close (Clean & unbordered) */}
         <div className="px-3.5 pt-3 pb-1.5 shrink-0 bg-[var(--canvas)] flex items-center gap-2">
           <div className="relative flex-1">

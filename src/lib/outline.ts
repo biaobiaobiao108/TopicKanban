@@ -27,16 +27,16 @@ export function extractScriptOutline(editor: Editor | null): ScriptOutline {
 
   const flatItems: OutlineItem[] = [];
 
-  editor.state.doc.forEach((node, offset) => {
+  editor.state.doc.descendants((node, nodePos) => {
     if (node.type.name === 'heading') {
       const level = Math.min(6, Math.max(1, Number(node.attrs.level) || 1)) as OutlineItem['level'];
       flatItems.push({
-        id: `heading-${offset}`,
+        id: `heading-${flatItems.length}`,
         title: node.textContent.trim() || '未命名章节',
         level,
         index: flatItems.length,
-        nodePos: offset,
-        textPos: offset + 1,
+        nodePos,
+        textPos: nodePos + 1,
       });
     }
   });
@@ -48,10 +48,20 @@ export function extractScriptOutline(editor: Editor | null): ScriptOutline {
 }
 
 export function findActiveOutlineItem(outline: ScriptOutline, position: number): OutlineItem | null {
-  let activeItem: OutlineItem | null = null;
-  for (const item of outline.flatItems) {
-    if (item.textPos > position) break;
-    activeItem = item;
+  const items = outline.flatItems;
+  let low = 0;
+  let high = items.length - 1;
+  let activeIndex = -1;
+
+  while (low <= high) {
+    const middle = low + Math.floor((high - low) / 2);
+    if (items[middle].textPos <= position) {
+      activeIndex = middle;
+      low = middle + 1;
+    } else {
+      high = middle - 1;
+    }
   }
-  return activeItem;
+
+  return activeIndex >= 0 ? items[activeIndex] : null;
 }
