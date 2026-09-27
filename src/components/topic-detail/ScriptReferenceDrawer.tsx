@@ -79,11 +79,11 @@ export const ScriptReferenceDrawer: React.FC<ScriptReferenceDrawerProps> = ({
     <>
       {/* Mobile/Tablet Backdrop for light-dismiss */}
       <div
-        className="fixed inset-0 z-20 bg-black/15 dark:bg-black/40 xl:hidden backdrop-blur-xs transition-opacity animate-in fade-in duration-150"
+        className="fixed inset-0 z-20 bg-black/15 dark:bg-black/40 lg:hidden backdrop-blur-xs transition-opacity animate-in fade-in duration-150"
         onClick={onClose}
         aria-hidden="true"
       />
-      <aside className="script-reference-drawer absolute right-0 top-0 bottom-0 h-full z-30 flex w-72 sm:w-80 flex-col border-l border-[var(--line)] bg-[var(--canvas)] shadow-xl xl:shadow-none animate-in slide-in-from-right duration-200 overflow-hidden">
+      <aside className="script-reference-drawer absolute right-0 top-0 bottom-0 h-full z-30 flex flex-col border-l border-[var(--line)] bg-[var(--canvas)] shadow-xl xl:shadow-none animate-in slide-in-from-right duration-200 overflow-hidden">
         {/* Search Input & Close (Clean & unbordered) */}
         <div className="px-3.5 pt-3 pb-1.5 shrink-0 bg-[var(--canvas)] flex items-center gap-2">
           <div className="relative flex-1">

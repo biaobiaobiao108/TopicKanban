@@ -97,14 +97,14 @@ export const ScriptOutlinePanel: React.FC<ScriptOutlinePanelProps> = ({
   return (
     <>
       <div
-        className="fixed inset-0 z-20 bg-black/15 dark:bg-black/40 xl:hidden backdrop-blur-xs transition-opacity animate-in fade-in duration-150"
+        className="fixed inset-0 z-20 bg-black/15 dark:bg-black/40 lg:hidden backdrop-blur-xs transition-opacity animate-in fade-in duration-150"
         onClick={onClose}
         aria-hidden="true"
       />
       <aside
         id="script-outline"
         aria-labelledby="script-outline-title"
-        className="script-outline-panel absolute inset-y-0 left-0 z-30 flex h-full w-72 flex-col overflow-hidden border-r border-[var(--line)] shadow-xl animate-in slide-in-from-left duration-200 sm:w-80 xl:shadow-none"
+        className="script-outline-panel absolute inset-y-0 left-0 z-30 flex h-full flex-col overflow-hidden border-r border-[var(--line)] shadow-xl animate-in slide-in-from-left duration-200 xl:shadow-none"
       >
         <header className="script-outline-header">
           <div className="script-outline-title-row">

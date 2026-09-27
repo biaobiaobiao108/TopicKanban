@@ -1011,10 +1011,13 @@ export const ScriptEditorTab: React.FC<ScriptEditorTabProps> = ({
   const editorSurface = (
     <div
       data-testid="script-editor-surface"
+      data-script-zen-mode={String(isZenMode)}
+      data-script-outline-open={String(isOutlineOpen)}
+      data-script-reference-open={String(isReferenceOpen)}
       className={
         isZenMode
-          ? 'pwa-fullscreen-surface fixed inset-0 z-50 flex flex-col bg-[var(--canvas)] transition-all duration-300 ease-in-out'
-          : 'flex h-full w-full flex-col'
+          ? 'script-editor-surface pwa-fullscreen-surface fixed inset-0 z-50 flex flex-col bg-[var(--canvas)] transition-all duration-300 ease-in-out'
+          : 'script-editor-surface flex h-full w-full flex-col'
       }
     >
       <Modal
@@ -1320,7 +1323,7 @@ export const ScriptEditorTab: React.FC<ScriptEditorTabProps> = ({
           )}
 
           {/* Top-Right: Floating Controls & Exit Button */}
-          <div className={`fixed right-5 sm:right-8 top-5 sm:top-7 z-40 flex items-center gap-2 transition-all duration-300 ${isReferenceOpen ? 'mr-80 sm:mr-96' : ''} ${isTypingZen ? 'opacity-25 hover:opacity-100' : 'opacity-100'}`}>
+          <div className={`fixed right-5 sm:right-8 top-5 sm:top-7 z-40 flex items-center gap-2 transition-all duration-300 ${isReferenceOpen ? 'script-editor-zen-reference-offset' : ''} ${isTypingZen ? 'opacity-25 hover:opacity-100' : 'opacity-100'}`}>
             {/* Unified Focus Typewriter Mode Toggle (仅在沉浸写作中出现) */}
             <button
               type="button"
@@ -1367,7 +1370,7 @@ export const ScriptEditorTab: React.FC<ScriptEditorTabProps> = ({
           </div>
 
           {/* Bottom-Right: Floating Stats */}
-          <div className={`fixed right-5 sm:right-8 bottom-5 sm:bottom-7 z-40 flex items-center gap-2.5 bg-[var(--surface)]/95 backdrop-blur-md border border-[var(--line)] text-stone-800 dark:text-stone-200 px-4 py-2 rounded-full text-xs font-mono shadow-md hover:shadow-lg transition-all duration-300 select-none ${isReferenceOpen ? 'mr-80 sm:mr-96' : ''} ${isTypingZen ? 'opacity-25 hover:opacity-100' : 'opacity-100'}`}>
+          <div className={`fixed right-5 sm:right-8 bottom-5 sm:bottom-7 z-40 flex items-center gap-2.5 bg-[var(--surface)]/95 backdrop-blur-md border border-[var(--line)] text-stone-800 dark:text-stone-200 px-4 py-2 rounded-full text-xs font-mono shadow-md hover:shadow-lg transition-all duration-300 select-none ${isReferenceOpen ? 'script-editor-zen-reference-offset' : ''} ${isTypingZen ? 'opacity-25 hover:opacity-100' : 'opacity-100'}`}>
             <span className="font-semibold text-stone-900 dark:text-stone-100 font-mono">
               {charCount.toLocaleString()} <span className="font-normal text-stone-500 dark:text-stone-400 text-[11px]">字</span>
             </span>
@@ -1420,7 +1423,7 @@ export const ScriptEditorTab: React.FC<ScriptEditorTabProps> = ({
           }`}
         >
           <div
-            className={`w-full max-w-4xl px-6 sm:px-12 md:px-16 transition-all ${
+            className={`min-w-0 w-full max-w-4xl px-6 sm:px-12 md:px-16 transition-all ${
               isTypewriterActive
                 ? 'pt-8 sm:pt-12'
                 : 'pt-6 pb-36 sm:pt-8 sm:pb-48'
