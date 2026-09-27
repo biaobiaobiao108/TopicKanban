@@ -282,15 +282,32 @@ export const TeleprompterModal: React.FC<TeleprompterModalProps> = ({
     const progress = maxScroll > 0 ? Math.min(100, Math.max(0, Math.round((scrollTop / maxScroll) * 100))) : 0;
     setScrollProgress(progress);
 
-    // Calculate which block intersects with the reading zone line
-    const targetY = scrollTop + clientHeight * 0.38;
+    // Compare viewport coordinates with the focus line. offsetTop is relative to
+    // each element's offsetParent (the content wrapper here), while scrollTop is
+    // relative to the scrolling container, so mixing them can select the wrong
+    // paragraph once the content has scrolled.
+    const containerRect = container.getBoundingClientRect();
+    const focusLineY = containerRect.top + container.clientTop + clientHeight * 0.38;
     let closestIndex = 0;
     let minDistance = Infinity;
 
     blockElementsRef.current.forEach((el, idx) => {
       if (!el) return;
-      const blockMiddle = el.offsetTop + el.offsetHeight / 2;
-      const distance = Math.abs(blockMiddle - targetY);
+
+      const blockRect = el.getBoundingClientRect();
+      // A long paragraph remains active for its entire height, not just when
+      // its midpoint is nearest to the focus line.
+      if (focusLineY >= blockRect.top && focusLineY <= blockRect.bottom) {
+        closestIndex = idx;
+        minDistance = 0;
+        return;
+      }
+
+      // If the focus line falls in the spacing between blocks, choose the
+      // nearest block edge so there is still exactly one active block.
+      const distance = focusLineY < blockRect.top
+        ? blockRect.top - focusLineY
+        : focusLineY - blockRect.bottom;
       if (distance < minDistance) {
         minDistance = distance;
         closestIndex = idx;

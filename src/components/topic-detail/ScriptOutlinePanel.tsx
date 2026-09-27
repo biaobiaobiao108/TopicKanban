@@ -74,10 +74,17 @@ export const ScriptOutlinePanel: React.FC<ScriptOutlinePanelProps> = ({
 
     const containerRect = container.getBoundingClientRect();
     const buttonRect = activeButton.getBoundingClientRect();
-    const isOutsideViewport = buttonRect.top < containerRect.top || buttonRect.bottom > containerRect.bottom;
-    if (isOutsideViewport) {
-      activeButton.scrollIntoView({ block: 'nearest', behavior: 'auto' });
-    }
+    const edgePadding = 8;
+    const visibleTop = containerRect.top + edgePadding;
+    const visibleBottom = containerRect.bottom - edgePadding;
+    let delta = 0;
+    if (buttonRect.top < visibleTop) delta = buttonRect.top - visibleTop;
+    else if (buttonRect.bottom > visibleBottom) delta = buttonRect.bottom - visibleBottom;
+    if (delta === 0) return;
+
+    const behavior: ScrollBehavior = window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth';
+    const maxScrollTop = Math.max(0, container.scrollHeight - container.clientHeight);
+    container.scrollTo({ top: Math.min(maxScrollTop, Math.max(0, container.scrollTop + delta)), behavior });
   }, [activeItemId, isOpen, outline]);
 
   if (!isOpen) return null;
@@ -97,7 +104,7 @@ export const ScriptOutlinePanel: React.FC<ScriptOutlinePanelProps> = ({
       <aside
         id="script-outline"
         aria-labelledby="script-outline-title"
-        className="script-outline-panel absolute inset-y-0 left-0 z-30 flex h-full w-[min(88vw,30rem)] flex-col overflow-hidden border-r border-[var(--line)] shadow-xl animate-in slide-in-from-left duration-200 sm:w-[min(42vw,44rem)] xl:shadow-none"
+        className="script-outline-panel absolute inset-y-0 left-0 z-30 flex h-full w-80 flex-col overflow-hidden border-r border-[var(--line)] shadow-xl animate-in slide-in-from-left duration-200 sm:w-96 xl:shadow-none"
       >
         <header className="script-outline-header">
           <div className="script-outline-title-row">

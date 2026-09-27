@@ -46,6 +46,7 @@ import { CalloutNode } from './ScriptCalloutNode';
 import { createTableExtensions } from './ScriptTableExtensions';
 import { CodeBlockDoubleEnter } from './ScriptCodeBlockEnter';
 import { ScriptMarkdownMenu } from './ScriptMarkdownMenu';
+import { TableEdgeControls } from './ScriptTableEdgeControls';
 import { pastePlainTextIntoCodeBlock, shouldParseMarkdownPaste } from './scriptMarkdownPaste';
 import { getCitationHealth } from '../../lib/citations';
 import { copyTextToClipboard } from '../../lib/clipboard';
@@ -614,14 +615,14 @@ export const ScriptEditorTab: React.FC<ScriptEditorTabProps> = ({
     if (!editor || !container || items.length === 0) return;
 
     const containerRect = container.getBoundingClientRect();
-    const activationLine = containerRect.top + Math.min(160, Math.max(64, containerRect.height * 0.3));
+    const activationLine = containerRect.top + 32;
+    const headingElements = editor.view.dom.querySelectorAll<HTMLElement>('h1, h2, h3, h4, h5, h6');
     let activeItemId: string | null = null;
     let firstVisibleItemId: string | null = null;
 
-    for (const item of items) {
-      const headingElement = editor.view.nodeDOM(item.nodePos);
-      if (!(headingElement instanceof HTMLElement)) continue;
-
+    for (const [index, item] of items.entries()) {
+      const headingElement = headingElements[index];
+      if (!headingElement) continue;
       const headingRect = headingElement.getBoundingClientRect();
       if (
         firstVisibleItemId === null
@@ -637,7 +638,12 @@ export const ScriptEditorTab: React.FC<ScriptEditorTabProps> = ({
       break;
     }
 
-    const nextActiveItemId = activeItemId || firstVisibleItemId;
+    const maxScrollTop = Math.max(0, container.scrollHeight - container.clientHeight);
+    if (container.scrollTop >= maxScrollTop - 1) {
+      activeItemId = items[items.length - 1]?.id || null;
+    }
+
+    const nextActiveItemId = activeItemId || firstVisibleItemId || items[0]?.id || null;
     setActiveOutlineItemId((current) => current === nextActiveItemId ? current : nextActiveItemId);
   }, [editor]);
 
@@ -1413,6 +1419,7 @@ export const ScriptEditorTab: React.FC<ScriptEditorTabProps> = ({
               editor={editor}
               className="min-h-[500px]"
             />
+            {editor && <TableEdgeControls editor={editor} deferredLoading={false} />}
             {isTypewriterActive && <div ref={typewriterBottomSpacerRef} aria-hidden="true" />}
           </div>
         </FloatingScrollbar>

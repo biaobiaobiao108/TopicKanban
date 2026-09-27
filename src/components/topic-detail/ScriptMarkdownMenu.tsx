@@ -314,7 +314,6 @@ const CommandList = forwardRef<CommandListRef, CommandListProps>((props, ref) =>
         className={`script-markdown-menu-item script-markdown-menu-item--${isDirectory ? 'directory' : 'suggestion'}${index === selectedIndex ? ' is-selected' : ''}`}
         key={item.id}
         onMouseDown={(event) => event.preventDefault()}
-        onMouseEnter={() => { selectedIndexRef.current = index; setSelectedIndex(index); }}
         onClick={() => select(index)}
       >
         <span className="script-markdown-menu-icon"><Icon size={16} strokeWidth={1.8} aria-hidden="true" /></span>
