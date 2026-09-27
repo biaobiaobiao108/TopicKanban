@@ -182,7 +182,7 @@
 .script-outline-item-button {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 8px;
   width: 100%;
   max-width: 100%;
   min-width: 0;
@@ -198,32 +198,53 @@
   --script-outline-level-color: var(--h1-color, #c34d35);
   --script-outline-marker-color: #edb8b1;
   --script-outline-active-background: color-mix(in srgb, #c34d35 7%, var(--surface));
+  --script-outline-item-indent: 10px;
+  --script-outline-marker-size: 20px;
+  --script-outline-marker-font-size: 0.7rem;
 }
 .script-outline-item--level-2 {
   --script-outline-level-color: var(--h2-color, #315d4c);
   --script-outline-marker-color: #cbbbd4;
   --script-outline-active-background: color-mix(in srgb, #79658a 9%, var(--surface));
+  --script-outline-item-indent: 22px;
+  --script-outline-marker-size: 18px;
+  --script-outline-marker-font-size: 0.65rem;
 }
 .script-outline-item--level-3 {
   --script-outline-level-color: var(--h3-color, #45677c);
   --script-outline-marker-color: #a9cbd3;
   --script-outline-active-background: color-mix(in srgb, #4c8294 9%, var(--surface));
+  --script-outline-item-indent: 34px;
+  --script-outline-marker-size: 17px;
+  --script-outline-marker-font-size: 0.6rem;
 }
 .script-outline-item--level-4 {
   --script-outline-level-color: var(--h4-color, var(--ink-muted));
   --script-outline-marker-color: color-mix(in srgb, var(--ink-muted) 22%, var(--surface));
   --script-outline-active-background: color-mix(in srgb, var(--ink-muted) 7%, var(--surface));
+  --script-outline-item-indent: 46px;
+  --script-outline-marker-size: 16px;
+  --script-outline-marker-font-size: 0.55rem;
 }
 .script-outline-item--level-5,
 .script-outline-item--level-6 {
   --script-outline-level-color: var(--ink-muted);
   --script-outline-marker-color: color-mix(in srgb, var(--ink-muted) 18%, var(--surface));
   --script-outline-active-background: color-mix(in srgb, var(--ink-muted) 7%, var(--surface));
+  --script-outline-marker-size: 16px;
+  --script-outline-marker-font-size: 0.55rem;
+}
+.script-outline-item--level-5 {
+  --script-outline-item-indent: 58px;
+}
+.script-outline-item--level-6 {
+  --script-outline-item-indent: 70px;
 }
 
 .script-outline-item--level-1 .script-outline-item-button {
   min-height: 48px;
-  padding: 8px 10px;
+  padding-block: 8px;
+  padding-inline: 10px;
   color: var(--script-outline-level-color);
   font-size: 0.95rem;
   font-weight: 700;
@@ -232,7 +253,9 @@
 
 .script-outline-item--level-2 .script-outline-item-button {
   min-height: 44px;
-  padding: 7px 10px 7px 32px;
+  padding-block: 7px;
+  padding-inline: 10px;
+  padding-inline-start: var(--script-outline-item-indent);
   color: var(--script-outline-level-color);
   font-size: 0.9rem;
   font-weight: 650;
@@ -241,7 +264,9 @@
 
 .script-outline-item--level-3 .script-outline-item-button {
   min-height: 40px;
-  padding: 6px 10px 6px 52px;
+  padding-block: 6px;
+  padding-inline: 10px;
+  padding-inline-start: var(--script-outline-item-indent);
   color: var(--script-outline-level-color);
   font-size: 0.85rem;
   font-weight: 450;
@@ -251,26 +276,28 @@
 .script-outline-item--level-5 .script-outline-item-button,
 .script-outline-item--level-6 .script-outline-item-button {
   min-height: 36px;
-  padding: 6px 10px 6px 72px;
+  padding-block: 6px;
+  padding-inline: 10px;
+  padding-inline-start: var(--script-outline-item-indent);
   color: var(--script-outline-level-color);
   font-size: 0.825rem;
   font-weight: 450;
 }
 
-.script-outline-item--level-5 .script-outline-item-button { padding-left: 92px; font-size: 0.8rem; }
-.script-outline-item--level-6 .script-outline-item-button { padding-left: 112px; font-size: 0.775rem; }
+.script-outline-item--level-5 .script-outline-item-button { font-size: 0.8rem; }
+.script-outline-item--level-6 .script-outline-item-button { font-size: 0.775rem; }
 
 .script-outline-level-marker {
   display: grid;
-  flex: 0 0 24px;
-  width: 24px;
-  height: 24px;
+  flex: 0 0 var(--script-outline-marker-size, 18px);
+  inline-size: var(--script-outline-marker-size, 18px);
+  block-size: var(--script-outline-marker-size, 18px);
   place-items: center;
   border: 0;
   border-radius: 50%;
   background: var(--script-outline-marker-color);
   color: #4f5552;
-  font-size: 0.75rem;
+  font-size: var(--script-outline-marker-font-size, 0.625rem);
   font-variant-numeric: tabular-nums;
   font-weight: 700;
   line-height: 1;
@@ -281,7 +308,6 @@
 .script-outline-item--level-5 .script-outline-level-marker,
 .script-outline-item--level-6 .script-outline-level-marker {
   color: var(--ink-muted);
-  font-size: 0.68rem;
 }
 
 .script-outline-item-title {
