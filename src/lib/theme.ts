@@ -4,7 +4,7 @@ import { syncPwaChrome } from './pwa';
 let systemThemeListener: ((e: MediaQueryListEvent) => void) | null = null;
 let mediaQueryList: MediaQueryList | null = null;
 
-export function applyTheme(theme: AppTheme = 'nordic_frost'): void {
+export function applyTheme(theme: AppTheme = 'light'): void {
   if (typeof window === 'undefined' || typeof document === 'undefined') return;
 
   const root = document.documentElement;
@@ -25,17 +25,12 @@ export function applyTheme(theme: AppTheme = 'nordic_frost'): void {
   // Clear specific theme class tokens
   root.classList.remove(
     'theme-warm-paper',
-    'theme-nordic-frost',
     'theme-light'
   );
 
   if (theme === 'dark') {
     root.classList.add('dark');
     root.style.colorScheme = 'dark';
-  } else if (theme === 'nordic_frost') {
-    root.classList.remove('dark');
-    root.classList.add('theme-nordic-frost');
-    root.style.colorScheme = 'light';
   } else if (theme === 'warm_paper') {
     root.classList.remove('dark');
     root.classList.add('theme-warm-paper');
@@ -48,12 +43,12 @@ export function applyTheme(theme: AppTheme = 'nordic_frost'): void {
     mediaQueryList = window.matchMedia('(prefers-color-scheme: dark)');
     const updateSystemTheme = (matchesDark: boolean) => {
       if (matchesDark) {
-        root.classList.remove('theme-nordic-frost');
+        root.classList.remove('theme-light');
         root.classList.add('dark');
         root.style.colorScheme = 'dark';
       } else {
         root.classList.remove('dark');
-        root.classList.add('theme-nordic-frost');
+        root.classList.add('theme-light');
         root.style.colorScheme = 'light';
       }
       syncPwaChrome('system', matchesDark);
@@ -80,18 +75,10 @@ export interface ThemeConfig {
   id: AppTheme;
   title: string;
   desc: string;
-  tag?: string;
   colors?: string[];
 }
 
 export const THEME_CONFIG_LIST: ThemeConfig[] = [
-  {
-    id: 'nordic_frost',
-    title: '北欧冷杉',
-    desc: '冷雾青画布与松柏绿操作色，清爽安静',
-    tag: '推荐',
-    colors: ['#f6faf9', '#edf2f2', '#356b5b', '#5f7474'],
-  },
   {
     id: 'warm_paper',
     title: '暖沙纸境',

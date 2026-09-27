@@ -434,16 +434,10 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
           t.title,
           isDarkType ? '深色' : '浅色',
           isDarkType ? '暗色' : '明亮',
-          t.tag || '',
         ],
         icon: Palette,
         extra: (
           <div className="flex items-center gap-1.5 shrink-0">
-            {t.tag && (
-              <span className="text-[10px] px-1.5 py-0.5 rounded bg-[var(--accent-soft)] text-[var(--accent)] font-bold shrink-0">
-                {t.tag}
-              </span>
-            )}
             {isCurrent && (
               <span className="text-[10px] px-1.5 py-0.5 rounded bg-emerald-100 dark:bg-emerald-950/80 text-emerald-700 dark:text-emerald-300 font-bold shrink-0 flex items-center gap-0.5">
                 <Check className="w-3 h-3 stroke-[2.5]" />

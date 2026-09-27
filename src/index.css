@@ -336,26 +336,26 @@ html.dark .script-citation::after {
 @layer base {
   :root {
     /* Literary Notebook Design Tokens (文人笔记核心设计系统) */
-    --canvas: #f6faf9;
+    --canvas: #fafaf9;
     --surface: #ffffff;
-    --ink: #1a2424;
-    --ink-muted: #5f7474;
-    --line: rgba(26, 36, 36, 0.08);
-    --accent: #356b5b;
-    --accent-soft: rgba(53, 107, 91, 0.10);
-    --accent-dark: #285344;
+    --ink: #292524;
+    --ink-muted: #78716c;
+    --line: rgba(41, 37, 36, 0.10);
+    --accent: #365f4d;
+    --accent-soft: rgba(54, 95, 77, 0.09);
+    --accent-dark: #284838;
     --h1-color: #a34133;
-    --h2-color: #0284c7;
+    --h2-color: #0369a1;
     --h3-color: #0f766e;
     --radius-sm: 8px;
     --radius-md: 12px;
     --radius-lg: 18px;
-    --control-surface: rgba(26, 48, 44, 0.025);
-    --focus-ring: rgba(53, 107, 91, 0.34);
+    --control-surface: rgba(41, 37, 36, 0.025);
+    --focus-ring: rgba(54, 95, 77, 0.34);
 
-    --nav-surface: rgba(255, 255, 255, 0.90);
-    --sidebar-surface: rgba(240, 245, 244, 0.92);
-    --scrollbar-thumb: rgba(26, 36, 36, 0.18);
+    --nav-surface: rgba(255, 255, 255, 0.92);
+    --sidebar-surface: rgba(245, 245, 244, 0.94);
+    --scrollbar-thumb: rgba(41, 37, 36, 0.18);
     --scrollbar-track: transparent;
     color-scheme: light;
   }
@@ -378,28 +378,6 @@ html.dark .script-citation::after {
     --nav-surface: rgba(253, 252, 247, 0.90);
     --sidebar-surface: rgba(242, 236, 225, 0.92);
     --scrollbar-thumb: rgba(45, 41, 38, 0.18);
-    --scrollbar-track: transparent;
-    color-scheme: light;
-  }
-
-  html.theme-nordic-frost {
-    --canvas: #f6faf9;
-    --surface: #ffffff;
-    --ink: #1a2424;
-    --ink-muted: #5f7474;
-    --line: rgba(26, 36, 36, 0.08);
-    --accent: #356b5b;
-    --accent-soft: rgba(53, 107, 91, 0.10);
-    --accent-dark: #285344;
-    --h1-color: #a34133;
-    --h2-color: #0284c7;
-    --h3-color: #0f766e;
-    --control-surface: rgba(26, 48, 44, 0.025);
-    --focus-ring: rgba(53, 107, 91, 0.34);
-
-    --nav-surface: rgba(255, 255, 255, 0.90);
-    --sidebar-surface: rgba(240, 245, 244, 0.92);
-    --scrollbar-thumb: rgba(26, 36, 36, 0.18);
     --scrollbar-track: transparent;
     color-scheme: light;
   }
@@ -869,176 +847,11 @@ html.theme-warm-paper input[type="checkbox"]:checked {
 html.theme-warm-paper ::-webkit-scrollbar-thumb { background: #d8cfc2; }
 html.theme-warm-paper ::-webkit-scrollbar-thumb:hover { background: #c2b7a6; }
 
-
-/* ==========================================================================
-   2. Nordic Frost (北欧冷杉 / 极简雾青) - Linear & Craft Cool Minimal System
-   ========================================================================== */
-
-/* 1. Main Workspace Canvas */
-html.theme-nordic-frost body,
-html.theme-nordic-frost #root,
-html.theme-nordic-frost main,
-html.theme-nordic-frost .bg-\[\#fafaf9\],
-html.theme-nordic-frost .bg-stone-50 {
-  background-color: #f8fafb !important;
-}
-
-/* 2. All Common White Surfaces */
-html.theme-nordic-frost .bg-white,
-html.theme-nordic-frost .bg-white\/50,
-html.theme-nordic-frost .bg-white\/60,
-html.theme-nordic-frost .bg-white\/70,
-html.theme-nordic-frost .bg-white\/80,
-html.theme-nordic-frost .bg-white\/85,
-html.theme-nordic-frost .bg-white\/90,
-html.theme-nordic-frost .bg-white\/95,
-html.theme-nordic-frost .kanban-column-container .bg-white,
-html.theme-nordic-frost .today-spotlight-card,
-html.theme-nordic-frost .today-priority-item,
-html.theme-nordic-frost .today-recent-updates-panel {
-  background-color: #ffffff !important;
-  border-color: #e2ebeb !important;
-}
-
-html.theme-nordic-frost .kanban-column-container .bg-white,
-html.theme-nordic-frost .today-priority-item,
-html.theme-nordic-frost .today-spotlight-card {
-  box-shadow: 0 1px 3px rgba(15, 35, 35, 0.04), 0 1px 2px rgba(15, 35, 35, 0.02) !important;
-}
-
-html.theme-nordic-frost .kanban-column-container .bg-white:hover,
-html.theme-nordic-frost .today-priority-item:hover {
-  background-color: #ffffff !important;
-  border-color: #ccdcdc !important;
-  box-shadow: 0 4px 14px rgba(20, 45, 45, 0.07) !important;
-}
-
-/* 3. Kanban 4 Columns */
-html.theme-nordic-frost .kanban-column-container[data-column-status="inbox"] {
-  background-color: #edf3f5 !important;
-  border-color: #d8e5e9 !important;
-  border-top-color: #cfe0e5 !important;
-}
-html.theme-nordic-frost .kanban-column-container[data-column-status="inbox"] .kanban-column-count {
-  background-color: #dfebf0 !important;
-  color: #335766 !important;
-}
-
-html.theme-nordic-frost .kanban-column-container[data-column-status="scripting"] {
-  background-color: #f0f1f8 !important;
-  border-color: #dee0f2 !important;
-  border-top-color: #d4d7f0 !important;
-}
-html.theme-nordic-frost .kanban-column-container[data-column-status="scripting"] .kanban-column-count {
-  background-color: #e2e4f5 !important;
-  color: #3d4677 !important;
-}
-
-html.theme-nordic-frost .kanban-column-container[data-column-status="production"] {
-  background-color: #e8f2f7 !important;
-  border-color: #cde4f0 !important;
-  border-top-color: #bfe0ef !important;
-}
-html.theme-nordic-frost .kanban-column-container[data-column-status="production"] .kanban-column-count {
-  background-color: #d2e7f2 !important;
-  color: #1c4b60 !important;
-}
-
-/* 4. Subtabs & Scope Navigation */
-html.theme-nordic-frost .detail-subtabs-container,
-html.theme-nordic-frost .tags-header-banner,
-html.theme-nordic-frost .table-scope-tabs-container,
-html.theme-nordic-frost .script-editor-canvas-container {
-  background-color: #f6faf9 !important;
-  border-bottom-color: transparent !important;
-}
-
-html.theme-nordic-frost .table-scope-tabs-container button.is-active {
-  background-color: #ffffff !important;
-  border: 1px solid transparent !important;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04) !important;
-  color: #1a2424 !important;
-  font-weight: 700 !important;
-}
-
-html.theme-nordic-frost .detail-subtabs-container button:not(.is-active) {
-  border-color: transparent !important;
-  color: #5f7474 !important;
-}
-
-/* 5. Outer Framework */
-html.theme-nordic-frost aside.sidebar-container,
-html.theme-nordic-frost .sidebar-container,
-html.theme-nordic-frost .mobile-drawer-container,
-html.theme-nordic-frost .mobile-nav-container {
-  background-color: #edf2f2 !important;
-  border-color: #dce5e5 !important;
-}
-
 .tags-sidebar-panel,
 .script-outline-panel,
 .script-reference-drawer {
   background-color: var(--canvas) !important;
 }
-
-html.theme-nordic-frost .sidebar-brand-logo,
-html.theme-nordic-frost .mobile-fab-create-button {
-  background-color: var(--accent) !important;
-  box-shadow: 0 2px 6px color-mix(in oklab, var(--accent) 24%, transparent) !important;
-}
-
-html.theme-nordic-frost aside.sidebar-container nav button.bg-stone-100,
-html.theme-nordic-frost aside nav button.bg-stone-100,
-html.theme-nordic-frost .mobile-drawer-container nav button.bg-stone-100,
-html.theme-nordic-frost .tags-sidebar-panel .tag-menu-item.is-selected {
-  background-color: #ffffff !important;
-  border: 1px solid #d8e2e2 !important;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04) !important;
-  color: #1a2424 !important;
-  font-weight: 700 !important;
-}
-
-/* 6. Primary Action Buttons & CTA */
-html.theme-nordic-frost aside.sidebar-container button.bg-stone-900,
-html.theme-nordic-frost .mobile-drawer-container button.bg-stone-900 {
-  background-color: var(--accent) !important;
-  color: #ffffff !important;
-}
-html.theme-nordic-frost aside.sidebar-container button.bg-stone-900:hover,
-html.theme-nordic-frost .mobile-drawer-container button.bg-stone-900:hover {
-  background-color: var(--accent-dark) !important;
-}
-
-/* 8. Controls & Modals */
-html.theme-nordic-frost input[type="text"],
-html.theme-nordic-frost input[type="number"],
-html.theme-nordic-frost input[type="search"],
-html.theme-nordic-frost textarea,
-html.theme-nordic-frost select,
-html.theme-nordic-frost .shadow-modal {
-  background-color: #ffffff !important;
-  border-color: #d8e2e2 !important;
-  color: #1a2424 !important;
-}
-html.theme-nordic-frost input[type="text"]:focus,
-html.theme-nordic-frost input[type="number"]:focus,
-html.theme-nordic-frost input[type="search"]:focus,
-html.theme-nordic-frost textarea:focus,
-html.theme-nordic-frost select:focus {
-  border-color: var(--command-palette-focus) !important;
-  box-shadow: 0 0 0 2px color-mix(in oklab, var(--command-palette-focus) 22%, transparent) !important;
-}
-html.theme-nordic-frost input[type="checkbox"]:checked {
-  background-color: var(--accent) !important;
-  border-color: var(--accent) !important;
-}
-
-/* 9. TipTap & Scrollbars */
-html.theme-nordic-frost ::-webkit-scrollbar-thumb { background: #cbdcdc; }
-html.theme-nordic-frost ::-webkit-scrollbar-thumb:hover { background: #adc2c2; }
-
-
-
 
 /* ==========================================================================
    Command Palette Search Input Focus Isolation
@@ -1048,8 +861,7 @@ html.theme-nordic-frost ::-webkit-scrollbar-thumb:hover { background: #adc2c2; }
 }
 
 html.dark,
-html.theme-warm-paper,
-html.theme-nordic-frost {
+html.theme-warm-paper {
   --command-palette-focus: var(--accent);
 }
 

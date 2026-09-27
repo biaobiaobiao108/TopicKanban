@@ -52,7 +52,6 @@ import {
   Zap,
   Mic,
   Coffee,
-  Compass,
   Flame,
   Clock,
   Share2,
@@ -452,14 +451,6 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
               {[
                 {
-                  id: 'nordic_frost' as const,
-                  title: '北欧冷杉',
-                  desc: '冷雾青画布与松柏绿操作色，清爽安静',
-                  icon: Compass,
-                  tag: '推荐',
-                  colors: ['#f6faf9', '#edf2f2', '#356b5b', '#5f7474'],
-                },
-                {
                   id: 'warm_paper' as const,
                   title: '暖沙纸境',
                   desc: '温润暖纸画布与松柏绿操作色，适合长时间阅读',
@@ -509,11 +500,6 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                           </span>
                         </div>
                         <div className="flex items-center gap-1.5">
-                          {themeOpt.tag && (
-                            <span className="text-[10px] font-bold px-1.5 py-0.2 rounded-md bg-amber-500/15 text-amber-800 dark:text-amber-300">
-                              {themeOpt.tag}
-                            </span>
-                          )}
                           {isSelected && (
                             <span className="w-2 h-2 rounded-full bg-[var(--accent)]" />
                           )}

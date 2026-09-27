@@ -458,16 +458,6 @@ html.theme-warm-paper .tiptap blockquote {
 }
 html.theme-warm-paper .tiptap hr { border-top-color: #e3dbd0; }
 
-html.theme-nordic-frost .tiptap { color: #1a2424; }
-html.theme-nordic-frost .tiptap h1 { color: var(--h1-color); }
-html.theme-nordic-frost .tiptap h2 { color: var(--h2-color); }
-html.theme-nordic-frost .tiptap h3 { color: var(--h3-color); }
-html.theme-nordic-frost .tiptap blockquote {
-  background: rgba(45, 122, 100, 0.07);
-  color: #1c3b32;
-}
-html.theme-nordic-frost .tiptap hr { border-top-color: #dce5e5; }
-
 html.theme-parisian-dawn .tiptap { color: #2b2520; }
 html.theme-parisian-dawn .tiptap h1 { color: var(--h1-color); }
 html.theme-parisian-dawn .tiptap h2 { color: var(--h2-color); }

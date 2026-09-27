@@ -12,6 +12,11 @@ const deletedAtTimestamp = z.string().max(50).refine(isValidIsoTimestamp, '必�
 const optionalDeletedAtTimestamp = deletedAtTimestamp.nullable().optional();
 const optionalDateOnly = z.string().refine(isValidIsoDate, '日期必须是有效的 YYYY-MM-DD').nullable().optional();
 const verificationStatus = z.enum(['confirmed', 'unverified', 'rejected']);
+// Keep backups from older releases importable after removing this theme option.
+const themeSchema = z.preprocess(
+  (value) => value === 'nordic_frost' ? 'light' : value,
+  z.enum(APP_THEMES),
+);
 
 function isValidIsoTimestamp(value: string): boolean {
   const match = /^(\d{4}-\d{2}-\d{2})T(\d{2}):(\d{2}):(\d{2})(?:\.(\d{1,9}))?(Z|[+-]\d{2}:\d{2})$/.exec(value);
@@ -263,7 +268,7 @@ const publishPackageSchema = z.object({
 
 const settingsSchema = z.object({
   reading_speed: z.number().positive().max(1_000),
-  theme: z.enum(APP_THEMES),
+  theme: themeSchema,
   editor_font_size: z.enum(['compact', 'standard', 'large']).optional(),
   editor_line_height: z.enum(['normal', 'relaxed', 'loose']).optional(),
   typewriter_mode_default: z.boolean().optional(),

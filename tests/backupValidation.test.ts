@@ -203,12 +203,20 @@ describe('backup schema validation', () => {
       }],
       settings: {
         reading_speed: 300,
-        theme: 'nordic_frost',
+        theme: 'light',
         reviewer_branding: '老编辑审稿',
       },
     }));
 
     expect(result.success).toBe(true);
+  });
+
+  it('migrates backups that selected the removed Nordic Frost theme to classic light', () => {
+    const result = validateBackupData(createBackup({
+      settings: { reading_speed: 300, theme: 'nordic_frost' as never },
+    }));
+
+    expect(result).toMatchObject({ success: true, data: { settings: { theme: 'light' } } });
   });
 
   it('accepts persisted publish packages and keeps the field shape bounded', () => {

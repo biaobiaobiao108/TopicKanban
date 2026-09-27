@@ -35,7 +35,6 @@ let snapshot: PwaInstallSnapshot = {
 
 const PWA_SURFACE_COLORS: Record<Exclude<AppTheme, 'system'>, string> = {
   warm_paper: '#fdfcf7',
-  nordic_frost: '#f6faf9',
   light: '#fafaf9',
   dark: '#1a1b26',
 };
@@ -54,7 +53,7 @@ export function syncPwaChrome(theme: AppTheme, resolvedDark = false): void {
 
   const isDark = theme === 'dark' || (theme === 'system' && resolvedDark);
   const themeColor = theme === 'system'
-    ? (isDark ? PWA_SURFACE_COLORS.dark : PWA_SURFACE_COLORS.nordic_frost)
+    ? (isDark ? PWA_SURFACE_COLORS.dark : PWA_SURFACE_COLORS.light)
     : PWA_SURFACE_COLORS[theme];
 
   ensureMeta('theme-color').setAttribute('content', themeColor);
