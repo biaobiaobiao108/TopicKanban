@@ -82,7 +82,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
               type="button"
               onClick={onOpenCommandPalette}
               aria-label="全局搜索与指令"
-              title="全局搜索与指令（快捷键：Ctrl+/ 或 Cmd+/）"
+              title="全局搜索与指令（macOS：Command+/；Windows：Alt+/）"
               className="group flex min-h-9 min-w-0 items-center gap-1.5 rounded-[var(--radius-sm)] border border-transparent bg-[var(--surface)]/60 px-2.5 py-2 text-[12px] font-medium text-stone-700 transition-colors hover:bg-[var(--surface)] hover:text-stone-950 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]/40 dark:text-stone-300 dark:hover:text-white cursor-pointer"
             >
               <Search className="h-3.5 w-3.5 shrink-0 text-stone-500 transition-colors group-hover:text-stone-800 dark:text-stone-400 dark:group-hover:text-stone-200" aria-hidden="true" />

@@ -225,7 +225,7 @@ export const MobileDrawer: React.FC<MobileDrawerProps> = ({
                   onOpenCommandPalette();
                 }}
                 aria-label="全局搜索与指令"
-                title="全局搜索与指令（快捷键：Ctrl+/ 或 Cmd+/）"
+                title="全局搜索与指令（macOS：Command+/；Windows：Alt+/）"
                 className={`group flex min-h-11 min-w-0 items-center gap-1.5 rounded-xl border border-transparent bg-[var(--surface)]/60 px-3 py-2 text-xs font-medium text-stone-700 transition-colors hover:bg-[var(--surface)] hover:text-stone-950 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]/40 dark:text-stone-300 dark:hover:text-white cursor-pointer ${onOpenQuickDrops ? '' : 'col-span-2'}`}
               >
                 <Search className="h-3.5 w-3.5 shrink-0 text-stone-500 transition-colors group-hover:text-stone-800 dark:text-stone-400 dark:group-hover:text-stone-200" aria-hidden="true" />

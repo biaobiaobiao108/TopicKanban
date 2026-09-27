@@ -262,7 +262,7 @@ function WorkspaceApp({ isAuth, setIsAuth }: WorkspaceAppProps) {
     return () => window.removeEventListener('kanban:unauthorized', handleUnauthorized);
   }, [clearWorkspace]);
 
-  // Global Keyboard Shortcuts: Ctrl+/ / Cmd+/ / / and N
+  // Global Keyboard Shortcuts: platform-specific command palette chord, /, and N
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       const target = e.target as HTMLElement;
@@ -271,9 +271,17 @@ function WorkspaceApp({ isAuth, setIsAuth }: WorkspaceAppProps) {
         target.tagName === 'TEXTAREA' ||
         target.isContentEditable;
       const isScriptEditor = target.closest('.script-editor-canvas-container [contenteditable="true"]') !== null;
+      const platform = `${navigator.platform} ${navigator.userAgent}`;
+      const isMacOS = /Mac|iPhone|iPad|iPod/i.test(platform);
+      const isWindows = /Win/i.test(platform);
+      const hasCommandPaletteModifier = isMacOS
+        ? e.metaKey && !e.ctrlKey && !e.altKey
+        : isWindows
+          ? e.altKey && !e.metaKey && !e.ctrlKey
+          : (e.ctrlKey || e.metaKey) && !e.altKey;
 
-      // The command palette shortcut remains global, including while editing text.
-      if ((e.ctrlKey || e.metaKey) && !e.shiftKey && e.key === '/' && (!isInput || isScriptEditor)) {
+      // Keep the chord available in the script editor while avoiding regular text inputs.
+      if (hasCommandPaletteModifier && !e.shiftKey && e.key === '/' && (!isInput || isScriptEditor)) {
         e.preventDefault();
         e.stopPropagation();
         setIsCommandPaletteOpen((prev) => !prev);
@@ -1129,7 +1137,7 @@ function WorkspaceApp({ isAuth, setIsAuth }: WorkspaceAppProps) {
         />
       )}
 
-      {/* Global Command Palette (Hotkey Ctrl+/ / Cmd+/ / /) */}
+      {/* Global Command Palette (macOS Command+/ · Windows Alt+/ · /) */}
       <CommandPalette
         isOpen={isCommandPaletteOpen}
         onClose={() => setIsCommandPaletteOpen(false)}
