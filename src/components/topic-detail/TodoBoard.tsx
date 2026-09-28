@@ -18,7 +18,7 @@ import {
 } from '@dnd-kit/core';
 import { SortableContext, sortableKeyboardCoordinates, useSortable, verticalListSortingStrategy } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
-import { KanbanSquare, Plus, Trash2, Zap } from 'lucide-react';
+import { Check, KanbanSquare, Plus, Trash2, Zap } from 'lucide-react';
 import type { Topic, TopicTodo, TopicTodoBoardLayout, TopicTodoStatus } from '../../types';
 import { ConfirmDialog } from '../ui/ConfirmDialog';
 import { useToast } from '../ui/Toast';
@@ -213,16 +213,39 @@ const SortableTodoCard: React.FC<SortableTodoCardProps> = ({ todo, status, isCur
       data-todo-id={todo.id}
       data-current={isCurrent ? 'true' : undefined}
       aria-current={isCurrent ? 'true' : undefined}
-      className={`group relative flex min-w-0 select-none touch-manipulation flex-col gap-2.5 rounded-[var(--radius-md)] border p-3.5 shadow-2xs focus:outline-none focus-visible:ring-1 focus-visible:ring-[var(--accent)] ${isDragging ? 'pointer-events-none border-dashed border-[var(--line)] bg-[var(--canvas)] opacity-30 shadow-none scale-[0.98] transition-none will-change-transform' : `transition-all duration-150 ${isBusy ? 'cursor-default' : 'cursor-grab active:cursor-grabbing'} ${isCompleted ? 'border-[var(--line)] bg-[var(--canvas)]/55 hover:border-[var(--accent)]/35 hover:shadow-subtle' : 'border-[var(--line)] bg-[var(--surface)] hover:border-[var(--accent)]/35 hover:shadow-subtle'}`}`}
+      className={`group relative flex min-w-0 min-h-[58px] select-none touch-manipulation flex-col justify-center rounded-[var(--radius-md)] border border-[var(--line)] bg-[var(--surface)] p-3.5 shadow-2xs focus:outline-none focus-visible:ring-1 focus-visible:ring-[var(--accent)] ${
+        isDragging
+          ? 'pointer-events-none border-dashed border-[var(--line)] bg-[var(--canvas)] opacity-30 shadow-none scale-[0.98] transition-none will-change-transform'
+          : `transition-all duration-150 ${isBusy ? 'cursor-default' : 'cursor-grab active:cursor-grabbing'} hover:border-[var(--accent)]/35 hover:shadow-subtle`
+      }`}
     >
-      <div className="flex min-w-0 items-start">
+      <div className="flex min-w-0 items-center">
         <div className="min-w-0 flex-1 py-0.5">
           {isEditing ? (
             <InlineTitleEditor initialValue={todo.title} onSave={onSave} onCancel={onCancelEdit} />
           ) : (
-            <div className="flex min-h-6 min-w-0 flex-wrap items-center gap-x-2 gap-y-1">
-              <span className={`min-w-0 flex-1 break-words text-sm leading-5 ${isCompleted ? 'text-[var(--ink-muted)] line-through' : 'font-medium text-[var(--ink)]'}`}>{todo.title}</span>
-              {isCurrent && <span className="todo-current-badge inline-flex shrink-0 items-center gap-1 rounded-[var(--radius-sm)] px-1.5 py-1 text-[10px] font-semibold leading-none"><Zap className="h-3 w-3" aria-hidden="true" />当前行动</span>}
+            <div className="flex min-h-6 min-w-0 flex-wrap items-center justify-between gap-x-2 gap-y-1">
+              <span
+                className={`min-w-0 flex-1 break-words text-sm leading-5 font-medium ${
+                  isCompleted
+                    ? 'text-[var(--ink-muted)] line-through decoration-stone-400/60 dark:decoration-stone-600'
+                    : 'text-[var(--ink)]'
+                }`}
+              >
+                {todo.title}
+              </span>
+              {isCurrent && (
+                <span className="todo-current-badge inline-flex shrink-0 items-center gap-1 rounded-[var(--radius-sm)] px-1.5 py-1 text-[10px] font-semibold leading-none">
+                  <Zap className="h-3 w-3" aria-hidden="true" />
+                  <span>当前行动</span>
+                </span>
+              )}
+              {isCompleted && (
+                <span className="inline-flex shrink-0 items-center gap-1 rounded-[var(--radius-sm)] bg-[var(--accent-soft)]/60 px-1.5 py-1 text-[10px] font-semibold leading-none text-[var(--accent)]">
+                  <Check className="h-3 w-3 stroke-[2.5]" aria-hidden="true" />
+                  <span>已完成</span>
+                </span>
+              )}
               {isBusy && <span className="text-[10px] text-[var(--ink-muted)]">保存中</span>}
             </div>
           )}

@@ -39,7 +39,8 @@ import { Modal } from '../ui/Modal';
 import { FloatingMenu } from '../ui/FloatingMenu';
 import { FloatingScrollbar } from '../ui/FloatingScrollbar';
 import { formatBeijingDateTime } from '../../lib/actionDate';
-import { LayoutDashboard, FileSearch, Clock, Users, PenTool, FileText, Handshake, CheckCircle2, GitBranch, MoreHorizontal, KanbanSquare } from 'lucide-react';
+import { StatusBadge } from '../ui/Badge';
+import { LayoutDashboard, FileSearch, Clock, Users, PenTool, FileText, Handshake, CheckCircle2, GitBranch, MoreHorizontal, KanbanSquare, ArrowLeft } from 'lucide-react';
 
 interface TopicDetailViewProps {
   topic: Topic;
@@ -524,39 +525,71 @@ export const TopicDetailView: React.FC<TopicDetailViewProps> = ({
         )}
       </Modal>
       {/* Module navigation stays visible across topic detail sections. */}
-      <div className="topic-detail-context-shell shrink-0 border-b border-[var(--line)] bg-[var(--canvas)] transition-colors">
-        {/* Sub Tabs Navigation (Scrollable on mobile) */}
-        <div ref={detailSubtabsRef} className="detail-subtabs-container shrink-0 overflow-x-auto bg-transparent transition-colors no-scrollbar">
-          <div className="mx-auto flex min-w-max max-w-7xl items-center gap-1 px-4 pb-1.5 sm:px-8">
-            {tabs.map((tab) => {
-              const Icon = tab.icon;
-              const isActive = activeTab === tab.id;
-              return (
-                <button
-                  key={tab.id}
-                  ref={isActive ? activeSubtabRef : undefined}
-                  onClick={() => void handleNavigateToTab(tab.id)}
-                  disabled={isFlushingDraft}
-                  aria-current={isActive ? 'page' : undefined}
-                  className={`flex min-h-9 items-center gap-1.5 rounded-[var(--radius-sm)] border-0 px-2.5 text-xs font-medium transition-colors cursor-pointer touch-manipulation sm:px-3 sm:text-[13px] ${isActive ? 'is-active' : ''} ${
-                    isActive
-                      ? 'bg-[var(--accent-soft)] text-[var(--accent-dark)] font-semibold'
-                      : 'bg-transparent text-[var(--ink-muted)] hover:bg-[var(--surface)]/60 hover:text-[var(--ink)]'
-                  }`}
-                >
-                  <Icon className={`w-3.5 h-3.5 ${isActive ? 'text-[var(--accent)]' : 'text-[var(--ink-muted)] opacity-70'}`} />
-                  <span>{tab.label}</span>
-                  {typeof tab.count === 'number' && tab.count > 0 && (
-                    <span className="ml-0.5 text-[10px] tabular-nums text-[var(--ink-muted)] opacity-75">
-                      {tab.count}
-                    </span>
-                  )}
-                </button>
-              );
-            })}
+      <header className="topic-detail-context-shell shrink-0 border-b border-[var(--line)] bg-[var(--canvas)]/95 backdrop-blur-sm transition-colors">
+        <div className="mx-auto flex max-w-7xl items-center justify-between gap-3 px-4 py-2 sm:px-8">
+          {/* Left: Quick Back Navigation & Compact Topic Context */}
+          <div className="flex min-w-0 items-center gap-2.5 shrink-0">
+            {onBack && (
+              <button
+                type="button"
+                onClick={onBack}
+                aria-label="返回上一级"
+                title="返回上一级"
+                className="flex h-8 w-8 items-center justify-center rounded-xl border border-[var(--line)] bg-[var(--surface)] text-[var(--ink-muted)] shadow-2xs transition-all hover:bg-[var(--canvas)] hover:text-[var(--ink)] cursor-pointer shrink-0"
+              >
+                <ArrowLeft className="h-4 w-4" aria-hidden="true" />
+              </button>
+            )}
+            <div className="flex min-w-0 items-center gap-2">
+              <span className="truncate max-w-[120px] sm:max-w-[200px] md:max-w-[300px] text-xs sm:text-sm font-bold text-[var(--ink)]" title={topic.title}>
+                {topic.title}
+              </span>
+              <StatusBadge status={topic.status} size="sm" />
+            </div>
+          </div>
+
+          {/* Right / Center: Segmented Island Capsule Tabs */}
+          <div ref={detailSubtabsRef} className="detail-subtabs-container flex min-w-0 flex-1 justify-end overflow-x-auto bg-transparent transition-colors no-scrollbar">
+            <nav
+              aria-label="选题模块导航"
+              className="inline-flex min-w-max items-center gap-1 rounded-2xl border border-[var(--line)] bg-[var(--surface)]/70 p-1 shadow-2xs backdrop-blur-xs"
+            >
+              {tabs.map((tab) => {
+                const Icon = tab.icon;
+                const isActive = activeTab === tab.id;
+                return (
+                  <button
+                    key={tab.id}
+                    ref={isActive ? activeSubtabRef : undefined}
+                    onClick={() => void handleNavigateToTab(tab.id)}
+                    disabled={isFlushingDraft}
+                    aria-current={isActive ? 'page' : undefined}
+                    className={`group relative flex h-8 items-center gap-1.5 rounded-xl px-2.5 text-xs font-medium transition-all cursor-pointer touch-manipulation sm:px-3 sm:text-[13px] ${
+                      isActive
+                        ? 'is-active bg-[var(--surface)] text-[var(--accent-dark)] dark:text-[var(--accent)] font-semibold shadow-2xs border border-[var(--line)]'
+                        : 'text-[var(--ink-muted)] hover:bg-[var(--surface)]/80 hover:text-[var(--ink)] border border-transparent'
+                    }`}
+                  >
+                    <Icon className={`w-3.5 h-3.5 transition-colors ${isActive ? 'text-[var(--accent)]' : 'text-[var(--ink-muted)] opacity-70 group-hover:text-[var(--ink)]'}`} />
+                    <span>{tab.label}</span>
+                    {typeof tab.count === 'number' && tab.count > 0 && (
+                      <span
+                        className={`ml-0.5 rounded-full px-1.5 py-0.2 font-mono text-[10px] tabular-nums font-semibold leading-none transition-colors ${
+                          isActive
+                            ? 'bg-[var(--accent-soft)] text-[var(--accent-dark)] dark:text-[var(--accent)]'
+                            : 'bg-stone-500/10 text-stone-600 dark:text-stone-400'
+                        }`}
+                      >
+                        {tab.count}
+                      </span>
+                    )}
+                  </button>
+                );
+              })}
+            </nav>
           </div>
         </div>
-      </div>
+      </header>
 
       {/* Tab Content Container */}
       <div
