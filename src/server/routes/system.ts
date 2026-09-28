@@ -19,6 +19,7 @@ import {
   createToken,
   jsonError,
   requireDb,
+  timingSafeEqualString,
 } from '../apiShared';
 
 export function sanitizeAppSettings(
@@ -168,7 +169,7 @@ export function registerSystemRoutes(app: NativeApp): void {
       if (!correctPassword) {
         return c.json({ success: false, message: '访问密码尚未配置，请设置 APP_PASSWORD' }, 503);
       }
-      if (password !== correctPassword) {
+      if (!password || !timingSafeEqualString(password, correctPassword)) {
         recordFailedLogin(clientIp);
         return c.json({ success: false, message: '密码错误' }, 401);
       }

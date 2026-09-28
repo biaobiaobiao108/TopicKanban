@@ -142,7 +142,7 @@ export const PeopleTab: React.FC<PeopleTabProps> = ({
           {topicPeople.map((person) => (
             <div
               key={person.id}
-              className="bg-white dark:bg-stone-900 rounded-2xl border border-stone-200/70 dark:border-stone-800 p-5 space-y-3 shadow-2xs flex flex-col justify-between hover:shadow-card hover:-translate-y-0.5 transition-all"
+              className="bg-[var(--surface)] rounded-2xl border border-[var(--line)] p-5 space-y-3 shadow-2xs flex flex-col justify-between hover:shadow-card hover:-translate-y-0.5 transition-all"
             >
               <div className="space-y-2.5">
                 <div className="flex items-start justify-between gap-2">
@@ -226,7 +226,7 @@ export const PeopleTab: React.FC<PeopleTabProps> = ({
           ))}
 
           {topicPeople.length === 0 && (
-            <div className="col-span-full p-8 text-center border-2 border-dashed border-stone-200 dark:border-stone-800 rounded-2xl bg-white dark:bg-stone-900 text-stone-400 dark:text-stone-500 space-y-2">
+            <div className="col-span-full p-8 text-center border-2 border-dashed border-[var(--line)] rounded-2xl bg-[var(--surface)] text-stone-400 dark:text-stone-500 space-y-2">
               <div>当前尚未关联人物</div>
               <button
                 onClick={openCreateModal}
@@ -242,7 +242,7 @@ export const PeopleTab: React.FC<PeopleTabProps> = ({
 
       {/* 2. Quick Attach from Global People Library */}
       {unattachedPeople.length > 0 && (
-        <div className="bg-white dark:bg-stone-900 rounded-2xl border border-stone-200/70 dark:border-stone-800 p-5 space-y-3 shadow-2xs transition-colors">
+        <div className="bg-[var(--surface)] rounded-2xl border border-[var(--line)] p-5 space-y-3 shadow-2xs transition-colors">
           <div className="flex items-center justify-between">
             <h4 className="text-sm font-bold text-stone-900 dark:text-stone-100 flex items-center gap-1.5">
               <span>从全局人物库快速引入</span>

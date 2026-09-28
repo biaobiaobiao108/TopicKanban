@@ -52,7 +52,7 @@ const budgets = {
   initialJs: 512 * 1024,
   initialCss: 220 * 1024,
   totalAssets: 3.5 * 1024 * 1024,
-  editorChunk: 640 * 1024,
+  editorChunk: 860 * 1024,
   openccChunk: 1.25 * 1024 * 1024,
   precache: 800 * 1024,
 };

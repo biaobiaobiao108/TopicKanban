@@ -249,7 +249,7 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
             title="选题日历"
             icon={CalendarDays}
             badge={(
-              <span className="rounded-full bg-[var(--accent-soft)] px-2.5 py-1 font-mono text-xs font-semibold text-[var(--accent)]">
+              <span className="rounded-full bg-[var(--accent-soft)] px-2.5 py-1 text-xs font-semibold text-[var(--accent)]">
                 发片排期
               </span>
             )}

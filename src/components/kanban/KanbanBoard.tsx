@@ -88,7 +88,7 @@ const TopicFlowDropTarget: React.FC<{ status: 'icebox' | 'published' }> = ({ sta
       data-over={isOver ? 'true' : 'false'}
       role="group"
       aria-label={`拖到这里将选题流转到${label}`}
-      className={`pointer-events-auto fixed bottom-0 z-[60] h-36 w-36 select-none text-[var(--ink-muted)] transition-colors ${isLeft ? 'left-0 md:left-64' : 'right-0'}`}
+      className={`pointer-events-auto fixed bottom-[var(--mobile-bottom-nav-clearance)] md:bottom-0 z-[60] h-36 w-36 select-none text-[var(--ink-muted)] transition-colors ${isLeft ? 'left-0 md:left-64' : 'right-0'}`}
       style={{
         clipPath: `circle(144px at ${isLeft ? '0%' : '100%'} 100%)`,
       }}

@@ -86,7 +86,7 @@ export const PublishedVideoCard: React.FC<PublishedVideoCardProps> = ({
           ) : (
             <div className="w-full h-full flex flex-col items-center justify-center text-stone-400 dark:text-stone-500 bg-stone-100/70 dark:bg-stone-800/40 p-4">
               <Film className="w-7 h-7 stroke-[1.5] mb-1 opacity-40 text-stone-400 dark:text-stone-500" />
-              <span className="text-[10px] font-mono opacity-60 text-center line-clamp-1">
+              <span className="text-[10px] opacity-60 text-center line-clamp-1">
                 {cleanBvid ? (isCoverLoading ? '加载封面...' : '未获取封面') : '无 BV 号'}
               </span>
             </div>
@@ -159,13 +159,13 @@ export const PublishedVideoCard: React.FC<PublishedVideoCardProps> = ({
 
           {/* Row 3: 5 Key Metrics Bar + Ratios */}
           <div className="space-y-1">
-            <div className="grid grid-cols-5 gap-1 bg-stone-500/[0.03] dark:bg-stone-800/50 p-1.5 rounded-lg border border-stone-200/50 dark:border-stone-800 text-center font-mono">
+            <div className="grid grid-cols-5 gap-1 bg-stone-500/[0.03] dark:bg-stone-800/50 p-1.5 rounded-lg border border-stone-200/50 dark:border-stone-800 text-center">
               <div>
                 <div className="text-[9px] text-stone-600 dark:text-stone-300 flex items-center justify-center gap-0.5">
                   <Eye className="w-2.5 h-2.5" />
                   <span>播放</span>
                 </div>
-                <div className="text-[11px] font-bold text-stone-900 dark:text-stone-100 leading-tight">
+                <div className="text-[11px] font-bold text-stone-900 dark:text-stone-100 leading-tight font-mono tabular-nums">
                   {formatNumber(video.views)}
                 </div>
               </div>
@@ -175,7 +175,7 @@ export const PublishedVideoCard: React.FC<PublishedVideoCardProps> = ({
                   <ThumbsUp className="w-2.5 h-2.5" />
                   <span>点赞</span>
                 </div>
-                <div className="text-[11px] font-bold text-[var(--accent)] leading-tight">
+                <div className="text-[11px] font-bold text-[var(--accent)] leading-tight font-mono tabular-nums">
                   {formatNumber(video.likes)}
                 </div>
               </div>
@@ -185,7 +185,7 @@ export const PublishedVideoCard: React.FC<PublishedVideoCardProps> = ({
                   <Coins className="w-2.5 h-2.5" />
                   <span>投币</span>
                 </div>
-                <div className="text-[11px] font-bold text-amber-700 dark:text-amber-400 leading-tight">
+                <div className="text-[11px] font-bold text-amber-700 dark:text-amber-400 leading-tight font-mono tabular-nums">
                   {formatNumber(video.coins)}
                 </div>
               </div>
@@ -195,7 +195,7 @@ export const PublishedVideoCard: React.FC<PublishedVideoCardProps> = ({
                   <Bookmark className="w-2.5 h-2.5" />
                   <span>收藏</span>
                 </div>
-                <div className="text-[11px] font-bold text-blue-600 dark:text-blue-400 leading-tight">
+                <div className="text-[11px] font-bold text-blue-600 dark:text-blue-400 leading-tight font-mono tabular-nums">
                   {formatNumber(video.favorites)}
                 </div>
               </div>
@@ -205,7 +205,7 @@ export const PublishedVideoCard: React.FC<PublishedVideoCardProps> = ({
                   <MessageSquare className="w-2.5 h-2.5" />
                   <span>评论</span>
                 </div>
-                <div className="text-[11px] font-bold text-stone-700 dark:text-stone-300 leading-tight">
+                <div className="text-[11px] font-bold text-stone-700 dark:text-stone-300 leading-tight font-mono tabular-nums">
                   {formatNumber(video.comments)}
                 </div>
               </div>
@@ -213,21 +213,21 @@ export const PublishedVideoCard: React.FC<PublishedVideoCardProps> = ({
 
             {/* Key Ratio Micro Badges */}
             {video.views > 0 && (
-              <div className="flex items-center gap-1.5 overflow-hidden text-[10px] font-mono">
+              <div className="flex items-center gap-1.5 overflow-hidden text-[10px]">
                 <span className="inline-flex items-center gap-0.5 px-1.5 py-0.2 rounded bg-amber-500/10 text-amber-800 dark:text-amber-300 shrink-0">
                   <span>投币</span>
-                  <span className="font-bold">{metrics.coinRate}%</span>
-                  <span className="text-[8px] font-bold px-0.5 rounded bg-amber-500/20 text-amber-900 dark:text-amber-200">
+                  <span className="font-bold font-mono tabular-nums">{metrics.coinRate}%</span>
+                  <span className="text-[8px] font-bold font-mono px-0.5 rounded bg-amber-500/20 text-amber-900 dark:text-amber-200">
                     {metrics.coinGrade}
                   </span>
                 </span>
                 <span className="inline-flex items-center gap-0.5 px-1.5 py-0.2 rounded bg-[var(--accent-soft)] text-[var(--accent)] shrink-0">
                   <span>三连</span>
-                  <span className="font-bold">{metrics.tripleRate}%</span>
+                  <span className="font-bold font-mono tabular-nums">{metrics.tripleRate}%</span>
                 </span>
                 <span className="inline-flex items-center gap-0.5 px-1.5 py-0.2 rounded bg-blue-500/10 text-blue-800 dark:text-blue-300 shrink-0">
                   <span>收藏</span>
-                  <span className="font-bold">{metrics.favoriteRate}%</span>
+                  <span className="font-bold font-mono tabular-nums">{metrics.favoriteRate}%</span>
                 </span>
                 {metrics.viewsPerKWord > 0 && (
                   <span
@@ -235,7 +235,7 @@ export const PublishedVideoCard: React.FC<PublishedVideoCardProps> = ({
                     title={`每千字文案产出 ${formatNumber(metrics.viewsPerKWord)} 播放`}
                   >
                     <span>千字</span>
-                    <span className="font-bold">{formatNumber(metrics.viewsPerKWord)}</span>
+                    <span className="font-bold font-mono tabular-nums">{formatNumber(metrics.viewsPerKWord)}</span>
                   </span>
                 )}
               </div>

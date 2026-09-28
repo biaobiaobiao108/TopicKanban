@@ -309,8 +309,8 @@ export const PublicReviewView: React.FC<PublicReviewViewProps> = ({ token: propT
                 </span>
               </div>
 
-              <nav aria-label="审稿大纲" className="max-h-[calc(100vh-180px)]">
-                <FloatingScrollbar className="space-y-0.5 text-xs pr-1" wrapperClassName="max-h-[calc(100vh-180px)] flex-none">
+              <nav aria-label="审稿大纲" className="max-h-[calc(100dvh-180px)]">
+                <FloatingScrollbar className="space-y-0.5 text-xs pr-1" wrapperClassName="max-h-[calc(100dvh-180px)] flex-none">
                   {outlineItems.map((item) => {
                     const isActive = activeOutlineId === item.id;
                     return (

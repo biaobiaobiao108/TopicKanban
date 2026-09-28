@@ -209,7 +209,7 @@ export const PeopleView: React.FC<PeopleViewProps> = ({
             placeholder="搜索人物姓名、身份、别名或语录..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full pl-10 pr-3.5 py-2.5 bg-white dark:bg-stone-900 border border-stone-200/70 dark:border-stone-800 rounded-xl text-xs sm:text-sm text-stone-900 dark:text-stone-100 placeholder:text-stone-400 dark:placeholder:text-stone-500 focus:outline-none focus:border-[var(--accent)] dark:focus:border-[var(--accent)] shadow-2xs transition-colors"
+            className="w-full pl-10 pr-3.5 py-2.5 bg-[var(--surface)] border border-[var(--line)] rounded-xl text-xs sm:text-sm text-[var(--ink)] placeholder:text-stone-400 dark:placeholder:text-stone-500 focus:outline-none focus:border-[var(--accent)] dark:focus:border-[var(--accent)] shadow-2xs transition-colors"
           />
         </div>
 
@@ -226,7 +226,7 @@ export const PeopleView: React.FC<PeopleViewProps> = ({
             return (
               <div
                 key={person.id}
-                className="bg-white dark:bg-stone-900 rounded-2xl border border-stone-200/70 dark:border-stone-800 p-5 space-y-4 shadow-2xs hover:shadow-card hover:-translate-y-0.5 transition-all flex flex-col justify-between"
+                className="bg-[var(--surface)] rounded-2xl border border-[var(--line)] p-5 space-y-4 shadow-2xs hover:shadow-card hover:-translate-y-0.5 transition-all flex flex-col justify-between"
               >
                 <div className="space-y-3">
                   {/* Header info */}
@@ -356,7 +356,7 @@ export const PeopleView: React.FC<PeopleViewProps> = ({
           })}
 
           {filteredPeople.length === 0 && !peoplePageQuery.isFetching && (
-            <div className="col-span-full p-12 text-center border-2 border-dashed border-stone-200/80 dark:border-stone-800 rounded-2xl bg-white dark:bg-stone-900 text-stone-600 dark:text-stone-400">
+            <div className="col-span-full p-12 text-center border-2 border-dashed border-[var(--line)] rounded-2xl bg-[var(--surface)] text-stone-600 dark:text-stone-400">
               暂无人物档案记录，点击右上角新建人物！
             </div>
           )}
@@ -364,9 +364,9 @@ export const PeopleView: React.FC<PeopleViewProps> = ({
 
         {totalPeople > 0 && (
           <div className="flex items-center justify-center gap-3 text-xs text-stone-500 dark:text-stone-400">
-            <button type="button" disabled={page <= 1 || peoplePageQuery.isFetching} onClick={() => setPage((current) => Math.max(1, current - 1))} className="rounded-lg border border-stone-200 bg-white px-3 py-2 font-semibold disabled:cursor-not-allowed disabled:opacity-40 dark:border-stone-700 dark:bg-stone-900">上一页</button>
+            <button type="button" disabled={page <= 1 || peoplePageQuery.isFetching} onClick={() => setPage((current) => Math.max(1, current - 1))} className="rounded-lg border border-[var(--line)] bg-[var(--surface)] text-[var(--ink)] px-3 py-2 font-semibold disabled:cursor-not-allowed disabled:opacity-40">上一页</button>
             <span><span className="font-mono tabular-nums">{page} / {Math.max(1, peoplePageQuery.data?.total_pages || 1)}</span> · 共 <span className="font-mono tabular-nums">{totalPeople}</span> 人</span>
-            <button type="button" disabled={page >= (peoplePageQuery.data?.total_pages || 1) || peoplePageQuery.isFetching} onClick={() => setPage((current) => current + 1)} className="rounded-lg border border-stone-200 bg-white px-3 py-2 font-semibold disabled:cursor-not-allowed disabled:opacity-40 dark:border-stone-700 dark:bg-stone-900">下一页</button>
+            <button type="button" disabled={page >= (peoplePageQuery.data?.total_pages || 1) || peoplePageQuery.isFetching} onClick={() => setPage((current) => current + 1)} className="rounded-lg border border-[var(--line)] bg-[var(--surface)] text-[var(--ink)] px-3 py-2 font-semibold disabled:cursor-not-allowed disabled:opacity-40">下一页</button>
           </div>
         )}
 

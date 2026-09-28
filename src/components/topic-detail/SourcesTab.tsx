@@ -301,7 +301,7 @@ export const SourcesTab: React.FC<SourcesTabProps> = ({
           return (
           <div
             key={s.id}
-            className="bg-white dark:bg-stone-900 rounded-2xl border border-stone-200/70 dark:border-stone-800 p-4 space-y-3 shadow-2xs hover:shadow-card hover:-translate-y-0.5 transition-all flex flex-col justify-between"
+            className="bg-[var(--surface)] rounded-2xl border border-[var(--line)] p-4 space-y-3 shadow-2xs hover:shadow-card hover:-translate-y-0.5 transition-all flex flex-col justify-between"
           >
             <div className="space-y-2.5">
               {/* Badges row & Quick actions */}
@@ -433,7 +433,7 @@ export const SourcesTab: React.FC<SourcesTabProps> = ({
         })}
 
         {filteredSources.length === 0 && (
-          <div className="col-span-full p-12 text-center border-2 border-dashed border-stone-200 dark:border-stone-800 rounded-2xl bg-white dark:bg-stone-900 text-stone-400 dark:text-stone-500 space-y-2">
+          <div className="col-span-full p-12 text-center border-2 border-dashed border-[var(--line)] rounded-2xl bg-[var(--surface)] text-stone-400 dark:text-stone-500 space-y-2">
             <p className="text-sm font-semibold text-stone-600 dark:text-stone-400">
               {searchQuery ? `未找到包含「${searchQuery}」的素材记录` : '暂无素材记录'}
             </p>

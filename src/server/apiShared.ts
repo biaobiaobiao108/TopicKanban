@@ -40,6 +40,15 @@ export function isNonNegativeInteger(value: unknown): boolean {
   return typeof value === 'number' && Number.isInteger(value) && value >= 0;
 }
 
+import { createHash, timingSafeEqual } from 'node:crypto';
+
+export function timingSafeEqualString(a: string | undefined, b: string | undefined): boolean {
+  if (typeof a !== 'string' || typeof b !== 'string') return false;
+  const hashA = createHash('sha256').update(a).digest();
+  const hashB = createHash('sha256').update(b).digest();
+  return timingSafeEqual(hashA, hashB) && a.length === b.length;
+}
+
 export type QuickDropCredentialResult = 'valid' | 'missing_config' | 'invalid';
 
 export function verifyQuickDropCredential(
@@ -47,7 +56,7 @@ export function verifyQuickDropCredential(
   configuredToken: string | undefined
 ): QuickDropCredentialResult {
   if (!configuredToken) return 'missing_config';
-  return providedToken === configuredToken ? 'valid' : 'invalid';
+  return timingSafeEqualString(providedToken, configuredToken) ? 'valid' : 'invalid';
 }
 
 export function hasInvalidValue(
@@ -173,36 +182,3 @@ export function createShareToken(): string {
   return `rv-${crypto.randomUUID()}`;
 }
 
-const ALLOWED_PATCH_TABLES = [
-  'topics',
-  'sources',
-  'timeline_events',
-  'people',
-  'person_relationships',
-  'tags',
-  'published_videos',
-] as const;
-
-export type AllowedPatchTable = typeof ALLOWED_PATCH_TABLES[number];
-
-export async function patchRow(
-  db: SqliteDatabase,
-  table: AllowedPatchTable | string,
-  id: string,
-  body: Record<string, unknown>,
-  allowedFields: string[],
-  touchUpdatedAt = true
-): Promise<void> {
-  if (!ALLOWED_PATCH_TABLES.includes(table as AllowedPatchTable)) {
-    throw new Error(`Invalid table for patchRow: ${table}`);
-  }
-  const fields = allowedFields.filter((field) => Object.prototype.hasOwnProperty.call(body, field));
-  if (touchUpdatedAt) {
-    fields.push('updated_at');
-    body.updated_at = new Date().toISOString();
-  }
-  if (fields.length === 0) return;
-  const assignments = fields.map((field) => `${field} = ?`).join(', ');
-  await db.prepare(`UPDATE ${table} SET ${assignments} WHERE id = ?`)
-    .bind(...fields.map((field) => body[field]), id).run();
-}
