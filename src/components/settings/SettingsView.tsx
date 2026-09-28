@@ -399,7 +399,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
 
   return (
     <div className="flex min-h-0 min-w-0 h-full w-full flex-1 flex-col overflow-y-auto mobile-bottom-nav-content transition-colors md:pb-8">
-      <div className="mx-auto w-full max-w-5xl px-4 py-5 space-y-6 sm:px-8 sm:py-7 sm:space-y-7">
+      <div className="mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8 py-5 sm:py-6 space-y-6">
         <PageHeader
           title="偏好设置与数据管理"
           icon={Settings}
@@ -414,7 +414,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
               type="button"
               onClick={handleSaveAllPreferences}
               disabled={isSaving}
-              className="inline-flex min-h-12 items-center gap-1.5 rounded-xl bg-[var(--accent)] px-4 text-xs font-bold text-white shadow-2xs transition-all hover:bg-[var(--accent-dark)] disabled:opacity-50 sm:text-sm"
+              className="inline-flex h-10 items-center gap-1.5 rounded-xl bg-[var(--accent)] px-4 text-xs font-semibold text-white shadow-2xs transition-all hover:bg-[var(--accent-dark)] disabled:opacity-50 sm:text-sm cursor-pointer"
             >
               <Zap className={`h-4 w-4 ${isSaving ? 'animate-spin' : ''}`} aria-hidden="true" />
               <span>{isSaving ? '正在保存…' : '保存全部偏好设置'}</span>

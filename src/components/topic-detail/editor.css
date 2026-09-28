@@ -386,6 +386,15 @@
   font-synthesis: weight;
 }
 
+.script-editor-title,
+.script-editor-title:focus,
+.script-editor-title:focus-visible {
+  border: none !important;
+  outline: none !important;
+  box-shadow: none !important;
+  -webkit-box-shadow: none !important;
+}
+
 .script-editor-font-stack :where(p, h1, h2, h3, h4, h5, h6, blockquote, ul, ol, li, strong, em, a, code, mark, span) {
   font-family: inherit !important;
   font-synthesis: weight;

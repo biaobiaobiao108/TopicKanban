@@ -166,7 +166,7 @@ export const TodayView: React.FC<TodayViewProps> = ({
 
   return (
     <div className="flex min-h-0 min-w-0 h-full w-full flex-1 flex-col overflow-y-auto overscroll-contain mobile-bottom-nav-content md:pb-8">
-      <div className="mx-auto w-full max-w-7xl px-4 py-5 space-y-6 sm:px-8 sm:py-7 sm:space-y-7">
+      <div className="mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8 py-5 sm:py-6 space-y-6">
         <PageHeader
           title="今日生产聚焦"
           icon={Calendar}
@@ -175,7 +175,7 @@ export const TodayView: React.FC<TodayViewProps> = ({
             <button
               type="button"
               onClick={onOpenQuickCreate}
-              className="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl bg-[var(--accent)] hover:bg-[var(--accent-dark)] px-4 text-xs font-semibold text-white shadow-2xs hover:shadow-subtle transition-all active:scale-[0.98] sm:text-sm cursor-pointer"
+              className="inline-flex h-10 items-center justify-center gap-2 rounded-xl bg-[var(--accent)] hover:bg-[var(--accent-dark)] px-4 text-xs font-semibold text-white shadow-2xs hover:shadow-subtle transition-all active:scale-[0.98] sm:text-sm cursor-pointer"
             >
               <Sparkles className="h-4 w-4 text-amber-200" aria-hidden="true" />
               <span>记录新灵感</span>

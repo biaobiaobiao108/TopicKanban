@@ -830,10 +830,10 @@ html.theme-warm-paper select {
   border-color: #e2dbce !important;
   color: #24201d !important;
 }
-html.theme-warm-paper input[type="text"]:focus,
+html.theme-warm-paper input[type="text"]:not(.script-editor-title):not([data-no-focus-ring]):not(.command-palette-input):not(.todo-composer-input):not(.todo-inline-editor-input):focus,
 html.theme-warm-paper input[type="number"]:focus,
 html.theme-warm-paper input[type="search"]:focus,
-html.theme-warm-paper textarea:focus,
+html.theme-warm-paper textarea:not(.script-editor-title):not([data-no-focus-ring]):focus,
 html.theme-warm-paper select:focus {
   border-color: var(--command-palette-focus) !important;
   box-shadow: 0 0 0 2px color-mix(in oklab, var(--command-palette-focus) 22%, transparent) !important;
@@ -1013,11 +1013,60 @@ html.dark input.todo-inline-editor-input:focus {
 }
 
 /* All text-like controls use the active theme accent for their focus border. */
-input:not([type="checkbox"]):not([type="radio"]):not(.command-palette-input):not(.todo-composer-input):not(.todo-inline-editor-input):focus,
-textarea:focus,
+input:not([type="checkbox"]):not([type="radio"]):not(.command-palette-input):not(.todo-composer-input):not(.todo-inline-editor-input):not(.script-editor-title):not([data-no-focus-ring]):focus,
+textarea:not(.script-editor-title):not([data-no-focus-ring]):focus,
 select:focus {
   border-color: var(--command-palette-focus) !important;
   box-shadow: 0 0 0 2px color-mix(in oklab, var(--command-palette-focus) 22%, transparent) !important;
+}
+
+/* 彻底移除文案标题、编辑器及各纯净编辑栏在聚焦时的高亮外框 */
+.script-editor-title,
+.script-editor-title:focus,
+.script-editor-title:focus-visible,
+.script-editor-canvas-container input:focus,
+.script-editor-canvas-container input:focus-visible,
+.script-editor-canvas-container textarea:focus,
+.script-editor-canvas-container textarea:focus-visible,
+.script-editor-canvas-container .tiptap:focus,
+.script-editor-canvas-container .tiptap:focus-visible,
+[data-no-focus-ring]:focus,
+[data-no-focus-ring]:focus-visible,
+.no-focus-ring:focus,
+.no-focus-ring:focus-visible {
+  border-color: transparent !important;
+  box-shadow: none !important;
+  -webkit-box-shadow: none !important;
+  outline: none !important;
+}
+
+/* 右侧滑入抽屉（快投箱等）专用平滑物理展开动画 */
+@keyframes drawer-slide-in-right {
+  from {
+    transform: translate3d(100%, 0, 0);
+  }
+  to {
+    transform: translate3d(0, 0, 0);
+  }
+}
+
+@keyframes drawer-backdrop-fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.drawer-right-enter {
+  animation: drawer-slide-in-right 280ms cubic-bezier(0.16, 1, 0.3, 1) both;
+  will-change: transform;
+}
+
+.drawer-backdrop-enter {
+  animation: drawer-backdrop-fade-in 220ms ease-out both;
+  will-change: opacity;
 }
 
 /* ==========================================================================

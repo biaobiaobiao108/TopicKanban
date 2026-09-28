@@ -559,7 +559,7 @@ function CommercialDealsView({ topics, onCreateTopicFromDeal }: Pick<DealsViewPr
 
   return (
     <div className="min-h-0 min-w-0 flex-1 overflow-y-auto overscroll-contain mobile-bottom-nav-content md:pb-8">
-      <div className="mx-auto max-w-7xl space-y-6 px-4 py-5 sm:px-8 sm:py-7">
+      <div className="mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8 py-5 sm:py-6 space-y-6">
         <PageHeader
           title="商单中心"
           icon={Handshake}
@@ -572,7 +572,7 @@ function CommercialDealsView({ topics, onCreateTopicFromDeal }: Pick<DealsViewPr
             <button
               type="button"
               onClick={() => setIsFormOpen(true)}
-              className="inline-flex min-h-12 items-center justify-center gap-2 rounded-xl bg-[var(--accent)] px-4 text-sm font-bold text-white shadow-2xs transition-colors hover:bg-[var(--accent-dark)] active:scale-[0.98]"
+              className="inline-flex h-10 items-center justify-center gap-2 rounded-xl bg-[var(--accent)] px-4 text-xs sm:text-sm font-semibold text-white shadow-2xs transition-colors hover:bg-[var(--accent-dark)] active:scale-[0.98] cursor-pointer"
             >
               <Plus className="h-4 w-4" aria-hidden="true" />
               记录新商单

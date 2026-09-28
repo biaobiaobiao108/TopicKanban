@@ -97,7 +97,8 @@ export const TopicDetailHeader: React.FC<TopicDetailHeaderProps> = ({
                       setIsEditingTitle(false);
                     }
                   }}
-                  className="w-full border-b border-[var(--accent)] bg-transparent pb-1 font-sans text-xl text-[var(--ink)] outline-none sm:text-2xl"
+                  data-no-focus-ring="true"
+                  className="w-full border-b border-[var(--accent)] bg-transparent pb-1 font-sans text-xl text-[var(--ink)] outline-none ring-0 shadow-none focus:outline-none focus:ring-0 focus:shadow-none sm:text-2xl"
                 />
                 <button
                   onClick={handleSaveTitle}

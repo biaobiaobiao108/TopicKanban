@@ -1053,7 +1053,7 @@ function WorkspaceApp({ isAuth, setIsAuth }: WorkspaceAppProps) {
           )}
 
           {currentView === 'database' && (
-            <div className="mx-auto flex h-full min-h-0 w-full max-w-7xl min-w-0 flex-1 flex-col gap-5 overflow-hidden px-4 py-5 mobile-bottom-nav-content sm:gap-7 sm:px-8 sm:py-7">
+            <div className="mx-auto flex h-full min-h-0 w-full max-w-7xl min-w-0 flex-1 flex-col gap-5 overflow-hidden px-4 sm:px-6 lg:px-8 py-5 sm:py-6 mobile-bottom-nav-content">
               <PageHeader title="选题库" icon={Database} className="shrink-0" />
               <div className="min-h-0 flex-1">
                 <TopicTableView

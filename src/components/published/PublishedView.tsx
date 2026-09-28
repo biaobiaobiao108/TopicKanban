@@ -376,7 +376,7 @@ export const PublishedView: React.FC<PublishedViewProps> = ({
           title={backLabel || '返回上一页'}
         />
       )}
-      <div className="mx-auto max-w-7xl px-4 py-5 space-y-6 sm:px-8 sm:py-7 sm:space-y-7">
+      <div className="mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8 py-5 sm:py-6 space-y-6">
         <PageHeader
           title="已发布视频复盘与数据沉淀"
           icon={Film}
@@ -387,8 +387,8 @@ export const PublishedView: React.FC<PublishedViewProps> = ({
                 type="button"
                 onClick={handleBulkSyncAll}
                 disabled={isBulkSyncing}
-                className="inline-flex min-h-12 items-center gap-1.5 rounded-xl bg-stone-100/80 px-3.5 text-xs font-semibold text-stone-800 transition-colors hover:bg-stone-200/80 disabled:opacity-50 dark:bg-stone-800 dark:text-stone-200 dark:hover:bg-stone-700 sm:text-sm"
-                title="批量刷新所有包含 BV 号的视频数据"
+                aria-label="批量刷新所有包含 BV 号的视频数据"
+                className="inline-flex h-10 items-center gap-1.5 rounded-xl bg-stone-100/80 px-3.5 text-xs font-medium text-stone-800 transition-colors hover:bg-stone-200/80 disabled:opacity-50 dark:bg-stone-800 dark:text-stone-200 dark:hover:bg-stone-700 sm:text-sm cursor-pointer"
               >
                 <RefreshCw className={`h-3.5 w-3.5 ${isBulkSyncing ? 'animate-spin text-[var(--accent)]' : 'text-stone-500 dark:text-stone-400'}`} aria-hidden="true" />
                 <span>{isBulkSyncing ? '同步中...' : '批量同步数据'}</span>
@@ -398,7 +398,7 @@ export const PublishedView: React.FC<PublishedViewProps> = ({
             <button
               type="button"
               onClick={openAddModal}
-              className="inline-flex min-h-12 items-center gap-1.5 rounded-xl bg-[var(--accent)] px-4 text-xs font-semibold text-white shadow-2xs transition-all hover:bg-[var(--accent-dark)] hover:shadow-xs active:scale-[0.98] sm:text-sm"
+              className="inline-flex h-10 items-center gap-1.5 rounded-xl bg-[var(--accent)] px-4 text-xs font-semibold text-white shadow-2xs transition-all hover:bg-[var(--accent-dark)] hover:shadow-xs active:scale-[0.98] sm:text-sm cursor-pointer"
             >
               <Plus className="h-4 w-4 stroke-[2.5]" aria-hidden="true" />
               <span>归档已发布视频</span>

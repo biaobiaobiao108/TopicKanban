@@ -949,7 +949,7 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
   }, [columns, loadedTopicsByStatus, onDeleteTopic, queryClient, topicsMap]);
 
   return (
-    <div data-testid="kanban-page" className="mx-auto flex min-h-0 h-full w-full max-w-7xl min-w-0 flex-1 flex-col gap-5 overflow-y-auto overscroll-contain px-4 py-5 mobile-bottom-nav-content sm:gap-7 sm:px-8 sm:py-7">
+    <div data-testid="kanban-page" className="mx-auto flex min-h-0 h-full w-full max-w-7xl min-w-0 flex-1 flex-col gap-5 overflow-y-auto overscroll-contain px-4 sm:px-6 lg:px-8 py-5 sm:py-6 mobile-bottom-nav-content">
       <PageHeader title="选题全景看板" icon={KanbanSquare} />
 
       {/* Filters Bar & View Switcher */}

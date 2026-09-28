@@ -160,7 +160,7 @@ export const PeopleView: React.FC<PeopleViewProps> = ({
 
   return (
     <div className="min-h-0 min-w-0 flex-1 w-full h-full overflow-y-auto overscroll-contain mobile-bottom-nav-content">
-      <div className="mx-auto max-w-7xl px-4 py-5 space-y-6 sm:px-8 sm:py-7 sm:space-y-7">
+      <div className="mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8 py-5 sm:py-6 space-y-6">
         <PageHeader
           title="互联网人物档案与关系库"
           icon={Users}
@@ -179,7 +179,7 @@ export const PeopleView: React.FC<PeopleViewProps> = ({
                 setRelDesc('');
                 setIsRelModalOpen(true);
               }}
-              className="inline-flex min-h-12 items-center gap-1.5 rounded-xl bg-stone-100/80 px-3.5 text-xs font-semibold text-stone-800 transition-colors hover:bg-stone-200/80 dark:bg-stone-800 dark:text-stone-200 dark:hover:bg-stone-700 sm:text-sm"
+              className="inline-flex h-10 items-center gap-1.5 rounded-xl bg-stone-100/80 px-3.5 text-xs font-medium text-stone-800 transition-colors hover:bg-stone-200/80 dark:bg-stone-800 dark:text-stone-200 dark:hover:bg-stone-700 sm:text-sm cursor-pointer"
             >
               <Link2 className="h-4 w-4 text-stone-500 dark:text-stone-400" aria-hidden="true" />
               <span>+ 记录人物关系</span>
@@ -188,7 +188,7 @@ export const PeopleView: React.FC<PeopleViewProps> = ({
             <button
               type="button"
               onClick={openAddPersonModal}
-              className="inline-flex min-h-12 items-center gap-1.5 rounded-xl bg-[var(--accent)] px-4 text-xs font-semibold text-white shadow-2xs transition-all hover:bg-[var(--accent-dark)] hover:shadow-xs active:scale-[0.98] sm:text-sm"
+              className="inline-flex h-10 items-center gap-1.5 rounded-xl bg-[var(--accent)] px-4 text-xs font-semibold text-white shadow-2xs transition-all hover:bg-[var(--accent-dark)] hover:shadow-xs active:scale-[0.98] sm:text-sm cursor-pointer"
             >
               <Plus className="h-4 w-4 stroke-[2.5]" aria-hidden="true" />
               <span>新建人物档案</span>

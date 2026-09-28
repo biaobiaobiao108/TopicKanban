@@ -244,7 +244,7 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
   return (
     <DndContext sensors={sensors} onDragStart={handleDragStart} onDragEnd={handleDragEnd}>
       <div className="flex h-full min-h-0 min-w-0 flex-1 overflow-y-auto overscroll-contain bg-[var(--canvas)] transition-colors">
-        <div className="mx-auto flex h-full min-h-0 w-full max-w-7xl flex-col gap-5 px-4 py-5 sm:gap-7 sm:px-8 sm:py-7">
+        <div className="mx-auto flex h-full min-h-0 w-full max-w-7xl flex-col gap-5 px-4 sm:px-6 lg:px-8 py-5 sm:py-6">
           <PageHeader
             title="选题日历"
             icon={CalendarDays}
@@ -256,13 +256,12 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
             actions={(
               <>
                 {/* Month navigation controls */}
-                <div aria-label="月份导航" className="inline-flex min-h-10 items-center gap-0.5 rounded-xl border border-[var(--line)] bg-[var(--surface)] p-1">
+                <div aria-label="月份导航" className="inline-flex h-10 items-center gap-0.5 rounded-xl border border-[var(--line)] bg-[var(--surface)] p-1">
                   <button
                     type="button"
                     onClick={handlePrev}
                     aria-label="上一周期"
-                    title="上一周期"
-                    className="grid h-8 w-8 place-items-center rounded-lg text-[var(--ink-muted)] transition-colors hover:bg-[var(--canvas)] hover:text-[var(--ink)]"
+                    className="grid h-8 w-8 place-items-center rounded-lg text-[var(--ink-muted)] transition-colors hover:bg-[var(--canvas)] hover:text-[var(--ink)] cursor-pointer"
                   >
                     <ChevronLeft className="h-4 w-4" aria-hidden="true" />
                   </button>

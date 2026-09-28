@@ -227,7 +227,7 @@ export const TagsView: React.FC<TagsViewProps> = ({
 
   return (
     <div data-testid="tags-page" className="min-h-0 min-w-0 flex-1 w-full h-full overflow-y-auto overscroll-contain mobile-bottom-nav-content bg-[var(--canvas)] transition-colors md:overflow-hidden md:pb-8">
-      <div className="mx-auto flex min-h-full w-full max-w-7xl flex-col gap-5 px-4 py-5 sm:gap-7 sm:px-8 sm:py-7">
+      <div className="mx-auto flex min-h-full w-full max-w-7xl flex-col gap-5 px-4 sm:px-6 lg:px-8 py-5 sm:py-6">
         <PageHeader
           title="标签与创作赛道资产"
           icon={Hash}
@@ -235,7 +235,7 @@ export const TagsView: React.FC<TagsViewProps> = ({
             <button
               type="button"
               onClick={openCreateModal}
-              className="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl bg-[var(--accent)] px-4 text-xs font-bold text-white shadow-2xs transition-all hover:bg-[var(--accent-dark)] active:scale-[0.98] sm:text-sm"
+              className="inline-flex h-10 items-center justify-center gap-2 rounded-xl bg-[var(--accent)] px-4 text-xs font-semibold text-white shadow-2xs transition-all hover:bg-[var(--accent-dark)] active:scale-[0.98] sm:text-sm cursor-pointer"
             >
               <Plus className="h-4 w-4 stroke-[2.5]" aria-hidden="true" />
               <span>新建赛道标签</span>
