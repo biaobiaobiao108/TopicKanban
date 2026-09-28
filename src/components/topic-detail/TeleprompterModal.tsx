@@ -693,7 +693,7 @@ function renderScriptTextWithCues(text: string): React.ReactNode {
             <button
               onClick={() => setSpeedMultiplierWithStorage((prev) => Math.max(0.4, Math.round((prev - 0.2) * 10) / 10))}
               className={`px-1 font-bold cursor-pointer ${isDark ? 'hover:text-[var(--accent-dark)] text-stone-200' : 'hover:text-[var(--accent)] text-stone-700'}`}
-              title="减速 (快捷键: -)"
+              aria-label="减速"
             >
               -
             </button>
@@ -701,7 +701,7 @@ function renderScriptTextWithCues(text: string): React.ReactNode {
             <button
               onClick={() => setSpeedMultiplierWithStorage((prev) => Math.min(3.0, Math.round((prev + 0.2) * 10) / 10))}
               className={`px-1 font-bold cursor-pointer ${isDark ? 'hover:text-[var(--accent-dark)] text-stone-200' : 'hover:text-[var(--accent)] text-stone-700'}`}
-              title="加速 (快捷键: +)"
+              aria-label="加速"
             >
               +
             </button>
@@ -723,7 +723,7 @@ function renderScriptTextWithCues(text: string): React.ReactNode {
                     ? 'text-stone-300 hover:text-white hover:bg-stone-800'
                     : 'text-stone-600 hover:text-stone-900 hover:bg-stone-100'
                 }`}
-                title={`字号 ${f.label} (快捷键: ${f.level})`}
+                aria-label={`字号 ${f.label}`}
               >
                 {f.label}
               </button>
@@ -740,7 +740,7 @@ function renderScriptTextWithCues(text: string): React.ReactNode {
                 ? 'bg-stone-900 border-stone-700/80 hover:bg-stone-800 text-stone-200 hover:text-white'
                 : 'bg-white border-stone-300 hover:bg-stone-100 text-stone-700'
             }`}
-            title={isMirror ? '取消镜像翻转' : '开启镜像模式 (外接分光镜提词板专用，快捷键: M)'}
+            aria-label="切换镜像模式"
           >
             <FlipHorizontal className="w-4 h-4" />
           </button>
@@ -753,7 +753,7 @@ function renderScriptTextWithCues(text: string): React.ReactNode {
                 ? 'bg-stone-900 border-stone-700/80 hover:bg-stone-800 text-stone-200 hover:text-white'
                 : 'bg-white border-stone-300 hover:bg-stone-100 text-stone-700'
             }`}
-            title="切换全屏 (快捷键: F)"
+            aria-label="切换全屏"
           >
             {isFullscreen ? <Minimize className="w-4 h-4" /> : <Maximize className="w-4 h-4" />}
           </button>
@@ -768,7 +768,7 @@ function renderScriptTextWithCues(text: string): React.ReactNode {
                 ? 'bg-stone-900 border-stone-700/80 hover:bg-stone-800 text-stone-200 hover:text-white'
                 : 'bg-white border-stone-300 hover:bg-stone-100 text-stone-700'
             }`}
-            title="快捷键指南 (快捷键: ?)"
+            aria-label="快捷键指南"
           >
             <Keyboard className="w-4 h-4" />
           </button>
@@ -781,7 +781,7 @@ function renderScriptTextWithCues(text: string): React.ReactNode {
                 ? 'bg-stone-900 border-stone-700/80 hover:bg-[var(--accent)] hover:border-[var(--accent)] text-stone-200 hover:text-white'
                 : 'bg-stone-100 border-stone-300 hover:bg-[var(--accent)] hover:border-[var(--accent)] text-stone-700 hover:text-white'
             }`}
-            title="退出提词模式 (Esc)"
+            aria-label="退出提词模式"
           >
             <X className="w-4 h-4" />
           </button>
@@ -1012,7 +1012,7 @@ function renderScriptTextWithCues(text: string): React.ReactNode {
                 ? 'border-stone-800 bg-stone-900 hover:bg-stone-800 text-stone-300'
                 : 'border-stone-300 bg-white hover:bg-stone-100 text-stone-700'
             }`}
-            title="重置到文章开头 (快捷键: R)"
+            aria-label="重置到文章开头"
           >
             <RotateCcw className="w-3.5 h-3.5" />
             <span className="hidden sm:inline">重置回起点</span>

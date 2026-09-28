@@ -100,7 +100,6 @@ export const ScriptReferenceDrawer: React.FC<ScriptReferenceDrawerProps> = ({
             type="button"
             onClick={onClose}
             className="p-1.5 text-stone-400 hover:text-[var(--ink)] rounded-lg hover:bg-black/5 dark:hover:bg-white/5 cursor-pointer transition-colors shrink-0"
-            title="收起事实参考 (Esc)"
             aria-label="收起事实参考"
           >
             <X className="w-3.5 h-3.5" />

@@ -75,9 +75,9 @@ const ColumnTodoComposer: React.FC<{
   };
 
   return (
-    <form onSubmit={(event) => void submit(event)} noValidate className="todo-board-composer rounded-[var(--radius-md)] border border-[var(--line)] bg-[var(--surface)] p-3 shadow-2xs">
-      <label htmlFor={id} className="mb-2 block text-xs font-medium text-[var(--ink-muted)]">添加到{status === 'todo' ? '待办' : '进行中'}</label>
-      <div className="flex min-w-0 flex-wrap items-center gap-2">
+    <form onSubmit={(event) => void submit(event)} noValidate className="todo-board-composer rounded-[var(--radius-md)] border border-[var(--line)] bg-[var(--surface)] p-2.5 shadow-2xs">
+      <label htmlFor={id} className="sr-only">添加待办事项</label>
+      <div className="flex min-w-0 items-center gap-2">
         <input
           ref={inputRef}
           id={id}
@@ -96,19 +96,21 @@ const ColumnTodoComposer: React.FC<{
           autoComplete="off"
           placeholder="写下下一步行动"
           className="todo-composer-input min-h-9 min-w-0 flex-1 rounded-[var(--radius-sm)] bg-stone-500/[0.03] px-2.5 py-1.5 text-base text-[var(--ink)] outline-none ring-1 ring-transparent transition focus:ring-[var(--accent)]/40 placeholder:text-stone-400 dark:bg-stone-800 dark:placeholder:text-stone-500 sm:text-sm"
-          aria-describedby={`${id}-help`}
+          aria-describedby={error ? `${id}-error` : undefined}
           aria-invalid={Boolean(error)}
         />
         <div className="flex shrink-0 items-center gap-1">
-          <button type="submit" disabled={isSubmitting || !title.trim()} className="min-h-9 rounded-[var(--radius-sm)] bg-[var(--accent)] px-3 text-xs font-semibold text-white transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-40">
+          <button type="submit" disabled={isSubmitting || !title.trim()} className="min-h-9 rounded-[var(--radius-sm)] bg-[var(--accent)] px-3 text-xs font-semibold text-white transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-40 cursor-pointer">
             {isSubmitting ? '添加中…' : '添加'}
           </button>
-          <button type="button" onClick={onCancel} disabled={isSubmitting} className="min-h-9 rounded-[var(--radius-sm)] px-2.5 text-xs text-[var(--ink-muted)] transition hover:bg-[var(--canvas)] hover:text-[var(--ink)] disabled:opacity-40">取消</button>
+          <button type="button" onClick={onCancel} disabled={isSubmitting} className="min-h-9 rounded-[var(--radius-sm)] px-2 text-xs text-[var(--ink-muted)] transition hover:bg-[var(--canvas)] hover:text-[var(--ink)] disabled:opacity-40 cursor-pointer">取消</button>
         </div>
       </div>
-      <p id={`${id}-help`} aria-live="polite" className="mt-1.5 text-[11px] leading-4 text-[var(--ink-muted)]">
-        {error || '按 Enter 添加，Esc 取消'}
-      </p>
+      {error && (
+        <p id={`${id}-error`} role="alert" className="mt-1.5 text-[11px] leading-4 text-red-600 dark:text-red-400">
+          {error}
+        </p>
+      )}
     </form>
   );
 };
@@ -280,14 +282,13 @@ const TodoBoardColumn: React.FC<{
           <h3 className="text-[13.5px] font-semibold tracking-tight text-[var(--ink)]">{column.label}</h3>
           <span className="kanban-column-count ml-0.5 text-xs tabular-nums text-[var(--ink-muted)]">{ids.length}</span>
         </div>
-        {status !== 'completed' && (
+        {status === 'todo' && (
           <button
             type="button"
             onClick={onQuickAdd}
-            aria-label={`在${column.label}中新增待办`}
+            aria-label="在待办中新增待办"
             aria-expanded={isComposerOpen}
-            title={`在${column.label}中新增待办`}
-            className="flex h-7 w-7 shrink-0 items-center justify-center rounded-[var(--radius-sm)] text-[var(--ink-muted)] transition-colors hover:bg-[var(--surface)] hover:text-[var(--ink)]"
+            className="flex h-7 w-7 shrink-0 items-center justify-center rounded-[var(--radius-sm)] text-[var(--ink-muted)] transition-colors hover:bg-[var(--surface)] hover:text-[var(--ink)] cursor-pointer"
           >
             <Plus className="h-3.5 w-3.5" aria-hidden="true" />
           </button>
@@ -297,7 +298,7 @@ const TodoBoardColumn: React.FC<{
         <div className="mobile-scroll-reveal min-h-[140px] min-w-0 flex-1 space-y-2.5">
           {children}
           {ids.length === 0 && <div className={`flex h-24 flex-col items-center justify-center rounded-[var(--radius-sm)] border border-dashed p-3 text-center text-xs transition-colors duration-150 ${isOver ? 'border-[var(--accent)] bg-[var(--accent-soft)] text-[var(--accent)]' : 'border-[var(--line)] bg-[var(--surface)]/50 text-[var(--ink-muted)]'}`}><span className="font-medium">{isOver ? '松开以移入此列' : '暂无待办'}</span><span className="mt-0.5 text-[11px] opacity-75">{isOver ? `将事项归入「${column.label}」` : '拖动事项至此可调整进度'}</span></div>}
-          {isComposerOpen && status !== 'completed' && <ColumnTodoComposer status={status} onCreate={onCreate} onCancel={onCancelAdd} />}
+          {isComposerOpen && status === 'todo' && <ColumnTodoComposer status={status} onCreate={onCreate} onCancel={onCancelAdd} />}
         </div>
       </SortableContext>
     </section>

@@ -15,7 +15,6 @@ export const BackButton: React.FC<BackButtonProps> = ({
   <button
     type="button"
     onClick={onBack}
-    title={title}
     aria-label={title}
     className="inline-flex min-h-10 min-w-10 shrink-0 touch-manipulation items-center justify-center gap-1.5 rounded-xl border border-transparent px-3 py-2 text-sm font-semibold text-stone-600 transition-all hover:bg-stone-100 hover:text-stone-900 active:scale-[0.98] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--accent)] dark:text-stone-300 dark:hover:bg-stone-800 dark:hover:text-stone-100"
   >

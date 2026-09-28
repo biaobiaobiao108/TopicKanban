@@ -164,7 +164,6 @@ export const QuickDropDrawer: React.FC<QuickDropDrawerProps> = ({
               onClick={loadDrops}
               disabled={isLoading}
               className="p-2 rounded-xl text-stone-400 dark:text-stone-500 hover:text-stone-700 dark:hover:text-stone-300 hover:bg-stone-100 dark:hover:bg-stone-800 transition-colors cursor-pointer"
-              title="刷新列表"
             >
               <RefreshCw className={`w-4 h-4 ${isLoading ? 'animate-spin' : ''}`} />
             </button>
@@ -245,7 +244,7 @@ export const QuickDropDrawer: React.FC<QuickDropDrawerProps> = ({
                     onClick={() => handleDelete(item.id)}
                     disabled={deletingId === item.id}
                     className="p-1.5 rounded-lg text-stone-400 dark:text-stone-500 hover:text-red-600 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/40 transition-colors cursor-pointer"
-                    title="忽略/删除"
+                    aria-label="删除此灵感"
                   >
                     <Trash2 className="w-3.5 h-3.5" />
                   </button>

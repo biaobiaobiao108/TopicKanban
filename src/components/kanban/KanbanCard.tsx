@@ -240,7 +240,6 @@ const KanbanCardComponent: React.FC<KanbanCardProps> = ({
             }}
             type="button"
             aria-label={topic.is_pinned ? '取消置顶' : '置顶'}
-            title={topic.is_pinned ? '取消置顶' : '置顶'}
             className="p-1 text-[var(--ink-muted)] hover:text-[#9b6a2f] rounded-[var(--radius-sm)] cursor-pointer transition-colors"
           >
             <Pin aria-hidden="true" className={`w-3.5 h-3.5 ${topic.is_pinned ? 'fill-[#9b6a2f] text-[#9b6a2f]' : 'opacity-30 group-hover:opacity-100 hover:opacity-100'}`} />

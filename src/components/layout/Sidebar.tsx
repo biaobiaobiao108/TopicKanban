@@ -69,7 +69,6 @@ export const Sidebar: React.FC<SidebarProps> = ({
             type="button"
             onClick={onOpenQuickCreate}
             aria-label="新建选题"
-            title="新建选题（快捷键：N）"
             className="group flex min-h-10 w-full items-center gap-2 rounded-[var(--radius-sm)] bg-[var(--accent)] px-3.5 py-2.5 text-[13px] font-semibold text-white shadow-2xs transition-all hover:bg-[var(--accent-dark)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]/40 active:scale-[0.98] cursor-pointer"
           >
             <Plus className="h-4 w-4 shrink-0 stroke-[2.5]" aria-hidden="true" />
@@ -82,7 +81,6 @@ export const Sidebar: React.FC<SidebarProps> = ({
               type="button"
               onClick={onOpenCommandPalette}
               aria-label="全局搜索与指令"
-              title="全局搜索与指令（macOS：Command+/；Windows：Alt+/）"
               className="group flex min-h-9 min-w-0 items-center gap-1.5 rounded-[var(--radius-sm)] border border-transparent bg-[var(--surface)]/60 px-2.5 py-2 text-[12px] font-medium text-stone-700 transition-colors hover:bg-[var(--surface)] hover:text-stone-950 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]/40 dark:text-stone-300 dark:hover:text-white cursor-pointer"
             >
               <Search className="h-3.5 w-3.5 shrink-0 text-stone-500 transition-colors group-hover:text-stone-800 dark:text-stone-400 dark:group-hover:text-stone-200" aria-hidden="true" />
@@ -94,7 +92,6 @@ export const Sidebar: React.FC<SidebarProps> = ({
                 type="button"
                 onClick={onOpenQuickDrops}
                 aria-label={quickDropCount > 0 ? `手机快投箱中有 ${quickDropCount} 条未处理灵感` : '打开手机快投灵感箱'}
-                title={quickDropCount > 0 ? `手机快投箱中有 ${quickDropCount} 条未处理灵感` : '打开手机快投灵感箱（7天暂存）'}
                 className={`group flex min-h-9 min-w-0 items-center justify-between gap-1.5 rounded-[var(--radius-sm)] border px-2.5 py-2 text-[12px] font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]/40 cursor-pointer ${
                   quickDropCount > 0
                     ? 'border-[var(--accent)]/15 bg-[var(--accent-soft)] text-[var(--accent-dark)] shadow-2xs'

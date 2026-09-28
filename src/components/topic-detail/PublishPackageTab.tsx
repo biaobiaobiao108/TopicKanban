@@ -380,7 +380,7 @@ export const PublishPackageTab: React.FC<PublishPackageTabProps> = ({
           <div className="flex flex-wrap items-center gap-2 text-xs text-[var(--ink-muted)]" aria-live="polite">
             <span>{packageData.word_count.toLocaleString()} 字</span><span aria-hidden="true">·</span><span>预计 {Math.floor(packageData.estimated_duration_seconds / 60)} 分 {String(packageData.estimated_duration_seconds % 60).padStart(2, '0')} 秒</span>
             {lastSavedAt && <><span aria-hidden="true">·</span><span>发布包保存于 {formatBeijingDateTime(lastSavedAt)}</span></>}
-            <span className="inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-md" role="status" aria-label={saveStatusLabel} title={saveStatusLabel}><SaveStatusIcon className="h-3.5 w-3.5" aria-hidden="true" /></span>
+            <span className="inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-md" role="status" aria-label={saveStatusLabel}><SaveStatusIcon className="h-3.5 w-3.5" aria-hidden="true" /></span>
           </div>
         </div>
         {draftConflict && <div className="mt-4 flex flex-col gap-3 rounded-xl border border-red-300 bg-white/80 p-3 text-sm text-red-900 dark:border-red-800 dark:bg-stone-900/80 dark:text-red-200 sm:flex-row sm:items-center sm:justify-between" role="alert"><span>检测到文案冲突，当前发布包不会使用任何一份不明确的旧文案；请先解决冲突。</span><button type="button" onClick={onNavigateToScript} className="inline-flex min-h-9 shrink-0 items-center justify-center rounded-lg bg-red-700 px-3 text-xs font-bold text-white hover:bg-red-800">去解决冲突</button></div>}

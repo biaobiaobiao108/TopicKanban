@@ -221,7 +221,6 @@ export const TodayView: React.FC<TodayViewProps> = ({
                       type="button"
                       onClick={() => void onTogglePin(focusTopic.id)}
                       className={`inline-flex min-h-9 items-center gap-1.5 rounded-xl border px-2.5 text-xs font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]/30 ${focusTopic.is_pinned === 1 ? 'border-amber-200 bg-amber-50 text-amber-800 hover:bg-amber-100 dark:border-amber-900/60 dark:bg-amber-950/30 dark:text-amber-300 dark:hover:bg-amber-950/50' : 'border-[var(--line)] bg-[var(--surface)] text-[var(--ink-muted)] hover:border-[var(--accent)]/30 hover:text-[var(--accent-dark)]'}`}
-                      title={focusTopic.is_pinned === 1 ? '取消主推' : '设为主推'}
                     >
                       <Pin className={`h-3.5 w-3.5 ${focusTopic.is_pinned === 1 ? 'fill-amber-500' : ''}`} aria-hidden="true" />
                       <span>{focusTopic.is_pinned === 1 ? '取消主推' : '设为主推'}</span>

@@ -1059,7 +1059,6 @@ export const ScriptEditorTab: React.FC<ScriptEditorTabProps> = ({
                   ? 'border-[var(--line)] bg-[var(--canvas)] text-[var(--ink)]'
                   : 'border-transparent hover:border-[var(--line)] bg-transparent hover:bg-[var(--canvas)] text-[var(--ink-muted)] hover:text-[var(--ink)]'
               }`}
-              title="展开/收起文案大纲与章节定位 (Esc 收起)"
             >
               <Compass className="h-3.5 w-3.5 text-[var(--accent)]" />
               <span>大纲</span>
@@ -1095,10 +1094,7 @@ export const ScriptEditorTab: React.FC<ScriptEditorTabProps> = ({
                 {charCount.toLocaleString()} <span className="font-normal text-[var(--ink-muted)] text-[11px]">字</span>
               </span>
               <span className="opacity-40">·</span>
-              <span
-                className="flex items-center gap-1 text-[var(--ink-muted)] font-mono text-[11px]"
-                title={`预估时长（按偏好设置 ${effectiveSpeed} 字/分钟计算）`}
-              >
+              <span className="flex items-center gap-1 text-[var(--ink-muted)] font-mono text-[11px]">
                 <Clock className="w-3 h-3 text-[var(--ink-muted)] shrink-0" />
                 <span>{estMinutes}分{estSeconds}秒</span>
               </span>
@@ -1114,7 +1110,7 @@ export const ScriptEditorTab: React.FC<ScriptEditorTabProps> = ({
                     ? 'border-[var(--line)] bg-[var(--canvas)] text-[var(--ink)]'
                     : 'border-transparent hover:border-[var(--line)] bg-transparent hover:bg-[var(--canvas)] text-[var(--ink-muted)] hover:text-[var(--ink)]'
                 }`}
-                title="展开/收起右侧事实参考资料抽屉"
+                aria-label="展开/收起事实参考抽屉"
               >
                 <BookOpen className="w-3.5 h-3.5 text-[var(--accent)]" />
                 <span className="hidden sm:inline">事实参考</span>
@@ -1139,7 +1135,7 @@ export const ScriptEditorTab: React.FC<ScriptEditorTabProps> = ({
                     ? 'border-[var(--line)] bg-[var(--canvas)] text-[var(--ink)]'
                     : 'border-transparent hover:border-[var(--line)] bg-transparent hover:bg-[var(--canvas)] text-[var(--ink-muted)] hover:text-[var(--ink)]'
                 }`}
-                title="插入演播配音气口标记（展开后常驻，可连续打标）"
+                aria-label="插入配音气口标记"
               >
                 <Mic className="w-3.5 h-3.5 text-[var(--accent)]" />
                 <span className="hidden sm:inline">气口</span>
@@ -1173,7 +1169,7 @@ export const ScriptEditorTab: React.FC<ScriptEditorTabProps> = ({
                         type="button"
                         onClick={() => setIsCueMenuOpen(false)}
                         className="text-stone-400 hover:text-stone-700 dark:hover:text-stone-200 p-0.5 rounded cursor-pointer transition-colors"
-                        title="关闭选单 (Esc)"
+                        aria-label="关闭选单"
                       >
                         <X className="w-3 h-3" />
                       </button>
@@ -1214,7 +1210,6 @@ export const ScriptEditorTab: React.FC<ScriptEditorTabProps> = ({
               disabled={isGeneratingShare}
               aria-label={isGeneratingShare ? '正在生成审稿链接' : '生成外部审稿链接'}
               className="flex items-center gap-1.5 text-xs font-medium border border-transparent hover:border-[var(--line)] bg-transparent hover:bg-[var(--canvas)] text-[var(--ink-muted)] hover:text-[var(--ink)] px-2.5 py-1 rounded-[var(--radius-sm)] transition-all cursor-pointer disabled:opacity-50"
-              title="生成免登录外部审稿链接"
             >
               <Share2 className={`w-3.5 h-3.5 text-[var(--accent)] ${isGeneratingShare ? 'animate-spin' : ''}`} />
               <span className="hidden sm:inline">{isGeneratingShare ? '生成中…' : '分享'}</span>
@@ -1224,8 +1219,8 @@ export const ScriptEditorTab: React.FC<ScriptEditorTabProps> = ({
             <button
               type="button"
               onClick={copyFullScript}
+              aria-label="复制文案全文"
               className="p-1 rounded-[var(--radius-sm)] text-xs border border-transparent hover:border-[var(--line)] bg-transparent hover:bg-[var(--canvas)] text-[var(--ink-muted)] hover:text-[var(--ink)] transition-all cursor-pointer"
-              title="复制文案全文"
             >
               {copied ? <Check className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
             </button>
@@ -1234,8 +1229,8 @@ export const ScriptEditorTab: React.FC<ScriptEditorTabProps> = ({
             <button
               type="button"
               onClick={() => setIsZenMode(true)}
+              aria-label="开启沉浸写作模式"
               className="flex items-center gap-1.5 px-2.5 py-1 rounded-[var(--radius-sm)] text-xs font-medium border border-transparent hover:border-[var(--line)] bg-transparent hover:bg-[var(--canvas)] text-[var(--ink-muted)] hover:text-[var(--ink)] transition-all cursor-pointer"
-              title="开启沉浸写作模式 (Cmd/Ctrl + Shift + F)"
             >
               <Maximize2 className="w-3.5 h-3.5 text-[var(--accent)]" />
               <span className="hidden sm:inline">沉浸写作</span>
@@ -1245,8 +1240,8 @@ export const ScriptEditorTab: React.FC<ScriptEditorTabProps> = ({
             <button
               type="button"
               onClick={() => setIsTeleprompterOpen(true)}
+              aria-label="开启全屏沉浸录音提词器"
               className="flex items-center gap-1.5 px-2.5 py-1 rounded-[var(--radius-sm)] text-xs font-medium border border-transparent hover:border-[var(--line)] bg-[var(--accent-soft)] hover:bg-[var(--accent)] text-[var(--accent-dark)] hover:text-white transition-all cursor-pointer"
-              title="开启全屏沉浸录音提词器 (Cmd/Ctrl + Shift + P)"
             >
               <Mic className="w-3.5 h-3.5" />
               <span>录音提词</span>
@@ -1268,7 +1263,7 @@ export const ScriptEditorTab: React.FC<ScriptEditorTabProps> = ({
             type="button"
             onClick={() => setDismissLockBanner(true)}
             className="text-stone-400 dark:text-stone-500 hover:text-stone-700 dark:hover:text-stone-300 p-1 rounded-lg shrink-0 cursor-pointer"
-            title="关闭提示"
+            aria-label="关闭提示"
           >
             <X className="w-3.5 h-3.5" />
           </button>
@@ -1306,7 +1301,6 @@ export const ScriptEditorTab: React.FC<ScriptEditorTabProps> = ({
                 onClick={toggleOutlinePanel}
                 aria-label="展开/收起文案大纲"
                 className="flex items-center gap-2 rounded-full border border-[var(--line)] bg-[var(--surface)]/95 hover:bg-[var(--canvas)] backdrop-blur-md px-4 py-2 text-xs font-medium text-stone-700 dark:text-stone-200 hover:text-stone-950 dark:hover:text-white shadow-md hover:shadow-lg hover:-translate-y-0.5 transition-all cursor-pointer"
-                title="大纲章节快速定位"
               >
                 <Compass className="h-4 w-4 text-[var(--accent)]" />
                 <span>大纲</span>
@@ -1325,12 +1319,12 @@ export const ScriptEditorTab: React.FC<ScriptEditorTabProps> = ({
             <button
               type="button"
               onClick={() => setIsFocusTypewriterMode((prev) => !prev)}
+              aria-label="切换专注打字模式"
               className={`flex items-center gap-1.5 px-3.5 py-2 rounded-full text-xs backdrop-blur-md shadow-md hover:shadow-lg hover:-translate-y-0.5 transition-all cursor-pointer ${
                 isFocusTypewriterMode
                   ? 'border border-[var(--accent)]/40 bg-[var(--accent-soft)] text-[var(--accent-dark)] font-semibold'
                   : 'border border-[var(--line)] bg-[var(--surface)]/95 text-stone-700 dark:text-stone-200 hover:text-stone-950 dark:hover:text-white hover:bg-[var(--canvas)] font-medium'
               }`}
-              title={isFocusTypewriterMode ? '关闭专注打字（当前已开启居中与段落高亮）' : '开启专注打字（打字机居中 + 当前行实时高亮）'}
             >
               <Target className="w-4 h-4 text-[var(--accent)]" />
               <span>{isFocusTypewriterMode ? '专注打字：开' : '专注打字：关'}</span>
@@ -1342,7 +1336,6 @@ export const ScriptEditorTab: React.FC<ScriptEditorTabProps> = ({
                 onClick={toggleReferencePanel}
                 aria-label="展开/收起事实参考"
                 className="flex items-center gap-1.5 px-3.5 py-2 rounded-full border border-[var(--line)] bg-[var(--surface)]/95 hover:bg-[var(--canvas)] backdrop-blur-md text-xs font-medium text-stone-700 dark:text-stone-200 hover:text-stone-950 dark:hover:text-white shadow-md hover:shadow-lg hover:-translate-y-0.5 transition-all cursor-pointer"
-                title="展开/收起边写边看事实参考抽屉"
               >
                 <BookOpen className="w-4 h-4 text-[var(--accent)]" />
                 <span className="hidden sm:inline">事实参考</span>
@@ -1361,10 +1354,7 @@ export const ScriptEditorTab: React.FC<ScriptEditorTabProps> = ({
               {charCount.toLocaleString()} <span className="font-normal text-stone-500 dark:text-stone-400 text-[11px]">字</span>
             </span>
             <span className="opacity-40">·</span>
-            <span
-              className="flex items-center gap-1.5 text-stone-600 dark:text-stone-300 font-mono text-[11px]"
-              title={`预估时长（按 ${effectiveSpeed} 字/分钟计算）`}
-            >
+            <span className="flex items-center gap-1.5 text-stone-600 dark:text-stone-300 font-mono text-[11px]">
               <Clock className="w-3.5 h-3.5 text-stone-500 dark:text-stone-400 shrink-0" />
               <span>{estMinutes}分{estSeconds}秒</span>
             </span>

@@ -143,7 +143,7 @@ const SortableTimelineCard: React.FC<SortableTimelineCardProps> = ({
               {...attributes}
               {...listeners}
               className="p-1 -ml-1 text-stone-400 dark:text-stone-500 hover:text-stone-700 dark:hover:text-stone-200 cursor-grab active:cursor-grabbing rounded-lg hover:bg-stone-100 dark:hover:bg-stone-800 transition-colors"
-              title="按住拖拽调整顺序"
+              aria-label="拖拽调整顺序"
             >
               <GripVertical className="w-4 h-4" />
             </button>
@@ -176,7 +176,7 @@ const SortableTimelineCard: React.FC<SortableTimelineCardProps> = ({
               type="button"
               onClick={() => onEdit(event)}
               className="p-1.5 text-stone-400 dark:text-stone-500 hover:text-stone-700 dark:hover:text-stone-200 hover:bg-stone-100 dark:hover:bg-stone-800 rounded-lg cursor-pointer transition-colors"
-              title="编辑时间节点"
+              aria-label="编辑时间节点"
             >
               <Edit2 className="w-3.5 h-3.5" />
             </button>
@@ -184,7 +184,7 @@ const SortableTimelineCard: React.FC<SortableTimelineCardProps> = ({
               type="button"
               onClick={() => onDelete(event.id)}
               className="p-1.5 text-stone-400 dark:text-stone-500 hover:text-red-600 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/40 rounded-lg cursor-pointer transition-colors"
-              title="删除时间节点"
+              aria-label="删除时间节点"
             >
               <Trash2 className="w-3.5 h-3.5" />
             </button>
@@ -370,7 +370,6 @@ export const TimelineTab: React.FC<TimelineTabProps> = ({
                   ? 'bg-white dark:bg-stone-700 text-stone-900 dark:text-stone-100 shadow-2xs font-bold'
                   : 'text-stone-500 dark:text-stone-400 hover:text-stone-800 dark:hover:text-stone-200'
               }`}
-              title="按自定义拖拽顺序排列（可自由拖拽）"
             >
               <SlidersHorizontal className="w-3.5 h-3.5" />
               <span>自定义排序</span>
@@ -383,7 +382,6 @@ export const TimelineTab: React.FC<TimelineTabProps> = ({
                   ? 'bg-white dark:bg-stone-700 text-stone-900 dark:text-stone-100 shadow-2xs font-bold'
                   : 'text-stone-500 dark:text-stone-400 hover:text-stone-800 dark:hover:text-stone-200'
               }`}
-              title="按时间从新到旧排列 (最新在前)"
             >
               <ArrowDownWideNarrow className="w-3.5 h-3.5" />
               <span>时间从大到小</span>
@@ -396,7 +394,6 @@ export const TimelineTab: React.FC<TimelineTabProps> = ({
                   ? 'bg-white dark:bg-stone-700 text-stone-900 dark:text-stone-100 shadow-2xs font-bold'
                   : 'text-stone-500 dark:text-stone-400 hover:text-stone-800 dark:hover:text-stone-200'
               }`}
-              title="按时间从旧到新排列 (最早在前)"
             >
               <ArrowUpNarrowWide className="w-3.5 h-3.5" />
               <span>时间从小到大</span>

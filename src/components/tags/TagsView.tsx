@@ -349,7 +349,7 @@ export const TagsView: React.FC<TagsViewProps> = ({
                         openEditModal(tag);
                       }}
                       className="cursor-pointer rounded-lg p-1.5 text-[var(--ink-muted)] opacity-100 transition-opacity hover:text-[var(--ink)] md:opacity-0 md:group-hover:opacity-100"
-                      title="编辑标签"
+                      aria-label="编辑标签"
                     >
                       <Edit2 className="w-3.5 h-3.5" />
                     </button>
@@ -360,7 +360,7 @@ export const TagsView: React.FC<TagsViewProps> = ({
                         setDeletingTag(tag);
                       }}
                       className="cursor-pointer rounded-lg p-1.5 text-[var(--ink-muted)] opacity-100 transition-opacity hover:text-[var(--h1-color)] md:opacity-0 md:group-hover:opacity-100"
-                      title="删除标签"
+                      aria-label="删除标签"
                     >
                       <Trash2 className="w-3.5 h-3.5" />
                     </button>

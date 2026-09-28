@@ -313,7 +313,7 @@ export const SourcesTab: React.FC<SourcesTabProps> = ({
                     type="button"
                     onClick={() => handleCycleVerification(s)}
                     className="cursor-pointer transition-transform active:scale-95"
-                    title="点击快捷切换核实状态 (已确认 -> 待核实 -> 不采用)"
+                    aria-label="快捷切换核实状态"
                   >
                     <VerificationBadge status={s.verification_status} />
                   </button>
@@ -322,7 +322,7 @@ export const SourcesTab: React.FC<SourcesTabProps> = ({
                   <button
                     onClick={() => openEditModal(s)}
                     className="p-1 text-stone-400 dark:text-stone-500 hover:text-stone-700 dark:hover:text-stone-300 rounded-lg hover:bg-stone-100 dark:hover:bg-stone-800 cursor-pointer transition-colors"
-                    title="编辑素材"
+                    aria-label="编辑素材"
                   >
                     <Edit2 className="w-3.5 h-3.5" />
                   </button>
@@ -330,7 +330,7 @@ export const SourcesTab: React.FC<SourcesTabProps> = ({
                     type="button"
                     onClick={() => setDeletingSource(s)}
                     className="p-1 text-stone-400 dark:text-stone-500 hover:text-red-600 dark:hover:text-red-400 rounded-lg hover:bg-red-50 dark:hover:bg-red-950/40 cursor-pointer transition-colors"
-                    title="删除素材"
+                    aria-label="删除素材"
                   >
                     <Trash2 className="w-3.5 h-3.5" />
                   </button>
@@ -338,7 +338,7 @@ export const SourcesTab: React.FC<SourcesTabProps> = ({
               </div>
 
               {/* Title */}
-              <h4 className="text-sm font-bold text-stone-900 dark:text-stone-100 leading-snug line-clamp-2" title={s.title}>
+              <h4 className="text-sm font-bold text-stone-900 dark:text-stone-100 leading-snug line-clamp-2">
                 {s.title}
               </h4>
 
@@ -351,7 +351,7 @@ export const SourcesTab: React.FC<SourcesTabProps> = ({
 
               {/* Notes / Tips */}
               {s.notes && (
-                <div className="text-[11px] text-stone-600 dark:text-stone-400 bg-amber-500/[0.04] dark:bg-amber-950/30 px-2.5 py-1 rounded-lg border border-amber-500/20 truncate" title={`备忘：${s.notes}`}>
+                <div className="text-[11px] text-stone-600 dark:text-stone-400 bg-amber-500/[0.04] dark:bg-amber-950/30 px-2.5 py-1 rounded-lg border border-amber-500/20 truncate">
                   💡 {s.notes}
                 </div>
               )}
@@ -360,7 +360,7 @@ export const SourcesTab: React.FC<SourcesTabProps> = ({
             {/* Bottom Meta & Action buttons */}
             <div className="pt-2.5 border-t border-stone-100 dark:border-stone-800 flex items-center justify-between flex-wrap gap-1.5 text-[11px] text-stone-400 dark:text-stone-500">
               <div className="flex items-center gap-2 truncate">
-                {s.author && <span className="truncate max-w-[90px] font-semibold" title={s.author}>@{s.author}</span>}
+                {s.author && <span className="truncate max-w-[90px] font-semibold">@{s.author}</span>}
                 {s.published_at && <span>{s.published_at}</span>}
 
                 {/* Convert to Timeline Event Button */}
@@ -384,7 +384,7 @@ export const SourcesTab: React.FC<SourcesTabProps> = ({
                       }
                     }}
                     className="inline-flex items-center gap-0.5 text-[10px] font-semibold text-stone-500 dark:text-stone-400 hover:text-[var(--accent)] transition-colors cursor-pointer disabled:cursor-wait disabled:opacity-60"
-                    title="一键将本条素材沉淀为故事时间线事件"
+                    aria-label="转时间线"
                   >
                     {pendingTimelineSourceId === s.id ? (
                       <span className="text-stone-500 dark:text-stone-400">沉淀中…</span>
@@ -408,7 +408,7 @@ export const SourcesTab: React.FC<SourcesTabProps> = ({
                   <button
                     onClick={() => copyUrl(s.id, s.url)}
                     className="hover:text-stone-700 dark:hover:text-stone-300 p-0.5 cursor-pointer"
-                    title="复制链接"
+                    aria-label="复制链接"
                   >
                     {copiedId === s.id ? (
                       <Check className="w-3 h-3 text-emerald-600 dark:text-emerald-400" />
@@ -493,7 +493,7 @@ export const SourcesTab: React.FC<SourcesTabProps> = ({
                     onClick={() => void handleSmartParse(smartPasteInput)}
                     disabled={isParsingUrl}
                     className="px-2.5 py-1.5 bg-[var(--accent)] hover:bg-[var(--accent-dark)] text-white rounded-lg text-xs font-semibold flex items-center gap-1 transition-colors shrink-0 disabled:opacity-50 cursor-pointer shadow-2xs"
-                    title="重新识别抓取"
+                    aria-label="重新识别抓取"
                   >
                     <RefreshCw className={`w-3 h-3 ${isParsingUrl ? 'animate-spin' : ''}`} />
                     <span>识别</span>

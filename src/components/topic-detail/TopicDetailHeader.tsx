@@ -110,7 +110,6 @@ export const TopicDetailHeader: React.FC<TopicDetailHeaderProps> = ({
               <div className="flex items-center gap-1.5 min-w-0 max-w-full">
                 <h1
                   onClick={() => setIsEditingTitle(true)}
-                  title="点击快速编辑标题"
                   className="min-w-0 truncate font-sans text-xl font-bold leading-tight tracking-tight text-[var(--ink)] transition-colors hover:text-[var(--accent)] sm:text-2xl"
                 >
                   {topic.title}
@@ -118,7 +117,6 @@ export const TopicDetailHeader: React.FC<TopicDetailHeaderProps> = ({
                 <button
                   onClick={() => setIsEditingTitle(true)}
                   className="text-[var(--ink-muted)] hover:text-[var(--ink)] p-1 rounded-[var(--radius-sm)] shrink-0 cursor-pointer transition-colors"
-                  title="编辑标题"
                   aria-label="编辑选题标题"
                 >
                   <Edit2 className="w-3.5 h-3.5" />
@@ -141,7 +139,6 @@ export const TopicDetailHeader: React.FC<TopicDetailHeaderProps> = ({
                 setIsPriorityMenuOpen(false);
               }}
               className={`inline-flex min-h-9 items-center gap-1.5 rounded-[var(--radius-sm)] px-2.5 py-1 text-xs font-medium transition-colors cursor-pointer select-none ${isStatusMenuOpen ? 'bg-[var(--surface)] text-[var(--ink)]' : 'text-[var(--ink)] hover:bg-[var(--surface)]'}`}
-              title="修改选题生产阶段"
             >
               <span className={`w-2 h-2 rounded-full ${statusDots[topic.status] || 'bg-stone-400'}`} />
               <span>{statusLabel}</span>
@@ -246,7 +243,6 @@ export const TopicDetailHeader: React.FC<TopicDetailHeaderProps> = ({
                 setIsStatusMenuOpen(false);
               }}
               className={`inline-flex min-h-9 items-center gap-1.5 rounded-[var(--radius-sm)] px-2.5 py-1 text-xs font-medium transition-colors cursor-pointer select-none ${isPriorityMenuOpen ? 'bg-[var(--surface)] text-[var(--ink)]' : 'text-[var(--ink)] hover:bg-[var(--surface)]'}`}
-              title="设置选题优先级"
             >
               <span className={`w-2 h-2 rounded-full ${priorityConfig[topic.priority]?.dot || 'bg-stone-300'}`} />
               <span>{priorityConfig[topic.priority]?.label || '未设'}</span>
@@ -316,7 +312,6 @@ export const TopicDetailHeader: React.FC<TopicDetailHeaderProps> = ({
                   ? 'bg-[var(--accent-soft)] text-[var(--accent-dark)]'
                   : 'bg-transparent text-[var(--ink-muted)] hover:bg-[var(--surface)] hover:text-[var(--ink)]'
               }`}
-              title="更多选题操作"
             >
               <MoreHorizontal className="h-4 w-4" aria-hidden="true" />
               <span>更多</span>
@@ -347,7 +342,6 @@ export const TopicDetailHeader: React.FC<TopicDetailHeaderProps> = ({
                       void onUpdateTopic({ status: 'inbox' });
                     }}
                     className="flex min-h-9 w-full items-center gap-2 rounded-xl px-2.5 py-1.5 text-left text-xs font-medium text-[var(--accent)] transition-colors hover:bg-[var(--accent-soft)] cursor-pointer"
-                    title="从归档中恢复至收集箱"
                   >
                     <span className="grid h-4 w-4 place-items-center text-sm" aria-hidden="true">↩</span>
                     <span>恢复至收集箱</span>
@@ -360,7 +354,6 @@ export const TopicDetailHeader: React.FC<TopicDetailHeaderProps> = ({
                       setIsStatusMenuOpen(true);
                     }}
                     className="flex min-h-9 w-full items-center gap-2 rounded-xl px-2.5 py-1.5 text-left text-xs font-medium text-[var(--ink)] transition-colors hover:bg-[var(--canvas)] cursor-pointer"
-                    title="将此选题移入归档库（将从全景看板中移出）"
                   >
                     <Archive className="h-3.5 w-3.5 text-[var(--ink-muted)]" aria-hidden="true" />
                     <span>选择归档状态</span>
@@ -375,7 +368,6 @@ export const TopicDetailHeader: React.FC<TopicDetailHeaderProps> = ({
                       onExportMarkdown();
                     }}
                     className="flex min-h-9 w-full items-center gap-2 rounded-xl px-2.5 py-1.5 text-left text-xs font-medium text-[var(--ink)] transition-colors hover:bg-[var(--canvas)] cursor-pointer"
-                    title="导出包含设定、事实链、时间线与文案的 Markdown 档案"
                   >
                     <FileDown className="h-3.5 w-3.5 text-[var(--ink-muted)]" aria-hidden="true" />
                     <span>导出 Markdown 档案</span>
@@ -393,7 +385,6 @@ export const TopicDetailHeader: React.FC<TopicDetailHeaderProps> = ({
                       ? 'bg-[var(--accent-soft)] text-[var(--accent-dark)]'
                       : 'text-[var(--ink)] hover:bg-[var(--canvas)]'
                   }`}
-                  title={topic.is_pinned ? '取消置顶' : '置顶选题'}
                 >
                   <Pin className={`h-3.5 w-3.5 ${topic.is_pinned ? 'fill-current' : 'text-[var(--ink-muted)]'}`} aria-hidden="true" />
                   <span>{topic.is_pinned ? '取消置顶' : '置顶选题'}</span>
@@ -407,7 +398,6 @@ export const TopicDetailHeader: React.FC<TopicDetailHeaderProps> = ({
                     setIsDeleteDialogOpen(true);
                   }}
                   className="flex min-h-9 w-full items-center gap-2 rounded-xl px-2.5 py-1.5 text-left text-xs font-medium text-[var(--h1-color)] transition-colors hover:bg-[var(--accent-soft)] cursor-pointer"
-                  title="移入回收站"
                 >
                   <Trash2 className="h-3.5 w-3.5" aria-hidden="true" />
                   <span>移入回收站</span>

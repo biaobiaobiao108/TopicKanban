@@ -37,7 +37,6 @@ const OutlineList: React.FC<OutlineListProps> = ({
             onMouseDown={(event) => event.preventDefault()}
             onClick={() => onSelectHeading(item)}
             className="script-outline-item-button"
-            title={item.title}
           >
             <span
               className={`script-outline-level-marker script-outline-level-marker--${item.level}`}
@@ -121,8 +120,7 @@ export const ScriptOutlinePanel: React.FC<ScriptOutlinePanelProps> = ({
             type="button"
             aria-label="退出文案大纲"
             onClick={onClose}
-            className="script-outline-close-button"
-            title="退出文案大纲 (Esc)"
+            className="script-outline-close-button cursor-pointer"
           >
             <X className="h-3.5 w-3.5" aria-hidden="true" />
           </button>

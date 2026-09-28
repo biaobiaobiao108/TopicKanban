@@ -525,31 +525,34 @@ export const TopicDetailView: React.FC<TopicDetailViewProps> = ({
         )}
       </Modal>
       {/* Module navigation stays visible across topic detail sections. */}
-      <header className="topic-detail-context-shell shrink-0 border-b border-[var(--line)] bg-[var(--canvas)]/95 backdrop-blur-sm transition-colors">
-        <div className="mx-auto flex max-w-7xl items-center justify-between gap-3 px-4 py-2 sm:px-8">
+      {/* Module navigation stays visible across topic detail sections. */}
+      <header className="topic-detail-context-shell relative shrink-0 border-b border-[var(--line)] bg-[var(--canvas)]/95 backdrop-blur-sm transition-colors">
+        <div className="flex w-full items-center justify-between gap-3 px-4 py-2 sm:px-6 md:px-8">
           {/* Left: Quick Back Navigation & Compact Topic Context */}
-          <div className="flex min-w-0 items-center gap-2.5 shrink-0">
+          <div className="flex min-w-0 items-center gap-2.5 shrink-0 z-10">
             {onBack && (
               <button
                 type="button"
                 onClick={onBack}
                 aria-label="返回上一级"
-                title="返回上一级"
                 className="flex h-8 w-8 items-center justify-center rounded-xl border border-[var(--line)] bg-[var(--surface)] text-[var(--ink-muted)] shadow-2xs transition-all hover:bg-[var(--canvas)] hover:text-[var(--ink)] cursor-pointer shrink-0"
               >
                 <ArrowLeft className="h-4 w-4" aria-hidden="true" />
               </button>
             )}
             <div className="flex min-w-0 items-center gap-2">
-              <span className="truncate max-w-[120px] sm:max-w-[200px] md:max-w-[300px] text-xs sm:text-sm font-bold text-[var(--ink)]" title={topic.title}>
+              <span className="truncate max-w-[120px] sm:max-w-[180px] md:max-w-[260px] text-xs sm:text-sm font-bold text-[var(--ink)]">
                 {topic.title}
               </span>
               <StatusBadge status={topic.status} size="sm" />
             </div>
           </div>
 
-          {/* Right / Center: Segmented Island Capsule Tabs */}
-          <div ref={detailSubtabsRef} className="detail-subtabs-container flex min-w-0 flex-1 justify-end overflow-x-auto bg-transparent transition-colors no-scrollbar">
+          {/* Center: Segmented Island Capsule Tabs (Horizontally Centered) */}
+          <div
+            ref={detailSubtabsRef}
+            className="detail-subtabs-container flex min-w-0 flex-1 justify-center overflow-x-auto bg-transparent transition-colors no-scrollbar py-0.5 md:absolute md:left-1/2 md:-translate-x-1/2 md:max-w-[calc(100%-360px)]"
+          >
             <nav
               aria-label="选题模块导航"
               className="inline-flex min-w-max items-center gap-1 rounded-2xl border border-[var(--line)] bg-[var(--surface)]/70 p-1 shadow-2xs backdrop-blur-xs"
@@ -588,6 +591,9 @@ export const TopicDetailView: React.FC<TopicDetailViewProps> = ({
               })}
             </nav>
           </div>
+
+          {/* Right: Balance spacer for flex mode */}
+          <div className="hidden md:block w-8 shrink-0 pointer-events-none" aria-hidden="true" />
         </div>
       </header>
 

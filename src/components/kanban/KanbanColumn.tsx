@@ -110,7 +110,6 @@ const KanbanColumnComponent: React.FC<KanbanColumnProps> = ({
           type="button"
           onClick={() => onQuickAddTopic(status)}
           aria-label={`在${label}中快速建卡`}
-          title={`在${label}中快速建卡`}
           className="p-1 text-[var(--ink-muted)] hover:text-[var(--ink)] hover:bg-[var(--surface)] rounded-[var(--radius-sm)] transition-colors cursor-pointer"
         >
           <Plus className="w-3.5 h-3.5" aria-hidden="true" />

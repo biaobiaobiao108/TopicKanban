@@ -175,7 +175,7 @@ export const PeopleTab: React.FC<PeopleTabProps> = ({
                   <button
                     onClick={() => openEditModal(person)}
                     className="p-1.5 text-stone-400 dark:text-stone-500 hover:text-stone-700 dark:hover:text-stone-300 hover:bg-stone-100 dark:hover:bg-stone-800 rounded-lg transition-colors cursor-pointer"
-                    title="编辑人物档案"
+                    aria-label="编辑人物档案"
                   >
                     <Edit2 className="w-3.5 h-3.5" />
                   </button>

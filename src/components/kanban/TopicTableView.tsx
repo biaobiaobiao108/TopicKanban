@@ -116,7 +116,7 @@ function TableStatusCell({
         type="button"
         onClick={() => setIsOpen((prev) => !prev)}
         className="flex items-center gap-1 hover:opacity-80 transition-opacity cursor-pointer"
-        title="修改阶段"
+        aria-label="修改阶段"
       >
         <StatusBadge status={topic.status} />
         <ChevronDown className="w-3 h-3 text-stone-400 dark:text-stone-500" />
@@ -518,7 +518,6 @@ export const TopicTableView: React.FC<TopicTableViewProps> = ({
               onClick={() => void handleEmptyTrash()}
               disabled={isBulkUpdating}
               className="flex min-h-9 items-center gap-1.5 rounded-[var(--radius-sm)] px-2.5 text-[11px] font-medium text-[var(--h1-color)] transition-colors hover:bg-[var(--canvas)] cursor-pointer disabled:opacity-50"
-              title="彻底永久删除回收站内的全部选题"
             >
               <Trash2 className="h-3.5 w-3.5 text-red-600 dark:text-red-400" />
               <span>清空回收站 ({trashCount})</span>
@@ -530,7 +529,6 @@ export const TopicTableView: React.FC<TopicTableViewProps> = ({
               type="button"
               onClick={() => setDensity((previous) => previous === 'compact' ? 'comfortable' : 'compact')}
               className="flex min-h-9 items-center gap-1.5 rounded-[var(--radius-sm)] px-2.5 text-[11px] font-medium text-[var(--ink-muted)] hover:bg-[var(--surface)] hover:text-[var(--ink)] cursor-pointer"
-              title="切换表格行密度"
             >
               <Rows3 className="h-3.5 w-3.5" /> {density === 'compact' ? '紧凑' : '舒适'}
             </button>
@@ -718,7 +716,7 @@ export const TopicTableView: React.FC<TopicTableViewProps> = ({
                         ? 'border-[var(--accent)]/25 bg-[var(--accent-soft)] text-[var(--accent)]'
                         : 'border-[var(--line)] text-[var(--ink-muted)]'
                     }`}
-                    title={isArchived ? '归档选题不可设为主推' : topic.is_pinned ? '取消置顶' : '置顶选题'}
+                    aria-label={isArchived ? '归档选题不可设为主推' : topic.is_pinned ? '取消置顶' : '置顶选题'}
                   >
                     <Pin className={`h-4 w-4 ${topic.is_pinned ? 'fill-current' : ''}`} />
                   </button>
@@ -810,8 +808,8 @@ export const TopicTableView: React.FC<TopicTableViewProps> = ({
                   </button>}
                   {archiveScope !== 'trash' && <button
                     onClick={() => requestDeleteTopic(topic)}
+                    aria-label="移入回收站"
                     className="flex h-10 w-10 items-center justify-center rounded-[var(--radius-sm)] text-[var(--h1-color)] hover:bg-[var(--canvas)] cursor-pointer"
-                    title="移入回收站"
                   >
                     <Trash2 className="h-4 w-4" />
                   </button>}
@@ -987,7 +985,7 @@ export const TopicTableView: React.FC<TopicTableViewProps> = ({
                         if (archiveScope !== 'trash' && !isArchived) void togglePin(topic.id);
                       }}
                       disabled={archiveScope === 'trash' || isArchived}
-                      title={isArchived ? '归档选题不可设为主推' : topic.is_pinned ? '取消置顶' : '置顶选题'}
+                      aria-label={isArchived ? '归档选题不可设为主推' : topic.is_pinned ? '取消置顶' : '置顶选题'}
                       className={`p-1 rounded transition-colors ${isArchived ? 'cursor-not-allowed opacity-30' : 'cursor-pointer'} ${
                         topic.is_pinned
                           ? 'text-[var(--accent)] hover:text-[var(--ink-muted)]'
@@ -1041,7 +1039,7 @@ export const TopicTableView: React.FC<TopicTableViewProps> = ({
                         onOpenCurrentAction(topic.id);
                       }}
                       className={`inline-flex max-w-[240px] items-center gap-1.5 truncate rounded-[var(--radius-sm)] px-2 py-1 text-left text-[11px] font-medium transition-colors cursor-pointer ${topic.current_todo ? 'bg-[var(--accent-soft)]/60 text-[var(--accent-dark)] hover:bg-[var(--accent-soft)]' : 'text-[var(--ink-muted)] hover:bg-[var(--canvas)]'}`}
-                      title="管理当前行动"
+                      aria-label="管理当前行动"
                     >
                       <Zap className={`h-3 w-3 shrink-0 ${topic.current_todo ? 'text-[var(--accent)]' : 'text-[var(--ink-muted)]'}`} aria-hidden="true" />
                       <span className="truncate">{topic.current_todo?.title || '未设置当前行动'}</span>
@@ -1128,14 +1126,14 @@ export const TopicTableView: React.FC<TopicTableViewProps> = ({
                           <button
                             onClick={() => void restoreTopic(topic.id)}
                             className="p-1.5 text-emerald-600 dark:text-emerald-400 hover:text-emerald-800 dark:hover:text-emerald-300 hover:bg-emerald-50 dark:hover:bg-emerald-950/40 rounded-lg transition-colors cursor-pointer"
-                            title="恢复选题"
+                            aria-label="恢复选题"
                           >
                             <RotateCcw className="w-3.5 h-3.5" />
                           </button>
                           <button
                             onClick={() => requestPermanentlyDeleteTopic(topic)}
                             className="p-1.5 text-red-500 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300 hover:bg-red-50 dark:hover:bg-red-950/40 rounded-lg transition-colors cursor-pointer"
-                            title="永久删除"
+                            aria-label="永久删除"
                           >
                             <Trash2 className="w-3.5 h-3.5" />
                           </button>
@@ -1144,7 +1142,7 @@ export const TopicTableView: React.FC<TopicTableViewProps> = ({
                         <button
                           onClick={() => void updateTopicStatus(topic.id, 'inbox').catch(() => undefined)}
                           className="p-1.5 text-[var(--accent)] hover:bg-[var(--canvas)] rounded-[var(--radius-sm)] transition-colors cursor-pointer"
-                          title="从归档中恢复至收集箱"
+                          aria-label="从归档中恢复至收集箱"
                         >
                           <RotateCcw className="w-3.5 h-3.5" />
                         </button>
@@ -1152,7 +1150,7 @@ export const TopicTableView: React.FC<TopicTableViewProps> = ({
                         <button
                           onClick={() => setArchiveTopicId(topic.id)}
                           className="p-1.5 text-stone-400 dark:text-stone-500 hover:text-stone-800 dark:hover:text-stone-200 hover:bg-stone-100 dark:hover:bg-stone-800 rounded-lg transition-colors cursor-pointer"
-                          title="归档此选题"
+                          aria-label="归档此选题"
                         >
                           <Archive className="w-3.5 h-3.5" />
                         </button>
@@ -1162,7 +1160,7 @@ export const TopicTableView: React.FC<TopicTableViewProps> = ({
                       {archiveScope !== 'trash' && <button
                         onClick={() => requestDeleteTopic(topic)}
                         className="p-1.5 text-stone-300 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors cursor-pointer"
-                        title="移入回收站"
+                        aria-label="移入回收站"
                       >
                         <Trash2 className="w-3.5 h-3.5" />
                       </button>}

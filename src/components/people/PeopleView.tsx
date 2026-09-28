@@ -265,7 +265,6 @@ export const PeopleView: React.FC<PeopleViewProps> = ({
                         onClick={() => openEditPersonModal(person)}
                         aria-label={`编辑人物档案：${person.name}`}
                         className="p-1.5 text-stone-400 dark:text-stone-500 hover:text-stone-700 dark:hover:text-stone-300 rounded-lg hover:bg-stone-100 dark:hover:bg-stone-800 cursor-pointer transition-colors"
-                        title="编辑人物档案"
                       >
                         <Edit2 aria-hidden="true" className="w-4 h-4" />
                       </button>
@@ -274,7 +273,6 @@ export const PeopleView: React.FC<PeopleViewProps> = ({
                         onClick={() => setDeletingPerson(person)}
                         aria-label={`删除人物档案：${person.name}`}
                         className="p-1.5 text-stone-400 dark:text-stone-500 hover:text-red-600 dark:hover:text-red-400 rounded-lg hover:bg-red-50 dark:hover:bg-red-950/40 cursor-pointer transition-colors"
-                        title="删除人物档案"
                       >
                         <Trash2 aria-hidden="true" className="w-4 h-4" />
                       </button>
@@ -319,7 +317,6 @@ export const PeopleView: React.FC<PeopleViewProps> = ({
                                 aria-label={`解除与 ${targetName} 的关系`}
                                 onClick={() => setDeletingRel({ id: r.id, label: `与 ${targetName} 的「${r.relationship}」关系` })}
                                 className="text-stone-400 hover:text-red-600 dark:text-stone-500 dark:hover:text-red-400 p-0.5 rounded transition-colors cursor-pointer"
-                                title="解除此关系"
                               >
                                 <span className="text-xs leading-none">×</span>
                               </button>

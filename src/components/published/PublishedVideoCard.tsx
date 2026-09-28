@@ -61,7 +61,6 @@ export const PublishedVideoCard: React.FC<PublishedVideoCardProps> = ({
               target="_blank"
               rel="noopener noreferrer"
               className="block w-full h-full relative cursor-pointer group/cover"
-              title="在 B站 打开观看成片"
             >
               <img
                 src={coverUrl}
@@ -106,7 +105,6 @@ export const PublishedVideoCard: React.FC<PublishedVideoCardProps> = ({
                   type="button"
                   onClick={() => video.topic_id && onSelectTopic(video.topic_id)}
                   className="text-[11px] text-stone-600 dark:text-stone-300 hover:text-[var(--accent)] bg-stone-100 dark:bg-stone-800 hover:bg-[var(--accent-soft)] px-2 py-0.5 rounded-full truncate max-w-[130px] sm:max-w-[170px] transition-colors text-left cursor-pointer font-medium"
-                  title={`查看选题: ${video.topic_title}`}
                 >
                   选题: {video.topic_title}
                 </button>
@@ -121,7 +119,6 @@ export const PublishedVideoCard: React.FC<PublishedVideoCardProps> = ({
                   disabled={isSyncingThis || isBulkSyncing}
                   className="p-1 text-stone-400 dark:text-stone-500 hover:text-[var(--accent)] rounded-lg hover:bg-[var(--accent-soft)] transition-colors disabled:opacity-50 cursor-pointer"
                   aria-label="从 B站 同步最新数据"
-                  title="从 B站 同步最新数据"
                 >
                   <RefreshCw aria-hidden="true" className={`w-3.5 h-3.5 ${isSyncingThis ? 'animate-spin text-[var(--accent)]' : ''}`} />
                 </button>
@@ -131,7 +128,6 @@ export const PublishedVideoCard: React.FC<PublishedVideoCardProps> = ({
                 onClick={onEdit}
                 aria-label="编辑数据"
                 className="p-1 text-stone-400 dark:text-stone-500 hover:text-stone-700 dark:hover:text-stone-300 rounded-lg hover:bg-stone-100 dark:hover:bg-stone-800 cursor-pointer transition-colors"
-                title="编辑数据"
               >
                 <Edit2 aria-hidden="true" className="w-3.5 h-3.5" />
               </button>
@@ -140,7 +136,6 @@ export const PublishedVideoCard: React.FC<PublishedVideoCardProps> = ({
                 onClick={onDelete}
                 aria-label="删除已发布视频"
                 className="p-1 text-stone-400 dark:text-stone-500 hover:text-red-600 dark:hover:text-red-400 rounded-lg hover:bg-red-50 dark:hover:bg-red-950/40 cursor-pointer transition-colors"
-                title="删除"
               >
                 <Trash2 aria-hidden="true" className="w-3.5 h-3.5" />
               </button>
@@ -149,10 +144,7 @@ export const PublishedVideoCard: React.FC<PublishedVideoCardProps> = ({
 
           {/* Row 2: Two-Line Title Slot without clipping */}
           <div className="min-h-[2.75rem] h-[2.75rem] flex items-start overflow-hidden">
-            <p
-                className="text-xs sm:text-sm font-bold text-stone-900 dark:text-stone-100 leading-snug break-words line-clamp-2 hover:text-[var(--accent)] dark:hover:text-[var(--accent)] transition-colors"
-              title={video.title}
-            >
+            <p className="text-xs sm:text-sm font-bold text-stone-900 dark:text-stone-100 leading-snug break-words line-clamp-2 hover:text-[var(--accent)] dark:hover:text-[var(--accent)] transition-colors">
               {video.title}
             </p>
           </div>
@@ -230,10 +222,7 @@ export const PublishedVideoCard: React.FC<PublishedVideoCardProps> = ({
                   <span className="font-bold font-mono tabular-nums">{metrics.favoriteRate}%</span>
                 </span>
                 {metrics.viewsPerKWord > 0 && (
-                  <span
-                    className="hidden md:inline-flex items-center gap-0.5 px-1.5 py-0.2 rounded bg-purple-500/10 text-purple-800 dark:text-purple-300 truncate"
-                    title={`每千字文案产出 ${formatNumber(metrics.viewsPerKWord)} 播放`}
-                  >
+                  <span className="hidden md:inline-flex items-center gap-0.5 px-1.5 py-0.2 rounded bg-purple-500/10 text-purple-800 dark:text-purple-300 truncate">
                     <span>千字</span>
                     <span className="font-bold font-mono tabular-nums">{formatNumber(metrics.viewsPerKWord)}</span>
                   </span>
@@ -242,25 +231,20 @@ export const PublishedVideoCard: React.FC<PublishedVideoCardProps> = ({
             )}
           </div>
 
-          {/* Row 4: Bottom Bar (Date + Note Tooltip + Link) */}
+          {/* Row 4: Bottom Bar (Date + Note Badge + Link) */}
           <div className="pt-2 border-t border-stone-100 dark:border-stone-800 flex items-center justify-between text-[11px] text-stone-600 dark:text-stone-400">
             <span className="flex items-center gap-1 shrink-0">
               <Calendar className="w-3 h-3" />
               <span>{video.published_at}</span>
             </span>
 
-            {/* Notes Tooltip Badge if present */}
+            {/* Notes Badge if present (Clean inline badge without hover popup) */}
             {video.notes && (
-              <div className="relative group/note flex items-center cursor-help mx-1 min-w-0">
+              <div className="flex items-center mx-1 min-w-0">
                 <span className="text-[10px] text-amber-800 dark:text-amber-300 bg-amber-500/10 border border-amber-500/20 px-1.5 py-0.5 rounded flex items-center gap-1 font-medium max-w-[120px] sm:max-w-[160px] truncate">
                   <FileText className="w-2.5 h-2.5 shrink-0 text-amber-600 dark:text-amber-400" />
                   <span className="truncate">{video.notes}</span>
                 </span>
-                {/* Tooltip on hover */}
-                <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-1.5 hidden group-hover/note:block w-56 sm:w-64 p-2.5 bg-stone-900/95 dark:bg-stone-800 text-stone-100 text-xs rounded-xl shadow-xl z-30 pointer-events-none whitespace-normal leading-relaxed border border-stone-700 backdrop-blur-xs">
-                  <strong className="text-amber-400 block mb-0.5">复盘笔记：</strong>
-                  {video.notes}
-                </div>
               </div>
             )}
 

@@ -626,7 +626,6 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({
                   disabled={isInjectingOutline}
                   onClick={handleInjectIntoDraft}
                   className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-[var(--accent)] hover:bg-[var(--accent-dark)] text-white text-xs font-bold transition-all shadow-2xs cursor-pointer active:scale-[0.98] disabled:cursor-wait disabled:opacity-60"
-                  title="将故事结构直接导入文案编辑器"
                 >
                   <FileText className="w-3.5 h-3.5" />
                   <span>{isInjectingOutline ? '正在导入…' : '导入文案草稿'}</span>
@@ -639,7 +638,6 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({
                   disabled={isConvertingToTimeline}
                   onClick={handleConvertToTimeline}
                   className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-stone-100 dark:bg-stone-800 hover:bg-stone-200/80 dark:hover:bg-stone-700 text-stone-700 dark:text-stone-300 text-xs font-semibold transition-colors cursor-pointer disabled:cursor-wait disabled:opacity-60"
-                  title="将故事结构拆分为时间线节点"
                 >
                   <Calendar className="w-3.5 h-3.5 text-stone-500" />
                   <span>{isConvertingToTimeline ? '正在拆分…' : '拆成时间线'}</span>
@@ -830,7 +828,7 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({
             <button
               onClick={() => setIsAddPersonModalOpen(true)}
               className="flex items-center gap-1 rounded-lg bg-[var(--accent-soft)] px-2.5 py-1 text-xs font-semibold text-[var(--accent-dark)] transition-colors hover:bg-[var(--surface)] cursor-pointer"
-              title="新建人物档案并关联到本选题"
+              aria-label="新建人物档案"
             >
               <UserPlus className="w-3.5 h-3.5" />
               <span>新建人物</span>
@@ -855,7 +853,7 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({
                     )}
                     <button
                       onClick={() => togglePerson(p)}
-                      title="从本选题移出"
+                      aria-label="从本选题移出"
                       className="text-stone-400 hover:text-red-300 ml-0.5 p-0.5 cursor-pointer"
                     >
                       <X className="w-3 h-3" />
@@ -956,7 +954,7 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({
                     <span>#{tag.name}</span>
                     <button
                       onClick={() => toggleTag(tag)}
-                      title="移除此标签"
+                      aria-label="移除此标签"
                       className="text-stone-400 hover:text-red-300 ml-0.5 p-0.5 cursor-pointer"
                     >
                       <X className="w-3 h-3" />
