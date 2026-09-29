@@ -361,23 +361,23 @@ html.dark .script-citation::after {
   }
 
   html.theme-warm-paper {
-    --canvas: #f7f4ed;
-    --surface: #fdfcf7;
-    --ink: #2d2926;
-    --ink-muted: #6c655c;
-    --line: rgba(45, 41, 38, 0.08);
-    --accent: #365f4d;
-    --accent-soft: rgba(54, 95, 77, 0.10);
-    --accent-dark: #284838;
-    --h1-color: #a04a32;
-    --h2-color: #365f4d;
-    --h3-color: #806b50;
-    --control-surface: rgba(34, 41, 35, 0.025);
-    --focus-ring: rgba(54, 95, 77, 0.35);
+    --canvas: #f5f0e5;
+    --surface: #faf6ee;
+    --ink: #2b2622;
+    --ink-muted: #6d635a;
+    --line: rgba(55, 42, 28, 0.08);
+    --accent: #784c31;
+    --accent-soft: rgba(120, 76, 49, 0.08);
+    --accent-dark: #5f3a23;
+    --h1-color: #9a3824;
+    --h2-color: #784c31;
+    --h3-color: #876344;
+    --control-surface: rgba(45, 35, 25, 0.025);
+    --focus-ring: rgba(120, 76, 49, 0.28);
 
-    --nav-surface: rgba(253, 252, 247, 0.90);
-    --sidebar-surface: rgba(242, 236, 225, 0.92);
-    --scrollbar-thumb: rgba(45, 41, 38, 0.18);
+    --nav-surface: rgba(250, 246, 238, 0.92);
+    --sidebar-surface: rgba(236, 228, 214, 0.94);
+    --scrollbar-thumb: rgba(55, 42, 28, 0.18);
     --scrollbar-track: transparent;
     color-scheme: light;
   }
@@ -683,7 +683,7 @@ mark, .mark-highlight {
 }
 
 /* ==========================================================================
-   1. Warm Paper (暖沙纸境) - Vintage Caramel Terracotta & Ink Navy System
+   1. Warm Paper (暖沙纸境) - Natural Warm Paper & Chestnut Ink System
    ========================================================================== */
 
 /* 1. Main Workspace Canvas */
@@ -692,7 +692,7 @@ html.theme-warm-paper #root,
 html.theme-warm-paper main,
 html.theme-warm-paper .bg-\[\#fafaf9\],
 html.theme-warm-paper .bg-stone-50 {
-  background-color: #f7f4ed !important;
+  background-color: #f5f0e5 !important;
 }
 
 /* 2. All Common White Surfaces */
@@ -708,8 +708,8 @@ html.theme-warm-paper .kanban-column-container .bg-white,
 html.theme-warm-paper .today-spotlight-card,
 html.theme-warm-paper .today-priority-item,
 html.theme-warm-paper .today-recent-updates-panel {
-  background-color: #fdfcf7 !important;
-  border-color: #eae2d5 !important;
+  background-color: #faf6ee !important;
+  border-color: #e6ded1 !important;
 }
 
 html.theme-warm-paper .kanban-column-container .bg-white,
@@ -720,9 +720,9 @@ html.theme-warm-paper .today-spotlight-card {
 
 html.theme-warm-paper .kanban-column-container .bg-white:hover,
 html.theme-warm-paper .today-priority-item:hover {
-  background-color: #fdfcf7 !important;
-  border-color: #dcd2c3 !important;
-  box-shadow: 0 4px 14px rgba(60, 45, 30, 0.07) !important;
+  background-color: #faf6ee !important;
+  border-color: #dcd1c1 !important;
+  box-shadow: 0 4px 14px rgba(60, 45, 30, 0.06) !important;
 }
 
 /* 3. Kanban Board & 3 Columns (Vintage Book Stages) */
@@ -737,9 +737,9 @@ html.theme-warm-paper .kanban-column-container[data-column-status="inbox"] .kanb
 }
 
 html.theme-warm-paper .kanban-column-container[data-column-status="scripting"] {
-  background-color: #f7f4ed !important;
-  border-color: #e8e0d2 !important;
-  border-top-color: #ddd3c2 !important;
+  background-color: #f5f0e5 !important;
+  border-color: #e5ded0 !important;
+  border-top-color: #dcd2c2 !important;
 }
 html.theme-warm-paper .kanban-column-container[data-column-status="scripting"] .kanban-column-count {
   background-color: #ece4d5 !important;
@@ -761,12 +761,12 @@ html.theme-warm-paper .detail-subtabs-container,
 html.theme-warm-paper .table-scope-tabs-container,
 html.theme-warm-paper .tags-header-banner,
 html.theme-warm-paper .script-editor-canvas-container {
-  background-color: #f7f4ed !important;
+  background-color: #f5f0e5 !important;
   border-bottom-color: transparent !important;
 }
 
 html.theme-warm-paper .table-scope-tabs-container button.is-active {
-  background-color: #fdfcf7 !important;
+  background-color: #faf6ee !important;
   border: 1px solid transparent !important;
   box-shadow: 0 1px 3px rgba(60, 45, 30, 0.05) !important;
   color: #24201d !important;
@@ -783,8 +783,8 @@ html.theme-warm-paper aside.sidebar-container,
 html.theme-warm-paper .sidebar-container,
 html.theme-warm-paper .mobile-drawer-container,
 html.theme-warm-paper .mobile-nav-container {
-  background-color: #f2ece1 !important;
-  border-color: #e5ded2 !important;
+  background-color: #ece4d6 !important;
+  border-color: #ded5c4 !important;
 }
 
 html.theme-warm-paper .sidebar-brand-logo,
@@ -797,9 +797,9 @@ html.theme-warm-paper aside.sidebar-container nav button.bg-stone-100,
 html.theme-warm-paper aside nav button.bg-stone-100,
 html.theme-warm-paper .mobile-drawer-container nav button.bg-stone-100,
 html.theme-warm-paper .tags-sidebar-panel .tag-menu-item.is-selected {
-  background-color: #fdfcf7 !important;
-  border: 1px solid #e0d8cb !important;
-  box-shadow: 0 1px 3px rgba(60, 45, 30, 0.05) !important;
+  background-color: #faf6ee !important;
+  border: 1px solid #ded5c4 !important;
+  box-shadow: 0 1px 3px rgba(60, 45, 30, 0.04) !important;
   color: #24201d !important;
   font-weight: 700 !important;
 }
@@ -817,8 +817,8 @@ html.theme-warm-paper .mobile-drawer-container button.bg-stone-900:hover {
 
 /* 8. Controls & Modals */
 html.theme-warm-paper .shadow-modal {
-  background-color: #fdfcf7 !important;
-  border: 1px solid #e5ded2 !important;
+  background-color: #faf6ee !important;
+  border: 1px solid #ded5c4 !important;
   box-shadow: 0 20px 35px -5px rgba(60, 45, 30, 0.12), 0 8px 12px -6px rgba(60, 45, 30, 0.06) !important;
 }
 html.theme-warm-paper input[type="text"],
@@ -826,8 +826,8 @@ html.theme-warm-paper input[type="number"],
 html.theme-warm-paper input[type="search"],
 html.theme-warm-paper textarea,
 html.theme-warm-paper select {
-  background-color: #fdfcf7 !important;
-  border-color: #e2dbce !important;
+  background-color: #faf6ee !important;
+  border-color: #ded5c4 !important;
   color: #24201d !important;
 }
 html.theme-warm-paper input[type="text"]:not(.script-editor-title):not([data-no-focus-ring]):not(.command-palette-input):not(.todo-composer-input):not(.todo-inline-editor-input):focus,
@@ -844,8 +844,8 @@ html.theme-warm-paper input[type="checkbox"]:checked {
 }
 
 /* 9. TipTap & Scrollbars */
-html.theme-warm-paper ::-webkit-scrollbar-thumb { background: #d8cfc2; }
-html.theme-warm-paper ::-webkit-scrollbar-thumb:hover { background: #c2b7a6; }
+html.theme-warm-paper ::-webkit-scrollbar-thumb { background: #d7cdbe; }
+html.theme-warm-paper ::-webkit-scrollbar-thumb:hover { background: #c2b6a2; }
 
 .tags-sidebar-panel,
 .script-outline-panel,

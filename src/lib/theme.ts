@@ -82,8 +82,8 @@ export const THEME_CONFIG_LIST: ThemeConfig[] = [
   {
     id: 'warm_paper',
     title: '暖沙纸境',
-    desc: '温润暖纸画布与松柏绿操作色，适合长时间阅读',
-    colors: ['#f7f4ed', '#fdfcf7', '#365f4d', '#6c655c'],
+    desc: '温润暖沙纸境与典雅茶木操作色，自然优雅',
+    colors: ['#f5f0e5', '#faf6ee', '#784c31', '#6d635a'],
   },
   {
     id: 'light',

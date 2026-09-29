@@ -527,15 +527,15 @@ html.dark .tiptap blockquote {
 
 html.dark .tiptap hr { border-top-color: var(--line); }
 
-html.theme-warm-paper .tiptap { color: #2b2723; }
+html.theme-warm-paper .tiptap { color: #2b2622; }
 html.theme-warm-paper .tiptap h1 { color: var(--h1-color); }
 html.theme-warm-paper .tiptap h2 { color: var(--h2-color); }
 html.theme-warm-paper .tiptap h3 { color: var(--h3-color); }
 html.theme-warm-paper .tiptap blockquote {
-  background: rgba(107, 95, 181, 0.06);
-  color: #5c554e;
+  background: rgba(120, 76, 49, 0.06);
+  color: #5c534c;
 }
-html.theme-warm-paper .tiptap hr { border-top-color: #e3dbd0; }
+html.theme-warm-paper .tiptap hr { border-top-color: #dfd6c8; }
 
 html.theme-parisian-dawn .tiptap { color: #2b2520; }
 html.theme-parisian-dawn .tiptap h1 { color: var(--h1-color); }
