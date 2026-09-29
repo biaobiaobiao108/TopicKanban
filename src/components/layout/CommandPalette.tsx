@@ -761,7 +761,7 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
     if (itemRefs.current[selectedIndex]) {
       itemRefs.current[selectedIndex]?.scrollIntoView({
         block: 'nearest',
-        behavior: 'smooth',
+        behavior: 'auto',
       });
     }
   }, [selectedIndex]);
@@ -927,34 +927,27 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
         </div>
 
         {/* Results List */}
-        <FloatingScrollbar className="p-2 space-y-1 divide-y divide-stone-50 dark:divide-stone-800/60" wrapperClassName="max-h-[480px] flex-none">
+        <FloatingScrollbar className="flex flex-col gap-1 p-2" wrapperClassName="max-h-[480px] flex-none">
           {items.map((item, index) => {
             const isSelected = index === selectedIndex;
             const Icon = item.icon;
-            const prevItem = index > 0 ? items[index - 1] : null;
-            const isNewCategory = !prevItem || prevItem.categoryLabel !== item.categoryLabel;
 
             return (
-              <React.Fragment key={item.id}>
-                {isNewCategory && (
-                  <div className="pt-2 pb-0.5 px-3 text-[10px] font-bold text-stone-500 dark:text-stone-400 uppercase tracking-wider flex items-center justify-between">
-                    <span>{item.categoryLabel}</span>
-                  </div>
-                )}
                 <button
+                  key={item.id}
                   ref={(el) => { itemRefs.current[index] = el; }}
                   onClick={item.onSelect}
                   onPointerDown={() => setSelectedIndex(index)}
                   onMouseMove={(e) => handleItemMouseMove(index, e)}
-                  className={`w-full flex items-center justify-between px-3 py-1.5 rounded-xl text-left transition-all cursor-pointer ${
+                  className={`w-full h-14 shrink-0 flex items-center justify-between px-3 rounded-xl text-left transition-colors cursor-pointer ${
                     isSelected
                       ? 'bg-[var(--accent-soft)] text-[var(--ink)] ring-1 ring-[var(--focus-ring)] shadow-2xs'
                       : 'text-stone-700 dark:text-stone-300'
                   }`}
                 >
-                  <div className="flex items-start gap-3 min-w-0 flex-1">
+                  <div className="flex items-center gap-3 min-w-0 flex-1">
                     <div
-                      className={`w-7 h-7 rounded-lg flex items-center justify-center shrink-0 mt-0.5 transition-colors ${
+                      className={`w-7 h-7 rounded-lg flex items-center justify-center shrink-0 transition-colors ${
                         isSelected
                           ? 'bg-[var(--surface)] text-[var(--accent)]'
                           : 'bg-stone-100 dark:bg-stone-800 text-stone-500 dark:text-stone-400'
@@ -964,16 +957,14 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
                     </div>
 
                     <div className="min-w-0 flex-1">
-                      <div className="flex items-center gap-2">
-                        <span className="font-semibold text-stone-900 dark:text-stone-100 text-sm truncate">
+                      <div className="h-5 flex items-center">
+                        <span className="font-semibold text-stone-900 dark:text-stone-100 text-sm truncate leading-5">
                           {item.title}
                         </span>
                       </div>
-                      {item.subtitle && (
-                        <div className="mt-0.5 line-clamp-1 text-[11px] leading-4 text-stone-500/80 dark:text-stone-400/80">
-                          {item.subtitle}
-                        </div>
-                      )}
+                      <div className="mt-0.5 h-4 truncate text-[11px] leading-4 text-stone-500/80 dark:text-stone-400/80">
+                        {item.subtitle}
+                      </div>
                     </div>
                   </div>
 
@@ -986,7 +977,6 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
                     />
                   </div>
                 </button>
-              </React.Fragment>
             );
           })}
 
@@ -999,29 +989,6 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
             </div>
           )}
         </FloatingScrollbar>
-
-        {/* Footer Keybinding Hints Bar */}
-        <div className="px-4 py-2.5 bg-[var(--surface-muted)] dark:bg-stone-900/90 border-t border-[var(--line)] dark:border-stone-800 flex items-center justify-between text-[11px] text-[var(--ink-muted)] font-medium shrink-0 flex-wrap gap-2">
-          <div className="flex items-center gap-3">
-            <span className="flex items-center gap-1">
-              <kbd className="bg-[var(--canvas)]/80 dark:bg-stone-800 px-1.5 py-0.5 rounded border border-[var(--line)] dark:border-stone-700 font-mono shadow-subtle text-[var(--ink)]">↑</kbd>
-              <kbd className="bg-[var(--canvas)]/80 dark:bg-stone-800 px-1.5 py-0.5 rounded border border-[var(--line)] dark:border-stone-700 font-mono shadow-subtle text-[var(--ink)]">↓</kbd>
-              <span>选择</span>
-            </span>
-            <span className="flex items-center gap-1">
-              <kbd className="bg-[var(--canvas)]/80 dark:bg-stone-800 px-1.5 py-0.5 rounded border border-[var(--line)] dark:border-stone-700 font-mono shadow-subtle text-[var(--ink)]">↵</kbd>
-              <span>确认执行</span>
-            </span>
-            <span className="flex items-center gap-1">
-              <kbd className="bg-[var(--canvas)]/80 dark:bg-stone-800 px-1.5 py-0.5 rounded border border-[var(--line)] dark:border-stone-700 font-mono shadow-subtle text-[var(--ink)]">ESC</kbd>
-              <span>关闭</span>
-            </span>
-          </div>
-
-          <div className="text-stone-600 dark:text-stone-400 text-[10px] font-mono">
-            共 {items.length} 个可用指令与资源
-          </div>
-        </div>
       </div>
     </div>
   );
