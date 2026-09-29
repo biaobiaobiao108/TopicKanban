@@ -956,26 +956,15 @@ html.theme-warm-paper {
 
 
 .command-palette-input:focus,
-html[class*="theme-"] input.command-palette-input:focus {
+.command-palette-input:focus-visible,
+html[class*="theme-"] input.command-palette-input:focus,
+html[class*="theme-"] input.command-palette-input:focus-visible {
   background-color: transparent !important;
   border-color: transparent !important;
   border-style: none !important;
   border-width: 0 !important;
   box-shadow: none !important;
   outline: none !important;
-}
-
-.command-palette-input[data-keyboard-focused="true"]:focus,
-html[class*="theme-"] input.command-palette-input[data-keyboard-focused="true"]:focus {
-  outline: 2px solid color-mix(in oklab, var(--command-palette-focus) 42%, transparent) !important;
-  outline-offset: 2px;
-}
-
-@media (forced-colors: active) {
-  .command-palette-input[data-keyboard-focused="true"]:focus,
-  html[class*="theme-"] input.command-palette-input[data-keyboard-focused="true"]:focus {
-    outline: 2px solid Highlight !important;
-  }
 }
 
 /* ==========================================================================

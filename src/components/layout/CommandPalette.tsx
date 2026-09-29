@@ -83,38 +83,13 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
   const [query, setQuery] = useState('');
   const [selectedIndex, setSelectedIndex] = useState(0);
   const [debouncedCleanQ, setDebouncedCleanQ] = useState('');
-  const [isKeyboardFocused, setIsKeyboardFocused] = useState(false);
   const inputRef = useRef<HTMLInputElement | null>(null);
   const listRef = useRef<HTMLDivElement | null>(null);
   const itemRefs = useRef<(HTMLButtonElement | null)[]>([]);
-  const keyboardFocusRef = useRef(false);
   const dialogRef = useRef<HTMLDivElement | null>(null);
   const previousFocusRef = useRef<HTMLElement | null>(null);
   const previousOverflowRef = useRef('');
   const lastMousePositionRef = useRef<{ x: number; y: number } | null>(null);
-
-  useEffect(() => {
-    keyboardFocusRef.current = false;
-    setIsKeyboardFocused(false);
-
-    if (!isOpen) return;
-
-    const handleTabKeyDown = (event: KeyboardEvent) => {
-      if (event.key === 'Tab') {
-        keyboardFocusRef.current = true;
-      }
-    };
-    const handlePointerDown = () => {
-      keyboardFocusRef.current = false;
-    };
-
-    window.addEventListener('keydown', handleTabKeyDown, true);
-    window.addEventListener('pointerdown', handlePointerDown, true);
-    return () => {
-      window.removeEventListener('keydown', handleTabKeyDown, true);
-      window.removeEventListener('pointerdown', handlePointerDown, true);
-    };
-  }, [isOpen]);
 
   useEffect(() => {
     if (!isOpen || !dialogRef.current) return;
@@ -318,11 +293,12 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
       return helpItems;
     }
 
-    // Quick create action (if query entered and mode allows)
+    // Keep the free-form create action after concrete matches so it cannot outrank commands.
+    let quickCreateAction: SelectableItem | null = null;
     if (rawQ && (mode === 'all' || mode === 'action')) {
       const cleanTitle = rawQ.replace(/^[>#@]\s*/, '').trim();
       if (cleanTitle) {
-        list.push({
+        quickCreateAction = {
           id: 'action-quick-create',
           category: 'action',
           categoryLabel: '快捷动作',
@@ -334,7 +310,7 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
             onClose();
             onOpenQuickCreate(cleanTitle);
           },
-        });
+        };
       }
     }
 
@@ -556,7 +532,7 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
     if (mode === 'action') {
       const allActionPool = [...utilityActions, ...statusActions, ...themeActions];
       const matched = cleanQ ? allActionPool.filter((c) => matchItem(c, cleanQ)) : allActionPool;
-      return [...list, ...matched];
+      return quickCreateAction ? [...matched, quickCreateAction] : matched;
     }
 
     // Default 'all' Mode when query is empty:
@@ -726,7 +702,7 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
       });
     }
 
-    return list;
+    return quickCreateAction ? [...list, quickCreateAction] : list;
   }, [
     mode,
     cleanQ,
@@ -856,13 +832,6 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             onKeyDown={handleKeyDown}
-            onPointerDown={() => {
-              keyboardFocusRef.current = false;
-              setIsKeyboardFocused(false);
-            }}
-            onFocus={() => setIsKeyboardFocused(keyboardFocusRef.current)}
-            onBlur={() => setIsKeyboardFocused(false)}
-            data-keyboard-focused={isKeyboardFocused ? 'true' : undefined}
             className="command-palette-input w-full text-sm sm:text-base bg-transparent border-none outline-none text-stone-900 dark:text-stone-100 placeholder:text-stone-400 dark:placeholder:text-stone-500 font-medium"
           />
           <kbd className="text-xs bg-stone-100 dark:bg-stone-800 text-stone-700 dark:text-stone-400 px-2 py-0.5 rounded-lg border border-stone-200/70 dark:border-stone-700 font-mono shrink-0 shadow-2xs">
