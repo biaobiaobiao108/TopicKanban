@@ -149,82 +149,64 @@ export const PublishedVideoCard: React.FC<PublishedVideoCardProps> = ({
             </p>
           </div>
 
-          {/* Row 3: 5 Key Metrics Bar + Ratios */}
-          <div className="space-y-1">
-            <div className="grid grid-cols-5 gap-1 bg-stone-500/[0.03] dark:bg-stone-800/50 p-1.5 rounded-lg border border-stone-200/50 dark:border-stone-800 text-center">
-              <div>
-                <div className="text-[9px] text-stone-600 dark:text-stone-300 flex items-center justify-center gap-0.5">
-                  <Eye className="w-2.5 h-2.5" />
-                  <span>播放</span>
-                </div>
-                <div className="text-[11px] font-bold text-stone-900 dark:text-stone-100 leading-tight font-mono tabular-nums">
+          {/* Row 3: Literary Editorial Metrics Flow */}
+          <div className="space-y-2">
+            <div className="flex items-center justify-between rounded-xl bg-stone-500/[0.03] dark:bg-stone-400/[0.04] px-3 py-2 text-xs select-none">
+              <div className="flex items-center gap-1.5 min-w-0">
+                <Eye className="w-3.5 h-3.5 text-[var(--ink-muted)] shrink-0" />
+                <span className="font-mono font-semibold tabular-nums text-[var(--ink)] text-xs">
                   {formatNumber(video.views)}
-                </div>
+                </span>
+                <span className="text-[10px] text-[var(--ink-muted)] hidden sm:inline">播放</span>
               </div>
 
-              <div>
-                <div className="text-[9px] text-stone-600 dark:text-stone-300 flex items-center justify-center gap-0.5">
-                  <ThumbsUp className="w-2.5 h-2.5" />
-                  <span>点赞</span>
-                </div>
-                <div className="text-[11px] font-bold text-[var(--accent)] leading-tight font-mono tabular-nums">
+              <div className="flex items-center gap-1.5 min-w-0">
+                <ThumbsUp className="w-3.5 h-3.5 text-[var(--accent)] shrink-0" />
+                <span className="font-mono font-semibold tabular-nums text-[var(--ink)] text-xs">
                   {formatNumber(video.likes)}
-                </div>
+                </span>
+                <span className="text-[10px] text-[var(--ink-muted)] hidden sm:inline">点赞</span>
               </div>
 
-              <div>
-                <div className="text-[9px] text-stone-600 dark:text-stone-300 flex items-center justify-center gap-0.5">
-                  <Coins className="w-2.5 h-2.5" />
-                  <span>投币</span>
-                </div>
-                <div className="text-[11px] font-bold text-amber-700 dark:text-amber-400 leading-tight font-mono tabular-nums">
+              <div className="flex items-center gap-1.5 min-w-0">
+                <Coins className="w-3.5 h-3.5 text-amber-600/90 dark:text-amber-400 shrink-0" />
+                <span className="font-mono font-semibold tabular-nums text-[var(--ink)] text-xs">
                   {formatNumber(video.coins)}
-                </div>
+                </span>
+                <span className="text-[10px] text-[var(--ink-muted)] hidden sm:inline">投币</span>
               </div>
 
-              <div>
-                <div className="text-[9px] text-stone-600 dark:text-stone-300 flex items-center justify-center gap-0.5">
-                  <Bookmark className="w-2.5 h-2.5" />
-                  <span>收藏</span>
-                </div>
-                <div className="text-[11px] font-bold text-blue-600 dark:text-blue-400 leading-tight font-mono tabular-nums">
+              <div className="flex items-center gap-1.5 min-w-0">
+                <Bookmark className="w-3.5 h-3.5 text-blue-600/90 dark:text-blue-400 shrink-0" />
+                <span className="font-mono font-semibold tabular-nums text-[var(--ink)] text-xs">
                   {formatNumber(video.favorites)}
-                </div>
-              </div>
-
-              <div>
-                <div className="text-[9px] text-stone-600 dark:text-stone-300 flex items-center justify-center gap-0.5">
-                  <MessageSquare className="w-2.5 h-2.5" />
-                  <span>评论</span>
-                </div>
-                <div className="text-[11px] font-bold text-stone-700 dark:text-stone-300 leading-tight font-mono tabular-nums">
-                  {formatNumber(video.comments)}
-                </div>
+                </span>
+                <span className="text-[10px] text-[var(--ink-muted)] hidden sm:inline">收藏</span>
               </div>
             </div>
 
-            {/* Key Ratio Micro Badges */}
+            {/* Subtle Ratio Micro Pills (内敛微墨质感) */}
             {video.views > 0 && (
-              <div className="flex items-center gap-1.5 overflow-hidden text-[10px]">
-                <span className="inline-flex items-center gap-0.5 px-1.5 py-0.2 rounded bg-amber-500/10 text-amber-800 dark:text-amber-300 shrink-0">
-                  <span>投币</span>
-                  <span className="font-bold font-mono tabular-nums">{metrics.coinRate}%</span>
-                  <span className="text-[8px] font-bold font-mono px-0.5 rounded bg-amber-500/20 text-amber-900 dark:text-amber-200">
+              <div className="flex items-center gap-1.5 overflow-hidden text-[10px] text-[var(--ink-muted)] font-mono">
+                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-stone-500/[0.04] dark:bg-stone-400/[0.06] shrink-0">
+                  <span className="opacity-70">投币率</span>
+                  <strong className="text-[var(--ink)] font-semibold">{metrics.coinRate}%</strong>
+                  <span className="text-[9px] px-1 rounded-full bg-amber-500/15 text-amber-800 dark:text-amber-300 font-bold">
                     {metrics.coinGrade}
                   </span>
                 </span>
-                <span className="inline-flex items-center gap-0.5 px-1.5 py-0.2 rounded bg-[var(--accent-soft)] text-[var(--accent)] shrink-0">
-                  <span>三连</span>
-                  <span className="font-bold font-mono tabular-nums">{metrics.tripleRate}%</span>
+                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-stone-500/[0.04] dark:bg-stone-400/[0.06] shrink-0">
+                  <span className="opacity-70">三连</span>
+                  <strong className="text-[var(--accent)] font-semibold">{metrics.tripleRate}%</strong>
                 </span>
-                <span className="inline-flex items-center gap-0.5 px-1.5 py-0.2 rounded bg-blue-500/10 text-blue-800 dark:text-blue-300 shrink-0">
-                  <span>收藏</span>
-                  <span className="font-bold font-mono tabular-nums">{metrics.favoriteRate}%</span>
+                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-stone-500/[0.04] dark:bg-stone-400/[0.06] shrink-0">
+                  <span className="opacity-70">收藏</span>
+                  <strong className="text-[var(--ink)] font-semibold">{metrics.favoriteRate}%</strong>
                 </span>
                 {metrics.viewsPerKWord > 0 && (
-                  <span className="hidden md:inline-flex items-center gap-0.5 px-1.5 py-0.2 rounded bg-purple-500/10 text-purple-800 dark:text-purple-300 truncate">
-                    <span>千字</span>
-                    <span className="font-bold font-mono tabular-nums">{formatNumber(metrics.viewsPerKWord)}</span>
+                  <span className="hidden md:inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-stone-500/[0.04] dark:bg-stone-400/[0.06] truncate">
+                    <span className="opacity-70">千字</span>
+                    <strong className="text-[var(--ink)] font-semibold">{formatNumber(metrics.viewsPerKWord)}</strong>
                   </span>
                 )}
               </div>

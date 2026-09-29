@@ -1040,13 +1040,15 @@ select:focus {
   outline: none !important;
 }
 
-/* 右侧滑入抽屉（快投箱等）专用平滑物理展开动画 */
+/* 右侧滑入抽屉（快投箱等）对齐文案事实参考抽屉的优雅平滑展开 */
 @keyframes drawer-slide-in-right {
   from {
-    transform: translate3d(100%, 0, 0);
+    transform: translate3d(24px, 0, 0);
+    opacity: 0;
   }
   to {
     transform: translate3d(0, 0, 0);
+    opacity: 1;
   }
 }
 
@@ -1060,12 +1062,12 @@ select:focus {
 }
 
 .drawer-right-enter {
-  animation: drawer-slide-in-right 280ms cubic-bezier(0.16, 1, 0.3, 1) both;
-  will-change: transform;
+  animation: drawer-slide-in-right 220ms cubic-bezier(0.16, 1, 0.3, 1) both;
+  will-change: transform, opacity;
 }
 
 .drawer-backdrop-enter {
-  animation: drawer-backdrop-fade-in 220ms ease-out both;
+  animation: drawer-backdrop-fade-in 180ms ease-out both;
   will-change: opacity;
 }
 

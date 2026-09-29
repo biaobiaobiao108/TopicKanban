@@ -66,7 +66,6 @@ function DraggableTopicCard({
               onScheduleTopic(topic);
             }
           }}
-          title="按住拖拽至日历定档"
           className="rounded-lg p-1.5 text-[var(--ink-muted)] transition-colors hover:bg-[var(--canvas)] hover:text-[var(--ink)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-[var(--accent)]"
         >
           <GripVertical className="w-3.5 h-3.5" aria-hidden="true" />

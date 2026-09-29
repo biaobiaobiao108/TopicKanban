@@ -275,7 +275,6 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
                     type="button"
                     onClick={handleNext}
                     aria-label="下一周期"
-                    title="下一周期"
                     className="grid h-8 w-8 place-items-center rounded-lg text-[var(--ink-muted)] transition-colors hover:bg-[var(--canvas)] hover:text-[var(--ink)]"
                   >
                     <ChevronRight className="h-4 w-4" aria-hidden="true" />
@@ -290,8 +289,8 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
                   回到今天
                 </button>
 
-                {/* View Switcher */}
-                <div className="inline-flex min-h-10 items-center gap-0.5 rounded-xl border border-[var(--line)] bg-[var(--canvas)] p-1 text-xs font-medium">
+                {/* View Switcher (文人胶囊分段器) */}
+                <div className="inline-flex h-10 items-center gap-1 rounded-full border border-[var(--line)]/50 bg-stone-500/[0.04] dark:bg-stone-400/[0.06] p-1 text-xs font-medium">
                   {([
                     ['month', '月视图'],
                     ['week', '周视图'],
@@ -301,7 +300,7 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
                       key={mode}
                       type="button"
                       onClick={() => setViewMode(mode)}
-                      className={`rounded-lg px-2.5 py-1.5 transition-all ${
+                      className={`rounded-full px-3 py-1 transition-all cursor-pointer ${
                         viewMode === mode
                           ? 'bg-[var(--surface)] font-semibold text-[var(--ink)] shadow-2xs'
                           : 'text-[var(--ink-muted)] hover:text-[var(--ink)]'
@@ -316,15 +315,15 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
                 <button
                   type="button"
                   onClick={() => setIsPoolOpen((prev) => !prev)}
-                  className={`inline-flex min-h-10 items-center justify-center gap-1.5 rounded-xl border px-3 text-xs font-semibold transition-all ${
+                  className={`inline-flex h-10 items-center justify-center gap-1.5 rounded-full border px-3.5 text-xs font-semibold transition-all cursor-pointer ${
                     isPoolOpen
                       ? 'border-[var(--line)] bg-[var(--surface)] text-[var(--ink)] shadow-2xs'
-                      : 'border-transparent text-[var(--ink-muted)] hover:border-[var(--line)] hover:bg-[var(--surface)] hover:text-[var(--ink)]'
+                      : 'border-transparent text-[var(--ink-muted)] hover:border-[var(--line)]/60 hover:bg-[var(--surface)] hover:text-[var(--ink)]'
                   }`}
                 >
                   <Inbox className="h-3.5 w-3.5 text-[var(--accent)]" aria-hidden="true" />
                   <span>待排期池</span>
-                  <span className="font-mono text-[10px] tabular-nums text-[var(--ink-muted)]">
+                  <span className="font-mono text-[10px] tabular-nums opacity-75">
                     {unscheduledTopics.length}
                   </span>
                 </button>
@@ -332,9 +331,9 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
             )}
           />
 
-          <section aria-label="日历视图与排期池" className="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden rounded-2xl border border-[var(--line)] bg-[var(--surface)] shadow-2xs">
+          <section aria-label="日历视图与排期池" className="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden rounded-2xl border border-[var(--line)]/60 bg-[var(--surface)] shadow-2xs">
             {/* Subheader: Month Stats & Layer Filter Toggles */}
-            <div className="flex shrink-0 flex-col gap-3 border-b border-[var(--line)] bg-[var(--surface)]/70 px-4 py-3 sm:px-5 lg:flex-row lg:items-center lg:justify-between">
+            <div className="flex shrink-0 flex-col gap-3 border-b border-[var(--line)]/50 bg-[var(--surface)]/90 backdrop-blur-md px-4 py-2.5 sm:px-5 lg:flex-row lg:items-center lg:justify-between">
             {/* Stats Chips */}
             <div className="flex items-center gap-3 sm:gap-4 text-xs text-[var(--ink-muted)] overflow-x-auto select-none">
               <span className="font-medium text-[var(--ink)]">本月生产：</span>

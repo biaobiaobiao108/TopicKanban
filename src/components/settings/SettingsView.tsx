@@ -1004,7 +1004,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                 }}
                 disabled={runtimeStatus.isChecking || isLoadingStorage}
                 className="p-1 rounded-lg text-stone-400 hover:text-stone-700 dark:hover:text-stone-200 cursor-pointer"
-                title="重新检测存储状态"
+                aria-label="重新检测存储状态"
               >
                 <RefreshCw className={`w-3.5 h-3.5 ${runtimeStatus.isChecking || isLoadingStorage ? 'animate-spin' : ''}`} />
               </button>

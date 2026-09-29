@@ -448,63 +448,63 @@ export const TopicTableView: React.FC<TopicTableViewProps> = ({
   const inScriptingCount = pageQuery.data?.summary?.in_scripting_count || 0;
 
   return (
-    <div className="flex-1 flex flex-col bg-[var(--surface)] rounded-[var(--radius-md)] border border-[var(--line)] overflow-hidden min-h-0 transition-colors">
+    <div className="flex-1 flex flex-col bg-[var(--surface)] rounded-2xl border border-[var(--line)]/60 overflow-hidden min-h-0 transition-colors shadow-2xs">
       {/* Scope Filter Header */}
-      <div className="table-scope-tabs-container px-4 py-2.5 bg-[var(--canvas)]/55 border-b border-[var(--line)] flex items-center justify-between flex-wrap gap-2 shrink-0">
-        <div className="flex items-center gap-0.5 text-xs font-medium">
+      <div className="table-scope-tabs-container px-4 py-2.5 bg-[var(--surface)]/80 backdrop-blur-sm border-b border-[var(--line)]/60 flex items-center justify-between flex-wrap gap-2 shrink-0">
+        <div className="inline-flex items-center gap-1 rounded-full bg-stone-500/[0.04] dark:bg-stone-400/[0.06] p-1 border border-[var(--line)]/40 text-xs font-medium">
           <button
             onClick={() => setArchiveScope('active')}
-            className={`px-3 py-1.5 rounded-[var(--radius-sm)] transition-colors cursor-pointer flex items-center gap-1.5 ${
+            className={`px-3 py-1 rounded-full transition-all cursor-pointer flex items-center gap-1.5 ${
               archiveScope === 'active'
-                ? 'bg-[var(--surface)] text-[var(--ink)]'
-                : 'text-[var(--ink-muted)] hover:bg-[var(--surface)]/70 hover:text-[var(--ink)]'
+                ? 'bg-[var(--surface)] text-[var(--ink)] font-semibold shadow-2xs'
+                : 'text-[var(--ink-muted)] hover:text-[var(--ink)]'
             }`}
           >
             <span>活跃推进中</span>
-            <span className="text-[10px] tabular-nums text-[var(--ink-muted)]">
+            <span className="text-[10px] tabular-nums font-mono opacity-75">
               {activeCount}
             </span>
           </button>
 
           <button
             onClick={() => setArchiveScope('archived')}
-            className={`px-3 py-1.5 rounded-[var(--radius-sm)] transition-colors cursor-pointer flex items-center gap-1.5 ${
+            className={`px-3 py-1 rounded-full transition-all cursor-pointer flex items-center gap-1.5 ${
               archiveScope === 'archived'
-                ? 'bg-[var(--surface)] text-[var(--ink)]'
-                : 'text-[var(--ink-muted)] hover:bg-[var(--surface)]/70 hover:text-[var(--ink)]'
+                ? 'bg-[var(--surface)] text-[var(--ink)] font-semibold shadow-2xs'
+                : 'text-[var(--ink-muted)] hover:text-[var(--ink)]'
             }`}
           >
             <span>归档</span>
-            <span className="text-[10px] tabular-nums text-[var(--ink-muted)]">
+            <span className="text-[10px] tabular-nums font-mono opacity-75">
               {archivedCount}
             </span>
           </button>
 
           <button
             onClick={() => setArchiveScope('all')}
-            className={`px-3 py-1.5 rounded-[var(--radius-sm)] transition-colors cursor-pointer flex items-center gap-1.5 ${
+            className={`px-3 py-1 rounded-full transition-all cursor-pointer flex items-center gap-1.5 ${
               archiveScope === 'all'
-                ? 'bg-[var(--surface)] text-[var(--ink)]'
-                : 'text-[var(--ink-muted)] hover:bg-[var(--surface)]/70 hover:text-[var(--ink)]'
+                ? 'bg-[var(--surface)] text-[var(--ink)] font-semibold shadow-2xs'
+                : 'text-[var(--ink-muted)] hover:text-[var(--ink)]'
             }`}
           >
             <span>全部选题</span>
-            <span className="text-[10px] tabular-nums text-[var(--ink-muted)]">
+            <span className="text-[10px] tabular-nums font-mono opacity-75">
               {activeCount + archivedCount}
             </span>
           </button>
 
           <button
             onClick={() => setArchiveScope('trash')}
-            className={`px-3 py-1.5 rounded-[var(--radius-sm)] transition-colors cursor-pointer flex items-center gap-1.5 ${
+            className={`px-3 py-1 rounded-full transition-all cursor-pointer flex items-center gap-1.5 ${
               archiveScope === 'trash'
-                ? 'bg-[var(--surface)] text-[var(--h1-color)]'
-                : 'text-[var(--ink-muted)] hover:bg-[var(--surface)]/70 hover:text-[var(--h1-color)]'
+                ? 'bg-[var(--surface)] text-[var(--h1-color)] font-semibold shadow-2xs'
+                : 'text-[var(--ink-muted)] hover:text-[var(--h1-color)]'
             }`}
           >
             <span>回收站</span>
             {trashCount > 0 && (
-              <span className="text-[10px] tabular-nums text-[var(--h1-color)]">
+              <span className="text-[10px] tabular-nums font-mono text-[var(--h1-color)]">
                 {trashCount}
               </span>
             )}
@@ -517,18 +517,18 @@ export const TopicTableView: React.FC<TopicTableViewProps> = ({
               type="button"
               onClick={() => void handleEmptyTrash()}
               disabled={isBulkUpdating}
-              className="flex min-h-9 items-center gap-1.5 rounded-[var(--radius-sm)] px-2.5 text-[11px] font-medium text-[var(--h1-color)] transition-colors hover:bg-[var(--canvas)] cursor-pointer disabled:opacity-50"
+              className="flex h-8 items-center gap-1.5 rounded-full px-3 text-xs font-semibold text-[var(--h1-color)] hover:bg-red-500/10 transition-colors cursor-pointer disabled:opacity-50"
             >
               <Trash2 className="h-3.5 w-3.5 text-red-600 dark:text-red-400" />
               <span>清空回收站 ({trashCount})</span>
             </button>
           )}
 
-          <div className="hidden items-center gap-1.5 md:flex">
+          <div className="hidden items-center gap-1 md:flex">
             <button
               type="button"
               onClick={() => setDensity((previous) => previous === 'compact' ? 'comfortable' : 'compact')}
-              className="flex min-h-9 items-center gap-1.5 rounded-[var(--radius-sm)] px-2.5 text-[11px] font-medium text-[var(--ink-muted)] hover:bg-[var(--surface)] hover:text-[var(--ink)] cursor-pointer"
+              className="flex h-8 items-center gap-1.5 rounded-full px-2.5 text-xs font-medium text-[var(--ink-muted)] hover:text-[var(--ink)] hover:bg-stone-500/[0.06] transition-all cursor-pointer"
             >
               <Rows3 className="h-3.5 w-3.5" /> {density === 'compact' ? '紧凑' : '舒适'}
             </button>
@@ -536,16 +536,16 @@ export const TopicTableView: React.FC<TopicTableViewProps> = ({
               ref={columnButtonRef}
               type="button"
               onClick={() => setIsColumnMenuOpen((previous) => !previous)}
-              className="flex min-h-9 items-center gap-1.5 rounded-[var(--radius-sm)] px-2.5 text-[11px] font-medium text-[var(--ink-muted)] hover:bg-[var(--surface)] hover:text-[var(--ink)] cursor-pointer"
+              className="flex h-8 items-center gap-1.5 rounded-full px-2.5 text-xs font-medium text-[var(--ink-muted)] hover:text-[var(--ink)] hover:bg-stone-500/[0.06] transition-all cursor-pointer"
             >
               <Columns3 className="h-3.5 w-3.5" /> 显示列
             </button>
             <button
               type="button"
               onClick={saveCurrentView}
-              className="flex min-h-9 items-center gap-1.5 rounded-[var(--radius-sm)] px-2.5 text-[11px] font-medium text-[var(--accent)] hover:bg-[var(--surface)] cursor-pointer"
+              className="flex h-8 items-center gap-1.5 rounded-full px-2.5 text-xs font-medium text-[var(--accent)] hover:bg-stone-500/[0.06] transition-all cursor-pointer"
             >
-              <Bookmark className="h-3.5 w-3.5" /> {viewSaved ? '已保存' : '保存当前视图'}
+              <Bookmark className="h-3.5 w-3.5" /> {viewSaved ? '已保存' : '保存视图'}
             </button>
           </div>
 
@@ -832,7 +832,7 @@ export const TopicTableView: React.FC<TopicTableViewProps> = ({
       >
         <table className="w-full text-left border-collapse text-xs">
           {/* Table Header */}
-          <thead className="table-header-row bg-[var(--canvas)]/85 sticky top-0 z-10 border-b border-[var(--line)] text-[var(--ink-muted)] font-medium select-none">
+          <thead className="table-header-row bg-[var(--surface)]/95 backdrop-blur-md sticky top-0 z-10 border-b border-[var(--line)]/60 text-[var(--ink-muted)] text-[11px] font-semibold select-none tracking-wider">
             <tr>
               <th className="w-10 px-3 py-3 text-center">
                 <input
@@ -922,7 +922,7 @@ export const TopicTableView: React.FC<TopicTableViewProps> = ({
           </thead>
 
           {/* Table Body */}
-          <tbody className="divide-y divide-stone-100 dark:divide-stone-800">
+          <tbody className="divide-y divide-[var(--line)]/30">
             {sortedTopics.map((topic) => {
               const totalScore =
                 (topic.score_character || 0) +
@@ -945,8 +945,8 @@ export const TopicTableView: React.FC<TopicTableViewProps> = ({
                     archiveScope === 'trash' ? '' : 'cursor-pointer'
                   } ${
                     selectedIds.has(topic.id)
-                      ? 'bg-[var(--accent-soft)]/65 hover:bg-[var(--accent-soft)]'
-                      : 'hover:bg-[var(--canvas)]/75'
+                      ? 'bg-[var(--accent-soft)]/60 hover:bg-[var(--accent-soft)]/80'
+                      : 'hover:bg-stone-500/[0.025] dark:hover:bg-stone-400/[0.035]'
                   }`}
                 >
                   <td

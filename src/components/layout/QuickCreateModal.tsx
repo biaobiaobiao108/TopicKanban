@@ -313,7 +313,6 @@ export const QuickCreateModal: React.FC<QuickCreateModalProps> = ({
                         onClick={() => removeSelectedTag(name)}
                         aria-label={`移除标签 ${name}`}
                         className="rounded-full p-0.5 text-stone-400 transition-colors hover:text-[var(--accent)] dark:text-stone-400"
-                        title="移除标签"
                       >
                         <X aria-hidden="true" className="h-3 w-3" />
                       </button>

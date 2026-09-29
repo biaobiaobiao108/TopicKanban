@@ -51,17 +51,17 @@ function MonthCellDroppable({
       onClick={() => onDateClick(cell.date)}
       data-testid="calendar-month-cell"
       data-date={cell.date}
-      className={`flex min-h-[110px] flex-col p-1.5 sm:min-h-[125px] sm:p-2 border-b border-r border-stone-200/70 dark:border-stone-800 transition-colors relative group select-none ${
+      className={`flex min-h-[110px] flex-col p-1.5 sm:min-h-[125px] sm:p-2 border-b border-r border-[var(--line)]/35 transition-colors relative group select-none ${
         cell.isCurrentMonth
-          ? 'bg-white dark:bg-stone-900'
-          : 'bg-stone-50/50 dark:bg-stone-950/40 text-stone-400 dark:text-stone-600'
+          ? 'bg-[var(--surface)]'
+          : 'bg-stone-500/[0.02] dark:bg-stone-500/[0.04] text-[var(--ink-muted)] opacity-60'
       } ${
         cell.isToday
-          ? 'bg-[var(--accent-soft)]/25'
-          : ''
+          ? 'bg-[var(--accent-soft)]/20'
+          : 'hover:bg-stone-500/[0.015]'
       } ${
         isOver
-          ? 'bg-[var(--accent-soft)] ring-1 ring-inset ring-[var(--accent)]/75'
+          ? 'bg-[var(--accent-soft)]/60 ring-1 ring-inset ring-[var(--accent)]/50'
           : ''
       }`}
     >
@@ -75,7 +75,7 @@ function MonthCellDroppable({
               onDateClick(cell.date);
             }}
             aria-label={`在 ${cell.date} 排期定档`}
-            className={`text-xs font-mono px-1.5 py-0.5 rounded-[var(--radius-sm)] focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[var(--accent)] cursor-pointer transition-colors ${
+            className={`text-xs font-mono w-6 h-6 flex items-center justify-center rounded-full focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[var(--accent)] cursor-pointer transition-colors ${
               cell.isToday
                 ? 'bg-[var(--accent)] text-white shadow-2xs font-semibold'
                 : cell.isCurrentMonth
@@ -93,12 +93,11 @@ function MonthCellDroppable({
               type="button"
               data-testid="calendar-month-overflow"
               aria-label={`${cell.date} 还有 ${hiddenCount} 项事项，查看全部`}
-              title={`还有 ${hiddenCount} 项事项`}
               onClick={(e) => {
                 e.stopPropagation();
                 onShowAllEvents(cell.date, events);
               }}
-              className="inline-flex shrink-0 items-center rounded-[var(--radius-sm)] border border-transparent hover:border-[var(--line)] bg-transparent hover:bg-[var(--canvas)] px-1 py-0.5 text-[10px] font-mono text-[var(--ink-muted)] hover:text-[var(--ink)] cursor-pointer transition-colors"
+              className="inline-flex shrink-0 items-center rounded-full bg-stone-500/[0.06] hover:bg-stone-500/[0.12] px-1.5 py-0.2 text-[10px] font-mono text-[var(--ink-muted)] hover:text-[var(--ink)] font-semibold cursor-pointer transition-colors"
             >
               +{hiddenCount}
             </button>
@@ -112,7 +111,7 @@ function MonthCellDroppable({
             e.stopPropagation();
             onDateClick(cell.date);
           }}
-          title="在此日期排期定档"
+          aria-label="在此日期排期定档"
           className="opacity-0 group-hover:opacity-100 hover:opacity-100 p-1 rounded-md text-stone-400 hover:text-[var(--accent)] hover:bg-stone-100 dark:hover:bg-stone-800 transition-all cursor-pointer"
         >
           <Plus className="w-3.5 h-3.5" />

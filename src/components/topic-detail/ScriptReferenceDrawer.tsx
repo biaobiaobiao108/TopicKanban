@@ -106,28 +106,33 @@ export const ScriptReferenceDrawer: React.FC<ScriptReferenceDrawerProps> = ({
           </button>
         </div>
 
-        {/* Tabs (Clean segmented pills without border-b) */}
-        <div className="flex items-center gap-1 px-3.5 py-1 text-xs overflow-x-auto no-scrollbar shrink-0 bg-[var(--canvas)]">
-          {[
-            { id: 'all', label: '全部' },
-            { id: 'timeline', label: `时间线 (${timeline.length})` },
-            { id: 'people', label: `人物 (${peopleList.length})` },
-            { id: 'outline', label: '大纲' },
-            { id: 'sources', label: `素材 (${sources.length})` },
-          ].map((tab) => (
-            <button
-              key={tab.id}
-              type="button"
-              onClick={() => setActiveTab(tab.id as RefTab)}
-              className={`px-2.5 py-1 rounded-lg shrink-0 text-[11px] transition-all cursor-pointer border-0 ${
-                activeTab === tab.id
-                  ? 'bg-[var(--surface)] text-[var(--accent-dark)] font-semibold shadow-2xs'
-                  : 'text-stone-500 dark:text-stone-400 hover:text-stone-900 dark:hover:text-stone-100 hover:bg-black/[0.03] dark:hover:bg-white/[0.04] font-medium'
-              }`}
-            >
-              {tab.label}
-            </button>
-          ))}
+        {/* Tabs (Clean segmented pills centered with symmetrical margins) */}
+        <div className="flex items-center justify-center gap-1 px-3 py-1.5 text-xs overflow-x-auto no-scrollbar shrink-0 bg-[var(--canvas)]">
+          <div className="inline-flex items-center justify-center gap-0.5 rounded-xl bg-black/[0.03] dark:bg-white/[0.04] p-0.5">
+            {[
+              { id: 'all', label: '全部' },
+              { id: 'timeline', label: '时间线', count: timeline.length },
+              { id: 'people', label: '人物', count: peopleList.length },
+              { id: 'outline', label: '大纲' },
+              { id: 'sources', label: '素材', count: sources.length },
+            ].map((tab) => (
+              <button
+                key={tab.id}
+                type="button"
+                onClick={() => setActiveTab(tab.id as RefTab)}
+                className={`px-2 py-1 rounded-lg shrink-0 text-[11px] transition-all cursor-pointer border-0 ${
+                  activeTab === tab.id
+                    ? 'bg-[var(--surface)] text-[var(--accent-dark)] dark:text-[var(--accent)] font-semibold shadow-2xs'
+                    : 'text-stone-500 dark:text-stone-400 hover:text-stone-900 dark:hover:text-stone-100 font-medium'
+                }`}
+              >
+                <span>{tab.label}</span>
+                {typeof tab.count === 'number' && tab.count > 0 && (
+                  <span className="ml-0.5 text-[10px] opacity-75 font-mono">({tab.count})</span>
+                )}
+              </button>
+            ))}
+          </div>
         </div>
 
         {/* Content Stream */}

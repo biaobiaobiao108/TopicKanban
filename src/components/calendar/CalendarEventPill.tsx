@@ -79,7 +79,6 @@ export const CalendarEventPill: React.FC<CalendarEventPillProps> = ({
           <button
             type="button"
             onClick={handleClick}
-            title={`计划发布：${event.title}`}
             data-testid="calendar-event"
             data-calendar-event-type={event.type}
             className="flex w-full min-w-0 items-center gap-1.5 rounded-[var(--radius-sm)] border border-transparent hover:border-[var(--line)] bg-transparent hover:bg-[var(--canvas)] px-1.5 py-0.5 text-left text-[11px] leading-4 text-[var(--ink)] transition-all cursor-pointer"
@@ -99,7 +98,6 @@ export const CalendarEventPill: React.FC<CalendarEventPillProps> = ({
           <button
             type="button"
             onClick={handleClick}
-            title={event.title}
             data-testid="calendar-event"
             data-calendar-event-type={event.type}
             className="flex w-full min-w-0 items-center gap-1.5 rounded-[var(--radius-sm)] border border-transparent hover:border-[var(--line)] bg-transparent hover:bg-[var(--canvas)] px-1.5 py-0.5 text-left text-[11px] leading-4 text-[var(--ink)] transition-all cursor-pointer"
@@ -114,7 +112,6 @@ export const CalendarEventPill: React.FC<CalendarEventPillProps> = ({
           <button
             type="button"
             onClick={handleClick}
-            title={`${event.title}${event.status ? ` · ${DEAL_STATUS_LABELS[event.status as CommercialDealStatus] || event.status}` : ''}`}
             data-testid="calendar-event"
             data-calendar-event-type={event.type}
             className="w-full min-w-0 rounded-[var(--radius-sm)] border border-transparent hover:border-[var(--line)] bg-transparent hover:bg-[var(--canvas)] px-1.5 py-0.5 text-left text-[11px] leading-4 text-[var(--ink)] transition-all cursor-pointer"
@@ -141,7 +138,6 @@ export const CalendarEventPill: React.FC<CalendarEventPillProps> = ({
           <button
             type="button"
             onClick={handleClick}
-            title={`已上线：${event.title}`}
             data-testid="calendar-event"
             data-calendar-event-type={event.type}
             className="flex w-full min-w-0 items-center gap-1.5 rounded-[var(--radius-sm)] border border-transparent hover:border-[var(--line)] bg-transparent hover:bg-[var(--canvas)] px-1.5 py-0.5 text-left text-[11px] leading-4 text-[var(--ink)] transition-all cursor-pointer"

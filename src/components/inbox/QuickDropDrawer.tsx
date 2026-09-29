@@ -93,7 +93,7 @@ export const QuickDropDrawer: React.FC<QuickDropDrawerProps> = ({
     };
 
     document.addEventListener('keydown', handleKeyDown);
-    requestAnimationFrame(() => closeButtonRef.current?.focus());
+    requestAnimationFrame(() => closeButtonRef.current?.focus({ preventScroll: true }));
     return () => {
       document.removeEventListener('keydown', handleKeyDown);
       document.body.style.overflow = previousOverflow;

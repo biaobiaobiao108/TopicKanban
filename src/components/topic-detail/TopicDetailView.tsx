@@ -381,7 +381,7 @@ export const TopicDetailView: React.FC<TopicDetailViewProps> = ({
 
   const tabs: { id: DetailTab; label: string; icon: React.ComponentType<{ className?: string }>; count?: number }[] = [
     { id: 'overview', label: '选题概览', icon: LayoutDashboard },
-    { id: 'todos', label: '执行看板', icon: KanbanSquare, count: todos.filter((todo) => todo.status !== 'completed').length },
+    { id: 'todos', label: '执行看板', icon: KanbanSquare },
     { id: 'sources', label: '资料与素材', icon: FileSearch, count: sources.length },
     { id: 'timeline', label: '故事时间线', icon: Clock, count: timeline.length },
     { id: 'people', label: '人物与关系', icon: Users, count: topic.people?.length || 0 },
