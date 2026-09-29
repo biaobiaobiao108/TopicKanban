@@ -448,7 +448,7 @@ export const TopicTableView: React.FC<TopicTableViewProps> = ({
   const inScriptingCount = pageQuery.data?.summary?.in_scripting_count || 0;
 
   return (
-    <div className="flex-1 flex flex-col bg-[var(--surface)] rounded-2xl border border-[var(--line)]/60 overflow-hidden min-h-0 transition-colors shadow-2xs">
+    <div className="flex-1 h-full flex flex-col bg-[var(--surface)] rounded-2xl border border-[var(--line)]/60 overflow-hidden min-h-0 transition-colors shadow-2xs">
       {/* Scope Filter Header */}
       <div className="table-scope-tabs-container px-4 py-2.5 bg-[var(--surface)]/80 backdrop-blur-sm border-b border-[var(--line)]/60 flex items-center justify-between flex-wrap gap-2 shrink-0">
         <div className="inline-flex items-center gap-1 rounded-full bg-stone-500/[0.04] dark:bg-stone-400/[0.06] p-1 border border-[var(--line)]/40 text-xs font-medium">

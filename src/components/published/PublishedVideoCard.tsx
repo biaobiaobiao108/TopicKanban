@@ -152,36 +152,32 @@ export const PublishedVideoCard: React.FC<PublishedVideoCardProps> = ({
           {/* Row 3: Literary Editorial Metrics Flow */}
           <div className="space-y-2">
             <div className="flex items-center justify-between rounded-xl bg-stone-500/[0.03] dark:bg-stone-400/[0.04] px-3 py-2 text-xs select-none">
-              <div className="flex items-center gap-1.5 min-w-0">
-                <Eye className="w-3.5 h-3.5 text-[var(--ink-muted)] shrink-0" />
+              <div className="flex items-center gap-1.5 min-w-0" aria-label={`播放量：${video.views}`}>
+                <Eye className="w-3.5 h-3.5 text-[var(--ink-muted)] shrink-0" aria-hidden="true" />
                 <span className="font-mono font-semibold tabular-nums text-[var(--ink)] text-xs">
                   {formatNumber(video.views)}
                 </span>
-                <span className="text-[10px] text-[var(--ink-muted)] hidden sm:inline">播放</span>
               </div>
 
-              <div className="flex items-center gap-1.5 min-w-0">
-                <ThumbsUp className="w-3.5 h-3.5 text-[var(--accent)] shrink-0" />
+              <div className="flex items-center gap-1.5 min-w-0" aria-label={`点赞数：${video.likes}`}>
+                <ThumbsUp className="w-3.5 h-3.5 text-[var(--accent)] shrink-0" aria-hidden="true" />
                 <span className="font-mono font-semibold tabular-nums text-[var(--ink)] text-xs">
                   {formatNumber(video.likes)}
                 </span>
-                <span className="text-[10px] text-[var(--ink-muted)] hidden sm:inline">点赞</span>
               </div>
 
-              <div className="flex items-center gap-1.5 min-w-0">
-                <Coins className="w-3.5 h-3.5 text-amber-600/90 dark:text-amber-400 shrink-0" />
+              <div className="flex items-center gap-1.5 min-w-0" aria-label={`投币数：${video.coins}`}>
+                <Coins className="w-3.5 h-3.5 text-amber-600/90 dark:text-amber-400 shrink-0" aria-hidden="true" />
                 <span className="font-mono font-semibold tabular-nums text-[var(--ink)] text-xs">
                   {formatNumber(video.coins)}
                 </span>
-                <span className="text-[10px] text-[var(--ink-muted)] hidden sm:inline">投币</span>
               </div>
 
-              <div className="flex items-center gap-1.5 min-w-0">
-                <Bookmark className="w-3.5 h-3.5 text-blue-600/90 dark:text-blue-400 shrink-0" />
+              <div className="flex items-center gap-1.5 min-w-0" aria-label={`收藏数：${video.favorites}`}>
+                <Bookmark className="w-3.5 h-3.5 text-blue-600/90 dark:text-blue-400 shrink-0" aria-hidden="true" />
                 <span className="font-mono font-semibold tabular-nums text-[var(--ink)] text-xs">
                   {formatNumber(video.favorites)}
                 </span>
-                <span className="text-[10px] text-[var(--ink-muted)] hidden sm:inline">收藏</span>
               </div>
             </div>
 

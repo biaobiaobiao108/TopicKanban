@@ -476,19 +476,23 @@ function SummaryCard({
   tone?: 'stone' | 'accent' | 'amber' | 'emerald';
 }) {
   const tones = {
-    stone: 'bg-stone-500/5 text-stone-700 dark:bg-stone-800/80 dark:text-stone-200',
-    accent: 'bg-[var(--accent-soft)] text-[var(--accent)]',
-    amber: 'bg-amber-500/10 text-amber-800 dark:bg-amber-950/40 dark:text-amber-300',
-    emerald: 'bg-emerald-500/10 text-emerald-800 dark:bg-emerald-950/40 dark:text-emerald-300',
+    stone: 'bg-stone-500/5 text-[var(--ink)]',
+    accent: 'bg-[var(--accent-soft)] text-[var(--accent-dark)]',
+    amber: 'bg-amber-500/10 text-amber-800 dark:text-amber-300',
+    emerald: 'bg-emerald-500/10 text-emerald-800 dark:text-emerald-300',
   };
   return (
-    <div className="rounded-2xl border border-[var(--line)]/60 bg-[var(--surface)] p-4 shadow-2xs">
-      <div className="flex items-center justify-between gap-3">
-        <span className={`grid h-9 w-9 place-items-center rounded-xl ${tones[tone]}`}>{icon}</span>
-        <span className="text-xs font-medium text-[var(--ink-muted)]">{detail}</span>
+    <div className="flex items-center justify-between gap-3 rounded-xl border border-[var(--line)]/60 bg-[var(--surface)] px-3.5 py-2.5 shadow-2xs">
+      <div className="flex items-center gap-2.5 min-w-0">
+        <span className={`grid h-8 w-8 shrink-0 place-items-center rounded-lg ${tones[tone]}`}>{icon}</span>
+        <div className="min-w-0">
+          <p className="truncate text-xs font-semibold text-[var(--ink)]">{label}</p>
+          <p className="truncate text-[10px] text-[var(--ink-muted)]">{detail}</p>
+        </div>
       </div>
-      <p className="mt-3 text-xs font-semibold text-[var(--ink-muted)]">{label}</p>
-      <p className="mt-1 text-xl font-bold font-mono tabular-nums tracking-tight text-[var(--ink)]">{value}</p>
+      <div className="shrink-0 text-right">
+        <span className="text-base sm:text-lg font-bold font-mono tabular-nums tracking-tight text-[var(--ink)]">{value}</span>
+      </div>
     </div>
   );
 }

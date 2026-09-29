@@ -275,205 +275,198 @@ export const TagsView: React.FC<TagsViewProps> = ({
           />
         </section>
 
-        <section aria-label="标签与选题工作区" className="flex min-h-[34rem] min-w-0 flex-1 flex-col overflow-hidden rounded-2xl border border-[var(--line)] bg-[var(--surface)] shadow-2xs md:min-h-0">
-          <div className="flex min-h-0 flex-1 flex-col md:flex-row">
-        {/* Left / Tag Selector List Panel (w-80) - background aligned with right */}
-        <div className="tags-sidebar-panel hidden w-full shrink-0 flex-col overflow-hidden border-b border-[var(--line)] bg-[var(--canvas)] md:flex md:h-auto md:w-80 md:border-b-0 md:border-r">
-          {/* Search Box */}
-          <div className="border-b border-[var(--line)] bg-[var(--canvas)] p-4">
-            <div className="relative">
-              <Search className="absolute left-3 top-3 h-4 w-4 text-[var(--ink-muted)]" aria-hidden="true" />
-              <input
-                type="text"
-                id="tags-search"
-                name="tags_search"
-                aria-label="搜索标签"
-                autoComplete="off"
-                placeholder="搜索标签名称..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="min-h-10 w-full rounded-xl border border-[var(--line)] bg-[var(--surface)] px-3 pl-9 text-xs text-[var(--ink)] placeholder:text-[var(--ink-muted)] focus:border-[var(--accent)] focus:outline-none"
-              />
-            </div>
-          </div>
-
-          {/* Tags List */}
-          <FloatingScrollbar className="space-y-1 bg-[var(--canvas)] p-3" wrapperClassName="min-h-0 flex-1">
-            {visibleTags.map((tag) => {
-              const isSelected = activeTag?.id === tag.id;
-              const stats = tagStatsMap.get(tag.id);
-              const count = stats?.count || 0;
-              const colorConf = TAG_COLOR_OPTIONS.find((c) => c.id === tag.color) || TAG_COLOR_OPTIONS[0];
-
-              return (
-                <div
-                  key={tag.id}
-                  className={`tag-menu-item group relative flex items-center justify-between rounded-xl border p-3 transition-all cursor-pointer ${
-                    isSelected
-                      ? 'is-selected bg-[var(--surface)] border-[var(--line)] text-[var(--ink)] shadow-2xs font-semibold'
-                      : 'bg-transparent border-transparent hover:border-[var(--line)] hover:bg-[var(--surface)] text-[var(--ink-muted)] hover:text-[var(--ink)]'
-                  }`}
-                >
-                  <button
-                    type="button"
-                    onClick={() => setSelectedTagId(tag.id)}
-                    aria-pressed={isSelected}
-                    className="flex min-w-0 flex-1 cursor-pointer items-center gap-2.5 rounded-lg text-left outline-none focus-visible:ring-1 focus-visible:ring-[var(--accent)]"
-                  >
-                    <span className={`h-2 w-2 shrink-0 rounded-full ${colorConf.dot}`} />
-                    <span className="truncate">
-                      <span className="flex items-center gap-1.5 truncate text-sm font-semibold">
-                        <span>#{tag.name}</span>
-                      </span>
-                      <span className="mt-0.5 flex items-center gap-2 text-[11px] text-[var(--ink-muted)]">
-                        <span>{count} 选题</span>
-                        {stats && stats.inProgressCount > 0 && (
-                          <span className="text-indigo-600 dark:text-indigo-400 font-medium">{stats.inProgressCount} 写稿</span>
-                        )}
-                        {stats && stats.publishedCount > 0 && (
-                          <span className="text-emerald-600 dark:text-emerald-400 font-medium">{stats.publishedCount} 已发布</span>
-                        )}
-                      </span>
-                    </span>
-                  </button>
-
-                  {/* Actions & Count Badge */}
-                  <div className="flex shrink-0 items-center gap-1">
-                    <span className="px-1.5 py-0.5 font-mono text-xs tabular-nums text-[var(--ink-muted)]">
-                      {count}
-                    </span>
-
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        openEditModal(tag);
-                      }}
-                      className="cursor-pointer rounded-lg p-1.5 text-[var(--ink-muted)] opacity-100 transition-opacity hover:text-[var(--ink)] md:opacity-0 md:group-hover:opacity-100"
-                      aria-label="编辑标签"
-                    >
-                      <Edit2 className="w-3.5 h-3.5" />
-                    </button>
-
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        setDeletingTag(tag);
-                      }}
-                      className="cursor-pointer rounded-lg p-1.5 text-[var(--ink-muted)] opacity-100 transition-opacity hover:text-[var(--h1-color)] md:opacity-0 md:group-hover:opacity-100"
-                      aria-label="删除标签"
-                    >
-                      <Trash2 className="w-3.5 h-3.5" />
-                    </button>
-                  </div>
-                </div>
-              );
-            })}
-
-            {visibleTags.length === 0 && !tagsPageQuery.isFetching && (
-              <div className="px-3 py-8 text-center text-xs text-[var(--ink-muted)]">
-                暂无匹配标签
+        <div aria-label="标签与选题工作区" className="flex min-h-[34rem] min-w-0 flex-1 flex-col gap-5 md:flex-row md:min-h-0">
+          {/* Left / Tag Selector List Panel (w-80) - Independent rounded card */}
+          <div className="tags-sidebar-panel hidden w-full shrink-0 flex-col overflow-hidden rounded-2xl border border-[var(--line)]/60 bg-[var(--surface)] shadow-2xs md:flex md:h-auto md:w-80">
+            {/* Search Box */}
+            <div className="border-b border-[var(--line)]/40 bg-[var(--surface)] p-3.5">
+              <div className="relative">
+                <Search className="absolute left-3 top-2.5 h-4 w-4 text-[var(--ink-muted)]" aria-hidden="true" />
+                <input
+                  type="text"
+                  id="tags-search"
+                  name="tags_search"
+                  aria-label="搜索标签"
+                  autoComplete="off"
+                  placeholder="搜索标签名称..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="min-h-9 w-full rounded-xl border border-[var(--line)]/60 bg-[var(--canvas)] px-3 pl-9 text-xs text-[var(--ink)] placeholder:text-[var(--ink-muted)] focus:border-[var(--accent)] focus:outline-none"
+                />
               </div>
-            )}
-          </FloatingScrollbar>
-          {totalTags > 0 && (
-            <div className="flex shrink-0 items-center justify-center gap-2 border-t border-[var(--line)] bg-[var(--canvas)] px-3 py-3 text-[11px] text-[var(--ink-muted)]">
-              <button type="button" disabled={tagPage <= 1 || tagsPageQuery.isFetching} onClick={() => setTagPage((current) => Math.max(1, current - 1))} className="rounded-lg border border-[var(--line)] bg-[var(--surface)] px-2 py-1 font-medium disabled:cursor-not-allowed disabled:opacity-40">上一页</button>
-              <span className="font-mono tabular-nums">{tagPage} / {Math.max(1, tagsPageQuery.data?.total_pages || 1)}</span>
-              <button type="button" disabled={tagPage >= (tagsPageQuery.data?.total_pages || 1) || tagsPageQuery.isFetching} onClick={() => setTagPage((current) => current + 1)} className="rounded-lg border border-[var(--line)] bg-[var(--surface)] px-2 py-1 font-medium disabled:cursor-not-allowed disabled:opacity-40">下一页</button>
             </div>
-          )}
-        </div>
 
-        <div data-testid="tags-mobile-picker" className="shrink-0 border-b border-[var(--line)] bg-[var(--canvas)] p-4 md:hidden">
-          <div className="mb-2 flex items-center justify-between gap-3">
-            <span id="mobile-tag-picker-label" className="text-xs font-bold text-[var(--ink)]">当前赛道</span>
-            <span className="text-[11px] text-[var(--ink-muted)]">共 {tags.length} 个标签</span>
-          </div>
-          <CustomSelect
-            value={activeTag?.id || ''}
-            onChange={(value) => {
-              setSelectedTagId(value || null);
-              setTopicPage(1);
-            }}
-            options={mobileTagOptions}
-            ariaLabel="选择赛道标签"
-            ariaLabelledBy="mobile-tag-picker-label"
-            placeholder="请选择赛道标签"
-            searchable
-            searchValue={tagPickerSearch}
-            onSearchChange={setTagPickerSearch}
-            searchPlaceholder="搜索标签名称..."
-            className="block w-full"
-            buttonClassName="min-h-11 w-full"
-          />
-        </div>
+            {/* Tags List */}
+            <FloatingScrollbar className="space-y-1 bg-[var(--surface)] p-3" wrapperClassName="min-h-0 flex-1">
+              {visibleTags.map((tag) => {
+                const isSelected = activeTag?.id === tag.id;
+                const stats = tagStatsMap.get(tag.id);
+                const count = stats?.count || 0;
+                const colorConf = TAG_COLOR_OPTIONS.find((c) => c.id === tag.color) || TAG_COLOR_OPTIONS[0];
 
-        {/* Right / Selected Tag Deep Detail Stream (flex-1) */}
-        <div className="flex min-h-0 min-w-0 flex-1 flex-col overflow-visible bg-[var(--canvas)] md:overflow-hidden">
-          {activeTag ? (
-            <>
-              {/* Tag Header Banner */}
-              <div className="flex shrink-0 flex-wrap items-center justify-between gap-4 border-b border-[var(--line)] bg-[var(--surface)] p-5 sm:p-6">
-                <div className="space-y-1">
-                  <div className="flex items-center gap-2.5">
-                    <span className="flex min-w-0 items-center gap-1 text-xl font-bold text-[var(--ink)] sm:text-2xl">
-                      <Hash className="h-6 w-6 shrink-0 text-[var(--accent)]" aria-hidden="true" />
-                      {activeTag.name}
-                    </span>
-                    <span className="rounded-lg border border-[var(--line)] bg-[var(--canvas)] px-2.5 py-1 text-xs font-medium text-[var(--ink-muted)]">
-                      共 <span className="font-mono tabular-nums">{activeStats?.count || 0}</span> 个选题
-                    </span>
-                  </div>
-                  <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-[var(--ink-muted)]">
-                    <span>累计产出文案：<strong className="text-[var(--ink)]"><span className="font-mono tabular-nums">{activeStats?.wordsTotal || 0}</span> 字</strong></span>
-                    <span>•</span>
-                    <span>平均故事评分：<strong className="text-[var(--ink)]"><span className="font-mono tabular-nums">{activeStats?.avgScore || 0} / 10</span> 分</strong></span>
-                  </div>
-                </div>
-
-                <div className="flex w-full sm:w-auto items-center gap-2">
-                  <button
-                    onClick={() => openEditModal(activeTag)}
-                    className="flex min-h-10 flex-1 cursor-pointer items-center justify-center gap-1 rounded-xl border border-transparent bg-transparent px-3 py-1.5 text-xs font-medium text-[var(--ink)] transition-colors hover:border-[var(--line)] hover:bg-[var(--canvas)] sm:flex-none"
-                  >
-                    <Edit2 className="w-3.5 h-3.5" />
-                    <span>编辑标签</span>
-                  </button>
-
-                  <button
-                    onClick={() => onQuickCreateTopicInTag(activeTag.name)}
-                    className="flex min-h-10 flex-1 cursor-pointer items-center justify-center gap-1.5 rounded-xl bg-[var(--accent)] px-3.5 py-1.5 text-xs font-bold text-white shadow-2xs transition-colors hover:bg-[var(--accent-dark)] sm:flex-none"
-                  >
-                    <Plus className="w-3.5 h-3.5" />
-                    <span>为此赛道新建选题</span>
-                  </button>
-                </div>
-              </div>
-
-              {/* Status Filter Tabs */}
-              <div className="flex shrink-0 items-center gap-1.5 overflow-x-auto border-b border-[var(--line)] bg-[var(--canvas)] px-4 py-2.5 no-scrollbar sm:px-6">
-                <span className="mr-2 text-xs font-medium text-[var(--ink-muted)]">阶段筛选：</span>
-                {([
-                  { id: 'all', label: '全部' },
-                  { id: 'in_progress', label: '活跃生产中' },
-                  { id: 'pending', label: '待立项/收集箱' },
-                  { id: 'published', label: '已发布成片' },
-                ] as const).map((tab) => (
-                  <button
-                    key={tab.id}
-                    onClick={() => setTopicStatusFilter(tab.id)}
-                    className={`min-h-8 shrink-0 rounded-lg px-3 py-1 text-xs transition-all cursor-pointer ${
-                      topicStatusFilter === tab.id
-                        ? 'bg-[var(--surface)] border border-[var(--line)] text-[var(--ink)] font-semibold shadow-2xs'
-                        : 'border border-transparent hover:border-[var(--line)] bg-transparent hover:bg-[var(--surface)] text-[var(--ink-muted)] hover:text-[var(--ink)]'
+                return (
+                  <div
+                    key={tag.id}
+                    className={`tag-menu-item group relative flex items-center justify-between rounded-xl border p-2.5 transition-all cursor-pointer ${
+                      isSelected
+                        ? 'is-selected bg-[var(--canvas)] border-[var(--line)] text-[var(--ink)] shadow-2xs font-semibold'
+                        : 'bg-transparent border-transparent hover:border-[var(--line)]/50 hover:bg-[var(--canvas)] text-[var(--ink-muted)] hover:text-[var(--ink)]'
                     }`}
                   >
-                    {tab.label}
-                  </button>
-                ))}
-              </div>
+                    <button
+                      type="button"
+                      onClick={() => setSelectedTagId(tag.id)}
+                      aria-pressed={isSelected}
+                      className="flex min-w-0 flex-1 cursor-pointer items-center gap-2.5 rounded-lg text-left outline-none focus-visible:ring-1 focus-visible:ring-[var(--accent)]"
+                    >
+                      <span className={`h-2 w-2 shrink-0 rounded-full ${colorConf.dot}`} />
+                      <span className="truncate">
+                        <span className="flex items-center gap-1.5 truncate text-xs font-semibold">
+                          <span>#{tag.name}</span>
+                        </span>
+                        <span className="mt-0.5 flex items-center gap-2 text-[10px] text-[var(--ink-muted)]">
+                          <span>{count} 选题</span>
+                          {stats && stats.inProgressCount > 0 && (
+                            <span className="text-[var(--accent)] font-medium">{stats.inProgressCount} 写稿</span>
+                          )}
+                          {stats && stats.publishedCount > 0 && (
+                            <span className="text-emerald-600 dark:text-emerald-400 font-medium">{stats.publishedCount} 已发布</span>
+                          )}
+                        </span>
+                      </span>
+                    </button>
 
-              {/* Topics Grid */}
+                    {/* Actions & Count Badge */}
+                    <div className="flex shrink-0 items-center gap-1">
+                      <span className="px-1.5 py-0.5 font-mono text-xs tabular-nums text-[var(--ink-muted)]">
+                        {count}
+                      </span>
+
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          openEditModal(tag);
+                        }}
+                        className="cursor-pointer rounded-lg p-1 text-[var(--ink-muted)] opacity-100 transition-opacity hover:text-[var(--ink)] md:opacity-0 md:group-hover:opacity-100"
+                        aria-label="编辑标签"
+                      >
+                        <Edit2 className="w-3.5 h-3.5" />
+                      </button>
+
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setDeletingTag(tag);
+                        }}
+                        className="cursor-pointer rounded-lg p-1 text-[var(--ink-muted)] opacity-100 transition-opacity hover:text-[var(--h1-color)] md:opacity-0 md:group-hover:opacity-100"
+                        aria-label="删除标签"
+                      >
+                        <Trash2 className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
+                  </div>
+                );
+              })}
+
+              {visibleTags.length === 0 && !tagsPageQuery.isFetching && (
+                <div className="px-3 py-8 text-center text-xs text-[var(--ink-muted)]">
+                  暂无匹配标签
+                </div>
+              )}
+            </FloatingScrollbar>
+            {totalTags > 0 && (
+              <div className="flex shrink-0 items-center justify-center gap-2 border-t border-[var(--line)]/40 bg-[var(--surface)] px-3 py-2.5 text-[11px] text-[var(--ink-muted)]">
+                <button type="button" disabled={tagPage <= 1 || tagsPageQuery.isFetching} onClick={() => setTagPage((current) => Math.max(1, current - 1))} className="rounded-lg border border-[var(--line)]/60 bg-[var(--canvas)] px-2 py-1 font-medium disabled:cursor-not-allowed disabled:opacity-40">上一页</button>
+                <span className="font-mono tabular-nums">{tagPage} / {Math.max(1, tagsPageQuery.data?.total_pages || 1)}</span>
+                <button type="button" disabled={tagPage >= (tagsPageQuery.data?.total_pages || 1) || tagsPageQuery.isFetching} onClick={() => setTagPage((current) => current + 1)} className="rounded-lg border border-[var(--line)]/60 bg-[var(--canvas)] px-2 py-1 font-medium disabled:cursor-not-allowed disabled:opacity-40">下一页</button>
+              </div>
+            )}
+          </div>
+
+          <div data-testid="tags-mobile-picker" className="shrink-0 rounded-2xl border border-[var(--line)]/60 bg-[var(--surface)] p-3.5 md:hidden">
+            <div className="mb-2 flex items-center justify-between gap-3">
+              <span id="mobile-tag-picker-label" className="text-xs font-bold text-[var(--ink)]">当前赛道</span>
+              <span className="text-[11px] text-[var(--ink-muted)]">共 {tags.length} 个标签</span>
+            </div>
+            <CustomSelect
+              value={activeTag?.id || ''}
+              onChange={(value) => {
+                setSelectedTagId(value || null);
+                setTopicPage(1);
+              }}
+              options={mobileTagOptions}
+              ariaLabel="选择赛道标签"
+              ariaLabelledBy="mobile-tag-picker-label"
+              placeholder="请选择赛道标签"
+              searchable
+              searchValue={tagPickerSearch}
+              onSearchChange={setTagPickerSearch}
+              searchPlaceholder="搜索标签名称..."
+              className="block w-full"
+              buttonClassName="min-h-11 w-full"
+            />
+          </div>
+
+          {/* Right / Selected Tag Deep Detail Stream - Independent rounded card */}
+          <div className="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden rounded-2xl border border-[var(--line)]/60 bg-[var(--surface)] shadow-2xs">
+            {activeTag ? (
+              <>
+                {/* Tag Header Banner - Compact & Pure */}
+                <div className="flex shrink-0 flex-col gap-3 border-b border-[var(--line)]/50 bg-[var(--surface)] p-4 sm:p-5">
+                  <div className="flex items-center justify-between gap-3 flex-wrap">
+                    <div className="flex items-center gap-2.5 min-w-0">
+                      <span className="flex min-w-0 items-center gap-1.5 text-lg sm:text-xl font-bold text-[var(--ink)]">
+                        <Hash className="h-5 w-5 shrink-0 text-[var(--accent)]" aria-hidden="true" />
+                        <span className="truncate">{activeTag.name}</span>
+                      </span>
+                      <span className="rounded-md bg-stone-500/[0.05] dark:bg-white/[0.05] px-2 py-0.5 text-xs text-[var(--ink-muted)]">
+                        共 <span className="font-mono tabular-nums">{activeStats?.count || 0}</span> 个选题
+                      </span>
+                    </div>
+
+                    <div className="flex items-center gap-2">
+                      <button
+                        onClick={() => openEditModal(activeTag)}
+                        className="flex cursor-pointer items-center justify-center gap-1 rounded-lg px-2.5 py-1 text-xs font-medium text-[var(--ink-muted)] hover:text-[var(--ink)] hover:bg-stone-500/[0.06] dark:hover:bg-white/[0.06] transition-colors"
+                      >
+                        <Edit2 className="w-3.5 h-3.5" />
+                        <span>编辑标签</span>
+                      </button>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center justify-between gap-3 flex-wrap">
+                    <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-[var(--ink-muted)]">
+                      <span>累计产出文案：<strong className="text-[var(--ink)]"><span className="font-mono tabular-nums">{activeStats?.wordsTotal || 0}</span> 字</strong></span>
+                      <span>•</span>
+                      <span>平均故事评分：<strong className="text-[var(--ink)]"><span className="font-mono tabular-nums">{activeStats?.avgScore || 0} / 10</span> 分</strong></span>
+                    </div>
+
+                    {/* Status Filter Micro-capsule */}
+                    <div className="inline-flex items-center gap-1 rounded-full bg-stone-500/[0.04] dark:bg-stone-400/[0.06] p-0.5 text-xs font-medium border border-[var(--line)]/30">
+                      {([
+                        { id: 'all', label: '全部' },
+                        { id: 'in_progress', label: '活跃生产中' },
+                        { id: 'pending', label: '待立项/收集箱' },
+                        { id: 'published', label: '已发布成片' },
+                      ] as const).map((tab) => (
+                        <button
+                          key={tab.id}
+                          onClick={() => setTopicStatusFilter(tab.id)}
+                          className={`px-2.5 py-0.5 rounded-full transition-all cursor-pointer text-xs ${
+                            topicStatusFilter === tab.id
+                              ? 'bg-[var(--surface)] text-[var(--ink)] font-semibold shadow-2xs'
+                              : 'text-[var(--ink-muted)] hover:text-[var(--ink)]'
+                          }`}
+                        >
+                          {tab.label}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Topics Grid */}
               <FloatingScrollbar key={`${activeTag.id}-${topicStatusFilter}-${topicPage}`} data-testid="tags-topic-stream" className="mobile-scroll-reveal p-4 sm:p-6" wrapperClassName="min-h-0 flex-none md:flex-1">
                 <div className="grid min-w-0 grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
                   {activeTagTopics.map((topic) => (
@@ -550,10 +543,8 @@ export const TagsView: React.FC<TagsViewProps> = ({
             </div>
           )}
         </div>
-
-          </div>
-        </section>
       </div>
+    </div>
 
       {/* Modal: Create / Edit Tag */}
       <Modal
