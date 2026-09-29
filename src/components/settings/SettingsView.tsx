@@ -426,7 +426,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
         <PwaInstallCard />
 
         {/* 1. Appearance */}
-        <div className="bg-white dark:bg-stone-900 rounded-2xl border border-stone-200/70 dark:border-stone-800 p-5 sm:p-6 space-y-5 shadow-2xs transition-colors">
+        <div className="bg-[var(--surface)] rounded-2xl border border-[var(--line)] p-5 sm:p-6 space-y-5 shadow-subtle transition-colors">
           <div className="flex items-center justify-between border-b border-stone-100 dark:border-stone-800 pb-3">
             <div className="flex items-center gap-2">
               <span className="p-1.5 rounded-xl bg-[var(--accent-soft)] text-[var(--accent)]">
@@ -529,7 +529,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
         </div>
 
         {/* 2. Scripting & Studio Preferences */}
-        <div className="bg-white dark:bg-stone-900 rounded-2xl border border-stone-200/70 dark:border-stone-800 p-5 sm:p-6 space-y-6 shadow-2xs transition-colors">
+        <div className="bg-[var(--surface)] rounded-2xl border border-[var(--line)] p-5 sm:p-6 space-y-6 shadow-subtle transition-colors">
           <div className="flex items-center justify-between border-b border-stone-100 dark:border-stone-800 pb-3">
             <div className="flex items-center gap-2">
               <span className="p-1.5 rounded-xl bg-amber-500/10 text-amber-600 dark:text-amber-400">
@@ -808,7 +808,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
         </div>
 
         {/* 3. Workflow & Review Snapshots Preferences */}
-        <div className="bg-white dark:bg-stone-900 rounded-2xl border border-stone-200/70 dark:border-stone-800 p-5 sm:p-6 space-y-5 shadow-2xs transition-colors">
+        <div className="bg-[var(--surface)] rounded-2xl border border-[var(--line)] p-5 sm:p-6 space-y-5 shadow-subtle transition-colors">
           <div className="flex items-center justify-between border-b border-stone-100 dark:border-stone-800 pb-3">
             <div className="flex items-center gap-2">
               <span className="p-1.5 rounded-xl bg-purple-500/10 text-purple-600 dark:text-purple-400">
@@ -969,7 +969,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
         {/* 4. Security & Infrastructure Status */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {/* Password Protection */}
-          <div className="bg-white dark:bg-stone-900 rounded-2xl border border-stone-200/70 dark:border-stone-800 p-5 space-y-3 shadow-2xs transition-colors">
+          <div className="bg-[var(--surface)] rounded-2xl border border-[var(--line)] p-5 space-y-3 shadow-subtle transition-colors">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <KeyRound className="w-4 h-4 text-[var(--accent)]" />
@@ -991,7 +991,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
           </div>
 
           {/* Infrastructure Storage Status & Vacuum Optimization */}
-          <div className="bg-white dark:bg-stone-900 rounded-2xl border border-stone-200/70 dark:border-stone-800 p-5 space-y-4 shadow-2xs transition-colors">
+          <div className="bg-[var(--surface)] rounded-2xl border border-[var(--line)] p-5 space-y-4 shadow-subtle transition-colors">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <Database className="w-4 h-4 text-blue-600 dark:text-blue-400" />
@@ -1075,7 +1075,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
         </div>
 
         {/* 5. Quick Drop Ingestion Configuration */}
-        <div className="bg-white dark:bg-stone-900 rounded-2xl border border-stone-200/70 dark:border-stone-800 p-5 sm:p-6 space-y-4 shadow-2xs transition-colors">
+        <div className="bg-[var(--surface)] rounded-2xl border border-[var(--line)] p-5 sm:p-6 space-y-4 shadow-subtle transition-colors">
           <div className="flex items-center gap-2">
             <span className="p-1.5 rounded-xl bg-[var(--accent-soft)] text-[var(--accent)]">
               <Smartphone className="w-5 h-5" />
@@ -1122,7 +1122,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
         </div>
 
         {/* 6. Data Backup & Markdown Archive */}
-        <div className="bg-white dark:bg-stone-900 rounded-2xl border border-stone-200/70 dark:border-stone-800 p-5 sm:p-6 space-y-4 shadow-2xs transition-colors">
+        <div className="bg-[var(--surface)] rounded-2xl border border-[var(--line)] p-5 sm:p-6 space-y-4 shadow-subtle transition-colors">
           <div className="flex items-center gap-2">
             <span className="p-1.5 rounded-xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-400">
               <Database className="w-5 h-5" />

@@ -398,7 +398,7 @@ function DealCard({ deal, onOpen }: { deal: CommercialDeal; onOpen: (id: string)
       type="button"
       data-testid="deal-card"
       onClick={() => onOpen(deal.id)}
-      className="group w-full min-w-0 rounded-2xl border border-[var(--line)]/60 bg-[var(--surface)] p-4 text-left shadow-2xs transition-all hover:-translate-y-0.5 hover:shadow-subtle cursor-pointer"
+      className="group w-full min-w-0 rounded-2xl border border-[var(--line)] bg-[var(--surface)] p-4 text-left shadow-subtle transition-all hover:-translate-y-0.5 hover:shadow-card cursor-pointer"
     >
       <div className="flex min-w-0 items-start justify-between gap-3">
         <div className="min-w-0">
@@ -482,7 +482,7 @@ function SummaryCard({
     emerald: 'bg-emerald-500/10 text-emerald-800 dark:text-emerald-300',
   };
   return (
-    <div className="flex items-center justify-between gap-3 rounded-xl border border-[var(--line)]/60 bg-[var(--surface)] px-3.5 py-2.5 shadow-2xs">
+    <div className="flex items-center justify-between gap-3 rounded-xl border border-[var(--line)] bg-[var(--surface)] px-3.5 py-2.5 shadow-subtle">
       <div className="flex items-center gap-2.5 min-w-0">
         <span className={`grid h-8 w-8 shrink-0 place-items-center rounded-lg ${tones[tone]}`}>{icon}</span>
         <div className="min-w-0">
@@ -612,7 +612,7 @@ function CommercialDealsView({ topics, onCreateTopicFromDeal }: Pick<DealsViewPr
             tone="emerald"
           />
         </div>
-        <div className="rounded-2xl border border-stone-200/70 bg-white p-3 shadow-2xs dark:border-stone-800 dark:bg-stone-900 sm:p-4">
+        <div className="rounded-2xl border border-[var(--line)] bg-[var(--surface)] p-3 shadow-subtle sm:p-4">
           <div className="flex flex-col gap-3 lg:flex-row lg:items-center">
             <label className="min-w-0 flex-1 text-xs font-semibold text-stone-500 dark:text-stone-400">
               <span className="sr-only">搜索商单</span>
@@ -694,7 +694,7 @@ function CommercialDealsView({ topics, onCreateTopicFromDeal }: Pick<DealsViewPr
                 <DealCard key={deal.id} deal={deal} onOpen={(id) => navigate(`/deals/${encodeURIComponent(id)}`)} />
               ))}
             </div>
-            <div className="flex flex-col gap-3 rounded-2xl border border-stone-200/70 bg-white p-3 shadow-2xs dark:border-stone-800 dark:bg-stone-900 sm:flex-row sm:items-center sm:justify-between sm:p-4">
+            <div className="flex flex-col gap-3 rounded-2xl border border-[var(--line)] bg-[var(--surface)] p-3 shadow-subtle sm:flex-row sm:items-center sm:justify-between sm:p-4">
               <div className="flex flex-wrap items-center gap-2 text-xs font-semibold text-stone-500 dark:text-stone-400">
                 <span>每页展示</span>
                 <CustomSelect
@@ -752,7 +752,7 @@ function SectionCard({
   action?: React.ReactNode;
 }) {
   return (
-    <section className="min-w-0 rounded-2xl border border-stone-200/70 bg-white p-5 shadow-2xs dark:border-stone-800 dark:bg-stone-900">
+    <section className="min-w-0 rounded-2xl border border-[var(--line)] bg-[var(--surface)] p-5 shadow-subtle">
       <div className="mb-4 flex items-center justify-between gap-3">
         <h2 className="flex min-w-0 items-center gap-2 text-sm font-bold text-stone-900 dark:text-stone-100">
           {icon}
@@ -1114,7 +1114,7 @@ function CommercialDealDetailView({
   return (
     <div className="min-h-0 min-w-0 flex-1 overflow-y-auto overscroll-contain mobile-bottom-nav-content md:pb-8">
       <div className="mx-auto max-w-6xl space-y-5 px-4 py-4 sm:px-8 sm:py-6">
-        <section className="min-w-0 rounded-2xl border border-stone-200/70 bg-white p-5 shadow-2xs dark:border-stone-800 dark:bg-stone-900 sm:p-6">
+        <section className="min-w-0 rounded-2xl border border-[var(--line)] bg-[var(--surface)] p-5 shadow-subtle sm:p-6">
           <div className="flex flex-col gap-4">
             <div className="flex min-w-0 flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
               <div className="min-w-0 flex-1">

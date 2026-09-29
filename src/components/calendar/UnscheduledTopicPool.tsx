@@ -42,7 +42,7 @@ function DraggableTopicCard({
       style={style}
       data-testid="unscheduled-topic-card"
       data-topic-id={topic.id}
-      className={`group flex flex-col gap-2 rounded-xl border border-[var(--line)] bg-[var(--surface)] p-3 shadow-2xs transition-all hover:border-[var(--accent)]/40 hover:shadow-card ${
+      className={`group flex flex-col gap-2 rounded-xl border border-[var(--line)] bg-[var(--surface)] p-3 shadow-subtle transition-all hover:border-[var(--accent)]/40 hover:shadow-card ${
         isDragging
           ? 'transition-none will-change-transform ring-1 ring-[var(--accent)]/70 shadow-card'
           : 'duration-200'
@@ -193,7 +193,7 @@ export const UnscheduledTopicPool: React.FC<UnscheduledTopicPoolProps> = ({
       role={isMobileDrawer ? 'dialog' : 'complementary'}
       aria-modal={isMobileDrawer ? true : undefined}
       aria-labelledby="unscheduled-topic-pool-title"
-      className="absolute inset-y-0 right-0 z-20 flex h-full w-full max-w-80 select-none flex-col rounded-2xl border border-[var(--line)] bg-[var(--surface)] shadow-card backdrop-blur-sm transition-colors sm:relative sm:inset-auto sm:w-80 sm:shrink-0"
+      className="absolute inset-y-0 right-0 z-20 flex h-full w-full max-w-80 select-none flex-col rounded-2xl border border-[var(--line)] bg-[var(--surface)] shadow-subtle backdrop-blur-sm transition-colors sm:relative sm:inset-auto sm:w-80 sm:shrink-0"
     >
       {/* Header */}
       <div className="flex items-center justify-between border-b border-[var(--line)] p-4">

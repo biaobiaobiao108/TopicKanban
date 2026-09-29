@@ -53,7 +53,7 @@ interface SectionCardProps {
 }
 
 const SectionCard: React.FC<SectionCardProps> = ({ title, children, action }) => (
-  <section className="rounded-2xl border border-stone-200/70 bg-white p-4 shadow-2xs dark:border-stone-800 dark:bg-stone-900 sm:p-5">
+  <section className="rounded-2xl border border-[var(--line)] bg-[var(--surface)] p-4 shadow-subtle sm:p-5">
     <div className="mb-3 flex items-center justify-between gap-3">
       <h2 className="text-sm font-bold text-stone-900 dark:text-stone-100">{title}</h2>
       {action}
@@ -372,7 +372,7 @@ export const PublishPackageTab: React.FC<PublishPackageTabProps> = ({
 
   return (
     <div className="mx-auto w-full max-w-7xl space-y-5 py-5 sm:py-7">
-      <div className="rounded-2xl border border-[var(--line)] bg-[var(--surface)] p-4 shadow-2xs sm:p-5">
+      <div className="rounded-2xl border border-[var(--line)] bg-[var(--surface)] p-4 shadow-subtle sm:p-5">
         <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
           <div>
             <div className="flex items-center gap-2"><FileText className="h-5 w-5 text-[var(--accent)]" aria-hidden="true" /><h1 className="text-base font-bold text-[var(--ink)]">双平台发布包</h1></div>
@@ -419,7 +419,7 @@ export const PublishPackageTab: React.FC<PublishPackageTabProps> = ({
         </form>
 
         <aside className="space-y-5 xl:sticky xl:top-5 xl:self-start">
-          <section className={`rounded-2xl border p-4 shadow-2xs sm:p-5 ${blockers.length > 0 ? 'border-red-200 bg-red-50/80 dark:border-red-900/60 dark:bg-red-950/30' : warnings.length > 0 ? 'border-amber-200 bg-amber-50/80 dark:border-amber-900/60 dark:bg-amber-950/30' : 'border-emerald-200 bg-emerald-50/80 dark:border-emerald-900/60 dark:bg-emerald-950/30'}`}>
+          <section className={`rounded-2xl border p-4 shadow-subtle sm:p-5 ${blockers.length > 0 ? 'border-red-200 bg-red-50/80 dark:border-red-900/60 dark:bg-red-950/30' : warnings.length > 0 ? 'border-amber-200 bg-amber-50/80 dark:border-amber-900/60 dark:bg-amber-950/30' : 'border-emerald-200 bg-emerald-50/80 dark:border-emerald-900/60 dark:bg-emerald-950/30'}`}>
             <div className="flex items-start gap-3"><StatusIcon className="mt-0.5 h-5 w-5 shrink-0" aria-hidden="true" /><div><h2 className="text-sm font-bold text-stone-900 dark:text-stone-100">{statusTitle}</h2><p className="mt-1 text-xs leading-5 text-stone-600 dark:text-stone-300">{statusDescription}</p></div></div>
             <div className="mt-4 grid grid-cols-3 gap-2 text-center text-xs"><div className="rounded-xl bg-white/70 p-2 dark:bg-stone-900/50"><div className="font-mono text-lg font-bold text-stone-900 dark:text-stone-100">{packageData.word_count.toLocaleString()}</div><div className="text-stone-500 dark:text-stone-400">字数</div></div><div className="rounded-xl bg-white/70 p-2 dark:bg-stone-900/50"><div className="font-mono text-lg font-bold text-stone-900 dark:text-stone-100">{packageData.chapters.length}</div><div className="text-stone-500 dark:text-stone-400">章节</div></div><div className="rounded-xl bg-white/70 p-2 dark:bg-stone-900/50"><div className="font-mono text-lg font-bold text-stone-900 dark:text-stone-100">{packageData.source_credits.filter((source) => source.included).length}</div><div className="text-stone-500 dark:text-stone-400">资料</div></div></div>
             <div className="mt-4 space-y-2" aria-live="polite">{checks.map((check) => { const config = statusConfig[check.level]; const Icon = config.icon; return <div key={check.id} className="flex items-start gap-2 rounded-xl bg-white/65 px-3 py-2.5 dark:bg-stone-900/45"><Icon className={`mt-0.5 h-4 w-4 shrink-0 ${config.className}`} aria-hidden="true" /><div className="min-w-0"><div className="flex flex-wrap items-center gap-1.5 text-xs font-bold text-stone-800 dark:text-stone-200"><span>{check.label}</span><span className="rounded-full bg-stone-500/10 px-1.5 py-0.5 text-[10px] font-medium text-stone-500 dark:text-stone-400">{statusLabel[check.level]}</span></div><p className="mt-0.5 text-[11px] leading-5 text-stone-600 dark:text-stone-400">{check.detail}</p></div></div>; })}</div>

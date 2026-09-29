@@ -142,7 +142,7 @@ export const PeopleTab: React.FC<PeopleTabProps> = ({
           {topicPeople.map((person) => (
             <div
               key={person.id}
-              className="bg-[var(--surface)] rounded-2xl border border-[var(--line)] p-5 space-y-3 shadow-2xs flex flex-col justify-between hover:shadow-card hover:-translate-y-0.5 transition-all"
+              className="bg-[var(--surface)] rounded-2xl border border-[var(--line)] p-5 space-y-3 shadow-subtle flex flex-col justify-between hover:shadow-card hover:-translate-y-0.5 transition-all"
             >
               <div className="space-y-2.5">
                 <div className="flex items-start justify-between gap-2">
@@ -288,7 +288,7 @@ export const PeopleTab: React.FC<PeopleTabProps> = ({
           {relevantRelationships.map((rel) => (
             <div
               key={rel.id}
-              className="bg-white dark:bg-stone-900 rounded-2xl border border-stone-200/70 dark:border-stone-800 p-4 flex items-center justify-between shadow-2xs"
+              className="bg-[var(--surface)] rounded-2xl border border-[var(--line)] p-4 flex items-center justify-between shadow-subtle"
             >
               <div className="space-y-1">
                 <div className="flex items-center gap-2 text-sm font-bold text-stone-900 dark:text-stone-100">
@@ -306,7 +306,7 @@ export const PeopleTab: React.FC<PeopleTabProps> = ({
           ))}
 
           {relevantRelationships.length === 0 && (
-            <div className="col-span-full p-5 text-center text-xs text-stone-400 dark:text-stone-500 bg-white dark:bg-stone-900 border border-stone-200/70 dark:border-stone-800 rounded-2xl">
+            <div className="col-span-full p-5 text-center text-xs text-[var(--ink-muted)] bg-[var(--surface)] border border-[var(--line)] rounded-2xl shadow-subtle">
               暂无已记录的本期人物关联关系（可在「人物档案与关系库」中统一配置网状关系）
             </div>
           )}

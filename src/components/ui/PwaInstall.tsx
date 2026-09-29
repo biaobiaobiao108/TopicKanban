@@ -128,7 +128,7 @@ export const PwaInstallCard: React.FC = () => {
   const { isIOS, isMacSafari, isStandalone } = usePwaInstall();
 
   return (
-    <section className="rounded-2xl border border-stone-200/70 bg-white p-5 shadow-2xs transition-colors dark:border-stone-800 dark:bg-stone-900 sm:p-6">
+    <section className="rounded-2xl border border-[var(--line)] bg-[var(--surface)] p-5 shadow-subtle transition-colors sm:p-6">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex items-start gap-3">
           <span className="rounded-xl bg-[var(--accent-soft)] p-1.5 text-[var(--accent)]"><Smartphone className="h-5 w-5" /></span>

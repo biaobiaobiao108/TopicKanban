@@ -66,7 +66,7 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({
 
   if (analyticsQuery.data.totalVideos === 0 && range === 'all') {
     return (
-      <div className="flex flex-col items-center justify-center p-12 bg-[var(--surface)] rounded-2xl border border-[var(--line)] text-center space-y-3 shadow-2xs">
+      <div className="flex flex-col items-center justify-center p-12 bg-[var(--surface)] rounded-2xl border border-[var(--line)] text-center space-y-3 shadow-subtle">
         <BarChart3 className="w-12 h-12 text-stone-300 dark:text-stone-600 stroke-[1.5]" />
         <h3 className="text-base font-bold text-stone-800 dark:text-stone-200">暂无已发布视频数据</h3>
         <p className="text-xs text-stone-500 dark:text-stone-400 max-w-sm">
@@ -93,7 +93,7 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({
   return (
     <div className="space-y-8 animate-fadeIn">
       {/* Filter range */}
-      <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-[var(--line)] bg-[var(--surface)] px-5 py-3.5 shadow-2xs">
+      <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-[var(--line)] bg-[var(--surface)] px-5 py-3.5 shadow-subtle">
         <div>
           <div className="text-sm font-bold text-stone-900 dark:text-stone-100">复盘范围</div>
           <div className="text-xs text-stone-500 dark:text-stone-400">按发布时间筛选，将数据规律转化为近期立项行动</div>
@@ -135,7 +135,7 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({
 
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3.5">
           {/* Total Views */}
-          <div className="bg-[var(--surface)] p-4 rounded-2xl border border-[var(--line)]/50 shadow-2xs space-y-1">
+          <div className="bg-[var(--surface)] p-4 rounded-2xl border border-[var(--line)] shadow-subtle space-y-1">
             <div className="text-xs font-semibold text-[var(--ink-muted)] flex items-center justify-between">
               <span>总播放量</span>
               <Flame className="w-4 h-4 text-[var(--accent)]" />
@@ -149,7 +149,7 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({
           </div>
 
           {/* Average Coin Ratio */}
-          <div className="bg-[var(--surface)] p-4 rounded-2xl border border-[var(--line)]/50 shadow-2xs space-y-1">
+          <div className="bg-[var(--surface)] p-4 rounded-2xl border border-[var(--line)] shadow-subtle space-y-1">
             <div className="text-xs font-semibold text-[var(--ink-muted)] flex items-center justify-between">
               <span>平均投币率</span>
               <Coins className="w-4 h-4 text-[#9b6a2f] dark:text-[#c49258]" />
@@ -166,7 +166,7 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({
           </div>
 
           {/* Average Triple Ratio */}
-          <div className="bg-[var(--surface)] p-4 rounded-2xl border border-[var(--line)]/50 shadow-2xs space-y-1">
+          <div className="bg-[var(--surface)] p-4 rounded-2xl border border-[var(--line)] shadow-subtle space-y-1">
             <div className="text-xs font-semibold text-[var(--ink-muted)] flex items-center justify-between">
               <span>平均三连率</span>
               <ThumbsUp className="w-4 h-4 text-[var(--accent)]" />
@@ -180,7 +180,7 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({
           </div>
 
           {/* Average Favorite Ratio */}
-          <div className="bg-[var(--surface)] p-4 rounded-2xl border border-[var(--line)]/50 shadow-2xs space-y-1">
+          <div className="bg-[var(--surface)] p-4 rounded-2xl border border-[var(--line)] shadow-subtle space-y-1">
             <div className="text-xs font-semibold text-[var(--ink-muted)] flex items-center justify-between">
               <span>收藏播放比</span>
               <Bookmark className="w-4 h-4 text-stone-500 dark:text-stone-400" />
@@ -194,7 +194,7 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({
           </div>
 
           {/* Engagement Score */}
-          <div className="bg-[var(--surface)] p-4 rounded-2xl border border-[var(--line)]/50 shadow-2xs space-y-1 col-span-2 sm:col-span-1">
+          <div className="bg-[var(--surface)] p-4 rounded-2xl border border-[var(--line)] shadow-subtle space-y-1 col-span-2 sm:col-span-1">
             <div className="text-xs font-semibold text-[var(--ink-muted)] flex items-center justify-between">
               <span>互动活力评分</span>
               <Sparkles className="w-4 h-4 text-[var(--accent)]" />
@@ -212,7 +212,7 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({
       {/* 2. Topic Model 5D Correlation & Hit Insights */}
       <section className="grid grid-cols-1 lg:grid-cols-12 gap-6">
         {/* Left: 5D Story Model Correlation Bars (7 Cols) */}
-        <div className="lg:col-span-7 bg-[var(--surface)] p-5 sm:p-6 rounded-2xl border border-[var(--line)] shadow-2xs space-y-5">
+        <div className="lg:col-span-7 bg-[var(--surface)] p-5 sm:p-6 rounded-2xl border border-[var(--line)] shadow-subtle space-y-5">
           {correlation.hasData ? (
             <>
               <div className="flex items-center justify-between border-b border-stone-100 dark:border-stone-800 pb-3">
@@ -305,7 +305,7 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({
         </div>
 
         {/* Right: Hit Insights & Actionable Guidance (5 Cols) */}
-        <div className="lg:col-span-5 bg-[var(--surface)] p-5 sm:p-6 rounded-2xl border border-[var(--line)] shadow-2xs flex flex-col justify-between space-y-4">
+        <div className="lg:col-span-5 bg-[var(--surface)] p-5 sm:p-6 rounded-2xl border border-[var(--line)] shadow-subtle flex flex-col justify-between space-y-4">
           <div>
             <h4 className="text-sm font-bold text-stone-900 dark:text-stone-100 flex items-center gap-2 border-b border-stone-100 dark:border-stone-800 pb-3">
               <Lightbulb className="w-4 h-4 text-amber-500" />
@@ -351,7 +351,7 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({
       {/* 3. High-Performance Figures & Tags Ranking */}
       <section className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {/* Figures Performance */}
-        <div className="bg-[var(--surface)] p-5 sm:p-6 rounded-2xl border border-[var(--line)] shadow-2xs space-y-4">
+        <div className="bg-[var(--surface)] p-5 sm:p-6 rounded-2xl border border-[var(--line)] shadow-subtle space-y-4">
           <div className="flex items-center justify-between border-b border-stone-100 dark:border-stone-800 pb-3">
             <h4 className="text-sm font-bold text-stone-900 dark:text-stone-100 flex items-center gap-2">
               <Users className="w-4 h-4 text-indigo-600 dark:text-indigo-400" />
@@ -408,7 +408,7 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({
         </div>
 
         {/* Tags Performance */}
-        <div className="bg-[var(--surface)] p-5 sm:p-6 rounded-2xl border border-[var(--line)] shadow-2xs space-y-4">
+        <div className="bg-[var(--surface)] p-5 sm:p-6 rounded-2xl border border-[var(--line)] shadow-subtle space-y-4">
           <div className="flex items-center justify-between border-b border-stone-100 dark:border-stone-800 pb-3">
             <h4 className="text-sm font-bold text-stone-900 dark:text-stone-100 flex items-center gap-2">
               <Tag className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
@@ -456,7 +456,7 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({
       </section>
 
       {/* 4. Single Video Deep Metrics Leaderboard */}
-      <section className="bg-[var(--surface)] rounded-2xl border border-[var(--line)] shadow-2xs overflow-hidden">
+      <section className="bg-[var(--surface)] rounded-2xl border border-[var(--line)] shadow-subtle overflow-hidden">
         <div className="p-5 sm:p-6 border-b border-stone-100 dark:border-stone-800 flex items-center justify-between">
           <div>
             <h4 className="text-sm font-bold text-stone-900 dark:text-stone-100 flex items-center gap-2">

@@ -407,7 +407,7 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({
       {/* Left Main Column: Topic Positioning & Story Structure (7 / 12) */}
       <div className="xl:col-span-7 space-y-6">
         {/* 1. 选题定位卡 */}
-        <div className="bg-white dark:bg-stone-900 rounded-2xl border border-stone-200/70 dark:border-stone-800 p-5 space-y-4 shadow-2xs transition-colors">
+        <div className="bg-[var(--surface)] rounded-2xl border border-[var(--line)] p-5 space-y-4 shadow-subtle transition-colors">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
               <div className="p-1.5 rounded-xl bg-[var(--accent-soft)] text-[var(--accent)]">
@@ -526,7 +526,7 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({
         </div>
 
         {/* 2. 故事结构工作台 (Story Structure) */}
-        <div className="bg-white dark:bg-stone-900 rounded-2xl border border-stone-200/70 dark:border-stone-800 p-5 space-y-4 shadow-2xs transition-colors">
+        <div className="bg-[var(--surface)] rounded-2xl border border-[var(--line)] p-5 space-y-4 shadow-subtle transition-colors">
           <div className="flex items-center justify-between flex-wrap gap-2">
             <div className="flex items-center gap-2">
               <div className="p-1.5 rounded-xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-400">
@@ -657,7 +657,7 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({
       {/* Right Column: Production Cockpit & Entities (5 / 12) */}
       <div className="xl:col-span-5 space-y-6">
         {/* 1. 生产节奏与排期驾驶舱 (Production Rhythm Cockpit) */}
-        <div className="bg-white dark:bg-stone-900 rounded-2xl border border-stone-200/70 dark:border-stone-800 p-5 space-y-4 shadow-2xs transition-colors">
+        <div className="bg-[var(--surface)] rounded-2xl border border-[var(--line)] p-5 space-y-4 shadow-subtle transition-colors">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
               <div className="p-1.5 rounded-xl bg-[var(--accent-soft)] text-[var(--accent)]">
@@ -814,7 +814,7 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({
         </div>
 
         {/* 2. 关联人物实体 (People Selector) */}
-        <div className="bg-white dark:bg-stone-900 rounded-2xl border border-stone-200/70 dark:border-stone-800 p-5 space-y-4 shadow-2xs transition-colors">
+        <div className="bg-[var(--surface)] rounded-2xl border border-[var(--line)] p-5 space-y-4 shadow-subtle transition-colors">
           <div className="flex items-center justify-between">
             <h4 className="text-sm font-bold text-stone-900 dark:text-stone-100 flex items-center gap-2">
               <span className="p-1.5 rounded-xl bg-stone-500/10 text-stone-700 dark:text-stone-300">
@@ -901,7 +901,7 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({
         </div>
 
         {/* 4. 分类标签 (Tags Selector) */}
-        <div className="bg-white dark:bg-stone-900 rounded-2xl border border-stone-200/70 dark:border-stone-800 p-5 space-y-4 shadow-2xs transition-colors">
+        <div className="bg-[var(--surface)] rounded-2xl border border-[var(--line)] p-5 space-y-4 shadow-subtle transition-colors">
           <div className="flex items-center justify-between">
             <h4 className="text-sm font-bold text-stone-900 dark:text-stone-100 flex items-center gap-2">
               <span className="p-1.5 rounded-xl bg-stone-500/10 text-stone-700 dark:text-stone-300">

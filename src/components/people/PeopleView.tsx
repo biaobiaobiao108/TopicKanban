@@ -226,7 +226,7 @@ export const PeopleView: React.FC<PeopleViewProps> = ({
             return (
               <div
                 key={person.id}
-                className="bg-[var(--surface)] rounded-2xl border border-[var(--line)] p-5 space-y-4 shadow-2xs hover:shadow-card hover:-translate-y-0.5 transition-all flex flex-col justify-between"
+                className="bg-[var(--surface)] rounded-2xl border border-[var(--line)] p-5 space-y-4 shadow-subtle hover:shadow-card hover:-translate-y-0.5 transition-all flex flex-col justify-between"
               >
                 <div className="space-y-3">
                   {/* Header info */}

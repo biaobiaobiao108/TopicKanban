@@ -331,7 +331,7 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
             )}
           />
 
-          <section aria-label="日历视图与排期池" className="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden rounded-2xl border border-[var(--line)]/60 bg-[var(--surface)] shadow-2xs">
+          <section aria-label="日历视图与排期池" className="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden rounded-2xl border border-[var(--line)] bg-[var(--surface)] shadow-subtle">
             {/* Subheader: Month Stats & Layer Filter Toggles */}
             <div className="flex shrink-0 flex-col gap-3 border-b border-[var(--line)]/50 bg-[var(--surface)]/90 backdrop-blur-md px-4 py-2.5 sm:px-5 lg:flex-row lg:items-center lg:justify-between">
             {/* Stats Chips */}

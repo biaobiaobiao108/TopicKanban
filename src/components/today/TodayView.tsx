@@ -59,7 +59,7 @@ function DealFocusCard({ deal, onOpen }: { deal: CommercialDeal; onOpen: () => v
     <button
       type="button"
       onClick={onOpen}
-      className="flex min-h-20 w-full items-center gap-3 rounded-2xl border border-stone-200/50 bg-white p-4 text-left shadow-2xs transition-all hover:-translate-y-0.5 hover:shadow-card dark:border-stone-800/60 dark:bg-stone-900"
+      className="flex min-h-20 w-full items-center gap-3 rounded-2xl border border-[var(--line)] bg-[var(--surface)] p-4 text-left shadow-subtle transition-all hover:-translate-y-0.5 hover:shadow-card cursor-pointer"
     >
       <span className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl ${isUnpaid ? 'bg-amber-500/10 text-amber-600 dark:text-amber-300' : 'bg-[var(--accent-soft)] text-[var(--accent)]'}`}>
         {isUnpaid ? <WalletCards className="h-5 w-5" /> : <Handshake className="h-5 w-5" />}

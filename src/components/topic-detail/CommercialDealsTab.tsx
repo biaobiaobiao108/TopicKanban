@@ -105,13 +105,13 @@ export const CommercialDealsTab: React.FC<CommercialDealsTabProps> = ({ topic, o
       {error && <div role="alert" aria-live="polite" className="rounded-xl border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-800 dark:border-red-900/60 dark:bg-red-950/30 dark:text-red-200">{error}</div>}
 
       {activeDeals.length === 0 ? (
-        <div className="rounded-2xl border border-dashed border-stone-300 bg-white p-10 text-center text-sm text-stone-500 dark:border-stone-700 dark:bg-stone-900 dark:text-stone-400">这个选题暂未关联商单。</div>
+        <div className="rounded-2xl border border-dashed border-[var(--line)] bg-[var(--surface)] p-10 text-center text-sm text-[var(--ink-muted)]">这个选题暂未关联商单。</div>
       ) : (
         <div className="grid gap-3">
           {activeDeals.map((deal) => {
             const isBusy = busyId === deal.id;
             return (
-              <article key={deal.id} className="rounded-2xl border border-stone-200/70 bg-white p-4 shadow-2xs dark:border-stone-800 dark:bg-stone-900 sm:p-5">
+              <article key={deal.id} className="rounded-2xl border border-[var(--line)] bg-[var(--surface)] p-4 shadow-subtle sm:p-5">
                 <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
                   <button type="button" onClick={() => onOpenDeal(deal.id)} className="min-w-0 text-left">
                     <div className="flex flex-wrap items-center gap-2 text-xs font-semibold text-stone-500 dark:text-stone-400">

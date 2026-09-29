@@ -63,7 +63,7 @@ function TagMetricCard({
   };
 
   return (
-    <div className="flex h-full min-h-[4.5rem] items-center gap-2 rounded-2xl border border-[var(--line)] bg-[var(--surface)] px-3 py-3 shadow-2xs sm:gap-3 sm:px-4">
+    <div className="flex h-full min-h-[4.5rem] items-center gap-2 rounded-2xl border border-[var(--line)] bg-[var(--surface)] px-3 py-3 shadow-subtle sm:gap-3 sm:px-4">
       <span className={`grid h-7 w-7 shrink-0 place-items-center rounded-lg sm:h-8 sm:w-8 ${tones[tone]}`}>
         {icon}
       </span>
@@ -277,7 +277,7 @@ export const TagsView: React.FC<TagsViewProps> = ({
 
         <div aria-label="标签与选题工作区" className="flex min-h-[34rem] min-w-0 flex-1 flex-col gap-5 md:flex-row md:min-h-0">
           {/* Left / Tag Selector List Panel (w-80) - Independent rounded card */}
-          <div className="tags-sidebar-panel hidden w-full shrink-0 flex-col overflow-hidden rounded-2xl border border-[var(--line)]/60 bg-[var(--surface)] shadow-2xs md:flex md:h-auto md:w-80">
+          <div className="tags-sidebar-panel hidden w-full shrink-0 flex-col overflow-hidden rounded-2xl border border-[var(--line)] bg-[var(--surface)] shadow-subtle md:flex md:h-auto md:w-80">
             {/* Search Box */}
             <div className="border-b border-[var(--line)]/40 bg-[var(--surface)] p-3.5">
               <div className="relative">
@@ -408,7 +408,7 @@ export const TagsView: React.FC<TagsViewProps> = ({
           </div>
 
           {/* Right / Selected Tag Deep Detail Stream - Independent rounded card */}
-          <div className="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden rounded-2xl border border-[var(--line)]/60 bg-[var(--surface)] shadow-2xs">
+          <div className="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden rounded-2xl border border-[var(--line)] bg-[var(--surface)] shadow-subtle">
             {activeTag ? (
               <>
                 {/* Tag Header Banner - Compact & Pure */}
@@ -482,7 +482,7 @@ export const TagsView: React.FC<TagsViewProps> = ({
                           onSelectTopic(topic.id);
                         }
                       }}
-                      className="mobile-motion-card group flex min-w-0 cursor-pointer flex-col justify-between space-y-3 rounded-2xl border border-[var(--line)] bg-[var(--surface)] p-5 shadow-2xs transition-all hover:-translate-y-0.5 hover:shadow-card focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[var(--accent)]"
+                      className="mobile-motion-card group flex min-w-0 cursor-pointer flex-col justify-between space-y-3 rounded-2xl border border-[var(--line)] bg-[var(--surface)] p-5 shadow-subtle transition-all hover:-translate-y-0.5 hover:shadow-card focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[var(--accent)]"
                     >
                       <div className="space-y-2.5">
                         {/* Status & Priority */}

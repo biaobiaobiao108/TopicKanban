@@ -448,7 +448,7 @@ export const TopicTableView: React.FC<TopicTableViewProps> = ({
   const inScriptingCount = pageQuery.data?.summary?.in_scripting_count || 0;
 
   return (
-    <div className="flex-1 h-full flex flex-col bg-[var(--surface)] rounded-2xl border border-[var(--line)]/60 overflow-hidden min-h-0 transition-colors shadow-2xs">
+    <div className="flex-1 h-full flex flex-col bg-[var(--surface)] rounded-2xl border border-[var(--line)] overflow-hidden min-h-0 transition-colors shadow-subtle">
       {/* Scope Filter Header */}
       <div className="table-scope-tabs-container px-4 py-2.5 bg-[var(--surface)]/80 backdrop-blur-sm border-b border-[var(--line)]/60 flex items-center justify-between flex-wrap gap-2 shrink-0">
         <div className="inline-flex items-center gap-1 rounded-full bg-stone-500/[0.04] dark:bg-stone-400/[0.06] p-1 border border-[var(--line)]/40 text-xs font-medium">
@@ -678,7 +678,7 @@ export const TopicTableView: React.FC<TopicTableViewProps> = ({
             const isArchived = topic.status === 'published' || topic.status === 'icebox';
 
             return (
-              <article key={topic.id} className="rounded-[var(--radius-md)] border border-[var(--line)] bg-[var(--surface)] p-4 cv-card">
+              <article key={topic.id} className="rounded-[var(--radius-md)] border border-[var(--line)] bg-[var(--surface)] p-4 cv-card shadow-subtle">
                 <div className="flex items-start justify-between gap-3">
                   <div className="flex items-start gap-2.5 min-w-0 flex-1">
                     <input

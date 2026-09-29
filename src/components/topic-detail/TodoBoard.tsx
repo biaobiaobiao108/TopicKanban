@@ -75,7 +75,7 @@ const ColumnTodoComposer: React.FC<{
   };
 
   return (
-    <form onSubmit={(event) => void submit(event)} noValidate className="todo-board-composer rounded-[var(--radius-md)] border border-[var(--line)] bg-[var(--surface)] p-2.5 shadow-2xs">
+    <form onSubmit={(event) => void submit(event)} noValidate className="todo-board-composer rounded-[var(--radius-md)] border border-[var(--line)] bg-[var(--surface)] p-2.5 shadow-subtle">
       <label htmlFor={id} className="sr-only">添加待办事项</label>
       <div className="flex min-w-0 items-center gap-2">
         <input
@@ -215,7 +215,7 @@ const SortableTodoCard: React.FC<SortableTodoCardProps> = ({ todo, status, isCur
       data-todo-id={todo.id}
       data-current={isCurrent ? 'true' : undefined}
       aria-current={isCurrent ? 'true' : undefined}
-      className={`group relative flex min-w-0 min-h-[58px] select-none touch-manipulation flex-col justify-center rounded-[var(--radius-md)] border border-[var(--line)] bg-[var(--surface)] p-3.5 shadow-2xs focus:outline-none focus-visible:ring-1 focus-visible:ring-[var(--accent)] ${
+      className={`group relative flex min-w-0 min-h-[58px] select-none touch-manipulation flex-col justify-center rounded-[var(--radius-md)] border border-[var(--line)] bg-[var(--surface)] p-3.5 shadow-subtle focus:outline-none focus-visible:ring-1 focus-visible:ring-[var(--accent)] ${
         isDragging
           ? 'pointer-events-none border-dashed border-[var(--line)] bg-[var(--canvas)] opacity-30 shadow-none scale-[0.98] transition-none will-change-transform'
           : `transition-all duration-150 ${isBusy ? 'cursor-default' : 'cursor-grab active:cursor-grabbing'} hover:border-[var(--accent)]/35 hover:shadow-subtle`

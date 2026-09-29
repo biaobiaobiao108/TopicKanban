@@ -146,7 +146,7 @@ export const ScriptReferenceDrawer: React.FC<ScriptReferenceDrawerProps> = ({
               </div>
 
               {showHook && topic.hook && (
-                <div className="bg-[var(--surface)] p-3.5 rounded-xl shadow-2xs space-y-2 border-0">
+                <div className="bg-[var(--surface)] p-3.5 rounded-xl shadow-subtle space-y-2 border-0">
                   <div className="flex items-center justify-between text-[var(--ink)] font-medium text-xs">
                     <span className="font-semibold text-stone-900 dark:text-stone-100">🎯 黄金 3 秒 Hook</span>
                     <button
@@ -166,7 +166,7 @@ export const ScriptReferenceDrawer: React.FC<ScriptReferenceDrawerProps> = ({
               )}
 
               {showStoryline && topic.storyline && (
-                <div className="bg-[var(--surface)] p-3.5 rounded-xl shadow-2xs space-y-2 border-0">
+                <div className="bg-[var(--surface)] p-3.5 rounded-xl shadow-subtle space-y-2 border-0">
                   <div className="flex items-center justify-between text-[var(--ink)] font-medium text-xs">
                     <span className="font-semibold text-stone-900 dark:text-stone-100">📖 故事主线阶段</span>
                     <button
@@ -196,7 +196,7 @@ export const ScriptReferenceDrawer: React.FC<ScriptReferenceDrawerProps> = ({
               </div>
 
               {filteredPeople.map((person) => (
-                <div key={person.id} className="bg-[var(--surface)] p-3.5 rounded-xl shadow-2xs space-y-2.5 border-0">
+                <div key={person.id} className="bg-[var(--surface)] p-3.5 rounded-xl shadow-subtle space-y-2.5 border-0">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-1.5">
                       <span className="font-semibold text-stone-900 dark:text-stone-100 text-xs">{person.name}</span>
@@ -247,7 +247,7 @@ export const ScriptReferenceDrawer: React.FC<ScriptReferenceDrawerProps> = ({
 
               <div className="space-y-2.5">
                 {filteredTimeline.map((item) => (
-                  <div key={item.id} className="relative group bg-[var(--surface)] p-3.5 rounded-xl shadow-2xs space-y-1.5 border-0">
+                  <div key={item.id} className="relative group bg-[var(--surface)] p-3.5 rounded-xl shadow-subtle space-y-1.5 border-0">
                     <div className="flex items-center justify-between">
                       <span className="font-mono text-stone-500 dark:text-stone-400 bg-[var(--canvas)] px-2 py-0.5 rounded-md text-[10px] tabular-nums border-0">
                         {item.event_date}
@@ -292,7 +292,7 @@ export const ScriptReferenceDrawer: React.FC<ScriptReferenceDrawerProps> = ({
 
               <div className="space-y-2.5">
                 {filteredSources.map((source) => (
-                  <div key={source.id} className="bg-[var(--surface)] p-3.5 rounded-xl shadow-2xs space-y-2 border-0">
+                  <div key={source.id} className="bg-[var(--surface)] p-3.5 rounded-xl shadow-subtle space-y-2 border-0">
                     <div className="flex items-start justify-between gap-1">
                       <div className="font-semibold text-stone-900 dark:text-stone-100 text-xs truncate">{source.title}</div>
                       <button

@@ -165,12 +165,12 @@ const KanbanCardComponent: React.FC<KanbanCardProps> = ({
           onOpenDetail(topic.id);
         }
       }}
-      className={`group relative min-w-0 bg-[var(--surface)] rounded-[var(--radius-md)] border p-3.5 shadow-2xs flex flex-col gap-2.5 select-none touch-manipulation cv-card focus:outline-none focus-visible:ring-1 focus-visible:ring-[var(--accent)] ${mobileMotion ? 'mobile-motion-card' : ''} ${
+      className={`group relative min-w-0 bg-[var(--surface)] rounded-[var(--radius-md)] border p-3.5 shadow-subtle flex flex-col gap-2.5 select-none touch-manipulation cv-card focus:outline-none focus-visible:ring-1 focus-visible:ring-[var(--accent)] ${mobileMotion ? 'mobile-motion-card' : ''} ${
         isDragging
           ? 'transition-none will-change-transform opacity-30 scale-[0.98] border-dashed border-[var(--line)] bg-[var(--canvas)] shadow-none pointer-events-none'
           : sortableDisabled
             ? 'transition-all duration-150 border-[var(--line)] cursor-default'
-            : 'transition-all duration-150 border-[var(--line)] hover:border-[var(--accent)]/35 hover:shadow-subtle cursor-grab active:cursor-grabbing'
+            : 'transition-all duration-150 border-[var(--line)] hover:border-[var(--accent)]/35 hover:shadow-card cursor-grab active:cursor-grabbing'
       } ${
         topic.is_pinned && !isDragging ? 'bg-[var(--canvas)]/40' : ''
       }`}

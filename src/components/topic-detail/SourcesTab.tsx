@@ -216,7 +216,7 @@ export const SourcesTab: React.FC<SourcesTabProps> = ({
   return (
     <div className="py-4 sm:py-6 space-y-5">
       {/* Header & Filter Bar */}
-      <div className="flex items-center justify-between flex-wrap gap-3 bg-white dark:bg-stone-900 p-4 sm:p-5 rounded-2xl border border-stone-200/70 dark:border-stone-800 shadow-2xs transition-colors">
+      <div className="flex items-center justify-between flex-wrap gap-3 bg-[var(--surface)] p-4 sm:p-5 rounded-2xl border border-[var(--line)] shadow-subtle transition-colors">
         <div className="flex items-center gap-2.5 flex-wrap flex-1">
           {/* Real-time Search Input */}
           <div className="relative min-w-[200px] max-w-xs flex-1">
@@ -301,7 +301,7 @@ export const SourcesTab: React.FC<SourcesTabProps> = ({
           return (
           <div
             key={s.id}
-            className="bg-[var(--surface)] rounded-2xl border border-[var(--line)] p-4 space-y-3 shadow-2xs hover:shadow-card hover:-translate-y-0.5 transition-all flex flex-col justify-between"
+            className="bg-[var(--surface)] rounded-2xl border border-[var(--line)] p-4 space-y-3 shadow-subtle hover:shadow-card hover:-translate-y-0.5 transition-all flex flex-col justify-between"
           >
             <div className="space-y-2.5">
               {/* Badges row & Quick actions */}

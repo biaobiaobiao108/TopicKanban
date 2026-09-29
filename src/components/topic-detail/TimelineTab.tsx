@@ -133,7 +133,7 @@ const SortableTimelineCard: React.FC<SortableTimelineCardProps> = ({
       </div>
 
       {/* Event Main Card */}
-      <div className="bg-[var(--surface)] rounded-2xl border border-[var(--line)] p-4 sm:p-5 shadow-2xs hover:shadow-card hover:-translate-y-0.5 transition-all space-y-3">
+      <div className="bg-[var(--surface)] rounded-2xl border border-[var(--line)] p-4 sm:p-5 shadow-subtle hover:shadow-card hover:-translate-y-0.5 transition-all space-y-3">
         <div className="flex items-center justify-between gap-2 flex-wrap">
           <div className="flex items-center gap-2 flex-wrap">
             <input type="checkbox" checked={selected} onChange={() => onToggle(event.id)} aria-label={`选择时间节点「${event.title}」`} className="h-4 w-4 rounded accent-[var(--accent)] cursor-pointer" />
@@ -346,7 +346,7 @@ export const TimelineTab: React.FC<TimelineTabProps> = ({
   return (
     <div className="py-4 space-y-4 max-w-4xl mx-auto">
       {/* Top Header & Sort Controls Bar */}
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 bg-[var(--surface)] p-4 sm:p-5 rounded-2xl border border-[var(--line)] shadow-2xs transition-colors">
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 bg-[var(--surface)] p-4 sm:p-5 rounded-2xl border border-[var(--line)] shadow-subtle transition-colors">
         <div>
           <h3 className="text-sm sm:text-base font-bold text-stone-900 dark:text-stone-100 flex items-center gap-2">
             <span className="p-1.5 rounded-xl bg-[var(--accent-soft)] text-[var(--accent)]">

@@ -52,9 +52,9 @@ export const PublishedVideoCard: React.FC<PublishedVideoCardProps> = ({
 
   return (
     <div className="published-card-container w-full">
-      <div className="group bg-white dark:bg-stone-900 rounded-2xl border border-stone-200/70 dark:border-stone-800 shadow-2xs hover:shadow-card hover:-translate-y-0.5 transition-all duration-200 flex flex-col published-card-inner p-3.5 sm:p-4 gap-3.5 sm:gap-4">
+      <div className="group bg-[var(--surface)] rounded-2xl border border-[var(--line)] shadow-subtle hover:shadow-card hover:-translate-y-0.5 transition-all duration-200 flex flex-col published-card-inner p-3.5 sm:p-4 gap-3.5 sm:gap-4">
         {/* Left 16:9 Inset Cover Area with Full Rounded Corners */}
-        <div className="relative w-full published-card-cover aspect-video shrink-0 rounded-xl overflow-hidden select-none border border-stone-200/70 dark:border-stone-800 bg-stone-100 dark:bg-stone-800/70 shadow-2xs">
+        <div className="relative w-full published-card-cover aspect-video shrink-0 rounded-xl overflow-hidden select-none border border-[var(--line)] bg-stone-100 dark:bg-stone-800/70 shadow-2xs">
           {displayCover ? (
             <a
               href={safeUrl || '#'}
