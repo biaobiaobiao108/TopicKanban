@@ -107,11 +107,13 @@ const KanbanCardComponent: React.FC<KanbanCardProps> = ({
 
         {/* Current Action Highlight Bar */}
         {topic.current_todo ? (
-          <div className="bg-[var(--canvas)] border-l-2 border-l-[var(--accent)] rounded-r-[var(--radius-sm)] p-2.5 flex items-start gap-2 text-xs text-[var(--ink)]">
-            <div className="flex-1 min-w-0">
-              <span className="font-semibold text-[var(--accent)] mr-1">当前行动:</span>
-              <span className="font-normal">{topic.current_todo.title}</span>
-            </div>
+          <div className="bg-[var(--canvas)]/75 border border-[var(--line)]/60 rounded-[var(--radius-sm)] p-2.5 flex items-start gap-2 text-xs text-[var(--ink)]">
+            <span className="inline-flex shrink-0 items-center rounded px-1.5 py-0.5 text-[10px] font-semibold bg-[var(--accent-soft)] text-[var(--accent-dark)]">
+              当前行动
+            </span>
+            <span className="flex-1 min-w-0 font-normal leading-5 line-clamp-2">
+              {topic.current_todo.title}
+            </span>
           </div>
         ) : null}
 
@@ -186,18 +188,20 @@ const KanbanCardComponent: React.FC<KanbanCardProps> = ({
         <button
           type="button"
           onClick={(event) => { event.stopPropagation(); onOpenCurrentAction?.(topic.id); }}
-          className="w-full text-left bg-[var(--canvas)] hover:bg-[var(--accent-soft)]/50 border-l-2 border-l-[var(--accent)] rounded-r-[var(--radius-sm)] p-2.5 flex items-start gap-2 text-xs text-[var(--ink)] transition-colors cursor-pointer"
+          className="group/action w-full text-left bg-[var(--canvas)]/75 hover:bg-[var(--accent-soft)]/25 border border-[var(--line)]/60 hover:border-[var(--accent)]/35 rounded-[var(--radius-sm)] p-2.5 flex items-start gap-2 text-xs text-[var(--ink)] transition-colors cursor-pointer"
         >
-          <div className="flex-1 min-w-0">
-            <span className="font-semibold text-[var(--accent)] mr-1">当前行动:</span>
-            <span className="font-normal">{topic.current_todo.title}</span>
-          </div>
+          <span className="inline-flex shrink-0 items-center rounded px-1.5 py-0.5 text-[10px] font-semibold bg-[var(--accent-soft)] text-[var(--accent-dark)] group-hover/action:bg-[var(--accent)]/15 transition-colors">
+            当前行动
+          </span>
+          <span className="flex-1 min-w-0 font-normal leading-5 line-clamp-2">
+            {topic.current_todo.title}
+          </span>
         </button>
       ) : (
         <button
           type="button"
           onClick={(event) => { event.stopPropagation(); onOpenCurrentAction?.(topic.id); }}
-          className="w-full rounded-[var(--radius-sm)] p-2 text-[11px] text-[var(--ink-muted)] text-center bg-stone-500/[0.02] hover:bg-stone-500/[0.05] dark:bg-white/[0.02] dark:hover:bg-white/[0.05] cursor-pointer transition-colors"
+          className="w-full rounded-[var(--radius-sm)] border border-dashed border-[var(--line)]/70 p-2 text-[11px] text-[var(--ink-muted)] text-center hover:border-[var(--accent)]/40 hover:text-[var(--accent)] hover:bg-[var(--accent-soft)]/20 cursor-pointer transition-colors"
         >
           未设置当前行动
         </button>
