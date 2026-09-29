@@ -838,7 +838,7 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
         role="dialog"
         aria-modal="true"
         aria-label="全局指令搜索面板"
-        className="command-palette-dialog relative w-full max-w-2xl bg-[var(--surface)] rounded-2xl shadow-modal border border-[var(--line)] overflow-hidden flex flex-col z-10 max-h-[85dvh]"
+        className="command-palette-dialog relative w-full max-w-[520px] bg-[var(--surface)] rounded-2xl shadow-modal border border-[var(--line)] overflow-hidden flex flex-col z-10 max-h-[85dvh]"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Search Input Header */}
@@ -871,8 +871,8 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
         </div>
 
         {/* Results List */}
-        {/* Eight 56px rows, seven 4px gaps, and 12px padding on both ends; leave room for the search field on short screens. */}
-        <FloatingScrollbar ref={listRef} className="overflow-x-hidden" wrapperClassName="max-h-[min(500px,calc(85dvh-3.5rem))] flex-none">
+        {/* Six 56px rows, five 4px gaps, and 12px padding on both ends. */}
+        <FloatingScrollbar ref={listRef} className="overflow-x-hidden" wrapperClassName="h-[min(380px,calc(85dvh-3.5rem))] flex-none">
           <div className="flex flex-col gap-1 p-3">
             {items.map((item, index) => {
               const isSelected = index === selectedIndex;

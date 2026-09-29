@@ -722,9 +722,9 @@ html.theme-light .bg-white\/95,
 }
 
 /* 3. 卡片内输入控件聚焦时，保持自然纸白，严禁突兀白光漫射 */
-html.theme-light input:focus,
+html.theme-light input:not(.script-editor-title):focus,
 html.theme-light textarea:focus,
-:root:not(.dark):not(.theme-warm-paper) input:focus,
+:root:not(.dark):not(.theme-warm-paper) input:not(.script-editor-title):focus,
 :root:not(.dark):not(.theme-warm-paper) textarea:focus {
   background-color: var(--surface) !important;
 }
