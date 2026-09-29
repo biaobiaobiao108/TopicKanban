@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useMemo } from 'react';
+import React, { useState, useEffect, useLayoutEffect, useRef, useMemo } from 'react';
 import { createPortal } from 'react-dom';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import {
@@ -762,7 +762,7 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
   }, [items.length]);
 
   // Keep the selected row and its highlight inside the list's fixed edge inset.
-  useEffect(() => {
+  useLayoutEffect(() => {
     const list = listRef.current;
     const item = itemRefs.current[selectedIndex];
     if (!list || !item) return;
@@ -825,17 +825,12 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
     }
   };
 
-  const handleSetPrefix = (prefix: string) => {
-    setQuery(prefix);
-    inputRef.current?.focus();
-  };
-
   if (!isOpen) return null;
 
   const paletteContent = (
     <div className="fixed inset-0 z-[100] flex items-start justify-center pt-12 sm:pt-16 p-4 sm:p-6" role="presentation">
       {/* Backdrop */}
-      <div className="fixed inset-0 bg-stone-900/40 backdrop-blur-xs animate-in fade-in duration-200" onClick={onClose} aria-hidden="true" />
+      <div className="fixed inset-0 bg-stone-900/40 backdrop-blur-xs" onClick={onClose} aria-hidden="true" />
 
       {/* Palette Modal */}
       <div
@@ -843,7 +838,7 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
         role="dialog"
         aria-modal="true"
         aria-label="全局指令搜索面板"
-        className="relative w-full max-w-2xl bg-[var(--surface)] rounded-2xl shadow-modal border border-[var(--line)] overflow-hidden flex flex-col z-10 animate-in fade-in slide-in-from-top-2 zoom-in-95 duration-200 ease-editorial-out transition-colors max-h-[85dvh]"
+        className="command-palette-dialog relative w-full max-w-2xl bg-[var(--surface)] rounded-2xl shadow-modal border border-[var(--line)] overflow-hidden flex flex-col z-10 max-h-[85dvh]"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Search Input Header */}
@@ -857,7 +852,7 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
             autoComplete="off"
             autoCorrect="off"
             spellCheck={false}
-            placeholder="输入指令、搜索选题、#赛道、@人物、>动作、?帮助..."
+            placeholder="输入指令或搜索选题..."
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             onKeyDown={handleKeyDown}
@@ -870,79 +865,14 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
             data-keyboard-focused={isKeyboardFocused ? 'true' : undefined}
             className="command-palette-input w-full text-sm sm:text-base bg-transparent border-none outline-none text-stone-900 dark:text-stone-100 placeholder:text-stone-400 dark:placeholder:text-stone-500 font-medium"
           />
-          {mode !== 'all' && (
-            <span className="mr-2 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-[var(--accent-soft)] text-[var(--accent)] shrink-0 font-mono">
-              {mode === 'tag' ? '# 赛道模式' : mode === 'person' ? '@ 人物模式' : mode === 'help' ? '? 快捷键模式' : '> 动作模式'}
-            </span>
-          )}
           <kbd className="text-xs bg-stone-100 dark:bg-stone-800 text-stone-700 dark:text-stone-400 px-2 py-0.5 rounded-lg border border-stone-200/70 dark:border-stone-700 font-mono shrink-0 shadow-2xs">
             ESC
           </kbd>
         </div>
 
-        {/* Mode Quick Filter Chips */}
-        <div className="px-4 py-2 bg-stone-500/[0.03] dark:bg-stone-800/60 border-b border-stone-200/60 dark:border-stone-700/60 flex items-center gap-1.5 overflow-x-auto no-scrollbar text-xs font-semibold transition-colors">
-          <span className="text-stone-500 dark:text-stone-400 text-[10px] uppercase font-bold tracking-wider mr-1 shrink-0">模式:</span>
-          <button
-            type="button"
-            onClick={() => handleSetPrefix('')}
-            className={`px-3 py-1 rounded-xl transition-all cursor-pointer shrink-0 ${
-              mode === 'all' && !query
-                ? 'bg-[var(--accent-soft)] text-[var(--accent-dark)] shadow-2xs font-bold'
-                : 'bg-stone-500/[0.05] dark:bg-stone-700/60 hover:bg-stone-500/[0.1] dark:hover:bg-stone-600 text-stone-800 dark:text-stone-100 font-medium'
-            }`}
-          >
-            全部
-          </button>
-          <button
-            type="button"
-            onClick={() => handleSetPrefix('> ')}
-            className={`px-3 py-1 rounded-xl transition-all cursor-pointer shrink-0 font-mono ${
-              mode === 'action'
-                ? 'bg-[var(--accent-soft)] text-[var(--accent-dark)] shadow-2xs font-bold'
-                : 'bg-stone-500/[0.05] dark:bg-stone-700/60 hover:bg-stone-500/[0.1] dark:hover:bg-stone-600 text-stone-800 dark:text-stone-100 font-medium'
-            }`}
-          >
-            &gt; 快捷动作
-          </button>
-          <button
-            type="button"
-            onClick={() => handleSetPrefix('# ')}
-            className={`px-3 py-1 rounded-xl transition-all cursor-pointer shrink-0 font-mono ${
-              mode === 'tag'
-                ? 'bg-[var(--accent-soft)] text-[var(--accent-dark)] shadow-2xs font-bold'
-                : 'bg-stone-500/[0.05] dark:bg-stone-700/60 hover:bg-stone-500/[0.1] dark:hover:bg-stone-600 text-stone-800 dark:text-stone-100 font-medium'
-            }`}
-          >
-            # 赛道标签
-          </button>
-          <button
-            type="button"
-            onClick={() => handleSetPrefix('@ ')}
-            className={`px-3 py-1 rounded-xl transition-all cursor-pointer shrink-0 font-mono ${
-              mode === 'person'
-                ? 'bg-[var(--accent-soft)] text-[var(--accent-dark)] shadow-2xs font-bold'
-                : 'bg-stone-500/[0.05] dark:bg-stone-700/60 hover:bg-stone-500/[0.1] dark:hover:bg-stone-600 text-stone-800 dark:text-stone-100 font-medium'
-            }`}
-          >
-            @ 人物库
-          </button>
-          <button
-            type="button"
-            onClick={() => handleSetPrefix('? ')}
-            className={`px-3 py-1 rounded-xl transition-all cursor-pointer shrink-0 font-mono ${
-              mode === 'help'
-                ? 'bg-[var(--accent-soft)] text-[var(--accent-dark)] shadow-2xs font-bold'
-                : 'bg-stone-500/[0.05] dark:bg-stone-700/60 hover:bg-stone-500/[0.1] dark:hover:bg-stone-600 text-stone-800 dark:text-stone-100 font-medium'
-            }`}
-          >
-            ? 快捷键大全
-          </button>
-        </div>
-
         {/* Results List */}
-        {/* Eight 56px rows, seven 4px gaps, and 12px padding on both ends; leave room for the search controls on short screens. */}
-        <FloatingScrollbar ref={listRef} className="overflow-x-hidden" wrapperClassName="max-h-[min(500px,calc(85dvh-6rem))] flex-none">
+        {/* Eight 56px rows, seven 4px gaps, and 12px padding on both ends; leave room for the search field on short screens. */}
+        <FloatingScrollbar ref={listRef} className="overflow-x-hidden" wrapperClassName="max-h-[min(500px,calc(85dvh-3.5rem))] flex-none">
           <div className="flex flex-col gap-1 p-3">
             {items.map((item, index) => {
               const isSelected = index === selectedIndex;
@@ -955,15 +885,15 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
                   onClick={item.onSelect}
                   onPointerDown={() => setSelectedIndex(index)}
                   onMouseMove={(e) => handleItemMouseMove(index, e)}
-                  className={`w-full h-14 shrink-0 flex items-center justify-between px-3 rounded-xl text-left transition-colors cursor-pointer ${
+                  className={`w-full h-14 shrink-0 flex items-center justify-between px-3 rounded-xl text-left cursor-pointer ${
                     isSelected
-                      ? 'bg-[var(--accent-soft)] text-[var(--ink)] ring-1 ring-[var(--focus-ring)] shadow-2xs'
+                      ? 'bg-[var(--accent-soft)] text-[var(--ink)]'
                       : 'text-stone-700 dark:text-stone-300'
                   }`}
                 >
                   <div className="flex items-center gap-3 min-w-0 flex-1">
                     <div
-                      className={`w-7 h-7 rounded-lg flex items-center justify-center shrink-0 transition-colors ${
+                      className={`w-7 h-7 rounded-lg flex items-center justify-center shrink-0 ${
                         isSelected
                           ? 'bg-[var(--surface)] text-[var(--accent)]'
                           : 'bg-stone-100 dark:bg-stone-800 text-stone-500 dark:text-stone-400'
@@ -987,7 +917,7 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
                   <div className="flex items-center gap-2 ml-3 shrink-0">
                     {item.extra}
                     <CornerDownLeft
-                      className={`w-3.5 h-3.5 transition-opacity ${
+                      className={`w-3.5 h-3.5 ${
                         isSelected ? 'text-[var(--accent)] opacity-100' : 'text-stone-300 dark:text-stone-600 opacity-0'
                       }`}
                     />
@@ -999,9 +929,7 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
             {items.length === 0 && (
               <div className="py-12 text-center text-stone-500 dark:text-stone-400 space-y-1">
                 <div className="text-sm font-medium">没有找到匹配项</div>
-                <div className="text-xs text-stone-500 dark:text-stone-400">
-                  可尝试输入 <strong className="text-stone-600 dark:text-stone-300">#</strong> 查赛道、<strong className="text-stone-600 dark:text-stone-300">@</strong> 查人物、<strong className="text-stone-600 dark:text-stone-300">&gt;</strong> 执行动作、<strong className="text-stone-600 dark:text-stone-300">?</strong> 查看快捷键
-                </div>
+                <div className="text-xs text-stone-500 dark:text-stone-400">试试其他关键词</div>
               </div>
             )}
           </div>

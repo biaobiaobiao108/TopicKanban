@@ -922,6 +922,17 @@ html.theme-warm-paper {
   --command-palette-focus: var(--accent);
 }
 
+.command-palette-dialog,
+.command-palette-dialog * {
+  animation: none !important;
+  transition: none !important;
+  scroll-behavior: auto !important;
+}
+
+.command-palette-dialog [data-testid="floating-scrollbar-thumb"] {
+  opacity: 0.4 !important;
+}
+
 
 .command-palette-input:focus,
 html[class*="theme-"] input.command-palette-input:focus {
