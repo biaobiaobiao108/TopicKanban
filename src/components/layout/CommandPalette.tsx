@@ -90,6 +90,7 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
   const dialogRef = useRef<HTMLDivElement | null>(null);
   const previousFocusRef = useRef<HTMLElement | null>(null);
   const previousOverflowRef = useRef('');
+  const lastMousePositionRef = useRef<{ x: number; y: number } | null>(null);
 
   useEffect(() => {
     keyboardFocusRef.current = false;
@@ -176,6 +177,7 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
   }, [isOpen, onClose]);
 
   useEffect(() => {
+    lastMousePositionRef.current = null;
     if (isOpen) {
       setQuery('');
       setSelectedIndex(0);
@@ -751,6 +753,7 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
   // Reset or clamp selectedIndex
   useEffect(() => {
     setSelectedIndex(0);
+    lastMousePositionRef.current = null;
   }, [query]);
 
   // Scroll active item into view
@@ -777,14 +780,33 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
 
     if (e.key === 'ArrowDown') {
       e.preventDefault();
+      lastMousePositionRef.current = null;
       setSelectedIndex((prev) => (prev + 1) % items.length);
     } else if (e.key === 'ArrowUp') {
       e.preventDefault();
+      lastMousePositionRef.current = null;
       setSelectedIndex((prev) => (prev - 1 + items.length) % items.length);
     } else if (e.key === 'Enter') {
       e.preventDefault();
       if (items[selectedIndex]) {
         items[selectedIndex].onSelect();
+      }
+    }
+  };
+
+  const handleItemMouseMove = (index: number, e: React.MouseEvent) => {
+    if (!lastMousePositionRef.current) {
+      // 记录初始指针坐标，不视为有效物理位移（防止打开瞬间直接命中鼠标下方命令）
+      lastMousePositionRef.current = { x: e.clientX, y: e.clientY };
+      return;
+    }
+    const deltaX = Math.abs(e.clientX - lastMousePositionRef.current.x);
+    const deltaY = Math.abs(e.clientY - lastMousePositionRef.current.y);
+    // 只有当指针在视口中真正发生物理位移（阈值 >= 4px）时，才视为用户主动使用鼠标浏览选择
+    if (deltaX + deltaY >= 4) {
+      lastMousePositionRef.current = { x: e.clientX, y: e.clientY };
+      if (selectedIndex !== index) {
+        setSelectedIndex(index);
       }
     }
   };
@@ -922,11 +944,12 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
                 <button
                   ref={(el) => { itemRefs.current[index] = el; }}
                   onClick={item.onSelect}
-                  onMouseEnter={() => setSelectedIndex(index)}
-                  className={`w-full flex items-center justify-between px-3 py-1.5 rounded-xl text-left transition-all cursor-pointer group ${
+                  onPointerDown={() => setSelectedIndex(index)}
+                  onMouseMove={(e) => handleItemMouseMove(index, e)}
+                  className={`w-full flex items-center justify-between px-3 py-1.5 rounded-xl text-left transition-all cursor-pointer ${
                     isSelected
                       ? 'bg-[var(--accent-soft)] text-[var(--ink)] ring-1 ring-[var(--focus-ring)] shadow-2xs'
-                      : 'text-stone-700 dark:text-stone-300 hover:bg-stone-50 dark:hover:bg-stone-800/60'
+                      : 'text-stone-700 dark:text-stone-300'
                   }`}
                 >
                   <div className="flex items-start gap-3 min-w-0 flex-1">
@@ -934,7 +957,7 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
                       className={`w-7 h-7 rounded-lg flex items-center justify-center shrink-0 mt-0.5 transition-colors ${
                         isSelected
                           ? 'bg-[var(--surface)] text-[var(--accent)]'
-                          : 'bg-stone-100 dark:bg-stone-800 text-stone-500 dark:text-stone-400 group-hover:bg-stone-200/80 dark:group-hover:bg-stone-700 group-hover:text-stone-800 dark:group-hover:text-stone-200'
+                          : 'bg-stone-100 dark:bg-stone-800 text-stone-500 dark:text-stone-400'
                       }`}
                     >
                       <Icon className="w-3.5 h-3.5" />
@@ -958,7 +981,7 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
                     {item.extra}
                     <CornerDownLeft
                       className={`w-3.5 h-3.5 transition-opacity ${
-                        isSelected ? 'text-[var(--accent)] opacity-100' : 'text-stone-300 dark:text-stone-600 opacity-0 group-hover:opacity-60'
+                        isSelected ? 'text-[var(--accent)] opacity-100' : 'text-stone-300 dark:text-stone-600 opacity-0'
                       }`}
                     />
                   </div>
