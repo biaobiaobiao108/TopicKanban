@@ -132,18 +132,33 @@ export class PublishPackageConflictError extends Error {
   }
 }
 
+export class TopicReportConflictError extends Error {
+  current: TopicReport | null;
+
+  constructor(current: TopicReport | null) {
+    super('选题报告已被更新');
+    this.name = 'TopicReportConflictError';
+    this.current = current;
+  }
+}
+
+const knownReportVersions = new BoundedMemoryCache<string, number>(KNOWN_STATE_CACHE_MAX_ENTRIES, KNOWN_STATE_CACHE_TTL_MS);
+
 export function isRemoteStorage(): boolean {
   return getAuthToken()?.startsWith('v1.') === true;
 }
 
 async function apiRequest<T>(path: string, init: RequestInit = {}): Promise<T> {
   const response = await authenticatedFetch(path, init);
-  const data = await response.json().catch(() => null) as (T & { error?: string; current?: Draft | PublishPackageRecord | null }) | null;
+  const data = await response.json().catch(() => null) as (T & { error?: string; current?: Draft | PublishPackageRecord | TopicReport | null }) | null;
   if (response.status === 409 && data?.error === 'DRAFT_CONFLICT') {
     throw new DraftConflictError((data.current as Draft | null) || null);
   }
   if (response.status === 409 && data?.error === 'PUBLISH_PACKAGE_CONFLICT') {
     throw new PublishPackageConflictError((data.current as PublishPackageRecord | null) || null);
+  }
+  if (response.status === 409 && data?.error === 'REPORT_CONFLICT') {
+    throw new TopicReportConflictError((data.current as TopicReport | null) || null);
   }
   if (!response.ok) throw new Error(data?.error || `请求失败 (${response.status})`);
   return data as T;
@@ -176,10 +191,12 @@ export function clearRemoteStorageMemoryCaches(): void {
   bootstrapPromise = null;
   bootstrapToken = null;
   knownDraftVersions.clear();
+  knownReportVersions.clear();
 }
 
 export function clearRemoteStorageTopicCaches(topicId: string): void {
   knownDraftVersions.delete(topicId);
+  knownReportVersions.delete(topicId);
   writePendingDraft(null, topicId);
 }
 
@@ -461,17 +478,31 @@ export async function reorderSources(sources: Array<{ id: string; topic_id: stri
   await apiRequest('/api/sources/reorder/batch', jsonRequest('PATCH', { sources }));
 }
 
-export function fetchTopicReport(topicId: string): Promise<TopicReport | null> {
-  return apiRequest<TopicReport | null>(`/api/topics/${encodeURIComponent(topicId)}/report`);
+export async function fetchTopicReport(topicId: string): Promise<TopicReport | null> {
+  const report = await apiRequest<TopicReport | null>(`/api/topics/${encodeURIComponent(topicId)}/report`);
+  knownReportVersions.set(topicId, report?.version || 0);
+  return report;
 }
 
 export async function saveTopicReport(
   topicId: string,
   data: Partial<TopicReport> & { base_version?: number }
 ): Promise<TopicReport> {
-  const report = await apiRequest<TopicReport>(`/api/topics/${encodeURIComponent(topicId)}/report`, jsonRequest('PUT', data));
-  invalidateBootstrap();
-  return report;
+  const baseVersion = data.base_version ?? knownReportVersions.get(topicId) ?? 0;
+  try {
+    const report = await apiRequest<TopicReport>(
+      `/api/topics/${encodeURIComponent(topicId)}/report`,
+      jsonRequest('PUT', { ...data, base_version: baseVersion })
+    );
+    knownReportVersions.set(topicId, report.version);
+    invalidateBootstrap();
+    return report;
+  } catch (error) {
+    if (error instanceof TopicReportConflictError) {
+      knownReportVersions.set(topicId, error.current?.version || 0);
+    }
+    throw error;
+  }
 }
 
 export function fetchTimelineByTopicId(topicId: string): Promise<TimelineEvent[]> {

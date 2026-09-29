@@ -53,7 +53,8 @@ export async function saveTopicReport(
   if ((result.meta.changes || 0) === 0) {
     return { kind: 'conflict', current: await loadTopicReport(db, topicId) };
   }
-  return { kind: 'saved', report };
+  const saved = await loadTopicReport(db, topicId);
+  return { kind: 'saved', report: (saved as TopicReport) || report };
 }
 
 export function topicReportStatement(db: SqliteDatabase, report: TopicReport): SqlitePreparedStatement {

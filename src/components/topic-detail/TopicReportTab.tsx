@@ -7,6 +7,7 @@ import TaskItem from '@tiptap/extension-task-item';
 import Placeholder from '@tiptap/extension-placeholder';
 import CharacterCount from '@tiptap/extension-character-count';
 import { TopicReport } from '../../types';
+import { TopicReportConflictError } from '../../lib/storage';
 import { ScriptStarterKit } from './ScriptStarterKit';
 import { ScriptCodeBlock } from './ScriptCodeBlock';
 import { CodeBlockDoubleEnter } from './ScriptCodeBlockEnter';
@@ -84,8 +85,21 @@ export const TopicReportTab: React.FC<TopicReportTabProps> = ({
   const saveTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const hasUnsavedChangesRef = useRef(false);
   const latestContentRef = useRef<{ markdown: string; html: string; json: string; wordCount: number } | null>(null);
-  const currentBaseVersionRef = useRef<number>(report?.version ?? 1);
+  const currentBaseVersionRef = useRef<number>(report?.version ?? 0);
   const markdownEditorRef = useRef<TiptapEditor | null>(null);
+  const isMountedRef = useRef(true);
+  const onSaveReportRef = useRef(onSaveReport);
+
+  useEffect(() => {
+    onSaveReportRef.current = onSaveReport;
+  }, [onSaveReport]);
+
+  useEffect(() => {
+    isMountedRef.current = true;
+    return () => {
+      isMountedRef.current = false;
+    };
+  }, []);
 
   useEffect(() => {
     if (report?.version !== undefined && !hasUnsavedChangesRef.current) {
@@ -97,9 +111,9 @@ export const TopicReportTab: React.FC<TopicReportTabProps> = ({
     const latest = latestContentRef.current;
     if (!latest || !hasUnsavedChangesRef.current) return;
 
-    setSaveStatus('saving');
+    if (isMountedRef.current) setSaveStatus('saving');
     try {
-      const updated = await onSaveReport({
+      const updated = await onSaveReportRef.current({
         content_markdown: latest.markdown,
         content_html: latest.html,
         content_json: latest.json,
@@ -108,20 +122,32 @@ export const TopicReportTab: React.FC<TopicReportTabProps> = ({
       });
       hasUnsavedChangesRef.current = false;
       currentBaseVersionRef.current = updated.version;
-      setSaveStatus('saved');
-      setLastSavedTime(formatBeijingDateTime(new Date(), 'zh-CN', { hour: '2-digit', minute: '2-digit', second: '2-digit' }));
+      if (isMountedRef.current) {
+        setSaveStatus('saved');
+        setLastSavedTime(formatBeijingDateTime(new Date(), 'zh-CN', { hour: '2-digit', minute: '2-digit', second: '2-digit' }));
+      }
     } catch (err: unknown) {
       console.error('Failed to save topic report:', err);
-      const isConflict = err instanceof Error && (err.message.includes('409') || err.message.includes('版本冲突'));
+      const isConflict = err instanceof TopicReportConflictError
+        || (err instanceof Error && (err.name === 'TopicReportConflictError' || err.message.includes('409') || err.message.includes('REPORT_CONFLICT') || err.message.includes('版本冲突')));
       if (isConflict) {
-        setSaveStatus('conflict');
-        showToast({ message: '选题报告版本冲突，请刷新后重试', tone: 'error' });
+        if (err instanceof TopicReportConflictError && err.current) {
+          currentBaseVersionRef.current = err.current.version;
+        } else if (err instanceof TopicReportConflictError && !err.current) {
+          currentBaseVersionRef.current = 0;
+        }
+        if (isMountedRef.current) {
+          setSaveStatus('conflict');
+          showToast({ message: '选题报告版本冲突，已在其他设备更新，请刷新后重试', tone: 'error' });
+        }
       } else {
-        setSaveStatus('error');
-        showToast({ message: '保存选题报告失败', tone: 'error' });
+        if (isMountedRef.current) {
+          setSaveStatus('error');
+          showToast({ message: '保存选题报告失败', tone: 'error' });
+        }
       }
     }
-  }, [onSaveReport, showToast]);
+  }, [showToast]);
 
   const schedulePersistence = useCallback(() => {
     if (saveTimeoutRef.current) clearTimeout(saveTimeoutRef.current);
@@ -174,15 +200,40 @@ export const TopicReportTab: React.FC<TopicReportTabProps> = ({
   });
   markdownEditorRef.current = editor;
 
+  // Synchronize editor content if report updates from outside and no unsaved changes
+  useEffect(() => {
+    if (!editor || editor.isDestroyed) return;
+    if (report && !hasUnsavedChangesRef.current) {
+      const currentMd = (editor as TiptapEditor & { getMarkdown: () => string }).getMarkdown();
+      if (currentMd !== (report.content_markdown || '')) {
+        editor.commands.setContent(report.content_markdown || '', { contentType: 'markdown', emitUpdate: false });
+        currentBaseVersionRef.current = report.version;
+        if (report.updated_at) {
+          setLastSavedTime(formatBeijingDateTime(report.updated_at, 'zh-CN', { hour: '2-digit', minute: '2-digit', second: '2-digit' }));
+        }
+      }
+    }
+  }, [editor, report]);
+
   // Flush on unmount
   useEffect(() => {
     return () => {
-      if (saveTimeoutRef.current) clearTimeout(saveTimeoutRef.current);
+      if (saveTimeoutRef.current) {
+        clearTimeout(saveTimeoutRef.current);
+        saveTimeoutRef.current = null;
+      }
       if (hasUnsavedChangesRef.current && latestContentRef.current) {
-        void persistReport();
+        const latest = latestContentRef.current;
+        void onSaveReportRef.current({
+          content_markdown: latest.markdown,
+          content_html: latest.html,
+          content_json: latest.json,
+          word_count: latest.wordCount,
+          base_version: currentBaseVersionRef.current,
+        }).catch((err) => console.error('Failed to flush report on unmount:', err));
       }
     };
-  }, [persistReport]);
+  }, []);
 
   const textContent = editor?.getText() || '';
   const charCount = countValidCharacters(textContent);
@@ -253,12 +304,26 @@ export const TopicReportTab: React.FC<TopicReportTabProps> = ({
               <>
                 <AlertTriangle className="h-3 w-3 text-red-600 dark:text-red-400" aria-hidden="true" />
                 <span className="text-red-600 dark:text-red-400 font-semibold">版本冲突</span>
+                <button
+                  type="button"
+                  onClick={() => void persistReport()}
+                  className="ml-1 text-[var(--accent)] hover:underline cursor-pointer"
+                >
+                  重试
+                </button>
               </>
             )}
             {saveStatus === 'error' && (
               <>
                 <AlertTriangle className="h-3 w-3 text-amber-600 dark:text-amber-400" aria-hidden="true" />
                 <span className="text-amber-600 dark:text-amber-400 font-semibold">保存失败</span>
+                <button
+                  type="button"
+                  onClick={() => void persistReport()}
+                  className="ml-1 text-[var(--accent)] hover:underline cursor-pointer"
+                >
+                  重试
+                </button>
               </>
             )}
           </div>

@@ -29,6 +29,7 @@ import {
   saveDraftImmediatelyWithStatus,
   savePublishPackage,
   PublishPackageConflictError,
+  TopicReportConflictError,
   resolveDraftRecovery,
   saveDraftCitation,
   exportSingleTopicMarkdown,
@@ -262,7 +263,7 @@ export const TopicDetailView: React.FC<TopicDetailViewProps> = ({
     }
   };
 
-  const handleSaveTopicReport = async (reportData: {
+  const handleSaveTopicReport = useCallback(async (reportData: {
     content_markdown?: string;
     content_html?: string;
     content_json?: string;
@@ -272,12 +273,17 @@ export const TopicDetailView: React.FC<TopicDetailViewProps> = ({
     try {
       const saved = await saveTopicReport(topic.id, reportData);
       queryClient.setQueryData(['topic-report', topic.id], saved);
+      setOperationError(null);
       return saved;
     } catch (error) {
-      setOperationError(error instanceof Error ? `保存选题报告失败：${error.message}` : '保存选题报告失败');
+      if (error instanceof TopicReportConflictError) {
+        setOperationError('选题报告已在其他设备更新，请刷新后重新编辑。');
+      } else {
+        setOperationError(error instanceof Error ? `保存选题报告失败：${error.message}` : '保存选题报告失败');
+      }
       throw error;
     }
-  };
+  }, [queryClient, topic.id]);
 
   const handleSaveDraft = async (
     topicId: string,
@@ -601,15 +607,20 @@ export const TopicDetailView: React.FC<TopicDetailViewProps> = ({
           </div>
         )}
 
-        {activeTab === 'report' && (
+        {activeTab === 'report' && !loading && (
           <div key="report" className="view-tab-transition flex-1 min-h-0 flex flex-col h-full">
             <TopicReportTab
+              key={topic.id}
               topicId={topic.id}
               topicTitle={topic.title}
               report={report}
               onSaveReport={handleSaveTopicReport}
             />
           </div>
+        )}
+
+        {activeTab === 'report' && loading && (
+          <div className="py-16 text-center text-sm text-[var(--ink-muted)]">正在加载选题报告...</div>
         )}
 
         {activeTab === 'people' && (

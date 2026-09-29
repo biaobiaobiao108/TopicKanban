@@ -247,14 +247,43 @@ describe('Topic Report and Sources Timeline Integration', () => {
     expect(putData.version).toBe(1);
     expect(putData.content_markdown).toBe('# 报告正文');
 
-    // 3. GET /api/topics/:id/report (now has report)
+    // 2b. PUT with wrong base_version produces 409 REPORT_CONFLICT
+    const conflictRes = await app.request(`/api/topics/${topic.id}/report`, {
+      method: 'PUT',
+      headers,
+      body: JSON.stringify({
+        content_markdown: '# 发生冲突的修改',
+        base_version: 0, // Stale!
+      }),
+    });
+    expect(conflictRes.status).toBe(409);
+    const conflictData = (await conflictRes.json()) as { error: string; current: { version: number } };
+    expect(conflictData.error).toBe('REPORT_CONFLICT');
+    expect(conflictData.current.version).toBe(1);
+
+    // 2c. PUT with correct base_version 1 increments version to 2
+    const updateRes = await app.request(`/api/topics/${topic.id}/report`, {
+      method: 'PUT',
+      headers,
+      body: JSON.stringify({
+        content_markdown: '# 报告正文 (第二版)',
+        base_version: 1,
+      }),
+    });
+    expect(updateRes.status).toBe(200);
+    const updateData = (await updateRes.json()) as { version: number; content_markdown: string };
+    expect(updateData.version).toBe(2);
+    expect(updateData.content_markdown).toBe('# 报告正文 (第二版)');
+
+    // 3. GET /api/topics/:id/report (now has report v2)
     const getRes2 = await app.request(`/api/topics/${topic.id}/report`, {
       method: 'GET',
       headers,
     });
     expect(getRes2.status).toBe(200);
     const getData2 = (await getRes2.json()) as { version: number; content_markdown: string };
-    expect(getData2.content_markdown).toBe('# 报告正文');
+    expect(getData2.content_markdown).toBe('# 报告正文 (第二版)');
+    expect(getData2.version).toBe(2);
 
     // 4. Sources reorder batch endpoint
     const srcA: Source = {
