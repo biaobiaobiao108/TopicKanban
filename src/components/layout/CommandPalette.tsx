@@ -941,7 +941,8 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
         </div>
 
         {/* Results List */}
-        <FloatingScrollbar ref={listRef} className="overflow-x-hidden" wrapperClassName="max-h-[480px] flex-none">
+        {/* Eight 56px rows, seven 4px gaps, and 12px padding on both ends; leave room for the search controls on short screens. */}
+        <FloatingScrollbar ref={listRef} className="overflow-x-hidden" wrapperClassName="max-h-[min(500px,calc(85dvh-6rem))] flex-none">
           <div className="flex flex-col gap-1 p-3">
             {items.map((item, index) => {
               const isSelected = index === selectedIndex;
