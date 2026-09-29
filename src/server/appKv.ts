@@ -45,6 +45,12 @@ export class AppKV {
     this.cleanupStmt = this.db.sqlite.query('DELETE FROM _kv_store WHERE expires_at IS NOT NULL AND expires_at <= ?') as unknown as SqliteStatement;
   }
 
+  private cleanExpiredMemoryLeases(now: number): void {
+    for (const [key, lease] of this.memoryLeases) {
+      if (lease.expiresAt <= now) this.memoryLeases.delete(key);
+    }
+  }
+
   private cleanExpired(): void {
     const now = Date.now();
     try {
@@ -52,9 +58,7 @@ export class AppKV {
     } catch {
       // Expiry cleanup should never block normal reads.
     }
-    for (const [key, lease] of this.memoryLeases) {
-      if (lease.expiresAt <= now) this.memoryLeases.delete(key);
-    }
+    this.cleanExpiredMemoryLeases(now);
   }
 
   async get<T = unknown>(key: string, options: 'json'): Promise<T | null>;
@@ -194,7 +198,7 @@ export class AppKV {
     expirationTtl: number,
   ): Promise<JsonLeaseResult<T>> {
     const now = Date.now();
-    this.cleanExpired();
+    this.cleanExpiredMemoryLeases(now);
     const existing = this.memoryLeases.get(key);
     if (existing && existing.expiresAt > now) {
       if (existing.clientId !== clientId) {
@@ -211,7 +215,7 @@ export class AppKV {
 
   async releaseJsonLease(key: string, clientId: string): Promise<'released' | 'missing' | 'not_owner'> {
     const now = Date.now();
-    this.cleanExpired();
+    this.cleanExpiredMemoryLeases(now);
     const existing = this.memoryLeases.get(key);
     if (!existing || existing.expiresAt <= now) {
       this.memoryLeases.delete(key);

@@ -186,8 +186,8 @@ interface ScriptEditorTabProps {
     title: string,
     contentMarkdown: string
   ) => Promise<void>;
-  onCacheDraftLocally: (contentHtml: string, contentJson: string, wordCount: number, title: string, contentMarkdown: string) => void;
-  onSaveDraftImmediately: (contentHtml: string, contentJson: string, wordCount: number, title: string, contentMarkdown: string) => void;
+  onCacheDraftLocally: (contentHtml: string, contentJson: string, wordCount: number, title: string, contentMarkdown: string) => boolean;
+  onSaveDraftImmediately: (contentHtml: string, contentJson: string, wordCount: number, title: string, contentMarkdown: string) => boolean;
   onSaveCitation: (input: CitationInput) => Promise<DraftCitation>;
   onRegisterDraftFlush?: (flush: (() => Promise<void>) | null) => void;
 }
@@ -219,7 +219,7 @@ export const ScriptEditorTab: React.FC<ScriptEditorTabProps> = ({
   const { showToast } = useToast();
   const initialTitle = initialDraft?.title?.trim() || topicTitle;
   const [draftTitle, setDraftTitle] = useState(initialTitle);
-  const [saveStatus, setSaveStatus] = useState<'saved' | 'saving' | 'unsaved' | 'local' | 'pending' | 'conflict'>('saved');
+  const [saveStatus, setSaveStatus] = useState<'saved' | 'saving' | 'unsaved' | 'local' | 'pending' | 'cache-error' | 'conflict'>('saved');
   const [draftConflict, setDraftConflict] = useState<Draft | null>(null);
   const [lastSavedTime, setLastSavedTime] = useState<string>(
     initialDraft?.updated_at ? formatBeijingDateTime(initialDraft.updated_at, 'zh-CN', { hour: '2-digit', minute: '2-digit', second: '2-digit' }) : '刚刚'
@@ -257,6 +257,8 @@ export const ScriptEditorTab: React.FC<ScriptEditorTabProps> = ({
   const saveTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const localSaveTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const hasUnsavedChangesRef = useRef(false);
+  const localCacheAvailableRef = useRef(false);
+  const localCacheFailedRef = useRef(false);
   const latestContentRef = useRef<{ markdown: string; html: string; json: string; wordCount: number; title: string } | null>(null);
   const draftTitleRef = useRef(initialTitle);
   const draftSavePromiseRef = useRef<Promise<void> | null>(null);
@@ -289,6 +291,8 @@ export const ScriptEditorTab: React.FC<ScriptEditorTabProps> = ({
           await onSaveDraft(topicId, latest.html, latest.json, latest.wordCount, latest.title, latest.markdown);
           if (savingVersion === editVersionRef.current) {
             hasUnsavedChangesRef.current = false;
+            localCacheAvailableRef.current = false;
+            localCacheFailedRef.current = false;
             setSaveStatus('saved');
             setLastSavedTime(formatBeijingDateTime(new Date(), 'zh-CN', { hour: '2-digit', minute: '2-digit', second: '2-digit' }));
           } else {
@@ -299,7 +303,9 @@ export const ScriptEditorTab: React.FC<ScriptEditorTabProps> = ({
             setSaveStatus('conflict');
             setDraftConflict(error.current);
           } else {
-            setSaveStatus('pending');
+            setSaveStatus(localCacheAvailableRef.current
+              ? 'local'
+              : localCacheFailedRef.current ? 'cache-error' : 'pending');
           }
           throw error;
         }
@@ -326,8 +332,10 @@ export const ScriptEditorTab: React.FC<ScriptEditorTabProps> = ({
     localSaveTimeoutRef.current = setTimeout(() => {
       const latest = latestContentRef.current;
       if (!latest) return;
-      localCacheRef.current(latest.html, latest.json, latest.wordCount, latest.title, latest.markdown);
-      setSaveStatus('local');
+      const persisted = localCacheRef.current(latest.html, latest.json, latest.wordCount, latest.title, latest.markdown);
+      localCacheAvailableRef.current = persisted;
+      localCacheFailedRef.current = !persisted;
+      setSaveStatus(persisted ? 'local' : 'cache-error');
     }, 1500);
 
     saveTimeoutRef.current = setTimeout(() => {
@@ -339,6 +347,8 @@ export const ScriptEditorTab: React.FC<ScriptEditorTabProps> = ({
     editVersionRef.current += 1;
     latestContentRef.current = content;
     hasUnsavedChangesRef.current = true;
+    localCacheAvailableRef.current = false;
+    localCacheFailedRef.current = false;
     setSaveStatus('unsaved');
     scheduleDraftPersistence();
   }, [scheduleDraftPersistence]);
@@ -728,12 +738,16 @@ export const ScriptEditorTab: React.FC<ScriptEditorTabProps> = ({
         setSaveStatus('saving');
         await onSaveDraft(topicId, latest.html, latest.json, latest.wordCount, latest.title, latest.markdown);
         hasUnsavedChangesRef.current = false;
+        localCacheAvailableRef.current = false;
+        localCacheFailedRef.current = false;
         setSaveStatus('saved');
         setLastSavedTime(formatBeijingDateTime(new Date(), 'zh-CN', { hour: '2-digit', minute: '2-digit', second: '2-digit' }));
         setDraftConflict(null);
       } catch (error) {
         console.error(error);
-        setSaveStatus('pending');
+        setSaveStatus(localCacheAvailableRef.current
+          ? 'local'
+          : localCacheFailedRef.current ? 'cache-error' : 'pending');
       }
       return;
     }
@@ -748,6 +762,8 @@ export const ScriptEditorTab: React.FC<ScriptEditorTabProps> = ({
     setDraftTitle(draftConflict.title || topicTitle);
     draftTitleRef.current = draftConflict.title || topicTitle;
     hasUnsavedChangesRef.current = false;
+    localCacheAvailableRef.current = false;
+    localCacheFailedRef.current = false;
     setSaveStatus('saved');
     setLastSavedTime(formatBeijingDateTime(draftConflict.updated_at, 'zh-CN', { hour: '2-digit', minute: '2-digit', second: '2-digit' }));
     setDraftConflict(null);
@@ -766,7 +782,10 @@ export const ScriptEditorTab: React.FC<ScriptEditorTabProps> = ({
         localSaveTimeoutRef.current = null;
       }
       const latest = latestContentRef.current;
-      immediateSaveRef.current(latest.html, latest.json, latest.wordCount, latest.title, latest.markdown);
+      const persisted = immediateSaveRef.current(latest.html, latest.json, latest.wordCount, latest.title, latest.markdown);
+      localCacheAvailableRef.current = persisted;
+      localCacheFailedRef.current = !persisted;
+      setSaveStatus(persisted ? 'local' : 'cache-error');
       hasUnsavedChangesRef.current = false;
     };
     const flushWhenHidden = () => {
@@ -1094,7 +1113,7 @@ export const ScriptEditorTab: React.FC<ScriptEditorTabProps> = ({
             )}
 
             {/* Auto save indicator pill */}
-            <div className="flex items-center gap-1.5 rounded-full bg-stone-500/[0.04] px-2.5 py-0.5 text-[11px] text-[var(--ink-muted)] select-none dark:bg-stone-400/[0.06]">
+            <div className="flex items-center gap-1.5 rounded-full bg-stone-500/[0.04] px-2.5 py-0.5 text-[11px] text-[var(--ink-muted)] select-none dark:bg-stone-400/[0.06]" role="status" aria-live="polite">
               {saveStatus === 'saving' && (
                 <>
                   <Cloud className="h-3 w-3 animate-pulse text-[var(--accent)]" aria-hidden="true" />
@@ -1107,10 +1126,28 @@ export const ScriptEditorTab: React.FC<ScriptEditorTabProps> = ({
                   <span className="hidden sm:inline">已同步</span>
                 </>
               )}
-              {(saveStatus === 'local' || saveStatus === 'unsaved' || saveStatus === 'pending') && (
+              {saveStatus === 'local' && (
                 <>
                   <Save className="h-3 w-3 text-stone-500 dark:text-stone-400" aria-hidden="true" />
-                  <span className="hidden sm:inline">本地暂存</span>
+                  <span className="hidden sm:inline">本地已暂存</span>
+                </>
+              )}
+              {saveStatus === 'unsaved' && (
+                <>
+                  <Save className="h-3 w-3 text-stone-500 dark:text-stone-400" aria-hidden="true" />
+                  <span className="hidden sm:inline">未保存</span>
+                </>
+              )}
+              {saveStatus === 'pending' && (
+                <>
+                  <Save className="h-3 w-3 text-amber-600 dark:text-amber-400" aria-hidden="true" />
+                  <span className="hidden sm:inline">待同步</span>
+                </>
+              )}
+              {saveStatus === 'cache-error' && (
+                <>
+                  <AlertTriangle className="h-3 w-3 text-red-600 dark:text-red-400" aria-hidden="true" />
+                  <span className="text-red-600 dark:text-red-400">本地暂存失败</span>
                 </>
               )}
               {saveStatus === 'conflict' && (
@@ -1386,8 +1423,17 @@ export const ScriptEditorTab: React.FC<ScriptEditorTabProps> = ({
               {saveStatus === 'saved' && (
                 <CheckCircle2 className="h-3.5 w-3.5 text-emerald-500" aria-label="云端已同步" role="img" />
               )}
-              {(saveStatus === 'local' || saveStatus === 'unsaved' || saveStatus === 'pending') && (
-                <Save className="h-3.5 w-3.5 text-stone-500 dark:text-stone-400" aria-label="本地草稿已安全暂存" role="img" />
+              {saveStatus === 'local' && (
+                <Save className="h-3.5 w-3.5 text-stone-500 dark:text-stone-400" aria-label="文案已暂存到浏览器本地" role="img" />
+              )}
+              {saveStatus === 'unsaved' && (
+                <Save className="h-3.5 w-3.5 text-stone-500 dark:text-stone-400" aria-label="文案尚未保存" role="img" />
+              )}
+              {saveStatus === 'pending' && (
+                <Save className="h-3.5 w-3.5 text-amber-600 dark:text-amber-400" aria-label="文案等待同步" role="img" />
+              )}
+              {saveStatus === 'cache-error' && (
+                <AlertTriangle className="h-3.5 w-3.5 text-red-500" aria-label="浏览器本地暂存失败" role="img" />
               )}
               {saveStatus === 'conflict' && (
                 <AlertTriangle className="h-3.5 w-3.5 text-red-500" aria-label="检测到版本冲突" role="img" />

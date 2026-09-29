@@ -119,6 +119,13 @@ export const PublishPackageTab: React.FC<PublishPackageTabProps> = ({
   const fieldsRef = useRef<PublishPackageEditableFields | null>(null);
   const versionRef = useRef(workspace.publish_package?.version || 0);
   const initializedRef = useRef(false);
+  const mountedRef = useRef(true);
+  const editRevisionRef = useRef(0);
+  const isDirtyRef = useRef(false);
+  const lastQueuedRevisionRef = useRef(-1);
+  const lastFailedRevisionRef = useRef<number | null>(null);
+  const unmountRetryRevisionRef = useRef<number | null>(null);
+  const saveQueueRef = useRef<Promise<void>>(Promise.resolve());
   const [fallbackText, setFallbackText] = useState('');
   const [isDirty, setIsDirty] = useState(false);
   const [saveStatus, setSaveStatus] = useState<SaveStatus>(workspace.publish_package ? 'saved' : 'dirty');
@@ -148,50 +155,97 @@ export const PublishPackageTab: React.FC<PublishPackageTabProps> = ({
     fieldsRef.current = fields;
   }, [fields]);
 
-  const persistFields = useCallback(async (nextFields: PublishPackageEditableFields) => {
-    if (draftConflict && !savedPackage) return;
-    setSaveStatus('saving');
-    try {
-      const saved = await onSavePublishPackage({
-        title_simplified: nextFields.title_simplified,
-        title_traditional: nextFields.title_traditional,
-        description_simplified: nextFields.description_simplified,
-        description_traditional: nextFields.description_traditional,
-        title_traditional_auto: nextFields.title_traditional_auto,
-        description_traditional_auto: nextFields.description_traditional_auto,
-        content_json: JSON.stringify(toPersistedPublishPackageContent(nextFields)),
-        base_version: versionRef.current,
-      });
-      versionRef.current = saved.version;
-      setLastSavedAt(saved.updated_at);
-      setIsDirty(false);
-      setSaveStatus('saved');
-    } catch (error) {
-      setSaveStatus(error instanceof PublishPackageConflictError ? 'conflict' : 'error');
-      throw error;
+  const persistFields = useCallback((nextFields: PublishPackageEditableFields, revision: number) => {
+    if (draftConflict && !savedPackage) return Promise.resolve();
+
+    // Initial generation and edits can overlap. Serialize requests so each save
+    // uses the version returned by the previous request instead of racing with
+    // the same base_version.
+    async function save(isUnmountRetry = false): Promise<void> {
+      if (mountedRef.current) setSaveStatus('saving');
+      try {
+        const saved = await onSavePublishPackage({
+          title_simplified: nextFields.title_simplified,
+          title_traditional: nextFields.title_traditional,
+          description_simplified: nextFields.description_simplified,
+          description_traditional: nextFields.description_traditional,
+          title_traditional_auto: nextFields.title_traditional_auto,
+          description_traditional_auto: nextFields.description_traditional_auto,
+          content_json: JSON.stringify(toPersistedPublishPackageContent(nextFields)),
+          base_version: versionRef.current,
+        });
+        versionRef.current = saved.version;
+        if (lastFailedRevisionRef.current === revision) lastFailedRevisionRef.current = null;
+        if (mountedRef.current) {
+          setLastSavedAt(saved.updated_at);
+          if (revision === editRevisionRef.current) {
+            isDirtyRef.current = false;
+            setIsDirty(false);
+            setSaveStatus('saved');
+          }
+        }
+      } catch (error) {
+        lastFailedRevisionRef.current = revision;
+        if (!mountedRef.current
+          && revision === editRevisionRef.current
+          && !isUnmountRetry
+          && unmountRetryRevisionRef.current !== revision) {
+          // The tab may unmount while the request is in flight. Retry once if
+          // that request fails after the cleanup had no chance to observe it.
+          unmountRetryRevisionRef.current = revision;
+          return save(true);
+        }
+        if (mountedRef.current && revision === editRevisionRef.current) {
+          setSaveStatus(error instanceof PublishPackageConflictError ? 'conflict' : 'error');
+        }
+        throw error;
+      }
     }
+
+    lastQueuedRevisionRef.current = Math.max(lastQueuedRevisionRef.current, revision);
+    const queued = saveQueueRef.current.catch(() => undefined).then(() => save());
+    saveQueueRef.current = queued;
+    return queued;
   }, [draftConflict, onSavePublishPackage, savedPackage]);
 
   useEffect(() => {
     if (initializedRef.current) return;
     initializedRef.current = true;
     if (!savedPackage && !draftConflict && fieldsRef.current) {
-      void persistFields(fieldsRef.current).catch(() => undefined);
+      void persistFields(fieldsRef.current, editRevisionRef.current).catch(() => undefined);
     }
   }, [draftConflict, persistFields, savedPackage]);
 
   const scheduleSave = useCallback((nextFields: PublishPackageEditableFields) => {
     if (saveTimerRef.current) clearTimeout(saveTimerRef.current);
+    const revision = ++editRevisionRef.current;
+    isDirtyRef.current = true;
     setIsDirty(true);
     setSaveStatus('dirty');
     saveTimerRef.current = setTimeout(() => {
-      void persistFields(nextFields).catch(() => undefined);
+      saveTimerRef.current = null;
+      void persistFields(nextFields, revision).catch(() => undefined);
     }, 800);
   }, [persistFields]);
 
-  useEffect(() => () => {
-    if (saveTimerRef.current) clearTimeout(saveTimerRef.current);
-  }, []);
+  useEffect(() => {
+    mountedRef.current = true;
+    return () => {
+      mountedRef.current = false;
+      if (saveTimerRef.current) {
+        clearTimeout(saveTimerRef.current);
+        saveTimerRef.current = null;
+      }
+      const revision = editRevisionRef.current;
+      const failedLatestSave = lastFailedRevisionRef.current === revision;
+      if (failedLatestSave) unmountRetryRevisionRef.current = revision;
+      if (isDirtyRef.current
+        && fieldsRef.current
+        && (revision > lastQueuedRevisionRef.current || failedLatestSave)) {
+        void persistFields(fieldsRef.current, editRevisionRef.current).catch(() => undefined);
+      }
+    };
+  }, [persistFields]);
 
   const updateFields = useCallback((updater: (current: PublishPackageEditableFields) => PublishPackageEditableFields) => {
     const current = fieldsRef.current;

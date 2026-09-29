@@ -47,6 +47,19 @@ describe('AppKV (SQLite)', () => {
     expect(expiredVal).toBeNull();
   });
 
+  it('keeps SQLite expiry cleanup off the in-memory lease path', async () => {
+    await kv.put('expired:test', 'stale value', { expirationTtl: 1 });
+    sqlite.query('UPDATE _kv_store SET expires_at = ? WHERE key = ?').run(Date.now() - 1000, 'expired:test');
+
+    await kv.acquireJsonLease('lock:topic-1', 'client-1', {
+      client_id: 'client-1', device_name: 'Mac', updated_at: new Date().toISOString(),
+    }, 30);
+    await kv.releaseJsonLease('lock:topic-1', 'client-1');
+
+    const staleRow = sqlite.query('SELECT key FROM _kv_store WHERE key = ?').get('expired:test');
+    expect(staleRow).toBeDefined();
+  });
+
   it('lists keys by prefix', async () => {
     await kv.put('drop:1', 'item 1');
     await kv.put('drop:2', 'item 2');

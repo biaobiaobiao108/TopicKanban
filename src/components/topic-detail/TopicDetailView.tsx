@@ -27,8 +27,8 @@ import {
   fetchCommercialDealsByTopicId,
   fetchTopicTodos,
   saveDraft,
-  cacheDraftLocally,
-  saveDraftImmediately,
+  cacheDraftLocallyWithStatus,
+  saveDraftImmediatelyWithStatus,
   savePublishPackage,
   PublishPackageConflictError,
   resolveDraftRecovery,
@@ -712,7 +712,8 @@ export const TopicDetailView: React.FC<TopicDetailViewProps> = ({
               onSaveCitation={handleSaveCitation}
               onRegisterDraftFlush={registerDraftFlush}
               onCacheDraftLocally={(contentHtml, contentJson, wordCount, title, contentMarkdown) => {
-                const cached = cacheDraftLocally(topic.id, contentHtml, contentJson, wordCount, title, contentMarkdown);
+                const result = cacheDraftLocallyWithStatus(topic.id, contentHtml, contentJson, wordCount, title, contentMarkdown);
+                const cached = result.draft;
                 if (!loggingOutRef.current) {
                   queryClient.setQueryData(['topic-draft', topic.id], (prev?: { draft: Draft | null; conflict: DraftRecoveryConflict | null }) => ({
                     draft: cached,
@@ -720,9 +721,11 @@ export const TopicDetailView: React.FC<TopicDetailViewProps> = ({
                   }));
                   onDraftWordCountChange(topic.id, wordCount);
                 }
+                return result.persisted;
               }}
               onSaveDraftImmediately={(contentHtml, contentJson, wordCount, title, contentMarkdown) => {
-                const updated = saveDraftImmediately(topic.id, contentHtml, contentJson, wordCount, title, contentMarkdown);
+                const result = saveDraftImmediatelyWithStatus(topic.id, contentHtml, contentJson, wordCount, title, contentMarkdown);
+                const updated = result.draft;
                 if (!loggingOutRef.current) {
                   queryClient.setQueryData(['topic-draft', topic.id], (prev?: { draft: Draft | null; conflict: DraftRecoveryConflict | null }) => ({
                     draft: updated,
@@ -730,6 +733,7 @@ export const TopicDetailView: React.FC<TopicDetailViewProps> = ({
                   }));
                   onDraftWordCountChange(topic.id, wordCount);
                 }
+                return result.persisted;
               }}
             />
           </React.Suspense>

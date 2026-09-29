@@ -52,7 +52,9 @@ export function isSafeExternalHttpUrl(value: unknown): value is string {
 
   try {
     const parsed = new URL(trimmed);
-    const hostname = parsed.hostname.toLowerCase();
+    // A DNS root dot is equivalent to the unqualified hostname. Strip it before
+    // private-host checks so `localhost.` and `service.local.` stay blocked.
+    const hostname = parsed.hostname.toLowerCase().replace(/\.+$/, '');
     if (parsed.protocol !== 'http:' && parsed.protocol !== 'https:') return false;
     if (!hostname) return false;
     if (hostname === 'localhost' || PRIVATE_HOST_SUFFIXES.some((suffix) => hostname.endsWith(suffix))) return false;

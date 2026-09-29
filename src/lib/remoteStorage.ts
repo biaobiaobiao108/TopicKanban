@@ -50,7 +50,7 @@ import { formatBeijingDateTime } from './actionDate';
 const PENDING_DRAFTS_KEY = 'topic_kanban_pending_drafts_v3';
 const LEGACY_PENDING_DRAFTS_KEY = 'topic_kanban_pending_drafts_v2';
 const PENDING_DRAFT_MAX_ENTRIES = 8;
-const PENDING_DRAFT_MAX_BYTES = 3 * 1024 * 1024;
+const PENDING_DRAFT_MAX_BYTES = 4 * 1024 * 1024;
 const PENDING_DRAFT_TTL_MS = 7 * 24 * 60 * 60 * 1000;
 export const MAX_BACKUP_IMPORT_BYTES = 5 * 1024 * 1024;
 let bootstrapPromise: Promise<BootstrapData> | null = null;
@@ -577,7 +577,15 @@ function isPendingDraftRecord(value: unknown): value is PendingDraftRecord {
     && Number.isFinite(Date.parse(candidate.cached_at));
 }
 
-function boundPendingDrafts(records: Record<string, PendingDraftRecord>, now = Date.now()): Record<string, PendingDraftRecord> {
+function pendingDraftStorageSize(value: string): number {
+  return new TextEncoder().encode(value).byteLength;
+}
+
+function boundPendingDrafts(
+  records: Record<string, PendingDraftRecord>,
+  now = Date.now(),
+  preferredTopicId?: string,
+): Record<string, PendingDraftRecord> {
   const sorted = Object.entries(records)
     .filter(([, record]) => {
       if (!isPendingDraftRecord(record)) return false;
@@ -586,10 +594,21 @@ function boundPendingDrafts(records: Record<string, PendingDraftRecord>, now = D
     })
     .sort(([, left], [, right]) => Date.parse(right.cached_at) - Date.parse(left.cached_at));
   const bounded: Record<string, PendingDraftRecord> = {};
+  const preferred = preferredTopicId
+    ? sorted.find(([topicId]) => topicId === preferredTopicId)
+    : sorted[0];
+  if (preferred) {
+    const preferredCandidate = { [preferred[0]]: preferred[1] };
+    if (pendingDraftStorageSize(JSON.stringify(preferredCandidate)) <= PENDING_DRAFT_MAX_BYTES) {
+      bounded[preferred[0]] = preferred[1];
+    }
+  }
+
   for (const [topicId, record] of sorted) {
+    if (topicId === preferred?.[0]) continue;
     if (Object.keys(bounded).length >= PENDING_DRAFT_MAX_ENTRIES) break;
     const candidate = { ...bounded, [topicId]: record };
-    if (new TextEncoder().encode(JSON.stringify(candidate)).byteLength > PENDING_DRAFT_MAX_BYTES) break;
+    if (pendingDraftStorageSize(JSON.stringify(candidate)) > PENDING_DRAFT_MAX_BYTES) continue;
     bounded[topicId] = record;
   }
   return bounded;
@@ -632,22 +651,41 @@ function readPendingDrafts(): Record<string, PendingDraftRecord> {
   }
 }
 
-function writePendingDraft(record: PendingDraftRecord | null, topicId: string): void {
+function writePendingDraft(record: PendingDraftRecord | null, topicId: string): boolean {
   try {
-    const pending = readPendingDrafts();
+    // Do not mutate the memory cache until localStorage confirms the write.
+    const pending = { ...readPendingDrafts() };
     if (record) pending[topicId] = record;
     else delete pending[topicId];
-    const bounded = boundPendingDrafts(pending);
-    const serialized = JSON.stringify(bounded);
-    localStorage.setItem(PENDING_DRAFTS_KEY, serialized);
-    localStorage.removeItem(LEGACY_PENDING_DRAFTS_KEY);
+    let bounded = boundPendingDrafts(pending, Date.now(), record ? topicId : undefined);
+    if (record && !bounded[topicId]) return false;
+    let serialized = JSON.stringify(bounded);
+    try {
+      localStorage.setItem(PENDING_DRAFTS_KEY, serialized);
+    } catch (error) {
+      // Older recovery records are expendable before the current edit. Retry
+      // with just this topic so a large but otherwise supported draft gets the
+      // full storage quota available to it.
+      if (!record) throw error;
+      bounded = { [topicId]: record };
+      serialized = JSON.stringify(bounded);
+      localStorage.setItem(PENDING_DRAFTS_KEY, serialized);
+    }
+    try {
+      localStorage.removeItem(LEGACY_PENDING_DRAFTS_KEY);
+    } catch {
+      // The primary cache is already written; a stale legacy value is ignored
+      // while the current-format entry exists.
+    }
     pendingDraftMemoryCache = {
       currentStorageValue: serialized,
       legacyStorageValue: null,
       records: bounded,
     };
+    return !record || Boolean(bounded[topicId]);
   } catch (error) {
     console.error('Draft recovery cache write failed', error);
+    return false;
   }
 }
 
@@ -780,14 +818,19 @@ export async function saveDraft(
   return saved;
 }
 
-export function cacheDraftLocally(
+export interface DraftCacheWriteResult {
+  draft: Draft;
+  persisted: boolean;
+}
+
+export function cacheDraftLocallyWithStatus(
   topicId: string,
   contentHtml: string,
   contentJson: string,
   wordCount: number,
   title: string,
   contentMarkdown: string,
-): Draft {
+): DraftCacheWriteResult {
   const previous = readPendingDrafts()[topicId];
   const baseVersion = knownDraftVersions.get(topicId) ?? previous?.base_version ?? 0;
   const draft: Draft = {
@@ -801,8 +844,19 @@ export function cacheDraftLocally(
     version: baseVersion,
     updated_at: new Date().toISOString(),
   };
-  writePendingDraft({ draft, base_version: baseVersion, cached_at: draft.updated_at }, topicId);
-  return draft;
+  const persisted = writePendingDraft({ draft, base_version: baseVersion, cached_at: draft.updated_at }, topicId);
+  return { draft, persisted };
+}
+
+export function cacheDraftLocally(
+  topicId: string,
+  contentHtml: string,
+  contentJson: string,
+  wordCount: number,
+  title: string,
+  contentMarkdown: string,
+): Draft {
+  return cacheDraftLocallyWithStatus(topicId, contentHtml, contentJson, wordCount, title, contentMarkdown).draft;
 }
 
 export function saveDraftImmediately(
@@ -813,12 +867,24 @@ export function saveDraftImmediately(
   title: string,
   contentMarkdown: string,
 ): Draft {
-  const draft = cacheDraftLocally(topicId, contentHtml, contentJson, wordCount, title, contentMarkdown);
+  return saveDraftImmediatelyWithStatus(topicId, contentHtml, contentJson, wordCount, title, contentMarkdown).draft;
+}
+
+export function saveDraftImmediatelyWithStatus(
+  topicId: string,
+  contentHtml: string,
+  contentJson: string,
+  wordCount: number,
+  title: string,
+  contentMarkdown: string,
+): DraftCacheWriteResult {
+  const result = cacheDraftLocallyWithStatus(topicId, contentHtml, contentJson, wordCount, title, contentMarkdown);
+  const { draft } = result;
   const draftBytes = new TextEncoder().encode(`${draft.content_markdown || ''}${draft.content_json || ''}${draft.content_html || ''}`).byteLength;
   // 浏览器对 fetch({ keepalive: true }) 限制 payload 通常为 64KB (65536 bytes)
   const useKeepalive = draftBytes < 60000;
   void enqueueDraftUpload(draft, useKeepalive).catch(() => undefined);
-  return draft;
+  return result;
 }
 
 export async function fetchTags(): Promise<Tag[]> {

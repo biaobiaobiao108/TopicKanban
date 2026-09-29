@@ -136,7 +136,20 @@ export function useWorkspace(enabled: boolean, view: string = 'today') {
     clearRemoteStorageMemoryCaches();
   }, [queryClient]);
 
-  const errorValue = workspaceQuery.error || todayQuery.error || activeTopicCountQuery.error || dealFocusQuery.error || settingsQuery.error || trashQuery.error || peopleQuery.error || relationshipsQuery.error || tagsQuery.error || tagOptionsQuery.error || publishedQuery.error;
+  const activeErrors = [
+    workspaceEnabled ? workspaceQuery.error : null,
+    todayEnabled ? todayQuery.error : null,
+    enabled ? activeTopicCountQuery.error : null,
+    dealFocusEnabled ? dealFocusQuery.error : null,
+    enabled ? settingsQuery.error : null,
+    trashEnabled ? trashQuery.error : null,
+    peopleEnabled ? peopleQuery.error : null,
+    relationshipsEnabled ? relationshipsQuery.error : null,
+    tagsEnabled ? tagsQuery.error : null,
+    tagOptionsEnabled ? tagOptionsQuery.error : null,
+    publishedEnabled ? publishedQuery.error : null,
+  ];
+  const errorValue = activeErrors.find((error) => error != null);
   return {
     topics: view === 'today' ? (todayQuery.data?.topics || workspace?.topics || []) : (workspace?.topics || []),
     todayAttentionTopics: todayQuery.data?.attention_topics || [],

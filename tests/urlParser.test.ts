@@ -22,6 +22,12 @@ describe('External URL safety', () => {
     expect(isSafeExternalHttpUrl('http://[::ffff:c0a8:101]/')).toBe(false);
   });
 
+  it('rejects private hostnames with a trailing DNS dot', () => {
+    expect(isSafeExternalHttpUrl('http://localhost./')).toBe(false);
+    expect(isSafeExternalHttpUrl('https://api.local./health')).toBe(false);
+    expect(isSafeExternalHttpUrl('http://printer.lan./')).toBe(false);
+  });
+
   it('returns an empty renderable URL for unsafe values', () => {
     expect(sanitizeExternalHttpUrl(' javascript:alert(1) ')).toBe('');
     expect(sanitizeExternalHttpUrl(' https://example.com/article ')).toBe('https://example.com/article');

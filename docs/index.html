@@ -953,19 +953,26 @@
                 <i data-lucide="copy" class="w-3 h-3"></i>
                 <span>复制</span>
               </button>
-              <pre id="dockerRunCode" class="text-stone-300 leading-relaxed"><code># 1. 快速克隆仓库
+              <pre id="dockerRunCode" class="text-stone-300 leading-relaxed"><code># 1. 克隆仓库
 git clone https://github.com/biaobiaobiao108/TopicKanban.git
 cd TopicKanban
 
-# 2. 极速拉取并启动单容器 (映射 3030 端口与数据卷)
+# 2. 为本次部署生成独立的强随机登录密码，并妥善保存输出
+export APP_PASSWORD="$(openssl rand -hex 32)"
+printf '请保存本次登录密码：%s\n' "$APP_PASSWORD"
+
+# 3. 在仓库目录构建镜像
+docker build -t topic-kanban:latest .
+
+# 4. 启动单容器，仅允许本机访问；同机反向代理可转发到 127.0.0.1:3030
 docker run -d \
   --name topic-kanban \
-  -p 3030:3030 \
+  -p 127.0.0.1:3030:3030 \
   -v kanban_data:/app/data \
-  -e APP_PASSWORD=admin \
+  -e APP_PASSWORD \
   topic-kanban:latest
 
-# 3. 浏览器直接访问
+# 5. 浏览器直接访问
 http://localhost:3030</code></pre>
             </div>
           </div>
@@ -1003,14 +1010,13 @@ http://localhost:3030</code></pre>
                 <i data-lucide="copy" class="w-3 h-3"></i>
                 <span>复制</span>
               </button>
-              <pre id="bunRuntimeCode" class="text-stone-300 leading-relaxed"><code># 1. 安装依赖并构建
+              <pre id="bunRuntimeCode" class="text-stone-300 leading-relaxed"><code># 本机开发演示：请勿在公网或不可信局域网开放此服务
 bun install
-bun run build
+export APP_PASSWORD="$(openssl rand -hex 32)"
+printf '请保存本次登录密码：%s\n' "$APP_PASSWORD"
+bun run dev
 
-# 2. 启动 Bun 原生服务
-DATA_DIR=./data APP_PASSWORD=admin PORT=3030 bun run start
-
-# 3. 浏览器直接访问
+# 浏览器访问
 http://localhost:3030</code></pre>
             </div>
           </div>
@@ -1182,7 +1188,13 @@ http://localhost:3030</code></pre>
 
   <!-- JAVASCRIPT LOGIC & ANIMATION CONTROLLERS -->
   <script>
-    lucide.createIcons();
+    function renderIcons() {
+      if (window.lucide && typeof window.lucide.createIcons === 'function') {
+        window.lucide.createIcons();
+      }
+    }
+
+    renderIcons();
 
     const htmlEl = document.documentElement;
     const themeToggleBtn = document.getElementById('themeToggle');
@@ -1195,14 +1207,14 @@ http://localhost:3030</code></pre>
       htmlEl.classList.remove('dark');
       themeIcon.setAttribute('data-lucide', 'moon');
     }
-    lucide.createIcons();
+    renderIcons();
 
     themeToggleBtn.addEventListener('click', () => {
       htmlEl.classList.toggle('dark');
       const isDark = htmlEl.classList.contains('dark');
       localStorage.theme = isDark ? 'dark' : 'light';
       themeIcon.setAttribute('data-lucide', isDark ? 'sun' : 'moon');
-      lucide.createIcons();
+      renderIcons();
     });
 
     const revealObserver = new IntersectionObserver((entries, observer) => {
@@ -1378,7 +1390,7 @@ http://localhost:3030</code></pre>
             </ul>
           </div>
         `;
-        lucide.createIcons();
+        renderIcons();
         container.style.opacity = '1';
         container.style.transform = 'translateY(0)';
       }, 150);
@@ -1404,7 +1416,7 @@ http://localhost:3030</code></pre>
       if (isPrompterPlaying) {
         playText.innerText = '暂停滚动';
         playIcon.setAttribute('data-lucide', 'pause');
-        lucide.createIcons();
+        renderIcons();
 
         prompterInterval = setInterval(() => {
           prompterScrollPos += 1;
@@ -1414,7 +1426,7 @@ http://localhost:3030</code></pre>
       } else {
         playText.innerText = '开始滚动';
         playIcon.setAttribute('data-lucide', 'play');
-        lucide.createIcons();
+        renderIcons();
         clearInterval(prompterInterval);
       }
     }
@@ -1463,10 +1475,10 @@ http://localhost:3030</code></pre>
         showToast('代码已复制到剪贴板');
         const origHtml = btn.innerHTML;
         btn.innerHTML = '<i data-lucide="check" class="w-3 h-3 text-emerald-400"></i><span>已复制</span>';
-        lucide.createIcons();
+        renderIcons();
         setTimeout(() => {
           btn.innerHTML = origHtml;
-          lucide.createIcons();
+          renderIcons();
         }, 2000);
       });
     }
