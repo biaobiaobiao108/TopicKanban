@@ -91,7 +91,22 @@ export interface Source {
   published_at: string;
   verification_status: VerificationStatus;
   notes: string;
+  event_date?: string;
+  date_precision?: DatePrecision;
+  sort_order?: number;
   created_at: string;
+  updated_at: string;
+}
+
+export interface TopicReport {
+  id: string;
+  topic_id: string;
+  title: string;
+  content_markdown: string;
+  content_json: string;
+  content_html: string;
+  word_count: number;
+  version: number;
   updated_at: string;
 }
 
@@ -173,7 +188,8 @@ export interface DraftLoadResult {
 
 export interface TopicWorkspaceData {
   sources: Source[];
-  timeline: TimelineEvent[];
+  report?: TopicReport | null;
+  timeline?: TimelineEvent[];
   draft: Draft | null;
   citations: DraftCitation[];
   publish_package: PublishPackageRecord | null;
@@ -257,7 +273,7 @@ export type PublishPackageSaveInput = Omit<PublishPackageRecord, 'id' | 'topic_i
   base_version?: number;
 };
 
-export type CitationReferenceType = 'source' | 'timeline' | 'person' | 'outline';
+export type CitationReferenceType = 'source' | 'report' | 'timeline' | 'person' | 'outline';
 
 export interface DraftCitation {
   id: string;
@@ -552,11 +568,12 @@ export interface PaginatedPublishedVideos extends PageMeta {
 }
 
 export interface BackupData {
-  version: '4.0';
+  version: '5.0' | '4.0';
   export_at: string;
   topics: Topic[];
   sources: Source[];
-  timeline: TimelineEvent[];
+  reports?: TopicReport[];
+  timeline?: TimelineEvent[];
   people: Person[];
   relationships: PersonRelationship[];
   drafts: Draft[];

@@ -60,25 +60,16 @@ CREATE TABLE sources (
   published_at TEXT NOT NULL DEFAULT '',
   verification_status TEXT NOT NULL DEFAULT 'unverified' CHECK (verification_status IN ('confirmed', 'unverified', 'rejected')),
   notes TEXT NOT NULL DEFAULT '',
+  event_date TEXT NOT NULL DEFAULT '',
+  date_precision TEXT NOT NULL DEFAULT 'exact' CHECK (date_precision IN ('exact', 'year_month', 'year', 'unknown')),
+  sort_order INTEGER NOT NULL DEFAULT 0 CHECK (sort_order >= 0),
   created_at TEXT NOT NULL,
   updated_at TEXT NOT NULL,
   FOREIGN KEY (topic_id) REFERENCES topics(id) ON DELETE CASCADE
 );
 
-CREATE TABLE timeline_events (
-  id TEXT PRIMARY KEY,
-  topic_id TEXT NOT NULL,
-  title TEXT NOT NULL,
-  description TEXT NOT NULL DEFAULT '',
-  event_date TEXT NOT NULL DEFAULT '',
-  date_precision TEXT NOT NULL DEFAULT 'exact' CHECK (date_precision IN ('exact', 'year_month', 'year', 'unknown')),
-  verification_status TEXT NOT NULL DEFAULT 'confirmed' CHECK (verification_status IN ('confirmed', 'unverified', 'rejected')),
-  sort_order INTEGER NOT NULL DEFAULT 0 CHECK (sort_order >= 0),
-  contrast_tag TEXT NOT NULL DEFAULT '',
-  created_at TEXT NOT NULL,
-  updated_at TEXT NOT NULL,
-  FOREIGN KEY (topic_id) REFERENCES topics(id) ON DELETE CASCADE
-);
+CREATE INDEX idx_sources_topic_sort ON sources(topic_id, sort_order, created_at);
+CREATE INDEX idx_sources_topic_event_date ON sources(topic_id, event_date);
 
 CREATE TABLE people (
   id TEXT PRIMARY KEY,
@@ -115,12 +106,17 @@ CREATE TABLE topic_people (
   FOREIGN KEY (person_id) REFERENCES people(id) ON DELETE CASCADE
 );
 
-CREATE TABLE timeline_event_people (
+CREATE TABLE topic_reports (
   id TEXT PRIMARY KEY,
-  timeline_event_id TEXT NOT NULL,
-  person_id TEXT NOT NULL,
-  FOREIGN KEY (timeline_event_id) REFERENCES timeline_events(id) ON DELETE CASCADE,
-  FOREIGN KEY (person_id) REFERENCES people(id) ON DELETE CASCADE
+  topic_id TEXT NOT NULL UNIQUE,
+  title TEXT NOT NULL DEFAULT '',
+  content_markdown TEXT NOT NULL DEFAULT '',
+  content_json TEXT NOT NULL DEFAULT '',
+  content_html TEXT NOT NULL DEFAULT '',
+  word_count INTEGER NOT NULL DEFAULT 0 CHECK (word_count >= 0),
+  version INTEGER NOT NULL DEFAULT 1 CHECK (version >= 1),
+  updated_at TEXT NOT NULL,
+  FOREIGN KEY (topic_id) REFERENCES topics(id) ON DELETE CASCADE
 );
 
 CREATE TABLE drafts (
@@ -139,7 +135,7 @@ CREATE TABLE drafts (
 CREATE TABLE draft_citations (
   id TEXT PRIMARY KEY,
   topic_id TEXT NOT NULL,
-  reference_type TEXT NOT NULL CHECK (reference_type IN ('source', 'timeline', 'person', 'outline')),
+  reference_type TEXT NOT NULL CHECK (reference_type IN ('source', 'report', 'person', 'outline')),
   reference_id TEXT NOT NULL,
   reference_title TEXT NOT NULL,
   reference_snapshot TEXT NOT NULL DEFAULT '',
@@ -185,9 +181,6 @@ CREATE INDEX idx_topics_status_sort ON topics(status, sort_order);
 CREATE INDEX idx_topics_updated_at ON topics(updated_at);
 CREATE INDEX idx_topics_deleted_at ON topics(deleted_at);
 CREATE INDEX idx_sources_topic_id ON sources(topic_id);
-CREATE INDEX idx_timeline_topic_sort ON timeline_events(topic_id, sort_order);
-CREATE UNIQUE INDEX idx_timeline_people_unique ON timeline_event_people(timeline_event_id, person_id);
-CREATE INDEX idx_timeline_people_person_id ON timeline_event_people(person_id);
 CREATE UNIQUE INDEX idx_drafts_topic_id ON drafts(topic_id);
 CREATE INDEX idx_draft_citations_topic_id ON draft_citations(topic_id);
 CREATE INDEX idx_draft_citations_reference ON draft_citations(reference_type, reference_id);
@@ -313,4 +306,4 @@ END;
 INSERT INTO topic_search(topic_id, title, summary, hook, storyline, why_now)
 SELECT id, title, summary, hook, storyline, why_now FROM topics;
 
-PRAGMA user_version = 4;
+PRAGMA user_version = 5;

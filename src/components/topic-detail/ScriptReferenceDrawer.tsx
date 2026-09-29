@@ -17,19 +17,19 @@ interface ScriptReferenceDrawerProps {
   isOpen: boolean;
   onClose: () => void;
   topic: Topic;
-  timeline: TimelineEvent[];
+  timeline?: TimelineEvent[];
   sources: Source[];
   staleReferenceIds: string[];
   onInsertContent: (citation: CitationInput) => Promise<void>;
 }
 
-type RefTab = 'all' | 'timeline' | 'people' | 'outline' | 'sources';
+type RefTab = 'all' | 'sources' | 'people' | 'outline' | 'timeline';
 
 export const ScriptReferenceDrawer: React.FC<ScriptReferenceDrawerProps> = ({
   isOpen,
   onClose,
   topic,
-  timeline,
+  timeline = [],
   sources,
   staleReferenceIds,
   onInsertContent,
@@ -59,7 +59,7 @@ export const ScriptReferenceDrawer: React.FC<ScriptReferenceDrawerProps> = ({
   );
 
   const filteredSources = sources.filter((s) =>
-    !q || s.title.toLowerCase().includes(q) || (s.content || '').toLowerCase().includes(q) || (s.author || '').toLowerCase().includes(q)
+    !q || s.title.toLowerCase().includes(q) || (s.content || '').toLowerCase().includes(q) || (s.author || '').toLowerCase().includes(q) || (s.event_date || '').toLowerCase().includes(q)
   );
 
   const showHook = Boolean(topic.hook && (!q || topic.hook.toLowerCase().includes(q)));
@@ -111,10 +111,10 @@ export const ScriptReferenceDrawer: React.FC<ScriptReferenceDrawerProps> = ({
           <div className="inline-flex items-center justify-center gap-0.5 rounded-xl bg-black/[0.03] dark:bg-white/[0.04] p-0.5">
             {[
               { id: 'all', label: '全部' },
-              { id: 'timeline', label: '时间线', count: timeline.length },
+              { id: 'sources', label: '素材与时间线', count: sources.length },
               { id: 'people', label: '人物', count: peopleList.length },
               { id: 'outline', label: '大纲' },
-              { id: 'sources', label: '素材', count: sources.length },
+              ...(timeline.length > 0 ? [{ id: 'timeline', label: '原时间线', count: timeline.length }] : []),
             ].map((tab) => (
               <button
                 key={tab.id}
@@ -294,7 +294,14 @@ export const ScriptReferenceDrawer: React.FC<ScriptReferenceDrawerProps> = ({
                 {filteredSources.map((source) => (
                   <div key={source.id} className="bg-[var(--surface)] p-3.5 rounded-xl shadow-subtle space-y-2 border-0">
                     <div className="flex items-start justify-between gap-1">
-                      <div className="font-semibold text-stone-900 dark:text-stone-100 text-xs truncate">{source.title}</div>
+                      <div className="space-y-0.5 min-w-0 flex-1">
+                        <div className="font-semibold text-stone-900 dark:text-stone-100 text-xs truncate">{source.title}</div>
+                        {source.event_date && (
+                          <span className="inline-block text-[10px] font-mono text-[var(--accent-dark)] dark:text-[var(--accent)] bg-[var(--accent-soft)] px-1.5 py-0.2 rounded font-medium">
+                            📅 {source.event_date}
+                          </span>
+                        )}
+                      </div>
                       <button
                         type="button"
                         onClick={() => void handleInsert(`src-${source.id}`, {

@@ -133,7 +133,7 @@ export class SqliteDatabase {
   }
 }
 
-export const CURRENT_SCHEMA_VERSION = 4;
+export const CURRENT_SCHEMA_VERSION = 5;
 
 function schemaObjectExists(sqlite: Database, name: string): boolean {
   return Boolean(sqlite.query("SELECT 1 FROM sqlite_master WHERE name = ? LIMIT 1").get(name));
@@ -149,7 +149,7 @@ function assertCurrentSchema(sqlite: Database): void {
     );
   }
 
-  const requiredObjects = ['topics', 'topic_todos', 'topic_search', 'publish_packages', 'commercial_deals', '_kv_store'];
+  const requiredObjects = ['topics', 'topic_todos', 'topic_search', 'publish_packages', 'commercial_deals', 'sources', 'topic_reports', '_kv_store'];
   const missingObjects = requiredObjects.filter((name) => !schemaObjectExists(sqlite, name));
   if (missingObjects.length > 0) {
     throw new Error(

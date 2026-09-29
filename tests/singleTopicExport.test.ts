@@ -102,4 +102,28 @@ describe('exportSingleTopicMarkdown utility', () => {
     expect(exported).toContain('# 开场');
     expect(exported).toContain('真实比小说更离奇');
   });
+
+  it('should include topic report in export when present', () => {
+    const sampleReport = {
+      id: 'rep-1',
+      topic_id: 'topic-demo',
+      content_markdown: '## 核心事实梳理\n\n1. 2024年成立空壳公司。\n2. 2025年开始直播带货。',
+      content_html: '<h2>核心事实梳理</h2><ol><li>2024年成立空壳公司。</li><li>2025年开始直播带货。</li></ol>',
+      content_json: '{}',
+      word_count: 120,
+      version: 1,
+      created_at: '2026-08-20T10:00:00.000Z',
+      updated_at: '2026-08-22T10:00:00.000Z',
+    };
+
+    const exported = exportSingleTopicMarkdown(
+      sampleTopic,
+      { sources: sampleSources, draft: sampleDraft, report: sampleReport },
+      280
+    );
+
+    expect(exported).toContain('## 选题报告');
+    expect(exported).toContain('核心事实梳理');
+    expect(exported).toContain('2024年成立空壳公司');
+  });
 });

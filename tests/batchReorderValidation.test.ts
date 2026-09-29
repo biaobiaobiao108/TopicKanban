@@ -67,38 +67,38 @@ describe('batch reorder validation', () => {
     expect(sqlite.query('SELECT status, sort_order FROM topics WHERE id = ?').get(scripting.id)).toEqual({ status: 'scripting', sort_order: 2 });
   });
 
-  it('rejects unknown, duplicate, and cross-topic timeline event IDs', async () => {
+  it('rejects unknown, duplicate, and cross-topic source IDs', async () => {
     const now = new Date().toISOString();
     const topicInsert = sqlite.query('INSERT INTO topics (id, title, created_at, updated_at) VALUES (?, ?, ?, ?)');
-    topicInsert.run('timeline-topic-a', '时间线选题 A', now, now);
-    topicInsert.run('timeline-topic-b', '时间线选题 B', now, now);
-    const eventInsert = sqlite.query(`INSERT INTO timeline_events
+    topicInsert.run('source-topic-a', '素材选题 A', now, now);
+    topicInsert.run('source-topic-b', '素材选题 B', now, now);
+    const sourceInsert = sqlite.query(`INSERT INTO sources
       (id, topic_id, title, date_precision, verification_status, sort_order, created_at, updated_at)
       VALUES (?, ?, ?, 'exact', 'confirmed', ?, ?, ?)`);
-    eventInsert.run('timeline-a-1', 'timeline-topic-a', 'A 事件 1', 1, now, now);
-    eventInsert.run('timeline-a-2', 'timeline-topic-a', 'A 事件 2', 2, now, now);
-    eventInsert.run('timeline-b-1', 'timeline-topic-b', 'B 事件 1', 1, now, now);
+    sourceInsert.run('source-a-1', 'source-topic-a', 'A 素材 1', 1, now, now);
+    sourceInsert.run('source-a-2', 'source-topic-a', 'A 素材 2', 2, now, now);
+    sourceInsert.run('source-b-1', 'source-topic-b', 'B 素材 1', 1, now, now);
 
-    const request = (events: unknown[]) => app.request('/api/timeline/reorder/batch', {
-      method: 'PATCH', headers, body: JSON.stringify({ events }),
+    const request = (sources: unknown[]) => app.request('/api/sources/reorder/batch', {
+      method: 'PATCH', headers, body: JSON.stringify({ sources }),
     });
 
-    expect((await request([{ id: 'missing-event', topic_id: 'timeline-topic-a' }])).status).toBe(400);
+    expect((await request([{ id: 'missing-source', topic_id: 'source-topic-a' }])).status).toBe(400);
     expect((await request([
-      { id: 'timeline-a-1', topic_id: 'timeline-topic-a' },
-      { id: 'timeline-a-1', topic_id: 'timeline-topic-a' },
+      { id: 'source-a-1', topic_id: 'source-topic-a' },
+      { id: 'source-a-1', topic_id: 'source-topic-a' },
     ])).status).toBe(400);
     expect((await request([
-      { id: 'timeline-a-1', topic_id: 'timeline-topic-a' },
-      { id: 'timeline-b-1', topic_id: 'timeline-topic-b' },
+      { id: 'source-a-1', topic_id: 'source-topic-a' },
+      { id: 'source-b-1', topic_id: 'source-topic-b' },
     ])).status).toBe(400);
 
     expect((await request([
-      { id: 'timeline-a-2', topic_id: 'timeline-topic-a' },
-      { id: 'timeline-a-1', topic_id: 'timeline-topic-a' },
+      { id: 'source-a-2', topic_id: 'source-topic-a' },
+      { id: 'source-a-1', topic_id: 'source-topic-a' },
     ])).status).toBe(200);
-    expect(sqlite.query('SELECT sort_order FROM timeline_events WHERE id = ?').get('timeline-a-2')).toEqual({ sort_order: 1 });
-    expect(sqlite.query('SELECT sort_order FROM timeline_events WHERE id = ?').get('timeline-a-1')).toEqual({ sort_order: 2 });
+    expect(sqlite.query('SELECT sort_order FROM sources WHERE id = ?').get('source-a-2')).toEqual({ sort_order: 1 });
+    expect(sqlite.query('SELECT sort_order FROM sources WHERE id = ?').get('source-a-1')).toEqual({ sort_order: 2 });
   });
 
   it('rate-limits quick-drop ingestion and keeps its backing store bounded', async () => {

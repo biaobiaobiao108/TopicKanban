@@ -15,6 +15,7 @@ import type {
   TimelineEvent,
   TopicTodo,
   Topic,
+  TopicReport,
 } from '../../types';
 import { DEFAULT_APP_SETTINGS } from '../../types';
 import type { SqliteDatabase, SqlitePreparedStatement } from '../sqlite';
@@ -23,7 +24,7 @@ import { topicStatement } from './topics';
 import { topicTodoStatement } from './todos';
 import { personStatement, relationshipStatement } from './people';
 import { sourceStatement, timelineStatement } from './workspace';
-import { citationStatement, draftStatement, publishPackageStatement } from './writing';
+import { citationStatement, draftStatement, publishPackageStatement, topicReportStatement } from './writing';
 import {
   commercialDealActivityStatement,
   commercialDealStatement,
@@ -58,9 +59,11 @@ export function getBackupImportSummary(data: BackupData): BackupImportSummary {
     (count, topic) => count + (topic.tags?.length || 0) + (topic.people?.length || 0),
     0
   );
+  const timelineEvents = data.timeline || [];
+  const reports = data.reports || [];
   const statements = BACKUP_RESTORE_FIXED_STATEMENTS + data.tags.length + data.people.length + data.topics.length + topicRelations
-    + data.sources.length + data.timeline.length
-    + data.timeline.reduce((count, event) => count + (event.person_ids?.length || 0), 0)
+    + data.sources.length + reports.length + timelineEvents.length
+    + timelineEvents.reduce((count, event) => count + (event.person_ids?.length || 0), 0)
     + data.drafts.length + data.citations.length
     + data.relationships.length + data.published.length + data.publish_packages.length
     + data.commercial_deals.length + data.commercial_deal_topics.length
@@ -71,7 +74,7 @@ export function getBackupImportSummary(data: BackupData): BackupImportSummary {
     statements,
     topics: data.topics.length,
     sources: data.sources.length,
-    timeline: data.timeline.length,
+    timeline: timelineEvents.length,
     people: data.people.length,
     drafts: data.drafts.length,
     citations: data.citations.length,
@@ -110,8 +113,7 @@ export async function replaceAllData(db: SqliteDatabase, data: BackupData): Prom
     db.prepare('DELETE FROM commercial_deals'),
     db.prepare('DELETE FROM topic_todos'),
     db.prepare('DELETE FROM topic_tags'), db.prepare('DELETE FROM topic_people'),
-    db.prepare('DELETE FROM timeline_event_people'),
-    db.prepare('DELETE FROM sources'), db.prepare('DELETE FROM timeline_events'),
+    db.prepare('DELETE FROM sources'), db.prepare('DELETE FROM topic_reports'),
     db.prepare('DELETE FROM draft_citations'), db.prepare('DELETE FROM drafts'), db.prepare('DELETE FROM person_relationships'),
     db.prepare('DELETE FROM publish_packages'), db.prepare('DELETE FROM published_videos'), db.prepare('DELETE FROM topics'),
     db.prepare('DELETE FROM people'), db.prepare('DELETE FROM tags'),
@@ -144,13 +146,7 @@ export async function replaceAllData(db: SqliteDatabase, data: BackupData): Prom
   });
   data.todos.forEach((todo) => statements.push(topicTodoStatement(db, todo)));
   data.sources.forEach((source) => statements.push(sourceStatement(db, source)));
-  data.timeline.forEach((event) => {
-    statements.push(timelineStatement(db, event));
-    event.person_ids?.forEach((personId) => statements.push(bind(db,
-      'INSERT INTO timeline_event_people (id, timeline_event_id, person_id) VALUES (?, ?, ?)',
-      [`${event.id}:${personId}`, event.id, personId]
-    )));
-  });
+  data.reports?.forEach((report) => statements.push(topicReportStatement(db, report)));
   data.drafts.forEach((draft) => statements.push(draftStatement(db, draft)));
   data.citations.forEach((citation) => statements.push(citationStatement(db, citation)));
   data.relationships.forEach((relationship) => statements.push(relationshipStatement(db, relationship)));
@@ -177,7 +173,7 @@ function loadTopicsForBackup(db: SqliteDatabase): Topic[] {
   const topicRows = query<Topic>(`SELECT t.*,
     (SELECT COUNT(*) FROM sources s WHERE s.topic_id = t.id) AS sources_count,
     (SELECT COUNT(*) FROM sources s WHERE s.topic_id = t.id AND s.verification_status = 'confirmed') AS verified_sources_count,
-    (SELECT COUNT(*) FROM timeline_events e WHERE e.topic_id = t.id) AS timeline_count,
+    0 AS timeline_count,
     (SELECT COUNT(*) FROM commercial_deal_topics cdt WHERE cdt.topic_id = t.id) AS commercial_deals_count,
     COALESCE((SELECT word_count FROM drafts d WHERE d.topic_id = t.id LIMIT 1), 0) AS draft_word_count
     FROM topics t ORDER BY t.is_pinned DESC, t.sort_order ASC, t.updated_at DESC`);
@@ -227,16 +223,10 @@ export async function exportAllData(db: SqliteDatabase, kvSettings?: AppSettings
     const published = query<PublishedVideo>(`SELECT v.*, t.title AS topic_title FROM published_videos v
       LEFT JOIN topics t ON t.id = v.topic_id ORDER BY v.published_at DESC, v.updated_at DESC`);
     const tags = query<Tag>('SELECT id, name, color FROM tags ORDER BY name ASC');
-    const sources = query<Source>('SELECT * FROM sources ORDER BY created_at DESC');
-    const timelineRows = query<TimelineEvent>('SELECT * FROM timeline_events ORDER BY topic_id, sort_order');
+    const sources = query<Source>('SELECT * FROM sources ORDER BY topic_id, sort_order ASC, created_at DESC');
+    const reports = query<TopicReport>('SELECT * FROM topic_reports ORDER BY updated_at DESC');
     const drafts = query<Draft>('SELECT * FROM drafts ORDER BY updated_at DESC');
     const citations = query<DraftCitation>('SELECT * FROM draft_citations ORDER BY created_at DESC');
-    const personIdsByEvent = new Map<string, string[]>();
-    query<{ timeline_event_id: string; person_id: string }>('SELECT timeline_event_id, person_id FROM timeline_event_people')
-      .forEach((row) => personIdsByEvent.set(row.timeline_event_id, [
-        ...(personIdsByEvent.get(row.timeline_event_id) || []), row.person_id,
-      ]));
-    const timeline = timelineRows.map((event) => ({ ...event, person_ids: personIdsByEvent.get(event.id) || [] }));
     const publishPackages = query<Record<string, unknown>>('SELECT * FROM publish_packages ORDER BY updated_at DESC').map((row) => ({
       ...row,
       title_traditional_auto: Number(row.title_traditional_auto) === 1,
@@ -249,11 +239,12 @@ export async function exportAllData(db: SqliteDatabase, kvSettings?: AppSettings
       CASE status WHEN 'todo' THEN 0 WHEN 'in_progress' THEN 1 ELSE 2 END,
       sort_order, created_at`);
     return {
-      version: '4.0' as const,
+      version: '5.0' as const,
       export_at: exportAt,
       topics: allTopics,
       sources,
-      timeline,
+      reports,
+      timeline: [],
       people,
       relationships,
       drafts,

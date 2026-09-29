@@ -2,10 +2,10 @@ import React, { useId, useState, useEffect, useLayoutEffect, useRef, useCallback
 import './editor.css';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useSearchParams } from 'react-router-dom';
-import { CitationInput, Topic, Source, TimelineEvent, Person, PersonRelationship, Draft, DraftCitation, DraftRecoveryConflict, Tag, AppSettings, PublishPackageSaveInput, PublishPackageRecord, TopicTodo } from '../../types';
+import { CitationInput, Topic, Source, TimelineEvent, TopicReport, Person, PersonRelationship, Draft, DraftCitation, DraftRecoveryConflict, Tag, AppSettings, PublishPackageSaveInput, PublishPackageRecord, TopicTodo } from '../../types';
 import { OverviewTab } from './OverviewTab';
 import { SourcesTab } from './SourcesTab';
-import { TimelineTab } from './TimelineTab';
+import { TopicReportTab } from './TopicReportTab';
 import { PeopleTab } from './PeopleTab';
 import { CommercialDealsTab } from './CommercialDealsTab';
 import { TodoQuickActionDialog } from './TodoQuickActionDialog';
@@ -16,11 +16,9 @@ import {
   fetchSourcesByTopicId,
   saveSource,
   deleteSource,
-  fetchTimelineByTopicId,
-  saveTimelineEvent,
-  saveTimelineEvents,
-  deleteTimelineEvent,
-  reorderTimelineEvents,
+  reorderSources,
+  fetchTopicReport,
+  saveTopicReport,
   fetchDraftByTopicId,
   fetchTopicWorkspace,
   fetchDraftCitations,
@@ -40,7 +38,7 @@ import { FloatingMenu } from '../ui/FloatingMenu';
 import { FloatingScrollbar } from '../ui/FloatingScrollbar';
 import { formatBeijingDateTime } from '../../lib/actionDate';
 import { StatusBadge } from '../ui/Badge';
-import { LayoutDashboard, FileSearch, Clock, Users, PenTool, FileText, Handshake, CheckCircle2, GitBranch, MoreHorizontal, KanbanSquare, ArrowLeft } from 'lucide-react';
+import { LayoutDashboard, FileSearch, ScrollText, Users, PenTool, FileText, Handshake, CheckCircle2, GitBranch, MoreHorizontal, KanbanSquare, ArrowLeft } from 'lucide-react';
 
 interface TopicDetailViewProps {
   topic: Topic;
@@ -62,7 +60,7 @@ interface TopicDetailViewProps {
   todoActions: TopicTodoActions;
 }
 
-type DetailTab = 'overview' | 'todos' | 'sources' | 'timeline' | 'people' | 'deals' | 'script' | 'publish';
+type DetailTab = 'overview' | 'todos' | 'sources' | 'report' | 'people' | 'deals' | 'script' | 'publish';
 
 const PublishPackageTab = React.lazy(() =>
   import('./PublishPackageTab').then((module) => ({ default: module.PublishPackageTab }))
@@ -96,7 +94,7 @@ export const TopicDetailView: React.FC<TopicDetailViewProps> = ({
   const [pendingOutlineHtml, setPendingOutlineHtml] = useState<string | null>(null);
   const [searchParams, setSearchParams] = useSearchParams();
   const rawTab = searchParams.get('tab');
-  const activeTab: DetailTab = (rawTab && ['overview', 'todos', 'sources', 'timeline', 'people', 'deals', 'script', 'publish'].includes(rawTab))
+  const activeTab: DetailTab = (rawTab && ['overview', 'todos', 'sources', 'report', 'people', 'deals', 'script', 'publish'].includes(rawTab))
     ? (rawTab as DetailTab)
     : 'overview';
   const detailSubtabsRef = useRef<HTMLDivElement | null>(null);
@@ -141,7 +139,7 @@ export const TopicDetailView: React.FC<TopicDetailViewProps> = ({
   }, []);
 
   const sourcesEnabled = activeTab === 'sources' || activeTab === 'script';
-  const timelineEnabled = activeTab === 'timeline' || activeTab === 'script';
+  const reportEnabled = activeTab === 'report' || activeTab === 'script';
   const draftEnabled = activeTab === 'script';
   const citationsEnabled = activeTab === 'script';
   const workspaceEnabled = activeTab === 'publish';
@@ -154,11 +152,11 @@ export const TopicDetailView: React.FC<TopicDetailViewProps> = ({
     enabled: sourcesEnabled,
     subscribed: sourcesEnabled,
   });
-  const timelineQuery = useQuery({
-    queryKey: ['topic-timeline', topic.id],
-    queryFn: () => fetchTimelineByTopicId(topic.id),
-    enabled: timelineEnabled,
-    subscribed: timelineEnabled,
+  const reportQuery = useQuery({
+    queryKey: ['topic-report', topic.id],
+    queryFn: () => fetchTopicReport(topic.id),
+    enabled: reportEnabled,
+    subscribed: reportEnabled,
   });
   const draftQuery = useQuery({
     queryKey: ['topic-draft', topic.id],
@@ -192,7 +190,7 @@ export const TopicDetailView: React.FC<TopicDetailViewProps> = ({
   });
 
   const sources: Source[] = sourcesQuery.data || [];
-  const timeline: TimelineEvent[] = timelineQuery.data || [];
+  const report: TopicReport | null = reportQuery.data || null;
   const citations: DraftCitation[] = citationsQuery.data || [];
   const draft: Draft | null = draftQuery.data?.draft || null;
   const todos: TopicTodo[] = todosQuery.data || [];
@@ -204,9 +202,9 @@ export const TopicDetailView: React.FC<TopicDetailViewProps> = ({
   }, [draftQuery.data?.conflict]);
 
   const loading = (activeTab === 'sources' && sourcesQuery.isLoading)
-    || (activeTab === 'timeline' && timelineQuery.isLoading)
+    || (activeTab === 'report' && reportQuery.isLoading)
     || (activeTab === 'deals' && dealsQuery.isLoading)
-    || (activeTab === 'script' && (draftQuery.isLoading || citationsQuery.isLoading || sourcesQuery.isLoading || timelineQuery.isLoading))
+    || (activeTab === 'script' && (draftQuery.isLoading || citationsQuery.isLoading || sourcesQuery.isLoading))
     || (activeTab === 'publish' && workspaceQuery.isLoading)
     || (activeTab === 'todos' && todosQuery.isLoading);
 
@@ -228,11 +226,11 @@ export const TopicDetailView: React.FC<TopicDetailViewProps> = ({
   }, [draftQuery.data?.draft, topic.id]);
 
   useEffect(() => {
-    const error = sourcesQuery.error || timelineQuery.error || dealsQuery.error || draftQuery.error || citationsQuery.error || workspaceQuery.error;
+    const error = sourcesQuery.error || reportQuery.error || dealsQuery.error || draftQuery.error || citationsQuery.error || workspaceQuery.error;
     if (!error) return;
     console.error(error);
     setOperationError(error instanceof Error ? `加载选题资料失败：${error.message}` : '加载选题资料失败');
-  }, [sourcesQuery.error, timelineQuery.error, dealsQuery.error, draftQuery.error, citationsQuery.error, workspaceQuery.error]);
+  }, [sourcesQuery.error, reportQuery.error, dealsQuery.error, draftQuery.error, citationsQuery.error, workspaceQuery.error]);
 
   const handleSaveSource = async (sourceData: Partial<Source> & { topic_id: string; title: string }) => {
     try {
@@ -264,36 +262,19 @@ export const TopicDetailView: React.FC<TopicDetailViewProps> = ({
     }
   };
 
-  const handleSaveTimelineEvent = async (eventData: Partial<TimelineEvent> & { topic_id: string; title: string }) => {
+  const handleSaveTopicReport = async (reportData: {
+    content_markdown?: string;
+    content_html?: string;
+    content_json?: string;
+    word_count?: number;
+    base_version?: number;
+  }) => {
     try {
-      await saveTimelineEvent(eventData);
-      const updated = await fetchTimelineByTopicId(topic.id);
-      queryClient.setQueryData(['topic-timeline', topic.id], updated);
-      onTopicMetricsChange(topic.id, { timeline_count: updated.length });
+      const saved = await saveTopicReport(topic.id, reportData);
+      queryClient.setQueryData(['topic-report', topic.id], saved);
+      return saved;
     } catch (error) {
-      setOperationError(error instanceof Error ? `保存时间线失败：${error.message}` : '保存时间线失败');
-      throw error;
-    }
-  };
-
-  const handleDeleteTimelineEvent = async (eventId: string) => {
-    try {
-      await deleteTimelineEvent(eventId);
-      const updated = await fetchTimelineByTopicId(topic.id);
-      queryClient.setQueryData(['topic-timeline', topic.id], updated);
-      onTopicMetricsChange(topic.id, { timeline_count: updated.length });
-    } catch (error) {
-      setOperationError(error instanceof Error ? `删除时间线失败：${error.message}` : '删除时间线失败');
-      throw error;
-    }
-  };
-
-  const handleReorderTimeline = async (topicId: string, events: TimelineEvent[]) => {
-    try {
-      queryClient.setQueryData(['topic-timeline', topic.id], events);
-      await reorderTimelineEvents(events);
-    } catch (error) {
-      setOperationError(error instanceof Error ? `调整时间线失败：${error.message}` : '调整时间线失败');
+      setOperationError(error instanceof Error ? `保存选题报告失败：${error.message}` : '保存选题报告失败');
       throw error;
     }
   };
@@ -383,7 +364,7 @@ export const TopicDetailView: React.FC<TopicDetailViewProps> = ({
     { id: 'overview', label: '选题概览', icon: LayoutDashboard },
     { id: 'todos', label: '执行看板', icon: KanbanSquare },
     { id: 'sources', label: '资料与素材', icon: FileSearch, count: sources.length },
-    { id: 'timeline', label: '故事时间线', icon: Clock, count: timeline.length },
+    { id: 'report', label: '选题报告', icon: ScrollText },
     { id: 'people', label: '人物与关系', icon: Users, count: topic.people?.length || 0 },
     { id: 'deals', label: '商单', icon: Handshake, count: topic.commercial_deals_count },
     { id: 'script', label: '文案创作', icon: PenTool },
@@ -405,7 +386,7 @@ export const TopicDetailView: React.FC<TopicDetailViewProps> = ({
     if (isOutsideViewport) {
       activeButton.scrollIntoView({ block: 'nearest', inline: 'nearest' });
     }
-  }, [activeTab, sources.length, timeline.length, topic.people?.length, topic.commercial_deals_count, todos.length]);
+  }, [activeTab, sources.length, report?.word_count, topic.people?.length, topic.commercial_deals_count, todos.length]);
 
   const metricTopic: Topic = {
     ...topic,
@@ -417,7 +398,7 @@ export const TopicDetailView: React.FC<TopicDetailViewProps> = ({
   const handleExportMarkdown = () => {
     const md = exportSingleTopicMarkdown(
       metricTopic,
-      { sources, timeline, draft },
+      { sources, draft, report },
       readingSpeed
     );
     const blob = new Blob([md], { type: 'text/markdown;charset=utf-8' });
@@ -427,33 +408,6 @@ export const TopicDetailView: React.FC<TopicDetailViewProps> = ({
     a.download = `选题档案-${topic.title.replace(/[\\/:*?"<>|]/g, '_')}.md`;
     a.click();
     URL.revokeObjectURL(url);
-  };
-
-  const handleConvertSourceToTimeline = async (source: Source): Promise<boolean> => {
-    try {
-      const saved = await saveTimelineEvent({
-        topic_id: topic.id,
-        title: source.title,
-        description: source.content || (source.notes ? `【备注】${source.notes}` : ''),
-        event_date: source.published_at || '',
-        date_precision: source.published_at ? (source.published_at.length >= 10 ? 'exact' : 'year_month') : 'unknown',
-        verification_status: source.verification_status,
-      });
-      try {
-        const updated = await fetchTimelineByTopicId(topic.id);
-        queryClient.setQueryData(['topic-timeline', topic.id], updated);
-        onTopicMetricsChange(topic.id, { timeline_count: updated.length });
-      } catch {
-        queryClient.setQueryData<TimelineEvent[]>(['topic-timeline', topic.id], (current) => (
-          current ? [...current, saved] : [saved]
-        ));
-        void queryClient.invalidateQueries({ queryKey: ['topic-timeline', topic.id] });
-      }
-      return true;
-    } catch (err) {
-      setOperationError(err instanceof Error ? `流转时间线事件失败：${err.message}` : '流转时间线事件失败');
-      return false;
-    }
   };
 
   const handleInjectOutlineIntoDraft = async (outlineHtml: string): Promise<boolean> => {
@@ -471,27 +425,22 @@ export const TopicDetailView: React.FC<TopicDetailViewProps> = ({
 
   const handleConvertStorylineToTimeline = async (steps: Array<{ title: string; desc: string }>): Promise<boolean> => {
     try {
-      const created = await saveTimelineEvents(steps.map((step) => ({
-        topic_id: topic.id,
-        title: step.title,
-        description: step.desc,
-        date_precision: 'unknown' as const,
-        verification_status: 'confirmed' as const,
-      })));
-      try {
-        const updated = await fetchTimelineByTopicId(topic.id);
-        queryClient.setQueryData(['topic-timeline', topic.id], updated);
-        onTopicMetricsChange(topic.id, { timeline_count: updated.length });
-      } catch {
-        queryClient.setQueryData<TimelineEvent[]>(['topic-timeline', topic.id], (current) => (
-          current ? [...current, ...created] : created
-        ));
-        void queryClient.invalidateQueries({ queryKey: ['topic-timeline', topic.id] });
+      for (const step of steps) {
+        await saveSource({
+          topic_id: topic.id,
+          title: step.title,
+          content: step.desc,
+          date_precision: 'unknown',
+          verification_status: 'confirmed',
+        });
       }
-      setActiveTab('timeline');
+      const updated = await fetchSourcesByTopicId(topic.id);
+      queryClient.setQueryData(['topic-sources', topic.id], updated);
+      onTopicMetricsChange(topic.id, { sources_count: updated.length });
+      setActiveTab('sources');
       return true;
     } catch (err) {
-      setOperationError(err instanceof Error ? `流转时间线失败：${err.message}` : '流转时间线失败');
+      setOperationError(err instanceof Error ? `流转素材失败：${err.message}` : '流转素材失败');
       return false;
     }
   };
@@ -601,7 +550,7 @@ export const TopicDetailView: React.FC<TopicDetailViewProps> = ({
       <div
         data-testid="topic-detail-scroll-container"
         className={`relative flex-1 min-h-0 ${
-          activeTab === 'script'
+          activeTab === 'script' || activeTab === 'report'
             ? 'overflow-hidden flex flex-col'
             : 'overflow-y-auto overscroll-contain px-4 sm:px-8 pb-24 md:pb-12'
         }`}
@@ -644,19 +593,21 @@ export const TopicDetailView: React.FC<TopicDetailViewProps> = ({
               sources={sources}
               onSaveSource={handleSaveSource}
               onDeleteSource={handleDeleteSource}
-              onConvertToTimeline={handleConvertSourceToTimeline}
+              onReorderSources={async (_topicId, newSources) => {
+                await reorderSources(newSources.map((s) => ({ id: s.id, topic_id: topic.id })));
+                queryClient.setQueryData(['topic-sources', topic.id], newSources);
+              }}
             />
           </div>
         )}
 
-        {activeTab === 'timeline' && (
-          <div key="timeline" className="view-tab-transition">
-            <TimelineTab
+        {activeTab === 'report' && (
+          <div key="report" className="view-tab-transition flex-1 min-h-0 flex flex-col h-full">
+            <TopicReportTab
               topicId={topic.id}
-              timeline={timeline}
-              onSaveEvent={handleSaveTimelineEvent}
-              onDeleteEvent={handleDeleteTimelineEvent}
-              onReorder={handleReorderTimeline}
+              topicTitle={topic.title}
+              report={report}
+              onSaveReport={handleSaveTopicReport}
             />
           </div>
         )}
@@ -700,8 +651,8 @@ export const TopicDetailView: React.FC<TopicDetailViewProps> = ({
               topicId={topic.id}
               topicTitle={topic.title}
               topic={topic}
-              timeline={timeline}
               sources={sources}
+              report={report}
               initialDraft={draft}
               pendingOutlineHtml={pendingOutlineHtml}
               onOutlineInjected={() => setPendingOutlineHtml(null)}

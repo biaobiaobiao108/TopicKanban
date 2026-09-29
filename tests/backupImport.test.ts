@@ -97,7 +97,7 @@ describe('backup import limits', () => {
     try {
       await replaceAllData(new SqliteDatabase(sqlite), backup);
       const exported = await exportAllData(new SqliteDatabase(sqlite));
-      expect(exported.version).toBe('4.0');
+      expect(exported.version).toBe('5.0');
       expect(exported.todos.map((todo) => [todo.id, todo.status, todo.sort_order])).toEqual([
         ['todo-first', 'todo', 1], ['todo-later', 'todo', 2],
         ['doing-current', 'in_progress', 1], ['doing-next', 'in_progress', 2],

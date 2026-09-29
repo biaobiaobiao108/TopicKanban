@@ -103,7 +103,22 @@ const sourceSchema = z.object({
   published_at: timestamp,
   verification_status: verificationStatus,
   notes: longText,
+  event_date: timestamp.optional(),
+  date_precision: z.enum(['exact', 'year_month', 'year', 'unknown']).optional(),
+  sort_order: z.number().int().nonnegative().optional(),
   created_at: timestamp,
+  updated_at: timestamp,
+});
+
+const reportSchema = z.object({
+  id,
+  topic_id: id,
+  title: shortText,
+  content_markdown: z.string().max(4 * 1024 * 1024),
+  content_json: z.string().max(4 * 1024 * 1024),
+  content_html: z.string().max(4 * 1024 * 1024),
+  word_count: z.number().int().nonnegative(),
+  version: z.number().int().positive().optional(),
   updated_at: timestamp,
 });
 
@@ -158,7 +173,7 @@ const draftSchema = z.object({
 const citationSchema = z.object({
   id,
   topic_id: id,
-  reference_type: z.enum(['source', 'timeline', 'person', 'outline']),
+  reference_type: z.enum(['source', 'report', 'timeline', 'person', 'outline']),
   reference_id: id,
   reference_title: shortText.trim().min(1),
   reference_snapshot: longText,
@@ -281,11 +296,12 @@ const settingsSchema = z.object({
 });
 
 const backupSchema = z.object({
-  version: z.literal('4.0'),
+  version: z.enum(['4.0', '5.0']),
   export_at: timestamp,
   topics: z.array(topicSchema),
   sources: z.array(sourceSchema),
-  timeline: z.array(timelineSchema),
+  reports: z.array(reportSchema).optional().default([]),
+  timeline: z.array(timelineSchema).optional().default([]),
   people: z.array(personSchema),
   relationships: z.array(relationshipSchema),
   drafts: z.array(draftSchema),
@@ -309,7 +325,7 @@ const backupSchema = z.object({
   };
 
   const collections: Array<[string, Array<{ id: string }>]> = [
-    ['topics', data.topics], ['sources', data.sources], ['timeline', data.timeline],
+    ['topics', data.topics], ['sources', data.sources], ['reports', data.reports || []], ['timeline', data.timeline || []],
     ['people', data.people], ['relationships', data.relationships], ['drafts', data.drafts],
     ['citations', data.citations], ['tags', data.tags], ['published', data.published],
     ['publish_packages', data.publish_packages || []],
@@ -328,7 +344,8 @@ const backupSchema = z.object({
   };
 
   data.sources.forEach((item, index) => requireTopic(item.topic_id, ['sources', index, 'topic_id']));
-  data.timeline.forEach((item, index) => {
+  data.reports?.forEach((item, index) => requireTopic(item.topic_id, ['reports', index, 'topic_id']));
+  (data.timeline || []).forEach((item, index) => {
     requireTopic(item.topic_id, ['timeline', index, 'topic_id']);
     item.person_ids?.forEach((personId, personIndex) => {
       if (!personIds.has(personId)) addIssue(['timeline', index, 'person_ids', personIndex], `引用了不存在的人物：${personId}`);

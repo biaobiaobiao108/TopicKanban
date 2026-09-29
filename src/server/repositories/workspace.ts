@@ -4,12 +4,15 @@ import type {
   PublishPackageRecord,
   Source,
   TimelineEvent,
+  TopicReport,
   TopicWorkspaceData,
 } from '../../types';
 import type { SqliteDatabase, SqlitePreparedStatement } from '../sqlite';
 import { bind } from './shared';
+import { loadTopicReport } from './writing';
 
-export class TimelineReorderInvalidStateError extends Error {}
+export class SourceReorderInvalidStateError extends Error {}
+export class TimelineReorderInvalidStateError extends SourceReorderInvalidStateError {}
 
 function normalizePublishPackageRecord(row: Record<string, unknown> | null): PublishPackageRecord | null {
   if (!row) return null;
@@ -29,16 +32,17 @@ function normalizePublishPackageRecord(row: Record<string, unknown> | null): Pub
 }
 
 export async function loadTopicWorkspace(db: SqliteDatabase, topicId: string): Promise<TopicWorkspaceData> {
-  const [sourcesResult, timeline, draft, citationsResult, publishPackageResult] = await Promise.all([
-    db.prepare('SELECT * FROM sources WHERE topic_id = ? ORDER BY created_at DESC').bind(topicId).all<Source>(),
-    loadTimelineEvents(db, topicId),
+  const [sourcesResult, report, draft, citationsResult, publishPackageResult] = await Promise.all([
+    db.prepare('SELECT * FROM sources WHERE topic_id = ? ORDER BY sort_order ASC, created_at DESC').bind(topicId).all<Source>(),
+    loadTopicReport(db, topicId),
     db.prepare('SELECT * FROM drafts WHERE topic_id = ?').bind(topicId).first<Draft>(),
     db.prepare('SELECT * FROM draft_citations WHERE topic_id = ? ORDER BY created_at DESC').bind(topicId).all<DraftCitation>(),
     db.prepare('SELECT * FROM publish_packages WHERE topic_id = ?').bind(topicId).first<Record<string, unknown>>(),
   ]);
   return {
     sources: sourcesResult.results,
-    timeline,
+    report,
+    timeline: [],
     draft: draft || null,
     citations: citationsResult.results,
     publish_package: normalizePublishPackageRecord(publishPackageResult),
@@ -46,7 +50,7 @@ export async function loadTopicWorkspace(db: SqliteDatabase, topicId: string): P
 }
 
 export async function loadSourcesByTopic(db: SqliteDatabase, topicId: string): Promise<Source[]> {
-  const result = await db.prepare('SELECT * FROM sources WHERE topic_id = ? ORDER BY created_at DESC')
+  const result = await db.prepare('SELECT * FROM sources WHERE topic_id = ? ORDER BY sort_order ASC, created_at DESC')
     .bind(topicId).all<Source>();
   return result.results;
 }
@@ -54,10 +58,11 @@ export async function loadSourcesByTopic(db: SqliteDatabase, topicId: string): P
 export function sourceStatement(db: SqliteDatabase, source: Source): SqlitePreparedStatement {
   return bind(db, `INSERT INTO sources (
     id, topic_id, title, content, url, platform, author, published_at,
-    verification_status, notes, created_at, updated_at
-  ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`, [
-    source.id, source.topic_id, source.title, source.content, source.url, source.platform,
-    source.author, source.published_at, source.verification_status, source.notes,
+    verification_status, notes, event_date, date_precision, sort_order, created_at, updated_at
+  ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`, [
+    source.id, source.topic_id, source.title, source.content || '', source.url || '', source.platform || 'bilibili',
+    source.author || '', source.published_at || '', source.verification_status || 'unverified', source.notes || '',
+    source.event_date || '', source.date_precision || 'exact', source.sort_order || 0,
     source.created_at, source.updated_at,
   ]);
 }
@@ -67,7 +72,7 @@ export async function insertSource(db: SqliteDatabase, source: Source): Promise<
 }
 
 export async function updateSource(db: SqliteDatabase, id: string, body: Record<string, unknown>): Promise<Source | null> {
-  const fields = ['title', 'content', 'url', 'platform', 'author', 'published_at', 'verification_status', 'notes']
+  const fields = ['title', 'content', 'url', 'platform', 'author', 'published_at', 'verification_status', 'notes', 'event_date', 'date_precision', 'sort_order']
     .filter((field) => Object.prototype.hasOwnProperty.call(body, field));
   if (fields.length > 0) {
     await bind(db, `UPDATE sources SET ${fields.map((field) => `${field} = ?`).join(', ')}, updated_at = ? WHERE id = ?`,
@@ -76,125 +81,54 @@ export async function updateSource(db: SqliteDatabase, id: string, body: Record<
   return db.prepare('SELECT * FROM sources WHERE id = ?').bind(id).first<Source>();
 }
 
-export async function deleteSource(db: SqliteDatabase, id: string): Promise<void> {
-  await bind(db, 'DELETE FROM sources WHERE id = ?', [id]).run();
-}
-
-export async function loadTimelineEvents(db: SqliteDatabase, topicId: string): Promise<TimelineEvent[]> {
-  const [eventResult, personResult] = await db.batch([
-    db.prepare('SELECT * FROM timeline_events WHERE topic_id = ? ORDER BY sort_order').bind(topicId),
-    db.prepare(`SELECT tep.timeline_event_id, tep.person_id
-      FROM timeline_event_people tep
-      INNER JOIN timeline_events te ON te.id = tep.timeline_event_id
-      WHERE te.topic_id = ?`).bind(topicId),
-  ]);
-  const personIdsByEvent = new Map<string, string[]>();
-  (personResult.results as unknown as Array<{ timeline_event_id: string; person_id: string }>).forEach((row) => {
-    personIdsByEvent.set(row.timeline_event_id, [
-      ...(personIdsByEvent.get(row.timeline_event_id) || []),
-      row.person_id,
-    ]);
-  });
-  return (eventResult.results as unknown as TimelineEvent[]).map((event) => ({
-    ...event,
-    person_ids: personIdsByEvent.get(event.id) || [],
-  }));
-}
-
-function replaceTimelinePeopleStatements(
-  db: SqliteDatabase,
-  eventId: string,
-  personIds: string[]
-): SqlitePreparedStatement[] {
-  return [
-    bind(db, 'DELETE FROM timeline_event_people WHERE timeline_event_id = ?', [eventId]),
-    ...Array.from(new Set(personIds)).map((personId) => bind(
-      db,
-      'INSERT INTO timeline_event_people (id, timeline_event_id, person_id) VALUES (?, ?, ?)',
-      [`${eventId}:${personId}`, eventId, personId]
-    )),
-  ];
-}
-
-export async function getNextTimelineSortOrder(db: SqliteDatabase, topicId: string): Promise<number> {
-  const max = await db.prepare('SELECT COALESCE(MAX(sort_order), 0) AS value FROM timeline_events WHERE topic_id = ?')
-    .bind(topicId).first<{ value: number }>();
-  return (max?.value || 0) + 1;
-}
-
-export function timelineStatement(db: SqliteDatabase, event: TimelineEvent): SqlitePreparedStatement {
-  return bind(db, `INSERT INTO timeline_events (
-      id, topic_id, title, description, event_date, date_precision, verification_status,
-      sort_order, contrast_tag, created_at, updated_at
-    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`, [
-      event.id, event.topic_id, event.title, event.description, event.event_date, event.date_precision,
-      event.verification_status, event.sort_order, event.contrast_tag ?? '', event.created_at, event.updated_at,
-    ]);
-}
-
-export async function insertTimelineEvents(db: SqliteDatabase, events: TimelineEvent[]): Promise<void> {
-  if (events.length === 0) return;
-  await db.batch(events.flatMap((event) => [
-    timelineStatement(db, event),
-    ...replaceTimelinePeopleStatements(db, event.id, event.person_ids || []),
-  ]));
-}
-
-export async function insertTimelineEvent(db: SqliteDatabase, event: TimelineEvent): Promise<void> {
-  await insertTimelineEvents(db, [event]);
-}
-
-export async function updateTimelineEvent(
-  db: SqliteDatabase,
-  id: string,
-  body: Record<string, unknown>
-): Promise<TimelineEvent | null> {
-  const fields = ['title', 'description', 'event_date', 'date_precision', 'verification_status', 'sort_order', 'contrast_tag']
-    .filter((field) => Object.prototype.hasOwnProperty.call(body, field));
-  const statements: SqlitePreparedStatement[] = [];
-  if (fields.length > 0) {
-    statements.push(bind(db, `UPDATE timeline_events SET ${fields.map((field) => `${field} = ?`).join(', ')}, updated_at = ? WHERE id = ?`,
-      [...fields.map((field) => body[field]), new Date().toISOString(), id]));
-  }
-  if (Array.isArray(body.person_ids)) {
-    statements.push(...replaceTimelinePeopleStatements(
-      db,
-      id,
-      body.person_ids.filter((value): value is string => typeof value === 'string')
-    ));
-  }
-  if (statements.length > 0) await db.batch(statements);
-  const row = await db.prepare('SELECT topic_id FROM timeline_events WHERE id = ?').bind(id).first<{ topic_id: string }>();
-  if (!row) return null;
-  return (await loadTimelineEvents(db, row.topic_id)).find((event) => event.id === id) || null;
-}
-
-export async function reorderTimelineEvents(db: SqliteDatabase, events: TimelineEvent[]): Promise<string> {
+export async function reorderSources(db: SqliteDatabase, sources: Array<{ id: string; topic_id: string }>): Promise<string> {
   const now = new Date().toISOString();
-  if (events.length > 0) {
-    const eventIds = events.map((event) => event.id);
-    if (new Set(eventIds).size !== eventIds.length) {
-      throw new TimelineReorderInvalidStateError('Duplicate timeline event ids are not allowed');
+  if (sources.length > 0) {
+    const sourceIds = sources.map((s) => s.id);
+    if (new Set(sourceIds).size !== sourceIds.length) {
+      throw new SourceReorderInvalidStateError('Duplicate source ids are not allowed');
     }
-    const placeholders = eventIds.map(() => '?').join(',');
-    const existing = await db.prepare(`SELECT id, topic_id FROM timeline_events WHERE id IN (${placeholders})`)
-      .bind(...eventIds).all<{ id: string; topic_id: string }>();
-    if (existing.results.length !== eventIds.length) {
-      throw new TimelineReorderInvalidStateError('All timeline events must exist before reordering');
+    const placeholders = sourceIds.map(() => '?').join(',');
+    const existing = await db.prepare(`SELECT id, topic_id FROM sources WHERE id IN (${placeholders})`)
+      .bind(...sourceIds).all<{ id: string; topic_id: string }>();
+    if (existing.results.length !== sourceIds.length) {
+      throw new SourceReorderInvalidStateError('All sources must exist before reordering');
     }
-    const requestedTopicIds = new Set(events.map((event) => event.topic_id));
-    if (requestedTopicIds.size !== 1 || existing.results.some((event) => event.topic_id !== events[0]?.topic_id)) {
-      throw new TimelineReorderInvalidStateError('Timeline events must belong to the same topic');
+    const requestedTopicIds = new Set(sources.map((s) => s.topic_id));
+    if (requestedTopicIds.size !== 1 || existing.results.some((s) => s.topic_id !== sources[0]?.topic_id)) {
+      throw new SourceReorderInvalidStateError('Sources must belong to the same topic');
     }
-    await db.batch(events.map((event, index) => bind(
+    await db.batch(sources.map((s, index) => bind(
       db,
-      'UPDATE timeline_events SET sort_order = ?, updated_at = ? WHERE id = ?',
-      [index + 1, now, event.id]
+      'UPDATE sources SET sort_order = ?, updated_at = ? WHERE id = ?',
+      [index + 1, now, s.id]
     )));
   }
   return now;
 }
 
-export async function deleteTimelineEvent(db: SqliteDatabase, id: string): Promise<void> {
-  await bind(db, 'DELETE FROM timeline_events WHERE id = ?', [id]).run();
+export async function deleteSource(db: SqliteDatabase, id: string): Promise<void> {
+  await bind(db, 'DELETE FROM sources WHERE id = ?', [id]).run();
 }
+
+export async function loadTimelineEvents(_db: SqliteDatabase, _topicId: string): Promise<TimelineEvent[]> {
+  return [];
+}
+
+export async function getNextTimelineSortOrder(_db: SqliteDatabase, _topicId: string): Promise<number> {
+  return 1;
+}
+
+export function timelineStatement(db: SqliteDatabase, event: TimelineEvent): SqlitePreparedStatement {
+  return bind(db, 'SELECT ?', [event.id]);
+}
+
+export async function insertTimelineEvents(_db: SqliteDatabase, _events: TimelineEvent[]): Promise<void> {}
+export async function insertTimelineEvent(_db: SqliteDatabase, _event: TimelineEvent): Promise<void> {}
+export async function updateTimelineEvent(_db: SqliteDatabase, _id: string, _body: Record<string, unknown>): Promise<TimelineEvent | null> {
+  return null;
+}
+export async function reorderTimelineEvents(_db: SqliteDatabase, _events: TimelineEvent[]): Promise<string> {
+  return new Date().toISOString();
+}
+export async function deleteTimelineEvent(_db: SqliteDatabase, _id: string): Promise<void> {}

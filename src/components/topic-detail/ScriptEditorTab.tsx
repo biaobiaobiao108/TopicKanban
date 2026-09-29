@@ -10,7 +10,7 @@ import { Extension } from '@tiptap/core';
 import type { Editor as TiptapEditor } from '@tiptap/core';
 import { Plugin, PluginKey } from '@tiptap/pm/state';
 import { Decoration, DecorationSet } from '@tiptap/pm/view';
-import { CitationInput, Draft, DraftCitation, Topic, TimelineEvent, Source, AppSettings, EditorFontSize, EditorLineHeight, DEFAULT_VOICEOVER_CUES } from '../../types';
+import { CitationInput, Draft, DraftCitation, Topic, TimelineEvent, Source, AppSettings, EditorFontSize, EditorLineHeight, DEFAULT_VOICEOVER_CUES, TopicReport } from '../../types';
 import { ScriptReferenceDrawer } from './ScriptReferenceDrawer';
 import { ScriptOutlinePanel } from './ScriptOutlinePanel';
 import { Modal } from '../ui/Modal';
@@ -35,6 +35,8 @@ import {
   ExternalLink,
   ShieldAlert,
   Target,
+  Columns2,
+  FileText,
 } from 'lucide-react';
 import { CitationMark } from './CitationMark';
 import { VoiceoverCueNode } from './VoiceoverCueNode';
@@ -172,6 +174,7 @@ interface ScriptEditorTabProps {
   topic?: Topic;
   timeline?: TimelineEvent[];
   sources?: Source[];
+  report?: TopicReport | null;
   citations: DraftCitation[];
   initialDraft: Draft | null;
   pendingOutlineHtml?: string | null;
@@ -204,6 +207,7 @@ export const ScriptEditorTab: React.FC<ScriptEditorTabProps> = ({
   topic,
   timeline = [],
   sources = [],
+  report,
   citations,
   initialDraft,
   pendingOutlineHtml,
@@ -231,6 +235,7 @@ export const ScriptEditorTab: React.FC<ScriptEditorTabProps> = ({
   const [isFocusTypewriterMode, setIsFocusTypewriterMode] = useState(true);
 
   const [isReferenceOpen, setIsReferenceOpen] = useState(false);
+  const [isReportSplitOpen, setIsReportSplitOpen] = useState(false);
   const [isOutlineOpen, setIsOutlineOpen] = useState(false);
   const [outline, setOutline] = useState(EMPTY_SCRIPT_OUTLINE);
   const [activeOutlineItemId, setActiveOutlineItemId] = useState<string | null>(null);
@@ -932,6 +937,36 @@ export const ScriptEditorTab: React.FC<ScriptEditorTabProps> = ({
     }).run();
   };
 
+  const handleInsertReportContent = async (text: string, isQuote = false) => {
+    if (!editor || !text.trim()) return;
+    if (isQuote && report) {
+      try {
+        const citation = await onSaveCitation({
+          reference_type: 'report',
+          reference_id: report.id,
+          reference_title: '选题报告',
+          reference_snapshot: text.trim(),
+          quoted_text: text.trim(),
+          verification_status: 'confirmed',
+        });
+        editor.chain().focus().insertContent({
+          type: 'paragraph',
+          content: [{
+            type: 'text',
+            text: text.trim(),
+            marks: [{ type: 'citation', attrs: { citationId: citation.id, referenceTitle: '选题报告' } }],
+          }],
+        }).run();
+        showToast({ message: '已引用选题报告内容至草稿', tone: 'success' });
+        return;
+      } catch {
+        // fallback to standard insert
+      }
+    }
+    editor.chain().focus().insertContent(`<p>${text.trim()}</p>`).run();
+    showToast({ message: '已插入至文案草稿', tone: 'success' });
+  };
+
   const currentHtml = editor?.getHTML() || initialDraft?.content_html || '';
   const activeCitations = citations.filter((citation) => currentHtml.includes(`data-citation-id=\"${citation.id}\"`));
   const citationHealth = topic ? getCitationHealth(activeCitations, { topic, sources, timeline }) : null;
@@ -950,6 +985,10 @@ export const ScriptEditorTab: React.FC<ScriptEditorTabProps> = ({
   const toggleReferencePanel = () => {
     if (!isReferenceOpen && !canKeepBothSidePanelsOpen()) setIsOutlineOpen(false);
     setIsReferenceOpen((current) => !current);
+  };
+
+  const toggleReportSplit = () => {
+    setIsReportSplitOpen((current) => !current);
   };
 
   const handleSelectOutlineItem = (item: OutlineItem) => {
@@ -1111,6 +1150,22 @@ export const ScriptEditorTab: React.FC<ScriptEditorTabProps> = ({
                 )}
               </button>
             )}
+
+            {/* Split Screen Report Toggle (对照选题报告) */}
+            <button
+              type="button"
+              onClick={toggleReportSplit}
+              aria-label="开启/收起选题报告分屏对照"
+              aria-pressed={isReportSplitOpen}
+              className={`flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-medium transition-all cursor-pointer ${
+                isReportSplitOpen
+                  ? 'bg-[var(--accent-soft)] text-[var(--accent-dark)] font-semibold shadow-2xs ring-1 ring-[var(--accent)]/20'
+                  : 'text-[var(--ink-muted)] hover:text-[var(--ink)] hover:bg-stone-500/[0.06]'
+              }`}
+            >
+              <Columns2 className="h-3.5 w-3.5 text-[var(--accent)]" />
+              <span className="hidden sm:inline">对照报告</span>
+            </button>
 
             {/* Auto save indicator pill */}
             <div className="flex items-center gap-1.5 rounded-full bg-stone-500/[0.04] px-2.5 py-0.5 text-[11px] text-[var(--ink-muted)] select-none dark:bg-stone-400/[0.06]" role="status" aria-live="polite">
@@ -1452,6 +1507,77 @@ export const ScriptEditorTab: React.FC<ScriptEditorTabProps> = ({
           onClose={() => setIsOutlineOpen(false)}
           onSelectHeading={handleSelectOutlineItem}
         />
+
+        {/* Topic Report Split-Screen Panel */}
+        {!isZenMode && isReportSplitOpen && (
+          <aside className="w-full sm:w-[380px] md:w-[420px] lg:w-[460px] xl:w-[500px] shrink-0 h-full border-r border-[var(--line)] bg-[var(--surface)]/70 flex flex-col z-10 transition-all animate-in slide-in-from-left duration-200">
+            {/* Split Panel Header */}
+            <div className="flex h-10 items-center justify-between border-b border-[var(--line)] px-3.5 bg-[var(--surface)]/90 backdrop-blur-xs select-none shrink-0">
+              <div className="flex items-center gap-2">
+                <FileText className="h-3.5 w-3.5 text-[var(--accent)]" />
+                <span className="text-xs font-semibold text-[var(--ink)]">选题报告对照</span>
+                {report?.word_count ? (
+                  <span className="text-[10px] font-mono text-[var(--ink-muted)] tabular-nums">
+                    ({report.word_count} 字)
+                  </span>
+                ) : null}
+              </div>
+              <div className="flex items-center gap-1">
+                {report?.content_markdown && (
+                  <button
+                    type="button"
+                    onClick={async () => {
+                      const ok = await copyTextToClipboard(report.content_markdown || '');
+                      if (ok) showToast({ message: '已复制报告全文', tone: 'success' });
+                    }}
+                    className="p-1 text-stone-400 hover:text-[var(--ink)] rounded cursor-pointer"
+                    aria-label="复制报告全文"
+                  >
+                    <Copy className="h-3.5 w-3.5" />
+                  </button>
+                )}
+                <button
+                  type="button"
+                  onClick={() => setIsReportSplitOpen(false)}
+                  className="p-1 text-stone-400 hover:text-[var(--ink)] rounded cursor-pointer"
+                  aria-label="关闭分屏"
+                >
+                  <X className="h-3.5 w-3.5" />
+                </button>
+              </div>
+            </div>
+
+            {/* Split Panel Content */}
+            <FloatingScrollbar className="p-4 sm:p-5 text-xs text-[var(--ink)] space-y-4" wrapperClassName="flex-1 min-h-0">
+              {!report || !report.content_markdown?.trim() ? (
+                <div className="py-12 text-center text-stone-400 dark:text-stone-500 space-y-2">
+                  <FileText className="w-8 h-8 mx-auto text-stone-300 dark:text-stone-600 stroke-[1.5]" />
+                  <div className="text-xs font-medium">当前选题尚未录入选题报告</div>
+                  <p className="text-[11px] text-stone-400 max-w-xs mx-auto">
+                    可切换至「选题报告」模块整理资料，写文案时在此分屏对照参考。
+                  </p>
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between pb-2 border-b border-[var(--line)]/50">
+                    <span className="text-[11px] text-[var(--ink-muted)]">点击右侧按钮可直接插入文案草稿</span>
+                    <button
+                      type="button"
+                      onClick={() => handleInsertReportContent(report.content_markdown || '', false)}
+                      className="text-[11px] text-[var(--accent)] hover:underline font-medium cursor-pointer"
+                    >
+                      插入全文
+                    </button>
+                  </div>
+                  <div
+                    className="prose prose-stone dark:prose-invert max-w-none text-xs leading-relaxed"
+                    dangerouslySetInnerHTML={{ __html: report.content_html || '' }}
+                  />
+                </div>
+              )}
+            </FloatingScrollbar>
+          </aside>
+        )}
 
         {/* Main Writing Canvas */}
         <FloatingScrollbar

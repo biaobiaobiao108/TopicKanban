@@ -10,14 +10,16 @@ import {
   requireDb,
   validateTextFields,
 } from '../apiShared';
-import { draftSaveSchema, parseWithZod } from '../schemas';
+import { draftSaveSchema, topicReportSaveSchema, parseWithZod } from '../schemas';
 import {
   deleteCitation,
   insertCitation,
   loadCitations,
   loadDraft,
+  loadTopicReport,
   loadPublishPackage,
   saveDraft,
+  saveTopicReport,
   savePublishPackage,
 } from '../repositories';
 import { loadTopic } from '../repositories';
@@ -92,6 +94,32 @@ export function registerWritingRoutes(app: NativeApp): void {
     }
   });
 
+  app.get('/topics/:id/report', async (c) => {
+    try {
+      return c.json(await loadTopicReport(requireDb(c), c.req.param('id')));
+    } catch (error) {
+      return jsonError(c, error);
+    }
+  });
+
+  app.put('/topics/:id/report', async (c) => {
+    try {
+      const parsed = parseWithZod(topicReportSaveSchema, await c.req.json());
+      if (!parsed.success) return jsonValidationError(c, parsed.error, parsed.issues);
+      const body = parsed.data;
+      const reportBytes = new TextEncoder().encode(`${body.content_markdown}${body.content_json || ''}${body.content_html || ''}`).byteLength;
+      if (reportBytes > MAX_DRAFT_BYTES) return c.json({ error: 'Report exceeds 4 MiB' }, 413);
+      if (body.content_json) {
+        try { JSON.parse(body.content_json); } catch { return c.json({ error: 'content_json must be valid JSON' }, 400); }
+      }
+      const result = await saveTopicReport(requireDb(c), c.req.param('id'), body);
+      if (result.kind === 'conflict') return c.json({ error: 'REPORT_CONFLICT', current: result.current }, 409);
+      return c.json(result.report);
+    } catch (error) {
+      return jsonError(c, error, 400);
+    }
+  });
+
   app.put('/topics/:id/publish-package', async (c) => {
     try {
       const topicId = c.req.param('id');
@@ -126,7 +154,7 @@ export function registerWritingRoutes(app: NativeApp): void {
         reference_id: [200, true], reference_title: [200, true], reference_snapshot: [20000], quoted_text: [20000],
       });
       if (textError) return c.json({ error: textError }, 400);
-      if (!isOneOf(body.reference_type, ['source', 'timeline', 'person', 'outline'])) {
+      if (!isOneOf(body.reference_type, ['source', 'report', 'timeline', 'person', 'outline'])) {
         return c.json({ error: 'Invalid citation reference type' }, 400);
       }
       if (body.verification_status !== undefined && !isOneOf(body.verification_status, VERIFICATION_STATUSES)) {

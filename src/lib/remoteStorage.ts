@@ -30,6 +30,7 @@ import type {
   StorageOptimizeResult,
   TimelineEvent,
   Topic,
+  TopicReport,
   TopicPinMutationResult,
   TopicTodo,
   TopicTodoBoardLayout,
@@ -454,6 +455,23 @@ export async function saveSource(data: Partial<Source> & { topic_id: string; tit
 export async function deleteSource(id: string): Promise<void> {
   await apiRequest(`/api/sources/${encodeURIComponent(id)}`, { method: 'DELETE' });
   invalidateBootstrap();
+}
+
+export async function reorderSources(sources: Array<{ id: string; topic_id: string }>): Promise<void> {
+  await apiRequest('/api/sources/reorder/batch', jsonRequest('PATCH', { sources }));
+}
+
+export function fetchTopicReport(topicId: string): Promise<TopicReport | null> {
+  return apiRequest<TopicReport | null>(`/api/topics/${encodeURIComponent(topicId)}/report`);
+}
+
+export async function saveTopicReport(
+  topicId: string,
+  data: Partial<TopicReport> & { base_version?: number }
+): Promise<TopicReport> {
+  const report = await apiRequest<TopicReport>(`/api/topics/${encodeURIComponent(topicId)}/report`, jsonRequest('PUT', data));
+  invalidateBootstrap();
+  return report;
 }
 
 export function fetchTimelineByTopicId(topicId: string): Promise<TimelineEvent[]> {
@@ -1042,6 +1060,7 @@ export function exportSingleTopicMarkdown(
     sources?: Source[];
     timeline?: TimelineEvent[];
     draft?: Draft | null;
+    report?: TopicReport | null;
   },
   readingSpeed = 280
 ): string {
@@ -1128,7 +1147,18 @@ export function exportSingleTopicMarkdown(
     });
   }
 
-  // 5. 解说文案正文
+  // 选题报告
+  const report = workspaceData.report;
+  if (report?.content_markdown) {
+    lines.push(`## 选题报告`);
+    lines.push(`- **报告规模**：约 ${(report.word_count || 0).toLocaleString()} 字`);
+    lines.push(`- **最后更新时间**：${report.updated_at || '未知'}`);
+    lines.push(``);
+    lines.push(report.content_markdown);
+    lines.push(``);
+  }
+
+  // 解说文案正文
   lines.push(`## 五、解说文案草稿正文`);
   lines.push(`- **文案字数**：约 ${wordCount.toLocaleString()} 字（预估解说时长约 ${estMinutes} 分钟）`);
   lines.push(`- **最后更新时间**：${draft?.updated_at || topic.updated_at || '未知'}`);

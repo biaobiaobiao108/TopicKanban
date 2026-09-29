@@ -2,10 +2,68 @@ import type {
   Draft,
   DraftCitation,
   PublishPackageRecord,
+  TopicReport,
 } from '../../types';
 import { createId } from '../apiShared';
 import type { SqliteDatabase, SqlitePreparedStatement } from '../sqlite';
 import { bind } from './shared';
+
+export type TopicReportSaveResult =
+  | { kind: 'saved'; report: TopicReport }
+  | { kind: 'conflict'; current: TopicReport | null };
+
+export async function loadTopicReport(db: SqliteDatabase, topicId: string): Promise<TopicReport | null> {
+  return db.prepare('SELECT * FROM topic_reports WHERE topic_id = ?').bind(topicId).first<TopicReport>();
+}
+
+export async function saveTopicReport(
+  db: SqliteDatabase,
+  topicId: string,
+  body: Partial<TopicReport> & { base_version?: number }
+): Promise<TopicReportSaveResult> {
+  const existing = await loadTopicReport(db, topicId);
+  const baseVersion = Number(body.base_version ?? 0);
+  if (existing && baseVersion !== existing.version) return { kind: 'conflict', current: existing };
+  if (!existing && baseVersion !== 0) return { kind: 'conflict', current: null };
+
+  const now = new Date().toISOString();
+  const report: TopicReport = {
+    id: existing?.id || body.id || createId('report'),
+    topic_id: topicId,
+    title: body.title || '',
+    content_markdown: body.content_markdown || '',
+    content_json: body.content_json || '',
+    content_html: body.content_html || '',
+    word_count: body.word_count || 0,
+    version: existing ? existing.version + 1 : 1,
+    updated_at: now,
+  };
+  const result = existing
+    ? await bind(db, `UPDATE topic_reports SET title = ?, content_markdown = ?, content_json = ?, content_html = ?, word_count = ?,
+        version = version + 1, updated_at = ? WHERE topic_id = ? AND version = ?`, [
+      report.title, report.content_markdown, report.content_json, report.content_html, report.word_count,
+      report.updated_at, topicId, baseVersion,
+    ]).run()
+    : await bind(db, `INSERT INTO topic_reports
+        (id, topic_id, title, content_markdown, content_json, content_html, word_count, version, updated_at)
+        VALUES (?, ?, ?, ?, ?, ?, ?, 1, ?) ON CONFLICT(topic_id) DO NOTHING`, [
+      report.id, report.topic_id, report.title, report.content_markdown, report.content_json, report.content_html,
+      report.word_count, report.updated_at,
+    ]).run();
+  if ((result.meta.changes || 0) === 0) {
+    return { kind: 'conflict', current: await loadTopicReport(db, topicId) };
+  }
+  return { kind: 'saved', report };
+}
+
+export function topicReportStatement(db: SqliteDatabase, report: TopicReport): SqlitePreparedStatement {
+  return bind(db, `INSERT INTO topic_reports (
+    id, topic_id, title, content_markdown, content_json, content_html, word_count, version, updated_at
+  ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`, [
+    report.id, report.topic_id, report.title, report.content_markdown, report.content_json, report.content_html,
+    report.word_count, report.version || 1, report.updated_at,
+  ]);
+}
 
 export function normalizePublishPackageRecord(row: Record<string, unknown> | null): PublishPackageRecord | null {
   if (!row) return null;
