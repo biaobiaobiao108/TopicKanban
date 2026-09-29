@@ -3,6 +3,8 @@ import { Editor } from '@tiptap/core';
 import TaskList from '@tiptap/extension-task-list';
 import TaskItem from '@tiptap/extension-task-item';
 import { MarkdownManager } from '@tiptap/markdown';
+import { type marked } from 'marked';
+import { scriptMarked } from '../src/components/topic-detail/scriptMarkdownConfig';
 import { CitationMark } from '../src/components/topic-detail/CitationMark';
 import { CalloutNode } from '../src/components/topic-detail/ScriptCalloutNode';
 import { ScriptLink } from '../src/components/topic-detail/ScriptLink';
@@ -22,6 +24,7 @@ import {
 } from '../src/components/topic-detail/ScriptMarkdownMenu';
 
 const markdown = new MarkdownManager({
+  marked: scriptMarked as unknown as typeof marked,
   extensions: [
     ScriptStarterKit.configure({ heading: { levels: [1, 2, 3, 4, 5, 6] }, link: false, codeBlock: false }),
     ScriptCodeBlock.configure({ exitOnTripleEnter: false }),
@@ -184,4 +187,21 @@ describe('script Markdown source', () => {
     expect(detectAndCleanImeLeak('bi标题', true, 'bi')).toEqual({ cleaned: '标题', leaked: 'bi' });
     expect(detectAndCleanImeLeak('bi标题', true, 'b')).toEqual({ cleaned: 'bi标题', leaked: null });
   });
+
+  it('correctly parses CJK bold ending with punctuation directly preceding text', () => {
+    const document = markdown.parse('**判断：**广泛探索有用 **主线：**以故事推进 **注意！**风险');
+    const serialized = markdown.serialize(document);
+    expect(serialized).toBe('**判断：**广泛探索有用 **主线：**以故事推进 **注意！**风险');
+
+    const boldTexts: string[] = [];
+    function collectBold(node: any) {
+      if (node.text && node.marks?.some((m: any) => m.type === 'bold')) {
+        boldTexts.push(node.text);
+      }
+      if (node.content) node.content.forEach(collectBold);
+    }
+    collectBold(document);
+    expect(boldTexts).toEqual(['判断：', '主线：', '注意！']);
+  });
 });
+

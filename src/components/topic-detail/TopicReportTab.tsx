@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useEditor, EditorContent } from '@tiptap/react';
 import type { Editor as TiptapEditor } from '@tiptap/core';
-import { Markdown } from '@tiptap/markdown';
+import { createScriptMarkdownExtension } from './scriptMarkdownConfig';
 import TaskList from '@tiptap/extension-task-list';
 import TaskItem from '@tiptap/extension-task-item';
 import Placeholder from '@tiptap/extension-placeholder';
@@ -49,7 +49,7 @@ const REPORT_MARKDOWN_EXTENSIONS = [
   TaskItem.configure({ nested: true }),
   Placeholder.configure({ placeholder: '在此录入或粘贴选题报告……支持完整 Markdown 快捷语法，输入 / 唤出排版菜单。' }),
   CharacterCount,
-  Markdown,
+  createScriptMarkdownExtension(),
   CalloutNode,
   ScriptMarkdownMenu,
   ImeMarkdownSafeExtension,

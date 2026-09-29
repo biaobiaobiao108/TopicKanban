@@ -2,7 +2,7 @@ import React, { useId, useState, useEffect, useLayoutEffect, useRef, useCallback
 import { createPortal } from 'react-dom';
 import DOMPurify from 'dompurify';
 import { useEditor, EditorContent } from '@tiptap/react';
-import { Markdown } from '@tiptap/markdown';
+import { createScriptMarkdownExtension, scriptMarked } from './scriptMarkdownConfig';
 import TaskList from '@tiptap/extension-task-list';
 import TaskItem from '@tiptap/extension-task-item';
 import Placeholder from '@tiptap/extension-placeholder';
@@ -178,7 +178,7 @@ const SCRIPT_MARKDOWN_EXTENSIONS = [
   CitationMark,
   VoiceoverCueNode,
   FocusParagraphExtension,
-  Markdown,
+  createScriptMarkdownExtension(),
   CalloutNode,
   ScriptMarkdownMenu,
   ImeMarkdownSafeExtension,
@@ -236,8 +236,8 @@ export const ScriptEditorTab: React.FC<ScriptEditorTabProps> = ({
 }) => {
   const { showToast } = useToast();
   const sanitizedReportHtml = useMemo(
-    () => sanitizeReportPreviewHtml(report?.content_html || ''),
-    [report?.content_html]
+    () => sanitizeReportPreviewHtml(report?.content_html || (report?.content_markdown ? (scriptMarked.parse(report.content_markdown) as string) : '')),
+    [report?.content_html, report?.content_markdown]
   );
   const initialTitle = initialDraft?.title?.trim() || topicTitle;
   const [draftTitle, setDraftTitle] = useState(initialTitle);
