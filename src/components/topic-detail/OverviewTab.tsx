@@ -462,7 +462,7 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({
               }}
               onBlur={handleImmediateSave}
               placeholder="用一句话说清这条内容在讲什么、围绕谁或什么展开。"
-              className="w-full text-sm text-stone-800 dark:text-stone-100 bg-stone-500/[0.03] dark:bg-stone-800/60 border border-stone-200/60 dark:border-stone-700/60 rounded-xl p-3 placeholder:text-stone-400 dark:placeholder:text-stone-500 focus:bg-white dark:focus:bg-stone-800 focus:border-[var(--accent)] dark:focus:border-[var(--accent)] focus:outline-none transition-colors"
+              className="w-full text-sm text-stone-800 dark:text-stone-100 bg-stone-500/[0.03] dark:bg-stone-800/60 border border-stone-200/60 dark:border-stone-700/60 rounded-xl p-3 placeholder:text-stone-400 dark:placeholder:text-stone-500 focus:bg-[var(--surface)] dark:focus:bg-stone-800 focus:border-[var(--accent)] dark:focus:border-[var(--accent)] focus:outline-none transition-colors"
             />
           </div>
 
@@ -484,7 +484,7 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({
               }}
               onBlur={handleImmediateSave}
               placeholder="这条内容最值得被看到的地方是什么？可以是一个问题、事实、变化、冲突、方法或独特视角。"
-              className="w-full text-sm text-stone-800 dark:text-stone-100 bg-stone-500/[0.03] dark:bg-stone-800/60 border border-stone-200/60 dark:border-stone-700/60 rounded-xl p-3 placeholder:text-stone-400 dark:placeholder:text-stone-500 focus:bg-white dark:focus:bg-stone-800 focus:border-[var(--accent)] dark:focus:border-[var(--accent)] focus:outline-none transition-colors"
+              className="w-full text-sm text-stone-800 dark:text-stone-100 bg-stone-500/[0.03] dark:bg-stone-800/60 border border-stone-200/60 dark:border-stone-700/60 rounded-xl p-3 placeholder:text-stone-400 dark:placeholder:text-stone-500 focus:bg-[var(--surface)] dark:focus:bg-stone-800 focus:border-[var(--accent)] dark:focus:border-[var(--accent)] focus:outline-none transition-colors"
             />
           </div>
 
@@ -518,7 +518,7 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({
                   }}
                   onBlur={handleImmediateSave}
                   placeholder="现在做它的理由是什么？例如出现了新信息、需求变化、事件节点或正在发生的讨论。"
-                  className="w-full text-xs text-stone-800 dark:text-stone-100 bg-stone-500/[0.03] dark:bg-stone-800/60 border border-stone-200/60 dark:border-stone-700/60 rounded-xl p-3 placeholder:text-stone-400 dark:placeholder:text-stone-500 focus:bg-white dark:focus:bg-stone-800 focus:border-[var(--accent)] dark:focus:border-[var(--accent)] focus:outline-none transition-colors"
+                  className="w-full text-xs text-stone-800 dark:text-stone-100 bg-stone-500/[0.03] dark:bg-stone-800/60 border border-stone-200/60 dark:border-stone-700/60 rounded-xl p-3 placeholder:text-stone-400 dark:placeholder:text-stone-500 focus:bg-[var(--surface)] dark:focus:bg-stone-800 focus:border-[var(--accent)] dark:focus:border-[var(--accent)] focus:outline-none transition-colors"
                 />
               </div>
             )}
@@ -547,8 +547,8 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({
                 onClick={() => setStorylineMode('acts')}
                 className={`px-3 py-1 rounded-lg transition-all cursor-pointer flex items-center gap-1 ${
                   storylineMode === 'acts'
-                    ? 'bg-white dark:bg-stone-700 text-stone-900 dark:text-stone-100 shadow-2xs'
-                    : 'text-stone-600 dark:text-stone-400 hover:text-stone-900'
+                    ? 'bg-[var(--surface)] text-[var(--ink)] shadow-subtle'
+                    : 'text-[var(--ink-muted)] hover:text-[var(--ink)]'
                 }`}
               >
                 <Layers className="w-3.5 h-3.5" />
@@ -559,8 +559,8 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({
                 onClick={() => setStorylineMode('raw')}
                 className={`px-3 py-1 rounded-lg transition-all cursor-pointer flex items-center gap-1 ${
                   storylineMode === 'raw'
-                    ? 'bg-white dark:bg-stone-700 text-stone-900 dark:text-stone-100 shadow-2xs'
-                    : 'text-stone-600 dark:text-stone-400 hover:text-stone-900'
+                    ? 'bg-[var(--surface)] text-[var(--ink)] shadow-subtle'
+                    : 'text-[var(--ink-muted)] hover:text-[var(--ink)]'
                 }`}
               >
                 <Edit3 className="w-3.5 h-3.5" />
@@ -593,7 +593,7 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({
                       onChange={(e) => handleActChange(step.key, e.target.value)}
                       onBlur={handleImmediateSave}
                       placeholder={step.placeholder}
-                      className={`w-full text-xs text-stone-800 dark:text-stone-100 bg-white dark:bg-stone-800 border border-stone-200/60 dark:border-stone-700 rounded-lg p-2.5 placeholder:text-stone-400 dark:placeholder:text-stone-500 focus:outline-none ${styles.focus}`}
+                      className={`w-full text-xs text-[var(--ink)] bg-[var(--surface)] dark:bg-stone-800 border border-[var(--line)] dark:border-stone-700 rounded-lg p-2.5 placeholder:text-stone-400 dark:placeholder:text-stone-500 focus:outline-none ${styles.focus}`}
                     />
                   </div>
                 );
@@ -609,7 +609,7 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({
                 onChange={(e) => handleRawStorylineChange(e.target.value)}
                 onBlur={handleImmediateSave}
                 placeholder="【开始】背景与问题 → 【发展】过程与变化 → 【转折】改变走向的节点 → 【收束】结果与影响"
-                className="w-full text-xs text-stone-800 dark:text-stone-100 bg-stone-500/[0.03] dark:bg-stone-800/60 border border-stone-200/60 dark:border-stone-700/60 rounded-xl p-3.5 placeholder:text-stone-400 dark:placeholder:text-stone-500 focus:bg-white dark:focus:bg-stone-800 focus:border-[var(--accent)] dark:focus:border-[var(--accent)] focus:outline-none transition-colors"
+                className="w-full text-xs text-stone-800 dark:text-stone-100 bg-stone-500/[0.03] dark:bg-stone-800/60 border border-stone-200/60 dark:border-stone-700/60 rounded-xl p-3.5 placeholder:text-stone-400 dark:placeholder:text-stone-500 focus:bg-[var(--surface)] dark:focus:bg-stone-800 focus:border-[var(--accent)] dark:focus:border-[var(--accent)] focus:outline-none transition-colors"
               />
               <p className="text-[11px] text-stone-400">
                 提示：支持使用 <code>【开始...】</code>、<code>【发展...】</code> 等标签，也可以用换行或 <code>→</code> 连接各段。
@@ -745,7 +745,7 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({
                   setTargetPublishDate(val);
                   await onUpdateTopic({ target_publish_date: val || null });
                 }}
-                className="w-full text-xs text-stone-800 dark:text-stone-100 bg-stone-500/[0.03] dark:bg-stone-800/60 border border-stone-200/60 dark:border-stone-700/60 rounded-xl p-2 focus:bg-white dark:focus:bg-stone-800 focus:border-[var(--accent)] focus:outline-none transition-colors"
+                className="w-full text-xs text-stone-800 dark:text-stone-100 bg-stone-500/[0.03] dark:bg-stone-800/60 border border-stone-200/60 dark:border-stone-700/60 rounded-xl p-2 focus:bg-[var(--surface)] dark:focus:bg-stone-800 focus:border-[var(--accent)] focus:outline-none transition-colors"
               />
               {/* Quick date presets */}
               <div className="flex items-center gap-1 flex-wrap pt-0.5">
@@ -802,7 +802,7 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({
                   setDeadline(val);
                   await onUpdateTopic({ deadline: val || null });
                 }}
-                className="w-full text-xs text-stone-800 dark:text-stone-100 bg-stone-500/[0.03] dark:bg-stone-800/60 border border-stone-200/60 dark:border-stone-700/60 rounded-xl p-2 focus:bg-white dark:focus:bg-stone-800 focus:border-[var(--accent)] focus:outline-none transition-colors"
+                className="w-full text-xs text-stone-800 dark:text-stone-100 bg-stone-500/[0.03] dark:bg-stone-800/60 border border-stone-200/60 dark:border-stone-700/60 rounded-xl p-2 focus:bg-[var(--surface)] dark:focus:bg-stone-800 focus:border-[var(--accent)] focus:outline-none transition-colors"
               />
               <div className="pt-0.5">
                 <span className="text-[10px] text-stone-500 dark:text-stone-400">
@@ -922,14 +922,14 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({
           </div>
 
           {isAddingTag && (
-            <form onSubmit={handleCreateAndAddTag} className="flex items-center gap-2 p-2 bg-stone-50 dark:bg-stone-800 rounded-xl">
+            <form onSubmit={handleCreateAndAddTag} className="flex items-center gap-2 p-2 bg-stone-500/[0.04] dark:bg-stone-800 rounded-xl">
               <input
                 type="text"
                 autoFocus
                 placeholder="输入新标签 (如: 吃播/打假)..."
                 value={newTagName}
                 onChange={(e) => setNewTagName(e.target.value)}
-                className="flex-1 bg-white dark:bg-stone-900 border border-stone-300 dark:border-stone-700 rounded-lg px-3 py-1.5 text-xs text-stone-900 dark:text-stone-100 focus:outline-none focus:border-[var(--accent)]"
+                className="flex-1 bg-stone-500/[0.03] dark:bg-stone-900 border border-[var(--line)] dark:border-stone-700 rounded-lg px-3 py-1.5 text-xs text-[var(--ink)] focus:outline-none focus:border-[var(--accent)] focus:bg-[var(--surface)]"
               />
               <button
                 type="submit"
@@ -1020,7 +1020,7 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({
               placeholder="例如：大胃袋良子"
               value={newPersonName}
               onChange={(e) => setNewPersonName(e.target.value)}
-              className="w-full px-3 py-2 bg-stone-50 dark:bg-stone-800 border border-stone-300 dark:border-stone-700 rounded-lg text-sm text-stone-900 dark:text-stone-100 focus:bg-white dark:focus:bg-stone-800 focus:outline-none"
+              className="w-full px-3 py-2 bg-stone-500/[0.03] dark:bg-stone-800 border border-stone-300 dark:border-stone-700 rounded-lg text-sm text-[var(--ink)] focus:bg-[var(--surface)] dark:focus:bg-stone-800 focus:outline-none focus:border-[var(--accent)]"
             />
           </div>
 
@@ -1035,7 +1035,7 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({
                 placeholder="例如：吃播网红 / 探店主播"
                 value={newPersonIdentity}
                 onChange={(e) => setNewPersonIdentity(e.target.value)}
-                className="w-full px-3 py-2 bg-stone-50 dark:bg-stone-800 border border-stone-300 dark:border-stone-700 rounded-lg text-sm text-stone-900 dark:text-stone-100 focus:bg-white dark:focus:bg-stone-800 focus:outline-none"
+                className="w-full px-3 py-2 bg-stone-500/[0.03] dark:bg-stone-800 border border-stone-300 dark:border-stone-700 rounded-lg text-sm text-[var(--ink)] focus:bg-[var(--surface)] dark:focus:bg-stone-800 focus:outline-none focus:border-[var(--accent)]"
               />
             </div>
 
@@ -1049,7 +1049,7 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({
                 placeholder="例如：良子、峨眉山战神"
                 value={newPersonAliases}
                 onChange={(e) => setNewPersonAliases(e.target.value)}
-                className="w-full px-3 py-2 bg-stone-50 dark:bg-stone-800 border border-stone-300 dark:border-stone-700 rounded-lg text-sm text-stone-900 dark:text-stone-100 focus:bg-white dark:focus:bg-stone-800 focus:outline-none"
+                className="w-full px-3 py-2 bg-stone-500/[0.03] dark:bg-stone-800 border border-stone-300 dark:border-stone-700 rounded-lg text-sm text-[var(--ink)] focus:bg-[var(--surface)] dark:focus:bg-stone-800 focus:outline-none focus:border-[var(--accent)]"
               />
             </div>
           </div>
@@ -1064,7 +1064,7 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({
               placeholder="例如：抖音 @大胃袋良子 (120w)、B站同名"
               value={newPersonAccounts}
               onChange={(e) => setNewPersonAccounts(e.target.value)}
-              className="w-full px-3 py-2 bg-stone-50 dark:bg-stone-800 border border-stone-300 dark:border-stone-700 rounded-lg text-sm text-stone-900 dark:text-stone-100 focus:bg-white dark:focus:bg-stone-800 focus:outline-none"
+              className="w-full px-3 py-2 bg-stone-500/[0.03] dark:bg-stone-800 border border-stone-300 dark:border-stone-700 rounded-lg text-sm text-[var(--ink)] focus:bg-[var(--surface)] dark:focus:bg-stone-800 focus:outline-none focus:border-[var(--accent)]"
             />
           </div>
 
@@ -1078,7 +1078,7 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({
               placeholder="简要描述该人物的背景经历、公众形象、性格特质..."
               value={newPersonDesc}
               onChange={(e) => setNewPersonDesc(e.target.value)}
-              className="w-full px-3 py-2 bg-stone-50 dark:bg-stone-800 border border-stone-300 dark:border-stone-700 rounded-lg text-sm text-stone-900 dark:text-stone-100 focus:bg-white dark:focus:bg-stone-800 focus:outline-none"
+              className="w-full px-3 py-2 bg-stone-500/[0.03] dark:bg-stone-800 border border-stone-300 dark:border-stone-700 rounded-lg text-sm text-[var(--ink)] focus:bg-[var(--surface)] dark:focus:bg-stone-800 focus:outline-none focus:border-[var(--accent)]"
             />
           </div>
 

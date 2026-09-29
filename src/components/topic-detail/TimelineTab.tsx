@@ -367,8 +367,8 @@ export const TimelineTab: React.FC<TimelineTabProps> = ({
               onClick={() => handleSortModeChange('custom')}
               className={`inline-flex items-center gap-1 px-3 py-1.5 rounded-lg transition-all cursor-pointer ${
                 sortMode === 'custom'
-                  ? 'bg-white dark:bg-stone-700 text-stone-900 dark:text-stone-100 shadow-2xs font-bold'
-                  : 'text-stone-500 dark:text-stone-400 hover:text-stone-800 dark:hover:text-stone-200'
+                  ? 'bg-[var(--surface)] text-[var(--ink)] shadow-subtle font-bold'
+                  : 'text-[var(--ink-muted)] hover:text-[var(--ink)]'
               }`}
             >
               <SlidersHorizontal className="w-3.5 h-3.5" />
@@ -379,8 +379,8 @@ export const TimelineTab: React.FC<TimelineTabProps> = ({
               onClick={() => handleSortModeChange('time_desc')}
               className={`inline-flex items-center gap-1 px-3 py-1.5 rounded-lg transition-all cursor-pointer ${
                 sortMode === 'time_desc'
-                  ? 'bg-white dark:bg-stone-700 text-stone-900 dark:text-stone-100 shadow-2xs font-bold'
-                  : 'text-stone-500 dark:text-stone-400 hover:text-stone-800 dark:hover:text-stone-200'
+                  ? 'bg-[var(--surface)] text-[var(--ink)] shadow-subtle font-bold'
+                  : 'text-[var(--ink-muted)] hover:text-[var(--ink)]'
               }`}
             >
               <ArrowDownWideNarrow className="w-3.5 h-3.5" />
@@ -391,8 +391,8 @@ export const TimelineTab: React.FC<TimelineTabProps> = ({
               onClick={() => handleSortModeChange('time_asc')}
               className={`inline-flex items-center gap-1 px-3 py-1.5 rounded-lg transition-all cursor-pointer ${
                 sortMode === 'time_asc'
-                  ? 'bg-white dark:bg-stone-700 text-stone-900 dark:text-stone-100 shadow-2xs font-bold'
-                  : 'text-stone-500 dark:text-stone-400 hover:text-stone-800 dark:hover:text-stone-200'
+                  ? 'bg-[var(--surface)] text-[var(--ink)] shadow-subtle font-bold'
+                  : 'text-[var(--ink-muted)] hover:text-[var(--ink)]'
               }`}
             >
               <ArrowUpNarrowWide className="w-3.5 h-3.5" />
@@ -478,7 +478,7 @@ export const TimelineTab: React.FC<TimelineTabProps> = ({
               placeholder="例如：首次入驻训练基地并立下誓言"
               value={title}
               onChange={(e) => setTitle(e.target.value)}
-              className="w-full px-3 py-2 bg-stone-50 dark:bg-stone-800 border border-stone-300 dark:border-stone-700 rounded-lg text-sm text-stone-900 dark:text-stone-100 placeholder:text-stone-400 dark:placeholder:text-stone-500 focus:bg-white dark:focus:bg-stone-800 focus:outline-none"
+              className="w-full px-3 py-2 bg-stone-500/[0.03] dark:bg-stone-800 border border-stone-300 dark:border-stone-700 rounded-lg text-sm text-[var(--ink)] placeholder:text-stone-400 dark:placeholder:text-stone-500 focus:bg-[var(--surface)] dark:focus:bg-stone-800 focus:outline-none focus:border-[var(--accent)]"
             />
           </div>
 
@@ -495,7 +495,7 @@ export const TimelineTab: React.FC<TimelineTabProps> = ({
                 placeholder="2026-07-28 / 2026-05 / 待考证"
                 value={eventDate}
                 onChange={(e) => setEventDate(e.target.value)}
-                className="w-full h-[38px] px-3 py-2 bg-stone-50 dark:bg-stone-800 border border-stone-300 dark:border-stone-700 rounded-lg text-sm text-stone-900 dark:text-stone-100 placeholder:text-stone-400 dark:placeholder:text-stone-500 focus:bg-white dark:focus:bg-stone-800 focus:outline-none"
+                className="w-full h-[38px] px-3 py-2 bg-stone-500/[0.03] dark:bg-stone-800 border border-stone-300 dark:border-stone-700 rounded-lg text-sm text-[var(--ink)] placeholder:text-stone-400 dark:placeholder:text-stone-500 focus:bg-[var(--surface)] dark:focus:bg-stone-800 focus:outline-none focus:border-[var(--accent)]"
               />
             </div>
 
@@ -509,7 +509,7 @@ export const TimelineTab: React.FC<TimelineTabProps> = ({
                 ariaLabel="可信度状态"
                 ariaLabelledBy="timeline-verification-label"
                 className="w-full"
-                buttonClassName="w-full h-[38px] justify-between py-2 text-sm bg-stone-50 dark:bg-stone-800 border-stone-300 dark:border-stone-700 rounded-lg"
+                buttonClassName="w-full h-[38px] justify-between py-2 text-sm bg-stone-500/[0.03] dark:bg-stone-800 border-stone-300 dark:border-stone-700 rounded-lg"
                 options={[
                   { value: 'confirmed', label: '已确认 (多方可靠来源)', dot: 'bg-emerald-500' },
                   { value: 'unverified', label: '待核实 (信息不足)', dot: 'bg-amber-500' },
@@ -531,7 +531,7 @@ export const TimelineTab: React.FC<TimelineTabProps> = ({
               placeholder="例如：荒诞反差、人物张力、高潮爆发、伏笔呼应"
               value={contrastTag}
               onChange={(e) => setContrastTag(e.target.value)}
-              className="w-full px-3 py-2 bg-stone-50 dark:bg-stone-800 border border-stone-300 dark:border-stone-700 rounded-lg text-sm text-stone-900 dark:text-stone-100 placeholder:text-stone-400 dark:placeholder:text-stone-500 focus:bg-white dark:focus:bg-stone-800 focus:outline-none mb-2"
+              className="w-full px-3 py-2 bg-stone-500/[0.03] dark:bg-stone-800 border border-stone-300 dark:border-stone-700 rounded-lg text-sm text-[var(--ink)] placeholder:text-stone-400 dark:placeholder:text-stone-500 focus:bg-[var(--surface)] dark:focus:bg-stone-800 focus:outline-none focus:border-[var(--accent)] mb-2"
             />
             {/* Quick preset chips */}
             <div className="flex flex-wrap gap-1.5">
@@ -564,7 +564,7 @@ export const TimelineTab: React.FC<TimelineTabProps> = ({
               placeholder="详细记录发生了什么、谁参与了、产生了什么后果..."
               value={description}
               onChange={(e) => setDescription(e.target.value)}
-              className="w-full px-3 py-2 bg-stone-50 dark:bg-stone-800 border border-stone-300 dark:border-stone-700 rounded-lg text-sm text-stone-900 dark:text-stone-100 placeholder:text-stone-400 dark:placeholder:text-stone-500 focus:bg-white dark:focus:bg-stone-800 focus:outline-none resize-none"
+              className="w-full px-3 py-2 bg-stone-500/[0.03] dark:bg-stone-800 border border-stone-300 dark:border-stone-700 rounded-lg text-sm text-[var(--ink)] placeholder:text-stone-400 dark:placeholder:text-stone-500 focus:bg-[var(--surface)] dark:focus:bg-stone-800 focus:outline-none focus:border-[var(--accent)] resize-none"
             />
           </div>
 

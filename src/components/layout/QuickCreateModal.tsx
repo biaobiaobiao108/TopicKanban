@@ -172,7 +172,7 @@ export const QuickCreateModal: React.FC<QuickCreateModalProps> = ({
               autoComplete="off"
               value={title}
               onChange={(e) => setTitle(e.target.value)}
-              className="min-h-12 w-full rounded-xl border border-stone-200/80 bg-stone-500/[0.03] px-3.5 py-2.5 text-base text-stone-900 transition-colors focus:border-[var(--accent)] focus:bg-white focus:outline-none dark:border-stone-700 dark:bg-stone-800 dark:text-stone-100 dark:focus:bg-stone-800"
+              className="min-h-12 w-full rounded-xl border border-stone-200/80 bg-stone-500/[0.03] px-3.5 py-2.5 text-base text-[var(--ink)] transition-colors focus:border-[var(--accent)] focus:bg-[var(--surface)] focus:outline-none dark:border-stone-700 dark:bg-stone-800 dark:text-stone-100 dark:focus:bg-stone-800"
             />
           </div>
 
@@ -188,7 +188,7 @@ export const QuickCreateModal: React.FC<QuickCreateModalProps> = ({
               rows={2}
               value={summary}
               onChange={(e) => setSummary(e.target.value)}
-              className="min-h-[88px] w-full resize-none rounded-xl border border-stone-200/80 bg-stone-500/[0.03] px-3.5 py-2.5 text-base text-stone-900 transition-colors focus:border-[var(--accent)] focus:bg-white focus:outline-none dark:border-stone-700 dark:bg-stone-800 dark:text-stone-100 dark:focus:bg-stone-800"
+              className="min-h-[88px] w-full resize-none rounded-xl border border-stone-200/80 bg-stone-500/[0.03] px-3.5 py-2.5 text-base text-[var(--ink)] transition-colors focus:border-[var(--accent)] focus:bg-[var(--surface)] focus:outline-none dark:border-stone-700 dark:bg-stone-800 dark:text-stone-100 dark:focus:bg-stone-800"
             />
           </div>
         </fieldset>
@@ -226,7 +226,7 @@ export const QuickCreateModal: React.FC<QuickCreateModalProps> = ({
                   autoComplete="off"
                   value={initialTodo}
                   onChange={(e) => setInitialTodo(e.target.value)}
-                  className="min-h-12 w-full rounded-xl border border-stone-200/80 bg-white px-3.5 py-2.5 text-base text-stone-900 transition-colors focus:border-[var(--accent)] focus:outline-none dark:border-stone-700 dark:bg-stone-900 dark:text-stone-100"
+                  className="min-h-12 w-full rounded-xl border border-stone-200/80 bg-stone-500/[0.03] px-3.5 py-2.5 text-base text-[var(--ink)] transition-colors focus:border-[var(--accent)] focus:bg-[var(--surface)] focus:outline-none dark:border-stone-700 dark:bg-stone-900 dark:text-stone-100"
                 />
               </div>
 
@@ -244,7 +244,7 @@ export const QuickCreateModal: React.FC<QuickCreateModalProps> = ({
                         className={`flex min-h-12 items-center justify-center rounded-xl border px-2.5 py-2.5 text-sm transition-all ${
                           isSelected
                             ? opt.activeClass
-                            : 'border-stone-200/70 bg-white text-stone-600 shadow-2xs hover:border-stone-300 hover:bg-stone-50 dark:border-stone-700 dark:bg-stone-800 dark:text-stone-300 dark:hover:border-stone-600 dark:hover:bg-stone-700'
+                            : 'border-[var(--line)] bg-[var(--surface)] text-[var(--ink-muted)] shadow-subtle hover:text-[var(--ink)] hover:bg-[var(--surface-hover)] dark:border-stone-700 dark:bg-stone-800 dark:text-stone-300 dark:hover:border-stone-600 dark:hover:bg-stone-700'
                         }`}
                       >
                         <span>{opt.label}</span>
@@ -272,7 +272,7 @@ export const QuickCreateModal: React.FC<QuickCreateModalProps> = ({
                     name="target_publish_date"
                     placeholder="YYYYMMDD"
                     onChange={(val) => setTargetPublishDate(val)}
-                    className="min-h-12 w-full rounded-xl border border-stone-200/80 bg-white px-3 py-2 text-base text-stone-900 transition-colors focus:border-[var(--accent)] focus:bg-white focus:outline-none dark:border-stone-700 dark:bg-stone-900 dark:text-stone-100"
+                    className="min-h-12 w-full rounded-xl border border-stone-200/80 bg-stone-500/[0.03] px-3 py-2 text-base text-[var(--ink)] transition-colors focus:border-[var(--accent)] focus:bg-[var(--surface)] focus:outline-none dark:border-stone-700 dark:bg-stone-900 dark:text-stone-100"
                   />
                 </div>
 
@@ -287,7 +287,7 @@ export const QuickCreateModal: React.FC<QuickCreateModalProps> = ({
                     name="deadline"
                     placeholder="YYYYMMDD"
                     onChange={(val) => setDeadline(val)}
-                    className="min-h-12 w-full rounded-xl border border-stone-200/80 bg-white px-3 py-2 text-base text-stone-900 transition-colors focus:border-[var(--accent)] focus:bg-white focus:outline-none dark:border-stone-700 dark:bg-stone-900 dark:text-stone-100"
+                    className="min-h-12 w-full rounded-xl border border-stone-200/80 bg-stone-500/[0.03] px-3 py-2 text-base text-[var(--ink)] transition-colors focus:border-[var(--accent)] focus:bg-[var(--surface)] focus:outline-none dark:border-stone-700 dark:bg-stone-900 dark:text-stone-100"
                   />
                 </div>
               </div>
@@ -300,7 +300,7 @@ export const QuickCreateModal: React.FC<QuickCreateModalProps> = ({
                 <span className="ml-auto font-medium text-stone-500 dark:text-stone-400">已选 {selectedTagNames.length} 个</span>
               </legend>
 
-              <div className="flex min-h-[44px] flex-wrap items-center gap-1.5 rounded-xl border border-stone-200/70 bg-white p-2.5 dark:border-stone-700 dark:bg-stone-900">
+              <div className="flex min-h-[44px] flex-wrap items-center gap-1.5 rounded-xl border border-[var(--line)] bg-[var(--canvas)]/80 p-2.5 dark:border-stone-700 dark:bg-stone-900">
                 {selectedTagNames.length > 0 ? (
                   selectedTagNames.map((name) => (
                     <span
@@ -331,7 +331,7 @@ export const QuickCreateModal: React.FC<QuickCreateModalProps> = ({
                       type="button"
                       key={t.id || t.name}
                       onClick={() => addTag(t.name)}
-                      className="flex min-h-9 items-center gap-0.5 rounded-full border border-stone-200/70 bg-white px-2.5 py-0.5 text-xs text-stone-600 shadow-2xs transition-colors hover:border-[var(--accent)] hover:text-[var(--accent)] dark:border-stone-700 dark:bg-stone-800 dark:text-stone-300"
+                      className="flex min-h-9 items-center gap-0.5 rounded-full border border-[var(--line)] bg-[var(--surface)] px-2.5 py-0.5 text-xs text-[var(--ink-muted)] shadow-subtle transition-colors hover:border-[var(--accent)] hover:text-[var(--accent)] hover:bg-[var(--surface-hover)] dark:border-stone-700 dark:bg-stone-800 dark:text-stone-300"
                     >
                       <span className="text-stone-500 dark:text-stone-400">+</span>
                       <span>#{t.name}</span>
@@ -358,7 +358,7 @@ export const QuickCreateModal: React.FC<QuickCreateModalProps> = ({
                         handleAddCustomTag();
                       }
                     }}
-                    className="min-h-12 w-full rounded-xl border border-stone-200/80 bg-white px-3.5 py-2 text-base text-stone-900 transition-colors focus:border-[var(--accent)] focus:outline-none dark:border-stone-700 dark:bg-stone-900 dark:text-stone-100"
+                    className="min-h-12 w-full rounded-xl border border-stone-200/80 bg-stone-500/[0.03] px-3.5 py-2 text-base text-[var(--ink)] transition-colors focus:border-[var(--accent)] focus:bg-[var(--surface)] focus:outline-none dark:border-stone-700 dark:bg-stone-900 dark:text-stone-100"
                   />
                 </div>
                 <button

@@ -331,7 +331,7 @@ export const PeopleTab: React.FC<PeopleTabProps> = ({
               placeholder="例如：大胃袋良子"
               value={name}
               onChange={(e) => setName(e.target.value)}
-              className="w-full px-3.5 py-2 bg-stone-500/[0.03] dark:bg-stone-800 border border-stone-200/80 dark:border-stone-700 rounded-xl text-sm text-stone-900 dark:text-stone-100 placeholder:text-stone-400 focus:bg-white dark:focus:bg-stone-800 focus:border-[var(--accent)] focus:outline-none"
+              className="w-full px-3.5 py-2 bg-stone-500/[0.03] dark:bg-stone-800 border border-stone-200/80 dark:border-stone-700 rounded-xl text-sm text-[var(--ink)] placeholder:text-stone-400 focus:bg-[var(--surface)] dark:focus:bg-stone-800 focus:border-[var(--accent)] focus:outline-none"
             />
           </div>
 
@@ -343,7 +343,7 @@ export const PeopleTab: React.FC<PeopleTabProps> = ({
                 placeholder="例如：吃播网红 / 探店博主"
                 value={identity}
                 onChange={(e) => setIdentity(e.target.value)}
-                className="w-full px-3.5 py-2 bg-stone-500/[0.03] dark:bg-stone-800 border border-stone-200/80 dark:border-stone-700 rounded-xl text-sm text-stone-900 dark:text-stone-100 placeholder:text-stone-400 focus:bg-white dark:focus:bg-stone-800 focus:border-[var(--accent)] focus:outline-none"
+                className="w-full px-3.5 py-2 bg-stone-500/[0.03] dark:bg-stone-800 border border-stone-200/80 dark:border-stone-700 rounded-xl text-sm text-[var(--ink)] placeholder:text-stone-400 focus:bg-[var(--surface)] dark:focus:bg-stone-800 focus:border-[var(--accent)] focus:outline-none"
               />
             </div>
 
@@ -354,7 +354,7 @@ export const PeopleTab: React.FC<PeopleTabProps> = ({
                 placeholder="例如：良子、峨眉山战神"
                 value={aliases}
                 onChange={(e) => setAliases(e.target.value)}
-                className="w-full px-3.5 py-2 bg-stone-500/[0.03] dark:bg-stone-800 border border-stone-200/80 dark:border-stone-700 rounded-xl text-sm text-stone-900 dark:text-stone-100 placeholder:text-stone-400 focus:bg-white dark:focus:bg-stone-800 focus:border-[var(--accent)] focus:outline-none"
+                className="w-full px-3.5 py-2 bg-stone-500/[0.03] dark:bg-stone-800 border border-stone-200/80 dark:border-stone-700 rounded-xl text-sm text-[var(--ink)] placeholder:text-stone-400 focus:bg-[var(--surface)] dark:focus:bg-stone-800 focus:border-[var(--accent)] focus:outline-none"
               />
             </div>
           </div>
@@ -366,7 +366,7 @@ export const PeopleTab: React.FC<PeopleTabProps> = ({
               placeholder="例如：抖音 @大胃袋良子 (120w)、B站同名"
               value={platformAccounts}
               onChange={(e) => setPlatformAccounts(e.target.value)}
-              className="w-full px-3.5 py-2 bg-stone-500/[0.03] dark:bg-stone-800 border border-stone-200/80 dark:border-stone-700 rounded-xl text-sm text-stone-900 dark:text-stone-100 placeholder:text-stone-400 focus:bg-white dark:focus:bg-stone-800 focus:border-[var(--accent)] focus:outline-none"
+              className="w-full px-3.5 py-2 bg-stone-500/[0.03] dark:bg-stone-800 border border-stone-200/80 dark:border-stone-700 rounded-xl text-sm text-[var(--ink)] placeholder:text-stone-400 focus:bg-[var(--surface)] dark:focus:bg-stone-800 focus:border-[var(--accent)] focus:outline-none"
             />
           </div>
 
@@ -377,7 +377,7 @@ export const PeopleTab: React.FC<PeopleTabProps> = ({
               placeholder="例如：“今天这顿必须拿下！”"
               value={quotes}
               onChange={(e) => setQuotes(e.target.value)}
-              className="w-full px-3.5 py-2 bg-stone-500/[0.03] dark:bg-stone-800 border border-stone-200/80 dark:border-stone-700 rounded-xl text-sm text-stone-900 dark:text-stone-100 placeholder:text-stone-400 focus:bg-white dark:focus:bg-stone-800 focus:border-[var(--accent)] focus:outline-none"
+              className="w-full px-3.5 py-2 bg-stone-500/[0.03] dark:bg-stone-800 border border-stone-200/80 dark:border-stone-700 rounded-xl text-sm text-[var(--ink)] placeholder:text-stone-400 focus:bg-[var(--surface)] dark:focus:bg-stone-800 focus:border-[var(--accent)] focus:outline-none"
             />
           </div>
 
@@ -388,7 +388,7 @@ export const PeopleTab: React.FC<PeopleTabProps> = ({
               placeholder="简要概括该人物的生平经历、公共事件、人设演变..."
               value={description}
               onChange={(e) => setDescription(e.target.value)}
-              className="w-full px-3.5 py-2 bg-stone-500/[0.03] dark:bg-stone-800 border border-stone-200/80 dark:border-stone-700 rounded-xl text-sm text-stone-900 dark:text-stone-100 placeholder:text-stone-400 focus:bg-white dark:focus:bg-stone-800 focus:border-[var(--accent)] focus:outline-none"
+              className="w-full px-3.5 py-2 bg-stone-500/[0.03] dark:bg-stone-800 border border-stone-200/80 dark:border-stone-700 rounded-xl text-sm text-[var(--ink)] placeholder:text-stone-400 focus:bg-[var(--surface)] dark:focus:bg-stone-800 focus:border-[var(--accent)] focus:outline-none"
             />
           </div>
 

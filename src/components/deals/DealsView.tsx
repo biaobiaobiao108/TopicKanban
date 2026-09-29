@@ -128,7 +128,7 @@ function getSafePublishedVideoUrl(video: NonNullable<CommercialDealDetail['publi
 const formatMoney = (cents: number) => (cents > 0 ? `¥${(cents / 100).toLocaleString('zh-CN', { minimumFractionDigits: 2 })}` : '未报价');
 
 const fieldClass =
-  'mt-1.5 w-full rounded-xl border border-stone-200/80 bg-stone-500/[0.03] px-3 py-2.5 text-sm text-stone-900 outline-none transition-colors placeholder:text-stone-400 focus:border-[var(--accent)] focus:bg-white dark:border-stone-700 dark:bg-stone-800 dark:text-stone-100 dark:focus:bg-stone-800';
+  'mt-1.5 w-full rounded-xl border border-stone-200/80 bg-stone-500/[0.03] px-3 py-2.5 text-sm text-[var(--ink)] outline-none transition-colors placeholder:text-stone-400 focus:border-[var(--accent)] focus:bg-[var(--surface)] dark:border-stone-700 dark:bg-stone-800 dark:text-stone-100 dark:focus:bg-stone-800';
 const textareaClass = `${fieldClass} min-h-24 resize-y leading-relaxed`;
 
 interface DealsViewProps {
@@ -623,7 +623,7 @@ function CommercialDealsView({ topics, onCreateTopicFromDeal }: Pick<DealsViewPr
                   setQuery(event.target.value);
                   setPage(1);
                 }}
-                className="min-h-11 w-full rounded-xl border border-stone-200/80 bg-stone-500/[0.03] px-3 text-sm font-medium text-stone-900 outline-none placeholder:text-stone-400 focus:border-[var(--accent)] focus:bg-white dark:border-stone-700 dark:bg-stone-800 dark:text-stone-100 dark:focus:bg-stone-800"
+                className="min-h-11 w-full rounded-xl border border-stone-200/80 bg-stone-500/[0.03] px-3 text-sm font-medium text-[var(--ink)] outline-none placeholder:text-stone-400 focus:border-[var(--accent)] focus:bg-[var(--surface)] dark:border-stone-700 dark:bg-stone-800 dark:text-stone-100 dark:focus:bg-stone-800"
                 placeholder="搜索商单、品牌、对接人或关联选题"
               />
             </label>
@@ -657,7 +657,7 @@ function CommercialDealsView({ topics, onCreateTopicFromDeal }: Pick<DealsViewPr
           </div>
         </div>
         {dealsQuery.isLoading ? (
-          <div className="grid place-items-center rounded-2xl border border-stone-200/70 bg-white py-20 text-sm text-stone-500 dark:border-stone-800 dark:bg-stone-900">
+          <div className="grid place-items-center rounded-2xl border border-[var(--line)] bg-[var(--surface)] py-20 text-sm text-[var(--ink-muted)] dark:border-stone-800 dark:bg-stone-900">
             正在加载商单…
           </div>
         ) : dealsQuery.error ? (
@@ -669,7 +669,7 @@ function CommercialDealsView({ topics, onCreateTopicFromDeal }: Pick<DealsViewPr
             {dealsQuery.error instanceof Error ? dealsQuery.error.message : '未知错误'}
           </div>
         ) : deals.length === 0 ? (
-          <div className="rounded-2xl border border-dashed border-stone-300 bg-white px-6 py-20 text-center dark:border-stone-700 dark:bg-stone-900">
+          <div className="rounded-2xl border border-dashed border-[var(--line)] bg-[var(--surface)] px-6 py-20 text-center dark:border-stone-700 dark:bg-stone-900">
             <CircleDollarSign className="mx-auto h-8 w-8 text-stone-300 dark:text-stone-600" />
             <p className="mt-3 text-sm font-semibold text-stone-600 dark:text-stone-300">还没有符合条件的商单</p>
             <p className="mt-1 text-xs text-stone-600 dark:text-stone-400">收到品牌需求时，先把它记下来，别让商务线索飘走。</p>
@@ -712,7 +712,7 @@ function CommercialDealsView({ topics, onCreateTopicFromDeal }: Pick<DealsViewPr
                   aria-label="上一页"
                   disabled={page <= 1 || dealsQuery.isFetching}
                   onClick={() => setPage((current) => Math.max(1, current - 1))}
-                  className="inline-flex min-h-10 items-center gap-1.5 rounded-xl border border-stone-200 bg-white px-3 text-xs font-bold text-stone-700 transition-colors hover:border-[var(--accent)] hover:text-[var(--accent)] disabled:cursor-not-allowed disabled:opacity-40 dark:border-stone-700 dark:bg-stone-800 dark:text-stone-200"
+                  className="inline-flex min-h-10 items-center gap-1.5 rounded-xl border border-[var(--line)] bg-[var(--surface)] px-3 text-xs font-bold text-[var(--ink)] transition-colors hover:border-[var(--accent)] hover:text-[var(--accent)] hover:bg-[var(--surface-hover)] disabled:cursor-not-allowed disabled:opacity-40 dark:border-stone-700 dark:bg-stone-800 dark:text-stone-200"
                 >
                   <ArrowLeft className="h-3.5 w-3.5" />
                   上一页
@@ -725,7 +725,7 @@ function CommercialDealsView({ topics, onCreateTopicFromDeal }: Pick<DealsViewPr
                   aria-label="下一页"
                   disabled={page >= totalPages || dealsQuery.isFetching}
                   onClick={() => setPage((current) => Math.min(totalPages, current + 1))}
-                  className="inline-flex min-h-10 items-center gap-1.5 rounded-xl border border-stone-200 bg-white px-3 text-xs font-bold text-stone-700 transition-colors hover:border-[var(--accent)] hover:text-[var(--accent)] disabled:cursor-not-allowed disabled:opacity-40 dark:border-stone-700 dark:bg-stone-800 dark:text-stone-200"
+                  className="inline-flex min-h-10 items-center gap-1.5 rounded-xl border border-[var(--line)] bg-[var(--surface)] px-3 text-xs font-bold text-[var(--ink)] transition-colors hover:border-[var(--accent)] hover:text-[var(--accent)] hover:bg-[var(--surface-hover)] disabled:cursor-not-allowed disabled:opacity-40 dark:border-stone-700 dark:bg-stone-800 dark:text-stone-200"
                 >
                   下一页
                   <ArrowRight className="h-3.5 w-3.5" />
@@ -1144,7 +1144,7 @@ function CommercialDealDetailView({
                       autoFocus
                       value={titleDraft}
                       onChange={(event) => setTitleDraft(event.target.value)}
-                      className="min-h-11 min-w-0 flex-1 rounded-xl border border-stone-200 bg-white px-3 text-xl font-bold text-stone-900 outline-none focus:ring-2 focus:ring-[var(--focus-ring)] dark:border-stone-700 dark:bg-stone-800 dark:text-stone-100"
+                      className="min-h-11 min-w-0 flex-1 rounded-xl border border-[var(--line)] bg-[var(--surface)] px-3 text-xl font-bold text-[var(--ink)] outline-none focus:ring-2 focus:ring-[var(--focus-ring)] dark:border-stone-700 dark:bg-stone-800 dark:text-stone-100"
                     />
                     <button
                       type="submit"
@@ -1722,7 +1722,7 @@ function CommercialDealDetailView({
                     popoverClassName="w-[min(32rem,calc(100vw-2rem))] max-w-[calc(100vw-2rem)]"
                   />
                   {deal.published_video && (
-                    <div className="mt-3 min-w-0 rounded-lg border border-stone-200/70 bg-white/70 p-3 dark:border-stone-700 dark:bg-stone-900/50">
+                    <div className="mt-3 min-w-0 rounded-lg border border-[var(--line)] bg-[var(--canvas)]/70 p-3 dark:border-stone-700 dark:bg-stone-900/50">
                       <p className="text-[11px] font-semibold text-stone-400 dark:text-stone-500">已绑定视频标题</p>
                       <p
                         className="mt-1 break-words whitespace-normal text-sm font-bold leading-relaxed text-stone-800 dark:text-stone-200"

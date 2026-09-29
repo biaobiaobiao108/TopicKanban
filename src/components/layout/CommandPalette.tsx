@@ -829,7 +829,7 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
         role="dialog"
         aria-modal="true"
         aria-label="全局指令搜索面板"
-        className="relative w-full max-w-2xl bg-white dark:bg-stone-900 rounded-2xl shadow-modal border border-stone-200/70 dark:border-stone-800 overflow-hidden flex flex-col z-10 animate-in fade-in slide-in-from-top-2 zoom-in-95 duration-200 ease-editorial-out transition-colors max-h-[85dvh]"
+        className="relative w-full max-w-2xl bg-[var(--surface)] rounded-2xl shadow-modal border border-[var(--line)] overflow-hidden flex flex-col z-10 animate-in fade-in slide-in-from-top-2 zoom-in-95 duration-200 ease-editorial-out transition-colors max-h-[85dvh]"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Search Input Header */}
@@ -1001,19 +1001,19 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
         </FloatingScrollbar>
 
         {/* Footer Keybinding Hints Bar */}
-        <div className="px-4 py-2.5 bg-stone-50 dark:bg-stone-900/90 border-t border-stone-200 dark:border-stone-800 flex items-center justify-between text-[11px] text-stone-600 dark:text-stone-400 font-medium shrink-0 flex-wrap gap-2">
+        <div className="px-4 py-2.5 bg-[var(--surface-muted)] dark:bg-stone-900/90 border-t border-[var(--line)] dark:border-stone-800 flex items-center justify-between text-[11px] text-[var(--ink-muted)] font-medium shrink-0 flex-wrap gap-2">
           <div className="flex items-center gap-3">
             <span className="flex items-center gap-1">
-              <kbd className="bg-white dark:bg-stone-800 px-1.5 py-0.5 rounded border border-stone-200 dark:border-stone-700 font-mono shadow-2xs text-stone-700 dark:text-stone-300">↑</kbd>
-              <kbd className="bg-white dark:bg-stone-800 px-1.5 py-0.5 rounded border border-stone-200 dark:border-stone-700 font-mono shadow-2xs text-stone-700 dark:text-stone-300">↓</kbd>
+              <kbd className="bg-[var(--canvas)]/80 dark:bg-stone-800 px-1.5 py-0.5 rounded border border-[var(--line)] dark:border-stone-700 font-mono shadow-subtle text-[var(--ink)]">↑</kbd>
+              <kbd className="bg-[var(--canvas)]/80 dark:bg-stone-800 px-1.5 py-0.5 rounded border border-[var(--line)] dark:border-stone-700 font-mono shadow-subtle text-[var(--ink)]">↓</kbd>
               <span>选择</span>
             </span>
             <span className="flex items-center gap-1">
-              <kbd className="bg-white dark:bg-stone-800 px-1.5 py-0.5 rounded border border-stone-200 dark:border-stone-700 font-mono shadow-2xs text-stone-700 dark:text-stone-300">↵</kbd>
+              <kbd className="bg-[var(--canvas)]/80 dark:bg-stone-800 px-1.5 py-0.5 rounded border border-[var(--line)] dark:border-stone-700 font-mono shadow-subtle text-[var(--ink)]">↵</kbd>
               <span>确认执行</span>
             </span>
             <span className="flex items-center gap-1">
-              <kbd className="bg-white dark:bg-stone-800 px-1.5 py-0.5 rounded border border-stone-200 dark:border-stone-700 font-mono shadow-2xs text-stone-700 dark:text-stone-300">ESC</kbd>
+              <kbd className="bg-[var(--canvas)]/80 dark:bg-stone-800 px-1.5 py-0.5 rounded border border-[var(--line)] dark:border-stone-700 font-mono shadow-subtle text-[var(--ink)]">ESC</kbd>
               <span>关闭</span>
             </span>
           </div>

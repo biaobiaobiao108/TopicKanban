@@ -414,8 +414,8 @@ export const PublishedView: React.FC<PublishedViewProps> = ({
             onClick={() => setViewMode('cards')}
             className={`flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer ${
               viewMode === 'cards'
-                ? 'bg-white dark:bg-stone-700 text-stone-900 dark:text-stone-100 shadow-2xs'
-                : 'text-stone-600 dark:text-stone-400 hover:text-stone-900 dark:hover:text-stone-200'
+                ? 'bg-[var(--surface)] text-[var(--ink)] shadow-subtle'
+                : 'text-[var(--ink-muted)] hover:text-[var(--ink)]'
             }`}
           >
             <Film className="w-3.5 h-3.5" />
@@ -426,8 +426,8 @@ export const PublishedView: React.FC<PublishedViewProps> = ({
             onClick={() => setViewMode('analytics')}
             className={`flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer ${
               viewMode === 'analytics'
-                ? 'bg-white dark:bg-stone-700 text-stone-900 dark:text-stone-100 shadow-2xs'
-                : 'text-stone-600 dark:text-stone-400 hover:text-stone-900 dark:hover:text-stone-200'
+                ? 'bg-[var(--surface)] text-[var(--ink)] shadow-subtle'
+                : 'text-[var(--ink-muted)] hover:text-[var(--ink)]'
             }`}
           >
             <BarChart2 className="w-3.5 h-3.5" />
@@ -484,7 +484,7 @@ export const PublishedView: React.FC<PublishedViewProps> = ({
             })}
 
             {totalPublished === 0 && (
-              <div className="col-span-full p-12 text-center border-2 border-dashed border-stone-200 dark:border-stone-800 rounded-xl bg-white dark:bg-stone-900 text-stone-600 dark:text-stone-400">
+              <div className="col-span-full p-12 text-center border border-dashed border-[var(--line)] rounded-xl bg-[var(--surface)] text-[var(--ink-muted)]">
                 暂无已发布视频归档，制作完成发布后可在此沉淀播放与互动数据！
               </div>
             )}
@@ -497,14 +497,14 @@ export const PublishedView: React.FC<PublishedViewProps> = ({
               type="button"
               disabled={page <= 1 || pageQuery.isFetching}
               onClick={() => setPage((current) => Math.max(1, current - 1))}
-              className="rounded-lg border border-stone-200 bg-white px-3 py-2 font-semibold disabled:cursor-not-allowed disabled:opacity-40 dark:border-stone-700 dark:bg-stone-900"
+              className="rounded-lg border border-[var(--line)] bg-[var(--surface)] px-3 py-2 font-semibold text-[var(--ink)] hover:bg-[var(--surface-hover)] disabled:cursor-not-allowed disabled:opacity-40 dark:border-stone-700 dark:bg-stone-900"
             >上一页</button>
             <span><span className="font-mono tabular-nums">{page} / {Math.max(1, pageQuery.data?.total_pages || 1)}</span> · 共 <span className="font-mono tabular-nums">{totalPublished}</span> 条</span>
             <button
               type="button"
               disabled={page >= (pageQuery.data?.total_pages || 1) || pageQuery.isFetching}
               onClick={() => setPage((current) => current + 1)}
-              className="rounded-lg border border-stone-200 bg-white px-3 py-2 font-semibold disabled:cursor-not-allowed disabled:opacity-40 dark:border-stone-700 dark:bg-stone-900"
+              className="rounded-lg border border-[var(--line)] bg-[var(--surface)] px-3 py-2 font-semibold text-[var(--ink)] hover:bg-[var(--surface-hover)] disabled:cursor-not-allowed disabled:opacity-40 dark:border-stone-700 dark:bg-stone-900"
             >下一页</button>
           </div>
         )}
@@ -640,7 +640,7 @@ export const PublishedView: React.FC<PublishedViewProps> = ({
                       }
                     }
                   }}
-                   className="flex-1 px-3 py-1.5 bg-white dark:bg-stone-900 border border-stone-300 dark:border-stone-700 rounded-lg text-base text-stone-900 dark:text-stone-100 placeholder:text-stone-400 dark:placeholder:text-stone-500 focus:border-[var(--accent)] focus:outline-none font-mono"
+                   className="flex-1 px-3 py-1.5 bg-stone-500/[0.03] dark:bg-stone-900 border border-stone-300 dark:border-stone-700 rounded-lg text-base text-[var(--ink)] placeholder:text-stone-400 dark:placeholder:text-stone-500 focus:bg-[var(--surface)] focus:border-[var(--accent)] focus:outline-none font-mono"
                 />
                 <button
                   type="button"
@@ -705,7 +705,7 @@ export const PublishedView: React.FC<PublishedViewProps> = ({
                 placeholder="例如：【良子】峨眉山名场面深度复盘"
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
-                className="w-full px-3 py-2 bg-stone-50 dark:bg-stone-800 border border-stone-300 dark:border-stone-700 rounded-lg text-sm text-stone-900 dark:text-stone-100 placeholder:text-stone-400 dark:placeholder:text-stone-500 focus:bg-white dark:focus:bg-stone-800 focus:outline-none"
+                className="w-full px-3 py-2 bg-stone-500/[0.03] dark:bg-stone-800 border border-stone-300 dark:border-stone-700 rounded-lg text-sm text-[var(--ink)] placeholder:text-stone-400 dark:placeholder:text-stone-500 focus:bg-[var(--surface)] dark:focus:bg-stone-800 focus:outline-none focus:border-[var(--accent)]"
               />
             </div>
 
@@ -718,7 +718,7 @@ export const PublishedView: React.FC<PublishedViewProps> = ({
                   name="published_at"
                   value={publishedAt}
                   onChange={setPublishedAt}
-                  className="w-full px-3 py-2 bg-stone-50 dark:bg-stone-800 border border-stone-300 dark:border-stone-700 rounded-lg text-sm text-stone-900 dark:text-stone-100 focus:bg-white dark:focus:bg-stone-800 focus:outline-none"
+                  className="w-full px-3 py-2 bg-stone-500/[0.03] dark:bg-stone-800 border border-stone-300 dark:border-stone-700 rounded-lg text-sm text-[var(--ink)] focus:bg-[var(--surface)] dark:focus:bg-stone-800 focus:outline-none"
                 />
               </div>
               <div>
@@ -731,7 +731,7 @@ export const PublishedView: React.FC<PublishedViewProps> = ({
                   placeholder="https://www.bilibili.com/video/..."
                   value={url}
                   onChange={(e) => setUrl(e.target.value)}
-                  className="w-full px-3 py-2 bg-stone-50 dark:bg-stone-800 border border-stone-300 dark:border-stone-700 rounded-lg text-sm text-stone-900 dark:text-stone-100 placeholder:text-stone-400 dark:placeholder:text-stone-500 focus:bg-white dark:focus:bg-stone-800 focus:outline-none"
+                  className="w-full px-3 py-2 bg-stone-500/[0.03] dark:bg-stone-800 border border-stone-300 dark:border-stone-700 rounded-lg text-sm text-[var(--ink)] placeholder:text-stone-400 dark:placeholder:text-stone-500 focus:bg-[var(--surface)] dark:focus:bg-stone-800 focus:outline-none focus:border-[var(--accent)]"
                 />
               </div>
             </div>
@@ -748,7 +748,7 @@ export const PublishedView: React.FC<PublishedViewProps> = ({
                   min="0"
                   value={views}
                   onChange={(e) => setViews(Number(e.target.value))}
-                  className="w-full px-3 py-1.5 bg-stone-50 dark:bg-stone-800 border border-stone-300 dark:border-stone-700 rounded-lg text-sm font-mono text-stone-900 dark:text-stone-100 focus:bg-white dark:focus:bg-stone-800 focus:outline-none"
+                  className="w-full px-3 py-1.5 bg-stone-500/[0.03] dark:bg-stone-800 border border-stone-300 dark:border-stone-700 rounded-lg text-sm font-mono text-[var(--ink)] focus:bg-[var(--surface)] dark:focus:bg-stone-800 focus:outline-none focus:border-[var(--accent)]"
                 />
               </div>
               <div>
@@ -761,7 +761,7 @@ export const PublishedView: React.FC<PublishedViewProps> = ({
                   min="0"
                   value={likes}
                   onChange={(e) => setLikes(Number(e.target.value))}
-                  className="w-full px-3 py-1.5 bg-stone-50 dark:bg-stone-800 border border-stone-300 dark:border-stone-700 rounded-lg text-sm font-mono text-stone-900 dark:text-stone-100 focus:bg-white dark:focus:bg-stone-800 focus:outline-none"
+                  className="w-full px-3 py-1.5 bg-stone-500/[0.03] dark:bg-stone-800 border border-stone-300 dark:border-stone-700 rounded-lg text-sm font-mono text-[var(--ink)] focus:bg-[var(--surface)] dark:focus:bg-stone-800 focus:outline-none focus:border-[var(--accent)]"
                 />
               </div>
               <div>
@@ -774,7 +774,7 @@ export const PublishedView: React.FC<PublishedViewProps> = ({
                   min="0"
                   value={coins}
                   onChange={(e) => setCoins(Number(e.target.value))}
-                  className="w-full px-3 py-1.5 bg-stone-50 dark:bg-stone-800 border border-stone-300 dark:border-stone-700 rounded-lg text-sm font-mono text-stone-900 dark:text-stone-100 focus:bg-white dark:focus:bg-stone-800 focus:outline-none"
+                  className="w-full px-3 py-1.5 bg-stone-500/[0.03] dark:bg-stone-800 border border-stone-300 dark:border-stone-700 rounded-lg text-sm font-mono text-[var(--ink)] focus:bg-[var(--surface)] dark:focus:bg-stone-800 focus:outline-none focus:border-[var(--accent)]"
                 />
               </div>
               <div>
@@ -787,7 +787,7 @@ export const PublishedView: React.FC<PublishedViewProps> = ({
                   min="0"
                   value={favorites}
                   onChange={(e) => setFavorites(Number(e.target.value))}
-                  className="w-full px-3 py-1.5 bg-stone-50 dark:bg-stone-800 border border-stone-300 dark:border-stone-700 rounded-lg text-sm font-mono text-stone-900 dark:text-stone-100 focus:bg-white dark:focus:bg-stone-800 focus:outline-none"
+                  className="w-full px-3 py-1.5 bg-stone-500/[0.03] dark:bg-stone-800 border border-stone-300 dark:border-stone-700 rounded-lg text-sm font-mono text-[var(--ink)] focus:bg-[var(--surface)] dark:focus:bg-stone-800 focus:outline-none focus:border-[var(--accent)]"
                 />
               </div>
               <div>
@@ -800,7 +800,7 @@ export const PublishedView: React.FC<PublishedViewProps> = ({
                   min="0"
                   value={comments}
                   onChange={(e) => setComments(Number(e.target.value))}
-                  className="w-full px-3 py-1.5 bg-stone-50 dark:bg-stone-800 border border-stone-300 dark:border-stone-700 rounded-lg text-sm font-mono text-stone-900 dark:text-stone-100 focus:bg-white dark:focus:bg-stone-800 focus:outline-none"
+                  className="w-full px-3 py-1.5 bg-stone-500/[0.03] dark:bg-stone-800 border border-stone-300 dark:border-stone-700 rounded-lg text-sm font-mono text-[var(--ink)] focus:bg-[var(--surface)] dark:focus:bg-stone-800 focus:outline-none focus:border-[var(--accent)]"
                 />
               </div>
             </div>
@@ -816,7 +816,7 @@ export const PublishedView: React.FC<PublishedViewProps> = ({
                 placeholder="记录本期视频哪些包袱响了、弹幕集中讨论什么、哪些地方剪辑拖沓..."
                 value={notes}
                 onChange={(e) => setNotes(e.target.value)}
-                className="w-full px-3 py-2 bg-stone-50 dark:bg-stone-800 border border-stone-300 dark:border-stone-700 rounded-lg text-sm text-stone-900 dark:text-stone-100 placeholder:text-stone-400 dark:placeholder:text-stone-500 focus:bg-white dark:focus:bg-stone-800 focus:outline-none resize-none"
+                className="w-full px-3 py-2 bg-stone-500/[0.03] dark:bg-stone-800 border border-stone-300 dark:border-stone-700 rounded-lg text-sm text-[var(--ink)] placeholder:text-stone-400 dark:placeholder:text-stone-500 focus:bg-[var(--surface)] dark:focus:bg-stone-800 focus:outline-none focus:border-[var(--accent)] resize-none"
               />
             </div>
 

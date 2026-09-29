@@ -652,7 +652,7 @@ function renderScriptTextWithCues(text: string): React.ReactNode {
                   ? 'bg-[var(--accent)] border-[var(--accent)] text-white shadow-xs'
                   : isDark
                   ? 'bg-stone-900 border-stone-700/80 text-stone-200 hover:bg-stone-800 hover:text-white'
-                  : 'bg-white border-stone-300 text-stone-700 hover:bg-stone-100'
+                  : 'bg-[var(--surface)] border-[var(--line)] text-[var(--ink)] hover:bg-[var(--surface-hover)]'
               }`}
             >
               <Menu className="w-3.5 h-3.5" />
@@ -687,7 +687,7 @@ function renderScriptTextWithCues(text: string): React.ReactNode {
         <div className="flex items-center gap-2">
           {/* Speed Multiplier Pill */}
           <div className={`flex items-center gap-1 rounded-lg border px-1.5 py-0.5 text-xs font-mono transition-colors ${
-            isDark ? 'bg-stone-900 border-stone-700/80 text-stone-200' : 'bg-white border-stone-300 text-stone-700'
+            isDark ? 'bg-stone-900 border-stone-700/80 text-stone-200' : 'bg-[var(--surface)] border-[var(--line)] text-[var(--ink)]'
           }`}>
             <Gauge className={`w-3.5 h-3.5 ml-0.5 ${isDark ? 'text-stone-300' : 'text-stone-400'}`} />
             <button
@@ -709,7 +709,7 @@ function renderScriptTextWithCues(text: string): React.ReactNode {
 
           {/* Font Size Preset */}
           <div className={`hidden sm:flex items-center gap-0.5 rounded-lg border p-0.5 text-xs transition-colors ${
-            isDark ? 'bg-stone-900 border-stone-700/80' : 'bg-white border-stone-300'
+            isDark ? 'bg-stone-900 border-stone-700/80' : 'bg-[var(--surface)] border-[var(--line)]'
           }`}>
             <Type className={`w-3.5 h-3.5 mx-1 ${isDark ? 'text-stone-300' : 'text-stone-400'}`} />
             {FONT_SIZES.map((f) => (
@@ -738,7 +738,7 @@ function renderScriptTextWithCues(text: string): React.ReactNode {
                 ? 'bg-amber-600 border-amber-600 text-white shadow-xs'
                 : isDark
                 ? 'bg-stone-900 border-stone-700/80 hover:bg-stone-800 text-stone-200 hover:text-white'
-                : 'bg-white border-stone-300 hover:bg-stone-100 text-stone-700'
+                : 'bg-[var(--surface)] border-[var(--line)] hover:bg-[var(--surface-hover)] text-[var(--ink)]'
             }`}
             aria-label="切换镜像模式"
           >
@@ -751,7 +751,7 @@ function renderScriptTextWithCues(text: string): React.ReactNode {
             className={`p-1.5 rounded-lg border transition-colors cursor-pointer ${
               isDark
                 ? 'bg-stone-900 border-stone-700/80 hover:bg-stone-800 text-stone-200 hover:text-white'
-                : 'bg-white border-stone-300 hover:bg-stone-100 text-stone-700'
+                : 'bg-[var(--surface)] border-[var(--line)] hover:bg-[var(--surface-hover)] text-[var(--ink)]'
             }`}
             aria-label="切换全屏"
           >
@@ -766,7 +766,7 @@ function renderScriptTextWithCues(text: string): React.ReactNode {
               ? 'bg-[var(--accent)] border-[var(--accent)] text-white shadow-xs'
                 : isDark
                 ? 'bg-stone-900 border-stone-700/80 hover:bg-stone-800 text-stone-200 hover:text-white'
-                : 'bg-white border-stone-300 hover:bg-stone-100 text-stone-700'
+                : 'bg-[var(--surface)] border-[var(--line)] hover:bg-[var(--surface-hover)] text-[var(--ink)]'
             }`}
             aria-label="快捷键指南"
           >

@@ -230,7 +230,7 @@ export const SourcesTab: React.FC<SourcesTabProps> = ({
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="搜索素材标题、内容、备忘..."
-              className="w-full pl-9 pr-7 py-2 bg-stone-500/[0.03] dark:bg-stone-800 border border-stone-200/70 dark:border-stone-700 rounded-xl text-xs text-stone-900 dark:text-stone-100 placeholder:text-stone-400 focus:bg-white dark:focus:bg-stone-800 focus:outline-none focus:border-[var(--accent)] transition-colors"
+              className="w-full pl-9 pr-7 py-2 bg-stone-500/[0.03] dark:bg-stone-800 border border-stone-200/70 dark:border-stone-700 rounded-xl text-xs text-[var(--ink)] placeholder:text-stone-400 focus:bg-[var(--surface)] dark:focus:bg-stone-800 focus:outline-none focus:border-[var(--accent)] transition-colors"
             />
             {searchQuery && (
               <button
@@ -485,7 +485,7 @@ export const SourcesTab: React.FC<SourcesTabProps> = ({
                     }
                   }}
                   placeholder="粘贴 B站（含 b23.tv）或 YouTube 链接，自动拉取标题、UP主与简介..."
-                  className="flex-1 px-3 py-1.5 bg-white dark:bg-stone-900 border border-stone-300 dark:border-stone-700 rounded-lg text-xs text-stone-900 dark:text-stone-100 placeholder:text-stone-400 focus:outline-none focus:border-[var(--accent)]"
+                  className="flex-1 px-3 py-1.5 bg-stone-500/[0.03] dark:bg-stone-900 border border-[var(--line)] dark:border-stone-700 rounded-lg text-xs text-[var(--ink)] placeholder:text-stone-400 focus:outline-none focus:border-[var(--accent)] focus:bg-[var(--surface)]"
                 />
                 {smartPasteInput && (
                   <button
@@ -516,7 +516,7 @@ export const SourcesTab: React.FC<SourcesTabProps> = ({
               placeholder="例如：良子出征誓师直播录屏"
               value={title}
               onChange={(e) => setTitle(e.target.value)}
-              className="w-full px-3 py-2 bg-stone-50 dark:bg-stone-800 border border-stone-300 dark:border-stone-700 rounded-lg text-sm text-stone-900 dark:text-stone-100 placeholder:text-stone-400 dark:placeholder:text-stone-500 focus:bg-white dark:focus:bg-stone-800 focus:outline-none"
+              className="w-full px-3 py-2 bg-stone-500/[0.03] dark:bg-stone-800 border border-stone-300 dark:border-stone-700 rounded-lg text-sm text-[var(--ink)] placeholder:text-stone-400 dark:placeholder:text-stone-500 focus:bg-[var(--surface)] dark:focus:bg-stone-800 focus:border-[var(--accent)] focus:outline-none"
             />
           </div>
 
@@ -529,7 +529,7 @@ export const SourcesTab: React.FC<SourcesTabProps> = ({
                 ariaLabel="来源平台"
                 ariaLabelledBy="source-platform-label"
                 className="w-full"
-                buttonClassName="w-full justify-between py-2 text-sm bg-stone-50 dark:bg-stone-800 border-stone-300 dark:border-stone-700 rounded-lg"
+                buttonClassName="w-full justify-between py-2 text-sm bg-stone-500/[0.03] dark:bg-stone-800 border-stone-300 dark:border-stone-700 rounded-lg"
                 options={[
                   { value: 'bilibili', label: 'Bilibili' },
                   { value: 'douyin', label: '抖音' },
@@ -556,7 +556,7 @@ export const SourcesTab: React.FC<SourcesTabProps> = ({
                 placeholder="例如：良子官方录播组"
                 value={author}
                 onChange={(e) => setAuthor(e.target.value)}
-                className="w-full px-3 py-2 bg-stone-50 dark:bg-stone-800 border border-stone-300 dark:border-stone-700 rounded-lg text-sm text-stone-900 dark:text-stone-100 placeholder:text-stone-400 dark:placeholder:text-stone-500 focus:bg-white dark:focus:bg-stone-800 focus:outline-none"
+                className="w-full px-3 py-2 bg-stone-500/[0.03] dark:bg-stone-800 border border-stone-300 dark:border-stone-700 rounded-lg text-sm text-[var(--ink)] placeholder:text-stone-400 dark:placeholder:text-stone-500 focus:bg-[var(--surface)] dark:focus:bg-stone-800 focus:border-[var(--accent)] focus:outline-none"
               />
             </div>
           </div>
@@ -578,7 +578,7 @@ export const SourcesTab: React.FC<SourcesTabProps> = ({
                     void handleSmartParse(pasted);
                   }
                 }}
-                className="w-full px-3 py-2 bg-stone-50 dark:bg-stone-800 border border-stone-300 dark:border-stone-700 rounded-lg text-sm text-stone-900 dark:text-stone-100 placeholder:text-stone-400 dark:placeholder:text-stone-500 focus:bg-white dark:focus:bg-stone-800 focus:outline-none"
+                className="w-full px-3 py-2 bg-stone-500/[0.03] dark:bg-stone-800 border border-stone-300 dark:border-stone-700 rounded-lg text-sm text-[var(--ink)] placeholder:text-stone-400 dark:placeholder:text-stone-500 focus:bg-[var(--surface)] dark:focus:bg-stone-800 focus:border-[var(--accent)] focus:outline-none"
               />
             </div>
 
@@ -590,7 +590,7 @@ export const SourcesTab: React.FC<SourcesTabProps> = ({
                 ariaLabel="可信度状态"
                 ariaLabelledBy="source-verification-label"
                 className="w-full"
-                buttonClassName="w-full justify-between py-2 text-sm bg-stone-50 dark:bg-stone-800 border-stone-300 dark:border-stone-700 rounded-lg"
+                buttonClassName="w-full justify-between py-2 text-sm bg-stone-500/[0.03] dark:bg-stone-800 border-stone-300 dark:border-stone-700 rounded-lg"
                 options={[
                   { value: 'confirmed', label: '已确认 (多方可靠来源)', dot: 'bg-emerald-500' },
                   { value: 'unverified', label: '待核实 (信息不足)', dot: 'bg-amber-500' },
@@ -610,7 +610,7 @@ export const SourcesTab: React.FC<SourcesTabProps> = ({
               placeholder="提取原视频或文章中的关键信息、时间码（如04:15处金句）或关键截图要点..."
               value={content}
               onChange={(e) => setContent(e.target.value)}
-              className="w-full px-3 py-2 bg-stone-50 dark:bg-stone-800 border border-stone-300 dark:border-stone-700 rounded-lg text-sm text-stone-900 dark:text-stone-100 placeholder:text-stone-400 dark:placeholder:text-stone-500 focus:bg-white dark:focus:bg-stone-800 focus:outline-none resize-none"
+              className="w-full px-3 py-2 bg-stone-500/[0.03] dark:bg-stone-800 border border-stone-300 dark:border-stone-700 rounded-lg text-sm text-[var(--ink)] placeholder:text-stone-400 dark:placeholder:text-stone-500 focus:bg-[var(--surface)] dark:focus:bg-stone-800 focus:border-[var(--accent)] focus:outline-none resize-none"
             />
           </div>
 
@@ -624,7 +624,7 @@ export const SourcesTab: React.FC<SourcesTabProps> = ({
               placeholder="例如：可用作第一章转折画面"
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
-              className="w-full px-3 py-2 bg-stone-50 dark:bg-stone-800 border border-stone-300 dark:border-stone-700 rounded-lg text-sm text-stone-900 dark:text-stone-100 placeholder:text-stone-400 dark:placeholder:text-stone-500 focus:bg-white dark:focus:bg-stone-800 focus:outline-none"
+              className="w-full px-3 py-2 bg-stone-500/[0.03] dark:bg-stone-800 border border-stone-300 dark:border-stone-700 rounded-lg text-sm text-[var(--ink)] placeholder:text-stone-400 dark:placeholder:text-stone-500 focus:bg-[var(--surface)] dark:focus:bg-stone-800 focus:border-[var(--accent)] focus:outline-none"
             />
           </div>
 

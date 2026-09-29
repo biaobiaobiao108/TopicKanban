@@ -460,9 +460,9 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                 {
                   id: 'light' as const,
                   title: '经典浅色',
-                  desc: '中性自然纸白画布与苍松绿，温润漫反射护眼质感',
+                  desc: '象映温润自然纸境与苍松墨绿，漫反射护眼质感',
                   icon: Sun,
-                  colors: ['#f2f1ed', '#f9f8f6', '#365f4d', '#746e68'],
+                  colors: ['#f6f4ef', '#faf9f6', '#365e4e', '#718078'],
                 },
                 {
                   id: 'dark' as const,
@@ -617,17 +617,17 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                   <span>排版实时效果预览 (所见即所得)</span>
                 </div>
                 <div className="flex items-center gap-2 text-[11px] font-mono">
-                  <span className="bg-white dark:bg-stone-700 text-stone-700 dark:text-stone-300 px-2.5 py-0.5 rounded-full font-semibold shadow-2xs">
+                  <span className="bg-stone-500/[0.06] dark:bg-stone-800 text-[var(--ink-muted)] px-2.5 py-0.5 rounded-full font-semibold font-mono tabular-nums border border-[var(--line)]">
                     {editorFontSize === 'compact' ? '14px 紧凑' : editorFontSize === 'large' ? '19px 播音大字' : '16px 标准'}
                   </span>
-                  <span className="bg-white dark:bg-stone-700 text-stone-700 dark:text-stone-300 px-2.5 py-0.5 rounded-full font-semibold shadow-2xs">
+                  <span className="bg-stone-500/[0.06] dark:bg-stone-800 text-[var(--ink-muted)] px-2.5 py-0.5 rounded-full font-semibold font-mono tabular-nums border border-[var(--line)]">
                     {editorLineHeight === 'normal' ? '1.6 倍行距' : editorLineHeight === 'loose' ? '2.1 倍行距' : '1.8 倍行距'}
                   </span>
                 </div>
               </div>
 
               <div
-                className="p-4 bg-white dark:bg-stone-900 rounded-xl border border-stone-200/70 dark:border-stone-800 text-stone-800 dark:text-stone-100 transition-all duration-150 shadow-2xs"
+                className="p-4 bg-[var(--canvas)]/70 dark:bg-stone-800/60 rounded-xl border border-[var(--line)] text-stone-800 dark:text-stone-100 transition-all duration-150"
                 style={{
                   fontSize: editorFontSize === 'compact' ? '14px' : editorFontSize === 'large' ? '19px' : '16px',
                   lineHeight: editorLineHeight === 'normal' ? 1.6 : editorLineHeight === 'loose' ? 2.1 : 1.8,
@@ -692,7 +692,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
               {voiceoverCues.map((cue) => (
                 <span
                   key={cue}
-                  className="inline-flex items-center gap-1.5 bg-white dark:bg-stone-900 text-stone-800 dark:text-stone-200 px-3 py-1 rounded-full text-xs font-mono font-semibold border border-stone-200/70 dark:border-stone-700 shadow-2xs group"
+                  className="inline-flex items-center gap-1.5 bg-[var(--canvas)] dark:bg-stone-800 text-stone-800 dark:text-stone-200 px-3 py-1 rounded-full text-xs font-mono font-semibold border border-[var(--line)] group"
                 >
                   <span className="text-[var(--accent)] font-bold">[{cue}]</span>
                   <button
@@ -716,7 +716,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                 value={newCueInput}
                 onChange={(e) => setNewCueInput(e.target.value)}
                 placeholder="输入新气口标记，如：高潮配乐、叹气、深吸气"
-                className="flex-1 px-3.5 py-2 bg-white dark:bg-stone-900 border border-stone-200/80 dark:border-stone-700 rounded-xl text-xs text-stone-900 dark:text-stone-100 placeholder:text-stone-400 focus:outline-none focus:border-[var(--accent)]"
+                className="flex-1 px-3.5 py-2 bg-[var(--canvas)] dark:bg-stone-800 border border-[var(--line)] rounded-xl text-xs text-stone-900 dark:text-stone-100 placeholder:text-stone-400 focus:outline-none focus:border-[var(--accent)]"
               />
               <button
                 type="submit"
@@ -1105,7 +1105,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
               </button>
             </div>
 
-            <div className="p-3 bg-white dark:bg-stone-900 rounded-xl border border-stone-200/70 dark:border-stone-700 font-mono text-[11px] text-stone-700 dark:text-stone-300 select-all break-all shadow-2xs">
+            <div className="p-3 bg-[var(--canvas)]/80 dark:bg-stone-800/80 rounded-xl border border-[var(--line)] font-mono text-[11px] text-stone-700 dark:text-stone-300 select-all break-all">
               {resolvePublicUrl('/api/inbox/quick-drop', publicBaseUrl)}
             </div>
 
@@ -1156,7 +1156,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
             <button
               onClick={handleExportMarkdown}
               disabled={isExporting || isImporting || isExportingMd}
-              className="flex items-center gap-2 bg-white dark:bg-stone-800 hover:bg-stone-50 dark:hover:bg-stone-700 text-stone-800 dark:text-stone-200 px-4 py-2.5 rounded-xl text-xs sm:text-sm font-semibold border border-stone-200/70 dark:border-stone-700 transition-colors shadow-2xs disabled:opacity-50 cursor-pointer"
+              className="flex items-center gap-2 bg-[var(--canvas)]/70 dark:bg-stone-800 hover:bg-[var(--surface)] text-stone-800 dark:text-stone-200 px-4 py-2.5 rounded-xl text-xs sm:text-sm font-semibold border border-[var(--line)] transition-colors disabled:opacity-50 cursor-pointer"
             >
               <FileText className="w-4 h-4 text-[var(--accent)]" />
               <span>{isExportingMd ? '正在导出...' : '导出文案合辑 (.md)'}</span>
