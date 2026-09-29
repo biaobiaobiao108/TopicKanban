@@ -183,7 +183,7 @@ export const PublishedVideoCard: React.FC<PublishedVideoCardProps> = ({
 
             {/* Subtle Ratio Micro Pills (内敛微墨质感) */}
             {video.views > 0 && (
-              <div className="flex items-center gap-1.5 overflow-hidden text-[10px] text-[var(--ink-muted)] font-mono">
+              <div className="flex items-center gap-2 sm:gap-2.5 overflow-hidden text-[10px] text-[var(--ink-muted)] font-mono">
                 <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-stone-500/[0.04] dark:bg-stone-400/[0.06] shrink-0">
                   <span className="opacity-70">投币率</span>
                   <strong className="text-[var(--ink)] font-semibold">{metrics.coinRate}%</strong>
@@ -199,12 +199,6 @@ export const PublishedVideoCard: React.FC<PublishedVideoCardProps> = ({
                   <span className="opacity-70">收藏</span>
                   <strong className="text-[var(--ink)] font-semibold">{metrics.favoriteRate}%</strong>
                 </span>
-                {metrics.viewsPerKWord > 0 && (
-                  <span className="hidden md:inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-stone-500/[0.04] dark:bg-stone-400/[0.06] truncate">
-                    <span className="opacity-70">千字</span>
-                    <strong className="text-[var(--ink)] font-semibold">{formatNumber(metrics.viewsPerKWord)}</strong>
-                  </span>
-                )}
               </div>
             )}
           </div>
