@@ -7,6 +7,7 @@ import {
   Pin,
   Calendar,
   Clock,
+  Zap,
 } from 'lucide-react';
 import { getCurrentActionAgeDays, getCurrentActionWarning } from '../../lib/topicMetrics';
 import { ActionDateText } from '../ui/ActionDate';
@@ -107,10 +108,8 @@ const KanbanCardComponent: React.FC<KanbanCardProps> = ({
 
         {/* Current Action Highlight Bar */}
         {topic.current_todo ? (
-          <div className="bg-[var(--canvas)]/75 border border-[var(--line)]/60 rounded-[var(--radius-sm)] p-2.5 flex items-start gap-2 text-xs text-[var(--ink)]">
-            <span className="inline-flex shrink-0 items-center rounded px-1.5 py-0.5 text-[10px] font-semibold bg-[var(--accent-soft)] text-[var(--accent-dark)]">
-              当前行动
-            </span>
+          <div className="bg-[var(--canvas)]/75 border border-[var(--line)]/60 rounded-[var(--radius-sm)] px-2.5 py-2 flex items-start gap-2 text-xs text-[var(--ink)]">
+            <Zap className="mt-0.5 h-3.5 w-3.5 shrink-0 text-[var(--accent)]" aria-hidden="true" />
             <span className="flex-1 min-w-0 font-normal leading-5 line-clamp-2">
               {topic.current_todo.title}
             </span>
@@ -187,12 +186,11 @@ const KanbanCardComponent: React.FC<KanbanCardProps> = ({
       {topic.current_todo ? (
         <button
           type="button"
+          aria-label={`当前行动：${topic.current_todo.title}`}
           onClick={(event) => { event.stopPropagation(); onOpenCurrentAction?.(topic.id); }}
-          className="group/action w-full text-left bg-[var(--canvas)]/75 hover:bg-[var(--accent-soft)]/25 border border-[var(--line)]/60 hover:border-[var(--accent)]/35 rounded-[var(--radius-sm)] p-2.5 flex items-start gap-2 text-xs text-[var(--ink)] transition-colors cursor-pointer"
+          className="group/action w-full text-left bg-[var(--canvas)]/75 hover:bg-[var(--accent-soft)]/25 border border-[var(--line)]/60 hover:border-[var(--accent)]/35 rounded-[var(--radius-sm)] px-2.5 py-2 flex items-start gap-2 text-xs text-[var(--ink)] transition-colors cursor-pointer"
         >
-          <span className="inline-flex shrink-0 items-center rounded px-1.5 py-0.5 text-[10px] font-semibold bg-[var(--accent-soft)] text-[var(--accent-dark)] group-hover/action:bg-[var(--accent)]/15 transition-colors">
-            当前行动
-          </span>
+          <Zap className="mt-0.5 h-3.5 w-3.5 shrink-0 text-[var(--accent)] group-hover/action:scale-110 transition-transform" aria-hidden="true" />
           <span className="flex-1 min-w-0 font-normal leading-5 line-clamp-2">
             {topic.current_todo.title}
           </span>
