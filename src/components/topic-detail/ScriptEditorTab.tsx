@@ -1539,10 +1539,12 @@ export const ScriptEditorTab: React.FC<ScriptEditorTabProps> = ({
               {/* Split Panel Header */}
               <div className="flex h-11 items-center justify-between border-b border-[var(--line)]/60 px-4 bg-[var(--surface)] select-none shrink-0">
                 <div className="flex items-center gap-2 min-w-0">
-                  <div className="flex h-6 w-6 items-center justify-center rounded-md bg-[var(--accent-soft)] text-[var(--accent-dark)] dark:text-[var(--accent)] shrink-0">
+                  <div
+                    className="flex h-6 w-6 items-center justify-center rounded-md bg-[var(--accent-soft)] text-[var(--accent-dark)] dark:text-[var(--accent)] shrink-0"
+                    aria-label="选题报告"
+                  >
                     <FileText className="h-3.5 w-3.5" />
                   </div>
-                  <span className="text-xs font-semibold text-[var(--ink)] tracking-tight">选题报告</span>
                   {report?.word_count ? (
                     <span className="rounded-full bg-stone-500/[0.05] dark:bg-stone-400/[0.08] px-2 py-0.5 text-[10px] font-mono text-[var(--ink-muted)] tabular-nums shrink-0">
                       {report.word_count.toLocaleString()} 字

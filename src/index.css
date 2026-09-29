@@ -37,24 +37,30 @@ html.theme-change-in-progress *::after {
 }
 
 .script-citation {
-  border-bottom: 1.5px solid var(--accent);
-  background: var(--accent-soft);
-  border-radius: var(--radius-sm);
-  padding: 0.05rem 0.25rem;
-  transition: background-color 150ms ease;
+  border: none;
+  background: transparent;
+  text-decoration: underline dotted color-mix(in oklab, var(--accent) 65%, transparent);
+  text-underline-offset: 3.5px;
+  text-decoration-thickness: 1.5px;
+  padding: 0 0.1rem;
+  border-radius: 2px;
+  transition: all 150ms ease;
 }
 
 .script-citation:hover {
-  background: color-mix(in oklab, var(--accent) 16%, transparent);
+  text-decoration-color: var(--accent);
+  background: color-mix(in oklab, var(--accent) 8%, transparent);
 }
 
 html.dark .script-citation {
-  background: var(--accent-soft);
-  border-bottom-color: var(--accent);
+  background: transparent;
+  border: none;
+  text-decoration-color: color-mix(in oklab, var(--accent) 70%, transparent);
 }
 
 html.dark .script-citation:hover {
-  background: color-mix(in oklab, var(--accent) 24%, transparent);
+  text-decoration-color: var(--accent);
+  background: color-mix(in oklab, var(--accent) 15%, transparent);
 }
 
 .inline-voiceover-cue {
@@ -83,15 +89,30 @@ html.dark .inline-voiceover-cue {
 
 .script-citation::after {
   content: "〔" attr(data-reference-title) "〕";
-  margin-left: 0.2rem;
+  display: inline-block;
+  text-decoration: none !important;
+  margin-left: 0.25rem;
   color: var(--accent-dark);
   font-size: 0.72em;
-  font-weight: 600;
-  vertical-align: super;
+  font-weight: 500;
+  vertical-align: 0.15em;
+  line-height: 1;
+  user-select: none;
+  opacity: 0.75;
+  transition: opacity 150ms ease;
+}
+
+.script-citation:hover::after {
+  opacity: 1;
+}
+
+.script-citation:not([data-reference-title])::after,
+.script-citation[data-reference-title=""]::after {
+  display: none;
 }
 
 html.dark .script-citation::after {
-  color: var(--accent-dark);
+  color: var(--accent);
 }
 
 
