@@ -372,7 +372,7 @@ export const PublicReviewView: React.FC<PublicReviewViewProps> = ({ token: propT
 
           {/* Footer note */}
           <footer className="pt-8 mt-8 border-t border-stone-100 dark:border-stone-800 flex items-center justify-between text-xs text-stone-400 dark:text-stone-500">
-            <span>选题生产工作台 · 审稿快照</span>
+            <span>喵爪看板 · 审稿快照</span>
             <span className="text-[11px]">
               有效期至：<time dateTime={snapshot.expires_at} className="font-mono tabular-nums">{formatBeijingDateTime(snapshot.expires_at)}</time>
             </span>

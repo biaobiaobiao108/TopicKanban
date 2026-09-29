@@ -1,5 +1,5 @@
 # syntax=docker/dockerfile:1.10
-# Multi-stage Dockerfile for Topic Kanban Studio (Optimized Multi-Platform Build)
+# Multi-stage Dockerfile for MiaoZhua Kanban (Optimized Multi-Platform Build)
 
 ARG BUN_VERSION=1.4.2
 ARG BUN_IMAGE_DIGEST=sha256:d888c0ae6c86d7866ff10c5aafdd9077b36aee6455b33dd270fb93c0dd5cef6f

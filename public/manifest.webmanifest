@@ -1,8 +1,8 @@
 {
   "id": "/",
-  "name": "选题生产工作台",
-  "short_name": "选题工作台",
-  "description": "面向视频创作者的选题、文案与制作管理工作台",
+  "name": "喵爪看板",
+  "short_name": "喵爪看板",
+  "description": "喵爪看板 - 面向视频创作者的选题、文案与制作管理工作台",
   "lang": "zh-CN",
   "dir": "ltr",
   "start_url": "/today",

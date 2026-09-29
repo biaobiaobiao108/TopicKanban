@@ -93,7 +93,7 @@ const VIEW_TITLES: Record<NavView, string> = {
   deals: '商单中心',
   database: '选题库',
   settings: '偏好与数据备份',
-  'topic-detail': '选题生产工作台',
+  'topic-detail': '喵爪看板',
 };
 
 function getViewFromPath(pathname: string): NavView {
@@ -214,13 +214,13 @@ function WorkspaceApp({ isAuth, setIsAuth }: WorkspaceAppProps) {
 
   useEffect(() => {
     if (!isAuth) {
-      document.title = '登录 - 选题生产工作台';
+      document.title = '登录 - 喵爪看板';
       return;
     }
     const activeTopic = topics.find((topic) => topic.id === activeTopicId);
     document.title = activeTopic
-      ? `${activeTopic.title} - 选题生产工作台`
-      : `${VIEW_TITLES[currentView]} - 选题生产工作台`;
+      ? `${activeTopic.title} - 喵爪看板`
+      : `${VIEW_TITLES[currentView]} - 喵爪看板`;
   }, [activeTopicId, currentView, isAuth, topics]);
 
   // Fetch quick drops count on mount and interval

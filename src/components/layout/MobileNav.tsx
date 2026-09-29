@@ -188,10 +188,10 @@ export const MobileDrawer: React.FC<MobileDrawerProps> = ({
           <div className="flex items-center justify-between pb-3.5 border-b border-stone-200/30 dark:border-stone-800/30">
             <div className="flex items-center gap-2.5">
               <div className="sidebar-brand-logo w-8 h-8 rounded-xl flex items-center justify-center overflow-hidden shadow-2xs shrink-0 ring-1 ring-black/5 dark:ring-white/10">
-                <img src="/icon.png" alt="工作台 Logo" width={32} height={32} className="w-full h-full object-cover rounded-xl" />
+                <img src="/icon.png" alt="喵爪看板 Logo" width={32} height={32} className="w-full h-full object-cover rounded-xl" />
               </div>
               <div>
-                <h2 className="font-bold text-stone-900 dark:text-stone-100 text-sm tracking-tight leading-tight">选题生产工作台</h2>
+                <h2 className="font-bold text-stone-900 dark:text-stone-100 text-sm tracking-tight leading-tight">喵爪看板</h2>
               </div>
             </div>
             <button ref={closeButtonRef} onClick={onClose} aria-label="关闭导航菜单" className="flex min-h-11 min-w-11 items-center justify-center rounded-lg text-stone-400 dark:text-stone-500 hover:text-stone-700 dark:hover:text-stone-300 hover:bg-stone-100/80 dark:hover:bg-stone-800/80 transition-colors cursor-pointer">

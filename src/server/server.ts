@@ -174,7 +174,7 @@ export async function startServer(options: ServerOptions = {}) {
         return withSecurityHeaders(new Response('Not Found', { status: 404 }));
       }
       if (!hasDist) {
-        return withSecurityHeaders(new Response('Topic Kanban API Server is running. Frontend dist not built yet.'));
+        return withSecurityHeaders(new Response('喵爪看板 API Server is running. Frontend dist not built yet.'));
       }
       return withSecurityHeaders(await serveFile(joinPath(distPath, 'index.html'), {
         'Cache-Control': 'no-cache, no-store, must-revalidate',
@@ -186,7 +186,7 @@ export async function startServer(options: ServerOptions = {}) {
   });
 
   console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
-  console.log(`🎬 叙事类视频选题生产工作台 (Topic Kanban Studio)`);
+  console.log(`🐾 喵爪看板 (MiaoZhua Kanban)`);
   console.log(`🚀 服务已启动: http://localhost:${server.port}`);
   if (publicBaseUrl) console.log(`🌐 反代公开域名: ${publicBaseUrl}`);
   console.log(`🗄️  本地 SQLite: ${dbFilePath}`);

@@ -130,7 +130,7 @@ jobs:
           name: Release ${{ github.ref_name }}
           generate_release_notes: true
           body: |
-            ### 🎬 选题生产工作台 (Topic Kanban Studio) ${{ github.ref_name }}
+            ### 🐾 喵爪看板 (MiaoZhua Kanban) ${{ github.ref_name }}
 
             多架构极简容器镜像（`linux/amd64` + `linux/arm64`）已自动构建并推送到 GitHub Container Registry。
 

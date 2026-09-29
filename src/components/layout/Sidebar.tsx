@@ -61,10 +61,10 @@ export const Sidebar: React.FC<SidebarProps> = ({
       <div className="p-4 pb-3">
         <div className="flex items-center gap-3">
           <div className="sidebar-brand-logo w-9 h-9 rounded-[var(--radius-sm)] flex items-center justify-center overflow-hidden shadow-2xs shrink-0 ring-1 ring-black/5 dark:ring-white/10">
-            <img src="/icon.png" alt="工作台 Logo" width={36} height={36} className="w-full h-full object-cover rounded-[var(--radius-sm)]" />
+            <img src="/icon.png" alt="喵爪看板 Logo" width={36} height={36} className="w-full h-full object-cover rounded-[var(--radius-sm)]" />
           </div>
           <div>
-            <h1 className="font-sans text-[var(--ink)] text-base font-bold tracking-tight leading-snug">选题生产工作台</h1>
+            <h1 className="font-sans text-[var(--ink)] text-base font-bold tracking-tight leading-snug">喵爪看板</h1>
           </div>
         </div>
 

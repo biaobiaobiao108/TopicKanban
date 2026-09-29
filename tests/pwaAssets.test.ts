@@ -51,8 +51,8 @@ describe('PWA static assets', () => {
       icons?: Array<{ src?: string; sizes?: string; type?: string }>;
     };
 
-    expect(manifest.name).toBe('选题生产工作台');
-    expect(manifest.short_name).toBe('选题工作台');
+    expect(manifest.name).toBe('喵爪看板');
+    expect(manifest.short_name).toBe('喵爪看板');
     expect(manifest.start_url).toBe('/today');
     expect(manifest.scope).toBe('/');
     expect(manifest.display).toBe('standalone');

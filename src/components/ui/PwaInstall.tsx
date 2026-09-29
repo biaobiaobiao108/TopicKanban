@@ -171,10 +171,10 @@ export const PwaInstallPromptBanner: React.FC = () => {
       <div className="mx-auto flex max-w-7xl items-center gap-3 text-xs text-[var(--ink)]">
         <Smartphone className="h-4 w-4 shrink-0 text-[var(--accent)]" aria-hidden="true" />
         <p className="min-w-0 flex-1">{isIOS
-          ? '把选题工作台添加到主屏幕，随时像 App 一样打开。'
+          ? '把喵爪看板添加到主屏幕，随时像 App 一样打开。'
           : isMacSafari
-            ? '将选题工作台添加到程序坞，在独立窗口中使用。'
-            : '把选题工作台安装到设备，获得独立 App 窗口。'}</p>
+            ? '将喵爪看板添加到程序坞，在独立窗口中使用。'
+            : '把喵爪看板安装到设备，获得独立 App 窗口。'}</p>
         <PwaInstallButton />
         <button
           type="button"
