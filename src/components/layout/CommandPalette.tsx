@@ -828,7 +828,7 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
   if (!isOpen) return null;
 
   const paletteContent = (
-    <div className="fixed inset-0 z-[100] flex items-start justify-center pt-12 sm:pt-16 p-4 sm:p-6" role="presentation">
+    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-6" role="presentation">
       {/* Backdrop */}
       <div className="fixed inset-0 bg-stone-900/40 backdrop-blur-xs" onClick={onClose} aria-hidden="true" />
 
