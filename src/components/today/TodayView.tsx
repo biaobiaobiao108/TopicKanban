@@ -355,7 +355,7 @@ export const TodayView: React.FC<TodayViewProps> = ({
               <span className="text-[11px] font-semibold text-[var(--ink-muted)]">{actionProgress.covered}/{activeTopicTotal || 0} 已落地</span>
             </div>
 
-            <div data-testid="today-action-progress-panel" className="flex min-h-0 flex-1 flex-col overflow-hidden rounded-2xl border border-[var(--line)]/60 bg-[var(--surface)] p-4 shadow-2xs">
+            <div data-testid="today-action-progress-panel" className="today-action-progress-panel flex min-h-0 flex-1 flex-col overflow-hidden rounded-2xl border border-[var(--line)] bg-[var(--surface)] p-4 shadow-subtle">
               <div className="flex items-end justify-between gap-3">
                 <div>
                   <div className="text-2xl font-bold tracking-tight text-[var(--ink)]">{coveragePercent}%</div>
@@ -418,7 +418,7 @@ export const TodayView: React.FC<TodayViewProps> = ({
               </h2>
             </div>
 
-            <div data-testid="today-recent-activity-panel" className="today-recent-updates-panel flex min-h-0 flex-1 flex-col overflow-hidden rounded-2xl border border-[var(--line)]/60 bg-[var(--surface)] p-4 shadow-2xs">
+            <div data-testid="today-recent-activity-panel" className="today-recent-updates-panel flex min-h-0 flex-1 flex-col overflow-hidden rounded-2xl border border-[var(--line)] bg-[var(--surface)] p-4 shadow-subtle">
               <FloatingScrollbar data-testid="today-recent-activity-scroll" role="region" tabIndex={0} aria-label="近期活跃轨迹列表" className="today-focus-scroll divide-y divide-[var(--line)]/30" wrapperClassName="flex-1 min-h-0">
                 {recentUpdates.map((t) => (
                   <button

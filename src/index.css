@@ -707,6 +707,7 @@ html.theme-warm-paper .bg-white\/95,
 html.theme-warm-paper .kanban-column-container .bg-white,
 html.theme-warm-paper .today-spotlight-card,
 html.theme-warm-paper .today-priority-item,
+html.theme-warm-paper .today-action-progress-panel,
 html.theme-warm-paper .today-recent-updates-panel {
   background-color: #faf6ee !important;
   border-color: #e6ded1 !important;
@@ -714,7 +715,9 @@ html.theme-warm-paper .today-recent-updates-panel {
 
 html.theme-warm-paper .kanban-column-container .bg-white,
 html.theme-warm-paper .today-priority-item,
-html.theme-warm-paper .today-spotlight-card {
+html.theme-warm-paper .today-spotlight-card,
+html.theme-warm-paper .today-action-progress-panel,
+html.theme-warm-paper .today-recent-updates-panel {
   box-shadow: 0 1px 3px rgba(60, 45, 30, 0.04), 0 1px 2px rgba(60, 45, 30, 0.02) !important;
 }
 
