@@ -33,8 +33,21 @@ function resolveCurrentReference(citation: DraftCitation, context: CitationConte
       verificationStatus: 'confirmed',
     } : null;
   }
-  const value = citation.reference_id === 'hook' ? context.topic.hook : context.topic.storyline;
-  return { snapshot: value || '', verificationStatus: 'confirmed' };
+  if (citation.reference_type === 'report') {
+    // Report citations preserve the selected quote as their own immutable snapshot.
+    // This context does not carry a versioned report body to compare against.
+    return { snapshot: citation.reference_snapshot, verificationStatus: citation.verification_status };
+  }
+  if (citation.reference_type === 'outline') {
+    if (citation.reference_id === 'hook') {
+      return { snapshot: context.topic.hook || '', verificationStatus: 'confirmed' };
+    }
+    if (citation.reference_id === 'storyline') {
+      return { snapshot: context.topic.storyline || '', verificationStatus: 'confirmed' };
+    }
+    return null;
+  }
+  return null;
 }
 
 export function getCitationHealth(citations: DraftCitation[], context: CitationContext) {

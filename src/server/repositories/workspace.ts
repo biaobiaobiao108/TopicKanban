@@ -3,7 +3,6 @@ import type {
   DraftCitation,
   PublishPackageRecord,
   Source,
-  TimelineEvent,
   TopicReport,
   TopicWorkspaceData,
 } from '../../types';
@@ -12,7 +11,6 @@ import { bind } from './shared';
 import { loadTopicReport } from './writing';
 
 export class SourceReorderInvalidStateError extends Error {}
-export class TimelineReorderInvalidStateError extends SourceReorderInvalidStateError {}
 
 function normalizePublishPackageRecord(row: Record<string, unknown> | null): PublishPackageRecord | null {
   if (!row) return null;
@@ -110,25 +108,3 @@ export async function reorderSources(db: SqliteDatabase, sources: Array<{ id: st
 export async function deleteSource(db: SqliteDatabase, id: string): Promise<void> {
   await bind(db, 'DELETE FROM sources WHERE id = ?', [id]).run();
 }
-
-export async function loadTimelineEvents(_db: SqliteDatabase, _topicId: string): Promise<TimelineEvent[]> {
-  return [];
-}
-
-export async function getNextTimelineSortOrder(_db: SqliteDatabase, _topicId: string): Promise<number> {
-  return 1;
-}
-
-export function timelineStatement(db: SqliteDatabase, event: TimelineEvent): SqlitePreparedStatement {
-  return bind(db, 'SELECT ?', [event.id]);
-}
-
-export async function insertTimelineEvents(_db: SqliteDatabase, _events: TimelineEvent[]): Promise<void> {}
-export async function insertTimelineEvent(_db: SqliteDatabase, _event: TimelineEvent): Promise<void> {}
-export async function updateTimelineEvent(_db: SqliteDatabase, _id: string, _body: Record<string, unknown>): Promise<TimelineEvent | null> {
-  return null;
-}
-export async function reorderTimelineEvents(_db: SqliteDatabase, _events: TimelineEvent[]): Promise<string> {
-  return new Date().toISOString();
-}
-export async function deleteTimelineEvent(_db: SqliteDatabase, _id: string): Promise<void> {}

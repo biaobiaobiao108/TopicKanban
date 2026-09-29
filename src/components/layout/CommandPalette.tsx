@@ -186,6 +186,7 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
     enabled: isOpen && mode === 'all' && debouncedCleanQ.length > 0,
     subscribed: isOpen && mode === 'all' && debouncedCleanQ.length > 0,
   });
+  const isCurrentTopicSearch = mode === 'all' && cleanQ.length > 0 && debouncedCleanQ === cleanQ;
 
   useEffect(() => {
     if (!isOpen) {
@@ -637,7 +638,9 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
       });
 
       // 4. Matched Topics
-      const matchedTopics = topicSearchQuery.data?.items || topics.filter((t) => t.title.toLowerCase().includes(cleanQ));
+      const matchedTopics = isCurrentTopicSearch && topicSearchQuery.data
+        ? topicSearchQuery.data.items
+        : topics.filter((t) => t.title.toLowerCase().includes(cleanQ));
       matchedTopics.slice(0, 6).forEach((topic) => {
         list.push({
           id: `topic-${topic.id}`,
@@ -706,6 +709,7 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
   }, [
     mode,
     cleanQ,
+    isCurrentTopicSearch,
     rawQ,
     helpItems,
     onOpenQuickDrops,

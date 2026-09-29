@@ -600,8 +600,12 @@ export const TopicDetailView: React.FC<TopicDetailViewProps> = ({
               onSaveSource={handleSaveSource}
               onDeleteSource={handleDeleteSource}
               onReorderSources={async (_topicId, newSources) => {
-                await reorderSources(newSources.map((s) => ({ id: s.id, topic_id: topic.id })));
-                queryClient.setQueryData(['topic-sources', topic.id], newSources);
+                const orderedSources = newSources.map((source, index) => ({
+                  ...source,
+                  sort_order: index + 1,
+                }));
+                await reorderSources(orderedSources.map((source) => ({ id: source.id, topic_id: topic.id })));
+                queryClient.setQueryData(['topic-sources', topic.id], orderedSources);
               }}
             />
           </div>

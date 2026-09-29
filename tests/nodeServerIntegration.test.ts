@@ -1027,7 +1027,7 @@ describe('Bun Server Integration (Local SQLite & API)', () => {
       .toEqual({ id: 'rollback-trash-source' });
   });
 
-  it('safely handles resource DELETE endpoints idempotently', async () => {
+  it('handles source deletes idempotently and rejects retired timeline writes explicitly', async () => {
     const loginRes = await app.request('/api/auth/login', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -1046,7 +1046,19 @@ describe('Bun Server Integration (Local SQLite & API)', () => {
       method: 'DELETE',
       headers,
     });
-    expect(deleteNonExistentTimeline.status).toBe(200);
+    expect(deleteNonExistentTimeline.status).toBe(410);
+    expect(await deleteNonExistentTimeline.json()).toMatchObject({
+      error: expect.stringContaining('merged into sources'),
+    });
+
+    const createRetiredTimeline = await app.request('/api/timeline', {
+      method: 'POST',
+      headers: { ...headers, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ topic_id: 'topic-1', title: '不应静默丢弃的旧接口写入' }),
+    });
+    expect(createRetiredTimeline.status).toBe(410);
+    expect(sqlite.query("SELECT COUNT(*) AS count FROM sources WHERE title = '不应静默丢弃的旧接口写入'").get())
+      .toEqual({ count: 0 });
   });
 
   it('returns stable paginated published, people, tag and today-focus data', async () => {

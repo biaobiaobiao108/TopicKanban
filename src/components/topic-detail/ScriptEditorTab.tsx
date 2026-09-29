@@ -1,5 +1,6 @@
-import React, { useId, useState, useEffect, useLayoutEffect, useRef, useCallback } from 'react';
+import React, { useId, useState, useEffect, useLayoutEffect, useRef, useCallback, useMemo } from 'react';
 import { createPortal } from 'react-dom';
+import DOMPurify from 'dompurify';
 import { useEditor, EditorContent } from '@tiptap/react';
 import { Markdown } from '@tiptap/markdown';
 import TaskList from '@tiptap/extension-task-list';
@@ -68,6 +69,19 @@ import type { PresenceState } from '../../types';
 const TeleprompterModal = React.lazy(() =>
   import('./TeleprompterModal').then((m) => ({ default: m.TeleprompterModal }))
 );
+
+function sanitizeReportPreviewHtml(html: string): string {
+  return DOMPurify.sanitize(html, {
+    ALLOWED_TAGS: [
+      'a', 'aside', 'blockquote', 'br', 'code', 'del', 'div', 'em', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6',
+      'hr', 'li', 'ol', 'p', 'pre', 's', 'span', 'strong', 'sub', 'sup', 'table', 'tbody', 'td', 'th',
+      'thead', 'tr', 'u', 'ul',
+    ],
+    ALLOWED_ATTR: ['class', 'colspan', 'rowspan', 'scope', 'href'],
+    ALLOW_DATA_ATTR: false,
+    ALLOWED_URI_REGEXP: /^(?:(?:https?):\/\/|\/(?!\/)|#)/i,
+  });
+}
 
 function getDeviceIdentifier(): { clientId: string; deviceName: string } {
   let clientId = '';
@@ -223,6 +237,10 @@ export const ScriptEditorTab: React.FC<ScriptEditorTabProps> = ({
   onRegisterDraftFlush,
 }) => {
   const { showToast } = useToast();
+  const sanitizedReportHtml = useMemo(
+    () => sanitizeReportPreviewHtml(report?.content_html || ''),
+    [report?.content_html]
+  );
   const initialTitle = initialDraft?.title?.trim() || topicTitle;
   const [draftTitle, setDraftTitle] = useState(initialTitle);
   const [saveStatus, setSaveStatus] = useState<'saved' | 'saving' | 'unsaved' | 'local' | 'pending' | 'cache-error' | 'conflict'>('saved');
@@ -247,7 +265,6 @@ export const ScriptEditorTab: React.FC<ScriptEditorTabProps> = ({
           return parsed;
         }
       }
-      return Math.min(680, Math.max(480, Math.round(window.innerWidth * 0.4)));
     }
     return 540;
   });
@@ -265,6 +282,36 @@ export const ScriptEditorTab: React.FC<ScriptEditorTabProps> = ({
   const isDraggingSplitRef = useRef(false);
   const dragStartXRef = useRef(0);
   const dragStartWidthRef = useRef(0);
+  const splitAreaRef = useRef<HTMLDivElement | null>(null);
+
+  const getSplitWidthBounds = useCallback(() => {
+    const availableWidth = splitAreaRef.current?.clientWidth || window.innerWidth;
+    const max = Math.min(1200, Math.max(0, availableWidth - 426));
+    return { min: Math.min(320, max), max };
+  }, []);
+
+  const getDefaultReportSplitWidth = useCallback(() => {
+    const availableWidth = splitAreaRef.current?.clientWidth || window.innerWidth;
+    const { min, max } = getSplitWidthBounds();
+    return Math.min(max, Math.max(min, Math.min(680, Math.round(availableWidth * 0.4))));
+  }, [getSplitWidthBounds]);
+
+  useEffect(() => {
+    if (!isReportSplitOpen || !splitAreaRef.current) return;
+    const area = splitAreaRef.current;
+    const clampToAvailableWidth = () => {
+      const { min, max } = getSplitWidthBounds();
+      setReportSplitWidth((current) => Math.min(max, Math.max(min, current)));
+    };
+    clampToAvailableWidth();
+    if (typeof ResizeObserver !== 'undefined') {
+      const observer = new ResizeObserver(clampToAvailableWidth);
+      observer.observe(area);
+      return () => observer.disconnect();
+    }
+    window.addEventListener('resize', clampToAvailableWidth);
+    return () => window.removeEventListener('resize', clampToAvailableWidth);
+  }, [getSplitWidthBounds, isReportSplitOpen]);
 
   const handleSplitResizeStart = (e: React.PointerEvent) => {
     e.preventDefault();
@@ -277,8 +324,8 @@ export const ScriptEditorTab: React.FC<ScriptEditorTabProps> = ({
   const handleSplitResizeMove = (e: React.PointerEvent) => {
     if (!isDraggingSplitRef.current) return;
     const delta = e.clientX - dragStartXRef.current;
-    const maxAllowed = Math.max(420, window.innerWidth - 480);
-    const nextWidth = Math.min(Math.max(380, dragStartWidthRef.current + delta), maxAllowed);
+    const { min, max } = getSplitWidthBounds();
+    const nextWidth = Math.min(Math.max(min, dragStartWidthRef.current + delta), max);
     setReportSplitWidth(nextWidth);
   };
 
@@ -1520,7 +1567,7 @@ export const ScriptEditorTab: React.FC<ScriptEditorTabProps> = ({
       )}
 
       {/* Writing Canvas & Side Drawer Split Area */}
-      <div className="flex-1 flex overflow-hidden relative">
+      <div ref={splitAreaRef} className="flex-1 flex overflow-hidden relative">
         <ScriptOutlinePanel
           isOpen={isOutlineOpen}
           outline={outline}
@@ -1533,8 +1580,8 @@ export const ScriptEditorTab: React.FC<ScriptEditorTabProps> = ({
         {!isZenMode && isReportSplitOpen && (
           <>
             <aside
-              style={{ width: `${reportSplitWidth}px` }}
-              className="shrink-0 h-full border-r border-[var(--line)] bg-[var(--surface)]/70 flex flex-col z-10 transition-all duration-75 relative select-text"
+              style={{ width: `${Math.min(reportSplitWidth, getSplitWidthBounds().max)}px` }}
+              className="min-w-0 shrink-0 h-full border-r border-[var(--line)] bg-[var(--surface)]/70 flex flex-col z-10 transition-all duration-75 relative select-text"
             >
               {/* Split Panel Header */}
               <div className="flex h-11 items-center justify-between border-b border-[var(--line)]/60 px-4 bg-[var(--surface)] select-none shrink-0">
@@ -1676,7 +1723,7 @@ export const ScriptEditorTab: React.FC<ScriptEditorTabProps> = ({
                         ? 'text-[13.5px] leading-[1.65]'
                         : 'text-[15px] leading-[1.75]'
                     }`}
-                    dangerouslySetInnerHTML={{ __html: report.content_html || '' }}
+                    dangerouslySetInnerHTML={{ __html: sanitizedReportHtml }}
                   />
                 )}
               </FloatingScrollbar>
@@ -1691,7 +1738,7 @@ export const ScriptEditorTab: React.FC<ScriptEditorTabProps> = ({
               className="group relative w-1.5 shrink-0 cursor-col-resize hover:bg-[var(--accent)]/30 active:bg-[var(--accent)]/50 transition-colors select-none z-20 flex items-center justify-center"
               aria-label="拖拽调整分屏宽度，双击重置"
               onDoubleClick={() => {
-                const defaultW = Math.min(680, Math.max(480, Math.round(window.innerWidth * 0.4)));
+                const defaultW = getDefaultReportSplitWidth();
                 setReportSplitWidth(defaultW);
                 localStorage.setItem('topic_report_split_width', String(defaultW));
               }}

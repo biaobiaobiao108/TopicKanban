@@ -173,6 +173,7 @@ const draftSchema = z.object({
 const citationSchema = z.object({
   id,
   topic_id: id,
+  // `timeline` is retained only as an import compatibility value. The repository maps it to `source` before writing.
   reference_type: z.enum(['source', 'report', 'timeline', 'person', 'outline']),
   reference_id: id,
   reference_title: shortText.trim().min(1),
@@ -296,6 +297,7 @@ const settingsSchema = z.object({
 });
 
 const backupSchema = z.object({
+  // 4.0 exports are still accepted; their timeline rows are folded into sources during restore.
   version: z.enum(['4.0', '5.0']),
   export_at: timestamp,
   topics: z.array(topicSchema),
@@ -338,6 +340,7 @@ const backupSchema = z.object({
 
   const topicIds = new Set(data.topics.map((item) => item.id));
   const personIds = new Set(data.people.map((item) => item.id));
+  const timelineById = new Map((data.timeline || []).map((item) => [item.id, item]));
   const tagIds = new Set(data.tags.map((item) => item.id));
   const requireTopic = (topicId: string, path: Array<string | number>) => {
     if (!topicIds.has(topicId)) addIssue(path, `引用了不存在的选题：${topicId}`);
@@ -352,7 +355,15 @@ const backupSchema = z.object({
     });
   });
   data.drafts.forEach((item, index) => requireTopic(item.topic_id, ['drafts', index, 'topic_id']));
-  data.citations.forEach((item, index) => requireTopic(item.topic_id, ['citations', index, 'topic_id']));
+  data.citations.forEach((item, index) => {
+    requireTopic(item.topic_id, ['citations', index, 'topic_id']);
+    if (item.reference_type === 'timeline') {
+      const event = timelineById.get(item.reference_id);
+      if (event && event.topic_id !== item.topic_id) {
+        addIssue(['citations', index, 'reference_id'], '时间线引用必须与引用素材属于同一选题');
+      }
+    }
+  });
   const currentTodoTopics = new Set<string>();
   const inProgressTodosByTopic = new Map<string, TopicTodo[]>();
   (data.todos || []).forEach((item, index) => {

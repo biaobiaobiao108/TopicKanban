@@ -77,6 +77,48 @@ function inferDatePrecision(dateStr: string): DatePrecision {
   return 'exact';
 }
 
+export type TimelineSortMode = 'date-asc' | 'date-desc' | 'manual';
+
+export function normalizeTimelineDate(date?: string): string | null {
+  const match = date?.trim().match(/^(\d{4})(?:-(\d{1,2})(?:-(\d{1,2}))?)?$/);
+  if (!match) return null;
+  const year = Number(match[1]);
+  const month = match[2] ? Number(match[2]) : 0;
+  const day = match[3] ? Number(match[3]) : 0;
+  if (month > 12 || day > 31 || (match[2] && month < 1) || (match[3] && day < 1)) return null;
+  return `${String(year).padStart(4, '0')}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+}
+
+export function reorderVisibleSourcesInFullList(sources: Source[], reorderedVisible: Source[]): Source[] {
+  const reorderedIds = new Set(reorderedVisible.map((source) => source.id));
+  const fullOrder = [...sources].sort((a, b) => (a.sort_order ?? 0) - (b.sort_order ?? 0));
+  let nextVisibleIndex = 0;
+  return fullOrder.map((source) => (
+    reorderedIds.has(source.id) ? reorderedVisible[nextVisibleIndex++] || source : source
+  ));
+}
+
+export function canReorderTimeline(mode: TimelineSortMode): boolean {
+  return mode === 'manual';
+}
+
+export function shouldAutofillEventDate(currentValue: string, wasTouched: boolean): boolean {
+  return !wasTouched && !currentValue.trim();
+}
+
+export function sortTimelineSources(sources: Source[], mode: TimelineSortMode): Source[] {
+  return [...sources].sort((a, b) => {
+    if (mode === 'manual') return (a.sort_order ?? 0) - (b.sort_order ?? 0);
+    const dateA = a.event_date?.trim() || '';
+    const dateB = b.event_date?.trim() || '';
+    const normalizedA = normalizeTimelineDate(dateA) || dateA;
+    const normalizedB = normalizeTimelineDate(dateB) || dateB;
+    const cmp = normalizedA.localeCompare(normalizedB, undefined, { numeric: true });
+    if (cmp !== 0) return mode === 'date-asc' ? cmp : -cmp;
+    return (a.sort_order ?? 0) - (b.sort_order ?? 0);
+  });
+}
+
 function formatEventDate(dateStr?: string, precision?: DatePrecision): string {
   if (!dateStr) return '待考证';
   const trimmed = dateStr.trim();
@@ -91,6 +133,7 @@ function formatEventDate(dateStr?: string, precision?: DatePrecision): string {
 interface SortableTimelineItemProps {
   source: Source;
   index: number;
+  canReorder: boolean;
   onEdit: (s: Source) => void;
   onDelete: (s: Source) => void;
   onCycleVerification: (s: Source) => void;
@@ -103,6 +146,7 @@ interface SortableTimelineItemProps {
 const SortableTimelineItem: React.FC<SortableTimelineItemProps> = ({
   source,
   index,
+  canReorder,
   onEdit,
   onDelete,
   onCycleVerification,
@@ -118,7 +162,7 @@ const SortableTimelineItem: React.FC<SortableTimelineItemProps> = ({
     transform,
     transition,
     isDragging,
-  } = useSortable({ id: source.id });
+  } = useSortable({ id: source.id, disabled: !canReorder });
 
   const style = {
     transform: CSS.Transform.toString(transform),
@@ -152,10 +196,11 @@ const SortableTimelineItem: React.FC<SortableTimelineItemProps> = ({
             {/* Drag Handle */}
             <button
               type="button"
-              {...attributes}
-              {...listeners}
-              className="p-1 -ml-1 text-stone-400 dark:text-stone-500 hover:text-stone-700 dark:hover:text-stone-200 cursor-grab active:cursor-grabbing rounded-lg hover:bg-stone-100 dark:hover:bg-stone-800 transition-colors"
-              aria-label="拖拽调整顺序"
+              {...(canReorder ? attributes : {})}
+              {...(canReorder ? listeners : {})}
+              disabled={!canReorder}
+              className={`p-1 -ml-1 rounded-lg transition-colors ${canReorder ? 'text-stone-400 dark:text-stone-500 hover:text-stone-700 dark:hover:text-stone-200 cursor-grab active:cursor-grabbing hover:bg-stone-100 dark:hover:bg-stone-800' : 'text-stone-300 dark:text-stone-600 cursor-not-allowed'}`}
+              aria-label={canReorder ? '拖拽调整顺序' : '切换至手动顺序后可拖拽'}
             >
               <GripVertical className="w-4 h-4" />
             </button>
@@ -263,7 +308,15 @@ export const SourcesTab: React.FC<SourcesTabProps> = ({
   onReorderSources,
 }) => {
   const [viewMode, setViewMode] = useState<'cards' | 'timeline'>('cards');
-  const [timelineSortDirection, setTimelineSortDirection] = useState<'asc' | 'desc'>('asc');
+  const [timelineSortMode, setTimelineSortMode] = useState<TimelineSortMode>(() => {
+    try {
+      const saved = localStorage.getItem(`source_timeline_sort_mode:${topicId}`);
+      if (saved === 'date-asc' || saved === 'date-desc' || saved === 'manual') return saved;
+    } catch {
+      // Keep the default when browser storage is unavailable.
+    }
+    return 'date-asc';
+  });
   const [undatedCollapsed, setUndatedCollapsed] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingSource, setEditingSource] = useState<Source | null>(null);
@@ -274,6 +327,8 @@ export const SourcesTab: React.FC<SourcesTabProps> = ({
   const [smartPasteInput, setSmartPasteInput] = useState('');
   const [isParsingUrl, setIsParsingUrl] = useState(false);
   const parseRequestIdRef = useRef(0);
+  const eventDateRef = useRef('');
+  const eventDateTouchedRef = useRef(false);
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [isDeleteSelectedModalOpen, setIsDeleteSelectedModalOpen] = useState(false);
   const [deletingSource, setDeletingSource] = useState<Source | null>(null);
@@ -298,7 +353,18 @@ export const SourcesTab: React.FC<SourcesTabProps> = ({
     useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates })
   );
 
+  const invalidateSmartParse = () => {
+    parseRequestIdRef.current += 1;
+    setIsParsingUrl(false);
+  };
+
+  const closeSourceModal = () => {
+    invalidateSmartParse();
+    setIsModalOpen(false);
+  };
+
   const openAddModal = () => {
+    invalidateSmartParse();
     setEditingSource(null);
     setTitle('');
     setContent('');
@@ -308,6 +374,8 @@ export const SourcesTab: React.FC<SourcesTabProps> = ({
     setPublishedAt('');
     setVerificationStatus('confirmed');
     setNotes('');
+    eventDateRef.current = '';
+    eventDateTouchedRef.current = false;
     setEventDate('');
     setDatePrecision('unknown');
     setSmartPasteInput('');
@@ -315,6 +383,7 @@ export const SourcesTab: React.FC<SourcesTabProps> = ({
   };
 
   const openEditModal = (s: Source, focusDate = false) => {
+    invalidateSmartParse();
     setEditingSource(s);
     setTitle(s.title);
     setContent(s.content);
@@ -324,6 +393,8 @@ export const SourcesTab: React.FC<SourcesTabProps> = ({
     setPublishedAt(s.published_at);
     setVerificationStatus(s.verification_status);
     setNotes(s.notes);
+    eventDateRef.current = s.event_date || '';
+    eventDateTouchedRef.current = false;
     setEventDate(s.event_date || '');
     setDatePrecision(s.date_precision || (s.event_date ? inferDatePrecision(s.event_date) : 'unknown'));
     setSmartPasteInput('');
@@ -337,6 +408,8 @@ export const SourcesTab: React.FC<SourcesTabProps> = ({
   };
 
   const handleEventDateChange = (val: string) => {
+    eventDateRef.current = val;
+    eventDateTouchedRef.current = true;
     setEventDate(val);
     const inferred = inferDatePrecision(val);
     setDatePrecision(inferred);
@@ -356,7 +429,8 @@ export const SourcesTab: React.FC<SourcesTabProps> = ({
       if (meta.content) setContent(meta.content);
       if (meta.published_at) {
         setPublishedAt(meta.published_at);
-        if (!eventDate) {
+        if (shouldAutofillEventDate(eventDateRef.current, eventDateTouchedRef.current)) {
+          eventDateRef.current = meta.published_at;
           setEventDate(meta.published_at);
           setDatePrecision(inferDatePrecision(meta.published_at));
         }
@@ -412,7 +486,7 @@ export const SourcesTab: React.FC<SourcesTabProps> = ({
         event_date: eventDate.trim() || undefined,
         date_precision: datePrecision,
       });
-      setIsModalOpen(false);
+      closeSourceModal();
     } catch {
       // ignore
     } finally {
@@ -474,26 +548,31 @@ export const SourcesTab: React.FC<SourcesTabProps> = ({
       }
     }
 
-    timed.sort((a, b) => {
-      const dateA = a.event_date?.trim() || '';
-      const dateB = b.event_date?.trim() || '';
-      const cmp = dateA.localeCompare(dateB);
-      if (cmp !== 0) return timelineSortDirection === 'asc' ? cmp : -cmp;
-      return (a.sort_order ?? 0) - (b.sort_order ?? 0);
-    });
+    return { timedSources: sortTimelineSources(timed, timelineSortMode), undatedSources: undated };
+  }, [filteredSources, timelineSortMode]);
 
-    return { timedSources: timed, undatedSources: undated };
-  }, [filteredSources, timelineSortDirection]);
+  const cycleTimelineSortMode = () => {
+    setTimelineSortMode((current) => {
+      const next = current === 'date-asc' ? 'date-desc' : current === 'date-desc' ? 'manual' : 'date-asc';
+      try {
+        localStorage.setItem(`source_timeline_sort_mode:${topicId}`, next);
+      } catch {
+        // Sorting remains usable for this session if browser storage is unavailable.
+      }
+      return next;
+    });
+  };
 
   const handleDragEnd = async (event: DragEndEvent) => {
     const { active, over } = event;
-    if (!over || active.id === over.id || !onReorderSources) return;
+    if (!canReorderTimeline(timelineSortMode) || !over || active.id === over.id || !onReorderSources) return;
 
     const oldIndex = timedSources.findIndex((item) => item.id === active.id);
     const newIndex = timedSources.findIndex((item) => item.id === over.id);
     if (oldIndex !== -1 && newIndex !== -1) {
       const newOrdered = arrayMove(timedSources, oldIndex, newIndex);
-      await onReorderSources(topicId, [...newOrdered, ...undatedSources]);
+      const nextFullOrder = reorderVisibleSourcesInFullList(sources, newOrdered);
+      await onReorderSources(topicId, nextFullOrder);
     }
   };
 
@@ -588,12 +667,12 @@ export const SourcesTab: React.FC<SourcesTabProps> = ({
           {viewMode === 'timeline' && (
             <button
               type="button"
-              onClick={() => setTimelineSortDirection((prev) => (prev === 'asc' ? 'desc' : 'asc'))}
+              onClick={cycleTimelineSortMode}
               className="flex items-center gap-1 px-2.5 py-1.5 rounded-xl border border-stone-200/70 dark:border-stone-700 bg-stone-500/[0.03] dark:bg-stone-800 text-xs text-[var(--ink-muted)] hover:text-[var(--ink)] transition-colors cursor-pointer"
-              aria-label="切换时间排序"
+              aria-label="切换时间轴排序方式"
             >
               <ArrowDownUp className="w-3.5 h-3.5 text-[var(--accent)]" />
-              <span>{timelineSortDirection === 'asc' ? '正序 (故事线)' : '倒序 (最新在前)'}</span>
+              <span>{timelineSortMode === 'date-asc' ? '日期正序' : timelineSortMode === 'date-desc' ? '日期倒序' : '手动顺序'}</span>
             </button>
           )}
         </div>
@@ -761,6 +840,7 @@ export const SourcesTab: React.FC<SourcesTabProps> = ({
                     key={source.id}
                     source={source}
                     index={idx}
+                    canReorder={canReorderTimeline(timelineSortMode)}
                     onEdit={openEditModal}
                     onDelete={(s) => setDeletingSource(s)}
                     onCycleVerification={handleCycleVerification}
@@ -865,7 +945,7 @@ export const SourcesTab: React.FC<SourcesTabProps> = ({
       {/* Add / Edit Source Modal */}
       <Modal
         isOpen={isModalOpen}
-        onClose={() => setIsModalOpen(false)}
+        onClose={closeSourceModal}
         title={editingSource ? '编辑素材资料' : '录入新素材'}
         maxWidth="lg"
       >
@@ -1088,7 +1168,7 @@ export const SourcesTab: React.FC<SourcesTabProps> = ({
           <div className="flex items-center justify-end gap-2.5 pt-3 border-t border-stone-200 dark:border-stone-800">
             <button
               type="button"
-              onClick={() => setIsModalOpen(false)}
+              onClick={closeSourceModal}
               className="px-4 py-2 text-sm text-stone-600 dark:text-stone-400 hover:bg-stone-100 dark:hover:bg-stone-800 rounded-lg cursor-pointer transition-colors"
             >
               取消

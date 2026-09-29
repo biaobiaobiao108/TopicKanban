@@ -145,7 +145,7 @@ function assertCurrentSchema(sqlite: Database): void {
   if (actualVersion !== CURRENT_SCHEMA_VERSION) {
     throw new Error(
       `SQLite schema version mismatch: expected baseline v${CURRENT_SCHEMA_VERSION}, found v${actualVersion}. `
-      + 'This project no longer migrates legacy databases; recreate the local database from drizzle/0000_schema.sql.',
+      + 'This project does not migrate old databases; restore a compatible backup or recreate the database from drizzle/0000_schema.sql.',
     );
   }
 

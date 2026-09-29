@@ -76,14 +76,23 @@ export const TopicReportTab: React.FC<TopicReportTabProps> = ({
 }) => {
   const { showToast } = useToast();
   const [saveStatus, setSaveStatus] = useState<'saved' | 'saving' | 'unsaved' | 'conflict' | 'error'>('saved');
+  const [conflictReport, setConflictReport] = useState<TopicReport | null>(null);
+  const [hasConflictSnapshot, setHasConflictSnapshot] = useState(false);
   const [lastSavedTime, setLastSavedTime] = useState<string>(
     report?.updated_at ? formatBeijingDateTime(report.updated_at, 'zh-CN', { hour: '2-digit', minute: '2-digit', second: '2-digit' }) : ''
   );
   const [copied, setCopied] = useState(false);
   const [isConfirmClearOpen, setIsConfirmClearOpen] = useState(false);
+  const [isConfirmOverwriteOpen, setIsConfirmOverwriteOpen] = useState(false);
+  const [isConfirmUseRemoteOpen, setIsConfirmUseRemoteOpen] = useState(false);
 
   const saveTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const hasUnsavedChangesRef = useRef(false);
+  const editRevisionRef = useRef(0);
+  const isSavingRef = useRef(false);
+  const conflictPendingRef = useRef(false);
+  const activeSaveDoneRef = useRef<Promise<void> | null>(null);
+  const schedulePersistenceRef = useRef<() => void>(() => {});
   const latestContentRef = useRef<{ markdown: string; html: string; json: string; wordCount: number } | null>(null);
   const currentBaseVersionRef = useRef<number>(report?.version ?? 0);
   const markdownEditorRef = useRef<TiptapEditor | null>(null);
@@ -109,7 +118,16 @@ export const TopicReportTab: React.FC<TopicReportTabProps> = ({
 
   const persistReport = useCallback(async () => {
     const latest = latestContentRef.current;
-    if (!latest || !hasUnsavedChangesRef.current) return;
+    if (!latest || !hasUnsavedChangesRef.current || isSavingRef.current || conflictPendingRef.current) return;
+
+    const savedRevision = editRevisionRef.current;
+    const baseVersion = currentBaseVersionRef.current;
+    isSavingRef.current = true;
+    let finishSave!: () => void;
+    const saveDone = new Promise<void>((resolve) => {
+      finishSave = resolve;
+    });
+    activeSaveDoneRef.current = saveDone;
 
     if (isMountedRef.current) setSaveStatus('saving');
     try {
@@ -118,33 +136,46 @@ export const TopicReportTab: React.FC<TopicReportTabProps> = ({
         content_html: latest.html,
         content_json: latest.json,
         word_count: latest.wordCount,
-        base_version: currentBaseVersionRef.current,
+        base_version: baseVersion,
       });
-      hasUnsavedChangesRef.current = false;
       currentBaseVersionRef.current = updated.version;
+      const noNewEdits = editRevisionRef.current === savedRevision;
+      if (noNewEdits) hasUnsavedChangesRef.current = false;
       if (isMountedRef.current) {
-        setSaveStatus('saved');
-        setLastSavedTime(formatBeijingDateTime(new Date(), 'zh-CN', { hour: '2-digit', minute: '2-digit', second: '2-digit' }));
+        if (noNewEdits) {
+          setSaveStatus('saved');
+          setLastSavedTime(formatBeijingDateTime(new Date(), 'zh-CN', { hour: '2-digit', minute: '2-digit', second: '2-digit' }));
+        } else {
+          // The request saved an older editor snapshot. Keep newer input dirty and save it
+          // against the version returned by this successful request.
+          setSaveStatus('unsaved');
+          schedulePersistenceRef.current();
+        }
       }
     } catch (err: unknown) {
       console.error('Failed to save topic report:', err);
       const isConflict = err instanceof TopicReportConflictError
         || (err instanceof Error && (err.name === 'TopicReportConflictError' || err.message.includes('409') || err.message.includes('REPORT_CONFLICT') || err.message.includes('版本冲突')));
       if (isConflict) {
-        if (err instanceof TopicReportConflictError && err.current) {
-          currentBaseVersionRef.current = err.current.version;
-        } else if (err instanceof TopicReportConflictError && !err.current) {
-          currentBaseVersionRef.current = 0;
-        }
+        conflictPendingRef.current = true;
+        const remoteReport = err instanceof TopicReportConflictError ? err.current : null;
         if (isMountedRef.current) {
+          setConflictReport(remoteReport);
+          setHasConflictSnapshot(err instanceof TopicReportConflictError);
           setSaveStatus('conflict');
-          showToast({ message: '选题报告版本冲突，已在其他设备更新，请刷新后重试', tone: 'error' });
+          showToast({ message: '选题报告发生版本冲突，本机内容已保留，请比较后选择要采用的版本', tone: 'error' });
         }
       } else {
         if (isMountedRef.current) {
           setSaveStatus('error');
           showToast({ message: '保存选题报告失败', tone: 'error' });
         }
+      }
+    } finally {
+      isSavingRef.current = false;
+      if (activeSaveDoneRef.current === saveDone) {
+        activeSaveDoneRef.current = null;
+        finishSave();
       }
     }
   }, [showToast]);
@@ -155,6 +186,7 @@ export const TopicReportTab: React.FC<TopicReportTabProps> = ({
       void persistReport();
     }, 1500);
   }, [persistReport]);
+  schedulePersistenceRef.current = schedulePersistence;
 
   const editor = useEditor({
     extensions: REPORT_MARKDOWN_EXTENSIONS,
@@ -193,12 +225,69 @@ export const TopicReportTab: React.FC<TopicReportTabProps> = ({
       const wordCount = text.replace(/\s+/g, '').length;
 
       latestContentRef.current = { markdown, html, json, wordCount };
+      editRevisionRef.current += 1;
       hasUnsavedChangesRef.current = true;
-      setSaveStatus('unsaved');
-      schedulePersistence();
+      if (conflictPendingRef.current) {
+        setSaveStatus('conflict');
+      } else {
+        setSaveStatus('unsaved');
+        schedulePersistence();
+      }
     },
   });
   markdownEditorRef.current = editor;
+
+  const handleKeepLocalAndOverwrite = () => {
+    if (!hasConflictSnapshot || !conflictPendingRef.current) return;
+    if (saveTimeoutRef.current) {
+      clearTimeout(saveTimeoutRef.current);
+      saveTimeoutRef.current = null;
+    }
+    currentBaseVersionRef.current = conflictReport?.version ?? 0;
+    conflictPendingRef.current = false;
+    setConflictReport(null);
+    setHasConflictSnapshot(false);
+    setSaveStatus('unsaved');
+    void persistReport();
+    setIsConfirmOverwriteOpen(false);
+  };
+
+  const handleUseRemoteVersion = () => {
+    if (!editor || !hasConflictSnapshot || !conflictPendingRef.current) return;
+    if (saveTimeoutRef.current) {
+      clearTimeout(saveTimeoutRef.current);
+      saveTimeoutRef.current = null;
+    }
+
+    const remote = conflictReport;
+    const markdown = remote?.content_markdown || '';
+    editor.commands.setContent(markdown, { contentType: 'markdown', emitUpdate: false });
+    latestContentRef.current = remote
+      ? {
+          markdown: remote.content_markdown || '',
+          html: remote.content_html || '',
+          json: remote.content_json || '',
+          wordCount: remote.word_count || 0,
+        }
+      : {
+          markdown: '',
+          html: editor.getHTML(),
+          json: JSON.stringify(editor.getJSON()),
+          wordCount: 0,
+        };
+    editRevisionRef.current += 1;
+    hasUnsavedChangesRef.current = false;
+    currentBaseVersionRef.current = remote?.version ?? 0;
+    conflictPendingRef.current = false;
+    setConflictReport(null);
+    setHasConflictSnapshot(false);
+    setSaveStatus('saved');
+    setLastSavedTime(remote?.updated_at
+      ? formatBeijingDateTime(remote.updated_at, 'zh-CN', { hour: '2-digit', minute: '2-digit', second: '2-digit' })
+      : '');
+    setIsConfirmUseRemoteOpen(false);
+    showToast({ message: '已采用云端选题报告版本', tone: 'info' });
+  };
 
   // Synchronize editor content if report updates from outside and no unsaved changes
   useEffect(() => {
@@ -222,16 +311,24 @@ export const TopicReportTab: React.FC<TopicReportTabProps> = ({
         clearTimeout(saveTimeoutRef.current);
         saveTimeoutRef.current = null;
       }
-      if (hasUnsavedChangesRef.current && latestContentRef.current) {
+      const flushLatestAfterActiveSave = async () => {
+        const activeSave = activeSaveDoneRef.current;
+        if (activeSave) await activeSave;
+        if (conflictPendingRef.current || !hasUnsavedChangesRef.current || !latestContentRef.current) return;
         const latest = latestContentRef.current;
-        void onSaveReportRef.current({
-          content_markdown: latest.markdown,
-          content_html: latest.html,
-          content_json: latest.json,
-          word_count: latest.wordCount,
-          base_version: currentBaseVersionRef.current,
-        }).catch((err) => console.error('Failed to flush report on unmount:', err));
-      }
+        try {
+          await onSaveReportRef.current({
+            content_markdown: latest.markdown,
+            content_html: latest.html,
+            content_json: latest.json,
+            word_count: latest.wordCount,
+            base_version: currentBaseVersionRef.current,
+          });
+        } catch (err) {
+          console.error('Failed to flush report on unmount:', err);
+        }
+      };
+      void flushLatestAfterActiveSave();
     };
   }, []);
 
@@ -260,9 +357,14 @@ export const TopicReportTab: React.FC<TopicReportTabProps> = ({
     const json = JSON.stringify(editor.getJSON());
     const wordCount = 0;
     latestContentRef.current = { markdown, html, json, wordCount };
+    editRevisionRef.current += 1;
     hasUnsavedChangesRef.current = true;
-    setSaveStatus('unsaved');
-    schedulePersistence();
+    if (conflictPendingRef.current) {
+      setSaveStatus('conflict');
+    } else {
+      setSaveStatus('unsaved');
+      schedulePersistence();
+    }
     setIsConfirmClearOpen(false);
     showToast({ message: '已清空报告内容', tone: 'info' });
   };
@@ -303,14 +405,7 @@ export const TopicReportTab: React.FC<TopicReportTabProps> = ({
             {saveStatus === 'conflict' && (
               <>
                 <AlertTriangle className="h-3 w-3 text-red-600 dark:text-red-400" aria-hidden="true" />
-                <span className="text-red-600 dark:text-red-400 font-semibold">版本冲突</span>
-                <button
-                  type="button"
-                  onClick={() => void persistReport()}
-                  className="ml-1 text-[var(--accent)] hover:underline cursor-pointer"
-                >
-                  重试
-                </button>
+                <span className="text-red-600 dark:text-red-400 font-semibold">需处理版本冲突</span>
               </>
             )}
             {saveStatus === 'error' && (
@@ -362,6 +457,50 @@ export const TopicReportTab: React.FC<TopicReportTabProps> = ({
         </div>
       </div>
 
+      {saveStatus === 'conflict' && (
+        <div className="shrink-0 border-b border-[var(--h1-color)]/20 bg-[var(--h1-color)]/[0.04] px-4 py-3 sm:px-6" role="alert">
+          <div className="mx-auto flex w-full max-w-4xl flex-col gap-3">
+            <div>
+              <p className="text-sm font-semibold text-[var(--ink)]">本机与云端报告都已保留</p>
+              <p className="mt-1 text-xs leading-relaxed text-[var(--ink-muted)]">
+                下方编辑器保留本机内容。{hasConflictSnapshot
+                  ? `云端版本${conflictReport ? `为 v${conflictReport.version}` : '目前没有报告'}。检查两个版本后，明确选择保留哪一份；选择本机版本会覆盖云端全文。`
+                  : '本次响应没有提供云端快照，自动保存已暂停。请先复制本机内容，再重新加载云端版本并手动合并。'}
+              </p>
+            </div>
+
+            {hasConflictSnapshot && (
+              <div className="flex flex-col gap-2">
+                <details className="rounded-xl bg-[var(--surface)]/70 px-3 py-2 text-xs">
+                  <summary className="cursor-pointer font-medium text-[var(--ink)]">
+                    查看云端版本（{(conflictReport?.content_markdown || '').length.toLocaleString()} 字符）
+                  </summary>
+                  <pre className="mt-2 whitespace-pre-wrap break-words font-sans text-xs leading-relaxed text-[var(--ink-muted)]">
+                    {conflictReport?.content_markdown || '云端目前没有报告。'}
+                  </pre>
+                </details>
+                <div className="flex flex-wrap items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setIsConfirmOverwriteOpen(true)}
+                    className="min-h-8 rounded-full bg-[var(--h1-color)]/10 px-3 text-xs font-medium text-[var(--h1-color)] transition-colors hover:bg-[var(--h1-color)]/15 cursor-pointer"
+                  >
+                    保留本机并覆盖云端
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setIsConfirmUseRemoteOpen(true)}
+                    className="min-h-8 rounded-full bg-[var(--surface)] px-3 text-xs font-medium text-[var(--ink)] transition-colors hover:bg-[var(--accent)]/10 cursor-pointer"
+                  >
+                    采用云端版本
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
       {/* Editor Body */}
       <FloatingScrollbar className="script-editor-canvas-container flex-1 bg-[var(--canvas)] flex justify-center cursor-text transition-colors">
         <div className="min-w-0 w-full max-w-4xl px-6 sm:px-12 md:px-16 pt-8 pb-36">
@@ -390,6 +529,26 @@ export const TopicReportTab: React.FC<TopicReportTabProps> = ({
         description="确定要清空当前的选题报告内容吗？已清空的内容将在下一次保存时同步。"
         confirmText="确认清空"
         tone="danger"
+      />
+
+      <ConfirmDialog
+        isOpen={isConfirmOverwriteOpen}
+        onClose={() => setIsConfirmOverwriteOpen(false)}
+        onConfirm={handleKeepLocalAndOverwrite}
+        title="用本机报告覆盖云端版本"
+        description="将以当前云端版本号保存本机全文，云端报告会被本机内容替换。你已确认保留本机版本吗？"
+        confirmText="覆盖云端并保存"
+        tone="danger"
+      />
+
+      <ConfirmDialog
+        isOpen={isConfirmUseRemoteOpen}
+        onClose={() => setIsConfirmUseRemoteOpen(false)}
+        onConfirm={handleUseRemoteVersion}
+        title="采用云端报告版本"
+        description="本机未保存的报告内容将从编辑器中替换为云端版本。请确认已经检查并希望采用云端内容。"
+        confirmText="采用云端版本"
+        tone="warning"
       />
     </div>
   );

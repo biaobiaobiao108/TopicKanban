@@ -65,6 +65,9 @@ describe('Database schema contract', () => {
 
       const commercialDealTableSql = sqlite.query("SELECT sql FROM sqlite_master WHERE type = 'table' AND name = 'commercial_deals'").get() as { sql: string };
       expect(commercialDealTableSql.sql).toContain("status IN ('communicating', 'producing', 'delivered', 'archived')");
+      const citationTableSql = sqlite.query("SELECT sql FROM sqlite_master WHERE type = 'table' AND name = 'draft_citations'").get() as { sql: string };
+      expect(citationTableSql.sql).toContain("reference_type IN ('source', 'report', 'person', 'outline')");
+      expect(citationTableSql.sql).not.toContain("'timeline'");
     } finally {
       sqlite.close();
     }
@@ -90,7 +93,7 @@ describe('Database schema contract', () => {
     }
   });
 
-  it('rejects a database outside the current baseline instead of migrating it', async () => {
+  it('rejects unsupported database schema versions', async () => {
     const dbPath = temporaryDatabasePath('kanban-outdated-schema');
     const outdated = new Database(dbPath);
     outdated.exec(`
@@ -105,7 +108,7 @@ describe('Database schema contract', () => {
     outdated.close();
 
     try {
-      await expect(initializeSqliteDatabase(dbPath, schemaDir)).rejects.toThrow('no longer migrates legacy databases');
+      await expect(initializeSqliteDatabase(dbPath, schemaDir)).rejects.toThrow('SQLite schema version mismatch: expected baseline v5');
     } finally {
       await removeSqliteArtifacts(dbPath);
     }
