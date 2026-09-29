@@ -280,20 +280,20 @@ export const PeopleView: React.FC<PeopleViewProps> = ({
                   </div>
 
                   {person.aliases && (
-                    <p className="text-xs text-stone-500 dark:text-stone-400">
-                      <strong className="text-stone-700 dark:text-stone-300 font-semibold">昵称/外号：</strong>
+                    <p className="text-xs text-[var(--ink-muted)]">
+                      <strong className="text-[var(--ink)] font-semibold">昵称/外号：</strong>
                       {person.aliases}
                     </p>
                   )}
 
                   {person.description && (
-                    <p className="text-xs text-stone-600 dark:text-stone-300 leading-relaxed bg-stone-500/[0.03] dark:bg-stone-800/60 p-3 rounded-xl border border-stone-200/50 dark:border-stone-800/80">
+                    <p className="text-xs text-[var(--ink-muted)] leading-relaxed bg-[var(--canvas)] p-3 rounded-xl border border-[var(--line)]/50">
                       {person.description}
                     </p>
                   )}
 
                   {person.quotes && (
-                    <div className="text-xs text-stone-700 dark:text-stone-300 italic border border-[var(--line)] px-3 bg-[var(--accent-soft)]/45 py-2 rounded-xl">
+                    <div className="text-xs text-[var(--ink)] italic border-l-2 border-l-[var(--accent)] px-3 bg-[var(--accent-soft)]/25 py-2 rounded-r-xl">
                       “{person.quotes}”
                     </div>
                   )}
@@ -301,7 +301,7 @@ export const PeopleView: React.FC<PeopleViewProps> = ({
                   {/* Relationships list */}
                   {personRels.length > 0 && (
                     <div className="space-y-1.5 pt-1">
-                      <div className="text-[11px] font-semibold text-stone-400 dark:text-stone-500">已知关系网：</div>
+                      <div className="text-[11px] font-semibold text-[var(--ink-muted)]">已知关系网：</div>
                       <div className="flex flex-wrap gap-1.5">
                         {personRels.map((r) => {
                           const targetName =
@@ -309,14 +309,14 @@ export const PeopleView: React.FC<PeopleViewProps> = ({
                           return (
                             <span
                               key={r.id}
-                              className="group inline-flex items-center gap-1 text-xs bg-stone-100 dark:bg-stone-800 text-stone-700 dark:text-stone-300 pl-2.5 pr-1.5 py-0.5 rounded-lg"
+                              className="group inline-flex items-center gap-1 text-xs bg-stone-500/[0.04] dark:bg-white/[0.04] text-[var(--ink)] pl-2.5 pr-1.5 py-0.5 rounded-lg"
                             >
                               <span>与 {targetName}: {r.relationship}</span>
                               <button
                                 type="button"
                                 aria-label={`解除与 ${targetName} 的关系`}
                                 onClick={() => setDeletingRel({ id: r.id, label: `与 ${targetName} 的「${r.relationship}」关系` })}
-                                className="text-stone-400 hover:text-red-600 dark:text-stone-500 dark:hover:text-red-400 p-0.5 rounded transition-colors cursor-pointer"
+                                className="text-[var(--ink-muted)] hover:text-red-600 dark:hover:text-red-400 p-0.5 rounded transition-colors cursor-pointer"
                               >
                                 <span className="text-xs leading-none">×</span>
                               </button>
@@ -329,8 +329,8 @@ export const PeopleView: React.FC<PeopleViewProps> = ({
                 </div>
 
                 {/* Related topics link */}
-                <div className="pt-3 border-t border-stone-100 dark:border-stone-800 space-y-1.5">
-                  <div className="flex items-center justify-between text-xs text-stone-400 dark:text-stone-500">
+                <div className="pt-3 border-t border-[var(--line)]/40 space-y-1.5">
+                  <div className="flex items-center justify-between text-xs text-[var(--ink-muted)]">
                     <span className="font-semibold">登场选题 ({relatedTopics.length})</span>
                     <span className="font-mono text-[11px] truncate max-w-[140px]">{person.platform_accounts}</span>
                   </div>
@@ -340,7 +340,7 @@ export const PeopleView: React.FC<PeopleViewProps> = ({
                         <button
                           key={t.id}
                           onClick={() => onSelectTopic(t.id)}
-                          className="w-full text-left text-xs font-medium text-stone-700 dark:text-stone-300 hover:text-[var(--accent)] truncate block transition-colors cursor-pointer"
+                          className="w-full text-left text-xs font-medium text-[var(--ink)] hover:text-[var(--accent)] truncate block transition-colors cursor-pointer"
                         >
                           • {t.title}
                         </button>
@@ -353,7 +353,7 @@ export const PeopleView: React.FC<PeopleViewProps> = ({
           })}
 
           {filteredPeople.length === 0 && !peoplePageQuery.isFetching && (
-            <div className="col-span-full p-12 text-center border-2 border-dashed border-[var(--line)] rounded-2xl bg-[var(--surface)] text-stone-600 dark:text-stone-400">
+            <div className="col-span-full p-12 text-center border border-dashed border-[var(--line)] rounded-2xl bg-[var(--surface)] text-[var(--ink-muted)]">
               暂无人物档案记录，点击右上角新建人物！
             </div>
           )}

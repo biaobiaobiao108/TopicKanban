@@ -112,30 +112,38 @@
 ## 🎨 四、UI/UX 与文人笔记设计系统 (The Literary Editorial Design System)
 
 1. **风格基调（文人笔记的内敛、克制与纯净质感）**：
-   * **核心色彩系统**：暖白画布（`--canvas`）、白色表面（`--surface`）、石墨文字（`--ink`）、次要微墨（`--ink-muted`）、极细淡线（`--line`）、复古松柏军绿（`--accent` 聚焦/行动强调色）、沉敛朱砂红（`--h1-color` 正文 H1 卷首印章点睛）。
-   * **容器与层级（去表格化、去繁复线条与硬框）**：
-     - 优先依靠留白、自然底色层级（`--canvas` 与 `--surface`）组织信息，避免生硬突兀的粗边框、重阴影与多余的装饰实线；
-     - 侧栏与抽屉（大纲、事实参考、标签栏等）背景与画布背景 `--canvas` 对齐融合；抽屉内部采用自然表面卡片（`--surface`）或轻柔微底色，严禁出现贯穿纵向标尺线、每行底部进度线条等密集表格斑马线与多层嵌套方盒；
-     - 摘录与引用采用出版物规范的左侧单立引线（`border-l-2 border-[var(--accent)]`）或柔和无边框画布背景，杜绝封闭硬方框。
-   * **按钮与交互控件（克制、微交互与无框化）**：
-     - 避免五颜六色、生硬刻板的大胶囊；常规操作按钮、状态徽标与顶栏微操作统一采用无边框轻量微晶片，默认纯净，鼠标悬浮时才平滑响应轻边框或微浅底；
-     - 仅在沉浸写作浮动工具栏等明确需要独立悬浮层次的场景保留圆角胶囊与柔和阴影；
+   * **核心色彩语义化**：严禁在业务组件中直接硬编码 `text-stone-900` / `bg-white dark:bg-stone-900` 等具象颜色类；统一使用核心设计变量：暖白画布（`--canvas`）、表面卡片（`--surface`）、石墨正文（`--ink`）、次要微墨（`--ink-muted`）、极细淡线（`--line` 或 `--line/50`）、复古松柏军绿（`--accent` 聚焦/行动强调色）、沉敛朱砂红（`--h1-color` 卷首印章点睛与危险提示）。在 4 套主题（纸境、浅色、深色、跟随系统）下自动协调一致。
+   * **去 AI Slop 铁律（杜绝机械感、炫目彩色与多层嵌套方盒）**：
+     - **严禁花哨彩色小网格**：禁止使用 5 列彩色小表格或高饱和度大彩字堆砌 KPI（如扎眼的红绿黄紫大数字），数据指标流统一以石墨文字（`--ink`）、次要微墨（`--ink-muted`）与等宽数值（`font-mono tabular-nums`）克制呈现；
+     - **去封闭硬方框**：优先依靠留白与柔和底色层级（`--canvas` 与 `--surface`）组织信息；摘录、引用与当前行动一律采用出版物规范的左侧单立引线（`border-l-2 border-l-[var(--accent)]`）或柔和无边框画布浅底，严禁密集斑马线与粗边框嵌套方盒；
+     - **表格与网格极致通透**：表格与日历单元格采用极细淡线（`divide-[var(--line)]/30`、`border-[var(--line)]/35`），表头与浮层采用半透明微磨砂质感。
+   * **微胶囊与微晶片交互规范 (Micro-capsules & Micro-chips)**：
+     - 范围过滤栏、视图切换器与状态流转分段器统一采用轻盈微胶囊设计（`rounded-full bg-stone-500/[0.04] p-1`）；
+     - 常规操作按钮、状态徽标与行内操作一律采用无边框轻量微晶片，默认纯净半透明或极浅微底，鼠标悬浮时才平滑响应轻浅底色或极细淡线，禁止五颜六色、生硬刻板的大胶囊；
      - 分段器与 Tab 标签页采用无外边框设计，依靠激活项浅底色（`bg-[var(--surface)]` 或 `bg-[var(--accent)]/10`）体现选中。
    * **表单控件**：输入框与文本域采用自然浅底微圆角（`rounded-xl bg-stone-500/[0.03] dark:bg-stone-800`，聚焦时呈现松柏强调色）；同一组输入控件统一 `min-height`、内边距和行高；占位符统一使用 `placeholder:text-stone-400 dark:placeholder:text-stone-500`。
    * **排版与中文输入**：
      - 左侧主导航与工作台顶栏当前行动模块字号适中清晰，状态表述简洁（杜绝冗余重复，如“14天 14d”）；
      - 文案编辑器全面兼容中文输入习惯，Markdown 快捷语法对中文全角符号（如 `》` 触发引用块）保持宽容与流畅解析。
 
-2. **全站 UI 统一组件约束**：
-   * 全站所有下拉选择交互必须统一使用 `CustomSelect` 自定义组件，严禁在业务界面中使用系统原生 `<select>` 标签。
-   * 全站所有日期输入交互必须统一使用 `DateInput` 自定义组件（支持输入 8 位连续数字如 `20260831` 或 ISO 标准串 `2026-08-31`），严禁使用系统原生 `<input type="date">`，避免部分浏览器在直接键入数字时将年份解析为六位数（如 `202608-03-01`）。
-   * 全站所有浮层、操作菜单与自定义下拉列表（如表格列配置、阶段流转菜单、操作选项）必须统一使用 `FloatingMenu` 或 `CustomSelect`（基于 `createPortal(..., document.body)` 与 `useFloatingPosition` 实现），严禁使用 `absolute` 定位内嵌在滚动容器或表格中，杜绝因 `overflow: hidden` / `overflow: auto` 或层叠上下文导致的菜单被截断问题。
+2. **全站 UI 统一组件与稳定性约束**：
+   * **顶栏与标签栏的绝对稳定性 (Absolute Stability of Navigation Tabs)**：
+     - 严禁顶栏分段器或导航 Tabs 因为子状态异步加载（如待办列表就绪、资料计数更新）而动态增加数字徽标，导致分段器宽度发生突变与伸缩抖动；
+     - 导航标签必须保持布局与长度绝对稳定，统计数量应在工作台专门的摘要卡片或列表局部流中呈现。
+   * **抽屉平滑动画与视口防抖 (Drawer Smoothness & preventScroll)**：
+     - 侧边抽屉（快投箱、事实参考、大纲抽屉等）位移动画必须保持克制平滑（如 `translate3d(24px, 0, 0)` -> 0），禁止过冲反弹；
+     - 抽屉展开自动聚焦时，必须显式传递 `{ preventScroll: true }`，杜绝因浏览器原生 `scrollIntoView` 导致的外层视口瞬间剧烈左冲回弹。
+   * **严禁原生悬停提示 (Zero Native Tooltips / title 属性禁令)**：
+     - 全站所有按钮、药丸、图表与列表项**严禁随意添加系统原生 `title="..."` 悬停提示框**，杜绝系统悬停黄黑弹窗破坏文人笔记的沉浸质感；
+     - 语义与无障碍辅助必须统一使用标准 `aria-label`。
+   * **全站下拉与日期统一**：全站所有下拉选择统一使用 `CustomSelect`，严禁原生 `<select>`；日期统一使用 `DateInput`，严禁原生 `<input type="date">`。
+   * **浮层与操作菜单 Portal 化**：全站所有浮层、操作菜单统一使用 `FloatingMenu` 或 `CustomSelect`（通过 `createPortal` 挂载至 `document.body`），严禁内嵌在 `overflow` 容器内避免被截断。
    * **严禁浏览器原生弹窗 (Zero Native Dialogs)**：
-     - 全站所有二次确认与破坏性操作（如移入回收站、永久删除、批量删除、覆盖恢复数据备份等）必须统一使用 `ConfirmDialog` 模态组件（内置 `danger` 玫瑰红、`warning` 琥珀黄、`primary` 墨石黑三种语义色调与异步 `isLoading` 状态）；
-     - 所有即时状态轻提示必须统一使用 `useToast`（支持 `success`、`error`、`info`），**严禁在任何业务界面中使用浏览器原生 `window.confirm`、`window.alert` 或 `window.prompt`**；
-     - 所有自定义模态弹窗（`Modal` / `ConfirmDialog`）必须通过 `createPortal` 挂载到 `document.body`，且必须内置 `Escape` 键监听、焦点锁定（Focus trap）与 `body` 滚动穿透锁定。
-   * **滚动容器规范**：弹窗尺寸与布局保持稳定防跳变；全站所有局部滚动容器统一使用 `FloatingScrollbar` 组件并隐藏原生滚动条。
-   * **异步列表操作**：禁止用共享 `isBusy` / `loading` 状态同时切换整列列表项的 `disabled`、透明度或视觉 class；新增、完成、编辑、删除等操作只锁定目标项，新增表单使用自身 `isSubmitting` 防重复。操作期间未受影响项的 checkbox、DOM 节点和布局必须保持稳定，避免整列闪烁。
+     - 二次确认与破坏性操作必须统一使用 `ConfirmDialog`；
+     - 即时状态轻提示必须统一使用 `useToast`，**严禁使用原生 `window.confirm`、`window.alert` 或 `window.prompt`**；
+     - 所有模态弹窗（`Modal` / `ConfirmDialog`）必须通过 `createPortal` 挂载到 `document.body`，且内置 `Escape` 监听、焦点锁定与 `body` 滚动穿透锁定。
+   * **滚动容器规范**：全站所有局部滚动容器统一使用 `FloatingScrollbar` 组件并隐藏原生滚动条。
+   * **异步列表操作**：禁止用共享 `isBusy` / `loading` 状态同时切换整列列表项的 `disabled`、透明度或视觉 class；操作期间未受影响项必须保持 DOM 节点与布局绝对稳定。
 3. **移动端深度适配 (Mobile First on iOS Safari)**：
    * 必须保持 iPhone Safari 兼容性（包括 `safe-area-inset-bottom` 适配、底部导航 Dock、侧滑抽屉、触控点尺寸）。
    * 徽标（Badge）渲染必须严格校验 `typeof badge === 'number' && badge > 0`，防止空徽标显示为红点。

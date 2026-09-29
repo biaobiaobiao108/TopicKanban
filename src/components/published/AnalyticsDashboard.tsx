@@ -135,74 +135,74 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({
 
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3.5">
           {/* Total Views */}
-          <div className="bg-[var(--surface)] p-4 rounded-2xl border border-[var(--line)] shadow-2xs space-y-1">
-            <div className="text-xs font-semibold text-stone-500 dark:text-stone-400 flex items-center justify-between">
+          <div className="bg-[var(--surface)] p-4 rounded-2xl border border-[var(--line)]/50 shadow-2xs space-y-1">
+            <div className="text-xs font-semibold text-[var(--ink-muted)] flex items-center justify-between">
               <span>总播放量</span>
               <Flame className="w-4 h-4 text-[var(--accent)]" />
             </div>
-            <div className="text-xl sm:text-2xl font-black font-mono text-stone-900 dark:text-stone-100">
+            <div className="text-xl sm:text-2xl font-bold font-mono tabular-nums text-[var(--ink)]">
               {formatViewsText(overview.totalViews)}
             </div>
-            <div className="text-[11px] text-stone-400 dark:text-stone-500">
-              平均单片: <span className="font-semibold text-stone-700 dark:text-stone-300 font-mono tabular-nums">{formatViewsText(overview.avgViews)}</span>
+            <div className="text-[11px] text-[var(--ink-muted)]">
+              平均单片: <span className="font-semibold text-[var(--ink)] font-mono tabular-nums">{formatViewsText(overview.avgViews)}</span>
             </div>
           </div>
 
           {/* Average Coin Ratio */}
-          <div className="bg-[var(--surface)] p-4 rounded-2xl border border-[var(--line)] shadow-2xs space-y-1">
-            <div className="text-xs font-semibold text-stone-500 dark:text-stone-400 flex items-center justify-between">
+          <div className="bg-[var(--surface)] p-4 rounded-2xl border border-[var(--line)]/50 shadow-2xs space-y-1">
+            <div className="text-xs font-semibold text-[var(--ink-muted)] flex items-center justify-between">
               <span>平均投币率</span>
-              <Coins className="w-4 h-4 text-amber-500" />
+              <Coins className="w-4 h-4 text-[#9b6a2f] dark:text-[#c49258]" />
             </div>
-            <div className="text-xl sm:text-2xl font-black font-mono text-amber-600 dark:text-amber-400">
+            <div className="text-xl sm:text-2xl font-bold font-mono tabular-nums text-[var(--ink)]">
               {overview.avgCoinRate}%
             </div>
-            <div className="text-[11px] text-stone-400 dark:text-stone-500 flex items-center gap-1">
+            <div className="text-[11px] text-[var(--ink-muted)] flex items-center gap-1">
               <span>B站核心权重</span>
-              <span className={`font-bold ${overview.avgCoinRate >= 1.5 ? 'text-emerald-600 dark:text-emerald-400' : 'text-amber-600 dark:text-amber-400'}`}>
+              <span className={`font-semibold ${overview.avgCoinRate >= 1.5 ? 'text-[var(--accent)]' : 'text-[#9b6a2f] dark:text-[#c49258]'}`}>
                 {overview.avgCoinRate >= 1.5 ? '（优秀）' : '（良好）'}
               </span>
             </div>
           </div>
 
           {/* Average Triple Ratio */}
-          <div className="bg-[var(--surface)] p-4 rounded-2xl border border-[var(--line)] shadow-2xs space-y-1">
-            <div className="text-xs font-semibold text-stone-500 dark:text-stone-400 flex items-center justify-between">
+          <div className="bg-[var(--surface)] p-4 rounded-2xl border border-[var(--line)]/50 shadow-2xs space-y-1">
+            <div className="text-xs font-semibold text-[var(--ink-muted)] flex items-center justify-between">
               <span>平均三连率</span>
               <ThumbsUp className="w-4 h-4 text-[var(--accent)]" />
             </div>
-            <div className="text-xl sm:text-2xl font-black font-mono text-[var(--accent)]">
+            <div className="text-xl sm:text-2xl font-bold font-mono tabular-nums text-[var(--accent)]">
               {overview.avgTripleRate}%
             </div>
-            <div className="text-[11px] text-stone-400 dark:text-stone-500">
-              总点赞: <span className="font-semibold text-stone-700 dark:text-stone-300 font-mono">{formatViewsText(overview.totalLikes)}</span>
+            <div className="text-[11px] text-[var(--ink-muted)]">
+              总点赞: <span className="font-semibold text-[var(--ink)] font-mono tabular-nums">{formatViewsText(overview.totalLikes)}</span>
             </div>
           </div>
 
           {/* Average Favorite Ratio */}
-          <div className="bg-[var(--surface)] p-4 rounded-2xl border border-[var(--line)] shadow-2xs space-y-1">
-            <div className="text-xs font-semibold text-stone-500 dark:text-stone-400 flex items-center justify-between">
+          <div className="bg-[var(--surface)] p-4 rounded-2xl border border-[var(--line)]/50 shadow-2xs space-y-1">
+            <div className="text-xs font-semibold text-[var(--ink-muted)] flex items-center justify-between">
               <span>收藏播放比</span>
-              <Bookmark className="w-4 h-4 text-blue-500" />
+              <Bookmark className="w-4 h-4 text-stone-500 dark:text-stone-400" />
             </div>
-            <div className="text-xl sm:text-2xl font-black font-mono text-blue-600 dark:text-blue-400">
+            <div className="text-xl sm:text-2xl font-bold font-mono tabular-nums text-[var(--ink)]">
               {overview.avgFavoriteRate}%
             </div>
-            <div className="text-[11px] text-stone-400 dark:text-stone-500">
-              总收藏: <span className="font-semibold text-stone-700 dark:text-stone-300 font-mono">{formatViewsText(overview.totalFavorites)}</span>
+            <div className="text-[11px] text-[var(--ink-muted)]">
+              总收藏: <span className="font-semibold text-[var(--ink)] font-mono tabular-nums">{formatViewsText(overview.totalFavorites)}</span>
             </div>
           </div>
 
           {/* Engagement Score */}
-          <div className="bg-[var(--surface)] p-4 rounded-2xl border border-[var(--line)] shadow-2xs space-y-1 col-span-2 sm:col-span-1">
-            <div className="text-xs font-semibold text-stone-500 dark:text-stone-400 flex items-center justify-between">
+          <div className="bg-[var(--surface)] p-4 rounded-2xl border border-[var(--line)]/50 shadow-2xs space-y-1 col-span-2 sm:col-span-1">
+            <div className="text-xs font-semibold text-[var(--ink-muted)] flex items-center justify-between">
               <span>互动活力评分</span>
-              <Sparkles className="w-4 h-4 text-purple-500" />
+              <Sparkles className="w-4 h-4 text-[var(--accent)]" />
             </div>
-            <div className="text-xl sm:text-2xl font-black font-mono text-purple-700 dark:text-purple-300">
-              {overview.avgEngagementScore} <span className="text-xs font-normal text-stone-400">/ 100</span>
+            <div className="text-xl sm:text-2xl font-bold font-mono tabular-nums text-[var(--ink)]">
+              {overview.avgEngagementScore} <span className="text-xs font-normal text-[var(--ink-muted)]">/ 100</span>
             </div>
-            <div className="text-[11px] text-stone-400 dark:text-stone-500">
+            <div className="text-[11px] text-[var(--ink-muted)]">
               加权多维互动指数
             </div>
           </div>

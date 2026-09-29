@@ -35,7 +35,7 @@ export const KanbanFilters: React.FC<KanbanFiltersProps> = ({
   hasActiveFilters,
 }) => {
   return (
-    <div data-testid="kanban-filters" className="flex items-center justify-between flex-wrap gap-3 pb-3 md:border-b border-[var(--line)] transition-colors">
+    <div data-testid="kanban-filters" className="flex items-center justify-between flex-wrap gap-3 pb-3 md:border-b border-[var(--line)]/50 transition-colors">
       <div className="flex items-center gap-2.5 flex-wrap text-xs">
         <span className="font-medium text-[var(--ink-muted)] flex items-center gap-1">
           <Filter className="w-3.5 h-3.5" />
@@ -86,7 +86,7 @@ export const KanbanFilters: React.FC<KanbanFiltersProps> = ({
         {hasActiveFilters && (
           <button
             onClick={onResetFilters}
-            className="flex items-center gap-1 text-[var(--ink-muted)] hover:text-[var(--ink)] bg-[var(--surface)] border border-[var(--line)] px-2 py-1 rounded-[var(--radius-sm)] font-normal cursor-pointer transition-colors"
+            className="flex items-center gap-1 text-[var(--ink-muted)] hover:text-[var(--ink)] bg-stone-500/[0.04] hover:bg-stone-500/[0.08] dark:bg-white/[0.04] dark:hover:bg-white/[0.08] px-2 py-1 rounded-lg font-normal cursor-pointer transition-colors"
           >
             <X className="w-3 h-3" />
             重置筛选

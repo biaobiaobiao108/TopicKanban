@@ -153,11 +153,11 @@ const KanbanColumnComponent: React.FC<KanbanColumnProps> = ({
 
       {/* Expand / Collapse Button if exceeding limit */}
       {!mobileMode && hiddenCount > 0 && (
-        <div className="pt-2 mt-2 border-t border-[var(--line)]">
+        <div className="pt-2 mt-2 border-t border-[var(--line)]/50">
           <button
             type="button"
             onClick={() => setIsExpanded(!isExpanded)}
-            className="w-full py-1.5 px-2 text-xs font-medium text-[var(--ink-muted)] hover:text-[var(--ink)] bg-[var(--surface)] hover:bg-[var(--canvas)] border border-[var(--line)] rounded-[var(--radius-sm)] flex items-center justify-center gap-1 transition-colors cursor-pointer"
+            className="w-full py-1.5 px-2 text-xs font-medium text-[var(--ink-muted)] hover:text-[var(--ink)] bg-stone-500/[0.03] hover:bg-stone-500/[0.07] dark:bg-white/[0.03] dark:hover:bg-white/[0.07] rounded-lg flex items-center justify-center gap-1 transition-colors cursor-pointer"
           >
             {isExpanded ? (
               <>
@@ -176,12 +176,12 @@ const KanbanColumnComponent: React.FC<KanbanColumnProps> = ({
 
       {/* Load More Button for paginated columns */}
       {hasMore && (
-        <div className="pt-2 mt-2 border-t border-[var(--line)]">
+        <div className="pt-2 mt-2 border-t border-[var(--line)]/50">
           <button
             type="button"
             onClick={onLoadMore}
             disabled={isLoadingMore}
-            className="w-full py-1.5 px-2 text-xs font-medium text-[var(--ink-muted)] hover:text-[var(--ink)] bg-[var(--surface)] hover:bg-[var(--canvas)] border border-[var(--line)] rounded-[var(--radius-sm)] flex items-center justify-center gap-1 transition-colors cursor-pointer disabled:opacity-50"
+            className="w-full py-1.5 px-2 text-xs font-medium text-[var(--ink-muted)] hover:text-[var(--ink)] bg-stone-500/[0.03] hover:bg-stone-500/[0.07] dark:bg-white/[0.03] dark:hover:bg-white/[0.07] rounded-lg flex items-center justify-center gap-1 transition-colors cursor-pointer disabled:opacity-50"
           >
             {isLoadingMore ? (
               <>

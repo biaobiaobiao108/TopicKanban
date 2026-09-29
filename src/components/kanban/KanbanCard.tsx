@@ -26,7 +26,7 @@ interface KanbanCardProps {
 }
 
 const CARD_META_VALUE_CLASS = 'tabular-nums';
-const SCHEDULE_BADGE_CLASS = 'inline-flex items-center gap-1 rounded-[var(--radius-sm)] px-1.5 py-0.5 text-[11px] font-sans leading-4 whitespace-nowrap border border-[var(--line)] bg-[var(--canvas)] text-[var(--ink-muted)]';
+const SCHEDULE_BADGE_CLASS = 'inline-flex items-center gap-1 rounded-md px-1.5 py-0.5 text-[11px] font-sans leading-4 whitespace-nowrap bg-stone-500/[0.04] dark:bg-white/[0.04] text-[var(--ink-muted)]';
 
 const TopicScheduleBadges: React.FC<{
   scheduleDate: ActionDateDisplay;
@@ -107,10 +107,9 @@ const KanbanCardComponent: React.FC<KanbanCardProps> = ({
 
         {/* Current Action Highlight Bar */}
         {topic.current_todo ? (
-          <div className="bg-[var(--canvas)] border border-[var(--line)] rounded-[var(--radius-sm)] p-2.5 flex items-start gap-2 text-xs text-[var(--ink)]">
-            <div className="w-1.5 h-1.5 rounded-full bg-[var(--accent)] mt-1.5 shrink-0" />
+          <div className="bg-[var(--canvas)] border-l-2 border-l-[var(--accent)] rounded-r-[var(--radius-sm)] p-2.5 flex items-start gap-2 text-xs text-[var(--ink)]">
             <div className="flex-1 min-w-0">
-              <span className="font-medium text-[var(--accent)] mr-1">当前行动:</span>
+              <span className="font-semibold text-[var(--accent)] mr-1">当前行动:</span>
               <span className="font-normal">{topic.current_todo.title}</span>
             </div>
           </div>
@@ -187,11 +186,10 @@ const KanbanCardComponent: React.FC<KanbanCardProps> = ({
         <button
           type="button"
           onClick={(event) => { event.stopPropagation(); onOpenCurrentAction?.(topic.id); }}
-          className="w-full text-left bg-[var(--canvas)] hover:bg-[var(--accent-soft)] border border-[var(--line)] rounded-[var(--radius-sm)] p-2.5 flex items-start gap-2 text-xs text-[var(--ink)] transition-colors cursor-pointer"
+          className="w-full text-left bg-[var(--canvas)] hover:bg-[var(--accent-soft)]/50 border-l-2 border-l-[var(--accent)] rounded-r-[var(--radius-sm)] p-2.5 flex items-start gap-2 text-xs text-[var(--ink)] transition-colors cursor-pointer"
         >
-          <div className="w-1.5 h-1.5 rounded-full bg-[var(--accent)] mt-1.5 shrink-0" />
           <div className="flex-1 min-w-0">
-            <span className="font-medium text-[var(--accent)] mr-1">当前行动:</span>
+            <span className="font-semibold text-[var(--accent)] mr-1">当前行动:</span>
             <span className="font-normal">{topic.current_todo.title}</span>
           </div>
         </button>
@@ -199,7 +197,7 @@ const KanbanCardComponent: React.FC<KanbanCardProps> = ({
         <button
           type="button"
           onClick={(event) => { event.stopPropagation(); onOpenCurrentAction?.(topic.id); }}
-          className="w-full rounded-[var(--radius-sm)] p-2 text-[11px] text-[var(--ink-muted)] text-center bg-[var(--canvas)]/60 hover:bg-[var(--canvas)] border border-[var(--line)] cursor-pointer transition-colors"
+          className="w-full rounded-[var(--radius-sm)] p-2 text-[11px] text-[var(--ink-muted)] text-center bg-stone-500/[0.02] hover:bg-stone-500/[0.05] dark:bg-white/[0.02] dark:hover:bg-white/[0.05] cursor-pointer transition-colors"
         >
           未设置当前行动
         </button>
@@ -226,7 +224,7 @@ const KanbanCardComponent: React.FC<KanbanCardProps> = ({
       <TopicScheduleBadges scheduleDate={scheduleDate} deadlineDate={deadlineDate} />
 
       {/* Secondary context */}
-      <div className="flex items-center justify-between pt-2 border-t border-[var(--line)] text-[11px] text-[var(--ink-muted)]">
+      <div className="flex items-center justify-between pt-2 border-t border-[var(--line)]/50 text-[11px] text-[var(--ink-muted)]">
         <div className="min-w-0 truncate pr-2">
           {topic.people?.slice(0, 2).map((person) => person.name).join(' / ') || '未关联人物'}
           {topic.tags?.length ? ` · ${topic.tags.slice(0, 2).map((tag) => `#${tag.name}`).join(' ')}` : ''}

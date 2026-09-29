@@ -233,12 +233,12 @@ export const TodayView: React.FC<TodayViewProps> = ({
               <div>
                 <h2
                   onClick={() => onOpenDetail(focusTopic.id)}
-                  className="text-xl sm:text-2xl lg:text-3xl font-bold text-stone-900 dark:text-stone-100 hover:text-[var(--accent)] transition-colors cursor-pointer leading-tight text-pretty"
+                  className="text-xl sm:text-2xl lg:text-3xl font-bold text-[var(--ink)] hover:text-[var(--accent)] transition-colors cursor-pointer leading-tight text-pretty"
                 >
                   {focusTopic.title}
                 </h2>
                 {focusTopic.summary && (
-                  <p className="text-sm sm:text-base text-stone-600 dark:text-stone-300 mt-2.5 leading-relaxed max-w-4xl">
+                  <p className="text-sm sm:text-base text-[var(--ink-muted)] mt-2.5 leading-relaxed max-w-4xl">
                     {focusTopic.summary}
                   </p>
                 )}
@@ -255,7 +255,7 @@ export const TodayView: React.FC<TodayViewProps> = ({
                     <Zap className="w-3.5 h-3.5 fill-[var(--accent)]/20" />
                     <span>当前核心行动</span>
                   </div>
-                  <div className="text-base sm:text-lg font-bold text-stone-900 dark:text-stone-100 leading-snug">
+                  <div className="text-base sm:text-lg font-bold text-[var(--ink)] leading-snug">
                     {focusTopic.current_todo?.title || '尚未设置当前行动，点击立即规划！'}
                   </div>
                 </div>
@@ -270,7 +270,7 @@ export const TodayView: React.FC<TodayViewProps> = ({
                   </button>
                   <button
                     onClick={() => onOpenDetail(focusTopic.id)}
-                    className="w-full sm:w-auto shrink-0 flex items-center justify-center gap-2 bg-white dark:bg-stone-800 hover:bg-stone-50 dark:hover:bg-stone-700/80 text-stone-800 dark:text-stone-200 px-4 py-2.5 rounded-xl text-sm font-semibold transition-all shadow-2xs hover:shadow-xs active:scale-[0.98] cursor-pointer"
+                    className="w-full sm:w-auto shrink-0 flex items-center justify-center gap-2 bg-[var(--surface)] hover:bg-[var(--canvas)] text-[var(--ink)] border border-[var(--line)] px-4 py-2.5 rounded-xl text-sm font-semibold transition-all shadow-2xs hover:shadow-xs active:scale-[0.98] cursor-pointer"
                   >
                     <span>进入工作台</span>
                     <ArrowRight className="w-4 h-4" />
@@ -286,11 +286,11 @@ export const TodayView: React.FC<TodayViewProps> = ({
               )}
 
               {/* Bottom Meta */}
-              <div className="flex items-center justify-between pt-3 border-t border-stone-200/60 dark:border-stone-800 text-xs text-stone-600 dark:text-stone-400">
+              <div className="flex items-center justify-between pt-3 border-t border-[var(--line)]/50 text-xs text-[var(--ink-muted)]">
                 <div className="flex items-center gap-2 flex-wrap">
                   {focusTopic.people && focusTopic.people.length > 0 && (
-                    <span className="flex items-center gap-1 font-medium text-stone-700 dark:text-stone-300">
-                      <User className="w-3.5 h-3.5 text-stone-400 dark:text-stone-500" />
+                    <span className="flex items-center gap-1 font-medium text-[var(--ink)]">
+                      <User className="w-3.5 h-3.5 text-[var(--ink-muted)]" />
                       {focusTopic.people.map((p) => p.name).join(' / ')}
                     </span>
                   )}
@@ -301,7 +301,7 @@ export const TodayView: React.FC<TodayViewProps> = ({
 
                 <div className="flex items-center gap-3">
                   {focusTopic.draft_word_count ? (
-                    <span className="text-stone-700 dark:text-stone-300 font-medium">
+                    <span className="text-[var(--ink)] font-medium">
                       文案: <span className="font-mono tabular-nums">{focusTopic.draft_word_count}</span> 字
                     </span>
                   ) : null}
@@ -312,8 +312,8 @@ export const TodayView: React.FC<TodayViewProps> = ({
             </div>
           </div>
         ) : (
-          <div className="p-12 text-center border-2 border-dashed border-stone-300/70 dark:border-stone-800 rounded-3xl bg-white dark:bg-stone-900">
-            <p className="text-stone-600 dark:text-stone-400">当前没有活跃选题，立即创建一个开启今日视频制作！</p>
+          <div className="p-12 text-center border border-dashed border-[var(--line)] rounded-3xl bg-[var(--surface)]">
+            <p className="text-[var(--ink-muted)]">当前没有活跃选题，立即创建一个开启今日视频制作！</p>
             <button
               onClick={onOpenQuickCreate}
               className="mt-4 px-5 py-2.5 bg-[var(--accent)] hover:bg-[var(--accent-dark)] text-white rounded-xl text-sm font-semibold transition-all shadow-2xs cursor-pointer"
@@ -347,62 +347,62 @@ export const TodayView: React.FC<TodayViewProps> = ({
           {/* Left: Action Progress */}
           <section aria-labelledby="today-action-progress-heading" data-testid="today-action-progress-column" className="flex h-[22rem] min-h-0 flex-col space-y-3.5">
             <div className="flex items-center justify-between gap-3">
-              <h2 id="today-action-progress-heading" className="flex items-center gap-2 text-base font-bold text-stone-900 dark:text-stone-100">
+              <h2 id="today-action-progress-heading" className="flex items-center gap-2 text-base font-bold text-[var(--ink)]">
                 <ListChecks className="h-4 w-4 text-[var(--accent)]" />
                 <span>行动推进</span>
-                <span className="rounded-full bg-stone-200/60 px-2 py-0.5 text-xs font-mono font-bold tabular-nums text-stone-700 dark:bg-stone-800 dark:text-stone-300">{activeTopicTotal}</span>
+                <span className="rounded-full bg-stone-500/[0.08] dark:bg-white/[0.08] px-2 py-0.5 text-xs font-mono font-bold tabular-nums text-[var(--ink-muted)]">{activeTopicTotal}</span>
               </h2>
-              <span className="text-[11px] font-semibold text-stone-600 dark:text-stone-400">{actionProgress.covered}/{activeTopicTotal || 0} 已落地</span>
+              <span className="text-[11px] font-semibold text-[var(--ink-muted)]">{actionProgress.covered}/{activeTopicTotal || 0} 已落地</span>
             </div>
 
-            <div data-testid="today-action-progress-panel" className="flex min-h-0 flex-1 flex-col overflow-hidden rounded-2xl border border-stone-200/70 bg-white/80 p-4 shadow-2xs dark:border-stone-800 dark:bg-stone-900/80">
+            <div data-testid="today-action-progress-panel" className="flex min-h-0 flex-1 flex-col overflow-hidden rounded-2xl border border-[var(--line)]/60 bg-[var(--surface)] p-4 shadow-2xs">
               <div className="flex items-end justify-between gap-3">
                 <div>
-                  <div className="text-2xl font-bold tracking-tight text-stone-900 dark:text-stone-100">{coveragePercent}%</div>
-                  <p className="mt-0.5 text-xs text-stone-600 dark:text-stone-400">活跃选题已有明确下一步</p>
+                  <div className="text-2xl font-bold tracking-tight text-[var(--ink)]">{coveragePercent}%</div>
+                  <p className="mt-0.5 text-xs text-[var(--ink-muted)]">活跃选题已有明确下一步</p>
                 </div>
-                <div className="flex items-center gap-1.5 text-[11px] text-stone-600 dark:text-stone-400">
+                <div className="flex items-center gap-1.5 text-[11px] text-[var(--ink-muted)]">
                   <span className="h-2 w-2 rounded-full bg-amber-400" />
                   <span>{actionProgress.staleCount} 条需重新推进</span>
                 </div>
               </div>
 
-              <div className="mt-3 h-2 overflow-hidden rounded-full bg-stone-100 dark:bg-stone-800" aria-label={`当前行动覆盖率 ${coveragePercent}%`} role="progressbar" aria-valuemin={0} aria-valuemax={100} aria-valuenow={coveragePercent}>
+              <div className="mt-3 h-2 overflow-hidden rounded-full bg-stone-500/[0.06] dark:bg-stone-800" aria-label={`当前行动覆盖率 ${coveragePercent}%`} role="progressbar" aria-valuemin={0} aria-valuemax={100} aria-valuenow={coveragePercent}>
                 <div className="h-full rounded-full bg-[var(--accent)] transition-[width] duration-300 motion-reduce:transition-none" style={{ width: `${coveragePercent}%` }} />
               </div>
 
-              <FloatingScrollbar data-testid="today-action-progress-scroll" role="region" tabIndex={0} aria-label="行动推进列表" className="today-focus-scroll divide-y divide-stone-100 dark:divide-stone-800/70" wrapperClassName="mt-4 flex-1 min-h-0">
+              <FloatingScrollbar data-testid="today-action-progress-scroll" role="region" tabIndex={0} aria-label="行动推进列表" className="today-focus-scroll divide-y divide-[var(--line)]/30" wrapperClassName="mt-4 flex-1 min-h-0">
                 {actionProgress.attention.length > 0 ? actionProgress.attention.map((topic) => {
                   const hasAction = Boolean(topic.current_todo);
                   return (
-                    <button key={topic.id} type="button" onClick={() => onOpenDetail(topic.id, 'todos')} className="flex min-h-12 w-full items-center gap-3 py-2 text-left transition-colors hover:text-[var(--accent)]">
+                    <button key={topic.id} type="button" onClick={() => onOpenDetail(topic.id, 'todos')} className="flex min-h-12 w-full items-center gap-3 py-2 text-left transition-colors hover:text-[var(--accent)] cursor-pointer">
                       <span className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-lg ${hasAction ? 'bg-amber-500/10 text-amber-600 dark:text-amber-300' : 'bg-[var(--accent-soft)] text-[var(--accent)]'}`}>
                         {hasAction ? <AlertTriangle className="h-3.5 w-3.5" aria-hidden="true" /> : <Zap className="h-3.5 w-3.5" aria-hidden="true" />}
                       </span>
                       <span className="min-w-0 flex-1">
-                        <span className="block truncate text-xs font-semibold text-stone-800 dark:text-stone-200">{topic.title}</span>
-                        <span className="mt-0.5 block truncate text-[11px] text-stone-600 dark:text-stone-400">{hasAction ? getCurrentActionWarning(topic, new Date(), staleActionDays) || '行动需要重新推进' : '尚未设置当前行动'}</span>
+                        <span className="block truncate text-xs font-semibold text-[var(--ink)]">{topic.title}</span>
+                        <span className="mt-0.5 block truncate text-[11px] text-[var(--ink-muted)]">{hasAction ? getCurrentActionWarning(topic, new Date(), staleActionDays) || '行动需要重新推进' : '尚未设置当前行动'}</span>
                       </span>
-                      <ArrowRight className="h-3.5 w-3.5 shrink-0 text-stone-400" aria-hidden="true" />
+                      <ArrowRight className="h-3.5 w-3.5 shrink-0 text-[var(--ink-muted)]" aria-hidden="true" />
                     </button>
                   );
                 }) : (
                   <div className="flex min-h-36 flex-col items-center justify-center text-center">
                     <CheckCircle2 className="h-6 w-6 text-emerald-500" aria-hidden="true" />
-                    <p className="mt-2 text-sm font-semibold text-stone-800 dark:text-stone-200">当前行动都已就位</p>
-                    <p className="mt-1 text-xs text-stone-600 dark:text-stone-400">继续从主推选题开始推进即可。</p>
+                    <p className="mt-2 text-sm font-semibold text-[var(--ink)]">当前行动都已就位</p>
+                    <p className="mt-1 text-xs text-[var(--ink-muted)]">继续从主推选题开始推进即可。</p>
                   </div>
                 )}
               </FloatingScrollbar>
 
               {actionProgress.attention.length > 0 && (
-                <div data-testid="today-action-progress-footer" className="mt-3 border-t border-stone-100 pt-3 text-[11px] text-stone-600 dark:border-stone-800/70 dark:text-stone-400">
+                <div data-testid="today-action-progress-footer" className="mt-3 border-t border-[var(--line)]/40 pt-3 text-[11px] text-[var(--ink-muted)]">
                   <div className="flex items-center justify-between gap-3 font-semibold">
                     <span className="flex items-center gap-1.5">
                       {actionProgress.missingCount > 0 ? <Zap className="h-3.5 w-3.5 text-amber-500 dark:text-amber-400" aria-hidden="true" /> : <AlertTriangle className="h-3.5 w-3.5 text-amber-500 dark:text-amber-400" aria-hidden="true" />}
                       <span>{actionProgress.missingCount > 0 ? '等待补充行动' : '需要重新推进'}</span>
                     </span>
-                    <span data-testid="today-action-progress-count" className="font-mono tabular-nums text-stone-700 dark:text-stone-300">{actionProgress.missingCount > 0 ? actionProgress.missingCount : actionProgress.staleCount}</span>
+                    <span data-testid="today-action-progress-count" className="font-mono tabular-nums text-[var(--ink)]">{actionProgress.missingCount > 0 ? actionProgress.missingCount : actionProgress.staleCount}</span>
                   </div>
                 </div>
               )}
@@ -412,14 +412,14 @@ export const TodayView: React.FC<TodayViewProps> = ({
           {/* Right: Recent Activity / Worklog */}
           <section aria-labelledby="today-recent-activity-heading" data-testid="today-recent-activity-column" className="flex h-[22rem] min-h-0 flex-col space-y-3.5">
             <div className="flex items-center justify-between">
-              <h2 id="today-recent-activity-heading" className="text-base font-bold text-stone-900 dark:text-stone-100 flex items-center gap-2">
-                <Clock className="w-4 h-4 text-stone-500 dark:text-stone-400" />
+              <h2 id="today-recent-activity-heading" className="text-base font-bold text-[var(--ink)] flex items-center gap-2">
+                <Clock className="w-4 h-4 text-[var(--ink-muted)]" />
                 <span>近期活跃轨迹</span>
               </h2>
             </div>
 
-            <div data-testid="today-recent-activity-panel" className="today-recent-updates-panel flex min-h-0 flex-1 flex-col overflow-hidden rounded-2xl border border-stone-200/70 bg-white/80 p-4 shadow-2xs dark:border-stone-800 dark:bg-stone-900/80">
-              <FloatingScrollbar data-testid="today-recent-activity-scroll" role="region" tabIndex={0} aria-label="近期活跃轨迹列表" className="today-focus-scroll divide-y divide-stone-100 dark:divide-stone-800/70" wrapperClassName="flex-1 min-h-0">
+            <div data-testid="today-recent-activity-panel" className="today-recent-updates-panel flex min-h-0 flex-1 flex-col overflow-hidden rounded-2xl border border-[var(--line)]/60 bg-[var(--surface)] p-4 shadow-2xs">
+              <FloatingScrollbar data-testid="today-recent-activity-scroll" role="region" tabIndex={0} aria-label="近期活跃轨迹列表" className="today-focus-scroll divide-y divide-[var(--line)]/30" wrapperClassName="flex-1 min-h-0">
                 {recentUpdates.map((t) => (
                   <button
                     type="button"
@@ -427,23 +427,23 @@ export const TodayView: React.FC<TodayViewProps> = ({
                     data-testid="today-recent-activity-item"
                     aria-label={`打开选题：${t.title}`}
                     onClick={() => onOpenDetail(t.id)}
-                    className="group flex w-full cursor-pointer items-center justify-between gap-3 p-3.5 text-left transition-colors hover:bg-stone-50 dark:hover:bg-stone-800/60"
+                    className="group flex w-full cursor-pointer items-center justify-between gap-3 p-3 text-left transition-colors hover:bg-[var(--canvas)] rounded-xl"
                   >
                     <span className="block min-w-0">
                       <span className="flex items-center gap-2">
-                        <span className="truncate text-xs font-semibold text-stone-900 transition-colors group-hover:text-[var(--accent)] dark:text-stone-100">
+                        <span className="truncate text-xs font-semibold text-[var(--ink)] transition-colors group-hover:text-[var(--accent)]">
                           {t.title}
                         </span>
                         <StatusBadge status={t.status} />
                       </span>
                       {t.current_todo && (
-                        <span className="mt-0.5 block truncate text-xs text-stone-600 dark:text-stone-400">
+                        <span className="mt-0.5 block truncate text-xs text-[var(--ink-muted)]">
                           当前行动: {t.current_todo.title}
                         </span>
                       )}
                     </span>
 
-                    <span className="shrink-0 text-[11px] text-stone-600 dark:text-stone-400">
+                    <span className="shrink-0 text-[11px] text-[var(--ink-muted)]">
                       <time dateTime={t.updated_at} className="tabular-nums">
                         {formatBeijingDateTime(t.updated_at, 'zh-CN', { month: 'numeric', day: 'numeric' })}
                       </time>
@@ -451,13 +451,13 @@ export const TodayView: React.FC<TodayViewProps> = ({
                   </button>
                 ))}
               </FloatingScrollbar>
-              <div data-testid="today-recent-activity-footer" className="mt-3 shrink-0 border-t border-stone-100 pt-3 text-[11px] text-stone-600 dark:border-stone-800/70 dark:text-stone-400">
+              <div data-testid="today-recent-activity-footer" className="mt-3 shrink-0 border-t border-[var(--line)]/40 pt-3 text-[11px] text-[var(--ink-muted)]">
                 <div className="flex items-center justify-between gap-3 font-semibold">
                   <span className="flex items-center gap-1.5">
-                    <Clock className="h-3.5 w-3.5 text-stone-500 dark:text-stone-400" aria-hidden="true" />
+                    <Clock className="h-3.5 w-3.5 text-[var(--ink-muted)]" aria-hidden="true" />
                     <span>近期活跃选题</span>
                   </span>
-                  <span data-testid="today-recent-activity-count" className="font-mono tabular-nums text-stone-700 dark:text-stone-300">{recentUpdates.length}</span>
+                  <span data-testid="today-recent-activity-count" className="font-mono tabular-nums text-[var(--ink)]">{recentUpdates.length}</span>
                 </div>
               </div>
             </div>

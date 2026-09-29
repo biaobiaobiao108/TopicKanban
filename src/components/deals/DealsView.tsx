@@ -398,33 +398,33 @@ function DealCard({ deal, onOpen }: { deal: CommercialDeal; onOpen: (id: string)
       type="button"
       data-testid="deal-card"
       onClick={() => onOpen(deal.id)}
-      className="group w-full min-w-0 rounded-2xl border border-stone-200/70 bg-white p-4 text-left shadow-2xs transition-all hover:-translate-y-0.5 hover:shadow-card dark:border-stone-800 dark:bg-stone-900"
+      className="group w-full min-w-0 rounded-2xl border border-[var(--line)]/60 bg-[var(--surface)] p-4 text-left shadow-2xs transition-all hover:-translate-y-0.5 hover:shadow-subtle cursor-pointer"
     >
       <div className="flex min-w-0 items-start justify-between gap-3">
         <div className="min-w-0">
           <div className="mb-2 flex min-w-0 flex-nowrap items-center gap-1.5 overflow-hidden">
             <StatusPill status={deal.status} />
             {deal.payment_status === 'paid' ? (
-                <span className="shrink-0 rounded-full bg-emerald-500/10 px-2.5 py-1 text-xs font-semibold text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-300">
+              <span className="shrink-0 rounded-full bg-stone-500/[0.06] dark:bg-white/[0.06] px-2.5 py-0.5 text-xs font-semibold text-[var(--accent)]">
                 已回款
               </span>
             ) : (
-                <span className="shrink-0 rounded-full bg-amber-500/10 px-2.5 py-1 text-xs font-semibold text-amber-800 dark:bg-amber-950/40 dark:text-amber-300">
+              <span className="shrink-0 rounded-full bg-amber-500/10 px-2.5 py-0.5 text-xs font-semibold text-amber-800 dark:text-amber-300">
                 待回款
               </span>
             )}
           </div>
           <p className="truncate text-xs font-semibold text-[var(--accent)]">{deal.brand_name || '未填写品牌'}</p>
-          <p className="mt-1 line-clamp-2 break-words text-sm font-bold leading-relaxed text-stone-900 group-hover:text-[var(--accent)] dark:text-stone-100">
+          <p className="mt-1 line-clamp-2 break-words text-sm font-bold leading-relaxed text-[var(--ink)] group-hover:text-[var(--accent)]">
             {deal.title}
           </p>
         </div>
-        <ArrowRight className="mt-1 h-4 w-4 shrink-0 text-stone-300 transition-transform group-hover:translate-x-0.5 group-hover:text-[var(--accent)] dark:text-stone-600" />
+        <ArrowRight className="mt-1 h-4 w-4 shrink-0 text-[var(--ink-muted)] opacity-40 transition-transform group-hover:translate-x-0.5 group-hover:opacity-100 group-hover:text-[var(--accent)]" />
       </div>
-      <div className="mt-4 min-w-0 space-y-2 border-t border-stone-100 pt-3 text-xs text-stone-500 dark:border-stone-800 dark:text-stone-400">
+      <div className="mt-4 min-w-0 space-y-2 border-t border-[var(--line)]/40 pt-3 text-xs text-[var(--ink-muted)]">
         <div className="flex min-w-0 items-center justify-between gap-3">
           <span>{DELIVERABLE_LABELS[deal.deliverable_type]}</span>
-          <span className="shrink-0 font-mono font-semibold text-stone-800 dark:text-stone-200">{formatMoney(deal.amount_cents)}</span>
+          <span className="shrink-0 font-mono font-semibold tabular-nums text-[var(--ink)]">{formatMoney(deal.amount_cents)}</span>
         </div>
         <div className={`flex items-center gap-1.5 ${overdue ? 'font-bold text-red-600 dark:text-red-400' : ''}`}>
           <CalendarClock className="h-3.5 w-3.5 shrink-0" />
@@ -446,13 +446,13 @@ function DealCard({ deal, onOpen }: { deal: CommercialDeal; onOpen: (id: string)
             制作前需要绑定主选题
           </div>
         ) : (
-          <div className="flex items-center gap-1.5 text-stone-400">
+          <div className="flex items-center gap-1.5 opacity-60">
             <Target className="h-3.5 w-3.5 shrink-0" />
             暂未绑定选题
           </div>
         )}
         <div
-          className={`min-w-0 break-words ${deal.next_action ? 'text-stone-600 dark:text-stone-300' : 'font-semibold text-amber-700 dark:text-amber-300'}`}
+          className={`min-w-0 break-words ${deal.next_action ? 'text-[var(--ink)]' : 'font-semibold text-amber-700 dark:text-amber-300'}`}
         >
           <span className="font-semibold text-[var(--accent-dark)]">下一步：</span>
           {deal.next_action || '尚未设置'}
@@ -482,13 +482,13 @@ function SummaryCard({
     emerald: 'bg-emerald-500/10 text-emerald-800 dark:bg-emerald-950/40 dark:text-emerald-300',
   };
   return (
-    <div className="rounded-2xl border border-stone-200/70 bg-white p-4 shadow-2xs dark:border-stone-800 dark:bg-stone-900">
+    <div className="rounded-2xl border border-[var(--line)]/60 bg-[var(--surface)] p-4 shadow-2xs">
       <div className="flex items-center justify-between gap-3">
         <span className={`grid h-9 w-9 place-items-center rounded-xl ${tones[tone]}`}>{icon}</span>
-        <span className="text-xs font-medium text-stone-600 dark:text-stone-400">{detail}</span>
+        <span className="text-xs font-medium text-[var(--ink-muted)]">{detail}</span>
       </div>
-      <p className="mt-3 text-xs font-semibold text-stone-500 dark:text-stone-400">{label}</p>
-      <p className="mt-1 text-xl font-bold tracking-tight text-stone-900 dark:text-stone-100">{value}</p>
+      <p className="mt-3 text-xs font-semibold text-[var(--ink-muted)]">{label}</p>
+      <p className="mt-1 text-xl font-bold font-mono tabular-nums tracking-tight text-[var(--ink)]">{value}</p>
     </div>
   );
 }
