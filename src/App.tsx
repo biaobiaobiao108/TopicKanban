@@ -901,6 +901,8 @@ function WorkspaceApp({ isAuth, setIsAuth }: WorkspaceAppProps) {
         onLogout={handleLogout}
         topicCount={topicCount}
         quickDropCount={quickDropCount}
+        storageError={loadError || null}
+        authError={!isAuth ? '登录态异常' : null}
       />
 
       {/* Main Content Area */}

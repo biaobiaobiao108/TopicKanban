@@ -455,14 +455,14 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                   title: '暖沙纸境',
                   desc: '温润暖纸画布与松柏绿操作色，适合长时间阅读',
                   icon: BookOpen,
-                  colors: ['#f7f4ed', '#fdfcf7', '#365f4d', '#6c655c'],
+                  colors: ['#f5f0e5', '#faf6ee', '#784c31', '#6d635a'],
                 },
                 {
                   id: 'light' as const,
                   title: '经典浅色',
-                  desc: '简洁的石色画布与清晰对比，保留经典浅色工作区观感',
+                  desc: '中性自然纸白画布与苍松绿，温润漫反射护眼质感',
                   icon: Sun,
-                  colors: ['#fafaf9', '#ffffff', '#292524', '#78716c'],
+                  colors: ['#f2f1ed', '#f9f8f6', '#365f4d', '#746e68'],
                 },
                 {
                   id: 'dark' as const,

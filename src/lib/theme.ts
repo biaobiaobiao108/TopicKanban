@@ -88,8 +88,8 @@ export const THEME_CONFIG_LIST: ThemeConfig[] = [
   {
     id: 'light',
     title: '经典浅色',
-    desc: '简洁的石色画布与清晰对比，保留经典浅色工作区观感',
-    colors: ['#fafaf9', '#ffffff', '#292524', '#78716c'],
+    desc: '中性自然纸白画布与苍松绿，温润漫反射护眼质感',
+    colors: ['#f2f1ed', '#f9f8f6', '#365f4d', '#746e68'],
   },
   {
     id: 'dark',

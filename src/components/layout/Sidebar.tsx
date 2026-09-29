@@ -11,7 +11,8 @@ import {
   Search,
   Plus,
   Smartphone,
-  LogOut
+  LogOut,
+  ShieldAlert,
 } from 'lucide-react';
 import { FloatingScrollbar } from '../ui/FloatingScrollbar';
 
@@ -26,6 +27,8 @@ interface SidebarProps {
   onLogout?: () => void;
   topicCount: number;
   quickDropCount?: number;
+  storageError?: string | null;
+  authError?: string | null;
 }
 
 export const Sidebar: React.FC<SidebarProps> = ({
@@ -37,6 +40,8 @@ export const Sidebar: React.FC<SidebarProps> = ({
   onLogout,
   topicCount,
   quickDropCount = 0,
+  storageError = null,
+  authError = null,
 }) => {
   const navItems = [
     { id: 'today' as NavView, label: '今日聚焦', icon: Calendar, badge: null },
@@ -156,24 +161,44 @@ export const Sidebar: React.FC<SidebarProps> = ({
       </nav>
 
       {/* Footer Info & Logout */}
-      <div className="p-3.5 border-t border-[var(--line)] space-y-2">
-        <div className="flex items-center justify-between text-xs text-stone-700 dark:text-stone-300 font-medium">
-          <div className="flex items-center gap-1.5">
-            <span className="w-2 h-2 rounded-full bg-emerald-500" />
-            <span>存储鉴权已就绪</span>
+      <div className="p-3.5 space-y-2">
+        {(storageError || authError) && (
+          <div className="flex items-center gap-2 px-2.5 py-1.5 rounded-xl bg-red-500/10 text-red-600 dark:text-red-400 text-xs">
+            {storageError && (
+              <span
+                className="flex items-center gap-1.5 cursor-help min-w-0"
+                aria-label={`存储异常: ${storageError}`}
+              >
+                <Database className="w-3.5 h-3.5 text-red-500 shrink-0" />
+                <span className="text-[11px] font-medium truncate">存储异常</span>
+              </span>
+            )}
+            {authError && (
+              <span
+                className="flex items-center gap-1.5 cursor-help min-w-0"
+                aria-label={`鉴权异常: ${authError}`}
+              >
+                <ShieldAlert className="w-3.5 h-3.5 text-amber-500 shrink-0" />
+                <span className="text-[11px] font-medium truncate">鉴权异常</span>
+              </span>
+            )}
           </div>
-          <span className="text-xs font-mono text-stone-500 dark:text-stone-400">v1.0</span>
-        </div>
-
-        {onLogout && (
-          <button
-            onClick={onLogout}
-            className="w-full flex items-center gap-1.5 text-xs font-medium text-stone-700 dark:text-stone-300 hover:text-red-600 dark:hover:text-red-400 px-2 py-1.5 rounded-lg hover:bg-red-50/50 dark:hover:bg-red-950/30 transition-colors cursor-pointer"
-          >
-            <LogOut className="w-3.5 h-3.5" />
-            <span>退出登录</span>
-          </button>
         )}
+
+        <div className="flex items-center justify-between text-xs text-stone-500 dark:text-stone-400">
+          {onLogout ? (
+            <button
+              onClick={onLogout}
+              className="flex items-center gap-1.5 text-xs font-medium text-stone-700 dark:text-stone-300 hover:text-red-600 dark:hover:text-red-400 px-2 py-1.5 rounded-lg hover:bg-red-50/50 dark:hover:bg-red-950/30 transition-colors cursor-pointer"
+            >
+              <LogOut className="w-3.5 h-3.5" />
+              <span>退出登录</span>
+            </button>
+          ) : (
+            <div />
+          )}
+          <span className="text-[11px] font-mono px-2 text-stone-400 dark:text-stone-500 select-none">v1.0</span>
+        </div>
       </div>
     </aside>
   );

@@ -1000,7 +1000,7 @@ function renderScriptTextWithCues(text: string): React.ReactNode {
         className={`shrink-0 flex items-center justify-between px-6 sm:px-12 py-3.5 border-t backdrop-blur-md z-20 ${
           isDark
             ? 'bg-[#0c0a09]/95 border-stone-800/80 text-stone-200'
-            : 'bg-[#fafaf9]/95 border-stone-200/80 text-stone-900'
+            : 'bg-[var(--canvas)]/95 border-[var(--line)] text-stone-900'
         }`}
       >
         {/* Left: Reset */}
