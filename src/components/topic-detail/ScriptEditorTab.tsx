@@ -236,6 +236,60 @@ export const ScriptEditorTab: React.FC<ScriptEditorTabProps> = ({
 
   const [isReferenceOpen, setIsReferenceOpen] = useState(false);
   const [isReportSplitOpen, setIsReportSplitOpen] = useState(false);
+  const [reportSplitWidth, setReportSplitWidth] = useState<number>(() => {
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem('topic_report_split_width');
+      if (saved) {
+        const parsed = Number(saved);
+        if (Number.isFinite(parsed) && parsed >= 360 && parsed <= 1200) {
+          return parsed;
+        }
+      }
+      return Math.min(680, Math.max(480, Math.round(window.innerWidth * 0.4)));
+    }
+    return 540;
+  });
+
+  const [reportFontSize, setReportFontSize] = useState<'compact' | 'normal' | 'large'>(() => {
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem('topic_report_split_font_size');
+      if (saved === 'compact' || saved === 'normal' || saved === 'large') {
+        return saved;
+      }
+    }
+    return 'normal';
+  });
+
+  const isDraggingSplitRef = useRef(false);
+  const dragStartXRef = useRef(0);
+  const dragStartWidthRef = useRef(0);
+
+  const handleSplitResizeStart = (e: React.PointerEvent) => {
+    e.preventDefault();
+    isDraggingSplitRef.current = true;
+    dragStartXRef.current = e.clientX;
+    dragStartWidthRef.current = reportSplitWidth;
+    (e.target as HTMLElement).setPointerCapture(e.pointerId);
+  };
+
+  const handleSplitResizeMove = (e: React.PointerEvent) => {
+    if (!isDraggingSplitRef.current) return;
+    const delta = e.clientX - dragStartXRef.current;
+    const maxAllowed = Math.max(420, window.innerWidth - 480);
+    const nextWidth = Math.min(Math.max(380, dragStartWidthRef.current + delta), maxAllowed);
+    setReportSplitWidth(nextWidth);
+  };
+
+  const handleSplitResizeEnd = (e: React.PointerEvent) => {
+    if (!isDraggingSplitRef.current) return;
+    isDraggingSplitRef.current = false;
+    try {
+      (e.target as HTMLElement).releasePointerCapture(e.pointerId);
+    } catch {
+      // ignore
+    }
+    localStorage.setItem('topic_report_split_width', String(reportSplitWidth));
+  };
   const [isOutlineOpen, setIsOutlineOpen] = useState(false);
   const [outline, setOutline] = useState(EMPTY_SCRIPT_OUTLINE);
   const [activeOutlineItemId, setActiveOutlineItemId] = useState<string | null>(null);
@@ -1510,73 +1564,157 @@ export const ScriptEditorTab: React.FC<ScriptEditorTabProps> = ({
 
         {/* Topic Report Split-Screen Panel */}
         {!isZenMode && isReportSplitOpen && (
-          <aside className="w-full sm:w-[380px] md:w-[420px] lg:w-[460px] xl:w-[500px] shrink-0 h-full border-r border-[var(--line)] bg-[var(--surface)]/70 flex flex-col z-10 transition-all animate-in slide-in-from-left duration-200">
-            {/* Split Panel Header */}
-            <div className="flex h-10 items-center justify-between border-b border-[var(--line)] px-3.5 bg-[var(--surface)]/90 backdrop-blur-xs select-none shrink-0">
-              <div className="flex items-center gap-2">
-                <FileText className="h-3.5 w-3.5 text-[var(--accent)]" />
-                <span className="text-xs font-semibold text-[var(--ink)]">选题报告对照</span>
-                {report?.word_count ? (
-                  <span className="text-[10px] font-mono text-[var(--ink-muted)] tabular-nums">
-                    ({report.word_count} 字)
-                  </span>
-                ) : null}
-              </div>
-              <div className="flex items-center gap-1">
-                {report?.content_markdown && (
-                  <button
-                    type="button"
-                    onClick={async () => {
-                      const ok = await copyTextToClipboard(report.content_markdown || '');
-                      if (ok) showToast({ message: '已复制报告全文', tone: 'success' });
-                    }}
-                    className="p-1 text-stone-400 hover:text-[var(--ink)] rounded cursor-pointer"
-                    aria-label="复制报告全文"
-                  >
-                    <Copy className="h-3.5 w-3.5" />
-                  </button>
-                )}
-                <button
-                  type="button"
-                  onClick={() => setIsReportSplitOpen(false)}
-                  className="p-1 text-stone-400 hover:text-[var(--ink)] rounded cursor-pointer"
-                  aria-label="关闭分屏"
-                >
-                  <X className="h-3.5 w-3.5" />
-                </button>
-              </div>
-            </div>
-
-            {/* Split Panel Content */}
-            <FloatingScrollbar className="p-4 sm:p-5 text-xs text-[var(--ink)] space-y-4" wrapperClassName="flex-1 min-h-0">
-              {!report || !report.content_markdown?.trim() ? (
-                <div className="py-12 text-center text-stone-400 dark:text-stone-500 space-y-2">
-                  <FileText className="w-8 h-8 mx-auto text-stone-300 dark:text-stone-600 stroke-[1.5]" />
-                  <div className="text-xs font-medium">当前选题尚未录入选题报告</div>
-                  <p className="text-[11px] text-stone-400 max-w-xs mx-auto">
-                    可切换至「选题报告」模块整理资料，写文案时在此分屏对照参考。
-                  </p>
+          <>
+            <aside
+              style={{ width: `${reportSplitWidth}px` }}
+              className="shrink-0 h-full border-r border-[var(--line)] bg-[var(--surface)]/70 flex flex-col z-10 transition-all duration-75 relative select-text"
+            >
+              {/* Split Panel Header */}
+              <div className="flex h-10 items-center justify-between border-b border-[var(--line)] px-3.5 bg-[var(--surface)]/90 backdrop-blur-xs select-none shrink-0">
+                <div className="flex items-center gap-2 min-w-0">
+                  <FileText className="h-3.5 w-3.5 text-[var(--accent)] shrink-0" />
+                  <span className="text-xs font-semibold text-[var(--ink)] truncate">选题报告对照</span>
+                  {report?.word_count ? (
+                    <span className="text-[10px] font-mono text-[var(--ink-muted)] tabular-nums shrink-0">
+                      ({report.word_count} 字)
+                    </span>
+                  ) : null}
                 </div>
-              ) : (
-                <div className="space-y-3">
-                  <div className="flex items-center justify-between pb-2 border-b border-[var(--line)]/50">
-                    <span className="text-[11px] text-[var(--ink-muted)]">点击右侧按钮可直接插入文案草稿</span>
+                <div className="flex items-center gap-1.5 shrink-0">
+                  {/* Font size switcher */}
+                  <div className="flex items-center gap-0.5 rounded-md bg-stone-500/[0.06] p-0.5 text-[11px] text-[var(--ink-muted)]">
                     <button
                       type="button"
-                      onClick={() => handleInsertReportContent(report.content_markdown || '', false)}
-                      className="text-[11px] text-[var(--accent)] hover:underline font-medium cursor-pointer"
+                      onClick={() => {
+                        setReportFontSize('compact');
+                        localStorage.setItem('topic_report_split_font_size', 'compact');
+                      }}
+                      className={`px-1.5 py-0.5 rounded transition-colors cursor-pointer ${reportFontSize === 'compact' ? 'bg-[var(--surface)] text-[var(--ink)] font-semibold shadow-xs' : 'hover:text-[var(--ink)]'}`}
+                      title="紧凑字号"
                     >
-                      插入全文
+                      小
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setReportFontSize('normal');
+                        localStorage.setItem('topic_report_split_font_size', 'normal');
+                      }}
+                      className={`px-1.5 py-0.5 rounded transition-colors cursor-pointer ${reportFontSize === 'normal' ? 'bg-[var(--surface)] text-[var(--ink)] font-semibold shadow-xs' : 'hover:text-[var(--ink)]'}`}
+                      title="标准字号"
+                    >
+                      中
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setReportFontSize('large');
+                        localStorage.setItem('topic_report_split_font_size', 'large');
+                      }}
+                      className={`px-1.5 py-0.5 rounded transition-colors cursor-pointer ${reportFontSize === 'large' ? 'bg-[var(--surface)] text-[var(--ink)] font-semibold shadow-xs' : 'hover:text-[var(--ink)]'}`}
+                      title="大字号"
+                    >
+                      大
                     </button>
                   </div>
-                  <div
-                    className="prose prose-stone dark:prose-invert max-w-none text-xs leading-relaxed"
-                    dangerouslySetInnerHTML={{ __html: report.content_html || '' }}
-                  />
+
+                  {report?.content_markdown && (
+                    <button
+                      type="button"
+                      onClick={async () => {
+                        const ok = await copyTextToClipboard(report.content_markdown || '');
+                        if (ok) showToast({ message: '已复制报告全文', tone: 'success' });
+                      }}
+                      className="p-1 text-stone-400 hover:text-[var(--ink)] rounded cursor-pointer"
+                      aria-label="复制报告全文"
+                    >
+                      <Copy className="h-3.5 w-3.5" />
+                    </button>
+                  )}
+                  <button
+                    type="button"
+                    onClick={() => setIsReportSplitOpen(false)}
+                    className="p-1 text-stone-400 hover:text-[var(--ink)] rounded cursor-pointer"
+                    aria-label="关闭分屏"
+                  >
+                    <X className="h-3.5 w-3.5" />
+                  </button>
                 </div>
-              )}
-            </FloatingScrollbar>
-          </aside>
+              </div>
+
+              {/* Split Panel Content */}
+              <FloatingScrollbar className="p-5 sm:p-6 lg:p-7 space-y-4" wrapperClassName="flex-1 min-h-0">
+                {!report || !report.content_markdown?.trim() ? (
+                  <div className="py-12 text-center text-stone-400 dark:text-stone-500 space-y-2">
+                    <FileText className="w-8 h-8 mx-auto text-stone-300 dark:text-stone-600 stroke-[1.5]" />
+                    <div className="text-xs font-medium">当前选题尚未录入选题报告</div>
+                    <p className="text-[11px] text-stone-400 max-w-xs mx-auto">
+                      可切换至「选题报告」模块整理资料，写文案时在此分屏对照参考。
+                    </p>
+                  </div>
+                ) : (
+                  <div className="space-y-4">
+                    <div className="flex items-center justify-between pb-2.5 border-b border-[var(--line)]/50 select-none">
+                      <span className="text-xs text-[var(--ink-muted)]">参考选题背景与弹药，可随时引用至文案</span>
+                      <div className="flex items-center gap-2">
+                        <button
+                          type="button"
+                          onClick={() => {
+                            const sel = window.getSelection()?.toString().trim();
+                            if (sel) {
+                              void handleInsertReportContent(sel, true);
+                            } else {
+                              showToast({ message: '请先在报告中划选需要引用的文字', tone: 'info' });
+                            }
+                          }}
+                          className="text-xs text-[var(--accent)] hover:underline font-medium cursor-pointer"
+                          title="划选文字后点击可带引用标记插入文案"
+                        >
+                          引用划选
+                        </button>
+                        <span className="text-stone-300 dark:text-stone-700">·</span>
+                        <button
+                          type="button"
+                          onClick={() => handleInsertReportContent(report.content_markdown || '', false)}
+                          className="text-xs text-[var(--accent)] hover:underline font-medium cursor-pointer"
+                        >
+                          插入全文
+                        </button>
+                      </div>
+                    </div>
+                    <div
+                      className={`topic-report-reader ${
+                        reportFontSize === 'large'
+                          ? 'text-[16.5px] leading-[1.8]'
+                          : reportFontSize === 'compact'
+                          ? 'text-[13.5px] leading-[1.65]'
+                          : 'text-[15px] leading-[1.75]'
+                      }`}
+                      dangerouslySetInnerHTML={{ __html: report.content_html || '' }}
+                    />
+                  </div>
+                )}
+              </FloatingScrollbar>
+            </aside>
+
+            {/* Split Resizer Divider */}
+            <div
+              onPointerDown={handleSplitResizeStart}
+              onPointerMove={handleSplitResizeMove}
+              onPointerUp={handleSplitResizeEnd}
+              onPointerCancel={handleSplitResizeEnd}
+              className="group relative w-1.5 shrink-0 cursor-col-resize hover:bg-[var(--accent)]/30 active:bg-[var(--accent)]/50 transition-colors select-none z-20 flex items-center justify-center"
+              aria-label="拖拽调整分屏宽度"
+              title="双击可重置分屏宽度"
+              onDoubleClick={() => {
+                const defaultW = Math.min(680, Math.max(480, Math.round(window.innerWidth * 0.4)));
+                setReportSplitWidth(defaultW);
+                localStorage.setItem('topic_report_split_width', String(defaultW));
+              }}
+            >
+              <div className="w-0.5 h-8 rounded-full bg-stone-300 dark:bg-stone-600 group-hover:bg-[var(--accent)] transition-colors" />
+            </div>
+          </>
         )}
 
         {/* Main Writing Canvas */}
@@ -1586,7 +1724,7 @@ export const ScriptEditorTab: React.FC<ScriptEditorTabProps> = ({
             ['--script-editor-font-size' as string]: FONT_SIZE_MAP[settings?.editor_font_size || 'standard'],
             ['--script-editor-line-height' as string]: LINE_HEIGHT_MAP[settings?.editor_line_height || 'relaxed'],
           }}
-          className={`script-editor-canvas-container bg-[var(--canvas)] flex justify-center cursor-text transition-colors ${
+          className={`script-editor-canvas-container flex-1 min-w-0 bg-[var(--canvas)] flex justify-center cursor-text transition-colors ${
             isTypewriterActive ? 'script-editor-focus-mode' : ''
           }`}
         >
@@ -1594,6 +1732,8 @@ export const ScriptEditorTab: React.FC<ScriptEditorTabProps> = ({
             className={`min-w-0 w-full transition-all ${
               isZenMode
                 ? 'max-w-4xl px-6 sm:px-12 md:px-16'
+                : isReportSplitOpen
+                ? 'w-full max-w-4xl xl:max-w-5xl 2xl:max-w-6xl px-6 sm:px-8 md:px-10 lg:px-12 mx-auto'
                 : 'script-editor-stable-content'
             } ${
               isTypewriterActive
