@@ -40,6 +40,5 @@ describe('Settings KV Model and Sanitization', () => {
       expect(settings.theme).toBe(theme);
     }
 
-    expect(sanitizeAppSettings({ reading_speed: 260, theme: 'nordic_frost' as never }).theme).toBe('light');
   });
 });

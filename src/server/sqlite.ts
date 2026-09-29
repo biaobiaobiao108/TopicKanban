@@ -145,7 +145,7 @@ function assertCurrentSchema(sqlite: Database): void {
   if (actualVersion !== CURRENT_SCHEMA_VERSION) {
     throw new Error(
       `SQLite schema version mismatch: expected baseline v${CURRENT_SCHEMA_VERSION}, found v${actualVersion}. `
-      + 'This project does not migrate old databases; restore a compatible backup or recreate the database from drizzle/0000_schema.sql.',
+      + 'This project does not migrate old databases; recreate the database from drizzle/0000_schema.sql.',
     );
   }
 
@@ -173,23 +173,24 @@ export async function initializeSqliteDatabase(dbFilePath: string, schemaDir?: s
     PRAGMA synchronous = NORMAL;
   `);
 
-  const tableCheck = sqlite.query("SELECT count(*) as count FROM sqlite_master WHERE type='table' AND name='topics'").get() as { count: number };
+  const tableCheck = sqlite.query("SELECT count(*) as count FROM sqlite_master WHERE type = 'table' AND name NOT LIKE 'sqlite_%'").get() as { count: number };
 
   const resolvedSchemaDir = schemaDir || resolvePath(process.cwd(), 'drizzle');
   if (tableCheck.count === 0) {
     const schemaFile = joinPath(resolvedSchemaDir, '0000_schema.sql');
     const schema = Bun.file(schemaFile);
-    if (await schema.exists()) sqlite.exec(await schema.text());
+    if (await schema.exists()) {
+      sqlite.exec(await schema.text());
+      sqlite.exec(`
+        CREATE TABLE _kv_store (
+          key TEXT PRIMARY KEY,
+          value TEXT NOT NULL,
+          expires_at INTEGER
+        );
+        CREATE INDEX idx_kv_expires_at ON _kv_store(expires_at);
+      `);
+    }
   }
-
-  sqlite.exec(`
-    CREATE TABLE IF NOT EXISTS _kv_store (
-      key TEXT PRIMARY KEY,
-      value TEXT NOT NULL,
-      expires_at INTEGER
-    );
-    CREATE INDEX IF NOT EXISTS idx_kv_expires_at ON _kv_store(expires_at);
-  `);
 
   try {
     assertCurrentSchema(sqlite);

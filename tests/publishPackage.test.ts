@@ -72,7 +72,6 @@ describe('publish package generator', () => {
       topic,
       draft: draft(JSON.stringify({ type: 'doc', content: [] })),
       sources: [source()],
-      timeline: [],
       citations: [],
       readingSpeed: 280,
     });
@@ -93,7 +92,6 @@ describe('publish package generator', () => {
       topic,
       draft: { ...draft('{}'), title: '文案创作里的独立标题' },
       sources: [],
-      timeline: [],
       citations: [],
     });
     expect(titled.title_simplified).toBe('文案创作里的独立标题');
@@ -102,7 +100,6 @@ describe('publish package generator', () => {
       topic,
       draft: { ...draft('{}'), title: '' },
       sources: [],
-      timeline: [],
       citations: [],
     });
     expect(blank.title_simplified).toBe(topic.title);
@@ -113,7 +110,6 @@ describe('publish package generator', () => {
       topic,
       draft: draft('{}'),
       sources: [source()],
-      timeline: [],
       citations: [],
     });
     const saved: PublishPackageRecord = {
@@ -163,7 +159,6 @@ describe('publish package generator', () => {
       topic,
       draft: draft(contentJson),
       sources: [],
-      timeline: [],
       citations: [],
       readingSpeed: 280,
     });
@@ -177,7 +172,6 @@ describe('publish package generator', () => {
       topic,
       draft: draft('not-json', '<h1>开场</h1><p>内容</p><h2>结尾</h2><p>更多内容</p>'),
       sources: [],
-      timeline: [],
       citations: [],
       readingSpeed: 280,
     });
@@ -190,7 +184,6 @@ describe('publish package generator', () => {
       topic,
       draft: draft(JSON.stringify({ type: 'doc', content: [{ type: 'paragraph', content: [{ type: 'text', text: '正文' }] }] })),
       sources: [source({ url: 'javascript:alert(1)' })],
-      timeline: [],
       citations: [],
       readingSpeed: 280,
     });
@@ -198,6 +191,18 @@ describe('publish package generator', () => {
     expect(packageData.source_credits[0].url).toBe('');
     expect(packageData.checks.some((check) => check.id === 'source-url-invalid')).toBe(true);
     expect(packageData.checks.some((check) => check.level === 'blocker')).toBe(false);
+  });
+
+  it('checks unverified dated sources as timeline material', () => {
+    const packageData = buildPublishPackage({
+      topic,
+      draft: draft(JSON.stringify({ type: 'doc', content: [{ type: 'paragraph', content: [{ type: 'text', text: '正文' }] }] })),
+      sources: [source({ event_date: '2026-08-20', verification_status: 'unverified' })],
+      citations: [],
+      readingSpeed: 280,
+    });
+
+    expect(packageData.checks.some((check) => check.id === 'dated-source-unverified')).toBe(true);
   });
 
   it('reports active unresolved citations and draft conflicts as checks', () => {
@@ -216,7 +221,6 @@ describe('publish package generator', () => {
       topic,
       draft: draft(contentJson),
       sources: [source({ verification_status: 'unverified' })],
-      timeline: [],
       citations: [{
         id: 'citation-1',
         topic_id: topic.id,
@@ -242,7 +246,6 @@ describe('publish package generator', () => {
       topic,
       draft: draft(JSON.stringify({ type: 'doc', content: [{ type: 'paragraph', content: [{ type: 'text', text: '正文' }] }] })),
       sources: [source()],
-      timeline: [],
       citations: [],
       readingSpeed: 280,
     });

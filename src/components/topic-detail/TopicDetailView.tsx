@@ -2,7 +2,7 @@ import React, { useId, useState, useEffect, useLayoutEffect, useRef, useCallback
 import './editor.css';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useSearchParams } from 'react-router-dom';
-import { CitationInput, Topic, Source, TimelineEvent, TopicReport, Person, PersonRelationship, Draft, DraftCitation, DraftRecoveryConflict, Tag, AppSettings, PublishPackageSaveInput, PublishPackageRecord, TopicTodo } from '../../types';
+import { CitationInput, Topic, Source, TopicReport, Person, PersonRelationship, Draft, DraftCitation, DraftRecoveryConflict, Tag, AppSettings, PublishPackageSaveInput, PublishPackageRecord, TopicTodo } from '../../types';
 import { OverviewTab } from './OverviewTab';
 import { SourcesTab } from './SourcesTab';
 import { TopicReportTab } from './TopicReportTab';

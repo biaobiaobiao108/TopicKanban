@@ -37,7 +37,7 @@ const citation = (overrides: Partial<DraftCitation>): DraftCitation => ({
 
 describe('citation health', () => {
   it('keeps report quotes from being compared with the topic storyline', () => {
-    const health = getCitationHealth([citation({})], { topic, sources: [], timeline: [] });
+    const health = getCitationHealth([citation({})], { topic, sources: [] });
 
     expect(health.states[0]).toMatchObject({ missing: false, stale: false, unverified: false });
   });
@@ -49,7 +49,7 @@ describe('citation health', () => {
       reference_snapshot: topic.hook || '',
     });
     const unknownOutline = citation({ reference_type: 'outline', reference_id: 'unknown' });
-    const health = getCitationHealth([hook, unknownOutline], { topic, sources: [], timeline: [] });
+    const health = getCitationHealth([hook, unknownOutline], { topic, sources: [] });
 
     expect(health.states[0]).toMatchObject({ missing: false, stale: false });
     expect(health.states[1]).toMatchObject({ missing: true, stale: true });

@@ -11,7 +11,7 @@ import { Extension } from '@tiptap/core';
 import type { Editor as TiptapEditor } from '@tiptap/core';
 import { Plugin, PluginKey } from '@tiptap/pm/state';
 import { Decoration, DecorationSet } from '@tiptap/pm/view';
-import { CitationInput, Draft, DraftCitation, Topic, TimelineEvent, Source, AppSettings, EditorFontSize, EditorLineHeight, DEFAULT_VOICEOVER_CUES, TopicReport } from '../../types';
+import { CitationInput, Draft, DraftCitation, Topic, Source, AppSettings, EditorFontSize, EditorLineHeight, DEFAULT_VOICEOVER_CUES, TopicReport } from '../../types';
 import { ScriptReferenceDrawer } from './ScriptReferenceDrawer';
 import { ScriptOutlinePanel } from './ScriptOutlinePanel';
 import { Modal } from '../ui/Modal';
@@ -188,7 +188,6 @@ interface ScriptEditorTabProps {
   topicId: string;
   topicTitle: string;
   topic?: Topic;
-  timeline?: TimelineEvent[];
   sources?: Source[];
   report?: TopicReport | null;
   citations: DraftCitation[];
@@ -221,7 +220,6 @@ export const ScriptEditorTab: React.FC<ScriptEditorTabProps> = ({
   topicId,
   topicTitle,
   topic,
-  timeline = [],
   sources = [],
   report,
   citations,
@@ -1072,7 +1070,7 @@ export const ScriptEditorTab: React.FC<ScriptEditorTabProps> = ({
 
   const currentHtml = editor?.getHTML() || initialDraft?.content_html || '';
   const activeCitations = citations.filter((citation) => currentHtml.includes(`data-citation-id=\"${citation.id}\"`));
-  const citationHealth = topic ? getCitationHealth(activeCitations, { topic, sources, timeline }) : null;
+  const citationHealth = topic ? getCitationHealth(activeCitations, { topic, sources }) : null;
 
   const toggleOutlinePanel = () => {
     if (!isOutlineOpen && !canKeepBothSidePanelsOpen()) setIsReferenceOpen(false);
@@ -1800,7 +1798,6 @@ export const ScriptEditorTab: React.FC<ScriptEditorTabProps> = ({
             isOpen={isReferenceOpen}
             onClose={() => setIsReferenceOpen(false)}
             topic={topic}
-            timeline={timeline}
             sources={sources}
             staleReferenceIds={citationHealth?.states
               .filter((state) => state.stale)

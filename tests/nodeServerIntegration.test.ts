@@ -1027,7 +1027,7 @@ describe('Bun Server Integration (Local SQLite & API)', () => {
       .toEqual({ id: 'rollback-trash-source' });
   });
 
-  it('handles source deletes idempotently and rejects retired timeline writes explicitly', async () => {
+  it('handles source deletes idempotently and leaves retired timeline APIs removed', async () => {
     const loginRes = await app.request('/api/auth/login', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -1042,21 +1042,18 @@ describe('Bun Server Integration (Local SQLite & API)', () => {
     });
     expect(deleteNonExistentSource.status).toBe(200);
 
-    const deleteNonExistentTimeline = await app.request('/api/timeline/non-existent-time-id', {
+    const deleteRemovedTimeline = await app.request('/api/timeline/non-existent-time-id', {
       method: 'DELETE',
       headers,
     });
-    expect(deleteNonExistentTimeline.status).toBe(410);
-    expect(await deleteNonExistentTimeline.json()).toMatchObject({
-      error: expect.stringContaining('merged into sources'),
-    });
+    expect(deleteRemovedTimeline.status).toBe(404);
 
     const createRetiredTimeline = await app.request('/api/timeline', {
       method: 'POST',
       headers: { ...headers, 'Content-Type': 'application/json' },
       body: JSON.stringify({ topic_id: 'topic-1', title: '不应静默丢弃的旧接口写入' }),
     });
-    expect(createRetiredTimeline.status).toBe(410);
+    expect(createRetiredTimeline.status).toBe(404);
     expect(sqlite.query("SELECT COUNT(*) AS count FROM sources WHERE title = '不应静默丢弃的旧接口写入'").get())
       .toEqual({ count: 0 });
   });

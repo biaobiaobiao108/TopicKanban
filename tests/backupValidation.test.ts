@@ -4,11 +4,11 @@ import { validateBackupData } from '../src/lib/backupValidation';
 
 function createBackup(overrides: Partial<BackupData> = {}): BackupData {
   return {
-    version: '4.0',
+    version: '5.0',
     export_at: '2026-01-01T00:00:00.000Z',
     topics: [],
     sources: [],
-    timeline: [],
+    reports: [],
     people: [],
     relationships: [],
     drafts: [],
@@ -64,8 +64,26 @@ function createTodo(id: string, topicId: string, overrides: Partial<TopicTodo> =
 }
 
 describe('backup schema validation', () => {
-  it('accepts a valid version 4 backup with Markdown draft content', () => {
+  it('accepts a valid current backup with Markdown draft content', () => {
     expect(validateBackupData(createBackup())).toMatchObject({ success: true });
+  });
+
+  it('rejects backups from older versions', () => {
+    expect(validateBackupData({ ...createBackup(), version: '4.0' } as unknown as BackupData).success).toBe(false);
+    expect(validateBackupData({ ...createBackup(), version: '3.0' } as unknown as BackupData).success).toBe(false);
+  });
+
+  it('requires the current complete structure and rejects legacy timeline fields', () => {
+    const { reports: _reports, ...withoutReports } = createBackup();
+    expect(validateBackupData(withoutReports).success).toBe(false);
+    expect(validateBackupData({ ...createBackup(), timeline: [] } as unknown as BackupData).success).toBe(false);
+    expect(validateBackupData(createBackup({
+      citations: [{
+        id: 'citation-legacy', topic_id: 'topic-1', reference_type: 'timeline' as never, reference_id: 'event-1',
+        reference_title: '旧时间线', reference_snapshot: '', quoted_text: '',
+        verification_status: 'unverified', created_at: '',
+      }],
+    })).success).toBe(false);
   });
 
   it('rejects invalid recycle-bin timestamps while accepting valid ISO timestamps', () => {
@@ -184,20 +202,24 @@ describe('backup schema validation', () => {
     }
   });
 
-  it('accepts timeline events with contrast_tag and theme presets', () => {
+  it('accepts dated sources and supported theme presets', () => {
     const topic = createTopic('topic-1');
     const result = validateBackupData(createBackup({
       topics: [topic],
-      timeline: [{
-        id: 'time-1',
+      sources: [{
+        id: 'source-1',
         topic_id: topic.id,
         title: '关键反转',
-        description: '情节反转描述',
+        content: '情节反转描述',
+        url: '',
+        platform: 'other',
+        author: '',
+        published_at: '',
         event_date: '2026-05-01',
         date_precision: 'exact',
         verification_status: 'confirmed',
         sort_order: 1,
-        contrast_tag: '荒诞反差',
+        notes: '',
         created_at: '2026-05-01T00:00:00.000Z',
         updated_at: '2026-05-01T00:00:00.000Z',
       }],
@@ -211,12 +233,12 @@ describe('backup schema validation', () => {
     expect(result.success).toBe(true);
   });
 
-  it('migrates backups that selected the removed Nordic Frost theme to classic light', () => {
+  it('rejects removed theme values instead of remapping them', () => {
     const result = validateBackupData(createBackup({
       settings: { reading_speed: 300, theme: 'nordic_frost' as never },
     }));
 
-    expect(result).toMatchObject({ success: true, data: { settings: { theme: 'light' } } });
+    expect(result.success).toBe(false);
   });
 
   it('accepts persisted publish packages and keeps the field shape bounded', () => {

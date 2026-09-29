@@ -36,7 +36,6 @@ export async function loadTopics(db: SqliteDatabase, scope: 'active' | 'trash' |
     db.prepare(`SELECT t.*,
       (SELECT COUNT(*) FROM sources s WHERE s.topic_id = t.id) AS sources_count,
       (SELECT COUNT(*) FROM sources s WHERE s.topic_id = t.id AND s.verification_status = 'confirmed') AS verified_sources_count,
-      0 AS timeline_count,
       (SELECT COUNT(*) FROM commercial_deal_topics cdt WHERE cdt.topic_id = t.id) AS commercial_deals_count,
       COALESCE((SELECT word_count FROM drafts d WHERE d.topic_id = t.id LIMIT 1), 0) AS draft_word_count
       FROM topics t ${topicFilter}
@@ -302,7 +301,6 @@ export async function loadTopicPage(db: SqliteDatabase, options: TopicPageOption
     bind(db, `SELECT t.*,
       (SELECT COUNT(*) FROM sources s WHERE s.topic_id = t.id) AS sources_count,
       (SELECT COUNT(*) FROM sources s WHERE s.topic_id = t.id AND s.verification_status = 'confirmed') AS verified_sources_count,
-      0 AS timeline_count,
       (SELECT COUNT(*) FROM commercial_deal_topics cdt WHERE cdt.topic_id = t.id) AS commercial_deals_count,
       COALESCE((SELECT word_count FROM drafts d WHERE d.topic_id = t.id LIMIT 1), 0) AS draft_word_count
       FROM topics t ${where} ORDER BY ${sort} ${direction}, t.id ASC LIMIT ? OFFSET ?`, [...values, options.pageSize, offset]),
@@ -361,7 +359,6 @@ export async function loadTopic(db: SqliteDatabase, id: string): Promise<Topic |
     bind(db, `SELECT t.*,
       (SELECT COUNT(*) FROM sources s WHERE s.topic_id = t.id) AS sources_count,
       (SELECT COUNT(*) FROM sources s WHERE s.topic_id = t.id AND s.verification_status = 'confirmed') AS verified_sources_count,
-      0 AS timeline_count,
       (SELECT COUNT(*) FROM commercial_deal_topics cdt WHERE cdt.topic_id = t.id) AS commercial_deals_count,
       COALESCE((SELECT word_count FROM drafts d WHERE d.topic_id = t.id LIMIT 1), 0) AS draft_word_count
       FROM topics t WHERE t.id = ? AND t.deleted_at IS NULL LIMIT 1`, [id]),
@@ -401,7 +398,6 @@ export async function loadTopicBatch(db: SqliteDatabase, ids: string[]): Promise
     bind(db, `SELECT t.*,
       (SELECT COUNT(*) FROM sources s WHERE s.topic_id = t.id) AS sources_count,
       (SELECT COUNT(*) FROM sources s WHERE s.topic_id = t.id AND s.verification_status = 'confirmed') AS verified_sources_count,
-      0 AS timeline_count,
       (SELECT COUNT(*) FROM commercial_deal_topics cdt WHERE cdt.topic_id = t.id) AS commercial_deals_count,
       COALESCE((SELECT word_count FROM drafts d WHERE d.topic_id = t.id LIMIT 1), 0) AS draft_word_count
       FROM topics t WHERE t.deleted_at IS NULL AND t.id IN (${placeholders})`, ids),

@@ -12,12 +12,11 @@ import type {
   PublishPackageRecord,
   Source,
   Tag,
-  TimelineEvent,
   TopicTodo,
   Topic,
   TopicReport,
 } from '../../types';
-import { DEFAULT_APP_SETTINGS } from '../../types';
+import { CURRENT_BACKUP_VERSION, DEFAULT_APP_SETTINGS } from '../../types';
 import type { SqliteDatabase, SqlitePreparedStatement } from '../sqlite';
 import { bind } from './shared';
 import { topicStatement } from './topics';
@@ -40,7 +39,6 @@ export interface BackupImportSummary {
   statements: number;
   topics: number;
   sources: number;
-  timeline: number;
   people: number;
   drafts: number;
   citations: number;
@@ -54,88 +52,14 @@ export interface BackupImportSummary {
 }
 export class BackupImportLimitError extends Error {}
 
-interface NormalizedLegacyTimeline {
-  sources: Source[];
-  citations: DraftCitation[];
-}
-
-function normalizeLegacyTimeline(data: BackupData): NormalizedLegacyTimeline {
-  const occupiedIds = new Set(data.sources.map((source) => source.id));
-  const sourceIdByTimelineId = new Map<string, string>();
-  const sourceByTimelineId = new Map<string, Source>();
-  const peopleNames = new Map((data.people || []).map((person) => [person.id, person.name]));
-  const timelineSources = (data.timeline || []).map((event) => {
-    let sourceId = event.id;
-    if (occupiedIds.has(sourceId)) {
-      const legacyId = `legacy-timeline-${event.id}`;
-      sourceId = legacyId.slice(0, 200);
-      while (occupiedIds.has(sourceId)) {
-        const suffix = `-${crypto.randomUUID()}`;
-        sourceId = `${legacyId.slice(0, 200 - suffix.length)}${suffix}`;
-      }
-    }
-    occupiedIds.add(sourceId);
-    const personIds = event.person_ids || [];
-    const notes = [
-      event.contrast_tag ? `原时间线对比标签：${event.contrast_tag}` : '',
-      personIds.length ? `原时间线关联人物：${personIds.map((id) => `${peopleNames.get(id) || id}（${id}）`).join('、')}` : '',
-    ].filter(Boolean).join('\n');
-    const source: Source = {
-      id: sourceId,
-      topic_id: event.topic_id,
-      title: event.title,
-      content: event.description || '',
-      url: '',
-      platform: 'other',
-      author: '',
-      published_at: '',
-      verification_status: event.verification_status,
-      notes,
-      event_date: event.event_date,
-      date_precision: event.date_precision,
-      sort_order: event.sort_order,
-      created_at: event.created_at,
-      updated_at: event.updated_at,
-    };
-    sourceIdByTimelineId.set(event.id, sourceId);
-    sourceByTimelineId.set(event.id, source);
-    return source;
-  });
-
-  const citations = data.citations.map((citation) => {
-    if (citation.reference_type !== 'timeline') return citation;
-    const mappedId = sourceIdByTimelineId.get(citation.reference_id);
-    const mappedSource = sourceByTimelineId.get(citation.reference_id);
-    const conflictingSource = !mappedId && occupiedIds.has(citation.reference_id);
-    let missingReferenceId = citation.reference_id;
-    if (conflictingSource) {
-      const baseId = `missing-timeline-${citation.reference_id}`;
-      missingReferenceId = baseId.slice(0, 200);
-      while (occupiedIds.has(missingReferenceId)) {
-        const suffix = `-${crypto.randomUUID()}`;
-        missingReferenceId = `${baseId.slice(0, 200 - suffix.length)}${suffix}`;
-      }
-    }
-    return {
-      ...citation,
-      reference_type: 'source' as const,
-      reference_id: mappedId || missingReferenceId,
-      reference_snapshot: mappedSource ? (mappedSource.content || mappedSource.title) : citation.reference_snapshot,
-    };
-  });
-
-  return { sources: [...data.sources, ...timelineSources], citations };
-}
-
 export function getBackupImportSummary(data: BackupData): BackupImportSummary {
   const topicRelations = data.topics.reduce(
     (count, topic) => count + (topic.tags?.length || 0) + (topic.people?.length || 0),
     0
   );
-  const timelineEvents = data.timeline || [];
-  const reports = data.reports || [];
+  const reports = data.reports;
   const statements = BACKUP_RESTORE_FIXED_STATEMENTS + data.tags.length + data.people.length + data.topics.length + topicRelations
-    + data.sources.length + reports.length + timelineEvents.length
+    + data.sources.length + reports.length
     + data.drafts.length + data.citations.length
     + data.relationships.length + data.published.length + data.publish_packages.length
     + data.commercial_deals.length + data.commercial_deal_topics.length
@@ -145,8 +69,7 @@ export function getBackupImportSummary(data: BackupData): BackupImportSummary {
     bytes: new TextEncoder().encode(JSON.stringify(data)).byteLength,
     statements,
     topics: data.topics.length,
-    sources: data.sources.length + timelineEvents.length,
-    timeline: timelineEvents.length,
+    sources: data.sources.length,
     people: data.people.length,
     drafts: data.drafts.length,
     citations: data.citations.length,
@@ -173,7 +96,6 @@ export function assertBackupImportWithinLimits(data: BackupData): BackupImportSu
 
 export async function replaceAllData(db: SqliteDatabase, data: BackupData): Promise<void> {
   assertBackupImportWithinLimits(data);
-  const normalizedTimeline = normalizeLegacyTimeline(data);
   const statements: SqlitePreparedStatement[] = [
     db.prepare(`CREATE TABLE IF NOT EXISTS _kv_store (
       key TEXT PRIMARY KEY,
@@ -218,10 +140,10 @@ export async function replaceAllData(db: SqliteDatabase, data: BackupData): Prom
     )));
   });
   data.todos.forEach((todo) => statements.push(topicTodoStatement(db, todo)));
-  normalizedTimeline.sources.forEach((source) => statements.push(sourceStatement(db, source)));
-  data.reports?.forEach((report) => statements.push(topicReportStatement(db, report)));
+  data.sources.forEach((source) => statements.push(sourceStatement(db, source)));
+  data.reports.forEach((report) => statements.push(topicReportStatement(db, report)));
   data.drafts.forEach((draft) => statements.push(draftStatement(db, draft)));
-  normalizedTimeline.citations.forEach((citation) => statements.push(citationStatement(db, citation)));
+  data.citations.forEach((citation) => statements.push(citationStatement(db, citation)));
   data.relationships.forEach((relationship) => statements.push(relationshipStatement(db, relationship)));
   data.published.forEach((video) => statements.push(bind(db, `INSERT INTO published_videos (
     id, topic_id, title, url, bvid, published_at, views, likes, coins, favorites, comments, notes, updated_at
@@ -246,7 +168,6 @@ function loadTopicsForBackup(db: SqliteDatabase): Topic[] {
   const topicRows = query<Topic>(`SELECT t.*,
     (SELECT COUNT(*) FROM sources s WHERE s.topic_id = t.id) AS sources_count,
     (SELECT COUNT(*) FROM sources s WHERE s.topic_id = t.id AND s.verification_status = 'confirmed') AS verified_sources_count,
-    0 AS timeline_count,
     (SELECT COUNT(*) FROM commercial_deal_topics cdt WHERE cdt.topic_id = t.id) AS commercial_deals_count,
     COALESCE((SELECT word_count FROM drafts d WHERE d.topic_id = t.id LIMIT 1), 0) AS draft_word_count
     FROM topics t ORDER BY t.is_pinned DESC, t.sort_order ASC, t.updated_at DESC`);
@@ -312,12 +233,11 @@ export async function exportAllData(db: SqliteDatabase, kvSettings?: AppSettings
       CASE status WHEN 'todo' THEN 0 WHEN 'in_progress' THEN 1 ELSE 2 END,
       sort_order, created_at`);
     return {
-      version: '5.0' as const,
+      version: CURRENT_BACKUP_VERSION,
       export_at: exportAt,
       topics: allTopics,
       sources,
       reports,
-      timeline: [],
       people,
       relationships,
       drafts,

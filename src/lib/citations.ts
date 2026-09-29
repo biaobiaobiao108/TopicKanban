@@ -1,9 +1,8 @@
-import type { DraftCitation, Source, TimelineEvent, Topic, VerificationStatus } from '../types';
+import type { DraftCitation, Source, Topic, VerificationStatus } from '../types';
 
 interface CitationContext {
   topic: Topic;
   sources: Source[];
-  timeline: TimelineEvent[];
 }
 
 interface CurrentReference {
@@ -17,13 +16,6 @@ function resolveCurrentReference(citation: DraftCitation, context: CitationConte
     return source ? {
       snapshot: source.content || source.title,
       verificationStatus: source.verification_status,
-    } : null;
-  }
-  if (citation.reference_type === 'timeline') {
-    const event = context.timeline.find((item) => item.id === citation.reference_id);
-    return event ? {
-      snapshot: `【${event.event_date}】${event.title}：${event.description || ''}`,
-      verificationStatus: event.verification_status,
     } : null;
   }
   if (citation.reference_type === 'person') {

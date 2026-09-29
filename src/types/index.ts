@@ -75,7 +75,6 @@ export interface Topic {
   people?: Person[];
   sources_count?: number;
   verified_sources_count?: number;
-  timeline_count?: number;
   draft_word_count?: number;
   commercial_deals_count?: number;
 }
@@ -108,21 +107,6 @@ export interface TopicReport {
   word_count: number;
   version: number;
   updated_at: string;
-}
-
-export interface TimelineEvent {
-  id: string;
-  topic_id: string;
-  title: string;
-  description: string;
-  event_date: string;
-  date_precision: DatePrecision;
-  verification_status: VerificationStatus;
-  sort_order: number;
-  created_at: string;
-  updated_at: string;
-  person_ids?: string[];
-  contrast_tag?: string;
 }
 
 export interface Person {
@@ -189,7 +173,6 @@ export interface DraftLoadResult {
 export interface TopicWorkspaceData {
   sources: Source[];
   report?: TopicReport | null;
-  timeline?: TimelineEvent[];
   draft: Draft | null;
   citations: DraftCitation[];
   publish_package: PublishPackageRecord | null;
@@ -273,7 +256,7 @@ export type PublishPackageSaveInput = Omit<PublishPackageRecord, 'id' | 'topic_i
   base_version?: number;
 };
 
-export type CitationReferenceType = 'source' | 'report' | 'timeline' | 'person' | 'outline';
+export type CitationReferenceType = 'source' | 'report' | 'person' | 'outline';
 
 export interface DraftCitation {
   id: string;
@@ -567,13 +550,14 @@ export interface PaginatedPublishedVideos extends PageMeta {
   items: PublishedVideo[];
 }
 
+export const CURRENT_BACKUP_VERSION = '5.0' as const;
+
 export interface BackupData {
-  version: '5.0' | '4.0';
+  version: typeof CURRENT_BACKUP_VERSION;
   export_at: string;
   topics: Topic[];
   sources: Source[];
-  reports?: TopicReport[];
-  timeline?: TimelineEvent[];
+  reports: TopicReport[];
   people: Person[];
   relationships: PersonRelationship[];
   drafts: Draft[];

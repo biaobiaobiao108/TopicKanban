@@ -9,7 +9,6 @@ import type {
   PublishPackageRecord,
   PublishSourceCredit,
   Source,
-  TimelineEvent,
   Topic,
 } from '../types';
 import { getCitationHealth } from './citations';
@@ -48,7 +47,6 @@ export interface PublishPackageBuildInput {
   topic: Topic;
   draft: Draft | null;
   sources: Source[];
-  timeline: TimelineEvent[];
   citations: DraftCitation[];
   people?: Person[];
   readingSpeed?: number;
@@ -244,7 +242,7 @@ export function evaluatePublishChecks(
   input: PublishPackageBuildInput & { editable: PublishPackageEditableFields; estimatedDurationSeconds?: number }
 ): PublishCheck[] {
   const checks: PublishCheck[] = [];
-  const { topic, draft, sources, timeline, citations, editable, draftConflict = false } = input;
+  const { topic, draft, sources, citations, editable, draftConflict = false } = input;
   const estimatedDurationSeconds = input.estimatedDurationSeconds ?? Math.round((getWordCount(draft) / (input.readingSpeed || 280)) * 60);
 
   if (!normalizeText(editable.title_simplified)) {
@@ -267,7 +265,7 @@ export function evaluatePublishChecks(
   }
 
   const activeCitations = getActiveCitations(draft, citations);
-  const citationHealth = getCitationHealth(activeCitations, { topic, sources, timeline });
+  const citationHealth = getCitationHealth(activeCitations, { topic, sources });
   const missingCitationCount = citationHealth.states.filter((state) => state.missing).length;
   if (missingCitationCount > 0) {
     checks.push({ id: 'citation-missing', level: 'warning', label: '存在失效引用', detail: `${missingCitationCount} 条正文引用已找不到对应资料。` });
@@ -285,9 +283,9 @@ export function evaluatePublishChecks(
   if (invalidUrlCount > 0) {
     checks.push({ id: 'source-url-invalid', level: 'warning', label: '存在不可导出的来源链接', detail: `${invalidUrlCount} 条来源链接不是安全的 HTTP(S) 地址，已从发布包链接中排除。` });
   }
-  const pendingTimelineCount = timeline.filter((event) => event.verification_status !== 'confirmed').length;
-  if (pendingTimelineCount > 0) {
-    checks.push({ id: 'timeline-unverified', level: 'warning', label: '时间线仍有待核实节点', detail: `${pendingTimelineCount} 个时间线节点尚未确认。` });
+  const pendingDatedSourceCount = sources.filter((source) => source.event_date && source.verification_status !== 'confirmed').length;
+  if (pendingDatedSourceCount > 0) {
+    checks.push({ id: 'dated-source-unverified', level: 'warning', label: '时间线素材仍有待核实', detail: `${pendingDatedSourceCount} 条带日期的素材尚未确认。` });
   }
   const invalidChapterOrder = editable.chapters.some((chapter, index, all) => index > 0 && chapter.start_seconds < all[index - 1].start_seconds);
   if (invalidChapterOrder) {

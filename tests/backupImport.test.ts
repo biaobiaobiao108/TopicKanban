@@ -13,11 +13,11 @@ import { SqliteDatabase } from '../src/server/sqlite';
 
 function createBackup(overrides: Partial<BackupData> = {}): BackupData {
   return {
-    version: '4.0',
+    version: '5.0',
     export_at: '2026-01-01T00:00:00.000Z',
     topics: [],
     sources: [],
-    timeline: [],
+    reports: [],
     people: [],
     relationships: [],
     drafts: [],
@@ -66,7 +66,7 @@ describe('backup import limits', () => {
     expect(() => assertBackupImportWithinLimits(backup)).toThrow('超过单次原子恢复上限');
   });
 
-  it('round trips version 3 Todo states and each lane order', async () => {
+  it('round trips Todo states and each lane order', async () => {
     const sqlite = new Database(':memory:');
     sqlite.exec(await Bun.file('drizzle/0000_schema.sql').text());
     sqlite.exec('CREATE TABLE _kv_store (key TEXT PRIMARY KEY, value TEXT NOT NULL, expires_at INTEGER)');
@@ -110,33 +110,30 @@ describe('backup import limits', () => {
     }
   });
 
-  it('restores version 4 timeline events as sources and remaps timeline citations', async () => {
+  it('restores current-format dated sources and citations without rewriting them', async () => {
     const sqlite = new Database(':memory:');
     sqlite.exec(await Bun.file('drizzle/0000_schema.sql').text());
     sqlite.exec('CREATE TABLE _kv_store (key TEXT PRIMARY KEY, value TEXT NOT NULL, expires_at INTEGER)');
     const now = '2026-09-01T00:00:00.000Z';
     const topic: Topic = {
-      id: 'topic-legacy-timeline', title: '旧时间线备份', summary: '', hook: '', storyline: '', why_now: '',
+      id: 'topic-current-backup', title: '当前格式备份', summary: '', hook: '', storyline: '', why_now: '',
       status: 'scripting', priority: 'medium', score_character: 0, score_conflict: 0,
       score_contrast: 0, score_material: 0, score_story: 0, is_pinned: 0, sort_order: 1,
       created_at: now, updated_at: now,
     };
+    const source = {
+      id: 'source-current-backup', topic_id: topic.id, title: '带日期的资料', content: '公开资料内容',
+      url: 'https://example.com/source', platform: 'news' as const, author: '', published_at: '',
+      verification_status: 'confirmed' as const, notes: '', event_date: '2026-08-20', date_precision: 'exact' as const,
+      sort_order: 1, created_at: now, updated_at: now,
+    };
     const backup = createBackup({
       topics: [topic],
-      sources: [{
-        id: 'legacy-event-1', topic_id: topic.id, title: '现有素材', content: '现有素材内容', url: '', platform: 'news',
-        author: '', published_at: '', verification_status: 'confirmed', notes: '', event_date: '', date_precision: 'unknown',
-        sort_order: 5, created_at: now, updated_at: now,
-      }],
-      timeline: [{
-        id: 'legacy-event-1', topic_id: topic.id, title: '时间线节点', description: '节点描述', event_date: '2024-03',
-        date_precision: 'year_month', verification_status: 'unverified', sort_order: 6,
-        contrast_tag: '公开说法与记录不符', person_ids: [], created_at: now, updated_at: now,
-      }],
+      sources: [source],
       citations: [{
-        id: 'citation-legacy-timeline', topic_id: topic.id, reference_type: 'timeline', reference_id: 'legacy-event-1',
-        reference_title: '时间线节点', reference_snapshot: '【2024-03】时间线节点：节点描述', quoted_text: '节点描述',
-        verification_status: 'unverified', created_at: now,
+        id: 'citation-current-backup', topic_id: topic.id, reference_type: 'source', reference_id: source.id,
+        reference_title: source.title, reference_snapshot: source.content, quoted_text: source.content,
+        verification_status: 'confirmed', created_at: now,
       }],
     });
 
@@ -145,24 +142,17 @@ describe('backup import limits', () => {
       expect(validated.success).toBe(true);
       if (!validated.success) throw new Error(validated.error);
       await replaceAllData(new SqliteDatabase(sqlite), validated.data);
-      const sources = sqlite.query('SELECT id, title, content, event_date, date_precision, verification_status, sort_order, notes FROM sources ORDER BY sort_order').all() as Array<Record<string, unknown>>;
-      expect(sources).toHaveLength(2);
-      expect(sources[0]).toMatchObject({
-        id: 'legacy-event-1', title: '现有素材', content: '现有素材内容',
+
+      const exported = await exportAllData(new SqliteDatabase(sqlite));
+      expect(exported.version).toBe('5.0');
+      expect(exported.reports).toEqual([]);
+      expect(exported).not.toHaveProperty('timeline');
+      expect(exported.sources[0]).toMatchObject({
+        id: source.id, event_date: source.event_date, date_precision: source.date_precision,
       });
-      expect(sources[1]).toMatchObject({
-        id: expect.any(String), title: '时间线节点', content: '节点描述', event_date: '2024-03',
-        date_precision: 'year_month', verification_status: 'unverified', sort_order: 6,
-        notes: '原时间线对比标签：公开说法与记录不符',
+      expect(exported.citations[0]).toMatchObject({
+        reference_type: 'source', reference_id: source.id, reference_snapshot: source.content,
       });
-      expect(sources[1].id).not.toBe('legacy-event-1');
-      const citation = sqlite.query('SELECT reference_type, reference_id, reference_snapshot, quoted_text FROM draft_citations').get() as Record<string, string>;
-      expect(citation).toMatchObject({
-        reference_type: 'source', reference_id: sources[1].id, reference_snapshot: '节点描述', quoted_text: '节点描述',
-      });
-      expect(() => sqlite.query(`INSERT INTO draft_citations (
-        id, topic_id, reference_type, reference_id, reference_title, created_at
-      ) VALUES ('bad-timeline-type', ?, 'timeline', 'missing', '旧类型', ?)`).run(topic.id, now)).toThrow();
     } finally {
       sqlite.close();
     }

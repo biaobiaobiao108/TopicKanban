@@ -28,7 +28,6 @@ import type {
   Tag,
   StorageStats,
   StorageOptimizeResult,
-  TimelineEvent,
   Topic,
   TopicReport,
   TopicPinMutationResult,
@@ -49,7 +48,6 @@ import type { PublishedAnalyticsPayload } from './videoAnalytics';
 import { formatBeijingDateTime } from './actionDate';
 
 const PENDING_DRAFTS_KEY = 'topic_kanban_pending_drafts_v3';
-const LEGACY_PENDING_DRAFTS_KEY = 'topic_kanban_pending_drafts_v2';
 const PENDING_DRAFT_MAX_ENTRIES = 8;
 const PENDING_DRAFT_MAX_BYTES = 4 * 1024 * 1024;
 const PENDING_DRAFT_TTL_MS = 7 * 24 * 60 * 60 * 1000;
@@ -505,39 +503,6 @@ export async function saveTopicReport(
   }
 }
 
-export function fetchTimelineByTopicId(topicId: string): Promise<TimelineEvent[]> {
-  return apiRequest(`/api/topics/${encodeURIComponent(topicId)}/timeline`);
-}
-
-export async function saveTimelineEvent(
-  data: Partial<TimelineEvent> & { topic_id: string; title: string }
-): Promise<TimelineEvent> {
-  const event = data.id
-    ? apiRequest<TimelineEvent>(`/api/timeline/${encodeURIComponent(data.id)}`, jsonRequest('PATCH', data))
-    : apiRequest<TimelineEvent>('/api/timeline', jsonRequest('POST', data));
-  const saved = await event;
-  invalidateBootstrap();
-  return saved;
-}
-
-export async function saveTimelineEvents(
-  data: Array<Partial<TimelineEvent> & { topic_id: string; title: string }>
-): Promise<TimelineEvent[]> {
-  if (data.length === 0) return [];
-  const result = await apiRequest<{ events: TimelineEvent[] }>('/api/timeline/batch', jsonRequest('POST', { events: data }));
-  invalidateBootstrap();
-  return result.events;
-}
-
-export async function reorderTimelineEvents(events: TimelineEvent[]): Promise<void> {
-  await apiRequest('/api/timeline/reorder/batch', jsonRequest('PATCH', { events }));
-}
-
-export async function deleteTimelineEvent(id: string): Promise<void> {
-  await apiRequest(`/api/timeline/${encodeURIComponent(id)}`, { method: 'DELETE' });
-  invalidateBootstrap();
-}
-
 export async function fetchPeople(): Promise<Person[]> {
   return apiRequest<Person[]>('/api/people');
 }
@@ -602,7 +567,6 @@ interface PendingDraftRecord {
 
 interface PendingDraftMemoryCache {
   currentStorageValue: string | null;
-  legacyStorageValue: string | null;
   records: Record<string, PendingDraftRecord>;
 }
 
@@ -610,7 +574,7 @@ let pendingDraftMemoryCache: PendingDraftMemoryCache | null = null;
 
 if (typeof window !== 'undefined') {
   window.addEventListener('storage', (event) => {
-    if (event.key === PENDING_DRAFTS_KEY || event.key === LEGACY_PENDING_DRAFTS_KEY) {
+    if (event.key === PENDING_DRAFTS_KEY) {
       pendingDraftMemoryCache = null;
     }
   });
@@ -666,35 +630,17 @@ function boundPendingDrafts(
 function readPendingDrafts(): Record<string, PendingDraftRecord> {
   try {
     const currentStorageValue = localStorage.getItem(PENDING_DRAFTS_KEY);
-    const legacyStorageValue = localStorage.getItem(LEGACY_PENDING_DRAFTS_KEY);
-    if (pendingDraftMemoryCache
-      && pendingDraftMemoryCache.currentStorageValue === currentStorageValue
-      && pendingDraftMemoryCache.legacyStorageValue === legacyStorageValue) {
+    if (pendingDraftMemoryCache && pendingDraftMemoryCache.currentStorageValue === currentStorageValue) {
       return pendingDraftMemoryCache.records;
     }
 
     const current = JSON.parse(currentStorageValue || '{}') as Record<string, unknown>;
-    const validCurrent = Object.fromEntries(
+    const records = Object.fromEntries(
       Object.entries(current).filter(([, record]) => isPendingDraftRecord(record))
     ) as Record<string, PendingDraftRecord>;
-    const records = Object.keys(validCurrent).length > 0
-      ? boundPendingDrafts(validCurrent)
-      : (() => {
-        const legacy = JSON.parse(legacyStorageValue || '{}') as Record<string, unknown>;
-        const migrated = Object.fromEntries(Object.entries(legacy)
-          .filter(([, draft]) => draft && typeof draft === 'object')
-          .map(([topicId, draft]) => {
-            const typedDraft = draft as Draft;
-            return [topicId, {
-              draft: typedDraft,
-              base_version: typedDraft.version || 0,
-              cached_at: typedDraft.updated_at,
-            }];
-          })) as Record<string, PendingDraftRecord>;
-        return boundPendingDrafts(migrated);
-      })();
-    pendingDraftMemoryCache = { currentStorageValue, legacyStorageValue, records };
-    return records;
+    const boundedRecords = boundPendingDrafts(records);
+    pendingDraftMemoryCache = { currentStorageValue, records: boundedRecords };
+    return boundedRecords;
   } catch {
     return {};
   }
@@ -720,15 +666,8 @@ function writePendingDraft(record: PendingDraftRecord | null, topicId: string): 
       serialized = JSON.stringify(bounded);
       localStorage.setItem(PENDING_DRAFTS_KEY, serialized);
     }
-    try {
-      localStorage.removeItem(LEGACY_PENDING_DRAFTS_KEY);
-    } catch {
-      // The primary cache is already written; a stale legacy value is ignored
-      // while the current-format entry exists.
-    }
     pendingDraftMemoryCache = {
       currentStorageValue: serialized,
-      legacyStorageValue: null,
       records: bounded,
     };
     return !record || Boolean(bounded[topicId]);
@@ -1089,7 +1028,6 @@ export function exportSingleTopicMarkdown(
   topic: Topic,
   workspaceData: {
     sources?: Source[];
-    timeline?: TimelineEvent[];
     draft?: Draft | null;
     report?: TopicReport | null;
   },
@@ -1140,23 +1078,21 @@ export function exportSingleTopicMarkdown(
   lines.push(`| 主线成立度 | ${topic.score_story || 0} / 2 | 起承转合、因果闭环与叙事立意 |`);
   lines.push(``);
 
-  // 3. 故事时间线
-  const timeline = workspaceData.timeline || [];
-  if (timeline.length > 0) {
-    lines.push(`## 三、故事时间线 (${timeline.length} 个关键节点)`);
-    timeline.forEach((event, index) => {
-      const dateStr = event.event_date ? `【${event.event_date}】` : '';
-      const statusIcon = event.verification_status === 'confirmed' ? '✅' : event.verification_status === 'rejected' ? '❌' : '⏳';
-      lines.push(`${index + 1}. ${statusIcon} **${dateStr}${event.title}**`);
-      if (event.description) {
-        lines.push(`   > ${event.description}`);
-      }
+  const sources = workspaceData.sources || [];
+  const timelineSources = sources
+    .filter((source) => source.event_date)
+    .sort((a, b) => (a.event_date || '').localeCompare(b.event_date || '', undefined, { numeric: true }));
+  if (timelineSources.length > 0) {
+    lines.push(`## 三、故事时间线 (${timelineSources.length} 个关键节点)`);
+    timelineSources.forEach((source, index) => {
+      const statusIcon = source.verification_status === 'confirmed' ? '✅' : source.verification_status === 'rejected' ? '❌' : '⏳';
+      lines.push(`${index + 1}. ${statusIcon} **【${source.event_date}】${source.title}**`);
+      if (source.content) lines.push(`   > ${source.content}`);
     });
     lines.push(``);
   }
 
   // 4. 资料与素材证据链
-  const sources = workspaceData.sources || [];
   if (sources.length > 0) {
     lines.push(`## 四、资料证据链 (${sources.length} 条资料)`);
     sources.forEach((src, index) => {

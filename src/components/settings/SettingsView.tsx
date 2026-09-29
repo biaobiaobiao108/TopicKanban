@@ -89,7 +89,7 @@ interface HealthResponse {
 }
 
 function formatBackupSummary(data: BackupData): string {
-  return `选题 ${data.topics.length}、资料 ${data.sources.length}、报告 ${data.reports?.length ?? 0}、人物 ${data.people.length}、草稿 ${data.drafts.length}、引用 ${data.citations.length}、标签 ${data.tags.length}、视频 ${data.published.length}`;
+  return `选题 ${data.topics.length}、资料 ${data.sources.length}、报告 ${data.reports.length}、人物 ${data.people.length}、草稿 ${data.drafts.length}、引用 ${data.citations.length}、标签 ${data.tags.length}、视频 ${data.published.length}`;
 }
 
 function formatBytes(bytes: number): string {

@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
-import { CitationInput, Topic, TimelineEvent, Source } from '../../types';
+import { CitationInput, Topic, Source } from '../../types';
 import {
-  Clock,
   User,
   Quote,
   Sparkles,
@@ -17,19 +16,17 @@ interface ScriptReferenceDrawerProps {
   isOpen: boolean;
   onClose: () => void;
   topic: Topic;
-  timeline?: TimelineEvent[];
   sources: Source[];
   staleReferenceIds: string[];
   onInsertContent: (citation: CitationInput) => Promise<void>;
 }
 
-type RefTab = 'all' | 'sources' | 'people' | 'outline' | 'timeline';
+type RefTab = 'all' | 'sources' | 'people' | 'outline';
 
 export const ScriptReferenceDrawer: React.FC<ScriptReferenceDrawerProps> = ({
   isOpen,
   onClose,
   topic,
-  timeline = [],
   sources,
   staleReferenceIds,
   onInsertContent,
@@ -48,11 +45,6 @@ export const ScriptReferenceDrawer: React.FC<ScriptReferenceDrawerProps> = ({
 
   const q = searchQuery.toLowerCase().trim();
 
-  // Filter items
-  const filteredTimeline = timeline.filter((t) =>
-    !q || t.title.toLowerCase().includes(q) || (t.description || '').toLowerCase().includes(q) || t.event_date.includes(q)
-  );
-
   const peopleList = topic.people || [];
   const filteredPeople = peopleList.filter((p) =>
     !q || p.name.toLowerCase().includes(q) || (p.quotes || '').toLowerCase().includes(q) || (p.identity || '').toLowerCase().includes(q)
@@ -65,15 +57,13 @@ export const ScriptReferenceDrawer: React.FC<ScriptReferenceDrawerProps> = ({
   const showHook = Boolean(topic.hook && (!q || topic.hook.toLowerCase().includes(q)));
   const showStoryline = Boolean(topic.storyline && (!q || topic.storyline.toLowerCase().includes(q)));
   const hasOutlineContent = showHook || showStoryline;
-  const hasVisibleContent = activeTab === 'timeline'
-    ? filteredTimeline.length > 0
-    : activeTab === 'people'
-      ? filteredPeople.length > 0
-      : activeTab === 'outline'
-        ? hasOutlineContent
-        : activeTab === 'sources'
-          ? filteredSources.length > 0
-          : hasOutlineContent || filteredTimeline.length > 0 || filteredPeople.length > 0 || filteredSources.length > 0;
+  const hasVisibleContent = activeTab === 'people'
+    ? filteredPeople.length > 0
+    : activeTab === 'outline'
+      ? hasOutlineContent
+      : activeTab === 'sources'
+        ? filteredSources.length > 0
+        : hasOutlineContent || filteredPeople.length > 0 || filteredSources.length > 0;
 
   return (
     <>
@@ -90,7 +80,7 @@ export const ScriptReferenceDrawer: React.FC<ScriptReferenceDrawerProps> = ({
             <Search className="w-3.5 h-3.5 absolute left-3 top-2.5 text-stone-400 dark:text-stone-500" />
             <input
               type="text"
-              placeholder="搜索时间线、人物语录、资料..."
+              placeholder="搜索人物语录、资料..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="w-full pl-8 pr-3 py-1.5 bg-black/[0.04] dark:bg-white/[0.05] rounded-xl text-xs text-[var(--ink)] placeholder:text-stone-400 dark:placeholder:text-stone-500 focus:outline-none focus:bg-[var(--surface)] focus:ring-1 focus:ring-[var(--accent)] transition-all border-0"
@@ -111,10 +101,9 @@ export const ScriptReferenceDrawer: React.FC<ScriptReferenceDrawerProps> = ({
           <div className="inline-flex items-center justify-center gap-0.5 rounded-xl bg-black/[0.03] dark:bg-white/[0.04] p-0.5">
             {[
               { id: 'all', label: '全部' },
-              { id: 'sources', label: '素材与时间线', count: sources.length },
+              { id: 'sources', label: '资料', count: sources.length },
               { id: 'people', label: '人物', count: peopleList.length },
               { id: 'outline', label: '大纲' },
-              ...(timeline.length > 0 ? [{ id: 'timeline', label: '原时间线', count: timeline.length }] : []),
             ].map((tab) => (
               <button
                 key={tab.id}
@@ -237,52 +226,7 @@ export const ScriptReferenceDrawer: React.FC<ScriptReferenceDrawerProps> = ({
             </div>
           )}
 
-          {/* 3. Timeline Events */}
-          {(activeTab === 'all' || activeTab === 'timeline') && filteredTimeline.length > 0 && (
-            <div className="space-y-2">
-              <div className="text-[10px] font-semibold text-[var(--ink-muted)] uppercase tracking-wider flex items-center gap-1">
-                <Clock className="w-3 h-3 text-[var(--ink-muted)]" />
-                <span>故事时间线 ({filteredTimeline.length})</span>
-              </div>
-
-              <div className="space-y-2.5">
-                {filteredTimeline.map((item) => (
-                  <div key={item.id} className="relative group bg-[var(--surface)] p-3.5 rounded-xl shadow-subtle space-y-1.5 border-0">
-                    <div className="flex items-center justify-between">
-                      <span className="font-mono text-stone-500 dark:text-stone-400 bg-[var(--canvas)] px-2 py-0.5 rounded-md text-[10px] tabular-nums border-0">
-                        {item.event_date}
-                      </span>
-                      <button
-                        type="button"
-                        onClick={() => void handleInsert(`time-${item.id}`, {
-                          reference_type: 'timeline', reference_id: item.id, reference_title: item.title,
-                          reference_snapshot: `【${item.event_date}】${item.title}：${item.description || ''}`,
-                          quoted_text: `【${item.event_date}】${item.title}：${item.description || ''}`,
-                          verification_status: item.verification_status,
-                        })}
-                        className="text-[11px] bg-black/[0.04] dark:bg-white/[0.06] hover:bg-[var(--accent)] hover:text-white text-stone-600 dark:text-stone-300 px-2 py-0.5 rounded-md flex items-center gap-1 cursor-pointer font-medium transition-colors border-0"
-                      >
-                        {insertedId === `time-${item.id}` ? <Check className="w-2.5 h-2.5 text-inherit" /> : <Plus className="w-2.5 h-2.5" />}
-                        <span>引用</span>
-                      </button>
-                    </div>
-                    <h4 className="font-semibold text-stone-900 dark:text-stone-100 text-xs">{item.title}</h4>
-                    {item.description && (
-                      <p className="text-stone-600 dark:text-stone-400 leading-relaxed text-[11px]">{item.description}</p>
-                    )}
-                    <div className="flex gap-2 text-[10px] pt-0.5">
-                      <span className={item.verification_status === 'confirmed' ? 'text-[var(--accent)] font-medium' : 'text-[#9b6a2f] dark:text-[#c49258]'}>
-                        {item.verification_status === 'confirmed' ? '✓ 已核实' : '⚠ 待核实'}
-                      </span>
-                      {staleReferenceIds.includes(item.id) && <span className="text-[var(--h1-color)]">引用后有修改</span>}
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {/* 4. Sources */}
+          {/* Sources */}
           {(activeTab === 'all' || activeTab === 'sources') && filteredSources.length > 0 && (
             <div className="space-y-2">
               <div className="text-[10px] font-semibold text-[var(--ink-muted)] uppercase tracking-wider flex items-center gap-1">

@@ -134,7 +134,6 @@ export const PublishPackageTab: React.FC<PublishPackageTabProps> = ({
   const draftConflict = Boolean(workspace.draft.conflict);
   const draft = draftConflict ? null : workspace.draft.draft;
   const sources = workspace.sources || [];
-  const timeline = workspace.timeline || [];
   const citations = workspace.citations || [];
   const savedPackage = workspace.publish_package || null;
 
@@ -142,12 +141,11 @@ export const PublishPackageTab: React.FC<PublishPackageTabProps> = ({
     topic,
     draft,
     sources,
-    timeline,
     citations,
     people: topic.people || [],
     readingSpeed,
     draftConflict,
-  }), [citations, draft, draftConflict, readingSpeed, sources, timeline, topic]);
+  }), [citations, draft, draftConflict, readingSpeed, sources, topic]);
 
   const [fields, setFields] = useState<PublishPackageEditableFields>(() => mergeSavedPublishPackage(generated, savedPackage));
 
@@ -329,14 +327,13 @@ export const PublishPackageTab: React.FC<PublishPackageTabProps> = ({
     topic,
     draft,
     sources,
-    timeline,
     citations,
     people: topic.people || [],
     readingSpeed,
     draftConflict,
     editable: fields,
     estimatedDurationSeconds: generated.estimated_duration_seconds,
-  }), [citations, draft, draftConflict, fields, generated.estimated_duration_seconds, readingSpeed, sources, timeline, topic]);
+  }), [citations, draft, draftConflict, fields, generated.estimated_duration_seconds, readingSpeed, sources, topic]);
 
   const packageData = useMemo<PublishPackage>(() => ({ ...generated, ...fields, checks }), [checks, fields, generated]);
   const blockers = checks.filter((check) => check.level === 'blocker');

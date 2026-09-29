@@ -154,7 +154,7 @@ export function registerWritingRoutes(app: NativeApp): void {
         reference_id: [200, true], reference_title: [200, true], reference_snapshot: [20000], quoted_text: [20000],
       });
       if (textError) return c.json({ error: textError }, 400);
-      if (!isOneOf(body.reference_type, ['source', 'report', 'timeline', 'person', 'outline'])) {
+      if (!isOneOf(body.reference_type, ['source', 'report', 'person', 'outline'])) {
         return c.json({ error: 'Invalid citation reference type' }, 400);
       }
       if (body.verification_status !== undefined && !isOneOf(body.verification_status, VERIFICATION_STATUSES)) {

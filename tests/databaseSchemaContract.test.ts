@@ -109,6 +109,12 @@ describe('Database schema contract', () => {
 
     try {
       await expect(initializeSqliteDatabase(dbPath, schemaDir)).rejects.toThrow('SQLite schema version mismatch: expected baseline v5');
+      const unchanged = new Database(dbPath);
+      try {
+        expect(unchanged.query("SELECT name FROM sqlite_master WHERE type = 'table' AND name = '_kv_store'").get()).toBeNull();
+      } finally {
+        unchanged.close();
+      }
     } finally {
       await removeSqliteArtifacts(dbPath);
     }

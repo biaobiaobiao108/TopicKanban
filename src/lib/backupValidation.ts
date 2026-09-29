@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { type BackupData, type TopicTodo, APP_THEMES } from '../types';
+import { type BackupData, type TopicTodo, APP_THEMES, CURRENT_BACKUP_VERSION } from '../types';
 import { isValidIsoDate } from './dateInput';
 
 const id = z.string().trim().min(1, 'ID 不能为空').max(200, 'ID 不能超过 200 字符');
@@ -12,11 +12,7 @@ const deletedAtTimestamp = z.string().max(50).refine(isValidIsoTimestamp, '必�
 const optionalDeletedAtTimestamp = deletedAtTimestamp.nullable().optional();
 const optionalDateOnly = z.string().refine(isValidIsoDate, '日期必须是有效的 YYYY-MM-DD').nullable().optional();
 const verificationStatus = z.enum(['confirmed', 'unverified', 'rejected']);
-// Keep backups from older releases importable after removing this theme option.
-const themeSchema = z.preprocess(
-  (value) => value === 'nordic_frost' ? 'light' : value,
-  z.enum(APP_THEMES),
-);
+const themeSchema = z.enum(APP_THEMES);
 
 function isValidIsoTimestamp(value: string): boolean {
   const match = /^(\d{4}-\d{2}-\d{2})T(\d{2}):(\d{2}):(\d{2})(?:\.(\d{1,9}))?(Z|[+-]\d{2}:\d{2})$/.exec(value);
@@ -118,23 +114,8 @@ const reportSchema = z.object({
   content_json: z.string().max(4 * 1024 * 1024),
   content_html: z.string().max(4 * 1024 * 1024),
   word_count: z.number().int().nonnegative(),
-  version: z.number().int().positive().optional(),
+  version: z.number().int().positive(),
   updated_at: timestamp,
-});
-
-const timelineSchema = z.object({
-  id,
-  topic_id: id,
-  title: shortText.trim().min(1),
-  description: longText,
-  event_date: timestamp,
-  date_precision: z.enum(['exact', 'year_month', 'year', 'unknown']),
-  verification_status: verificationStatus,
-  sort_order: z.number().int().nonnegative(),
-  contrast_tag: z.string().max(100).optional(),
-  created_at: timestamp,
-  updated_at: timestamp,
-  person_ids: z.array(id).optional(),
 });
 
 const relationshipSchema = z.object({
@@ -173,8 +154,7 @@ const draftSchema = z.object({
 const citationSchema = z.object({
   id,
   topic_id: id,
-  // `timeline` is retained only as an import compatibility value. The repository maps it to `source` before writing.
-  reference_type: z.enum(['source', 'report', 'timeline', 'person', 'outline']),
+  reference_type: z.enum(['source', 'report', 'person', 'outline']),
   reference_id: id,
   reference_title: shortText.trim().min(1),
   reference_snapshot: longText,
@@ -297,13 +277,11 @@ const settingsSchema = z.object({
 });
 
 const backupSchema = z.object({
-  // 4.0 exports are still accepted; their timeline rows are folded into sources during restore.
-  version: z.enum(['4.0', '5.0']),
+  version: z.literal(CURRENT_BACKUP_VERSION),
   export_at: timestamp,
   topics: z.array(topicSchema),
   sources: z.array(sourceSchema),
-  reports: z.array(reportSchema).optional().default([]),
-  timeline: z.array(timelineSchema).optional().default([]),
+  reports: z.array(reportSchema),
   people: z.array(personSchema),
   relationships: z.array(relationshipSchema),
   drafts: z.array(draftSchema),
@@ -316,7 +294,7 @@ const backupSchema = z.object({
   commercial_deal_activities: z.array(commercialDealActivitySchema),
   todos: z.array(todoSchema),
   settings: settingsSchema,
-}).superRefine((data, ctx) => {
+}).strict().superRefine((data, ctx) => {
   const addIssue = (path: Array<string | number>, message: string) => ctx.addIssue({ code: 'custom', path, message });
   const requireUniqueIds = (items: Array<{ id: string }>, key: string) => {
     const seen = new Set<string>();
@@ -327,7 +305,7 @@ const backupSchema = z.object({
   };
 
   const collections: Array<[string, Array<{ id: string }>]> = [
-    ['topics', data.topics], ['sources', data.sources], ['reports', data.reports || []], ['timeline', data.timeline || []],
+    ['topics', data.topics], ['sources', data.sources], ['reports', data.reports],
     ['people', data.people], ['relationships', data.relationships], ['drafts', data.drafts],
     ['citations', data.citations], ['tags', data.tags], ['published', data.published],
     ['publish_packages', data.publish_packages || []],
@@ -340,29 +318,16 @@ const backupSchema = z.object({
 
   const topicIds = new Set(data.topics.map((item) => item.id));
   const personIds = new Set(data.people.map((item) => item.id));
-  const timelineById = new Map((data.timeline || []).map((item) => [item.id, item]));
   const tagIds = new Set(data.tags.map((item) => item.id));
   const requireTopic = (topicId: string, path: Array<string | number>) => {
     if (!topicIds.has(topicId)) addIssue(path, `引用了不存在的选题：${topicId}`);
   };
 
   data.sources.forEach((item, index) => requireTopic(item.topic_id, ['sources', index, 'topic_id']));
-  data.reports?.forEach((item, index) => requireTopic(item.topic_id, ['reports', index, 'topic_id']));
-  (data.timeline || []).forEach((item, index) => {
-    requireTopic(item.topic_id, ['timeline', index, 'topic_id']);
-    item.person_ids?.forEach((personId, personIndex) => {
-      if (!personIds.has(personId)) addIssue(['timeline', index, 'person_ids', personIndex], `引用了不存在的人物：${personId}`);
-    });
-  });
+  data.reports.forEach((item, index) => requireTopic(item.topic_id, ['reports', index, 'topic_id']));
   data.drafts.forEach((item, index) => requireTopic(item.topic_id, ['drafts', index, 'topic_id']));
   data.citations.forEach((item, index) => {
     requireTopic(item.topic_id, ['citations', index, 'topic_id']);
-    if (item.reference_type === 'timeline') {
-      const event = timelineById.get(item.reference_id);
-      if (event && event.topic_id !== item.topic_id) {
-        addIssue(['citations', index, 'reference_id'], '时间线引用必须与引用素材属于同一选题');
-      }
-    }
   });
   const currentTodoTopics = new Set<string>();
   const inProgressTodosByTopic = new Map<string, TopicTodo[]>();

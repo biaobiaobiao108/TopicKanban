@@ -21,8 +21,6 @@ import {
   updateSource,
 } from '../repositories';
 
-const timelineApiMovedMessage = 'Timeline events have been merged into sources. Use /sources with event_date and date_precision.';
-
 export function registerWorkspaceRoutes(app: NativeApp): void {
   app.get('/topics/:id/workspace', async (c) => {
     try {
@@ -115,12 +113,4 @@ export function registerWorkspaceRoutes(app: NativeApp): void {
     }
   });
 
-  // v5 folds timeline events into sources. Explicitly reject the retired endpoints so
-  // older clients cannot mistake a no-op write for a successful save.
-  app.get('/topics/:id/timeline', (c) => c.json({ error: timelineApiMovedMessage }, 410));
-  app.post('/timeline', (c) => c.json({ error: timelineApiMovedMessage }, 410));
-  app.post('/timeline/batch', (c) => c.json({ error: timelineApiMovedMessage }, 410));
-  app.patch('/timeline/:id', (c) => c.json({ error: timelineApiMovedMessage }, 410));
-  app.patch('/timeline/reorder/batch', (c) => c.json({ error: timelineApiMovedMessage }, 410));
-  app.delete('/timeline/:id', (c) => c.json({ error: timelineApiMovedMessage }, 410));
 }

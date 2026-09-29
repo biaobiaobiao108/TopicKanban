@@ -40,7 +40,6 @@ export async function loadTopicWorkspace(db: SqliteDatabase, topicId: string): P
   return {
     sources: sourcesResult.results,
     report,
-    timeline: [],
     draft: draft || null,
     citations: citationsResult.results,
     publish_package: normalizePublishPackageRecord(publishPackageResult),
