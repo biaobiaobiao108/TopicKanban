@@ -718,10 +718,13 @@ html.theme-kyoto-zen .tiptap hr { border-top-color: #dadfd5; }
   max-width: none;
   border-collapse: separate;
   border-spacing: 0;
+  border-radius: var(--radius-md, 12px);
   table-layout: auto;
   color: var(--ink);
   font-size: 0.9rem;
   line-height: 1.45;
+  background: var(--surface);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
 }
 
 .script-editor-canvas-container .tiptap .table-scroll-shell table:has(> colgroup > col[style^="width:"]),
@@ -763,6 +766,7 @@ html.theme-kyoto-zen .tiptap hr { border-top-color: #dadfd5; }
   inset-block: -1px;
   inset-inline-start: 3px;
   width: 2px;
+  border-radius: 1px;
   background: color-mix(in srgb, var(--accent) 58%, var(--line));
   content: "";
   opacity: 0;
@@ -785,6 +789,20 @@ html.theme-kyoto-zen .tiptap hr { border-top-color: #dadfd5; }
   color: var(--ink);
   font-weight: 650;
 }
+
+.script-editor-canvas-container .tiptap .table-scroll-shell tr:first-child > :first-child,
+.script-editor-canvas-container .tiptap .tableWrapper tr:first-child > :first-child { border-top-left-radius: var(--radius-md, 12px); }
+.script-editor-canvas-container .tiptap .table-scroll-shell tr:first-child > :last-child,
+.script-editor-canvas-container .tiptap .tableWrapper tr:first-child > :last-child { border-top-right-radius: var(--radius-md, 12px); }
+.script-editor-canvas-container .tiptap .table-scroll-shell tr:last-child > :first-child,
+.script-editor-canvas-container .tiptap .tableWrapper tr:last-child > :first-child { border-bottom-left-radius: var(--radius-md, 12px); }
+.script-editor-canvas-container .tiptap .table-scroll-shell tr:last-child > :last-child,
+.script-editor-canvas-container .tiptap .tableWrapper tr:last-child > :last-child { border-bottom-right-radius: var(--radius-md, 12px); }
+
+.script-editor-canvas-container .tiptap .table-scroll-shell table:has(thead) tbody tr:first-child > :first-child,
+.script-editor-canvas-container .tiptap .tableWrapper table:has(thead) tbody tr:first-child > :first-child { border-top-left-radius: 0; }
+.script-editor-canvas-container .tiptap .table-scroll-shell table:has(thead) tbody tr:first-child > :last-child,
+.script-editor-canvas-container .tiptap .tableWrapper table:has(thead) tbody tr:first-child > :last-child { border-top-right-radius: 0; }
 
 .script-editor-canvas-container .tiptap .table-scroll-shell tr > .selectedCell,
 .script-editor-canvas-container .tiptap .tableWrapper tr > .selectedCell {
@@ -1248,18 +1266,45 @@ html.theme-kyoto-zen .tiptap hr { border-top-color: #dadfd5; }
 .topic-report-reader table {
   width: 100%;
   margin: 1rem 0;
-  border-collapse: collapse;
+  border-collapse: separate;
+  border-spacing: 0;
+  border-radius: var(--radius-md, 12px);
   font-size: 0.9em;
+  background: var(--surface);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
 }
 
 .topic-report-reader th,
 .topic-report-reader td {
   padding: 0.5rem 0.75rem;
-  border: 1px solid color-mix(in srgb, var(--line) 50%, transparent);
+  border-inline-end: 1px solid color-mix(in srgb, var(--line) 50%, transparent);
+  border-block-end: 1px solid color-mix(in srgb, var(--line) 50%, transparent);
   text-align: left;
+}
+
+.topic-report-reader tr > :first-child {
+  border-inline-start: 1px solid color-mix(in srgb, var(--line) 50%, transparent);
+}
+
+.topic-report-reader thead tr:first-child > th,
+.topic-report-reader tbody tr:first-child > td {
+  border-block-start: 1px solid color-mix(in srgb, var(--line) 50%, transparent);
+}
+
+.topic-report-reader table:has(thead) tbody tr:first-child > td {
+  border-block-start: none;
 }
 
 .topic-report-reader th {
   background: color-mix(in srgb, var(--ink) 4%, transparent);
   font-weight: 650;
 }
+
+.topic-report-reader tr:first-child > :first-child { border-top-left-radius: var(--radius-md, 12px); }
+.topic-report-reader tr:first-child > :last-child { border-top-right-radius: var(--radius-md, 12px); }
+.topic-report-reader tr:last-child > :first-child { border-bottom-left-radius: var(--radius-md, 12px); }
+.topic-report-reader tr:last-child > :last-child { border-bottom-right-radius: var(--radius-md, 12px); }
+
+.topic-report-reader table:has(thead) tbody tr:first-child > :first-child { border-top-left-radius: 0; }
+.topic-report-reader table:has(thead) tbody tr:first-child > :last-child { border-top-right-radius: 0; }
+
