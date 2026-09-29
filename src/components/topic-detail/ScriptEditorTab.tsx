@@ -37,6 +37,8 @@ import {
   Target,
   Columns2,
   FileText,
+  Quote,
+  Plus,
 } from 'lucide-react';
 import { CitationMark } from './CitationMark';
 import { VoiceoverCueNode } from './VoiceoverCueNode';
@@ -1024,16 +1026,10 @@ export const ScriptEditorTab: React.FC<ScriptEditorTabProps> = ({
   const currentHtml = editor?.getHTML() || initialDraft?.content_html || '';
   const activeCitations = citations.filter((citation) => currentHtml.includes(`data-citation-id=\"${citation.id}\"`));
   const citationHealth = topic ? getCitationHealth(activeCitations, { topic, sources, timeline }) : null;
-  const citationCoverageWarning = sources.length > 0 && activeCitations.length === 0;
 
   const toggleOutlinePanel = () => {
     if (!isOutlineOpen && !canKeepBothSidePanelsOpen()) setIsReferenceOpen(false);
     setIsOutlineOpen((current) => !current);
-  };
-
-  const openReferencePanel = () => {
-    if (!canKeepBothSidePanelsOpen()) setIsOutlineOpen(false);
-    setIsReferenceOpen(true);
   };
 
   const toggleReferencePanel = () => {
@@ -1197,11 +1193,6 @@ export const ScriptEditorTab: React.FC<ScriptEditorTabProps> = ({
               >
                 <BookOpen className="h-3.5 w-3.5 text-[var(--accent)]" />
                 <span className="hidden sm:inline">事实参考</span>
-                {citationHealth && citationHealth.unverifiedCount > 0 && (
-                  <span className="text-[10px] text-amber-700 dark:text-amber-400 font-mono font-medium">
-                    {citationHealth.unverifiedCount}
-                  </span>
-                )}
               </button>
             )}
 
@@ -1436,25 +1427,6 @@ export const ScriptEditorTab: React.FC<ScriptEditorTabProps> = ({
         </div>
       )}
 
-      {!isZenMode && citationCoverageWarning && (
-        <div className="mx-3 mt-2 rounded-xl border border-amber-200 bg-amber-50 px-3.5 py-2 text-xs font-medium text-amber-900 dark:border-amber-900/60 dark:bg-amber-950/30 dark:text-amber-200">
-          引用提醒：当前文案还没有插入资料引用，进入制作前建议为关键事实补充来源。
-        </div>
-      )}
-      {!isZenMode && citationHealth && (citationHealth.staleCount > 0 || citationHealth.unverifiedCount > 0) && (
-        <button
-          type="button"
-          onClick={openReferencePanel}
-          className="flex shrink-0 items-center gap-2 border-b border-amber-200 dark:border-amber-900/60 bg-amber-50 dark:bg-amber-950/50 px-3 py-2 text-left text-xs font-semibold text-amber-900 dark:text-amber-200 sm:px-6 cursor-pointer"
-        >
-          <AlertTriangle className="h-4 w-4 shrink-0 text-amber-600 dark:text-amber-400" />
-          <span>
-            引用检查：{citationHealth.unverifiedCount} 处引用尚未核实
-            {citationHealth.staleCount > 0 ? `，${citationHealth.staleCount} 处原资料已变更` : ''}
-          </span>
-          <span className="ml-auto text-[11px] text-amber-700 dark:text-amber-400">查看资料 →</span>
-        </button>
-      )}
 
       {/* Floating Zen Controls (Ambient Dynamic Respiration HUD) */}
       {isZenMode && (
@@ -1505,11 +1477,6 @@ export const ScriptEditorTab: React.FC<ScriptEditorTabProps> = ({
               >
                 <BookOpen className="w-4 h-4 text-[var(--accent)]" />
                 <span className="hidden sm:inline">事实参考</span>
-                {citationHealth && citationHealth.unverifiedCount > 0 && (
-                  <span className="text-[11px] text-amber-700 dark:text-amber-400 font-mono font-semibold">
-                    {citationHealth.unverifiedCount}
-                  </span>
-                )}
               </button>
             )}
           </div>
@@ -1570,27 +1537,65 @@ export const ScriptEditorTab: React.FC<ScriptEditorTabProps> = ({
               className="shrink-0 h-full border-r border-[var(--line)] bg-[var(--surface)]/70 flex flex-col z-10 transition-all duration-75 relative select-text"
             >
               {/* Split Panel Header */}
-              <div className="flex h-10 items-center justify-between border-b border-[var(--line)] px-3.5 bg-[var(--surface)]/90 backdrop-blur-xs select-none shrink-0">
+              <div className="flex h-11 items-center justify-between border-b border-[var(--line)]/60 px-4 bg-[var(--surface)] select-none shrink-0">
                 <div className="flex items-center gap-2 min-w-0">
-                  <FileText className="h-3.5 w-3.5 text-[var(--accent)] shrink-0" />
-                  <span className="text-xs font-semibold text-[var(--ink)] truncate">选题报告对照</span>
+                  <div className="flex h-6 w-6 items-center justify-center rounded-md bg-[var(--accent-soft)] text-[var(--accent-dark)] dark:text-[var(--accent)] shrink-0">
+                    <FileText className="h-3.5 w-3.5" />
+                  </div>
+                  <span className="text-xs font-semibold text-[var(--ink)] tracking-tight">选题报告</span>
                   {report?.word_count ? (
-                    <span className="text-[10px] font-mono text-[var(--ink-muted)] tabular-nums shrink-0">
-                      ({report.word_count} 字)
+                    <span className="rounded-full bg-stone-500/[0.05] dark:bg-stone-400/[0.08] px-2 py-0.5 text-[10px] font-mono text-[var(--ink-muted)] tabular-nums shrink-0">
+                      {report.word_count.toLocaleString()} 字
                     </span>
                   ) : null}
                 </div>
+
                 <div className="flex items-center gap-1.5 shrink-0">
+                  {report?.content_markdown?.trim() && (
+                    <>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const sel = window.getSelection()?.toString().trim();
+                          if (sel) {
+                            void handleInsertReportContent(sel, true);
+                          } else {
+                            showToast({ message: '请先在报告中划选需要引用的文字', tone: 'info' });
+                          }
+                        }}
+                        aria-label="引用划选内容至文案"
+                        className="inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-medium text-[var(--accent-dark)] dark:text-[var(--accent)] hover:bg-[var(--accent-soft)] transition-colors cursor-pointer"
+                      >
+                        <Quote className="h-3 w-3" />
+                        <span>引用划选</span>
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => handleInsertReportContent(report.content_markdown || '', false)}
+                        aria-label="插入报告全文至文案"
+                        className="inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-medium text-[var(--ink-muted)] hover:text-[var(--ink)] hover:bg-stone-500/[0.06] transition-colors cursor-pointer"
+                      >
+                        <Plus className="h-3 w-3" />
+                        <span>插入全文</span>
+                      </button>
+                      <div className="h-3.5 w-px bg-[var(--line)]/60 mx-1" />
+                    </>
+                  )}
+
                   {/* Font size switcher */}
-                  <div className="flex items-center gap-0.5 rounded-md bg-stone-500/[0.06] p-0.5 text-[11px] text-[var(--ink-muted)]">
+                  <div className="flex items-center rounded-full bg-stone-500/[0.05] p-0.5 text-[11px] text-[var(--ink-muted)] dark:bg-stone-400/[0.08]">
                     <button
                       type="button"
                       onClick={() => {
                         setReportFontSize('compact');
                         localStorage.setItem('topic_report_split_font_size', 'compact');
                       }}
-                      className={`px-1.5 py-0.5 rounded transition-colors cursor-pointer ${reportFontSize === 'compact' ? 'bg-[var(--surface)] text-[var(--ink)] font-semibold shadow-xs' : 'hover:text-[var(--ink)]'}`}
-                      title="紧凑字号"
+                      aria-label="小字号"
+                      className={`px-2 py-0.5 rounded-full transition-colors cursor-pointer ${
+                        reportFontSize === 'compact'
+                          ? 'bg-[var(--surface)] text-[var(--ink)] font-semibold shadow-2xs'
+                          : 'hover:text-[var(--ink)]'
+                      }`}
                     >
                       小
                     </button>
@@ -1600,8 +1605,12 @@ export const ScriptEditorTab: React.FC<ScriptEditorTabProps> = ({
                         setReportFontSize('normal');
                         localStorage.setItem('topic_report_split_font_size', 'normal');
                       }}
-                      className={`px-1.5 py-0.5 rounded transition-colors cursor-pointer ${reportFontSize === 'normal' ? 'bg-[var(--surface)] text-[var(--ink)] font-semibold shadow-xs' : 'hover:text-[var(--ink)]'}`}
-                      title="标准字号"
+                      aria-label="标准字号"
+                      className={`px-2 py-0.5 rounded-full transition-colors cursor-pointer ${
+                        reportFontSize === 'normal'
+                          ? 'bg-[var(--surface)] text-[var(--ink)] font-semibold shadow-2xs'
+                          : 'hover:text-[var(--ink)]'
+                      }`}
                     >
                       中
                     </button>
@@ -1611,8 +1620,12 @@ export const ScriptEditorTab: React.FC<ScriptEditorTabProps> = ({
                         setReportFontSize('large');
                         localStorage.setItem('topic_report_split_font_size', 'large');
                       }}
-                      className={`px-1.5 py-0.5 rounded transition-colors cursor-pointer ${reportFontSize === 'large' ? 'bg-[var(--surface)] text-[var(--ink)] font-semibold shadow-xs' : 'hover:text-[var(--ink)]'}`}
-                      title="大字号"
+                      aria-label="大字号"
+                      className={`px-2 py-0.5 rounded-full transition-colors cursor-pointer ${
+                        reportFontSize === 'large'
+                          ? 'bg-[var(--surface)] text-[var(--ink)] font-semibold shadow-2xs'
+                          : 'hover:text-[var(--ink)]'
+                      }`}
                     >
                       大
                     </button>
@@ -1625,7 +1638,7 @@ export const ScriptEditorTab: React.FC<ScriptEditorTabProps> = ({
                         const ok = await copyTextToClipboard(report.content_markdown || '');
                         if (ok) showToast({ message: '已复制报告全文', tone: 'success' });
                       }}
-                      className="p-1 text-stone-400 hover:text-[var(--ink)] rounded cursor-pointer"
+                      className="p-1.5 text-[var(--ink-muted)] hover:text-[var(--ink)] hover:bg-stone-500/[0.06] rounded-full transition-colors cursor-pointer"
                       aria-label="复制报告全文"
                     >
                       <Copy className="h-3.5 w-3.5" />
@@ -1634,7 +1647,7 @@ export const ScriptEditorTab: React.FC<ScriptEditorTabProps> = ({
                   <button
                     type="button"
                     onClick={() => setIsReportSplitOpen(false)}
-                    className="p-1 text-stone-400 hover:text-[var(--ink)] rounded cursor-pointer"
+                    className="p-1.5 text-[var(--ink-muted)] hover:text-[var(--ink)] hover:bg-stone-500/[0.06] rounded-full transition-colors cursor-pointer"
                     aria-label="关闭分屏"
                   >
                     <X className="h-3.5 w-3.5" />
@@ -1643,56 +1656,26 @@ export const ScriptEditorTab: React.FC<ScriptEditorTabProps> = ({
               </div>
 
               {/* Split Panel Content */}
-              <FloatingScrollbar className="p-5 sm:p-6 lg:p-7 space-y-4" wrapperClassName="flex-1 min-h-0">
+              <FloatingScrollbar className="p-5 sm:p-6 lg:p-7" wrapperClassName="flex-1 min-h-0">
                 {!report || !report.content_markdown?.trim() ? (
-                  <div className="py-12 text-center text-stone-400 dark:text-stone-500 space-y-2">
+                  <div className="py-16 text-center text-stone-400 dark:text-stone-500 space-y-2.5">
                     <FileText className="w-8 h-8 mx-auto text-stone-300 dark:text-stone-600 stroke-[1.5]" />
-                    <div className="text-xs font-medium">当前选题尚未录入选题报告</div>
-                    <p className="text-[11px] text-stone-400 max-w-xs mx-auto">
-                      可切换至「选题报告」模块整理资料，写文案时在此分屏对照参考。
+                    <div className="text-xs font-medium text-[var(--ink)]">当前选题尚未录入选题报告</div>
+                    <p className="text-[11px] text-[var(--ink-muted)] max-w-xs mx-auto leading-relaxed">
+                      可切换至「选题报告」Tab 整理资料与大纲，写文案时在此分屏对照参考。
                     </p>
                   </div>
                 ) : (
-                  <div className="space-y-4">
-                    <div className="flex items-center justify-between pb-2.5 border-b border-[var(--line)]/50 select-none">
-                      <span className="text-xs text-[var(--ink-muted)]">参考选题背景与弹药，可随时引用至文案</span>
-                      <div className="flex items-center gap-2">
-                        <button
-                          type="button"
-                          onClick={() => {
-                            const sel = window.getSelection()?.toString().trim();
-                            if (sel) {
-                              void handleInsertReportContent(sel, true);
-                            } else {
-                              showToast({ message: '请先在报告中划选需要引用的文字', tone: 'info' });
-                            }
-                          }}
-                          className="text-xs text-[var(--accent)] hover:underline font-medium cursor-pointer"
-                          title="划选文字后点击可带引用标记插入文案"
-                        >
-                          引用划选
-                        </button>
-                        <span className="text-stone-300 dark:text-stone-700">·</span>
-                        <button
-                          type="button"
-                          onClick={() => handleInsertReportContent(report.content_markdown || '', false)}
-                          className="text-xs text-[var(--accent)] hover:underline font-medium cursor-pointer"
-                        >
-                          插入全文
-                        </button>
-                      </div>
-                    </div>
-                    <div
-                      className={`topic-report-reader ${
-                        reportFontSize === 'large'
-                          ? 'text-[16.5px] leading-[1.8]'
-                          : reportFontSize === 'compact'
-                          ? 'text-[13.5px] leading-[1.65]'
-                          : 'text-[15px] leading-[1.75]'
-                      }`}
-                      dangerouslySetInnerHTML={{ __html: report.content_html || '' }}
-                    />
-                  </div>
+                  <div
+                    className={`topic-report-reader ${
+                      reportFontSize === 'large'
+                        ? 'text-[16.5px] leading-[1.8]'
+                        : reportFontSize === 'compact'
+                        ? 'text-[13.5px] leading-[1.65]'
+                        : 'text-[15px] leading-[1.75]'
+                    }`}
+                    dangerouslySetInnerHTML={{ __html: report.content_html || '' }}
+                  />
                 )}
               </FloatingScrollbar>
             </aside>
@@ -1704,8 +1687,7 @@ export const ScriptEditorTab: React.FC<ScriptEditorTabProps> = ({
               onPointerUp={handleSplitResizeEnd}
               onPointerCancel={handleSplitResizeEnd}
               className="group relative w-1.5 shrink-0 cursor-col-resize hover:bg-[var(--accent)]/30 active:bg-[var(--accent)]/50 transition-colors select-none z-20 flex items-center justify-center"
-              aria-label="拖拽调整分屏宽度"
-              title="双击可重置分屏宽度"
+              aria-label="拖拽调整分屏宽度，双击重置"
               onDoubleClick={() => {
                 const defaultW = Math.min(680, Math.max(480, Math.round(window.innerWidth * 0.4)));
                 setReportSplitWidth(defaultW);
