@@ -852,7 +852,7 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
             autoComplete="off"
             autoCorrect="off"
             spellCheck={false}
-            placeholder="输入指令或搜索选题..."
+            placeholder="搜索选题或指令 · #标签 @人物 >动作 ?帮助"
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             onKeyDown={handleKeyDown}
