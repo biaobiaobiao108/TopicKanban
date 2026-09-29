@@ -85,6 +85,7 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
   const [debouncedCleanQ, setDebouncedCleanQ] = useState('');
   const [isKeyboardFocused, setIsKeyboardFocused] = useState(false);
   const inputRef = useRef<HTMLInputElement | null>(null);
+  const listRef = useRef<HTMLDivElement | null>(null);
   const itemRefs = useRef<(HTMLButtonElement | null)[]>([]);
   const keyboardFocusRef = useRef(false);
   const dialogRef = useRef<HTMLDivElement | null>(null);
@@ -756,15 +757,28 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
     lastMousePositionRef.current = null;
   }, [query]);
 
-  // Scroll active item into view
   useEffect(() => {
-    if (itemRefs.current[selectedIndex]) {
-      itemRefs.current[selectedIndex]?.scrollIntoView({
-        block: 'nearest',
-        behavior: 'auto',
-      });
+    setSelectedIndex((current) => Math.min(current, Math.max(items.length - 1, 0)));
+  }, [items.length]);
+
+  // Keep the selected row and its highlight inside the list's fixed edge inset.
+  useEffect(() => {
+    const list = listRef.current;
+    const item = itemRefs.current[selectedIndex];
+    if (!list || !item) return;
+
+    const edgeInset = 12;
+    const listRect = list.getBoundingClientRect();
+    const itemRect = item.getBoundingClientRect();
+    const topGap = itemRect.top - listRect.top;
+    const bottomGap = listRect.bottom - itemRect.bottom;
+
+    if (topGap < edgeInset) {
+      list.scrollTop -= edgeInset - topGap;
+    } else if (bottomGap < edgeInset) {
+      list.scrollTop += edgeInset - bottomGap;
     }
-  }, [selectedIndex]);
+  }, [selectedIndex, query, items.length]);
 
   // Keyboard navigation
   const handleKeyDown = (e: React.KeyboardEvent) => {
@@ -781,11 +795,11 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
     if (e.key === 'ArrowDown') {
       e.preventDefault();
       lastMousePositionRef.current = null;
-      setSelectedIndex((prev) => (prev + 1) % items.length);
+      setSelectedIndex((prev) => Math.min(prev + 1, items.length - 1));
     } else if (e.key === 'ArrowUp') {
       e.preventDefault();
       lastMousePositionRef.current = null;
-      setSelectedIndex((prev) => (prev - 1 + items.length) % items.length);
+      setSelectedIndex((prev) => Math.max(prev - 1, 0));
     } else if (e.key === 'Enter') {
       e.preventDefault();
       if (items[selectedIndex]) {
@@ -927,12 +941,13 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
         </div>
 
         {/* Results List */}
-        <FloatingScrollbar className="flex flex-col gap-1 p-2" wrapperClassName="max-h-[480px] flex-none">
-          {items.map((item, index) => {
-            const isSelected = index === selectedIndex;
-            const Icon = item.icon;
+        <FloatingScrollbar ref={listRef} className="overflow-x-hidden" wrapperClassName="max-h-[480px] flex-none">
+          <div className="flex flex-col gap-1 p-3">
+            {items.map((item, index) => {
+              const isSelected = index === selectedIndex;
+              const Icon = item.icon;
 
-            return (
+              return (
                 <button
                   key={item.id}
                   ref={(el) => { itemRefs.current[index] = el; }}
@@ -977,17 +992,18 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
                     />
                   </div>
                 </button>
-            );
-          })}
+              );
+            })}
 
-          {items.length === 0 && (
-            <div className="py-12 text-center text-stone-500 dark:text-stone-400 space-y-1">
-              <div className="text-sm font-medium">没有找到匹配项</div>
-              <div className="text-xs text-stone-500 dark:text-stone-400">
-                可尝试输入 <strong className="text-stone-600 dark:text-stone-300">#</strong> 查赛道、<strong className="text-stone-600 dark:text-stone-300">@</strong> 查人物、<strong className="text-stone-600 dark:text-stone-300">&gt;</strong> 执行动作、<strong className="text-stone-600 dark:text-stone-300">?</strong> 查看快捷键
+            {items.length === 0 && (
+              <div className="py-12 text-center text-stone-500 dark:text-stone-400 space-y-1">
+                <div className="text-sm font-medium">没有找到匹配项</div>
+                <div className="text-xs text-stone-500 dark:text-stone-400">
+                  可尝试输入 <strong className="text-stone-600 dark:text-stone-300">#</strong> 查赛道、<strong className="text-stone-600 dark:text-stone-300">@</strong> 查人物、<strong className="text-stone-600 dark:text-stone-300">&gt;</strong> 执行动作、<strong className="text-stone-600 dark:text-stone-300">?</strong> 查看快捷键
+                </div>
               </div>
-            </div>
-          )}
+            )}
+          </div>
         </FloatingScrollbar>
       </div>
     </div>
