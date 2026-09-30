@@ -828,7 +828,7 @@ export const TopicTableView: React.FC<TopicTableViewProps> = ({
       {/* Table Scroll Container */}
       <FloatingScrollbar
         className="topic-table-container w-full min-w-full overflow-x-auto overscroll-contain"
-        wrapperClassName="hidden flex-1 min-h-0 md:block"
+        wrapperClassName="hidden flex-1 min-h-0 md:flex"
       >
         <table className="w-full text-left border-collapse text-xs">
           {/* Table Header */}

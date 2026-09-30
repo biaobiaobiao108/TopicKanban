@@ -112,11 +112,7 @@ const PAYMENT_OPTIONS: SelectOption[] = [
 const SOURCE_OPTIONS: SelectOption[] = Object.entries(SOURCE_LABELS).map(([value, label]) => ({ value, label }));
 const DELIVERABLE_OPTIONS: SelectOption[] = Object.entries(DELIVERABLE_LABELS).map(([value, label]) => ({ value, label }));
 const CONTRACT_OPTIONS: SelectOption[] = Object.entries(CONTRACT_LABELS).map(([value, label]) => ({ value, label }));
-const PAGE_SIZE_OPTIONS: SelectOption[] = [12, 24, 48].map((value) => ({
-  value: String(value),
-  label: `每页 ${value} 张`,
-}));
-const PAGE_SIZE_STORAGE_KEY = 'commercial-deals-page-size';
+const DEALS_PAGE_SIZE = 24;
 
 function getSafePublishedVideoUrl(video: NonNullable<CommercialDealDetail['published_video']>): string {
   const safeUrl = sanitizeExternalHttpUrl(video.url);
@@ -185,16 +181,6 @@ function createDealFormState(deal?: CommercialDeal | null): DealFormState {
     next_action: deal?.next_action || '',
     next_action_due_date: deal?.next_action_due_date || '',
   };
-}
-
-function readPageSize(): number {
-  if (typeof window === 'undefined') return 24;
-  try {
-    const value = Number(window.localStorage.getItem(PAGE_SIZE_STORAGE_KEY));
-    return [12, 24, 48].includes(value) ? value : 24;
-  } catch {
-    return 24;
-  }
 }
 
 function StatusPill({ status }: { status: CommercialDealStatus }) {
@@ -505,16 +491,15 @@ function CommercialDealsView({ topics, onCreateTopicFromDeal }: Pick<DealsViewPr
   const [paymentStatus, setPaymentStatus] = useState('');
   const [showActiveOnly, setShowActiveOnly] = useState(true);
   const [page, setPage] = useState(1);
-  const [pageSize, setPageSize] = useState(readPageSize);
   const [isFormOpen, setIsFormOpen] = useState(false);
   const scope = showActiveOnly ? 'active' : 'all';
   const dealsQuery = useQuery({
-    queryKey: ['commercial-deal-page', { query, status, paymentStatus, scope, page, pageSize }],
+    queryKey: ['commercial-deal-page', { query, status, paymentStatus, scope, page, pageSize: DEALS_PAGE_SIZE }],
     queryFn: () =>
       fetchCommercialDealPage({
         scope,
         page,
-        page_size: pageSize,
+        page_size: DEALS_PAGE_SIZE,
         q: query,
         status,
         payment_status: paymentStatus as 'unpaid' | 'paid' | undefined,
@@ -526,13 +511,6 @@ function CommercialDealsView({ topics, onCreateTopicFromDeal }: Pick<DealsViewPr
   const total = pageData?.total || 0;
   const totalPages = Math.max(1, pageData?.total_pages || 1);
 
-  useEffect(() => {
-    try {
-      window.localStorage.setItem(PAGE_SIZE_STORAGE_KEY, String(pageSize));
-    } catch {
-      /* Restricted storage should not block the list. */
-    }
-  }, [pageSize]);
   useEffect(() => {
     if (page > totalPages) setPage(totalPages);
   }, [page, totalPages]);
@@ -552,14 +530,8 @@ function CommercialDealsView({ topics, onCreateTopicFromDeal }: Pick<DealsViewPr
     setStatus('');
     setPage(1);
   };
-  const handlePageSize = (value: string) => {
-    const next = Number(value);
-    if (![12, 24, 48].includes(next)) return;
-    setPageSize(next);
-    setPage(1);
-  };
-  const firstItem = total === 0 ? 0 : (page - 1) * pageSize + 1;
-  const lastItem = Math.min(page * pageSize, total);
+  const firstItem = total === 0 ? 0 : (page - 1) * DEALS_PAGE_SIZE + 1;
+  const lastItem = Math.min(page * DEALS_PAGE_SIZE, total);
 
   return (
     <div className="min-h-0 min-w-0 flex-1 overflow-y-auto overscroll-contain mobile-bottom-nav-content md:pb-8">
@@ -694,18 +666,7 @@ function CommercialDealsView({ topics, onCreateTopicFromDeal }: Pick<DealsViewPr
                 <DealCard key={deal.id} deal={deal} onOpen={(id) => navigate(`/deals/${encodeURIComponent(id)}`)} />
               ))}
             </div>
-            <div className="flex flex-col gap-3 rounded-2xl border border-[var(--line)] bg-[var(--surface)] p-3 shadow-subtle sm:flex-row sm:items-center sm:justify-between sm:p-4">
-              <div className="flex flex-wrap items-center gap-2 text-xs font-semibold text-stone-500 dark:text-stone-400">
-                <span>每页展示</span>
-                <CustomSelect
-                  value={String(pageSize)}
-                  onChange={handlePageSize}
-                  options={PAGE_SIZE_OPTIONS}
-                  ariaLabel="每页商单数量"
-                  size="sm"
-                  buttonClassName="min-h-10 min-w-28"
-                />
-              </div>
+            <div className="flex flex-col gap-3 rounded-2xl border border-[var(--line)] bg-[var(--surface)] p-3 shadow-subtle sm:flex-row sm:items-center sm:justify-end sm:p-4">
               <div className="flex items-center justify-between gap-3 sm:justify-end">
                 <button
                   type="button"

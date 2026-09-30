@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import { Person, PersonRelationship } from '../../types';
 import { Modal } from '../ui/Modal';
 import {
@@ -11,6 +11,7 @@ import {
   Sparkles,
   Quote,
   CheckCircle2,
+  Search,
   X,
   UserPlus
 } from 'lucide-react';
@@ -25,6 +26,8 @@ interface PeopleTabProps {
   onNavigateToPeople: () => void;
 }
 
+const QUICK_ATTACH_LIMIT = 8;
+
 export const PeopleTab: React.FC<PeopleTabProps> = ({
   topicPeople,
   allPeople,
@@ -35,6 +38,7 @@ export const PeopleTab: React.FC<PeopleTabProps> = ({
 }) => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingPerson, setEditingPerson] = useState<Person | null>(null);
+  const [personSearch, setPersonSearch] = useState('');
 
   // Form state
   const [name, setName] = useState('');
@@ -103,7 +107,23 @@ export const PeopleTab: React.FC<PeopleTabProps> = ({
   };
 
   // Other people in library not yet attached to this topic
-  const unattachedPeople = allPeople.filter((p) => !topicPersonIds.has(p.id));
+  const unattachedPeople = useMemo(
+    () => allPeople.filter((person) => !topicPersonIds.has(person.id)),
+    [allPeople, topicPeople],
+  );
+  const personSearchResults = useMemo(() => {
+    const query = personSearch.trim().toLocaleLowerCase();
+    if (!query) return { people: [] as Person[], total: 0 };
+
+    const matchedPeople = unattachedPeople.filter((person) =>
+      [person.name, person.aliases, person.identity, person.platform_accounts]
+        .some((value) => value?.toLocaleLowerCase().includes(query)),
+    );
+    return {
+      people: matchedPeople.slice(0, QUICK_ATTACH_LIMIT),
+      total: matchedPeople.length,
+    };
+  }, [personSearch, unattachedPeople]);
 
   return (
     <div className="py-6 space-y-8 max-w-5xl mx-auto">
@@ -243,16 +263,32 @@ export const PeopleTab: React.FC<PeopleTabProps> = ({
       {/* 2. Quick Attach from Global People Library */}
       {unattachedPeople.length > 0 && (
         <div className="bg-[var(--surface)] rounded-2xl border border-[var(--line)] p-5 space-y-3 shadow-2xs transition-colors">
-          <div className="flex items-center justify-between">
-            <h4 className="text-sm font-bold text-stone-900 dark:text-stone-100 flex items-center gap-1.5">
-              <span>从全局人物库快速引入</span>
-              <span className="text-xs text-stone-400 dark:text-stone-500 font-normal">（点击直接关联至本选题）</span>
-            </h4>
+          <div className="flex flex-wrap items-start justify-between gap-2">
+            <div>
+              <h4 className="text-sm font-bold text-stone-900 dark:text-stone-100">从全局人物库快速引入</h4>
+              <p className="mt-1 text-xs text-stone-500 dark:text-stone-400">搜索姓名、别名或身份，再选择要关联的人物。</p>
+            </div>
             <span className="text-xs text-stone-400 dark:text-stone-500">未关联 <span className="font-mono tabular-nums">{unattachedPeople.length}</span> 人</span>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2.5">
-            {unattachedPeople.map((person) => (
+          <label className="relative block">
+            <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-stone-400" aria-hidden="true" />
+            <input
+              type="search"
+              value={personSearch}
+              onChange={(event) => setPersonSearch(event.target.value)}
+              aria-label="搜索未关联人物"
+              autoComplete="off"
+              placeholder="输入人物姓名、别名或身份..."
+              className="min-h-11 w-full rounded-xl border border-stone-200/80 bg-stone-500/[0.03] pl-9 pr-3 text-sm text-[var(--ink)] outline-none placeholder:text-stone-400 focus:border-[var(--accent)] dark:border-stone-700 dark:bg-stone-800 dark:focus:bg-stone-800"
+            />
+          </label>
+
+          {personSearch.trim() ? (
+            personSearchResults.people.length > 0 ? (
+              <>
+                <div className="grid grid-cols-1 gap-2.5 sm:grid-cols-2 lg:grid-cols-3" aria-live="polite">
+                  {personSearchResults.people.map((person) => (
               <div
                 key={person.id}
                 className="p-3 rounded-xl border border-stone-200/70 dark:border-stone-800 bg-stone-500/[0.02] dark:bg-stone-800/40 hover:bg-stone-500/[0.05] dark:hover:bg-stone-800 flex items-center justify-between gap-2 transition-all"
@@ -265,15 +301,33 @@ export const PeopleTab: React.FC<PeopleTabProps> = ({
                 </div>
 
                 <button
+                  type="button"
                   onClick={() => onToggleTopicPerson(person)}
+                  aria-label={`引入人物：${person.name}`}
                   className="shrink-0 flex items-center gap-1 text-xs font-semibold text-[var(--accent-dark)] bg-[var(--accent-soft)] hover:bg-[var(--surface)] px-2.5 py-1 rounded-xl transition-colors cursor-pointer"
                 >
                   <Plus className="w-3 h-3" />
                   <span>引入</span>
                 </button>
               </div>
-            ))}
-          </div>
+                  ))}
+                </div>
+                {personSearchResults.total > QUICK_ATTACH_LIMIT && (
+                  <p className="text-xs text-[var(--ink-muted)]" role="status">
+                    找到 {personSearchResults.total} 人，仅显示前 {QUICK_ATTACH_LIMIT} 位，请继续缩小搜索范围。
+                  </p>
+                )}
+              </>
+            ) : (
+              <p className="rounded-xl bg-[var(--canvas)] px-3 py-4 text-center text-xs text-[var(--ink-muted)]" role="status">
+                没有找到匹配的未关联人物。
+              </p>
+            )
+          ) : (
+            <p className="rounded-xl bg-[var(--canvas)] px-3 py-4 text-center text-xs text-[var(--ink-muted)]">
+              输入关键词后显示匹配人物。
+            </p>
+          )}
         </div>
       )}
 

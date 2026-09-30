@@ -366,13 +366,13 @@ export const TopicDetailView: React.FC<TopicDetailViewProps> = ({
     }
   };
 
-  const tabs: { id: DetailTab; label: string; icon: React.ComponentType<{ className?: string }>; count?: number }[] = [
+  const tabs: { id: DetailTab; label: string; icon: React.ComponentType<{ className?: string }> }[] = [
     { id: 'overview', label: '选题概览', icon: LayoutDashboard },
     { id: 'todos', label: '执行看板', icon: KanbanSquare },
-    { id: 'sources', label: '资料与素材', icon: FileSearch, count: sources.length },
+    { id: 'sources', label: '资料与素材', icon: FileSearch },
     { id: 'report', label: '选题报告', icon: ScrollText },
-    { id: 'people', label: '人物与关系', icon: Users, count: topic.people?.length || 0 },
-    { id: 'deals', label: '商单', icon: Handshake, count: topic.commercial_deals_count },
+    { id: 'people', label: '人物与关系', icon: Users },
+    { id: 'deals', label: '商单', icon: Handshake },
     { id: 'script', label: '文案创作', icon: PenTool },
     { id: 'publish', label: '发布包', icon: FileText },
   ];
@@ -392,7 +392,7 @@ export const TopicDetailView: React.FC<TopicDetailViewProps> = ({
     if (isOutsideViewport) {
       activeButton.scrollIntoView({ block: 'nearest', inline: 'nearest' });
     }
-  }, [activeTab, sources.length, report?.word_count, topic.people?.length, topic.commercial_deals_count, todos.length]);
+  }, [activeTab]);
 
   const metricTopic: Topic = {
     ...topic,
@@ -488,9 +488,9 @@ export const TopicDetailView: React.FC<TopicDetailViewProps> = ({
       {/* Module navigation stays visible across topic detail sections. */}
       {/* Module navigation stays visible across topic detail sections. */}
       <header className="topic-detail-context-shell relative shrink-0 border-b border-[var(--line)] bg-[var(--canvas)]/95 backdrop-blur-sm transition-colors">
-        <div className="flex w-full items-center justify-between gap-3 px-4 py-2 sm:px-6 md:px-8">
+        <div className="grid w-full grid-cols-[minmax(0,1fr)] items-center gap-x-3 gap-y-2 px-4 py-2 sm:px-6 md:grid-cols-[minmax(0,auto)_minmax(0,1fr)_2rem] md:px-8">
           {/* Left: Quick Back Navigation & Compact Topic Context */}
-          <div className="flex min-w-0 items-center gap-2.5 shrink-0 z-10">
+          <div className="flex min-w-0 items-center gap-2.5">
             {onBack && (
               <button
                 type="button"
@@ -509,10 +509,10 @@ export const TopicDetailView: React.FC<TopicDetailViewProps> = ({
             </div>
           </div>
 
-          {/* Center: Segmented Island Capsule Tabs (Horizontally Centered) */}
+          {/* Center: scrollable tabs occupy their own grid column to avoid title overlap */}
           <div
             ref={detailSubtabsRef}
-            className="detail-subtabs-container flex min-w-0 flex-1 justify-center overflow-x-auto bg-transparent transition-colors no-scrollbar py-0.5 md:absolute md:left-1/2 md:-translate-x-1/2 md:max-w-[calc(100%-360px)]"
+            className="detail-subtabs-container flex min-w-0 w-full justify-start overflow-x-auto bg-transparent transition-colors no-scrollbar py-0.5 md:justify-center"
           >
             <nav
               aria-label="选题模块导航"
@@ -536,25 +536,14 @@ export const TopicDetailView: React.FC<TopicDetailViewProps> = ({
                   >
                     <Icon className={`w-3.5 h-3.5 transition-colors ${isActive ? 'text-[var(--accent)]' : 'text-[var(--ink-muted)] opacity-70 group-hover:text-[var(--ink)]'}`} />
                     <span>{tab.label}</span>
-                    {typeof tab.count === 'number' && tab.count > 0 && (
-                      <span
-                        className={`ml-0.5 rounded-full px-1.5 py-0.2 font-mono text-[10px] tabular-nums font-semibold leading-none transition-colors ${
-                          isActive
-                            ? 'bg-[var(--accent-soft)] text-[var(--accent-dark)] dark:text-[var(--accent)]'
-                            : 'bg-stone-500/10 text-stone-600 dark:text-stone-400'
-                        }`}
-                      >
-                        {tab.count}
-                      </span>
-                    )}
                   </button>
                 );
               })}
             </nav>
           </div>
 
-          {/* Right: Balance spacer for flex mode */}
-          <div className="hidden md:block w-8 shrink-0 pointer-events-none" aria-hidden="true" />
+          {/* Right: keeps the topic title and navigation area balanced */}
+          <div className="hidden w-8 shrink-0 pointer-events-none md:block" aria-hidden="true" />
         </div>
       </header>
 

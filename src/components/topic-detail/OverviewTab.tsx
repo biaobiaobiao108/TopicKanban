@@ -38,7 +38,8 @@ import {
   Layers,
   ChevronDown,
   Target,
-  Clapperboard
+  Clapperboard,
+  Search,
 } from 'lucide-react';
 
 interface OverviewTabProps {
@@ -83,6 +84,8 @@ const STORY_STRUCTURE_CARD_STYLES: Record<StoryStructureKey, {
   },
 };
 
+const QUICK_PERSON_RESULT_LIMIT = 8;
+
 export const OverviewTab: React.FC<OverviewTabProps> = ({
   topic,
   onUpdateTopic,
@@ -104,6 +107,7 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({
   const [acts, setActs] = useState<StoryStructureActs>(() => parseStorylineToActs(topic.storyline || ''));
   const [targetPublishDate, setTargetPublishDate] = useState(topic.target_publish_date || '');
   const [deadline, setDeadline] = useState(topic.deadline || '');
+  const [personLibrarySearch, setPersonLibrarySearch] = useState('');
   
   const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle');
   const [storylineMode, setStorylineMode] = useState<'acts' | 'raw'>('acts');
@@ -299,6 +303,20 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({
       : [...currentPeople, person];
     await onUpdateTopic({ people: updatedPeople });
   };
+
+  const personLibraryResults = useMemo(() => {
+    const query = personLibrarySearch.trim().toLocaleLowerCase();
+    if (!query) return { people: [] as Person[], total: 0 };
+
+    const matchedPeople = allPeople.filter((person) =>
+      [person.name, person.aliases, person.identity, person.platform_accounts]
+        .some((value) => value?.toLocaleLowerCase().includes(query)),
+    );
+    return {
+      people: matchedPeople.slice(0, QUICK_PERSON_RESULT_LIMIT),
+      total: matchedPeople.length,
+    };
+  }, [allPeople, personLibrarySearch]);
 
   const handleQuickCreatePerson = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -871,17 +889,34 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({
           {/* Global People Quick Selector */}
           <div className="pt-3 border-t border-stone-100 dark:border-stone-800/80 space-y-2">
             <div className="flex items-center justify-between">
-              <span className="text-[11px] font-semibold text-stone-500 dark:text-stone-400">全局人物库速选：</span>
+              <span className="text-[11px] font-semibold text-stone-500 dark:text-stone-400">搜索全局人物库：</span>
               <span className="text-[11px] text-stone-600 dark:text-stone-400">共 <span className="font-mono tabular-nums">{allPeople.length}</span> 人</span>
             </div>
 
-            <FloatingScrollbar className="flex flex-wrap gap-1.5 pr-1" wrapperClassName="max-h-36 flex-none">
-              {allPeople.map((p) => {
+            <label className="relative block">
+              <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-stone-400" aria-hidden="true" />
+              <input
+                type="search"
+                value={personLibrarySearch}
+                onChange={(event) => setPersonLibrarySearch(event.target.value)}
+                aria-label="搜索全局人物库"
+                autoComplete="off"
+                placeholder="输入姓名、别名或身份..."
+                className="min-h-10 w-full rounded-xl border border-stone-200/80 bg-stone-500/[0.03] pl-9 pr-3 text-xs text-[var(--ink)] outline-none placeholder:text-stone-400 focus:border-[var(--accent)] dark:border-stone-700 dark:bg-stone-800 dark:focus:bg-stone-800"
+              />
+            </label>
+
+            {personLibrarySearch.trim() ? (
+              personLibraryResults.people.length > 0 ? (
+                <div className="flex flex-wrap gap-1.5" aria-live="polite">
+              {personLibraryResults.people.map((p) => {
                 const isSelected = topic.people?.some((tp) => tp.id === p.id);
                 return (
                   <button
                     key={p.id}
+                    type="button"
                     onClick={() => togglePerson(p)}
+                    aria-pressed={isSelected}
                     className={`px-2.5 py-1 rounded-lg text-xs font-medium transition-all flex items-center gap-1.5 cursor-pointer ${
                       isSelected
                         ? 'bg-[var(--accent-soft)] text-[var(--accent-dark)] font-semibold shadow-2xs'
@@ -896,7 +931,18 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({
                   </button>
                 );
               })}
-            </FloatingScrollbar>
+                </div>
+              ) : (
+                <p className="rounded-xl bg-[var(--canvas)] px-3 py-3 text-center text-xs text-[var(--ink-muted)]" role="status">没有找到匹配的人物。</p>
+              )
+            ) : (
+              <p className="rounded-xl bg-[var(--canvas)] px-3 py-3 text-center text-xs text-[var(--ink-muted)]">输入关键词后显示匹配人物。</p>
+            )}
+            {personLibraryResults.total > QUICK_PERSON_RESULT_LIMIT && (
+              <p className="text-[11px] text-[var(--ink-muted)]" role="status">
+                找到 {personLibraryResults.total} 人，仅显示前 {QUICK_PERSON_RESULT_LIMIT} 位，请继续缩小搜索范围。
+              </p>
+            )}
           </div>
         </div>
 

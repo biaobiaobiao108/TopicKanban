@@ -1,4 +1,4 @@
-import React, { useRef, useState, useMemo } from 'react';
+import React, { useEffect, useRef, useState, useMemo } from 'react';
 import {
   DndContext,
   closestCenter,
@@ -36,6 +36,7 @@ import {
   ArrowDownUp,
   GripVertical,
   ChevronDown,
+  ChevronUp,
   ChevronRight,
 } from 'lucide-react';
 import { CustomSelect } from '../ui/CustomSelect';
@@ -67,6 +68,53 @@ const PLATFORM_OPTIONS: { value: PlatformType | 'all'; label: string }[] = [
   { value: 'live', label: '直播切片' },
   { value: 'other', label: '其他' },
 ];
+
+const SOURCES_PAGE_SIZE = 24;
+
+function SourcePageControls({
+  page,
+  total,
+  label,
+  onPageChange,
+}: {
+  page: number;
+  total: number;
+  label: string;
+  onPageChange: (nextPage: number) => void;
+}) {
+  const totalPages = Math.max(1, Math.ceil(total / SOURCES_PAGE_SIZE));
+  if (totalPages <= 1) return null;
+
+  const firstItem = (page - 1) * SOURCES_PAGE_SIZE + 1;
+  const lastItem = Math.min(page * SOURCES_PAGE_SIZE, total);
+
+  return (
+    <nav aria-label={`${label}分页`} className="flex flex-wrap items-center justify-between gap-3 border-t border-[var(--line)]/50 pt-3 text-xs text-[var(--ink-muted)]">
+      <span aria-live="polite">显示 {firstItem}-{lastItem} / 共 {total} 条</span>
+      <div className="flex items-center gap-2">
+        <button
+          type="button"
+          aria-label={`${label}上一页`}
+          disabled={page <= 1}
+          onClick={() => onPageChange(Math.max(1, page - 1))}
+          className="min-h-9 rounded-xl border border-[var(--line)] bg-[var(--surface)] px-3 font-medium text-[var(--ink)] transition-colors hover:bg-[var(--canvas)] disabled:cursor-not-allowed disabled:opacity-40"
+        >
+          上一页
+        </button>
+        <span className="min-w-14 text-center font-mono tabular-nums">{page} / {totalPages}</span>
+        <button
+          type="button"
+          aria-label={`${label}下一页`}
+          disabled={page >= totalPages}
+          onClick={() => onPageChange(Math.min(totalPages, page + 1))}
+          className="min-h-9 rounded-xl border border-[var(--line)] bg-[var(--surface)] px-3 font-medium text-[var(--ink)] transition-colors hover:bg-[var(--canvas)] disabled:cursor-not-allowed disabled:opacity-40"
+        >
+          下一页
+        </button>
+      </div>
+    </nav>
+  );
+}
 
 function inferDatePrecision(dateStr: string): DatePrecision {
   const trimmed = dateStr.trim();
@@ -155,6 +203,7 @@ const SortableTimelineItem: React.FC<SortableTimelineItemProps> = ({
   selected,
   onToggleSelected,
 }) => {
+  const [isExpanded, setIsExpanded] = useState(false);
   const {
     attributes,
     listeners,
@@ -170,11 +219,15 @@ const SortableTimelineItem: React.FC<SortableTimelineItemProps> = ({
   };
 
   const safeUrl = sanitizeExternalHttpUrl(source.url);
+  const hasLongDetails = source.title.length > 64
+    || (source.content?.length || 0) > 220
+    || (source.notes?.length || 0) > 100;
 
   return (
     <div
       ref={setNodeRef}
       style={style}
+      data-testid="source-timeline-item"
       className={`relative group ${isDragging ? 'opacity-50 z-30 scale-[1.01]' : 'opacity-100'}`}
     >
       {/* Timeline Node Dot on Left Axis */}
@@ -183,7 +236,7 @@ const SortableTimelineItem: React.FC<SortableTimelineItemProps> = ({
       </div>
 
       {/* Main Timeline Card */}
-      <div className="bg-[var(--surface)] rounded-2xl border border-[var(--line)] p-4 sm:p-5 shadow-subtle hover:shadow-card hover:-translate-y-0.5 transition-all space-y-3">
+      <div className="bg-[var(--surface)] rounded-2xl border border-[var(--line)] p-4 sm:p-5 shadow-subtle hover:shadow-card hover:-translate-y-0.5 transition-all space-y-2.5">
         <div className="flex items-center justify-between gap-2 flex-wrap">
           <div className="flex items-center gap-2 flex-wrap">
             <input
@@ -271,27 +324,39 @@ const SortableTimelineItem: React.FC<SortableTimelineItemProps> = ({
         </div>
 
         {/* Title */}
-        <h3 className="font-semibold text-sm sm:text-base text-[var(--ink)] leading-snug">
+        <h3 className={`font-semibold text-sm sm:text-base text-[var(--ink)] leading-snug ${isExpanded ? '' : 'line-clamp-2'}`}>
           {source.title}
         </h3>
 
         {/* Content Snippet */}
         {source.content && (
-          <p className="text-xs text-stone-600 dark:text-stone-300 leading-relaxed bg-[var(--canvas)]/70 p-3 rounded-xl">
+          <p className={`text-xs text-stone-600 dark:text-stone-300 leading-relaxed bg-[var(--canvas)]/70 p-3 rounded-xl ${isExpanded ? '' : 'line-clamp-3'}`}>
             {source.content}
           </p>
         )}
 
         {/* Note / Tip */}
         {source.notes && (
-          <div className="text-[11px] text-stone-600 dark:text-stone-400 bg-amber-500/[0.04] dark:bg-amber-950/30 px-2.5 py-1 rounded-lg border border-amber-500/20 truncate">
+          <div className={`text-[11px] text-stone-600 dark:text-stone-400 bg-amber-500/[0.04] dark:bg-amber-950/30 px-2.5 py-1 rounded-lg border border-amber-500/20 ${isExpanded ? '' : 'line-clamp-2'}`}>
             💡 {source.notes}
           </div>
         )}
 
+        {hasLongDetails && (
+          <button
+            type="button"
+            onClick={() => setIsExpanded((expanded) => !expanded)}
+            aria-expanded={isExpanded}
+            className="inline-flex min-h-8 items-center gap-1 rounded-lg px-2 text-xs font-semibold text-[var(--accent-dark)] transition-colors hover:bg-[var(--accent-soft)] dark:text-[var(--accent)]"
+          >
+            {isExpanded ? <ChevronUp className="h-3.5 w-3.5" aria-hidden="true" /> : <ChevronDown className="h-3.5 w-3.5" aria-hidden="true" />}
+            {isExpanded ? '收起详情' : '展开详情'}
+          </button>
+        )}
+
         {/* Author & Footer */}
         {source.author && (
-          <div className="text-[11px] text-stone-400 dark:text-stone-500 font-medium">
+          <div className="truncate text-[11px] font-medium text-stone-400 dark:text-stone-500">
             原作者：@{source.author}
           </div>
         )}
@@ -323,6 +388,8 @@ export const SourcesTab: React.FC<SourcesTabProps> = ({
   const [filterPlatform, setFilterPlatform] = useState<PlatformType | 'all'>('all');
   const [filterStatus, setFilterStatus] = useState<VerificationStatus | 'all'>('all');
   const [searchQuery, setSearchQuery] = useState('');
+  const [cardPage, setCardPage] = useState(1);
+  const [undatedPage, setUndatedPage] = useState(1);
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const [smartPasteInput, setSmartPasteInput] = useState('');
   const [isParsingUrl, setIsParsingUrl] = useState(false);
@@ -551,6 +618,24 @@ export const SourcesTab: React.FC<SourcesTabProps> = ({
     return { timedSources: sortTimelineSources(timed, timelineSortMode), undatedSources: undated };
   }, [filteredSources, timelineSortMode]);
 
+  const cardPageCount = Math.max(1, Math.ceil(filteredSources.length / SOURCES_PAGE_SIZE));
+  const undatedPageCount = Math.max(1, Math.ceil(undatedSources.length / SOURCES_PAGE_SIZE));
+  const currentCardSources = filteredSources.slice((cardPage - 1) * SOURCES_PAGE_SIZE, cardPage * SOURCES_PAGE_SIZE);
+  const currentUndatedSources = undatedSources.slice((undatedPage - 1) * SOURCES_PAGE_SIZE, undatedPage * SOURCES_PAGE_SIZE);
+
+  useEffect(() => {
+    setCardPage(1);
+    setUndatedPage(1);
+  }, [filterPlatform, filterStatus, searchQuery]);
+
+  useEffect(() => {
+    setCardPage((page) => Math.min(page, cardPageCount));
+  }, [cardPageCount]);
+
+  useEffect(() => {
+    setUndatedPage((page) => Math.min(page, undatedPageCount));
+  }, [undatedPageCount]);
+
   const cycleTimelineSortMode = () => {
     setTimelineSortMode((current) => {
       const next = current === 'date-asc' ? 'date-desc' : current === 'date-desc' ? 'manual' : 'date-asc';
@@ -570,8 +655,8 @@ export const SourcesTab: React.FC<SourcesTabProps> = ({
     const oldIndex = timedSources.findIndex((item) => item.id === active.id);
     const newIndex = timedSources.findIndex((item) => item.id === over.id);
     if (oldIndex !== -1 && newIndex !== -1) {
-      const newOrdered = arrayMove(timedSources, oldIndex, newIndex);
-      const nextFullOrder = reorderVisibleSourcesInFullList(sources, newOrdered);
+      const reorderedVisibleSources = arrayMove(timedSources, oldIndex, newIndex);
+      const nextFullOrder = reorderVisibleSourcesInFullList(sources, reorderedVisibleSources);
       await onReorderSources(topicId, nextFullOrder);
     }
   };
@@ -703,8 +788,9 @@ export const SourcesTab: React.FC<SourcesTabProps> = ({
 
       {/* VIEW MODE 1: Cards View */}
       {viewMode === 'cards' && (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {filteredSources.map((s) => {
+        <>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          {currentCardSources.map((s) => {
             const safeUrl = sanitizeExternalHttpUrl(s.url);
             return (
               <div
@@ -825,7 +911,9 @@ export const SourcesTab: React.FC<SourcesTabProps> = ({
               </p>
             </div>
           )}
-        </div>
+          </div>
+          <SourcePageControls page={cardPage} total={filteredSources.length} label="素材列表" onPageChange={setCardPage} />
+        </>
       )}
 
       {/* VIEW MODE 2: Timeline View */}
@@ -887,7 +975,7 @@ export const SourcesTab: React.FC<SourcesTabProps> = ({
 
               {!undatedCollapsed && (
                 <div className="p-4 pt-0 border-t border-[var(--line)]/50 divide-y divide-[var(--line)]/50">
-                  {undatedSources.map((source) => (
+                  {currentUndatedSources.map((source) => (
                     <div key={source.id} className="py-3 first:pt-3 flex items-center justify-between gap-3 flex-wrap">
                       <div className="space-y-1 min-w-0 flex-1">
                         <div className="flex items-center gap-2 flex-wrap">
@@ -935,6 +1023,7 @@ export const SourcesTab: React.FC<SourcesTabProps> = ({
                       </div>
                     </div>
                   ))}
+                  <SourcePageControls page={undatedPage} total={undatedSources.length} label="待定时间素材" onPageChange={setUndatedPage} />
                 </div>
               )}
             </div>

@@ -26,6 +26,7 @@ import { KanbanFilters, SortField } from './KanbanFilters';
 import { ACTIVE_COLUMNS } from './columns';
 import { CheckCircle2, KanbanSquare, Snowflake } from 'lucide-react';
 import { PageHeader } from '../layout/PageHeader';
+import { FloatingScrollbar } from '../ui/FloatingScrollbar';
 import { rollbackFailedKanbanPage } from '../../lib/kanbanPagination';
 import { matchesTopicSearch } from '../../lib/topicSearch';
 import { fetchTopicPage } from '../../lib/storage';
@@ -969,7 +970,8 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
   }, [columns, loadedTopicsByStatus, onDeleteTopic, queryClient, topicsMap]);
 
   return (
-    <div data-testid="kanban-page" className="mx-auto flex min-h-0 h-full w-full max-w-7xl min-w-0 flex-1 flex-col gap-5 overflow-y-auto overscroll-contain px-4 sm:px-6 lg:px-8 py-5 sm:py-6 mobile-bottom-nav-content">
+    <FloatingScrollbar data-testid="kanban-page" className="mobile-bottom-nav-content" wrapperClassName="h-full min-h-0 min-w-0 flex-1 w-full">
+      <div className="mx-auto flex min-h-full w-full max-w-7xl flex-col gap-5 px-4 py-5 sm:px-6 sm:py-6 lg:px-8">
       <PageHeader title="选题全景看板" icon={KanbanSquare} />
 
       {statusFilter && (
@@ -1144,6 +1146,7 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
           document.body,
         )}
       </DndContext>
-    </div>
+      </div>
+    </FloatingScrollbar>
   );
 };

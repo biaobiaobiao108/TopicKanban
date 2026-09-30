@@ -226,8 +226,8 @@ export const TagsView: React.FC<TagsViewProps> = ({
   const activeStats = activeTag ? tagStatsMap.get(activeTag.id) : null;
 
   return (
-    <div data-testid="tags-page" className="min-h-0 min-w-0 flex-1 w-full h-full overflow-y-auto overscroll-contain mobile-bottom-nav-content bg-[var(--canvas)] transition-colors md:overflow-hidden md:pb-8">
-      <div className="mx-auto flex min-h-full w-full max-w-7xl flex-col gap-5 px-4 sm:px-6 lg:px-8 py-5 sm:py-6">
+    <FloatingScrollbar data-testid="tags-page" className="mobile-bottom-nav-content bg-[var(--canvas)] transition-colors md:overflow-hidden" wrapperClassName="h-full min-h-0 min-w-0 w-full flex-1">
+      <div className="mx-auto flex min-h-full w-full max-w-7xl flex-1 flex-col gap-5 px-4 py-5 sm:px-6 sm:py-6 lg:px-8 md:h-full md:min-h-0">
         <PageHeader
           title="标签与创作赛道资产"
           icon={Hash}
@@ -275,9 +275,9 @@ export const TagsView: React.FC<TagsViewProps> = ({
           />
         </section>
 
-        <div aria-label="标签与选题工作区" className="flex min-h-[34rem] min-w-0 flex-1 flex-col gap-5 md:flex-row md:min-h-0">
+        <div aria-label="标签与选题工作区" className="flex min-h-[34rem] min-w-0 flex-1 flex-col gap-5 md:min-h-0 md:flex-row md:overflow-hidden">
           {/* Left / Tag Selector List Panel (w-80) - Independent rounded card */}
-          <div className="tags-sidebar-panel hidden w-full shrink-0 flex-col overflow-hidden rounded-2xl border border-[var(--line)] bg-[var(--surface)] shadow-subtle md:flex md:h-auto md:w-80">
+          <div className="tags-sidebar-panel hidden w-full shrink-0 flex-col overflow-hidden rounded-2xl border border-[var(--line)] bg-[var(--surface)] shadow-subtle md:flex md:h-auto md:min-h-0 md:w-80">
             {/* Search Box */}
             <div className="border-b border-[var(--line)]/40 bg-[var(--surface)] p-3.5">
               <div className="relative">
@@ -543,8 +543,8 @@ export const TagsView: React.FC<TagsViewProps> = ({
             </div>
           )}
         </div>
+        </div>
       </div>
-    </div>
 
       {/* Modal: Create / Edit Tag */}
       <Modal
@@ -623,6 +623,6 @@ export const TagsView: React.FC<TagsViewProps> = ({
         confirmText="确认删除"
         tone="danger"
       />
-    </div>
+    </FloatingScrollbar>
   );
 };
