@@ -41,7 +41,7 @@ function MonthCellDroppable({
     data: { date: cell.date },
   });
 
-  const MAX_VISIBLE_EVENTS = 3;
+  const MAX_VISIBLE_EVENTS = 1;
   const visibleEvents = events.slice(0, MAX_VISIBLE_EVENTS);
   const hiddenCount = events.length - MAX_VISIBLE_EVENTS;
 
@@ -51,9 +51,11 @@ function MonthCellDroppable({
       onClick={() => onDateClick(cell.date)}
       data-testid="calendar-month-cell"
       data-date={cell.date}
-      className={`flex min-h-[110px] flex-col p-1.5 sm:min-h-[125px] sm:p-2 border-b border-r border-[var(--line)]/35 transition-colors relative group select-none ${
+      className={`relative group flex min-h-[104px] select-none flex-col border-b border-r border-[var(--line)]/35 p-1.5 transition-colors sm:min-h-[148px] sm:p-2.5 ${
         cell.isCurrentMonth
-          ? 'bg-[var(--surface)]'
+          ? cell.isWeekend
+            ? 'bg-[var(--canvas)]/45'
+            : 'bg-[var(--surface)]'
           : 'bg-stone-500/[0.02] dark:bg-stone-500/[0.04] text-[var(--ink-muted)] opacity-60'
       } ${
         cell.isToday
@@ -66,8 +68,8 @@ function MonthCellDroppable({
       }`}
     >
       {/* Date header in cell */}
-      <div className="flex items-center justify-between gap-1 mb-1">
-        <div className="flex min-w-0 items-center gap-1">
+      <div className="mb-1.5 flex items-center justify-between gap-1 sm:mb-2">
+        <div className="flex min-w-0 items-center gap-1.5">
           <button
             type="button"
             onClick={(event) => {
@@ -75,7 +77,7 @@ function MonthCellDroppable({
               onDateClick(cell.date);
             }}
             aria-label={`在 ${cell.date} 排期定档`}
-            className={`text-xs font-mono w-6 h-6 flex items-center justify-center rounded-full focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[var(--accent)] cursor-pointer transition-colors ${
+            className={`flex h-7 w-7 cursor-pointer items-center justify-center rounded-full font-mono text-xs tabular-nums transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[var(--accent)] sm:h-8 sm:w-8 sm:text-sm ${
               cell.isToday
                 ? 'bg-[var(--accent)] text-white shadow-2xs font-semibold'
                 : cell.isCurrentMonth
@@ -88,20 +90,6 @@ function MonthCellDroppable({
             {cell.dayNumber}
           </button>
 
-          {hiddenCount > 0 && (
-            <button
-              type="button"
-              data-testid="calendar-month-overflow"
-              aria-label={`${cell.date} 还有 ${hiddenCount} 项事项，查看全部`}
-              onClick={(e) => {
-                e.stopPropagation();
-                onShowAllEvents(cell.date, events);
-              }}
-              className="inline-flex shrink-0 items-center rounded-full bg-stone-500/[0.06] hover:bg-stone-500/[0.12] px-1.5 py-0.2 text-[10px] font-mono text-[var(--ink-muted)] hover:text-[var(--ink)] font-semibold cursor-pointer transition-colors"
-            >
-              +{hiddenCount}
-            </button>
-          )}
         </div>
 
         {/* Hover Quick Schedule Button */}
@@ -119,19 +107,49 @@ function MonthCellDroppable({
       </div>
 
       {/* Events list in cell */}
-      <div className="space-y-1 overflow-visible">
+      <div className="hidden space-y-1.5 overflow-visible md:block">
         {visibleEvents.map((ev) => (
           <CalendarEventPill
             key={ev.id}
             event={ev}
             compact
+            monthCell
             onOpenTopic={onOpenTopic}
             onOpenDeal={onOpenDeal}
             onOpenPublished={onOpenPublished}
           />
         ))}
-
       </div>
+
+      {events.length > 0 && (
+        <button
+          type="button"
+          data-testid="calendar-month-count"
+          aria-label={`${cell.date} 有 ${events.length} 项事项，查看全部`}
+          onClick={(event) => {
+            event.stopPropagation();
+            onShowAllEvents(cell.date, events);
+          }}
+          className="mt-1 flex min-h-8 w-full items-center justify-center gap-1 rounded-lg bg-[var(--surface)]/80 px-1.5 text-[10px] font-medium text-[var(--ink-muted)] transition-colors hover:bg-[var(--surface)] hover:text-[var(--ink)] md:hidden"
+        >
+          <span className="font-mono tabular-nums">{events.length}</span> 项
+        </button>
+      )}
+
+      {hiddenCount > 0 && (
+        <button
+          type="button"
+          data-testid="calendar-month-overflow"
+          aria-label={`${cell.date} 还有 ${hiddenCount} 项事项，查看全部`}
+          onClick={(event) => {
+            event.stopPropagation();
+            onShowAllEvents(cell.date, events);
+          }}
+          className="mt-1 hidden min-h-7 w-full items-center justify-start rounded-lg px-2 text-left text-[11px] font-medium text-[var(--ink-muted)] transition-colors hover:bg-[var(--surface)] hover:text-[var(--ink)] md:flex"
+        >
+          查看其余 <span className="mx-1 font-mono tabular-nums">{hiddenCount}</span> 项
+        </button>
+      )}
     </div>
   );
 }

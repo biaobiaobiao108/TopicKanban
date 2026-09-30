@@ -2,7 +2,6 @@ import React, { useEffect, useState } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
 import {
-  ArrowLeft,
   ArrowRight,
   CalendarClock,
   Check,
@@ -655,30 +654,27 @@ function CommercialDealsView({ topics, onCreateTopicFromDeal }: Pick<DealsViewPr
           </div>
         ) : (
           <>
-            <div className="flex items-center justify-between gap-3 text-xs text-stone-600 dark:text-stone-400">
-              <span aria-live="polite">
-                显示 {firstItem}-{lastItem} / 共 {total} 单
-              </span>
-              {dealsQuery.isFetching && <span>更新中…</span>}
-            </div>
             <div className="grid min-w-0 grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
               {deals.map((deal) => (
                 <DealCard key={deal.id} deal={deal} onOpen={(id) => navigate(`/deals/${encodeURIComponent(id)}`)} />
               ))}
             </div>
-            <div className="flex flex-col gap-3 rounded-2xl border border-[var(--line)] bg-[var(--surface)] p-3 shadow-subtle sm:flex-row sm:items-center sm:justify-end sm:p-4">
-              <div className="flex items-center justify-between gap-3 sm:justify-end">
+            <div className="flex flex-col gap-2 border-t border-[var(--line)]/50 pt-3 text-xs text-[var(--ink-muted)] sm:flex-row sm:items-center sm:justify-between">
+              <div className="flex items-center justify-center gap-2 sm:justify-start" aria-live="polite">
+                <span>显示 {firstItem}-{lastItem} 条 · 共 {total} 单</span>
+                {dealsQuery.isFetching && <span className="text-[var(--ink-muted)]/70">更新中…</span>}
+              </div>
+              <div className="flex items-center justify-center gap-1 sm:justify-end">
                 <button
                   type="button"
                   aria-label="上一页"
                   disabled={page <= 1 || dealsQuery.isFetching}
                   onClick={() => setPage((current) => Math.max(1, current - 1))}
-                  className="inline-flex min-h-10 items-center gap-1.5 rounded-xl border border-[var(--line)] bg-[var(--surface)] px-3 text-xs font-bold text-[var(--ink)] transition-colors hover:border-[var(--accent)] hover:text-[var(--accent)] hover:bg-[var(--surface-hover)] disabled:cursor-not-allowed disabled:opacity-40 dark:border-stone-700 dark:bg-stone-800 dark:text-stone-200"
+                  className="rounded-[var(--radius-sm)] px-2.5 py-1.5 text-[var(--ink-muted)] transition-colors hover:bg-[var(--surface)] hover:text-[var(--ink)] disabled:cursor-not-allowed disabled:opacity-40"
                 >
-                  <ArrowLeft className="h-3.5 w-3.5" />
                   上一页
                 </button>
-                <span className="min-w-16 text-center font-mono text-xs text-stone-500 dark:text-stone-400">
+                <span className="min-w-12 text-center font-mono tabular-nums text-[var(--ink-muted)]">
                   {page} / {totalPages}
                 </span>
                 <button
@@ -686,10 +682,9 @@ function CommercialDealsView({ topics, onCreateTopicFromDeal }: Pick<DealsViewPr
                   aria-label="下一页"
                   disabled={page >= totalPages || dealsQuery.isFetching}
                   onClick={() => setPage((current) => Math.min(totalPages, current + 1))}
-                  className="inline-flex min-h-10 items-center gap-1.5 rounded-xl border border-[var(--line)] bg-[var(--surface)] px-3 text-xs font-bold text-[var(--ink)] transition-colors hover:border-[var(--accent)] hover:text-[var(--accent)] hover:bg-[var(--surface-hover)] disabled:cursor-not-allowed disabled:opacity-40 dark:border-stone-700 dark:bg-stone-800 dark:text-stone-200"
+                  className="rounded-[var(--radius-sm)] px-2.5 py-1.5 text-[var(--ink-muted)] transition-colors hover:bg-[var(--surface)] hover:text-[var(--ink)] disabled:cursor-not-allowed disabled:opacity-40"
                 >
                   下一页
-                  <ArrowRight className="h-3.5 w-3.5" />
                 </button>
               </div>
             </div>

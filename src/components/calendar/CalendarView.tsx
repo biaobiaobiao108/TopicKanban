@@ -335,17 +335,17 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
             {/* Subheader: Month Stats & Layer Filter Toggles */}
             <div className="flex shrink-0 flex-col gap-3 border-b border-[var(--line)]/50 bg-[var(--surface)]/90 backdrop-blur-md px-4 py-2.5 sm:px-5 lg:flex-row lg:items-center lg:justify-between">
             {/* Stats Chips */}
-            <div className="flex items-center gap-3 sm:gap-4 text-xs text-[var(--ink-muted)] overflow-x-auto select-none">
-              <span className="font-medium text-[var(--ink)]">本月生产：</span>
-              <span className="inline-flex items-center gap-1.5">
+            <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-[var(--ink-muted)] select-none sm:gap-x-4">
+              <span className="shrink-0 font-medium text-[var(--ink)]">本月生产：</span>
+              <span className="inline-flex shrink-0 items-center gap-1.5">
                 <span className="w-1.5 h-1.5 rounded-full bg-[var(--accent)] shrink-0" />
                 计划发片 <strong className="font-mono tabular-nums text-[var(--ink)]">{monthStats.plannedPublishCount}</strong>
               </span>
-              <span className="inline-flex items-center gap-1.5">
+              <span className="inline-flex shrink-0 items-center gap-1.5">
                 <span className="w-1.5 h-1.5 rounded-full bg-indigo-500 shrink-0" />
                 商单履约 <strong className="font-mono tabular-nums text-[var(--ink)]">{monthStats.commercialDealCount}</strong>
               </span>
-              <span className="inline-flex items-center gap-1.5">
+              <span className="inline-flex shrink-0 items-center gap-1.5">
                 <span className="w-1.5 h-1.5 rounded-full bg-teal-500 shrink-0" />
                 已发视频 <strong className="font-mono tabular-nums text-[var(--ink)]">{monthStats.publishedVideoCount}</strong>
               </span>

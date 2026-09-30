@@ -37,6 +37,7 @@ function EventStatusBadge({ event }: { event: CalendarEventItem }) {
 interface CalendarEventPillProps {
   event: CalendarEventItem;
   compact?: boolean;
+  monthCell?: boolean;
   onOpenTopic?: (topicId: string) => void;
   onOpenDeal?: (dealId: string) => void;
   onOpenPublished?: () => void;
@@ -45,6 +46,7 @@ interface CalendarEventPillProps {
 export const CalendarEventPill: React.FC<CalendarEventPillProps> = ({
   event,
   compact = true,
+  monthCell = false,
   onOpenTopic,
   onOpenDeal,
   onOpenPublished,
@@ -72,6 +74,20 @@ export const CalendarEventPill: React.FC<CalendarEventPillProps> = ({
     }
   };
 
+  const monthBorderClass = event.type === 'deadline'
+    ? 'border-l-amber-500'
+    : event.type === 'commercial_deal'
+      ? 'border-l-indigo-500'
+      : event.type === 'published'
+        ? 'border-l-teal-500'
+        : 'border-l-[var(--accent)]';
+  const compactCardClass = monthCell
+    ? `w-full min-w-0 rounded-lg border border-[var(--line)]/40 border-l-2 ${monthBorderClass} bg-[var(--canvas)]/60 px-2 py-1.5 text-left text-xs leading-4 text-[var(--ink)] transition-colors hover:bg-[var(--canvas)] hover:shadow-2xs cursor-pointer`
+    : 'w-full min-w-0 rounded-[var(--radius-sm)] border border-transparent bg-transparent px-1.5 py-0.5 text-left text-[11px] leading-4 text-[var(--ink)] transition-all hover:border-[var(--line)] hover:bg-[var(--canvas)] cursor-pointer';
+  const compactTitleClass = monthCell
+    ? 'min-w-0 flex-1 line-clamp-2 whitespace-normal break-words font-medium leading-4'
+    : 'min-w-0 flex-1 truncate';
+
   if (compact) {
     switch (event.type) {
       case 'planned_publish':
@@ -81,13 +97,20 @@ export const CalendarEventPill: React.FC<CalendarEventPillProps> = ({
             onClick={handleClick}
             data-testid="calendar-event"
             data-calendar-event-type={event.type}
-            className="flex w-full min-w-0 items-center gap-1.5 rounded-[var(--radius-sm)] border border-transparent hover:border-[var(--line)] bg-transparent hover:bg-[var(--canvas)] px-1.5 py-0.5 text-left text-[11px] leading-4 text-[var(--ink)] transition-all cursor-pointer"
+            className={`${compactCardClass} ${monthCell ? 'block' : 'flex items-center gap-1.5'}`}
           >
-            <span className="w-1.5 h-1.5 rounded-full bg-[var(--accent)] shrink-0" />
-            <span className="min-w-0 flex-1 truncate">{event.title}</span>
-            {event.status && event.status !== 'inbox' && (
-              <span className="hidden shrink-0 text-[10px] text-[var(--ink-muted)] xl:inline">
-                {event.status === 'scripting' ? '写稿' : event.status === 'production' ? '制作' : event.status === 'published' ? '已发布' : '搁置'}
+            <span className="flex min-w-0 items-start gap-1.5">
+              <span className={`h-1.5 w-1.5 shrink-0 rounded-full bg-[var(--accent)] ${monthCell ? 'mt-1' : ''}`} />
+              <span className={compactTitleClass}>{event.title}</span>
+              {!monthCell && event.status && event.status !== 'inbox' && (
+                <span className="hidden shrink-0 text-[10px] text-[var(--ink-muted)] xl:inline">
+                  {event.status === 'scripting' ? '写稿' : event.status === 'production' ? '制作' : event.status === 'published' ? '已发布' : '搁置'}
+                </span>
+              )}
+            </span>
+            {monthCell && event.status && event.status !== 'inbox' && (
+              <span className="mt-0.5 block truncate pl-3.5 text-[10px] leading-3 text-[var(--ink-muted)]">
+                {event.status === 'scripting' ? '写稿中' : event.status === 'production' ? '制作中' : event.status === 'published' ? '已发布' : '搁置'}
               </span>
             )}
           </button>
@@ -100,10 +123,10 @@ export const CalendarEventPill: React.FC<CalendarEventPillProps> = ({
             onClick={handleClick}
             data-testid="calendar-event"
             data-calendar-event-type={event.type}
-            className="flex w-full min-w-0 items-center gap-1.5 rounded-[var(--radius-sm)] border border-transparent hover:border-[var(--line)] bg-transparent hover:bg-[var(--canvas)] px-1.5 py-0.5 text-left text-[11px] leading-4 text-[var(--ink)] transition-all cursor-pointer"
+            className={`${compactCardClass} flex items-start gap-1.5`}
           >
-            <span className="w-1.5 h-1.5 rounded-full bg-amber-500 shrink-0" />
-            <span className="min-w-0 flex-1 truncate">{event.title}</span>
+            <span className={`h-1.5 w-1.5 shrink-0 rounded-full bg-amber-500 ${monthCell ? 'mt-1' : ''}`} />
+            <span className={compactTitleClass}>{event.title}</span>
           </button>
         );
 
@@ -114,20 +137,29 @@ export const CalendarEventPill: React.FC<CalendarEventPillProps> = ({
             onClick={handleClick}
             data-testid="calendar-event"
             data-calendar-event-type={event.type}
-            className="w-full min-w-0 rounded-[var(--radius-sm)] border border-transparent hover:border-[var(--line)] bg-transparent hover:bg-[var(--canvas)] px-1.5 py-0.5 text-left text-[11px] leading-4 text-[var(--ink)] transition-all cursor-pointer"
+            className={`${compactCardClass} block`}
           >
-            <span className="flex min-w-0 items-center gap-1.5">
-              <span className="w-1.5 h-1.5 rounded-full bg-indigo-500 shrink-0" />
-              <span data-testid="calendar-event-title" className="min-w-0 flex-1 truncate">{event.title}</span>
-              {typeof event.amount_cents === 'number' && event.amount_cents > 0 && (
+            <span className="flex min-w-0 items-start gap-1.5">
+              <span className="mt-1 h-1.5 w-1.5 shrink-0 rounded-full bg-indigo-500" />
+              <span data-testid="calendar-event-title" className={compactTitleClass}>{event.title}</span>
+              {!monthCell && typeof event.amount_cents === 'number' && event.amount_cents > 0 && (
                 <span className="max-w-[4.5rem] shrink-0 truncate font-mono text-[10px] text-[var(--ink-muted)]">
                   ¥{(event.amount_cents / 100).toLocaleString()}
                 </span>
               )}
             </span>
-            {event.status && (
-              <span className="mt-0.5 flex min-w-0 items-center gap-1 pl-3 text-[10px] text-[var(--ink-muted)]">
-                <span className="truncate">{DEAL_STATUS_LABELS[event.status as CommercialDealStatus] || event.status}</span>
+            {(event.status || (monthCell && typeof event.amount_cents === 'number' && event.amount_cents > 0)) && (
+              <span className={`mt-0.5 flex min-w-0 items-center gap-1 text-[10px] leading-3 text-[var(--ink-muted)] ${monthCell ? 'pl-3.5' : 'pl-3'}`}>
+                {event.status && (
+                  <span className="min-w-0 truncate">
+                    {DEAL_STATUS_LABELS[event.status as CommercialDealStatus] || event.status}
+                  </span>
+                )}
+                {monthCell && typeof event.amount_cents === 'number' && event.amount_cents > 0 && (
+                  <span className="ml-auto shrink-0 font-mono tabular-nums">
+                    ¥{(event.amount_cents / 100).toLocaleString()}
+                  </span>
+                )}
               </span>
             )}
           </button>
@@ -140,13 +172,20 @@ export const CalendarEventPill: React.FC<CalendarEventPillProps> = ({
             onClick={handleClick}
             data-testid="calendar-event"
             data-calendar-event-type={event.type}
-            className="flex w-full min-w-0 items-center gap-1.5 rounded-[var(--radius-sm)] border border-transparent hover:border-[var(--line)] bg-transparent hover:bg-[var(--canvas)] px-1.5 py-0.5 text-left text-[11px] leading-4 text-[var(--ink)] transition-all cursor-pointer"
+            className={`${compactCardClass} ${monthCell ? 'block' : 'flex items-center gap-1.5'}`}
           >
-            <span className="w-1.5 h-1.5 rounded-full bg-teal-500 shrink-0" />
-            <span className="min-w-0 flex-1 truncate">{event.title}</span>
-            {typeof event.views === 'number' && event.views > 0 && (
-              <span className="text-[10px] text-[var(--ink-muted)] shrink-0 font-mono">
-                {event.views >= 10000 ? `${(event.views / 10000).toFixed(1)}w` : event.views}播
+            <span className="flex min-w-0 items-start gap-1.5">
+              <span className={`h-1.5 w-1.5 shrink-0 rounded-full bg-teal-500 ${monthCell ? 'mt-1' : ''}`} />
+              <span className={compactTitleClass}>{event.title}</span>
+              {!monthCell && typeof event.views === 'number' && event.views > 0 && (
+                <span className="shrink-0 font-mono text-[10px] text-[var(--ink-muted)]">
+                  {event.views >= 10000 ? `${(event.views / 10000).toFixed(1)}w` : event.views}播
+                </span>
+              )}
+            </span>
+            {monthCell && typeof event.views === 'number' && event.views > 0 && (
+              <span className="mt-0.5 block pl-3.5 font-mono text-[10px] leading-3 text-[var(--ink-muted)]">
+                {event.views >= 10000 ? `${(event.views / 10000).toFixed(1)}w` : event.views} 播放
               </span>
             )}
           </button>
