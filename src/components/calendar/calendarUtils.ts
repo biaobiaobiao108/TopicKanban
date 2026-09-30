@@ -195,7 +195,9 @@ export function extractCalendarEvents(
           id: `deal:${deal.id}`,
           date: deal.delivery_due_date,
           type: 'commercial_deal',
-          title: `商单交付：${deal.brand_name ? `${deal.brand_name} · ` : ''}${deal.title}`,
+          title: deal.brand_name && !deal.title.startsWith(`${deal.brand_name} ·`)
+            ? `${deal.brand_name} · ${deal.title}`
+            : deal.title,
           subtitle: deal.next_action || undefined,
           status: deal.status,
           amount_cents: deal.amount_cents,

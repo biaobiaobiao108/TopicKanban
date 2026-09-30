@@ -505,7 +505,7 @@ export const TopicDetailView: React.FC<TopicDetailViewProps> = ({
               <span className="truncate max-w-[120px] sm:max-w-[180px] md:max-w-[260px] text-xs sm:text-sm font-bold text-[var(--ink)]">
                 {topic.title}
               </span>
-              <StatusBadge status={topic.status} size="sm" />
+              <StatusBadge status={topic.status} size="sm" showLabel={false} />
             </div>
           </div>
 

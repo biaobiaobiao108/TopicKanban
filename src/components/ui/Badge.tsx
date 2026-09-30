@@ -1,7 +1,7 @@
 import React from 'react';
 import { Priority, TopicStatus, VerificationStatus, PlatformType } from '../../types';
 
-export const StatusBadge: React.FC<{ status: TopicStatus; size?: 'sm' | 'md' }> = ({ status, size = 'sm' }) => {
+export const StatusBadge: React.FC<{ status: TopicStatus; size?: 'sm' | 'md'; showLabel?: boolean }> = ({ status, size = 'sm', showLabel = true }) => {
   const configs: Record<TopicStatus, { label: string; dot: string; text: string }> = {
     inbox: {
       label: '收集箱',
@@ -34,9 +34,13 @@ export const StatusBadge: React.FC<{ status: TopicStatus; size?: 'sm' | 'md' }> 
   const textSize = size === 'sm' ? 'text-[11px]' : 'text-xs';
 
   return (
-    <span className={`inline-flex items-center gap-1.5 select-none ${textSize} ${c.text}`}>
+    <span
+      aria-label={showLabel ? undefined : `选题状态：${c.label}`}
+      role={showLabel ? undefined : 'img'}
+      className={`inline-flex items-center gap-1.5 select-none ${textSize} ${c.text}`}
+    >
       <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${c.dot}`} />
-      <span>{c.label}</span>
+      {showLabel && <span>{c.label}</span>}
     </span>
   );
 };

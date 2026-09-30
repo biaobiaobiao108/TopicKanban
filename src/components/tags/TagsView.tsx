@@ -9,7 +9,6 @@ import {
   Search,
   Edit2,
   Trash2,
-  ArrowRight,
   TrendingUp,
   Layers,
   CheckCircle2,
@@ -321,7 +320,7 @@ export const TagsView: React.FC<TagsViewProps> = ({
                     >
                       <span className={`h-2 w-2 shrink-0 rounded-full ${colorConf.dot}`} />
                       <span className="truncate">
-                        <span className="flex items-center gap-1.5 truncate text-xs font-semibold">
+                        <span className="flex items-center gap-1.5 truncate text-sm font-semibold leading-tight">
                           <span>#{tag.name}</span>
                         </span>
                         <span className="mt-0.5 flex items-center gap-2 text-[10px] text-[var(--ink-muted)]">
@@ -482,43 +481,15 @@ export const TagsView: React.FC<TagsViewProps> = ({
                           onSelectTopic(topic.id);
                         }
                       }}
-                      className="mobile-motion-card group flex min-w-0 cursor-pointer flex-col justify-between space-y-3 rounded-2xl border border-[var(--line)] bg-[var(--surface)] p-5 shadow-subtle transition-all hover:-translate-y-0.5 hover:shadow-card focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[var(--accent)]"
+                      className="mobile-motion-card group flex min-w-0 cursor-pointer flex-col gap-2.5 rounded-2xl border border-[var(--line)]/70 bg-[var(--surface)] p-4 transition-colors hover:bg-[var(--canvas)] focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[var(--accent)]"
                     >
-                      <div className="space-y-2.5">
-                        {/* Status & Priority */}
-                        <div className="flex items-center justify-between gap-2">
-                          <StatusBadge status={topic.status} />
-                          <PriorityBadge priority={topic.priority} />
-                        </div>
-
-                        {/* Title */}
-                        <h4 className="font-medium text-[var(--ink)] text-base leading-snug group-hover:text-[var(--accent)] transition-colors">
-                          {topic.title}
-                        </h4>
-
-                        {/* Summary */}
-                        {topic.summary && (
-                            <p className="line-clamp-2 rounded-xl border border-[var(--line)] bg-[var(--canvas)] p-2.5 text-xs leading-relaxed text-[var(--ink-muted)]">
-                            {topic.summary}
-                          </p>
-                        )}
-
-                        {/* Current Action */}
-                        {topic.current_todo && (
-                          <div className="flex items-center gap-1.5 truncate rounded-xl bg-[var(--accent)]/10 px-2.5 py-1 text-xs font-medium text-[var(--accent)]">
-                            <span className="shrink-0 font-semibold">当前行动:</span>
-                            <span className="truncate">{topic.current_todo.title}</span>
-                          </div>
-                        )}
+                      <div className="flex items-center justify-between gap-2">
+                        <StatusBadge status={topic.status} />
+                        <PriorityBadge priority={topic.priority} />
                       </div>
-
-                      <div className="flex items-center justify-between border-t border-[var(--line)] pt-3 text-xs text-[var(--ink-muted)]">
-                        <span>{topic.draft_word_count ? <><span className="font-mono tabular-nums">{topic.draft_word_count}</span> 字</> : '未开始文案'}</span>
-                        <div className="flex items-center gap-1 text-[var(--ink)] font-medium group-hover:translate-x-0.5 transition-transform">
-                          <span>进入工作台</span>
-                          <ArrowRight className="w-3.5 h-3.5" />
-                        </div>
-                      </div>
+                      <h4 className="line-clamp-2 font-semibold text-base leading-snug text-[var(--ink)] transition-colors group-hover:text-[var(--accent)]">
+                        {topic.title}
+                      </h4>
                     </div>
                   ))}
 

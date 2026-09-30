@@ -74,15 +74,8 @@ export const CalendarEventPill: React.FC<CalendarEventPillProps> = ({
     }
   };
 
-  const monthBorderClass = event.type === 'deadline'
-    ? 'border-l-amber-500'
-    : event.type === 'commercial_deal'
-      ? 'border-l-indigo-500'
-      : event.type === 'published'
-        ? 'border-l-teal-500'
-        : 'border-l-[var(--accent)]';
   const compactCardClass = monthCell
-    ? `w-full min-w-0 rounded-lg border border-[var(--line)]/40 border-l-2 ${monthBorderClass} bg-[var(--canvas)]/60 px-2 py-1.5 text-left text-xs leading-4 text-[var(--ink)] transition-colors hover:bg-[var(--canvas)] hover:shadow-2xs cursor-pointer`
+    ? 'w-full min-w-0 rounded-lg border border-[var(--line)]/40 bg-[var(--canvas)]/45 px-2 py-1.5 text-left text-xs leading-4 text-[var(--ink)] transition-colors hover:bg-[var(--surface)] hover:border-[var(--line)] cursor-pointer'
     : 'w-full min-w-0 rounded-[var(--radius-sm)] border border-transparent bg-transparent px-1.5 py-0.5 text-left text-[11px] leading-4 text-[var(--ink)] transition-all hover:border-[var(--line)] hover:bg-[var(--canvas)] cursor-pointer';
   const compactTitleClass = monthCell
     ? 'min-w-0 flex-1 line-clamp-2 whitespace-normal break-words font-medium leading-4'
@@ -131,6 +124,22 @@ export const CalendarEventPill: React.FC<CalendarEventPillProps> = ({
         );
 
       case 'commercial_deal':
+        if (monthCell) {
+          return (
+            <button
+              type="button"
+              onClick={handleClick}
+              data-testid="calendar-event"
+              data-calendar-event-type={event.type}
+              className={`${compactCardClass} block`}
+            >
+              <span data-testid="calendar-event-title" className="block truncate font-medium leading-4">
+                {event.title}
+              </span>
+            </button>
+          );
+        }
+
         return (
           <button
             type="button"
