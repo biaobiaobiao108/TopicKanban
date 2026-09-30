@@ -6,6 +6,7 @@ const topicAggregateQueryKeys = [
   ['active-topic-count'],
   ['deal-focus'],
   ['workspace'],
+  ['topic'],
   ['command-topic-search'],
 ] as const;
 

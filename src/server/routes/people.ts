@@ -18,6 +18,7 @@ import {
   listPeopleOptions,
   updatePerson,
   updateRelationship,
+  invalidatePublishedAnalyticsCache,
 } from '../repositories';
 
 export function registerPeopleRoutes(app: NativeApp): void {
@@ -69,6 +70,7 @@ export function registerPeopleRoutes(app: NativeApp): void {
         created_at: body.created_at || now, updated_at: now,
       };
       await insertPerson(requireDb(c), person);
+      invalidatePublishedAnalyticsCache();
       return c.json(person, 201);
     } catch (error) {
       return jsonError(c, error, 400);
@@ -86,6 +88,7 @@ export function registerPeopleRoutes(app: NativeApp): void {
       const avatarUrlError = validateExternalUrlField(body, 'avatar_url');
       if (avatarUrlError) return c.json({ error: avatarUrlError }, 400);
       const person = await updatePerson(requireDb(c), c.req.param('id'), body);
+      if (person) invalidatePublishedAnalyticsCache();
       return person ? c.json(person) : c.json({ error: 'Not found' }, 404);
     } catch (error) {
       return jsonError(c, error, 400);
@@ -95,6 +98,7 @@ export function registerPeopleRoutes(app: NativeApp): void {
   app.delete('/people/:id', async (c) => {
     try {
       await deletePerson(requireDb(c), c.req.param('id'));
+      invalidatePublishedAnalyticsCache();
       return c.json({ success: true });
     } catch (error) {
       return jsonError(c, error);

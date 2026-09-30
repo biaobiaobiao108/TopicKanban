@@ -269,13 +269,13 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({
                         <div
                           className="absolute top-0 bottom-0 bg-stone-300 dark:bg-stone-700 rounded-full opacity-60"
                           style={{ width: `${allPercent}%` }}
-                          title={`全频道均值: ${dim.allAverage}分`}
+                          aria-hidden="true"
                         />
                         {/* Top hit average bar (pine accent) */}
                         <div
                           className="absolute top-0 bottom-0 bg-[var(--accent)] rounded-full transition-all duration-500 opacity-90"
                           style={{ width: `${hitPercent}%` }}
-                          title={`Top 爆款均值: ${dim.topHitsAverage}分`}
+                          aria-hidden="true"
                         />
                       </div>
                     </div>
@@ -498,7 +498,7 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({
                           <button
                             onClick={() => onSelectTopic(topic.id)}
                             className="font-bold text-stone-900 dark:text-stone-100 hover:text-[var(--accent)] text-left line-clamp-1 transition-colors cursor-pointer"
-                            title={`点击进入选题详情「${video.title}」`}
+                            aria-label={`打开关联选题：${video.title}`}
                           >
                             {video.title}
                           </button>
@@ -552,7 +552,7 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({
                   {/* Notes */}
                   <td className="py-3 px-4 max-w-[220px]">
                     {video.notes ? (
-                      <span className="text-stone-600 dark:text-stone-300 line-clamp-1 text-[11px]" title={video.notes}>
+                      <span className="text-stone-600 dark:text-stone-300 line-clamp-1 text-[11px]">
                         {video.notes}
                       </span>
                     ) : (

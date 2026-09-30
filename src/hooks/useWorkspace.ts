@@ -10,25 +10,31 @@ import type {
   Tag,
   Topic,
 } from '../types';
-import { fetchActiveTopicCount, fetchBootstrap, fetchCommercialDealFocus, fetchPeople, fetchRelationships, fetchTags, fetchTagsPage, fetchPublishedVideos, fetchTrashedTopics, fetchTodayFocus, fetchSettings, invalidateBootstrap, clearRemoteStorageMemoryCaches } from '../lib/storage';
+import { fetchActiveTopicCount, fetchBootstrap, fetchCommercialDealFocus, fetchPeople, fetchRelationships, fetchTags, fetchTagsPage, fetchPublishedVideos, fetchTopic, fetchTodayFocus, fetchSettings, invalidateBootstrap, clearRemoteStorageMemoryCaches } from '../lib/storage';
 import { refreshTopicData, type RefreshTopicDataOptions } from '../lib/topicQueryCache';
 
-export function useWorkspace(enabled: boolean, view: string = 'today') {
+export function useWorkspace(enabled: boolean, view: string = 'today', topicId?: string | null) {
   const queryClient = useQueryClient();
-  const workspaceEnabled = enabled && !['today', 'people', 'tags', 'kanban', 'published', 'database', 'settings'].includes(view);
+  const workspaceEnabled = enabled && !['today', 'people', 'tags', 'kanban', 'published', 'database', 'settings', 'topic-detail'].includes(view);
+  const topicDetailEnabled = enabled && view === 'topic-detail' && Boolean(topicId);
   const todayEnabled = enabled && view === 'today';
   const dealFocusEnabled = enabled && view === 'today';
   const peopleEnabled = enabled && ['kanban', 'topic-detail'].includes(view);
   const relationshipsEnabled = enabled && ['people', 'topic-detail'].includes(view);
   const tagsEnabled = enabled && ['kanban', 'topic-detail'].includes(view);
   const tagOptionsEnabled = enabled && view === 'today';
-  const publishedEnabled = enabled && ['calendar', 'published', 'deals'].includes(view);
-  const trashEnabled = enabled && view === 'database';
+  const publishedEnabled = enabled && view === 'calendar';
   const workspaceQuery = useQuery({
     queryKey: ['workspace'],
     queryFn: () => fetchBootstrap('core'),
     enabled: workspaceEnabled,
     subscribed: workspaceEnabled,
+  });
+  const topicQuery = useQuery({
+    queryKey: ['topic', topicId],
+    queryFn: () => fetchTopic(topicId!),
+    enabled: topicDetailEnabled,
+    subscribed: topicDetailEnabled,
   });
   const settingsQuery = useQuery({ queryKey: ['settings'], queryFn: fetchSettings, enabled, subscribed: enabled });
   const configuredStaleDays = Number(settingsQuery.data?.stale_action_days);
@@ -57,12 +63,6 @@ export function useWorkspace(enabled: boolean, view: string = 'today') {
     queryFn: fetchPublishedVideos,
     enabled: publishedEnabled,
     subscribed: publishedEnabled,
-  });
-  const trashQuery = useQuery({
-    queryKey: ['topics', 'trash'],
-    queryFn: fetchTrashedTopics,
-    enabled: trashEnabled,
-    subscribed: trashEnabled,
   });
   const workspace = workspaceQuery.data;
 
@@ -118,8 +118,9 @@ export function useWorkspace(enabled: boolean, view: string = 'today') {
     invalidateBootstrap();
     const requests: Array<Promise<unknown>> = [settingsQuery.refetch(), activeTopicCountQuery.refetch()];
     if (view === 'today') requests.push(todayQuery.refetch());
-    if (!['today', 'people', 'tags', 'kanban', 'published', 'database', 'settings'].includes(view)) requests.push(workspaceQuery.refetch());
-    if (view === 'database') requests.push(trashQuery.refetch());
+    if (!['today', 'people', 'tags', 'kanban', 'published', 'database', 'settings', 'topic-detail'].includes(view)) requests.push(workspaceQuery.refetch());
+    if (topicDetailEnabled) requests.push(topicQuery.refetch());
+    if (publishedEnabled) requests.push(publishedQuery.refetch());
     if (['kanban', 'topic-detail'].includes(view)) requests.push(peopleQuery.refetch());
     if (['people', 'topic-detail'].includes(view)) requests.push(relationshipsQuery.refetch());
     if (['kanban', 'topic-detail'].includes(view)) requests.push(tagsQuery.refetch());
@@ -128,7 +129,7 @@ export function useWorkspace(enabled: boolean, view: string = 'today') {
       requests.push(dealFocusQuery.refetch());
     }
     await Promise.all(requests);
-  }, [view, workspaceQuery.refetch, todayQuery.refetch, activeTopicCountQuery.refetch, settingsQuery.refetch, trashQuery.refetch, peopleQuery.refetch, relationshipsQuery.refetch, tagsQuery.refetch, tagOptionsQuery.refetch, dealFocusQuery.refetch]);
+  }, [view, topicDetailEnabled, publishedEnabled, workspaceQuery.refetch, topicQuery.refetch, publishedQuery.refetch, todayQuery.refetch, activeTopicCountQuery.refetch, settingsQuery.refetch, peopleQuery.refetch, relationshipsQuery.refetch, tagsQuery.refetch, tagOptionsQuery.refetch, dealFocusQuery.refetch]);
 
   const refreshTopics = useCallback((options?: RefreshTopicDataOptions) => refreshTopicData(queryClient, options), [queryClient]);
   const clear = useCallback(() => {
@@ -136,27 +137,31 @@ export function useWorkspace(enabled: boolean, view: string = 'today') {
     clearRemoteStorageMemoryCaches();
   }, [queryClient]);
 
-  const activeErrors = [
-    workspaceEnabled ? workspaceQuery.error : null,
-    todayEnabled ? todayQuery.error : null,
-    enabled ? activeTopicCountQuery.error : null,
-    dealFocusEnabled ? dealFocusQuery.error : null,
-    enabled ? settingsQuery.error : null,
-    trashEnabled ? trashQuery.error : null,
-    peopleEnabled ? peopleQuery.error : null,
-    relationshipsEnabled ? relationshipsQuery.error : null,
-    tagsEnabled ? tagsQuery.error : null,
-    tagOptionsEnabled ? tagOptionsQuery.error : null,
-    publishedEnabled ? publishedQuery.error : null,
+  const activeErrors: Array<[string, unknown]> = [
+    ...(topicDetailEnabled ? [['选题详情', topicQuery.error] as [string, unknown]] : []),
+    ...(todayEnabled ? [['今日聚焦', todayQuery.error] as [string, unknown]] : []),
+    ...(workspaceEnabled ? [['工作区数据', workspaceQuery.error] as [string, unknown]] : []),
+    ...(peopleEnabled ? [['人物数据', peopleQuery.error] as [string, unknown]] : []),
+    ...(relationshipsEnabled ? [['人物关系', relationshipsQuery.error] as [string, unknown]] : []),
+    ...(tagsEnabled ? [['标签数据', tagsQuery.error] as [string, unknown]] : []),
+    ...(tagOptionsEnabled ? [['标签选项', tagOptionsQuery.error] as [string, unknown]] : []),
+    ...(publishedEnabled ? [['已发布视频', publishedQuery.error] as [string, unknown]] : []),
+    ...(dealFocusEnabled ? [['商单摘要', dealFocusQuery.error] as [string, unknown]] : []),
+    ...(enabled ? [['选题数量', activeTopicCountQuery.error] as [string, unknown]] : []),
+    ...(enabled ? [['偏好设置', settingsQuery.error] as [string, unknown]] : []),
   ];
-  const errorValue = activeErrors.find((error) => error != null);
+  const errorEntry = activeErrors.find(([, error]) => error != null);
   return {
-    topics: view === 'today' ? (todayQuery.data?.topics || workspace?.topics || []) : (workspace?.topics || []),
+    topics: view === 'today'
+      ? (todayQuery.data?.topics || workspace?.topics || [])
+      : view === 'topic-detail'
+        ? (topicQuery.data ? [topicQuery.data] : [])
+        : (workspace?.topics || []),
     todayAttentionTopics: todayQuery.data?.attention_topics || [],
     todayActionProgress: todayQuery.data?.action_progress,
     dealFocus: dealFocusQuery.data || { due_items: [], unpaid_items: [], total_active: 0 },
     topicCount: activeTopicCountQuery.data?.active_count ?? todayQuery.data?.total_active ?? workspace?.topics.length ?? 0,
-    trashedTopics: trashQuery.data || [],
+    trashedTopics: [],
     people: peopleQuery.data || workspace?.people || [],
     relationships: relationshipsQuery.data || workspace?.relationships || [],
     publishedList: publishedQuery.data || workspace?.published || [],
@@ -166,14 +171,16 @@ export function useWorkspace(enabled: boolean, view: string = 'today') {
       || (enabled && activeTopicCountQuery.isLoading)
       || (dealFocusEnabled && dealFocusQuery.isLoading)
       || (workspaceEnabled && workspaceQuery.isLoading)
+      || (topicDetailEnabled && topicQuery.isLoading)
       || (enabled && settingsQuery.isLoading)
-      || (trashEnabled && trashQuery.isLoading)
       || (peopleEnabled && peopleQuery.isLoading)
       || (relationshipsEnabled && relationshipsQuery.isLoading)
       || (tagsEnabled && tagsQuery.isLoading)
       || (tagOptionsEnabled && tagOptionsQuery.isLoading)
       || (publishedEnabled && publishedQuery.isLoading),
-    error: errorValue instanceof Error ? errorValue.message : errorValue ? '工作台数据加载失败' : null,
+    error: errorEntry
+      ? `${errorEntry[0]}加载失败：${errorEntry[1] instanceof Error ? errorEntry[1].message : '请稍后重试'}`
+      : null,
     reload,
     refreshTopics,
     clear,

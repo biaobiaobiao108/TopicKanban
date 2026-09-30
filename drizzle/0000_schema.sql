@@ -191,6 +191,7 @@ CREATE UNIQUE INDEX idx_topic_people_unique ON topic_people(topic_id, person_id)
 CREATE INDEX idx_topic_people_person_id ON topic_people(person_id);
 CREATE INDEX idx_relationships_people ON person_relationships(person_a_id, person_b_id);
 CREATE INDEX idx_published_topic_id ON published_videos(topic_id);
+CREATE INDEX idx_published_page_order ON published_videos(published_at DESC, updated_at DESC, id DESC);
 
 CREATE TABLE publish_packages (
   id TEXT PRIMARY KEY,
@@ -259,6 +260,8 @@ CREATE TABLE commercial_deal_activities (
 
 CREATE INDEX idx_commercial_deals_status ON commercial_deals(status, updated_at);
 CREATE INDEX idx_commercial_deals_due_date ON commercial_deals(delivery_due_date);
+CREATE INDEX idx_commercial_deals_publish_date ON commercial_deals(publish_date);
+CREATE INDEX idx_commercial_deals_next_action_due_date ON commercial_deals(next_action_due_date);
 CREATE INDEX idx_commercial_deals_payment ON commercial_deals(payment_status, updated_at);
 CREATE INDEX idx_commercial_deals_published_video ON commercial_deals(published_video_id);
 CREATE INDEX idx_commercial_deal_topics_topic ON commercial_deal_topics(topic_id);

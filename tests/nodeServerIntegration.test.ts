@@ -229,6 +229,15 @@ describe('Bun Server Integration (Local SQLite & API)', () => {
     const scriptingPage = await scriptingPageRes.json() as { summary: { in_scripting_count: number } };
     expect(scriptingPage.summary.in_scripting_count).toBe(1);
 
+    // Simulate a share snapshot written by the previous KV layout before the
+    // new reverse index is first built.
+    const legacyToken = 'rv-legacy-share-token';
+    sqlite.query('INSERT INTO _kv_store (key, value, expires_at) VALUES (?, ?, ?)').run(
+      `share:${legacyToken}`,
+      JSON.stringify({ topic_id: topic.id, token: legacyToken }),
+      Date.now() + 86_400_000,
+    );
+
     // 5. Generate Share Review Link (Check reverse proxy public URL adaptation)
     const shareRes = await app.request(`/api/topics/${topic.id}/share`, {
       method: 'POST',
@@ -265,13 +274,6 @@ describe('Bun Server Integration (Local SQLite & API)', () => {
     expect(secondShareRes.status).toBe(200);
     expect(secondShareData.token).not.toBe(shareData.token);
     expect((await app.request(`/api/public/share/${shareData.token}`)).status).toBe(404);
-    const legacyToken = 'rv-legacy-share-token';
-    sqlite.query('INSERT INTO _kv_store (key, value, expires_at) VALUES (?, ?, ?)').run(
-      `share:${legacyToken}`,
-      JSON.stringify({ topic_id: topic.id, token: legacyToken }),
-      Date.now() + 86_400_000,
-    );
-
     const mismatchedDeleteRes = await app.request(`/api/topics/not-the-topic/share/${secondShareData.token}`, {
       method: 'DELETE',
       headers: { Authorization: `Bearer ${authToken}` },
@@ -360,6 +362,11 @@ describe('Bun Server Integration (Local SQLite & API)', () => {
     const dropList = await listDropsRes.json() as { items: Array<{ content: string }> };
     expect(dropList.items.length).toBe(1);
     expect(dropList.items[0].content).toBe('某网红停播后续新料');
+    const dropCountRes = await app.request('/api/inbox/quick-drops/count', {
+      headers: { Authorization: `Bearer ${authToken}` },
+    });
+    expect(dropCountRes.status).toBe(200);
+    expect(await dropCountRes.json()).toEqual({ count: 1 });
 
     const duplicateUrlDropRes = await app.request('/api/inbox/quick-drop', {
       method: 'POST',

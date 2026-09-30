@@ -206,16 +206,17 @@ export function clearRemoteStorageTopicCaches(topicId: string): void {
 
 export function fetchBootstrap(scope: 'full' | 'core' = 'full'): Promise<BootstrapData> {
   const cacheKey = `${getAuthToken() || ''}:${scope}`;
-  const token = getAuthToken();
   if (cacheKey !== bootstrapToken) {
     bootstrapToken = cacheKey;
     bootstrapPromise = null;
   }
   if (!bootstrapPromise) {
-    bootstrapPromise = apiRequest<BootstrapData>(scope === 'core' ? '/api/bootstrap?scope=core' : '/api/bootstrap').catch((error) => {
-      bootstrapPromise = null;
-      throw error;
-    });
+    const request = apiRequest<BootstrapData>(scope === 'core' ? '/api/bootstrap?scope=core' : '/api/bootstrap');
+    bootstrapPromise = request;
+    void request.then(
+      () => { if (bootstrapPromise === request) bootstrapPromise = null; },
+      () => { if (bootstrapPromise === request) bootstrapPromise = null; },
+    );
   }
   return bootstrapPromise;
 }
@@ -241,6 +242,7 @@ export interface TopicPageParams {
   direction?: 'asc' | 'desc';
   available_for_published?: boolean;
   published_video_id?: string;
+  include_metadata?: boolean;
 }
 
 export function fetchTopicPage(params: TopicPageParams): Promise<PaginatedTopics> {
@@ -1236,6 +1238,11 @@ export async function releasePresenceHeartbeat(
 export async function fetchQuickDrops(): Promise<QuickDropItem[]> {
   const data = await apiRequest<{ items: QuickDropItem[] }>('/api/inbox/quick-drops');
   return data.items || [];
+}
+
+export async function fetchQuickDropCount(): Promise<number> {
+  const data = await apiRequest<{ count: number }>('/api/inbox/quick-drops/count');
+  return data.count;
 }
 
 export async function deleteQuickDrop(id: string): Promise<void> {

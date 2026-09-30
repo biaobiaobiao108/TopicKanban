@@ -37,7 +37,6 @@ function ScriptCodeBlockView({ node }: ReactNodeViewProps) {
         className="script-code-block-copy"
         contentEditable={false}
         aria-label={copied ? '代码已复制' : '复制代码'}
-        title={copied ? '已复制' : '复制代码'}
         onMouseDown={(event) => event.preventDefault()}
         onClick={() => { void copyCode(); }}
       >

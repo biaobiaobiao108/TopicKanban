@@ -21,6 +21,7 @@ import {
   saveDraft,
   saveTopicReport,
   savePublishPackage,
+  invalidatePublishedAnalyticsCache,
 } from '../repositories';
 import { loadTopic } from '../repositories';
 
@@ -88,6 +89,7 @@ export function registerWritingRoutes(app: NativeApp): void {
       }
       const result = await saveDraft(requireDb(c), c.req.param('id'), body);
       if (result.kind === 'conflict') return c.json({ error: 'DRAFT_CONFLICT', current: result.current }, 409);
+      invalidatePublishedAnalyticsCache();
       return c.json(result.draft);
     } catch (error) {
       return jsonError(c, error, 400);

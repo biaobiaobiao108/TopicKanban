@@ -32,6 +32,14 @@ describe('选题库全库摘要', () => {
       const archived = await loadTopicPage(db, { scope: 'archived', page: 1, pageSize: 50 });
       expect(archived.total).toBe(1);
       expect(archived.summary).toEqual(active.summary);
+
+      const lean = await loadTopicPage(db, {
+        scope: 'active', page: 1, pageSize: 50, status: 'production', includeMetadata: false,
+      });
+      expect(lean.total).toBe(active.total);
+      expect(lean.items.map((topic) => topic.id)).toEqual(active.items.map((topic) => topic.id));
+      expect(lean.summary).toBeUndefined();
+      expect(lean.scope_counts).toBeUndefined();
     } finally {
       sqlite.close();
     }

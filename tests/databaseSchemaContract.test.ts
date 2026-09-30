@@ -65,6 +65,16 @@ describe('Database schema contract', () => {
 
       const commercialDealTableSql = sqlite.query("SELECT sql FROM sqlite_master WHERE type = 'table' AND name = 'commercial_deals'").get() as { sql: string };
       expect(commercialDealTableSql.sql).toContain("status IN ('communicating', 'producing', 'delivered', 'archived')");
+      const expectedPerformanceIndexes = [
+        'idx_commercial_deals_publish_date',
+        'idx_commercial_deals_next_action_due_date',
+        'idx_published_page_order',
+      ];
+      const performanceIndexes = sqlite.query("SELECT name FROM sqlite_master WHERE type = 'index'")
+        .all() as Array<{ name: string }>;
+      for (const indexName of expectedPerformanceIndexes) {
+        expect(performanceIndexes.some((index) => index.name === indexName)).toBe(true);
+      }
       const citationTableSql = sqlite.query("SELECT sql FROM sqlite_master WHERE type = 'table' AND name = 'draft_citations'").get() as { sql: string };
       expect(citationTableSql.sql).toContain("reference_type IN ('source', 'report', 'person', 'outline')");
       expect(citationTableSql.sql).not.toContain("'timeline'");
@@ -89,6 +99,40 @@ describe('Database schema contract', () => {
       expect(() => sqlite.query("INSERT INTO commercial_deals (id, title, status, created_at, updated_at) VALUES ('invalid', '非法阶段', 'reviewing', '2026-08-27', '2026-08-27')").run()).toThrow();
     } finally {
       sqlite.close();
+      await removeSqliteArtifacts(dbPath);
+    }
+  });
+
+  it('adds query indexes to an existing current-version database without changing its schema version', async () => {
+    const dbPath = temporaryDatabasePath('kanban-existing-indexes');
+    const existing = new Database(dbPath);
+    existing.exec(schemaSql);
+    existing.exec(`
+      DROP INDEX idx_published_page_order;
+      DROP INDEX idx_commercial_deals_publish_date;
+      DROP INDEX idx_commercial_deals_next_action_due_date;
+      CREATE TABLE _kv_store (key TEXT PRIMARY KEY, value TEXT NOT NULL, expires_at INTEGER);
+      CREATE INDEX idx_kv_expires_at ON _kv_store(expires_at);
+    `);
+    existing.close();
+
+    try {
+      const { sqlite } = await initializeSqliteDatabase(dbPath, schemaDir);
+      try {
+        const indexes = sqlite.query("SELECT name FROM sqlite_master WHERE type = 'index'")
+          .all() as Array<{ name: string }>;
+        for (const indexName of [
+          'idx_published_page_order',
+          'idx_commercial_deals_publish_date',
+          'idx_commercial_deals_next_action_due_date',
+        ]) {
+          expect(indexes.some((index) => index.name === indexName)).toBe(true);
+        }
+        expect(sqlite.query('PRAGMA user_version').get()).toEqual({ user_version: 5 });
+      } finally {
+        sqlite.close();
+      }
+    } finally {
       await removeSqliteArtifacts(dbPath);
     }
   });

@@ -68,7 +68,6 @@ function DealFocusCard({ deal, onOpen }: { deal: CommercialDeal; onOpen: () => v
         <span className="flex min-w-0 items-center gap-2">
           <span
             className="min-w-0 flex-1 truncate text-sm font-bold text-stone-900 dark:text-stone-100"
-            title={`${deal.brand_name || '未命名品牌'} · ${deal.title}`}
           >
             {deal.brand_name || '未命名品牌'} · {deal.title}
           </span>

@@ -10,6 +10,7 @@ import {
   loadBootstrap,
   replaceAllData,
   vacuumDatabase,
+  invalidatePublishedAnalyticsCache,
 } from '../repositories';
 import { validateBackupData } from '../../lib/backupValidation';
 import type { ApiBindings } from '../apiShared';
@@ -250,6 +251,7 @@ export function registerSystemRoutes(app: NativeApp): void {
       const validation = validateBackupData(data);
       if (!validation.success) return c.json({ error: validation.error }, 400);
       await replaceAllData(requireDb(c), validation.data);
+      invalidatePublishedAnalyticsCache();
       return c.json({ success: true });
     } catch (error) {
       if (error instanceof BackupImportLimitError) return jsonError(c, error, 413);

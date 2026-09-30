@@ -31,11 +31,12 @@ import {
   ensureTopicsInTrash,
   TopicAlreadyExistsError,
   updateTopic,
+  invalidatePublishedAnalyticsCache,
 } from '../repositories';
 import type { AppSettings } from '../../types';
 
-async function revokeTopicShares(env: ApiBindings, ids: string[]): Promise<void> {
-  for (const id of ids) await env.KV.deleteTopicShares(id);
+async function revokeTopicShares(env: ApiBindings, ids: string[], scanLegacy = false): Promise<void> {
+  await env.KV.deleteTopicSharesBatch(ids, scanLegacy);
 }
 
 async function purgeExpiredTrashIfConfigured(db: ReturnType<typeof requireDb>, env: ApiBindings): Promise<void> {
@@ -45,8 +46,9 @@ async function purgeExpiredTrashIfConfigured(db: ReturnType<typeof requireDb>, e
     if (retentionDays > 0) {
       const expiredIds = await listExpiredTrashTopicIds(db, retentionDays);
       if (expiredIds.length > 0) {
-        await revokeTopicShares(env, expiredIds);
+        await revokeTopicShares(env, expiredIds, true);
         await permanentlyDeleteTrashedTopics(db, expiredIds);
+        invalidatePublishedAnalyticsCache();
       }
     }
   } catch {
@@ -74,6 +76,10 @@ export function registerTopicRoutes(app: NativeApp): void {
       if (availableForPublishedValue && !isOneOf(availableForPublishedValue, ['true', 'false'])) {
         return c.json({ error: 'available_for_published must be true or false' }, 400);
       }
+      const includeMetadataValue = c.req.query('include_metadata');
+      if (includeMetadataValue && !isOneOf(includeMetadataValue, ['true', 'false'])) {
+        return c.json({ error: 'include_metadata must be true or false' }, 400);
+      }
       const publishedVideoId = c.req.query('published_video_id')?.trim().slice(0, 200);
       const db = requireDb(c);
       if (scopeValue === 'trash') {
@@ -86,6 +92,7 @@ export function registerTopicRoutes(app: NativeApp): void {
         sort: sortValue as 'title' | 'status' | 'priority' | 'score' | 'words' | 'updated_at' | 'created_at' | 'sort_order',
         direction: directionValue as 'asc' | 'desc',
         availableForPublished: availableForPublishedValue === 'true', publishedVideoId,
+        includeMetadata: includeMetadataValue !== 'false',
       }));
     } catch (error) {
       return jsonError(c, error, 400);
@@ -168,6 +175,7 @@ export function registerTopicRoutes(app: NativeApp): void {
             }
           : undefined,
       );
+      invalidatePublishedAnalyticsCache();
       return c.json(await loadTopic(db, id), 201);
     } catch (error) {
       if (error instanceof TopicAlreadyExistsError) return c.json({ error: error.message }, 409);
@@ -182,6 +190,7 @@ export function registerTopicRoutes(app: NativeApp): void {
       const parsed = parseTopicUpdate(await c.req.json<unknown>());
       if (!parsed.success) return c.json({ error: parsed.error }, 400);
       await updateTopic(db, id, parsed.data);
+      invalidatePublishedAnalyticsCache();
       const topic = await loadTopic(db, id);
       return topic ? c.json(topic) : c.json({ error: 'Not found' }, 404);
     } catch (error) {
@@ -195,8 +204,9 @@ export function registerTopicRoutes(app: NativeApp): void {
       // 先撤销现有快照，避免清理失败时仍完成删除。
       await revokeTopicShares(c.env, [topicId]);
       await softDeleteTopic(requireDb(c), topicId);
+      invalidatePublishedAnalyticsCache();
       // 再撤销一次以覆盖并发分享；分享创建路由也会在写入后复查选题状态。
-      await revokeTopicShares(c.env, [topicId]);
+      await revokeTopicShares(c.env, [topicId], true);
       return c.json({ success: true });
     } catch (error) {
       return jsonError(c, error);
@@ -208,6 +218,7 @@ export function registerTopicRoutes(app: NativeApp): void {
       const db = requireDb(c);
       const id = c.req.param('id');
       await restoreTopic(db, id);
+      invalidatePublishedAnalyticsCache();
       const topic = await loadTopic(db, id);
       return topic ? c.json(topic) : c.json({ error: 'Not found' }, 404);
     } catch (error) {
@@ -222,6 +233,7 @@ export function registerTopicRoutes(app: NativeApp): void {
       await ensureTopicsInTrash(db, [topicId]);
       await revokeTopicShares(c.env, [topicId]);
       await permanentlyDeleteTrashedTopics(db, [topicId]);
+      invalidatePublishedAnalyticsCache();
       return c.json({ success: true });
     } catch (error) {
       if (error instanceof TopicNotInTrashError) return c.json({ error: error.message }, 409);
@@ -240,8 +252,9 @@ export function registerTopicRoutes(app: NativeApp): void {
       const uniqueIds = Array.from(new Set(ids));
       if (uniqueIds.length !== ids.length) return c.json({ error: 'Duplicate topic ids are not allowed' }, 400);
       await ensureTopicsInTrash(db, uniqueIds);
-      await revokeTopicShares(c.env, uniqueIds);
+      await revokeTopicShares(c.env, uniqueIds, true);
       await permanentlyDeleteTrashedTopics(db, uniqueIds);
+      invalidatePublishedAnalyticsCache();
       return c.json({ success: true, count: uniqueIds.length });
     } catch (error) {
       if (error instanceof TopicNotInTrashError) return c.json({ error: error.message }, 409);
@@ -254,8 +267,9 @@ export function registerTopicRoutes(app: NativeApp): void {
       const db = requireDb(c);
       const ids = await listTrashedTopicIds(db);
       if (ids.length === 0) return c.json({ success: true, count: 0, ids: [] });
-      await revokeTopicShares(c.env, ids);
+      await revokeTopicShares(c.env, ids, true);
       await permanentlyDeleteTrashedTopics(db, ids);
+      invalidatePublishedAnalyticsCache();
       return c.json({ success: true, count: ids.length, ids });
     } catch (error) {
       if (error instanceof TopicNotInTrashError) return c.json({ error: error.message }, 409);

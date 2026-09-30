@@ -40,6 +40,7 @@ export function configureQueryCache(queryClient: QueryClient): void {
     ['topic-draft'],
     ['topic-citations'],
     ['topic-workspace'],
+    ['topic'],
     ['topic-deals'],
     ['topic-todos'],
     ['commercial-deal'],

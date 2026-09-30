@@ -218,6 +218,7 @@ export interface TopicPageOptions {
   direction?: 'asc' | 'desc';
   availableForPublished?: boolean;
   publishedVideoId?: string;
+  includeMetadata?: boolean;
 }
 
 function buildTopicFilterConditions(options: TopicPageOptions): { conditions: string[]; values: unknown[] } {
@@ -287,24 +288,30 @@ export async function loadTopicPage(db: SqliteDatabase, options: TopicPageOption
   const sort = sortExpressions[options.sort || 'updated_at'];
   const direction = options.direction === 'asc' ? 'ASC' : 'DESC';
   const offset = (options.page - 1) * options.pageSize;
-  const [countResult, summaryResult, scopeCountsResult, rowsResult] = await db.batch([
+  const includeMetadata = options.includeMetadata !== false;
+  const statements = [
     bind(db, `SELECT COUNT(*) AS count FROM topics t ${where}`, values),
-    db.prepare(`SELECT
+    ...(includeMetadata ? [db.prepare(`SELECT
       COALESCE(SUM(COALESCE(d.word_count, 0)), 0) AS total_words,
       COALESCE(SUM(CASE WHEN t.status = 'scripting' THEN 1 ELSE 0 END), 0) AS in_scripting_count
-      FROM topics t LEFT JOIN drafts d ON d.topic_id = t.id WHERE t.deleted_at IS NULL`),
-    bind(db, `SELECT
+      FROM topics t LEFT JOIN drafts d ON d.topic_id = t.id WHERE t.deleted_at IS NULL`)] : []),
+    ...(includeMetadata ? [bind(db, `SELECT
       COALESCE(SUM(CASE WHEN t.deleted_at IS NULL AND t.status NOT IN ('published', 'icebox') THEN 1 ELSE 0 END), 0) AS active,
       COALESCE(SUM(CASE WHEN t.deleted_at IS NULL AND t.status IN ('published', 'icebox') THEN 1 ELSE 0 END), 0) AS archived,
       COALESCE(SUM(CASE WHEN t.deleted_at IS NOT NULL THEN 1 ELSE 0 END), 0) AS trash
-      FROM topics t ${baseWhere}`, baseFilter.values),
+      FROM topics t ${baseWhere}`, baseFilter.values)] : []),
     bind(db, `SELECT t.*,
       (SELECT COUNT(*) FROM sources s WHERE s.topic_id = t.id) AS sources_count,
       (SELECT COUNT(*) FROM sources s WHERE s.topic_id = t.id AND s.verification_status = 'confirmed') AS verified_sources_count,
       (SELECT COUNT(*) FROM commercial_deal_topics cdt WHERE cdt.topic_id = t.id) AS commercial_deals_count,
       COALESCE((SELECT word_count FROM drafts d WHERE d.topic_id = t.id LIMIT 1), 0) AS draft_word_count
       FROM topics t ${where} ORDER BY ${sort} ${direction}, t.id ASC LIMIT ? OFFSET ?`, [...values, options.pageSize, offset]),
-  ]);
+  ];
+  const results = await db.batch(statements);
+  const countResult = results[0];
+  const summaryResult = includeMetadata ? results[1] : undefined;
+  const scopeCountsResult = includeMetadata ? results[2] : undefined;
+  const rowsResult = results[includeMetadata ? 3 : 1];
   const rows = rowsResult.results as unknown as Topic[];
   const ids = rows.map((row) => row.id);
   if (ids.length > 0) {
@@ -334,24 +341,26 @@ export async function loadTopicPage(db: SqliteDatabase, options: TopicPageOption
       topic.current_todo = currentTodoByTopic.get(topic.id) || null;
     });
   }
-  const summaryRow = summaryResult.results[0] as { total_words?: number; in_scripting_count?: number } | undefined;
   const total = Number((countResult.results[0] as { count?: number } | undefined)?.count || 0);
-  const scopeCountsRow = scopeCountsResult.results[0] as { active?: number; archived?: number; trash?: number } | undefined;
+  const summaryRow = summaryResult?.results[0] as { total_words?: number; in_scripting_count?: number } | undefined;
+  const scopeCountsRow = scopeCountsResult?.results[0] as { active?: number; archived?: number; trash?: number } | undefined;
   return {
     items: rows,
     page: options.page,
     page_size: options.pageSize,
     total,
     total_pages: Math.ceil(total / options.pageSize),
-    summary: {
-      total_words: Number(summaryRow?.total_words || 0),
-      in_scripting_count: Number(summaryRow?.in_scripting_count || 0),
-    },
-    scope_counts: {
-      active: Number(scopeCountsRow?.active || 0),
-      archived: Number(scopeCountsRow?.archived || 0),
-      trash: Number(scopeCountsRow?.trash || 0),
-    },
+    ...(includeMetadata ? {
+      summary: {
+        total_words: Number(summaryRow?.total_words || 0),
+        in_scripting_count: Number(summaryRow?.in_scripting_count || 0),
+      },
+      scope_counts: {
+        active: Number(scopeCountsRow?.active || 0),
+        archived: Number(scopeCountsRow?.archived || 0),
+        trash: Number(scopeCountsRow?.trash || 0),
+      },
+    } : {}),
   };
 }
 export async function loadTopic(db: SqliteDatabase, id: string): Promise<Topic | null> {

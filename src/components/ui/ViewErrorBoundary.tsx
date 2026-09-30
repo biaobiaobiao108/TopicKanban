@@ -2,6 +2,9 @@ import React, { type ErrorInfo, type ReactNode } from 'react';
 
 interface ViewErrorBoundaryProps {
   children: ReactNode;
+  title?: string;
+  description?: string;
+  refreshLabel?: string;
 }
 
 interface ViewErrorBoundaryState {
@@ -24,21 +27,21 @@ export class ViewErrorBoundary extends React.Component<ViewErrorBoundaryProps, V
 
     return (
       <div className="flex-1 grid place-items-center p-6">
-        <div role="alert" className="w-full max-w-lg rounded-2xl border border-red-200 bg-red-50 p-5 text-red-900">
-          <h2 className="text-base font-bold">页面加载失败</h2>
-          <p className="mt-2 text-sm text-red-800">
-            部署更新后，浏览器中的旧资源可能已经失效。请刷新页面加载最新版本。
+        <div role="alert" className="w-full max-w-lg rounded-2xl border border-[var(--h1-color)]/25 bg-[var(--surface)] p-5 text-[var(--ink)]">
+          <h2 className="text-base font-bold">{this.props.title || '页面加载失败'}</h2>
+          <p className="mt-2 text-sm text-[var(--ink-muted)]">
+            {this.props.description || '部署更新后，浏览器中的旧资源可能已经失效。请刷新页面加载最新版本。'}
           </p>
-          <details className="mt-3 text-xs text-red-700">
+          <details className="mt-3 text-xs text-[var(--ink-muted)]">
             <summary className="cursor-pointer font-semibold">错误详情</summary>
             <p className="mt-1 break-all">{this.state.error.message}</p>
           </details>
           <button
             type="button"
             onClick={() => window.location.reload()}
-            className="mt-4 rounded-lg border border-red-300 bg-white px-4 py-2 text-sm font-semibold hover:bg-red-100"
+            className="mt-4 rounded-lg border border-[var(--line)] bg-[var(--canvas)] px-4 py-2 text-sm font-semibold text-[var(--ink)] hover:bg-[var(--accent-soft)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--focus-ring)]"
           >
-            刷新页面
+            {this.props.refreshLabel || '刷新页面'}
           </button>
         </div>
       </div>

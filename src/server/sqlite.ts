@@ -159,6 +159,17 @@ function assertCurrentSchema(sqlite: Database): void {
   }
 }
 
+function ensurePerformanceIndexes(sqlite: Database): void {
+  sqlite.exec(`
+    CREATE INDEX IF NOT EXISTS idx_published_page_order
+      ON published_videos(published_at DESC, updated_at DESC, id DESC);
+    CREATE INDEX IF NOT EXISTS idx_commercial_deals_publish_date
+      ON commercial_deals(publish_date);
+    CREATE INDEX IF NOT EXISTS idx_commercial_deals_next_action_due_date
+      ON commercial_deals(next_action_due_date);
+  `);
+}
+
 export async function initializeSqliteDatabase(dbFilePath: string, schemaDir?: string): Promise<{ db: SqliteDatabase; sqlite: Database }> {
   const dbFile = Bun.file(dbFilePath);
   if (!(await dbFile.exists())) {
@@ -194,6 +205,9 @@ export async function initializeSqliteDatabase(dbFilePath: string, schemaDir?: s
 
   try {
     assertCurrentSchema(sqlite);
+    // Index creation is additive and idempotent, so existing v5 databases
+    // receive the query-plan improvements without a data migration.
+    ensurePerformanceIndexes(sqlite);
   } catch (error) {
     sqlite.close();
     throw error;

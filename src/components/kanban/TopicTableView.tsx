@@ -9,6 +9,7 @@ import {
   ArrowUpDown,
   ArrowUp,
   ArrowDown,
+  ArrowLeft,
   ArrowRight,
   Trash2,
   Zap,
@@ -178,6 +179,7 @@ export const TopicTableView: React.FC<TopicTableViewProps> = ({
   const [visibleColumns, setVisibleColumns] = useState<ColumnKey[]>(initialPreferences.visibleColumns);
   const [isColumnMenuOpen, setIsColumnMenuOpen] = useState(false);
   const columnButtonRef = useRef<HTMLButtonElement>(null);
+  const tableScrollRef = useRef<HTMLDivElement>(null);
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [bulkStatus, setBulkStatus] = useState<TopicStatus>('inbox');
   const [isBulkUpdating, setIsBulkUpdating] = useState(false);
@@ -240,6 +242,15 @@ export const TopicTableView: React.FC<TopicTableViewProps> = ({
       setSortCol(col);
       setSortDir('desc');
     }
+  };
+
+  const scrollTableHorizontally = (direction: -1 | 1) => {
+    const container = tableScrollRef.current;
+    if (!container) return;
+    container.scrollBy({
+      left: direction * Math.max(240, container.clientWidth * 0.65),
+      behavior: 'smooth',
+    });
   };
 
 
@@ -416,14 +427,28 @@ export const TopicTableView: React.FC<TopicTableViewProps> = ({
 
   const renderSortIndicator = (col: SortCol) => {
     if (sortCol !== col) {
-      return <ArrowUpDown className="w-3 h-3 text-stone-300 opacity-0 group-hover:opacity-100 transition-opacity" />;
+      return <ArrowUpDown aria-hidden="true" className="w-3 h-3 text-stone-300 opacity-0 group-hover:opacity-100 transition-opacity" />;
     }
     return sortDir === 'asc' ? (
-      <ArrowUp className="w-3 h-3 text-[var(--accent)]" />
+      <ArrowUp aria-hidden="true" className="w-3 h-3 text-[var(--accent)]" />
     ) : (
-      <ArrowDown className="w-3 h-3 text-[var(--accent)]" />
+      <ArrowDown aria-hidden="true" className="w-3 h-3 text-[var(--accent)]" />
     );
   };
+
+  const renderSortButton = (label: string, col: SortCol, alignment: 'left' | 'center' | 'right' = 'left') => (
+    <button
+      type="button"
+      onClick={() => handleHeaderClick(col)}
+      aria-label={`按${label}排序${sortCol === col ? `，当前${sortDir === 'asc' ? '升序' : '降序'}` : ''}`}
+      className={`group flex min-h-8 w-full items-center gap-1.5 rounded-md px-1 py-1 transition-colors hover:bg-[var(--canvas)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--focus-ring)] ${
+        alignment === 'center' ? 'justify-center text-center' : alignment === 'right' ? 'justify-end text-right' : 'justify-start text-left'
+      }`}
+    >
+      <span>{label}</span>
+      {renderSortIndicator(col)}
+    </button>
+  );
 
   const formatRelativeTime = (iso: string) => {
     try {
@@ -664,7 +689,7 @@ export const TopicTableView: React.FC<TopicTableViewProps> = ({
       )}
 
       {/* Mobile Card List */}
-      <FloatingScrollbar className="space-y-3 p-3 pb-[max(5rem,var(--mobile-bottom-nav-clearance))]" wrapperClassName="flex-1 min-h-0 md:hidden">
+      <FloatingScrollbar className="space-y-3 p-3 pb-[max(5rem,var(--mobile-bottom-nav-clearance))]" wrapperClassName="flex-1 min-h-0 lg:hidden" aria-label="选题卡片列表">
           {sortedTopics.map((topic) => {
             const totalScore =
               (topic.score_character || 0) +
@@ -696,17 +721,26 @@ export const TopicTableView: React.FC<TopicTableViewProps> = ({
                       className="mt-1 h-4 w-4 rounded border-stone-300 accent-[var(--accent)] shrink-0 cursor-pointer"
                       aria-label={`选择选题「${topic.title}」`}
                     />
-                    <button
-                      onClick={() => archiveScope !== 'trash' && onOpenDetail(topic.id)}
-                      className="min-w-0 flex-1 text-left"
-                    >
-                      <span className="block truncate text-base font-semibold text-[var(--ink)]">{topic.title}</span>
-                      {(topic.summary || topic.hook) && (
-                        <span className="mt-1 block line-clamp-2 text-xs leading-relaxed text-stone-500 dark:text-stone-400">
-                          {topic.summary || topic.hook}
-                        </span>
-                      )}
-                    </button>
+                    {archiveScope === 'trash' ? (
+                      <div className="min-w-0 flex-1">
+                        <span className="block truncate text-base font-semibold text-[var(--ink)]">{topic.title}</span>
+                        {(topic.summary || topic.hook) && <span className="mt-1 block line-clamp-2 text-xs leading-relaxed text-stone-500 dark:text-stone-400">{topic.summary || topic.hook}</span>}
+                      </div>
+                    ) : (
+                      <button
+                        type="button"
+                        onClick={() => onOpenDetail(topic.id)}
+                        aria-label={`打开选题：${topic.title}`}
+                        className="min-w-0 flex-1 text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--focus-ring)]"
+                      >
+                        <span className="block truncate text-base font-semibold text-[var(--ink)]">{topic.title}</span>
+                        {(topic.summary || topic.hook) && (
+                          <span className="mt-1 block line-clamp-2 text-xs leading-relaxed text-stone-500 dark:text-stone-400">
+                            {topic.summary || topic.hook}
+                          </span>
+                        )}
+                      </button>
+                    )}
                   </div>
                   <button
                     onClick={() => void togglePin(topic.id)}
@@ -826,15 +860,27 @@ export const TopicTableView: React.FC<TopicTableViewProps> = ({
       </FloatingScrollbar>
 
       {/* Table Scroll Container */}
+      <div className="hidden flex-1 min-h-0 flex-col lg:flex">
       <FloatingScrollbar
-        className="topic-table-container w-full min-w-full overflow-x-auto overscroll-contain"
-        wrapperClassName="hidden flex-1 min-h-0 md:flex"
+        ref={tableScrollRef}
+        id="topic-table-scroll"
+        role="region"
+        tabIndex={0}
+        aria-label="选题表格，可使用左右方向键浏览更多列"
+        onKeyDown={(event) => {
+          if (event.key === 'ArrowLeft' || event.key === 'ArrowRight') {
+            event.preventDefault();
+            scrollTableHorizontally(event.key === 'ArrowLeft' ? -1 : 1);
+          }
+        }}
+        className="topic-table-container w-full min-w-full overflow-x-auto overscroll-contain focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[var(--focus-ring)]"
+        wrapperClassName="flex-1 min-h-0"
       >
-        <table className="w-full text-left border-collapse text-xs">
+        <table className="w-max min-w-full text-left border-collapse text-xs">
           {/* Table Header */}
           <thead className="table-header-row bg-[var(--surface)]/95 backdrop-blur-md sticky top-0 z-10 border-b border-[var(--line)]/60 text-[var(--ink-muted)] text-[11px] font-semibold select-none tracking-wider">
             <tr>
-              <th className="w-10 px-3 py-3 text-center">
+              <th scope="col" className="w-10 px-3 py-3 text-center">
                 <input
                   type="checkbox"
                   aria-label="选择当前页全部选题"
@@ -843,81 +889,69 @@ export const TopicTableView: React.FC<TopicTableViewProps> = ({
                   className="accent-[var(--accent)]"
                 />
               </th>
-              <th className="py-3 px-3 w-10 text-center"><Pin className="mx-auto h-3.5 w-3.5" aria-label="置顶" /></th>
+              <th scope="col" className="py-3 px-3 w-10 text-center"><Pin className="mx-auto h-3.5 w-3.5" aria-label="置顶" /></th>
 
               <th
-                onClick={() => handleHeaderClick('title')}
-                className="min-w-[240px] px-3 py-3 cursor-pointer group hover:bg-stone-100/80 dark:hover:bg-stone-800 transition-colors"
+                scope="col"
+                aria-sort={sortCol === 'title' ? (sortDir === 'asc' ? 'ascending' : 'descending') : undefined}
+                className="min-w-[240px] px-3 py-2"
               >
-                <div className="flex items-center gap-1.5">
-                  <span>选题标题与核心看点</span>
-                  {renderSortIndicator('title')}
-                </div>
+                {renderSortButton('选题标题与核心看点', 'title')}
               </th>
 
               {isColumnVisible('status') && <th
-                onClick={() => handleHeaderClick('status')}
-                className="py-3 px-3 w-28 cursor-pointer group hover:bg-stone-100/80 dark:hover:bg-stone-800 transition-colors"
+                scope="col"
+                aria-sort={sortCol === 'status' ? (sortDir === 'asc' ? 'ascending' : 'descending') : undefined}
+                className="py-2 px-3 w-28"
               >
-                <div className="flex items-center gap-1.5">
-                  <span>阶段状态</span>
-                  {renderSortIndicator('status')}
-                </div>
+                {renderSortButton('阶段状态', 'status')}
               </th>}
 
               {isColumnVisible('priority') && <th
-                onClick={() => handleHeaderClick('priority')}
-                className="py-3 px-3 w-20 text-center cursor-pointer group hover:bg-stone-100/80 dark:hover:bg-stone-800 transition-colors"
+                scope="col"
+                aria-sort={sortCol === 'priority' ? (sortDir === 'asc' ? 'ascending' : 'descending') : undefined}
+                className="py-2 px-3 w-20 text-center"
               >
-                <div className="flex items-center justify-center gap-1">
-                  <span>优先级</span>
-                  {renderSortIndicator('priority')}
-                </div>
+                {renderSortButton('优先级', 'priority', 'center')}
               </th>}
 
-              {isColumnVisible('current_action') && <th className="py-3 px-3 min-w-[180px]">
+              {isColumnVisible('current_action') && <th scope="col" className="py-3 px-3 min-w-[180px]">
                 <span>当前行动</span>
               </th>}
 
-              {isColumnVisible('tags') && <th className="py-3 px-3 min-w-[130px]">
+              {isColumnVisible('tags') && <th scope="col" className="py-3 px-3 min-w-[130px]">
                 <span>分类标签</span>
               </th>}
 
-              {isColumnVisible('people') && <th className="py-3 px-3 min-w-[120px]">
+              {isColumnVisible('people') && <th scope="col" className="py-3 px-3 min-w-[120px]">
                 <span>关联人物</span>
               </th>}
 
               {isColumnVisible('score') && <th
-                onClick={() => handleHeaderClick('score')}
-                className="py-3 px-3 w-24 text-center cursor-pointer group hover:bg-stone-100/80 dark:hover:bg-stone-800 transition-colors"
+                scope="col"
+                aria-sort={sortCol === 'score' ? (sortDir === 'asc' ? 'ascending' : 'descending') : undefined}
+                className="py-2 px-3 w-24 text-center"
               >
-                <div className="flex items-center justify-center gap-1">
-                  <span>故事评分</span>
-                  {renderSortIndicator('score')}
-                </div>
+                {renderSortButton('故事评分', 'score', 'center')}
               </th>}
 
               {isColumnVisible('words') && <th
-                onClick={() => handleHeaderClick('words')}
-                className="py-3 px-3 w-28 text-right cursor-pointer group hover:bg-stone-100/80 dark:hover:bg-stone-800 transition-colors"
+                scope="col"
+                aria-sort={sortCol === 'words' ? (sortDir === 'asc' ? 'ascending' : 'descending') : undefined}
+                className="py-2 px-3 w-28 text-right"
               >
-                <div className="flex items-center justify-end gap-1">
-                  <span>字数 / 预估时长</span>
-                  {renderSortIndicator('words')}
-                </div>
+                {renderSortButton('字数 / 预估时长', 'words', 'right')}
               </th>}
 
               {isColumnVisible('updated_at') && <th
-                onClick={() => handleHeaderClick('updated_at')}
-                className="py-3 px-3 w-24 text-right cursor-pointer group hover:bg-stone-100/80 dark:hover:bg-stone-800 transition-colors"
+                scope="col"
+                aria-sort={sortCol === 'updated_at' ? (sortDir === 'asc' ? 'ascending' : 'descending') : undefined}
+                className="py-2 px-3 w-24 text-right"
               >
-                <div className="flex items-center justify-end gap-1">
-                  <span>更新时间</span>
-                  {renderSortIndicator('updated_at')}
-                </div>
+                {renderSortButton('更新时间', 'updated_at', 'right')}
               </th>}
 
-              <th className="py-3 px-3 w-28 text-center">操作</th>
+              <th scope="col" className="py-3 px-3 w-28 text-center">操作</th>
             </tr>
           </thead>
 
@@ -999,9 +1033,21 @@ export const TopicTableView: React.FC<TopicTableViewProps> = ({
                   {/* 2. Title & Hook */}
                   <td className={`${rowPadding} px-3`}>
                     <div className="space-y-0.5 max-w-sm">
-                      <div className="flex items-center gap-1.5 font-semibold text-[var(--ink)] text-xs line-clamp-1 group-hover:text-[var(--accent)] transition-colors">
-                        <span>{topic.title}</span>
-                      </div>
+                      {archiveScope === 'trash' ? (
+                        <span className="block truncate font-semibold text-[var(--ink)] text-xs">{topic.title}</span>
+                      ) : (
+                        <button
+                          type="button"
+                          onClick={(event) => {
+                            event.stopPropagation();
+                            onOpenDetail(topic.id);
+                          }}
+                          aria-label={`打开选题：${topic.title}`}
+                          className="block max-w-full truncate text-left font-semibold text-[var(--ink)] text-xs transition-colors hover:text-[var(--accent)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--focus-ring)]"
+                        >
+                          {topic.title}
+                        </button>
+                      )}
                       {topic.summary ? (
                         <p className="text-[11px] text-stone-600 dark:text-stone-300 line-clamp-1 group-hover:text-stone-700 dark:group-hover:text-stone-200 transition-colors">
                           {topic.summary}
@@ -1180,9 +1226,33 @@ export const TopicTableView: React.FC<TopicTableViewProps> = ({
           </tbody>
         </table>
       </FloatingScrollbar>
+      <div className="flex shrink-0 items-center justify-between gap-3 border-t border-[var(--line)]/40 bg-[var(--canvas)]/45 px-3 py-2 text-xs text-[var(--ink-muted)]">
+        <span>表格可横向滚动，也可聚焦表格后使用 ← / → 键</span>
+        <div className="flex shrink-0 items-center gap-1">
+          <button
+            type="button"
+            aria-label="向左滚动选题表格"
+            aria-controls="topic-table-scroll"
+            onClick={() => scrollTableHorizontally(-1)}
+            className="inline-flex min-h-9 min-w-9 items-center justify-center rounded-lg hover:bg-[var(--surface)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--focus-ring)]"
+          >
+            <ArrowLeft className="h-4 w-4" aria-hidden="true" />
+          </button>
+          <button
+            type="button"
+            aria-label="向右滚动选题表格"
+            aria-controls="topic-table-scroll"
+            onClick={() => scrollTableHorizontally(1)}
+            className="inline-flex min-h-9 min-w-9 items-center justify-center rounded-lg hover:bg-[var(--surface)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--focus-ring)]"
+          >
+            <ArrowRight className="h-4 w-4" aria-hidden="true" />
+          </button>
+        </div>
+      </div>
+      </div>
 
       {/* Table Summary Footer */}
-      <div className="hidden p-3.5 bg-[var(--canvas)]/55 border-t border-[var(--line)] md:flex items-center justify-between text-xs text-[var(--ink-muted)] font-medium shrink-0 flex-wrap gap-2">
+      <div className="hidden p-3.5 bg-[var(--canvas)]/55 border-t border-[var(--line)] lg:flex items-center justify-between text-xs text-[var(--ink-muted)] font-medium shrink-0 flex-wrap gap-2">
         <div className="flex items-center gap-4">
           <span>当前页：<strong className="text-[var(--ink)]"><span className="font-mono tabular-nums">{sortedTopics.length}</span> 个选题</strong></span>
           <span>•</span>
@@ -1198,7 +1268,7 @@ export const TopicTableView: React.FC<TopicTableViewProps> = ({
         </div>
       </div>
 
-      <div className="flex items-center justify-center gap-2 border-t border-[var(--line)] bg-[var(--canvas)]/55 p-3 text-xs md:hidden">
+      <div className="flex items-center justify-center gap-2 border-t border-[var(--line)] bg-[var(--canvas)]/55 p-3 text-xs lg:hidden">
         <button type="button" disabled={page <= 1 || pageQuery.isFetching} onClick={() => setPage((value) => Math.max(1, value - 1))} className="rounded-[var(--radius-sm)] px-3 py-2 text-[var(--ink-muted)] hover:bg-[var(--surface)] disabled:opacity-40">上一页</button>
         <span className="text-stone-500 dark:text-stone-400 font-mono tabular-nums">{page} / {Math.max(1, pageQuery.data?.total_pages || 1)}</span>
         <button type="button" disabled={page >= (pageQuery.data?.total_pages || 1) || pageQuery.isFetching} onClick={() => setPage((value) => value + 1)} className="rounded-[var(--radius-sm)] px-3 py-2 text-[var(--ink-muted)] hover:bg-[var(--surface)] disabled:opacity-40">下一页</button>

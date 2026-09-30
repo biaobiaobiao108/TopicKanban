@@ -14,6 +14,8 @@ export interface JsonLeaseResult<T> {
 export type AppKvValueType = 'text' | 'json' | 'arrayBuffer';
 export type AppKvGetOptions = AppKvValueType | { type?: AppKvValueType };
 
+const EXPIRY_CLEANUP_INTERVAL_MS = 60_000;
+
 export class AppKV {
   private readonly db: SqliteDatabase;
   private readonly getStmt: SqliteStatement;
@@ -22,6 +24,7 @@ export class AppKV {
   private readonly listStmt: SqliteStatement;
   private readonly cleanupStmt: SqliteStatement;
   private readonly memoryLeases = new Map<string, { value: unknown; clientId: string; expiresAt: number }>();
+  private lastExpiryCleanupAt = Number.NEGATIVE_INFINITY;
 
   constructor(db: SqliteDatabase) {
     this.db = db;
@@ -53,10 +56,15 @@ export class AppKV {
 
   private cleanExpired(): void {
     const now = Date.now();
-    try {
-      this.cleanupStmt.run(now);
-    } catch {
-      // Expiry cleanup should never block normal reads.
+    if (now - this.lastExpiryCleanupAt >= EXPIRY_CLEANUP_INTERVAL_MS) {
+      // Advance before running the statement so a transient DB issue does not
+      // make every KV access retry the same full-table cleanup.
+      this.lastExpiryCleanupAt = now;
+      try {
+        this.cleanupStmt.run(now);
+      } catch {
+        // Expiry cleanup should never block normal reads.
+      }
     }
     this.cleanExpiredMemoryLeases(now);
   }
@@ -120,13 +128,15 @@ export class AppKV {
     }
   }
 
-  private persistQuickDropsIndex(ids: string[], now: number): string[] {
+  private persistQuickDropsIndex(ids: string[], now: number, pruneUnindexedDrops = true): string[] {
     const normalized = Array.from(new Set(ids.filter((id): id is string => typeof id === 'string' && id.length > 0))).slice(0, 100);
-    const keepKeys = new Set(normalized.map((id) => `drop:${id}`));
-    const dropRows = this.db.sqlite.query("SELECT key FROM _kv_store WHERE key LIKE 'drop:%'").all() as Array<{ key?: string }>;
-    dropRows.forEach((dropRow) => {
-      if (typeof dropRow.key === 'string' && !keepKeys.has(dropRow.key)) this.deleteStmt.run(dropRow.key);
-    });
+    if (pruneUnindexedDrops) {
+      const keepKeys = new Set(normalized.map((id) => `drop:${id}`));
+      const dropRows = this.db.sqlite.query("SELECT key FROM _kv_store WHERE key LIKE 'drop:%'").all() as Array<{ key?: string }>;
+      dropRows.forEach((dropRow) => {
+        if (typeof dropRow.key === 'string' && !keepKeys.has(dropRow.key)) this.deleteStmt.run(dropRow.key);
+      });
+    }
     this.putStmt.run('quick_drops_index', JSON.stringify(normalized), now + 86400 * 30 * 1000);
     return normalized;
   }
@@ -152,40 +162,149 @@ export class AppKV {
     return save();
   }
 
+  async getQuickDropCount(): Promise<number> {
+    this.cleanExpired();
+    const now = Date.now();
+    const count = this.db.sqlite.transaction(() => {
+      const indexRow = this.getStmt.get('quick_drops_index') as KvRow | undefined;
+      if (!indexRow || (indexRow.expires_at !== null && indexRow.expires_at <= now)) return 0;
+
+      let parsed: unknown;
+      try {
+        parsed = JSON.parse(indexRow.value);
+      } catch {
+        parsed = null;
+      }
+      const rawIds = Array.isArray(parsed)
+        ? parsed.filter((id): id is string => typeof id === 'string' && id.length > 0)
+        : [];
+      const ids = Array.from(new Set(rawIds)).slice(0, 100);
+      const idsChanged = !Array.isArray(parsed)
+        || ids.length !== parsed.length
+        || ids.some((id, index) => id !== parsed[index]);
+
+      let validIds = ids;
+      if (ids.length > 0) {
+        const placeholders = ids.map(() => '?').join(', ');
+        const rows = this.db.sqlite.query(`SELECT key FROM _kv_store
+          WHERE key IN (${placeholders}) AND (expires_at IS NULL OR expires_at > ?)`)
+          .all(...ids.map((id) => `drop:${id}`), now) as Array<{ key: string }>;
+        const validKeys = new Set(rows.map((row) => row.key));
+        validIds = ids.filter((id) => validKeys.has(`drop:${id}`));
+      }
+
+      if (idsChanged || validIds.length !== ids.length) {
+        this.persistQuickDropsIndex(validIds, now, false);
+      }
+      return validIds.length;
+    });
+    return count();
+  }
+
+  private deleteLegacyTopicSharesForTopics(topicIds: Set<string>): number {
+    const shareRows = this.db.sqlite.query("SELECT key, value FROM _kv_store WHERE key LIKE 'share:%'")
+      .all() as Array<Pick<KvRow, 'key' | 'value'>>;
+    let deleted = 0;
+    for (const row of shareRows) {
+      try {
+        const snapshot = JSON.parse(row.value) as { topic_id?: string };
+        if (typeof snapshot.topic_id === 'string' && topicIds.has(snapshot.topic_id)) {
+          deleted += Number(this.deleteStmt.run(row.key).changes || 0);
+        }
+      } catch {
+        // Leave malformed legacy snapshots untouched; their owner is unknown.
+      }
+    }
+    return deleted;
+  }
+
+  private readTopicShareTokens(topicId: string): string[] {
+    const row = this.getStmt.get(`topic_share_tokens:${topicId}`) as KvRow | undefined;
+    if (!row) return [];
+    try {
+      const parsed: unknown = JSON.parse(row.value);
+      return Array.isArray(parsed)
+        ? Array.from(new Set(parsed.filter((token): token is string => typeof token === 'string' && token.length > 0)))
+        : [];
+    } catch {
+      return [];
+    }
+  }
+
+  private migrateLegacyTopicShareIndexes(now: number): void {
+    const marker = this.getStmt.get('topic_share_reverse_index_migrated') as KvRow | undefined;
+    if (marker) return;
+
+    const shareRows = this.db.sqlite.query("SELECT key, value, expires_at FROM _kv_store WHERE key LIKE 'share:%'")
+      .all() as Array<Pick<KvRow, 'key' | 'value' | 'expires_at'>>;
+    const sharesByTopic = new Map<string, { tokens: string[]; expiresAt: number | null }>();
+    for (const row of shareRows) {
+      if (row.expires_at !== null && row.expires_at <= now) continue;
+      try {
+        const snapshot = JSON.parse(row.value) as { topic_id?: unknown };
+        if (typeof snapshot.topic_id !== 'string' || !snapshot.topic_id) continue;
+        const token = row.key.slice('share:'.length);
+        const current = sharesByTopic.get(snapshot.topic_id) || { tokens: [], expiresAt: 0 };
+        current.tokens.push(token);
+        current.expiresAt = current.expiresAt === null || row.expires_at === null
+          ? null
+          : Math.max(current.expiresAt, row.expires_at);
+        sharesByTopic.set(snapshot.topic_id, current);
+      } catch {
+        // Leave malformed legacy snapshots untouched; their owner is unknown.
+      }
+    }
+
+    for (const [topicId, share] of sharesByTopic) {
+      const tokens = Array.from(new Set(share.tokens));
+      this.putStmt.run(`topic_share_tokens:${topicId}`, JSON.stringify(tokens), share.expiresAt);
+      this.putStmt.run(`topic_share:${topicId}`, tokens[tokens.length - 1], share.expiresAt);
+    }
+    this.putStmt.run('topic_share_reverse_index_migrated', '1', null);
+  }
+
   async replaceTopicShare(topicId: string, token: string, value: string, expirationTtl: number): Promise<void> {
     const expiresAt = Date.now() + expirationTtl * 1000;
     const replace = this.db.sqlite.transaction(() => {
-      const shareRows = this.db.sqlite.query("SELECT key, value FROM _kv_store WHERE key LIKE 'share:%'")
-        .all() as Array<Pick<KvRow, 'key' | 'value'>>;
-      for (const row of shareRows) {
-        try {
-          const snapshot = JSON.parse(row.value) as { topic_id?: string };
-          if (snapshot.topic_id === topicId) this.deleteStmt.run(row.key);
-        } catch {
-          // Leave unrelated malformed values untouched; normal expiry cleanup still applies.
-        }
+      this.migrateLegacyTopicShareIndexes(Date.now());
+      const indexedTokens = this.readTopicShareTokens(topicId);
+      const existing = this.getStmt.get(`topic_share:${topicId}`) as KvRow | undefined;
+      const tokensToDelete = indexedTokens.length > 0 ? indexedTokens : existing?.value ? [existing.value] : [];
+      if (tokensToDelete.length > 0) {
+        tokensToDelete.forEach((oldToken) => this.deleteStmt.run(`share:${oldToken}`));
       }
       this.putStmt.run(`share:${token}`, value, expiresAt);
       this.putStmt.run(`topic_share:${topicId}`, token, expiresAt);
+      this.putStmt.run(`topic_share_tokens:${topicId}`, JSON.stringify([token]), expiresAt);
     });
     replace();
   }
 
   async deleteTopicShares(topicId: string): Promise<number> {
+    return this.deleteTopicSharesBatch([topicId]);
+  }
+
+  async deleteTopicSharesBatch(topicIds: string[], scanLegacy = false): Promise<number> {
+    const uniqueIds = Array.from(new Set(topicIds.filter((topicId) => typeof topicId === 'string' && topicId.length > 0)));
+    if (uniqueIds.length === 0) return 0;
     const remove = this.db.sqlite.transaction(() => {
-      const shareRows = this.db.sqlite.query("SELECT key, value FROM _kv_store WHERE key LIKE 'share:%'")
-        .all() as Array<Pick<KvRow, 'key' | 'value'>>;
+      const now = Date.now();
+      this.migrateLegacyTopicShareIndexes(now);
       let deleted = 0;
-      for (const row of shareRows) {
-        try {
-          const snapshot = JSON.parse(row.value) as { topic_id?: string };
-          if (snapshot.topic_id !== topicId) continue;
-          deleted += Number(this.deleteStmt.run(row.key).changes || 0);
-        } catch {
-          // Ignore malformed snapshots that cannot be attributed to this topic.
+      for (const topicId of uniqueIds) {
+        const reverseKey = `topic_share:${topicId}`;
+        const existing = this.getStmt.get(reverseKey) as KvRow | undefined;
+        const tokens = this.readTopicShareTokens(topicId);
+        const tokensToDelete = tokens.length > 0 ? tokens : existing?.value ? [existing.value] : [];
+        for (const token of tokensToDelete) {
+          deleted += Number(this.deleteStmt.run(`share:${token}`).changes || 0);
         }
+        this.deleteStmt.run(reverseKey);
+        this.deleteStmt.run(`topic_share_tokens:${topicId}`);
       }
-      this.deleteStmt.run(`topic_share:${topicId}`);
+      if (scanLegacy) {
+        deleted += this.deleteLegacyTopicSharesForTopics(new Set(uniqueIds));
+      }
       return deleted;
     });
     return remove();

@@ -19,7 +19,6 @@ export const ActionDateText: React.FC<ActionDateTextProps> = ({ display, classNa
   return (
     <time
       dateTime={display.value || undefined}
-      title={accessibleLabel}
       aria-label={accessibleLabel}
       data-date-state={display.state}
       className={`action-date tabular-nums ${className}`.trim()}

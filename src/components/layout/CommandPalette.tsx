@@ -182,7 +182,7 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
 
   const topicSearchQuery = useQuery({
     queryKey: ['command-topic-search', debouncedCleanQ],
-    queryFn: () => fetchTopicPage({ scope: 'all', q: debouncedCleanQ, page: 1, page_size: 20, sort: 'updated_at' }),
+    queryFn: () => fetchTopicPage({ scope: 'all', q: debouncedCleanQ, page: 1, page_size: 20, sort: 'updated_at', include_metadata: false }),
     enabled: isOpen && mode === 'all' && debouncedCleanQ.length > 0,
     subscribed: isOpen && mode === 'all' && debouncedCleanQ.length > 0,
   });

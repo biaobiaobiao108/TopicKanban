@@ -47,6 +47,37 @@ describe('AppKV (SQLite)', () => {
     expect(expiredVal).toBeNull();
   });
 
+  it('throttles SQLite expiry sweeps while still checking accessed keys', async () => {
+    await kv.put('live', 'keep');
+    sqlite.query(`INSERT INTO _kv_store (key, value, expires_at) VALUES (?, ?, ?)`)
+      .run('expired:unrelated', 'stale', Date.now() - 1);
+
+    expect(await kv.get('live')).toBe('keep');
+    expect(sqlite.query('SELECT key FROM _kv_store WHERE key = ?').get('expired:unrelated')).toBeDefined();
+  });
+
+  it('replaces and revokes topic shares through the reverse key', async () => {
+    await kv.replaceTopicShare('topic-a', 'token-old', JSON.stringify({ topic_id: 'topic-a' }), 3600);
+    await kv.replaceTopicShare('topic-b', 'token-b', JSON.stringify({ topic_id: 'topic-b' }), 3600);
+
+    await kv.replaceTopicShare('topic-a', 'token-new', JSON.stringify({ topic_id: 'topic-a' }), 3600);
+    expect(await kv.get('share:token-old')).toBeNull();
+    expect(await kv.get('share:token-b')).toBe(JSON.stringify({ topic_id: 'topic-b' }));
+    expect(await kv.get('topic_share:topic-a')).toBe('token-new');
+
+    expect(await kv.deleteTopicShares('topic-a')).toBe(1);
+    expect(await kv.get('share:token-new')).toBeNull();
+    expect(await kv.get('topic_share:topic-a')).toBeNull();
+    expect(await kv.get('share:token-b')).toBe(JSON.stringify({ topic_id: 'topic-b' }));
+  });
+
+  it('revokes legacy topic shares that predate the reverse index', async () => {
+    await kv.put('share:legacy-token', JSON.stringify({ topic_id: 'legacy-topic' }), { expirationTtl: 3600 });
+
+    expect(await kv.deleteTopicShares('legacy-topic')).toBe(1);
+    expect(await kv.get('share:legacy-token')).toBeNull();
+  });
+
   it('keeps SQLite expiry cleanup off the in-memory lease path', async () => {
     await kv.put('expired:test', 'stale value', { expirationTtl: 1 });
     sqlite.query('UPDATE _kv_store SET expires_at = ? WHERE key = ?').run(Date.now() - 1000, 'expired:test');
@@ -91,5 +122,16 @@ describe('AppKV (SQLite)', () => {
     expect(index).toHaveLength(100);
     expect(backingRows).toHaveLength(100);
     expect(new Set(backingRows.map((row) => row.key.slice('drop:'.length)))).toEqual(new Set(index));
+  });
+
+  it('counts only active quick drops and repairs stale index entries', async () => {
+    await kv.putQuickDrop('active', JSON.stringify({ id: 'active' }), 3600);
+    await kv.putQuickDrop('expired', JSON.stringify({ id: 'expired' }), 3600);
+    await kv.putQuickDrop('missing', JSON.stringify({ id: 'missing' }), 3600);
+    sqlite.query('UPDATE _kv_store SET expires_at = ? WHERE key = ?').run(Date.now() - 1, 'drop:expired');
+    sqlite.query('DELETE FROM _kv_store WHERE key = ?').run('drop:missing');
+
+    expect(await kv.getQuickDropCount()).toBe(1);
+    expect(await kv.get<string[]>('quick_drops_index', 'json')).toEqual(['active']);
   });
 });

@@ -30,6 +30,9 @@ const WrappedFloatingScrollbar = forwardRef<HTMLDivElement, FloatingScrollbarPro
       wrapperClassName = '',
       wrapperStyle,
       wrapperRef,
+      ariaLabel,
+      role,
+      tabIndex,
       autoHideDelay = 1200,
       minThumbSize = 28,
       onScroll,
@@ -205,6 +208,9 @@ const WrappedFloatingScrollbar = forwardRef<HTMLDivElement, FloatingScrollbarPro
           onScroll={handleScroll}
           className={`no-scrollbar w-full min-h-0 min-w-0 flex-1 overflow-y-auto overscroll-contain ${className}`}
           {...props}
+          role={role ?? 'region'}
+          tabIndex={tabIndex ?? 0}
+          aria-label={props['aria-label'] ?? ariaLabel ?? '可滚动内容'}
         >
           {children}
         </div>

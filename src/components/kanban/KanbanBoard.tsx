@@ -321,6 +321,7 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
       queryKey: ['kanban-column-page', status, searchTerm, priorityFilter, selectedTagId, selectedPersonId, sortBy, columnPages[status]],
       queryFn: () => fetchTopicPage({
         scope: 'active',
+        include_metadata: false,
         status,
         page: columnPages[status],
         page_size: 30,

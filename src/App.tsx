@@ -44,7 +44,7 @@ import { TodayView } from './components/today/TodayView';
 import { TodoQuickActionDialog } from './components/topic-detail/TodoQuickActionDialog';
 import { ViewErrorBoundary } from './components/ui/ViewErrorBoundary';
 import { QuickDropDrawer } from './components/inbox/QuickDropDrawer';
-import { fetchQuickDrops } from './lib/storage';
+import { fetchQuickDropCount } from './lib/storage';
 import { applyTheme } from './lib/theme';
 import { matchPath, useLocation, useNavigate } from 'react-router-dom';
 import { useWorkspace } from './hooks/useWorkspace';
@@ -142,9 +142,16 @@ export function App() {
     const shareMatch = matchPath('/share/:token', location.pathname);
     const token = shareMatch?.params.token || location.pathname.replace(/^\/share\/?/, '') || '';
     return (
+      <ViewErrorBoundary
+        key={location.pathname}
+        title="审稿页面加载失败"
+        description="分享内容可能已失效，或当前版本资源加载失败。请刷新页面后重试。"
+        refreshLabel="刷新审稿页面"
+      >
       <Suspense fallback={<div className="min-h-dvh bg-stone-100 flex items-center justify-center text-sm text-stone-500">正在加载审稿文案...</div>}>
         <PublicReviewView token={token} />
       </Suspense>
+      </ViewErrorBoundary>
     );
   }
 
@@ -193,7 +200,7 @@ function WorkspaceApp({ isAuth, setIsAuth }: WorkspaceAppProps) {
     setTags,
     setSettings: setAppSettings,
     refreshTopics,
-  } = useWorkspace(isAuth, currentView);
+  } = useWorkspace(isAuth, currentView, activeTopicId);
 
   // Apply visual theme
   useEffect(() => {
@@ -223,23 +230,25 @@ function WorkspaceApp({ isAuth, setIsAuth }: WorkspaceAppProps) {
       : `${VIEW_TITLES[currentView]} - 喵爪看板`;
   }, [activeTopicId, currentView, isAuth, topics]);
 
-  // Fetch quick drops count on mount and interval
+  // Poll only the count; load full quick-drop records when the drawer opens.
   useEffect(() => {
     if (!isAuth) return;
     let isMounted = true;
+    let timer: ReturnType<typeof setTimeout> | undefined;
     const checkDrops = async () => {
       try {
-        const items = await fetchQuickDrops();
-        if (isMounted) setQuickDropCount(items.length);
+        const count = await fetchQuickDropCount();
+        if (isMounted) setQuickDropCount(count);
       } catch {
         // ignore
+      } finally {
+        if (isMounted) timer = setTimeout(checkDrops, 60000);
       }
     };
     void checkDrops();
-    const interval = setInterval(checkDrops, 60000);
     return () => {
       isMounted = false;
-      clearInterval(interval);
+      if (timer) clearTimeout(timer);
     };
   }, [isAuth]);
   useEffect(() => {
@@ -913,7 +922,7 @@ function WorkspaceApp({ isAuth, setIsAuth }: WorkspaceAppProps) {
         <main id="main-content" tabIndex={-1} className="view-transition-page-content flex min-h-0 flex-1 flex-col overflow-hidden min-w-0">
           {loadError && (
             <div className="m-4 flex items-center justify-between gap-3 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800">
-              <span>加载工作台失败：{loadError}</span>
+              <span>{loadError}</span>
               <button type="button" onClick={() => void loadAllData()} className="shrink-0 rounded-lg border border-red-300 bg-white px-3 py-1.5 text-xs font-semibold hover:bg-red-50">
                 重新加载
               </button>

@@ -172,6 +172,7 @@ export const TagsView: React.FC<TagsViewProps> = ({
     queryKey: ['tag-topics-page', activeTag?.id || '', topicStatusFilter, topicPage],
     queryFn: () => fetchTopicPage({
       scope: 'all',
+      include_metadata: false,
       page: topicPage,
       page_size: 30,
       tag_id: activeTag?.id,

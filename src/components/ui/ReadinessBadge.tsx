@@ -18,9 +18,9 @@ export const ReadinessBadge: React.FC<ReadinessBadgeProps> = ({ topic, showLabel
   return (
     <span
       className={`inline-flex items-center gap-1 rounded-md border px-2 py-0.5 text-[11px] font-bold ${tone}`}
-      title={readiness.nextGap ? `下一项：补齐${readiness.nextGap}` : '开工条件已齐备'}
     >
       {showLabel && '准备度 '}{readiness.score}%
+      <span className="sr-only">{readiness.nextGap ? `下一项：补齐${readiness.nextGap}` : '开工条件已齐备'}</span>
     </span>
   );
 };

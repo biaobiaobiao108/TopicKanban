@@ -274,8 +274,8 @@ export const PublicReviewView: React.FC<PublicReviewViewProps> = ({ token: propT
           <div className="flex items-center gap-2 shrink-0">
             <button
               onClick={handleCopyText}
+              aria-label={copied ? '已复制审稿文案' : '复制审稿文案纯文本'}
               className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-white dark:bg-stone-800 border border-stone-200 dark:border-stone-700 text-stone-700 dark:text-stone-200 hover:bg-stone-50 dark:hover:bg-stone-700 transition-colors shadow-2xs cursor-pointer"
-              title="复制纯文本"
             >
               {copied ? (
                 <>
@@ -318,6 +318,7 @@ export const PublicReviewView: React.FC<PublicReviewViewProps> = ({ token: propT
                         key={item.id}
                         type="button"
                         onClick={() => handleSelectHeading(item)}
+                        aria-label={`跳转到章节：${item.title}`}
                         className={`group relative w-full rounded-lg py-2 pr-2 text-left transition-colors cursor-pointer focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[var(--focus-ring)] ${
                           isActive ? 'bg-[var(--accent-soft)] text-[var(--ink)] shadow-2xs' : 'hover:bg-[var(--canvas)] text-stone-700 dark:text-stone-300'
                         }`}
@@ -330,7 +331,6 @@ export const PublicReviewView: React.FC<PublicReviewViewProps> = ({ token: propT
                                   ? `${LEVEL_TEXT[item.level]} text-[var(--accent)] font-bold`
                                   : `${LEVEL_TEXT[item.level]} text-stone-700 dark:text-stone-300 group-hover:text-stone-950 dark:group-hover:text-stone-100`
                               }`}
-                              title={item.title}
                             >
                               {item.title}
                             </span>

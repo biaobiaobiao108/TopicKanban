@@ -1,7 +1,7 @@
 import type { NativeApp } from '../native';
 import type { Tag } from '../../types';
 import { createId, jsonError, requireDb } from '../apiShared';
-import { deleteTag, insertTag, listTags, loadBootstrap, loadTagsPage, updateTag } from '../repositories';
+import { deleteTag, insertTag, listTags, loadBootstrap, loadTagsPage, updateTag, invalidatePublishedAnalyticsCache } from '../repositories';
 
 export function registerTagRoutes(app: NativeApp): void {
   app.get('/tags', async (c) => {
@@ -37,6 +37,7 @@ export function registerTagRoutes(app: NativeApp): void {
       if (body.color !== undefined && (typeof body.color !== 'string' || body.color.length > 50)) return c.json({ error: 'Color exceeds 50 characters' }, 400);
       const tag: Tag = { id: createId('tag'), name: body.name.trim(), color: body.color || 'stone' };
       const existing = await insertTag(requireDb(c), tag);
+      if (!existing) invalidatePublishedAnalyticsCache();
       return existing ? c.json(existing) : c.json(tag, 201);
     } catch (error) {
       return jsonError(c, error, 400);
@@ -52,6 +53,7 @@ export function registerTagRoutes(app: NativeApp): void {
       if (body.color !== undefined && (typeof body.color !== 'string' || body.color.length > 50)) return c.json({ error: 'Color exceeds 50 characters' }, 400);
       const result = await updateTag(requireDb(c), c.req.param('id'), { name, color: body.color || 'stone' });
       if (result === 'duplicate') return c.json({ error: 'Tag name already exists' }, 409);
+      if (result) invalidatePublishedAnalyticsCache();
       return result ? c.json(result) : c.json({ error: 'Not found' }, 404);
     } catch (error) {
       return jsonError(c, error, 400);
@@ -61,6 +63,7 @@ export function registerTagRoutes(app: NativeApp): void {
   app.delete('/tags/:id', async (c) => {
     try {
       await deleteTag(requireDb(c), c.req.param('id'));
+      invalidatePublishedAnalyticsCache();
       return c.json({ success: true });
     } catch (error) {
       return jsonError(c, error);

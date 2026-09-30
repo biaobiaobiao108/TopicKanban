@@ -107,6 +107,14 @@ export function registerQuickDropRoutes(app: NativeApp): void {
     }
   });
 
+  app.get('/inbox/quick-drops/count', async (c) => {
+    try {
+      return c.json({ count: await c.env.KV.getQuickDropCount() });
+    } catch (error) {
+      return jsonError(c, error);
+    }
+  });
+
   app.delete('/inbox/quick-drops/:id', async (c) => {
     try {
       const id = c.req.param('id');

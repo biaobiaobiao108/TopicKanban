@@ -86,6 +86,7 @@ export const PublishedView: React.FC<PublishedViewProps> = ({
     queryKey: ['published-topic-options', editingVideo?.id || 'new', deferredTopicSearchQuery],
     queryFn: () => fetchTopicPage({
       scope: 'all',
+      include_metadata: false,
       page: 1,
       page_size: 50,
       q: deferredTopicSearchQuery,
@@ -142,7 +143,7 @@ export const PublishedView: React.FC<PublishedViewProps> = ({
     setEditingVideo(null);
     setModalCoverUrl(null);
     const topicPage = await fetchTopicPage({
-      scope: 'all', page: 1, page_size: 50, q: '', available_for_published: true,
+      scope: 'all', page: 1, page_size: 50, q: '', available_for_published: true, include_metadata: false,
     });
     setTopicOptions(topicPage.items);
     const defaultTopic = topicPage.items[0] || null;
@@ -169,7 +170,7 @@ export const PublishedView: React.FC<PublishedViewProps> = ({
   const openEditModal = async (v: PublishedVideo) => {
     const [topicPage, linkedTopic] = await Promise.all([
       fetchTopicPage({
-        scope: 'all', page: 1, page_size: 50, q: '', available_for_published: true,
+        scope: 'all', page: 1, page_size: 50, q: '', available_for_published: true, include_metadata: false,
         published_video_id: v.id,
       }),
       v.topic_id ? fetchTopic(v.topic_id).catch(() => null) : Promise.resolve(null),

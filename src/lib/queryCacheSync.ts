@@ -144,6 +144,9 @@ function removeTopicFromLists(queryClient: QueryClient, topicId: string) {
  * global actions must not assume that `['workspace']` contains the card.
  */
 export function findTopicInCaches(queryClient: QueryClient, topicId: string): Topic | undefined {
+  const detailTopic = queryClient.getQueryData<Topic>(['topic', topicId]);
+  if (detailTopic) return detailTopic;
+
   for (const queryKey of topicListKeys) {
     const listTopic = queryClient
       .getQueriesData<{ items?: Topic[] }>({ queryKey })
@@ -168,6 +171,7 @@ export function findTopicInCaches(queryClient: QueryClient, topicId: string): To
 }
 
 function updateTopicCollections(queryClient: QueryClient, topicId: string, updater: (topic: Topic) => Topic) {
+  queryClient.setQueryData<Topic>(['topic', topicId], (current) => current ? updater(current) : current);
   queryClient.setQueryData<BootstrapData>(['workspace'], (current) => current
     ? { ...current, topics: mapItems(current.topics, topicId, updater) || [] }
     : current);
@@ -180,6 +184,7 @@ function updateTopicCollections(queryClient: QueryClient, topicId: string, updat
 }
 
 function mapTopicCollections(queryClient: QueryClient, updater: (topic: Topic) => Topic) {
+  queryClient.setQueriesData<Topic>({ queryKey: ['topic'] }, (current) => current ? updater(current) : current);
   queryClient.setQueryData<BootstrapData>(['workspace'], (current) => current
     ? { ...current, topics: current.topics.map(updater) }
     : current);
@@ -215,6 +220,7 @@ export function replaceTopicPinCaches(queryClient: QueryClient, result: TopicPin
 }
 
 export function removeTopicCaches(queryClient: QueryClient, topicId: string) {
+  queryClient.removeQueries({ queryKey: ['topic', topicId], exact: true });
   queryClient.setQueryData<BootstrapData>(['workspace'], (current) => current
     ? { ...current, topics: removeItems(current.topics, topicId) || [] }
     : current);

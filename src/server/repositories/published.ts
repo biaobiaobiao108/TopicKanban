@@ -22,8 +22,10 @@ interface PageOptions {
 const ANALYTICS_CACHE_TTL_MS = 30_000;
 const ANALYTICS_CACHE_MAX_ENTRIES = 12;
 const analyticsCache = new Map<string, { expiresAt: number; payload: PublishedAnalyticsPayload }>();
+let analyticsCacheGeneration = 0;
 
 export function invalidatePublishedAnalyticsCache(): void {
+  analyticsCacheGeneration += 1;
   analyticsCache.clear();
 }
 
@@ -120,6 +122,7 @@ export async function loadPublishedAnalytics(
   const cacheKey = `${options.range}:${options.page}:${options.pageSize}`;
   const cached = readPublishedAnalyticsCache(cacheKey);
   if (cached) return cached;
+  const cacheGeneration = analyticsCacheGeneration;
 
   const rangeDays = options.range === '90d' ? 90 : 365;
   const cutoffDate = options.range === 'all' ? null : new Date(Date.now() - rangeDays * 24 * 60 * 60 * 1000);
@@ -193,7 +196,9 @@ export async function loadPublishedAnalytics(
     ranking_page: options.page,
     ranking_page_size: options.pageSize,
   };
-  writePublishedAnalyticsCache(cacheKey, payload);
+  // An invalidation can happen while the analytics queries are in flight.
+  // Do not let that older result repopulate the cache after a write.
+  if (cacheGeneration === analyticsCacheGeneration) writePublishedAnalyticsCache(cacheKey, payload);
   return payload;
 }
 export function publishedStatement(db: SqliteDatabase, video: PublishedVideo): SqlitePreparedStatement {
