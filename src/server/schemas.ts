@@ -131,7 +131,7 @@ export const topicUpdateSchema = topicCreateSchema.partial().extend({
 
 export const commercialDealSchema = (requireTitle = false) =>
   z.object({
-    title: textField('title', 200, requireTitle).optional(),
+    title: requireTitle ? textField('title', 200, true) : textField('title', 200, true).optional(),
     brand_name: textField('brand_name', 200).optional(),
     agency_name: textField('agency_name', 200).optional(),
     contact_name: textField('contact_name', 200).optional(),

@@ -1166,8 +1166,8 @@ function WorkspaceApp({ isAuth, setIsAuth }: WorkspaceAppProps) {
         onSelectTheme={(theme) => void handleSaveSettings({ ...settings, theme })}
         onExportBackup={handleExportBackup}
         onExportMarkdown={handleExportMarkdown}
-        onFilterStatus={(_status) => {
-          navigate('/kanban');
+        onFilterStatus={(status) => {
+          navigate(`/kanban?status=${encodeURIComponent(status)}`);
         }}
       />
 

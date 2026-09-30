@@ -32,8 +32,8 @@ import {
   TopicReportConflictError,
   resolveDraftRecovery,
   saveDraftCitation,
-  exportSingleTopicMarkdown,
 } from '../../lib/storage';
+import { fetchAndExportSingleTopicMarkdown } from '../../lib/singleTopicExport';
 import { Modal } from '../ui/Modal';
 import { FloatingMenu } from '../ui/FloatingMenu';
 import { FloatingScrollbar } from '../ui/FloatingScrollbar';
@@ -401,19 +401,25 @@ export const TopicDetailView: React.FC<TopicDetailViewProps> = ({
     draft_word_count: draft?.word_count || topic.draft_word_count || 0,
   };
 
-  const handleExportMarkdown = () => {
-    const md = exportSingleTopicMarkdown(
-      metricTopic,
-      { sources, draft, report },
-      readingSpeed
-    );
-    const blob = new Blob([md], { type: 'text/markdown;charset=utf-8' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `选题档案-${topic.title.replace(/[\\/:*?"<>|]/g, '_')}.md`;
-    a.click();
-    URL.revokeObjectURL(url);
+  const exportInFlightRef = useRef(false);
+  const handleExportMarkdown = async () => {
+    if (exportInFlightRef.current) return;
+    exportInFlightRef.current = true;
+    setOperationError(null);
+    try {
+      const md = await fetchAndExportSingleTopicMarkdown(topic, readingSpeed);
+      const blob = new Blob([md], { type: 'text/markdown;charset=utf-8' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `选题档案-${topic.title.replace(/[\\/:*?"<>|]/g, '_')}.md`;
+      a.click();
+      URL.revokeObjectURL(url);
+    } catch (error) {
+      setOperationError(error instanceof Error ? `导出选题失败：${error.message}` : '导出选题失败');
+    } finally {
+      exportInFlightRef.current = false;
+    }
   };
 
   const handleInjectOutlineIntoDraft = async (outlineHtml: string): Promise<boolean> => {
@@ -675,6 +681,13 @@ export const TopicDetailView: React.FC<TopicDetailViewProps> = ({
               readingSpeed={readingSpeed}
               settings={settings}
               onSaveDraft={handleSaveDraft}
+              onResolveDraftConflict={async (conflict, choice) => {
+                const resolved = await resolveDraftRecovery(topic.id, conflict, choice);
+                queryClient.setQueryData(['topic-draft', topic.id], { draft: resolved, conflict: null });
+                onDraftWordCountChange(topic.id, resolved?.word_count || 0);
+                setOperationError(null);
+                return resolved;
+              }}
               onSaveCitation={handleSaveCitation}
               onRegisterDraftFlush={registerDraftFlush}
               onCacheDraftLocally={(contentHtml, contentJson, wordCount, title, contentMarkdown) => {

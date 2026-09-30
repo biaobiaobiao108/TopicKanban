@@ -446,7 +446,6 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
             icon: FileText,
             onSelect: () => {
               onFilterStatus('scripting');
-              onNavigate('kanban');
               onClose();
             },
           },
@@ -460,7 +459,6 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
             icon: Sparkles,
             onSelect: () => {
               onFilterStatus('production');
-              onNavigate('kanban');
               onClose();
             },
           },
@@ -474,7 +472,6 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
             icon: Inbox,
             onSelect: () => {
               onFilterStatus('inbox');
-              onNavigate('kanban');
               onClose();
             },
           },

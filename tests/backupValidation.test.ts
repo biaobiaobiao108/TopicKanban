@@ -1,6 +1,10 @@
 import { describe, expect, it } from 'bun:test';
 import type { BackupData, Topic, TopicTodo } from '../src/types';
 import { validateBackupData } from '../src/lib/backupValidation';
+import { Database } from 'bun:sqlite';
+import { SqliteDatabase } from '../src/server/sqlite';
+import { createApp } from '../src/server/app';
+import { AppKV } from '../src/server/appKv';
 
 function createBackup(overrides: Partial<BackupData> = {}): BackupData {
   return {
@@ -66,6 +70,62 @@ function createTodo(id: string, topicId: string, overrides: Partial<TopicTodo> =
 describe('backup schema validation', () => {
   it('accepts a valid current backup with Markdown draft content', () => {
     expect(validateBackupData(createBackup())).toMatchObject({ success: true });
+  });
+
+  it('accepts individual JSON and HTML draft fields larger than 2 MiB within the total limit', () => {
+    const topic = createTopic('topic-large-draft');
+    const draft = {
+      id: 'draft-large', topic_id: topic.id, title: '', content_markdown: '', content_json: '',
+      content_html: '', word_count: 0, version: 1, updated_at: '2026-01-01T00:00:00.000Z',
+    };
+    for (const content of [
+      { content_json: JSON.stringify({ text: 'x'.repeat(2 * 1024 * 1024 + 100) }) },
+      { content_html: `<p>${'x'.repeat(2 * 1024 * 1024 + 100)}</p>` },
+    ]) {
+      expect(validateBackupData(createBackup({ topics: [topic], drafts: [{ ...draft, ...content }] })).success).toBe(true);
+    }
+    const tooLarge = validateBackupData(createBackup({ topics: [topic], drafts: [{
+      ...draft, content_markdown: 'x'.repeat(2 * 1024 * 1024), content_html: 'x'.repeat(2 * 1024 * 1024 + 1),
+    }] }));
+    expect(tooLarge.success).toBe(false);
+    if (!tooLarge.success) expect(tooLarge.error).toContain('草稿正文超过 4 MiB');
+    expect(validateBackupData(createBackup({ topics: [topic], drafts: [{
+      ...draft, content_markdown: '中'.repeat(4 * 1024 * 1024 / 3 + 1),
+    }] })).success).toBe(false);
+  });
+
+  it('can restore an exported draft whose saved JSON exceeds 2 MiB', async () => {
+    const sqlite = new Database(':memory:');
+    try {
+      sqlite.exec(await Bun.file('drizzle/0000_schema.sql').text());
+      const db = new SqliteDatabase(sqlite);
+      const app = createApp({ DB: db, KV: new AppKV(db), APP_PASSWORD: 'backup-test-password' });
+      const login = await app.request('/api/auth/login', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ password: 'backup-test-password' }),
+      });
+      const { token } = await login.json() as { token: string };
+      const headers = { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' };
+      const topicResponse = await app.request('/api/topics', {
+        method: 'POST', headers, body: JSON.stringify({ title: '大文案往返恢复' }),
+      });
+      const { id } = await topicResponse.json() as { id: string };
+      const contentJson = JSON.stringify({ type: 'doc', text: 'x'.repeat(2 * 1024 * 1024 + 100) });
+      const save = await app.request(`/api/topics/${id}/draft`, {
+        method: 'PUT', headers,
+        body: JSON.stringify({ content_markdown: '', content_json: contentJson, content_html: '', base_version: 0 }),
+      });
+      expect(save.status).toBe(200);
+      const exportResponse = await app.request('/api/backup', { headers });
+      const backup = (await exportResponse.json()).data;
+      expect(validateBackupData(backup).success).toBe(true);
+      const restore = await app.request('/api/backup', { method: 'PUT', headers, body: JSON.stringify({ data: backup }) });
+      expect(restore.status).toBe(200);
+      const restoredDraft = await (await app.request(`/api/topics/${id}/draft`, { headers })).json();
+      expect(restoredDraft.content_json).toBe(contentJson);
+    } finally {
+      sqlite.close();
+    }
   });
 
   it('rejects backups from older versions', () => {

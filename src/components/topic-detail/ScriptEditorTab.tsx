@@ -11,7 +11,7 @@ import { Extension } from '@tiptap/core';
 import type { Editor as TiptapEditor } from '@tiptap/core';
 import { Plugin, PluginKey } from '@tiptap/pm/state';
 import { Decoration, DecorationSet } from '@tiptap/pm/view';
-import { CitationInput, Draft, DraftCitation, Topic, Source, AppSettings, EditorFontSize, EditorLineHeight, DEFAULT_VOICEOVER_CUES, TopicReport } from '../../types';
+import { CitationInput, Draft, DraftRecoveryConflict, DraftCitation, Topic, Source, AppSettings, EditorFontSize, EditorLineHeight, DEFAULT_VOICEOVER_CUES, TopicReport } from '../../types';
 import { ScriptReferenceDrawer } from './ScriptReferenceDrawer';
 import { ScriptOutlinePanel } from './ScriptOutlinePanel';
 import { Modal } from '../ui/Modal';
@@ -204,6 +204,7 @@ interface ScriptEditorTabProps {
     title: string,
     contentMarkdown: string
   ) => Promise<void>;
+  onResolveDraftConflict: (conflict: DraftRecoveryConflict, choice: 'local' | 'remote') => Promise<Draft | null>;
   onCacheDraftLocally: (contentHtml: string, contentJson: string, wordCount: number, title: string, contentMarkdown: string) => boolean;
   onSaveDraftImmediately: (contentHtml: string, contentJson: string, wordCount: number, title: string, contentMarkdown: string) => boolean;
   onSaveCitation: (input: CitationInput) => Promise<DraftCitation>;
@@ -229,6 +230,7 @@ export const ScriptEditorTab: React.FC<ScriptEditorTabProps> = ({
   readingSpeed,
   settings,
   onSaveDraft,
+  onResolveDraftConflict,
   onCacheDraftLocally,
   onSaveDraftImmediately,
   onSaveCitation,
@@ -242,7 +244,8 @@ export const ScriptEditorTab: React.FC<ScriptEditorTabProps> = ({
   const initialTitle = initialDraft?.title?.trim() || topicTitle;
   const [draftTitle, setDraftTitle] = useState(initialTitle);
   const [saveStatus, setSaveStatus] = useState<'saved' | 'saving' | 'unsaved' | 'local' | 'pending' | 'cache-error' | 'conflict'>('saved');
-  const [draftConflict, setDraftConflict] = useState<Draft | null>(null);
+  const [draftConflict, setDraftConflict] = useState<{ remote: Draft | null } | null>(null);
+  const draftConflictRef = useRef(false);
   const [lastSavedTime, setLastSavedTime] = useState<string>(
     initialDraft?.updated_at ? formatBeijingDateTime(initialDraft.updated_at, 'zh-CN', { hour: '2-digit', minute: '2-digit', second: '2-digit' }) : '刚刚'
   );
@@ -385,6 +388,7 @@ export const ScriptEditorTab: React.FC<ScriptEditorTabProps> = ({
     while (true) {
       const latest = latestContentRef.current;
       if (!latest || !hasUnsavedChangesRef.current) return;
+      if (draftConflictRef.current) throw new Error('请先解决文案版本冲突');
       if (draftSavePromiseRef.current) {
         await draftSavePromiseRef.current;
         continue;
@@ -407,7 +411,8 @@ export const ScriptEditorTab: React.FC<ScriptEditorTabProps> = ({
         } catch (error) {
           if (error instanceof DraftConflictError) {
             setSaveStatus('conflict');
-            setDraftConflict(error.current);
+            draftConflictRef.current = true;
+            setDraftConflict({ remote: error.current });
           } else {
             setSaveStatus(localCacheAvailableRef.current
               ? 'local'
@@ -441,7 +446,7 @@ export const ScriptEditorTab: React.FC<ScriptEditorTabProps> = ({
       const persisted = localCacheRef.current(latest.html, latest.json, latest.wordCount, latest.title, latest.markdown);
       localCacheAvailableRef.current = persisted;
       localCacheFailedRef.current = !persisted;
-      setSaveStatus(persisted ? 'local' : 'cache-error');
+      setSaveStatus(draftConflictRef.current ? 'conflict' : persisted ? 'local' : 'cache-error');
     }, 1500);
 
     saveTimeoutRef.current = setTimeout(() => {
@@ -838,41 +843,48 @@ export const ScriptEditorTab: React.FC<ScriptEditorTabProps> = ({
 
   const resolveDraftConflict = async (choice: 'local' | 'remote') => {
     if (!draftConflict || !latestContentRef.current) return;
-    if (choice === 'local') {
-      try {
-        const latest = latestContentRef.current;
-        setSaveStatus('saving');
-        await onSaveDraft(topicId, latest.html, latest.json, latest.wordCount, latest.title, latest.markdown);
-        hasUnsavedChangesRef.current = false;
-        localCacheAvailableRef.current = false;
-        localCacheFailedRef.current = false;
-        setSaveStatus('saved');
-        setLastSavedTime(formatBeijingDateTime(new Date(), 'zh-CN', { hour: '2-digit', minute: '2-digit', second: '2-digit' }));
-        setDraftConflict(null);
-      } catch (error) {
-        console.error(error);
-        setSaveStatus(localCacheAvailableRef.current
-          ? 'local'
-          : localCacheFailedRef.current ? 'cache-error' : 'pending');
-      }
-      return;
-    }
-    editor?.commands.setContent(draftConflict.content_markdown || '', { contentType: 'markdown', emitUpdate: false });
-    latestContentRef.current = {
-      markdown: draftConflict.content_markdown,
-      html: draftConflict.content_html,
-      json: draftConflict.content_json,
-      wordCount: draftConflict.word_count,
-      title: draftConflict.title || topicTitle,
+    if (saveTimeoutRef.current) clearTimeout(saveTimeoutRef.current);
+    if (localSaveTimeoutRef.current) clearTimeout(localSaveTimeoutRef.current);
+    const latest = latestContentRef.current;
+    const remote = draftConflict.remote;
+    const local: Draft = {
+      id: initialDraft?.id || `pending-${topicId}`,
+      topic_id: topicId,
+      title: latest.title,
+      content_markdown: latest.markdown,
+      content_html: latest.html,
+      content_json: latest.json,
+      word_count: latest.wordCount,
+      version: initialDraft?.version || 0,
+      updated_at: new Date().toISOString(),
     };
-    setDraftTitle(draftConflict.title || topicTitle);
-    draftTitleRef.current = draftConflict.title || topicTitle;
-    hasUnsavedChangesRef.current = false;
-    localCacheAvailableRef.current = false;
-    localCacheFailedRef.current = false;
-    setSaveStatus('saved');
-    setLastSavedTime(formatBeijingDateTime(draftConflict.updated_at, 'zh-CN', { hour: '2-digit', minute: '2-digit', second: '2-digit' }));
-    setDraftConflict(null);
+    try {
+      setSaveStatus('saving');
+      const resolved = await onResolveDraftConflict({ local, remote, base_version: local.version }, choice);
+      if (choice === 'remote') {
+        editor?.commands.setContent(resolved?.content_markdown || '', { contentType: 'markdown', emitUpdate: false });
+        latestContentRef.current = {
+          markdown: resolved?.content_markdown || '',
+          html: resolved?.content_html || '',
+          json: resolved?.content_json || '',
+          wordCount: resolved?.word_count || 0,
+          title: resolved?.title || topicTitle,
+        };
+        setDraftTitle(resolved?.title || topicTitle);
+        draftTitleRef.current = resolved?.title || topicTitle;
+      }
+      hasUnsavedChangesRef.current = false;
+      localCacheAvailableRef.current = false;
+      localCacheFailedRef.current = false;
+      draftConflictRef.current = false;
+      setSaveStatus('saved');
+      setLastSavedTime(formatBeijingDateTime(resolved?.updated_at || new Date(), 'zh-CN', { hour: '2-digit', minute: '2-digit', second: '2-digit' }));
+      setDraftConflict(null);
+    } catch (error) {
+      if (error instanceof DraftConflictError) setDraftConflict({ remote: error.current });
+      setSaveStatus('conflict');
+      console.error(error);
+    }
   };
 
   // Flush pending content synchronously before leaving
@@ -888,11 +900,11 @@ export const ScriptEditorTab: React.FC<ScriptEditorTabProps> = ({
         localSaveTimeoutRef.current = null;
       }
       const latest = latestContentRef.current;
-      const persisted = immediateSaveRef.current(latest.html, latest.json, latest.wordCount, latest.title, latest.markdown);
+      const persisted = (draftConflictRef.current ? localCacheRef.current : immediateSaveRef.current)(latest.html, latest.json, latest.wordCount, latest.title, latest.markdown);
       localCacheAvailableRef.current = persisted;
       localCacheFailedRef.current = !persisted;
-      setSaveStatus(persisted ? 'local' : 'cache-error');
-      hasUnsavedChangesRef.current = false;
+      setSaveStatus(draftConflictRef.current ? 'conflict' : persisted ? 'local' : 'cache-error');
+      if (!draftConflictRef.current) hasUnsavedChangesRef.current = false;
     };
     const flushWhenHidden = () => {
       if (document.visibilityState === 'hidden') flushPendingDraft();
@@ -1185,7 +1197,7 @@ export const ScriptEditorTab: React.FC<ScriptEditorTabProps> = ({
               </div>
               <div className="rounded-xl border border-stone-200 dark:border-stone-800 bg-stone-50 dark:bg-stone-800/60 p-4">
                 <div className="font-semibold text-stone-900 dark:text-stone-100">云端最新版本</div>
-                <div className="mt-2 text-xs text-stone-600 dark:text-stone-300">{draftConflict.word_count} 字 · {formatBeijingDateTime(draftConflict.updated_at)}</div>
+                <div className="mt-2 text-xs text-stone-600 dark:text-stone-300">{draftConflict.remote ? `${draftConflict.remote.word_count} 字 · ${formatBeijingDateTime(draftConflict.remote.updated_at)}` : '云端尚无文案'}</div>
               </div>
             </div>
             <div className="flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">

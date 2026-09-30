@@ -6,6 +6,7 @@ import { NativeApp } from '../src/server/native';
 import { SqliteDatabase } from '../src/server/sqlite';
 import type { ApiBindings } from '../src/server/apiShared';
 import type { TopicTodo, TopicTodoBoardLayout, TopicTodoMutationResult } from '../src/types';
+import { validateBackupData } from '../src/lib/backupValidation';
 
 describe('Topic Todo board API', () => {
   let sqlite: Database;
@@ -46,6 +47,59 @@ describe('Topic Todo board API', () => {
 
   const updateBoard = (topicId: string, layout: TopicTodoBoardLayout) => app.request(`/api/topics/${topicId}/todos/board`, {
     method: 'PATCH', headers, body: JSON.stringify(layout),
+  });
+
+  it('serializes concurrent creations without losing lane order or the first current action', async () => {
+    const topic = await createTopic('并发新增选题');
+    await Promise.all([
+      createTodo(topic.id, '并发行动一', 'in_progress'),
+      createTodo(topic.id, '并发行动二', 'in_progress'),
+      createTodo(topic.id, '并发行动三', 'in_progress'),
+      createTodo(topic.id, '并发待办一'),
+      createTodo(topic.id, '并发待办二'),
+    ]);
+    const response = await app.request(`/api/topics/${topic.id}/todos`, { headers });
+    const todos = await response.json() as TopicTodo[];
+    const active = todos.filter((todo) => todo.status === 'in_progress');
+    const backlog = todos.filter((todo) => todo.status === 'todo');
+    expect(active.map((todo) => todo.sort_order)).toEqual([1, 2, 3]);
+    expect(backlog.map((todo) => todo.sort_order)).toEqual([1, 2]);
+    expect(active.map((todo) => todo.is_current)).toEqual([1, 0, 0]);
+    expect(active[0].current_started_at).toBeTruthy();
+    const backup = await app.request('/api/backup', { headers });
+    expect(validateBackupData((await backup.json()).data).success).toBe(true);
+  });
+
+  it('preserves every state change when completion and creation arrive together', async () => {
+    const topic = await createTopic('并发流转选题', '完成原行动');
+    await createTodo(topic.id, '继任行动', 'in_progress');
+    const currentId = topic.current_todo!.id;
+    const [completion] = await Promise.all([
+      app.request(`/api/todos/${currentId}/complete`, { method: 'POST', headers }),
+      createTodo(topic.id, '新行动', 'in_progress'),
+    ]);
+    expect(completion.status).toBe(200);
+    const response = await app.request(`/api/topics/${topic.id}/todos`, { headers });
+    const todos = await response.json() as TopicTodo[];
+    expect(todos.find((todo) => todo.id === currentId)).toMatchObject({ status: 'completed', is_current: 0 });
+    const active = todos.filter((todo) => todo.status === 'in_progress');
+    expect(active.map((todo) => todo.title)).toEqual(['继任行动', '新行动']);
+    expect(active.map((todo) => todo.sort_order)).toEqual([1, 2]);
+    expect(active.map((todo) => todo.is_current)).toEqual([1, 0]);
+  });
+
+  it('rolls back the inserted Todo if rebuilding its board fails', async () => {
+    const topic = await createTopic('原子回滚选题', '保留当前行动');
+    sqlite.exec(`CREATE TRIGGER fail_todo_layout BEFORE UPDATE OF status ON topic_todos
+      BEGIN SELECT RAISE(ABORT, 'forced layout failure'); END`);
+    const response = await app.request(`/api/topics/${topic.id}/todos`, {
+      method: 'POST', headers, body: JSON.stringify({ title: '不应保留的新事项', status: 'in_progress' }),
+    });
+    expect(response.status).toBe(400);
+    expect(await response.json()).toEqual({ error: 'forced layout failure' });
+    const todos = await (await app.request(`/api/topics/${topic.id}/todos`, { headers })).json() as TopicTodo[];
+    expect(todos).toHaveLength(1);
+    expect(todos[0]).toMatchObject({ title: '保留当前行动', is_current: 1 });
   });
 
   it('creates the initial action in progress and adds later items to the end of todo', async () => {

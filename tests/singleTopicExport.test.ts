@@ -1,5 +1,6 @@
 import { describe, it, expect } from 'bun:test';
 import { exportSingleTopicMarkdown, htmlToCleanMarkdown } from '../src/lib/remoteStorage';
+import { fetchAndExportSingleTopicMarkdown } from '../src/lib/singleTopicExport';
 import type { Topic, Source, Draft } from '../src/types';
 
 describe('exportSingleTopicMarkdown utility', () => {
@@ -112,5 +113,32 @@ describe('exportSingleTopicMarkdown utility', () => {
     expect(exported).toContain('## 选题报告');
     expect(exported).toContain('核心事实梳理');
     expect(exported).toContain('2024年成立空壳公司');
+  });
+
+  it('loads the complete workspace for an export without warmed detail-tab caches', async () => {
+    const originalFetch = globalThis.fetch;
+    const originalStorage = Object.getOwnPropertyDescriptor(globalThis, 'localStorage');
+    const requests: string[] = [];
+    Object.defineProperty(globalThis, 'localStorage', { configurable: true, value: { getItem: () => null } });
+    globalThis.fetch = (async (input: RequestInfo | URL) => {
+      requests.push(String(input));
+      return Response.json({
+        sources: sampleSources,
+        report: { content_markdown: '导出报告冷缓存内容', word_count: 10 },
+        draft: sampleDraft,
+        citations: [], publish_package: null,
+      });
+    }) as typeof fetch;
+    try {
+      const exported = await fetchAndExportSingleTopicMarkdown(sampleTopic, 280);
+      expect(requests).toEqual(['/api/topics/topic-demo/workspace']);
+      expect(exported).toContain('官方裁判文书公示');
+      expect(exported).toContain('导出报告冷缓存内容');
+      expect(exported).toContain('这是一个**荒诞**的故事');
+    } finally {
+      globalThis.fetch = originalFetch;
+      if (originalStorage) Object.defineProperty(globalThis, 'localStorage', originalStorage);
+      else Reflect.deleteProperty(globalThis, 'localStorage');
+    }
   });
 });

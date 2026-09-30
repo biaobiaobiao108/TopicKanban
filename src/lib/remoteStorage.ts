@@ -103,6 +103,8 @@ class BoundedMemoryCache<K, V> {
 const KNOWN_STATE_CACHE_MAX_ENTRIES = 256;
 const KNOWN_STATE_CACHE_TTL_MS = 30 * 60 * 1000;
 const knownDraftVersions = new BoundedMemoryCache<string, number>(KNOWN_STATE_CACHE_MAX_ENTRIES, KNOWN_STATE_CACHE_TTL_MS);
+const draftConflicts = new BoundedMemoryCache<string, Draft | null>(KNOWN_STATE_CACHE_MAX_ENTRIES, KNOWN_STATE_CACHE_TTL_MS);
+const draftUploadEpochs = new BoundedMemoryCache<string, number>(KNOWN_STATE_CACHE_MAX_ENTRIES, KNOWN_STATE_CACHE_TTL_MS);
 let remoteStorageMemoryGeneration = 0;
 
 export interface BackupImportResult {
@@ -189,11 +191,15 @@ export function clearRemoteStorageMemoryCaches(): void {
   bootstrapPromise = null;
   bootstrapToken = null;
   knownDraftVersions.clear();
+  draftConflicts.clear();
+  draftUploadEpochs.clear();
   knownReportVersions.clear();
 }
 
 export function clearRemoteStorageTopicCaches(topicId: string): void {
   knownDraftVersions.delete(topicId);
+  draftConflicts.delete(topicId);
+  draftUploadEpochs.set(topicId, (draftUploadEpochs.get(topicId) ?? 0) + 1);
   knownReportVersions.delete(topicId);
   writePendingDraft(null, topicId);
 }
@@ -563,6 +569,7 @@ interface PendingDraftRecord {
   draft: Draft;
   base_version: number;
   cached_at: string;
+  requires_resolution?: boolean;
 }
 
 interface PendingDraftMemoryCache {
@@ -686,7 +693,11 @@ function clearPendingDraftIfCurrent(draft: Draft): void {
   }
 }
 
-async function uploadDraft(draft: Draft, keepalive = false, generation = remoteStorageMemoryGeneration): Promise<Draft> {
+async function uploadDraft(draft: Draft, keepalive = false, generation = remoteStorageMemoryGeneration, epoch = draftUploadEpochs.get(draft.topic_id) ?? 0): Promise<Draft> {
+  if (epoch !== (draftUploadEpochs.get(draft.topic_id) ?? 0)) throw new Error('草稿保存已被版本选择取代');
+  if (draftConflicts.get(draft.topic_id) !== undefined || readPendingDrafts()[draft.topic_id]?.requires_resolution) {
+    throw new DraftConflictError(draftConflicts.get(draft.topic_id) ?? null);
+  }
   try {
     const saved = await apiRequest<Draft>(
       `/api/topics/${encodeURIComponent(draft.topic_id)}/draft`,
@@ -704,7 +715,9 @@ async function uploadDraft(draft: Draft, keepalive = false, generation = remoteS
   } catch (error) {
     if (error instanceof DraftConflictError) {
       if (generation === remoteStorageMemoryGeneration) {
-        knownDraftVersions.set(draft.topic_id, error.current?.version || 0);
+        draftConflicts.set(draft.topic_id, error.current);
+        const pending = readPendingDrafts()[draft.topic_id];
+        if (pending) writePendingDraft({ ...pending, requires_resolution: true }, draft.topic_id);
       }
     }
     throw error;
@@ -713,10 +726,11 @@ async function uploadDraft(draft: Draft, keepalive = false, generation = remoteS
 
 function enqueueDraftUpload(draft: Draft, keepalive = false): Promise<Draft> {
   const generation = remoteStorageMemoryGeneration;
+  const epoch = draftUploadEpochs.get(draft.topic_id) ?? 0;
   const previous = draftUploadQueues.get(draft.topic_id);
   const upload = previous
-    ? previous.catch(() => undefined).then(() => uploadDraft(draft, keepalive, generation))
-    : uploadDraft(draft, keepalive, generation);
+    ? previous.catch(() => undefined).then(() => uploadDraft(draft, keepalive, generation, epoch))
+    : uploadDraft(draft, keepalive, generation, epoch);
   draftUploadQueues.set(draft.topic_id, upload);
   void upload.finally(() => {
     if (draftUploadQueues.get(draft.topic_id) === upload) {
@@ -727,12 +741,16 @@ function enqueueDraftUpload(draft: Draft, keepalive = false): Promise<Draft> {
 }
 
 function mergePendingDraft(topicId: string, serverDraft: Draft | null, generation = remoteStorageMemoryGeneration): DraftLoadResult {
-  if (generation === remoteStorageMemoryGeneration) {
-    knownDraftVersions.set(topicId, serverDraft?.version || 0);
-  }
   const pending = readPendingDrafts()[topicId];
+  if (generation === remoteStorageMemoryGeneration) {
+    knownDraftVersions.set(topicId, pending?.base_version ?? serverDraft?.version ?? 0);
+  }
   if (pending) {
-    if (pending.base_version !== (serverDraft?.version || 0)) {
+    if (pending.requires_resolution || pending.base_version !== (serverDraft?.version || 0)) {
+      if (generation === remoteStorageMemoryGeneration) {
+        draftConflicts.set(topicId, serverDraft);
+        writePendingDraft({ ...pending, requires_resolution: true }, topicId);
+      }
       return {
         draft: serverDraft,
         conflict: { local: pending.draft, remote: serverDraft, base_version: pending.base_version },
@@ -770,8 +788,10 @@ export async function resolveDraftRecovery(
   conflict: DraftRecoveryConflict,
   choice: 'local' | 'remote'
 ): Promise<Draft | null> {
+  draftUploadEpochs.set(topicId, (draftUploadEpochs.get(topicId) ?? 0) + 1);
+  draftConflicts.delete(topicId);
   if (choice === 'remote') {
-    writePendingDraft(null, topicId);
+    if (!writePendingDraft(null, topicId)) throw new Error('无法清除本地待同步草稿，请释放浏览器存储后重试');
     knownDraftVersions.set(topicId, conflict.remote?.version || 0);
     return conflict.remote;
   }
@@ -820,7 +840,9 @@ export function cacheDraftLocallyWithStatus(
   contentMarkdown: string,
 ): DraftCacheWriteResult {
   const previous = readPendingDrafts()[topicId];
-  const baseVersion = knownDraftVersions.get(topicId) ?? previous?.base_version ?? 0;
+  const baseVersion = previous?.requires_resolution
+    ? previous.base_version
+    : knownDraftVersions.get(topicId) ?? previous?.base_version ?? 0;
   const draft: Draft = {
     id: previous?.draft.id || `pending-${topicId}`,
     topic_id: topicId,
@@ -832,7 +854,7 @@ export function cacheDraftLocallyWithStatus(
     version: baseVersion,
     updated_at: new Date().toISOString(),
   };
-  const persisted = writePendingDraft({ draft, base_version: baseVersion, cached_at: draft.updated_at }, topicId);
+  const persisted = writePendingDraft({ draft, base_version: baseVersion, cached_at: draft.updated_at, requires_resolution: previous?.requires_resolution }, topicId);
   return { draft, persisted };
 }
 

@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect, useMemo, useCallback, useSyncExternalStore } from 'react';
 import { createPortal } from 'react-dom';
+import { useSearchParams } from 'react-router-dom';
 import { keepPreviousData, useQueries, useQueryClient } from '@tanstack/react-query';
 import {
   CollisionDetection,
@@ -280,6 +281,10 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
   onOpenCurrentAction,
 }) => {
   const queryClient = useQueryClient();
+  const [searchParams, setSearchParams] = useSearchParams();
+  const requestedStatus = searchParams.get('status');
+  const statusFilter = activeStatuses.find((status) => status === requestedStatus) || null;
+  const visibleColumns = ACTIVE_COLUMNS.filter((column) => !statusFilter || column.status === statusFilter);
   const isMobileViewport = useSyncExternalStore(subscribeToMobileViewport, getIsMobileViewport, () => false);
   const [topicsMap, setTopicsMap] = useState<TopicMap>(() => createTopicMap(topics));
   const [columns, setColumns] = useState<BoardColumns>(() => createColumns(topics));
@@ -325,7 +330,8 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
         sort: sortBy,
         direction: sortBy === 'sort_order' ? 'asc' : 'desc',
       }),
-      subscribed: true,
+      enabled: !statusFilter || statusFilter === status,
+      subscribed: !statusFilter || statusFilter === status,
       placeholderData: keepPreviousData,
     })),
   });
@@ -343,6 +349,12 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
     mobileStageAutoSelectedRef.current = false;
     setMobileActiveStage('inbox');
   }, [searchTerm, priorityFilter, selectedTagId, selectedPersonId, sortBy]);
+
+  useEffect(() => {
+    if (!statusFilter) return;
+    setMobileActiveStage(statusFilter);
+    mobileStageAutoSelectedRef.current = true;
+  }, [statusFilter, searchTerm, priorityFilter, selectedTagId, selectedPersonId, sortBy]);
 
   useEffect(() => {
     const failedPages: Array<{ status: TopicStatus; requestedPage: number }> = [];
@@ -474,6 +486,7 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
   ])) as Record<TopicStatus, number>, [columnQueries, topics]);
 
   useEffect(() => {
+    if (statusFilter) return;
     if (mobileStageAutoSelectedRef.current || columnQueries.some((query) => query.isPending || query.isPlaceholderData)) return;
     // Prefer the loaded items over totals: the latter can be stale while a
     // filtered query is settling, and selecting an empty stage makes the
@@ -482,7 +495,7 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
     if (!firstPopulatedStage) return;
     setMobileActiveStage(firstPopulatedStage);
     mobileStageAutoSelectedRef.current = true;
-  }, [columnQuerySignature, columnTotalCounts, loadedTopicsByStatus]);
+  }, [columnQuerySignature, columnTotalCounts, loadedTopicsByStatus, statusFilter]);
 
   useEffect(() => () => {
     if (dragNoticeTimerRef.current) clearTimeout(dragNoticeTimerRef.current);
@@ -895,11 +908,12 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
   }, [columns, loadedTopicsByStatus, onReorderTopics, optimisticUpdateQueryCache, queryClient, topicsMap]);
 
   const hasActiveFilters =
+    Boolean(statusFilter) ||
     priorityFilter !== 'all' ||
     selectedTagId !== 'all' ||
     selectedPersonId !== 'all' ||
     sortBy !== 'sort_order';
-  const isColumnDataSettling = columnQueries.some((query) => query.isPending || query.isPlaceholderData);
+  const isColumnDataSettling = columnQueries.some((query, index) => (!statusFilter || activeStatuses[index] === statusFilter) && (query.isPending || query.isPlaceholderData));
   const isDragDisabled = isMobileViewport || isColumnDataSettling || isReorderPending || Boolean(searchTerm) || priorityFilter !== 'all' || selectedTagId !== 'all' || selectedPersonId !== 'all';
 
   const handleResetFilters = useCallback(() => {
@@ -907,7 +921,13 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
     setSelectedTagId('all');
     setSelectedPersonId('all');
     setSortBy('sort_order');
-  }, []);
+    setSearchParams((previous) => {
+      const next = new URLSearchParams(previous);
+      next.delete('status');
+      return next;
+    }, { replace: true });
+    mobileStageAutoSelectedRef.current = false;
+  }, [setSearchParams]);
 
   const loadMoreColumn = useCallback((status: TopicStatus) => {
     if (loadingMorePage[status] !== undefined) return;
@@ -952,6 +972,19 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
     <div data-testid="kanban-page" className="mx-auto flex min-h-0 h-full w-full max-w-7xl min-w-0 flex-1 flex-col gap-5 overflow-y-auto overscroll-contain px-4 sm:px-6 lg:px-8 py-5 sm:py-6 mobile-bottom-nav-content">
       <PageHeader title="选题全景看板" icon={KanbanSquare} />
 
+      {statusFilter && (
+        <div className="flex items-center gap-3 text-xs text-[var(--ink-muted)]" role="status">
+          <span>当前阶段：{visibleColumns[0]?.label}</span>
+          <button type="button" onClick={() => setSearchParams((previous) => {
+            const next = new URLSearchParams(previous);
+            next.delete('status');
+            return next;
+          })} className="rounded-lg px-2 py-1 hover:bg-[var(--surface)] text-[var(--accent)] cursor-pointer">
+            显示全部阶段
+          </button>
+        </div>
+      )}
+
       {/* Filters Bar & View Switcher */}
       <div className="space-y-3">
         <div className="flex items-center justify-between flex-wrap gap-3">
@@ -991,7 +1024,7 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
 
       {/* Mobile Stage Selector Pill Bar (iPhone Safari optimized) */}
       <div data-testid="kanban-mobile-stage-tabs" className="md:hidden flex min-h-9 shrink-0 items-center gap-1.5 overflow-x-auto no-scrollbar -mx-2 rounded-[var(--radius-sm)] bg-[var(--canvas)] p-1 transition-colors">
-        {ACTIVE_COLUMNS.map((col) => {
+        {visibleColumns.map((col) => {
           const count = columnTotalCounts[col.status] || 0;
           const isActive = mobileActiveStage === col.status;
           return (
@@ -1027,7 +1060,7 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
       >
         {isMobileViewport ? (
           <div key={mobileActiveStage} data-testid="kanban-mobile-stage" className="mobile-stage-enter min-w-0">
-            {ACTIVE_COLUMNS.filter((c) => c.status === mobileActiveStage).map((col) => {
+            {visibleColumns.filter((c) => c.status === (statusFilter || mobileActiveStage)).map((col) => {
               const colTopics = visibleColumnTopics[col.status] || [];
               return (
                 <KanbanColumn
@@ -1057,7 +1090,7 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
         ) : (
           /* Desktop three-column board; drag and drop remains available here. */
           <div data-testid="kanban-desktop-board" className="min-w-0 grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
-            {ACTIVE_COLUMNS.map((col) => {
+            {visibleColumns.map((col) => {
               const colTopics = visibleColumnTopics[col.status] || [];
               return (
                 <div key={col.status} className="min-w-0">
