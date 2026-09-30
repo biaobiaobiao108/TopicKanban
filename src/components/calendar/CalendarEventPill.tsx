@@ -81,6 +81,30 @@ export const CalendarEventPill: React.FC<CalendarEventPillProps> = ({
     ? 'min-w-0 flex-1 line-clamp-2 whitespace-normal break-words font-medium leading-4'
     : 'min-w-0 flex-1 truncate';
 
+  if (compact && monthCell) {
+    const dotClass = {
+      planned_publish: 'bg-[var(--accent)]',
+      deadline: 'bg-amber-600 dark:bg-amber-400',
+      commercial_deal: 'bg-indigo-500',
+      published: 'bg-teal-600 dark:bg-teal-400',
+    }[event.type];
+
+    return (
+      <button
+        type="button"
+        onClick={handleClick}
+        data-testid="calendar-event"
+        data-calendar-event-type={event.type}
+        className="flex h-6 w-full min-w-0 items-center gap-1.5 rounded-md px-1.5 text-left text-xs leading-4 text-[var(--ink)] transition-colors hover:bg-[var(--surface)] focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[var(--accent)]"
+      >
+        <span className={`h-1.5 w-1.5 shrink-0 rounded-full ${dotClass}`} />
+        <span data-testid="calendar-event-title" className="min-w-0 flex-1 truncate font-medium">
+          {event.title}
+        </span>
+      </button>
+    );
+  }
+
   if (compact) {
     switch (event.type) {
       case 'planned_publish':

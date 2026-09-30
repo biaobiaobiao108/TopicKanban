@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useLayoutEffect, useRef, useState } from 'react';
 import { useDroppable } from '@dnd-kit/core';
 import { MonthDayCell } from './calendarUtils';
 import { CalendarEventItem } from './CalendarTypes';
@@ -18,6 +18,7 @@ interface CalendarMonthGridProps {
 }
 
 const WEEK_HEADERS = ['周一', '周二', '周三', '周四', '周五', '周六', '周日'];
+const MAX_MEASURED_EVENTS = 8;
 
 function MonthCellDroppable({
   cell,
@@ -41,9 +42,43 @@ function MonthCellDroppable({
     data: { date: cell.date },
   });
 
-  const MAX_VISIBLE_EVENTS = 1;
-  const visibleEvents = events.slice(0, MAX_VISIBLE_EVENTS);
-  const hiddenCount = events.length - MAX_VISIBLE_EVENTS;
+  const eventListRef = useRef<HTMLDivElement>(null);
+  const [visibleEventCount, setVisibleEventCount] = useState(events.length);
+  const hiddenCount = Math.max(0, events.length - visibleEventCount);
+
+  useLayoutEffect(() => {
+    const eventList = eventListRef.current;
+    if (!eventList) return;
+
+    const updateVisibleEvents = () => {
+      const listRect = eventList.getBoundingClientRect();
+      const items = Array.from(eventList.children);
+      const availableHeight = eventList.clientHeight;
+      const countThatFits = (height: number) => {
+        const bottom = listRect.top + height;
+        let count = 0;
+        for (const item of items) {
+          const itemRect = item.getBoundingClientRect();
+          if (itemRect.height > 0 && itemRect.bottom <= bottom + 0.5) count += 1;
+          else break;
+        }
+        return count;
+      };
+
+      const fittingCount = countThatFits(availableHeight);
+      const nextVisibleCount = fittingCount === events.length
+        ? events.length
+        : Math.max(1, countThatFits(Math.max(0, availableHeight - 18)));
+
+      setVisibleEventCount((current) => current === nextVisibleCount ? current : nextVisibleCount);
+    };
+
+    updateVisibleEvents();
+    if (typeof ResizeObserver === 'undefined') return;
+    const observer = new ResizeObserver(updateVisibleEvents);
+    observer.observe(eventList);
+    return () => observer.disconnect();
+  }, [events.length]);
 
   return (
     <div
@@ -51,7 +86,7 @@ function MonthCellDroppable({
       onClick={() => onDateClick(cell.date)}
       data-testid="calendar-month-cell"
       data-date={cell.date}
-      className={`relative group flex min-h-[104px] select-none flex-col border-b border-r border-[var(--line)]/35 p-1.5 transition-colors sm:min-h-[148px] sm:p-2.5 ${
+      className={`relative group flex h-full min-h-0 select-none flex-col overflow-hidden border-b border-r border-[var(--line)]/35 p-1.5 transition-colors sm:p-2 ${
         cell.isCurrentMonth
           ? cell.isWeekend
             ? 'bg-[var(--canvas)]/45'
@@ -68,7 +103,7 @@ function MonthCellDroppable({
       }`}
     >
       {/* Date header in cell */}
-      <div className="mb-1.5 flex items-center justify-between gap-1 sm:mb-2">
+      <div className="mb-1 flex shrink-0 items-center justify-between gap-1">
         <div className="flex min-w-0 items-center gap-1.5">
           <button
             type="button"
@@ -107,17 +142,23 @@ function MonthCellDroppable({
       </div>
 
       {/* Events list in cell */}
-      <div className="hidden space-y-1.5 overflow-visible md:block">
-        {visibleEvents.map((ev) => (
-          <CalendarEventPill
+      <div ref={eventListRef} className="hidden min-h-0 flex-1 flex-col gap-0.5 overflow-hidden md:flex">
+        {events.slice(0, MAX_MEASURED_EVENTS).map((ev, index) => (
+          <div
             key={ev.id}
-            event={ev}
-            compact
-            monthCell
-            onOpenTopic={onOpenTopic}
-            onOpenDeal={onOpenDeal}
-            onOpenPublished={onOpenPublished}
-          />
+            aria-hidden={index >= visibleEventCount}
+            className="shrink-0"
+            style={{ visibility: index < visibleEventCount ? 'visible' : 'hidden' }}
+          >
+            <CalendarEventPill
+              event={ev}
+              compact
+              monthCell
+              onOpenTopic={onOpenTopic}
+              onOpenDeal={onOpenDeal}
+              onOpenPublished={onOpenPublished}
+            />
+          </div>
         ))}
       </div>
 
@@ -130,9 +171,10 @@ function MonthCellDroppable({
             event.stopPropagation();
             onShowAllEvents(cell.date, events);
           }}
-          className="mt-1 flex min-h-8 w-full items-center justify-center gap-1 rounded-lg bg-[var(--surface)]/80 px-1.5 text-[10px] font-medium text-[var(--ink-muted)] transition-colors hover:bg-[var(--surface)] hover:text-[var(--ink)] md:hidden"
+          className="mt-auto flex h-5 min-w-5 w-fit items-center justify-center gap-1 self-start rounded-full bg-[var(--surface)]/80 px-1.5 text-[10px] font-medium text-[var(--ink-muted)] transition-colors hover:bg-[var(--surface)] hover:text-[var(--ink)] md:hidden"
         >
-          <span className="font-mono tabular-nums">{events.length}</span> 项
+          <span className="h-1 w-1 rounded-full bg-[var(--accent)]" />
+          <span className="font-mono tabular-nums">{events.length}</span>
         </button>
       )}
 
@@ -145,9 +187,9 @@ function MonthCellDroppable({
             event.stopPropagation();
             onShowAllEvents(cell.date, events);
           }}
-          className="mt-1 hidden min-h-7 w-full items-center justify-start rounded-lg px-2 text-left text-[11px] font-medium text-[var(--ink-muted)] transition-colors hover:bg-[var(--surface)] hover:text-[var(--ink)] md:flex"
+          className="absolute bottom-2 right-2 hidden h-[18px] min-w-6 items-center justify-center rounded-full bg-[var(--surface)] px-1.5 text-[10px] font-medium tabular-nums text-[var(--ink-muted)] shadow-2xs transition-colors hover:text-[var(--ink)] md:flex"
         >
-          查看其余 <span className="mx-1 font-mono tabular-nums">{hiddenCount}</span> 项
+          +{hiddenCount}
         </button>
       )}
     </div>
@@ -184,7 +226,7 @@ export const CalendarMonthGrid: React.FC<CalendarMonthGridProps> = ({
       {/* Grid of days */}
       <FloatingScrollbar
         data-testid="calendar-month-grid"
-        className="grid min-h-0 min-w-0 grid-cols-7 auto-rows-[max-content] touch-pan-y overscroll-contain"
+        className="grid min-h-0 min-w-0 grid-cols-7 auto-rows-[104px] touch-pan-y overscroll-contain md:auto-rows-[148px]"
         wrapperClassName="flex-1 min-h-0"
       >
         {days.map((cell) => {
