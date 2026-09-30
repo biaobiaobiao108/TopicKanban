@@ -205,6 +205,7 @@ export const CalendarMonthGrid: React.FC<CalendarMonthGridProps> = ({
   onOpenPublished,
 }) => {
   const today = useBeijingToday();
+  const weekCount = Math.ceil(days.length / 7);
   const [activeDateModal, setActiveDateModal] = useState<{ date: string; events: CalendarEventItem[] } | null>(null);
 
   return (
@@ -226,8 +227,9 @@ export const CalendarMonthGrid: React.FC<CalendarMonthGridProps> = ({
       {/* Grid of days */}
       <FloatingScrollbar
         data-testid="calendar-month-grid"
-        className="grid min-h-0 min-w-0 grid-cols-7 auto-rows-[104px] touch-pan-y overscroll-contain md:auto-rows-[148px]"
+        className="grid h-full min-h-0 min-w-0 grid-cols-7 touch-pan-y overscroll-contain"
         wrapperClassName="flex-1 min-h-0"
+        style={{ gridTemplateRows: `repeat(${weekCount}, minmax(0, 1fr))` }}
       >
         {days.map((cell) => {
           const events = eventsMap.get(cell.date) || [];

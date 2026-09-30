@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useState, useMemo, useEffect, useRef } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import {
   DndContext,
@@ -17,14 +17,9 @@ import {
   CalendarDays,
   ChevronLeft,
   ChevronRight,
-  Sparkles,
   Inbox,
-  Eye,
-  AlertCircle,
-  Handshake,
-  Film,
-  Zap,
   Filter,
+  Check,
 } from 'lucide-react';
 import {
   CalendarLayerFilters,
@@ -37,7 +32,6 @@ import {
   getWeekDays,
   shiftCalendarMonth,
   extractCalendarEvents,
-  calculateMonthStats,
 } from './calendarUtils';
 import { CalendarMonthGrid } from './CalendarMonthGrid';
 import { CalendarWeekGrid } from './CalendarWeekGrid';
@@ -46,6 +40,18 @@ import { UnscheduledTopicPool } from './UnscheduledTopicPool';
 import { CalendarDateActionModal } from './CalendarDateActionModal';
 import { StatusBadge, PriorityBadge } from '../ui/Badge';
 import { createBeijingCalendarDate } from '../../lib/actionDate';
+import { FloatingMenu } from '../ui/FloatingMenu';
+
+const CALENDAR_LAYER_OPTIONS: Array<{
+  key: keyof CalendarLayerFilters;
+  label: string;
+  dotClass: string;
+}> = [
+  { key: 'showPlannedPublish', label: '计划发片', dotClass: 'bg-[var(--accent)]' },
+  { key: 'showDeadlines', label: '制作截止', dotClass: 'bg-amber-500' },
+  { key: 'showDeals', label: '商单 DDL', dotClass: 'bg-indigo-500' },
+  { key: 'showPublished', label: '历史已发', dotClass: 'bg-teal-500' },
+];
 
 interface CalendarViewProps {
   topics: Topic[];
@@ -92,8 +98,10 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
   const [currentDate, setCurrentDate] = useState<Date>(() => parseCalendarDate(searchParams.get('date')) || createBeijingCalendarDate());
   const [viewMode, setViewMode] = useState<CalendarViewMode>(() => parseCalendarView(searchParams.get('view')));
   const [filters, setFilters] = useState<CalendarLayerFilters>(DEFAULT_CALENDAR_LAYERS);
+  const [isLayerMenuOpen, setIsLayerMenuOpen] = useState(false);
   const [isPoolOpen, setIsPoolOpen] = useState(false);
   const [draggedTopic, setDraggedTopic] = useState<Topic | null>(null);
+  const layerMenuTriggerRef = useRef<HTMLButtonElement>(null);
 
   // Modal State
   const [actionModal, setActionModal] = useState<{
@@ -199,11 +207,6 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
     return extractCalendarEvents(topics, effectiveDeals, effectivePublishedList, filters);
   }, [topics, effectiveDeals, effectivePublishedList, filters]);
 
-  // Month Statistics
-  const monthStats = useMemo(() => {
-    return calculateMonthStats(eventsMap, year, monthIndex, topics);
-  }, [eventsMap, year, monthIndex, topics]);
-
   // Unscheduled active topics
   const unscheduledTopics = useMemo(() => {
     return topics.filter(
@@ -241,10 +244,12 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
     setFilters((prev) => ({ ...prev, [key]: !prev[key] }));
   };
 
+  const enabledLayerCount = Object.values(filters).filter(Boolean).length;
+
   return (
     <DndContext sensors={sensors} onDragStart={handleDragStart} onDragEnd={handleDragEnd}>
-      <div className="flex h-full min-h-0 min-w-0 flex-1 overflow-y-auto overscroll-contain bg-[var(--canvas)] transition-colors">
-        <div className="mx-auto flex h-full min-h-0 w-full max-w-7xl flex-col gap-5 px-4 sm:px-6 lg:px-8 py-5 sm:py-6">
+      <div className="flex h-full min-h-0 min-w-0 flex-1 overflow-hidden bg-[var(--canvas)] transition-colors">
+        <div className="mx-auto flex h-full min-h-0 w-full max-w-7xl flex-col gap-3 px-4 py-3 sm:gap-4 sm:px-6 sm:py-4 lg:px-8">
           <PageHeader
             title="选题日历"
             icon={CalendarDays}
@@ -311,6 +316,65 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
                   ))}
                 </div>
 
+                <div className="relative">
+                  <button
+                    ref={layerMenuTriggerRef}
+                    type="button"
+                    aria-label="筛选日历图层"
+                    aria-expanded={isLayerMenuOpen}
+                    aria-controls={isLayerMenuOpen ? 'calendar-layer-menu' : undefined}
+                    onClick={() => setIsLayerMenuOpen((open) => !open)}
+                    className={`inline-flex h-10 items-center gap-1.5 rounded-xl border px-3 text-xs font-medium transition-colors ${
+                      isLayerMenuOpen || enabledLayerCount < CALENDAR_LAYER_OPTIONS.length
+                        ? 'border-[var(--line)] bg-[var(--surface)] text-[var(--ink)]'
+                        : 'border-transparent text-[var(--ink-muted)] hover:border-[var(--line)]/60 hover:bg-[var(--surface)] hover:text-[var(--ink)]'
+                    }`}
+                  >
+                    <Filter className="h-3.5 w-3.5" aria-hidden="true" />
+                    <span>图层</span>
+                    <span className="font-mono text-[10px] tabular-nums opacity-70">
+                      {enabledLayerCount}/{CALENDAR_LAYER_OPTIONS.length}
+                    </span>
+                  </button>
+
+                  <FloatingMenu
+                    isOpen={isLayerMenuOpen}
+                    anchorRef={layerMenuTriggerRef}
+                    onClose={() => setIsLayerMenuOpen(false)}
+                    id="calendar-layer-menu"
+                    ariaLabel="日历显示图层"
+                    width={192}
+                    minWidth={192}
+                    maxHeight={280}
+                    className="p-1.5"
+                  >
+                    <div className="px-2.5 py-1.5 text-[11px] font-medium text-[var(--ink-muted)]">
+                      显示事项
+                    </div>
+                    {CALENDAR_LAYER_OPTIONS.map(({ key, label, dotClass }) => (
+                      <button
+                        key={key}
+                        type="button"
+                        aria-pressed={filters[key]}
+                        onClick={() => handleToggleLayer(key)}
+                        className={`flex min-h-9 w-full items-center justify-between rounded-xl px-2.5 py-1.5 text-left text-xs transition-colors ${
+                          filters[key]
+                            ? 'text-[var(--ink)] hover:bg-[var(--canvas)]'
+                            : 'text-[var(--ink-muted)] opacity-60 hover:bg-[var(--canvas)] hover:opacity-100'
+                        }`}
+                      >
+                        <span className="flex items-center gap-2">
+                          <span className={`h-1.5 w-1.5 rounded-full ${dotClass}`} />
+                          {label}
+                        </span>
+                        {filters[key] && (
+                          <Check className="h-3.5 w-3.5 text-[var(--accent)]" aria-hidden="true" />
+                        )}
+                      </button>
+                    ))}
+                  </FloatingMenu>
+                </div>
+
                 {/* Toggle Unscheduled Drawer */}
                 <button
                   type="button"
@@ -331,131 +395,52 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
             )}
           />
 
-          <section aria-label="日历视图与排期池" className="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden rounded-2xl border border-[var(--line)] bg-[var(--surface)] shadow-subtle">
-            {/* Subheader: Month Stats & Layer Filter Toggles */}
-            <div className="flex shrink-0 flex-col gap-3 border-b border-[var(--line)]/50 bg-[var(--surface)]/90 backdrop-blur-md px-4 py-2.5 sm:px-5 lg:flex-row lg:items-center lg:justify-between">
-            {/* Stats Chips */}
-            <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-[var(--ink-muted)] select-none sm:gap-x-4">
-              <span className="shrink-0 font-medium text-[var(--ink)]">本月生产：</span>
-              <span className="inline-flex shrink-0 items-center gap-1.5">
-                <span className="w-1.5 h-1.5 rounded-full bg-[var(--accent)] shrink-0" />
-                计划发片 <strong className="font-mono tabular-nums text-[var(--ink)]">{monthStats.plannedPublishCount}</strong>
-              </span>
-              <span className="inline-flex shrink-0 items-center gap-1.5">
-                <span className="w-1.5 h-1.5 rounded-full bg-indigo-500 shrink-0" />
-                商单履约 <strong className="font-mono tabular-nums text-[var(--ink)]">{monthStats.commercialDealCount}</strong>
-              </span>
-              <span className="inline-flex shrink-0 items-center gap-1.5">
-                <span className="w-1.5 h-1.5 rounded-full bg-teal-500 shrink-0" />
-                已发视频 <strong className="font-mono tabular-nums text-[var(--ink)]">{monthStats.publishedVideoCount}</strong>
-              </span>
+          <section aria-label="日历视图与排期池" className="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden">
+            <div className="relative flex min-h-0 flex-1 gap-4 overflow-hidden">
+              {/* Main Grid View */}
+              {viewMode === 'month' && (
+                <CalendarMonthGrid
+                  days={monthDays}
+                  eventsMap={eventsMap}
+                  onDateClick={(date) => setActionModal({ date })}
+                  onOpenTopic={onOpenDetail}
+                  onOpenDeal={(id) => onOpenDeal?.(id)}
+                  onOpenPublished={() => onOpenPublished?.()}
+                />
+              )}
+
+              {viewMode === 'week' && (
+                <CalendarWeekGrid
+                  days={weekDays}
+                  eventsMap={eventsMap}
+                  onDateClick={(date) => setActionModal({ date })}
+                  onOpenTopic={onOpenDetail}
+                  onOpenDeal={(id) => onOpenDeal?.(id)}
+                  onOpenPublished={() => onOpenPublished?.()}
+                />
+              )}
+
+              {viewMode === 'agenda' && (
+                <CalendarAgendaView
+                  days={weekDays}
+                  eventsMap={eventsMap}
+                  onDateClick={(date) => setActionModal({ date })}
+                  onOpenTopic={onOpenDetail}
+                  onOpenDeal={(id) => onOpenDeal?.(id)}
+                  onOpenPublished={() => onOpenPublished?.()}
+                />
+              )}
+
+              {/* Unscheduled Topic Pool Drawer */}
+              <UnscheduledTopicPool
+                topics={topics}
+                isOpen={isPoolOpen}
+                onClose={() => setIsPoolOpen(false)}
+                onOpenDetail={onOpenDetail}
+                onScheduleTopic={(topic) => setActionModal({ date: getBeijingDateString(new Date()), topic })}
+              />
             </div>
-
-            {/* Layer Filter Pills */}
-            <div className="flex items-center gap-1 overflow-x-auto text-xs">
-              <span className="text-[11px] font-medium text-[var(--ink-muted)] shrink-0">图层：</span>
-
-              <button
-                type="button"
-                onClick={() => handleToggleLayer('showPlannedPublish')}
-                className={`px-2 py-1 rounded-[var(--radius-sm)] border transition-all cursor-pointer shrink-0 flex items-center gap-1.5 ${
-                  filters.showPlannedPublish
-                    ? 'border-transparent hover:border-[var(--line)] bg-transparent hover:bg-[var(--canvas)] text-[var(--ink)] font-medium'
-                    : 'border-transparent text-[var(--ink-muted)] opacity-40 line-through hover:opacity-75'
-                }`}
-              >
-                <span className="w-1.5 h-1.5 rounded-full bg-[var(--accent)] shrink-0" />
-                <span>计划发片</span>
-              </button>
-
-              <button
-                type="button"
-                onClick={() => handleToggleLayer('showDeadlines')}
-                className={`px-2 py-1 rounded-[var(--radius-sm)] border transition-all cursor-pointer shrink-0 flex items-center gap-1.5 ${
-                  filters.showDeadlines
-                    ? 'border-transparent hover:border-[var(--line)] bg-transparent hover:bg-[var(--canvas)] text-[var(--ink)] font-medium'
-                    : 'border-transparent text-[var(--ink-muted)] opacity-40 line-through hover:opacity-75'
-                }`}
-              >
-                <span className="w-1.5 h-1.5 rounded-full bg-amber-500 shrink-0" />
-                <span>制作截止</span>
-              </button>
-
-              <button
-                type="button"
-                onClick={() => handleToggleLayer('showDeals')}
-                className={`px-2 py-1 rounded-[var(--radius-sm)] border transition-all cursor-pointer shrink-0 flex items-center gap-1.5 ${
-                  filters.showDeals
-                    ? 'border-transparent hover:border-[var(--line)] bg-transparent hover:bg-[var(--canvas)] text-[var(--ink)] font-medium'
-                    : 'border-transparent text-[var(--ink-muted)] opacity-40 line-through hover:opacity-75'
-                }`}
-              >
-                <span className="w-1.5 h-1.5 rounded-full bg-indigo-500 shrink-0" />
-                <span>商单 DDL</span>
-              </button>
-
-              <button
-                type="button"
-                onClick={() => handleToggleLayer('showPublished')}
-                className={`px-2 py-1 rounded-[var(--radius-sm)] border transition-all cursor-pointer shrink-0 flex items-center gap-1.5 ${
-                  filters.showPublished
-                    ? 'border-transparent hover:border-[var(--line)] bg-transparent hover:bg-[var(--canvas)] text-[var(--ink)] font-medium'
-                    : 'border-transparent text-[var(--ink-muted)] opacity-40 line-through hover:opacity-75'
-                }`}
-              >
-                <span className="w-1.5 h-1.5 rounded-full bg-teal-500 shrink-0" />
-                <span>历史已发</span>
-              </button>
-
-            </div>
-            </div>
-
-        {/* Calendar Body Area + Side Pool */}
-        <div className="relative flex min-h-0 flex-1 gap-4 overflow-hidden p-3 mobile-bottom-nav-content sm:p-5">
-          {/* Main Grid View */}
-          {viewMode === 'month' && (
-            <CalendarMonthGrid
-              days={monthDays}
-              eventsMap={eventsMap}
-              onDateClick={(date) => setActionModal({ date })}
-              onOpenTopic={onOpenDetail}
-              onOpenDeal={(id) => onOpenDeal?.(id)}
-              onOpenPublished={() => onOpenPublished?.()}
-            />
-          )}
-
-          {viewMode === 'week' && (
-            <CalendarWeekGrid
-              days={weekDays}
-              eventsMap={eventsMap}
-              onDateClick={(date) => setActionModal({ date })}
-              onOpenTopic={onOpenDetail}
-              onOpenDeal={(id) => onOpenDeal?.(id)}
-              onOpenPublished={() => onOpenPublished?.()}
-            />
-          )}
-
-          {viewMode === 'agenda' && (
-            <CalendarAgendaView
-              days={weekDays}
-              eventsMap={eventsMap}
-              onDateClick={(date) => setActionModal({ date })}
-              onOpenTopic={onOpenDetail}
-              onOpenDeal={(id) => onOpenDeal?.(id)}
-              onOpenPublished={() => onOpenPublished?.()}
-            />
-          )}
-
-          {/* Unscheduled Topic Pool Drawer */}
-          <UnscheduledTopicPool
-            topics={topics}
-            isOpen={isPoolOpen}
-            onClose={() => setIsPoolOpen(false)}
-            onOpenDetail={onOpenDetail}
-            onScheduleTopic={(topic) => setActionModal({ date: getBeijingDateString(new Date()), topic })}
-          />
-        </div>
-        </section>
+          </section>
         </div>
 
         {/* Drag Overlay */}
