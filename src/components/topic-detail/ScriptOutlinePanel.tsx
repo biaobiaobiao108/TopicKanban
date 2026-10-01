@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useLayoutEffect, useRef } from 'react';
 import type { OutlineItem, ScriptOutline } from '../../lib/outline';
 import { FloatingScrollbar } from '../ui/FloatingScrollbar';
 
@@ -54,6 +54,34 @@ export const ScriptOutlinePanel: React.FC<ScriptOutlinePanelProps> = ({
 }) => {
   const outlineScrollRef = useRef<HTMLDivElement | null>(null);
 
+  useLayoutEffect(() => {
+    const container = outlineScrollRef.current;
+    const shell = container?.parentElement;
+    if (!isOpen || !container || !shell) return;
+    const fitCompleteRows = () => {
+      const list = container.querySelector<HTMLOListElement>('.script-outline-list');
+      const row = list?.querySelector<HTMLButtonElement>('button');
+      if (!list || !row) {
+        container.style.height = '100%';
+        return;
+      }
+      const style = getComputedStyle(container);
+      const padding = parseFloat(style.paddingTop) + parseFloat(style.paddingBottom);
+      const gap = parseFloat(getComputedStyle(list).rowGap) || 0;
+      const stride = row.offsetHeight + gap;
+      if (stride <= 0) return;
+      const rows = Math.max(1, Math.floor((shell.clientHeight - padding + gap) / stride));
+      container.style.height = `${Math.min(shell.clientHeight, rows * stride - gap + padding)}px`;
+    };
+    fitCompleteRows();
+    const observer = new ResizeObserver(fitCompleteRows);
+    observer.observe(shell);
+    return () => {
+      observer.disconnect();
+      container.style.removeProperty('height');
+    };
+  }, [isOpen, outline]);
+
   useEffect(() => {
     if (!isOpen || !activeItemId) return;
 
@@ -67,7 +95,7 @@ export const ScriptOutlinePanel: React.FC<ScriptOutlinePanelProps> = ({
 
     const containerRect = container.getBoundingClientRect();
     const buttonRect = activeButton.getBoundingClientRect();
-    const edgePadding = 8;
+    const edgePadding = 14;
     const visibleTop = containerRect.top + edgePadding;
     const visibleBottom = containerRect.bottom - edgePadding;
     let delta = 0;
@@ -88,7 +116,7 @@ export const ScriptOutlinePanel: React.FC<ScriptOutlinePanelProps> = ({
       aria-label="文案大纲"
       className="script-outline-panel"
     >
-      <div className="relative flex-1 min-h-0 flex flex-col">
+      <div className="script-outline-scroll-shell relative flex-1 min-h-0 flex flex-col">
         <div
           ref={outlineScrollRef}
           className="script-outline-scroll no-scrollbar flex-1 min-h-0 overflow-y-auto overscroll-contain"
