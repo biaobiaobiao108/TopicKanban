@@ -1,5 +1,4 @@
 import React, { useEffect, useRef } from 'react';
-import { ListTree } from 'lucide-react';
 import type { OutlineItem, ScriptOutline } from '../../lib/outline';
 import { FloatingScrollbar } from '../ui/FloatingScrollbar';
 
@@ -86,39 +85,34 @@ export const ScriptOutlinePanel: React.FC<ScriptOutlinePanelProps> = ({
   return (
     <aside
       id="script-outline"
-      aria-labelledby="script-outline-title"
+      aria-label="文案大纲"
       className="script-outline-panel"
     >
-      <header className="script-outline-header">
-        <div className="script-outline-title-row">
-          <ListTree className="script-outline-title-icon" aria-hidden="true" />
-          <h2 id="script-outline-title">文案大纲</h2>
-          {outline.flatItems.length > 0 && (
-            <span className="script-outline-count">{outline.flatItems.length}</span>
+      <div className="relative flex-1 min-h-0 flex flex-col">
+        <div
+          ref={outlineScrollRef}
+          className="script-outline-scroll no-scrollbar flex-1 min-h-0 overflow-y-auto overscroll-contain"
+          role="region"
+          aria-label="文案标题"
+          tabIndex={0}
+        >
+          {!outline.hasHeadings ? (
+            <div className="script-outline-empty">
+              <p>在正文使用 H1、H2、H3，即可自动生成层级大纲。</p>
+            </div>
+          ) : (
+            <div className="script-outline-content">
+              <OutlineList
+                items={outline.flatItems}
+                activeItemId={activeItemId}
+                onSelectHeading={onSelectHeading}
+              />
+
+            </div>
           )}
         </div>
-      </header>
-
-      <FloatingScrollbar
-        ref={outlineScrollRef}
-        className="script-outline-scroll"
-        wrapperClassName="flex-1 min-h-0"
-      >
-        {!outline.hasHeadings ? (
-          <div className="script-outline-empty">
-            <p>在正文使用 H1、H2、H3，即可自动生成层级大纲。</p>
-          </div>
-        ) : (
-          <div className="script-outline-content">
-            <OutlineList
-              items={outline.flatItems}
-              activeItemId={activeItemId}
-              onSelectHeading={onSelectHeading}
-            />
-
-          </div>
-        )}
-      </FloatingScrollbar>
+        <FloatingScrollbar scrollTargetRef={outlineScrollRef} enabled={false} style={{ display: 'none' }} />
+      </div>
     </aside>
   );
 };

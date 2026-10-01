@@ -69,19 +69,6 @@
   animation: scriptOutlineIn var(--motion-panel, 220ms) var(--motion-ease-out, cubic-bezier(0.16, 1, 0.3, 1));
 }
 
-.script-outline-header {
-  display: flex;
-  flex: none;
-  align-items: center;
-  height: 46px;
-  min-height: 46px;
-  padding: 0 6px;
-}
-
-.script-outline-title-row { display: flex; align-items: center; gap: 7px; min-width: 0; }
-.script-outline-title-icon { flex: none; width: 16px; height: 16px; color: var(--ink); }
-.script-outline-title-row h2 { margin: 0; color: var(--ink); font-size: 0.8rem; font-weight: 600; line-height: 1.4; }
-.script-outline-count { color: var(--ink-muted); font-size: 0.72rem; font-variant-numeric: tabular-nums; }
 .script-outline-scroll { padding: 8px 0 20px; }
 .script-outline-content, .script-outline-list, .script-outline-item { min-width: 0; max-width: 100%; }
 .script-outline-list { display: flex; flex-direction: column; gap: 2px; margin: 0; padding: 0; list-style: none; }
@@ -126,9 +113,6 @@
 @container (max-width: 768px) {
   .script-editor-document { --script-outline-gutter: 160px; --script-document-end-space: 20px; }
   .script-outline-panel { inset: 62px auto 88px 6px; width: 140px; }
-  .script-outline-title-row h2 { font-size: 0.72rem; }
-  .script-outline-title-row { gap: 4px; }
-  .script-outline-count { display: none; }
   .script-outline-item-button { padding-inline-start: calc(6px + (var(--script-outline-indent) - 6px) * 0.6); }
 }
 @media (prefers-reduced-motion: reduce) {
