@@ -33,6 +33,7 @@ import {
   updateTopicCaches,
 } from '../src/lib/queryCacheSync';
 import { refreshTopicData } from '../src/lib/topicQueryCache';
+import { mergeKanbanTopic } from '../src/lib/kanbanPagination';
 
 function topic(id: string, overrides: Partial<Topic> = {}): Topic {
   return {
@@ -151,6 +152,35 @@ describe('跨视图实体缓存同步', () => {
     expect(queryClient.getQueryData<PaginatedTopics>(key('production'))?.total).toBe(0);
     expect(queryClient.getQueryData<PaginatedTopics>(key('scripting'))?.items[0].title).toBe('新标题');
     expect(queryClient.getQueryData<PaginatedTopics>(key('scripting'))?.total).toBe(1);
+  });
+
+  it('跨列后旧工作区快照不会隐藏目标列卡片，返回原列也不重复', () => {
+    const queryClient = new QueryClient();
+    const staleWorkspaceTopic = topic('startup-topic', { status: 'inbox', sort_order: 8 });
+    const key = (status: Topic['status']) => ['kanban-column-page', status, '', 'all', 'all', 'all', 'sort_order', 1];
+    queryClient.setQueryData<PaginatedTopics>(key('inbox'), page([staleWorkspaceTopic]));
+    queryClient.setQueryData<PaginatedTopics>(key('scripting'), page([]));
+
+    updateTopicCaches(queryClient, staleWorkspaceTopic.id, { status: 'scripting', sort_order: 1 });
+    const targetPage = queryClient.getQueryData<PaginatedTopics>(key('scripting'))!;
+    const visible = targetPage.items.map((item) => mergeKanbanTopic(item, staleWorkspaceTopic))
+      .filter((item) => item.status === 'scripting');
+    expect(visible.map((item) => item.id)).toEqual([staleWorkspaceTopic.id]);
+    expect(visible[0].sort_order).toBe(1);
+    expect(targetPage.total).toBe(visible.length);
+    expect(targetPage.total_pages).toBe(1);
+    expect(queryClient.getQueryData<PaginatedTopics>(key('inbox'))?.items).toEqual([]);
+
+    updateTopicCaches(queryClient, staleWorkspaceTopic.id, { status: 'inbox', sort_order: 1 });
+    expect(queryClient.getQueryData<PaginatedTopics>(key('inbox'))?.items.map((item) => item.id)).toEqual([staleWorkspaceTopic.id]);
+    expect(queryClient.getQueryData<PaginatedTopics>(key('scripting'))?.items).toEqual([]);
+    expect(queryClient.getQueryData<PaginatedTopics>(key('scripting'))?.total).toBe(0);
+  });
+
+  it('首次直接进入看板、无工作区快照时沿用分页卡片', () => {
+    const current = topic('startup-topic');
+    expect(mergeKanbanTopic(current)).toBe(current);
+    expect(mergeKanbanTopic({ ...current, title: '新标题' }, current).title).toBe('新标题');
   });
 
   it('Todo 变更同步当前选题和执行看板缓存', () => {

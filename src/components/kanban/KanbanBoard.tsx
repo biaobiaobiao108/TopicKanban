@@ -27,7 +27,7 @@ import { ACTIVE_COLUMNS } from './columns';
 import { CheckCircle2, KanbanSquare, Snowflake } from 'lucide-react';
 import { PageHeader } from '../layout/PageHeader';
 import { FloatingScrollbar } from '../ui/FloatingScrollbar';
-import { rollbackFailedKanbanPage } from '../../lib/kanbanPagination';
+import { hasMoreKanbanPages, mergeKanbanTopic, rollbackFailedKanbanPage } from '../../lib/kanbanPagination';
 import { matchesTopicSearch } from '../../lib/topicSearch';
 import { fetchTopicPage } from '../../lib/storage';
 
@@ -414,7 +414,7 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
 
         const mergedItems = items.map((item) => {
           const parentTopic = parentTopicsById.get(item.id);
-          return parentTopic ? { ...item, ...parentTopic } : item;
+          return mergeKanbanTopic(item, parentTopic);
         });
 
         const currentPage = columnPages[status] || 1;
@@ -428,7 +428,7 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
             : undefined;
           const revealTopicSource = revealTopicFromCurrent || revealTopicFromParent;
           const retainedRevealTopic = revealTopicSource
-            ? { ...revealTopicSource, ...revealTopicFromParent, status }
+            ? { ...mergeKanbanTopic(revealTopicSource, revealTopicFromParent), status }
             : undefined;
           const revealMatchesFilters = retainedRevealTopic
             && matchesTopicSearch(retainedRevealTopic, searchTerm)
@@ -479,7 +479,7 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
     || columnQueries.some((query) => Boolean(query.data));
   const parentTopicsById = useMemo(() => new Map(topics.map((topic) => [topic.id, topic])), [topics]);
   const boardTopics = useMemo(
-    () => hasLoadedBoardData ? pagedTopics.map((topic) => parentTopicsById.get(topic.id) ? { ...topic, ...parentTopicsById.get(topic.id) } : topic) : topics,
+    () => hasLoadedBoardData ? pagedTopics.map((topic) => mergeKanbanTopic(topic, parentTopicsById.get(topic.id))) : topics,
     [hasLoadedBoardData, parentTopicsById, pagedTopics, topics]
   );
   const columnTotalCounts = useMemo(() => Object.fromEntries(activeStatuses.map((status, index) => [
@@ -639,6 +639,7 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
             ...oldData,
             items: newItems,
             total: Math.max(0, oldData.total + delta),
+            total_pages: Math.ceil(Math.max(0, oldData.total + delta) / oldData.page_size),
           };
         }
       );
@@ -933,10 +934,11 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
 
   const loadMoreColumn = useCallback((status: TopicStatus) => {
     if (loadingMorePage[status] !== undefined) return;
+    if (!hasMoreKanbanPages(columnPages[status], columnQueries[activeStatuses.indexOf(status)]?.data?.total_pages)) return;
     const nextPage = columnPages[status] + 1;
     setLoadingMorePage((current) => ({ ...current, [status]: nextPage }));
     setColumnPages((current) => ({ ...current, [status]: nextPage }));
-  }, [columnPages, loadingMorePage]);
+  }, [columnPages, columnQueries, loadingMorePage]);
   const loadMoreHandlers = useMemo(() => Object.fromEntries(
     activeStatuses.map((status) => [status, () => loadMoreColumn(status)]),
   ) as Record<TopicStatus, () => void>, [loadMoreColumn]);
@@ -1076,7 +1078,7 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
                   onOpenCurrentAction={onOpenCurrentAction}
                   revealTopicId={revealedTopic?.status === col.status ? revealedTopic.id : null}
                   totalCount={columnTotalCounts[col.status] || 0}
-                  hasMore={(columnTotalCounts[col.status] || 0) > (loadedTopicsByStatus[col.status]?.length || colTopics.length)}
+                  hasMore={hasMoreKanbanPages(columnPages[col.status], columnQueries[activeStatuses.indexOf(col.status)]?.data?.total_pages)}
                   isLoadingMore={loadingMorePage[col.status] === columnPages[col.status]}
                   onLoadMore={loadMoreHandlers[col.status]}
                   onDeleteTopic={handleColumnDelete}
@@ -1106,7 +1108,7 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
                     onOpenCurrentAction={onOpenCurrentAction}
                     revealTopicId={revealedTopic?.status === col.status ? revealedTopic.id : null}
                     totalCount={columnTotalCounts[col.status] || 0}
-                    hasMore={(columnTotalCounts[col.status] || 0) > (loadedTopicsByStatus[col.status]?.length || colTopics.length)}
+                    hasMore={hasMoreKanbanPages(columnPages[col.status], columnQueries[activeStatuses.indexOf(col.status)]?.data?.total_pages)}
                     isLoadingMore={loadingMorePage[col.status] === columnPages[col.status]}
                     onLoadMore={loadMoreHandlers[col.status]}
                     onDeleteTopic={handleColumnDelete}
