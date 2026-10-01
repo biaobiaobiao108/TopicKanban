@@ -69,7 +69,16 @@
   animation: scriptOutlineIn var(--motion-panel, 220ms) var(--motion-ease-out, cubic-bezier(0.16, 1, 0.3, 1));
 }
 
-.script-outline-scroll { padding: 8px 0 20px; }
+.script-outline-scroll {
+  display: flex;
+  flex-direction: column;
+  padding: 14px 0;
+}
+.script-outline-scroll > .script-outline-content,
+.script-outline-scroll > .script-outline-empty {
+  flex-shrink: 0;
+  margin-block: auto;
+}
 .script-outline-content, .script-outline-list, .script-outline-item { min-width: 0; max-width: 100%; }
 .script-outline-list { display: flex; flex-direction: column; gap: 2px; margin: 0; padding: 0; list-style: none; }
 .script-outline-item--level-1 { --script-outline-indent: 6px; --script-outline-weight: 650; }
