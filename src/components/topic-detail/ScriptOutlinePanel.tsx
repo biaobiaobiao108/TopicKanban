@@ -1,5 +1,5 @@
 import React, { useEffect, useRef } from 'react';
-import { Compass, ListTree, X } from 'lucide-react';
+import { ListTree } from 'lucide-react';
 import type { OutlineItem, ScriptOutline } from '../../lib/outline';
 import { FloatingScrollbar } from '../ui/FloatingScrollbar';
 
@@ -7,7 +7,6 @@ interface ScriptOutlinePanelProps {
   isOpen: boolean;
   outline: ScriptOutline;
   activeItemId: string | null;
-  onClose: () => void;
   onSelectHeading: (item: OutlineItem) => void;
 }
 
@@ -34,14 +33,11 @@ const OutlineList: React.FC<OutlineListProps> = ({
             type="button"
             data-outline-id={item.id}
             aria-current={isActive ? 'true' : undefined}
+            aria-label={item.title}
             onMouseDown={(event) => event.preventDefault()}
             onClick={() => onSelectHeading(item)}
             className="script-outline-item-button"
           >
-            <span
-              className={`script-outline-level-marker script-outline-level-marker--${item.level}`}
-              aria-hidden="true"
-            >{item.level}</span>
             <span className="script-outline-item-title">{item.title}</span>
           </button>
 
@@ -55,7 +51,6 @@ export const ScriptOutlinePanel: React.FC<ScriptOutlinePanelProps> = ({
   isOpen,
   outline,
   activeItemId,
-  onClose,
   onSelectHeading,
 }) => {
   const outlineScrollRef = useRef<HTMLDivElement | null>(null);
@@ -88,68 +83,42 @@ export const ScriptOutlinePanel: React.FC<ScriptOutlinePanelProps> = ({
 
   if (!isOpen) return null;
 
-  const handleSelectHeading = (item: OutlineItem) => {
-    onSelectHeading(item);
-    if (!window.matchMedia('(min-width: 1280px)').matches) onClose();
-  };
-
   return (
-    <>
-      <div
-        className="fixed inset-0 z-20 bg-black/15 dark:bg-black/40 lg:hidden backdrop-blur-xs transition-opacity animate-in fade-in duration-150"
-        onClick={onClose}
-        aria-hidden="true"
-      />
-      <aside
-        id="script-outline"
-        aria-labelledby="script-outline-title"
-        className="script-outline-panel absolute inset-y-0 left-0 z-30 flex h-full flex-col overflow-hidden border-r border-[var(--line)] shadow-xl animate-in slide-in-from-left duration-200 xl:shadow-none"
-      >
-        <header className="script-outline-header">
-          <div className="script-outline-title-row">
-            <ListTree className="script-outline-title-icon" aria-hidden="true" />
-            <h2 id="script-outline-title">文案大纲</h2>
-            {outline.flatItems.length > 0 && (
-              <span className="script-outline-count">{outline.flatItems.length}</span>
-            )}
-          </div>
-          <p className="script-outline-summary">
-            {outline.flatItems.length > 0 ? '点击标题跳转到正文' : '当前文案暂无标题'}
-          </p>
-          <button
-            type="button"
-            aria-label="退出文案大纲"
-            onClick={onClose}
-            className="script-outline-close-button cursor-pointer"
-          >
-            <X className="h-3.5 w-3.5" aria-hidden="true" />
-          </button>
-        </header>
-
-        <FloatingScrollbar
-          ref={outlineScrollRef}
-          className="script-outline-scroll"
-          wrapperClassName="flex-1 min-h-0"
-        >
-          {!outline.hasHeadings ? (
-            <div className="script-outline-empty">
-              <div className="script-outline-empty-mark" aria-hidden="true">
-                <Compass className="h-4 w-4" />
-              </div>
-              <p>在正文使用 H1、H2、H3，即可自动生成层级大纲。</p>
-            </div>
-          ) : (
-            <div className="script-outline-content">
-              <OutlineList
-                items={outline.flatItems}
-                activeItemId={activeItemId}
-                onSelectHeading={handleSelectHeading}
-              />
-
-            </div>
+    <aside
+      id="script-outline"
+      aria-labelledby="script-outline-title"
+      className="script-outline-panel"
+    >
+      <header className="script-outline-header">
+        <div className="script-outline-title-row">
+          <ListTree className="script-outline-title-icon" aria-hidden="true" />
+          <h2 id="script-outline-title">文案大纲</h2>
+          {outline.flatItems.length > 0 && (
+            <span className="script-outline-count">{outline.flatItems.length}</span>
           )}
-        </FloatingScrollbar>
-      </aside>
-    </>
+        </div>
+      </header>
+
+      <FloatingScrollbar
+        ref={outlineScrollRef}
+        className="script-outline-scroll"
+        wrapperClassName="flex-1 min-h-0"
+      >
+        {!outline.hasHeadings ? (
+          <div className="script-outline-empty">
+            <p>在正文使用 H1、H2、H3，即可自动生成层级大纲。</p>
+          </div>
+        ) : (
+          <div className="script-outline-content">
+            <OutlineList
+              items={outline.flatItems}
+              activeItemId={activeItemId}
+              onSelectHeading={onSelectHeading}
+            />
+
+          </div>
+        )}
+      </FloatingScrollbar>
+    </aside>
   );
 };

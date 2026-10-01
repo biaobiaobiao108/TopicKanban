@@ -594,6 +594,7 @@ export const ScriptEditorTab: React.FC<ScriptEditorTabProps> = ({
   // Global hotkeys for Zen mode & Teleprompter
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.isComposing || e.keyCode === 229) return;
       // Cmd/Ctrl + Shift + P -> Open Teleprompter
       if ((e.metaKey || e.ctrlKey) && e.shiftKey && (e.key === 'P' || e.key === 'p')) {
         e.preventDefault();
@@ -613,15 +614,15 @@ export const ScriptEditorTab: React.FC<ScriptEditorTabProps> = ({
           setIsCueMenuOpen(false);
           return;
         }
-        if (isOutlineOpen) {
-          e.preventDefault();
-          setIsOutlineOpen(false);
-        } else if (isReferenceOpen) {
+        if (isReferenceOpen) {
           e.preventDefault();
           setIsReferenceOpen(false);
         } else if (isZenMode) {
           e.preventDefault();
           setIsZenMode(false);
+        } else if (isOutlineOpen) {
+          e.preventDefault();
+          setIsOutlineOpen(false);
         }
       }
     };
@@ -812,7 +813,7 @@ export const ScriptEditorTab: React.FC<ScriptEditorTabProps> = ({
         outlineScrollSyncFrameRef.current = null;
       }
     };
-  }, [editor, outline, syncOutlineWithEditorScroll]);
+  }, [editor, outline, syncOutlineWithEditorScroll, isZenMode]);
 
   useEffect(() => {
     if (!editor || !pendingOutlineHtml || lastInjectedOutlineRef.current === pendingOutlineHtml) return;
@@ -1124,7 +1125,6 @@ export const ScriptEditorTab: React.FC<ScriptEditorTabProps> = ({
         );
       });
 
-      if (isMobileEditor()) setIsOutlineOpen(false);
     } catch {
       // The document may have changed between rendering the outline and clicking an item.
     }
@@ -1220,6 +1220,8 @@ export const ScriptEditorTab: React.FC<ScriptEditorTabProps> = ({
               onClick={toggleOutlinePanel}
               aria-label="展开/收起文案大纲与章节定位"
               aria-pressed={isOutlineOpen}
+              aria-expanded={isOutlineOpen}
+              aria-controls="script-outline"
               className={`flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-medium transition-all cursor-pointer ${
                 isOutlineOpen
                   ? 'bg-[var(--accent-soft)] text-[var(--accent-dark)] font-semibold shadow-2xs ring-1 ring-[var(--accent)]/20'
@@ -1488,26 +1490,6 @@ export const ScriptEditorTab: React.FC<ScriptEditorTabProps> = ({
       {/* Floating Zen Controls (Ambient Dynamic Respiration HUD) */}
       {isZenMode && (
         <>
-          {/* Top-Left: Floating Outline Drawer Toggle */}
-          {!isOutlineOpen && (
-            <div className={`fixed left-5 sm:left-8 top-5 sm:top-7 z-40 transition-opacity duration-300 ${isTypingZen ? 'opacity-25 hover:opacity-100' : 'opacity-100'}`}>
-              <button
-                type="button"
-                onClick={toggleOutlinePanel}
-                aria-label="展开/收起文案大纲"
-                className="flex items-center gap-2 rounded-full border border-[var(--line)] bg-[var(--surface)]/95 hover:bg-[var(--canvas)] backdrop-blur-md px-4 py-2 text-xs font-medium text-stone-700 dark:text-stone-200 hover:text-stone-950 dark:hover:text-white shadow-md hover:shadow-lg hover:-translate-y-0.5 transition-all cursor-pointer"
-              >
-                <Compass className="h-4 w-4 text-[var(--accent)]" />
-                <span>大纲</span>
-                {outline.flatItems.length > 0 && (
-                  <span className="text-[11px] font-mono text-stone-500 dark:text-stone-400 tabular-nums">
-                    {outline.flatItems.length}
-                  </span>
-                )}
-              </button>
-            </div>
-          )}
-
           {/* Top-Right: Floating Controls & Exit Button */}
           <div className={`fixed right-5 sm:right-8 top-5 sm:top-7 z-40 flex items-center gap-2 transition-all duration-300 ${isReferenceOpen ? 'script-editor-zen-reference-offset' : ''} ${isTypingZen ? 'opacity-25 hover:opacity-100' : 'opacity-100'}`}>
             {/* Unified Focus Typewriter Mode Toggle (仅在沉浸写作中出现) */}
@@ -1578,14 +1560,6 @@ export const ScriptEditorTab: React.FC<ScriptEditorTabProps> = ({
 
       {/* Writing Canvas & Side Drawer Split Area */}
       <div ref={splitAreaRef} className="flex-1 flex overflow-hidden relative">
-        <ScriptOutlinePanel
-          isOpen={isOutlineOpen}
-          outline={outline}
-          activeItemId={activeOutlineItemId}
-          onClose={() => setIsOutlineOpen(false)}
-          onSelectHeading={handleSelectOutlineItem}
-        />
-
         {/* Topic Report Split-Screen Panel */}
         {!isZenMode && isReportSplitOpen && (
           <>
@@ -1758,51 +1732,53 @@ export const ScriptEditorTab: React.FC<ScriptEditorTabProps> = ({
           </>
         )}
 
-        {/* Main Writing Canvas */}
-        <FloatingScrollbar
-          ref={scrollContainerRef}
-          style={{
-            ['--script-editor-font-size' as string]: FONT_SIZE_MAP[settings?.editor_font_size || 'standard'],
-            ['--script-editor-line-height' as string]: LINE_HEIGHT_MAP[settings?.editor_line_height || 'relaxed'],
-          }}
-          className={`script-editor-canvas-container flex-1 min-w-0 bg-[var(--canvas)] flex justify-center cursor-text transition-colors ${
-            isTypewriterActive ? 'script-editor-focus-mode' : ''
-          }`}
-        >
-          <div
-            className={`min-w-0 w-full transition-all ${
-              isZenMode
-                ? 'max-w-4xl px-6 sm:px-12 md:px-16'
-                : isReportSplitOpen
-                ? 'w-full max-w-4xl xl:max-w-5xl 2xl:max-w-6xl px-6 sm:px-8 md:px-10 lg:px-12 mx-auto'
-                : 'script-editor-stable-content'
-            } ${
-              isTypewriterActive
-                ? 'pt-8 sm:pt-12'
-                : 'pt-6 pb-36 sm:pt-8 sm:pb-48'
+        {/* Keep the outline anchored to the writing canvas, including report split view. */}
+        <div className="script-editor-writing-area" data-outline-open={String(isZenMode || isOutlineOpen)}>
+          <ScriptOutlinePanel
+            isOpen={isZenMode || isOutlineOpen}
+            outline={outline}
+            activeItemId={activeOutlineItemId}
+            onSelectHeading={handleSelectOutlineItem}
+          />
+          <FloatingScrollbar
+            ref={scrollContainerRef}
+            style={{
+              ['--script-editor-font-size' as string]: FONT_SIZE_MAP[settings?.editor_font_size || 'standard'],
+              ['--script-editor-line-height' as string]: LINE_HEIGHT_MAP[settings?.editor_line_height || 'relaxed'],
+            }}
+            className={`script-editor-canvas-container flex-1 min-w-0 bg-[var(--canvas)] flex justify-center cursor-text transition-colors ${
+              isTypewriterActive ? 'script-editor-focus-mode' : ''
             }`}
           >
-            <div className="mb-3 border-b border-[var(--line)] pb-2">
-              <label htmlFor="script-draft-title" className="sr-only">文案标题</label>
-              <input
-                id="script-draft-title"
-                name="script_draft_title"
-                data-no-focus-ring="true"
-                value={draftTitle}
-                onChange={(event) => handleDraftTitleChange(event.target.value)}
-                maxLength={200}
-                className="script-editor-title min-h-10 w-full border-0 bg-transparent px-0 text-2xl font-semibold tracking-tight text-[var(--ink)] outline-none ring-0 shadow-none placeholder:text-[var(--ink-muted)]/40 focus:ring-0 focus:outline-none focus:shadow-none sm:text-3xl"
-                placeholder="输入这期视频的文案标题"
+            <div
+              className={`script-editor-document ${
+                isTypewriterActive
+                  ? 'pt-8 sm:pt-12'
+                  : 'pt-6 pb-36 sm:pt-8 sm:pb-48'
+              }`}
+            >
+              <div className="mb-3 border-b border-[var(--line)] pb-2">
+                <label htmlFor="script-draft-title" className="sr-only">文案标题</label>
+                <input
+                  id="script-draft-title"
+                  name="script_draft_title"
+                  data-no-focus-ring="true"
+                  value={draftTitle}
+                  onChange={(event) => handleDraftTitleChange(event.target.value)}
+                  maxLength={200}
+                  className="script-editor-title min-h-10 w-full border-0 bg-transparent px-0 text-2xl font-semibold tracking-tight text-[var(--ink)] outline-none ring-0 shadow-none placeholder:text-[var(--ink-muted)]/40 focus:ring-0 focus:outline-none focus:shadow-none sm:text-3xl"
+                  placeholder="输入这期视频的文案标题"
+                />
+              </div>
+              <EditorContent
+                editor={editor}
+                className="min-h-[500px]"
               />
+              {editor && <TableEdgeControls editor={editor} deferredLoading={false} />}
+              {isTypewriterActive && <div ref={typewriterBottomSpacerRef} aria-hidden="true" />}
             </div>
-            <EditorContent
-              editor={editor}
-              className="min-h-[500px]"
-            />
-            {editor && <TableEdgeControls editor={editor} deferredLoading={false} />}
-            {isTypewriterActive && <div ref={typewriterBottomSpacerRef} aria-hidden="true" />}
-          </div>
-        </FloatingScrollbar>
+          </FloatingScrollbar>
+        </div>
 
         {/* Side Reference Drawer */}
         {topic && (

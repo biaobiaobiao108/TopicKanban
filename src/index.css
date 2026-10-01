@@ -926,7 +926,6 @@ html.theme-warm-paper ::-webkit-scrollbar-thumb { background: #d7cdbe; }
 html.theme-warm-paper ::-webkit-scrollbar-thumb:hover { background: #c2b6a2; }
 
 .tags-sidebar-panel,
-.script-outline-panel,
 .script-reference-drawer {
   background-color: var(--canvas) !important;
 }
