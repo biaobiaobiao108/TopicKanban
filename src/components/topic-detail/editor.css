@@ -79,6 +79,7 @@
 .script-outline-item--level-5 { --script-outline-indent: 46px; --script-outline-weight: 400; }
 .script-outline-item--level-6 { --script-outline-indent: 56px; --script-outline-weight: 400; }
 .script-outline-item-button {
+  position: relative;
   display: flex;
   align-items: center;
   width: 100%;
@@ -100,7 +101,18 @@
   cursor: pointer;
   transition: transform var(--motion-micro, 120ms) var(--motion-ease-out, cubic-bezier(0.16, 1, 0.3, 1));
 }
-.script-outline-item-button:hover, .script-outline-item-button[aria-current="true"] { color: var(--accent); }
+.script-outline-item-button:hover { color: var(--accent); }
+.script-outline-item-button[aria-current="true"] { color: var(--ink); font-weight: 650; }
+.script-outline-item-button[aria-current="true"]::before {
+  content: "";
+  position: absolute;
+  inset-inline-start: 0;
+  top: 9px;
+  width: 2px;
+  height: 12px;
+  border-radius: 999px;
+  background: var(--accent);
+}
 .script-outline-item-button:active { transform: scale(0.98); }
 .script-outline-item-button:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; }
 .script-outline-item-title { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
