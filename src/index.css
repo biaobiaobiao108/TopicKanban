@@ -408,11 +408,12 @@ html.dark .script-citation::after {
   }
 
   html.theme-light {
-    --canvas: #f6f4ef;
-    --surface: #faf9f6;
-    --surface-muted: #f4f3ef;
-    --surface-subtle: #eeece5;
-    --surface-hover: #f5f4ef;
+    /* 暖灰导航衬托暖白内容区，保留柔和纸感与表面层次。 */
+    --canvas: #faf9f6;
+    --surface: #fdfcf9;
+    --surface-muted: #f6f5f1;
+    --surface-subtle: #f0eee8;
+    --surface-hover: #f8f7f3;
     --ink: #202621;
     --ink-muted: #718078;
     --line: rgba(32, 38, 33, 0.08);
@@ -425,7 +426,7 @@ html.dark .script-citation::after {
     --h3-color: #35566b;
     --control-surface: rgba(32, 38, 33, 0.035);
     --focus-ring: rgba(54, 94, 78, 0.32);
-    --nav-surface: rgba(250, 249, 246, 0.92);
+    --nav-surface: rgba(253, 252, 249, 0.92);
     --sidebar-surface: rgba(246, 244, 239, 0.95);
     --scrollbar-thumb: rgba(145, 160, 150, 0.38);
     --scrollbar-track: transparent;
