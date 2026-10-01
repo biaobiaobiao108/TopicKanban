@@ -517,13 +517,52 @@ html.dark .script-citation::after {
 }
 
 .prose blockquote, .ProseMirror blockquote, blockquote.quote-block {
-  background-color: var(--canvas) !important;
-  border: 1px solid var(--line) !important;
-  border-radius: var(--radius-sm) !important;
-  color: var(--ink) !important;
-  padding: 0.6rem 1rem !important;
+  position: relative;
+  background: var(--accent-soft) !important;
+  border: 0 !important;
+  border-radius: 13px !important;
+  color: var(--ink-muted) !important;
+  padding: 12px 12px 12px 20px !important;
+  font-family: inherit;
+  font-size: 1.02em;
+  line-height: 1.74;
+  letter-spacing: 0.012em;
   font-style: normal !important;
-  margin: 1rem 0 !important;
+  margin: 1.15em 0 !important;
+}
+
+.prose blockquote::before, .ProseMirror blockquote::before, blockquote.quote-block::before {
+  content: "";
+  position: absolute;
+  top: 10px;
+  bottom: 10px;
+  left: 7px;
+  width: 3.5px;
+  border-radius: 999px;
+  background: var(--accent);
+  opacity: 0.88;
+}
+
+.prose blockquote > :first-child, .ProseMirror blockquote > :first-child, blockquote.quote-block > :first-child {
+  margin-top: 0;
+}
+
+.prose blockquote p, .ProseMirror blockquote p, blockquote.quote-block p {
+  margin-block: 0 0.5em;
+}
+
+.prose blockquote > :last-child, .ProseMirror blockquote > :last-child, blockquote.quote-block > :last-child,
+.prose blockquote p:last-child, .ProseMirror blockquote p:last-child, blockquote.quote-block p:last-child {
+  margin-bottom: 0;
+}
+
+.prose blockquote blockquote, .ProseMirror blockquote blockquote, blockquote.quote-block blockquote {
+  margin-block: 0.75em 0.25em !important;
+  background: color-mix(in srgb, var(--surface) 65%, transparent) !important;
+}
+
+.prose blockquote blockquote::before, .ProseMirror blockquote blockquote::before, blockquote.quote-block blockquote::before {
+  opacity: 0.65;
 }
 
 mark, .mark-highlight {
