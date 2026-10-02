@@ -35,6 +35,15 @@ describe('AppKV (SQLite)', () => {
     expect(data.reading_speed).toBe(300);
   });
 
+  it('round-trips arbitrary binary bytes through ArrayBuffer values', async () => {
+    const bytes = new Uint8Array([0, 0xff, 0xc3, 0x28, 0x80, 42]);
+    await kv.put('binary', bytes);
+
+    const stored = await kv.get('binary', 'arrayBuffer');
+    expect(stored).toBeInstanceOf(ArrayBuffer);
+    expect(Array.from(new Uint8Array(stored as ArrayBuffer))).toEqual(Array.from(bytes));
+  });
+
   it('honors expiration TTL and returns null for expired items', async () => {
     // Put item with 1 second TTL
     await kv.put('short_lived', 'expires soon', { expirationTtl: 1 });

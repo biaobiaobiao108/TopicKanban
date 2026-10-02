@@ -27,7 +27,7 @@ import { ACTIVE_COLUMNS } from './columns';
 import { CheckCircle2, KanbanSquare, Snowflake } from 'lucide-react';
 import { PageHeader } from '../layout/PageHeader';
 import { FloatingScrollbar } from '../ui/FloatingScrollbar';
-import { hasMoreKanbanPages, mergeKanbanTopic, rollbackFailedKanbanPage } from '../../lib/kanbanPagination';
+import { applyOptimisticKanbanPageUpdates, hasMoreKanbanPages, mergeKanbanTopic, rollbackFailedKanbanPage } from '../../lib/kanbanPagination';
 import { matchesTopicSearch } from '../../lib/topicSearch';
 import { fetchTopicPage } from '../../lib/storage';
 
@@ -595,54 +595,19 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
   };
 
   const optimisticUpdateQueryCache = useCallback((updates: Array<{ id: string; status: TopicStatus; sort_order: number }>) => {
-    const updateMap = new Map(updates.map((u) => [u.id, u]));
     const nowIso = new Date().toISOString();
 
     activeStatuses.forEach((queryStatus) => {
-      queryClient.setQueriesData<PaginatedTopics>(
-        { queryKey: ['kanban-column-page', queryStatus] },
-        (oldData?: PaginatedTopics) => {
-          if (!oldData || !Array.isArray(oldData.items)) return oldData;
-
-          // Items targeted to this column
-          const additions: Topic[] = [];
-          updates.forEach((u) => {
-            if (u.status === queryStatus) {
-              const existing = topicsMap[u.id] || oldData.items.find((t: Topic) => t.id === u.id);
-              if (existing) {
-                additions.push({
-                  ...existing,
-                  status: queryStatus,
-                  sort_order: u.sort_order,
-                  updated_at: nowIso,
-                });
-              }
-            }
-          });
-
-          // Remove items that moved away to a different status
-          const keptItems = oldData.items.filter((t: Topic) => {
-            const u = updateMap.get(t.id);
-            if (u && u.status !== queryStatus) return false;
-            return true;
-          });
-
-          // Combine and deduplicate
-          const mergedMap = new Map<string, Topic>();
-          keptItems.forEach((t: Topic) => mergedMap.set(t.id, t));
-          additions.forEach((t: Topic) => mergedMap.set(t.id, t));
-
-          const newItems = Array.from(mergedMap.values()).sort((a, b) => (a.sort_order || 0) - (b.sort_order || 0));
-          const delta = (newItems.length - keptItems.length) - (oldData.items.length - keptItems.length);
-
-          return {
-            ...oldData,
-            items: newItems,
-            total: Math.max(0, oldData.total + delta),
-            total_pages: Math.ceil(Math.max(0, oldData.total + delta) / oldData.page_size),
-          };
-        }
-      );
+      const cachedQueries = queryClient.getQueriesData<PaginatedTopics>({
+        queryKey: ['kanban-column-page', queryStatus],
+      });
+      cachedQueries.forEach(([queryKey, oldData]) => {
+        if (!oldData || !Array.isArray(oldData.items)) return;
+        const page = typeof queryKey[7] === 'number' ? queryKey[7] : 1;
+        queryClient.setQueryData<PaginatedTopics>(queryKey, applyOptimisticKanbanPageUpdates(
+          oldData, page, queryStatus, updates, topicsMap, nowIso,
+        ));
+      });
     });
   }, [queryClient, topicsMap]);
 

@@ -5,6 +5,7 @@ import {
   VERIFICATION_STATUSES,
   createId,
   hasInvalidValue,
+  isNonNegativeInteger,
   isOneOf,
   jsonError,
   requireDb,
@@ -20,6 +21,21 @@ import {
   SourceReorderInvalidStateError,
   updateSource,
 } from '../repositories';
+
+function isValidSourceEventDate(value: string): boolean {
+  if (!value) return true;
+  const match = /^(\d{4})(?:-(\d{1,2})(?:-(\d{1,2}))?)?$/.exec(value);
+  if (!match) return false;
+  const year = Number(match[1]);
+  const month = match[2] ? Number(match[2]) : null;
+  const day = match[3] ? Number(match[3]) : null;
+  if (year < 1) return false;
+  if (month !== null && (month < 1 || month > 12)) return false;
+  const monthEnd = new Date(0);
+  if (month !== null) monthEnd.setUTCFullYear(year, month, 0);
+  if (day !== null && (month === null || day < 1 || day > monthEnd.getUTCDate())) return false;
+  return true;
+}
 
 export function registerWorkspaceRoutes(app: NativeApp): void {
   app.get('/topics/:id/workspace', async (c) => {
@@ -47,6 +63,15 @@ export function registerWorkspaceRoutes(app: NativeApp): void {
         event_date: [50], date_precision: [20],
       });
       if (textError) return c.json({ error: textError }, 400);
+      if (body.event_date !== undefined && !isValidSourceEventDate(body.event_date)) {
+        return c.json({ error: 'event_date must be a valid YYYY, YYYY-MM, or YYYY-MM-DD date' }, 400);
+      }
+      if (body.date_precision !== undefined && !isOneOf(body.date_precision, ['exact', 'year_month', 'year', 'unknown'])) {
+        return c.json({ error: 'Invalid source date_precision' }, 400);
+      }
+      if (body.sort_order !== undefined && !isNonNegativeInteger(body.sort_order)) {
+        return c.json({ error: 'sort_order must be a non-negative integer' }, 400);
+      }
       const urlError = validateExternalUrlField(body as Record<string, unknown>, 'url');
       if (urlError) return c.json({ error: urlError }, 400);
       if (body.platform !== undefined && !isOneOf(body.platform, PLATFORM_TYPES)) return c.json({ error: 'Invalid source platform' }, 400);
@@ -91,6 +116,16 @@ export function registerWorkspaceRoutes(app: NativeApp): void {
         event_date: [50], date_precision: [20],
       });
       if (textError) return c.json({ error: textError }, 400);
+      if (Object.prototype.hasOwnProperty.call(body, 'event_date')
+        && typeof body.event_date === 'string' && !isValidSourceEventDate(body.event_date)) {
+        return c.json({ error: 'event_date must be a valid YYYY, YYYY-MM, or YYYY-MM-DD date' }, 400);
+      }
+      if (hasInvalidValue(body, 'date_precision', (value) => isOneOf(value, ['exact', 'year_month', 'year', 'unknown']))) {
+        return c.json({ error: 'Invalid source date_precision' }, 400);
+      }
+      if (hasInvalidValue(body, 'sort_order', isNonNegativeInteger)) {
+        return c.json({ error: 'sort_order must be a non-negative integer' }, 400);
+      }
       const urlError = validateExternalUrlField(body, 'url');
       if (urlError) return c.json({ error: urlError }, 400);
       if (hasInvalidValue(body, 'platform', (value) => isOneOf(value, PLATFORM_TYPES))) return c.json({ error: 'Invalid source platform' }, 400);

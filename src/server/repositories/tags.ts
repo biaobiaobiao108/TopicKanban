@@ -92,7 +92,13 @@ export async function updateTag(
   const existing = await db.prepare('SELECT id, name, color FROM tags WHERE name = ? COLLATE NOCASE')
     .bind(body.name).first<{ id: string; name: string; color: string }>();
   if (existing && existing.id !== id) return 'duplicate';
-  await bind(db, 'UPDATE tags SET name = ?, color = ? WHERE id = ?', [body.name, body.color, id]).run();
+  const fields = ['name'];
+  const values: unknown[] = [body.name];
+  if (Object.prototype.hasOwnProperty.call(body, 'color')) {
+    fields.push('color');
+    values.push(body.color);
+  }
+  await bind(db, `UPDATE tags SET ${fields.map((field) => `${field} = ?`).join(', ')} WHERE id = ?`, [...values, id]).run();
   return db.prepare('SELECT id, name, color FROM tags WHERE id = ?').bind(id).first<Tag>();
 }
 

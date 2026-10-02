@@ -51,7 +51,9 @@ export function registerTagRoutes(app: NativeApp): void {
       if (!name) return c.json({ error: 'Name is required' }, 400);
       if (name.length > 40) return c.json({ error: 'Name exceeds 40 characters' }, 400);
       if (body.color !== undefined && (typeof body.color !== 'string' || body.color.length > 50)) return c.json({ error: 'Color exceeds 50 characters' }, 400);
-      const result = await updateTag(requireDb(c), c.req.param('id'), { name, color: body.color || 'stone' });
+      const updates: Record<string, unknown> = { name };
+      if (body.color !== undefined) updates.color = body.color || 'stone';
+      const result = await updateTag(requireDb(c), c.req.param('id'), updates);
       if (result === 'duplicate') return c.json({ error: 'Tag name already exists' }, 409);
       if (result) invalidatePublishedAnalyticsCache();
       return result ? c.json(result) : c.json({ error: 'Not found' }, 404);

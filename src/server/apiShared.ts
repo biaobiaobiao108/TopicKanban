@@ -159,6 +159,9 @@ export function requireDb(c: { env: ApiBindings }): SqliteDatabase {
 }
 
 export function jsonError(c: any, error: unknown, status = 500) {
+  if (error instanceof Error && error.name === 'BodyLimitError') {
+    return c.json({ error: 'Request body is too large' }, 413);
+  }
   if (status >= 500) {
     console.error('[API error]', error);
     return c.json({ error: 'Internal server error' }, status);

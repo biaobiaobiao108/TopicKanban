@@ -15,6 +15,22 @@ export type AppKvValueType = 'text' | 'json' | 'arrayBuffer';
 export type AppKvGetOptions = AppKvValueType | { type?: AppKvValueType };
 
 const EXPIRY_CLEANUP_INTERVAL_MS = 60_000;
+const ARRAY_BUFFER_PREFIX = '\u0000appkv:arraybuffer:';
+
+function encodeBytesToBase64(bytes: Uint8Array): string {
+  let binary = '';
+  const chunkSize = 0x8000;
+  for (let offset = 0; offset < bytes.length; offset += chunkSize) {
+    const chunk = bytes.subarray(offset, Math.min(offset + chunkSize, bytes.length));
+    for (const byte of chunk) binary += String.fromCharCode(byte);
+  }
+  return btoa(binary);
+}
+
+function decodeBase64ToBytes(value: string): Uint8Array {
+  const binary = atob(value);
+  return Uint8Array.from(binary, (character) => character.charCodeAt(0));
+}
 
 export class AppKV {
   private readonly db: SqliteDatabase;
@@ -89,7 +105,16 @@ export class AppKV {
         return null;
       }
     }
-    if (type === 'arrayBuffer') return new TextEncoder().encode(row.value).buffer;
+    if (type === 'arrayBuffer') {
+      if (row.value.startsWith(ARRAY_BUFFER_PREFIX)) {
+        try {
+          return decodeBase64ToBytes(row.value.slice(ARRAY_BUFFER_PREFIX.length)).buffer as ArrayBuffer;
+        } catch {
+          return new TextEncoder().encode(row.value).buffer;
+        }
+      }
+      return new TextEncoder().encode(row.value).buffer;
+    }
     return row.value;
   }
 
@@ -102,7 +127,7 @@ export class AppKV {
       const bytes = value instanceof ArrayBuffer
         ? new Uint8Array(value)
         : new Uint8Array(value.buffer, value.byteOffset, value.byteLength);
-      textValue = new TextDecoder().decode(bytes);
+      textValue = `${ARRAY_BUFFER_PREFIX}${encodeBytesToBase64(bytes)}`;
     } else {
       textValue = String(value);
     }

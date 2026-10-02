@@ -495,6 +495,25 @@ describe('Bun Server Integration (Local SQLite & API)', () => {
     expect(sqlite.query("SELECT name FROM sqlite_master WHERE type = 'table' AND name = 'settings'").get()).toBeNull();
   });
 
+  it('preserves a tag color when PATCH only changes the name', async () => {
+    const loginRes = await app.request('/api/auth/login', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ password: testPassword }),
+    });
+    const { token } = await loginRes.json() as { token: string };
+    const headers = { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' };
+    const createRes = await app.request('/api/tags', {
+      method: 'POST', headers, body: JSON.stringify({ name: '原色标签', color: 'rose' }),
+    });
+    const tag = await createRes.json() as { id: string; color: string };
+
+    const updateRes = await app.request(`/api/tags/${tag.id}`, {
+      method: 'PATCH', headers, body: JSON.stringify({ name: '改名标签' }),
+    });
+
+    expect(updateRes.status).toBe(200);
+    expect(await updateRes.json()).toMatchObject({ id: tag.id, name: '改名标签', color: 'rose' });
+  });
+
   it('runs the commercial deal workflow without changing topic status', async () => {
     const loginRes = await app.request('/api/auth/login', {
       method: 'POST',
@@ -851,6 +870,19 @@ describe('Bun Server Integration (Local SQLite & API)', () => {
     const updated = await patchRes.json() as { event_date: string; sort_order: number };
     expect(updated.event_date).toBe('2026-08-20');
     expect(updated.sort_order).toBe(2);
+
+    const invalidDateRes = await app.request(`/api/sources/${created.id}`, {
+      method: 'PATCH', headers, body: JSON.stringify({ event_date: '2026-02-30' }),
+    });
+    const invalidPrecisionRes = await app.request(`/api/sources/${created.id}`, {
+      method: 'PATCH', headers, body: JSON.stringify({ date_precision: 'decade' }),
+    });
+    const invalidOrderRes = await app.request(`/api/sources/${created.id}`, {
+      method: 'PATCH', headers, body: JSON.stringify({ sort_order: 1.5 }),
+    });
+    expect(invalidDateRes.status).toBe(400);
+    expect(invalidPrecisionRes.status).toBe(400);
+    expect(invalidOrderRes.status).toBe(400);
   });
 
   it('keeps the first active presence lease when another client reports', async () => {

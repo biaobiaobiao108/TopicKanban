@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'bun:test';
 import type { ApiBindings } from '../src/server/apiShared';
+import { jsonError } from '../src/server/apiShared';
 import { NativeApp, bodyLimit } from '../src/server/native';
 
 describe('native request body limits', () => {
@@ -38,5 +39,37 @@ describe('native request body limits', () => {
     expect(response.status).toBe(413);
     expect(await response.text()).toBe('route limit');
     expect(pullCount).toBeGreaterThan(0);
+  });
+
+  it('keeps a chunked oversized body at HTTP 413 when a route catches the parse error', async () => {
+    const app = new NativeApp({} as ApiBindings, '/api');
+    const chunks = [new TextEncoder().encode('1234'), new TextEncoder().encode('56')];
+    const body = new ReadableStream<Uint8Array>({
+      pull(controller) {
+        const chunk = chunks.shift();
+        if (chunk) controller.enqueue(chunk);
+        else controller.close();
+      },
+    });
+
+    app.use('*', bodyLimit({
+      maxSize: 5,
+      preflightOnly: true,
+      onError: (context) => context.json({ error: 'Request body is too large' }, 413),
+    }));
+    app.post('/parse', async (context) => {
+      try {
+        return context.json(await context.req.json());
+      } catch (error) {
+        return jsonError(context, error, 400);
+      }
+    });
+
+    const response = await app.fetch(new Request('http://localhost/api/parse', {
+      method: 'POST', body, duplex: 'half',
+    } as RequestInit));
+
+    expect(response.status).toBe(413);
+    expect(await response.json()).toEqual({ error: 'Request body is too large' });
   });
 });
