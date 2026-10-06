@@ -11,7 +11,8 @@ export function isValidIsoDate(value: string): boolean {
   const day = Number(value.slice(8, 10));
   if (year < 1 || month < 1 || month > 12 || day < 1) return false;
 
-  const daysInMonth = new Date(Date.UTC(year, month, 0)).getUTCDate();
+  const leapYear = year % 4 === 0 && (year % 100 !== 0 || year % 400 === 0);
+  const daysInMonth = [31, leapYear ? 29 : 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31][month - 1];
   return day <= daysInMonth;
 }
 

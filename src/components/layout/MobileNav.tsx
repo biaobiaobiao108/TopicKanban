@@ -129,7 +129,7 @@ export const MobileDrawer: React.FC<MobileDrawerProps> = ({
     const previousOverflow = document.body.style.overflow;
     document.body.style.overflow = 'hidden';
 
-    const focusDrawer = () => closeButtonRef.current?.focus();
+    const focusDrawer = () => closeButtonRef.current?.focus({ preventScroll: true });
     requestAnimationFrame(focusDrawer);
 
     const handleKeyDown = (event: KeyboardEvent) => {
@@ -158,7 +158,7 @@ export const MobileDrawer: React.FC<MobileDrawerProps> = ({
     return () => {
       document.removeEventListener('keydown', handleKeyDown);
       document.body.style.overflow = previousOverflow;
-      requestAnimationFrame(() => previousActiveElement?.focus());
+      requestAnimationFrame(() => previousActiveElement?.focus({ preventScroll: true }));
     };
   }, [isOpen, onClose]);
 

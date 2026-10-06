@@ -1,6 +1,7 @@
 import { z } from 'zod';
 import { type BackupData, type TopicTodo, APP_THEMES, CURRENT_BACKUP_VERSION } from '../types';
 import { isValidIsoDate } from './dateInput';
+import { isSafeExternalHttpUrl } from './urlSafety';
 
 const id = z.string().trim().min(1, 'ID 不能为空').max(200, 'ID 不能超过 200 字符');
 const shortText = z.string().max(200);
@@ -39,7 +40,7 @@ const personSchema = z.object({
   id,
   name: shortText.trim().min(1, '人物名称不能为空'),
   aliases: mediumText,
-  avatar_url: z.string().max(2_048),
+  avatar_url: z.string().max(2_048).refine(isSafeExternalHttpUrl, '必须是 HTTP(S) URL'),
   description: longText,
   identity: mediumText,
   platform_accounts: mediumText,
@@ -93,7 +94,7 @@ const sourceSchema = z.object({
   topic_id: id,
   title: shortText.trim().min(1),
   content: longText,
-  url: z.string().max(2_048),
+  url: z.string().max(2_048).refine(isSafeExternalHttpUrl, '必须是 HTTP(S) URL'),
   platform: z.enum(['bilibili', 'douyin', 'kuaishou', 'weibo', 'xiaohongshu', 'wechat', 'zhihu', 'youtube', 'news', 'live', 'other']),
   author: shortText,
   published_at: timestamp,
@@ -167,7 +168,7 @@ const publishedSchema = z.object({
   id,
   topic_id: id.nullable(),
   title: shortText.trim().min(1),
-  url: z.string().max(2_048),
+  url: z.string().max(2_048).refine(isSafeExternalHttpUrl, '必须是 HTTP(S) URL'),
   bvid: z.string().max(50),
   published_at: timestamp,
   views: z.number().int().nonnegative(),

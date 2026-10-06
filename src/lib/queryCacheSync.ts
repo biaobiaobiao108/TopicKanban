@@ -102,6 +102,24 @@ function topicMatchesKanbanQuery(topic: Topic, queryKey: readonly unknown[]): bo
   return matchesTopicSearch(topic, searchTerm);
 }
 
+function compareTopicsForKanbanSort(a: Topic, b: Topic, sortBy: unknown): number {
+  if (sortBy === 'updated_at') return new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime();
+  if (sortBy === 'created_at') return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
+  if (sortBy === 'priority') {
+    const priorityOrder = { high: 3, medium: 2, low: 1, none: 0 };
+    return priorityOrder[b.priority] - priorityOrder[a.priority];
+  }
+  if (sortBy === 'score') {
+    const score = (topic: Topic) => (topic.score_character || 0)
+      + (topic.score_conflict || 0)
+      + (topic.score_contrast || 0)
+      + (topic.score_material || 0)
+      + (topic.score_story || 0);
+    return score(b) - score(a);
+  }
+  return (a.sort_order || 0) - (b.sort_order || 0);
+}
+
 function updateKanbanTopicCaches(queryClient: QueryClient, topicId: string, updates: Partial<Topic>) {
   const cachedQueries = queryClient.getQueriesData<PaginatedTopics>({ queryKey: ['kanban-column-page'] });
   const existing = cachedQueries.flatMap(([, data]) => data?.items || []).find((topic) => topic.id === topicId);
@@ -115,7 +133,8 @@ function updateKanbanTopicCaches(queryClient: QueryClient, topicId: string, upda
     const page = typeof queryKey[7] === 'number' ? queryKey[7] : 1;
     let items = current.items.filter((topic) => topic.id !== topicId);
     if (shouldInclude && (hasItem || page === 1)) {
-      items = [...items, updatedTopic].sort((a, b) => (a.sort_order || 0) - (b.sort_order || 0));
+      items = [...items, updatedTopic].sort((a, b) => compareTopicsForKanbanSort(a, b, queryKey[6]));
+      if (current.page_size > 0) items = items.slice(0, current.page_size);
     }
     const delta = (shouldInclude && !hasItem && page === 1 ? 1 : 0) - (!shouldInclude && hasItem ? 1 : 0);
     const total = Math.max(0, current.total + delta);

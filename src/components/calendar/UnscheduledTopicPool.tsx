@@ -160,12 +160,12 @@ export const UnscheduledTopicPool: React.FC<UnscheduledTopicPoolProps> = ({
     };
 
     document.addEventListener('keydown', handleKeyDown);
-    const focusFrame = requestAnimationFrame(() => closeButtonRef.current?.focus());
+    const focusFrame = requestAnimationFrame(() => closeButtonRef.current?.focus({ preventScroll: true }));
     return () => {
       cancelAnimationFrame(focusFrame);
       document.removeEventListener('keydown', handleKeyDown);
       document.body.style.overflow = previousOverflowRef.current;
-      previousFocusRef.current?.focus();
+      previousFocusRef.current?.focus({ preventScroll: true });
     };
   }, [isOpen, isMobileDrawer]);
 
