@@ -11,10 +11,10 @@ import {
   Copy,
   Check,
   AlertCircle,
-  Compass,
 } from 'lucide-react';
 import { FloatingScrollbar } from '../ui/FloatingScrollbar';
 import { useToast } from '../ui/Toast';
+import '../topic-detail/editor.css';
 
 interface OutlineSection {
   id: string;
@@ -22,18 +22,6 @@ interface OutlineSection {
   title: string;
   level: 1 | 2 | 3;
 }
-
-const LEVEL_INDENT: Record<1 | 2 | 3, string> = {
-  1: 'pl-1.5',
-  2: 'pl-4',
-  3: 'pl-[26px]',
-};
-
-const LEVEL_TEXT: Record<1 | 2 | 3, string> = {
-  1: 'font-semibold',
-  2: 'font-medium',
-  3: 'font-normal',
-};
 
 function parseOutlineAndInjectIds(html: string): { items: OutlineSection[]; processedHtml: string } {
   if (!html) return { items: [], processedHtml: '' };
@@ -294,49 +282,32 @@ export const PublicReviewView: React.FC<PublicReviewViewProps> = ({ token: propT
       </header>
 
       {/* Main Content Body */}
-      <main className="flex-1 max-w-5xl w-full mx-auto px-4 sm:px-8 py-8 flex gap-8">
+      <main className="flex-1 max-w-6xl w-full mx-auto px-4 sm:px-8 py-8 flex gap-8">
         {/* Left Outline Navigation (Desktop) */}
         {outlineItems.length > 0 && (
           <aside className="hidden lg:block w-[216px] shrink-0">
-            <div className="sticky top-24 max-h-[calc(100dvh-7rem)] space-y-2">
-              <div className="flex items-center justify-between px-1 py-2 text-xs font-semibold text-[var(--ink-muted)]">
-                <div className="flex items-center gap-1.5">
-                  <Compass className="w-3.5 h-3.5 text-[var(--accent)]" />
-                  <span>文案故事大纲</span>
-                </div>
-                <span className="text-[10px] font-medium tabular-nums">
-                  <span className="font-mono tabular-nums">{outlineItems.length}</span> 章节
-                </span>
-              </div>
-
-              <nav aria-label="审稿大纲" className="max-h-[calc(100dvh-10rem)]">
-                <FloatingScrollbar className="space-y-0.5 pr-1" wrapperClassName="max-h-[calc(100dvh-10rem)] flex-none">
+            <div className="sticky top-24 max-h-[calc(100dvh-7rem)]">
+              <nav aria-label="审稿大纲" className="max-h-[calc(100dvh-7rem)]">
+                <FloatingScrollbar className="no-scrollbar overflow-y-auto overscroll-contain" wrapperClassName="max-h-[calc(100dvh-7rem)] flex-none">
+                  <ol className="script-outline-list">
                   {outlineItems.map((item) => {
                     const isActive = activeOutlineId === item.id;
                     return (
-                      <button
-                        key={item.id}
-                        type="button"
-                        onClick={() => handleSelectHeading(item)}
-                        aria-label={`跳转到章节：${item.title}`}
-                        className={`group relative flex h-8 min-h-8 w-full items-center rounded-[9px] border border-transparent py-[5px] pr-1.5 text-left text-[0.8rem] leading-[1.45] text-[var(--ink-muted)] transition-colors hover:text-[var(--accent)] focus-visible:bg-[var(--accent-soft)]/60 ${isActive ? 'text-[var(--ink)]' : ''}`}
-                      >
-                        <div className={LEVEL_INDENT[item.level]}>
-                          <div className="flex min-w-0 items-center">
-                            <span
-                              className={`min-w-0 flex-1 truncate transition-colors ${
-                                isActive
-                                  ? `${LEVEL_TEXT[item.level]} text-[var(--ink)]`
-                                  : LEVEL_TEXT[item.level]
-                              }`}
-                            >
-                              {item.title}
-                            </span>
-                          </div>
-                        </div>
-                      </button>
+                      <li key={item.id} className={`script-outline-item script-outline-item--level-${item.level}`}>
+                        <button
+                          type="button"
+                          data-outline-index={item.index}
+                          aria-current={isActive ? 'true' : undefined}
+                          aria-label={`跳转到章节：${item.title}`}
+                          onClick={() => handleSelectHeading(item)}
+                          className="script-outline-item-button"
+                        >
+                          <span className="script-outline-item-title">{item.title}</span>
+                        </button>
+                      </li>
                     );
                   })}
+                  </ol>
                 </FloatingScrollbar>
               </nav>
             </div>
@@ -344,27 +315,24 @@ export const PublicReviewView: React.FC<PublicReviewViewProps> = ({ token: propT
         )}
 
         {/* Article Body */}
-        <article className="flex-1 min-w-0 py-2 sm:py-4 space-y-6">
+        <article className="script-editor-document script-editor-font-stack min-w-0 max-lg:!w-full pt-8 pb-36 sm:pt-8 sm:pb-48 space-y-6">
           {/* Header metadata summary */}
           {(snapshot.hook || snapshot.summary || snapshot.storyline) && (
-            <div className="border-l-2 border-[var(--accent)]/50 bg-[var(--surface)]/55 px-4 py-3 rounded-r-xl space-y-2">
+            <div className="tiptap ProseMirror script-prose max-w-none text-[var(--ink)]">
               {snapshot.hook && (
-                <div className="flex items-start gap-2">
-                  <span className="text-sm sm:text-base font-semibold text-[var(--ink)] shrink-0">
-                    核心反差 / 钩子
-                  </span>
-                  <p className="text-sm sm:text-base font-semibold text-[var(--ink)]">{snapshot.hook}</p>
-                </div>
+                <blockquote>
+                  <p><strong>核心反差 / 钩子：</strong>{snapshot.hook}</p>
+                </blockquote>
               )}
               {snapshot.summary && (
-                <p className="text-xs text-stone-600 dark:text-stone-300 leading-relaxed">{snapshot.summary}</p>
+                <p>{snapshot.summary}</p>
               )}
             </div>
           )}
 
           {/* Rendered HTML with scroll-mt and animated headings */}
           <div
-            className="script-prose prose prose-stone dark:prose-invert max-w-none text-[var(--ink)] text-sm sm:text-base leading-relaxed space-y-4"
+            className="tiptap ProseMirror script-prose max-w-none text-[var(--ink)]"
             dangerouslySetInnerHTML={{ __html: processedHtml }}
           />
 
