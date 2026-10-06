@@ -94,7 +94,7 @@ docker run -d \
 
 ## 🌐 二、反向代理（Reverse Proxy）配置样例
 
-为了实现外网 HTTPS 安全访问、免登录外部审稿链接及手机快捷指令随时随地投递灵感，建议使用反向代理。默认不信任客户端传入的转发头；请优先配置 `PUBLIC_BASE_URL`，只有在可信代理会覆盖 `X-Real-IP`、`X-Forwarded-Proto` 和 `X-Forwarded-Host` 时才开启 `TRUST_PROXY_HEADERS=true`。登录限流只使用单值 `X-Real-IP`，不使用可能保留客户端输入的 `X-Forwarded-For` 链首。
+为了实现外网 HTTPS 安全访问及手机快捷指令随时随地投递灵感，建议使用反向代理。默认不信任客户端传入的转发头；请优先配置 `PUBLIC_BASE_URL`，只有在可信代理会覆盖 `X-Real-IP`、`X-Forwarded-Proto` 和 `X-Forwarded-Host` 时才开启 `TRUST_PROXY_HEADERS=true`。登录限流只使用单值 `X-Real-IP`，不使用可能保留客户端输入的 `X-Forwarded-For` 链首。
 
 HTTPS 也是手机 PWA 安装的正式要求。容器服务本身继续监听 HTTP `3030`，由 Nginx、Caddy 或 NPM 负责终止 TLS 并将 HTTPS 请求反向代理到该端口；不要使用普通的局域网 HTTP 地址测试手机安装。
 
@@ -174,14 +174,14 @@ kanban.yourdomain.com {
 | `TRUST_PROXY_HEADERS` | 否 | `false` | 是否信任反向代理覆盖后的 `X-Real-IP`、`X-Forwarded-Proto` 和 `X-Forwarded-Host`；登录限流忽略 `X-Forwarded-For` |
 
 > **提示**：
-> 1. `PUBLIC_BASE_URL` **必须包含完整的 `https://` 或 `http://` 协议前缀**（切勿填成裸域名 `kanban.example.com`），否则浏览器会将其误判为相对路径导致审稿外链跳转失效。
-> 2. `PUBLIC_BASE_URL` 也可以在进入工作台后，在**「偏好设置」->「选题生产流与外部审稿偏好」**中直接图形化填写和修改。
-> 3. 未配置 `PUBLIC_BASE_URL` 时，默认返回相对路径；如需根据转发头生成绝对分享链接，必须显式设置 `TRUST_PROXY_HEADERS=true`，并确保反向代理覆盖客户端传入的同名请求头。登录限流的客户端地址仅来自代理覆盖后的 `X-Real-IP`。
+> 1. `PUBLIC_BASE_URL` **必须包含完整的 `https://` 或 `http://` 协议前缀**（切勿填成裸域名 `kanban.example.com`），用于生成指向本站的快投 Webhook 地址。
+> 2. `PUBLIC_BASE_URL` 也可以在进入工作台后，在**「偏好设置」->「选题生产流偏好」**中直接图形化填写和修改。
+> 3. 未配置 `PUBLIC_BASE_URL` 时，Webhook 默认使用相对路径；如需根据转发头生成绝对地址，必须显式设置 `TRUST_PROXY_HEADERS=true`，并确保反向代理覆盖客户端传入的同名请求头。登录限流的客户端地址仅来自代理覆盖后的 `X-Real-IP`。
 
 ---
 
 ## 🗄️ 四、数据备份与迁移
 
-- **本地持久化文件**：所有数据（选题、事实材料、时间线、人物档案网、文案草稿、审稿快照、快投灵感、设置）全部存储在挂载卷的 `./data/kanban.db` 单个 SQLite 文件中。
+- **本地持久化文件**：所有数据（选题、事实材料、时间线、人物档案网、文案草稿、快投灵感、设置）全部存储在挂载卷的 `./data/kanban.db` 单个 SQLite 文件中。
 - **备份方式 1（文件复制）**：直接备份宿主机上的 `./data/kanban.db`。
 - **备份方式 2（图形化 JSON 导出）**：在工作台「偏好设置」页面点击「导出全量 JSON 备份」，随时可以在任意新部署的环境中一键恢复。

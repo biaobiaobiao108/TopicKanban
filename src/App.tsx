@@ -131,29 +131,9 @@ const PublishedView = lazyWithReload(() => import('./components/published/Publis
 const DealsView = lazyWithReload(() => import('./components/deals/DealsView').then((module) => ({ default: module.DealsView })));
 const TopicTableView = lazyWithReload(() => import('./components/kanban/TopicTableView').then((module) => ({ default: module.TopicTableView })));
 const SettingsView = lazyWithReload(() => import('./components/settings/SettingsView').then((module) => ({ default: module.SettingsView })));
-const PublicReviewView = lazyWithReload(() => import('./components/public/PublicReviewView').then((module) => ({ default: module.PublicReviewView })));
-
 export function App() {
   const [isAuth, setIsAuth] = useState(isAuthenticated());
   const location = useLocation();
-
-  // Public review page does not require auth
-  if (location.pathname.startsWith('/share/')) {
-    const shareMatch = matchPath('/share/:token', location.pathname);
-    const token = shareMatch?.params.token || location.pathname.replace(/^\/share\/?/, '') || '';
-    return (
-      <ViewErrorBoundary
-        key={location.pathname}
-        title="审稿页面加载失败"
-        description="分享内容可能已失效，或当前版本资源加载失败。请刷新页面后重试。"
-        refreshLabel="刷新审稿页面"
-      >
-      <Suspense fallback={<div className="min-h-dvh bg-stone-100 flex items-center justify-center text-sm text-stone-500">正在加载审稿文案...</div>}>
-        <PublicReviewView token={token} />
-      </Suspense>
-      </ViewErrorBoundary>
-    );
-  }
 
   return <WorkspaceApp isAuth={isAuth} setIsAuth={setIsAuth} />;
 }

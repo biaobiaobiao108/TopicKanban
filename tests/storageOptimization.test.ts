@@ -157,18 +157,10 @@ describe('Storage Optimization & Compaction', () => {
     });
     sqlite.query('UPDATE topics SET deleted_at = ? WHERE id = ?').run(recentDate, 'topic-recent-trash');
 
-    const expiredShareToken = 'expired-trash-review-link';
-    sqlite.query('INSERT INTO _kv_store (key, value, expires_at) VALUES (?, ?, ?)').run(
-      `share:${expiredShareToken}`,
-      JSON.stringify({ topic_id: 'topic-old-trash', token: expiredShareToken }),
-      Date.now() + 86_400_000,
-    );
-
     const trashResponse = await app.request('/api/topics/trash', { headers: authHeaders });
     expect(trashResponse.status).toBe(200);
     const trashList = await trashResponse.json() as Array<{ id: string }>;
     expect(trashList.map((topic) => topic.id)).toEqual(['topic-recent-trash']);
-    expect((await app.request(`/api/public/share/${expiredShareToken}`)).status).toBe(404);
 
     const remaining = sqlite.query('SELECT id FROM topics WHERE deleted_at IS NOT NULL').all() as Array<{ id: string }>;
     expect(remaining.map((r) => r.id)).toEqual(['topic-recent-trash']);
@@ -213,19 +205,11 @@ describe('Storage Optimization & Compaction', () => {
     });
     sqlite.query('UPDATE topics SET deleted_at = ? WHERE id = ?').run(recentDate, 'topic-recent-trash-page');
 
-    const expiredShareToken = 'expired-trash-page-share';
-    sqlite.query('INSERT INTO _kv_store (key, value, expires_at) VALUES (?, ?, ?)').run(
-      `share:${expiredShareToken}`,
-      JSON.stringify({ topic_id: 'topic-old-trash-page', token: expiredShareToken }),
-      Date.now() + 86_400_000,
-    );
-
     const pageResponse = await app.request('/api/topics?scope=trash&page=1&page_size=50', { headers: authHeaders });
     expect(pageResponse.status).toBe(200);
     const pageData = await pageResponse.json() as { items: Array<{ id: string }>; scope_counts: { trash: number } };
     expect(pageData.items.map((item) => item.id)).toEqual(['topic-recent-trash-page']);
     expect(pageData.scope_counts.trash).toBe(1);
-    expect((await app.request(`/api/public/share/${expiredShareToken}`)).status).toBe(404);
 
     const remaining = sqlite.query('SELECT id FROM topics WHERE deleted_at IS NOT NULL').all() as Array<{ id: string }>;
     expect(remaining.map((r) => r.id)).toEqual(['topic-recent-trash-page']);

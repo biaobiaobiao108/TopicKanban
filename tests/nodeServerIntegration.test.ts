@@ -38,47 +38,7 @@ describe('Bun Server Integration (Local SQLite & API)', () => {
     sqlite.close();
   });
 
-  it('removes a share snapshot created concurrently with topic deletion', async () => {
-    const loginRes = await app.request('/api/auth/login', {
-      method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ password: testPassword }),
-    });
-    const { token: authToken } = await loginRes.json() as { token: string };
-    const headers = { Authorization: `Bearer ${authToken}`, 'Content-Type': 'application/json' };
-    const createRes = await app.request('/api/topics', {
-      method: 'POST', headers, body: JSON.stringify({ title: '并发删除与审稿分享' }),
-    });
-    const topic = await createRes.json() as { id: string };
-    const originalReplace = kv.replaceTopicShare.bind(kv);
-    let token = '';
-    let writeStarted!: () => void;
-    let releaseWrite!: () => void;
-    const started = new Promise<void>((resolve) => { writeStarted = resolve; });
-    const writeGate = new Promise<void>((resolve) => { releaseWrite = resolve; });
-    kv.replaceTopicShare = async (topicId, shareToken, value, expirationTtl) => {
-      token = shareToken;
-      writeStarted();
-      await writeGate;
-      await originalReplace(topicId, shareToken, value, expirationTtl);
-    };
-
-    try {
-      const sharePending = app.request(`/api/topics/${topic.id}/share`, {
-        method: 'POST', headers, body: JSON.stringify({ ttl_seconds: 86400 }),
-      });
-      await started;
-      const deleteResponse = await app.request(`/api/topics/${topic.id}`, { method: 'DELETE', headers });
-      expect(deleteResponse.status).toBe(200);
-      releaseWrite();
-      const shareResponse = await sharePending;
-      expect(shareResponse.status).toBe(404);
-      expect((await app.request(`/api/public/share/${token}`)).status).toBe(404);
-    } finally {
-      releaseWrite();
-      kv.replaceTopicShare = originalReplace;
-    }
-  });
-
-  it('runs full authentication, health check, topic CRUD and share flow', async () => {
+  it('runs full authentication, health check and topic CRUD flow', async () => {
     // 1. Health check (Bun container)
     const healthRes = await app.request('/api/health');
     expect(healthRes.status).toBe(200);
@@ -228,66 +188,6 @@ describe('Bun Server Integration (Local SQLite & API)', () => {
     });
     const scriptingPage = await scriptingPageRes.json() as { summary: { in_scripting_count: number } };
     expect(scriptingPage.summary.in_scripting_count).toBe(1);
-
-    // Simulate a share snapshot written by the previous KV layout before the
-    // new reverse index is first built.
-    const legacyToken = 'rv-legacy-share-token';
-    sqlite.query('INSERT INTO _kv_store (key, value, expires_at) VALUES (?, ?, ?)').run(
-      `share:${legacyToken}`,
-      JSON.stringify({ topic_id: topic.id, token: legacyToken }),
-      Date.now() + 86_400_000,
-    );
-
-    // 5. Generate Share Review Link (Check reverse proxy public URL adaptation)
-    const shareRes = await app.request(`/api/topics/${topic.id}/share`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${authToken}`,
-      },
-      body: JSON.stringify({ ttl_seconds: 86400 }),
-    });
-    expect(shareRes.status).toBe(200);
-    const shareData = await shareRes.json() as { success: boolean; token: string; url: string; full_url: string };
-    expect(shareData.success).toBe(true);
-    expect(shareData.token).toMatch(/^rv-[0-9a-f-]{36}$/);
-    expect(shareData.token.length).toBeGreaterThan(35);
-    // Verified that full_url uses configured publicBaseUrl instead of localhost
-    expect(shareData.full_url).toBe(`https://kanban.example.com/share/${shareData.token}`);
-
-    // 6. Public access to review snapshot (No auth required)
-    const publicReviewRes = await app.request(`/api/public/share/${shareData.token}`);
-    expect(publicReviewRes.status).toBe(200);
-    const snapshot = await publicReviewRes.json() as { topic_title: string; word_count: number };
-    expect(snapshot.topic_title).toBe('测试爆款人物解说');
-    expect(snapshot.word_count).toBe(1500);
-
-    const secondShareRes = await app.request(`/api/topics/${topic.id}/share`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${authToken}`,
-      },
-      body: JSON.stringify({ ttl_seconds: 86400 }),
-    });
-    const secondShareData = await secondShareRes.json() as { token: string };
-    expect(secondShareRes.status).toBe(200);
-    expect(secondShareData.token).not.toBe(shareData.token);
-    expect((await app.request(`/api/public/share/${shareData.token}`)).status).toBe(404);
-    const mismatchedDeleteRes = await app.request(`/api/topics/not-the-topic/share/${secondShareData.token}`, {
-      method: 'DELETE',
-      headers: { Authorization: `Bearer ${authToken}` },
-    });
-    expect(mismatchedDeleteRes.status).toBe(409);
-    expect((await app.request(`/api/public/share/${secondShareData.token}`)).status).toBe(200);
-
-    const validDeleteRes = await app.request(`/api/topics/${topic.id}/share/${secondShareData.token}`, {
-      method: 'DELETE',
-      headers: { Authorization: `Bearer ${authToken}` },
-    });
-    expect(validDeleteRes.status).toBe(200);
-    expect((await app.request(`/api/public/share/${secondShareData.token}`)).status).toBe(404);
-    expect((await app.request(`/api/public/share/${legacyToken}`)).status).toBe(404);
 
     const invalidSourceRes = await app.request('/api/sources', {
       method: 'POST',
@@ -1002,13 +902,6 @@ describe('Bun Server Integration (Local SQLite & API)', () => {
       topicIds.push(topic.id);
       // Soft delete it
       await app.request(`/api/topics/${topic.id}`, { method: 'DELETE', headers });
-      if (i === 0) {
-        sqlite.query('INSERT INTO _kv_store (key, value, expires_at) VALUES (?, ?, ?)').run(
-          'share:stale-before-permanent-delete',
-          JSON.stringify({ topic_id: topic.id, token: 'stale-before-permanent-delete' }),
-          Date.now() + 86_400_000,
-        );
-      }
     }
 
     // Permanently delete all 30 topics in batch
@@ -1026,7 +919,6 @@ describe('Bun Server Integration (Local SQLite & API)', () => {
     const trashRes = await app.request('/api/topics/trash', { headers });
     const trashList = await trashRes.json() as unknown[];
     expect(trashList.length).toBe(0);
-    expect((await app.request('/api/public/share/stale-before-permanent-delete')).status).toBe(404);
   });
 
   it('rolls back every permanent deletion when a later topic fails', async () => {

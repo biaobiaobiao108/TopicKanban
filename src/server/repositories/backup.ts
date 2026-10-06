@@ -102,7 +102,6 @@ export async function replaceAllData(db: SqliteDatabase, data: BackupData): Prom
       value TEXT NOT NULL,
       expires_at INTEGER
     )`),
-    db.prepare("DELETE FROM _kv_store WHERE key LIKE 'share:%' OR key LIKE 'topic_share:%'"),
     db.prepare('DELETE FROM commercial_deal_activities'),
     db.prepare('DELETE FROM commercial_deal_topics'),
     db.prepare('DELETE FROM commercial_deals'),

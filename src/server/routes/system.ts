@@ -66,15 +66,6 @@ export function sanitizeAppSettings(
     ? staleDays
     : DEFAULT_APP_SETTINGS.stale_action_days;
 
-  const ttlDays = Number(settings.default_share_ttl_days);
-  const defaultShareTtlDays = Number.isFinite(ttlDays) && ttlDays > 0 && ttlDays <= 365
-    ? ttlDays
-    : DEFAULT_APP_SETTINGS.default_share_ttl_days;
-
-  const reviewerBranding = typeof settings.reviewer_branding === 'string'
-    ? settings.reviewer_branding.slice(0, 100).trim()
-    : DEFAULT_APP_SETTINGS.reviewer_branding;
-
   const publicBaseUrl = typeof settings.public_base_url === 'string' && settings.public_base_url.trim()
     ? settings.public_base_url.trim().replace(/\/+$/, '')
     : (defaultPublicBaseUrl?.trim().replace(/\/+$/, '') || '');
@@ -95,8 +86,6 @@ export function sanitizeAppSettings(
     editor_line_height: editorLineHeight,
     typewriter_mode_default: typewriterModeDefault,
     stale_action_days: staleActionDays,
-    default_share_ttl_days: defaultShareTtlDays,
-    reviewer_branding: reviewerBranding,
     public_base_url: publicBaseUrl,
     voiceover_cues: voiceoverCues,
     trash_retention_days: trashRetentionDays,

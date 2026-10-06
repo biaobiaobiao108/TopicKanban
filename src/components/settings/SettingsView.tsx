@@ -54,7 +54,6 @@ import {
   Coffee,
   Flame,
   Clock,
-  Share2,
   FileText,
   Eye,
   Globe,
@@ -112,9 +111,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
   const [editorLineHeight, setEditorLineHeight] = useState<EditorLineHeight>(settings.editor_line_height || DEFAULT_APP_SETTINGS.editor_line_height || 'relaxed');
   const [typewriterDefault, setTypewriterDefault] = useState<boolean>(settings.typewriter_mode_default ?? DEFAULT_APP_SETTINGS.typewriter_mode_default ?? false);
   const [staleActionDays, setStaleActionDays] = useState<number>(settings.stale_action_days || DEFAULT_APP_SETTINGS.stale_action_days || 5);
-  const [defaultShareTtl, setDefaultShareTtl] = useState<number>(settings.default_share_ttl_days || DEFAULT_APP_SETTINGS.default_share_ttl_days || 3);
   const [trashRetentionDays, setTrashRetentionDays] = useState<number>(settings.trash_retention_days ?? 30);
-  const [reviewerBranding, setReviewerBranding] = useState<string>(settings.reviewer_branding || '');
   const [publicBaseUrl, setPublicBaseUrl] = useState<string>(settings.public_base_url || '');
   const [voiceoverCues, setVoiceoverCues] = useState<string[]>(settings.voiceover_cues || DEFAULT_VOICEOVER_CUES);
   const [newCueInput, setNewCueInput] = useState('');
@@ -142,9 +139,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
     setEditorLineHeight(settings.editor_line_height || 'relaxed');
     setTypewriterDefault(settings.typewriter_mode_default ?? false);
     setStaleActionDays(settings.stale_action_days || 5);
-    setDefaultShareTtl(settings.default_share_ttl_days || 3);
     setTrashRetentionDays(settings.trash_retention_days ?? 30);
-    setReviewerBranding(settings.reviewer_branding || '');
     setPublicBaseUrl(settings.public_base_url || '');
     setVoiceoverCues(settings.voiceover_cues || DEFAULT_VOICEOVER_CUES);
   }, [settings]);
@@ -291,9 +286,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
         editor_line_height: editorLineHeight,
         typewriter_mode_default: typewriterDefault,
         stale_action_days: Number(staleActionDays),
-        default_share_ttl_days: Number(defaultShareTtl),
         trash_retention_days: Number(trashRetentionDays),
-        reviewer_branding: reviewerBranding.trim(),
         public_base_url: publicBaseUrl.trim().replace(/\/+$/, ''),
         voiceover_cues: voiceoverCues,
       };
@@ -807,15 +800,15 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
           </div>
         </div>
 
-        {/* 3. Workflow & Review Snapshots Preferences */}
+        {/* 3. Workflow Preferences */}
         <div className="bg-[var(--surface)] rounded-2xl border border-[var(--line)] p-5 sm:p-6 space-y-5 shadow-subtle transition-colors">
           <div className="flex items-center justify-between border-b border-stone-100 dark:border-stone-800 pb-3">
             <div className="flex items-center gap-2">
               <span className="p-1.5 rounded-xl bg-purple-500/10 text-purple-600 dark:text-purple-400">
-                <Share2 className="w-5 h-5" />
+                <Settings className="w-5 h-5" />
               </span>
               <div>
-                <h2 className="text-base font-bold text-stone-900 dark:text-stone-100">选题生产流与外部审稿偏好</h2>
+                <h2 className="text-base font-bold text-stone-900 dark:text-stone-100">选题生产流偏好</h2>
               </div>
             </div>
           </div>
@@ -843,39 +836,6 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                       className={`p-2.5 rounded-xl border text-center text-xs transition-all cursor-pointer ${
                         isSelected
                           ? 'border-[var(--accent)]/35 bg-[var(--accent-soft)] text-[var(--ink)] font-bold shadow-2xs'
-                          : 'border-stone-200/70 dark:border-stone-700 bg-stone-500/[0.03] dark:bg-stone-800/60 text-stone-700 dark:text-stone-300'
-                      }`}
-                    >
-                      {opt.label}
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
-
-            {/* Default Share Snapshot TTL */}
-            <div className="space-y-2">
-              <label className="text-xs sm:text-sm font-bold text-stone-800 dark:text-stone-200 flex items-center gap-1.5">
-                <Share2 className="w-4 h-4 text-purple-500" />
-                <span>外部审稿快照默认有效期</span>
-              </label>
-              <p className="text-[11px] text-stone-400 dark:text-stone-500">生成免登录外部审稿链接时的默认销毁时限</p>
-              <div className="grid grid-cols-4 gap-1.5">
-                {[
-                  { days: 1, label: '1 天' },
-                  { days: 3, label: '3 天' },
-                  { days: 7, label: '7 天' },
-                  { days: 30, label: '30 天' },
-                ].map((opt) => {
-                  const isSelected = defaultShareTtl === opt.days;
-                  return (
-                    <button
-                      key={opt.days}
-                      type="button"
-                      onClick={() => setDefaultShareTtl(opt.days)}
-                      className={`p-2.5 rounded-xl border text-center text-xs transition-all cursor-pointer ${
-                        isSelected
-                          ? 'border-purple-500 bg-purple-500/15 dark:bg-purple-950/40 text-purple-900 dark:text-purple-200 font-bold shadow-2xs'
                           : 'border-stone-200/70 dark:border-stone-700 bg-stone-500/[0.03] dark:bg-stone-800/60 text-stone-700 dark:text-stone-300'
                       }`}
                     >
@@ -923,23 +883,6 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
             </div>
           </div>
 
-          {/* Reviewer Branding / Watermark */}
-          <div className="space-y-2 pt-2 border-t border-stone-100 dark:border-stone-800">
-            <label className="text-xs sm:text-sm font-bold text-stone-800 dark:text-stone-200">
-              外部审稿样稿署名 / 频道标语
-            </label>
-            <p className="text-[11px] text-stone-400 dark:text-stone-500">
-              设置展示在外部只读审稿页顶部的频道名称或免责提示（例如：<code>B站 @你的频道名 内部审稿样稿</code>）
-            </p>
-            <input
-              type="text"
-              placeholder="例如：B站 @良子说事 内部审稿样稿 · 请勿外传"
-              value={reviewerBranding}
-              onChange={(e) => setReviewerBranding(e.target.value)}
-              className="w-full px-3.5 py-2.5 rounded-xl bg-[var(--control-surface)] dark:bg-stone-800 border border-stone-200/80 dark:border-stone-700 text-xs sm:text-sm text-stone-900 dark:text-stone-100 placeholder:text-stone-400 focus:bg-white dark:focus:bg-stone-800 focus:border-[var(--accent)] focus:outline-none"
-            />
-          </div>
-
           {/* Public Base URL (Reverse Proxy Support) */}
           <div className="space-y-2 pt-2 border-t border-stone-100 dark:border-stone-800">
             <div className="flex items-center justify-between">
@@ -954,7 +897,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
               )}
             </div>
             <p className="text-[11px] text-stone-400 dark:text-stone-500">
-              配置反向代理的公网域名（例如：<code>https://kanban.example.com</code>）。配置后，无论在本地内网还是远程写稿，生成的审稿链接与快投箱 Webhook 都将自动采用此公网域名。
+              配置反向代理的公网域名（例如：<code>https://kanban.example.com</code>）。配置后，快投箱 Webhook 会自动使用此公网域名。
             </p>
             <input
               type="url"

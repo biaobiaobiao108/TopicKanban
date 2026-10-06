@@ -9,8 +9,8 @@ import { registerDealRoutes } from './routes/deals';
 import { registerPeopleRoutes } from './routes/people';
 import { registerPublishedRoutes } from './routes/published';
 import { registerQuickDropRoutes } from './routes/quickDrops';
-import { registerSharingRoutes } from './routes/sharing';
 import { registerSystemRoutes } from './routes/system';
+import { registerPresenceRoutes } from './routes/presence';
 import { registerTagRoutes } from './routes/tags';
 import { registerTopicRoutes } from './routes/topics';
 import { registerTodoRoutes } from './routes/todos';
@@ -49,6 +49,7 @@ export function createApp(bindings: ApiBindings): NativeApp {
   });
 
   registerSystemRoutes(app);
+  registerPresenceRoutes(app);
   registerTopicRoutes(app);
   registerTodoRoutes(app);
   registerDealRoutes(app);
@@ -57,7 +58,6 @@ export function createApp(bindings: ApiBindings): NativeApp {
   registerWritingRoutes(app);
   registerTagRoutes(app);
   registerPublishedRoutes(app);
-  registerSharingRoutes(app);
   registerQuickDropRoutes(app);
 
   return app;

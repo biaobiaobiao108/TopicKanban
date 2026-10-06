@@ -181,7 +181,3 @@ export function createId(prefix: string): string {
   return `${prefix}-${Date.now()}-${crypto.randomUUID().slice(0, 8)}`;
 }
 
-export function createShareToken(): string {
-  return `rv-${crypto.randomUUID()}`;
-}
-

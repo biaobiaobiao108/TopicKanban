@@ -30,10 +30,7 @@ import {
   Compass,
   AlertTriangle,
   Mic,
-  Share2,
-  RefreshCw,
   X,
-  ExternalLink,
   ShieldAlert,
   Target,
   Columns2,
@@ -55,11 +52,8 @@ import { TableEdgeControls } from './ScriptTableEdgeControls';
 import { pastePlainTextIntoCodeBlock, shouldParseMarkdownPaste } from './scriptMarkdownPaste';
 import { getCitationHealth } from '../../lib/citations';
 import { copyTextToClipboard } from '../../lib/clipboard';
-import { resolvePublicUrl } from '../../lib/publicUrl';
 import { formatBeijingDateTime } from '../../lib/actionDate';
 import {
-  createShareSnapshot,
-  deleteShareSnapshot,
   reportPresenceHeartbeat,
   releasePresenceHeartbeat,
 } from '../../lib/storage';
@@ -468,14 +462,6 @@ export const ScriptEditorTab: React.FC<ScriptEditorTabProps> = ({
   const [presenceState, setPresenceState] = useState<PresenceState>({ is_locked: false });
   const [dismissLockBanner, setDismissLockBanner] = useState(false);
 
-  // Share state
-  const [isShareModalOpen, setIsShareModalOpen] = useState(false);
-  const [currentShare, setCurrentShare] = useState<{ token: string; url: string; expires_at: string } | null>(null);
-  const [isGeneratingShare, setIsGeneratingShare] = useState(false);
-  const [shareCopied, setShareCopied] = useState(false);
-  const shareLinkInputRef = useRef<HTMLInputElement | null>(null);
-  const shareCopyFeedbackTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-
   // Presence Heartbeat Effect
   useEffect(() => {
     const { clientId, deviceName } = getDeviceIdentifier();
@@ -508,62 +494,6 @@ export const ScriptEditorTab: React.FC<ScriptEditorTabProps> = ({
       handleRelease();
     };
   }, [topicId]);
-
-  const handleShareReviewClick = async () => {
-    if (currentShare) {
-      setIsShareModalOpen(true);
-      return;
-    }
-    await doGenerateShareSnapshot();
-  };
-
-  const doGenerateShareSnapshot = async () => {
-    setIsGeneratingShare(true);
-    try {
-      if (saveTimeoutRef.current) clearTimeout(saveTimeoutRef.current);
-      if (localSaveTimeoutRef.current) clearTimeout(localSaveTimeoutRef.current);
-      await persistLatestDraft();
-      const defaultDays = settings?.default_share_ttl_days || 3;
-      const ttlSeconds = defaultDays * 86400;
-      const result = await createShareSnapshot(topicId, ttlSeconds);
-      const fullUrl = resolvePublicUrl(result.url, settings?.public_base_url) || (result as { full_url?: string }).full_url || `${window.location.origin}${result.url}`;
-      setCurrentShare({ token: result.token, url: fullUrl, expires_at: result.expires_at });
-      setShareCopied(false);
-      setIsShareModalOpen(true);
-    } catch (err) {
-      showToast({ message: err instanceof Error ? err.message : '生成审稿链接失败', tone: 'error' });
-    } finally {
-      setIsGeneratingShare(false);
-    }
-  };
-
-  const handleCopyShareLink = async () => {
-    if (!currentShare) return;
-    const copied = await copyTextToClipboard(currentShare.url);
-    if (!copied) {
-      setShareCopied(false);
-      showToast({ message: '无法直接复制，链接已选中，请按 ⌘C 或 Ctrl+C 复制', tone: 'info' });
-      requestAnimationFrame(() => {
-        shareLinkInputRef.current?.focus();
-        shareLinkInputRef.current?.select();
-      });
-      return;
-    }
-    setShareCopied(true);
-    if (shareCopyFeedbackTimeoutRef.current) clearTimeout(shareCopyFeedbackTimeoutRef.current);
-    shareCopyFeedbackTimeoutRef.current = setTimeout(() => setShareCopied(false), 2000);
-  };
-
-  const handleDeleteShare = async () => {
-    if (!currentShare) return;
-    try {
-      await deleteShareSnapshot(topicId, currentShare.token);
-      setCurrentShare(null);
-      setIsShareModalOpen(false);
-    } catch {
-      // ignore
-    }
-  };
 
   isTypewriterActiveRef.current = isTypewriterActive;
 
@@ -1133,7 +1063,6 @@ export const ScriptEditorTab: React.FC<ScriptEditorTabProps> = ({
   useEffect(() => () => {
     outlineHighlightAnimationRef.current?.cancel();
     if (copyFeedbackTimeoutRef.current) clearTimeout(copyFeedbackTimeoutRef.current);
-    if (shareCopyFeedbackTimeoutRef.current) clearTimeout(shareCopyFeedbackTimeoutRef.current);
     if (zenTypingTimeoutRef.current) clearTimeout(zenTypingTimeoutRef.current);
   }, []);
 
@@ -1418,18 +1347,6 @@ export const ScriptEditorTab: React.FC<ScriptEditorTabProps> = ({
                 </FloatingScrollbar>
               </FloatingMenu>
             </div>
-
-            {/* Public Review Share Button */}
-            <button
-              type="button"
-              onClick={handleShareReviewClick}
-              disabled={isGeneratingShare}
-              aria-label={isGeneratingShare ? '正在生成审稿链接' : '生成外部审稿链接'}
-              className="flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-medium text-[var(--ink-muted)] hover:text-[var(--ink)] hover:bg-stone-500/[0.06] transition-all cursor-pointer disabled:opacity-50"
-            >
-              <Share2 className={`w-3.5 h-3.5 text-[var(--accent)] ${isGeneratingShare ? 'animate-spin' : ''}`} />
-              <span className="hidden sm:inline">{isGeneratingShare ? '生成中…' : '分享'}</span>
-            </button>
 
             {/* Copy Full Script */}
             <button
@@ -1810,87 +1727,6 @@ export const ScriptEditorTab: React.FC<ScriptEditorTabProps> = ({
         </React.Suspense>
       )}
 
-      {/* Share Review Snapshot Modal */}
-      <Modal
-        isOpen={isShareModalOpen && Boolean(currentShare)}
-        onClose={() => setIsShareModalOpen(false)}
-        title="外部审稿链接已就绪"
-        maxWidth="md"
-      >
-        {currentShare && (
-          <div className="space-y-3.5 text-xs">
-            {shareCopied && (
-              <div className="flex items-center gap-1.5 text-emerald-600 dark:text-emerald-400 font-semibold" role="status">
-                <Check className="w-3.5 h-3.5" />
-                已复制
-              </div>
-            )}
-            <div className="p-3 bg-stone-50 dark:bg-stone-800/60 rounded-xl border border-stone-200 dark:border-stone-700/80 space-y-2">
-              <div className="flex items-center justify-between text-[11px]">
-                <span className="text-stone-500 dark:text-stone-400">有效截止时间：</span>
-                <span className="font-mono text-emerald-700 dark:text-emerald-400 font-bold">
-                  {formatBeijingDateTime(currentShare.expires_at, 'zh-CN', {
-                    month: 'numeric',
-                    day: 'numeric',
-                    hour: '2-digit',
-                    minute: '2-digit',
-                  })}
-                </span>
-              </div>
-              <div className="flex items-center gap-2">
-                <input
-                  ref={shareLinkInputRef}
-                  type="text"
-                  readOnly
-                  aria-label="外部审稿链接"
-                  value={currentShare.url}
-                  className="flex-1 bg-white dark:bg-stone-900 border border-stone-200 dark:border-stone-700 rounded-lg px-2.5 py-1.5 font-mono text-[11px] text-stone-800 dark:text-stone-200 select-all outline-none"
-                />
-                <button
-                  type="button"
-                  onClick={handleCopyShareLink}
-                  className="px-3 py-1.5 rounded-lg bg-[var(--accent)] hover:bg-[var(--accent-dark)] active:scale-95 text-white font-bold transition-all shrink-0 flex items-center gap-1 cursor-pointer shadow-2xs"
-                >
-                  {shareCopied ? <Check className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5" />}
-                  <span>{shareCopied ? '已复制' : '复制'}</span>
-                </button>
-              </div>
-            </div>
-
-            <div className="flex items-center justify-between gap-2 pt-1 border-t border-stone-100 dark:border-stone-800 text-[11px]">
-              <div className="flex items-center gap-3">
-                <a
-                  href={currentShare.url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-flex items-center gap-1 font-semibold text-stone-600 dark:text-stone-300 hover:text-stone-900 dark:hover:text-stone-100"
-                >
-                  <span>在新标签页预览</span>
-                  <ExternalLink className="w-3 h-3" />
-                </a>
-
-                <button
-                  type="button"
-                  onClick={() => void doGenerateShareSnapshot()}
-                  disabled={isGeneratingShare}
-                  className="inline-flex items-center gap-1 font-semibold text-[var(--accent)] hover:underline cursor-pointer disabled:opacity-50"
-                >
-                  <RefreshCw className={`w-3 h-3 ${isGeneratingShare ? 'animate-spin' : ''}`} />
-                  <span>同步最新草稿</span>
-                </button>
-              </div>
-
-              <button
-                type="button"
-                onClick={() => void handleDeleteShare()}
-                className="font-semibold text-red-600 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300 cursor-pointer"
-              >
-                撤回并销毁
-              </button>
-            </div>
-          </div>
-        )}
-      </Modal>
     </div>
   );
 

@@ -39,7 +39,6 @@ import type {
   TopicWorkspaceLoad,
   TodayFocusData,
   ActiveTopicCount,
-  ShareSnapshot,
   PresenceState,
   QuickDropItem,
 } from '../types';
@@ -1180,35 +1179,7 @@ export async function importBackupData(input: string | File): Promise<BackupImpo
 }
 
 /* =========================================================================
-   KV Feature 1: Public Review Share (审稿分享)
-   ========================================================================= */
-
-export async function createShareSnapshot(
-  topicId: string,
-  ttlSeconds = 86400
-): Promise<{ token: string; url: string; expires_at: string; snapshot: ShareSnapshot }> {
-  return apiRequest(`/api/topics/${encodeURIComponent(topicId)}/share`, jsonRequest('POST', {
-    ttl_seconds: ttlSeconds,
-  }));
-}
-
-export async function fetchPublicShareSnapshot(token: string): Promise<ShareSnapshot> {
-  const response = await fetch(`/api/public/share/${encodeURIComponent(token)}`);
-  if (!response.ok) {
-    const errData = await response.json().catch(() => ({})) as { error?: string };
-    throw new Error(errData.error || '审稿链接已过期或不存在');
-  }
-  return response.json();
-}
-
-export async function deleteShareSnapshot(topicId: string, token: string): Promise<void> {
-  await apiRequest(`/api/topics/${encodeURIComponent(topicId)}/share/${encodeURIComponent(token)}`, {
-    method: 'DELETE',
-  });
-}
-
-/* =========================================================================
-   KV Feature 2: Soft Presence & Edit Lock (在线心跳)
+   KV Feature 1: Soft Presence & Edit Lock (在线心跳)
    ========================================================================= */
 
 export async function reportPresenceHeartbeat(

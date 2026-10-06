@@ -35,10 +35,6 @@ import {
 } from '../repositories';
 import type { AppSettings } from '../../types';
 
-async function revokeTopicShares(env: ApiBindings, ids: string[], scanLegacy = false): Promise<void> {
-  await env.KV.deleteTopicSharesBatch(ids, scanLegacy);
-}
-
 async function purgeExpiredTrashIfConfigured(db: ReturnType<typeof requireDb>, env: ApiBindings): Promise<void> {
   try {
     const settings = await env.KV.get<AppSettings>('app_settings', 'json');
@@ -46,7 +42,6 @@ async function purgeExpiredTrashIfConfigured(db: ReturnType<typeof requireDb>, e
     if (retentionDays > 0) {
       const expiredIds = await listExpiredTrashTopicIds(db, retentionDays);
       if (expiredIds.length > 0) {
-        await revokeTopicShares(env, expiredIds, true);
         await permanentlyDeleteTrashedTopics(db, expiredIds);
         invalidatePublishedAnalyticsCache();
       }
@@ -201,12 +196,8 @@ export function registerTopicRoutes(app: NativeApp): void {
   app.delete('/topics/:id', async (c) => {
     try {
       const topicId = c.req.param('id');
-      // 先撤销现有快照，避免清理失败时仍完成删除。
-      await revokeTopicShares(c.env, [topicId]);
       await softDeleteTopic(requireDb(c), topicId);
       invalidatePublishedAnalyticsCache();
-      // 再撤销一次以覆盖并发分享；分享创建路由也会在写入后复查选题状态。
-      await revokeTopicShares(c.env, [topicId], true);
       return c.json({ success: true });
     } catch (error) {
       return jsonError(c, error);
@@ -231,7 +222,6 @@ export function registerTopicRoutes(app: NativeApp): void {
       const db = requireDb(c);
       const topicId = c.req.param('id');
       await ensureTopicsInTrash(db, [topicId]);
-      await revokeTopicShares(c.env, [topicId]);
       await permanentlyDeleteTrashedTopics(db, [topicId]);
       invalidatePublishedAnalyticsCache();
       return c.json({ success: true });
@@ -252,7 +242,6 @@ export function registerTopicRoutes(app: NativeApp): void {
       const uniqueIds = Array.from(new Set(ids));
       if (uniqueIds.length !== ids.length) return c.json({ error: 'Duplicate topic ids are not allowed' }, 400);
       await ensureTopicsInTrash(db, uniqueIds);
-      await revokeTopicShares(c.env, uniqueIds, true);
       await permanentlyDeleteTrashedTopics(db, uniqueIds);
       invalidatePublishedAnalyticsCache();
       return c.json({ success: true, count: uniqueIds.length });
@@ -267,7 +256,6 @@ export function registerTopicRoutes(app: NativeApp): void {
       const db = requireDb(c);
       const ids = await listTrashedTopicIds(db);
       if (ids.length === 0) return c.json({ success: true, count: 0, ids: [] });
-      await revokeTopicShares(c.env, ids, true);
       await permanentlyDeleteTrashedTopics(db, ids);
       invalidatePublishedAnalyticsCache();
       return c.json({ success: true, count: ids.length, ids });

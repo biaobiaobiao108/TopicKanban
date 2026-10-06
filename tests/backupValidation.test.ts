@@ -286,7 +286,6 @@ describe('backup schema validation', () => {
       settings: {
         reading_speed: 300,
         theme: 'light',
-        reviewer_branding: '老编辑审稿',
       },
     }));
 

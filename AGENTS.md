@@ -66,9 +66,8 @@
 * **主业务持久库 (`DB` / SQLite)**：负责强关系型业务资产（`topics`, `topic_todos`, `sources`, `timeline_events`, `people`, `person_relationships`, `drafts`, `draft_citations`, `tags`, `topic_tags`, `published_videos`, `commercial_deals`, `commercial_deal_activities`）。
 * **键值存储 (`KV` / `_kv_store`)**：负责非关系型全局配置与轻量交互数据：
   1. **全局偏好设置** (`app_settings`：语速、主题、排版、演播气口库 `voiceover_cues`、反代公网域名 `public_base_url`、停滞阈值 `stale_days`、回收站保留天数 `trash_retention_days` 等)；
-  2. **免登录外部审稿只读快照** (`share:*` / `topic_share:*`：支持设定 TTL 自动物理销毁)；
-  3. **多端编辑在线感知防踩踏锁** (`lock:*`：由 `AppKV` 内部的内存 LeaseMap 隔离维护，维持 30s TTL 租约心跳，零磁盘 I/O 以杜绝高频碎片与 WAL 膨胀)；
-  4. **手机/快捷指令碎片灵感快投箱** (`drop:*` / `quick_drops_index`：7 天自动生命周期)。
+  2. **多端编辑在线感知防踩踏锁** (`lock:*`：由 `AppKV` 内部的内存 LeaseMap 隔离维护，维持 30s TTL 租约心跳，零磁盘 I/O 以杜绝高频碎片与 WAL 膨胀)；
+  3. **手机/快捷指令碎片灵感快投箱** (`drop:*` / `quick_drops_index`：7 天自动生命周期)。
 * **开发约束**：新增任何用户个性化配置项，一律扩展至 `app_settings`，避免污染主业务关系表。
 
 ### 2.1 内存生命周期与峰值治理 (Memory Governance)
@@ -94,7 +93,7 @@
 
 ### 3. 本地开发与反代公网域名规范 (Local Bun Server & Public Base URL)
 * **本地开发 (`bun run dev`)**：Bun HTML Bundler 热重载与 Bun.serve 在同一进程运行于 3030 端口，页面、静态资源和 `/api` 由同一个服务同源提供；不再使用独立前端开发服务器或跨端口代理。本地开发默认密码为 `admin`。
-* **反向代理 (`PUBLIC_BASE_URL`)**：当容器部署在反向代理（Nginx / Caddy / NPM）后方时，外部审稿分享链接与灵感快投 Webhook 地址必须自适应公网域名。
+* **反向代理 (`PUBLIC_BASE_URL`)**：当容器部署在反向代理（Nginx / Caddy / NPM）后方时，灵感快投 Webhook 地址必须自适应公网域名。
 * 解析优先级：`settings.public_base_url` > `env.PUBLIC_BASE_URL` > `X-Forwarded-*` 标头 > `window.location.origin`。
 
 ### 4. 外部音视频与社交平台链接智能识别架构（全量客户端直连原则 All Client-Side Direct Parsing）

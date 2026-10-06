@@ -29,8 +29,8 @@ describe('copyTextToClipboard', () => {
       clipboard: { writeText: async (text: string) => { copiedText = text; } },
     });
 
-    await expect(copyTextToClipboard('审稿链接')).resolves.toBe(true);
-    expect(copiedText).toBe('审稿链接');
+    await expect(copyTextToClipboard('复制内容')).resolves.toBe(true);
+    expect(copiedText).toBe('复制内容');
   });
 
   it('resolves false when Safari rejects a clipboard write', async () => {

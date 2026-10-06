@@ -428,8 +428,6 @@ export interface AppSettings {
   editor_line_height?: EditorLineHeight;
   typewriter_mode_default?: boolean;
   stale_action_days?: number;
-  default_share_ttl_days?: number;
-  reviewer_branding?: string;
   public_base_url?: string; // Reverse proxy or custom public domain e.g. "https://kanban.example.com"
   voiceover_cues?: string[]; // Custom cue tags for voiceover teleprompter
   trash_retention_days?: number; // Days to keep topics in trash before auto purge (default 30, 0 = never)
@@ -442,8 +440,6 @@ export const DEFAULT_APP_SETTINGS: AppSettings = {
   editor_line_height: 'relaxed',
   typewriter_mode_default: false,
   stale_action_days: 5,
-  default_share_ttl_days: 3,
-  reviewer_branding: '',
   public_base_url: '',
   voiceover_cues: DEFAULT_VOICEOVER_CUES,
   trash_retention_days: 30,
@@ -586,21 +582,6 @@ export interface TopicTodoBoardLayout {
 export interface TopicPinMutationResult {
   topic: Topic;
   cleared_topic_ids: string[];
-}
-
-export interface ShareSnapshot {
-  token: string;
-  topic_id: string;
-  topic_title: string;
-  hook?: string;
-  summary?: string;
-  storyline?: string;
-  content_html: string;
-  word_count: number;
-  reading_speed: number;
-  reviewer_branding?: string;
-  created_at: string;
-  expires_at: string;
 }
 
 export interface PresenceState {
