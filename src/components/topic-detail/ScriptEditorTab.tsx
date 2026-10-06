@@ -1,4 +1,4 @@
-import React, { useId, useState, useEffect, useLayoutEffect, useRef, useCallback, useMemo } from 'react';
+import React, { useState, useEffect, useLayoutEffect, useRef, useCallback, useMemo } from 'react';
 import { createPortal } from 'react-dom';
 import DOMPurify from 'dompurify';
 import { useEditor, EditorContent } from '@tiptap/react';
@@ -16,7 +16,6 @@ import { ScriptReferenceDrawer } from './ScriptReferenceDrawer';
 import { ScriptOutlinePanel } from './ScriptOutlinePanel';
 import { Modal } from '../ui/Modal';
 import { useToast } from '../ui/Toast';
-import { FloatingMenu } from '../ui/FloatingMenu';
 import { FloatingScrollbar } from '../ui/FloatingScrollbar';
 import {
   Clock,
@@ -339,12 +338,7 @@ export const ScriptEditorTab: React.FC<ScriptEditorTabProps> = ({
   const [outline, setOutline] = useState(EMPTY_SCRIPT_OUTLINE);
   const [activeOutlineItemId, setActiveOutlineItemId] = useState<string | null>(null);
   const [isTeleprompterOpen, setIsTeleprompterOpen] = useState(false);
-  const [isCueMenuOpen, setIsCueMenuOpen] = useState(false);
   const [contextMenuPosition, setContextMenuPosition] = useState<{ x: number; y: number } | null>(null);
-  const [lastInsertedCue, setLastInsertedCue] = useState<string | null>(null);
-  const lastInsertedTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const cueTriggerRef = useRef<HTMLButtonElement | null>(null);
-  const cueMenuId = useId();
 
   // Zen Mode Ambient Dynamic Respiration State
   const [isTypingZen, setIsTypingZen] = useState(false);
@@ -541,11 +535,6 @@ export const ScriptEditorTab: React.FC<ScriptEditorTabProps> = ({
         return;
       }
       if (e.key === 'Escape') {
-        if (isCueMenuOpen) {
-          e.preventDefault();
-          setIsCueMenuOpen(false);
-          return;
-        }
         if (isReferenceOpen) {
           e.preventDefault();
           setIsReferenceOpen(false);
@@ -560,7 +549,7 @@ export const ScriptEditorTab: React.FC<ScriptEditorTabProps> = ({
     };
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [isOutlineOpen, isReferenceOpen, isZenMode, isCueMenuOpen]);
+  }, [isOutlineOpen, isReferenceOpen, isZenMode]);
 
   // Initialize Tiptap with Markdown as the source format.
   const editor = useEditor({
@@ -1096,9 +1085,6 @@ export const ScriptEditorTab: React.FC<ScriptEditorTabProps> = ({
       })
       .insertContent(' ')
       .run();
-    setLastInsertedCue(cleanCue);
-    if (lastInsertedTimeoutRef.current) clearTimeout(lastInsertedTimeoutRef.current);
-    lastInsertedTimeoutRef.current = setTimeout(() => setLastInsertedCue(null), 1500);
   };
 
   const handleEditorContextMenu = (event: React.MouseEvent<HTMLElement>) => {
@@ -1286,87 +1272,6 @@ export const ScriptEditorTab: React.FC<ScriptEditorTabProps> = ({
             {/* Mobile-only word count */}
             <div className="flex md:hidden items-center text-[11px] text-[var(--ink-muted)] font-mono tabular-nums pr-1">
               <span>{charCount}字</span>
-            </div>
-
-            {/* Voiceover Cue Dropdown */}
-            <div className="relative">
-              <button
-                type="button"
-                ref={cueTriggerRef}
-                aria-expanded={isCueMenuOpen}
-                aria-controls={isCueMenuOpen ? cueMenuId : undefined}
-                onClick={() => setIsCueMenuOpen((prev) => !prev)}
-                className={`flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-medium transition-all cursor-pointer ${
-                  isCueMenuOpen
-                    ? 'bg-[var(--accent-soft)] text-[var(--accent-dark)] font-semibold'
-                    : 'text-[var(--ink-muted)] hover:text-[var(--ink)] hover:bg-stone-500/[0.06]'
-                }`}
-                aria-label="插入配音气口标记"
-              >
-                <Mic className="w-3.5 h-3.5 text-[var(--accent)]" />
-                <span className="hidden sm:inline">气口</span>
-              </button>
-
-              <FloatingMenu
-                isOpen={isCueMenuOpen}
-                anchorRef={cueTriggerRef}
-                onClose={() => setIsCueMenuOpen(false)}
-                id={cueMenuId}
-                ariaLabel="演播气口库"
-                width={224}
-                minWidth={224}
-                maxHeight={288}
-                align="right"
-                className="animate-in fade-in zoom-in-95 duration-100 font-sans"
-              >
-                <FloatingScrollbar className="p-2.5" wrapperClassName="min-h-0 flex-none">
-                  <div className="flex items-center justify-between text-[10px] font-bold text-stone-400 dark:text-stone-500 px-1 py-0.5 uppercase tracking-wider border-b border-stone-100 dark:border-stone-800 pb-1.5 mb-1.5">
-                    <div className="flex items-center gap-1 text-[var(--accent)]">
-                      <Mic className="w-3 h-3" />
-                      <span>气口库 · 连续打标</span>
-                    </div>
-                    <div className="flex items-center gap-1.5">
-                      {lastInsertedCue && (
-                        <span className="text-[9px] text-emerald-600 dark:text-emerald-400 font-bold animate-in fade-in">
-                          已插入 [{lastInsertedCue}] ✓
-                        </span>
-                      )}
-                      <button
-                        type="button"
-                        onClick={() => setIsCueMenuOpen(false)}
-                        className="text-stone-400 hover:text-stone-700 dark:hover:text-stone-200 p-0.5 rounded cursor-pointer transition-colors"
-                        aria-label="关闭选单"
-                      >
-                        <X className="w-3 h-3" />
-                      </button>
-                    </div>
-                  </div>
-                  <div className="space-y-0.5 pr-0.5">
-                    {(settings?.voiceover_cues?.length ? settings.voiceover_cues : DEFAULT_VOICEOVER_CUES).map((cue) => {
-                      const isJustInserted = lastInsertedCue === cue.replace(/^\[+|\]+$/g, '').trim();
-                      return (
-                        <button
-                          key={cue}
-                          type="button"
-                          onClick={() => handleInsertVoiceoverCue(cue)}
-                          className={`w-full min-h-9 text-left px-2.5 py-1.5 rounded-lg text-xs font-medium flex items-center justify-between group transition-colors cursor-pointer ${
-                            isJustInserted
-                              ? 'bg-emerald-50 dark:bg-emerald-950/40 text-emerald-800 dark:text-emerald-300'
-                              : 'text-stone-700 dark:text-stone-200 hover:bg-[var(--canvas)] hover:text-[var(--ink)]'
-                          }`}
-                        >
-                          <div className="flex items-center gap-1.5 truncate">
-                            <span className="text-[11px] px-1.5 py-0.5 rounded bg-[var(--canvas)] border border-[var(--line)] text-[var(--ink)] font-mono font-medium">🎙️ {cue}</span>
-                          </div>
-                          <span className="text-[10px] text-stone-400 group-hover:text-[var(--accent)] opacity-0 group-hover:opacity-100 font-mono">
-                            {isJustInserted ? '已加' : '插入'}
-                          </span>
-                        </button>
-                      );
-                    })}
-                  </div>
-                </FloatingScrollbar>
-              </FloatingMenu>
             </div>
 
             {/* Copy Full Script */}

@@ -78,7 +78,7 @@ export const ScriptEditorContextMenu: React.FC<ScriptEditorContextMenuProps> = (
   const cueMenuRef = useRef<HTMLDivElement | null>(null);
   const [position, setPosition] = useState({ x, y });
   const [showCues, setShowCues] = useState(false);
-  const [cueMenuOpensLeft, setCueMenuOpensLeft] = useState(false);
+  const [cueMenuPosition, setCueMenuPosition] = useState<{ left: number; top: number; width: number; height: number } | null>(null);
   const selectionIsEmpty = editor.state.selection.empty;
   const canUndo = editor.can().undo();
   const canRedo = editor.can().redo();
@@ -87,12 +87,25 @@ export const ScriptEditorContextMenu: React.FC<ScriptEditorContextMenuProps> = (
     const menu = menuRef.current;
     if (!menu) return;
     const rect = menu.getBoundingClientRect();
-    setCueMenuOpensLeft(x + rect.width + 252 > window.innerWidth - 8);
     setPosition({
       x: Math.max(8, Math.min(x, window.innerWidth - rect.width - 8)),
       y: Math.max(8, Math.min(y, window.innerHeight - rect.height - 8)),
     });
   }, [x, y, showCues]);
+
+  useLayoutEffect(() => {
+    const menu = menuRef.current;
+    const cueMenu = cueMenuRef.current;
+    if (!showCues || !menu || !cueMenu) return;
+
+    const menuRect = menu.getBoundingClientRect();
+    const width = menuRect.width;
+    const height = menuRect.height;
+    const gap = 4;
+    const opensLeft = menuRect.right + gap + width > window.innerWidth - 8;
+    const left = opensLeft ? menuRect.left - width - gap : menuRect.right + gap;
+    setCueMenuPosition({ left: Math.max(8, left), top: menuRect.top, width, height });
+  }, [position, showCues]);
 
   useLayoutEffect(() => {
     menuRef.current?.querySelector<HTMLButtonElement>('[role="menuitem"]:not(:disabled)')?.focus();
@@ -215,27 +228,30 @@ export const ScriptEditorContextMenu: React.FC<ScriptEditorContextMenuProps> = (
         </button>
         {showCues && (
           <>
-            <span
-              aria-hidden="true"
-              className={`absolute top-0 z-[121] h-full w-2 ${cueMenuOpensLeft ? 'right-full' : 'left-full'}`}
-            />
+            <span aria-hidden="true" className="absolute left-full top-0 z-[121] h-full w-1" />
             <div
               ref={cueMenuRef}
               role="menu"
               aria-label="选择气口"
-              className={`absolute top-0 z-[121] max-h-64 w-60 overflow-y-auto rounded-xl border border-[var(--line)] bg-[var(--surface)] p-2 shadow-modal ${cueMenuOpensLeft ? 'right-[calc(100%+0.5rem)]' : 'left-[calc(100%+0.5rem)]'}`}
+              className="fixed z-[121] overflow-y-auto rounded-xl border border-[var(--line)] bg-[var(--surface)] p-1.5 text-[var(--ink)] shadow-modal"
+              style={cueMenuPosition ? {
+                left: cueMenuPosition.left,
+                top: cueMenuPosition.top,
+                width: cueMenuPosition.width,
+                height: cueMenuPosition.height,
+              } : { visibility: 'hidden' }}
             >
               {cues.map((cue) => (
                 <button
                   type="button"
                   role="menuitem"
                   key={cue}
-                  className="flex w-full items-center rounded-lg px-1.5 py-1.5 text-left outline-none transition-colors hover:bg-[var(--accent-soft)] focus-visible:bg-[var(--accent-soft)]"
+                  className="flex w-full items-center rounded-lg px-1 py-1 text-left outline-none transition-colors hover:bg-[var(--accent-soft)] focus-visible:bg-[var(--accent-soft)]"
                   onClick={() => { onInsertCue(cue); closeAndFocusEditor(); }}
                 >
-                  <span className="inline-flex max-w-full items-center gap-1 rounded-full border border-[var(--accent)]/25 bg-[var(--accent-soft)] px-2 py-0.5 text-xs font-semibold text-[var(--accent-dark)]">
-                    <span aria-hidden="true">🎙️</span>
-                    <span className="truncate">{cue}</span>
+                  <span className="flex w-full min-w-0 items-start gap-1.5 rounded-lg px-2 py-1.5 text-sm font-semibold text-[var(--accent-dark)]">
+                    <span aria-hidden="true" className="shrink-0">🎙️</span>
+                    <span className="min-w-0 whitespace-normal break-words">{cue}</span>
                   </span>
                 </button>
               ))}
