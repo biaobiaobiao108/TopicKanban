@@ -228,7 +228,7 @@ const SortableTimelineItem: React.FC<SortableTimelineItemProps> = ({
       ref={setNodeRef}
       style={style}
       data-testid="source-timeline-item"
-      className={`relative group ${isDragging ? 'opacity-50 z-30 scale-[1.01]' : 'opacity-100'}`}
+      className={`relative group w-full max-w-4xl ${isDragging ? 'opacity-50 z-30 scale-[1.01]' : 'opacity-100'}`}
     >
       {/* Timeline Node Dot on Left Axis */}
       <div className="absolute -left-6 sm:-left-8 top-4 w-6 h-6 rounded-full bg-[var(--surface)] border-2 border-[var(--accent)] flex items-center justify-center text-[10px] font-bold text-[var(--accent-dark)] shadow-2xs z-10 select-none">
