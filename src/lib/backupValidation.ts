@@ -267,7 +267,6 @@ const settingsSchema = z.object({
   theme: themeSchema,
   editor_font_size: z.enum(['compact', 'standard', 'large']).optional(),
   editor_line_height: z.enum(['normal', 'relaxed', 'loose']).optional(),
-  voiceover_cues: z.array(z.string().max(50)).optional(),
 });
 
 const backupSchema = z.object({

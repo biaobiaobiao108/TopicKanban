@@ -3,10 +3,12 @@ import type { Editor } from '@tiptap/core';
 import { createPortal } from 'react-dom';
 import { ChevronRight, ClipboardPaste, Copy, ListChecks, Mic, Redo2, Scissors, Undo2 } from 'lucide-react';
 import { copyTextToClipboard } from '../../lib/clipboard';
+import { FloatingScrollbar } from '../ui/FloatingScrollbar';
+import type { VoiceoverCuePreset } from '../../lib/voiceoverCues';
 
 interface ScriptEditorContextMenuProps {
   editor: Editor;
-  cues: string[];
+  cues: readonly VoiceoverCuePreset[];
   x: number;
   y: number;
   onClose: () => void;
@@ -101,7 +103,7 @@ export const ScriptEditorContextMenu: React.FC<ScriptEditorContextMenuProps> = (
     const menuRect = menu.getBoundingClientRect();
     const width = menuRect.width;
     const height = menuRect.height;
-    const gap = 4;
+    const gap = 0;
     const opensLeft = menuRect.right + gap + width > window.innerWidth - 8;
     const left = opensLeft ? menuRect.left - width - gap : menuRect.right + gap;
     setCueMenuPosition({ left: Math.max(8, left), top: menuRect.top, width, height });
@@ -118,6 +120,15 @@ export const ScriptEditorContextMenu: React.FC<ScriptEditorContextMenuProps> = (
     document.addEventListener('pointerdown', handlePointerDown, true);
     return () => document.removeEventListener('pointerdown', handlePointerDown, true);
   }, [onClose]);
+
+  useEffect(() => {
+    if (!showCues) return;
+    const closeWhenPointerLeavesMenu = (event: PointerEvent) => {
+      if (!menuRef.current?.contains(event.target as Node)) setShowCues(false);
+    };
+    document.addEventListener('pointermove', closeWhenPointerLeavesMenu, true);
+    return () => document.removeEventListener('pointermove', closeWhenPointerLeavesMenu, true);
+  }, [showCues]);
 
   const closeAndFocusEditor = () => {
     onClose();
@@ -212,7 +223,6 @@ export const ScriptEditorContextMenu: React.FC<ScriptEditorContextMenuProps> = (
       <div
         className="relative"
         onMouseEnter={() => setShowCues(true)}
-        onMouseLeave={() => setShowCues(false)}
       >
         <button
           ref={cueTriggerRef}
@@ -228,12 +238,11 @@ export const ScriptEditorContextMenu: React.FC<ScriptEditorContextMenuProps> = (
         </button>
         {showCues && (
           <>
-            <span aria-hidden="true" className="absolute left-full top-0 z-[121] h-full w-1" />
             <div
               ref={cueMenuRef}
               role="menu"
               aria-label="选择气口"
-              className="fixed z-[121] overflow-y-auto rounded-xl border border-[var(--line)] bg-[var(--surface)] p-1.5 text-[var(--ink)] shadow-modal"
+              className="fixed z-[121] flex flex-col rounded-xl border border-[var(--line)] bg-[var(--surface)] text-[var(--ink)] shadow-modal"
               style={cueMenuPosition ? {
                 left: cueMenuPosition.left,
                 top: cueMenuPosition.top,
@@ -241,20 +250,27 @@ export const ScriptEditorContextMenu: React.FC<ScriptEditorContextMenuProps> = (
                 height: cueMenuPosition.height,
               } : { visibility: 'hidden' }}
             >
-              {cues.map((cue) => (
-                <button
-                  type="button"
-                  role="menuitem"
-                  key={cue}
-                  className="flex w-full items-center rounded-lg px-1 py-1 text-left outline-none transition-colors hover:bg-[var(--accent-soft)] focus-visible:bg-[var(--accent-soft)]"
-                  onClick={() => { onInsertCue(cue); closeAndFocusEditor(); }}
-                >
-                  <span className="flex w-full min-w-0 items-start gap-1.5 rounded-lg px-2 py-1.5 text-sm font-semibold text-[var(--accent-dark)]">
-                    <span aria-hidden="true" className="shrink-0">🎙️</span>
-                    <span className="min-w-0 whitespace-normal break-words">{cue}</span>
-                  </span>
-                </button>
-              ))}
+              <FloatingScrollbar
+                role="none"
+                tabIndex={-1}
+                className="p-1.5"
+                wrapperClassName="min-h-0 flex-1"
+              >
+                {cues.map(({ label, tone }) => (
+                  <button
+                    type="button"
+                    role="menuitem"
+                    key={label}
+                    className="flex w-full items-center rounded-lg px-1 text-left outline-none transition-colors hover:bg-[var(--accent-soft)] focus-visible:bg-[var(--accent-soft)]"
+                    onClick={() => { onInsertCue(label); closeAndFocusEditor(); }}
+                  >
+                    <span data-cue-tone={tone} className="voiceover-cue-badge flex w-full min-w-0 items-start gap-1.5 rounded-lg px-2 py-0.5 text-sm font-semibold leading-5">
+                      <span aria-hidden="true" className="shrink-0">🎙️</span>
+                      <span className="min-w-0 whitespace-normal break-words">{label}</span>
+                    </span>
+                  </button>
+                ))}
+              </FloatingScrollbar>
             </div>
           </>
         )}

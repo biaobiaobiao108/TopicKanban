@@ -160,7 +160,7 @@ describe('backup schema validation', () => {
 
   it('does not expose hardcoded workflow preferences as backup settings', () => {
     const result = validateBackupData(createBackup({
-      settings: { reading_speed: 280, theme: 'light' },
+      settings: { reading_speed: 280, theme: 'light', voiceover_cues: ['自定义气口'] } as never,
     }));
     expect(result.success).toBe(true);
     if (result.success) {
@@ -168,6 +168,7 @@ describe('backup schema validation', () => {
       expect(result.data.settings).not.toHaveProperty('trash_retention_days');
       expect(result.data.settings).not.toHaveProperty('public_base_url');
       expect(result.data.settings).not.toHaveProperty('typewriter_mode_default');
+      expect(result.data.settings).not.toHaveProperty('voiceover_cues');
     }
   });
 

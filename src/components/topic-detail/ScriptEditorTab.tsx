@@ -11,7 +11,8 @@ import { Extension } from '@tiptap/core';
 import type { Editor as TiptapEditor } from '@tiptap/core';
 import { Plugin, PluginKey } from '@tiptap/pm/state';
 import { Decoration, DecorationSet } from '@tiptap/pm/view';
-import { CitationInput, Draft, DraftRecoveryConflict, DraftCitation, Topic, Source, AppSettings, EditorFontSize, EditorLineHeight, DEFAULT_VOICEOVER_CUES, TopicReport } from '../../types';
+import { CitationInput, Draft, DraftRecoveryConflict, DraftCitation, Topic, Source, AppSettings, EditorFontSize, EditorLineHeight, TopicReport } from '../../types';
+import { VOICEOVER_CUES } from '../../lib/voiceoverCues';
 import { ScriptReferenceDrawer } from './ScriptReferenceDrawer';
 import { ScriptOutlinePanel } from './ScriptOutlinePanel';
 import { Modal } from '../ui/Modal';
@@ -1642,7 +1643,7 @@ export const ScriptEditorTab: React.FC<ScriptEditorTabProps> = ({
       {contextMenuPosition && editor && (
         <ScriptEditorContextMenu
           editor={editor}
-          cues={settings?.voiceover_cues?.length ? settings.voiceover_cues : DEFAULT_VOICEOVER_CUES}
+          cues={VOICEOVER_CUES}
           x={contextMenuPosition.x}
           y={contextMenuPosition.y}
           onClose={() => setContextMenuPosition(null)}

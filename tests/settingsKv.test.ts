@@ -1,7 +1,8 @@
 import { describe, it, expect } from 'bun:test';
-import { DEFAULT_APP_SETTINGS, APP_THEMES, STALE_ACTION_THRESHOLD_DAYS, TRASH_RETENTION_DAYS } from '../src/types';
+import { DEFAULT_APP_SETTINGS, APP_THEMES, STALE_ACTION_THRESHOLD_DAYS, TRASH_RETENTION_DAYS, type AppSettings } from '../src/types';
 import { sanitizeAppSettings } from '../src/server/routes/system';
 import { THEME_CONFIG_LIST } from '../src/lib/theme';
+import { VOICEOVER_CUES, getVoiceoverCueTone } from '../src/lib/voiceoverCues';
 
 describe('Settings KV Model and Sanitization', () => {
   it('should have valid DEFAULT_APP_SETTINGS', () => {
@@ -12,20 +13,31 @@ describe('Settings KV Model and Sanitization', () => {
   });
 
   it('should sanitize valid KV settings while preserving supported fields', () => {
-    const settings = sanitizeAppSettings({
+    const legacySettings = {
       reading_speed: 320,
       theme: 'dark',
       editor_font_size: 'large',
       voiceover_cues: ['停顿 3s'],
-    });
+    } as Partial<AppSettings>;
+    const settings = sanitizeAppSettings(legacySettings);
     expect(settings.reading_speed).toBe(320);
     expect(settings.theme).toBe('dark');
     expect(settings.editor_font_size).toBe('large');
-    expect(settings.voiceover_cues).toEqual(['停顿 3s']);
+    expect(settings).not.toHaveProperty('voiceover_cues');
     expect(settings).not.toHaveProperty('stale_action_days');
     expect(settings).not.toHaveProperty('trash_retention_days');
     expect(settings).not.toHaveProperty('public_base_url');
     expect(settings).not.toHaveProperty('typewriter_mode_default');
+  });
+
+  it('uses the fixed voiceover cue set with distinct semantic tone groups', () => {
+    expect(VOICEOVER_CUES.map(({ label }) => label)).toEqual([
+      '停顿', '重音', '反问', '反讽', '加快', '放慢', '克制', '迟疑',
+    ]);
+    expect(getVoiceoverCueTone('停顿')).toBe('rhythm');
+    expect(getVoiceoverCueTone('重音')).toBe('emphasis');
+    expect(getVoiceoverCueTone('反问')).toBe('intent');
+    expect(getVoiceoverCueTone('克制')).toBe('emotion');
   });
 
   it('should fallback to defaults on empty or invalid inputs', () => {

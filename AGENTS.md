@@ -65,7 +65,7 @@
 #### 存储分工原则：
 * **主业务持久库 (`DB` / SQLite)**：负责强关系型业务资产（`topics`, `topic_todos`, `sources`, `timeline_events`, `people`, `person_relationships`, `drafts`, `draft_citations`, `tags`, `topic_tags`, `published_videos`, `commercial_deals`, `commercial_deal_activities`）。
 * **键值存储 (`KV` / `_kv_store`)**：负责非关系型全局配置与轻量交互数据：
-  1. **全局偏好设置** (`app_settings`：语速、主题、排版、演播气口库 `voiceover_cues` 等；停滞预警固定 5 天、回收站保留固定 30 天，反代域名通过环境变量配置)；
+  1. **全局偏好设置** (`app_settings`：语速、主题、排版等；演播气口使用代码内固定预设，停滞预警固定 5 天、回收站保留固定 30 天，反代域名通过环境变量配置)；
   2. **多端编辑在线感知防踩踏锁** (`lock:*`：由 `AppKV` 内部的内存 LeaseMap 隔离维护，维持 30s TTL 租约心跳，零磁盘 I/O 以杜绝高频碎片与 WAL 膨胀)；
   3. **手机/快捷指令碎片灵感快投箱** (`drop:*` / `quick_drops_index`：7 天自动生命周期)。
 * **开发约束**：新增任何用户个性化配置项，一律扩展至 `app_settings`，避免污染主业务关系表。

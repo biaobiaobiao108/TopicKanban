@@ -1,6 +1,6 @@
 import { NativeApp, bodyLimit } from '../native';
 import type { AppSettings } from '../../types';
-import { DEFAULT_APP_SETTINGS, DEFAULT_VOICEOVER_CUES, APP_THEMES, type AppTheme } from '../../types';
+import { DEFAULT_APP_SETTINGS, APP_THEMES, type AppTheme } from '../../types';
 import type { AppKV } from '../appKv';
 import {
   BackupImportLimitError,
@@ -49,16 +49,11 @@ export function sanitizeAppSettings(settings?: Partial<AppSettings> | null): App
     ? settings.editor_line_height
     : DEFAULT_APP_SETTINGS.editor_line_height;
 
-  const voiceoverCues = Array.isArray(settings.voiceover_cues)
-    ? settings.voiceover_cues.map((s) => String(s).slice(0, 50).trim()).filter(Boolean)
-    : (DEFAULT_APP_SETTINGS.voiceover_cues || DEFAULT_VOICEOVER_CUES);
-
   return {
     reading_speed: readingSpeed,
     theme,
     editor_font_size: editorFontSize,
     editor_line_height: editorLineHeight,
-    voiceover_cues: voiceoverCues,
   };
 }
 

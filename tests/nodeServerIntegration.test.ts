@@ -327,7 +327,7 @@ describe('Bun Server Integration (Local SQLite & API)', () => {
       expect(invalidUrlRes.status).toBe(400);
     }
 
-    // 8. Settings Update & Persistence (including voiceover_cues)
+    // 8. Settings Update & Persistence (voiceover cues are fixed application presets)
     const customCues = ['停顿 3s', '高能预警', '压低声线'];
     const updateSettingsRes = await app.request('/api/settings', {
       method: 'PUT',
@@ -342,16 +342,18 @@ describe('Bun Server Integration (Local SQLite & API)', () => {
       }),
     });
     expect(updateSettingsRes.status).toBe(200);
-    const updatedSettings = await updateSettingsRes.json() as { reading_speed: number; voiceover_cues: string[] };
-    expect(updatedSettings.voiceover_cues).toEqual(customCues);
+    const updatedSettings = await updateSettingsRes.json() as Record<string, unknown>;
+    expect(updatedSettings.reading_speed).toBe(300);
+    expect(updatedSettings).not.toHaveProperty('voiceover_cues');
 
     // Fetch settings again to ensure KV persistence
     const getSettingsRes = await app.request('/api/settings', {
       headers: { Authorization: `Bearer ${authToken}` },
     });
     expect(getSettingsRes.status).toBe(200);
-    const fetchedSettings = await getSettingsRes.json() as { reading_speed: number; voiceover_cues: string[] };
-    expect(fetchedSettings.voiceover_cues).toEqual(customCues);
+    const fetchedSettings = await getSettingsRes.json() as Record<string, unknown>;
+    expect(fetchedSettings.reading_speed).toBe(300);
+    expect(fetchedSettings).not.toHaveProperty('voiceover_cues');
 
     // 9. Backup restore persists settings through KV without a relational settings table
     const backupRes = await app.request('/api/backup', {
@@ -359,6 +361,7 @@ describe('Bun Server Integration (Local SQLite & API)', () => {
     });
     expect(backupRes.status).toBe(200);
     const backupPayload = await backupRes.json() as { data: { settings: Record<string, unknown> } };
+    expect(backupPayload.data.settings).not.toHaveProperty('voiceover_cues');
     const backupDownload = await app.request('/api/backup?format=download', {
       headers: { Authorization: `Bearer ${authToken}` },
     });

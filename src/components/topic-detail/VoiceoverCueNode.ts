@@ -1,4 +1,5 @@
 import { createInlineMarkdownSpec, Node, mergeAttributes } from '@tiptap/core';
+import { getVoiceoverCueTone } from '../../lib/voiceoverCues';
 
 const voiceoverCueMarkdown = createInlineMarkdownSpec({
   nodeName: 'voiceoverCue',
@@ -48,8 +49,8 @@ export const VoiceoverCueNode = Node.create({
       'span',
       mergeAttributes(HTMLAttributes, {
         'data-cue': cue,
-        'class':
-          'inline-voiceover-cue select-none inline-flex items-center gap-1 mx-1 px-2 py-0.5 rounded-full text-xs font-mono font-bold bg-[var(--accent-soft)] text-[var(--accent-dark)] border border-[var(--accent)]/25 align-baseline cursor-default shadow-2xs',
+        'data-cue-tone': getVoiceoverCueTone(cue),
+        'class': 'inline-voiceover-cue select-none inline-flex items-center gap-1 mx-1 px-2 py-0.5 rounded-full text-xs font-semibold align-baseline cursor-default',
         'contenteditable': 'false',
       }),
       `🎙️ ${cue}`,

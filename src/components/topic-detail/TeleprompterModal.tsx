@@ -18,6 +18,7 @@ import {
   Keyboard
 } from 'lucide-react';
 import { ScriptOutline, OutlineItem } from '../../lib/outline';
+import { getVoiceoverCueTone } from '../../lib/voiceoverCues';
 import { FloatingScrollbar } from '../ui/FloatingScrollbar';
 
 interface TeleprompterModalProps {
@@ -590,7 +591,8 @@ function renderScriptTextWithCues(text: string): React.ReactNode {
       return (
         <span
           key={`cue-${index}`}
-          className="inline-flex items-center gap-1 mx-1.5 px-2.5 py-0.5 rounded-full text-xs font-mono font-bold tracking-wide uppercase align-middle select-none bg-[var(--accent-soft)] text-[var(--accent-dark)] border border-[var(--accent)]/20"
+          data-cue-tone={getVoiceoverCueTone(cueContent)}
+          className="inline-voiceover-cue mx-1.5 px-2.5 py-0.5 tracking-wide align-middle"
         >
           🎙️ {cueContent}
         </span>

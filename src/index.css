@@ -84,13 +84,39 @@ html.dark .script-citation:hover {
   cursor: default;
   background-color: var(--accent-soft);
   color: var(--accent-dark);
-  border: 1px solid var(--accent);
+  border: 1px solid color-mix(in srgb, currentColor 28%, transparent);
 }
 
 html.dark .inline-voiceover-cue {
-  background-color: var(--accent-soft);
-  color: var(--accent-dark);
-  border-color: var(--accent);
+  border-color: color-mix(in srgb, currentColor 32%, transparent);
+}
+
+.voiceover-cue-badge {
+  border: 1px solid color-mix(in srgb, currentColor 24%, transparent);
+}
+
+:is(.inline-voiceover-cue, .voiceover-cue-badge)[data-cue-tone="rhythm"] {
+  background-color: color-mix(in srgb, var(--cue-rhythm) 10%, var(--surface));
+  color: var(--cue-rhythm);
+  border-color: color-mix(in srgb, var(--cue-rhythm) 28%, transparent);
+}
+
+:is(.inline-voiceover-cue, .voiceover-cue-badge)[data-cue-tone="emphasis"] {
+  background-color: color-mix(in srgb, var(--cue-emphasis) 10%, var(--surface));
+  color: var(--cue-emphasis);
+  border-color: color-mix(in srgb, var(--cue-emphasis) 28%, transparent);
+}
+
+:is(.inline-voiceover-cue, .voiceover-cue-badge)[data-cue-tone="intent"] {
+  background-color: color-mix(in srgb, var(--cue-intent) 10%, var(--surface));
+  color: var(--cue-intent);
+  border-color: color-mix(in srgb, var(--cue-intent) 28%, transparent);
+}
+
+:is(.inline-voiceover-cue, .voiceover-cue-badge)[data-cue-tone="emotion"] {
+  background-color: color-mix(in srgb, var(--cue-emotion) 10%, var(--surface));
+  color: var(--cue-emotion);
+  border-color: color-mix(in srgb, var(--cue-emotion) 28%, transparent);
 }
 
 .script-citation::after {
@@ -378,6 +404,10 @@ html.dark .script-citation::after {
     --h1-color: #8d5144;
     --h2-color: #405b4c;
     --h3-color: #4c606a;
+    --cue-rhythm: #365e4e;
+    --cue-emphasis: #8d5144;
+    --cue-intent: #4c606a;
+    --cue-emotion: #806543;
     --radius-sm: 8px;
     --radius-md: 12px;
     --radius-lg: 18px;
@@ -403,6 +433,10 @@ html.dark .script-citation::after {
     --h1-color: #8d5144;
     --h2-color: #6b5545;
     --h3-color: #756653;
+    --cue-rhythm: #705a3f;
+    --cue-emphasis: #8d5144;
+    --cue-intent: #5d6570;
+    --cue-emotion: #82622f;
     --control-surface: rgba(45, 35, 25, 0.025);
     --focus-ring: rgba(120, 76, 49, 0.28);
 
@@ -430,6 +464,10 @@ html.dark .script-citation::after {
     --h1-color: #8d5144;
     --h2-color: #405b4c;
     --h3-color: #4c606a;
+    --cue-rhythm: #365e4e;
+    --cue-emphasis: #8d5144;
+    --cue-intent: #4c606a;
+    --cue-emotion: #806543;
     --control-surface: rgba(32, 38, 33, 0.035);
     --focus-ring: rgba(54, 94, 78, 0.32);
     --nav-surface: rgba(253, 252, 249, 0.92);
@@ -451,6 +489,10 @@ html.dark .script-citation::after {
     --h1-color: #c59586;
     --h2-color: #a2b6a5;
     --h3-color: #9fb2bf;
+    --cue-rhythm: #93c5a8;
+    --cue-emphasis: #e1a394;
+    --cue-intent: #a8b7c8;
+    --cue-emotion: #d3b178;
     --control-surface: rgba(31, 35, 53, 0.88);
     --focus-ring: rgba(122, 162, 247, 0.42);
 

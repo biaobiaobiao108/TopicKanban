@@ -410,23 +410,11 @@ export type AppTheme = typeof APP_THEMES[number];
 export type EditorFontSize = 'compact' | 'standard' | 'large';
 export type EditorLineHeight = 'normal' | 'relaxed' | 'loose';
 
-export const DEFAULT_VOICEOVER_CUES: string[] = [
-  '停顿 1s',
-  '停顿 2s',
-  '重音强调',
-  '反讽语气',
-  '激昂加速',
-  '低沉缓速',
-  'BGM 起',
-  'BGM 停',
-];
-
 export interface AppSettings {
   reading_speed: number; // characters per minute (default 280)
   theme: AppTheme;
   editor_font_size?: EditorFontSize;
   editor_line_height?: EditorLineHeight;
-  voiceover_cues?: string[]; // Custom cue tags for voiceover teleprompter
 }
 
 export const STALE_ACTION_THRESHOLD_DAYS = 5;
@@ -437,7 +425,6 @@ export const DEFAULT_APP_SETTINGS: AppSettings = {
   theme: 'light',
   editor_font_size: 'standard',
   editor_line_height: 'relaxed',
-  voiceover_cues: DEFAULT_VOICEOVER_CUES,
 };
 
 export interface StorageStats {

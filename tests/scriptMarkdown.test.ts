@@ -143,6 +143,16 @@ describe('script Markdown source', () => {
     expect(serialized).toContain('[cue cue="停顿"]');
   });
 
+  it('renders fixed voiceover cues with their semantic tone in editor HTML', () => {
+    const renderCue = VoiceoverCueNode.config.renderHTML as ((props: unknown) => unknown) | undefined;
+    expect(renderCue).toBeDefined();
+    const pauseHtml = JSON.stringify(renderCue?.({ node: { attrs: { cue: '停顿' } }, HTMLAttributes: {} }));
+    const ironyHtml = JSON.stringify(renderCue?.({ node: { attrs: { cue: '反讽' } }, HTMLAttributes: {} }));
+    expect(pauseHtml).toContain('data-cue-tone');
+    expect(pauseHtml).toContain('rhythm');
+    expect(ironyHtml).toContain('intent');
+  });
+
   it('groups the slash command directory and supports directional keyboard navigation', () => {
     const commands = filterScriptMarkdownCommands('');
     const columns = groupScriptMarkdownCommands(commands);
