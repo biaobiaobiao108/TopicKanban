@@ -158,16 +158,17 @@ describe('backup schema validation', () => {
     })).success).toBe(true);
   });
 
-  it('preserves the recycle-bin retention policy when validating a backup', () => {
+  it('does not expose hardcoded workflow preferences as backup settings', () => {
     const result = validateBackupData(createBackup({
-      settings: { reading_speed: 280, theme: 'light', trash_retention_days: 0 },
+      settings: { reading_speed: 280, theme: 'light' },
     }));
     expect(result.success).toBe(true);
-    if (result.success) expect(result.data.settings.trash_retention_days).toBe(0);
-
-    expect(validateBackupData(createBackup({
-      settings: { reading_speed: 280, theme: 'light', trash_retention_days: 366 },
-    })).success).toBe(false);
+    if (result.success) {
+      expect(result.data.settings).not.toHaveProperty('stale_action_days');
+      expect(result.data.settings).not.toHaveProperty('trash_retention_days');
+      expect(result.data.settings).not.toHaveProperty('public_base_url');
+      expect(result.data.settings).not.toHaveProperty('typewriter_mode_default');
+    }
   });
 
   it('rejects version 3 backups because they do not include the Markdown draft contract', () => {

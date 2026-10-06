@@ -1,6 +1,6 @@
 import type { NativeApp } from '../native';
 import type { TopicStatus } from '../../types';
-import { isTopicStatus } from '../../types';
+import { isTopicStatus, TRASH_RETENTION_DAYS } from '../../types';
 import {
   MAX_BATCH_SIZE,
   createId,
@@ -10,7 +10,6 @@ import {
   parseTopicCreate,
   parseTopicUpdate,
   requireDb,
-  type ApiBindings,
 } from '../apiShared';
 import {
   insertTopic,
@@ -33,12 +32,10 @@ import {
   updateTopic,
   invalidatePublishedAnalyticsCache,
 } from '../repositories';
-import type { AppSettings } from '../../types';
 
-async function purgeExpiredTrashIfConfigured(db: ReturnType<typeof requireDb>, env: ApiBindings): Promise<void> {
+async function purgeExpiredTrash(db: ReturnType<typeof requireDb>): Promise<void> {
   try {
-    const settings = await env.KV.get<AppSettings>('app_settings', 'json');
-    const retentionDays = Number(settings?.trash_retention_days ?? 30);
+    const retentionDays = TRASH_RETENTION_DAYS;
     if (retentionDays > 0) {
       const expiredIds = await listExpiredTrashTopicIds(db, retentionDays);
       if (expiredIds.length > 0) {
@@ -78,7 +75,7 @@ export function registerTopicRoutes(app: NativeApp): void {
       const publishedVideoId = c.req.query('published_video_id')?.trim().slice(0, 200);
       const db = requireDb(c);
       if (scopeValue === 'trash') {
-        await purgeExpiredTrashIfConfigured(db, c.env);
+        await purgeExpiredTrash(db);
       }
       return c.json(await loadTopicPage(db, {
         scope: scopeValue as 'active' | 'archived' | 'trash' | 'all', page, pageSize,
@@ -96,14 +93,7 @@ export function registerTopicRoutes(app: NativeApp): void {
 
   app.get('/today/focus', async (c) => {
     try {
-      const rawStaleDays = c.req.query('stale_action_days');
-      const staleActionDays = rawStaleDays
-        ? Number.parseInt(rawStaleDays, 10)
-        : 5;
-      if (!Number.isInteger(staleActionDays) || staleActionDays < 1 || staleActionDays > 30) {
-        return c.json({ error: 'stale_action_days must be an integer between 1 and 30' }, 400);
-      }
-      return c.json(await loadTodayFocus(requireDb(c), staleActionDays));
+      return c.json(await loadTodayFocus(requireDb(c)));
     } catch (error) {
       return jsonError(c, error, 400);
     }
@@ -120,7 +110,7 @@ export function registerTopicRoutes(app: NativeApp): void {
   app.get('/topics/trash', async (c) => {
     try {
       const db = requireDb(c);
-      await purgeExpiredTrashIfConfigured(db, c.env);
+      await purgeExpiredTrash(db);
       return c.json(await loadTrashedTopics(db));
     } catch (error) {
       return jsonError(c, error);

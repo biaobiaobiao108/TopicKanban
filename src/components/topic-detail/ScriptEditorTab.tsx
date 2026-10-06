@@ -47,6 +47,7 @@ import { ScriptCodeBlock } from './ScriptCodeBlock';
 import { createTableExtensions } from './ScriptTableExtensions';
 import { CodeBlockDoubleEnter } from './ScriptCodeBlockEnter';
 import { ScriptMarkdownMenu } from './ScriptMarkdownMenu';
+import { ScriptEditorContextMenu } from './ScriptEditorContextMenu';
 import { ScriptStarterKit } from './ScriptStarterKit';
 import { TableEdgeControls } from './ScriptTableEdgeControls';
 import { pastePlainTextIntoCodeBlock, shouldParseMarkdownPaste } from './scriptMarkdownPaste';
@@ -339,6 +340,7 @@ export const ScriptEditorTab: React.FC<ScriptEditorTabProps> = ({
   const [activeOutlineItemId, setActiveOutlineItemId] = useState<string | null>(null);
   const [isTeleprompterOpen, setIsTeleprompterOpen] = useState(false);
   const [isCueMenuOpen, setIsCueMenuOpen] = useState(false);
+  const [contextMenuPosition, setContextMenuPosition] = useState<{ x: number; y: number } | null>(null);
   const [lastInsertedCue, setLastInsertedCue] = useState<string | null>(null);
   const lastInsertedTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const cueTriggerRef = useRef<HTMLButtonElement | null>(null);
@@ -1099,6 +1101,25 @@ export const ScriptEditorTab: React.FC<ScriptEditorTabProps> = ({
     lastInsertedTimeoutRef.current = setTimeout(() => setLastInsertedCue(null), 1500);
   };
 
+  const handleEditorContextMenu = (event: React.MouseEvent<HTMLElement>) => {
+    if (!editor || !editor.isEditable) return;
+    event.preventDefault();
+    event.stopPropagation();
+
+    const position = editor.view.posAtCoords({ left: event.clientX, top: event.clientY });
+    if (position) {
+      const { from, to, empty } = editor.state.selection;
+      const clickInsideSelection = !empty && position.pos >= from && position.pos <= to;
+      if (!clickInsideSelection) editor.commands.setTextSelection(position.pos);
+    }
+
+    const cursorRect = editor.view.coordsAtPos(editor.state.selection.from);
+    setContextMenuPosition({
+      x: event.clientX || cursorRect.left,
+      y: event.clientY || cursorRect.bottom,
+    });
+  };
+
   if (!editor) return null;
 
   const editorSurface = (
@@ -1690,6 +1711,7 @@ export const ScriptEditorTab: React.FC<ScriptEditorTabProps> = ({
               <EditorContent
                 editor={editor}
                 className="min-h-[500px]"
+                onContextMenu={handleEditorContextMenu}
               />
               {editor && <TableEdgeControls editor={editor} deferredLoading={false} />}
               {isTypewriterActive && <div ref={typewriterBottomSpacerRef} aria-hidden="true" />}
@@ -1711,6 +1733,18 @@ export const ScriptEditorTab: React.FC<ScriptEditorTabProps> = ({
           />
         )}
       </div>
+
+      {contextMenuPosition && editor && (
+        <ScriptEditorContextMenu
+          editor={editor}
+          cues={settings?.voiceover_cues?.length ? settings.voiceover_cues : DEFAULT_VOICEOVER_CUES}
+          x={contextMenuPosition.x}
+          y={contextMenuPosition.y}
+          onClose={() => setContextMenuPosition(null)}
+          onInsertCue={handleInsertVoiceoverCue}
+          onClipboardError={(message) => showToast({ message, tone: 'info' })}
+        />
+      )}
 
       {/* Full-Screen Immersive Teleprompter */}
       {isTeleprompterOpen && (

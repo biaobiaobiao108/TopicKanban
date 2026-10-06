@@ -252,9 +252,8 @@ export function fetchTopicPage(params: TopicPageParams): Promise<PaginatedTopics
   return apiRequest(`/api/topics?${query.toString()}`);
 }
 
-export function fetchTodayFocus(staleActionDays = 5): Promise<TodayFocusData> {
-  const query = new URLSearchParams({ stale_action_days: String(staleActionDays) });
-  return apiRequest<TodayFocusData>(`/api/today/focus?${query.toString()}`);
+export function fetchTodayFocus(): Promise<TodayFocusData> {
+  return apiRequest<TodayFocusData>('/api/today/focus');
 }
 
 export function fetchActiveTopicCount(): Promise<ActiveTopicCount> {

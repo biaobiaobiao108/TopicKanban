@@ -23,17 +23,9 @@ import {
   timingSafeEqualString,
 } from '../apiShared';
 
-export function sanitizeAppSettings(
-  settings?: Partial<AppSettings> | null,
-  defaultPublicBaseUrl?: string
-): AppSettings {
+export function sanitizeAppSettings(settings?: Partial<AppSettings> | null): AppSettings {
   if (!settings || typeof settings !== 'object') {
-    return {
-      ...DEFAULT_APP_SETTINGS,
-      public_base_url: typeof defaultPublicBaseUrl === 'string' && defaultPublicBaseUrl.trim()
-        ? defaultPublicBaseUrl.trim().replace(/\/+$/, '')
-        : '',
-    };
+    return { ...DEFAULT_APP_SETTINGS };
   }
 
   const validFontSizes = ['compact', 'standard', 'large'];
@@ -57,51 +49,29 @@ export function sanitizeAppSettings(
     ? settings.editor_line_height
     : DEFAULT_APP_SETTINGS.editor_line_height;
 
-  const typewriterModeDefault = typeof settings.typewriter_mode_default === 'boolean'
-    ? settings.typewriter_mode_default
-    : DEFAULT_APP_SETTINGS.typewriter_mode_default;
-
-  const staleDays = Number(settings.stale_action_days);
-  const staleActionDays = Number.isFinite(staleDays) && staleDays > 0 && staleDays <= 30
-    ? staleDays
-    : DEFAULT_APP_SETTINGS.stale_action_days;
-
-  const publicBaseUrl = typeof settings.public_base_url === 'string' && settings.public_base_url.trim()
-    ? settings.public_base_url.trim().replace(/\/+$/, '')
-    : (defaultPublicBaseUrl?.trim().replace(/\/+$/, '') || '');
-
   const voiceoverCues = Array.isArray(settings.voiceover_cues)
     ? settings.voiceover_cues.map((s) => String(s).slice(0, 50).trim()).filter(Boolean)
     : (DEFAULT_APP_SETTINGS.voiceover_cues || DEFAULT_VOICEOVER_CUES);
-
-  const trashDays = Number(settings.trash_retention_days);
-  const trashRetentionDays = Number.isFinite(trashDays) && trashDays >= 0 && trashDays <= 365
-    ? trashDays
-    : (DEFAULT_APP_SETTINGS.trash_retention_days ?? 30);
 
   return {
     reading_speed: readingSpeed,
     theme,
     editor_font_size: editorFontSize,
     editor_line_height: editorLineHeight,
-    typewriter_mode_default: typewriterModeDefault,
-    stale_action_days: staleActionDays,
-    public_base_url: publicBaseUrl,
     voiceover_cues: voiceoverCues,
-    trash_retention_days: trashRetentionDays,
   };
 }
 
-async function getKvSettings(kv: AppKV, defaultPublicBaseUrl?: string): Promise<AppSettings> {
+async function getKvSettings(kv: AppKV): Promise<AppSettings> {
   try {
     const settings = await kv.get<AppSettings>('app_settings', 'json');
     if (settings) {
-      return sanitizeAppSettings(settings, defaultPublicBaseUrl);
+      return sanitizeAppSettings(settings);
     }
   } catch {
     // fallback to default
   }
-  return sanitizeAppSettings(null, defaultPublicBaseUrl);
+  return sanitizeAppSettings(null);
 }
 
 const failedLoginAttempts = new Map<string, { count: number; resetAt: number }>();
@@ -174,12 +144,12 @@ export function registerSystemRoutes(app: NativeApp): void {
     try {
       const db = requireDb(c);
       const tablesCount = await countDatabaseTables(db);
-      const kvSettings = await getKvSettings(c.env.KV, c.env.PUBLIC_BASE_URL);
+      const kvSettings = await getKvSettings(c.env.KV);
       return c.json({
         status: 'online',
         timestamp: new Date().toISOString(),
         runtime: 'bun',
-        public_base_url: kvSettings.public_base_url || c.env.PUBLIC_BASE_URL || '',
+        public_base_url: c.env.PUBLIC_BASE_URL?.trim().replace(/\/+$/, '') || '',
         database: {
           connected: true,
           tables: tablesCount,
@@ -204,7 +174,7 @@ export function registerSystemRoutes(app: NativeApp): void {
     try {
       const scope = c.req.query('scope');
       const [kvSettings, db] = await Promise.all([
-        getKvSettings(c.env.KV, c.env.PUBLIC_BASE_URL),
+        getKvSettings(c.env.KV),
         Promise.resolve(requireDb(c)),
       ]);
       return c.json(await loadBootstrap(db, kvSettings, scope === 'core'
@@ -217,7 +187,7 @@ export function registerSystemRoutes(app: NativeApp): void {
 
   app.get('/backup', async (c) => {
     try {
-      const kvSettings = await getKvSettings(c.env.KV, c.env.PUBLIC_BASE_URL);
+      const kvSettings = await getKvSettings(c.env.KV);
       const data = await exportAllData(requireDb(c), kvSettings);
       if (c.req.query('format') === 'download') {
         return c.body(JSON.stringify(data, null, 2), 200, {
@@ -267,13 +237,13 @@ export function registerSystemRoutes(app: NativeApp): void {
   });
 
   app.get('/settings', async (c) => {
-    return c.json(await getKvSettings(c.env.KV, c.env.PUBLIC_BASE_URL));
+    return c.json(await getKvSettings(c.env.KV));
   });
 
   app.put('/settings', async (c) => {
     try {
       const raw = await c.req.json<Partial<AppSettings>>();
-      const updatedSettings = sanitizeAppSettings(raw, c.env.PUBLIC_BASE_URL);
+      const updatedSettings = sanitizeAppSettings(raw);
 
       await c.env.KV.put('app_settings', JSON.stringify(updatedSettings));
       return c.json(updatedSettings);

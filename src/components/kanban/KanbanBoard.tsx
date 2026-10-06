@@ -263,7 +263,6 @@ interface KanbanBoardProps {
   availableTags: Tag[];
   availablePeople: Person[];
   searchTerm: string;
-  staleActionDays?: number;
   onOpenCurrentAction?: (topicId: string) => void;
 }
 
@@ -278,7 +277,6 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
   availableTags,
   availablePeople,
   searchTerm,
-  staleActionDays = 5,
   onOpenCurrentAction,
 }) => {
   const queryClient = useQueryClient();
@@ -1051,7 +1049,6 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
                   onQuickAddTopic={onQuickAddTopic}
                   onKeyboardMove={handleKeyboardMove}
                   sortableDisabled
-                  staleThresholdDays={staleActionDays}
                   mobileMode
                 />
               );
@@ -1081,7 +1078,6 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
                     onQuickAddTopic={onQuickAddTopic}
                     onKeyboardMove={handleKeyboardMove}
                     sortableDisabled={isDragDisabled}
-                    staleThresholdDays={staleActionDays}
                   />
                 </div>
               );

@@ -21,7 +21,6 @@ interface KanbanCardProps {
   onTogglePin: (topicId: string) => void;
   onKeyboardMove?: (topic: Topic, direction: -1 | 1) => void;
   sortableDisabled?: boolean;
-  staleThresholdDays?: number;
   isOverlay?: boolean;
   mobileMotion?: boolean;
 }
@@ -61,7 +60,6 @@ const KanbanCardComponent: React.FC<KanbanCardProps> = ({
   onTogglePin,
   onKeyboardMove,
   sortableDisabled = false,
-  staleThresholdDays = 5,
   isOverlay = false,
   mobileMotion = false,
 }) => {
@@ -88,7 +86,7 @@ const KanbanCardComponent: React.FC<KanbanCardProps> = ({
     zIndex: isDragging ? 50 : 1,
   };
 
-  const actionWarning = getCurrentActionWarning(topic, new Date(), staleThresholdDays);
+  const actionWarning = getCurrentActionWarning(topic);
   const activeTopicDates = topic.status !== 'published' && topic.status !== 'icebox';
   const scheduleDate = useActionDateDisplay(topic.target_publish_date, activeTopicDates);
   const deadlineDate = useActionDateDisplay(topic.deadline, activeTopicDates);

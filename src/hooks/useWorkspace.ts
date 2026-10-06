@@ -37,13 +37,9 @@ export function useWorkspace(enabled: boolean, view: string = 'today', topicId?:
     subscribed: topicDetailEnabled,
   });
   const settingsQuery = useQuery({ queryKey: ['settings'], queryFn: fetchSettings, enabled, subscribed: enabled });
-  const configuredStaleDays = Number(settingsQuery.data?.stale_action_days);
-  const staleActionDays = Number.isFinite(configuredStaleDays)
-    ? Math.max(1, Math.min(30, Math.trunc(configuredStaleDays)))
-    : 5;
   const todayQuery = useQuery({
-    queryKey: ['today-focus', staleActionDays],
-    queryFn: () => fetchTodayFocus(staleActionDays),
+    queryKey: ['today-focus'],
+    queryFn: fetchTodayFocus,
     enabled: todayEnabled,
     subscribed: todayEnabled,
   });

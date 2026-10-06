@@ -1,4 +1,4 @@
-import type { Topic } from '../types';
+import { STALE_ACTION_THRESHOLD_DAYS, type Topic } from '../types';
 
 const DAY_MS = 24 * 60 * 60 * 1000;
 
@@ -13,11 +13,11 @@ export function isActiveTopic(topic: Topic): boolean {
   return topic.status !== 'published' && topic.status !== 'icebox';
 }
 
-export function getCurrentActionWarning(topic: Topic, now = new Date(), staleThresholdDays = 5): string | null {
+export function getCurrentActionWarning(topic: Topic, now = new Date()): string | null {
   if (!isActiveTopic(topic)) return null;
   if (!topic.current_todo) return '未设置当前行动';
   const days = getCurrentActionAgeDays(topic, now);
-  return days >= staleThresholdDays ? `行动已停滞 ${days} 天` : null;
+  return days >= STALE_ACTION_THRESHOLD_DAYS ? `行动已停滞 ${days} 天` : null;
 }
 
 export interface ReadinessItem {

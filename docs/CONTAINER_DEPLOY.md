@@ -175,8 +175,7 @@ kanban.yourdomain.com {
 
 > **提示**：
 > 1. `PUBLIC_BASE_URL` **必须包含完整的 `https://` 或 `http://` 协议前缀**（切勿填成裸域名 `kanban.example.com`），用于生成指向本站的快投 Webhook 地址。
-> 2. `PUBLIC_BASE_URL` 也可以在进入工作台后，在**「偏好设置」->「选题生产流偏好」**中直接图形化填写和修改。
-> 3. 未配置 `PUBLIC_BASE_URL` 时，Webhook 默认使用相对路径；如需根据转发头生成绝对地址，必须显式设置 `TRUST_PROXY_HEADERS=true`，并确保反向代理覆盖客户端传入的同名请求头。登录限流的客户端地址仅来自代理覆盖后的 `X-Real-IP`。
+> 2. 未配置 `PUBLIC_BASE_URL` 时，Webhook 默认使用相对路径；如需根据转发头生成绝对地址，必须显式设置 `TRUST_PROXY_HEADERS=true`，并确保反向代理覆盖客户端传入的同名请求头。登录限流的客户端地址仅来自代理覆盖后的 `X-Real-IP`。
 
 ---
 

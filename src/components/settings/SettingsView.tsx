@@ -53,13 +53,10 @@ import {
   Mic,
   Coffee,
   Flame,
-  Clock,
   FileText,
   Eye,
-  Globe,
   Plus,
   X,
-  Trash2,
 } from 'lucide-react';
 
 interface SettingsViewProps {
@@ -77,6 +74,7 @@ interface RuntimeStatus {
   databaseTables?: number;
   kvConnected: boolean;
   kvMessage: string;
+  publicBaseUrl: string;
   lastChecked?: string;
 }
 
@@ -109,10 +107,6 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
   const [selectedTheme, setSelectedTheme] = useState<AppTheme>(settings.theme || DEFAULT_APP_SETTINGS.theme);
   const [editorFontSize, setEditorFontSize] = useState<EditorFontSize>(settings.editor_font_size || DEFAULT_APP_SETTINGS.editor_font_size || 'standard');
   const [editorLineHeight, setEditorLineHeight] = useState<EditorLineHeight>(settings.editor_line_height || DEFAULT_APP_SETTINGS.editor_line_height || 'relaxed');
-  const [typewriterDefault, setTypewriterDefault] = useState<boolean>(settings.typewriter_mode_default ?? DEFAULT_APP_SETTINGS.typewriter_mode_default ?? false);
-  const [staleActionDays, setStaleActionDays] = useState<number>(settings.stale_action_days || DEFAULT_APP_SETTINGS.stale_action_days || 5);
-  const [trashRetentionDays, setTrashRetentionDays] = useState<number>(settings.trash_retention_days ?? 30);
-  const [publicBaseUrl, setPublicBaseUrl] = useState<string>(settings.public_base_url || '');
   const [voiceoverCues, setVoiceoverCues] = useState<string[]>(settings.voiceover_cues || DEFAULT_VOICEOVER_CUES);
   const [newCueInput, setNewCueInput] = useState('');
 
@@ -137,10 +131,6 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
     setReadingSpeed(settings.reading_speed || DEFAULT_APP_SETTINGS.reading_speed);
     setEditorFontSize(settings.editor_font_size || 'standard');
     setEditorLineHeight(settings.editor_line_height || 'relaxed');
-    setTypewriterDefault(settings.typewriter_mode_default ?? false);
-    setStaleActionDays(settings.stale_action_days || 5);
-    setTrashRetentionDays(settings.trash_retention_days ?? 30);
-    setPublicBaseUrl(settings.public_base_url || '');
     setVoiceoverCues(settings.voiceover_cues || DEFAULT_VOICEOVER_CUES);
   }, [settings]);
 
@@ -159,6 +149,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
     databaseMessage: '正在检测后端连接...',
     kvConnected: false,
     kvMessage: '正在检测后端连接...',
+    publicBaseUrl: '',
   });
 
   const checkRuntimeStatus = useCallback(async () => {
@@ -182,6 +173,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
           databaseTables: data.database?.tables,
           kvConnected: data.kv?.connected || false,
           kvMessage: data.kv?.message || '键值存储状态未知',
+          publicBaseUrl: data.public_base_url || '',
           lastChecked: formatBeijingDateTime(new Date(), 'zh-CN', { hour: '2-digit', minute: '2-digit', second: '2-digit' }),
         });
       } else {
@@ -197,6 +189,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
         kvConnected: false,
         kvMessage: '键值存储状态未知',
         lastChecked: formatBeijingDateTime(new Date(), 'zh-CN', { hour: '2-digit', minute: '2-digit', second: '2-digit' }),
+        publicBaseUrl: '',
       });
     } finally {
       if (timeoutId) clearTimeout(timeoutId);
@@ -284,10 +277,6 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
         theme: selectedTheme,
         editor_font_size: editorFontSize,
         editor_line_height: editorLineHeight,
-        typewriter_mode_default: typewriterDefault,
-        stale_action_days: Number(staleActionDays),
-        trash_retention_days: Number(trashRetentionDays),
-        public_base_url: publicBaseUrl.trim().replace(/\/+$/, ''),
         voiceover_cues: voiceoverCues,
       };
       await onSaveSettings(payload);
@@ -620,43 +609,31 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
               </div>
 
               <div
-                className="p-4 bg-[var(--canvas)]/70 dark:bg-stone-800/60 rounded-xl border border-[var(--line)] text-stone-800 dark:text-stone-100 transition-all duration-150"
+                className="p-4 bg-[var(--canvas)]/70 dark:bg-stone-800/60 rounded-xl border border-[var(--line)] text-[var(--ink)] transition-all duration-150 space-y-3"
                 style={{
                   fontSize: editorFontSize === 'compact' ? '14px' : editorFontSize === 'large' ? '19px' : '16px',
                   lineHeight: editorLineHeight === 'normal' ? 1.6 : editorLineHeight === 'loose' ? 2.1 : 1.8,
                 }}
               >
-                <div className="font-bold text-stone-900 dark:text-stone-100 mb-1.5 opacity-90 text-sm sm:text-base">
+                <h3 className="border-b border-[var(--line)]/60 pb-2 font-bold leading-snug" style={{ fontSize: '1.15em' }}>
                   【解说样段】镜头拉远，时代的荒诞切片
-                </div>
-                <p className="text-stone-700 dark:text-stone-300">
-                  很多人以为这是一个荒诞的闹剧，但当镜头拉远，我们才看清整个事件背后令人唏嘘的社会切片。在长达三年的跟踪调查中，我们发现了三个截然不同的事实反转……
+                </h3>
+                <p>
+                  很多人以为这只是一场荒诞闹剧。镜头拉远之后，我们才看见事件背后令人唏嘘的现实切片。
                 </p>
+                <p>
+                  在长达三年的跟踪调查中，我们发现了三个截然不同的事实反转：当事人的说法变了，旁观者的记忆也变了，只有时间留下的细节始终对得上。
+                </p>
+                <p>
+                  这段内容会分行展示：<br />短句停顿之后，继续把关键细节说清楚。<br />行距变化也会同步反映在这里。
+                </p>
+                <ul className="list-disc space-y-1 pl-6 marker:text-[var(--accent)]">
+                  <li>先交代故事发生的背景</li>
+                  <li>再呈现人物行动与事实反转</li>
+                  <li>最后落到选择带来的结果</li>
+                </ul>
               </div>
             </div>
-          </div>
-
-          {/* Typewriter mode default */}
-          <div className="flex items-center justify-between p-3.5 bg-stone-500/[0.03] dark:bg-stone-800/60 rounded-2xl border border-stone-200/70 dark:border-stone-700">
-            <div>
-              <div className="text-xs sm:text-sm font-bold text-stone-800 dark:text-stone-200">打字机居中模式默认开启</div>
-              <p className="text-[11px] text-stone-400 dark:text-stone-500">进入文案编辑器时自动锁定当前光标在屏幕垂直居中位置，码字视线不漂移</p>
-            </div>
-            <button
-              type="button"
-              onClick={() => setTypewriterDefault((prev) => !prev)}
-              aria-label="默认开启打字机居中模式"
-              aria-pressed={typewriterDefault}
-              className={`w-12 h-6 flex items-center rounded-full p-1 cursor-pointer transition-colors duration-200 ease-in-out ${
-                typewriterDefault ? 'bg-[var(--accent)]' : 'bg-stone-300 dark:bg-stone-700'
-              }`}
-            >
-              <div
-                className={`bg-white w-4 h-4 rounded-full shadow-md transform transition-transform duration-200 ease-in-out ${
-                  typewriterDefault ? 'translate-x-6' : 'translate-x-0'
-                }`}
-              />
-            </button>
           </div>
 
           {/* Voiceover Cue Management */}
@@ -800,115 +777,6 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
           </div>
         </div>
 
-        {/* 3. Workflow Preferences */}
-        <div className="bg-[var(--surface)] rounded-2xl border border-[var(--line)] p-5 sm:p-6 space-y-5 shadow-subtle transition-colors">
-          <div className="flex items-center justify-between border-b border-stone-100 dark:border-stone-800 pb-3">
-            <div className="flex items-center gap-2">
-              <span className="p-1.5 rounded-xl bg-purple-500/10 text-purple-600 dark:text-purple-400">
-                <Settings className="w-5 h-5" />
-              </span>
-              <div>
-                <h2 className="text-base font-bold text-stone-900 dark:text-stone-100">选题生产流偏好</h2>
-              </div>
-            </div>
-          </div>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            {/* Stale Action Alert Days */}
-            <div className="space-y-2">
-              <label className="text-xs sm:text-sm font-bold text-stone-800 dark:text-stone-200 flex items-center gap-1.5">
-                <Clock className="w-4 h-4 text-amber-500" />
-                <span>当前行动停滞预警阈值</span>
-              </label>
-              <p className="text-[11px] text-stone-400 dark:text-stone-500">选题在立项或写稿中超过设定天数未更新行动时标红预警</p>
-              <div className="grid grid-cols-3 gap-2">
-                {[
-                  { days: 3, label: '3 天 (敏捷)' },
-                  { days: 5, label: '5 天 (推荐)' },
-                  { days: 7, label: '7 天 (宽松)' },
-                ].map((opt) => {
-                  const isSelected = staleActionDays === opt.days;
-                  return (
-                    <button
-                      key={opt.days}
-                      type="button"
-                      onClick={() => setStaleActionDays(opt.days)}
-                      className={`p-2.5 rounded-xl border text-center text-xs transition-all cursor-pointer ${
-                        isSelected
-                          ? 'border-[var(--accent)]/35 bg-[var(--accent-soft)] text-[var(--ink)] font-bold shadow-2xs'
-                          : 'border-stone-200/70 dark:border-stone-700 bg-stone-500/[0.03] dark:bg-stone-800/60 text-stone-700 dark:text-stone-300'
-                      }`}
-                    >
-                      {opt.label}
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
-
-            {/* Trash Retention Days */}
-            <div className="space-y-2 sm:col-span-2 pt-2 border-t border-stone-100 dark:border-stone-800">
-              <label className="text-xs sm:text-sm font-bold text-stone-800 dark:text-stone-200 flex items-center gap-1.5">
-                <Trash2 className="w-4 h-4 text-rose-500" />
-                <span>回收站废弃选题保留期限</span>
-              </label>
-              <p className="text-[11px] text-stone-400 dark:text-stone-500">
-                移入回收站超过设定天数的废弃选题将在打开回收站时自动彻底清除，并回收碎片空间
-              </p>
-              <div className="grid grid-cols-5 gap-1.5">
-                {[
-                  { days: 7, label: '7 天' },
-                  { days: 14, label: '14 天' },
-                  { days: 30, label: '30 天 (推荐)' },
-                  { days: 60, label: '60 天' },
-                  { days: 0, label: '从不清理' },
-                ].map((opt) => {
-                  const isSelected = trashRetentionDays === opt.days;
-                  return (
-                    <button
-                      key={opt.days}
-                      type="button"
-                      onClick={() => setTrashRetentionDays(opt.days)}
-                      className={`p-2.5 rounded-xl border text-center text-xs transition-all cursor-pointer ${
-                        isSelected
-                          ? 'border-[var(--accent)]/35 bg-[var(--accent-soft)] text-[var(--ink)] font-bold shadow-2xs'
-                          : 'border-stone-200/70 dark:border-stone-700 bg-stone-500/[0.03] dark:bg-stone-800/60 text-stone-700 dark:text-stone-300'
-                      }`}
-                    >
-                      {opt.label}
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
-          </div>
-
-          {/* Public Base URL (Reverse Proxy Support) */}
-          <div className="space-y-2 pt-2 border-t border-stone-100 dark:border-stone-800">
-            <div className="flex items-center justify-between">
-              <label className="text-xs sm:text-sm font-bold text-stone-800 dark:text-stone-200 flex items-center gap-1.5">
-                <Globe className="w-4 h-4 text-[var(--accent)]" />
-                <span>公开访问基准域名 (Public Base URL / 反代域名)</span>
-              </label>
-              {publicBaseUrl && (
-                <span className="text-[10px] font-mono text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 px-2.5 py-0.5 rounded-full font-bold">
-                  已配置公网适配
-                </span>
-              )}
-            </div>
-            <p className="text-[11px] text-stone-400 dark:text-stone-500">
-              配置反向代理的公网域名（例如：<code>https://kanban.example.com</code>）。配置后，快投箱 Webhook 会自动使用此公网域名。
-            </p>
-            <input
-              type="url"
-              placeholder="例如：https://kanban.example.com (留空则自动跟随当前访问地址)"
-              value={publicBaseUrl}
-              onChange={(e) => setPublicBaseUrl(e.target.value)}
-              className="w-full px-3.5 py-2.5 rounded-xl bg-[var(--control-surface)] dark:bg-stone-800 border border-stone-200/80 dark:border-stone-700 text-xs sm:text-sm text-stone-900 dark:text-stone-100 placeholder:text-stone-400 focus:bg-white dark:focus:bg-stone-800 focus:border-[var(--accent)] focus:outline-none font-mono"
-            />
-          </div>
-        </div>
-
         {/* 4. Security & Infrastructure Status */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {/* Password Protection */}
@@ -1032,7 +900,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
               <button
                 type="button"
                 onClick={async () => {
-                  const url = resolvePublicUrl('/api/inbox/quick-drop', publicBaseUrl);
+              const url = resolvePublicUrl('/api/inbox/quick-drop', runtimeStatus.publicBaseUrl);
                   const copied = await copyTextToClipboard(url);
                   if (!copied) {
                     showToast({ message: '无法复制接口地址，请检查浏览器剪贴板权限后重试', tone: 'info' });
@@ -1049,7 +917,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
             </div>
 
             <div className="p-3 bg-[var(--canvas)]/80 dark:bg-stone-800/80 rounded-xl border border-[var(--line)] font-mono text-[11px] text-stone-700 dark:text-stone-300 select-all break-all">
-              {resolvePublicUrl('/api/inbox/quick-drop', publicBaseUrl)}
+              {resolvePublicUrl('/api/inbox/quick-drop', runtimeStatus.publicBaseUrl)}
             </div>
 
             <div className="space-y-1.5 pt-1 text-[11px] text-stone-500 dark:text-stone-400">

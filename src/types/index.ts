@@ -426,23 +426,18 @@ export interface AppSettings {
   theme: AppTheme;
   editor_font_size?: EditorFontSize;
   editor_line_height?: EditorLineHeight;
-  typewriter_mode_default?: boolean;
-  stale_action_days?: number;
-  public_base_url?: string; // Reverse proxy or custom public domain e.g. "https://kanban.example.com"
   voiceover_cues?: string[]; // Custom cue tags for voiceover teleprompter
-  trash_retention_days?: number; // Days to keep topics in trash before auto purge (default 30, 0 = never)
 }
+
+export const STALE_ACTION_THRESHOLD_DAYS = 5;
+export const TRASH_RETENTION_DAYS = 30;
 
 export const DEFAULT_APP_SETTINGS: AppSettings = {
   reading_speed: 280,
   theme: 'light',
   editor_font_size: 'standard',
   editor_line_height: 'relaxed',
-  typewriter_mode_default: false,
-  stale_action_days: 5,
-  public_base_url: '',
   voiceover_cues: DEFAULT_VOICEOVER_CUES,
-  trash_retention_days: 30,
 };
 
 export interface StorageStats {

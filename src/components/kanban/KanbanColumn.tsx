@@ -22,7 +22,6 @@ interface KanbanColumnProps {
   onQuickAddTopic: (status: TopicStatus) => void;
   onKeyboardMove?: (topic: Topic, direction: -1 | 1) => void;
   sortableDisabled?: boolean;
-  staleThresholdDays?: number;
   mobileMode?: boolean;
 }
 
@@ -53,7 +52,6 @@ const KanbanColumnComponent: React.FC<KanbanColumnProps> = ({
   onQuickAddTopic,
   onKeyboardMove,
   sortableDisabled,
-  staleThresholdDays = 5,
   mobileMode = false,
 }) => {
   const [isExpanded, setIsExpanded] = useState(false);
@@ -129,7 +127,6 @@ const KanbanColumnComponent: React.FC<KanbanColumnProps> = ({
               onTogglePin={onTogglePin}
               onKeyboardMove={onKeyboardMove}
               sortableDisabled={sortableDisabled}
-              staleThresholdDays={staleThresholdDays}
               mobileMotion={mobileMode}
             />
           ))}

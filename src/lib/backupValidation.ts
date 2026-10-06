@@ -267,11 +267,7 @@ const settingsSchema = z.object({
   theme: themeSchema,
   editor_font_size: z.enum(['compact', 'standard', 'large']).optional(),
   editor_line_height: z.enum(['normal', 'relaxed', 'loose']).optional(),
-  typewriter_mode_default: z.boolean().optional(),
-  stale_action_days: z.number().positive().max(30).optional(),
-  public_base_url: z.string().max(200).optional(),
   voiceover_cues: z.array(z.string().max(50)).optional(),
-  trash_retention_days: z.number().int().min(0).max(365).optional(),
 });
 
 const backupSchema = z.object({

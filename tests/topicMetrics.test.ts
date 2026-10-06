@@ -22,7 +22,7 @@ describe('topicMetrics - current Todo action', () => {
   });
 
   it('reports a stale current action without a due-date concept', () => {
-    expect(getCurrentActionWarning(baseTopic, new Date('2026-08-25T10:00:00.000Z'), 5)).toBe('行动已停滞 5 天');
+    expect(getCurrentActionWarning(baseTopic, new Date('2026-08-25T10:00:00.000Z'))).toBe('行动已停滞 5 天');
   });
 
   it('uses the current action placeholder when no Todo is active', () => {

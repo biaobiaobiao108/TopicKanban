@@ -22,7 +22,7 @@ describe('Today focus stale action age', () => {
     sqlite.query(`INSERT INTO topic_todos (id, topic_id, title, status, is_current, current_started_at, created_at, updated_at)
       VALUES ('recent-action-todo', 'recent-action', '继续核对资料', 'in_progress', 1, ?, ?, ?)`).run(startedAt, startedAt, startedAt);
 
-    const focus = await loadTodayFocus(db, 5);
+    const focus = await loadTodayFocus(db);
     expect(focus.action_progress.stale_action_count).toBe(0);
     expect(focus.attention_topics.some((topic) => topic.id === 'recent-action')).toBe(false);
   });
@@ -39,7 +39,7 @@ describe('Today focus stale action age', () => {
     sqlite.query(`INSERT INTO topic_todos (id, topic_id, title, status, is_current, current_started_at, sort_order, created_at, updated_at)
       VALUES ('marked-current', 'lane-split', '正在推进', 'in_progress', 1, ?, 1, '2026-09-01T00:00:00.000Z', ?)`).run(now, now);
 
-    const focus = await loadTodayFocus(db, 5);
+    const focus = await loadTodayFocus(db);
     expect(focus.topics.find((topic) => topic.id === 'lane-split')?.current_todo).toMatchObject({
       id: 'marked-current', status: 'in_progress', is_current: 1,
     });

@@ -1,4 +1,4 @@
-import type { PaginatedTopics, Person, Tag, TodayActionProgress, TodayFocusData, Topic, TopicPinMutationResult, TopicStatus, TopicTodo } from '../../types';
+import { STALE_ACTION_THRESHOLD_DAYS, type PaginatedTopics, type Person, type Tag, type TodayActionProgress, type TodayFocusData, type Topic, type TopicPinMutationResult, type TopicStatus, type TopicTodo } from '../../types';
 import type { SqliteDatabase, SqlitePreparedStatement } from '../sqlite';
 import { bind } from './shared';
 
@@ -86,9 +86,9 @@ export async function loadTrashedTopics(db: SqliteDatabase): Promise<Topic[]> {
   return loadTopics(db, 'trash');
 }
 
-export async function loadTodayFocus(db: SqliteDatabase, staleActionDays = 5): Promise<TodayFocusData> {
+export async function loadTodayFocus(db: SqliteDatabase): Promise<TodayFocusData> {
   const activeCondition = "t.deleted_at IS NULL AND t.status NOT IN ('published', 'icebox')";
-  const safeStaleDays = Math.max(1, Math.min(30, Math.trunc(staleActionDays)));
+  const safeStaleDays = STALE_ACTION_THRESHOLD_DAYS;
   const currentTodoJoin = "LEFT JOIN topic_todos tt ON tt.topic_id = t.id AND tt.status = 'in_progress' AND tt.is_current = 1";
   const staleExpression = "julianday('now') - julianday(COALESCE(tt.current_started_at, t.updated_at))";
   const [focusResult, priorityResult, recentResult, progressResult, attentionResult] = await db.batch([

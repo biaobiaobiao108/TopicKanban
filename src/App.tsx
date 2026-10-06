@@ -920,7 +920,6 @@ function WorkspaceApp({ isAuth, setIsAuth }: WorkspaceAppProps) {
               todayActionProgress={todayActionProgress}
               todoActions={topicTodoActions}
               dealFocus={dealFocus}
-              staleActionDays={settings.stale_action_days || 5}
               onOpenDetail={handleOpenDetail}
               onOpenDeal={handleOpenDeal}
               onOpenQuickCreate={openInboxQuickCreate}
@@ -968,7 +967,6 @@ function WorkspaceApp({ isAuth, setIsAuth }: WorkspaceAppProps) {
               availableTags={tags}
               availablePeople={people}
               searchTerm={searchTerm}
-              staleActionDays={settings.stale_action_days || 5}
             />
           )}
 

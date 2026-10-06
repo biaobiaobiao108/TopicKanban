@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'bun:test';
-import { DEFAULT_APP_SETTINGS, APP_THEMES } from '../src/types';
+import { DEFAULT_APP_SETTINGS, APP_THEMES, STALE_ACTION_THRESHOLD_DAYS, TRASH_RETENTION_DAYS } from '../src/types';
 import { sanitizeAppSettings } from '../src/server/routes/system';
 import { THEME_CONFIG_LIST } from '../src/lib/theme';
 
@@ -7,7 +7,8 @@ describe('Settings KV Model and Sanitization', () => {
   it('should have valid DEFAULT_APP_SETTINGS', () => {
     expect(DEFAULT_APP_SETTINGS.reading_speed).toBe(280);
     expect(DEFAULT_APP_SETTINGS.theme).toBe('light');
-    expect(DEFAULT_APP_SETTINGS.trash_retention_days).toBe(30);
+    expect(STALE_ACTION_THRESHOLD_DAYS).toBe(5);
+    expect(TRASH_RETENTION_DAYS).toBe(30);
   });
 
   it('should sanitize valid KV settings while preserving supported fields', () => {
@@ -15,14 +16,16 @@ describe('Settings KV Model and Sanitization', () => {
       reading_speed: 320,
       theme: 'dark',
       editor_font_size: 'large',
-      trash_retention_days: 14,
       voiceover_cues: ['停顿 3s'],
     });
     expect(settings.reading_speed).toBe(320);
     expect(settings.theme).toBe('dark');
     expect(settings.editor_font_size).toBe('large');
-    expect(settings.trash_retention_days).toBe(14);
     expect(settings.voiceover_cues).toEqual(['停顿 3s']);
+    expect(settings).not.toHaveProperty('stale_action_days');
+    expect(settings).not.toHaveProperty('trash_retention_days');
+    expect(settings).not.toHaveProperty('public_base_url');
+    expect(settings).not.toHaveProperty('typewriter_mode_default');
   });
 
   it('should fallback to defaults on empty or invalid inputs', () => {

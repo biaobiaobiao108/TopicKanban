@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from 'react';
-import { CommercialDeal, DealFocusData, TodayActionProgress, Topic } from '../../types';
+import { CommercialDeal, DealFocusData, STALE_ACTION_THRESHOLD_DAYS, TodayActionProgress, Topic } from '../../types';
 import { StatusBadge, PriorityBadge, TagPill } from '../ui/Badge';
 import {
   Flame,
@@ -90,7 +90,6 @@ interface TodayViewProps {
   attentionTopics?: Topic[];
   todayActionProgress?: TodayActionProgress;
   dealFocus?: DealFocusData;
-  staleActionDays?: number;
   onOpenDetail: (topicId: string, tab?: 'todos') => void;
   onOpenDeal?: (dealId: string) => void;
   onOpenQuickCreate: () => void;
@@ -104,7 +103,6 @@ export const TodayView: React.FC<TodayViewProps> = ({
   attentionTopics = [],
   todayActionProgress,
   dealFocus = { due_items: [], unpaid_items: [], total_active: 0 },
-  staleActionDays = 5,
   onOpenDetail,
   onOpenDeal,
   onOpenQuickCreate,
@@ -134,7 +132,7 @@ export const TodayView: React.FC<TodayViewProps> = ({
     attentionSource.forEach((topic) => {
       if (!topic.current_todo) {
         missingAction.push(topic);
-      } else if (getCurrentActionAgeDays(topic) >= staleActionDays) {
+      } else if (getCurrentActionAgeDays(topic) >= STALE_ACTION_THRESHOLD_DAYS) {
         staleAction.push(topic);
       }
     });
@@ -147,7 +145,7 @@ export const TodayView: React.FC<TodayViewProps> = ({
       missingCount: todayActionProgress?.missing_action_count ?? missingAction.length,
       staleCount: todayActionProgress?.stale_action_count ?? staleAction.length,
     };
-  }, [activeTopics, attentionTopics, staleActionDays, todayActionProgress]);
+  }, [activeTopics, attentionTopics, todayActionProgress]);
 
   const activeTopicTotal = actionProgress.activeCount;
   const coveragePercent = activeTopicTotal ? Math.round((actionProgress.covered / activeTopicTotal) * 100) : 0;
@@ -277,10 +275,10 @@ export const TodayView: React.FC<TodayViewProps> = ({
                 </div>
               </div>
 
-              {getCurrentActionWarning(focusTopic, new Date(), staleActionDays) && (
+              {getCurrentActionWarning(focusTopic) && (
                 <div className="-mt-3 text-xs font-semibold text-amber-700 dark:text-amber-400 flex items-center gap-1.5">
                   <span>⚠</span>
-                  <span>{getCurrentActionWarning(focusTopic, new Date(), staleActionDays)}</span>
+                  <span>{getCurrentActionWarning(focusTopic)}</span>
                 </div>
               )}
 
@@ -380,7 +378,7 @@ export const TodayView: React.FC<TodayViewProps> = ({
                       </span>
                       <span className="min-w-0 flex-1">
                         <span className="block truncate text-xs font-semibold text-[var(--ink)]">{topic.title}</span>
-                        <span className="mt-0.5 block truncate text-[11px] text-[var(--ink-muted)]">{hasAction ? getCurrentActionWarning(topic, new Date(), staleActionDays) || '行动需要重新推进' : '尚未设置当前行动'}</span>
+                        <span className="mt-0.5 block truncate text-[11px] text-[var(--ink-muted)]">{hasAction ? getCurrentActionWarning(topic) || '行动需要重新推进' : '尚未设置当前行动'}</span>
                       </span>
                       <ArrowRight className="h-3.5 w-3.5 shrink-0 text-[var(--ink-muted)]" aria-hidden="true" />
                     </button>
