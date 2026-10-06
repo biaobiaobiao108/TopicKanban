@@ -253,21 +253,19 @@ export const ScriptEditorContextMenu: React.FC<ScriptEditorContextMenuProps> = (
               <FloatingScrollbar
                 role="none"
                 tabIndex={-1}
-                className="p-1.5"
+                className="p-1"
                 wrapperClassName="min-h-0 flex-1"
               >
-                {cues.map(({ label, tone }) => (
+                {cues.map(({ label, tone, symbol }) => (
                   <button
                     type="button"
                     role="menuitem"
                     key={label}
-                    className="flex w-full items-center rounded-lg px-1 text-left outline-none transition-colors hover:bg-[var(--accent-soft)] focus-visible:bg-[var(--accent-soft)]"
+                    className="voiceover-cue-option flex h-[34px] w-full shrink-0 items-center gap-2 rounded-md px-2 text-left text-sm leading-5 text-[var(--ink)] outline-none transition-colors hover:bg-[var(--accent-soft)] focus-visible:bg-[var(--accent-soft)]"
                     onClick={() => { onInsertCue(label); closeAndFocusEditor(); }}
                   >
-                    <span data-cue-tone={tone} className="voiceover-cue-badge flex w-full min-w-0 items-start gap-1.5 rounded-lg px-2 py-0.5 text-sm font-semibold leading-5">
-                      <span aria-hidden="true" className="shrink-0">🎙️</span>
-                      <span className="min-w-0 whitespace-normal break-words">{label}</span>
-                    </span>
+                    <span data-cue-tone={tone} aria-hidden="true" className="voiceover-cue-symbol shrink-0">{symbol}</span>
+                    <span className="min-w-0 whitespace-normal break-words font-medium">{label}</span>
                   </button>
                 ))}
               </FloatingScrollbar>

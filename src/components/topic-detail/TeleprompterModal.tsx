@@ -18,7 +18,7 @@ import {
   Keyboard
 } from 'lucide-react';
 import { ScriptOutline, OutlineItem } from '../../lib/outline';
-import { getVoiceoverCueTone } from '../../lib/voiceoverCues';
+import { getVoiceoverCueSymbol, getVoiceoverCueTone } from '../../lib/voiceoverCues';
 import { FloatingScrollbar } from '../ui/FloatingScrollbar';
 
 interface TeleprompterModalProps {
@@ -133,7 +133,7 @@ export const TeleprompterModal: React.FC<TeleprompterModalProps> = ({
 
     // Normalize voiceover cue elements into canonical bracket format e.g. [停顿 1s]
     doc.querySelectorAll('span[data-cue], span.inline-voiceover-cue').forEach((el) => {
-      const cue = el.getAttribute('data-cue') || el.textContent?.replace(/^🎙️\s*/, '').replace(/^\[|\]$/g, '').trim() || '';
+      const cue = el.getAttribute('data-cue') || el.querySelector('.voiceover-cue-label')?.textContent?.trim() || el.textContent?.replace(/^🎙️\s*/, '').replace(/^\[|\]$/g, '').trim() || '';
       if (cue) {
         el.textContent = `[${cue}]`;
       }
@@ -594,7 +594,8 @@ function renderScriptTextWithCues(text: string): React.ReactNode {
           data-cue-tone={getVoiceoverCueTone(cueContent)}
           className="inline-voiceover-cue mx-1.5 px-2.5 py-0.5 tracking-wide align-middle"
         >
-          🎙️ {cueContent}
+          <span aria-hidden="true" className="voiceover-cue-symbol">{getVoiceoverCueSymbol(cueContent)}</span>
+          <span className="voiceover-cue-label">{cueContent}</span>
         </span>
       );
     }

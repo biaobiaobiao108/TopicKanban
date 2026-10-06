@@ -1,5 +1,5 @@
 import { createInlineMarkdownSpec, Node, mergeAttributes } from '@tiptap/core';
-import { getVoiceoverCueTone } from '../../lib/voiceoverCues';
+import { getVoiceoverCueSymbol, getVoiceoverCueTone } from '../../lib/voiceoverCues';
 
 const voiceoverCueMarkdown = createInlineMarkdownSpec({
   nodeName: 'voiceoverCue',
@@ -23,6 +23,7 @@ export const VoiceoverCueNode = Node.create({
         default: '',
         parseHTML: (element) =>
           element.getAttribute('data-cue') ||
+          element.querySelector('.voiceover-cue-label')?.textContent?.trim() ||
           element.textContent?.replace(/^🎙️\s*/, '').replace(/^\[|\]$/g, '').trim() ||
           '',
         renderHTML: (attributes) => ({
@@ -50,10 +51,11 @@ export const VoiceoverCueNode = Node.create({
       mergeAttributes(HTMLAttributes, {
         'data-cue': cue,
         'data-cue-tone': getVoiceoverCueTone(cue),
-        'class': 'inline-voiceover-cue select-none inline-flex items-center gap-1 mx-1 px-2 py-0.5 rounded-full text-xs font-semibold align-baseline cursor-default',
+        'class': 'inline-voiceover-cue select-none align-baseline cursor-default',
         'contenteditable': 'false',
       }),
-      `🎙️ ${cue}`,
+      ['span', { class: 'voiceover-cue-symbol', 'aria-hidden': 'true' }, getVoiceoverCueSymbol(cue)],
+      ['span', { class: 'voiceover-cue-label' }, cue],
     ];
   },
 
