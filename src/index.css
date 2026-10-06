@@ -70,15 +70,14 @@ html.dark .script-citation:hover {
 }
 
 .inline-voiceover-cue {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.35rem;
+  display: inline;
   margin-left: 0.25rem;
   margin-right: 0.25rem;
-  padding: 0.08rem 0.38rem;
+  padding: 0 0.32em;
   border-radius: 0.35rem;
-  font-size: 0.9em;
+  font-size: inherit;
   font-weight: 650;
+  line-height: inherit;
   vertical-align: baseline;
   user-select: none;
   cursor: default;
@@ -115,7 +114,16 @@ html.dark .script-citation:hover {
 }
 
 .inline-voiceover-cue .voiceover-cue-symbol {
+  display: inline;
+  min-width: 0;
+  font-size: 0.88em;
+  line-height: inherit;
+  vertical-align: baseline;
   opacity: 0.88;
+}
+
+.inline-voiceover-cue .voiceover-cue-label {
+  line-height: inherit;
 }
 
 :is(.inline-voiceover-cue, .voiceover-cue-option)[data-cue-tone="rhythm"] {

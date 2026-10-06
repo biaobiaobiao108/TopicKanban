@@ -101,7 +101,7 @@ export const ScriptEditorContextMenu: React.FC<ScriptEditorContextMenuProps> = (
     if (!showCues || !menu || !cueMenu) return;
 
     const menuRect = menu.getBoundingClientRect();
-    const width = menuRect.width;
+    const width = Math.min(menuRect.width, 144);
     const height = menuRect.height;
     const gap = 0;
     const opensLeft = menuRect.right + gap + width > window.innerWidth - 8;
