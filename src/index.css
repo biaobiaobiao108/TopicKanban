@@ -507,20 +507,39 @@ html.dark .script-citation::after {
   }
 }
 
-/* Literary Notebook Prose, Excerpts & Seals */
-.prose h1, .ProseMirror h1 {
-  font-family: Georgia, Cambria, "Songti SC", "SimSun", serif !important;
-  color: var(--h1-color) !important;
-  font-weight: 500 !important;
-}
-
-.prose h2, .prose h3, .ProseMirror h2, .ProseMirror h3 {
-  color: var(--h2-color) !important;
-  font-weight: 600 !important;
-}
-
+/* Script headings share one restrained type scale in the editor and review page. */
+.script-prose :is(h1, h2, h3),
+.script-editor-canvas-container .tiptap :is(h1, h2, h3),
+.prose h1, .ProseMirror h1,
+.prose h2, .ProseMirror h2,
 .prose h3, .ProseMirror h3 {
-  color: var(--h3-color) !important;
+  color: var(--ink) !important;
+  font-family: inherit !important;
+  letter-spacing: -0.02em;
+}
+
+.script-prose h1,
+.script-editor-canvas-container .tiptap h1,
+.prose h1, .ProseMirror h1 {
+  font-size: 1.65rem;
+  font-weight: 750 !important;
+  line-height: 1.35;
+}
+
+.script-prose h2,
+.script-editor-canvas-container .tiptap h2,
+.prose h2, .ProseMirror h2 {
+  font-size: 1.35rem;
+  font-weight: 700 !important;
+  line-height: 1.4;
+}
+
+.script-prose h3,
+.script-editor-canvas-container .tiptap h3,
+.prose h3, .ProseMirror h3 {
+  font-size: 1.15rem;
+  font-weight: 650 !important;
+  line-height: 1.45;
 }
 
 .prose blockquote, .ProseMirror blockquote, blockquote.quote-block {

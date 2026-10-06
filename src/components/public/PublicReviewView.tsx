@@ -346,10 +346,10 @@ export const PublicReviewView: React.FC<PublicReviewViewProps> = ({ token: propT
         )}
 
         {/* Article Body */}
-        <article className="flex-1 min-w-0 bg-[var(--surface)] rounded-2xl border border-[var(--line)] p-6 sm:p-10 shadow-subtle space-y-6">
+        <article className="flex-1 min-w-0 py-2 sm:py-4 space-y-6">
           {/* Header metadata summary */}
           {(snapshot.hook || snapshot.summary || snapshot.storyline) && (
-            <div className="p-4 rounded-xl bg-stone-50/80 dark:bg-stone-800/60 border border-stone-200/60 dark:border-stone-700/60 space-y-2">
+            <div className="border-l-2 border-[var(--accent)]/50 bg-[var(--surface)]/55 px-4 py-3 rounded-r-xl space-y-2">
               {snapshot.hook && (
                 <div className="flex items-start gap-2">
                   <span className="text-[10px] font-bold uppercase bg-[var(--accent-soft)] text-[var(--accent)] px-1.5 py-0.5 rounded tracking-wide shrink-0">
@@ -366,7 +366,7 @@ export const PublicReviewView: React.FC<PublicReviewViewProps> = ({ token: propT
 
           {/* Rendered HTML with scroll-mt and animated headings */}
           <div
-            className="prose prose-stone dark:prose-invert max-w-none text-stone-800 dark:text-stone-200 leading-relaxed text-sm sm:text-base space-y-4 [&>h1]:text-xl [&>h1]:font-black [&>h1]:text-stone-900 dark:[&>h1]:text-stone-100 [&>h1]:mt-6 [&>h1]:mb-3 [&>h2]:text-lg [&>h2]:font-bold [&>h2]:text-stone-900 dark:[&>h2]:text-stone-100 [&>h2]:mt-5 [&>h2]:mb-2 [&>h3]:text-base [&>h3]:font-bold [&>h3]:text-stone-800 dark:[&>h3]:text-stone-200 [&>p]:leading-7 [&>blockquote]:border [&>blockquote]:border-[var(--line)] [&>blockquote]:bg-[var(--accent-soft)]/30 [&>blockquote]:py-2 [&>blockquote]:px-4 [&>blockquote]:rounded-lg [&>blockquote]:text-stone-700 dark:[&>blockquote]:text-stone-300 [&>blockquote]:italic"
+            className="script-prose prose prose-stone dark:prose-invert max-w-none text-[var(--ink)] text-sm sm:text-base leading-relaxed space-y-4"
             dangerouslySetInnerHTML={{ __html: processedHtml }}
           />
 
