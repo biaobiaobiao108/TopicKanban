@@ -228,7 +228,7 @@ const SortableTimelineItem: React.FC<SortableTimelineItemProps> = ({
       ref={setNodeRef}
       style={style}
       data-testid="source-timeline-item"
-      className={`relative group w-full max-w-4xl ${isDragging ? 'opacity-50 z-30 scale-[1.01]' : 'opacity-100'}`}
+      className={`relative group w-full ${isDragging ? 'opacity-50 z-30 scale-[1.01]' : 'opacity-100'}`}
     >
       {/* Timeline Node Dot on Left Axis */}
       <div className="absolute -left-6 sm:-left-8 top-4 w-6 h-6 rounded-full bg-[var(--surface)] border-2 border-[var(--accent)] flex items-center justify-center text-[10px] font-bold text-[var(--accent-dark)] shadow-2xs z-10 select-none">
@@ -922,7 +922,7 @@ export const SourcesTab: React.FC<SourcesTabProps> = ({
           {/* Main Vertical Timeline List with DnD */}
           <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
             <SortableContext items={timedSources.map((s) => s.id)} strategy={verticalListSortingStrategy}>
-              <div className="relative pl-6 sm:pl-8 space-y-4 before:absolute before:left-3 before:top-3 before:bottom-3 before:w-0.5 before:bg-stone-200 dark:before:bg-stone-800 transition-colors">
+              <div className="relative mx-auto w-full max-w-5xl pl-6 sm:pl-8 space-y-4 before:absolute before:left-3 before:top-3 before:bottom-3 before:w-0.5 before:bg-stone-200 dark:before:bg-stone-800 transition-colors">
                 {timedSources.map((source, idx) => (
                   <SortableTimelineItem
                     key={source.id}
