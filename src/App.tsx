@@ -30,7 +30,6 @@ import {
   deletePublishedVideo,
   saveTag,
   deleteTag,
-  saveSettings,
   exportBackupData,
   exportScriptsMarkdown,
 } from './lib/storage';
@@ -827,12 +826,9 @@ function WorkspaceApp({ isAuth, setIsAuth }: WorkspaceAppProps) {
   // Handlers for Settings
   const handleSaveSettings = async (newSettings: AppSettings) => {
     const previousSettings = settings;
-    setAppSettings(newSettings);
-    applyTheme(newSettings.theme);
     try {
-      const saved = await saveSettings(newSettings);
-      setAppSettings(saved);
-      applyTheme(saved.theme);
+      setAppSettings(newSettings);
+      applyTheme(newSettings.theme);
     } catch (error) {
       setAppSettings(previousSettings);
       applyTheme(previousSettings.theme);

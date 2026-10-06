@@ -28,7 +28,7 @@ describe('Database schema contract', () => {
       expect(tables.map((table) => table.name)).toEqual([
         'commercial_deal_activities', 'commercial_deal_topics', 'commercial_deals',
         'draft_citations', 'drafts', 'people', 'person_relationships', 'publish_packages',
-        'published_videos', 'sources', 'tags', 'topic_people', 'topic_reports',
+        'published_videos', 'quick_drops', 'sources', 'tags', 'topic_people', 'topic_reports',
         'topic_search', 'topic_search_config', 'topic_search_content',
         'topic_search_data', 'topic_search_docsize', 'topic_search_idx', 'topic_tags',
         'topic_todos', 'topics',
@@ -94,7 +94,7 @@ describe('Database schema contract', () => {
       expect(sqlite.query("SELECT name FROM sqlite_master WHERE type = 'table' AND name = 'topic_reports'").get()).not.toBeNull();
 
       expect(sqlite.query("SELECT name FROM sqlite_master WHERE type = 'table' AND name = '_schema_migrations'").get()).toBeNull();
-      expect(sqlite.query('PRAGMA user_version').get()).toEqual({ user_version: 5 });
+      expect(sqlite.query('PRAGMA user_version').get()).toEqual({ user_version: 6 });
       sqlite.query("INSERT INTO commercial_deals (id, title, created_at, updated_at) VALUES ('valid', '有效商单', '2026-08-27', '2026-08-27')").run();
       expect(() => sqlite.query("INSERT INTO commercial_deals (id, title, status, created_at, updated_at) VALUES ('invalid', '非法阶段', 'reviewing', '2026-08-27', '2026-08-27')").run()).toThrow();
     } finally {
@@ -111,8 +111,6 @@ describe('Database schema contract', () => {
       DROP INDEX idx_published_page_order;
       DROP INDEX idx_commercial_deals_publish_date;
       DROP INDEX idx_commercial_deals_next_action_due_date;
-      CREATE TABLE _kv_store (key TEXT PRIMARY KEY, value TEXT NOT NULL, expires_at INTEGER);
-      CREATE INDEX idx_kv_expires_at ON _kv_store(expires_at);
     `);
     existing.close();
 
@@ -128,7 +126,7 @@ describe('Database schema contract', () => {
         ]) {
           expect(indexes.some((index) => index.name === indexName)).toBe(true);
         }
-        expect(sqlite.query('PRAGMA user_version').get()).toEqual({ user_version: 5 });
+        expect(sqlite.query('PRAGMA user_version').get()).toEqual({ user_version: 6 });
       } finally {
         sqlite.close();
       }
@@ -152,10 +150,10 @@ describe('Database schema contract', () => {
     outdated.close();
 
     try {
-      await expect(initializeSqliteDatabase(dbPath, schemaDir)).rejects.toThrow('SQLite schema version mismatch: expected baseline v5');
+      await expect(initializeSqliteDatabase(dbPath, schemaDir)).rejects.toThrow('SQLite schema version mismatch: expected baseline v6');
       const unchanged = new Database(dbPath);
       try {
-        expect(unchanged.query("SELECT name FROM sqlite_master WHERE type = 'table' AND name = '_kv_store'").get()).toBeNull();
+        expect(unchanged.query("SELECT name FROM sqlite_master WHERE type = 'table' AND name = 'quick_drops'").get()).toBeNull();
       } finally {
         unchanged.close();
       }

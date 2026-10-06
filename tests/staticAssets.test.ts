@@ -1,20 +1,33 @@
 import { describe, it, expect, afterEach } from 'bun:test';
 import { startServer } from '../src/server/server';
+import { joinPath } from '../src/server/bunPaths';
 
 describe('Static Assets Route Serving', () => {
   let server: Awaited<ReturnType<typeof startServer>> | null = null;
+  let databasePath = '';
+
+  async function cleanTestDatabase(): Promise<void> {
+    await Promise.all(['', '-wal', '-shm', '-journal'].map(async (suffix) => {
+      const file = Bun.file(`${databasePath}${suffix}`);
+      if (await file.exists()) await file.unlink();
+    }));
+  }
 
   afterEach(async () => {
     if (server) {
       await server.stop(true);
+      server.closeDatabase();
       server = null;
     }
+    if (databasePath) await cleanTestDatabase();
   });
 
   it('serves /icon.png with image/png in development mode even with wildcard fallback', async () => {
+    databasePath = joinPath(Bun.env.TEMP || Bun.env.TMPDIR || process.cwd(), `topic-kanban-static-${crypto.randomUUID()}.db`);
     server = await startServer({
       development: true,
       port: 0,
+      databasePath,
       frontendRoutes: {
         '/': new Response('home html', { headers: { 'Content-Type': 'text/html' } }),
         '/*': new Response('home html', { headers: { 'Content-Type': 'text/html' } }),
@@ -54,8 +67,10 @@ describe('Static Assets Route Serving', () => {
     }
 
     try {
+      databasePath = joinPath(Bun.env.TEMP || Bun.env.TMPDIR || process.cwd(), `topic-kanban-spa-${crypto.randomUUID()}.db`);
       server = await startServer({
         port: 0,
+        databasePath,
       });
 
       const baseUrl = `http://localhost:${server.port}`;

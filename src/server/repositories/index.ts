@@ -3,6 +3,7 @@ export * from './bootstrap';
 export * from './deals';
 export * from './people';
 export * from './published';
+export * from './quickDrops';
 export * from './tags';
 export * from './system';
 export * from './topics';

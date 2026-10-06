@@ -6,7 +6,7 @@ import { deleteTag, insertTag, listTags, loadBootstrap, loadTagsPage, updateTag,
 export function registerTagRoutes(app: NativeApp): void {
   app.get('/tags', async (c) => {
     try {
-      const data = await loadBootstrap(requireDb(c), undefined, {
+      const data = await loadBootstrap(requireDb(c), {
         includeTopics: false, includePeople: false, includeRelationships: false, includePublished: false, includeTags: true,
       });
       return c.json(data.tags);

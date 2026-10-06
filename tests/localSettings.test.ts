@@ -1,10 +1,10 @@
 import { describe, it, expect } from 'bun:test';
 import { DEFAULT_APP_SETTINGS, APP_THEMES, STALE_ACTION_THRESHOLD_DAYS, TRASH_RETENTION_DAYS, type AppSettings } from '../src/types';
-import { sanitizeAppSettings } from '../src/server/routes/system';
+import { loadLocalSettings, sanitizeAppSettings, saveLocalSettings } from '../src/lib/localSettings';
 import { THEME_CONFIG_LIST } from '../src/lib/theme';
 import { VOICEOVER_CUES, getVoiceoverCueTone } from '../src/lib/voiceoverCues';
 
-describe('Settings KV Model and Sanitization', () => {
+describe('Browser-local settings model and sanitization', () => {
   it('should have valid DEFAULT_APP_SETTINGS', () => {
     expect(DEFAULT_APP_SETTINGS.reading_speed).toBe(280);
     expect(DEFAULT_APP_SETTINGS.theme).toBe('light');
@@ -12,7 +12,7 @@ describe('Settings KV Model and Sanitization', () => {
     expect(TRASH_RETENTION_DAYS).toBe(30);
   });
 
-  it('should sanitize valid KV settings while preserving supported fields', () => {
+  it('sanitizes supported browser preferences and drops removed configuration', () => {
     const legacySettings = {
       reading_speed: 320,
       theme: 'dark',
@@ -44,6 +44,30 @@ describe('Settings KV Model and Sanitization', () => {
     const settings = sanitizeAppSettings({ reading_speed: -50, theme: 'cyberpunk-neon' as never });
     expect(settings.reading_speed).toBe(280);
     expect(settings.theme).toBe(DEFAULT_APP_SETTINGS.theme);
+  });
+
+  it('persists preferences in browser localStorage and sanitizes values when reading', () => {
+    const descriptor = Object.getOwnPropertyDescriptor(globalThis, 'localStorage');
+    const values = new Map<string, string>();
+    Object.defineProperty(globalThis, 'localStorage', {
+      configurable: true,
+      value: {
+        getItem: (key: string) => values.get(key) ?? null,
+        setItem: (key: string, value: string) => values.set(key, value),
+      },
+    });
+    try {
+      saveLocalSettings({ reading_speed: 340, theme: 'dark', editor_font_size: 'large' });
+      expect(loadLocalSettings()).toMatchObject({
+        reading_speed: 340,
+        theme: 'dark',
+        editor_font_size: 'large',
+        editor_line_height: 'relaxed',
+      });
+    } finally {
+      if (descriptor) Object.defineProperty(globalThis, 'localStorage', descriptor);
+      else Reflect.deleteProperty(globalThis, 'localStorage');
+    }
   });
 
   it('should accept system theme and all editorial theme presets', () => {

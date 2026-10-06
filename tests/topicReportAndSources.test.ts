@@ -1,7 +1,6 @@
 import { describe, it, expect, beforeEach, afterEach } from 'bun:test';
 import { Database } from 'bun:sqlite';
 import { createApp } from '../src/server/app';
-import { AppKV } from '../src/server/appKv';
 import { SqliteDatabase } from '../src/server/sqlite';
 import { NativeApp } from '../src/server/native';
 import type { ApiBindings } from '../src/server/apiShared';
@@ -24,7 +23,6 @@ import type { Source } from '../src/types';
 describe('Topic Report and Sources Timeline Integration', () => {
   let sqlite: Database;
   let db: SqliteDatabase;
-  let kv: AppKV;
   let app: NativeApp;
   let headers: Record<string, string>;
 
@@ -32,20 +30,11 @@ describe('Topic Report and Sources Timeline Integration', () => {
     sqlite = new Database(':memory:');
     const schemaSql = await Bun.file('drizzle/0000_schema.sql').text();
     sqlite.exec(schemaSql);
-    sqlite.exec(`
-      CREATE TABLE IF NOT EXISTS _kv_store (
-        key TEXT PRIMARY KEY,
-        value TEXT NOT NULL,
-        expires_at INTEGER
-      );
-    `);
 
     db = new SqliteDatabase(sqlite);
-    kv = new AppKV(db);
 
     const bindings: ApiBindings = {
       DB: db,
-      KV: kv,
       APP_PASSWORD: 'test-password',
     };
 

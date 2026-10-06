@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'bun:test';
 import type { QuickDropItem, PresenceState } from '../src/types';
 
-describe('KV Feature Types & Utilities', () => {
+describe('Quick drop and presence API types', () => {
   it('should construct valid QuickDropItem structure', () => {
     const item: QuickDropItem = {
       id: 'drop_123456',

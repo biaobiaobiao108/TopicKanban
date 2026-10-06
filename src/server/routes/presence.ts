@@ -1,5 +1,6 @@
 import type { NativeApp } from '../native';
 import { jsonError } from '../apiShared';
+import { acquirePresenceLease, releasePresenceLease } from '../presenceLeases';
 
 export function registerPresenceRoutes(app: NativeApp): void {
   app.post('/topics/:id/presence', async (c) => {
@@ -17,7 +18,7 @@ export function registerPresenceRoutes(app: NativeApp): void {
         ? body.device_name.trim()
         : '其他设备';
       const now = new Date().toISOString();
-      const lease = await c.env.KV.acquireJsonLease(
+      const lease = acquirePresenceLease(
         `lock:${topicId}`,
         clientId,
         { client_id: clientId, device_name: deviceName, updated_at: now },
@@ -36,7 +37,7 @@ export function registerPresenceRoutes(app: NativeApp): void {
       if (!clientId?.trim() || clientId.length > 200) {
         return c.json({ error: 'client_id is required and must be <= 200 characters' }, 400);
       }
-      const result = await c.env.KV.releaseJsonLease(`lock:${topicId}`, clientId.trim());
+      const result = releasePresenceLease(`lock:${topicId}`, clientId.trim());
       if (result === 'not_owner') return c.json({ error: 'Presence lease belongs to another client' }, 409);
       return c.json({ success: true, released: result === 'released' });
     } catch (error) {

@@ -1,7 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it } from 'bun:test';
 import { Database } from 'bun:sqlite';
 import { createApp } from '../src/server/app';
-import { AppKV } from '../src/server/appKv';
 import { NativeApp } from '../src/server/native';
 import { SqliteDatabase } from '../src/server/sqlite';
 import type { ApiBindings } from '../src/server/apiShared';
@@ -17,7 +16,6 @@ describe('batch reorder validation', () => {
     const db = new SqliteDatabase(sqlite);
     app = createApp({
       DB: db,
-      KV: new AppKV(db),
       APP_PASSWORD: 'reorder-test-password',
       QUICK_DROP_TOKEN: 'reorder-test-drop-token',
     } satisfies ApiBindings);
@@ -118,6 +116,6 @@ describe('batch reorder validation', () => {
     const limited = await request();
     expect(limited.status).toBe(429);
     expect(limited.headers.get('Retry-After')).toBeTruthy();
-    expect(sqlite.query("SELECT COUNT(*) AS count FROM _kv_store WHERE key LIKE 'drop:%'").get()).toEqual({ count: 100 });
+    expect(sqlite.query('SELECT COUNT(*) AS count FROM quick_drops').get()).toEqual({ count: 100 });
   });
 });

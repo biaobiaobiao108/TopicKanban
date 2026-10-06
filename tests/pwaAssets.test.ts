@@ -1,7 +1,16 @@
 import { afterEach, describe, expect, it } from 'bun:test';
 import { discoverStaticFiles, resolveServerPort, startServer } from '../src/server/server';
+import { joinPath } from '../src/server/bunPaths';
 
 let server: Awaited<ReturnType<typeof startServer>> | null = null;
+let databasePath = '';
+
+async function cleanTestDatabase(): Promise<void> {
+  await Promise.all(['', '-wal', '-shm', '-journal'].map(async (suffix) => {
+    const file = Bun.file(`${databasePath}${suffix}`);
+    if (await file.exists()) await file.unlink();
+  }));
+}
 
 async function readPngDimensions(fileName: string): Promise<{ width: number; height: number }> {
   const data = new Uint8Array(await Bun.file(`public/${fileName}`).arrayBuffer());
@@ -16,8 +25,10 @@ async function readPngDimensions(fileName: string): Promise<{ width: number; hei
 afterEach(async () => {
   if (server) {
     await server.stop(true);
+    server.closeDatabase();
     server = null;
   }
+  if (databasePath) await cleanTestDatabase();
 });
 
 describe('PWA static assets', () => {
@@ -65,7 +76,8 @@ describe('PWA static assets', () => {
   });
 
   it('serves the manifest and service worker with update-safe headers', async () => {
-    server = await startServer({ development: true, port: 0 });
+    databasePath = joinPath(Bun.env.TEMP || Bun.env.TMPDIR || process.cwd(), `topic-kanban-pwa-${crypto.randomUUID()}.db`);
+    server = await startServer({ development: true, port: 0, databasePath });
     const baseUrl = `http://localhost:${server.port}`;
 
     const manifestResponse = await fetch(`${baseUrl}/manifest.webmanifest`);

@@ -286,7 +286,7 @@ const backupSchema = z.object({
   commercial_deal_topics: z.array(commercialDealTopicSchema),
   commercial_deal_activities: z.array(commercialDealActivitySchema),
   todos: z.array(todoSchema),
-  settings: settingsSchema,
+  settings: settingsSchema.optional(),
 }).strict().superRefine((data, ctx) => {
   const addIssue = (path: Array<string | number>, message: string) => ctx.addIssue({ code: 'custom', path, message });
   const requireUniqueIds = (items: Array<{ id: string }>, key: string) => {

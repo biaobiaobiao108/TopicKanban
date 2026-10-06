@@ -1,5 +1,4 @@
 import type {
-  AppSettings,
   BootstrapData,
   Person,
   PersonRelationship,
@@ -7,7 +6,6 @@ import type {
   Tag,
   Topic,
 } from '../../types';
-import { DEFAULT_APP_SETTINGS } from '../../types';
 import type { SqliteDatabase, SqlitePreparedStatement } from '../sqlite';
 import { loadTopics } from './topics';
 
@@ -19,7 +17,7 @@ export interface BootstrapLoadOptions {
   includeTags?: boolean;
 }
 
-export async function loadBootstrap(db: SqliteDatabase, kvSettings?: AppSettings, options: BootstrapLoadOptions = {}): Promise<BootstrapData> {
+export async function loadBootstrap(db: SqliteDatabase, options: BootstrapLoadOptions = {}): Promise<BootstrapData> {
   const includeTopics = options.includeTopics !== false;
   const includePeople = options.includePeople !== false;
   const includeRelationships = options.includeRelationships !== false;
@@ -40,8 +38,6 @@ export async function loadBootstrap(db: SqliteDatabase, kvSettings?: AppSettings
     includeTags ? db.prepare('SELECT id, name, color FROM tags ORDER BY name ASC') : db.prepare('SELECT NULL WHERE 1 = 0'),
   ];
 
-  const settings = kvSettings || DEFAULT_APP_SETTINGS;
-
   const [topics, otherResults] = await Promise.all([
     includeTopics ? loadTopics(db, 'active') : Promise.resolve([] as Topic[]),
     db.batch(queries),
@@ -53,6 +49,5 @@ export async function loadBootstrap(db: SqliteDatabase, kvSettings?: AppSettings
     relationships: otherResults[1].results as unknown as PersonRelationship[],
     published: otherResults[2].results as unknown as PublishedVideo[],
     tags: otherResults[3].results as unknown as Tag[],
-    settings,
   };
 }

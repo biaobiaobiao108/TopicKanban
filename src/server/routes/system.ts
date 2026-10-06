@@ -1,7 +1,4 @@
 import { NativeApp, bodyLimit } from '../native';
-import type { AppSettings } from '../../types';
-import { DEFAULT_APP_SETTINGS, APP_THEMES, type AppTheme } from '../../types';
-import type { AppKV } from '../appKv';
 import {
   BackupImportLimitError,
   countDatabaseTables,
@@ -22,52 +19,6 @@ import {
   requireDb,
   timingSafeEqualString,
 } from '../apiShared';
-
-export function sanitizeAppSettings(settings?: Partial<AppSettings> | null): AppSettings {
-  if (!settings || typeof settings !== 'object') {
-    return { ...DEFAULT_APP_SETTINGS };
-  }
-
-  const validFontSizes = ['compact', 'standard', 'large'];
-  const validLineHeights = ['normal', 'relaxed', 'loose'];
-
-  const speed = Number(settings.reading_speed);
-  const readingSpeed = Number.isFinite(speed) && speed > 0 && speed <= 1000
-    ? speed
-    : DEFAULT_APP_SETTINGS.reading_speed;
-
-  const storedTheme: unknown = settings.theme;
-  const theme = typeof storedTheme === 'string' && APP_THEMES.includes(storedTheme as AppTheme)
-    ? storedTheme as AppTheme
-    : DEFAULT_APP_SETTINGS.theme;
-
-  const editorFontSize = typeof settings.editor_font_size === 'string' && validFontSizes.includes(settings.editor_font_size)
-    ? settings.editor_font_size
-    : DEFAULT_APP_SETTINGS.editor_font_size;
-
-  const editorLineHeight = typeof settings.editor_line_height === 'string' && validLineHeights.includes(settings.editor_line_height)
-    ? settings.editor_line_height
-    : DEFAULT_APP_SETTINGS.editor_line_height;
-
-  return {
-    reading_speed: readingSpeed,
-    theme,
-    editor_font_size: editorFontSize,
-    editor_line_height: editorLineHeight,
-  };
-}
-
-async function getKvSettings(kv: AppKV): Promise<AppSettings> {
-  try {
-    const settings = await kv.get<AppSettings>('app_settings', 'json');
-    if (settings) {
-      return sanitizeAppSettings(settings);
-    }
-  } catch {
-    // fallback to default
-  }
-  return sanitizeAppSettings(null);
-}
 
 const failedLoginAttempts = new Map<string, { count: number; resetAt: number }>();
 const MAX_LOGIN_RECORDS = 10_000;
@@ -139,7 +90,6 @@ export function registerSystemRoutes(app: NativeApp): void {
     try {
       const db = requireDb(c);
       const tablesCount = await countDatabaseTables(db);
-      const kvSettings = await getKvSettings(c.env.KV);
       return c.json({
         status: 'online',
         timestamp: new Date().toISOString(),
@@ -149,11 +99,6 @@ export function registerSystemRoutes(app: NativeApp): void {
           connected: true,
           tables: tablesCount,
           message: `SQLite 数据库连接正常 (已检测到 ${tablesCount} 张数据表)`,
-        },
-        kv: {
-          connected: true,
-          backend: 'sqlite',
-          message: 'SQLite KV 存储已就绪（用于全局偏好设置与轻量持久交互）',
         },
         quick_drop: {
           configured: !!c.env.QUICK_DROP_TOKEN,
@@ -168,11 +113,8 @@ export function registerSystemRoutes(app: NativeApp): void {
   app.get('/bootstrap', async (c) => {
     try {
       const scope = c.req.query('scope');
-      const [kvSettings, db] = await Promise.all([
-        getKvSettings(c.env.KV),
-        Promise.resolve(requireDb(c)),
-      ]);
-      return c.json(await loadBootstrap(db, kvSettings, scope === 'core'
+      const db = requireDb(c);
+      return c.json(await loadBootstrap(db, scope === 'core'
         ? { includePeople: false, includeRelationships: false, includePublished: false, includeTags: false }
         : undefined));
     } catch (error) {
@@ -182,8 +124,7 @@ export function registerSystemRoutes(app: NativeApp): void {
 
   app.get('/backup', async (c) => {
     try {
-      const kvSettings = await getKvSettings(c.env.KV);
-      const data = await exportAllData(requireDb(c), kvSettings);
+      const data = await exportAllData(requireDb(c));
       if (c.req.query('format') === 'download') {
         return c.body(JSON.stringify(data, null, 2), 200, {
           'Content-Type': 'application/json; charset=UTF-8',
@@ -231,19 +172,4 @@ export function registerSystemRoutes(app: NativeApp): void {
     }
   });
 
-  app.get('/settings', async (c) => {
-    return c.json(await getKvSettings(c.env.KV));
-  });
-
-  app.put('/settings', async (c) => {
-    try {
-      const raw = await c.req.json<Partial<AppSettings>>();
-      const updatedSettings = sanitizeAppSettings(raw);
-
-      await c.env.KV.put('app_settings', JSON.stringify(updatedSettings));
-      return c.json(updatedSettings);
-    } catch (error) {
-      return jsonError(c, error, 400);
-    }
-  });
 }

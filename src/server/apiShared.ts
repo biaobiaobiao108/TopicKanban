@@ -1,12 +1,10 @@
 import { isTopicStatus } from '../types';
 import { isSafeExternalHttpUrl } from '../lib/urlSafety';
 import { isValidIsoDate } from '../lib/dateInput';
-import type { AppKV } from './appKv';
 import type { SqliteDatabase } from './sqlite';
 
 export type ApiBindings = {
   DB: SqliteDatabase;
-  KV: AppKV;
   APP_PASSWORD?: string;
   QUICK_DROP_TOKEN?: string;
   PUBLIC_BASE_URL?: string;

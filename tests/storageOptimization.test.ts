@@ -1,9 +1,9 @@
 import { describe, it, expect, beforeEach, afterEach } from 'bun:test';
 import { Database } from 'bun:sqlite';
 import { SqliteDatabase } from '../src/server/sqlite';
-import { AppKV } from '../src/server/appKv';
 import { createApp } from '../src/server/app';
 import { NativeApp } from '../src/server/native';
+import { acquirePresenceLease, releasePresenceLease } from '../src/server/presenceLeases';
 import {
   getStorageStats,
   vacuumDatabase,
@@ -16,7 +16,6 @@ import type { ApiBindings } from '../src/server/apiShared';
 describe('Storage Optimization & Compaction', () => {
   let sqlite: Database;
   let db: SqliteDatabase;
-  let kv: AppKV;
   let app: NativeApp;
   let authHeaders: { Authorization: string; 'Content-Type': string };
 
@@ -24,8 +23,7 @@ describe('Storage Optimization & Compaction', () => {
     sqlite = new Database(':memory:');
     sqlite.exec(await Bun.file('drizzle/0000_schema.sql').text());
     db = new SqliteDatabase(sqlite);
-    kv = new AppKV(db);
-    app = createApp({ DB: db, KV: kv, APP_PASSWORD: 'test-password' } satisfies ApiBindings);
+    app = createApp({ DB: db, APP_PASSWORD: 'test-password' } satisfies ApiBindings);
 
     const loginRes = await app.request('/api/auth/login', {
       method: 'POST',
@@ -216,7 +214,7 @@ describe('Storage Optimization & Compaction', () => {
   });
 
   it('manages high-frequency presence locks in memory without hitting SQLite tables', async () => {
-    const lease1 = await kv.acquireJsonLease(
+    const lease1 = acquirePresenceLease(
       'lock:topic-writer-1',
       'client-A',
       { client_id: 'client-A', device_name: 'Macbook Pro', updated_at: new Date().toISOString() },
@@ -225,7 +223,7 @@ describe('Storage Optimization & Compaction', () => {
     expect(lease1.acquired).toBe(true);
 
     // Another client attempting to acquire should get conflict
-    const lease2 = await kv.acquireJsonLease(
+    const lease2 = acquirePresenceLease(
       'lock:topic-writer-1',
       'client-B',
       { client_id: 'client-B', device_name: 'iPad', updated_at: new Date().toISOString() },
@@ -234,12 +232,8 @@ describe('Storage Optimization & Compaction', () => {
     expect(lease2.acquired).toBe(false);
     expect(lease2.current?.client_id).toBe('client-A');
 
-    // Check that SQLite _kv_store does NOT contain lock: rows (pure memory storage)
-    const dbRows = sqlite.query("SELECT COUNT(*) AS count FROM _kv_store WHERE key LIKE 'lock:%'").get() as { count: number };
-    expect(dbRows.count).toBe(0);
-
     // Same client renews lease
-    const renew = await kv.acquireJsonLease(
+    const renew = acquirePresenceLease(
       'lock:topic-writer-1',
       'client-A',
       { client_id: 'client-A', device_name: 'Macbook Pro', updated_at: new Date().toISOString() },
@@ -248,11 +242,11 @@ describe('Storage Optimization & Compaction', () => {
     expect(renew.acquired).toBe(true);
 
     // Release lease
-    const releaseResult = await kv.releaseJsonLease('lock:topic-writer-1', 'client-A');
+    const releaseResult = releasePresenceLease('lock:topic-writer-1', 'client-A');
     expect(releaseResult).toBe('released');
 
     // Now client-B can acquire
-    const lease3 = await kv.acquireJsonLease(
+    const lease3 = acquirePresenceLease(
       'lock:topic-writer-1',
       'client-B',
       { client_id: 'client-B', device_name: 'iPad', updated_at: new Date().toISOString() },

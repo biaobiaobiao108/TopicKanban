@@ -1,7 +1,6 @@
 import { beforeEach, afterEach, describe, expect, it } from 'bun:test';
 import { Database } from 'bun:sqlite';
 import { createApp } from '../src/server/app';
-import { AppKV } from '../src/server/appKv';
 import { NativeApp } from '../src/server/native';
 import { SqliteDatabase } from '../src/server/sqlite';
 import type { ApiBindings } from '../src/server/apiShared';
@@ -15,7 +14,7 @@ describe('Topic pin API', () => {
     sqlite = new Database(':memory:');
     sqlite.exec(await Bun.file('drizzle/0000_schema.sql').text());
     const db = new SqliteDatabase(sqlite);
-    app = createApp({ DB: db, KV: new AppKV(db), APP_PASSWORD: 'pin-test-password' } satisfies ApiBindings);
+    app = createApp({ DB: db, APP_PASSWORD: 'pin-test-password' } satisfies ApiBindings);
     const response = await app.request('/api/auth/login', {
       method: 'POST', headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ password: 'pin-test-password' }),

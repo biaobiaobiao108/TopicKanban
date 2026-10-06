@@ -24,7 +24,7 @@ import {
 export function registerPeopleRoutes(app: NativeApp): void {
   app.get('/people', async (c) => {
     try {
-      const data = await loadBootstrap(requireDb(c), undefined, {
+      const data = await loadBootstrap(requireDb(c), {
         includeTopics: false, includePeople: true, includeRelationships: false, includePublished: false, includeTags: false,
       });
       return c.json(data.people);
@@ -107,7 +107,7 @@ export function registerPeopleRoutes(app: NativeApp): void {
 
   app.get('/relationships', async (c) => {
     try {
-      const data = await loadBootstrap(requireDb(c), undefined, {
+      const data = await loadBootstrap(requireDb(c), {
         includeTopics: false, includePeople: false, includeRelationships: true, includePublished: false, includeTags: false,
       });
       return c.json(data.relationships);

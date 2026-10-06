@@ -14,7 +14,6 @@ import { draftSaveSchema, parseWithZod } from '../src/server/schemas';
 import { Database } from 'bun:sqlite';
 import { SqliteDatabase } from '../src/server/sqlite';
 import { createApp } from '../src/server/app';
-import { AppKV } from '../src/server/appKv';
 
 describe('API validation boundaries', () => {
   it('rejects blank and oversized topic titles', () => {
@@ -81,7 +80,7 @@ describe('API validation boundaries', () => {
     try {
       sqlite.exec(await Bun.file('drizzle/0000_schema.sql').text());
       const db = new SqliteDatabase(sqlite);
-      const app = createApp({ DB: db, KV: new AppKV(db), APP_PASSWORD: 'title-test-password' });
+      const app = createApp({ DB: db, APP_PASSWORD: 'title-test-password' });
       const login = await app.request('/api/auth/login', {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ password: 'title-test-password' }),

@@ -49,26 +49,25 @@
 * `src/server/routes/` 按业务领域注册 HTTP 路由，负责请求解析、参数校验、状态码和响应格式；路由层禁止直接调用 `db.prepare`、编写 SQL 或拼装跨表事务。
 * `src/server/repositories/` 按业务领域负责 SQLite 查询、写入、事务、结果标准化和关联数据加载；涉及多个表的原子操作必须在对应 repository 内完成。
 * 新增或修改业务功能时，应同时更新对应的 route 与 repository，并补充对应的单测或集成测试；公共类型仍以 `src/types/` 为前后端契约来源。
-* `src/server/native.ts`、`sqlite.ts`、`schemas.ts`、`appKv.ts` 和 `apiShared.ts` 属于基础设施/共享辅助层，不应反向依赖业务 route 或 repository。
+* `src/server/native.ts`、`sqlite.ts`、`schemas.ts` 和 `apiShared.ts` 属于基础设施/共享辅助层，不应反向依赖业务 route 或 repository。
 
 ### 2. Bun 单运行环境与存储规范 (Storage & Runtime Strategy)
 
 本项目只支持 **Bun + SQLite 单运行环境**，可直接运行，也可通过 Podman / Docker 一体化容器部署：
 
-| 运行时环境 | 服务端入口 | 主关系数据库 (`DB`) | 键值与临时存储 (`KV`) | 静态文件托管 |
+| 运行时环境 | 服务端入口 | SQLite 数据库 (`DB`) | 浏览器偏好与进程内租约 | 静态文件托管 |
 | :--- | :--- | :--- | :--- | :--- |
-| **Bun / 本地容器** (唯一运行时) | `src/server/server.ts` (`Bun.serve({ routes })`) | SQLite (`bun:sqlite` + WAL，文件 `./data/kanban.db`) | SQLite `_kv_store` 表 (`AppKV`) | Bun 独立托管 SPA `dist/` |
+| **Bun / 本地容器** (唯一运行时) | `src/server/server.ts` (`Bun.serve({ routes })`) | SQLite (`bun:sqlite` + WAL，文件 `./data/kanban.db`)；快投箱使用 `quick_drops` 表 | 偏好写入浏览器 `localStorage`；在线编辑租约放进程内存 | Bun 独立托管 SPA `dist/` |
 
 #### 容器镜像用户约束：
 * 生产镜像必须保持 Dockerfile 未显式设置 `USER` 时的默认 root 用户运行。任何任务不得新增、删除或修改镜像用户，也不得通过 Compose 或 workflow 覆盖容器用户；只有用户明确授权时才可改变此约束。
 
 #### 存储分工原则：
 * **主业务持久库 (`DB` / SQLite)**：负责强关系型业务资产（`topics`, `topic_todos`, `sources`, `timeline_events`, `people`, `person_relationships`, `drafts`, `draft_citations`, `tags`, `topic_tags`, `published_videos`, `commercial_deals`, `commercial_deal_activities`）。
-* **键值存储 (`KV` / `_kv_store`)**：负责非关系型全局配置与轻量交互数据：
-  1. **全局偏好设置** (`app_settings`：语速、主题、排版等；演播气口使用代码内固定预设，停滞预警固定 5 天、回收站保留固定 30 天，反代域名通过环境变量配置)；
-  2. **多端编辑在线感知防踩踏锁** (`lock:*`：由 `AppKV` 内部的内存 LeaseMap 隔离维护，维持 30s TTL 租约心跳，零磁盘 I/O 以杜绝高频碎片与 WAL 膨胀)；
-  3. **手机/快捷指令碎片灵感快投箱** (`drop:*` / `quick_drops_index`：7 天自动生命周期)。
-* **开发约束**：新增任何用户个性化配置项，一律扩展至 `app_settings`，避免污染主业务关系表。
+* **浏览器偏好设置**：语速、主题与编辑器排版保存在当前浏览器 `localStorage`，不经服务端 API 或 SQLite；数据备份由浏览器端将偏好与业务数据一起导出。
+* **快投箱**：手机/快捷指令投递数据保存在 SQLite `quick_drops` 表，7 天自动过期且最多保留 100 条。
+* **在线编辑租约**：`src/server/presenceLeases.ts` 使用进程内 Map 维护 30 秒租约，不写入 SQLite。
+* **配置约束**：浏览器显示偏好放在 `localStorage`；服务端业务状态放 SQLite 领域表；不要再引入通用 KV 兼容层。
 
 ### 2.1 内存生命周期与峰值治理 (Memory Governance)
 * **查询缓存分层**：TanStack Query 默认 `gcTime` 为 2 分钟；稳定配置 5 分钟、分页列表 60 秒、详情 90 秒、指令搜索 30 秒。条件查询必须同时设置 `enabled` 与 `subscribed`，未激活的详情 Tab 不得持有订阅；指令面板关闭时移除 `command-topic-search` 查询族。

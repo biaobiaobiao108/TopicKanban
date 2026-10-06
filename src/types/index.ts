@@ -452,7 +452,6 @@ export interface BootstrapData {
   relationships: PersonRelationship[];
   published: PublishedVideo[];
   tags: Tag[];
-  settings: AppSettings;
 }
 
 export interface PaginatedTopics {
@@ -547,7 +546,7 @@ export interface BackupData {
   commercial_deal_topics: CommercialDealTopic[];
   commercial_deal_activities: CommercialDealActivity[];
   todos: TopicTodo[];
-  settings: AppSettings;
+  settings?: AppSettings;
 }
 
 export interface TopicTodoMutationResult {

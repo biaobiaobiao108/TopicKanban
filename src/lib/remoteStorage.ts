@@ -1,5 +1,4 @@
 import type {
-  AppSettings,
   BootstrapData,
   BackupData,
   Draft,
@@ -45,6 +44,7 @@ import type {
 import { authenticatedFetch, getAuthToken } from './auth';
 import type { PublishedAnalyticsPayload } from './videoAnalytics';
 import { formatBeijingDateTime } from './actionDate';
+import { loadLocalSettings, saveLocalSettings } from './localSettings';
 
 const PENDING_DRAFTS_KEY = 'topic_kanban_pending_drafts_v3';
 const PENDING_DRAFT_MAX_ENTRIES = 8;
@@ -161,15 +161,6 @@ async function apiRequest<T>(path: string, init: RequestInit = {}): Promise<T> {
   }
   if (!response.ok) throw new Error(data?.error || `请求失败 (${response.status})`);
   return data as T;
-}
-
-async function apiRequestBlob(path: string, init: RequestInit = {}): Promise<Blob> {
-  const response = await authenticatedFetch(path, init);
-  if (!response.ok) {
-    const data = await response.json().catch(() => null) as { error?: string } | null;
-    throw new Error(data?.error || `请求失败 (${response.status})`);
-  }
-  return response.blob();
 }
 
 function jsonRequest(method: string, body: unknown, keepalive = false): RequestInit {
@@ -953,16 +944,6 @@ export async function deletePublishedVideo(id: string): Promise<void> {
   invalidateBootstrap();
 }
 
-export async function fetchSettings(): Promise<AppSettings> {
-  return apiRequest<AppSettings>('/api/settings');
-}
-
-export async function saveSettings(settings: AppSettings): Promise<AppSettings> {
-  const saved = await apiRequest<AppSettings>('/api/settings', jsonRequest('PUT', settings));
-  invalidateBootstrap();
-  return saved;
-}
-
 export async function fetchStorageStats(): Promise<StorageStats> {
   return apiRequest<StorageStats>('/api/system/storage');
 }
@@ -974,7 +955,9 @@ export async function optimizeStorage(): Promise<StorageOptimizeResult> {
 }
 
 export async function exportBackupData(): Promise<Blob> {
-  return apiRequestBlob('/api/backup?format=download');
+  const { data } = await apiRequest<{ data: BackupData }>('/api/backup');
+  const backup = { ...data, settings: loadLocalSettings() };
+  return new Blob([JSON.stringify(backup, null, 2)], { type: 'application/json;charset=utf-8' });
 }
 
 // Convert HTML to clean readable Markdown text for export
@@ -1002,7 +985,7 @@ export async function exportScriptsMarkdown(): Promise<string> {
   const topics = data.topics || [];
   const drafts = data.drafts || [];
   const topicMap = new Map(topics.map((t) => [t.id, t]));
-  const readingSpeed = data.settings?.reading_speed || 280;
+  const readingSpeed = loadLocalSettings().reading_speed;
 
   const lines: string[] = [];
   lines.push(`# 选题文案全量归档合辑 (Markdown Archive)`);
@@ -1168,7 +1151,12 @@ export async function importBackupData(input: string | File): Promise<BackupImpo
   try {
     const jsonString = typeof input === 'string' ? input : await input.text();
     const data = JSON.parse(jsonString) as unknown;
-    await apiRequest('/api/backup', jsonRequest('PUT', { data }));
+    const backup = data && typeof data === 'object' ? data as Record<string, unknown> : {};
+    const { settings, ...businessData } = backup;
+    await apiRequest('/api/backup', jsonRequest('PUT', { data: businessData }));
+    if ('settings' in backup) {
+      saveLocalSettings(settings);
+    }
     invalidateBootstrap();
     return { success: true };
   } catch (error) {
@@ -1178,7 +1166,7 @@ export async function importBackupData(input: string | File): Promise<BackupImpo
 }
 
 /* =========================================================================
-   KV Feature 1: Soft Presence & Edit Lock (在线心跳)
+   Feature: Soft Presence & Edit Lock (在线心跳)
    ========================================================================= */
 
 export async function reportPresenceHeartbeat(
@@ -1202,7 +1190,7 @@ export async function releasePresenceHeartbeat(
 }
 
 /* =========================================================================
-   KV Feature 3: Quick Drop (灵感快投箱)
+   Feature: Quick Drop (灵感快投箱)
    ========================================================================= */
 
 export async function fetchQuickDrops(): Promise<QuickDropItem[]> {

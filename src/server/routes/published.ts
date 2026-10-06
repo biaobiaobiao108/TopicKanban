@@ -23,7 +23,7 @@ import {
 export function registerPublishedRoutes(app: NativeApp): void {
   app.get('/published', async (c) => {
     try {
-      const data = await loadBootstrap(requireDb(c), undefined, {
+      const data = await loadBootstrap(requireDb(c), {
         includeTopics: false, includePeople: false, includeRelationships: false, includePublished: true, includeTags: false,
       });
       return c.json(data.published);

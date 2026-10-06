@@ -133,7 +133,7 @@ export class SqliteDatabase {
   }
 }
 
-export const CURRENT_SCHEMA_VERSION = 5;
+export const CURRENT_SCHEMA_VERSION = 6;
 
 function schemaObjectExists(sqlite: Database, name: string): boolean {
   return Boolean(sqlite.query("SELECT 1 FROM sqlite_master WHERE name = ? LIMIT 1").get(name));
@@ -149,7 +149,7 @@ function assertCurrentSchema(sqlite: Database): void {
     );
   }
 
-  const requiredObjects = ['topics', 'topic_todos', 'topic_search', 'publish_packages', 'commercial_deals', 'sources', 'topic_reports', '_kv_store'];
+  const requiredObjects = ['topics', 'topic_todos', 'topic_search', 'publish_packages', 'commercial_deals', 'sources', 'topic_reports', 'quick_drops'];
   const missingObjects = requiredObjects.filter((name) => !schemaObjectExists(sqlite, name));
   if (missingObjects.length > 0) {
     throw new Error(
@@ -192,14 +192,6 @@ export async function initializeSqliteDatabase(dbFilePath: string, schemaDir?: s
     const schema = Bun.file(schemaFile);
     if (await schema.exists()) {
       sqlite.exec(await schema.text());
-      sqlite.exec(`
-        CREATE TABLE _kv_store (
-          key TEXT PRIMARY KEY,
-          value TEXT NOT NULL,
-          expires_at INTEGER
-        );
-        CREATE INDEX idx_kv_expires_at ON _kv_store(expires_at);
-      `);
     }
   }
 

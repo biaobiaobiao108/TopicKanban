@@ -1,5 +1,4 @@
 import { createApp } from './app';
-import { AppKV } from './appKv';
 import { isPathInside, joinPath, resolvePath } from './bunPaths';
 import { initializeSqliteDatabase } from './sqlite';
 import type { ApiBindings } from './apiShared';
@@ -8,6 +7,7 @@ export interface ServerOptions {
   development?: boolean;
   frontendRoutes?: Record<string, unknown>;
   port?: number;
+  databasePath?: string;
 }
 
 const DEFAULT_STATIC_FILES = [
@@ -51,12 +51,11 @@ export async function startServer(options: ServerOptions = {}) {
   const isProduction = !isDevelopment;
   const port = resolveServerPort(Bun.env.PORT, options.port);
   const dataDir = Bun.env.DATA_DIR || resolvePath(process.cwd(), 'data');
-  const dbFilePath = joinPath(dataDir, 'kanban.db');
+  const dbFilePath = options.databasePath || joinPath(dataDir, 'kanban.db');
   const schemaDir = resolvePath(process.cwd(), 'drizzle');
 
   console.log(`[Kanban Server] Initializing SQLite database at: ${dbFilePath}`);
   const { db, sqlite } = await initializeSqliteDatabase(dbFilePath, schemaDir);
-  const kv = new AppKV(db);
 
   const appPassword = Bun.env.APP_PASSWORD || (isProduction ? '' : 'admin');
   const quickDropToken = Bun.env.QUICK_DROP_TOKEN || '';
@@ -65,7 +64,6 @@ export async function startServer(options: ServerOptions = {}) {
 
   const bindings: ApiBindings = {
     DB: db,
-    KV: kv,
     APP_PASSWORD: appPassword,
     QUICK_DROP_TOKEN: quickDropToken,
     PUBLIC_BASE_URL: publicBaseUrl,
@@ -185,6 +183,15 @@ export async function startServer(options: ServerOptions = {}) {
     port,
   });
 
+  let databaseClosed = false;
+  const closeDatabase = () => {
+    if (databaseClosed) return;
+    sqlite.exec('PRAGMA wal_checkpoint(TRUNCATE)');
+    sqlite.close();
+    databaseClosed = true;
+  };
+  const runningServer = Object.assign(server, { closeDatabase });
+
   console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
   console.log(`🐾 喵爪看板 (MiaoZhua Kanban)`);
   console.log(`🚀 服务已启动: http://localhost:${server.port}`);
@@ -205,8 +212,7 @@ export async function startServer(options: ServerOptions = {}) {
 
     server.stop().then(() => {
       try {
-        sqlite.exec('PRAGMA wal_checkpoint(TRUNCATE)');
-        sqlite.close();
+        closeDatabase();
         console.log('[Kanban Server] SQLite 数据已安全检查点并关闭连接。');
       } catch (error) {
         console.error('[Kanban Server] 关闭 SQLite 时出错:', error);
@@ -223,7 +229,7 @@ export async function startServer(options: ServerOptions = {}) {
   process.on('SIGTERM', () => handleShutdown('SIGTERM'));
   process.on('SIGINT', () => handleShutdown('SIGINT'));
 
-  return server;
+  return runningServer;
 }
 
 if (import.meta.main) await startServer();

@@ -10,7 +10,8 @@ import type {
   Tag,
   Topic,
 } from '../types';
-import { fetchActiveTopicCount, fetchBootstrap, fetchCommercialDealFocus, fetchPeople, fetchRelationships, fetchTags, fetchTagsPage, fetchPublishedVideos, fetchTopic, fetchTodayFocus, fetchSettings, invalidateBootstrap, clearRemoteStorageMemoryCaches } from '../lib/storage';
+import { fetchActiveTopicCount, fetchBootstrap, fetchCommercialDealFocus, fetchPeople, fetchRelationships, fetchTags, fetchTagsPage, fetchPublishedVideos, fetchTopic, fetchTodayFocus, invalidateBootstrap, clearRemoteStorageMemoryCaches } from '../lib/storage';
+import { loadLocalSettings, saveLocalSettings } from '../lib/localSettings';
 import { refreshTopicData, type RefreshTopicDataOptions } from '../lib/topicQueryCache';
 
 export function useWorkspace(enabled: boolean, view: string = 'today', topicId?: string | null) {
@@ -36,7 +37,7 @@ export function useWorkspace(enabled: boolean, view: string = 'today', topicId?:
     enabled: topicDetailEnabled,
     subscribed: topicDetailEnabled,
   });
-  const settingsQuery = useQuery({ queryKey: ['settings'], queryFn: fetchSettings, enabled, subscribed: enabled });
+  const settingsQuery = useQuery({ queryKey: ['settings'], queryFn: loadLocalSettings, enabled, subscribed: enabled });
   const todayQuery = useQuery({
     queryKey: ['today-focus'],
     queryFn: fetchTodayFocus,
@@ -107,9 +108,9 @@ export function useWorkspace(enabled: boolean, view: string = 'today', topicId?:
   }, [queryClient]);
 
   const setSettings = useCallback((settings: AppSettings) => {
-    queryClient.setQueryData<AppSettings>(['settings'], settings);
-    updateWorkspace((current) => ({ ...current, settings }));
-  }, [queryClient, updateWorkspace]);
+    const saved = saveLocalSettings(settings);
+    queryClient.setQueryData<AppSettings>(['settings'], saved);
+  }, [queryClient]);
   const reload = useCallback(async () => {
     invalidateBootstrap();
     const requests: Array<Promise<unknown>> = [settingsQuery.refetch(), activeTopicCountQuery.refetch()];
@@ -144,7 +145,6 @@ export function useWorkspace(enabled: boolean, view: string = 'today', topicId?:
     ...(publishedEnabled ? [['已发布视频', publishedQuery.error] as [string, unknown]] : []),
     ...(dealFocusEnabled ? [['商单摘要', dealFocusQuery.error] as [string, unknown]] : []),
     ...(enabled ? [['选题数量', activeTopicCountQuery.error] as [string, unknown]] : []),
-    ...(enabled ? [['偏好设置', settingsQuery.error] as [string, unknown]] : []),
   ];
   const errorEntry = activeErrors.find(([, error]) => error != null);
   return {
@@ -162,7 +162,7 @@ export function useWorkspace(enabled: boolean, view: string = 'today', topicId?:
     relationships: relationshipsQuery.data || workspace?.relationships || [],
     publishedList: publishedQuery.data || workspace?.published || [],
     tags: tagsQuery.data || tagOptionsQuery.data || workspace?.tags || [],
-    settings: settingsQuery.data || workspace?.settings || { reading_speed: 280, theme: 'light' },
+    settings: settingsQuery.data || loadLocalSettings(),
     isLoading: (todayEnabled && todayQuery.isLoading)
       || (enabled && activeTopicCountQuery.isLoading)
       || (dealFocusEnabled && dealFocusQuery.isLoading)

@@ -69,8 +69,6 @@ interface RuntimeStatus {
   databaseConnected: boolean;
   databaseMessage: string;
   databaseTables?: number;
-  kvConnected: boolean;
-  kvMessage: string;
   publicBaseUrl: string;
   lastChecked?: string;
 }
@@ -79,7 +77,6 @@ interface HealthResponse {
   runtime?: 'bun';
   public_base_url?: string;
   database?: { connected?: boolean; message?: string; tables?: number };
-  kv?: { connected?: boolean; message?: string };
 }
 
 function formatBackupSummary(data: BackupData): string {
@@ -141,8 +138,6 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
     runtime: 'unknown',
     databaseConnected: false,
     databaseMessage: '正在检测后端连接...',
-    kvConnected: false,
-    kvMessage: '正在检测后端连接...',
     publicBaseUrl: '',
   });
 
@@ -165,8 +160,6 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
           databaseConnected: data.database?.connected || false,
           databaseMessage: data.database?.message || '数据库状态未知',
           databaseTables: data.database?.tables,
-          kvConnected: data.kv?.connected || false,
-          kvMessage: data.kv?.message || '键值存储状态未知',
           publicBaseUrl: data.public_base_url || '',
           lastChecked: formatBeijingDateTime(new Date(), 'zh-CN', { hour: '2-digit', minute: '2-digit', second: '2-digit' }),
         });
@@ -180,8 +173,6 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
         runtime: 'unknown',
         databaseConnected: false,
         databaseMessage: '后端服务未连接，请确认 Bun 服务正常运行',
-        kvConnected: false,
-        kvMessage: '键值存储状态未知',
         lastChecked: formatBeijingDateTime(new Date(), 'zh-CN', { hour: '2-digit', minute: '2-digit', second: '2-digit' }),
         publicBaseUrl: '',
       });
@@ -362,7 +353,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
             <>
             {savedSuccess && (
               <span className="flex items-center gap-1 text-xs font-semibold text-emerald-600 animate-in fade-in dark:text-emerald-400">
-                <CheckCircle2 className="h-4 w-4" aria-hidden="true" /> 设置已同步至本地 SQLite
+                <CheckCircle2 className="h-4 w-4" aria-hidden="true" /> 偏好已保存在此浏览器
               </span>
             )}
             <button
@@ -391,9 +382,6 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                 <h2 className="text-base font-bold text-stone-900 dark:text-stone-100">视觉外观主题</h2>
               </div>
             </div>
-            <span className="text-[10px] font-mono font-bold bg-[var(--accent-soft)] text-[var(--accent-dark)] px-2.5 py-0.5 rounded-full">
-              SQLite KV
-            </span>
           </div>
 
           {/* Theme Selector */}
@@ -732,9 +720,9 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
             </div>
 
             <div className="flex items-center gap-2">
-              <span className={`w-2 h-2 rounded-full ${runtimeStatus.databaseConnected && runtimeStatus.kvConnected ? 'bg-emerald-500' : 'bg-amber-500'}`} />
+              <span className={`w-2 h-2 rounded-full ${runtimeStatus.databaseConnected ? 'bg-emerald-500' : 'bg-amber-500'}`} />
               <span className="text-xs font-semibold text-stone-700 dark:text-stone-300">
-                {runtimeStatus.databaseConnected && runtimeStatus.kvConnected
+                {runtimeStatus.databaseConnected
                   ? 'Bun + SQLite 本地引擎正常运行中'
                   : '后端服务未连通'}
               </span>

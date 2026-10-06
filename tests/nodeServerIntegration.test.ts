@@ -1,7 +1,6 @@
 import { describe, it, expect, beforeEach, afterEach } from 'bun:test';
 import { Database } from 'bun:sqlite';
 import { createApp } from '../src/server/app';
-import { AppKV } from '../src/server/appKv';
 import { SqliteDatabase } from '../src/server/sqlite';
 import { NativeApp } from '../src/server/native';
 import type { ApiBindings } from '../src/server/apiShared';
@@ -9,7 +8,6 @@ import type { ApiBindings } from '../src/server/apiShared';
 describe('Bun Server Integration (Local SQLite & API)', () => {
   let sqlite: Database;
   let app: NativeApp;
-  let kv: AppKV;
   const testPassword = 'test_secret_pass';
   const testDropToken = 'test_drop_token';
   const publicBaseUrl = 'https://kanban.example.com';
@@ -21,11 +19,8 @@ describe('Bun Server Integration (Local SQLite & API)', () => {
     sqlite.exec(schemaSql);
 
     const db = new SqliteDatabase(sqlite);
-    kv = new AppKV(db);
-
     const bindings: ApiBindings = {
       DB: db,
-      KV: kv,
       APP_PASSWORD: testPassword,
       QUICK_DROP_TOKEN: testDropToken,
       PUBLIC_BASE_URL: publicBaseUrl,
@@ -47,14 +42,13 @@ describe('Bun Server Integration (Local SQLite & API)', () => {
       runtime: string;
       public_base_url: string;
       database: { tables: number; message: string };
-      kv: { connected: boolean; message: string };
     };
     expect(healthData.status).toBe('online');
     expect(healthData.runtime).toBe('bun');
     expect(healthData.public_base_url).toBe(publicBaseUrl);
     expect(healthData.database.tables).toBeGreaterThan(0);
     expect(healthData.database.message).toContain('SQLite');
-    expect(healthData.kv.message).toContain('SQLite');
+    expect(healthData).not.toHaveProperty('kv');
 
     // 2. Login
     const loginRes = await app.request('/api/auth/login', {
@@ -327,41 +321,19 @@ describe('Bun Server Integration (Local SQLite & API)', () => {
       expect(invalidUrlRes.status).toBe(400);
     }
 
-    // 8. Settings Update & Persistence (voiceover cues are fixed application presets)
-    const customCues = ['停顿 3s', '高能预警', '压低声线'];
-    const updateSettingsRes = await app.request('/api/settings', {
-      method: 'PUT',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${authToken}`,
-      },
-      body: JSON.stringify({
-        reading_speed: 300,
-        theme: 'dark',
-        voiceover_cues: customCues,
-      }),
-    });
-    expect(updateSettingsRes.status).toBe(200);
-    const updatedSettings = await updateSettingsRes.json() as Record<string, unknown>;
-    expect(updatedSettings.reading_speed).toBe(300);
-    expect(updatedSettings).not.toHaveProperty('voiceover_cues');
-
-    // Fetch settings again to ensure KV persistence
-    const getSettingsRes = await app.request('/api/settings', {
+    // Preferences are client-local and no longer have a server settings endpoint.
+    const settingsEndpoint = await app.request('/api/settings', {
       headers: { Authorization: `Bearer ${authToken}` },
     });
-    expect(getSettingsRes.status).toBe(200);
-    const fetchedSettings = await getSettingsRes.json() as Record<string, unknown>;
-    expect(fetchedSettings.reading_speed).toBe(300);
-    expect(fetchedSettings).not.toHaveProperty('voiceover_cues');
+    expect(settingsEndpoint.status).toBe(404);
 
-    // 9. Backup restore persists settings through KV without a relational settings table
+    // Backup restore imports domain data; client-local preferences are not stored by the server.
     const backupRes = await app.request('/api/backup', {
       headers: { Authorization: `Bearer ${authToken}` },
     });
     expect(backupRes.status).toBe(200);
-    const backupPayload = await backupRes.json() as { data: { settings: Record<string, unknown> } };
-    expect(backupPayload.data.settings).not.toHaveProperty('voiceover_cues');
+    const backupPayload = await backupRes.json() as { data: Record<string, unknown> };
+    expect(backupPayload.data).not.toHaveProperty('settings');
     const backupDownload = await app.request('/api/backup?format=download', {
       headers: { Authorization: `Bearer ${authToken}` },
     });
@@ -385,17 +357,14 @@ describe('Bun Server Integration (Local SQLite & API)', () => {
       body: JSON.stringify({
         data: {
           ...backupPayload.data,
-          settings: { ...backupPayload.data.settings, reading_speed: 333 },
+          settings: { reading_speed: 333, theme: 'dark' },
         },
       }),
     });
     expect(restoreRes.status).toBe(200);
-    const restoredSettingsRes = await app.request('/api/settings', {
-      headers: { Authorization: `Bearer ${authToken}` },
-    });
-    expect((await restoredSettingsRes.json() as { reading_speed: number }).reading_speed).toBe(333);
     expect(sqlite.query('SELECT title_simplified FROM publish_packages WHERE topic_id = ?').get(topic.id)).toEqual({ title_simplified: '简体发布标题' });
     expect(sqlite.query("SELECT name FROM sqlite_master WHERE type = 'table' AND name = 'settings'").get()).toBeNull();
+    expect(sqlite.query("SELECT name FROM sqlite_master WHERE type = 'table' AND name = '_kv_store'").get()).toBeNull();
   });
 
   it('preserves a tag color when PATCH only changes the name', async () => {
@@ -625,7 +594,6 @@ describe('Bun Server Integration (Local SQLite & API)', () => {
   it('uses the trusted single-hop real IP instead of spoofable X-Forwarded-For for login rate limiting', async () => {
     const trustedApp = createApp({
       DB: new SqliteDatabase(sqlite),
-      KV: new AppKV(new SqliteDatabase(sqlite)),
       APP_PASSWORD: testPassword,
       QUICK_DROP_TOKEN: testDropToken,
       PUBLIC_BASE_URL: publicBaseUrl,

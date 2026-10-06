@@ -4,7 +4,6 @@ import { validateBackupData } from '../src/lib/backupValidation';
 import { Database } from 'bun:sqlite';
 import { SqliteDatabase } from '../src/server/sqlite';
 import { createApp } from '../src/server/app';
-import { AppKV } from '../src/server/appKv';
 
 function createBackup(overrides: Partial<BackupData> = {}): BackupData {
   return {
@@ -99,7 +98,7 @@ describe('backup schema validation', () => {
     try {
       sqlite.exec(await Bun.file('drizzle/0000_schema.sql').text());
       const db = new SqliteDatabase(sqlite);
-      const app = createApp({ DB: db, KV: new AppKV(db), APP_PASSWORD: 'backup-test-password' });
+      const app = createApp({ DB: db, APP_PASSWORD: 'backup-test-password' });
       const login = await app.request('/api/auth/login', {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ password: 'backup-test-password' }),

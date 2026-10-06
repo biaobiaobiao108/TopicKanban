@@ -995,14 +995,14 @@ http://localhost:3030</code></pre>
                 </div>
                 <div>
                   <h3 class="text-lg font-bold text-stone-900 dark:text-stone-100">Bun 原生请求与存储层</h3>
-                  <span class="text-xs text-stone-500 font-medium">Bun.serve routes + bun:sqlite + SQLite KV</span>
+                  <span class="text-xs text-stone-500 font-medium">Bun.serve routes + bun:sqlite + 领域数据表</span>
                 </div>
               </div>
               <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-rose-500/10 text-rose-600 dark:text-rose-400">低开销原生运行</span>
             </div>
 
             <p class="text-xs text-stone-600 dark:text-stone-400 mb-4 leading-relaxed">
-              API 直接使用 Bun 原生路由分发，请求上下文与 SQLite 存储都不再经过跨运行时兼容层；WAL、TTL KV 和 SPA 静态托管由同一个进程统一管理。
+              API 直接使用 Bun 原生路由分发，SQLite 只保存业务数据与有明确生命周期的快投条目；浏览器偏好保存在本地，SPA 静态托管由同一个进程统一管理。
             </p>
 
             <div class="relative rounded-2xl bg-stone-950 p-4 font-mono text-xs text-stone-200 overflow-x-auto border border-stone-800">
@@ -1144,7 +1144,7 @@ http://localhost:3030</code></pre>
         <div class="p-2.5 rounded-xl hover:bg-stone-100 dark:hover:bg-stone-800 flex items-center justify-between cursor-pointer transition-colors">
           <div class="flex items-center gap-2">
             <i data-lucide="sliders" class="w-4 h-4 text-purple-500"></i>
-            <span class="font-medium text-stone-800 dark:text-stone-200">&gt; 打开偏好设置 (调节停滞阈值 / 气口库)</span>
+            <span class="font-medium text-stone-800 dark:text-stone-200">&gt; 打开偏好设置 (调整主题与编辑排版)</span>
           </div>
           <span class="text-[10px] font-mono text-stone-400">指令</span>
         </div>

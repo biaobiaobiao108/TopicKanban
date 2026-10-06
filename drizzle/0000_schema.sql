@@ -306,7 +306,18 @@ CREATE TRIGGER topic_search_ad AFTER DELETE ON topics BEGIN
   DELETE FROM topic_search WHERE topic_id = OLD.id;
 END;
 
+CREATE TABLE quick_drops (
+  id TEXT PRIMARY KEY,
+  content TEXT NOT NULL,
+  url TEXT,
+  source TEXT NOT NULL,
+  created_at TEXT NOT NULL,
+  expires_at INTEGER NOT NULL
+);
+CREATE INDEX idx_quick_drops_expiry_order
+  ON quick_drops(expires_at, created_at DESC, id DESC);
+
 INSERT INTO topic_search(topic_id, title, summary, hook, storyline, why_now)
 SELECT id, title, summary, hook, storyline, why_now FROM topics;
 
-PRAGMA user_version = 5;
+PRAGMA user_version = 6;

@@ -1,5 +1,4 @@
 import type {
-  AppSettings,
   BackupData,
   CommercialDeal,
   CommercialDealActivity,
@@ -16,7 +15,7 @@ import type {
   Topic,
   TopicReport,
 } from '../../types';
-import { CURRENT_BACKUP_VERSION, DEFAULT_APP_SETTINGS } from '../../types';
+import { CURRENT_BACKUP_VERSION } from '../../types';
 import type { SqliteDatabase, SqlitePreparedStatement } from '../sqlite';
 import { bind } from './shared';
 import { topicStatement } from './topics';
@@ -32,7 +31,7 @@ import {
 
 export const MAX_IMPORT_STATEMENTS = 5000;
 export const MAX_IMPORT_BYTES = 5 * 1024 * 1024;
-const BACKUP_RESTORE_FIXED_STATEMENTS = 20;
+const BACKUP_RESTORE_FIXED_STATEMENTS = 19;
 
 export interface BackupImportSummary {
   bytes: number;
@@ -97,11 +96,6 @@ export function assertBackupImportWithinLimits(data: BackupData): BackupImportSu
 export async function replaceAllData(db: SqliteDatabase, data: BackupData): Promise<void> {
   assertBackupImportWithinLimits(data);
   const statements: SqlitePreparedStatement[] = [
-    db.prepare(`CREATE TABLE IF NOT EXISTS _kv_store (
-      key TEXT PRIMARY KEY,
-      value TEXT NOT NULL,
-      expires_at INTEGER
-    )`),
     db.prepare('DELETE FROM commercial_deal_activities'),
     db.prepare('DELETE FROM commercial_deal_topics'),
     db.prepare('DELETE FROM commercial_deals'),
@@ -154,11 +148,6 @@ export async function replaceAllData(db: SqliteDatabase, data: BackupData): Prom
   data.commercial_deals.forEach((deal) => statements.push(commercialDealStatement(db, deal)));
   data.commercial_deal_topics.forEach((relation) => statements.push(commercialDealTopicStatement(db, relation)));
   data.commercial_deal_activities.forEach((activity) => statements.push(commercialDealActivityStatement(db, activity)));
-  statements.push(bind(db, `INSERT INTO _kv_store (key, value, expires_at) VALUES (?, ?, NULL)
-    ON CONFLICT(key) DO UPDATE SET value = excluded.value, expires_at = excluded.expires_at`, [
-    'app_settings', JSON.stringify(data.settings),
-  ]));
-
   await db.batch(statements);
 }
 
@@ -200,7 +189,7 @@ function loadTopicsForBackup(db: SqliteDatabase): Topic[] {
   }));
 }
 
-export async function exportAllData(db: SqliteDatabase, kvSettings?: AppSettings): Promise<BackupData> {
+export async function exportAllData(db: SqliteDatabase): Promise<BackupData> {
   const exportAt = new Date().toISOString();
   return db.sqlite.transaction(() => {
     const query = <T>(sql: string): T[] => db.sqlite.query(sql).all() as T[];
@@ -248,7 +237,6 @@ export async function exportAllData(db: SqliteDatabase, kvSettings?: AppSettings
       commercial_deal_topics: commercialDealTopics,
       commercial_deal_activities: commercialDealActivities,
       todos,
-      settings: kvSettings || DEFAULT_APP_SETTINGS,
     };
   })();
 }
