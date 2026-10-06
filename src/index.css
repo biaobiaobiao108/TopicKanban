@@ -375,9 +375,9 @@ html.dark .script-citation::after {
     --accent: #365e4e;
     --accent-soft: #edf5f0;
     --accent-dark: #27473a;
-    --h1-color: #b94e35;
-    --h2-color: #2d5c48;
-    --h3-color: #35566b;
+    --h1-color: #8d5144;
+    --h2-color: #405b4c;
+    --h3-color: #4c606a;
     --radius-sm: 8px;
     --radius-md: 12px;
     --radius-lg: 18px;
@@ -400,9 +400,9 @@ html.dark .script-citation::after {
     --accent: #784c31;
     --accent-soft: rgba(120, 76, 49, 0.08);
     --accent-dark: #5f3a23;
-    --h1-color: #9a3824;
-    --h2-color: #784c31;
-    --h3-color: #876344;
+    --h1-color: #8d5144;
+    --h2-color: #6b5545;
+    --h3-color: #756653;
     --control-surface: rgba(45, 35, 25, 0.025);
     --focus-ring: rgba(120, 76, 49, 0.28);
 
@@ -427,9 +427,9 @@ html.dark .script-citation::after {
     --accent: #365e4e;
     --accent-soft: #edf5f0;
     --accent-dark: #27473a;
-    --h1-color: #b94e35;
-    --h2-color: #2d5c48;
-    --h3-color: #35566b;
+    --h1-color: #8d5144;
+    --h2-color: #405b4c;
+    --h3-color: #4c606a;
     --control-surface: rgba(32, 38, 33, 0.035);
     --focus-ring: rgba(54, 94, 78, 0.32);
     --nav-surface: rgba(253, 252, 249, 0.92);
@@ -448,9 +448,9 @@ html.dark .script-citation::after {
     --accent: #7aa2f7;
     --accent-soft: rgba(122, 162, 247, 0.16);
     --accent-dark: #89b4fa;
-    --h1-color: #bb9af7;
-    --h2-color: #7dcfff;
-    --h3-color: #9ece6a;
+    --h1-color: #c59586;
+    --h2-color: #a2b6a5;
+    --h3-color: #9fb2bf;
     --control-surface: rgba(31, 35, 53, 0.88);
     --focus-ring: rgba(122, 162, 247, 0.42);
 
@@ -507,39 +507,40 @@ html.dark .script-citation::after {
   }
 }
 
-/* Script headings share one restrained type scale in the editor and review page. */
+/* Script headings use Xiangyin's restrained editorial palette and type scale. */
 .script-prose :is(h1, h2, h3),
 .script-editor-canvas-container .tiptap :is(h1, h2, h3),
 .prose h1, .ProseMirror h1,
 .prose h2, .ProseMirror h2,
 .prose h3, .ProseMirror h3 {
-  color: var(--ink) !important;
   font-family: inherit !important;
-  letter-spacing: -0.02em;
+  letter-spacing: 0;
+  line-height: 1.25;
 }
 
 .script-prose h1,
 .script-editor-canvas-container .tiptap h1,
 .prose h1, .ProseMirror h1 {
-  font-size: 1.65rem;
-  font-weight: 750 !important;
-  line-height: 1.35;
+  font-size: 1.85rem;
+  color: var(--h1-color) !important;
+  font-weight: 700 !important;
+  line-height: 1.15;
 }
 
 .script-prose h2,
 .script-editor-canvas-container .tiptap h2,
 .prose h2, .ProseMirror h2 {
-  font-size: 1.35rem;
-  font-weight: 700 !important;
-  line-height: 1.4;
+  font-size: 1.45rem;
+  color: var(--h2-color) !important;
+  font-weight: 650 !important;
 }
 
 .script-prose h3,
 .script-editor-canvas-container .tiptap h3,
 .prose h3, .ProseMirror h3 {
-  font-size: 1.15rem;
-  font-weight: 650 !important;
-  line-height: 1.45;
+  font-size: 1.18rem;
+  color: var(--h3-color) !important;
+  font-weight: 600 !important;
 }
 
 .prose blockquote, .ProseMirror blockquote, blockquote.quote-block {

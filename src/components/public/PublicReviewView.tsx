@@ -24,15 +24,15 @@ interface OutlineSection {
 }
 
 const LEVEL_INDENT: Record<1 | 2 | 3, string> = {
-  1: 'pl-2',
-  2: 'pl-5',
-  3: 'pl-8',
+  1: 'pl-1.5',
+  2: 'pl-4',
+  3: 'pl-[26px]',
 };
 
 const LEVEL_TEXT: Record<1 | 2 | 3, string> = {
-  1: 'text-xs sm:text-sm font-bold leading-5',
-  2: 'text-xs font-semibold leading-5',
-  3: 'text-[11px] font-medium leading-4',
+  1: 'font-semibold',
+  2: 'font-medium',
+  3: 'font-normal',
 };
 
 function parseOutlineAndInjectIds(html: string): { items: OutlineSection[]; processedHtml: string } {
@@ -297,20 +297,20 @@ export const PublicReviewView: React.FC<PublicReviewViewProps> = ({ token: propT
       <main className="flex-1 max-w-5xl w-full mx-auto px-4 sm:px-8 py-8 flex gap-8">
         {/* Left Outline Navigation (Desktop) */}
         {outlineItems.length > 0 && (
-          <aside className="hidden lg:block w-64 shrink-0">
-            <div className="sticky top-24 space-y-3 bg-[var(--surface)]/80 backdrop-blur-sm p-3.5 rounded-xl border border-[var(--line)] shadow-2xs">
-              <div className="text-[11px] font-bold text-stone-400 dark:text-stone-500 tracking-wider flex items-center justify-between pb-2 border-b border-stone-100 dark:border-stone-800">
+          <aside className="hidden lg:block w-[216px] shrink-0">
+            <div className="sticky top-24 max-h-[calc(100dvh-7rem)] space-y-2">
+              <div className="flex items-center justify-between px-1 py-2 text-xs font-semibold text-[var(--ink-muted)]">
                 <div className="flex items-center gap-1.5">
                   <Compass className="w-3.5 h-3.5 text-[var(--accent)]" />
                   <span>文案故事大纲</span>
                 </div>
-                <span className="text-[10px] bg-[var(--accent-soft)] text-[var(--accent)] px-1.5 py-0.5 rounded font-bold">
+                <span className="text-[10px] font-medium tabular-nums">
                   <span className="font-mono tabular-nums">{outlineItems.length}</span> 章节
                 </span>
               </div>
 
-              <nav aria-label="审稿大纲" className="max-h-[calc(100dvh-180px)]">
-                <FloatingScrollbar className="space-y-0.5 text-xs pr-1" wrapperClassName="max-h-[calc(100dvh-180px)] flex-none">
+              <nav aria-label="审稿大纲" className="max-h-[calc(100dvh-10rem)]">
+                <FloatingScrollbar className="space-y-0.5 pr-1" wrapperClassName="max-h-[calc(100dvh-10rem)] flex-none">
                   {outlineItems.map((item) => {
                     const isActive = activeOutlineId === item.id;
                     return (
@@ -319,17 +319,15 @@ export const PublicReviewView: React.FC<PublicReviewViewProps> = ({ token: propT
                         type="button"
                         onClick={() => handleSelectHeading(item)}
                         aria-label={`跳转到章节：${item.title}`}
-                        className={`group relative w-full rounded-lg py-2 pr-2 text-left transition-colors cursor-pointer focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[var(--focus-ring)] ${
-                          isActive ? 'bg-[var(--accent-soft)] text-[var(--ink)] shadow-2xs' : 'hover:bg-[var(--canvas)] text-stone-700 dark:text-stone-300'
-                        }`}
+                        className={`group relative flex h-8 min-h-8 w-full items-center rounded-[9px] border border-transparent py-[5px] pr-1.5 text-left text-[0.8rem] leading-[1.45] text-[var(--ink-muted)] transition-colors hover:text-[var(--accent)] focus-visible:bg-[var(--accent-soft)]/60 ${isActive ? 'text-[var(--ink)]' : ''}`}
                       >
                         <div className={LEVEL_INDENT[item.level]}>
-                          <div className="flex items-start gap-2">
+                          <div className="flex min-w-0 items-center">
                             <span
                               className={`min-w-0 flex-1 truncate transition-colors ${
                                 isActive
-                                  ? `${LEVEL_TEXT[item.level]} text-[var(--accent)] font-bold`
-                                  : `${LEVEL_TEXT[item.level]} text-stone-700 dark:text-stone-300 group-hover:text-stone-950 dark:group-hover:text-stone-100`
+                                  ? `${LEVEL_TEXT[item.level]} text-[var(--ink)]`
+                                  : LEVEL_TEXT[item.level]
                               }`}
                             >
                               {item.title}
@@ -352,10 +350,10 @@ export const PublicReviewView: React.FC<PublicReviewViewProps> = ({ token: propT
             <div className="border-l-2 border-[var(--accent)]/50 bg-[var(--surface)]/55 px-4 py-3 rounded-r-xl space-y-2">
               {snapshot.hook && (
                 <div className="flex items-start gap-2">
-                  <span className="text-[10px] font-bold uppercase bg-[var(--accent-soft)] text-[var(--accent)] px-1.5 py-0.5 rounded tracking-wide shrink-0">
+                  <span className="text-sm sm:text-base font-semibold text-[var(--ink)] shrink-0">
                     核心反差 / 钩子
                   </span>
-                  <p className="text-xs font-semibold text-stone-800 dark:text-stone-200">{snapshot.hook}</p>
+                  <p className="text-sm sm:text-base font-semibold text-[var(--ink)]">{snapshot.hook}</p>
                 </div>
               )}
               {snapshot.summary && (
