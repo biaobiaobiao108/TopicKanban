@@ -198,8 +198,12 @@ export function registerTopicRoutes(app: NativeApp): void {
     try {
       const db = requireDb(c);
       const id = c.req.param('id');
-      await restoreTopic(db, id);
+      const result = await restoreTopic(db, id, TRASH_RETENTION_DAYS);
       invalidatePublishedAnalyticsCache();
+      if (result === 'expired') {
+        return c.json({ code: 'TOPIC_TRASH_EXPIRED', error: '选题已超过回收站保留期限，已永久删除' }, 410);
+      }
+      if (result === 'not_found') return c.json({ error: 'Not found' }, 404);
       const topic = await loadTopic(db, id);
       return topic ? c.json(topic) : c.json({ error: 'Not found' }, 404);
     } catch (error) {

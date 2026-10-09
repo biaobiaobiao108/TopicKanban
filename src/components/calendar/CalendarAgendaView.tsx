@@ -5,6 +5,7 @@ import { CalendarEventPill } from './CalendarEventPill';
 import { Plus, Calendar as CalendarIcon } from 'lucide-react';
 import { getActionDateDisplay, useBeijingToday } from '../../lib/actionDate';
 import { FloatingScrollbar } from '../ui/FloatingScrollbar';
+import { resolveAgendaSelectedDate } from './calendarUtils';
 
 interface CalendarAgendaViewProps {
   days: WeekDayCell[];
@@ -28,6 +29,11 @@ export const CalendarAgendaView: React.FC<CalendarAgendaViewProps> = ({
     const today = days.find((d) => d.isToday);
     return today ? today.date : (days[0]?.date || '');
   });
+
+  React.useEffect(() => {
+    const nextDate = resolveAgendaSelectedDate(days, selectedDate);
+    if (nextDate !== selectedDate) setSelectedDate(nextDate);
+  }, [days, selectedDate]);
 
   const selectedDayEvents = eventsMap.get(selectedDate) || [];
   const selectedDateLabel = getActionDateDisplay(selectedDate, { today }).text || selectedDate;

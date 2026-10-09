@@ -1,4 +1,4 @@
-import { STALE_ACTION_THRESHOLD_DAYS, type PaginatedTopics, type Person, type Tag, type TodayActionProgress, type TodayFocusData, type Topic, type TopicPinMutationResult, type TopicStatus, type TopicTodo } from '../../types';
+import { STALE_ACTION_THRESHOLD_DAYS, TRASH_RETENTION_DAYS, type PaginatedTopics, type Person, type Tag, type TodayActionProgress, type TodayFocusData, type Topic, type TopicPinMutationResult, type TopicStatus, type TopicTodo } from '../../types';
 import type { SqliteDatabase, SqlitePreparedStatement } from '../sqlite';
 import { bind } from './shared';
 
@@ -163,24 +163,33 @@ export async function setTopicPinned(
   id: string,
   isPinned: 0 | 1,
 ): Promise<TopicPinMutationResult> {
-  const existing = await db.prepare('SELECT status, deleted_at FROM topics WHERE id = ?').bind(id).first<{ status: TopicStatus; deleted_at?: string | null }>();
-  if (!existing) throw new TopicPinInvalidStateError('Topic not found');
-  const isActive = !existing.deleted_at && !['published', 'icebox'].includes(existing.status);
-  if (isPinned === 1 && !isActive) throw new TopicPinInvalidStateError('Only active topics can be pinned');
+  const clearedTopicIds = db.sqlite.transaction(() => {
+    const existing = db.sqlite.query('SELECT status, deleted_at FROM topics WHERE id = ?').get(id) as
+      { status: TopicStatus; deleted_at?: string | null } | undefined;
+    if (!existing) throw new TopicPinInvalidStateError('Topic not found');
+    const isActive = !existing.deleted_at && !['published', 'icebox'].includes(existing.status);
+    if (isPinned === 1 && !isActive) throw new TopicPinInvalidStateError('Only active topics can be pinned');
 
-  const now = new Date().toISOString();
-  const cleared = isPinned === 1
-    ? await db.prepare(`SELECT id FROM topics
-      WHERE id != ? AND deleted_at IS NULL AND status NOT IN ('published', 'icebox') AND is_pinned = 1`).bind(id).all<{ id: string }>()
-    : { results: [] as Array<{ id: string }> };
-  await db.batch([
-    ...(isPinned === 1 ? [bind(db, `UPDATE topics SET is_pinned = 0
-      WHERE id != ? AND deleted_at IS NULL AND status NOT IN ('published', 'icebox') AND is_pinned = 1`, [id])] : []),
-    bind(db, 'UPDATE topics SET is_pinned = ?, updated_at = ? WHERE id = ?', [isPinned, now, id]),
-  ]);
+    const cleared = isPinned === 1
+      ? db.sqlite.query(`SELECT id FROM topics
+        WHERE id != ? AND deleted_at IS NULL AND status NOT IN ('published', 'icebox') AND is_pinned = 1`)
+        .all(id) as Array<{ id: string }>
+      : [];
+    const now = new Date().toISOString();
+    if (isPinned === 1) {
+      db.sqlite.query(`UPDATE topics SET is_pinned = 0
+        WHERE id != ? AND deleted_at IS NULL AND status NOT IN ('published', 'icebox') AND is_pinned = 1`).run(id);
+    }
+    const updated = db.sqlite.query(`UPDATE topics SET is_pinned = ?, updated_at = ?
+      WHERE id = ? AND (? = 0 OR (deleted_at IS NULL AND status NOT IN ('published', 'icebox')))`).run(
+      isPinned, now, id, isPinned,
+    );
+    if (updated.changes === 0) throw new TopicPinInvalidStateError('Only active topics can be pinned');
+    return cleared.map((row) => row.id);
+  }).immediate();
   const topic = await loadTopic(db, id);
   if (!topic) throw new TopicPinInvalidStateError('Topic not found');
-  return { topic, cleared_topic_ids: cleared.results.map((row) => row.id) };
+  return { topic, cleared_topic_ids: clearedTopicIds };
 }
 
 function permanentDeleteStatements(db: SqliteDatabase, id: string): SqlitePreparedStatement[] {
@@ -536,48 +545,51 @@ export async function updateTopic(
   id: string,
   body: TopicUpdateInput
 ): Promise<void> {
-  const existing = await db.prepare('SELECT status, deleted_at FROM topics WHERE id = ?').bind(id).first<{ status: TopicStatus; deleted_at?: string | null }>();
-  if (!existing) return;
-  const requestedStatus = (body.status || existing?.status || 'inbox') as TopicStatus;
-  const isActive = !existing?.deleted_at && !['published', 'icebox'].includes(requestedStatus);
-  if (body.is_pinned === 1 && !isActive) throw new TopicPinInvalidStateError('Only active topics can be pinned');
-  const shouldClearPin = !isActive;
-  const hasPinField = Object.prototype.hasOwnProperty.call(body, 'is_pinned');
-  const batch: SqlitePreparedStatement[] = [];
-  const fields = [
-    'title', 'summary', 'hook', 'storyline', 'why_now', 'status', 'priority',
-    'target_publish_date', 'deadline',
-    'score_character', 'score_conflict', 'score_contrast', 'score_material', 'score_story',
-    'is_pinned', 'sort_order', 'published_at', 'deleted_at',
-  ].filter((field) => Object.prototype.hasOwnProperty.call(body, field) || (field === 'is_pinned' && shouldClearPin));
-  if (body.is_pinned === 1 && isActive) {
-    batch.push(bind(db, `UPDATE topics SET is_pinned = 0
-      WHERE id != ? AND deleted_at IS NULL AND status NOT IN ('published', 'icebox')`, [id]));
-  }
-  if (fields.length > 0) {
-    const values = fields.map((field) => field === 'is_pinned' && shouldClearPin && !hasPinField
-      ? 0
-      : body[field as keyof TopicUpdateInput]);
-    batch.push(bind(db,
-      `UPDATE topics SET ${fields.map((field) => `${field} = ?`).join(', ')}, updated_at = ? WHERE id = ?`,
-      [...values, new Date().toISOString(), id]
-    ));
-  }
-  if (body.tags) {
-    batch.push(bind(db, 'DELETE FROM topic_tags WHERE topic_id = ?', [id]));
-    body.tags.forEach((tag) => batch.push(bind(db,
-      'INSERT OR IGNORE INTO topic_tags (id, topic_id, tag_id) VALUES (?, ?, ?)',
-      [`${id}:${tag.id}`, id, tag.id]
-    )));
-  }
-  if (body.people) {
-    batch.push(bind(db, 'DELETE FROM topic_people WHERE topic_id = ?', [id]));
-    body.people.forEach((person) => batch.push(bind(db,
-      'INSERT OR IGNORE INTO topic_people (id, topic_id, person_id, role) VALUES (?, ?, ?, ?)',
-      [`${id}:${person.id}`, id, person.id, '']
-    )));
-  }
-  if (batch.length > 0) await db.batch(batch);
+  db.sqlite.transaction(() => {
+    const existing = db.sqlite.query('SELECT status, deleted_at FROM topics WHERE id = ?').get(id) as
+      { status: TopicStatus; deleted_at?: string | null } | undefined;
+    if (!existing) return;
+    const requestedStatus = (body.status || existing.status || 'inbox') as TopicStatus;
+    const isActive = !existing.deleted_at && !['published', 'icebox'].includes(requestedStatus);
+    if (body.is_pinned === 1 && !isActive) throw new TopicPinInvalidStateError('Only active topics can be pinned');
+    const shouldClearPin = !isActive;
+    const hasPinField = Object.prototype.hasOwnProperty.call(body, 'is_pinned');
+    const statements: SqlitePreparedStatement[] = [];
+    const fields = [
+      'title', 'summary', 'hook', 'storyline', 'why_now', 'status', 'priority',
+      'target_publish_date', 'deadline',
+      'score_character', 'score_conflict', 'score_contrast', 'score_material', 'score_story',
+      'is_pinned', 'sort_order', 'published_at', 'deleted_at',
+    ].filter((field) => Object.prototype.hasOwnProperty.call(body, field) || (field === 'is_pinned' && shouldClearPin));
+    if (body.is_pinned === 1 && isActive) {
+      statements.push(bind(db, `UPDATE topics SET is_pinned = 0
+        WHERE id != ? AND deleted_at IS NULL AND status NOT IN ('published', 'icebox')`, [id]));
+    }
+    if (fields.length > 0) {
+      const values = fields.map((field) => field === 'is_pinned' && shouldClearPin && !hasPinField
+        ? 0
+        : body[field as keyof TopicUpdateInput]);
+      statements.push(bind(db,
+        `UPDATE topics SET ${fields.map((field) => `${field} = ?`).join(', ')}, updated_at = ? WHERE id = ?`,
+        [...values, new Date().toISOString(), id]
+      ));
+    }
+    if (body.tags) {
+      statements.push(bind(db, 'DELETE FROM topic_tags WHERE topic_id = ?', [id]));
+      body.tags.forEach((tag) => statements.push(bind(db,
+        'INSERT OR IGNORE INTO topic_tags (id, topic_id, tag_id) VALUES (?, ?, ?)',
+        [`${id}:${tag.id}`, id, tag.id]
+      )));
+    }
+    if (body.people) {
+      statements.push(bind(db, 'DELETE FROM topic_people WHERE topic_id = ?', [id]));
+      body.people.forEach((person) => statements.push(bind(db,
+        'INSERT OR IGNORE INTO topic_people (id, topic_id, person_id, role) VALUES (?, ?, ?, ?)',
+        [`${id}:${person.id}`, id, person.id, '']
+      )));
+    }
+    statements.forEach((statement) => statement.executeSync());
+  }).immediate();
 }
 
 export async function softDeleteTopic(db: SqliteDatabase, id: string): Promise<void> {
@@ -585,8 +597,29 @@ export async function softDeleteTopic(db: SqliteDatabase, id: string): Promise<v
   await bind(db, 'UPDATE topics SET deleted_at = ?, is_pinned = 0, updated_at = ? WHERE id = ? AND deleted_at IS NULL', [now, now, id]).run();
 }
 
-export async function restoreTopic(db: SqliteDatabase, id: string): Promise<void> {
-  await bind(db, 'UPDATE topics SET deleted_at = NULL, updated_at = ? WHERE id = ?', [new Date().toISOString(), id]).run();
+export async function restoreTopic(
+  db: SqliteDatabase,
+  id: string,
+  retentionDays = TRASH_RETENTION_DAYS,
+): Promise<'restored' | 'expired' | 'not_found'> {
+  return db.sqlite.transaction(() => {
+    const existing = db.sqlite.query('SELECT deleted_at FROM topics WHERE id = ?').get(id) as
+      { deleted_at?: string | null } | undefined;
+    if (!existing) return 'not_found';
+
+    const deletedAt = existing.deleted_at;
+    if (deletedAt !== null && deletedAt !== undefined && retentionDays > 0) {
+      const cutoff = Date.now() - retentionDays * 86400 * 1000;
+      if (Date.parse(deletedAt) <= cutoff) {
+        permanentDeleteStatements(db, id).forEach((statement) => statement.executeSync());
+        return 'expired';
+      }
+    }
+
+    db.sqlite.query('UPDATE topics SET deleted_at = NULL, updated_at = ? WHERE id = ?')
+      .run(new Date().toISOString(), id);
+    return 'restored';
+  }).immediate();
 }
 
 export async function listTrashedTopicIds(db: SqliteDatabase): Promise<string[]> {

@@ -48,6 +48,11 @@ jobs:
         shell: bash
         run: echo "name=${REGISTRY}/${GITHUB_REPOSITORY,,}" >> "$GITHUB_OUTPUT"
 
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@1f40c72289eff860ee54a304f1438e3cff362e0a # v4.3.0
+        with:
+          platforms: arm64
+
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@37fe631027851001ddb9b187196cc803df7f5f0e # v4
 
@@ -115,6 +120,31 @@ jobs:
           docker logs "$container_name"
           exit 1
 
+      - name: Smoke test arm64 image
+        shell: bash
+        run: |
+          set -euo pipefail
+          container_name=topic-kanban-smoke-arm64-${GITHUB_RUN_ID}
+          trap 'docker rm -f "$container_name" >/dev/null 2>&1 || true' EXIT
+
+          docker run --detach \
+            --name "$container_name" \
+            --platform linux/arm64 \
+            --publish 127.0.0.1:3030:3030 \
+            --env APP_PASSWORD=ci-smoke-password \
+            --env DATA_DIR=/app/data \
+            "${{ steps.image.outputs.name }}@${{ steps.push.outputs.digest }}" >/dev/null
+
+          for attempt in {1..60}; do
+            if curl --fail --silent http://127.0.0.1:3030/api/health >/dev/null; then
+              exit 0
+            fi
+            sleep 2
+          done
+
+          docker logs "$container_name"
+          exit 1
+
       - name: Generate image provenance attestation
         uses: actions/attest@1e69f48acb82d1966a394da916b4c1698aa569d6 # v4
         with:
@@ -143,10 +173,12 @@ jobs:
             docker run -d \
               --name topic-kanban \
               --restart unless-stopped \
-              -p 3030:3030 \
+              -p 127.0.0.1:3030:3030 \
               -e APP_PASSWORD="your_secure_password" \
               -e QUICK_DROP_TOKEN="your_quick_drop_token" \
               -e PUBLIC_BASE_URL="https://kanban.yourdomain.com" \
               -v ./data:/app/data \
               ${{ steps.image.outputs.name }}:${{ steps.meta.outputs.version }}
             ```
+
+            默认端口仅绑定宿主机回环地址。局域网直连时请改为宿主机私网地址并限制防火墙来源；公网访问应通过 HTTPS 反向代理。

@@ -213,6 +213,61 @@ describe('Storage Optimization & Compaction', () => {
     expect(remaining.map((r) => r.id)).toEqual(['topic-recent-trash-page']);
   });
 
+  it('permanently deletes an expired topic when a stale trash view requests restore', async () => {
+    const now = Date.now();
+    const expiredAt = new Date(now - 40 * 86400 * 1000).toISOString();
+    const recentAt = new Date(now - 5 * 86400 * 1000).toISOString();
+    const recentOffsetAt = new Date(now - 30 * 86400 * 1000 + 2 * 60 * 60 * 1000 - 8 * 60 * 60 * 1000)
+      .toISOString().replace(/Z$/u, '-08:00');
+    const createdAt = new Date(now).toISOString();
+    const insertTrashedTopic = async (id: string, deletedAt: string) => {
+      await insertTopic(db, {
+        id,
+        title: id,
+        status: 'inbox',
+        priority: 'low',
+        score_character: 0,
+        score_conflict: 0,
+        score_contrast: 0,
+        score_material: 0,
+        score_story: 0,
+        is_pinned: 0,
+        sort_order: 0,
+        created_at: deletedAt,
+        updated_at: deletedAt,
+      });
+      sqlite.query('UPDATE topics SET deleted_at = ? WHERE id = ?').run(deletedAt, id);
+    };
+
+    await insertTrashedTopic('topic-expired-restore', expiredAt);
+    await insertTrashedTopic('topic-recent-restore', recentAt);
+    await insertTrashedTopic('topic-recent-offset-restore', recentOffsetAt);
+    sqlite.query(`INSERT INTO sources (id, topic_id, title, created_at, updated_at)
+      VALUES (?, ?, ?, ?, ?)`).run('source-expired-restore', 'topic-expired-restore', '关联资料', createdAt, createdAt);
+
+    const expiredRestore = await app.request('/api/topics/topic-expired-restore/restore', {
+      method: 'POST', headers: authHeaders,
+    });
+    expect(expiredRestore.status).toBe(410);
+    expect(await expiredRestore.json()).toEqual({
+      code: 'TOPIC_TRASH_EXPIRED',
+      error: '选题已超过回收站保留期限，已永久删除',
+    });
+    expect(sqlite.query('SELECT id FROM topics WHERE id = ?').get('topic-expired-restore')).toBeNull();
+    expect(sqlite.query('SELECT id FROM sources WHERE id = ?').get('source-expired-restore')).toBeNull();
+
+    const recentRestore = await app.request('/api/topics/topic-recent-restore/restore', {
+      method: 'POST', headers: authHeaders,
+    });
+    expect(recentRestore.status).toBe(200);
+    expect((await recentRestore.json() as { id: string; deleted_at: string | null }).deleted_at).toBeNull();
+
+    const recentOffsetRestore = await app.request('/api/topics/topic-recent-offset-restore/restore', {
+      method: 'POST', headers: authHeaders,
+    });
+    expect(recentOffsetRestore.status).toBe(200);
+  });
+
   it('manages high-frequency presence locks in memory without hitting SQLite tables', async () => {
     const lease1 = acquirePresenceLease(
       'lock:topic-writer-1',

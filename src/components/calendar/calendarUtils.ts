@@ -103,6 +103,17 @@ export interface WeekDayCell {
   isWeekend: boolean;
 }
 
+export function resolveAgendaSelectedDate(days: WeekDayCell[], selectedDate: string): string {
+  if (days.some((day) => day.date === selectedDate)) return selectedDate;
+
+  const today = days.find((day) => day.isToday);
+  if (today) return today.date;
+
+  const selectedWeekday = new Date(`${selectedDate}T00:00:00Z`).getUTCDay();
+  const sameWeekday = days.find((day) => new Date(`${day.date}T00:00:00Z`).getUTCDay() === selectedWeekday);
+  return sameWeekday?.date || days[0]?.date || '';
+}
+
 const WEEKDAY_NAMES = ['周一', '周二', '周三', '周四', '周五', '周六', '周日'];
 
 /**

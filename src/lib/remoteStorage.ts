@@ -141,6 +141,13 @@ export class TopicReportConflictError extends Error {
   }
 }
 
+export class TopicTrashExpiredError extends Error {
+  constructor(message = '选题已超过回收站保留期限，已永久删除') {
+    super(message);
+    this.name = 'TopicTrashExpiredError';
+  }
+}
+
 const knownReportVersions = new BoundedMemoryCache<string, number>(KNOWN_STATE_CACHE_MAX_ENTRIES, KNOWN_STATE_CACHE_TTL_MS);
 
 export function isRemoteStorage(): boolean {
@@ -149,7 +156,10 @@ export function isRemoteStorage(): boolean {
 
 async function apiRequest<T>(path: string, init: RequestInit = {}): Promise<T> {
   const response = await authenticatedFetch(path, init);
-  const data = await response.json().catch(() => null) as (T & { error?: string; current?: Draft | PublishPackageRecord | TopicReport | null }) | null;
+  const data = await response.json().catch(() => null) as (T & { code?: string; error?: string; current?: Draft | PublishPackageRecord | TopicReport | null }) | null;
+  if (response.status === 410 && data?.code === 'TOPIC_TRASH_EXPIRED') {
+    throw new TopicTrashExpiredError(data.error);
+  }
   if (response.status === 409 && data?.error === 'DRAFT_CONFLICT') {
     throw new DraftConflictError((data.current as Draft | null) || null);
   }

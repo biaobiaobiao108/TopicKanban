@@ -6,6 +6,7 @@ import {
   calculateMonthStats,
   getBeijingDateString,
   shiftCalendarMonth,
+  resolveAgendaSelectedDate,
 } from '../src/components/calendar/calendarUtils';
 import { DEFAULT_CALENDAR_LAYERS } from '../src/components/calendar/CalendarTypes';
 import { Topic, CommercialDeal, PublishedVideo } from '../src/types';
@@ -53,6 +54,16 @@ describe('Calendar utilities and event extraction', () => {
     expect(week[6].dayName).toBe('周日');
     expect(week[6].date).toBe('2026-08-30');
     expect(week[6].isWeekend).toBe(true);
+  });
+
+  it('keeps the agenda date within the visible week after week navigation', () => {
+    const previousWeek = getWeekDays(new Date('2026-08-28T12:00:00.000Z'));
+    const nextWeek = getWeekDays(new Date('2026-09-04T12:00:00.000Z'));
+    expect(resolveAgendaSelectedDate(nextWeek, '2026-08-26')).toBe('2026-09-02');
+    expect(resolveAgendaSelectedDate(previousWeek, '2026-08-26')).toBe('2026-08-26');
+
+    const currentWeek = nextWeek.map((day) => ({ ...day, isToday: day.date === '2026-09-01' }));
+    expect(resolveAgendaSelectedDate(currentWeek, '2026-08-26')).toBe('2026-09-01');
   });
 
   it('extracts topic, deal, and published events', () => {

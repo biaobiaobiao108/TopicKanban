@@ -22,6 +22,7 @@ import {
   permanentlyDeleteTopic,
   permanentlyDeleteTopicsBatch,
   emptyTrash,
+  TopicTrashExpiredError,
   savePerson,
   deletePerson,
   saveRelationship,
@@ -585,11 +586,19 @@ function WorkspaceApp({ isAuth, setIsAuth }: WorkspaceAppProps) {
   };
 
   const handleRestoreTopic = async (topicId: string) => {
-    const restored = await restoreTopic(topicId);
-    setTrashedTopics((prev) => prev.filter((topic) => topic.id !== topicId));
-    setTopics((prev) => [restored, ...prev]);
-    replaceTopicCaches(queryClient, restored);
-    await refreshTopics({ includeLists: true });
+    try {
+      const restored = await restoreTopic(topicId);
+      setTrashedTopics((prev) => prev.filter((topic) => topic.id !== topicId));
+      setTopics((prev) => [restored, ...prev]);
+      replaceTopicCaches(queryClient, restored);
+      await refreshTopics({ includeLists: true });
+    } catch (error) {
+      if (!(error instanceof TopicTrashExpiredError)) throw error;
+      setTrashedTopics((prev) => prev.filter((topic) => topic.id !== topicId));
+      removeTopicCaches(queryClient, topicId);
+      await refreshTopics({ includeLists: true });
+      showToast({ message: error.message, tone: 'info' });
+    }
   };
 
   const handlePermanentlyDeleteTopic = async (topicId: string) => {

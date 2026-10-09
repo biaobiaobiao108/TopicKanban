@@ -1,6 +1,7 @@
 import React, { useEffect, useId, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { AlertTriangle, Trash2, HelpCircle, Loader2 } from 'lucide-react';
+import { useToast } from './Toast';
 
 export interface ConfirmDialogProps {
   isOpen: boolean;
@@ -27,6 +28,7 @@ export const ConfirmDialog: React.FC<ConfirmDialogProps> = ({
   icon: CustomIcon,
   isLoading: externalLoading = false,
 }) => {
+  const { showToast } = useToast();
   const titleId = useId();
   const descId = useId();
   const dialogRef = useRef<HTMLDivElement>(null);
@@ -94,10 +96,17 @@ export const ConfirmDialog: React.FC<ConfirmDialogProps> = ({
     if (isLoading) return;
     try {
       const result = onConfirm();
-      if (result instanceof Promise) {
+      if (result && typeof result.then === 'function') {
         setInternalLoading(true);
         await result;
       }
+    } catch (error) {
+      showToast({
+        message: error instanceof Error && error.message.trim()
+          ? `操作失败：${error.message}`
+          : '操作失败，请稍后重试',
+        tone: 'error',
+      });
     } finally {
       setInternalLoading(false);
     }

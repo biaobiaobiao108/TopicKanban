@@ -148,7 +148,7 @@ services:
     container_name: topic-kanban
     restart: unless-stopped
     ports:
-      - "3030:3030"
+      - "127.0.0.1:3030:3030"
     environment:
       NODE_ENV: production
       PORT: "3030"
@@ -169,7 +169,11 @@ docker compose up -d --build
 podman compose up -d --build
 ```
 
-访问 `http://localhost:3030` 即可开始使用。容器不会使用默认生产密码，`APP_PASSWORD` 必须在 `.env` 或环境变量中显式设置。
+访问 `http://localhost:3030` 即可开始使用。端口默认只绑定宿主机回环地址，方便同机反向代理；局域网其他设备无法直接访问。
+
+若要在可信局域网直连，将端口映射改为宿主机的局域网地址，例如 `192.168.1.20:3030:3030`，并通过防火墙限制来源。直连仍使用 HTTP，只适合可信网络。公网访问应保留回环绑定，由反向代理提供 HTTPS；代理在另一台主机时，将映射改为服务机私网地址（例如 `192.168.1.20:3030:3030`），通过可信私网或 VPN 连接，并限制防火墙仅允许代理 IP 访问。切勿将 `0.0.0.0:3030` 暴露到互联网。
+
+容器不会使用默认生产密码，`APP_PASSWORD` 必须在 `.env` 或环境变量中显式设置。
 
 ---
 

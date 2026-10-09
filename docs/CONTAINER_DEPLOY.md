@@ -21,7 +21,7 @@
        container_name: topic-kanban
        restart: unless-stopped
        ports:
-         - "3030:3030"
+         - "127.0.0.1:3030:3030"
        environment:
          - NODE_ENV=production
          - PORT=3030
@@ -47,7 +47,11 @@
      ```
 
 3. **访问工作台**：
-   打开浏览器访问 `http://localhost:3030` 或 `http://服务器IP:3030`。
+   在服务所在主机打开 `http://localhost:3030`。默认端口只绑定宿主机回环地址，局域网其他设备无法直连。
+
+   如需在可信局域网直接访问，将端口映射改为宿主机的局域网地址，例如 `192.168.1.20:3030:3030`（替换为服务主机的固定局域网 IP），并用防火墙限制来源。直连仍是 HTTP，只适合可信网络；不要把 `0.0.0.0:3030` 暴露到互联网。
+
+   公网访问应由反向代理提供 HTTPS。若代理与容器在同一主机，保持默认回环映射并将上游指向 `http://127.0.0.1:3030`；若代理是容器，将两者接入同一容器网络并把上游设为 `http://kanban:3030`。若代理位于另一台主机，将映射改为服务主机的私网地址，例如 `192.168.1.20:3030:3030`，通过可信私网或 VPN 连接，并用防火墙只允许代理 IP 访问 `3030`。配置 `PUBLIC_BASE_URL=https://你的域名`；只有在可信代理会覆盖 `X-Real-IP`、`X-Forwarded-Proto` 和 `X-Forwarded-Host` 时才设置 `TRUST_PROXY_HEADERS=true`。
 
 ---
 
@@ -62,7 +66,7 @@ podman build -t topic-kanban:latest .
 podman run -d \
   --name topic-kanban \
   --restart unless-stopped \
-  -p 3030:3030 \
+  -p 127.0.0.1:3030:3030 \
   -e APP_PASSWORD="your_secure_password" \
 -e QUICK_DROP_TOKEN="your_quick_drop_token" \
 -e PUBLIC_BASE_URL="https://kanban.yourdomain.com" \
@@ -81,7 +85,7 @@ docker build -t topic-kanban:latest .
 docker run -d \
   --name topic-kanban \
   --restart unless-stopped \
-  -p 3030:3030 \
+  -p 127.0.0.1:3030:3030 \
   -e APP_PASSWORD="your_secure_password" \
 -e QUICK_DROP_TOKEN="your_quick_drop_token" \
 -e PUBLIC_BASE_URL="https://kanban.yourdomain.com" \
@@ -155,7 +159,7 @@ kanban.yourdomain.com {
 1. 新增 Proxy Host：
    - **Domain Names**: `kanban.yourdomain.com`
    - **Forward Scheme**: `http`
-   - **Forward Hostname / IP**: `127.0.0.1`（或容器内部服务名）
+   - **Forward Hostname / IP**: 若 NPM 运行在宿主机上，填 `127.0.0.1`；若 NPM 运行在容器中，将 NPM 与应用容器接入同一个用户自定义网络后，填 `kanban`
    - **Forward Port**: `3030`
    - 勾选 `Block Common Exploits`、`Websockets Support`。
 2. 在 SSL 标签页中申请 Let's Encrypt 证书并勾选 `Force SSL` 与 `HTTP/2 Support`。

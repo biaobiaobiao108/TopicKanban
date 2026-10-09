@@ -4,16 +4,18 @@ import { createApp } from '../src/server/app';
 import { NativeApp } from '../src/server/native';
 import { SqliteDatabase } from '../src/server/sqlite';
 import type { ApiBindings } from '../src/server/apiShared';
+import { setTopicPinned, updateTopic } from '../src/server/repositories';
 
 describe('Topic pin API', () => {
   let sqlite: Database;
+  let db: SqliteDatabase;
   let app: NativeApp;
   let headers: { Authorization: string; 'Content-Type': string };
 
   beforeEach(async () => {
     sqlite = new Database(':memory:');
     sqlite.exec(await Bun.file('drizzle/0000_schema.sql').text());
-    const db = new SqliteDatabase(sqlite);
+    db = new SqliteDatabase(sqlite);
     app = createApp({ DB: db, APP_PASSWORD: 'pin-test-password' } satisfies ApiBindings);
     const response = await app.request('/api/auth/login', {
       method: 'POST', headers: { 'Content-Type': 'application/json' },
@@ -96,5 +98,21 @@ describe('Topic pin API', () => {
     expect(missingUpdate.status).toBe(404);
     const stored = sqlite.query('SELECT is_pinned FROM topics WHERE id = ?').get(topic.id) as { is_pinned: number };
     expect(stored.is_pinned).toBe(1);
+  });
+
+  it('serializes a pin against archiving so an archived topic cannot remain pinned', async () => {
+    const createResponse = await app.request('/api/topics', {
+      method: 'POST', headers, body: JSON.stringify({ title: '并发归档与置顶' }),
+    });
+    const topic = await createResponse.json() as { id: string };
+
+    await Promise.all([
+      setTopicPinned(db, topic.id, 1),
+      updateTopic(db, topic.id, { status: 'published' }),
+    ]);
+
+    const stored = sqlite.query('SELECT status, is_pinned FROM topics WHERE id = ?').get(topic.id) as
+      { status: string; is_pinned: number };
+    expect(stored).toEqual({ status: 'published', is_pinned: 0 });
   });
 });
