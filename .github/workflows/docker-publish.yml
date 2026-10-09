@@ -95,8 +95,26 @@ jobs:
       - name: Inspect multi-platform manifest
         run: docker buildx imagetools inspect "${{ steps.image.outputs.name }}@${{ steps.push.outputs.digest }}"
 
+      - name: Resolve platform image digests
+        id: platform-digests
+        env:
+          IMAGE_NAME: ${{ steps.image.outputs.name }}
+          IMAGE_DIGEST: ${{ steps.push.outputs.digest }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          manifest="$(docker buildx imagetools inspect --raw "${IMAGE_NAME}@${IMAGE_DIGEST}")"
+          amd64_digest="$(jq -er '[.manifests[] | select(.platform.os == "linux" and .platform.architecture == "amd64")] | if length == 1 then .[0].digest else error("expected exactly one linux/amd64 manifest") end' <<<"$manifest")"
+          arm64_digest="$(jq -er '[.manifests[] | select(.platform.os == "linux" and .platform.architecture == "arm64")] | if length == 1 then .[0].digest else error("expected exactly one linux/arm64 manifest") end' <<<"$manifest")"
+
+          printf 'amd64=%s\n' "$amd64_digest" >> "$GITHUB_OUTPUT"
+          printf 'arm64=%s\n' "$arm64_digest" >> "$GITHUB_OUTPUT"
+
       - name: Smoke test amd64 image
         shell: bash
+        env:
+          IMAGE_NAME: ${{ steps.image.outputs.name }}
+          IMAGE_DIGEST: ${{ steps.platform-digests.outputs.amd64 }}
         run: |
           set -euo pipefail
           container_name=topic-kanban-smoke-${GITHUB_RUN_ID}
@@ -108,7 +126,7 @@ jobs:
             --publish 127.0.0.1:3030:3030 \
             --env APP_PASSWORD=ci-smoke-password \
             --env DATA_DIR=/app/data \
-            "${{ steps.image.outputs.name }}@${{ steps.push.outputs.digest }}" >/dev/null
+            "${IMAGE_NAME}@${IMAGE_DIGEST}" >/dev/null
 
           for attempt in {1..30}; do
             if curl --fail --silent http://127.0.0.1:3030/api/health >/dev/null; then
@@ -122,6 +140,9 @@ jobs:
 
       - name: Smoke test arm64 image
         shell: bash
+        env:
+          IMAGE_NAME: ${{ steps.image.outputs.name }}
+          IMAGE_DIGEST: ${{ steps.platform-digests.outputs.arm64 }}
         run: |
           set -euo pipefail
           container_name=topic-kanban-smoke-arm64-${GITHUB_RUN_ID}
@@ -133,7 +154,7 @@ jobs:
             --publish 127.0.0.1:3030:3030 \
             --env APP_PASSWORD=ci-smoke-password \
             --env DATA_DIR=/app/data \
-            "${{ steps.image.outputs.name }}@${{ steps.push.outputs.digest }}" >/dev/null
+            "${IMAGE_NAME}@${IMAGE_DIGEST}" >/dev/null
 
           for attempt in {1..60}; do
             if curl --fail --silent http://127.0.0.1:3030/api/health >/dev/null; then
