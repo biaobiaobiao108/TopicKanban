@@ -103,7 +103,7 @@
 
 | 层级 | 技术选型 | 说明 |
 | :--- | :--- | :--- |
-| **前端核心** | React 19 + TypeScript + Bun HTML Bundler + Tailwind（`bun-plugin-tailwind@0.1.2`） | 模块化 SPA，Bun 热重载与同源开发 |
+| **前端核心** | React 19 + TypeScript + Bun HTML Bundler + Tailwind CSS 4（`tailwindcss` + `@tailwindcss/cli`） | 模块化 SPA，Bun 热重载与同源开发 |
 | **路由与动效** | React Router 7 + View Transitions API + TanStack Query 5 | 平滑视图过渡、服务端状态缓存与乐观更新 |
 | **富文本编辑** | Tiptap 3 (`3.31.3`) + StarterKit + 自定义原子气口扩展 | 支持演播气口节点与字数计算 |
 | **看板与拖拽** | `@dnd-kit/core` + `@dnd-kit/sortable` | 丝滑拖拽流转与时序排序 |
@@ -236,7 +236,7 @@ PWA 会缓存应用壳与静态资源，断网时可以启动已缓存的界面�
 
 系统推荐使用 **Bun 1.4+** 进行依赖管理与开发测试：
 
-前端使用 Bun HTML Bundler 与 Bun.serve；Tailwind 通过 `bun-plugin-tailwind@0.1.2` 处理，插件内置 Tailwind `4.1.14`。
+前端使用 Bun HTML Bundler 与 Bun.serve；Tailwind CSS 通过官方 `@tailwindcss/cli` 编译，开发和生产构建共用 `src/index.css` 与 `tailwind.config.js` 配置。开发模式启动时先生成 `public/tailwind.generated.css`，再监听 CSS 和源码变更；生产构建使用同一 CLI 生成压缩 CSS，并由 Bun HTML Bundler 打包。
 
 ```bash
 # 1. 安装依赖

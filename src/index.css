@@ -1,6 +1,7 @@
 @import "tailwindcss" source(none);
 @config "../tailwind.config.js";
 @source ".";
+@source "../index.html";
 
 @layer base {
   :focus {

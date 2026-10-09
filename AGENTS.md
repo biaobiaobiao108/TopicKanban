@@ -34,7 +34,7 @@
 ## 🛠️ 三、技术栈与运行时架构规范 (Tech Stack & Architecture)
 
 ### 1. 核心技术栈
-* **前端核心**：React 19 + TypeScript + Bun HTML Bundler + Tailwind（通过 `bun-plugin-tailwind@0.1.2`，插件内置 Tailwind 4.1.14）
+* **前端核心**：React 19 + TypeScript + Bun HTML Bundler + Tailwind CSS 4（使用官方 `tailwindcss` 与 `@tailwindcss/cli`，开发和生产构建共用同一 CLI 编译链路）
 * **路由与动效**：React Router 7（内置 View Transitions 视图平滑过渡）+ TanStack Query 5
 * **看板与拖拽**：`@dnd-kit/core` + `@dnd-kit/sortable`
 * **文案编辑**：`@tiptap/react` + `@tiptap/starter-kit` + `@tiptap/extension-character-count` + 自定义原子内联扩展

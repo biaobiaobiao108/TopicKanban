@@ -8,6 +8,7 @@
 !tailwind.config.js
 !public/
 !public/**
+public/tailwind.generated.css
 !src/
 !src/**
 !scripts/

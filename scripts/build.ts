@@ -1,4 +1,3 @@
-import tailwind from 'bun-plugin-tailwind';
 import { joinPath, resolvePath } from '../src/server/bunPaths';
 
 const projectRoot = process.cwd();
@@ -26,6 +25,27 @@ async function removeGeneratedFiles(directory: string): Promise<void> {
 
 await removeGeneratedFiles(distDir);
 
+const tailwindBuild = Bun.spawn({
+  cmd: [
+    process.execPath,
+    'run',
+    '--bun',
+    'tailwindcss',
+    '--input',
+    joinPath(projectRoot, 'src/index.css'),
+    '--output',
+    joinPath(projectRoot, 'public/tailwind.generated.css'),
+    '--minify',
+  ],
+  cwd: projectRoot,
+  stdout: 'inherit',
+  stderr: 'inherit',
+});
+const tailwindExitCode = await tailwindBuild.exited;
+if (tailwindExitCode !== 0) {
+  throw new Error(`Tailwind CLI failed with exit code ${tailwindExitCode}.`);
+}
+
 const frontendResult = await Bun.build({
   entrypoints: [joinPath(projectRoot, 'index.html')],
   outdir: distDir,
@@ -38,7 +58,6 @@ const frontendResult = await Bun.build({
     chunk: 'assets/[name]-[hash].[ext]',
     asset: 'assets/[name]-[hash].[ext]',
   },
-  plugins: [tailwind],
 });
 
 if (!frontendResult.success) {
@@ -71,6 +90,7 @@ await Bun.write(joinPath(distDir, 'server.js'), await serverOutput.arrayBuffer()
 
 for (const relativePath of await listFiles(publicDir, '**/*')) {
   const normalizedPath = relativePath.replace(/\\/g, '/');
+  if (normalizedPath === 'tailwind.generated.css') continue;
   await Bun.write(
     joinPath(distDir, normalizedPath),
     Bun.file(joinPath(publicDir, normalizedPath)),
