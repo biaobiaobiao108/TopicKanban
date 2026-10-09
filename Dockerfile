@@ -11,14 +11,14 @@ WORKDIR /app
 # Install dependencies with a persistent BuildKit cache. The lockfile and
 # package manifest stay in an earlier layer so source edits do not invalidate
 # dependency installation.
-COPY --link package.json bun.lock .npmrc ./
+COPY --link package.json bun.lock ./
 RUN --mount=type=cache,target=/root/.bun/install/cache,sharing=locked \
   bun install --frozen-lockfile --ignore-scripts
 
 # Copy only production build inputs. The .dockerignore provides the matching
 # context allowlist so docs, tests, and development artifacts never enter the
 # image build.
-COPY --link bunfig.toml tsconfig.json index.html tailwind.config.js postcss.config.js ./
+COPY --link bunfig.toml tsconfig.json index.html tailwind.config.js ./
 COPY --link public ./public
 COPY --link src ./src
 COPY --link scripts ./scripts

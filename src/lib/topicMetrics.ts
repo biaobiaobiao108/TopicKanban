@@ -19,38 +19,3 @@ export function getCurrentActionWarning(topic: Topic, now = new Date()): string 
   const days = getCurrentActionAgeDays(topic, now);
   return days >= STALE_ACTION_THRESHOLD_DAYS ? `行动已停滞 ${days} 天` : null;
 }
-
-export interface ReadinessItem {
-  id: 'hook' | 'storyline' | 'people' | 'verified-sources' | 'sources' | 'draft';
-  label: string;
-  ready: boolean;
-  detail: string;
-}
-
-export interface TopicReadiness {
-  score: number;
-  completed: number;
-  items: ReadinessItem[];
-  nextGap: string | null;
-}
-
-export function getTopicReadiness(topic: Topic): TopicReadiness {
-  const verifiedSources = topic.verified_sources_count || 0;
-  const sources = topic.sources_count || 0;
-  const words = topic.draft_word_count || 0;
-  const items: ReadinessItem[] = [
-    { id: 'hook', label: '核心看点', ready: topic.hook.trim().length >= 10, detail: topic.hook.trim() ? '需要更具体' : '尚未填写' },
-    { id: 'storyline', label: '故事主线', ready: topic.storyline.trim().length >= 20, detail: topic.storyline.trim() ? '需要更完整' : '尚未填写' },
-    { id: 'people', label: '关键人物', ready: (topic.people?.length || 0) >= 1, detail: `${topic.people?.length || 0} 人` },
-    { id: 'verified-sources', label: '已确认资料', ready: verifiedSources >= 2, detail: `${verifiedSources} / 2 条` },
-    { id: 'sources', label: '资料总量', ready: sources >= 2, detail: `${sources} / 2 条` },
-    { id: 'draft', label: '文案起稿', ready: words >= 800, detail: `${words} / 800 字` },
-  ];
-  const completed = items.filter((item) => item.ready).length;
-  return {
-    score: Math.round((completed / items.length) * 100),
-    completed,
-    items,
-    nextGap: items.find((item) => !item.ready)?.label || null,
-  };
-}

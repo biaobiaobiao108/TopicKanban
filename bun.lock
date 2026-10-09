@@ -24,6 +24,7 @@
         "@tiptap/suggestion": "^3.31.4",
         "dompurify": "^3.4.16",
         "lucide-react": "^1.54.0",
+        "marked": "^17.0.6",
         "opencc-js": "1.4.2",
         "react": "^19.3.0",
         "react-dom": "^19.3.0",

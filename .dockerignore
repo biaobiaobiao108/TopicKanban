@@ -1,13 +1,11 @@
 # Only production build inputs are sent to Docker.
 *
-!.npmrc
 !package.json
 !bun.lock
 !bunfig.toml
 !tsconfig.json
 !index.html
 !tailwind.config.js
-!postcss.config.js
 !public/
 !public/**
 !src/

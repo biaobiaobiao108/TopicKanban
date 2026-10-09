@@ -33,9 +33,6 @@ dist-ssr/
 .env.local
 .env.production
 .env.development
-.dev.vars
-.dev.vars.*
-!.dev.vars.example
 
 # test
 data/
