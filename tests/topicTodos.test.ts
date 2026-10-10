@@ -94,8 +94,8 @@ describe('Topic Todo board API', () => {
     const response = await app.request(`/api/topics/${topic.id}/todos`, {
       method: 'POST', headers, body: JSON.stringify({ title: '不应保留的新事项', status: 'in_progress' }),
     });
-    expect(response.status).toBe(400);
-    expect(await response.json()).toEqual({ error: 'forced layout failure' });
+    expect(response.status).toBe(500);
+    expect(await response.json()).toEqual({ error: 'Internal server error' });
     const todos = await (await app.request(`/api/topics/${topic.id}/todos`, { headers })).json() as TopicTodo[];
     expect(todos).toHaveLength(1);
     expect(todos[0]).toMatchObject({ title: '保留当前行动', is_current: 1 });
@@ -216,8 +216,8 @@ describe('Topic Todo board API', () => {
     const valid = { todo_ids: [ownId], in_progress_ids: [currentId], completed_ids: [] };
 
     expect((await updateBoard(topic.id, { ...valid, todo_ids: [ownId, ownId] })).status).toBe(400);
-    expect((await updateBoard(topic.id, { todo_ids: [], in_progress_ids: [currentId], completed_ids: [] })).status).toBe(400);
-    expect((await updateBoard(topic.id, { ...valid, completed_ids: [foreignId] })).status).toBe(400);
+    expect((await updateBoard(topic.id, { todo_ids: [], in_progress_ids: [currentId], completed_ids: [] })).status).toBe(409);
+    expect((await updateBoard(topic.id, { ...valid, completed_ids: [foreignId] })).status).toBe(409);
     expect((await updateBoard(topic.id, valid)).status).toBe(200);
   });
 

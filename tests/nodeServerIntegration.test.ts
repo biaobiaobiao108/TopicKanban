@@ -922,7 +922,7 @@ describe('Bun Server Integration (Local SQLite & API)', () => {
       body: JSON.stringify({ ids: topicIds }),
     });
 
-    expect(deleteRes.status).toBe(400);
+    expect(deleteRes.status).toBe(500);
     expect(sqlite.query('SELECT COUNT(*) AS count FROM topics WHERE id LIKE ?').get('rollback-trash-%'))
       .toEqual({ count: 26 });
     expect(sqlite.query('SELECT id FROM sources WHERE id = ?').get('rollback-trash-source'))

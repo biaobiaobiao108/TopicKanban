@@ -79,7 +79,7 @@ describe('Topic pin API', () => {
     const rejected = await app.request(`/api/topics/${archived.id}/pin`, {
       method: 'POST', headers, body: JSON.stringify({ is_pinned: 1 }),
     });
-    expect(rejected.status).toBe(400);
+    expect(rejected.status).toBe(409);
   });
 
   it('does not clear the current pin when pinning a missing topic through topic update', async () => {
