@@ -47,5 +47,11 @@
     "bun-types": "^1.4.3",
     "tailwindcss": "^4.3.3",
     "typescript": "^7.0.2"
+  },
+  "overrides": {
+    "@parcel/watcher": "2.6.0",
+    "prosemirror-model": "1.25.12",
+    "prosemirror-transform": "1.12.2",
+    "prosemirror-view": "1.42.6"
   }
 }
