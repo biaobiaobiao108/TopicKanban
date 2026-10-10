@@ -32,8 +32,7 @@ function formatIsoDate(year: number, monthIndex: number, day: number): string {
 /**
  * Generates the 35 or 42 day cells for a calendar month grid (Monday is first day of week).
  */
-export function getMonthGridDays(year: number, monthIndex: number): MonthDayCell[] {
-  const todayStr = getBeijingDateString(new Date());
+export function getMonthGridDays(year: number, monthIndex: number, todayStr = getBeijingDateString()): MonthDayCell[] {
 
   // First day of target month (using UTC to be completely immune to local timezone shift)
   const firstDayUtc = new Date(Date.UTC(year, monthIndex, 1));
@@ -119,8 +118,7 @@ const WEEKDAY_NAMES = ['周一', '周二', '周三', '周四', '周五', '周六
 /**
  * Generates the 7 days of the week containing the base date (Monday ~ Sunday).
  */
-export function getWeekDays(baseDate: Date): WeekDayCell[] {
-  const todayStr = getBeijingDateString(new Date());
+export function getWeekDays(baseDate: Date, todayStr = getBeijingDateString()): WeekDayCell[] {
   const baseIso = getBeijingDateString(baseDate) || formatIsoDate(baseDate.getUTCFullYear(), baseDate.getUTCMonth(), baseDate.getUTCDate());
   const [bYear, bMonth, bDay] = baseIso.split('-').map(Number);
   const baseUtc = new Date(Date.UTC(bYear, bMonth - 1, bDay));

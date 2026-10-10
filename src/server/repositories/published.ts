@@ -2,6 +2,8 @@ import type { PaginatedPublishedVideos, PublishedVideo, Topic } from '../../type
 import type { SqliteDatabase, SqlitePreparedStatement } from '../sqlite';
 import { bind } from './shared';
 import { loadTopicBatch } from './topics';
+import { getBeijingDateString } from '../../lib/beijingTime';
+import { isValidIsoDate } from '../../lib/dateInput';
 import {
   analyzePeoplePerformance,
   analyzeTagPerformance,
@@ -23,6 +25,24 @@ const ANALYTICS_CACHE_TTL_MS = 30_000;
 const ANALYTICS_CACHE_MAX_ENTRIES = 12;
 const analyticsCache = new Map<string, { expiresAt: number; payload: PublishedAnalyticsPayload }>();
 let analyticsCacheGeneration = 0;
+
+function subtractCalendarDays(date: string, days: number): string {
+  const value = new Date(`${date}T12:00:00.000Z`);
+  value.setUTCDate(value.getUTCDate() - days);
+  return value.toISOString().slice(0, 10);
+}
+
+function publishedBusinessDateSql(alias: string): string {
+  const value = `${alias}.published_at`;
+  return `CASE WHEN length(${value}) = 10 THEN date(${value}) ELSE date(${value}, '+8 hours') END`;
+}
+
+function publishedBusinessDate(value: string): string | null {
+  if (isValidIsoDate(value)) return value;
+  const timestamp = new Date(value);
+  if (!Number.isFinite(timestamp.getTime())) return null;
+  return getBeijingDateString(timestamp) || null;
+}
 
 export function invalidatePublishedAnalyticsCache(): void {
   analyticsCacheGeneration += 1;
@@ -59,7 +79,7 @@ async function loadAnalyticsTopics(
   const eligibility = {
     sql: `t.deleted_at IS NULL AND EXISTS (
       SELECT 1 FROM published_videos av
-      WHERE av.topic_id = t.id${range === 'all' ? '' : ' AND av.published_at >= ?'}
+      WHERE av.topic_id = t.id${range === 'all' ? '' : ` AND ${publishedBusinessDateSql('av')} >= ?`}
     )`,
     values: (range === 'all' ? [] : [cutoff]) as unknown[],
   };
@@ -119,28 +139,29 @@ export async function loadPublishedAnalytics(
   db: SqliteDatabase,
   options: PageOptions & { range: 'all' | '90d' | 'year' },
 ): Promise<PublishedAnalyticsPayload> {
-  const cacheKey = `${options.range}:${options.page}:${options.pageSize}`;
+  const today = getBeijingDateString();
+  const cacheDay = options.range === 'all' ? 'all' : today;
+  const cacheKey = `${options.range}:${cacheDay}:${options.page}:${options.pageSize}`;
   const cached = readPublishedAnalyticsCache(cacheKey);
   if (cached) return cached;
   const cacheGeneration = analyticsCacheGeneration;
 
   const rangeDays = options.range === '90d' ? 90 : 365;
-  const cutoffDate = options.range === 'all' ? null : new Date(Date.now() - rangeDays * 24 * 60 * 60 * 1000);
-  const cutoff = cutoffDate?.toISOString();
-  const videoFilter = cutoff ? 'WHERE v.published_at >= ?' : '';
+  const cutoff = options.range === 'all' ? null : subtractCalendarDays(today, rangeDays - 1);
+  const videoFilter = cutoff ? `WHERE ${publishedBusinessDateSql('v')} >= ?` : '';
   const result = await db.prepare(`SELECT v.id, v.topic_id, v.title, v.published_at,
       v.views, v.likes, v.coins, v.favorites, v.comments
     FROM published_videos v
     ${videoFilter}
     ORDER BY v.published_at DESC, v.updated_at DESC, v.id DESC`).bind(...(cutoff ? [cutoff] : [])).all<PublishedVideo>();
   const queriedVideos = result.results || [];
-  const allVideos = cutoffDate
+  const allVideos = cutoff
     ? queriedVideos.filter((video) => {
-      const publishedAt = video.published_at ? new Date(video.published_at) : null;
-      return publishedAt && !Number.isNaN(publishedAt.getTime()) && publishedAt >= cutoffDate;
+      const businessDate = video.published_at ? publishedBusinessDate(video.published_at) : null;
+      return businessDate !== null && businessDate >= cutoff;
     })
     : queriedVideos;
-  const topics = await loadAnalyticsTopics(db, options.range, cutoff);
+  const topics = await loadAnalyticsTopics(db, options.range, cutoff ?? undefined);
   const topicMap = new Map(topics.map((topic) => [topic.id, topic]));
   const ranking = allVideos
     .map((video) => {

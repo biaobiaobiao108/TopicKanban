@@ -25,6 +25,7 @@ export const MAX_REQUEST_BYTES = 10 * 1024 * 1024;
 export const MAX_LOGIN_REQUEST_BYTES = 16 * 1024;
 export const MAX_QUICK_DROP_REQUEST_BYTES = 64 * 1024;
 export const MAX_BACKUP_REQUEST_BYTES = 6 * 1024 * 1024;
+export const MAX_BACKUP_EXPORT_SETTINGS_BYTES = 16 * 1024;
 
 export const VERIFICATION_STATUSES = ['confirmed', 'unverified', 'rejected'] as const;
 export const DATE_PRECISIONS = ['exact', 'year_month', 'year', 'unknown'] as const;
@@ -36,6 +37,10 @@ export function isOneOf(value: unknown, options: readonly string[]): boolean {
 
 export function isNonNegativeInteger(value: unknown): boolean {
   return typeof value === 'number' && Number.isInteger(value) && value >= 0;
+}
+
+export function isNonNegativeSafeInteger(value: unknown): boolean {
+  return typeof value === 'number' && Number.isSafeInteger(value) && value >= 0;
 }
 
 import { createHash, timingSafeEqual } from 'node:crypto';
@@ -87,7 +92,11 @@ export function parseTopicUpdate(body: unknown) {
 
 export function validateCommercialDealFields(body: Record<string, unknown>, requireTitle = false): string | null {
   const result = parseWithZod(commercialDealSchema(requireTitle), body);
-  return result.success ? null : result.error;
+  if (!result.success) return result.error;
+  // Preserve other request keys while applying schema transforms such as
+  // normalizing empty optional dates to null.
+  Object.assign(body, result.data);
+  return null;
 }
 
 export function validateTextFields(
@@ -156,16 +165,17 @@ export function requireDb(c: { env: ApiBindings }): SqliteDatabase {
   return c.env.DB;
 }
 
-export function jsonError(c: any, error: unknown, status = 500) {
+export function jsonError(c: any, error: unknown) {
   if (error instanceof Error && error.name === 'BodyLimitError') {
     return c.json({ error: 'Request body is too large' }, 413);
   }
-  if (status >= 500) {
-    console.error('[API error]', error);
-    return c.json({ error: 'Internal server error' }, status);
+  if (error instanceof SyntaxError) {
+    return c.json({ error: 'Invalid JSON request body' }, 400);
   }
-  const message = error instanceof Error ? error.message : 'Unknown error';
-  return c.json({ error: message }, status);
+  // Route-level fallback statuses must never turn database or other
+  // unexpected server errors into client errors or expose their messages.
+  console.error('[API error]', error);
+  return c.json({ error: 'Internal server error' }, 500);
 }
 
 export function jsonValidationError(c: any, errorMsg: string, issues?: unknown[]) {

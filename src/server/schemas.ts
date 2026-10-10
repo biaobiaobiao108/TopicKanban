@@ -2,6 +2,7 @@ import { z } from 'zod';
 import { isTopicStatus } from '../types';
 import { isValidIsoDate } from '../lib/dateInput';
 import { isSafeExternalHttpUrl } from '../lib/urlSafety';
+import { appSettingsSchema } from '../lib/backupValidation';
 
 export const TOPIC_STATUSES = ['inbox', 'scripting', 'production', 'published', 'icebox'] as const;
 export const PRIORITIES = ['high', 'medium', 'low', 'none'] as const;
@@ -52,9 +53,14 @@ export const todoBoardLayoutSchema = z.object({
 export const nullableIsoDate = (fieldName: string) =>
   z.union([z.string(), z.null()])
     .optional()
-    .refine((val) => val === undefined || val === null || val === '' || isValidIsoDate(val), {
+    .transform((value) => value === '' ? null : value)
+    .refine((val) => val === undefined || val === null || isValidIsoDate(val), {
       message: `${fieldName} must be YYYY-MM-DD or null`,
     });
+
+export const backupExportRequestSchema = z.object({
+  settings: appSettingsSchema,
+}).strict();
 
 export const scoreField = (fieldName: string) =>
   z.number({

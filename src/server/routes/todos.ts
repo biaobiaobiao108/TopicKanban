@@ -18,7 +18,15 @@ import {
   setCurrentTopicTodo,
   updateTopicTodo,
   updateTopicTodoBoard,
+  TopicTodoInvalidStateError,
+  TopicTodoNotFoundError,
 } from '../repositories';
+
+function handleTodoError(c: any, error: unknown) {
+  if (error instanceof TopicTodoNotFoundError) return c.json({ error: error.message }, 404);
+  if (error instanceof TopicTodoInvalidStateError) return c.json({ error: error.message }, 409);
+  return jsonError(c, error);
+}
 
 function validateTodoFields(body: Record<string, unknown>, requireTitle = false): string | null {
   const textError = validateTextFields(body, {
@@ -64,7 +72,7 @@ export function registerTodoRoutes(app: NativeApp): void {
       };
       return c.json(await insertTopicTodo(db, todo), 201);
     } catch (error) {
-      return jsonError(c, error, 400);
+      return handleTodoError(c, error);
     }
   });
 
@@ -80,7 +88,7 @@ export function registerTodoRoutes(app: NativeApp): void {
         ...(Object.prototype.hasOwnProperty.call(body, 'title') ? { title: String(body.title).trim() } : {}),
       }));
     } catch (error) {
-      return jsonError(c, error, 400);
+      return handleTodoError(c, error);
     }
   });
 
@@ -88,7 +96,7 @@ export function registerTodoRoutes(app: NativeApp): void {
     try {
       return c.json(await setCurrentTopicTodo(requireDb(c), c.req.param('id')));
     } catch (error) {
-      return jsonError(c, error, 400);
+      return handleTodoError(c, error);
     }
   });
 
@@ -96,7 +104,7 @@ export function registerTodoRoutes(app: NativeApp): void {
     try {
       return c.json(await completeTopicTodo(requireDb(c), c.req.param('id')));
     } catch (error) {
-      return jsonError(c, error, 400);
+      return handleTodoError(c, error);
     }
   });
 
@@ -104,7 +112,7 @@ export function registerTodoRoutes(app: NativeApp): void {
     try {
       return c.json(await reopenTopicTodo(requireDb(c), c.req.param('id')));
     } catch (error) {
-      return jsonError(c, error, 400);
+      return handleTodoError(c, error);
     }
   });
 
@@ -112,7 +120,7 @@ export function registerTodoRoutes(app: NativeApp): void {
     try {
       return c.json(await deleteTopicTodo(requireDb(c), c.req.param('id')));
     } catch (error) {
-      return jsonError(c, error, 400);
+      return handleTodoError(c, error);
     }
   });
 
@@ -126,7 +134,7 @@ export function registerTodoRoutes(app: NativeApp): void {
         parsed.data as TopicTodoBoardLayout,
       ));
     } catch (error) {
-      return jsonError(c, error, 400);
+      return handleTodoError(c, error);
     }
   });
 }

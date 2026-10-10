@@ -90,7 +90,7 @@ export interface Source {
   published_at: string;
   verification_status: VerificationStatus;
   notes: string;
-  event_date?: string;
+  event_date?: string | null;
   date_precision?: DatePrecision;
   sort_order?: number;
   created_at: string;
@@ -415,6 +415,34 @@ export interface AppSettings {
   theme: AppTheme;
   editor_font_size?: EditorFontSize;
   editor_line_height?: EditorLineHeight;
+}
+
+export interface BackupExportRequest {
+  settings: AppSettings;
+}
+
+export interface BackupScriptsTopic {
+  id: string;
+  title: string;
+  status: TopicStatus;
+  priority: Priority;
+  hook: string;
+  summary: string;
+}
+
+export interface BackupScriptsDraft {
+  topic_id: string;
+  title: string;
+  word_count: number;
+  content_markdown: string;
+  content_html: string;
+  has_content_json: boolean;
+  updated_at: string;
+}
+
+export interface BackupScriptsData {
+  topics: BackupScriptsTopic[];
+  drafts: BackupScriptsDraft[];
 }
 
 export const STALE_ACTION_THRESHOLD_DAYS = 5;

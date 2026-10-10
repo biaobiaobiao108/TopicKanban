@@ -11,7 +11,9 @@ const timestamp = z.string().max(50);
 const optionalTimestamp = timestamp.nullable().optional();
 const deletedAtTimestamp = z.string().max(50).refine(isValidIsoTimestamp, '必须是有效的 ISO 8601 时间戳');
 const optionalDeletedAtTimestamp = deletedAtTimestamp.nullable().optional();
-const optionalDateOnly = z.string().refine(isValidIsoDate, '日期必须是有效的 YYYY-MM-DD').nullable().optional();
+const optionalDateOnly = z.string().nullable().optional()
+  .transform((value) => value === '' ? null : value)
+  .refine((value) => value === undefined || value === null || isValidIsoDate(value), '日期必须是有效的 YYYY-MM-DD');
 const verificationStatus = z.enum(['confirmed', 'unverified', 'rejected']);
 const themeSchema = z.enum(APP_THEMES);
 
@@ -100,7 +102,7 @@ const sourceSchema = z.object({
   published_at: timestamp,
   verification_status: verificationStatus,
   notes: longText,
-  event_date: timestamp.optional(),
+  event_date: timestamp.nullable().optional().transform((value) => value === '' ? null : value),
   date_precision: z.enum(['exact', 'year_month', 'year', 'unknown']).optional(),
   sort_order: z.number().int().nonnegative().optional(),
   created_at: timestamp,
@@ -171,11 +173,11 @@ const publishedSchema = z.object({
   url: z.string().max(2_048).refine(isSafeExternalHttpUrl, '必须是 HTTP(S) URL'),
   bvid: z.string().max(50),
   published_at: timestamp,
-  views: z.number().int().nonnegative(),
-  likes: z.number().int().nonnegative(),
-  coins: z.number().int().nonnegative(),
-  favorites: z.number().int().nonnegative(),
-  comments: z.number().int().nonnegative(),
+  views: z.number().int().nonnegative().refine(Number.isSafeInteger, '必须是安全整数'),
+  likes: z.number().int().nonnegative().refine(Number.isSafeInteger, '必须是安全整数'),
+  coins: z.number().int().nonnegative().refine(Number.isSafeInteger, '必须是安全整数'),
+  favorites: z.number().int().nonnegative().refine(Number.isSafeInteger, '必须是安全整数'),
+  comments: z.number().int().nonnegative().refine(Number.isSafeInteger, '必须是安全整数'),
   notes: longText,
   updated_at: timestamp,
   topic_title: z.string().max(200).nullable().optional(),
@@ -263,7 +265,7 @@ const publishPackageSchema = z.object({
   }
 });
 
-const settingsSchema = z.object({
+export const appSettingsSchema = z.object({
   reading_speed: z.number().positive().max(1_000),
   theme: themeSchema,
   editor_font_size: z.enum(['compact', 'standard', 'large']).optional(),
@@ -287,7 +289,7 @@ const backupSchema = z.object({
   commercial_deal_topics: z.array(commercialDealTopicSchema),
   commercial_deal_activities: z.array(commercialDealActivitySchema),
   todos: z.array(todoSchema),
-  settings: settingsSchema.optional(),
+  settings: appSettingsSchema.optional(),
 }).strict().superRefine((data, ctx) => {
   const addIssue = (path: Array<string | number>, message: string) => ctx.addIssue({ code: 'custom', path, message });
   const requireUniqueIds = (items: Array<{ id: string }>, key: string) => {

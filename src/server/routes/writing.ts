@@ -92,7 +92,7 @@ export function registerWritingRoutes(app: NativeApp): void {
       invalidatePublishedAnalyticsCache();
       return c.json(result.draft);
     } catch (error) {
-      return jsonError(c, error, 400);
+      return jsonError(c, error);
     }
   });
 
@@ -118,7 +118,7 @@ export function registerWritingRoutes(app: NativeApp): void {
       if (result.kind === 'conflict') return c.json({ error: 'REPORT_CONFLICT', current: result.current }, 409);
       return c.json(result.report);
     } catch (error) {
-      return jsonError(c, error, 400);
+      return jsonError(c, error);
     }
   });
 
@@ -133,7 +133,7 @@ export function registerWritingRoutes(app: NativeApp): void {
       if (result.kind === 'conflict') return c.json({ error: 'PUBLISH_PACKAGE_CONFLICT', current: result.current }, 409);
       return c.json(result.publishPackage);
     } catch (error) {
-      return jsonError(c, error, 400);
+      return jsonError(c, error);
     }
   });
 
@@ -172,7 +172,7 @@ export function registerWritingRoutes(app: NativeApp): void {
       await insertCitation(requireDb(c), citation);
       return c.json(citation, 201);
     } catch (error) {
-      return jsonError(c, error, 400);
+      return jsonError(c, error);
     }
   });
 

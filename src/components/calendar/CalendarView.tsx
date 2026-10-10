@@ -39,7 +39,7 @@ import { CalendarAgendaView } from './CalendarAgendaView';
 import { UnscheduledTopicPool } from './UnscheduledTopicPool';
 import { CalendarDateActionModal } from './CalendarDateActionModal';
 import { StatusBadge, PriorityBadge } from '../ui/Badge';
-import { createBeijingCalendarDate } from '../../lib/actionDate';
+import { createBeijingCalendarDate, useBeijingToday } from '../../lib/actionDate';
 import { FloatingMenu } from '../ui/FloatingMenu';
 
 const CALENDAR_LAYER_OPTIONS: Array<{
@@ -141,8 +141,9 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
 
   const year = currentDate.getUTCFullYear();
   const monthIndex = currentDate.getUTCMonth();
-  const monthDays = useMemo(() => getMonthGridDays(year, monthIndex), [year, monthIndex]);
-  const weekDays = useMemo(() => getWeekDays(currentDate), [currentDate]);
+  const today = useBeijingToday();
+  const monthDays = useMemo(() => getMonthGridDays(year, monthIndex, today), [today, year, monthIndex]);
+  const weekDays = useMemo(() => getWeekDays(currentDate, today), [currentDate, today]);
   const visibleDays = viewMode === 'month' ? monthDays : weekDays;
   const calendarRangeStart = visibleDays[0]?.date || getBeijingDateString(currentDate);
   const calendarRangeEnd = visibleDays[visibleDays.length - 1]?.date || calendarRangeStart;

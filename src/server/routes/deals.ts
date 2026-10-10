@@ -42,7 +42,7 @@ export function registerDealRoutes(app: NativeApp): void {
         query: c.req.query('q')?.slice(0, 200), status, paymentStatus,
       }));
     } catch (error) {
-      return jsonError(c, error, 400);
+      return jsonError(c, error);
     }
   });
 
@@ -62,7 +62,7 @@ export function registerDealRoutes(app: NativeApp): void {
       if (rangeDays > 62) return c.json({ error: 'Calendar date range must not exceed 62 days' }, 400);
       return c.json(await loadCommercialDealsForCalendar(requireDb(c), start, end));
     } catch (error) {
-      return jsonError(c, error, 400);
+      return jsonError(c, error);
     }
   });
 
@@ -70,7 +70,7 @@ export function registerDealRoutes(app: NativeApp): void {
     try {
       return c.json(await loadCommercialDealFocus(requireDb(c)));
     } catch (error) {
-      return jsonError(c, error, 400);
+      return jsonError(c, error);
     }
   });
 
@@ -78,7 +78,7 @@ export function registerDealRoutes(app: NativeApp): void {
     try {
       return c.json(await loadCommercialDealsByTopicId(requireDb(c), c.req.param('id')));
     } catch (error) {
-      return jsonError(c, error, 400);
+      return jsonError(c, error);
     }
   });
 
@@ -87,7 +87,7 @@ export function registerDealRoutes(app: NativeApp): void {
       const deal = await loadCommercialDeal(requireDb(c), c.req.param('id'));
       return deal ? c.json(deal) : c.json({ error: 'Not found' }, 404);
     } catch (error) {
-      return jsonError(c, error, 400);
+      return jsonError(c, error);
     }
   });
 
@@ -128,7 +128,7 @@ export function registerDealRoutes(app: NativeApp): void {
       await insertCommercialDeal(requireDb(c), deal);
       return c.json(await loadCommercialDeal(requireDb(c), id), 201);
     } catch (error) {
-      return jsonError(c, error, 400);
+      return jsonError(c, error);
     }
   });
 
@@ -146,7 +146,7 @@ export function registerDealRoutes(app: NativeApp): void {
       }
       return c.json(await updateCommercialDeal(db, id, body));
     } catch (error) {
-      return jsonError(c, error, 400);
+      return jsonError(c, error);
     }
   });
 
@@ -155,7 +155,7 @@ export function registerDealRoutes(app: NativeApp): void {
       const deleted = await deleteCommercialDeal(requireDb(c), c.req.param('id'));
       return deleted ? c.body(null, 204) : c.json({ error: 'Not found' }, 404);
     } catch (error) {
-      return jsonError(c, error, 400);
+      return jsonError(c, error);
     }
   });
 
@@ -174,7 +174,7 @@ export function registerDealRoutes(app: NativeApp): void {
       if (result === 'topic_not_found') return c.json({ error: 'One or more topics not found' }, 400);
       return c.json(result);
     } catch (error) {
-      return jsonError(c, error, 400);
+      return jsonError(c, error);
     }
   });
 
@@ -193,7 +193,7 @@ export function registerDealRoutes(app: NativeApp): void {
       await insertCommercialDealActivity(requireDb(c), activity);
       return c.json(activity, 201);
     } catch (error) {
-      return jsonError(c, error, 400);
+      return jsonError(c, error);
     }
   });
 
@@ -207,7 +207,7 @@ export function registerDealRoutes(app: NativeApp): void {
       if (result === 'video_not_found') return c.json({ error: 'Published video not found' }, 400);
       return c.json(result);
     } catch (error) {
-      return jsonError(c, error, 400);
+      return jsonError(c, error);
     }
   });
 }

@@ -115,56 +115,14 @@ jobs:
         env:
           IMAGE_NAME: ${{ steps.image.outputs.name }}
           IMAGE_DIGEST: ${{ steps.platform-digests.outputs.amd64 }}
-        run: |
-          set -euo pipefail
-          container_name=topic-kanban-smoke-${GITHUB_RUN_ID}
-          trap 'docker rm -f "$container_name" >/dev/null 2>&1 || true' EXIT
-
-          docker run --detach \
-            --name "$container_name" \
-            --platform linux/amd64 \
-            --publish 127.0.0.1:3030:3030 \
-            --env APP_PASSWORD=ci-smoke-password \
-            --env DATA_DIR=/app/data \
-            "${IMAGE_NAME}@${IMAGE_DIGEST}" >/dev/null
-
-          for attempt in {1..30}; do
-            if curl --fail --silent http://127.0.0.1:3030/api/health >/dev/null; then
-              exit 0
-            fi
-            sleep 2
-          done
-
-          docker logs "$container_name"
-          exit 1
+        run: bash .github/scripts/smoke-container-image.sh amd64 "${IMAGE_NAME}@${IMAGE_DIGEST}"
 
       - name: Smoke test arm64 image
         shell: bash
         env:
           IMAGE_NAME: ${{ steps.image.outputs.name }}
           IMAGE_DIGEST: ${{ steps.platform-digests.outputs.arm64 }}
-        run: |
-          set -euo pipefail
-          container_name=topic-kanban-smoke-arm64-${GITHUB_RUN_ID}
-          trap 'docker rm -f "$container_name" >/dev/null 2>&1 || true' EXIT
-
-          docker run --detach \
-            --name "$container_name" \
-            --platform linux/arm64 \
-            --publish 127.0.0.1:3030:3030 \
-            --env APP_PASSWORD=ci-smoke-password \
-            --env DATA_DIR=/app/data \
-            "${IMAGE_NAME}@${IMAGE_DIGEST}" >/dev/null
-
-          for attempt in {1..60}; do
-            if curl --fail --silent http://127.0.0.1:3030/api/health >/dev/null; then
-              exit 0
-            fi
-            sleep 2
-          done
-
-          docker logs "$container_name"
-          exit 1
+        run: bash .github/scripts/smoke-container-image.sh arm64 "${IMAGE_NAME}@${IMAGE_DIGEST}"
 
       - name: Generate image provenance attestation
         uses: actions/attest@1e69f48acb82d1966a394da916b4c1698aa569d6 # v4

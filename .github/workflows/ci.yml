@@ -23,7 +23,7 @@ jobs:
   test:
     name: Test, Typecheck and Build
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 25
     permissions:
       contents: read
 
@@ -58,3 +58,11 @@ jobs:
 
       - name: Check bundle size
         run: bun run check:bundle
+
+      - name: Validate Docker Compose configuration
+        env:
+          APP_PASSWORD: ci-compose-validation-password
+        run: docker compose config --quiet
+
+      - name: Build Docker image
+        run: docker build --tag topic-kanban:ci .

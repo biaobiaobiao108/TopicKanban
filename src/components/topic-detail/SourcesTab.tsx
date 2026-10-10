@@ -260,7 +260,7 @@ const SortableTimelineItem: React.FC<SortableTimelineItemProps> = ({
 
             {/* Date Badge */}
             <span className="text-xs font-mono font-bold px-2.5 py-0.5 rounded-full inline-flex items-center gap-1 bg-[var(--accent-soft)] text-[var(--accent-dark)]">
-              📅 {formatEventDate(source.event_date, source.date_precision)}
+              📅 {formatEventDate(source.event_date ?? undefined, source.date_precision)}
             </span>
 
             {/* Platform Badge */}

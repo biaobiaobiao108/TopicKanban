@@ -3,6 +3,7 @@ import {
   BackupImportLimitError,
   countDatabaseTables,
   exportAllData,
+  exportScriptsData,
   getStorageStats,
   loadBootstrap,
   replaceAllData,
@@ -13,12 +14,15 @@ import { validateBackupData } from '../../lib/backupValidation';
 import type { ApiBindings } from '../apiShared';
 import {
   MAX_BACKUP_REQUEST_BYTES,
+  MAX_BACKUP_EXPORT_SETTINGS_BYTES,
   MAX_LOGIN_REQUEST_BYTES,
   createToken,
   jsonError,
+  jsonValidationError,
   requireDb,
   timingSafeEqualString,
 } from '../apiShared';
+import { backupExportRequestSchema, parseWithZod } from '../schemas';
 
 const failedLoginAttempts = new Map<string, { count: number; resetAt: number }>();
 const MAX_LOGIN_RECORDS = 10_000;
@@ -82,7 +86,7 @@ export function registerSystemRoutes(app: NativeApp): void {
       resetFailedLogin(clientIp);
       return c.json({ success: true, token: await createToken(correctPassword) });
     } catch (error) {
-      return jsonError(c, error, 400);
+      return jsonError(c, error);
     }
   });
 
@@ -137,6 +141,32 @@ export function registerSystemRoutes(app: NativeApp): void {
     }
   });
 
+  app.post('/backup/export', bodyLimit({
+    maxSize: MAX_BACKUP_EXPORT_SETTINGS_BYTES,
+    onError: (c) => c.json({ error: 'Backup export settings request body is too large' }, 413),
+  }), async (c) => {
+    try {
+      const parsed = parseWithZod(backupExportRequestSchema, await c.req.json<unknown>());
+      if (!parsed.success) return jsonValidationError(c, parsed.error, parsed.issues);
+      const data = await exportAllData(requireDb(c));
+      const serialized = JSON.stringify({ ...data, settings: parsed.data.settings }, null, 2);
+      return c.body(serialized, 200, {
+        'Content-Type': 'application/json; charset=UTF-8',
+        'Content-Disposition': 'attachment; filename="topic-kanban-backup.json"',
+      });
+    } catch (error) {
+      return jsonError(c, error);
+    }
+  });
+
+  app.get('/backup/scripts', async (c) => {
+    try {
+      return c.json(await exportScriptsData(requireDb(c)));
+    } catch (error) {
+      return jsonError(c, error);
+    }
+  });
+
   app.put('/backup', bodyLimit({
     maxSize: MAX_BACKUP_REQUEST_BYTES,
     onError: (c) => c.json({ error: 'Backup request body is too large' }, 413),
@@ -149,8 +179,8 @@ export function registerSystemRoutes(app: NativeApp): void {
       invalidatePublishedAnalyticsCache();
       return c.json({ success: true });
     } catch (error) {
-      if (error instanceof BackupImportLimitError) return jsonError(c, error, 413);
-      return jsonError(c, error, 400);
+      if (error instanceof BackupImportLimitError) return c.json({ error: error.message }, 413);
+      return jsonError(c, error);
     }
   });
 

@@ -21,6 +21,41 @@ const DEFAULT_STATIC_FILES = [
   'icon-512.png',
 ];
 
+const BLOCKED_STATIC_FILE_NAMES = new Set([
+  'agents.md',
+  'bun.lock',
+  'bun.lockb',
+  'compose.yml',
+  'credentials.json',
+  'docker-compose.yml',
+  'dockerfile',
+  'id_ed25519',
+  'id_rsa',
+  'npm-shrinkwrap.json',
+  'package-lock.json',
+  'package.json',
+  'pnpm-lock.yaml',
+  'readme.md',
+  'secrets.json',
+  'tsconfig.json',
+  'yarn.lock',
+]);
+
+const BLOCKED_STATIC_FILE_SUFFIX = /(?:\.map(?:\.[a-z0-9_-]+)?|\.pem|\.key|\.crt|\.cer|\.p12|\.pfx|\.der|\.jks|\.env(?:\.[^/]*)?|\.db(?:-(?:wal|shm|journal))?|\.sqlite\d?(?:-(?:wal|shm|journal))?|\.sql|\.log|\.bak|\.backup|\.old|\.orig|\.swp|\.tmp)$/i;
+
+function isSafeStaticFilePath(relativePath: string): boolean {
+  const normalizedPath = relativePath.replace(/\\/g, '/');
+  if (!normalizedPath || normalizedPath.startsWith('/') || /^[a-z]:\//i.test(normalizedPath)) return false;
+
+  const segments = normalizedPath.split('/');
+  if (segments.some((segment) => !segment || segment === '.' || segment === '..' || segment.startsWith('.'))) return false;
+
+  const fileName = segments[segments.length - 1]?.toLowerCase();
+  if (!fileName) return false;
+  return !BLOCKED_STATIC_FILE_NAMES.has(fileName)
+    && !BLOCKED_STATIC_FILE_SUFFIX.test(fileName);
+}
+
 export function resolveServerPort(configuredPort?: string, explicitPort?: number): number {
   return explicitPort ?? (Number(configuredPort) || 3030);
 }
@@ -29,7 +64,7 @@ export async function discoverStaticFiles(staticRoot: string): Promise<Set<strin
   const staticFiles = new Set(DEFAULT_STATIC_FILES);
   try {
     for await (const file of new Bun.Glob('*').scan({ cwd: staticRoot, onlyFiles: true, dot: true })) {
-      if (file !== 'index.html' && file !== 'server.js' && file !== 'assets') {
+      if (file !== 'index.html' && file !== 'server.js' && file !== 'assets' && isSafeStaticFilePath(file)) {
         staticFiles.add(file);
       }
     }
@@ -105,6 +140,7 @@ export async function startServer(options: ServerOptions = {}) {
   }
 
   function safeAssetPath(relativePath: string): string | null {
+    if (!isSafeStaticFilePath(relativePath)) return null;
     const root = resolvePath(distPath, 'assets');
     const candidate = resolvePath(root, relativePath);
     return isPathInside(root, candidate) ? candidate : null;

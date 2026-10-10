@@ -58,12 +58,13 @@ export function registerWorkspaceRoutes(app: NativeApp): void {
     try {
       const body = await c.req.json<Partial<Source>>();
       if (!body.topic_id || !body.title?.trim()) return c.json({ error: 'topic_id and title are required' }, 400);
+      if (body.event_date === '') body.event_date = null;
       const textError = validateTextFields(body as Record<string, unknown>, {
         title: [200, true], content: [20000], url: [2048], author: [200], published_at: [50], notes: [20000],
-        event_date: [50], date_precision: [20],
+        date_precision: [20],
       });
       if (textError) return c.json({ error: textError }, 400);
-      if (body.event_date !== undefined && !isValidSourceEventDate(body.event_date)) {
+      if (body.event_date !== undefined && body.event_date !== null && !isValidSourceEventDate(body.event_date)) {
         return c.json({ error: 'event_date must be a valid YYYY, YYYY-MM, or YYYY-MM-DD date' }, 400);
       }
       if (body.date_precision !== undefined && !isOneOf(body.date_precision, ['exact', 'year_month', 'year', 'unknown'])) {
@@ -84,14 +85,14 @@ export function registerWorkspaceRoutes(app: NativeApp): void {
         content: body.content || '', url: body.url || '',
         platform: body.platform || 'bilibili', author: body.author || '', published_at: body.published_at || '',
         verification_status: body.verification_status || 'unverified', notes: body.notes || '',
-        event_date: body.event_date || '', date_precision: body.date_precision || 'exact',
+        event_date: body.event_date ?? null, date_precision: body.date_precision || 'exact',
         sort_order: typeof body.sort_order === 'number' ? body.sort_order : 0,
         created_at: body.created_at || now, updated_at: now,
       };
       await insertSource(requireDb(c), source);
       return c.json(source, 201);
     } catch (error) {
-      return jsonError(c, error, 400);
+      return jsonError(c, error);
     }
   });
 
@@ -104,20 +105,22 @@ export function registerWorkspaceRoutes(app: NativeApp): void {
       return c.json({ success: true, updated_at });
     } catch (error) {
       if (error instanceof SourceReorderInvalidStateError) return c.json({ error: error.message }, 400);
-      return jsonError(c, error, 400);
+      return jsonError(c, error);
     }
   });
 
   app.patch('/sources/:id', async (c) => {
     try {
       const body = await c.req.json<Record<string, unknown>>();
+      if (body.event_date === '') body.event_date = null;
       const textError = validateTextFields(body, {
         title: [200, true], content: [20000], url: [2048], author: [200], published_at: [50], notes: [20000],
-        event_date: [50], date_precision: [20],
+        date_precision: [20],
       });
       if (textError) return c.json({ error: textError }, 400);
       if (Object.prototype.hasOwnProperty.call(body, 'event_date')
-        && typeof body.event_date === 'string' && !isValidSourceEventDate(body.event_date)) {
+        && body.event_date !== null
+        && (typeof body.event_date !== 'string' || !isValidSourceEventDate(body.event_date))) {
         return c.json({ error: 'event_date must be a valid YYYY, YYYY-MM, or YYYY-MM-DD date' }, 400);
       }
       if (hasInvalidValue(body, 'date_precision', (value) => isOneOf(value, ['exact', 'year_month', 'year', 'unknown']))) {
@@ -135,7 +138,7 @@ export function registerWorkspaceRoutes(app: NativeApp): void {
       const source = await updateSource(requireDb(c), c.req.param('id'), body);
       return source ? c.json(source) : c.json({ error: 'Not found' }, 404);
     } catch (error) {
-      return jsonError(c, error, 400);
+      return jsonError(c, error);
     }
   });
 

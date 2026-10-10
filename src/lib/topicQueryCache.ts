@@ -27,6 +27,8 @@ const topicListQueryKeys = [
 export interface RefreshTopicDataOptions {
   /** Structural mutations need to repair pagination; field edits already patch list caches. */
   includeLists?: boolean;
+  /** Field edits patch the active topic detail cache and should not refetch it while a newer write is pending. */
+  includeTopicDetails?: boolean;
 }
 
 export async function invalidateQueryGroups(
@@ -50,7 +52,9 @@ export async function refreshTopicData(
 ): Promise<void> {
   invalidateBootstrap();
   await invalidateQueryGroups(queryClient, [
-    ...topicAggregateQueryKeys,
+    ...topicAggregateQueryKeys.filter((queryKey) => (
+      options.includeTopicDetails !== false || queryKey[0] !== 'topic'
+    )),
     ...(options.includeLists ? topicListQueryKeys : []),
   ]);
 }

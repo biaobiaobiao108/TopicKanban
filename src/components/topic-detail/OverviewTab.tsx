@@ -768,9 +768,9 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({
               {/* Quick date presets */}
               <div className="flex items-center gap-1 flex-wrap pt-0.5">
                 {[
-                  { label: '本周五', val: (() => { const today = getBeijingDateString(); const weekday = getBeijingWeekday(today); const diff = (5 - weekday + 7) % 7; return addBeijingCalendarDays(today, diff === 0 ? 7 : diff); })() },
+                  { label: '本周五', val: (() => { const today = getBeijingDateString(); const weekday = getBeijingWeekday(today); const dayIndexFromMonday = (weekday + 6) % 7; return addBeijingCalendarDays(today, 4 - dayIndexFromMonday); })() },
                   { label: '本周末', val: (() => { const today = getBeijingDateString(); const weekday = getBeijingWeekday(today); return addBeijingCalendarDays(today, weekday === 0 ? 0 : 7 - weekday); })() },
-                  { label: '下周五', val: (() => { const today = getBeijingDateString(); const weekday = getBeijingWeekday(today); return addBeijingCalendarDays(today, ((5 - weekday + 7) % 7) + 7); })() },
+                  { label: '下周五', val: (() => { const today = getBeijingDateString(); const weekday = getBeijingWeekday(today); const dayIndexFromMonday = (weekday + 6) % 7; return addBeijingCalendarDays(today, 11 - dayIndexFromMonday); })() },
                 ].map((preset) => (
                   <button
                     key={preset.label}

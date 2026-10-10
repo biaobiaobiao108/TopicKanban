@@ -239,7 +239,16 @@ export function replaceTopicPinCaches(queryClient: QueryClient, result: TopicPin
 }
 
 export function removeTopicCaches(queryClient: QueryClient, topicId: string) {
-  queryClient.removeQueries({ queryKey: ['topic', topicId], exact: true });
+  [
+    ['topic', topicId],
+    ['topic-sources', topicId],
+    ['topic-report', topicId],
+    ['topic-draft', topicId],
+    ['topic-citations', topicId],
+    ['topic-workspace', topicId],
+    ['topic-deals', topicId],
+    ['topic-todos', topicId],
+  ].forEach((queryKey) => queryClient.removeQueries({ queryKey, exact: true }));
   queryClient.setQueryData<BootstrapData>(['workspace'], (current) => current
     ? { ...current, topics: removeItems(current.topics, topicId) || [] }
     : current);

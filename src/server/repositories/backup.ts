@@ -1,5 +1,8 @@
 import type {
   BackupData,
+  BackupScriptsData,
+  BackupScriptsDraft,
+  BackupScriptsTopic,
   CommercialDeal,
   CommercialDealActivity,
   CommercialDealTopic,
@@ -187,6 +190,22 @@ function loadTopicsForBackup(db: SqliteDatabase): Topic[] {
     people: peopleByTopic.get(topic.id) || [],
     current_todo: currentTodoByTopic.get(topic.id) || null,
   }));
+}
+
+export function exportScriptsData(db: SqliteDatabase): BackupScriptsData {
+  return db.sqlite.transaction(() => {
+    const topics = db.sqlite.query(`SELECT id, title, status, priority, hook, summary
+      FROM topics ORDER BY is_pinned DESC, sort_order ASC, updated_at DESC`).all() as BackupScriptsTopic[];
+    const rows = db.sqlite.query(`SELECT topic_id, title, word_count, content_markdown,
+      CASE WHEN COALESCE(content_markdown, '') = '' THEN COALESCE(content_html, '') ELSE '' END AS content_html,
+      CASE WHEN COALESCE(content_json, '') = '' THEN 0 ELSE 1 END AS has_content_json,
+      updated_at
+      FROM drafts ORDER BY updated_at DESC`).all() as Array<Omit<BackupScriptsDraft, 'has_content_json'> & { has_content_json: number }>;
+    return {
+      topics,
+      drafts: rows.map((draft) => ({ ...draft, has_content_json: draft.has_content_json === 1 })),
+    };
+  })();
 }
 
 export async function exportAllData(db: SqliteDatabase): Promise<BackupData> {

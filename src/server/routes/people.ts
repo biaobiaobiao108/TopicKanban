@@ -39,7 +39,7 @@ export function registerPeopleRoutes(app: NativeApp): void {
       const pageSize = Math.min(100, Math.max(1, Number.parseInt(c.req.query('page_size') || '30', 10) || 30));
       return c.json(await loadPeoplePage(requireDb(c), { page, pageSize, query: c.req.query('q')?.slice(0, 200) }));
     } catch (error) {
-      return jsonError(c, error, 400);
+      return jsonError(c, error);
     }
   });
 
@@ -47,7 +47,7 @@ export function registerPeopleRoutes(app: NativeApp): void {
     try {
       return c.json(await listPeopleOptions(requireDb(c)));
     } catch (error) {
-      return jsonError(c, error, 400);
+      return jsonError(c, error);
     }
   });
 
@@ -73,7 +73,7 @@ export function registerPeopleRoutes(app: NativeApp): void {
       invalidatePublishedAnalyticsCache();
       return c.json(person, 201);
     } catch (error) {
-      return jsonError(c, error, 400);
+      return jsonError(c, error);
     }
   });
 
@@ -91,7 +91,7 @@ export function registerPeopleRoutes(app: NativeApp): void {
       if (person) invalidatePublishedAnalyticsCache();
       return person ? c.json(person) : c.json({ error: 'Not found' }, 404);
     } catch (error) {
-      return jsonError(c, error, 400);
+      return jsonError(c, error);
     }
   });
 
@@ -133,7 +133,7 @@ export function registerPeopleRoutes(app: NativeApp): void {
       await insertRelationship(requireDb(c), relationship);
       return c.json(await loadRelationship(requireDb(c), relationship.id), 201);
     } catch (error) {
-      return jsonError(c, error, 400);
+      return jsonError(c, error);
     }
   });
 
@@ -146,7 +146,7 @@ export function registerPeopleRoutes(app: NativeApp): void {
       const relationship = await updateRelationship(requireDb(c), c.req.param('id'), body);
       return relationship ? c.json(relationship) : c.json({ error: 'Not found' }, 404);
     } catch (error) {
-      return jsonError(c, error, 400);
+      return jsonError(c, error);
     }
   });
 

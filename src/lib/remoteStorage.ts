@@ -1,6 +1,5 @@
 import type {
   BootstrapData,
-  BackupData,
   Draft,
   DraftCitation,
   DraftLoadResult,
@@ -455,11 +454,15 @@ export async function permanentlyDeleteTopicsBatch(ids: string[]): Promise<void>
   invalidateBootstrap();
 }
 
-export async function emptyTrash(): Promise<void> {
-  const result = await apiRequest<{ ids?: string[] }>('/api/topics/trash/empty', jsonRequest('POST', {}));
-  result.ids?.filter((id): id is string => typeof id === 'string').forEach(clearRemoteStorageTopicCaches);
+export async function emptyTrash(): Promise<string[]> {
+  const result = await apiRequest<{ ids?: unknown }>('/api/topics/trash/empty', jsonRequest('POST', {}));
+  const deletedIds = Array.isArray(result.ids)
+    ? [...new Set(result.ids.filter((id): id is string => typeof id === 'string'))]
+    : [];
+  deletedIds.forEach(clearRemoteStorageTopicCaches);
   clearRemoteStorageMemoryCaches();
   invalidateBootstrap();
+  return deletedIds;
 }
 
 export function fetchSourcesByTopicId(topicId: string): Promise<Source[]> {
@@ -965,9 +968,12 @@ export async function optimizeStorage(): Promise<StorageOptimizeResult> {
 }
 
 export async function exportBackupData(): Promise<Blob> {
-  const { data } = await apiRequest<{ data: BackupData }>('/api/backup');
-  const backup = { ...data, settings: loadLocalSettings() };
-  return new Blob([JSON.stringify(backup, null, 2)], { type: 'application/json;charset=utf-8' });
+  const response = await authenticatedFetch('/api/backup/export', jsonRequest('POST', { settings: loadLocalSettings() }));
+  if (!response.ok) {
+    const data = await response.json().catch(() => null) as { error?: string } | null;
+    throw new Error(data?.error || `请求失败 (${response.status})`);
+  }
+  return response.blob();
 }
 
 // Convert HTML to clean readable Markdown text for export
@@ -991,9 +997,10 @@ export function htmlToCleanMarkdown(html: string): string {
 }
 
 export async function exportScriptsMarkdown(): Promise<string> {
-  const { data } = await apiRequest<{ data: BackupData }>('/api/backup');
-  const topics = data.topics || [];
-  const drafts = data.drafts || [];
+  const { topics, drafts } = await apiRequest<{
+    topics: Array<Pick<Topic, 'id' | 'title' | 'status' | 'priority' | 'hook' | 'summary'>>;
+    drafts: Array<Pick<Draft, 'topic_id' | 'title' | 'word_count' | 'content_markdown' | 'content_html' | 'updated_at'> & { has_content_json: boolean }>;
+  }>('/api/backup/scripts');
   const topicMap = new Map(topics.map((t) => [t.id, t]));
   const readingSpeed = loadLocalSettings().reading_speed;
 
@@ -1005,7 +1012,7 @@ export async function exportScriptsMarkdown(): Promise<string> {
   lines.push(``);
 
   // Filter drafts with meaningful content or topics with drafts
-  const draftsWithTopic = drafts.filter((d) => d.content_markdown || d.content_html || d.content_json);
+  const draftsWithTopic = drafts.filter((d) => d.content_markdown || d.content_html || d.has_content_json);
 
   if (draftsWithTopic.length === 0) {
     lines.push(`*暂无已撰写的文案草稿记录。*`);

@@ -77,7 +77,7 @@
 ### 11. 🎨 温润编辑部设计系统与主题生态 (Editorial Design System)
 * **温润微质感**：基于 Stone 灰度、松柏绿行动色和克制的语义状态色打造，采用大圆角（`rounded-2xl`）、微投影（`shadow-2xs`）与透底色药丸（Tinted Pills）。
 * **4 种温润编辑部主题模式**：经典浅色、暖沙纸境、Tokyo Night 深色，并可跟随系统切换深浅模式。
-* **全局指令搜索面板 (`Cmd/Ctrl + /` 或 `/`)**：支持全拼搜索，并通过 `#` 查赛道、`@` 查人物、`>` 执行快捷动作、`?` 调出快捷键大全。
+* **全局指令搜索面板（macOS `Command + /`、Windows `Alt + /`；非输入状态下按 `/`）**：支持全拼搜索，并通过 `#` 查赛道、`@` 查人物、`>` 执行快捷动作、`?` 调出快捷键大全。
 
 ### 12. ⚡ Bun-first 运行时规范
 
@@ -105,7 +105,7 @@
 | :--- | :--- | :--- |
 | **前端核心** | React 19 + TypeScript + Bun HTML Bundler + Tailwind CSS 4（`tailwindcss` + `@tailwindcss/cli`） | 模块化 SPA，Bun 热重载与同源开发 |
 | **路由与动效** | React Router 7 + View Transitions API + TanStack Query 5 | 平滑视图过渡、服务端状态缓存与乐观更新 |
-| **富文本编辑** | Tiptap 3 (`3.31.3`) + StarterKit + 自定义原子气口扩展 | 支持演播气口节点与字数计算 |
+| **富文本编辑** | Tiptap 3 (`3.31.4`) + StarterKit + 自定义原子气口扩展 | 支持演播气口节点与字数计算 |
 | **看板与拖拽** | `@dnd-kit/core` + `@dnd-kit/sortable` | 丝滑拖拽流转与时序排序 |
 | **服务端与校验** | Bun 原生 HTTP Server + Zod 4 声明式校验管道 + 按领域组织的原生路由 | `app.ts` 负责组合，`schemas.ts` 统一契约校验，`routes/` 负责 HTTP 行为，`repositories/` 负责 SQLite 持久化 |
 | **主业务持久库** | SQLite (`bun:sqlite` + WAL) | 选题、素材、时间线、人物、文案、发布包、商单等业务表（遵循 Freelist 极速原地复用，支持主动 VACUUM） |
@@ -129,14 +129,16 @@
 
 ### 1. 使用 Docker Compose / Podman Compose
 
-项目已提供 `docker-compose.yml`。首次启动前，请在项目根目录创建 `.env`，至少设置一个强密码：
+项目已提供 `docker-compose.yml` 和 `.env.example`。首次启动前，将 `.env.example` 复制为 `.env`，并把 `APP_PASSWORD` 占位值替换成密码管理器生成的唯一长随机密码。仓库中的占位值不是秘密，不能用于实际部署：
 
 ```dotenv
-APP_PASSWORD=your_secure_password
-QUICK_DROP_TOKEN=your_quick_drop_token
+APP_PASSWORD=replace-this-with-a-unique-random-password-before-deployment
+QUICK_DROP_TOKEN=
 PUBLIC_BASE_URL=https://kanban.yourdomain.com
 TRUST_PROXY_HEADERS=false
 ```
+
+`QUICK_DROP_TOKEN` 与工作台密码相互独立。使用手机快捷指令或其他免登录快投入口时，设置单独生成的随机 Token，并在快捷指令中配置同一值；不启用该功能时可以留空。不要复用工作台密码。
 
 然后使用以下 Compose 配置：
 
@@ -173,7 +175,7 @@ podman compose up -d --build
 
 若要在可信局域网直连，将端口映射改为宿主机的局域网地址，例如 `192.168.1.20:3030:3030`，并通过防火墙限制来源。直连仍使用 HTTP，只适合可信网络。公网访问应保留回环绑定，由反向代理提供 HTTPS；代理在另一台主机时，将映射改为服务机私网地址（例如 `192.168.1.20:3030:3030`），通过可信私网或 VPN 连接，并限制防火墙仅允许代理 IP 访问。切勿将 `0.0.0.0:3030` 暴露到互联网。
 
-容器不会使用默认生产密码，`APP_PASSWORD` 必须在 `.env` 或环境变量中显式设置。
+容器不会使用默认生产密码；`APP_PASSWORD` 必须在 `.env` 或环境变量中显式设置，并在启动前替换模板占位值。`.env.example` 只用于提供 Compose 所需的非空配置格式。
 
 ---
 

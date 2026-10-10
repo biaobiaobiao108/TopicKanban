@@ -25,7 +25,7 @@ export function registerTagRoutes(app: NativeApp): void {
         query: c.req.query('q')?.slice(0, 200),
       }));
     } catch (error) {
-      return jsonError(c, error, 400);
+      return jsonError(c, error);
     }
   });
 
@@ -40,7 +40,7 @@ export function registerTagRoutes(app: NativeApp): void {
       if (!existing) invalidatePublishedAnalyticsCache();
       return existing ? c.json(existing) : c.json(tag, 201);
     } catch (error) {
-      return jsonError(c, error, 400);
+      return jsonError(c, error);
     }
   });
 
@@ -58,7 +58,7 @@ export function registerTagRoutes(app: NativeApp): void {
       if (result) invalidatePublishedAnalyticsCache();
       return result ? c.json(result) : c.json({ error: 'Not found' }, 404);
     } catch (error) {
-      return jsonError(c, error, 400);
+      return jsonError(c, error);
     }
   });
 

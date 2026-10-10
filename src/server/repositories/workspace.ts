@@ -59,7 +59,7 @@ export function sourceStatement(db: SqliteDatabase, source: Source): SqlitePrepa
   ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`, [
     source.id, source.topic_id, source.title, source.content || '', source.url || '', source.platform || 'bilibili',
     source.author || '', source.published_at || '', source.verification_status || 'unverified', source.notes || '',
-    source.event_date || '', source.date_precision || 'exact', source.sort_order || 0,
+    source.event_date ?? null, source.date_precision || 'exact', source.sort_order || 0,
     source.created_at, source.updated_at,
   ]);
 }

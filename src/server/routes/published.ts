@@ -4,7 +4,7 @@ import { getBeijingDateString } from '../../lib/beijingTime';
 import {
   createId,
   hasInvalidValue,
-  isNonNegativeInteger,
+  isNonNegativeSafeInteger,
   jsonError,
   requireDb,
   validateExternalUrlField,
@@ -38,7 +38,7 @@ export function registerPublishedRoutes(app: NativeApp): void {
       const pageSize = Math.min(100, Math.max(1, Number.parseInt(c.req.query('page_size') || '30', 10) || 30));
       return c.json(await loadPublishedPage(requireDb(c), { page, pageSize }));
     } catch (error) {
-      return jsonError(c, error, 400);
+      return jsonError(c, error);
     }
   });
 
@@ -50,7 +50,7 @@ export function registerPublishedRoutes(app: NativeApp): void {
       const range = requestedRange === '90d' || requestedRange === 'year' ? requestedRange : 'all';
       return c.json(await loadPublishedAnalytics(requireDb(c), { page, pageSize, range }));
     } catch (error) {
-      return jsonError(c, error, 400);
+      return jsonError(c, error);
     }
   });
 
@@ -69,8 +69,8 @@ export function registerPublishedRoutes(app: NativeApp): void {
       if (urlError) return c.json({ error: urlError }, 400);
       if (body.bvid && !/^BV[a-zA-Z0-9]{10}$/i.test(body.bvid)) return c.json({ error: 'Invalid BVID' }, 400);
       for (const field of ['views', 'likes', 'coins', 'favorites', 'comments'] as const) {
-        if (body[field] !== undefined && !isNonNegativeInteger(body[field])) {
-          return c.json({ error: `${field} must be a non-negative integer` }, 400);
+        if (body[field] !== undefined && !isNonNegativeSafeInteger(body[field])) {
+          return c.json({ error: `${field} must be a non-negative safe integer` }, 400);
         }
       }
       const now = new Date().toISOString();
@@ -85,7 +85,7 @@ export function registerPublishedRoutes(app: NativeApp): void {
       invalidatePublishedAnalyticsCache();
       return c.json(video, 201);
     } catch (error) {
-      return jsonError(c, error, 400);
+      return jsonError(c, error);
     }
   });
 
@@ -104,15 +104,15 @@ export function registerPublishedRoutes(app: NativeApp): void {
       if (urlError) return c.json({ error: urlError }, 400);
       if (typeof body.bvid === 'string' && body.bvid && !/^BV[a-zA-Z0-9]{10}$/i.test(body.bvid)) return c.json({ error: 'Invalid BVID' }, 400);
       for (const field of ['views', 'likes', 'coins', 'favorites', 'comments']) {
-        if (hasInvalidValue(body, field, isNonNegativeInteger)) {
-          return c.json({ error: `${field} must be a non-negative integer` }, 400);
+        if (hasInvalidValue(body, field, isNonNegativeSafeInteger)) {
+          return c.json({ error: `${field} must be a non-negative safe integer` }, 400);
         }
       }
       const video = await updatePublishedVideo(requireDb(c), c.req.param('id'), body);
       if (video) invalidatePublishedAnalyticsCache();
       return video ? c.json(video) : c.json({ error: 'Not found' }, 404);
     } catch (error) {
-      return jsonError(c, error, 400);
+      return jsonError(c, error);
     }
   });
 

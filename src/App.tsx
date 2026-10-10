@@ -155,6 +155,34 @@ function WorkspaceApp({ isAuth, setIsAuth }: WorkspaceAppProps) {
   const activeDealId = dealMatch?.params.dealId || null;
   const topicMutationSequenceRef = useRef(0);
   const pendingTopicFieldsRef = useRef(new Map<string, Map<TopicField, PendingTopicFieldState>>());
+  const topicWriteQueuesRef = useRef(new Map<string, Promise<void>>());
+
+  const runTopicWrite = useCallback(<T,>(topicId: string, write: () => Promise<T>): Promise<T> => {
+    const queues = topicWriteQueuesRef.current;
+    const previous = queues.get(topicId) || Promise.resolve();
+    const request = previous.catch(() => undefined).then(write);
+    const queueTail = request.then(() => undefined, () => undefined);
+    queues.set(topicId, queueTail);
+    void queueTail.then(() => {
+      if (queues.get(topicId) === queueTail) queues.delete(topicId);
+    });
+    return request;
+  }, []);
+
+  const runTopicWriteBatch = useCallback(<T,>(topicIds: string[], write: () => Promise<T>): Promise<T> => {
+    const queues = topicWriteQueuesRef.current;
+    const uniqueIds = [...new Set(topicIds)].sort();
+    const previous = uniqueIds.map((topicId) => queues.get(topicId) || Promise.resolve());
+    const request = Promise.all(previous.map((queue) => queue.catch(() => undefined))).then(write);
+    const queueTail = request.then(() => undefined, () => undefined);
+    uniqueIds.forEach((topicId) => queues.set(topicId, queueTail));
+    void queueTail.then(() => {
+      uniqueIds.forEach((topicId) => {
+        if (queues.get(topicId) === queueTail) queues.delete(topicId);
+      });
+    });
+    return request;
+  }, []);
 
   const {
     topics,
@@ -520,7 +548,7 @@ function WorkspaceApp({ isAuth, setIsAuth }: WorkspaceAppProps) {
     setTopics((prev) => prev.map((topic) => (topic.id === activeTopicId ? { ...topic, ...updates } : topic)));
     let updated: Topic;
     try {
-      updated = await saveTopic({ id: activeTopicId, ...updates });
+      updated = await runTopicWrite(activeTopicId, () => saveTopic({ id: activeTopicId, ...updates }));
     } catch (error) {
       const rollback = rollbackTopicMutation(activeTopicId, updates, sequence);
       setTopics((prev) => prev.map((topic) => (topic.id === activeTopicId ? { ...topic, ...rollback } : topic)));
@@ -530,7 +558,7 @@ function WorkspaceApp({ isAuth, setIsAuth }: WorkspaceAppProps) {
     const resolved = reconcileTopicMutation(activeTopicId, updates, updated, sequence);
     setTopics((prev) => prev.map((topic) => (topic.id === updated.id ? { ...topic, ...resolved } : topic)));
     updateTopicCaches(queryClient, updated.id, resolved);
-    await refreshTopics({ includeLists: true });
+    await refreshTopics({ includeLists: true, includeTopicDetails: false });
   };
 
   const handleUpdateTopicById = async (topicId: string, updates: Partial<Topic>) => {
@@ -539,7 +567,7 @@ function WorkspaceApp({ isAuth, setIsAuth }: WorkspaceAppProps) {
     setTopics((prev) => prev.map((topic) => (topic.id === topicId ? { ...topic, ...updates } : topic)));
     let updated: Topic;
     try {
-      updated = await saveTopic({ id: topicId, ...updates });
+      updated = await runTopicWrite(topicId, () => saveTopic({ id: topicId, ...updates }));
     } catch (error) {
       const rollback = rollbackTopicMutation(topicId, updates, sequence);
       setTopics((prev) => prev.map((topic) => (topic.id === topicId ? { ...topic, ...rollback } : topic)));
@@ -549,7 +577,7 @@ function WorkspaceApp({ isAuth, setIsAuth }: WorkspaceAppProps) {
     const resolved = reconcileTopicMutation(topicId, updates, updated, sequence);
     setTopics((prev) => prev.map((topic) => (topic.id === updated.id ? { ...topic, ...resolved } : topic)));
     updateTopicCaches(queryClient, updated.id, resolved);
-    await refreshTopics({ includeLists: true });
+    await refreshTopics({ includeLists: true, includeTopicDetails: false });
   };
 
   const handleDeleteTopic = async (topicId: string) => {
@@ -604,6 +632,7 @@ function WorkspaceApp({ isAuth, setIsAuth }: WorkspaceAppProps) {
   const handlePermanentlyDeleteTopic = async (topicId: string) => {
     await permanentlyDeleteTopic(topicId);
     setTrashedTopics((prev) => prev.filter((topic) => topic.id !== topicId));
+    removeTopicCaches(queryClient, topicId);
     await refreshTopics({ includeLists: true });
   };
 
@@ -611,12 +640,14 @@ function WorkspaceApp({ isAuth, setIsAuth }: WorkspaceAppProps) {
     await permanentlyDeleteTopicsBatch(ids);
     const idSet = new Set(ids);
     setTrashedTopics((prev) => prev.filter((topic) => !idSet.has(topic.id)));
+    ids.forEach((topicId) => removeTopicCaches(queryClient, topicId));
     await refreshTopics({ includeLists: true });
   };
 
   const handleEmptyTrash = async () => {
-    await emptyTrash();
+    const deletedIds = await emptyTrash();
     setTrashedTopics([]);
+    deletedIds.forEach((topicId) => removeTopicCaches(queryClient, topicId));
     await refreshTopics({ includeLists: true });
   };
 
@@ -685,7 +716,7 @@ function WorkspaceApp({ isAuth, setIsAuth }: WorkspaceAppProps) {
       prev.map((t) => (t.id === topicId ? { ...t, status, sort_order: sortOrder ?? t.sort_order, updated_at: new Date().toISOString() } : t))
     );
     try {
-      await updateTopicStatus(topicId, status, sortOrder);
+      await runTopicWrite(topicId, () => updateTopicStatus(topicId, status, sortOrder));
     } catch (err) {
       setTopics(previousTopics);
       if (previousTopic) replaceTopicCaches(queryClient, previousTopic);
@@ -707,7 +738,7 @@ function WorkspaceApp({ isAuth, setIsAuth }: WorkspaceAppProps) {
     }));
     updates.forEach((update) => updateTopicCaches(queryClient, update.id, update));
     try {
-      await reorderTopics(updates);
+      await runTopicWriteBatch(updates.map((update) => update.id), () => reorderTopics(updates));
     } catch (err) {
       setTopics(previousTopics);
       previousTopics.forEach((topic) => replaceTopicCaches(queryClient, topic));

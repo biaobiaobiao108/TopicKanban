@@ -26,6 +26,7 @@ import {
   setTopicPinned,
   softDeleteTopic,
   TopicNotInTrashError,
+  TopicPinInvalidStateError,
   TopicReorderInvalidStateError,
   ensureTopicsInTrash,
   TopicAlreadyExistsError,
@@ -87,7 +88,7 @@ export function registerTopicRoutes(app: NativeApp): void {
         includeMetadata: includeMetadataValue !== 'false',
       }));
     } catch (error) {
-      return jsonError(c, error, 400);
+      return jsonError(c, error);
     }
   });
 
@@ -95,7 +96,7 @@ export function registerTopicRoutes(app: NativeApp): void {
     try {
       return c.json(await loadTodayFocus(requireDb(c)));
     } catch (error) {
-      return jsonError(c, error, 400);
+      return jsonError(c, error);
     }
   });
 
@@ -103,7 +104,7 @@ export function registerTopicRoutes(app: NativeApp): void {
     try {
       return c.json({ active_count: await loadActiveTopicCount(requireDb(c)) });
     } catch (error) {
-      return jsonError(c, error, 400);
+      return jsonError(c, error);
     }
   });
 
@@ -132,7 +133,8 @@ export function registerTopicRoutes(app: NativeApp): void {
       if (body.is_pinned !== 0 && body.is_pinned !== 1) return c.json({ error: 'is_pinned must be 0 or 1' }, 400);
       return c.json(await setTopicPinned(requireDb(c), c.req.param('id'), body.is_pinned));
     } catch (error) {
-      return jsonError(c, error, 400);
+      if (error instanceof TopicPinInvalidStateError) return c.json({ error: error.message }, 409);
+      return jsonError(c, error);
     }
   });
 
@@ -164,7 +166,8 @@ export function registerTopicRoutes(app: NativeApp): void {
       return c.json(await loadTopic(db, id), 201);
     } catch (error) {
       if (error instanceof TopicAlreadyExistsError) return c.json({ error: error.message }, 409);
-      return jsonError(c, error, 400);
+      if (error instanceof TopicPinInvalidStateError) return c.json({ error: error.message }, 400);
+      return jsonError(c, error);
     }
   });
 
@@ -179,7 +182,8 @@ export function registerTopicRoutes(app: NativeApp): void {
       const topic = await loadTopic(db, id);
       return topic ? c.json(topic) : c.json({ error: 'Not found' }, 404);
     } catch (error) {
-      return jsonError(c, error, 400);
+      if (error instanceof TopicPinInvalidStateError) return c.json({ error: error.message }, 400);
+      return jsonError(c, error);
     }
   });
 
@@ -241,7 +245,7 @@ export function registerTopicRoutes(app: NativeApp): void {
       return c.json({ success: true, count: uniqueIds.length });
     } catch (error) {
       if (error instanceof TopicNotInTrashError) return c.json({ error: error.message }, 409);
-      return jsonError(c, error, 400);
+      return jsonError(c, error);
     }
   });
 
@@ -277,7 +281,7 @@ export function registerTopicRoutes(app: NativeApp): void {
       return c.json({ success: true, updated_at: updatedAt });
     } catch (error) {
       if (error instanceof TopicReorderInvalidStateError) return c.json({ error: error.message }, 400);
-      return jsonError(c, error, 400);
+      return jsonError(c, error);
     }
   });
 }
