@@ -69,7 +69,7 @@ function page<T extends { id: string }>(items: T[]) {
 }
 
 function baseWorkspace(topics: Topic[] = []): BootstrapData {
-  return { topics, people: [], relationships: [], published: [], tags: [], settings: { reading_speed: 280, theme: 'light' } };
+  return { topics, people: [], relationships: [], published: [], tags: [] };
 }
 
 describe('跨视图实体缓存同步', () => {

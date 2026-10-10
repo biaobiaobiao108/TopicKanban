@@ -23,8 +23,8 @@ describe('Today focus stale action age', () => {
       VALUES ('recent-action-todo', 'recent-action', '继续核对资料', 'in_progress', 1, ?, ?, ?)`).run(startedAt, startedAt, startedAt);
 
     const focus = await loadTodayFocus(db);
-    expect(focus.action_progress.stale_action_count).toBe(0);
-    expect(focus.attention_topics.some((topic) => topic.id === 'recent-action')).toBe(false);
+    expect(focus.action_progress?.stale_action_count).toBe(0);
+    expect(focus.attention_topics?.some((topic) => topic.id === 'recent-action')).toBe(false);
   });
 
   it('uses the current marker instead of picking an older backlog item with the same lane order', async () => {

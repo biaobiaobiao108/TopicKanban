@@ -1,3 +1,4 @@
+import { describe, expect, it } from 'bun:test';
 import { Database } from 'bun:sqlite';
 import { joinPath, resolvePath } from '../src/server/bunPaths';
 import { initializeSqliteDatabase } from '../src/server/sqlite';

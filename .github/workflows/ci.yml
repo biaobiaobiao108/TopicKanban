@@ -34,27 +34,27 @@ jobs:
       - name: Setup Bun
         uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2
         with:
-          bun-version: 1.4.2
+          bun-version: 1.4.3
 
       - name: Cache Bun install packages
         uses: actions/cache@5a3ec84eff668545956fd18022155c47e93e2684 # v4
         with:
           path: ~/.bun/install/cache
-          key: bun-install-${{ runner.os }}-1.4.2-${{ hashFiles('bun.lock') }}
+          key: bun-install-${{ runner.os }}-1.4.3-${{ hashFiles('bun.lock') }}
           restore-keys: |
-            bun-install-${{ runner.os }}-1.4.2-
+            bun-install-${{ runner.os }}-1.4.3-
 
       - name: Install dependencies
         run: bun install --frozen-lockfile
 
       - name: Run unit and integration tests
-        run: bun test
+        run: bun run test
 
       - name: Typecheck
-        run: bunx --bun tsc --noEmit
+        run: bun run typecheck
 
       - name: Build production bundle
-        run: bun run build
+        run: bun run build:server
 
       - name: Check bundle size
         run: bun run check:bundle

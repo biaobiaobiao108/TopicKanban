@@ -72,7 +72,7 @@ describe('Browser-local settings model and sanitization', () => {
 
   it('should accept system theme and all editorial theme presets', () => {
     expect(APP_THEMES).toEqual(['warm_paper', 'light', 'dark', 'system']);
-    expect(THEME_CONFIG_LIST.map(({ id }) => id)).toEqual(APP_THEMES);
+    expect(THEME_CONFIG_LIST.map(({ id }) => id)).toEqual([...APP_THEMES]);
     for (const theme of APP_THEMES) {
       const settings = sanitizeAppSettings({ reading_speed: 260, theme });
       expect(settings.reading_speed).toBe(260);

@@ -59,7 +59,7 @@ describe('PWA static assets', () => {
       start_url?: string;
       scope?: string;
       display?: string;
-      icons?: Array<{ src?: string; sizes?: string; type?: string }>;
+      icons?: Array<{ src?: string; sizes?: string; type?: string; purpose?: string }>;
     };
 
     expect(manifest.name).toBe('喵爪看板');

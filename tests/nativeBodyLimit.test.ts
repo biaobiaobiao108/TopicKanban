@@ -61,7 +61,7 @@ describe('native request body limits', () => {
       try {
         return context.json(await context.req.json());
       } catch (error) {
-        return jsonError(context, error, 400);
+        return jsonError(context, error);
       }
     });
 

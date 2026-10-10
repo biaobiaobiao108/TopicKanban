@@ -110,7 +110,7 @@
 | **服务端与校验** | Bun 原生 HTTP Server + Zod 4 声明式校验管道 + 按领域组织的原生路由 | `app.ts` 负责组合，`schemas.ts` 统一契约校验，`routes/` 负责 HTTP 行为，`repositories/` 负责 SQLite 持久化 |
 | **主业务持久库** | SQLite (`bun:sqlite` + WAL) | 选题、素材、时间线、人物、文案、发布包、商单等业务表（遵循 Freelist 极速原地复用，支持主动 VACUUM） |
 | **浏览器偏好与短期数据** | 浏览器 `localStorage` + SQLite `quick_drops` 表 + 内存 LeaseMap | 主题与排版偏好保存在当前浏览器；快投箱按 7 天 TTL 保存；在线编辑锁只驻留内存 |
-| **测试与构建** | Bun (`bun test` + `Bun.build()`) | 单元与集成测试、类型校验、前后端统一构建 |
+| **测试与构建** | Bun (`bun test --check` + `bun check` + `Bun.build()`) | 单元与集成测试、类型校验、前后端统一构建 |
 
 ---
 
@@ -248,7 +248,7 @@ bun install
 bun run dev
 
 # 3. 运行全量自动化测试套件
-bun test
+bun test --check
 
 # 4. 生产构建打包 (Bun HTML Bundler 全栈 Bundle)
 bun run build

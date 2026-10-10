@@ -5,7 +5,12 @@ import {
   commercialDealSchema,
   externalUrlSchema,
   parseWithZod,
+  type ZodValidationResult,
 } from '../src/server/schemas';
+
+function errorOf<T>(result: ZodValidationResult<T>): string | null {
+  return result.success ? null : result.error;
+}
 
 describe('Zod validation pipeline', () => {
   it('validates valid topic payload successfully', () => {
@@ -34,21 +39,21 @@ describe('Zod validation pipeline', () => {
   });
 
   it('rejects missing or empty title on topic creation', () => {
-    expect(parseWithZod(topicCreateSchema, {}).error).toBe('title is required');
-    expect(parseWithZod(topicCreateSchema, { title: '   ' }).error).toBe('title is required');
-    expect(parseWithZod(topicCreateSchema, { title: 'a'.repeat(201) }).error).toBe('title exceeds 200 characters');
+    expect(errorOf(parseWithZod(topicCreateSchema, {}))).toBe('title is required');
+    expect(errorOf(parseWithZod(topicCreateSchema, { title: '   ' }))).toBe('title is required');
+    expect(errorOf(parseWithZod(topicCreateSchema, { title: 'a'.repeat(201) }))).toBe('title exceeds 200 characters');
   });
 
   it('rejects invalid topic status, priority, and pin values', () => {
-    expect(parseWithZod(topicCreateSchema, { title: '测试', status: 'unknown_status' }).error).toBe('Invalid topic status');
-    expect(parseWithZod(topicCreateSchema, { title: '测试', priority: 'critical' }).error).toBe('Invalid topic priority');
-    expect(parseWithZod(topicCreateSchema, { title: '测试', is_pinned: 2 }).error).toBe('is_pinned must be 0 or 1');
+    expect(errorOf(parseWithZod(topicCreateSchema, { title: '测试', status: 'unknown_status' }))).toBe('Invalid topic status');
+    expect(errorOf(parseWithZod(topicCreateSchema, { title: '测试', priority: 'critical' }))).toBe('Invalid topic priority');
+    expect(errorOf(parseWithZod(topicCreateSchema, { title: '测试', is_pinned: 2 }))).toBe('is_pinned must be 0 or 1');
   });
 
   it('rejects invalid scores and sort orders', () => {
-    expect(parseWithZod(topicCreateSchema, { title: '测试', score_story: 3 }).error).toBe('score_story must be an integer from 0 to 2');
-    expect(parseWithZod(topicCreateSchema, { title: '测试', score_conflict: -1 }).error).toBe('score_conflict must be an integer from 0 to 2');
-    expect(parseWithZod(topicCreateSchema, { title: '测试', sort_order: -5 }).error).toBe('sort_order must be a non-negative integer');
+    expect(errorOf(parseWithZod(topicCreateSchema, { title: '测试', score_story: 3 }))).toBe('score_story must be an integer from 0 to 2');
+    expect(errorOf(parseWithZod(topicCreateSchema, { title: '测试', score_conflict: -1 }))).toBe('score_conflict must be an integer from 0 to 2');
+    expect(errorOf(parseWithZod(topicCreateSchema, { title: '测试', sort_order: -5 }))).toBe('sort_order must be a non-negative integer');
   });
 
   it('validates topicUpdateSchema partial behavior', () => {
@@ -59,7 +64,7 @@ describe('Zod validation pipeline', () => {
     // If title is passed, it must not be blank
     const blankTitleRes = parseWithZod(topicUpdateSchema, { title: '  ' });
     expect(blankTitleRes.success).toBe(false);
-    expect(blankTitleRes.error).toBe('title is required');
+    expect(errorOf(blankTitleRes)).toBe('title is required');
   });
 
   it('validates commercialDealSchema fields and amounts', () => {
@@ -76,14 +81,14 @@ describe('Zod validation pipeline', () => {
     expect(parseWithZod(commercialDealSchema(true), validDeal).success).toBe(true);
 
     // Negative amount
-    expect(parseWithZod(commercialDealSchema(false), { amount_cents: -100 }).error).toBe('amount_cents must be a non-negative safe integer');
+    expect(errorOf(parseWithZod(commercialDealSchema(false), { amount_cents: -100 }))).toBe('amount_cents must be a non-negative safe integer');
 
     // Invalid status and source
-    expect(parseWithZod(commercialDealSchema(false), { status: 'pending' }).error).toBe('Invalid commercial deal status');
-    expect(parseWithZod(commercialDealSchema(false), { source: 'wechat_shop' }).error).toBe('Invalid commercial deal source');
+    expect(errorOf(parseWithZod(commercialDealSchema(false), { status: 'pending' }))).toBe('Invalid commercial deal status');
+    expect(errorOf(parseWithZod(commercialDealSchema(false), { source: 'wechat_shop' }))).toBe('Invalid commercial deal source');
 
     // Invalid calendar date
-    expect(parseWithZod(commercialDealSchema(false), { delivery_due_date: '2026-02-30' }).error).toBe('delivery_due_date must be YYYY-MM-DD or null');
+    expect(errorOf(parseWithZod(commercialDealSchema(false), { delivery_due_date: '2026-02-30' }))).toBe('delivery_due_date must be YYYY-MM-DD or null');
   });
 
   it('validates external URL safety correctly', () => {

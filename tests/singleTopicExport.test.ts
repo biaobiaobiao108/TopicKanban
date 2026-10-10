@@ -95,6 +95,7 @@ describe('exportSingleTopicMarkdown utility', () => {
     const sampleReport = {
       id: 'rep-1',
       topic_id: 'topic-demo',
+      title: '核心事实梳理',
       content_markdown: '## 核心事实梳理\n\n1. 2024年成立空壳公司。\n2. 2025年开始直播带货。',
       content_html: '<h2>核心事实梳理</h2><ol><li>2024年成立空壳公司。</li><li>2025年开始直播带货。</li></ol>',
       content_json: '{}',

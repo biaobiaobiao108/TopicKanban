@@ -238,13 +238,17 @@ describe('Calendar utilities and event extraction', () => {
     const published: PublishedVideo[] = [
       {
         id: 'p_early',
+        topic_id: null,
         title: '凌晨发布的视频',
+        url: 'https://www.bilibili.com/video/BV1xx411c7mD',
+        bvid: 'BV1xx411c7mD',
         published_at: '2026-09-07T18:00:00.000Z', // 18:00 UTC = 02:00 next day Beijing (2026-09-08)
         views: 100,
         likes: 10,
+        coins: 0,
+        favorites: 0,
         comments: 1,
-        shares: 0,
-        created_at: '2026-09-07',
+        notes: '',
         updated_at: '2026-09-07',
       },
     ];

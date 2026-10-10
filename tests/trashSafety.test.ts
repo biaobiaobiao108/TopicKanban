@@ -28,23 +28,24 @@ function statement(sql: string, results: unknown[] = []): FakeStatement {
 describe('trash safety', () => {
   it('loads every trashed topic instead of truncating at 100', async () => {
     const topics = Array.from({ length: 101 }, (_, index) => ({ id: `topic-${index}` }));
+    const batch = vi.fn(async (_statements: FakeStatement[]) => [
+      { results: topics },
+      { results: [] },
+      { results: [] },
+      { results: [] },
+      { results: [] },
+      { results: [] },
+    ]);
     const db = {
       prepare: (sql: string) => statement(sql),
-      batch: vi.fn(async () => [
-        { results: topics },
-        { results: [] },
-        { results: [] },
-        { results: [] },
-        { results: [] },
-        { results: [] },
-      ]),
+      batch,
     } as unknown as SqliteDatabase;
 
     const result = await loadTrashedTopics(db);
 
     expect(result).toHaveLength(101);
-    const firstBatch = (db.batch as { mock: { calls: unknown[][] } }).mock.calls[0][0] as FakeStatement[];
-    expect(firstBatch[0].sql).toContain('WHERE t.deleted_at IS NOT NULL');
+    const firstBatch = batch.mock.calls[0]?.[0] ?? [];
+    expect(firstBatch[0]?.sql).toContain('WHERE t.deleted_at IS NOT NULL');
   });
 
   it('rejects a permanent-delete batch when any topic is not in trash', async () => {
@@ -60,7 +61,7 @@ describe('trash safety', () => {
   });
 
   it('guards every destructive statement with the trash condition', async () => {
-    const batch = vi.fn(async () => []);
+    const batch = vi.fn(async (_statements: FakeStatement[]) => []);
     const db = {
       prepare: (sql: string) => statement(sql, [{ id: 'trash-1' }]),
       batch,
@@ -68,7 +69,7 @@ describe('trash safety', () => {
 
     await permanentlyDeleteTrashedTopics(db, ['trash-1']);
 
-    const statements = batch.mock.calls[0][0] as FakeStatement[];
+    const statements = batch.mock.calls[0]?.[0] ?? [];
     expect(statements).toHaveLength(10);
     statements.forEach((item) => expect(item.sql).toContain('deleted_at IS NOT NULL'));
   });
