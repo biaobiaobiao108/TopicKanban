@@ -37,20 +37,30 @@ docker run --detach \
   --env DATA_DIR=/app/data \
   "$image_ref" >/dev/null
 
-host_port="$(docker port "$container_name" 3030/tcp | awk -F: 'NR == 1 { print $NF }')"
-if [[ -z "$host_port" ]]; then
-  echo 'Docker did not publish the application port.' >&2
-  exit 1
-fi
-base_url="http://127.0.0.1:${host_port}"
+base_url=''
+
+resolve_base_url() {
+  local host_port
+  host_port="$(docker port "$container_name" 3030/tcp | awk -F: 'NR == 1 { print $NF }')"
+  if [[ -z "$host_port" ]]; then
+    echo 'Docker did not publish the application port.' >&2
+    return 1
+  fi
+  base_url="http://127.0.0.1:${host_port}"
+  echo "Checking the container through published endpoint ${base_url}."
+}
 
 wait_for_health() {
-  local attempt
+  local attempt last_probe
+  last_probe='no health response received'
   for ((attempt = 1; attempt <= wait_attempts; attempt += 1)); do
-    if curl --connect-timeout 2 --max-time 5 --fail --silent "$base_url/api/health" >/dev/null; then return 0; fi
+    if last_probe="$(curl --connect-timeout 2 --max-time 5 --fail --silent --show-error \
+      --output /dev/null --write-out 'HTTP %{http_code}' "$base_url/api/health" 2>&1)"; then
+      return 0
+    fi
     sleep 2
   done
-  echo "Container did not become healthy at $base_url." >&2
+  echo "Container did not become healthy at $base_url. Last probe: $last_probe" >&2
   return 1
 }
 
@@ -79,6 +89,7 @@ read_topic() {
     'any(.items[]?; .title == $title)' <<<"$response" >/dev/null
 }
 
+resolve_base_url
 wait_for_health
 token="$(login)"
 topic_payload="$(jq -cn --arg title "$topic_title" '{title: $title}')"
@@ -93,6 +104,7 @@ jq -e --arg title "$topic_title" '.title == $title and (.id | strings | length >
 read_topic "$token"
 
 docker restart --time 10 "$container_name" >/dev/null
+resolve_base_url
 wait_for_health
 token="$(login)"
 read_topic "$token"
