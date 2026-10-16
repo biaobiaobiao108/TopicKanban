@@ -964,8 +964,8 @@ export const SourcesTab: React.FC<SourcesTabProps> = ({
                 <div className="flex items-center gap-2">
                   {undatedCollapsed ? <ChevronRight className="w-4 h-4 text-stone-400" /> : <ChevronDown className="w-4 h-4 text-stone-400" />}
                   <span className="text-xs font-bold text-[var(--ink)]">待定时间素材</span>
-                  <span className="px-2 py-0.5 rounded-full bg-stone-500/10 text-stone-600 dark:text-stone-400 font-mono text-[11px] font-semibold">
-                    {undatedSources.length} 条
+                  <span className="px-2 py-0.5 rounded-full bg-stone-500/10 text-[var(--ink-muted)] text-[11px] font-semibold">
+                    <span className="font-mono tabular-nums">{undatedSources.length}</span> 条
                   </span>
                 </div>
                 <span className="text-[11px] text-[var(--ink-muted)]">

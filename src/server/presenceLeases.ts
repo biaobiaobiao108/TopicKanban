@@ -4,11 +4,18 @@ interface PresenceLease<T> {
   expiresAt: number;
 }
 
+export const MAX_LEASES = 1000;
+
 const leases = new Map<string, PresenceLease<{ client_id: string; device_name: string; updated_at: string }>>();
 
 function cleanExpired(now: number): void {
   for (const [key, lease] of leases) {
     if (lease.expiresAt <= now) leases.delete(key);
+  }
+  while (leases.size >= MAX_LEASES) {
+    const oldestKey = leases.keys().next().value;
+    if (!oldestKey) break;
+    leases.delete(oldestKey);
   }
 }
 

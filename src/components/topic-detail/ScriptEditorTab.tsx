@@ -1365,16 +1365,16 @@ export const ScriptEditorTab: React.FC<ScriptEditorTabProps> = ({
           </div>
 
           {/* Bottom-Right: Floating Stats */}
-          <div className={`fixed right-5 sm:right-8 bottom-5 sm:bottom-7 z-40 flex items-center gap-2.5 bg-[var(--surface)]/95 backdrop-blur-md border border-[var(--line)] text-stone-800 dark:text-stone-200 px-4 py-2 rounded-full text-xs font-mono shadow-md hover:shadow-lg transition-all duration-300 select-none ${isReferenceOpen ? 'script-editor-zen-reference-offset' : ''} ${isTypingZen ? 'opacity-25 hover:opacity-100' : 'opacity-100'}`}>
-            <span className="font-semibold text-stone-900 dark:text-stone-100 font-mono">
-              {charCount.toLocaleString()} <span className="font-normal text-stone-500 dark:text-stone-400 text-[11px]">字</span>
+          <div className={`fixed right-5 sm:right-8 bottom-5 sm:bottom-7 z-40 flex items-center gap-2.5 bg-[var(--surface)]/95 backdrop-blur-md border border-[var(--line)] text-[var(--ink)] px-4 py-2 rounded-full text-xs font-sans shadow-md hover:shadow-lg transition-all duration-300 select-none ${isReferenceOpen ? 'script-editor-zen-reference-offset' : ''} ${isTypingZen ? 'opacity-25 hover:opacity-100' : 'opacity-100'}`}>
+            <span className="font-semibold text-[var(--ink)] font-sans">
+              <span className="font-mono tabular-nums">{charCount.toLocaleString()}</span> <span className="font-normal text-[var(--ink-muted)] text-[11px]">字</span>
             </span>
             <span className="opacity-40">·</span>
-            <span className="flex items-center gap-1.5 text-stone-600 dark:text-stone-300 font-mono text-[11px]">
-              <Clock className="w-3.5 h-3.5 text-stone-500 dark:text-stone-400 shrink-0" />
-              <span>{estMinutes}分{estSeconds}秒</span>
+            <span className="flex items-center gap-1.5 text-[var(--ink-muted)] font-sans text-[11px]">
+              <Clock className="w-3.5 h-3.5 text-[var(--ink-muted)] shrink-0" />
+              <span><span className="font-mono tabular-nums">{estMinutes}</span>分<span className="font-mono tabular-nums">{estSeconds}</span>秒</span>
             </span>
-            <span className="text-stone-300 dark:text-stone-700">·</span>
+            <span className="opacity-30 text-[var(--line)]">·</span>
             <div className="grid h-6 w-6 shrink-0 place-items-center" aria-live="polite">
               {saveStatus === 'saving' && (
                 <Cloud className="h-3.5 w-3.5 animate-pulse text-[var(--accent)]" aria-label="正在同步至云端" role="img" />

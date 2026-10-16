@@ -33,15 +33,15 @@ export const LoginView: React.FC<LoginViewProps> = ({ onLoginSuccess }) => {
   };
 
   return (
-    <div className="min-h-dvh w-screen bg-stone-50/50 dark:bg-stone-950 flex items-center justify-center p-4 sm:p-6 font-sans">
-      <div className="w-full max-w-md bg-white dark:bg-stone-900 rounded-3xl border border-stone-200/70 dark:border-stone-800 shadow-modal p-8 sm:p-10 space-y-6 animate-in fade-in zoom-in-95 duration-200">
+    <div className="min-h-dvh w-screen bg-[var(--canvas)] flex items-center justify-center p-4 sm:p-6 font-sans">
+      <div className="w-full max-w-md bg-[var(--surface)] rounded-3xl border border-[var(--line)] shadow-modal p-8 sm:p-10 space-y-6 animate-in fade-in zoom-in-95 duration-200">
         {/* Brand Header */}
         <div className="text-center space-y-2.5">
-          <div className="w-14 h-14 rounded-2xl flex items-center justify-center overflow-hidden mx-auto shadow-2xs border border-stone-200/60 dark:border-stone-700 p-1 bg-white dark:bg-stone-800">
+          <div className="w-14 h-14 rounded-2xl flex items-center justify-center overflow-hidden mx-auto shadow-2xs border border-[var(--line)] p-1 bg-[var(--surface)]">
             <img src="/icon.png" alt="喵爪看板 Logo" width={56} height={56} className="w-full h-full object-cover rounded-xl" />
           </div>
-          <h1 className="text-xl font-bold text-stone-900 dark:text-stone-100 tracking-tight">喵爪看板</h1>
-          <p className="text-xs text-stone-500 dark:text-stone-400">
+          <h1 className="text-xl font-bold text-[var(--ink)] tracking-tight">喵爪看板</h1>
+          <p className="text-xs text-[var(--ink-muted)]">
             视频创作者专属工作台 • 访问鉴权保护
           </p>
         </div>
@@ -49,7 +49,7 @@ export const LoginView: React.FC<LoginViewProps> = ({ onLoginSuccess }) => {
         {/* Form */}
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-1.5">
-            <label htmlFor="workspace-password" className="block text-xs font-bold text-stone-700 dark:text-stone-300">
+            <label htmlFor="workspace-password" className="block text-xs font-bold text-[var(--ink)]">
               工作台访问密码
             </label>
             <div className="relative">
@@ -63,7 +63,7 @@ export const LoginView: React.FC<LoginViewProps> = ({ onLoginSuccess }) => {
                 placeholder="请输入访问口令密码..."
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="w-full pl-3.5 pr-10 py-2.5 bg-[var(--control-surface)] dark:bg-stone-800 border border-stone-200/80 dark:border-stone-700 rounded-xl text-stone-900 dark:text-stone-100 text-sm focus:bg-white dark:focus:bg-stone-800 focus:border-[var(--accent)] focus:outline-none transition-colors placeholder:text-stone-400"
+                className="w-full pl-3.5 pr-10 py-2.5 bg-[var(--control-surface)] border border-[var(--line)] rounded-xl text-[var(--ink)] text-sm focus:bg-[var(--surface)] focus:border-[var(--accent)] focus:outline-none transition-colors placeholder:text-stone-400 dark:placeholder:text-stone-500"
               />
               <button
                 type="button"

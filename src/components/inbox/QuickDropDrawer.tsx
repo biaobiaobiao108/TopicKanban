@@ -78,17 +78,17 @@ export const QuickDropDrawer: React.FC<QuickDropDrawerProps> = ({
       ));
       if (focusable.length === 0) {
         event.preventDefault();
-        drawerRef.current.focus();
+        drawerRef.current.focus({ preventScroll: true });
         return;
       }
       const first = focusable[0];
       const last = focusable[focusable.length - 1];
       if (event.shiftKey && document.activeElement === first) {
         event.preventDefault();
-        last.focus();
+        last.focus({ preventScroll: true });
       } else if (!event.shiftKey && document.activeElement === last) {
         event.preventDefault();
-        first.focus();
+        first.focus({ preventScroll: true });
       }
     };
 
@@ -138,22 +138,22 @@ export const QuickDropDrawer: React.FC<QuickDropDrawerProps> = ({
         aria-modal="true"
         aria-labelledby="quick-drop-title"
         tabIndex={-1}
-        className="absolute inset-y-0 right-0 w-full max-w-md bg-white dark:bg-stone-900 shadow-2xl flex flex-col z-10 drawer-right-enter transition-colors"
+        className="absolute inset-y-0 right-0 w-full max-w-md bg-[var(--surface)] shadow-2xl flex flex-col z-10 drawer-right-enter transition-colors"
       >
         {/* Header */}
-        <div className="p-4 border-b border-stone-200/70 dark:border-stone-800 bg-stone-50/80 dark:bg-stone-900/90 flex items-center justify-between">
+        <div className="p-4 border-b border-[var(--line)] bg-[var(--surface)] flex items-center justify-between">
           <div className="flex items-center gap-2">
             <div className="p-2 bg-[var(--accent-soft)] text-[var(--accent)] rounded-xl">
               <Smartphone className="w-4 h-4" />
             </div>
             <div>
-              <h2 id="quick-drop-title" className="text-sm font-bold text-stone-900 dark:text-stone-100 flex items-center gap-2">
+              <h2 id="quick-drop-title" className="text-sm font-bold text-[var(--ink)] flex items-center gap-2">
                 <span>手机快投灵感箱</span>
                 <span className="text-[10px] font-mono bg-[var(--accent-soft)] text-[var(--accent-dark)] px-2 py-0.5 rounded-full font-bold">
                   {drops.length}
                 </span>
               </h2>
-              <p className="text-[11px] text-stone-400 dark:text-stone-500">来自快捷指令与手机分享菜单的碎片线索</p>
+              <p className="text-[11px] text-[var(--ink-muted)]">来自快捷指令与手机分享菜单的碎片线索</p>
             </div>
           </div>
 
@@ -197,23 +197,23 @@ export const QuickDropDrawer: React.FC<QuickDropDrawerProps> = ({
               const safeUrl = sanitizeExternalHttpUrl(normalizedUrl);
               const normalizedItem = normalizedUrl === item.url ? item : { ...item, url: normalizedUrl };
               return (
-              <div
-                key={item.id}
-                className="p-4 rounded-2xl border border-stone-200/70 dark:border-stone-800 bg-white dark:bg-stone-800/80 hover:shadow-card hover:-translate-y-0.5 transition-all space-y-2.5 shadow-2xs"
-              >
-                <div className="flex items-start justify-between gap-2">
-                  <span className="text-[10px] font-bold text-stone-600 dark:text-stone-300 bg-stone-500/10 px-2 py-0.5 rounded-full">
-                    {item.source || '快捷指令'}
-                  </span>
-                  <span className="text-[10px] font-mono text-stone-400 dark:text-stone-500 flex items-center gap-1">
-                    <Clock className="w-3 h-3" />
-                    {formatBeijingDateTime(item.created_at, 'zh-CN', { month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' })}
-                  </span>
-                </div>
+                <div
+                  key={item.id}
+                  className="p-4 rounded-2xl border border-[var(--line)] bg-[var(--surface)] hover:shadow-card hover:-translate-y-0.5 transition-all space-y-2.5 shadow-2xs"
+                >
+                  <div className="flex items-start justify-between gap-2">
+                    <span className="text-[10px] font-bold text-[var(--ink-muted)] bg-stone-500/10 px-2 py-0.5 rounded-full">
+                      {item.source || '快捷指令'}
+                    </span>
+                    <span className="text-[10px] font-mono text-[var(--ink-muted)] flex items-center gap-1">
+                      <Clock className="w-3 h-3" />
+                      {formatBeijingDateTime(item.created_at, 'zh-CN', { month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' })}
+                    </span>
+                  </div>
 
-                <p className="text-xs text-stone-800 dark:text-stone-200 font-medium leading-relaxed break-words whitespace-pre-wrap">
-                  {item.content}
-                </p>
+                  <p className="text-xs text-[var(--ink)] font-medium leading-relaxed break-words whitespace-pre-wrap">
+                    {item.content}
+                  </p>
 
                 {safeUrl && (
                   <div className="pt-0.5">

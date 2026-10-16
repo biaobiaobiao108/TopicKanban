@@ -25,6 +25,22 @@ function isPrivateIpv6(hostname: string): boolean {
     return true;
   }
 
+  // Covers IPv4-compatible IPv6 (both literal ::127.0.0.1 or normalized ::7f00:1).
+  if (clean.startsWith('::') && !clean.startsWith('::ffff:')) {
+    const rest = clean.slice(2);
+    if (rest.includes('.')) {
+      if (isPrivateIpv4(rest)) return true;
+    } else {
+      const parts = rest.split(':');
+      if (parts.length === 2 && parts.every((part) => /^[0-9a-f]{1,4}$/.test(part))) {
+        const first = Number.parseInt(parts[0], 16);
+        const second = Number.parseInt(parts[1], 16);
+        const ipv4 = `${first >> 8}.${first & 0xff}.${second >> 8}.${second & 0xff}`;
+        if (isPrivateIpv4(ipv4)) return true;
+      }
+    }
+  }
+
   // Covers both ::ffff:127.0.0.1 and hexadecimal IPv4-mapped forms such as ::ffff:7f00:1.
   if (clean.startsWith('::ffff:')) {
     const mapped = clean.slice('::ffff:'.length);
@@ -58,6 +74,8 @@ export function isSafeExternalHttpUrl(value: unknown): value is string {
     if (parsed.protocol !== 'http:' && parsed.protocol !== 'https:') return false;
     if (!hostname) return false;
     if (hostname === 'localhost' || PRIVATE_HOST_SUFFIXES.some((suffix) => hostname.endsWith(suffix))) return false;
+    // Single-label hostnames (e.g. router, nas, intranet) without dots are local network hostnames
+    if (!hostname.includes('.') && !hostname.includes(':')) return false;
     if (isPrivateIpv4(hostname) || isPrivateIpv6(hostname)) return false;
     return true;
   } catch {

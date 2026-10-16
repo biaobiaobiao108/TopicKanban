@@ -20,6 +20,9 @@ describe('External URL safety', () => {
     expect(isSafeExternalHttpUrl('http://[::ffff:127.0.0.1]/')).toBe(false);
     expect(isSafeExternalHttpUrl('http://[::ffff:7f00:1]/')).toBe(false);
     expect(isSafeExternalHttpUrl('http://[::ffff:c0a8:101]/')).toBe(false);
+    expect(isSafeExternalHttpUrl('http://[::127.0.0.1]/')).toBe(false);
+    expect(isSafeExternalHttpUrl('http://router/admin')).toBe(false);
+    expect(isSafeExternalHttpUrl('http://nas/storage')).toBe(false);
   });
 
   it('rejects private hostnames with a trailing DNS dot', () => {
@@ -41,6 +44,7 @@ describe('Client-side URL parser', () => {
     expect(detectPlatformFromText('https://www.youtube.com/watch?v=123')).toBe('youtube');
     expect(detectPlatformFromText('https://www.douyin.com/video/123')).toBe('douyin');
     expect(detectPlatformFromText('https://www.xiaohongshu.com/explore/123')).toBe('xiaohongshu');
+    expect(detectPlatformFromText('http://t.cn/A6xxxxxx')).toBe('weibo');
   });
 
   it('extracts URLs from share text locally', () => {
@@ -50,5 +54,6 @@ describe('Client-side URL parser', () => {
     expect(extractUrlFromText('分享链接：https://b23.tv/xyz789。快看')).toBe('https://b23.tv/xyz789');
     expect(extractUrlFromText('参考链接（https://xhslink.com/foo）')).toBe('https://xhslink.com/foo');
     expect(extractUrlFromText('链接【https://weibo.com/p/123】')).toBe('https://weibo.com/p/123');
+    expect(extractUrlFromText('打开抖音https://v.douyin.com/abc123/【打开抖音】')).toBe('https://v.douyin.com/abc123/');
   });
 });

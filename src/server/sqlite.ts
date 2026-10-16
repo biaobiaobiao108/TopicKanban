@@ -197,7 +197,7 @@ export async function initializeSqliteDatabase(dbFilePath: string, schemaDir?: s
 
   try {
     assertCurrentSchema(sqlite);
-    // Index creation is additive and idempotent, so existing v5 databases
+    // Index creation is additive and idempotent, so existing v6 databases
     // receive the query-plan improvements without a data migration.
     ensurePerformanceIndexes(sqlite);
   } catch (error) {

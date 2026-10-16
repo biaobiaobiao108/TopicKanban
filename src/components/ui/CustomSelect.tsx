@@ -261,7 +261,7 @@ export const CustomSelect: React.FC<CustomSelectProps> = ({
       {isOpen && popoverPosition && typeof document !== 'undefined' && createPortal(
         <div
           ref={popoverRef}
-          className={`fixed z-[100] min-w-0 max-w-[calc(100vw-1rem)] overflow-hidden bg-white/95 dark:bg-stone-900/95 backdrop-blur-md border border-stone-200/80 dark:border-stone-800 rounded-2xl shadow-modal animate-in fade-in zoom-in-95 duration-150 ease-editorial-out flex flex-col ${popoverClassName}`}
+          className={`fixed z-[100] min-w-0 max-w-[calc(100vw-1rem)] overflow-hidden bg-[var(--surface)]/95 backdrop-blur-md border border-[var(--line)] rounded-2xl shadow-modal animate-in fade-in zoom-in-95 duration-150 ease-editorial-out flex flex-col text-[var(--ink)] ${popoverClassName}`}
           style={{
             left: `${popoverPosition.left}px`,
             top: `${popoverPosition.top}px`,
@@ -272,7 +272,7 @@ export const CustomSelect: React.FC<CustomSelectProps> = ({
           }}
         >
           {searchable && (
-            <div className="p-2 border-b border-stone-100 dark:border-stone-800 bg-stone-50/70 dark:bg-stone-800/80 flex items-center gap-2">
+            <div className="p-2 border-b border-[var(--line)] bg-[var(--canvas)]/70 flex items-center gap-2">
               <Search className="w-3.5 h-3.5 text-stone-400 dark:text-stone-500 ml-1 shrink-0" aria-hidden="true" />
               <input
                 ref={searchRef}

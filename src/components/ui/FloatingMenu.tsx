@@ -77,7 +77,7 @@ export const FloatingMenu: React.FC<FloatingMenuProps> = ({
       ref={popoverRef}
       id={id || menuId}
       aria-label={ariaLabel}
-      className={`fixed z-[100] min-w-0 max-w-[calc(100vw-1rem)] overflow-hidden rounded-2xl border border-stone-200/80 bg-white/95 shadow-modal backdrop-blur-md dark:border-stone-800 dark:bg-stone-900/95 ${className}`}
+      className={`fixed z-[100] min-w-0 max-w-[calc(100vw-1rem)] overflow-hidden rounded-2xl border border-[var(--line)] bg-[var(--surface)]/95 shadow-modal backdrop-blur-md text-[var(--ink)] ${className}`}
       style={{
         left: `${position.left}px`,
         top: `${position.top}px`,

@@ -101,8 +101,8 @@ export const ScriptReferenceDrawer: React.FC<ScriptReferenceDrawerProps> = ({
           <div className="inline-flex items-center justify-center gap-0.5 rounded-xl bg-black/[0.03] dark:bg-white/[0.04] p-0.5">
             {[
               { id: 'all', label: '全部' },
-              { id: 'sources', label: '资料', count: sources.length },
-              { id: 'people', label: '人物', count: peopleList.length },
+              { id: 'sources', label: '资料' },
+              { id: 'people', label: '人物' },
               { id: 'outline', label: '大纲' },
             ].map((tab) => (
               <button
@@ -112,13 +112,10 @@ export const ScriptReferenceDrawer: React.FC<ScriptReferenceDrawerProps> = ({
                 className={`px-2 py-1 rounded-lg shrink-0 text-[11px] transition-all cursor-pointer border-0 ${
                   activeTab === tab.id
                     ? 'bg-[var(--surface)] text-[var(--accent-dark)] dark:text-[var(--accent)] font-semibold shadow-2xs'
-                    : 'text-stone-500 dark:text-stone-400 hover:text-stone-900 dark:hover:text-stone-100 font-medium'
+                    : 'text-[var(--ink-muted)] hover:text-[var(--ink)] font-medium'
                 }`}
               >
                 <span>{tab.label}</span>
-                {typeof tab.count === 'number' && tab.count > 0 && (
-                  <span className="ml-0.5 text-[10px] opacity-75 font-mono">({tab.count})</span>
-                )}
               </button>
             ))}
           </div>

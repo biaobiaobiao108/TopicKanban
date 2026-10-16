@@ -32,17 +32,14 @@ import {
   TopicAlreadyExistsError,
   updateTopic,
   invalidatePublishedAnalyticsCache,
+  purgeExpiredTrashTopics,
 } from '../repositories';
 
 async function purgeExpiredTrash(db: ReturnType<typeof requireDb>): Promise<void> {
   try {
-    const retentionDays = TRASH_RETENTION_DAYS;
-    if (retentionDays > 0) {
-      const expiredIds = await listExpiredTrashTopicIds(db, retentionDays);
-      if (expiredIds.length > 0) {
-        await permanentlyDeleteTrashedTopics(db, expiredIds);
-        invalidatePublishedAnalyticsCache();
-      }
+    const result = await purgeExpiredTrashTopics(db, TRASH_RETENTION_DAYS);
+    if (result.purged_count > 0) {
+      invalidatePublishedAnalyticsCache();
     }
   } catch {
     // Expiry purge failure should not block loading topics

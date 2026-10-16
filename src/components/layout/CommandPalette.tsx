@@ -112,30 +112,30 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
       ));
       if (focusable.length === 0) {
         event.preventDefault();
-        dialogRef.current.focus();
+        dialogRef.current.focus({ preventScroll: true });
         return;
       }
       const first = focusable[0];
       const last = focusable[focusable.length - 1];
       if (event.shiftKey && document.activeElement === first) {
         event.preventDefault();
-        last.focus();
+        last.focus({ preventScroll: true });
       } else if (!event.shiftKey && document.activeElement === last) {
         event.preventDefault();
-        first.focus();
+        first.focus({ preventScroll: true });
       }
     };
 
     document.addEventListener('keydown', handleTabKeyDown);
     document.body.style.overflow = 'hidden';
-    const focusFrame = requestAnimationFrame(() => inputRef.current?.focus());
+    const focusFrame = requestAnimationFrame(() => inputRef.current?.focus({ preventScroll: true }));
 
     return () => {
       cancelAnimationFrame(focusFrame);
       document.removeEventListener('keydown', handleTabKeyDown);
       document.body.style.overflow = previousOverflowRef.current;
       for (const [element, wasInert] of inertElements) element.inert = wasInert;
-      previousFocusRef.current?.focus();
+      previousFocusRef.current?.focus({ preventScroll: true });
     };
   }, [isOpen]);
 
@@ -157,7 +157,7 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
     if (isOpen) {
       setQuery('');
       setSelectedIndex(0);
-      const focusFrame = requestAnimationFrame(() => inputRef.current?.focus());
+      const focusFrame = requestAnimationFrame(() => inputRef.current?.focus({ preventScroll: true }));
       return () => cancelAnimationFrame(focusFrame);
     }
   }, [isOpen]);

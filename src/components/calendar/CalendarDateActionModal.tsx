@@ -180,7 +180,7 @@ export const CalendarDateActionModal: React.FC<CalendarDateActionModalProps> = (
                           <StatusBadge status={topic.status} />
                           <PriorityBadge priority={topic.priority} />
                         </div>
-                        <div className="text-xs font-bold text-stone-900 dark:text-stone-100 truncate">
+                        <div className="text-xs font-bold text-[var(--ink)] truncate">
                           {topic.title}
                         </div>
                       </div>
@@ -201,26 +201,26 @@ export const CalendarDateActionModal: React.FC<CalendarDateActionModalProps> = (
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2 border-t border-stone-100 dark:border-stone-800">
               <div>
-                <label className="block min-h-4 text-xs font-semibold text-stone-700 dark:text-stone-300 mb-1">
+                <label className="block min-h-4 text-xs font-semibold text-[var(--ink)] mb-1">
                   计划发布日期
                 </label>
                 <DateInput
                   value={publishDate}
                   placeholder="YYYYMMDD，例如 20260831"
                   onChange={(val) => setPublishDate(val)}
-                  className="min-h-10 w-full px-3 py-2 rounded-xl text-xs bg-stone-500/[0.04] dark:bg-stone-800 border border-stone-200 dark:border-stone-700 text-stone-900 dark:text-stone-100 focus:outline-none focus:border-[var(--accent)]"
+                  className="min-h-10 w-full px-3 py-2 rounded-xl text-xs bg-[var(--control-surface)] border border-[var(--line)] text-[var(--ink)] focus:outline-none focus:border-[var(--accent)]"
                 />
               </div>
 
               <div>
-                <label className="block min-h-4 text-xs font-semibold text-stone-700 dark:text-stone-300 mb-1">
+                <label className="block min-h-4 text-xs font-semibold text-[var(--ink)] mb-1">
                   内部制作截止日 (选填)
                 </label>
                 <DateInput
                   value={deadlineDate}
                   placeholder="YYYYMMDD，例如 20260828"
                   onChange={(val) => setDeadlineDate(val)}
-                  className="min-h-10 w-full px-3 py-2 rounded-xl text-xs bg-stone-500/[0.04] dark:bg-stone-800 border border-stone-200 dark:border-stone-700 text-stone-900 dark:text-stone-100 focus:outline-none focus:border-[var(--accent)]"
+                  className="min-h-10 w-full px-3 py-2 rounded-xl text-xs bg-[var(--control-surface)] border border-[var(--line)] text-[var(--ink)] focus:outline-none focus:border-[var(--accent)]"
                 />
               </div>
             </div>
@@ -271,12 +271,12 @@ export const CalendarDateActionModal: React.FC<CalendarDateActionModalProps> = (
                 placeholder="例如：网红老饕打假实录..."
                 value={newTitle}
                 onChange={(e) => setNewTitle(e.target.value)}
-                className="w-full px-3 py-2 rounded-xl text-xs bg-stone-500/[0.04] dark:bg-stone-800 border border-stone-200 dark:border-stone-700 text-stone-900 dark:text-stone-100 focus:outline-none focus:border-[var(--accent)]"
+                className="w-full px-3 py-2 rounded-xl text-xs bg-[var(--control-surface)] border border-[var(--line)] text-[var(--ink)] focus:outline-none focus:border-[var(--accent)]"
               />
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-stone-700 dark:text-stone-300 mb-1">
+              <label className="block text-xs font-semibold text-[var(--ink)] mb-1">
                 看点概述 (选填)
               </label>
               <textarea
@@ -284,7 +284,7 @@ export const CalendarDateActionModal: React.FC<CalendarDateActionModalProps> = (
                 placeholder="核心反差与故事梗概..."
                 value={newSummary}
                 onChange={(e) => setNewSummary(e.target.value)}
-                className="w-full px-3 py-2 rounded-xl text-xs bg-stone-500/[0.04] dark:bg-stone-800 border border-stone-200 dark:border-stone-700 text-stone-900 dark:text-stone-100 focus:outline-none focus:border-[var(--accent)]"
+                className="w-full px-3 py-2 rounded-xl text-xs bg-[var(--control-surface)] border border-[var(--line)] text-[var(--ink)] focus:outline-none focus:border-[var(--accent)]"
               />
             </div>
 

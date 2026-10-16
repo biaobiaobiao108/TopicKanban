@@ -621,7 +621,7 @@ function CommercialDealsView({ topics, onCreateTopicFromDeal }: Pick<DealsViewPr
               type="button"
               aria-pressed={showActiveOnly}
               onClick={handleScopeToggle}
-              className={`min-h-11 rounded-xl px-3 text-sm font-semibold transition-colors ${showActiveOnly ? 'bg-stone-900 text-white dark:bg-stone-100 dark:text-stone-900' : 'border border-stone-200/80 bg-stone-500/[0.03] text-stone-600 hover:bg-stone-100 dark:border-stone-700 dark:bg-stone-800 dark:text-stone-300 dark:hover:bg-stone-700'}`}
+              className={`min-h-11 rounded-xl px-3 text-sm font-semibold transition-colors ${showActiveOnly ? 'bg-[var(--accent)] text-white shadow-2xs' : 'border border-[var(--line)] bg-[var(--control-surface)] text-[var(--ink-muted)] hover:text-[var(--ink)] hover:bg-[var(--surface-hover)]'}`}
             >
               显示进行中
             </button>
@@ -1077,12 +1077,12 @@ function CommercialDealDetailView({
                 <div className="flex flex-wrap items-center gap-2">
                   <StatusPill status={deal.status} />
                   <span
-                    className={`rounded-full px-2.5 py-1 text-xs font-semibold ${deal.payment_status === 'paid' ? 'bg-emerald-500/10 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-300' : 'bg-amber-500/10 text-amber-800 dark:bg-amber-950/40 dark:text-amber-300'}`}
+                    className={`rounded-full px-2.5 py-1 text-xs font-semibold ${deal.payment_status === 'paid' ? 'bg-[var(--accent)]/10 text-[var(--accent)]' : 'bg-stone-500/10 text-[var(--ink-muted)]'}`}
                   >
                     {deal.payment_status === 'paid' ? '已回款' : '待回款'}
                   </span>
                   {deal.contract_status === 'signed' && (
-                    <span className="rounded-full bg-blue-500/10 px-2.5 py-1 text-xs font-semibold text-blue-700 dark:bg-blue-950/40 dark:text-blue-300">
+                    <span className="rounded-full bg-[var(--surface-hover)] border border-[var(--line)] px-2.5 py-1 text-xs font-semibold text-[var(--ink)]">
                       合同已签
                     </span>
                   )}

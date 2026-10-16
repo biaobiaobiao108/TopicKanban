@@ -109,9 +109,18 @@ export function serializeActsToStoryline(acts: StoryStructureActs): string {
     .join('\n');
 }
 
+function escapeHtml(text: string): string {
+  return text
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
 export function buildStoryStructureSectionsHtml(acts: StoryStructureActs): string {
   return STORY_STRUCTURE_STEPS
-    .map((step) => `<h2>${step.sectionTitle}</h2><p>${acts[step.key].trim() || step.defaultText}</p>`)
+    .map((step) => `<h2>${escapeHtml(step.sectionTitle)}</h2><p>${escapeHtml(acts[step.key].trim() || step.defaultText)}</p>`)
     .join('');
 }
 

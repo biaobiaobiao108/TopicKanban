@@ -59,17 +59,17 @@ export const ConfirmDialog: React.FC<ConfirmDialogProps> = ({
       ));
       if (focusable.length === 0) {
         e.preventDefault();
-        dialogRef.current.focus();
+        dialogRef.current.focus({ preventScroll: true });
         return;
       }
       const first = focusable[0];
       const last = focusable[focusable.length - 1];
       if (e.shiftKey && document.activeElement === first) {
         e.preventDefault();
-        last.focus();
+        last.focus({ preventScroll: true });
       } else if (!e.shiftKey && document.activeElement === last) {
         e.preventDefault();
-        first.focus();
+        first.focus({ preventScroll: true });
       }
     };
 
@@ -80,13 +80,13 @@ export const ConfirmDialog: React.FC<ConfirmDialogProps> = ({
 
     requestAnimationFrame(() => {
       const confirmButton = dialogRef.current?.querySelector<HTMLButtonElement>('[data-action="confirm"]');
-      (confirmButton || dialogRef.current)?.focus();
+      (confirmButton || dialogRef.current)?.focus({ preventScroll: true });
     });
 
     return () => {
       document.removeEventListener('keydown', handleKeyDown, true);
       document.body.style.overflow = previousOverflowRef.current;
-      previousFocusRef.current?.focus();
+      previousFocusRef.current?.focus({ preventScroll: true });
     };
   }, [isOpen]);
 

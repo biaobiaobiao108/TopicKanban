@@ -40,16 +40,16 @@ function WeekDayRow({
       ref={setNodeRef}
       data-testid="calendar-week-day"
       data-date={day.date}
-      className={`grid min-w-0 grid-cols-[6.5rem_minmax(0,1fr)] sm:grid-cols-[8.5rem_minmax(0,1fr)] border-b border-stone-200/70 last:border-b-0 dark:border-stone-800 transition-colors ${
-        day.isToday ? 'bg-[var(--accent-soft)]/25' : 'bg-white dark:bg-stone-900'
+      className={`grid min-w-0 grid-cols-[6.5rem_minmax(0,1fr)] sm:grid-cols-[8.5rem_minmax(0,1fr)] border-b border-[var(--line)] last:border-b-0 transition-colors ${
+        day.isToday ? 'bg-[var(--accent-soft)]/25' : 'bg-[var(--surface)]'
       } ${isOver ? 'bg-[var(--accent-soft)] ring-1 ring-inset ring-[var(--accent)]/75' : ''}`}
     >
       {/* Header */}
       <div
-        className={`flex min-h-[8.5rem] flex-col items-center justify-center border-r border-stone-200/70 px-2 py-4 text-center select-none dark:border-stone-800 sm:px-4 ${
+        className={`flex min-h-[8.5rem] flex-col items-center justify-center border-r border-[var(--line)] px-2 py-4 text-center select-none sm:px-4 ${
           day.isToday
             ? 'bg-[var(--accent-soft)] text-[var(--accent-dark)] font-bold'
-            : 'bg-stone-50 dark:bg-stone-900/90 text-stone-700 dark:text-stone-300'
+            : 'bg-[var(--canvas)]/60 text-[var(--ink)]'
         }`}
       >
         <div className="text-xs font-semibold text-stone-500 dark:text-stone-400">{day.dayName}</div>
@@ -108,7 +108,7 @@ export const CalendarWeekGrid: React.FC<CalendarWeekGridProps> = ({
     <FloatingScrollbar
       data-testid="calendar-week-grid"
       className="flex min-h-0 min-w-0 flex-col overscroll-contain"
-      wrapperClassName="flex-1 min-h-0 rounded-2xl border border-stone-200/70 bg-white shadow-2xs [scrollbar-gutter:stable] dark:border-stone-800 dark:bg-stone-900"
+      wrapperClassName="flex-1 min-h-0 rounded-2xl border border-[var(--line)] bg-[var(--surface)] shadow-2xs [scrollbar-gutter:stable]"
     >
       {days.map((day) => {
         const events = eventsMap.get(day.date) || [];

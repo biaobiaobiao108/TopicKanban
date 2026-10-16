@@ -85,21 +85,28 @@ export async function reorderSources(db: SqliteDatabase, sources: Array<{ id: st
     if (new Set(sourceIds).size !== sourceIds.length) {
       throw new SourceReorderInvalidStateError('Duplicate source ids are not allowed');
     }
-    const placeholders = sourceIds.map(() => '?').join(',');
-    const existing = await db.prepare(`SELECT id, topic_id FROM sources WHERE id IN (${placeholders})`)
-      .bind(...sourceIds).all<{ id: string; topic_id: string }>();
-    if (existing.results.length !== sourceIds.length) {
-      throw new SourceReorderInvalidStateError('All sources must exist before reordering');
-    }
-    const requestedTopicIds = new Set(sources.map((s) => s.topic_id));
-    if (requestedTopicIds.size !== 1 || existing.results.some((s) => s.topic_id !== sources[0]?.topic_id)) {
-      throw new SourceReorderInvalidStateError('Sources must belong to the same topic');
-    }
-    await db.batch(sources.map((s, index) => bind(
-      db,
-      'UPDATE sources SET sort_order = ?, updated_at = ? WHERE id = ?',
-      [index + 1, now, s.id]
-    )));
+
+    const executeReorder = db.sqlite.transaction(() => {
+      const placeholders = sourceIds.map(() => '?').join(',');
+      const existing = (db.sqlite.query(
+        `SELECT id, topic_id FROM sources WHERE id IN (${placeholders})`
+      ).all(...sourceIds)) as Array<{ id: string; topic_id: string }>;
+
+      if (existing.length !== sourceIds.length) {
+        throw new SourceReorderInvalidStateError('All sources must exist before reordering');
+      }
+      const requestedTopicIds = new Set(sources.map((s) => s.topic_id));
+      if (requestedTopicIds.size !== 1 || existing.some((s) => s.topic_id !== sources[0]?.topic_id)) {
+        throw new SourceReorderInvalidStateError('Sources must belong to the same topic');
+      }
+
+      const updateStmt = db.sqlite.query('UPDATE sources SET sort_order = ?, updated_at = ? WHERE id = ?');
+      sources.forEach((s, index) => {
+        updateStmt.run(index + 1, now, s.id);
+      });
+    });
+
+    executeReorder.immediate();
   }
   return now;
 }

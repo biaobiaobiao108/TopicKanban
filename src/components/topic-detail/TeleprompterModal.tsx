@@ -799,7 +799,7 @@ function renderScriptTextWithCues(text: string): React.ReactNode {
             'border-[var(--accent)]/60'
           }`}
         >
-          <div className="absolute right-4 -top-3 text-[10px] font-mono tracking-wide text-[var(--accent)] font-bold">
+          <div className="absolute right-4 -top-3 text-[10px] font-sans tracking-wide text-[var(--accent)] font-bold">
             视线聚焦线
           </div>
         </div>
@@ -840,7 +840,7 @@ function renderScriptTextWithCues(text: string): React.ReactNode {
                 >
                   {isHeading ? (
                     <div className="pt-6 pb-2 border-b border-[var(--line)]">
-                      <span className="text-xs font-mono font-bold tracking-wide text-[var(--accent)] block mb-1">
+                      <span className="text-xs font-sans font-bold tracking-wide text-[var(--accent)] block mb-1">
                         章节标记
                       </span>
                       <h3

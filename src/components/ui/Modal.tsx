@@ -29,7 +29,7 @@ export const Modal: React.FC<ModalProps> = ({
     const previousFocus = previousFocusRef.current;
     if (!previousFocus) return;
     requestAnimationFrame(() => {
-      if (previousFocus.isConnected) previousFocus.focus();
+      if (previousFocus.isConnected) previousFocus.focus({ preventScroll: true });
     });
   };
 
@@ -52,17 +52,17 @@ export const Modal: React.FC<ModalProps> = ({
       )).filter((element) => !element.closest('[aria-hidden="true"]'));
       if (focusable.length === 0) {
         event.preventDefault();
-        dialog.focus();
+        dialog.focus({ preventScroll: true });
         return;
       }
       const first = focusable[0];
       const last = focusable[focusable.length - 1];
       if (event.shiftKey && document.activeElement === first) {
         event.preventDefault();
-        last.focus();
+        last.focus({ preventScroll: true });
       } else if (!event.shiftKey && document.activeElement === last) {
         event.preventDefault();
-        first.focus();
+        first.focus({ preventScroll: true });
       }
     };
     dialog.addEventListener('keydown', handleTabBoundary);
@@ -70,7 +70,7 @@ export const Modal: React.FC<ModalProps> = ({
       const firstFocusable = dialog.querySelector<HTMLElement>(
         'button:not([disabled]), [href], input:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])'
       );
-      (firstFocusable || dialog)?.focus();
+      (firstFocusable || dialog)?.focus({ preventScroll: true });
     });
     return () => {
       dialog.removeEventListener('keydown', handleTabBoundary);

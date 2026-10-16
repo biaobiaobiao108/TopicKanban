@@ -294,7 +294,7 @@ export async function loadTopicPage(db: SqliteDatabase, options: TopicPageOption
     score: '(t.score_character + t.score_conflict + t.score_contrast + t.score_material + t.score_story)',
     words: 'draft_word_count', created_at: 't.created_at', updated_at: 't.updated_at', sort_order: 't.sort_order',
   };
-  const sort = sortExpressions[options.sort || 'updated_at'];
+  const sort = sortExpressions[options.sort || 'updated_at'] || sortExpressions.updated_at;
   const direction = options.direction === 'asc' ? 'ASC' : 'DESC';
   const offset = (options.page - 1) * options.pageSize;
   const includeMetadata = options.includeMetadata !== false;
@@ -637,46 +637,62 @@ export async function reorderTopics(
   if (new Set(updateIds).size !== updateIds.length) {
     throw new TopicReorderInvalidStateError('Duplicate topic ids are not allowed');
   }
-  const updatePlaceholders = updateIds.map(() => '?').join(',');
-  const updatedTopics = await db.prepare(`SELECT id, status FROM topics
-    WHERE deleted_at IS NULL AND id IN (${updatePlaceholders})`).bind(...updateIds).all<{ id: string; status: TopicStatus }>();
-  if (updatedTopics.results.length !== updateIds.length) {
-    throw new TopicReorderInvalidStateError('All topics must exist and be active before reordering');
-  }
-  const affectedStatuses = Array.from(new Set([
-    ...updates.map((update) => update.status),
-    ...updatedTopics.results.map((topic) => topic.status),
-  ]));
-  const placeholders = affectedStatuses.map(() => '?').join(',');
-  const existing = await db.prepare(`SELECT id, status FROM topics
-    WHERE deleted_at IS NULL AND status IN (${placeholders})
-    ORDER BY status ASC, sort_order ASC, id ASC`).bind(...affectedStatuses).all<{ id: string; status: TopicStatus }>();
-  const idsByStatus = new Map<TopicStatus, string[]>(affectedStatuses.map((status) => [status, []]));
-  existing.results.forEach((row) => idsByStatus.get(row.status)?.push(row.id));
-  updates.forEach((update) => {
-    idsByStatus.forEach((ids) => {
-      const index = ids.indexOf(update.id);
-      if (index >= 0) ids.splice(index, 1);
+
+  const executeReorder = db.sqlite.transaction(() => {
+    const updatePlaceholders = updateIds.map(() => '?').join(',');
+    const updatedTopics = (db.sqlite.query(
+      `SELECT id, status FROM topics WHERE deleted_at IS NULL AND id IN (${updatePlaceholders})`
+    ).all(...updateIds)) as Array<{ id: string; status: TopicStatus }>;
+
+    if (updatedTopics.length !== updateIds.length) {
+      throw new TopicReorderInvalidStateError('All topics must exist and be active before reordering');
+    }
+
+    const affectedStatuses = Array.from(new Set([
+      ...updates.map((update) => update.status),
+      ...updatedTopics.map((topic) => topic.status),
+    ]));
+    const placeholders = affectedStatuses.map(() => '?').join(',');
+    const existing = (db.sqlite.query(
+      `SELECT id, status FROM topics WHERE deleted_at IS NULL AND status IN (${placeholders}) ORDER BY status ASC, sort_order ASC, id ASC`
+    ).all(...affectedStatuses)) as Array<{ id: string; status: TopicStatus }>;
+
+    const idsByStatus = new Map<TopicStatus, string[]>(affectedStatuses.map((status) => [status, []]));
+    existing.forEach((row) => idsByStatus.get(row.status)?.push(row.id));
+    updates.forEach((update) => {
+      idsByStatus.forEach((ids) => {
+        const index = ids.indexOf(update.id);
+        if (index >= 0) ids.splice(index, 1);
+      });
+    });
+
+    const updatesByTarget = new Map<TopicStatus, typeof updates>();
+    updates.forEach((update) => updatesByTarget.set(update.status, [
+      ...(updatesByTarget.get(update.status) || []), update,
+    ]));
+
+    updatesByTarget.forEach((targetUpdates, status) => {
+      const targetIds = idsByStatus.get(status) || [];
+      targetUpdates
+        .sort((a, b) => a.sort_order - b.sort_order || a.id.localeCompare(b.id))
+        .forEach((update) => {
+          targetIds.splice(Math.min(Math.max(0, update.sort_order - 1), targetIds.length), 0, update.id);
+        });
+    });
+
+    const updateStmt = db.sqlite.query(
+      `UPDATE topics SET status = ?, sort_order = ?,
+        is_pinned = CASE WHEN ? IN ('published', 'icebox') THEN 0 ELSE is_pinned END,
+        updated_at = ? WHERE id = ?`
+    );
+
+    Array.from(idsByStatus.entries()).forEach(([status, ids]) => {
+      ids.forEach((id, index) => {
+        updateStmt.run(status, index + 1, status, now, id);
+      });
     });
   });
-  const updatesByTarget = new Map<TopicStatus, typeof updates>();
-  updates.forEach((update) => updatesByTarget.set(update.status, [
-    ...(updatesByTarget.get(update.status) || []), update,
-  ]));
-  updatesByTarget.forEach((targetUpdates, status) => {
-    const targetIds = idsByStatus.get(status) || [];
-    targetUpdates
-      .sort((a, b) => a.sort_order - b.sort_order || a.id.localeCompare(b.id))
-      .forEach((update) => {
-        targetIds.splice(Math.min(Math.max(0, update.sort_order - 1), targetIds.length), 0, update.id);
-      });
-  });
-  await db.batch(Array.from(idsByStatus.entries()).flatMap(([status, ids]) => ids.map((id, index) => bind(
-    db,
-    `UPDATE topics SET status = ?, sort_order = ?,
-      is_pinned = CASE WHEN ? IN ('published', 'icebox') THEN 0 ELSE is_pinned END,
-      updated_at = ? WHERE id = ?`,
-    [status, index + 1, status, now, id]
-  ))));
+
+  executeReorder.immediate();
   return now;
 }

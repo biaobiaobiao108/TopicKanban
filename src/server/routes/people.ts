@@ -139,11 +139,20 @@ export function registerPeopleRoutes(app: NativeApp): void {
 
   app.patch('/relationships/:id', async (c) => {
     try {
+      const db = requireDb(c);
+      const id = c.req.param('id');
       const body = await c.req.json<Record<string, unknown>>();
       const textError = validateTextFields(body, { relationship: [200, true], description: [20000] });
       if (textError) return c.json({ error: textError }, 400);
-      if (body.person_a_id !== undefined && body.person_a_id === body.person_b_id) return c.json({ error: 'A person cannot relate to itself' }, 400);
-      const relationship = await updateRelationship(requireDb(c), c.req.param('id'), body);
+
+      const existing = await loadRelationship(db, id);
+      if (!existing) return c.json({ error: 'Not found' }, 404);
+
+      const nextA = (body.person_a_id as string | undefined) ?? existing.person_a_id;
+      const nextB = (body.person_b_id as string | undefined) ?? existing.person_b_id;
+      if (nextA === nextB) return c.json({ error: 'A person cannot relate to itself' }, 400);
+
+      const relationship = await updateRelationship(db, id, body);
       return relationship ? c.json(relationship) : c.json({ error: 'Not found' }, 404);
     } catch (error) {
       return jsonError(c, error);

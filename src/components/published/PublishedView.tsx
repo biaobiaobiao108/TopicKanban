@@ -597,7 +597,6 @@ export const PublishedView: React.FC<PublishedViewProps> = ({
                   type="button"
                   onClick={() => setTopicId('')}
                   aria-label="取消关联选题"
-                  title="取消关联选题"
                   disabled={!topicId}
                   className={`flex h-[42px] w-[42px] shrink-0 items-center justify-center rounded-lg border border-stone-300 bg-stone-50 text-stone-400 transition-colors hover:border-red-300 hover:bg-red-50 hover:text-red-600 focus:outline-none focus:ring-2 focus:ring-[var(--focus-ring)] dark:border-stone-700 dark:bg-stone-800 dark:hover:border-red-800 dark:hover:bg-red-950/40 dark:hover:text-red-400 ${topicId ? '' : 'invisible pointer-events-none'}`}
                 >

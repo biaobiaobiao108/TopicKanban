@@ -200,7 +200,12 @@ const fetchBilibiliWithJsonp = (bvid: string): Promise<BilibiliVideoMeta> => new
   const cleanup = () => {
     window.clearTimeout(timeout);
     script.remove();
-    delete jsonpWindow[callbackName];
+    jsonpWindow[callbackName] = () => {
+      delete jsonpWindow[callbackName];
+    };
+    window.setTimeout(() => {
+      delete jsonpWindow[callbackName];
+    }, 15000);
   };
 
   jsonpWindow[callbackName] = (payload) => {

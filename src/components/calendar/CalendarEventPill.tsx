@@ -211,14 +211,14 @@ export const CalendarEventPill: React.FC<CalendarEventPillProps> = ({
               <span className={`h-1.5 w-1.5 shrink-0 rounded-full bg-teal-500 ${monthCell ? 'mt-1' : ''}`} />
               <span className={compactTitleClass}>{event.title}</span>
               {!monthCell && typeof event.views === 'number' && event.views > 0 && (
-                <span className="shrink-0 font-mono text-[10px] text-[var(--ink-muted)]">
-                  {event.views >= 10000 ? `${(event.views / 10000).toFixed(1)}w` : event.views}播
+                <span className="shrink-0 text-[10px] text-[var(--ink-muted)]">
+                  <span className="font-mono tabular-nums">{event.views >= 10000 ? `${(event.views / 10000).toFixed(1)}w` : event.views}</span>播
                 </span>
               )}
             </span>
             {monthCell && typeof event.views === 'number' && event.views > 0 && (
-              <span className="mt-0.5 block pl-3.5 font-mono text-[10px] leading-3 text-[var(--ink-muted)]">
-                {event.views >= 10000 ? `${(event.views / 10000).toFixed(1)}w` : event.views} 播放
+              <span className="mt-0.5 block pl-3.5 text-[10px] leading-3 text-[var(--ink-muted)]">
+                <span className="font-mono tabular-nums">{event.views >= 10000 ? `${(event.views / 10000).toFixed(1)}w` : event.views}</span> 播放
               </span>
             )}
           </button>

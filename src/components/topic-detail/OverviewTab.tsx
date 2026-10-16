@@ -514,9 +514,9 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({
               className="w-full flex items-center justify-between text-xs font-semibold text-stone-600 dark:text-stone-400 hover:text-stone-900 dark:hover:text-stone-100 cursor-pointer"
             >
               <div className="flex items-center gap-1.5">
-                <Clock className="w-3.5 h-3.5 text-blue-500" />
+                <Clock className="w-3.5 h-3.5 text-[var(--accent)]" />
                 <span>为什么现在做</span>
-                {whyNow && <span className="w-1.5 h-1.5 rounded-full bg-blue-500" />}
+                {whyNow && <span className="w-1.5 h-1.5 rounded-full bg-[var(--accent)]" />}
               </div>
               <ChevronDown className={`w-3.5 h-3.5 transition-transform ${isWhyNowExpanded ? 'rotate-180' : ''}`} />
             </button>
