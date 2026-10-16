@@ -27,9 +27,21 @@ export const MAX_QUICK_DROP_REQUEST_BYTES = 64 * 1024;
 export const MAX_BACKUP_REQUEST_BYTES = 6 * 1024 * 1024;
 export const MAX_BACKUP_EXPORT_SETTINGS_BYTES = 16 * 1024;
 
-export const VERIFICATION_STATUSES = ['confirmed', 'unverified', 'rejected'] as const;
-export const DATE_PRECISIONS = ['exact', 'year_month', 'year', 'unknown'] as const;
-export const PLATFORM_TYPES = ['bilibili', 'douyin', 'kuaishou', 'weibo', 'xiaohongshu', 'wechat', 'zhihu', 'youtube', 'news', 'live', 'other'] as const;
+export {
+  VERIFICATION_STATUSES,
+  DATE_PRECISIONS,
+  PLATFORM_TYPES,
+  isValidSourceEventDate,
+  topicTodoUpdateSchema,
+  personCreateSchema,
+  personUpdateSchema,
+  personRelationshipCreateSchema,
+  personRelationshipUpdateSchema,
+  sourceCreateSchema,
+  sourceUpdateSchema,
+  publishedVideoCreateSchema,
+  publishedVideoUpdateSchema,
+} from './schemas';
 
 export function isOneOf(value: unknown, options: readonly string[]): boolean {
   return typeof value === 'string' && options.includes(value);

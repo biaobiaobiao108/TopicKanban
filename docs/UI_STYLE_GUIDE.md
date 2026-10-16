@@ -88,9 +88,8 @@ Tokyo Night 深色主题使用工作区 `#1a1b26`、表面 `#24283b`、主文字
 默认卡片配方：
 
 ```html
-<section class="rounded-2xl border border-stone-200/70 bg-white shadow-2xs
-  transition-all hover:-translate-y-0.5 hover:shadow-card
-  dark:border-stone-800 dark:bg-stone-900">
+<section class="rounded-2xl border border-[var(--line)] bg-[var(--surface)] text-[var(--ink)] shadow-2xs
+  transition-all hover:-translate-y-0.5 hover:shadow-card">
   <!-- 内容 -->
 </section>
 ```
@@ -163,7 +162,7 @@ font-family: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
 桌面端采用“侧栏 + 顶部导航/内容区”的工作台结构；移动端使用底部导航和侧滑抽屉。内容区不要贴边，也不要在每个页面重新发明最大宽度。
 
 ```html
-<main class="min-h-dvh overflow-y-auto bg-stone-50 dark:bg-stone-950">
+<main class="min-h-dvh overflow-y-auto bg-[var(--canvas)] text-[var(--ink)]">
   <div class="mx-auto w-full max-w-7xl px-4 py-5 sm:px-8 sm:py-8">
     <!-- PageHeader -->
     <!-- page sections -->
@@ -176,16 +175,15 @@ font-family: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
 页面标题使用图标、标题、可选徽章和右侧操作组成。标题区在移动端纵向排列，操作区允许换行：
 
 ```html
-<header class="flex flex-col gap-3 border-b border-stone-200/70 pb-4
-  sm:flex-row sm:items-center sm:justify-between sm:gap-4
-  dark:border-stone-800">
+<header class="flex flex-col gap-3 border-b border-[var(--line)] pb-4
+  sm:flex-row sm:items-center sm:justify-between sm:gap-4">
   <div class="flex min-w-0 items-center gap-3">
     <span class="grid h-10 w-10 shrink-0 place-items-center rounded-xl
       bg-[var(--accent-soft)] text-[var(--accent)]">
       <!-- Lucide icon, decorative -->
     </span>
     <h1 class="min-w-0 text-xl font-bold leading-tight tracking-tight
-      text-stone-900 sm:text-2xl dark:text-stone-100">
+      text-[var(--ink)] sm:text-2xl">
       页面标题
     </h1>
   </div>
@@ -224,12 +222,12 @@ font-family: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
 - 主按钮：当前主题主强调色（浅色为松柏绿），页面中应控制数量。
 - 次按钮：白色/表面背景、Stone 文字和弱边框，用于并列或返回操作。
 - 危险按钮：只用于删除、移入回收站等破坏性操作，使用 Red，并配合确认弹窗。
-- 图标按钮：必须有 `aria-label` 和 `title`，不可只让用户猜图标含义。
+- 图标按钮：必须有 `aria-label`，严禁随意添加系统原生 `title="..."` 悬停提示框（杜绝系统悬停黄黑弹窗破坏文人笔记的沉浸质感）。
 - 加载状态必须禁用重复提交并保留按钮尺寸，避免界面跳动。
 
 ### 5.2 卡片与摘要
 
-- 普通卡片使用 `rounded-2xl`、`border-stone-200/70`、`bg-white`、`shadow-2xs`。
+- 普通卡片使用 `rounded-2xl`、`border-[var(--line)]`、`bg-[var(--surface)]`、`text-[var(--ink)]`、`shadow-2xs`。
 - 可交互卡片增加 `transition-all hover:-translate-y-0.5 hover:shadow-card`。
 - 重点卡片可以使用 `rounded-3xl shadow-card` 和极弱的强调色渐变，但内容区域仍保持清晰。
 - 摘要区域应先显示标签，再显示数值；数值使用 `font-mono tabular-nums`，中文标签不使用 `font-mono`。
@@ -262,9 +260,9 @@ font-family: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
 
 ### 5.4 日期、时间与数据
 
-- 行动日期（排期、截稿、交付、下一步截止）使用统一相对状态：可见文字当天只显示“今天”，逾期只显示“已逾期 N 天”，未来日期显示绝对日期；完整日期保留在 `title`、`aria-label` 和 `<time dateTime>` 中。
+- 行动日期（排期、截稿、交付、下一步截止）使用统一相对状态：可见文字当天只显示“今天”，逾期只显示“已逾期 N 天”，未来日期显示绝对日期；完整日期保留在 `aria-label` 和 `<time dateTime>` 中（严禁使用原生 `title` 提示）。
 - 已完成、已发布、归档事项和历史记录保持绝对日期。
-- 日期展示必须保留完整 `title`、`aria-label` 和可机器读取的 `<time dateTime>`。
+- 日期展示必须保留完整 `aria-label` 和可机器读取的 `<time dateTime>`。
 - 日期输入使用项目的 `DateInput`，不使用原生 `<input type="date">`。
 - 金额、数量、播放量、页码和日期数值使用 `tabular-nums`；金额和技术标识可使用 `font-mono`。
 
@@ -273,12 +271,11 @@ font-family: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
 输入框、文本域和自定义选择器使用统一形态：
 
 ```html
-<input class="min-h-11 w-full rounded-xl border border-stone-200/80
-  bg-stone-500/[0.03] px-3 text-sm text-stone-900
-  placeholder:text-stone-400 focus:bg-white focus:outline-none
+<input class="min-h-11 w-full rounded-xl border border-[var(--line)]
+  bg-stone-500/[0.03] px-3 text-sm text-[var(--ink)]
+  placeholder:text-stone-400 focus:bg-[var(--surface)] focus:outline-none
   focus:ring-2 focus:ring-[var(--focus-ring)] focus:border-[var(--accent)]
-  dark:border-stone-700 dark:bg-stone-800 dark:text-stone-100
-  dark:focus:bg-stone-800" />
+  dark:bg-stone-800 dark:placeholder:text-stone-500" />
 ```
 
 - 标签使用 `text-xs font-semibold text-stone-600`，错误信息使用 `text-xs font-medium text-red-600`。
@@ -377,6 +374,7 @@ motion.standard      200ms Editorial Out
 
 以下做法默认禁止：
 
+- 随意在按钮、药丸、图表或列表项上添加系统原生 `title="..."` 悬停提示框（统一使用 `aria-label`）。
 - 中文业务文案整块使用 `font-mono`。
 - 为每个新页面单独发明一套灰色、圆角或阴影。
 - 使用原生 `<select>`、原生日期输入或浏览器原生弹窗。
@@ -393,6 +391,7 @@ motion.standard      200ms Editorial Out
 提交前逐项确认：
 
 - [ ] 页面沿用现有字体栈、字号层级、圆角、阴影和间距。
+- [ ] 绝对零原生 `title` 属性，语义与无障碍统一使用标准 `aria-label`。
 - [ ] 中文业务文本没有误套 `font-mono`；数值按需使用 `tabular-nums`。
 - [ ] 主按钮、次按钮、危险操作和状态徽章符合语义色规则。
 - [ ] 浅色、深色及至少一个彩色主题下文字和边框仍清晰可读。

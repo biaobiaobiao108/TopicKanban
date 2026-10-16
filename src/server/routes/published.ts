@@ -3,13 +3,15 @@ import type { PublishedVideo } from '../../types';
 import { getBeijingDateString } from '../../lib/beijingTime';
 import {
   createId,
-  hasInvalidValue,
-  isNonNegativeSafeInteger,
   jsonError,
+  jsonValidationError,
   requireDb,
-  validateExternalUrlField,
-  validateTextFields,
 } from '../apiShared';
+import {
+  parseWithZod,
+  publishedVideoCreateSchema,
+  publishedVideoUpdateSchema,
+} from '../schemas';
 import {
   deletePublishedVideo,
   insertPublishedVideo,
@@ -56,30 +58,24 @@ export function registerPublishedRoutes(app: NativeApp): void {
 
   app.post('/published', async (c) => {
     try {
-      const body = await c.req.json<Partial<PublishedVideo>>();
-      if (!body.title?.trim()) return c.json({ error: 'title is required' }, 400);
-      if (body.topic_id !== undefined && body.topic_id !== null && typeof body.topic_id !== 'string') {
-        return c.json({ error: 'topic_id must be a string or null' }, 400);
-      }
-      const textError = validateTextFields(body as Record<string, unknown>, {
-        title: [200, true], url: [2048], bvid: [20], published_at: [50], notes: [20000],
-      });
-      if (textError) return c.json({ error: textError }, 400);
-      const urlError = validateExternalUrlField(body as Record<string, unknown>, 'url');
-      if (urlError) return c.json({ error: urlError }, 400);
-      if (body.bvid && !/^BV[a-zA-Z0-9]{10}$/i.test(body.bvid)) return c.json({ error: 'Invalid BVID' }, 400);
-      for (const field of ['views', 'likes', 'coins', 'favorites', 'comments'] as const) {
-        if (body[field] !== undefined && !isNonNegativeSafeInteger(body[field])) {
-          return c.json({ error: `${field} must be a non-negative safe integer` }, 400);
-        }
-      }
+      const parsed = parseWithZod(publishedVideoCreateSchema, await c.req.json());
+      if (!parsed.success) return jsonValidationError(c, parsed.error, parsed.issues);
       const now = new Date().toISOString();
-      const topicId = typeof body.topic_id === 'string' && body.topic_id.trim() ? body.topic_id.trim() : null;
+      const topicId = typeof parsed.data.topic_id === 'string' && parsed.data.topic_id.trim() ? parsed.data.topic_id.trim() : null;
       const video: PublishedVideo = {
-        id: body.id || createId('pub'), topic_id: topicId, title: body.title.trim(),
-        url: body.url || '', bvid: body.bvid || '', published_at: body.published_at || getBeijingDateString(),
-        views: body.views || 0, likes: body.likes || 0, coins: body.coins || 0,
-        favorites: body.favorites || 0, comments: body.comments || 0, notes: body.notes || '', updated_at: now,
+        id: parsed.data.id || createId('pub'),
+        topic_id: topicId,
+        title: parsed.data.title.trim(),
+        url: parsed.data.url || '',
+        bvid: parsed.data.bvid || '',
+        published_at: parsed.data.published_at || getBeijingDateString(),
+        views: parsed.data.views || 0,
+        likes: parsed.data.likes || 0,
+        coins: parsed.data.coins || 0,
+        favorites: parsed.data.favorites || 0,
+        comments: parsed.data.comments || 0,
+        notes: parsed.data.notes || '',
+        updated_at: now,
       };
       await insertPublishedVideo(requireDb(c), video);
       invalidatePublishedAnalyticsCache();
@@ -91,24 +87,13 @@ export function registerPublishedRoutes(app: NativeApp): void {
 
   app.patch('/published/:id', async (c) => {
     try {
-      const body = await c.req.json<Record<string, unknown>>();
-      if (Object.prototype.hasOwnProperty.call(body, 'topic_id')) {
-        if (body.topic_id !== null && typeof body.topic_id !== 'string') {
-          return c.json({ error: 'topic_id must be a string or null' }, 400);
-        }
-        body.topic_id = typeof body.topic_id === 'string' && body.topic_id.trim() ? body.topic_id.trim() : null;
+      const parsed = parseWithZod(publishedVideoUpdateSchema, await c.req.json());
+      if (!parsed.success) return jsonValidationError(c, parsed.error, parsed.issues);
+      const updateData = { ...parsed.data };
+      if (Object.prototype.hasOwnProperty.call(updateData, 'topic_id')) {
+        updateData.topic_id = typeof updateData.topic_id === 'string' && updateData.topic_id.trim() ? updateData.topic_id.trim() : null;
       }
-      const textError = validateTextFields(body, { title: [200, true], url: [2048], bvid: [20], published_at: [50], notes: [20000] });
-      if (textError) return c.json({ error: textError }, 400);
-      const urlError = validateExternalUrlField(body, 'url');
-      if (urlError) return c.json({ error: urlError }, 400);
-      if (typeof body.bvid === 'string' && body.bvid && !/^BV[a-zA-Z0-9]{10}$/i.test(body.bvid)) return c.json({ error: 'Invalid BVID' }, 400);
-      for (const field of ['views', 'likes', 'coins', 'favorites', 'comments']) {
-        if (hasInvalidValue(body, field, isNonNegativeSafeInteger)) {
-          return c.json({ error: `${field} must be a non-negative safe integer` }, 400);
-        }
-      }
-      const video = await updatePublishedVideo(requireDb(c), c.req.param('id'), body);
+      const video = await updatePublishedVideo(requireDb(c), c.req.param('id'), updateData);
       if (video) invalidatePublishedAnalyticsCache();
       return video ? c.json(video) : c.json({ error: 'Not found' }, 404);
     } catch (error) {

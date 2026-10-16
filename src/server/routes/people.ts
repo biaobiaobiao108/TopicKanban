@@ -3,10 +3,16 @@ import type { Person, PersonRelationship } from '../../types';
 import {
   createId,
   jsonError,
+  jsonValidationError,
   requireDb,
-  validateExternalUrlField,
-  validateTextFields,
 } from '../apiShared';
+import {
+  parseWithZod,
+  personCreateSchema,
+  personUpdateSchema,
+  personRelationshipCreateSchema,
+  personRelationshipUpdateSchema,
+} from '../schemas';
 import {
   deletePerson,
   deleteRelationship,
@@ -53,21 +59,21 @@ export function registerPeopleRoutes(app: NativeApp): void {
 
   app.post('/people', async (c) => {
     try {
-      const body = await c.req.json<Partial<Person>>();
-      if (!body.name?.trim()) return c.json({ error: 'Name is required' }, 400);
-      const textError = validateTextFields(body as Record<string, unknown>, {
-        name: [200, true], aliases: [2000], avatar_url: [2048], description: [20000], identity: [2000],
-        platform_accounts: [2000], quotes: [20000], notes: [20000],
-      });
-      if (textError) return c.json({ error: textError }, 400);
-      const avatarUrlError = validateExternalUrlField(body as Record<string, unknown>, 'avatar_url');
-      if (avatarUrlError) return c.json({ error: avatarUrlError }, 400);
+      const parsed = parseWithZod(personCreateSchema, await c.req.json());
+      if (!parsed.success) return jsonValidationError(c, parsed.error, parsed.issues);
       const now = new Date().toISOString();
       const person: Person = {
-        id: body.id || createId('person'), name: body.name.trim(), aliases: body.aliases || '',
-        avatar_url: body.avatar_url || '', description: body.description || '', identity: body.identity || '',
-        platform_accounts: body.platform_accounts || '', quotes: body.quotes || '', notes: body.notes || '',
-        created_at: body.created_at || now, updated_at: now,
+        id: parsed.data.id || createId('person'),
+        name: parsed.data.name.trim(),
+        aliases: parsed.data.aliases || '',
+        avatar_url: parsed.data.avatar_url || '',
+        description: parsed.data.description || '',
+        identity: parsed.data.identity || '',
+        platform_accounts: parsed.data.platform_accounts || '',
+        quotes: parsed.data.quotes || '',
+        notes: parsed.data.notes || '',
+        created_at: parsed.data.created_at || now,
+        updated_at: now,
       };
       await insertPerson(requireDb(c), person);
       invalidatePublishedAnalyticsCache();
@@ -79,15 +85,9 @@ export function registerPeopleRoutes(app: NativeApp): void {
 
   app.patch('/people/:id', async (c) => {
     try {
-      const body = await c.req.json<Record<string, unknown>>();
-      const textError = validateTextFields(body, {
-        name: [200, true], aliases: [2000], avatar_url: [2048], description: [20000], identity: [2000],
-        platform_accounts: [2000], quotes: [20000], notes: [20000],
-      });
-      if (textError) return c.json({ error: textError }, 400);
-      const avatarUrlError = validateExternalUrlField(body, 'avatar_url');
-      if (avatarUrlError) return c.json({ error: avatarUrlError }, 400);
-      const person = await updatePerson(requireDb(c), c.req.param('id'), body);
+      const parsed = parseWithZod(personUpdateSchema, await c.req.json());
+      if (!parsed.success) return jsonValidationError(c, parsed.error, parsed.issues);
+      const person = await updatePerson(requireDb(c), c.req.param('id'), parsed.data);
       if (person) invalidatePublishedAnalyticsCache();
       return person ? c.json(person) : c.json({ error: 'Not found' }, 404);
     } catch (error) {
@@ -118,17 +118,15 @@ export function registerPeopleRoutes(app: NativeApp): void {
 
   app.post('/relationships', async (c) => {
     try {
-      const body = await c.req.json<Partial<PersonRelationship>>();
-      if (!body.person_a_id || !body.person_b_id || !body.relationship?.trim()) {
-        return c.json({ error: 'Both people and relationship are required' }, 400);
-      }
-      if (body.person_a_id === body.person_b_id) return c.json({ error: 'A person cannot relate to itself' }, 400);
-      const textError = validateTextFields(body as Record<string, unknown>, { relationship: [200, true], description: [20000] });
-      if (textError) return c.json({ error: textError }, 400);
+      const parsed = parseWithZod(personRelationshipCreateSchema, await c.req.json());
+      if (!parsed.success) return jsonValidationError(c, parsed.error, parsed.issues);
       const relationship: PersonRelationship = {
-        id: body.id || createId('rel'), person_a_id: body.person_a_id, person_b_id: body.person_b_id,
-        relationship: body.relationship.trim(), description: body.description || '',
-        created_at: body.created_at || new Date().toISOString(),
+        id: parsed.data.id || createId('rel'),
+        person_a_id: parsed.data.person_a_id,
+        person_b_id: parsed.data.person_b_id,
+        relationship: parsed.data.relationship.trim(),
+        description: parsed.data.description || '',
+        created_at: new Date().toISOString(),
       };
       await insertRelationship(requireDb(c), relationship);
       return c.json(await loadRelationship(requireDb(c), relationship.id), 201);
@@ -141,18 +139,17 @@ export function registerPeopleRoutes(app: NativeApp): void {
     try {
       const db = requireDb(c);
       const id = c.req.param('id');
-      const body = await c.req.json<Record<string, unknown>>();
-      const textError = validateTextFields(body, { relationship: [200, true], description: [20000] });
-      if (textError) return c.json({ error: textError }, 400);
+      const parsed = parseWithZod(personRelationshipUpdateSchema, await c.req.json());
+      if (!parsed.success) return jsonValidationError(c, parsed.error, parsed.issues);
 
       const existing = await loadRelationship(db, id);
       if (!existing) return c.json({ error: 'Not found' }, 404);
 
-      const nextA = (body.person_a_id as string | undefined) ?? existing.person_a_id;
-      const nextB = (body.person_b_id as string | undefined) ?? existing.person_b_id;
+      const nextA = parsed.data.person_a_id ?? existing.person_a_id;
+      const nextB = parsed.data.person_b_id ?? existing.person_b_id;
       if (nextA === nextB) return c.json({ error: 'A person cannot relate to itself' }, 400);
 
-      const relationship = await updateRelationship(db, id, body);
+      const relationship = await updateRelationship(db, id, parsed.data);
       return relationship ? c.json(relationship) : c.json({ error: 'Not found' }, 404);
     } catch (error) {
       return jsonError(c, error);

@@ -5,9 +5,8 @@ import {
   jsonError,
   jsonValidationError,
   requireDb,
-  validateTextFields,
 } from '../apiShared';
-import { parseWithZod, topicTodoCreateSchema, todoBoardLayoutSchema } from '../schemas';
+import { parseWithZod, topicTodoCreateSchema, topicTodoUpdateSchema, todoBoardLayoutSchema } from '../schemas';
 import {
   completeTopicTodo,
   deleteTopicTodo,
@@ -26,13 +25,6 @@ function handleTodoError(c: any, error: unknown) {
   if (error instanceof TopicTodoNotFoundError) return c.json({ error: error.message }, 404);
   if (error instanceof TopicTodoInvalidStateError) return c.json({ error: error.message }, 409);
   return jsonError(c, error);
-}
-
-function validateTodoFields(body: Record<string, unknown>, requireTitle = false): string | null {
-  const textError = validateTextFields(body, {
-    title: [200, requireTitle],
-  });
-  return textError;
 }
 
 export function registerTodoRoutes(app: NativeApp): void {
@@ -78,14 +70,10 @@ export function registerTodoRoutes(app: NativeApp): void {
 
   app.patch('/todos/:id', async (c) => {
     try {
-      const body = await c.req.json<Record<string, unknown>>();
-      const validationError = validateTodoFields(body);
-      if (validationError) return c.json({ error: validationError }, 400);
-      if (Object.prototype.hasOwnProperty.call(body, 'title') && !String(body.title).trim()) {
-        return c.json({ error: 'title is required' }, 400);
-      }
+      const parsed = parseWithZod(topicTodoUpdateSchema, await c.req.json());
+      if (!parsed.success) return jsonValidationError(c, parsed.error, parsed.issues);
       return c.json(await updateTopicTodo(requireDb(c), c.req.param('id'), {
-        ...(Object.prototype.hasOwnProperty.call(body, 'title') ? { title: String(body.title).trim() } : {}),
+        ...(parsed.data.title !== undefined ? { title: parsed.data.title.trim() } : {}),
       }));
     } catch (error) {
       return handleTodoError(c, error);

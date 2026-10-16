@@ -187,6 +187,158 @@ export const externalUrlSchema = (fieldName: string) =>
     message: `${fieldName} must be an http(s) URL`,
   });
 
+export const VERIFICATION_STATUSES = ['confirmed', 'unverified', 'rejected'] as const;
+export const DATE_PRECISIONS = ['exact', 'year_month', 'year', 'unknown'] as const;
+export const PLATFORM_TYPES = ['bilibili', 'douyin', 'kuaishou', 'weibo', 'xiaohongshu', 'wechat', 'zhihu', 'youtube', 'news', 'live', 'other'] as const;
+
+export function isValidSourceEventDate(value: string): boolean {
+  if (!value) return true;
+  const match = /^(\d{4})(?:-(\d{1,2})(?:-(\d{1,2}))?)?$/.exec(value);
+  if (!match) return false;
+  const year = Number(match[1]);
+  const month = match[2] ? Number(match[2]) : null;
+  const day = match[3] ? Number(match[3]) : null;
+  if (year < 1) return false;
+  if (month !== null && (month < 1 || month > 12)) return false;
+  const monthEnd = new Date(0);
+  if (month !== null) monthEnd.setUTCFullYear(year, month, 0);
+  if (day !== null && (month === null || day < 1 || day > monthEnd.getUTCDate())) return false;
+  return true;
+}
+
+export const topicTodoUpdateSchema = z.object({
+  title: textField('title', 200, false).refine((val) => val === undefined || val.trim().length > 0, {
+    message: 'title is required',
+  }).optional(),
+}).strict();
+
+export const personCreateSchema = z.object({
+  id: z.string().optional(),
+  name: textField('name', 200, true),
+  aliases: textField('aliases', 2000).optional(),
+  avatar_url: externalUrlSchema('avatar_url').optional().or(z.literal('')),
+  description: textField('description', 20000).optional(),
+  identity: textField('identity', 2000).optional(),
+  platform_accounts: textField('platform_accounts', 2000).optional(),
+  quotes: textField('quotes', 20000).optional(),
+  notes: textField('notes', 20000).optional(),
+  created_at: z.string().optional(),
+}).strict();
+
+export const personUpdateSchema = z.object({
+  name: textField('name', 200, false).refine((val) => val === undefined || val.trim().length > 0, {
+    message: 'name is required',
+  }).optional(),
+  aliases: textField('aliases', 2000).optional(),
+  avatar_url: externalUrlSchema('avatar_url').optional().or(z.literal('')),
+  description: textField('description', 20000).optional(),
+  identity: textField('identity', 2000).optional(),
+  platform_accounts: textField('platform_accounts', 2000).optional(),
+  quotes: textField('quotes', 20000).optional(),
+  notes: textField('notes', 20000).optional(),
+}).strict();
+
+export const personRelationshipCreateSchema = z.object({
+  id: z.string().optional(),
+  person_a_id: z.string({
+    error: () => 'Both people and relationship are required',
+  }).min(1, 'Both people and relationship are required'),
+  person_b_id: z.string({
+    error: () => 'Both people and relationship are required',
+  }).min(1, 'Both people and relationship are required'),
+  relationship: z.string({
+    error: () => 'Both people and relationship are required',
+  }).refine((val) => val.trim().length > 0, {
+    message: 'Both people and relationship are required',
+  }).and(z.string().max(200, 'relationship exceeds 200 characters')),
+  description: textField('description', 20000).optional(),
+}).strict().refine((data) => data.person_a_id !== data.person_b_id, {
+  message: 'A person cannot relate to itself',
+});
+
+export const personRelationshipUpdateSchema = z.object({
+  person_a_id: z.string().min(1).optional(),
+  person_b_id: z.string().min(1).optional(),
+  relationship: textField('relationship', 200, false).refine((val) => val === undefined || val.trim().length > 0, {
+    message: 'relationship is required',
+  }).optional(),
+  description: textField('description', 20000).optional(),
+}).strict();
+
+export const sourceCreateSchema = z.object({
+  id: z.string().optional(),
+  topic_id: z.string({ error: 'topic_id and title are required' }).min(1, 'topic_id and title are required'),
+  title: textField('title', 200, true),
+  content: textField('content', 20000).optional(),
+  url: externalUrlSchema('url').optional().or(z.literal('')),
+  author: textField('author', 200).optional(),
+  published_at: textField('published_at', 50).optional(),
+  verification_status: z.enum(VERIFICATION_STATUSES, {
+    message: 'Invalid verification status',
+  }).optional(),
+  notes: textField('notes', 20000).optional(),
+  event_date: z.union([z.string(), z.null()]).optional().transform((val) => val === '' ? null : val).refine((val) => val === undefined || val === null || isValidSourceEventDate(val), {
+    message: 'event_date must be a valid YYYY, YYYY-MM, or YYYY-MM-DD date',
+  }),
+  date_precision: z.enum(DATE_PRECISIONS, {
+    message: 'Invalid source date_precision',
+  }).optional(),
+  platform: z.enum(PLATFORM_TYPES, {
+    message: 'Invalid source platform',
+  }).optional(),
+  sort_order: z.number().int('sort_order must be a non-negative integer').min(0, 'sort_order must be a non-negative integer').optional(),
+  created_at: z.string().optional(),
+}).strict();
+
+export const sourceUpdateSchema = z.object({
+  title: textField('title', 200, false).refine((val) => val === undefined || val.trim().length > 0, {
+    message: 'title is required',
+  }).optional(),
+  content: textField('content', 20000).optional(),
+  url: externalUrlSchema('url').optional().or(z.literal('')),
+  author: textField('author', 200).optional(),
+  published_at: textField('published_at', 50).optional(),
+  verification_status: z.enum(VERIFICATION_STATUSES, {
+    message: 'Invalid verification status',
+  }).optional(),
+  notes: textField('notes', 20000).optional(),
+  event_date: z.union([z.string(), z.null()]).optional().transform((val) => val === '' ? null : val).refine((val) => val === undefined || val === null || isValidSourceEventDate(val), {
+    message: 'event_date must be a valid YYYY, YYYY-MM, or YYYY-MM-DD date',
+  }),
+  date_precision: z.enum(DATE_PRECISIONS, {
+    message: 'Invalid source date_precision',
+  }).optional(),
+  platform: z.enum(PLATFORM_TYPES, {
+    message: 'Invalid source platform',
+  }).optional(),
+  sort_order: z.number().int('sort_order must be a non-negative integer').min(0, 'sort_order must be a non-negative integer').optional(),
+}).strict();
+
+export const publishedVideoCreateSchema = z.object({
+  id: z.string().optional(),
+  topic_id: z.union([z.string(), z.null()], {
+    message: 'topic_id must be a string or null',
+  }).optional(),
+  title: textField('title', 200, true),
+  url: externalUrlSchema('url').optional().or(z.literal('')),
+  bvid: textField('bvid', 20).refine((val) => !val || /^BV[a-zA-Z0-9]{10}$/i.test(val), {
+    message: 'Invalid BVID',
+  }).optional(),
+  published_at: textField('published_at', 50).optional(),
+  notes: textField('notes', 20000).optional(),
+  views: z.number().int().min(0).refine((val) => Number.isSafeInteger(val), { message: 'views must be a non-negative safe integer' }).optional(),
+  likes: z.number().int().min(0).refine((val) => Number.isSafeInteger(val), { message: 'likes must be a non-negative safe integer' }).optional(),
+  coins: z.number().int().min(0).refine((val) => Number.isSafeInteger(val), { message: 'coins must be a non-negative safe integer' }).optional(),
+  favorites: z.number().int().min(0).refine((val) => Number.isSafeInteger(val), { message: 'favorites must be a non-negative safe integer' }).optional(),
+  comments: z.number().int().min(0).refine((val) => Number.isSafeInteger(val), { message: 'comments must be a non-negative safe integer' }).optional(),
+}).strict();
+
+export const publishedVideoUpdateSchema = publishedVideoCreateSchema.partial().extend({
+  title: textField('title', 200, false).refine((val) => val === undefined || val.trim().length > 0, {
+    message: 'title is required',
+  }).optional(),
+}).strict();
+
 export type ZodValidationResult<T> =
   | { success: true; data: T }
   | { success: false; error: string; issues: z.ZodIssue[] };
