@@ -622,10 +622,10 @@ function WorkspaceApp({ isAuth, setIsAuth }: WorkspaceAppProps) {
       await refreshTopics({ includeLists: true });
     } catch (error) {
       if (!(error instanceof TopicTrashExpiredError)) throw error;
-      setTrashedTopics((prev) => prev.filter((topic) => topic.id !== topicId));
-      removeTopicCaches(queryClient, topicId);
+      // The server no longer deletes expired topics on restore, so the row is
+      // still there and must stay visible; only the recovery is refused.
       await refreshTopics({ includeLists: true });
-      showToast({ message: error.message, tone: 'info' });
+      showToast({ message: error.message, tone: 'info', duration: 7000 });
     }
   };
 

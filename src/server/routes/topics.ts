@@ -14,7 +14,6 @@ import {
 import {
   insertTopic,
   listTrashedTopicIds,
-  listExpiredTrashTopicIds,
   loadTodayFocus,
   loadActiveTopicCount,
   loadTopic,
@@ -34,17 +33,6 @@ import {
   invalidatePublishedAnalyticsCache,
   purgeExpiredTrashTopics,
 } from '../repositories';
-
-async function purgeExpiredTrash(db: ReturnType<typeof requireDb>): Promise<void> {
-  try {
-    const result = await purgeExpiredTrashTopics(db, TRASH_RETENTION_DAYS);
-    if (result.purged_count > 0) {
-      invalidatePublishedAnalyticsCache();
-    }
-  } catch {
-    // Expiry purge failure should not block loading topics
-  }
-}
 
 export function registerTopicRoutes(app: NativeApp): void {
   app.get('/topics', async (c) => {
@@ -72,9 +60,6 @@ export function registerTopicRoutes(app: NativeApp): void {
       }
       const publishedVideoId = c.req.query('published_video_id')?.trim().slice(0, 200);
       const db = requireDb(c);
-      if (scopeValue === 'trash') {
-        await purgeExpiredTrash(db);
-      }
       return c.json(await loadTopicPage(db, {
         scope: scopeValue as 'active' | 'archived' | 'trash' | 'all', page, pageSize,
         query: c.req.query('q')?.slice(0, 200), status, priority,
@@ -107,9 +92,20 @@ export function registerTopicRoutes(app: NativeApp): void {
 
   app.get('/topics/trash', async (c) => {
     try {
-      const db = requireDb(c);
-      await purgeExpiredTrash(db);
-      return c.json(await loadTrashedTopics(db));
+      return c.json(await loadTrashedTopics(requireDb(c)));
+    } catch (error) {
+      return jsonError(c, error);
+    }
+  });
+
+  // Trash expiry is physically destructive, so it is exposed as an explicit
+  // command instead of happening inside a GET (which proxies and preloaders may
+  // replay). The client calls this once when the user opens the trash view.
+  app.post('/topics/trash/purge', async (c) => {
+    try {
+      const result = await purgeExpiredTrashTopics(requireDb(c), TRASH_RETENTION_DAYS);
+      if (result.purged_count > 0) invalidatePublishedAnalyticsCache();
+      return c.json(result);
     } catch (error) {
       return jsonError(c, error);
     }
@@ -202,7 +198,10 @@ export function registerTopicRoutes(app: NativeApp): void {
       const result = await restoreTopic(db, id, TRASH_RETENTION_DAYS);
       invalidatePublishedAnalyticsCache();
       if (result === 'expired') {
-        return c.json({ code: 'TOPIC_TRASH_EXPIRED', error: '选题已超过回收站保留期限，已永久删除' }, 410);
+        return c.json({
+          code: 'TOPIC_TRASH_EXPIRED',
+          error: '该选题已超过回收站 30 天保留期限，无法恢复，请通过清理回收站将其移除',
+        }, 410);
       }
       if (result === 'not_found') return c.json({ error: 'Not found' }, 404);
       const topic = await loadTopic(db, id);

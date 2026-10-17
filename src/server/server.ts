@@ -107,36 +107,32 @@ export async function startServer(options: ServerOptions = {}) {
 
   const apiApp = createApp(bindings);
 
+  // Mutates the header bag in place instead of rebuilding the Response. A
+  // rebuilt Response turns a BunFile body into a live stream, which drops the
+  // Content-Length and the kernel-level sendfile path for every static asset.
   function withSecurityHeaders(response: Response): Response {
-  const headers = new Headers(response.headers);
-  headers.set('X-Content-Type-Options', 'nosniff');
-  headers.set('X-Frame-Options', 'DENY');
-  headers.set('Referrer-Policy', 'strict-origin-when-cross-origin');
-  if (isProduction) headers.set('Strict-Transport-Security', 'max-age=31536000; includeSubDomains');
-  headers.set('Permissions-Policy', 'camera=(), microphone=(), geolocation=()');
-  headers.set('Cross-Origin-Opener-Policy', 'same-origin-allow-popups');
-  headers.set('Cross-Origin-Resource-Policy', 'same-origin');
-  headers.set('Content-Security-Policy', "default-src 'self'; script-src 'self' https://api.bilibili.com; worker-src 'self'; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src 'self' data: blob: https:; connect-src 'self' https://api.bilibili.com https://www.youtube.com; object-src 'none'; base-uri 'self'; frame-ancestors 'none'; form-action 'self'");
-  return new Response(response.body, {
-    status: response.status,
-    statusText: response.statusText,
-    headers,
-  });
+    const headers = response.headers;
+    headers.set('X-Content-Type-Options', 'nosniff');
+    headers.set('X-Frame-Options', 'DENY');
+    headers.set('Referrer-Policy', 'strict-origin-when-cross-origin');
+    if (isProduction) headers.set('Strict-Transport-Security', 'max-age=31536000; includeSubDomains');
+    headers.set('Permissions-Policy', 'camera=(), microphone=(), geolocation=()');
+    headers.set('Cross-Origin-Opener-Policy', 'same-origin-allow-popups');
+    headers.set('Cross-Origin-Resource-Policy', 'same-origin');
+    headers.set('Content-Security-Policy', "default-src 'self'; script-src 'self' https://api.bilibili.com; worker-src 'self'; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src 'self' data: blob: https:; connect-src 'self' https://api.bilibili.com https://www.youtube.com; object-src 'none'; base-uri 'self'; frame-ancestors 'none'; form-action 'self'");
+    return response;
   }
 
   async function serveFile(filePath: string, extraHeaders?: HeadersInit): Promise<Response> {
-  const file = Bun.file(filePath);
-  if (!(await file.exists())) return new Response('Not Found', { status: 404 });
-  const response = new Response(file);
-  const headers = new Headers(response.headers);
-  if (extraHeaders) {
-    for (const [name, value] of new Headers(extraHeaders)) headers.set(name, value);
-  }
-  return new Response(response.body, {
-    status: response.status,
-    statusText: response.statusText,
-    headers,
-  });
+    const file = Bun.file(filePath);
+    if (!(await file.exists())) return new Response('Not Found', { status: 404 });
+    // Keep the BunFile as the body so Bun can stream straight from disk; only
+    // the header bag needs to be adjusted.
+    const response = new Response(file);
+    if (extraHeaders) {
+      for (const [name, value] of new Headers(extraHeaders)) response.headers.set(name, value);
+    }
+    return response;
   }
 
   function safeAssetPath(relativePath: string): string | null {

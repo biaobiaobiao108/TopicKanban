@@ -160,6 +160,10 @@ function assertCurrentSchema(sqlite: Database): void {
 }
 
 function ensurePerformanceIndexes(sqlite: Database): void {
+  // These indexes are part of the v6 baseline, so freshly created databases
+  // already have them. Databases created by an earlier build of v6 may not, and
+  // index creation is additive and idempotent, so replaying it costs one
+  // sqlite_master lookup per index while fixing those older files in place.
   sqlite.exec(`
     CREATE INDEX IF NOT EXISTS idx_published_page_order
       ON published_videos(published_at DESC, updated_at DESC, id DESC);
@@ -197,8 +201,6 @@ export async function initializeSqliteDatabase(dbFilePath: string, schemaDir?: s
 
   try {
     assertCurrentSchema(sqlite);
-    // Index creation is additive and idempotent, so existing v6 databases
-    // receive the query-plan improvements without a data migration.
     ensurePerformanceIndexes(sqlite);
   } catch (error) {
     sqlite.close();

@@ -249,11 +249,26 @@ function matchRoute(routes: RegisteredRoute[], method: string, pathname: string)
   return null;
 }
 
+interface RegisteredMiddleware {
+  matcher: RegExp;
+  handlers: NativeMiddleware[];
+}
+
+// Koa-style prefix matching: `use('/api')` covers `/api`, `/api/x` and deeper,
+// but not `/apix`. `use('*')` (or a bare handler) matches every path.
+function compileMiddlewareMatcher(path: string): RegExp {
+  const normalized = path.replace(/\/+$/, '');
+  if (!normalized || normalized === '*' || normalized === '/*') return /^\/?.*$/;
+  const prefix = normalized.endsWith('/*') ? normalized.slice(0, -2) : normalized;
+  const escaped = prefix.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  return new RegExp(`^${escaped}(?:/|$)`);
+}
+
 export class NativeApp {
   private readonly basePath: string;
   private readonly env: ApiBindings;
   private readonly routes: RegisteredRoute[] = [];
-  private readonly middlewares: NativeMiddleware[] = [];
+  private readonly middlewares: RegisteredMiddleware[] = [];
 
   constructor(env: ApiBindings, basePath = '/api') {
     this.env = env;
@@ -261,11 +276,13 @@ export class NativeApp {
   }
 
   use(pathOrMiddleware: string | NativeMiddleware, ...handlers: NativeMiddleware[]): this {
-    if (typeof pathOrMiddleware === 'function') {
-      this.middlewares.push(pathOrMiddleware, ...handlers);
-    } else {
-      this.middlewares.push(...handlers);
-    }
+    const isBareHandler = typeof pathOrMiddleware === 'function';
+    const path = isBareHandler ? '*' : pathOrMiddleware;
+    const middlewareHandlers = isBareHandler
+      ? [pathOrMiddleware as NativeMiddleware, ...handlers]
+      : handlers;
+    if (middlewareHandlers.length === 0) return this;
+    this.middlewares.push({ matcher: compileMiddlewareMatcher(path), handlers: middlewareHandlers });
     return this;
   }
 
@@ -308,7 +325,11 @@ export class NativeApp {
       || 'unknown';
     const context = new NativeContext(request, { ...this.env, CLIENT_IP: clientIp });
     context.header('Cache-Control', 'no-store');
-    const routeHandlers = [...this.middlewares, ...match.route.handlers];
+    const pathname = context.req.path;
+    const matchedMiddlewares = this.middlewares
+      .filter((middleware) => middleware.matcher.test(pathname))
+      .flatMap((middleware) => middleware.handlers);
+    const routeHandlers = [...matchedMiddlewares, ...match.route.handlers];
     const startedAt = performance.now();
     let index = -1;
     const next = async (nextIndex: number): Promise<Response> => {

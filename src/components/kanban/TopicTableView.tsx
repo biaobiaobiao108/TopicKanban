@@ -3,7 +3,7 @@ import { useQuery } from '@tanstack/react-query';
 import { Topic, TopicStatus, Priority } from '../../types';
 import { StatusBadge, PriorityBadge } from '../ui/Badge';
 import { COLUMNS } from './columns';
-import { fetchTopicPage } from '../../lib/storage';
+import { fetchTopicPage, purgeExpiredTrash } from '../../lib/storage';
 import {
   Pin,
   ArrowUpDown,
@@ -206,10 +206,25 @@ export const TopicTableView: React.FC<TopicTableViewProps> = ({
     }),
   });
 
+  // Opening the trash view is the agreed moment to drop entries past the
+  // 30-day retention window. It is an explicit POST so that a replayed or
+  // prefetched list request can never remove rows.
+  useEffect(() => {
+    if (archiveScope !== 'trash') return;
+    let cancelled = false;
+    void purgeExpiredTrash()
+      .then((result) => {
+        if (cancelled || result.purged_count === 0) return;
+        void pageQuery.refetch();
+      })
+      .catch(() => undefined);
+    return () => { cancelled = true; };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [archiveScope]);
+
   const activeCount = useMemo(() => {
     return pageQuery.data?.scope_counts?.active || 0;
   }, [pageQuery.data]);
-
   const archivedCount = useMemo(() => {
     return pageQuery.data?.scope_counts?.archived || 0;
   }, [pageQuery.data]);
@@ -326,10 +341,13 @@ export const TopicTableView: React.FC<TopicTableViewProps> = ({
   };
 
   const requestPermanentlyDeleteTopic = (topic: Topic) => {
+    const linkedVideoNotice = topic.status === 'published'
+      ? '\n\n该选题已标记为「已发布」，其已发布视频记录与播放、点赞、投币等互动数据也会一并删除，分析看板中的历史数据将同步消失。'
+      : '';
     setConfirmDialog({
       isOpen: true,
       title: '永久删除选题',
-      description: `确定要永久删除选题「${topic.title}」吗？\n\n全部关联数据（资料、时间线、文案草稿）将一并永久删除，且无法恢复。`,
+      description: `确定要永久删除选题「${topic.title}」吗？\n\n全部关联数据（资料与时间线、文案草稿与选题报告、引用记录、发布包、商单关联）将一并永久删除，且无法恢复。${linkedVideoNotice}`,
       confirmText: '永久删除',
       tone: 'danger',
       onConfirm: async () => {
@@ -372,7 +390,7 @@ export const TopicTableView: React.FC<TopicTableViewProps> = ({
     setConfirmDialog({
       isOpen: true,
       title: '批量永久删除',
-      description: `确定要永久删除选中的 ${count} 个选题吗？\n\n全部关联资料、时间线与草稿将一并删除，且无法撤销！`,
+      description: `确定要永久删除选中的 ${count} 个选题吗？\n\n全部关联数据（资料与时间线、草稿与选题报告、引用、发布包、商单关联，以及已发布视频的播放数据）将一并删除，且无法撤销！`,
       confirmText: '永久删除',
       tone: 'danger',
       onConfirm: async () => {
@@ -401,7 +419,7 @@ export const TopicTableView: React.FC<TopicTableViewProps> = ({
     setConfirmDialog({
       isOpen: true,
       title: '清空回收站',
-      description: `确定要清空回收站吗？\n\n将永久删除回收站内的全部 ${trashCount} 个选题，此操作无法撤销！`,
+      description: `确定要清空回收站吗？\n\n将永久删除回收站内的全部 ${trashCount} 个选题，包含其资料、草稿、发布包、商单关联与已发布视频的播放数据，此操作无法撤销！`,
       confirmText: '清空回收站',
       tone: 'danger',
       onConfirm: async () => {

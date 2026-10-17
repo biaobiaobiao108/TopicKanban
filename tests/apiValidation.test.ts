@@ -4,21 +4,43 @@ import {
   MAX_DRAFT_BYTES,
   MAX_LOGIN_REQUEST_BYTES,
   MAX_QUICK_DROP_REQUEST_BYTES,
+  parseTopicUpdate,
   validateTextFields,
   validateCommercialDealFields,
-  validateTopicFields,
-  validateExternalUrlField,
   verifyQuickDropCredential,
 } from '../src/server/apiShared';
-import { draftSaveSchema, parseWithZod } from '../src/server/schemas';
+import { draftSaveSchema, externalUrlSchema, parseWithZod } from '../src/server/schemas';
 import { Database } from 'bun:sqlite';
 import { SqliteDatabase } from '../src/server/sqlite';
 import { createApp } from '../src/server/app';
 
+/** Mirrors the route-level helper that the shared schema replaced. */
+function parseTopicUpdateError(body: Record<string, unknown>): string | null {
+  const result = parseTopicUpdate(body);
+  return result.success ? null : result.error;
+}
+
+function externalUrlError(value: string): string | null {
+  const result = externalUrlSchema('avatar_url').safeParse(value);
+  return result.success ? null : result.error.issues[0]?.message ?? 'invalid';
+}
+
 describe('API validation boundaries', () => {
+  it('serves query and body validation from the same enum declaration', async () => {
+    const schemas = await import('../src/server/schemas');
+    const shared = await import('../src/server/apiShared');
+    // Identity, not just equality: a copy would drift the moment one side is edited.
+    expect(shared.COMMERCIAL_DEAL_STATUSES).toBe(schemas.COMMERCIAL_DEAL_STATUSES);
+    expect(shared.COMMERCIAL_DEAL_PAYMENT_STATUSES).toBe(schemas.COMMERCIAL_DEAL_PAYMENT_STATUSES);
+    expect(shared.COMMERCIAL_DEAL_DELIVERABLE_TYPES).toBe(schemas.COMMERCIAL_DEAL_DELIVERABLE_TYPES);
+    expect(shared.COMMERCIAL_DEAL_SOURCES).toBe(schemas.COMMERCIAL_DEAL_SOURCES);
+    expect(shared.COMMERCIAL_DEAL_CONTRACT_STATUSES).toBe(schemas.COMMERCIAL_DEAL_CONTRACT_STATUSES);
+    expect(shared.PRIORITIES).toBe(schemas.PRIORITIES);
+  });
+
   it('rejects blank and oversized topic titles', () => {
-    expect(validateTopicFields({ title: '   ' })).toBe('title is required');
-    expect(validateTopicFields({ title: 'x'.repeat(201) })).toBe('title exceeds 200 characters');
+    expect(parseTopicUpdateError({ title: '   ' })).toBe('title is required');
+    expect(parseTopicUpdateError({ title: 'x'.repeat(201) })).toBe('title exceeds 200 characters');
   });
 
   it('accepts values at configured boundaries', () => {
@@ -44,8 +66,8 @@ describe('API validation boundaries', () => {
   });
 
   it('rejects invalid score and sort values', () => {
-    expect(validateTopicFields({ score_story: 3 })).toContain('score_story');
-    expect(validateTopicFields({ sort_order: -1 })).toContain('sort_order');
+    expect(parseTopicUpdateError({ score_story: 3 })).toContain('score_story');
+    expect(parseTopicUpdateError({ sort_order: -1 })).toContain('sort_order');
   });
 
   it('requires a separate configured quick-drop credential', () => {
@@ -55,13 +77,12 @@ describe('API validation boundaries', () => {
   });
 
   it('only accepts public HTTP(S) URLs for rendered external media', () => {
-    expect(validateExternalUrlField({ avatar_url: 'https://images.example.com/avatar.png' }, 'avatar_url')).toBeNull();
-    expect(validateExternalUrlField({ avatar_url: 'javascript:alert(1)' }, 'avatar_url')).toContain('http(s) URL');
-    expect(validateExternalUrlField({ avatar_url: 'http://127.0.0.1/avatar.png' }, 'avatar_url')).toContain('http(s) URL');
+    expect(externalUrlError('https://images.example.com/avatar.png')).toBeNull();
+    expect(externalUrlError('javascript:alert(1)')).toContain('http(s) URL');
+    expect(externalUrlError('http://127.0.0.1/avatar.png')).toContain('http(s) URL');
   });
 
-  it('rejects malformed commercial calendar dates', () => {
-    expect(validateCommercialDealFields({ delivery_due_date: '202608-02-07' })).toBe('delivery_due_date must be YYYY-MM-DD or null');
+  it('rejects malformed commercial calendar dates', () => {    expect(validateCommercialDealFields({ delivery_due_date: '202608-02-07' })).toBe('delivery_due_date must be YYYY-MM-DD or null');
     expect(validateCommercialDealFields({ delivery_due_date: '2026-02-30' })).toBe('delivery_due_date must be YYYY-MM-DD or null');
     expect(validateCommercialDealFields({ delivery_due_date: '2026-08-27' })).toBeNull();
   });

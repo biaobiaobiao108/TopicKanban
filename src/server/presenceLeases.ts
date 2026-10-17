@@ -13,9 +13,19 @@ function cleanExpired(now: number): void {
     if (lease.expiresAt <= now) leases.delete(key);
   }
   while (leases.size >= MAX_LEASES) {
-    const oldestKey = leases.keys().next().value;
-    if (!oldestKey) break;
-    leases.delete(oldestKey);
+    // Evict the lease closest to expiry (the one whose owner stopped sending
+    // heartbeats earliest) instead of the oldest insertion. Insertion order
+    // would kick out a live editor while a stale lock kept its slot.
+    let victimKey: string | null = null;
+    let victimExpiry = Number.POSITIVE_INFINITY;
+    for (const [key, lease] of leases) {
+      if (lease.expiresAt < victimExpiry) {
+        victimExpiry = lease.expiresAt;
+        victimKey = key;
+      }
+    }
+    if (victimKey === null) break;
+    leases.delete(victimKey);
   }
 }
 

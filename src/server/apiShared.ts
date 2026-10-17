@@ -1,7 +1,11 @@
-import { isTopicStatus } from '../types';
-import { isSafeExternalHttpUrl } from '../lib/urlSafety';
-import { isValidIsoDate } from '../lib/dateInput';
+import { createHash, timingSafeEqual } from 'node:crypto';
 import type { SqliteDatabase } from './sqlite';
+import {
+  commercialDealSchema,
+  parseWithZod,
+  topicCreateSchema,
+  topicUpdateSchema,
+} from './schemas';
 
 export type ApiBindings = {
   DB: SqliteDatabase;
@@ -13,12 +17,6 @@ export type ApiBindings = {
 };
 
 const TOKEN_TTL_SECONDS = 60 * 60 * 24 * 7;
-const PRIORITIES = ['high', 'medium', 'low', 'none'] as const;
-export const COMMERCIAL_DEAL_STATUSES = ['communicating', 'producing', 'delivered', 'archived'] as const;
-export const COMMERCIAL_DEAL_PAYMENT_STATUSES = ['unpaid', 'paid'] as const;
-export const COMMERCIAL_DEAL_DELIVERABLE_TYPES = ['custom_video', 'dynamic', 'live', 'offline_activity', 'other'] as const;
-export const COMMERCIAL_DEAL_SOURCES = ['huahuo', 'brand_direct', 'agency', 'mcn', 'other'] as const;
-export const COMMERCIAL_DEAL_CONTRACT_STATUSES = ['not_started', 'drafting', 'signed'] as const;
 export const MAX_DRAFT_BYTES = 4 * 1024 * 1024;
 export const MAX_BATCH_SIZE = 200;
 export const MAX_REQUEST_BYTES = 10 * 1024 * 1024;
@@ -27,7 +25,17 @@ export const MAX_QUICK_DROP_REQUEST_BYTES = 64 * 1024;
 export const MAX_BACKUP_REQUEST_BYTES = 6 * 1024 * 1024;
 export const MAX_BACKUP_EXPORT_SETTINGS_BYTES = 16 * 1024;
 
+// Domain enums live in schemas.ts only. Re-exporting them keeps route-level
+// query validation and body validation reading from the same declaration, so an
+// enum can never drift between "what can be written" and "what can be filtered".
 export {
+  COMMERCIAL_DEAL_STATUSES,
+  COMMERCIAL_DEAL_PAYMENT_STATUSES,
+  COMMERCIAL_DEAL_DELIVERABLE_TYPES,
+  COMMERCIAL_DEAL_SOURCES,
+  COMMERCIAL_DEAL_CONTRACT_STATUSES,
+  PRIORITIES,
+  TOPIC_STATUSES,
   VERIFICATION_STATUSES,
   DATE_PRECISIONS,
   PLATFORM_TYPES,
@@ -51,12 +59,6 @@ export function isNonNegativeInteger(value: unknown): boolean {
   return typeof value === 'number' && Number.isInteger(value) && value >= 0;
 }
 
-export function isNonNegativeSafeInteger(value: unknown): boolean {
-  return typeof value === 'number' && Number.isSafeInteger(value) && value >= 0;
-}
-
-import { createHash, timingSafeEqual } from 'node:crypto';
-
 export function timingSafeEqualString(a: string | undefined, b: string | undefined): boolean {
   if (typeof a !== 'string' || typeof b !== 'string') return false;
   const hashA = createHash('sha256').update(a).digest();
@@ -72,26 +74,6 @@ export function verifyQuickDropCredential(
 ): QuickDropCredentialResult {
   if (!configuredToken) return 'missing_config';
   return timingSafeEqualString(providedToken, configuredToken) ? 'valid' : 'invalid';
-}
-
-export function hasInvalidValue(
-  body: Record<string, unknown>,
-  field: string,
-  predicate: (value: unknown) => boolean
-): boolean {
-  return Object.prototype.hasOwnProperty.call(body, field) && !predicate(body[field]);
-}
-
-import {
-  topicCreateSchema,
-  topicUpdateSchema,
-  commercialDealSchema,
-  parseWithZod,
-} from './schemas';
-
-export function validateTopicFields(body: Record<string, unknown>): string | null {
-  const result = parseTopicUpdate(body);
-  return result.success ? null : result.error;
 }
 
 export function parseTopicCreate(body: unknown) {
@@ -122,13 +104,6 @@ export function validateTextFields(
     if (required && !value.trim()) return `${field} is required`;
     if (value.length > maxLength) return `${field} exceeds ${maxLength} characters`;
   }
-  return null;
-}
-
-export function validateExternalUrlField(body: Record<string, unknown>, field: string): string | null {
-  if (!Object.prototype.hasOwnProperty.call(body, field)) return null;
-  if (typeof body[field] !== 'string') return `${field} must be a string`;
-  if (!isSafeExternalHttpUrl(body[field])) return `${field} must be an http(s) URL`;
   return null;
 }
 
@@ -200,4 +175,3 @@ export function jsonValidationError(c: any, errorMsg: string, issues?: unknown[]
 export function createId(prefix: string): string {
   return `${prefix}-${Date.now()}-${crypto.randomUUID().slice(0, 8)}`;
 }
-

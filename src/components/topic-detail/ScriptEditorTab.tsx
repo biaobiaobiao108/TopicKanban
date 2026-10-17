@@ -118,6 +118,10 @@ export const LINE_HEIGHT_MAP: Record<EditorLineHeight, string> = {
   loose: '2.1',
 };
 
+// Backoff for retrying a failed cloud draft upload. The last entry repeats, so
+// an editor left open through a long outage keeps converging on its own.
+const SAVE_RETRY_DELAY_MS = [5000, 15000, 60000];
+
 // Zero-delay native ProseMirror decoration extension for active focus paragraph
 const FocusParagraphExtension = Extension.create({
   name: 'focusParagraph',
@@ -356,6 +360,8 @@ export const ScriptEditorTab: React.FC<ScriptEditorTabProps> = ({
   const prefersReducedMotionRef = useRef(false);
   const saveTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const localSaveTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const saveRetryTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const saveRetryAttemptRef = useRef(0);
   const hasUnsavedChangesRef = useRef(false);
   const localCacheAvailableRef = useRef(false);
   const localCacheFailedRef = useRef(false);
@@ -390,6 +396,11 @@ export const ScriptEditorTab: React.FC<ScriptEditorTabProps> = ({
         setSaveStatus('saving');
         try {
           await onSaveDraft(topicId, latest.html, latest.json, latest.wordCount, latest.title, latest.markdown);
+          saveRetryAttemptRef.current = 0;
+          if (saveRetryTimeoutRef.current) {
+            clearTimeout(saveRetryTimeoutRef.current);
+            saveRetryTimeoutRef.current = null;
+          }
           if (savingVersion === editVersionRef.current) {
             hasUnsavedChangesRef.current = false;
             localCacheAvailableRef.current = false;
@@ -408,6 +419,17 @@ export const ScriptEditorTab: React.FC<ScriptEditorTabProps> = ({
             setSaveStatus(localCacheAvailableRef.current
               ? 'local'
               : localCacheFailedRef.current ? 'cache-error' : 'pending');
+            // A single failed upload previously left the cloud copy frozen until
+            // the next keystroke. Retry with backoff so a network blip or a
+            // server restart cannot silently strand the edit.
+            if (!saveRetryTimeoutRef.current) {
+              const delay = SAVE_RETRY_DELAY_MS[Math.min(saveRetryAttemptRef.current, SAVE_RETRY_DELAY_MS.length - 1)];
+              saveRetryAttemptRef.current += 1;
+              saveRetryTimeoutRef.current = setTimeout(() => {
+                saveRetryTimeoutRef.current = null;
+                void persistLatestDraft().catch(() => undefined);
+              }, delay);
+            }
           }
           throw error;
         }
@@ -1056,6 +1078,9 @@ export const ScriptEditorTab: React.FC<ScriptEditorTabProps> = ({
     outlineHighlightAnimationRef.current?.cancel();
     if (copyFeedbackTimeoutRef.current) clearTimeout(copyFeedbackTimeoutRef.current);
     if (zenTypingTimeoutRef.current) clearTimeout(zenTypingTimeoutRef.current);
+    if (saveTimeoutRef.current) clearTimeout(saveTimeoutRef.current);
+    if (localSaveTimeoutRef.current) clearTimeout(localSaveTimeoutRef.current);
+    if (saveRetryTimeoutRef.current) clearTimeout(saveRetryTimeoutRef.current);
   }, []);
 
   const copyFullScript = async () => {

@@ -435,6 +435,32 @@ export function fetchTrashedTopics(): Promise<Topic[]> {
   return apiRequest('/api/topics/trash');
 }
 
+export interface TrashPurgeResult {
+  purged_count: number;
+  purged_ids: string[];
+}
+
+/**
+ * Physically removes trash entries older than the retention window.
+ *
+ * This is an explicit command rather than a side effect of loading the trash
+ * list, so prefetching or replaying a GET can never destroy data.
+ */
+export async function purgeExpiredTrash(): Promise<TrashPurgeResult> {
+  const result = await apiRequest<{ purged_count?: unknown; purged_ids?: unknown }>(
+    '/api/topics/trash/purge',
+    jsonRequest('POST', {}),
+  );
+  const purgedIds = Array.isArray(result.purged_ids)
+    ? result.purged_ids.filter((id): id is string => typeof id === 'string')
+    : [];
+  if (purgedIds.length > 0) {
+    purgedIds.forEach(clearRemoteStorageTopicCaches);
+    invalidateBootstrap();
+  }
+  return { purged_count: Number(result.purged_count) || purgedIds.length, purged_ids: purgedIds };
+}
+
 export async function restoreTopic(id: string): Promise<Topic> {
   const topic = await apiRequest<Topic>(`/api/topics/${encodeURIComponent(id)}/restore`, { method: 'POST' });
   invalidateBootstrap();

@@ -114,7 +114,7 @@ describe('Storage Optimization & Compaction', () => {
     expect(result.after.freelist_bytes).toBe(0);
   });
 
-  it('purges expired trash topics and revokes their public review snapshots', async () => {
+  it('purges expired trash topics on the explicit cleanup command', async () => {
     const now = Date.now();
     const oldDate = new Date(now - 40 * 86400 * 1000).toISOString(); // 40 days ago
     const recentDate = new Date(now - 5 * 86400 * 1000).toISOString(); // 5 days ago
@@ -155,6 +155,17 @@ describe('Storage Optimization & Compaction', () => {
     });
     sqlite.query('UPDATE topics SET deleted_at = ? WHERE id = ?').run(recentDate, 'topic-recent-trash');
 
+    // Reading the trash must not destroy anything.
+    const readOnlyTrash = await app.request('/api/topics/trash', { headers: authHeaders });
+    const readOnlyList = await readOnlyTrash.json() as Array<{ id: string }>;
+    expect(readOnlyList.map((topic) => topic.id).sort()).toEqual(['topic-old-trash', 'topic-recent-trash']);
+
+    const purgeResponse = await app.request('/api/topics/trash/purge', { method: 'POST', headers: authHeaders });
+    expect(purgeResponse.status).toBe(200);
+    const purgeResult = await purgeResponse.json() as { purged_count: number; purged_ids: string[] };
+    expect(purgeResult.purged_count).toBe(1);
+    expect(purgeResult.purged_ids).toEqual(['topic-old-trash']);
+
     const trashResponse = await app.request('/api/topics/trash', { headers: authHeaders });
     expect(trashResponse.status).toBe(200);
     const trashList = await trashResponse.json() as Array<{ id: string }>;
@@ -164,7 +175,7 @@ describe('Storage Optimization & Compaction', () => {
     expect(remaining.map((r) => r.id)).toEqual(['topic-recent-trash']);
   });
 
-  it('purges expired trash topics when requesting paginated topics with scope=trash', async () => {
+  it('keeps expired rows visible when reading paginated trash so a GET never destroys data', async () => {
     const now = Date.now();
     const oldDate = new Date(now - 45 * 86400 * 1000).toISOString();
     const recentDate = new Date(now - 3 * 86400 * 1000).toISOString();
@@ -206,14 +217,20 @@ describe('Storage Optimization & Compaction', () => {
     const pageResponse = await app.request('/api/topics?scope=trash&page=1&page_size=50', { headers: authHeaders });
     expect(pageResponse.status).toBe(200);
     const pageData = await pageResponse.json() as { items: Array<{ id: string }>; scope_counts: { trash: number } };
-    expect(pageData.items.map((item) => item.id)).toEqual(['topic-recent-trash-page']);
-    expect(pageData.scope_counts.trash).toBe(1);
+    expect(pageData.items.map((item) => item.id).sort()).toEqual(['topic-old-trash-page', 'topic-recent-trash-page']);
+    expect(pageData.scope_counts.trash).toBe(2);
 
     const remaining = sqlite.query('SELECT id FROM topics WHERE deleted_at IS NOT NULL').all() as Array<{ id: string }>;
-    expect(remaining.map((r) => r.id)).toEqual(['topic-recent-trash-page']);
+    expect(remaining.map((r) => r.id).sort()).toEqual(['topic-old-trash-page', 'topic-recent-trash-page']);
+
+    const purgeResponse = await app.request('/api/topics/trash/purge', { method: 'POST', headers: authHeaders });
+    const purgeResult = await purgeResponse.json() as { purged_count: number };
+    expect(purgeResult.purged_count).toBe(1);
+    const afterPurge = sqlite.query('SELECT id FROM topics WHERE deleted_at IS NOT NULL').all() as Array<{ id: string }>;
+    expect(afterPurge.map((r) => r.id)).toEqual(['topic-recent-trash-page']);
   });
 
-  it('permanently deletes an expired topic when a stale trash view requests restore', async () => {
+  it('refuses to restore an expired topic without destroying it', async () => {
     const now = Date.now();
     const expiredAt = new Date(now - 40 * 86400 * 1000).toISOString();
     const recentAt = new Date(now - 5 * 86400 * 1000).toISOString();
@@ -249,12 +266,12 @@ describe('Storage Optimization & Compaction', () => {
       method: 'POST', headers: authHeaders,
     });
     expect(expiredRestore.status).toBe(410);
-    expect(await expiredRestore.json()).toEqual({
-      code: 'TOPIC_TRASH_EXPIRED',
-      error: '选题已超过回收站保留期限，已永久删除',
-    });
-    expect(sqlite.query('SELECT id FROM topics WHERE id = ?').get('topic-expired-restore')).toBeNull();
-    expect(sqlite.query('SELECT id FROM sources WHERE id = ?').get('source-expired-restore')).toBeNull();
+    const expiredPayload = await expiredRestore.json() as { code: string; error: string };
+    expect(expiredPayload.code).toBe('TOPIC_TRASH_EXPIRED');
+    expect(expiredPayload.error).toContain('无法恢复');
+    // Restoring must never be the trigger that deletes data.
+    expect(sqlite.query('SELECT id FROM topics WHERE id = ?').get('topic-expired-restore')).not.toBeNull();
+    expect(sqlite.query('SELECT id FROM sources WHERE id = ?').get('source-expired-restore')).not.toBeNull();
 
     const recentRestore = await app.request('/api/topics/topic-recent-restore/restore', {
       method: 'POST', headers: authHeaders,
