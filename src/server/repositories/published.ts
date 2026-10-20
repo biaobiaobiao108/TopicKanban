@@ -231,7 +231,21 @@ export function publishedStatement(db: Database, video: PublishedVideo): SqlComm
 }
 
 export async function insertPublishedVideo(db: Database, video: PublishedVideo): Promise<void> {
-  executeTransaction(db, [publishedStatement(db, video)]);
+  db.transaction(() => {
+    if (video.topic_id && readOne<{ id: string }>(db,
+      'SELECT id FROM published_videos WHERE topic_id = ? LIMIT 1', [video.topic_id])) {
+      throw new PublishedTopicAlreadyLinkedError();
+    }
+    const insertion = publishedStatement(db, video);
+    insertion.statement.run(...insertion.values);
+  }).immediate();
+}
+
+export class PublishedTopicAlreadyLinkedError extends Error {
+  constructor() {
+    super('该选题已关联发布视频');
+    this.name = 'PublishedTopicAlreadyLinkedError';
+  }
 }
 
 export async function findPublishedVideo(db: Database, id: string): Promise<PublishedVideo | null> {
@@ -242,8 +256,16 @@ export async function updatePublishedVideo(db: Database, id: string, body: Recor
   const fields = ['topic_id', 'title', 'url', 'bvid', 'published_at', 'views', 'likes', 'coins', 'favorites', 'comments', 'notes']
     .filter((field) => Object.prototype.hasOwnProperty.call(body, field));
   if (fields.length > 0) {
-    execute(db, `UPDATE published_videos SET ${fields.map((field) => `${field} = ?`).join(', ')}, updated_at = ? WHERE id = ?`,
-      [...fields.map((field) => body[field]), new Date().toISOString(), id]);
+    db.transaction(() => {
+      const topicId = body.topic_id;
+      if (typeof topicId === 'string' && topicId
+        && readOne<{ id: string }>(db,
+          'SELECT id FROM published_videos WHERE topic_id = ? AND id != ? LIMIT 1', [topicId, id])) {
+        throw new PublishedTopicAlreadyLinkedError();
+      }
+      execute(db, `UPDATE published_videos SET ${fields.map((field) => `${field} = ?`).join(', ')}, updated_at = ? WHERE id = ?`,
+        [...fields.map((field) => body[field]), new Date().toISOString(), id]);
+    }).immediate();
   }
   return findPublishedVideo(db, id);
 }

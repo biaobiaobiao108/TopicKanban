@@ -1,6 +1,6 @@
 import { z } from 'zod';
 import { type BackupData, type TopicTodo, APP_THEMES, CURRENT_BACKUP_VERSION } from '../types';
-import { isValidIsoDate } from './dateInput';
+import { isValidIsoDate, isValidSourceEventDate } from './dateInput';
 import { isSafeExternalHttpUrl } from './urlSafety';
 
 const id = z.string().trim().min(1, 'ID 不能为空').max(200, 'ID 不能超过 200 字符');
@@ -14,6 +14,9 @@ const optionalDeletedAtTimestamp = deletedAtTimestamp.nullable().optional();
 const optionalDateOnly = z.string().nullable().optional()
   .transform((value) => value === '' ? null : value)
   .refine((value) => value === undefined || value === null || isValidIsoDate(value), '日期必须是有效的 YYYY-MM-DD');
+const optionalSourceEventDate = z.string().max(50).nullable().optional()
+  .transform((value) => value === '' ? null : value)
+  .refine((value) => value === undefined || value === null || isValidSourceEventDate(value), '事件日期必须是有效的 YYYY、YYYY-MM 或 YYYY-MM-DD');
 const verificationStatus = z.enum(['confirmed', 'unverified', 'rejected']);
 const themeSchema = z.enum(APP_THEMES);
 
@@ -102,7 +105,7 @@ const sourceSchema = z.object({
   published_at: timestamp,
   verification_status: verificationStatus,
   notes: longText,
-  event_date: timestamp.nullable().optional().transform((value) => value === '' ? null : value),
+  event_date: optionalSourceEventDate,
   date_precision: z.enum(['exact', 'year_month', 'year', 'unknown']).optional(),
   sort_order: z.number().int().nonnegative().optional(),
   created_at: timestamp,

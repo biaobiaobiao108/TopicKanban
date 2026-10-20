@@ -16,6 +16,21 @@ export function isValidIsoDate(value: string): boolean {
   return day <= daysInMonth;
 }
 
+export function isValidSourceEventDate(value: string): boolean {
+  if (!value) return true;
+  const match = /^(\d{4})(?:-(\d{1,2})(?:-(\d{1,2}))?)?$/.exec(value);
+  if (!match) return false;
+  const year = Number(match[1]);
+  const month = match[2] ? Number(match[2]) : null;
+  const day = match[3] ? Number(match[3]) : null;
+  if (year < 1) return false;
+  if (month !== null && (month < 1 || month > 12)) return false;
+  const monthEnd = new Date(0);
+  if (month !== null) monthEnd.setUTCFullYear(year, month, 0);
+  if (day !== null && (month === null || day < 1 || day > monthEnd.getUTCDate())) return false;
+  return true;
+}
+
 export function normalizeDateInputValue(input: string, min?: string): DateInputParseResult {
   const trimmed = input.trim();
   if (!trimmed) return { value: '', error: null };

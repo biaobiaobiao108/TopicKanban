@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'bun:test';
-import type { BackupData, Topic, TopicTodo } from '../src/types';
+import type { BackupData, Source, Topic, TopicTodo } from '../src/types';
 import { validateBackupData } from '../src/lib/backupValidation';
 import { Database } from 'bun:sqlite';
 import { createApp } from '../src/server/app';
@@ -62,6 +62,26 @@ function createTodo(id: string, topicId: string, overrides: Partial<TopicTodo> =
     created_at: '2026-01-01T00:00:00.000Z',
     updated_at: '2026-01-01T00:00:00.000Z',
     ...overrides,
+  };
+}
+
+function createSource(topicId: string, eventDate: string | null): Source {
+  return {
+    id: `source-${eventDate || 'unknown'}`,
+    topic_id: topicId,
+    title: '资料事件日期校验',
+    content: '',
+    url: '',
+    platform: 'news',
+    author: '',
+    published_at: '',
+    verification_status: 'unverified',
+    notes: '',
+    event_date: eventDate,
+    date_precision: 'exact',
+    sort_order: 0,
+    created_at: '2026-01-01T00:00:00.000Z',
+    updated_at: '2026-01-01T00:00:00.000Z',
   };
 }
 
@@ -154,6 +174,18 @@ describe('backup schema validation', () => {
     expect(validateBackupData(createBackup({
       topics: [{ ...createTopic('topic-valid-trash-date'), deleted_at: '2026-01-02T03:04:05.000Z' }],
     })).success).toBe(true);
+  });
+
+  it('validates backup source event dates with the API date rules', () => {
+    const topic = createTopic('topic-source-event-date');
+    for (const eventDate of ['2026', '2026-2', '2024-02-29', null]) {
+      expect(validateBackupData(createBackup({ topics: [topic], sources: [createSource(topic.id, eventDate)] })).success)
+        .toBe(true);
+    }
+    for (const eventDate of ['2026-99-88', '2025-02-29', '2026-13', '26-01-01']) {
+      expect(validateBackupData(createBackup({ topics: [topic], sources: [createSource(topic.id, eventDate)] })).success)
+        .toBe(false);
+    }
   });
 
   it('does not expose hardcoded workflow preferences as backup settings', () => {

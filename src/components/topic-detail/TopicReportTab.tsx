@@ -8,6 +8,12 @@ import Placeholder from '@tiptap/extension-placeholder';
 import CharacterCount from '@tiptap/extension-character-count';
 import { TopicReport } from '../../types';
 import { TopicReportConflictError } from '../../lib/storageApi';
+import {
+  clearTopicReportRecovery,
+  clearTopicReportRecoveryIfMatches,
+  readTopicReportRecovery,
+  writeTopicReportRecovery,
+} from '../../lib/topicReportRecovery';
 import { ScriptStarterKit } from './ScriptStarterKit';
 import { ScriptCodeBlock } from './ScriptCodeBlock';
 import { CodeBlockDoubleEnter } from './ScriptCodeBlockEnter';
@@ -55,6 +61,8 @@ const REPORT_MARKDOWN_EXTENSIONS = [
   ImeMarkdownSafeExtension,
 ];
 
+const SAVE_RETRY_DELAYS_MS = [5000, 15000, 60000];
+
 interface TopicReportTabProps {
   topicId: string;
   topicTitle: string;
@@ -93,11 +101,17 @@ export const TopicReportTab: React.FC<TopicReportTabProps> = ({
   const conflictPendingRef = useRef(false);
   const activeSaveDoneRef = useRef<Promise<void> | null>(null);
   const schedulePersistenceRef = useRef<() => void>(() => {});
+  const scheduleRetryRef = useRef<() => void>(() => {});
   const latestContentRef = useRef<{ markdown: string; html: string; json: string; wordCount: number } | null>(null);
   const currentBaseVersionRef = useRef<number>(report?.version ?? 0);
   const markdownEditorRef = useRef<TiptapEditor | null>(null);
   const isMountedRef = useRef(true);
   const onSaveReportRef = useRef(onSaveReport);
+  const retryTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const retryAttemptRef = useRef(0);
+  const didRecoverLocalDraftRef = useRef(false);
+  const localCacheFailedRef = useRef(false);
+  const saveFailureToastShownRef = useRef(false);
 
   useEffect(() => {
     onSaveReportRef.current = onSaveReport;
@@ -122,6 +136,10 @@ export const TopicReportTab: React.FC<TopicReportTabProps> = ({
 
     const savedRevision = editRevisionRef.current;
     const baseVersion = currentBaseVersionRef.current;
+    localCacheFailedRef.current = !writeTopicReportRecovery(topicId, {
+      ...latest,
+      baseVersion,
+    });
     isSavingRef.current = true;
     let finishSave!: () => void;
     const saveDone = new Promise<void>((resolve) => {
@@ -139,8 +157,25 @@ export const TopicReportTab: React.FC<TopicReportTabProps> = ({
         base_version: baseVersion,
       });
       currentBaseVersionRef.current = updated.version;
+      retryAttemptRef.current = 0;
+      if (retryTimeoutRef.current) {
+        clearTimeout(retryTimeoutRef.current);
+        retryTimeoutRef.current = null;
+      }
       const noNewEdits = editRevisionRef.current === savedRevision;
-      if (noNewEdits) hasUnsavedChangesRef.current = false;
+      if (noNewEdits) {
+        hasUnsavedChangesRef.current = false;
+        clearTopicReportRecoveryIfMatches(topicId, { ...latest, baseVersion });
+      } else {
+        const newer = latestContentRef.current;
+        if (newer) {
+          localCacheFailedRef.current = !writeTopicReportRecovery(topicId, {
+            ...newer,
+            baseVersion: updated.version,
+          });
+        }
+      }
+      saveFailureToastShownRef.current = false;
       if (isMountedRef.current) {
         if (noNewEdits) {
           setSaveStatus('saved');
@@ -157,6 +192,10 @@ export const TopicReportTab: React.FC<TopicReportTabProps> = ({
       const isConflict = err instanceof TopicReportConflictError
         || (err instanceof Error && (err.name === 'TopicReportConflictError' || err.message.includes('409') || err.message.includes('REPORT_CONFLICT') || err.message.includes('版本冲突')));
       if (isConflict) {
+        if (retryTimeoutRef.current) {
+          clearTimeout(retryTimeoutRef.current);
+          retryTimeoutRef.current = null;
+        }
         conflictPendingRef.current = true;
         const remoteReport = err instanceof TopicReportConflictError ? err.current : null;
         if (isMountedRef.current) {
@@ -168,8 +207,17 @@ export const TopicReportTab: React.FC<TopicReportTabProps> = ({
       } else {
         if (isMountedRef.current) {
           setSaveStatus('error');
-          showToast({ message: '保存选题报告失败', tone: 'error' });
+          if (!saveFailureToastShownRef.current) {
+            showToast({
+              message: localCacheFailedRef.current
+                ? '保存选题报告失败，浏览器本地暂存也不可用；请保持页面打开，系统会自动重试'
+                : '保存选题报告失败，内容已在浏览器本地暂存，系统会自动重试',
+              tone: 'error',
+            });
+            saveFailureToastShownRef.current = true;
+          }
         }
+        scheduleRetryRef.current();
       }
     } finally {
       isSavingRef.current = false;
@@ -178,10 +226,25 @@ export const TopicReportTab: React.FC<TopicReportTabProps> = ({
         finishSave();
       }
     }
-  }, [showToast]);
+  }, [showToast, topicId]);
+
+  const scheduleRetry = useCallback(() => {
+    if (retryTimeoutRef.current) clearTimeout(retryTimeoutRef.current);
+    const delay = SAVE_RETRY_DELAYS_MS[Math.min(retryAttemptRef.current, SAVE_RETRY_DELAYS_MS.length - 1)];
+    retryAttemptRef.current += 1;
+    retryTimeoutRef.current = setTimeout(() => {
+      retryTimeoutRef.current = null;
+      void persistReport();
+    }, delay);
+  }, [persistReport]);
+  scheduleRetryRef.current = scheduleRetry;
 
   const schedulePersistence = useCallback(() => {
     if (saveTimeoutRef.current) clearTimeout(saveTimeoutRef.current);
+    if (retryTimeoutRef.current) {
+      clearTimeout(retryTimeoutRef.current);
+      retryTimeoutRef.current = null;
+    }
     saveTimeoutRef.current = setTimeout(() => {
       void persistReport();
     }, 1500);
@@ -227,6 +290,17 @@ export const TopicReportTab: React.FC<TopicReportTabProps> = ({
       latestContentRef.current = { markdown, html, json, wordCount };
       editRevisionRef.current += 1;
       hasUnsavedChangesRef.current = true;
+      const cached = writeTopicReportRecovery(topicId, {
+        markdown,
+        html,
+        json,
+        wordCount,
+        baseVersion: currentBaseVersionRef.current,
+      });
+      if (!cached && !localCacheFailedRef.current) {
+        showToast({ message: '浏览器本地暂存不可用；请保持页面打开，云端自动保存仍会继续', tone: 'error' });
+      }
+      localCacheFailedRef.current = !cached;
       if (conflictPendingRef.current) {
         setSaveStatus('conflict');
       } else {
@@ -277,6 +351,7 @@ export const TopicReportTab: React.FC<TopicReportTabProps> = ({
         };
     editRevisionRef.current += 1;
     hasUnsavedChangesRef.current = false;
+    clearTopicReportRecovery(topicId);
     currentBaseVersionRef.current = remote?.version ?? 0;
     conflictPendingRef.current = false;
     setConflictReport(null);
@@ -304,12 +379,84 @@ export const TopicReportTab: React.FC<TopicReportTabProps> = ({
     }
   }, [editor, report]);
 
+  useEffect(() => {
+    if (!editor || editor.isDestroyed || didRecoverLocalDraftRef.current) return;
+    didRecoverLocalDraftRef.current = true;
+    const recovery = readTopicReportRecovery(topicId);
+    if (!recovery) return;
+
+    const remoteMarkdown = report?.content_markdown || '';
+    const remoteHtml = report?.content_html || '';
+    const remoteJson = report?.content_json || '';
+    if (recovery.markdown === remoteMarkdown
+      && recovery.html === remoteHtml
+      && recovery.json === remoteJson) {
+      clearTopicReportRecovery(topicId);
+      return;
+    }
+
+    latestContentRef.current = {
+      markdown: recovery.markdown,
+      html: recovery.html,
+      json: recovery.json,
+      wordCount: recovery.wordCount,
+    };
+    editRevisionRef.current += 1;
+    hasUnsavedChangesRef.current = true;
+    currentBaseVersionRef.current = recovery.baseVersion;
+    editor.commands.setContent(recovery.markdown, { contentType: 'markdown', emitUpdate: false });
+
+    if (recovery.baseVersion !== (report?.version ?? 0)) {
+      conflictPendingRef.current = true;
+      setConflictReport(report);
+      setHasConflictSnapshot(true);
+      setSaveStatus('conflict');
+      showToast({ message: '已恢复未同步的本机选题报告；云端版本已变化，请比较后选择要采用的版本', tone: 'error' });
+      return;
+    }
+
+    setSaveStatus('unsaved');
+    showToast({ message: '已恢复尚未同步的本机选题报告，正在尝试上传', tone: 'info' });
+    schedulePersistenceRef.current();
+  }, [editor, report, showToast, topicId]);
+
+  useEffect(() => {
+    const persistLocalRecovery = () => {
+      const latest = latestContentRef.current;
+      if (!hasUnsavedChangesRef.current || !latest || conflictPendingRef.current) return;
+      localCacheFailedRef.current = !writeTopicReportRecovery(topicId, {
+        ...latest,
+        baseVersion: currentBaseVersionRef.current,
+      });
+    };
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'hidden') persistLocalRecovery();
+    };
+    window.addEventListener('pagehide', persistLocalRecovery);
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    return () => {
+      window.removeEventListener('pagehide', persistLocalRecovery);
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+    };
+  }, [topicId]);
+
   // Flush on unmount
   useEffect(() => {
     return () => {
       if (saveTimeoutRef.current) {
         clearTimeout(saveTimeoutRef.current);
         saveTimeoutRef.current = null;
+      }
+      if (retryTimeoutRef.current) {
+        clearTimeout(retryTimeoutRef.current);
+        retryTimeoutRef.current = null;
+      }
+      const latestAtUnmount = latestContentRef.current;
+      if (hasUnsavedChangesRef.current && latestAtUnmount && !conflictPendingRef.current) {
+        localCacheFailedRef.current = !writeTopicReportRecovery(topicId, {
+          ...latestAtUnmount,
+          baseVersion: currentBaseVersionRef.current,
+        });
       }
       const flushLatestAfterActiveSave = async () => {
         const activeSave = activeSaveDoneRef.current;
@@ -324,13 +471,28 @@ export const TopicReportTab: React.FC<TopicReportTabProps> = ({
             word_count: latest.wordCount,
             base_version: currentBaseVersionRef.current,
           });
+          clearTopicReportRecoveryIfMatches(topicId, {
+            ...latest,
+            baseVersion: currentBaseVersionRef.current,
+          });
         } catch (err) {
           console.error('Failed to flush report on unmount:', err);
         }
       };
-      void flushLatestAfterActiveSave();
+      // React StrictMode replays effect cleanup/setup once on mount in
+      // development. Defer the final flush so that replay can re-arm the save
+      // timer instead of consuming the recovered draft as if the user left.
+      queueMicrotask(() => {
+        if (isMountedRef.current) {
+          if (hasUnsavedChangesRef.current && !conflictPendingRef.current && !isSavingRef.current) {
+            schedulePersistenceRef.current();
+          }
+          return;
+        }
+        void flushLatestAfterActiveSave();
+      });
     };
-  }, []);
+  }, [topicId]);
 
   const textContent = editor?.getText() || '';
   const charCount = countValidCharacters(textContent);
@@ -359,6 +521,13 @@ export const TopicReportTab: React.FC<TopicReportTabProps> = ({
     latestContentRef.current = { markdown, html, json, wordCount };
     editRevisionRef.current += 1;
     hasUnsavedChangesRef.current = true;
+    localCacheFailedRef.current = !writeTopicReportRecovery(topicId, {
+      markdown,
+      html,
+      json,
+      wordCount,
+      baseVersion: currentBaseVersionRef.current,
+    });
     if (conflictPendingRef.current) {
       setSaveStatus('conflict');
     } else {
@@ -414,7 +583,13 @@ export const TopicReportTab: React.FC<TopicReportTabProps> = ({
                 <span className="text-warning font-semibold">保存失败</span>
                 <button
                   type="button"
-                  onClick={() => void persistReport()}
+                  onClick={() => {
+                    if (retryTimeoutRef.current) {
+                      clearTimeout(retryTimeoutRef.current);
+                      retryTimeoutRef.current = null;
+                    }
+                    void persistReport();
+                  }}
                   className="ml-1 text-accent hover:underline cursor-pointer"
                 >
                   重试

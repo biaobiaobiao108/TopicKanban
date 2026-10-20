@@ -124,6 +124,7 @@ export const PublishedView: React.FC<PublishedViewProps> = ({
       queryClient.invalidateQueries({ queryKey: ['published-page'] }),
       queryClient.invalidateQueries({ queryKey: ['published-analytics'] }),
       queryClient.invalidateQueries({ queryKey: ['workspace'] }),
+      queryClient.invalidateQueries({ queryKey: ['published-topic-options'] }),
     ]);
   };
 

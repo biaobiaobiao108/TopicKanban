@@ -20,6 +20,7 @@ import {
   loadPublishedAnalytics,
   loadPublishedPage,
   updatePublishedVideo,
+  PublishedTopicAlreadyLinkedError,
 } from '../repositories';
 
 export function registerPublishedRoutes(app: NativeApp): void {
@@ -81,6 +82,7 @@ export function registerPublishedRoutes(app: NativeApp): void {
       invalidatePublishedAnalyticsCache();
       return c.json(video, 201);
     } catch (error) {
+      if (error instanceof PublishedTopicAlreadyLinkedError) return c.json({ error: error.message }, 409);
       return jsonError(c, error);
     }
   });
@@ -97,6 +99,7 @@ export function registerPublishedRoutes(app: NativeApp): void {
       if (video) invalidatePublishedAnalyticsCache();
       return video ? c.json(video) : c.json({ error: 'Not found' }, 404);
     } catch (error) {
+      if (error instanceof PublishedTopicAlreadyLinkedError) return c.json({ error: error.message }, 409);
       return jsonError(c, error);
     }
   });

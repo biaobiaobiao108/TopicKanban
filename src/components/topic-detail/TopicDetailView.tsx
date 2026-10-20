@@ -298,6 +298,7 @@ export const TopicDetailView: React.FC<TopicDetailViewProps> = ({
       if (loggingOutRef.current) return;
       queryClient.setQueryData(['topic-draft', topicId], { draft: updated, conflict: null });
       onDraftWordCountChange(topicId, wordCount);
+      setOperationError(null);
     } catch (error) {
       if (loggingOutRef.current) throw error;
       setOperationError(error instanceof Error ? `保存草稿失败：${error.message}` : '保存草稿失败');

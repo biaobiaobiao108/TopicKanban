@@ -783,7 +783,10 @@ function mergePendingDraft(topicId: string, serverDraft: Draft | null, generatio
         conflict: { local: pending.draft, remote: serverDraft, base_version: pending.base_version },
       };
     }
-    return { draft: pending.draft, conflict: null };
+    // Mark a compatible local recovery draft for the editor. The marker is
+    // intentionally transient: it is not part of the persisted recovery
+    // record or the server's Draft contract.
+    return { draft: { ...pending.draft, pending_sync: true } as Draft, conflict: null };
   }
   return { draft: serverDraft, conflict: null };
 }

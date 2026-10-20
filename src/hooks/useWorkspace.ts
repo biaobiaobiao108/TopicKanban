@@ -113,6 +113,9 @@ export function useWorkspace(enabled: boolean, view: string = 'today', topicId?:
   }, [queryClient]);
   const reload = useCallback(async () => {
     invalidateBootstrap();
+    // Backup restore replaces every business entity. Mark even inactive view
+    // queries stale so a fast tab switch cannot display the pre-restore cache.
+    await queryClient.invalidateQueries({ refetchType: 'none' });
     const requests: Array<Promise<unknown>> = [settingsQuery.refetch(), activeTopicCountQuery.refetch()];
     if (view === 'today') requests.push(todayQuery.refetch());
     if (!['today', 'people', 'tags', 'kanban', 'published', 'database', 'settings', 'topic-detail'].includes(view)) requests.push(workspaceQuery.refetch());
@@ -126,7 +129,7 @@ export function useWorkspace(enabled: boolean, view: string = 'today', topicId?:
       requests.push(dealFocusQuery.refetch());
     }
     await Promise.all(requests);
-  }, [view, topicDetailEnabled, publishedEnabled, workspaceQuery.refetch, topicQuery.refetch, publishedQuery.refetch, todayQuery.refetch, activeTopicCountQuery.refetch, settingsQuery.refetch, peopleQuery.refetch, relationshipsQuery.refetch, tagsQuery.refetch, tagOptionsQuery.refetch, dealFocusQuery.refetch]);
+  }, [queryClient, view, topicDetailEnabled, publishedEnabled, workspaceQuery.refetch, topicQuery.refetch, publishedQuery.refetch, todayQuery.refetch, activeTopicCountQuery.refetch, settingsQuery.refetch, peopleQuery.refetch, relationshipsQuery.refetch, tagsQuery.refetch, tagOptionsQuery.refetch, dealFocusQuery.refetch]);
 
   const refreshTopics = useCallback((options?: RefreshTopicDataOptions) => refreshTopicData(queryClient, options), [queryClient]);
   const clear = useCallback(() => {

@@ -240,9 +240,14 @@ export const ScriptEditorTab: React.FC<ScriptEditorTabProps> = ({
     () => sanitizeReportPreviewHtml(report?.content_html || (report?.content_markdown ? (scriptMarked.parse(report.content_markdown) as string) : '')),
     [report?.content_html, report?.content_markdown]
   );
+  const hasRecoveredPendingDraft = Boolean(
+    initialDraft && (initialDraft as Draft & { pending_sync?: boolean }).pending_sync
+  );
   const initialTitle = initialDraft?.title?.trim() || topicTitle;
   const [draftTitle, setDraftTitle] = useState(initialTitle);
-  const [saveStatus, setSaveStatus] = useState<'saved' | 'saving' | 'unsaved' | 'local' | 'pending' | 'cache-error' | 'conflict'>('saved');
+  const [saveStatus, setSaveStatus] = useState<'saved' | 'saving' | 'unsaved' | 'local' | 'pending' | 'cache-error' | 'conflict'>(
+    hasRecoveredPendingDraft ? 'pending' : 'saved'
+  );
   const [draftConflict, setDraftConflict] = useState<{ remote: Draft | null } | null>(null);
   const draftConflictRef = useRef(false);
   const [lastSavedTime, setLastSavedTime] = useState<string>(
@@ -366,9 +371,18 @@ export const ScriptEditorTab: React.FC<ScriptEditorTabProps> = ({
   const localCacheAvailableRef = useRef(false);
   const localCacheFailedRef = useRef(false);
   const latestContentRef = useRef<{ markdown: string; html: string; json: string; wordCount: number; title: string } | null>(null);
+  const recoveredDraftUploadStartedRef = useRef(false);
+  const editorMountedRef = useRef(false);
   const draftTitleRef = useRef(initialTitle);
   const draftSavePromiseRef = useRef<Promise<void> | null>(null);
   const immediateSaveRef = useRef(onSaveDraftImmediately);
+
+  useEffect(() => {
+    editorMountedRef.current = true;
+    return () => {
+      editorMountedRef.current = false;
+    };
+  }, []);
   const localCacheRef = useRef(onCacheDraftLocally);
   const editVersionRef = useRef(0);
   const outlineHighlightAnimationRef = useRef<Animation | null>(null);
@@ -416,9 +430,7 @@ export const ScriptEditorTab: React.FC<ScriptEditorTabProps> = ({
             draftConflictRef.current = true;
             setDraftConflict({ remote: error.current });
           } else {
-            setSaveStatus(localCacheAvailableRef.current
-              ? 'local'
-              : localCacheFailedRef.current ? 'cache-error' : 'pending');
+            setSaveStatus(localCacheFailedRef.current && !localCacheAvailableRef.current ? 'cache-error' : 'pending');
             // A single failed upload previously left the cloud copy frozen until
             // the next keystroke. Retry with backoff so a network blip or a
             // server restart cannot silently strand the edit.
@@ -636,6 +648,30 @@ export const ScriptEditorTab: React.FC<ScriptEditorTabProps> = ({
     },
   });
   markdownEditorRef.current = editor;
+
+  // A recovery draft is already safely stored in localStorage, but it is not
+  // cloud-synced. Hydrate the save pipeline from the editor and upload it as
+  // soon as the editor is ready. persistLatestDraft owns backoff retries and
+  // stops retrying on a version conflict so the existing conflict dialog can
+  // ask the user how to proceed.
+  useEffect(() => {
+    if (!editor || !hasRecoveredPendingDraft || recoveredDraftUploadStartedRef.current) return;
+    recoveredDraftUploadStartedRef.current = true;
+    const markdown = (editor as TiptapEditor & { getMarkdown: () => string }).getMarkdown();
+    const text = editor.getText();
+    latestContentRef.current = {
+      markdown,
+      html: editor.getHTML(),
+      json: JSON.stringify(editor.getJSON()),
+      wordCount: text.replace(/\s+/g, '').length,
+      title: initialTitle,
+    };
+    draftTitleRef.current = initialTitle;
+    hasUnsavedChangesRef.current = true;
+    localCacheAvailableRef.current = true;
+    setSaveStatus('pending');
+    void persistLatestDraft().catch((error) => console.error(error));
+  }, [editor, hasRecoveredPendingDraft, initialTitle, persistLatestDraft]);
 
   useEffect(() => {
     if (hasUnsavedChangesRef.current) return;
@@ -857,11 +893,17 @@ export const ScriptEditorTab: React.FC<ScriptEditorTabProps> = ({
     document.addEventListener('visibilitychange', flushWhenHidden);
     window.addEventListener('pagehide', flushPendingDraft);
     return () => {
-      if (saveTimeoutRef.current) clearTimeout(saveTimeoutRef.current);
-      if (localSaveTimeoutRef.current) clearTimeout(localSaveTimeoutRef.current);
-      flushPendingDraft();
       document.removeEventListener('visibilitychange', flushWhenHidden);
       window.removeEventListener('pagehide', flushPendingDraft);
+      // React StrictMode replays effect cleanup/setup on mount in development.
+      // Defer the exit flush so that replay does not mark a recovered draft as
+      // settled before its cloud upload and retry pipeline finishes.
+      queueMicrotask(() => {
+        if (editorMountedRef.current) return;
+        if (saveTimeoutRef.current) clearTimeout(saveTimeoutRef.current);
+        if (localSaveTimeoutRef.current) clearTimeout(localSaveTimeoutRef.current);
+        flushPendingDraft();
+      });
     };
   }, []);
 

@@ -1,6 +1,6 @@
 import { z } from 'zod';
 import { isTopicStatus } from '../types';
-import { isValidIsoDate } from '../lib/dateInput';
+import { isValidIsoDate, isValidSourceEventDate } from '../lib/dateInput';
 import { isSafeExternalHttpUrl } from '../lib/urlSafety';
 import { appSettingsSchema } from '../lib/backupValidation';
 
@@ -191,20 +191,7 @@ export const VERIFICATION_STATUSES = ['confirmed', 'unverified', 'rejected'] as 
 export const DATE_PRECISIONS = ['exact', 'year_month', 'year', 'unknown'] as const;
 export const PLATFORM_TYPES = ['bilibili', 'douyin', 'kuaishou', 'weibo', 'xiaohongshu', 'wechat', 'zhihu', 'youtube', 'news', 'live', 'other'] as const;
 
-export function isValidSourceEventDate(value: string): boolean {
-  if (!value) return true;
-  const match = /^(\d{4})(?:-(\d{1,2})(?:-(\d{1,2}))?)?$/.exec(value);
-  if (!match) return false;
-  const year = Number(match[1]);
-  const month = match[2] ? Number(match[2]) : null;
-  const day = match[3] ? Number(match[3]) : null;
-  if (year < 1) return false;
-  if (month !== null && (month < 1 || month > 12)) return false;
-  const monthEnd = new Date(0);
-  if (month !== null) monthEnd.setUTCFullYear(year, month, 0);
-  if (day !== null && (month === null || day < 1 || day > monthEnd.getUTCDate())) return false;
-  return true;
-}
+export { isValidSourceEventDate } from '../lib/dateInput';
 
 export const topicTodoUpdateSchema = z.object({
   title: textField('title', 200, false).refine((val) => val === undefined || val.trim().length > 0, {

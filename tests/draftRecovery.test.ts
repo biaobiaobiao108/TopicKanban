@@ -100,4 +100,19 @@ describe('草稿冲突防覆盖与恢复', () => {
     clearStorageMemoryCaches();
     expect(await fetchDraftByTopicId('topic-1')).toEqual({ draft: cloud, conflict: null });
   });
+
+  it('兼容云端版本的本地草稿会标记待同步，上传成功后清除恢复记录', async () => {
+    await fetchDraftByTopicId('topic-1');
+    cacheDraftLocally('topic-1', '<p>待同步正文</p>', '{}', 5, '待同步标题', '待同步正文');
+
+    const recovered = await fetchDraftByTopicId('topic-1');
+    expect(recovered.draft).toMatchObject({
+      content_markdown: '待同步正文',
+      pending_sync: true,
+    });
+
+    await saveDraft('topic-1', '<p>待同步正文</p>', '{}', 5, '待同步标题', '待同步正文');
+    expect(pending()).toBeUndefined();
+    expect(cloud.content_markdown).toBe('待同步正文');
+  });
 });

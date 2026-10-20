@@ -218,7 +218,6 @@ export async function startServer(options: ServerOptions = {}) {
   let databaseClosed = false;
   const closeDatabase = () => {
     if (databaseClosed) return;
-    db.exec('PRAGMA wal_checkpoint(TRUNCATE)');
     db.close();
     databaseClosed = true;
   };

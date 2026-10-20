@@ -849,6 +849,45 @@ describe('Bun Server Integration (Local SQLite & API)', () => {
     expect(data.items.map((topic) => topic.id)).toEqual(['published-option-topic-100']);
   });
 
+  it('rejects duplicate published-video topic associations through the API', async () => {
+    const loginRes = await app.request('/api/auth/login', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ password: testPassword }),
+    });
+    const { token } = await loginRes.json() as { token: string };
+    const headers = { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` };
+    const now = new Date().toISOString();
+    sqlite.query('INSERT INTO topics (id, title, created_at, updated_at) VALUES (?, ?, ?, ?)')
+      .run('published-unique-topic-a', '已关联选题 A', now, now);
+    sqlite.query('INSERT INTO topics (id, title, created_at, updated_at) VALUES (?, ?, ?, ?)')
+      .run('published-unique-topic-b', '已关联选题 B', now, now);
+
+    const first = await app.request('/api/published', {
+      method: 'POST', headers,
+      body: JSON.stringify({ topic_id: 'published-unique-topic-a', title: '首个发布视频' }),
+    });
+    expect(first.status).toBe(201);
+
+    const duplicate = await app.request('/api/published', {
+      method: 'POST', headers,
+      body: JSON.stringify({ topic_id: 'published-unique-topic-a', title: '重复发布视频' }),
+    });
+    expect(duplicate.status).toBe(409);
+
+    const second = await app.request('/api/published', {
+      method: 'POST', headers,
+      body: JSON.stringify({ topic_id: 'published-unique-topic-b', title: '第二个发布视频' }),
+    });
+    expect(second.status).toBe(201);
+    const secondVideo = await second.json() as { id: string };
+    const conflictingUpdate = await app.request(`/api/published/${secondVideo.id}`, {
+      method: 'PATCH', headers,
+      body: JSON.stringify({ topic_id: 'published-unique-topic-a' }),
+    });
+    expect(conflictingUpdate.status).toBe(409);
+    expect(sqlite.query('SELECT topic_id FROM published_videos WHERE id = ?').get(secondVideo.id))
+      .toEqual({ topic_id: 'published-unique-topic-b' });
+  });
+
   it('handles batch permanent deletion across multiple topics correctly', async () => {
     const loginRes = await app.request('/api/auth/login', {
       method: 'POST',
