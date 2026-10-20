@@ -120,42 +120,44 @@ export const Sidebar: React.FC<SidebarProps> = ({
 
       {/* Main Navigation */}
       <nav aria-label="工作台模块" className="flex-1 min-h-0">
-        <FloatingScrollbar className="p-3 space-y-1" wrapperClassName="h-full">
+        <FloatingScrollbar className="flex flex-col p-3" wrapperClassName="h-full">
           <div className="text-xs font-semibold text-ink-muted px-3.5 py-2 tracking-[0.12em]">
             工作台模块
           </div>
-          {navItems.map((item) => {
-            const Icon = item.icon;
-            const isActive = currentView === item.id;
-            return (
-              <button
-                type="button"
-                key={item.id}
-                onClick={() => onNavigate(item.id)}
-                aria-current={isActive ? 'page' : undefined}
-                className={`group relative w-full flex items-center justify-between px-3.5 py-2.5 rounded-sm text-sm transition-all cursor-pointer ${
-                  isActive
-                    ? 'bg-surface text-ink font-semibold shadow-2xs'
-                    : 'text-ink hover:bg-surface hover:text-ink font-medium'
-                }`}
-              >
-                {isActive && <span aria-hidden="true" className="absolute left-0 top-1/2 -translate-y-1/2 h-5 w-[3px] rounded-full bg-accent" />}
-                <div className="flex items-center gap-3">
-                  <Icon className={`h-[18px] w-[18px] transition-colors shrink-0 ${isActive ? 'text-accent' : 'text-ink-muted group-hover:text-ink'}`} />
-                  <span className="tracking-wide">{item.label}</span>
-                </div>
-                {typeof item.badge === 'number' && item.badge > 0 && (
-                  <span className={`text-xs px-2 py-0.5 rounded-sm tabular-nums font-semibold transition-colors ${
+          <div className="flex max-h-[32rem] flex-1 flex-col justify-between gap-2">
+            {navItems.map((item) => {
+              const Icon = item.icon;
+              const isActive = currentView === item.id;
+              return (
+                <button
+                  type="button"
+                  key={item.id}
+                  onClick={() => onNavigate(item.id)}
+                  aria-current={isActive ? 'page' : undefined}
+                  className={`group relative w-full flex items-center justify-between px-3.5 py-3 rounded-sm text-sm transition-all cursor-pointer ${
                     isActive
-                      ? 'bg-accent text-white shadow-2xs'
-                      : 'bg-control text-ink'
-                  }`}>
-                    {item.badge}
-                  </span>
-                )}
-              </button>
-            );
-          })}
+                      ? 'bg-surface text-ink font-semibold shadow-2xs'
+                      : 'text-ink hover:bg-surface hover:text-ink font-medium'
+                  }`}
+                >
+                  {isActive && <span aria-hidden="true" className="absolute left-0 top-1/2 -translate-y-1/2 h-5 w-[3px] rounded-full bg-accent" />}
+                  <div className="flex items-center gap-3">
+                    <Icon className={`h-[18px] w-[18px] transition-colors shrink-0 ${isActive ? 'text-accent' : 'text-ink-muted group-hover:text-ink'}`} />
+                    <span className="tracking-wide">{item.label}</span>
+                  </div>
+                  {typeof item.badge === 'number' && item.badge > 0 && (
+                    <span className={`text-xs px-2 py-0.5 rounded-sm tabular-nums font-semibold transition-colors ${
+                      isActive
+                        ? 'bg-accent text-white shadow-2xs'
+                        : 'bg-control text-ink'
+                    }`}>
+                      {item.badge}
+                    </span>
+                  )}
+                </button>
+              );
+            })}
+          </div>
         </FloatingScrollbar>
       </nav>
 

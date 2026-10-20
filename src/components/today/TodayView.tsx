@@ -238,7 +238,7 @@ export const TodayView: React.FC<TodayViewProps> = ({
               </div>
 
               {/* Current Action Callout (Editorial lead-rule) */}
-              <div className="border-l-2 border-l-accent rounded-r-lg bg-accent-soft p-5 sm:p-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 transition-colors">
+              <div className="rounded-xl bg-accent-soft p-5 sm:p-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 transition-colors">
                 <div className="space-y-1.5 flex-1 min-w-0">
                   <div className="text-xs font-bold tracking-wide text-accent-dark flex items-center gap-2">
                     <span className="relative inline-flex h-2 w-2 shrink-0 rounded-full bg-accent" aria-hidden="true" />
