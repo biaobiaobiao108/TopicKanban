@@ -56,17 +56,17 @@ const STATUS_LABELS: Record<CommercialDealStatus, string> = {
 };
 
 const STATUS_DOTS: Record<CommercialDealStatus, string> = {
-  communicating: 'bg-blue-500',
-  producing: 'bg-indigo-500',
-  delivered: 'bg-teal-500',
-  archived: 'bg-stone-400',
+  communicating: 'bg-info',
+  producing: 'bg-info',
+  delivered: 'bg-success',
+  archived: 'bg-ink-faint',
 };
 
 const STATUS_CLASSES: Record<CommercialDealStatus, string> = {
-  communicating: 'bg-blue-500/10 text-blue-700 dark:bg-blue-950/40 dark:text-blue-300',
-  producing: 'bg-indigo-500/10 text-indigo-800 dark:bg-indigo-950/40 dark:text-indigo-300',
-  delivered: 'bg-teal-500/10 text-teal-700 dark:bg-teal-950/40 dark:text-teal-300',
-  archived: 'bg-stone-500/10 text-stone-600 dark:bg-stone-800/70 dark:text-stone-300',
+  communicating: 'bg-info-soft text-info',
+  producing: 'bg-info-soft text-info',
+  delivered: 'bg-success-soft text-success',
+  archived: 'bg-control text-ink-muted',
 };
 
 const DELIVERABLE_LABELS: Record<CommercialDeal['deliverable_type'], string> = {
@@ -123,7 +123,7 @@ function getSafePublishedVideoUrl(video: NonNullable<CommercialDealDetail['publi
 const formatMoney = (cents: number) => (cents > 0 ? `¥${(cents / 100).toLocaleString('zh-CN', { minimumFractionDigits: 2 })}` : '未报价');
 
 const fieldClass =
-  'mt-1.5 w-full rounded-xl border border-stone-200/80 bg-stone-500/[0.03] px-3 py-2.5 text-sm text-[var(--ink)] outline-none transition-colors placeholder:text-stone-400 focus:border-[var(--accent)] focus:bg-[var(--surface)] dark:border-stone-700 dark:bg-stone-800 dark:text-stone-100 dark:focus:bg-stone-800';
+  'mt-1.5 w-full rounded-xl border border-line bg-control px-3 py-2.5 text-sm text-ink outline-none transition-colors placeholder:text-ink-muted focus:border-accent focus:bg-surface';
 const textareaClass = `${fieldClass} min-h-24 resize-y leading-relaxed`;
 
 interface DealsViewProps {
@@ -201,7 +201,7 @@ interface SelectFieldProps {
 
 function SelectField({ name, label, value, options, onChange }: SelectFieldProps) {
   return (
-    <div className="min-w-0 text-xs font-semibold text-stone-600 dark:text-stone-300">
+    <div className="min-w-0 text-xs font-semibold text-ink-muted">
       <span className="block">{label}</span>
       <input type="hidden" name={name} value={value} />
       <CustomSelect
@@ -268,10 +268,10 @@ function DealFormModal({
     <Modal isOpen={isOpen} onClose={onClose} title="记录新商单" maxWidth="lg">
       <form onSubmit={handleSubmit} className="space-y-6">
         <fieldset className="space-y-4">
-          <legend className="text-sm font-bold text-stone-900 dark:text-stone-100">先记下合作线索</legend>
+          <legend className="text-sm font-bold text-ink">先记下合作线索</legend>
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-            <label className="sm:col-span-2 text-xs font-semibold text-stone-600 dark:text-stone-300">
-              商单名称 <span className="text-stone-400">*</span>
+            <label className="sm:col-span-2 text-xs font-semibold text-ink-muted">
+              商单名称 <span className="text-ink-muted">*</span>
               <input
                 name="title"
                 required
@@ -282,7 +282,7 @@ function DealFormModal({
                 placeholder="例如：某品牌夏季定制视频"
               />
             </label>
-            <label className="text-xs font-semibold text-stone-600 dark:text-stone-300">
+            <label className="text-xs font-semibold text-ink-muted">
               品牌名称
               <input
                 name="brand_name"
@@ -293,7 +293,7 @@ function DealFormModal({
                 placeholder="品牌方"
               />
             </label>
-            <label className="text-xs font-semibold text-stone-600 dark:text-stone-300">
+            <label className="text-xs font-semibold text-ink-muted">
               代理商 / 服务商
               <input
                 name="agency_name"
@@ -304,7 +304,7 @@ function DealFormModal({
                 placeholder="没有可留空"
               />
             </label>
-            <label className="text-xs font-semibold text-stone-600 dark:text-stone-300">
+            <label className="text-xs font-semibold text-ink-muted">
               对接人
               <input
                 name="contact_name"
@@ -315,7 +315,7 @@ function DealFormModal({
                 placeholder="姓名 / 花火账号"
               />
             </label>
-            <label className="text-xs font-semibold text-stone-600 dark:text-stone-300">
+            <label className="text-xs font-semibold text-ink-muted">
               联系方式
               <input
                 name="contact_channel"
@@ -348,7 +348,7 @@ function DealFormModal({
           <div
             role="alert"
             aria-live="polite"
-            className="rounded-xl border border-red-200 bg-red-50 px-3 py-2.5 text-sm font-medium text-red-700 dark:border-red-900/60 dark:bg-red-950/30 dark:text-red-300"
+            className="rounded-xl border border-danger-line bg-danger-soft px-3 py-2.5 text-sm font-medium text-danger"
           >
             {error}
           </div>
@@ -357,14 +357,14 @@ function DealFormModal({
           <button
             type="button"
             onClick={onClose}
-            className="min-h-11 rounded-xl px-4 py-2 text-sm font-semibold text-stone-600 hover:bg-stone-100 dark:text-stone-300 dark:hover:bg-stone-800"
+            className="min-h-11 rounded-xl px-4 py-2 text-sm font-semibold text-ink-muted hover:bg-control"
           >
             取消
           </button>
           <button
             type="submit"
             disabled={saving}
-            className="min-h-11 rounded-xl bg-[var(--accent)] px-5 py-2 text-sm font-bold text-white shadow-2xs transition-colors hover:bg-[var(--accent-dark)] disabled:cursor-wait disabled:opacity-60"
+            className="min-h-11 rounded-xl bg-accent px-5 py-2 text-sm font-bold text-white shadow-2xs transition-colors hover:bg-accent-dark disabled:cursor-wait disabled:opacity-60"
           >
             {saving ? '保存中…' : '记录商单'}
           </button>
@@ -383,35 +383,35 @@ function DealCard({ deal, onOpen }: { deal: CommercialDeal; onOpen: (id: string)
       type="button"
       data-testid="deal-card"
       onClick={() => onOpen(deal.id)}
-      className="group w-full min-w-0 rounded-2xl border border-[var(--line)] bg-[var(--surface)] p-4 text-left shadow-subtle transition-all hover:-translate-y-0.5 hover:shadow-card cursor-pointer"
+      className="group w-full min-w-0 rounded-2xl border border-line bg-surface p-4 text-left shadow-subtle transition-all hover:-translate-y-0.5 hover:shadow-card cursor-pointer"
     >
       <div className="flex min-w-0 items-start justify-between gap-3">
         <div className="min-w-0">
           <div className="mb-2 flex min-w-0 flex-nowrap items-center gap-1.5 overflow-hidden">
             <StatusPill status={deal.status} />
             {deal.payment_status === 'paid' ? (
-              <span className="shrink-0 rounded-full bg-stone-500/[0.06] dark:bg-white/[0.06] px-2.5 py-0.5 text-xs font-semibold text-[var(--accent)]">
+              <span className="shrink-0 rounded-full bg-control px-2.5 py-0.5 text-xs font-semibold text-accent">
                 已回款
               </span>
             ) : (
-              <span className="shrink-0 rounded-full bg-amber-500/10 px-2.5 py-0.5 text-xs font-semibold text-amber-800 dark:text-amber-300">
+              <span className="shrink-0 rounded-full bg-warning-soft px-2.5 py-0.5 text-xs font-semibold text-warning">
                 待回款
               </span>
             )}
           </div>
-          <p className="truncate text-xs font-semibold text-[var(--accent)]">{deal.brand_name || '未填写品牌'}</p>
-          <p className="mt-1 line-clamp-2 break-words text-sm font-bold leading-relaxed text-[var(--ink)] group-hover:text-[var(--accent)]">
+          <p className="truncate text-xs font-semibold text-accent">{deal.brand_name || '未填写品牌'}</p>
+          <p className="mt-1 line-clamp-2 break-words text-sm font-bold leading-relaxed text-ink group-hover:text-accent">
             {deal.title}
           </p>
         </div>
-        <ArrowRight className="mt-1 h-4 w-4 shrink-0 text-[var(--ink-muted)] opacity-40 transition-transform group-hover:translate-x-0.5 group-hover:opacity-100 group-hover:text-[var(--accent)]" />
+        <ArrowRight className="mt-1 h-4 w-4 shrink-0 text-ink-muted opacity-40 transition-transform group-hover:translate-x-0.5 group-hover:opacity-100 group-hover:text-accent" />
       </div>
-      <div className="mt-4 min-w-0 space-y-2 border-t border-[var(--line)]/40 pt-3 text-xs text-[var(--ink-muted)]">
+      <div className="mt-4 min-w-0 space-y-2 border-t border-line/40 pt-3 text-xs text-ink-muted">
         <div className="flex min-w-0 items-center justify-between gap-3">
           <span>{DELIVERABLE_LABELS[deal.deliverable_type]}</span>
-          <span className="shrink-0 font-mono font-semibold tabular-nums text-[var(--ink)]">{formatMoney(deal.amount_cents)}</span>
+          <span className="shrink-0 font-mono font-semibold tabular-nums text-ink">{formatMoney(deal.amount_cents)}</span>
         </div>
-        <div className={`flex items-center gap-1.5 ${overdue ? 'font-bold text-red-600 dark:text-red-400' : ''}`}>
+        <div className={`flex items-center gap-1.5 ${overdue ? 'font-bold text-danger' : ''}`}>
           <CalendarClock className="h-3.5 w-3.5 shrink-0" />
           {deliveryDate.state === 'empty' ? '尚未设置交付日' : (
             <>
@@ -426,7 +426,7 @@ function DealCard({ deal, onOpen }: { deal: CommercialDeal; onOpen: (id: string)
             <span className="min-w-0 truncate">{deal.primary_topic_title}</span>
           </div>
         ) : needsTopic ? (
-          <div className="flex items-center gap-1.5 font-semibold text-amber-700 dark:text-amber-300">
+          <div className="flex items-center gap-1.5 font-semibold text-warning">
             <Target className="h-3.5 w-3.5 shrink-0" />
             制作前需要绑定主选题
           </div>
@@ -437,9 +437,9 @@ function DealCard({ deal, onOpen }: { deal: CommercialDeal; onOpen: (id: string)
           </div>
         )}
         <div
-          className={`min-w-0 break-words ${deal.next_action ? 'text-[var(--ink)]' : 'font-semibold text-amber-700 dark:text-amber-300'}`}
+          className={`min-w-0 break-words ${deal.next_action ? 'text-ink' : 'font-semibold text-warning'}`}
         >
-          <span className="font-semibold text-[var(--accent-dark)]">下一步：</span>
+          <span className="font-semibold text-accent-dark">下一步：</span>
           {deal.next_action || '尚未设置'}
         </div>
       </div>
@@ -461,22 +461,22 @@ function SummaryCard({
   tone?: 'stone' | 'accent' | 'amber' | 'emerald';
 }) {
   const tones = {
-    stone: 'bg-stone-500/5 text-[var(--ink)]',
-    accent: 'bg-[var(--accent-soft)] text-[var(--accent-dark)]',
-    amber: 'bg-amber-500/10 text-amber-800 dark:text-amber-300',
-    emerald: 'bg-emerald-500/10 text-emerald-800 dark:text-emerald-300',
+    stone: 'bg-control text-ink',
+    accent: 'bg-accent-soft text-accent-dark',
+    amber: 'bg-warning-soft text-warning',
+    emerald: 'bg-success-soft text-success',
   };
   return (
-    <div className="flex items-center justify-between gap-3 rounded-xl border border-[var(--line)] bg-[var(--surface)] px-3.5 py-2.5 shadow-subtle">
+    <div className="flex items-center justify-between gap-3 rounded-xl border border-line bg-surface px-3.5 py-2.5 shadow-subtle">
       <div className="flex items-center gap-2.5 min-w-0">
         <span className={`grid h-8 w-8 shrink-0 place-items-center rounded-lg ${tones[tone]}`}>{icon}</span>
         <div className="min-w-0">
-          <p className="truncate text-xs font-semibold text-[var(--ink)]">{label}</p>
-          <p className="truncate text-[10px] text-[var(--ink-muted)]">{detail}</p>
+          <p className="truncate text-xs font-semibold text-ink">{label}</p>
+          <p className="truncate text-[10px] text-ink-muted">{detail}</p>
         </div>
       </div>
       <div className="shrink-0 text-right">
-        <span className="text-base sm:text-lg font-bold font-mono tabular-nums tracking-tight text-[var(--ink)]">{value}</span>
+        <span className="text-base sm:text-lg font-bold font-mono tabular-nums tracking-tight text-ink">{value}</span>
       </div>
     </div>
   );
@@ -539,7 +539,7 @@ function CommercialDealsView({ topics, onCreateTopicFromDeal }: Pick<DealsViewPr
           title="商单中心"
           icon={Handshake}
           badge={
-            <span className="rounded-full bg-[var(--accent-soft)] px-2.5 py-1 text-xs font-semibold text-[var(--accent)]">
+            <span className="rounded-full bg-accent-soft px-2.5 py-1 text-xs font-semibold text-accent">
               商务 × 内容生产
             </span>
           }
@@ -547,7 +547,7 @@ function CommercialDealsView({ topics, onCreateTopicFromDeal }: Pick<DealsViewPr
             <button
               type="button"
               onClick={() => setIsFormOpen(true)}
-              className="inline-flex h-10 items-center justify-center gap-2 rounded-xl bg-[var(--accent)] px-4 text-xs sm:text-sm font-semibold text-white shadow-2xs transition-colors hover:bg-[var(--accent-dark)] active:scale-[0.98] cursor-pointer"
+              className="inline-flex h-10 items-center justify-center gap-2 rounded-xl bg-accent px-4 text-xs sm:text-sm font-semibold text-white shadow-2xs transition-colors hover:bg-accent-dark active:scale-[0.98] cursor-pointer"
             >
               <Plus className="h-4 w-4" aria-hidden="true" />
               记录新商单
@@ -583,9 +583,9 @@ function CommercialDealsView({ topics, onCreateTopicFromDeal }: Pick<DealsViewPr
             tone="emerald"
           />
         </div>
-        <div className="rounded-2xl border border-[var(--line)] bg-[var(--surface)] p-3 shadow-subtle sm:p-4">
+        <div className="rounded-2xl border border-line bg-surface p-3 shadow-subtle sm:p-4">
           <div className="flex flex-col gap-3 lg:flex-row lg:items-center">
-            <label className="min-w-0 flex-1 text-xs font-semibold text-stone-500 dark:text-stone-400">
+            <label className="min-w-0 flex-1 text-xs font-semibold text-ink-muted">
               <span className="sr-only">搜索商单</span>
               <input
                 name="deal_search"
@@ -594,7 +594,7 @@ function CommercialDealsView({ topics, onCreateTopicFromDeal }: Pick<DealsViewPr
                   setQuery(event.target.value);
                   setPage(1);
                 }}
-                className="min-h-11 w-full rounded-xl border border-stone-200/80 bg-stone-500/[0.03] px-3 text-sm font-medium text-[var(--ink)] outline-none placeholder:text-stone-400 focus:border-[var(--accent)] focus:bg-[var(--surface)] dark:border-stone-700 dark:bg-stone-800 dark:text-stone-100 dark:focus:bg-stone-800"
+                className="min-h-11 w-full rounded-xl border border-line bg-control px-3 text-sm font-medium text-ink outline-none placeholder:text-ink-muted focus:border-accent focus:bg-surface"
                 placeholder="搜索商单、品牌、对接人或关联选题"
               />
             </label>
@@ -621,33 +621,33 @@ function CommercialDealsView({ topics, onCreateTopicFromDeal }: Pick<DealsViewPr
               type="button"
               aria-pressed={showActiveOnly}
               onClick={handleScopeToggle}
-              className={`min-h-11 rounded-xl px-3 text-sm font-semibold transition-colors ${showActiveOnly ? 'bg-[var(--accent)] text-white shadow-2xs' : 'border border-[var(--line)] bg-[var(--control-surface)] text-[var(--ink-muted)] hover:text-[var(--ink)] hover:bg-[var(--surface-hover)]'}`}
+              className={`min-h-11 rounded-xl px-3 text-sm font-semibold transition-colors ${showActiveOnly ? 'bg-accent text-white shadow-2xs' : 'border border-line bg-control text-ink-muted hover:text-ink hover:bg-surface-hover'}`}
             >
               显示进行中
             </button>
           </div>
         </div>
         {dealsQuery.isLoading ? (
-          <div className="grid place-items-center rounded-2xl border border-[var(--line)] bg-[var(--surface)] py-20 text-sm text-[var(--ink-muted)] dark:border-stone-800 dark:bg-stone-900">
+          <div className="grid place-items-center rounded-2xl border border-line bg-surface py-20 text-sm text-ink-muted">
             正在加载商单…
           </div>
         ) : dealsQuery.error ? (
           <div
             role="alert"
-            className="rounded-2xl border border-red-200 bg-red-50 p-5 text-sm text-red-700 dark:border-red-900/60 dark:bg-red-950/30 dark:text-red-300"
+            className="rounded-2xl border border-danger-line bg-danger-soft p-5 text-sm text-danger"
           >
             商单加载失败：
             {dealsQuery.error instanceof Error ? dealsQuery.error.message : '未知错误'}
           </div>
         ) : deals.length === 0 ? (
-          <div className="rounded-2xl border border-dashed border-[var(--line)] bg-[var(--surface)] px-6 py-20 text-center dark:border-stone-700 dark:bg-stone-900">
-            <CircleDollarSign className="mx-auto h-8 w-8 text-stone-300 dark:text-stone-600" />
-            <p className="mt-3 text-sm font-semibold text-stone-600 dark:text-stone-300">还没有符合条件的商单</p>
-            <p className="mt-1 text-xs text-stone-600 dark:text-stone-400">收到品牌需求时，先把它记下来，别让商务线索飘走。</p>
+          <div className="rounded-2xl border border-dashed border-line bg-surface px-6 py-20 text-center">
+            <CircleDollarSign className="mx-auto h-8 w-8 text-ink-faint" />
+            <p className="mt-3 text-sm font-semibold text-ink-muted">还没有符合条件的商单</p>
+            <p className="mt-1 text-xs text-ink-muted">收到品牌需求时，先把它记下来，别让商务线索飘走。</p>
             <button
               type="button"
               onClick={() => setIsFormOpen(true)}
-              className="mt-5 min-h-11 rounded-xl bg-[var(--accent)] px-4 text-sm font-bold text-white hover:bg-[var(--accent-dark)]"
+              className="mt-5 min-h-11 rounded-xl bg-accent px-4 text-sm font-bold text-white hover:bg-accent-dark"
             >
               记录第一单
             </button>
@@ -659,10 +659,10 @@ function CommercialDealsView({ topics, onCreateTopicFromDeal }: Pick<DealsViewPr
                 <DealCard key={deal.id} deal={deal} onOpen={(id) => navigate(`/deals/${encodeURIComponent(id)}`)} />
               ))}
             </div>
-            <div className="flex flex-col gap-2 border-t border-[var(--line)]/50 pt-3 text-xs text-[var(--ink-muted)] sm:flex-row sm:items-center sm:justify-between">
+            <div className="flex flex-col gap-2 border-t border-line/50 pt-3 text-xs text-ink-muted sm:flex-row sm:items-center sm:justify-between">
               <div className="flex items-center justify-center gap-2 sm:justify-start" aria-live="polite">
                 <span>显示 {firstItem}-{lastItem} 条 · 共 {total} 单</span>
-                {dealsQuery.isFetching && <span className="text-[var(--ink-muted)]/70">更新中…</span>}
+                {dealsQuery.isFetching && <span className="text-ink-muted/70">更新中…</span>}
               </div>
               <div className="flex items-center justify-center gap-1 sm:justify-end">
                 <button
@@ -670,11 +670,11 @@ function CommercialDealsView({ topics, onCreateTopicFromDeal }: Pick<DealsViewPr
                   aria-label="上一页"
                   disabled={page <= 1 || dealsQuery.isFetching}
                   onClick={() => setPage((current) => Math.max(1, current - 1))}
-                  className="rounded-[var(--radius-sm)] px-2.5 py-1.5 text-[var(--ink-muted)] transition-colors hover:bg-[var(--surface)] hover:text-[var(--ink)] disabled:cursor-not-allowed disabled:opacity-40"
+                  className="rounded-sm px-2.5 py-1.5 text-ink-muted transition-colors hover:bg-surface hover:text-ink disabled:cursor-not-allowed disabled:opacity-40"
                 >
                   上一页
                 </button>
-                <span className="min-w-12 text-center font-mono tabular-nums text-[var(--ink-muted)]">
+                <span className="min-w-12 text-center font-mono tabular-nums text-ink-muted">
                   {page} / {totalPages}
                 </span>
                 <button
@@ -682,7 +682,7 @@ function CommercialDealsView({ topics, onCreateTopicFromDeal }: Pick<DealsViewPr
                   aria-label="下一页"
                   disabled={page >= totalPages || dealsQuery.isFetching}
                   onClick={() => setPage((current) => Math.min(totalPages, current + 1))}
-                  className="rounded-[var(--radius-sm)] px-2.5 py-1.5 text-[var(--ink-muted)] transition-colors hover:bg-[var(--surface)] hover:text-[var(--ink)] disabled:cursor-not-allowed disabled:opacity-40"
+                  className="rounded-sm px-2.5 py-1.5 text-ink-muted transition-colors hover:bg-surface hover:text-ink disabled:cursor-not-allowed disabled:opacity-40"
                 >
                   下一页
                 </button>
@@ -708,9 +708,9 @@ function SectionCard({
   action?: React.ReactNode;
 }) {
   return (
-    <section className="min-w-0 rounded-2xl border border-[var(--line)] bg-[var(--surface)] p-5 shadow-subtle">
+    <section className="min-w-0 rounded-2xl border border-line bg-surface p-5 shadow-subtle">
       <div className="mb-4 flex items-center justify-between gap-3">
-        <h2 className="flex min-w-0 items-center gap-2 text-sm font-bold text-stone-900 dark:text-stone-100">
+        <h2 className="flex min-w-0 items-center gap-2 text-sm font-bold text-ink">
           {icon}
           <span>{title}</span>
         </h2>
@@ -728,14 +728,14 @@ function EditorActions({ saving, onCancel }: { saving: boolean; onCancel: () => 
         type="button"
         onClick={onCancel}
         disabled={saving}
-        className="min-h-10 rounded-xl px-3 text-xs font-semibold text-stone-600 hover:bg-stone-100 disabled:opacity-50 dark:text-stone-300 dark:hover:bg-stone-800"
+        className="min-h-10 rounded-xl px-3 text-xs font-semibold text-ink-muted hover:bg-control disabled:opacity-50"
       >
         取消
       </button>
       <button
         type="submit"
         disabled={saving}
-        className="min-h-10 rounded-xl bg-[var(--accent)] px-4 text-xs font-bold text-white hover:bg-[var(--accent-dark)] disabled:cursor-wait disabled:opacity-60"
+        className="min-h-10 rounded-xl bg-accent px-4 text-xs font-bold text-white hover:bg-accent-dark disabled:cursor-wait disabled:opacity-60"
       >
         {saving ? '保存中…' : '保存修改'}
       </button>
@@ -748,7 +748,7 @@ function EditSectionButton({ onClick }: { onClick: () => void }) {
     <button
       type="button"
       onClick={onClick}
-      className="inline-flex min-h-9 items-center gap-1.5 rounded-lg px-2.5 text-xs font-semibold text-stone-500 hover:bg-stone-100 hover:text-[var(--accent)] dark:text-stone-400 dark:hover:bg-stone-800 dark:hover:text-[var(--accent)]"
+      className="inline-flex min-h-9 items-center gap-1.5 rounded-lg px-2.5 text-xs font-semibold text-ink-muted hover:bg-control hover:text-accent"
     >
       <Pencil className="h-3.5 w-3.5" />
       编辑
@@ -768,33 +768,33 @@ function LinkedTopicRow({
   onRemove: () => void;
 }) {
   return (
-    <div className="flex min-w-0 flex-col gap-3 rounded-xl border border-stone-200/70 p-3 dark:border-stone-700 sm:flex-row sm:items-center">
+    <div className="flex min-w-0 flex-col gap-3 rounded-xl border border-line p-3 sm:flex-row sm:items-center">
       <button type="button" onClick={onOpen} className="min-w-0 flex-1 text-left">
         <div className="flex min-w-0 items-center gap-2">
           {relation.relation_role === 'primary' && (
-            <span className="shrink-0 rounded-full bg-[var(--accent-soft)] px-2 py-0.5 text-[11px] font-bold text-[var(--accent-dark)] dark:text-[var(--accent)]">
+            <span className="shrink-0 rounded-full bg-accent-soft px-2 py-0.5 text-[11px] font-bold text-accent-dark">
               主选题
             </span>
           )}
-          <span className="min-w-0 break-words text-sm font-semibold text-stone-800 hover:text-[var(--accent)] dark:text-stone-200 dark:hover:text-[var(--accent)]">
+          <span className="min-w-0 break-words text-sm font-semibold text-ink hover:text-accent">
             {relation.topic_title}
           </span>
         </div>
-    <span className="mt-1 block text-xs text-stone-400">{relation.topic_deleted_at ? '关联选题已归档' : relation.topic_status}</span>
+    <span className="mt-1 block text-xs text-ink-muted">{relation.topic_deleted_at ? '关联选题已归档' : relation.topic_status}</span>
       </button>
       <div className="flex items-center gap-2">
         <button
           type="button"
           onClick={onMakePrimary}
           disabled={relation.relation_role === 'primary'}
-          className="min-h-9 rounded-lg px-2.5 text-xs font-semibold text-stone-500 hover:bg-stone-100 disabled:cursor-default disabled:opacity-40 dark:text-stone-400 dark:hover:bg-stone-800"
+          className="min-h-9 rounded-lg px-2.5 text-xs font-semibold text-ink-muted hover:bg-control disabled:cursor-default disabled:opacity-40"
         >
           设为主选题
         </button>
         <button
           type="button"
           onClick={onRemove}
-          className="min-h-9 rounded-lg px-2.5 text-xs font-semibold text-red-600 hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-950/30"
+          className="min-h-9 rounded-lg px-2.5 text-xs font-semibold text-danger hover:bg-danger-soft"
         >
           解除
         </button>
@@ -855,9 +855,9 @@ function CommercialDealDetailView({
     setForm(createDealFormState(deal));
   }, [deal]);
 
-  if (dealQuery.isLoading) return <div className="grid flex-1 place-items-center text-sm text-stone-500">正在加载商单详情…</div>;
+  if (dealQuery.isLoading) return <div className="grid flex-1 place-items-center text-sm text-ink-muted">正在加载商单详情…</div>;
   if (dealQuery.error || !deal)
-    return <div className="grid flex-1 place-items-center px-6 text-center text-sm text-stone-500">商单不存在或加载失败。</div>;
+    return <div className="grid flex-1 place-items-center px-6 text-center text-sm text-ink-muted">商单不存在或加载失败。</div>;
   const safePublishedVideoUrl = deal.published_video ? getSafePublishedVideoUrl(deal.published_video) : '';
 
   const updateDealCache = (saved: CommercialDealDetail) => {
@@ -1055,10 +1055,10 @@ function CommercialDealDetailView({
           {option.label}
         </div>
         {option.description && (
-          <div className="mt-0.5 truncate text-[10px] font-normal text-stone-400 dark:text-stone-500">{option.description}</div>
+          <div className="mt-0.5 truncate text-[10px] font-normal text-ink-muted">{option.description}</div>
         )}
       </div>
-      {state.selected && <Check className="mt-0.5 h-3.5 w-3.5 shrink-0 text-[var(--accent)]" aria-hidden="true" />}
+      {state.selected && <Check className="mt-0.5 h-3.5 w-3.5 shrink-0 text-accent" aria-hidden="true" />}
     </div>
   );
   const linkedTopicIds = new Set([...(primaryTopicId ? [primaryTopicId] : []), ...relatedTopicIds]);
@@ -1070,19 +1070,19 @@ function CommercialDealDetailView({
   return (
     <div className="min-h-0 min-w-0 flex-1 overflow-y-auto overscroll-contain mobile-bottom-nav-content md:pb-8">
       <div className="mx-auto max-w-6xl space-y-5 px-4 py-4 sm:px-8 sm:py-6">
-        <section className="min-w-0 rounded-2xl border border-[var(--line)] bg-[var(--surface)] p-5 shadow-subtle sm:p-6">
+        <section className="min-w-0 rounded-2xl border border-line bg-surface p-5 shadow-subtle sm:p-6">
           <div className="flex flex-col gap-4">
             <div className="flex min-w-0 flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
               <div className="min-w-0 flex-1">
                 <div className="flex flex-wrap items-center gap-2">
                   <StatusPill status={deal.status} />
                   <span
-                    className={`rounded-full px-2.5 py-1 text-xs font-semibold ${deal.payment_status === 'paid' ? 'bg-[var(--accent)]/10 text-[var(--accent)]' : 'bg-stone-500/10 text-[var(--ink-muted)]'}`}
+                    className={`rounded-full px-2.5 py-1 text-xs font-semibold ${deal.payment_status === 'paid' ? 'bg-accent/10 text-accent' : 'bg-control text-ink-muted'}`}
                   >
                     {deal.payment_status === 'paid' ? '已回款' : '待回款'}
                   </span>
                   {deal.contract_status === 'signed' && (
-                    <span className="rounded-full bg-[var(--surface-hover)] border border-[var(--line)] px-2.5 py-1 text-xs font-semibold text-[var(--ink)]">
+                    <span className="rounded-full bg-surface-hover border border-line px-2.5 py-1 text-xs font-semibold text-ink">
                       合同已签
                     </span>
                   )}
@@ -1100,12 +1100,12 @@ function CommercialDealDetailView({
                       autoFocus
                       value={titleDraft}
                       onChange={(event) => setTitleDraft(event.target.value)}
-                      className="min-h-11 min-w-0 flex-1 rounded-xl border border-[var(--line)] bg-[var(--surface)] px-3 text-xl font-bold text-[var(--ink)] outline-none focus:ring-2 focus:ring-[var(--focus-ring)] dark:border-stone-700 dark:bg-stone-800 dark:text-stone-100"
+                      className="min-h-11 min-w-0 flex-1 rounded-xl border border-line bg-surface px-3 text-xl font-bold text-ink outline-none focus:ring-2 focus:ring-focus-ring"
                     />
                     <button
                       type="submit"
                       disabled={isSaving}
-                      className="min-h-11 rounded-xl bg-[var(--accent)] px-4 text-xs font-bold text-white disabled:opacity-50"
+                      className="min-h-11 rounded-xl bg-accent px-4 text-xs font-bold text-white disabled:opacity-50"
                     >
                       保存
                     </button>
@@ -1115,7 +1115,7 @@ function CommercialDealDetailView({
                         setTitleDraft(deal.title);
                         setIsEditingTitle(false);
                       }}
-                      className="min-h-11 rounded-xl px-3 text-xs font-semibold text-stone-500 hover:bg-stone-100 dark:text-stone-400 dark:hover:bg-stone-800"
+                      className="min-h-11 rounded-xl px-3 text-xs font-semibold text-ink-muted hover:bg-control"
                     >
                       取消
                     </button>
@@ -1123,7 +1123,7 @@ function CommercialDealDetailView({
                 ) : (
                   <div className="mt-3 flex min-w-0 items-start gap-2">
                     <h1
-                      className="min-w-0 break-words text-2xl font-bold tracking-tight text-stone-900 dark:text-stone-100"
+                      className="min-w-0 break-words text-2xl font-bold tracking-tight text-ink"
                       style={{ overflowWrap: 'anywhere' }}
                     >
                       {deal.title}
@@ -1132,19 +1132,19 @@ function CommercialDealDetailView({
                       type="button"
                       onClick={() => setIsEditingTitle(true)}
                       aria-label="编辑商单名称"
-                      className="mt-1.5 shrink-0 rounded-lg p-1.5 text-stone-400 hover:bg-stone-100 hover:text-[var(--accent)] dark:text-stone-500 dark:hover:bg-stone-800 dark:hover:text-[var(--accent)]"
+                      className="mt-1.5 shrink-0 rounded-lg p-1.5 text-ink-muted hover:bg-control hover:text-accent"
                     >
                       <Pencil className="h-4 w-4" />
                     </button>
                   </div>
                 )}
-                <p className="mt-1 break-words text-sm font-semibold text-stone-500 dark:text-stone-400" style={{ overflowWrap: 'anywhere' }}>
+                <p className="mt-1 break-words text-sm font-semibold text-ink-muted" style={{ overflowWrap: 'anywhere' }}>
                   {deal.brand_name || '未填写品牌'}
                   {deal.agency_name ? ` · ${deal.agency_name}` : ''}
                 </p>
               </div>
               <div className="flex min-w-0 flex-col gap-2 sm:flex-row sm:items-center lg:shrink-0">
-                <label className="flex min-w-0 items-center gap-2 text-xs font-semibold text-stone-500 dark:text-stone-400">
+                <label className="flex min-w-0 items-center gap-2 text-xs font-semibold text-ink-muted">
                   <span className="shrink-0">当前阶段</span>
                   <input type="hidden" name="status" value={deal.status} />
                   <CustomSelect
@@ -1161,14 +1161,14 @@ function CommercialDealDetailView({
                   type="button"
                   onClick={() => setIsDeleteModalOpen(true)}
                   disabled={isDeleting}
-                  className="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl border border-red-200 px-3 text-xs font-bold text-red-600 hover:bg-red-50 disabled:cursor-wait disabled:opacity-50 dark:border-red-900/60 dark:text-red-400 dark:hover:bg-red-950/30 cursor-pointer"
+                  className="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl border border-danger-line px-3 text-xs font-bold text-danger hover:bg-danger-soft disabled:cursor-wait disabled:opacity-50 cursor-pointer"
                 >
                   <Trash2 className="h-4 w-4" />
                   {isDeleting ? '删除中…' : '删除商单'}
                 </button>
               </div>
             </div>
-            <div className="grid grid-cols-2 gap-3 border-t border-stone-100 pt-4 dark:border-stone-800 sm:grid-cols-4">
+            <div className="grid grid-cols-2 gap-3 border-t border-line pt-4 sm:grid-cols-4">
               <MetaItem label="交付类型" value={DELIVERABLE_LABELS[deal.deliverable_type]} />
               <MetaItem label="合作来源" value={SOURCE_LABELS[deal.source]} />
               <MetaItem label="成交金额" value={formatMoney(deal.amount_cents)} />
@@ -1184,21 +1184,21 @@ function CommercialDealDetailView({
           <div
             role="alert"
             aria-live="polite"
-            className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700 dark:border-red-900/60 dark:bg-red-950/30 dark:text-red-300"
+            className="rounded-xl border border-danger-line bg-danger-soft px-4 py-3 text-sm text-danger"
           >
             {detailError || sectionError}
           </div>
         )}
         {canShowTopicCta && (
-          <div className="flex flex-col gap-3 rounded-2xl border border-amber-200 bg-amber-50 p-4 dark:border-amber-900/60 dark:bg-amber-950/25 sm:flex-row sm:items-center sm:justify-between">
+          <div className="flex flex-col gap-3 rounded-2xl border border-warning-soft bg-warning-soft p-4 sm:flex-row sm:items-center sm:justify-between">
             <div>
-              <p className="text-sm font-bold text-amber-900 dark:text-amber-200">制作前还没有绑定主选题</p>
-              <p className="mt-1 text-xs text-amber-800/80 dark:text-amber-300/80">商单状态不会自动推动选题状态，请明确选择内容载体。</p>
+              <p className="text-sm font-bold text-warning">制作前还没有绑定主选题</p>
+              <p className="mt-1 text-xs text-warning/80">商单状态不会自动推动选题状态，请明确选择内容载体。</p>
             </div>
             <button
               type="button"
               onClick={() => document.getElementById('deal-topic-section')?.scrollIntoView({ behavior: 'smooth', block: 'center' })}
-              className="min-h-11 rounded-xl bg-amber-700 px-4 text-sm font-bold text-white hover:bg-amber-800"
+              className="min-h-11 rounded-xl bg-warning px-4 text-sm font-bold text-white hover:bg-warning"
             >
               去绑定选题
             </button>
@@ -1208,7 +1208,7 @@ function CommercialDealDetailView({
           <div className="min-w-0 space-y-5">
             <SectionCard
               title="合作信息"
-              icon={<MessageSquare className="h-4 w-4 text-[var(--accent)]" />}
+              icon={<MessageSquare className="h-4 w-4 text-accent" />}
               action={editingSection !== 'cooperation' && <EditSectionButton onClick={() => startEdit('cooperation')} />}
             >
               {editingSection === 'cooperation' ? (
@@ -1216,7 +1216,7 @@ function CommercialDealDetailView({
                   <fieldset className="space-y-4">
                     <legend className="sr-only">编辑合作信息</legend>
                     <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                      <label className="text-xs font-semibold text-stone-600 dark:text-stone-300">
+                      <label className="text-xs font-semibold text-ink-muted">
                         品牌名称
                         <input
                           name="brand_name"
@@ -1226,7 +1226,7 @@ function CommercialDealDetailView({
                           className={fieldClass}
                         />
                       </label>
-                      <label className="text-xs font-semibold text-stone-600 dark:text-stone-300">
+                      <label className="text-xs font-semibold text-ink-muted">
                         代理商 / 服务商
                         <input
                           name="agency_name"
@@ -1236,7 +1236,7 @@ function CommercialDealDetailView({
                           className={fieldClass}
                         />
                       </label>
-                      <label className="text-xs font-semibold text-stone-600 dark:text-stone-300">
+                      <label className="text-xs font-semibold text-ink-muted">
                         对接人
                         <input
                           name="contact_name"
@@ -1246,7 +1246,7 @@ function CommercialDealDetailView({
                           className={fieldClass}
                         />
                       </label>
-                      <label className="text-xs font-semibold text-stone-600 dark:text-stone-300">
+                      <label className="text-xs font-semibold text-ink-muted">
                         联系方式
                         <input
                           name="contact_channel"
@@ -1275,7 +1275,7 @@ function CommercialDealDetailView({
                     </div>
                   </fieldset>
                   {sectionError && (
-                    <p role="alert" className="text-xs text-red-600 dark:text-red-400">
+                    <p role="alert" className="text-xs text-danger">
                       {sectionError}
                     </p>
                   )}
@@ -1292,7 +1292,7 @@ function CommercialDealDetailView({
             </SectionCard>
             <SectionCard
               title="执行单与合作口径"
-              icon={<FileText className="h-4 w-4 text-[var(--accent)]" />}
+              icon={<FileText className="h-4 w-4 text-accent" />}
               action={editingSection !== 'brief' && <EditSectionButton onClick={() => startEdit('brief')} />}
             >
               {editingSection === 'brief' ? (
@@ -1306,7 +1306,7 @@ function CommercialDealDetailView({
                       options={CONTRACT_OPTIONS}
                       onChange={(value) => setField('contract_status', value as CommercialDeal['contract_status'])}
                     />
-                    <label className="block text-xs font-semibold text-stone-600 dark:text-stone-300">
+                    <label className="block text-xs font-semibold text-ink-muted">
                       商单简介
                       <textarea
                         name="brief"
@@ -1316,7 +1316,7 @@ function CommercialDealDetailView({
                         className={textareaClass}
                       />
                     </label>
-                    <label className="block text-xs font-semibold text-stone-600 dark:text-stone-300">
+                    <label className="block text-xs font-semibold text-ink-muted">
                       必须满足
                       <textarea
                         name="requirements"
@@ -1326,7 +1326,7 @@ function CommercialDealDetailView({
                         className={textareaClass}
                       />
                     </label>
-                    <label className="block text-xs font-semibold text-stone-600 dark:text-stone-300">
+                    <label className="block text-xs font-semibold text-ink-muted">
                       禁用与风险
                       <textarea
                         name="restrictions"
@@ -1336,7 +1336,7 @@ function CommercialDealDetailView({
                         className={textareaClass}
                       />
                     </label>
-                    <label className="block text-xs font-semibold text-stone-600 dark:text-stone-300">
+                    <label className="block text-xs font-semibold text-ink-muted">
                       合同 / 需求摘要
                       <textarea
                         name="contract_summary"
@@ -1348,14 +1348,14 @@ function CommercialDealDetailView({
                     </label>
                   </fieldset>
                   {sectionError && (
-                    <p role="alert" className="text-xs text-red-600 dark:text-red-400">
+                    <p role="alert" className="text-xs text-danger">
                       {sectionError}
                     </p>
                   )}
                   <EditorActions saving={isSaving} onCancel={() => setEditingSection(null)} />
                 </form>
               ) : (
-                <div className="space-y-4 text-sm leading-relaxed text-stone-700 dark:text-stone-300">
+                <div className="space-y-4 text-sm leading-relaxed text-ink">
                   <TextBlock label="商单简介" value={deal.brief} empty="还没有记录客户为什么要做这次合作。" />
                   <TextBlock label="必须满足" value={deal.requirements} empty="暂未记录必须露出的内容。" />
                   <TextBlock label="禁用与风险" value={deal.restrictions} empty="暂未记录禁用口径或风险。" />
@@ -1365,8 +1365,8 @@ function CommercialDealDetailView({
             </SectionCard>
             <SectionCard
               title="选题关系"
-              icon={<Link2 className="h-4 w-4 text-[var(--accent)]" />}
-              action={<span className="text-xs text-stone-400">商单与选题状态独立</span>}
+              icon={<Link2 className="h-4 w-4 text-accent" />}
+              action={<span className="text-xs text-ink-muted">商单与选题状态独立</span>}
             >
               <div id="deal-topic-section" className="space-y-3">
                 {deal.topics.length > 0 ? (
@@ -1391,14 +1391,14 @@ function CommercialDealDetailView({
                     />
                   ))
                 ) : (
-                  <div className="rounded-xl border border-dashed border-stone-300 px-4 py-6 text-center dark:border-stone-700">
-                    <Target className="mx-auto h-6 w-6 text-stone-300 dark:text-stone-600" />
-                    <p className="mt-2 text-xs text-stone-500 dark:text-stone-400">还没有关联选题</p>
+                  <div className="rounded-xl border border-dashed border-line px-4 py-6 text-center">
+                    <Target className="mx-auto h-6 w-6 text-ink-faint" />
+                    <p className="mt-2 text-xs text-ink-muted">还没有关联选题</p>
                   </div>
                 )}
-                <div className="grid grid-cols-1 gap-3 rounded-xl bg-stone-500/[0.03] p-3 dark:bg-stone-800/60 sm:grid-cols-[minmax(0,1fr)_auto]">
+                <div className="grid grid-cols-1 gap-3 rounded-xl bg-control p-3 sm:grid-cols-[minmax(0,1fr)_auto]">
                   <div>
-                    <span className="mb-1.5 block text-xs font-semibold text-stone-500 dark:text-stone-400">选择主选题</span>
+                    <span className="mb-1.5 block text-xs font-semibold text-ink-muted">选择主选题</span>
                     <CustomSelect
                       value={primaryTopicId || ''}
                       onChange={(value) => {
@@ -1427,7 +1427,7 @@ function CommercialDealDetailView({
                     type="button"
                     onClick={() => void handleCreateTopic()}
                     disabled={!onCreateTopicFromDeal || isSaving}
-                    className="min-h-11 self-end rounded-xl border border-[var(--accent)]/40 px-3 text-xs font-bold text-[var(--accent)] hover:bg-[var(--accent-soft)] disabled:cursor-not-allowed disabled:opacity-40"
+                    className="min-h-11 self-end rounded-xl border border-accent/40 px-3 text-xs font-bold text-accent hover:bg-accent-soft disabled:cursor-not-allowed disabled:opacity-40"
                   >
                     <Plus className="mr-1 inline h-3.5 w-3.5" />
                     从商单创建选题
@@ -1435,14 +1435,14 @@ function CommercialDealDetailView({
                 </div>
                 {availableTopics.length > 0 && (
                   <div>
-                    <span className="mb-1.5 block text-xs font-semibold text-stone-500 dark:text-stone-400">系列关联选题</span>
-                    <FloatingScrollbar className="space-y-1 rounded-xl border border-stone-200/70 p-2 dark:border-stone-700" wrapperClassName="max-h-44 flex-none">
+                    <span className="mb-1.5 block text-xs font-semibold text-ink-muted">系列关联选题</span>
+                    <FloatingScrollbar className="space-y-1 rounded-xl border border-line p-2" wrapperClassName="max-h-44 flex-none">
                       {availableTopics.map((topic) => {
                         const checked = linkedTopicIds.has(topic.id);
                         return (
                           <label
                             key={topic.id}
-                            className="flex min-h-11 cursor-pointer items-center gap-2 rounded-lg px-2 text-xs text-stone-700 hover:bg-stone-50 dark:text-stone-300 dark:hover:bg-stone-800"
+                            className="flex min-h-11 cursor-pointer items-center gap-2 rounded-lg px-2 text-xs text-ink hover:bg-canvas"
                           >
                             <input
                               type="checkbox"
@@ -1459,7 +1459,7 @@ function CommercialDealDetailView({
                               className="h-4 w-4 accent-[var(--accent)]"
                             />
                             <span className="min-w-0 flex-1 break-words">{topic.title}</span>
-                            {topic.id === primaryTopicId && <span className="shrink-0 text-[10px] text-[var(--accent)]">主选题</span>}
+                            {topic.id === primaryTopicId && <span className="shrink-0 text-[10px] text-accent">主选题</span>}
                           </label>
                         );
                       })}
@@ -1468,11 +1468,11 @@ function CommercialDealDetailView({
                 )}
               </div>
             </SectionCard>
-            <SectionCard title="沟通记录" icon={<MessageSquare className="h-4 w-4 text-[var(--accent)]" />}>
+            <SectionCard title="沟通记录" icon={<MessageSquare className="h-4 w-4 text-accent" />}>
               <form onSubmit={handleActivity} className="space-y-3">
                 <fieldset className="space-y-3">
                   <legend className="sr-only">记录沟通</legend>
-                  <label className="block text-xs font-semibold text-stone-500 dark:text-stone-400">
+                  <label className="block text-xs font-semibold text-ink-muted">
                     <span className="sr-only">记录沟通</span>
                     <textarea
                       name="activity"
@@ -1488,26 +1488,26 @@ function CommercialDealDetailView({
                   </label>
                 </fieldset>
                 <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-                  <span role="status" aria-live="polite" className="text-xs text-red-600 dark:text-red-400">
+                  <span role="status" aria-live="polite" className="text-xs text-danger">
                     {activityError}
                   </span>
                   <button
                     type="submit"
-                    className="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl bg-[var(--accent)] px-4 text-sm font-bold text-white hover:bg-[var(--accent-dark)]"
+                    className="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl bg-accent px-4 text-sm font-bold text-white hover:bg-accent-dark"
                   >
                     <Send className="h-3.5 w-3.5" />
                     记录这次沟通
                   </button>
                 </div>
               </form>
-              <div className="mt-5 divide-y divide-stone-100 dark:divide-stone-800">
+              <div className="mt-5 divide-y divide-line">
                 {deal.activities.map((item) => (
                   <div key={item.id} className="py-3 first:pt-0">
                     <div className="flex items-center justify-between gap-3">
-                      <span className="rounded-full bg-stone-500/10 px-2 py-0.5 text-[11px] font-semibold text-stone-600 dark:bg-stone-800 dark:text-stone-300">
+                      <span className="rounded-full bg-control px-2 py-0.5 text-[11px] font-semibold text-ink-muted">
                         {item.kind === 'payment' ? '回款' : item.kind === 'status_change' ? '阶段' : '沟通'}
                       </span>
-                      <time className="shrink-0 text-[11px] text-stone-400" dateTime={item.created_at}>
+                      <time className="shrink-0 text-[11px] text-ink-muted" dateTime={item.created_at}>
                         {formatBeijingDateTime(item.created_at, 'zh-CN', {
                           month: 'numeric',
                           day: 'numeric',
@@ -1516,19 +1516,19 @@ function CommercialDealDetailView({
                         })}
                       </time>
                     </div>
-                    <p className="mt-2 break-words whitespace-pre-wrap text-sm leading-relaxed text-stone-700 dark:text-stone-300">
+                    <p className="mt-2 break-words whitespace-pre-wrap text-sm leading-relaxed text-ink">
                       {item.content}
                     </p>
                   </div>
                 ))}
-                {deal.activities.length === 0 && <p className="py-3 text-xs text-stone-400">还没有沟通记录。</p>}
+                {deal.activities.length === 0 && <p className="py-3 text-xs text-ink-muted">还没有沟通记录。</p>}
               </div>
             </SectionCard>
           </div>
           <div className="min-w-0 space-y-5">
             <SectionCard
               title="交付与回款"
-              icon={<WalletCards className="h-4 w-4 text-[var(--accent)]" />}
+              icon={<WalletCards className="h-4 w-4 text-accent" />}
               action={editingSection !== 'delivery' && <EditSectionButton onClick={() => startEdit('delivery')} />}
             >
               {editingSection === 'delivery' ? (
@@ -1536,7 +1536,7 @@ function CommercialDealDetailView({
                   <fieldset className="space-y-4">
                     <legend className="sr-only">编辑交付与回款</legend>
                     <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-1">
-                      <label className="text-xs font-semibold text-stone-600 dark:text-stone-300">
+                      <label className="text-xs font-semibold text-ink-muted">
                         成交金额（元）
                         <input
                           name="amount_yuan"
@@ -1556,7 +1556,7 @@ function CommercialDealDetailView({
                         options={PAYMENT_OPTIONS}
                         onChange={(value) => setField('payment_status', value as CommercialDeal['payment_status'])}
                       />
-                      <label className="text-xs font-semibold text-stone-600 dark:text-stone-300">
+                      <label className="text-xs font-semibold text-ink-muted">
                         交付截止日
                         <DateInput
                           name="delivery_due_date"
@@ -1565,7 +1565,7 @@ function CommercialDealDetailView({
                           className={fieldClass}
                         />
                       </label>
-                      <label className="text-xs font-semibold text-stone-600 dark:text-stone-300">
+                      <label className="text-xs font-semibold text-ink-muted">
                         计划上线日
                         <DateInput
                           name="publish_date"
@@ -1574,7 +1574,7 @@ function CommercialDealDetailView({
                           className={fieldClass}
                         />
                       </label>
-                      <label className="text-xs font-semibold text-stone-600 dark:text-stone-300">
+                      <label className="text-xs font-semibold text-ink-muted">
                         到账日期
                         <DateInput
                           name="paid_at"
@@ -1583,7 +1583,7 @@ function CommercialDealDetailView({
                           className={fieldClass}
                         />
                       </label>
-                      <label className="text-xs font-semibold text-stone-600 dark:text-stone-300">
+                      <label className="text-xs font-semibold text-ink-muted">
                         当前下一步
                         <input
                           name="next_action"
@@ -1594,7 +1594,7 @@ function CommercialDealDetailView({
                           placeholder="例如：把脚本第一版发给客户确认"
                         />
                       </label>
-                      <label className="text-xs font-semibold text-stone-600 dark:text-stone-300">
+                      <label className="text-xs font-semibold text-ink-muted">
                         下一步截止日
                         <DateInput
                           name="next_action_due_date"
@@ -1606,7 +1606,7 @@ function CommercialDealDetailView({
                     </div>
                   </fieldset>
                   {sectionError && (
-                    <p role="alert" className="text-xs text-red-600 dark:text-red-400">
+                    <p role="alert" className="text-xs text-danger">
                       {sectionError}
                     </p>
                   )}
@@ -1614,36 +1614,36 @@ function CommercialDealDetailView({
                 </form>
               ) : (
                 <div className="space-y-4">
-                  <div className="rounded-xl border border-stone-200/70 p-4 dark:border-stone-700">
-                    <p className="text-xs font-semibold text-stone-500 dark:text-stone-400">应收成交金额</p>
-                    <p className="mt-1 text-2xl font-bold tracking-tight text-stone-900 dark:text-stone-100">
+                  <div className="rounded-xl border border-line p-4">
+                    <p className="text-xs font-semibold text-ink-muted">应收成交金额</p>
+                    <p className="mt-1 text-2xl font-bold tracking-tight text-ink">
                       {formatMoney(deal.amount_cents)}
                     </p>
                     <div className="mt-4 flex flex-wrap items-center justify-between gap-3 text-sm">
                       <span
                         className={
                           deal.payment_status === 'paid'
-                            ? 'font-semibold text-emerald-700 dark:text-emerald-300'
-                            : 'font-semibold text-amber-700 dark:text-amber-300'
+                            ? 'font-semibold text-success'
+                            : 'font-semibold text-warning'
                         }
                       >
                         {deal.payment_status === 'paid' ? '已收到款项' : '等待回款'}
                       </span>
-                      {deal.paid_at && <span className="text-xs text-stone-400">到账 <ActionDate value={deal.paid_at} active={false} /></span>}
+                      {deal.paid_at && <span className="text-xs text-ink-muted">到账 <ActionDate value={deal.paid_at} active={false} /></span>}
                     </div>
                   </div>
                   <div className="grid grid-cols-2 gap-3">
                     <MetaItem label="交付截止" value={deliveryDate.state === 'empty' ? '未设置' : <ActionDateText display={deliveryDate} />} tone={overdue ? 'danger' : undefined} />
                     <MetaItem label="计划上线日" value={publishDate.state === 'empty' ? '未设置' : <ActionDateText display={publishDate} />} />
                   </div>
-                  <div className="rounded-xl bg-[var(--accent-soft)] p-4">
-                    <p className="text-xs font-bold text-[var(--accent-dark)]">下一步行动</p>
-                    <p className="mt-2 break-words text-sm font-bold leading-relaxed text-stone-900 dark:text-stone-100">
+                  <div className="rounded-xl bg-accent-soft p-4">
+                    <p className="text-xs font-bold text-accent-dark">下一步行动</p>
+                    <p className="mt-2 break-words text-sm font-bold leading-relaxed text-ink">
                       {deal.next_action || '还没有明确下一步'}
                     </p>
                     {deal.next_action_due_date && (
                       <p
-                        className={`mt-3 text-xs ${nextActionDueDate.state === 'overdue' ? 'font-bold text-red-600 dark:text-red-400' : 'text-stone-500 dark:text-stone-400'}`}
+                        className={`mt-3 text-xs ${nextActionDueDate.state === 'overdue' ? 'font-bold text-danger' : 'text-ink-muted'}`}
                       >
                         截止 <ActionDateText display={nextActionDueDate} />
                       </p>
@@ -1652,10 +1652,10 @@ function CommercialDealDetailView({
                 </div>
               )}
             </SectionCard>
-            <SectionCard title="交付结果" icon={<CheckCircle2 className="h-4 w-4 text-[var(--accent)]" />}>
+            <SectionCard title="交付结果" icon={<CheckCircle2 className="h-4 w-4 text-accent" />}>
               <div className="space-y-4">
-                <div className="min-w-0 rounded-xl bg-stone-500/[0.03] p-3 dark:bg-stone-800/60">
-                  <p className="text-xs font-semibold text-stone-500 dark:text-stone-400">发布视频</p>
+                <div className="min-w-0 rounded-xl bg-control p-3">
+                  <p className="text-xs font-semibold text-ink-muted">发布视频</p>
                   <CustomSelect
                     value={currentPublishedId}
                     onChange={(value) => void handlePublishedVideo(value)}
@@ -1678,10 +1678,10 @@ function CommercialDealDetailView({
                     popoverClassName="w-[min(32rem,calc(100vw-2rem))] max-w-[calc(100vw-2rem)]"
                   />
                   {deal.published_video && (
-                    <div className="mt-3 min-w-0 rounded-lg border border-[var(--line)] bg-[var(--canvas)]/70 p-3 dark:border-stone-700 dark:bg-stone-900/50">
-                      <p className="text-[11px] font-semibold text-stone-400 dark:text-stone-500">已绑定视频标题</p>
+                    <div className="mt-3 min-w-0 rounded-lg border border-line bg-canvas/70 p-3">
+                      <p className="text-[11px] font-semibold text-ink-muted">已绑定视频标题</p>
                       <p
-                        className="mt-1 break-words whitespace-normal text-sm font-bold leading-relaxed text-stone-800 dark:text-stone-200"
+                        className="mt-1 break-words whitespace-normal text-sm font-bold leading-relaxed text-ink"
                         style={{ overflowWrap: 'anywhere' }}
                       >
                         {deal.published_video.title}
@@ -1691,17 +1691,17 @@ function CommercialDealDetailView({
                           href={safePublishedVideoUrl}
                           target="_blank"
                           rel="noopener noreferrer"
-                        className="mt-2 inline-flex max-w-full items-center gap-1.5 break-words text-xs font-semibold text-[var(--accent)] hover:underline"
+                        className="mt-2 inline-flex max-w-full items-center gap-1.5 break-words text-xs font-semibold text-accent hover:underline"
                         >
                           打开 B 站视频 <ExternalLink className="h-3.5 w-3.5 shrink-0" />
                         </a>
                       ) : (
-                        <p className="mt-2 text-xs text-stone-500 dark:text-stone-400">视频链接未设置或已被拦截</p>
+                        <p className="mt-2 text-xs text-ink-muted">视频链接未设置或已被拦截</p>
                       )}
                     </div>
                   )}
                   {deal.status === 'delivered' && !deal.published_video_id && (
-                    <p className="mt-2 text-xs font-semibold text-amber-700 dark:text-amber-300">已交付但还没有绑定发布视频</p>
+                    <p className="mt-2 text-xs font-semibold text-warning">已交付但还没有绑定发布视频</p>
                   )}
                 </div>
                 <div className="grid grid-cols-2 gap-3">
@@ -1710,15 +1710,15 @@ function CommercialDealDetailView({
                 </div>
               </div>
             </SectionCard>
-            <SectionCard title="当前推进" icon={<ArrowRight className="h-4 w-4 text-[var(--accent)]" />}>
-              <div className="rounded-xl bg-[var(--accent-soft)] p-4">
-                <p className="text-xs font-bold text-[var(--accent-dark)]">下一步行动</p>
-                <p className="mt-2 break-words text-sm font-bold leading-relaxed text-stone-900 dark:text-stone-100">
+            <SectionCard title="当前推进" icon={<ArrowRight className="h-4 w-4 text-accent" />}>
+              <div className="rounded-xl bg-accent-soft p-4">
+                <p className="text-xs font-bold text-accent-dark">下一步行动</p>
+                <p className="mt-2 break-words text-sm font-bold leading-relaxed text-ink">
                   {deal.next_action || '还没有明确下一步'}
                 </p>
                 {deal.next_action_due_date && (
                   <p
-                    className={`mt-3 text-xs ${nextActionDueDate.state === 'overdue' ? 'font-bold text-red-600 dark:text-red-400' : 'text-stone-500 dark:text-stone-400'}`}
+                    className={`mt-3 text-xs ${nextActionDueDate.state === 'overdue' ? 'font-bold text-danger' : 'text-ink-muted'}`}
                   >
                     截止 <ActionDateText display={nextActionDueDate} />
                   </p>
@@ -1728,13 +1728,13 @@ function CommercialDealDetailView({
                 {STATUS_FLOW.map((status, index) => (
                   <div key={status} className="flex items-center gap-2 text-xs">
                     <span
-                      className={`grid h-5 w-5 place-items-center rounded-full ${deal.status === status ? 'bg-[var(--accent)] text-white' : index < currentFlowIndex ? 'bg-emerald-500 text-white' : 'bg-stone-100 text-stone-400 dark:bg-stone-800'}`}
+                      className={`grid h-5 w-5 place-items-center rounded-full ${deal.status === status ? 'bg-accent text-white' : index < currentFlowIndex ? 'bg-success text-white' : 'bg-control text-ink-muted'}`}
                     >
                       {index < currentFlowIndex ? <Check className="h-3 w-3" /> : index + 1}
                     </span>
                     <span
                       className={
-                        deal.status === status ? 'font-bold text-stone-900 dark:text-stone-100' : 'text-stone-500 dark:text-stone-400'
+                        deal.status === status ? 'font-bold text-ink' : 'text-ink-muted'
                       }
                     >
                       {STATUS_LABELS[status]}
@@ -1764,9 +1764,9 @@ function CommercialDealDetailView({
 function MetaItem({ label, value, tone }: { label: string; value: React.ReactNode; tone?: 'danger' }) {
   return (
     <div className="min-w-0">
-      <p className="text-[11px] font-semibold text-stone-400 dark:text-stone-500">{label}</p>
+      <p className="text-[11px] font-semibold text-ink-muted">{label}</p>
       <p
-        className={`mt-1 break-words text-sm font-bold ${tone === 'danger' ? 'text-red-600 dark:text-red-400' : 'text-stone-800 dark:text-stone-200'}`}
+        className={`mt-1 break-words text-sm font-bold ${tone === 'danger' ? 'text-danger' : 'text-ink'}`}
         style={{ overflowWrap: 'anywhere' }}
       >
         {value}
@@ -1777,9 +1777,9 @@ function MetaItem({ label, value, tone }: { label: string; value: React.ReactNod
 function TextBlock({ label, value, empty }: { label: string; value: string; empty: string }) {
   return (
     <div className="min-w-0">
-      <p className="text-xs font-bold text-stone-500 dark:text-stone-400">{label}</p>
+      <p className="text-xs font-bold text-ink-muted">{label}</p>
       <p
-        className={`mt-1.5 break-words whitespace-pre-wrap ${value ? 'text-stone-700 dark:text-stone-300' : 'text-stone-400'}`}
+        className={`mt-1.5 break-words whitespace-pre-wrap ${value ? 'text-ink' : 'text-ink-muted'}`}
         style={{ overflowWrap: 'anywhere' }}
       >
         {value || empty}

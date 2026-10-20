@@ -35,9 +35,9 @@ export const KanbanFilters: React.FC<KanbanFiltersProps> = ({
   hasActiveFilters,
 }) => {
   return (
-    <div data-testid="kanban-filters" className="flex items-center justify-between flex-wrap gap-3 pb-3 md:border-b border-[var(--line)]/50 transition-colors">
+    <div data-testid="kanban-filters" className="flex items-center justify-between flex-wrap gap-3 pb-3 md:border-b border-line/50 transition-colors">
       <div className="flex items-center gap-2.5 flex-wrap text-xs">
-        <span className="font-medium text-[var(--ink-muted)] flex items-center gap-1">
+        <span className="font-medium text-ink-muted flex items-center gap-1">
           <Filter className="w-3.5 h-3.5" />
           筛选:
         </span>
@@ -50,10 +50,10 @@ export const KanbanFilters: React.FC<KanbanFiltersProps> = ({
           size="sm"
           options={[
             { value: 'all', label: '所有优先级' },
-            { value: 'high', label: '高优', dot: 'bg-amber-600 dark:bg-amber-400', description: '重点攻坚' },
-            { value: 'medium', label: '中优', dot: 'bg-[var(--accent)]', description: '标准节奏' },
-            { value: 'low', label: '低优', dot: 'bg-[var(--ink-muted)] opacity-60', description: '空闲跟进' },
-            { value: 'none', label: '无优先级', dot: 'bg-[var(--ink-muted)] opacity-30', description: '未设定' },
+            { value: 'high', label: '高优', dot: 'bg-warning', description: '重点攻坚' },
+            { value: 'medium', label: '中优', dot: 'bg-accent', description: '标准节奏' },
+            { value: 'low', label: '低优', dot: 'bg-ink-muted opacity-60', description: '空闲跟进' },
+            { value: 'none', label: '无优先级', dot: 'bg-ink-muted opacity-30', description: '未设定' },
           ]}
         />
 
@@ -86,7 +86,7 @@ export const KanbanFilters: React.FC<KanbanFiltersProps> = ({
         {hasActiveFilters && (
           <button
             onClick={onResetFilters}
-            className="flex items-center gap-1 text-[var(--ink-muted)] hover:text-[var(--ink)] bg-stone-500/[0.04] hover:bg-stone-500/[0.08] dark:bg-white/[0.04] dark:hover:bg-white/[0.08] px-2 py-1 rounded-lg font-normal cursor-pointer transition-colors"
+            className="flex items-center gap-1 text-ink-muted hover:text-ink bg-control hover:bg-control px-2 py-1 rounded-lg font-normal cursor-pointer transition-colors"
           >
             <X className="w-3 h-3" />
             重置筛选
@@ -96,7 +96,7 @@ export const KanbanFilters: React.FC<KanbanFiltersProps> = ({
 
       {/* Sorting dropdown */}
       <div className="flex items-center gap-2 text-xs">
-        <span className="font-semibold text-stone-600 dark:text-stone-400 flex items-center gap-1">
+        <span className="font-semibold text-ink-muted flex items-center gap-1">
           <ArrowUpDown className="w-3.5 h-3.5" />
           排序:
         </span>

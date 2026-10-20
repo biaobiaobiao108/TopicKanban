@@ -63,24 +63,24 @@ const STORY_STRUCTURE_CARD_STYLES: Record<StoryStructureKey, {
   focus: string;
 }> = {
   qi: {
-    header: 'text-[var(--accent-dark)]',
-    badge: 'bg-[var(--accent-soft)] text-[var(--accent-dark)] border border-[var(--line)]',
-    focus: 'focus:border-[var(--accent)]',
+    header: 'text-accent-dark',
+    badge: 'bg-accent-soft text-accent-dark border border-line',
+    focus: 'focus:border-accent',
   },
   cheng: {
-    header: 'text-[var(--ink)]',
-    badge: 'bg-[var(--canvas)] text-[var(--ink-muted)] border border-[var(--line)]',
-    focus: 'focus:border-[var(--accent)]',
+    header: 'text-ink',
+    badge: 'bg-canvas text-ink-muted border border-line',
+    focus: 'focus:border-accent',
   },
   zhuan: {
-    header: 'text-[var(--accent-dark)]',
-    badge: 'bg-[var(--accent-soft)] text-[var(--accent-dark)] border border-[var(--line)]',
-    focus: 'focus:border-[var(--accent)]',
+    header: 'text-accent-dark',
+    badge: 'bg-accent-soft text-accent-dark border border-line',
+    focus: 'focus:border-accent',
   },
   he: {
-    header: 'text-[var(--accent-dark)]',
-    badge: 'bg-[var(--accent-soft)] text-[var(--accent-dark)] border border-[var(--line)]',
-    focus: 'focus:border-[var(--accent)]',
+    header: 'text-accent-dark',
+    badge: 'bg-accent-soft text-accent-dark border border-line',
+    focus: 'focus:border-accent',
   },
 };
 
@@ -425,15 +425,15 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({
       {/* Left Main Column: Topic Positioning & Story Structure (7 / 12) */}
       <div className="xl:col-span-7 space-y-6">
         {/* 1. 选题定位卡 */}
-        <div className="bg-[var(--surface)] rounded-2xl border border-[var(--line)] p-5 space-y-4 shadow-subtle transition-colors">
+        <div className="bg-surface rounded-2xl border border-line p-5 space-y-4 shadow-subtle transition-colors">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <div className="p-1.5 rounded-xl bg-[var(--accent-soft)] text-[var(--accent)]">
+              <div className="p-1.5 rounded-xl bg-accent-soft text-accent">
                 <Target className="w-4 h-4" />
               </div>
               <div>
-                <h2 className="text-sm font-bold text-stone-900 dark:text-stone-100">选题定位</h2>
-                <p className="mt-0.5 text-[11px] text-stone-500 dark:text-stone-400">
+                <h2 className="text-sm font-bold text-ink">选题定位</h2>
+                <p className="mt-0.5 text-[11px] text-ink-muted">
                   先说清内容，再确认看点与时机。
                 </p>
               </div>
@@ -442,30 +442,30 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({
             {/* Auto-save Status Chip */}
             <div className="flex items-center gap-1.5 text-[11px] font-medium select-none">
               {saveStatus === 'saving' && (
-                <span className="text-[var(--accent)] flex items-center gap-1">
-                  <span className="w-1.5 h-1.5 rounded-full bg-[var(--accent)] animate-pulse" />
+                <span className="text-accent flex items-center gap-1">
+                  <span className="w-1.5 h-1.5 rounded-full bg-accent animate-pulse" />
                   <span>同步中…</span>
                 </span>
               )}
               {saveStatus === 'saved' && (
-                <span className="text-emerald-600 dark:text-emerald-400 flex items-center gap-1">
+                <span className="text-success flex items-center gap-1">
                   <Check className="w-3 h-3" />
                   <span>已自动同步</span>
                 </span>
               )}
               {saveStatus === 'idle' && (
-                <span className="text-stone-500 dark:text-stone-400">自动保存已就绪</span>
+                <span className="text-ink-muted">自动保存已就绪</span>
               )}
               {saveStatus === 'error' && (
-                <span className="text-red-600 dark:text-red-400">保存失败，请重试</span>
+                <span className="text-danger">保存失败，请重试</span>
               )}
             </div>
           </div>
 
           {/* 一句话概述 */}
           <div className="space-y-1.5">
-            <label htmlFor="overview-summary" className="block text-xs font-bold text-stone-800 dark:text-stone-200 flex items-center gap-1.5">
-              <Lightbulb aria-hidden="true" className="w-3.5 h-3.5 text-amber-500" />
+            <label htmlFor="overview-summary" className="block text-xs font-bold text-ink flex items-center gap-1.5">
+              <Lightbulb aria-hidden="true" className="w-3.5 h-3.5 text-warning" />
               <span>一句话概述</span>
             </label>
             <textarea
@@ -480,14 +480,14 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({
               }}
               onBlur={handleImmediateSave}
               placeholder="用一句话说清这条内容在讲什么、围绕谁或什么展开。"
-              className="w-full text-sm text-stone-800 dark:text-stone-100 bg-stone-500/[0.03] dark:bg-stone-800/60 border border-stone-200/60 dark:border-stone-700/60 rounded-xl p-3 placeholder:text-stone-400 dark:placeholder:text-stone-500 focus:bg-[var(--surface)] dark:focus:bg-stone-800 focus:border-[var(--accent)] dark:focus:border-[var(--accent)] focus:outline-none transition-colors"
+              className="w-full text-sm text-ink bg-control border border-line rounded-xl p-3 placeholder:text-ink-muted focus:bg-surface focus:border-accent focus:outline-none transition-colors"
             />
           </div>
 
           {/* 核心看点 */}
           <div className="space-y-1.5">
-            <label htmlFor="overview-hook" className="block text-xs font-bold text-stone-800 dark:text-stone-200 flex items-center gap-1.5">
-              <Eye aria-hidden="true" className="w-3.5 h-3.5 text-[var(--accent)]" />
+            <label htmlFor="overview-hook" className="block text-xs font-bold text-ink flex items-center gap-1.5">
+              <Eye aria-hidden="true" className="w-3.5 h-3.5 text-accent" />
               <span>核心看点</span>
             </label>
             <textarea
@@ -502,21 +502,21 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({
               }}
               onBlur={handleImmediateSave}
               placeholder="这条内容最值得被看到的地方是什么？可以是一个问题、事实、变化、冲突、方法或独特视角。"
-              className="w-full text-sm text-stone-800 dark:text-stone-100 bg-stone-500/[0.03] dark:bg-stone-800/60 border border-stone-200/60 dark:border-stone-700/60 rounded-xl p-3 placeholder:text-stone-400 dark:placeholder:text-stone-500 focus:bg-[var(--surface)] dark:focus:bg-stone-800 focus:border-[var(--accent)] dark:focus:border-[var(--accent)] focus:outline-none transition-colors"
+              className="w-full text-sm text-ink bg-control border border-line rounded-xl p-3 placeholder:text-ink-muted focus:bg-surface focus:border-accent focus:outline-none transition-colors"
             />
           </div>
 
           {/* 可折叠：为什么现在做 */}
-          <div className="border-t border-stone-100 dark:border-stone-800/80 pt-3">
+          <div className="border-t border-line pt-3">
             <button
               type="button"
               onClick={() => setIsWhyNowExpanded(!isWhyNowExpanded)}
-              className="w-full flex items-center justify-between text-xs font-semibold text-stone-600 dark:text-stone-400 hover:text-stone-900 dark:hover:text-stone-100 cursor-pointer"
+              className="w-full flex items-center justify-between text-xs font-semibold text-ink-muted hover:text-ink cursor-pointer"
             >
               <div className="flex items-center gap-1.5">
-                <Clock className="w-3.5 h-3.5 text-[var(--accent)]" />
+                <Clock className="w-3.5 h-3.5 text-accent" />
                 <span>为什么现在做</span>
-                {whyNow && <span className="w-1.5 h-1.5 rounded-full bg-[var(--accent)]" />}
+                {whyNow && <span className="w-1.5 h-1.5 rounded-full bg-accent" />}
               </div>
               <ChevronDown className={`w-3.5 h-3.5 transition-transform ${isWhyNowExpanded ? 'rotate-180' : ''}`} />
             </button>
@@ -536,7 +536,7 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({
                   }}
                   onBlur={handleImmediateSave}
                   placeholder="现在做它的理由是什么？例如出现了新信息、需求变化、事件节点或正在发生的讨论。"
-                  className="w-full text-xs text-stone-800 dark:text-stone-100 bg-stone-500/[0.03] dark:bg-stone-800/60 border border-stone-200/60 dark:border-stone-700/60 rounded-xl p-3 placeholder:text-stone-400 dark:placeholder:text-stone-500 focus:bg-[var(--surface)] dark:focus:bg-stone-800 focus:border-[var(--accent)] dark:focus:border-[var(--accent)] focus:outline-none transition-colors"
+                  className="w-full text-xs text-ink bg-control border border-line rounded-xl p-3 placeholder:text-ink-muted focus:bg-surface focus:border-accent focus:outline-none transition-colors"
                 />
               </div>
             )}
@@ -544,29 +544,29 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({
         </div>
 
         {/* 2. 故事结构工作台 (Story Structure) */}
-        <div className="bg-[var(--surface)] rounded-2xl border border-[var(--line)] p-5 space-y-4 shadow-subtle transition-colors">
+        <div className="bg-surface rounded-2xl border border-line p-5 space-y-4 shadow-subtle transition-colors">
           <div className="flex items-center justify-between flex-wrap gap-2">
             <div className="flex items-center gap-2">
-              <div className="p-1.5 rounded-xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-400">
+              <div className="p-1.5 rounded-xl bg-success-soft text-success">
                 <Clapperboard className="w-4 h-4" />
               </div>
               <div>
-                <h3 className="text-sm font-bold text-stone-900 dark:text-stone-100">故事结构</h3>
-                <p className="mt-0.5 text-[11px] text-stone-500 dark:text-stone-400">
+                <h3 className="text-sm font-bold text-ink">故事结构</h3>
+                <p className="mt-0.5 text-[11px] text-ink-muted">
                   按四段梳理从背景到结果，适用于人物、事件、产品、观点和过程类选题。
                 </p>
               </div>
             </div>
 
             {/* View Mode Toggle */}
-            <div className="flex items-center gap-1 bg-stone-100 dark:bg-stone-800 p-0.5 rounded-xl text-xs font-semibold">
+            <div className="flex items-center gap-1 bg-control p-0.5 rounded-xl text-xs font-semibold">
               <button
                 type="button"
                 onClick={() => setStorylineMode('acts')}
                 className={`px-3 py-1 rounded-lg transition-all cursor-pointer flex items-center gap-1 ${
                   storylineMode === 'acts'
-                    ? 'bg-[var(--surface)] text-[var(--ink)] shadow-subtle'
-                    : 'text-[var(--ink-muted)] hover:text-[var(--ink)]'
+                    ? 'bg-surface text-ink shadow-subtle'
+                    : 'text-ink-muted hover:text-ink'
                 }`}
               >
                 <Layers className="w-3.5 h-3.5" />
@@ -577,8 +577,8 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({
                 onClick={() => setStorylineMode('raw')}
                 className={`px-3 py-1 rounded-lg transition-all cursor-pointer flex items-center gap-1 ${
                   storylineMode === 'raw'
-                    ? 'bg-[var(--surface)] text-[var(--ink)] shadow-subtle'
-                    : 'text-[var(--ink-muted)] hover:text-[var(--ink)]'
+                    ? 'bg-surface text-ink shadow-subtle'
+                    : 'text-ink-muted hover:text-ink'
                 }`}
               >
                 <Edit3 className="w-3.5 h-3.5" />
@@ -593,7 +593,7 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({
               {STORY_STRUCTURE_STEPS.map((step) => {
                 const styles = STORY_STRUCTURE_CARD_STYLES[step.key];
                 return (
-                  <div key={step.key} className="rounded-xl border border-stone-200/60 dark:border-stone-800 bg-stone-500/[0.02] dark:bg-stone-800/30 p-3.5 space-y-1.5">
+                  <div key={step.key} className="rounded-xl border border-line bg-control p-3.5 space-y-1.5">
                     <div className={`flex items-start justify-between gap-2 text-xs font-bold ${styles.header}`}>
                       <div className="flex items-center gap-2 min-w-0">
                         <span className={`w-5 h-5 shrink-0 rounded-md flex items-center justify-center font-mono text-[11px] ${styles.badge}`}>
@@ -601,7 +601,7 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({
                         </span>
                         <span>{`第 ${step.number} 段 · ${step.label}`}</span>
                       </div>
-                      <span className="shrink-0 text-right text-[10px] text-stone-600 dark:text-stone-400 font-normal">{step.note}</span>
+                      <span className="shrink-0 text-right text-[10px] text-ink-muted font-normal">{step.note}</span>
                     </div>
                     <textarea
                       aria-label={`第 ${step.number} 段：${step.label}`}
@@ -611,7 +611,7 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({
                       onChange={(e) => handleActChange(step.key, e.target.value)}
                       onBlur={handleImmediateSave}
                       placeholder={step.placeholder}
-                      className={`w-full text-xs text-[var(--ink)] bg-[var(--surface)] dark:bg-stone-800 border border-[var(--line)] dark:border-stone-700 rounded-lg p-2.5 placeholder:text-stone-400 dark:placeholder:text-stone-500 focus:outline-none ${styles.focus}`}
+                      className={`w-full text-xs text-ink bg-surface border border-line rounded-lg p-2.5 placeholder:text-ink-muted focus:outline-none ${styles.focus}`}
                     />
                   </div>
                 );
@@ -627,23 +627,23 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({
                 onChange={(e) => handleRawStorylineChange(e.target.value)}
                 onBlur={handleImmediateSave}
                 placeholder="【开始】背景与问题 → 【发展】过程与变化 → 【转折】改变走向的节点 → 【收束】结果与影响"
-                className="w-full text-xs text-stone-800 dark:text-stone-100 bg-stone-500/[0.03] dark:bg-stone-800/60 border border-stone-200/60 dark:border-stone-700/60 rounded-xl p-3.5 placeholder:text-stone-400 dark:placeholder:text-stone-500 focus:bg-[var(--surface)] dark:focus:bg-stone-800 focus:border-[var(--accent)] dark:focus:border-[var(--accent)] focus:outline-none transition-colors"
+                className="w-full text-xs text-ink bg-control border border-line rounded-xl p-3.5 placeholder:text-ink-muted focus:bg-surface focus:border-accent focus:outline-none transition-colors"
               />
-              <p className="text-[11px] text-stone-400">
+              <p className="text-[11px] text-ink-muted">
                 提示：支持使用 <code>【开始...】</code>、<code>【发展...】</code> 等标签，也可以用换行或 <code>→</code> 连接各段。
               </p>
             </div>
           )}
 
           {/* Production Pipeline Bridges */}
-          <div className="border-t border-stone-100 dark:border-stone-800/80 pt-3 flex items-center justify-between flex-wrap gap-2">
+          <div className="border-t border-line pt-3 flex items-center justify-between flex-wrap gap-2">
             <div className="flex items-center gap-2">
               {onInjectOutlineIntoDraft && (
                 <button
                   type="button"
                   disabled={isInjectingOutline}
                   onClick={handleInjectIntoDraft}
-                  className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-[var(--accent)] hover:bg-[var(--accent-dark)] text-white text-xs font-bold transition-all shadow-2xs cursor-pointer active:scale-[0.98] disabled:cursor-wait disabled:opacity-60"
+                  className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-accent hover:bg-accent-dark text-white text-xs font-bold transition-all shadow-2xs cursor-pointer active:scale-[0.98] disabled:cursor-wait disabled:opacity-60"
                 >
                   <FileText className="w-3.5 h-3.5" />
                   <span>{isInjectingOutline ? '正在导入…' : '导入文案草稿'}</span>
@@ -655,16 +655,16 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({
                   type="button"
                   disabled={isConvertingToTimeline}
                   onClick={handleConvertToTimeline}
-                  className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-stone-100 dark:bg-stone-800 hover:bg-stone-200/80 dark:hover:bg-stone-700 text-stone-700 dark:text-stone-300 text-xs font-semibold transition-colors cursor-pointer disabled:cursor-wait disabled:opacity-60"
+                  className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-control hover:bg-control text-ink text-xs font-semibold transition-colors cursor-pointer disabled:cursor-wait disabled:opacity-60"
                 >
-                  <Calendar className="w-3.5 h-3.5 text-stone-500" />
+                  <Calendar className="w-3.5 h-3.5 text-ink-muted" />
                   <span>{isConvertingToTimeline ? '正在拆分…' : '拆成时间线'}</span>
                 </button>
               )}
             </div>
 
             {bridgeStatus && (
-              <span className="text-xs text-emerald-600 dark:text-emerald-400 font-semibold animate-in fade-in duration-150">
+              <span className="text-xs text-success font-semibold animate-in fade-in duration-150">
                 {bridgeStatus}
               </span>
             )}
@@ -675,48 +675,48 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({
       {/* Right Column: Production Cockpit & Entities (5 / 12) */}
       <div className="xl:col-span-5 space-y-6">
         {/* 1. 生产节奏与排期驾驶舱 (Production Rhythm Cockpit) */}
-        <div className="bg-[var(--surface)] rounded-2xl border border-[var(--line)] p-5 space-y-4 shadow-subtle transition-colors">
+        <div className="bg-surface rounded-2xl border border-line p-5 space-y-4 shadow-subtle transition-colors">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <div className="p-1.5 rounded-xl bg-[var(--accent-soft)] text-[var(--accent)]">
+              <div className="p-1.5 rounded-xl bg-accent-soft text-accent">
                 <Zap className="w-4 h-4 fill-current/20" />
               </div>
               <div>
-                <h4 className="text-sm font-bold text-stone-900 dark:text-stone-100">生产节奏与排期驾驶舱</h4>
+                <h4 className="text-sm font-bold text-ink">生产节奏与排期驾驶舱</h4>
               </div>
             </div>
             {targetPublishDate && (
-              <span className="text-xs font-semibold px-2.5 py-0.5 rounded-full bg-[var(--accent-soft)] text-[var(--accent-dark)]">
+              <span className="text-xs font-semibold px-2.5 py-0.5 rounded-full bg-accent-soft text-accent-dark">
                 定档 <ActionDateText display={targetPublishDateDisplay} />
               </span>
             )}
           </div>
 
           {/* Current Action Block */}
-          <div className="rounded-xl border border-[var(--line)] bg-[var(--accent-soft)] p-4 space-y-3">
+          <div className="rounded-xl border border-line bg-accent-soft p-4 space-y-3">
             <div className="flex items-center justify-between gap-2 flex-wrap">
-              <div className="flex items-center gap-2 text-xs font-bold text-[var(--accent-dark)] tracking-wide">
+              <div className="flex items-center gap-2 text-xs font-bold text-accent-dark tracking-wide">
                 <span className="relative flex h-2 w-2 shrink-0">
-                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[var(--accent)] opacity-35" />
-                  <span className="relative inline-flex rounded-full h-2 w-2 bg-[var(--accent)]" />
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-accent opacity-35" />
+                  <span className="relative inline-flex rounded-full h-2 w-2 bg-accent" />
                 </span>
                 <span>当前核心推进行动</span>
               </div>
               <div className="flex items-center gap-1.5">
                 {topic.current_todo && (
-                  <span className="font-semibold bg-[var(--surface)] text-[var(--accent-dark)] px-2 py-0.5 rounded-full text-[10px]">
+                  <span className="font-semibold bg-surface text-accent-dark px-2 py-0.5 rounded-full text-[10px]">
                     已推进 <span className="font-mono tabular-nums">{actionDays}</span> 天
                   </span>
                 )}
                 {actionWarning && (
-                  <span className="text-[10px] text-amber-700 dark:text-amber-300 font-bold bg-amber-500/15 px-2 py-0.5 rounded-full">
+                  <span className="text-[10px] text-warning font-bold bg-warning-soft px-2 py-0.5 rounded-full">
                     ⚠ {actionWarning}
                   </span>
                 )}
               </div>
             </div>
 
-            <p className="text-sm font-bold text-stone-900 dark:text-stone-100 leading-relaxed break-words">
+            <p className="text-sm font-bold text-ink leading-relaxed break-words">
               {topic.current_todo?.title || '尚未设置当前行动，点击立即规划！'}
             </p>
 
@@ -724,7 +724,7 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({
               <button
                 type="button"
                 onClick={onOpenCurrentAction}
-                className="w-full flex items-center justify-center gap-2 bg-[var(--accent)] hover:bg-[var(--accent-dark)] active:scale-[0.98] text-white py-2 px-3 rounded-xl text-xs font-bold transition-all shadow-2xs cursor-pointer"
+                className="w-full flex items-center justify-center gap-2 bg-accent hover:bg-accent-dark active:scale-[0.98] text-white py-2 px-3 rounded-xl text-xs font-bold transition-all shadow-2xs cursor-pointer"
               >
                 <CheckCircle2 className="w-3.5 h-3.5" />
                 <span>{topic.current_todo ? '推进 / 完成行动' : '设置当前行动'}</span>
@@ -733,12 +733,12 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({
           </div>
 
           {/* Schedule & Milestones Grid */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1 border-t border-stone-100 dark:border-stone-800/80">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1 border-t border-line">
             {/* Target Publish Date */}
             <div className="space-y-1.5">
               <div className="flex items-center justify-between">
-                <label htmlFor="overview-target-publish-date" className="text-xs font-bold text-stone-700 dark:text-stone-300 flex items-center gap-1">
-                  <Calendar aria-hidden="true" className="w-3.5 h-3.5 text-[var(--accent)]" />
+                <label htmlFor="overview-target-publish-date" className="text-xs font-bold text-ink flex items-center gap-1">
+                  <Calendar aria-hidden="true" className="w-3.5 h-3.5 text-accent" />
                   <span>计划发布日期</span>
                 </label>
                 {targetPublishDate && (
@@ -748,7 +748,7 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({
                       setTargetPublishDate('');
                       await onUpdateTopic({ target_publish_date: null });
                     }}
-                    className="text-[10px] text-stone-400 hover:text-red-500 cursor-pointer"
+                    className="text-[10px] text-ink-muted hover:text-danger cursor-pointer"
                   >
                     清除
                   </button>
@@ -763,7 +763,7 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({
                   setTargetPublishDate(val);
                   await onUpdateTopic({ target_publish_date: val || null });
                 }}
-                className="w-full text-xs text-stone-800 dark:text-stone-100 bg-stone-500/[0.03] dark:bg-stone-800/60 border border-stone-200/60 dark:border-stone-700/60 rounded-xl p-2 focus:bg-[var(--surface)] dark:focus:bg-stone-800 focus:border-[var(--accent)] focus:outline-none transition-colors"
+                className="w-full text-xs text-ink bg-control border border-line rounded-xl p-2 focus:bg-surface focus:border-accent focus:outline-none transition-colors"
               />
               {/* Quick date presets */}
               <div className="flex items-center gap-1 flex-wrap pt-0.5">
@@ -781,8 +781,8 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({
                     }}
                     className={`text-[10px] px-1.5 py-0.5 rounded-md border transition-colors cursor-pointer ${
                       targetPublishDate === preset.val
-                        ? 'bg-[var(--accent-soft)] border-[var(--accent)]/40 text-[var(--accent)] font-bold'
-                        : 'bg-stone-100/70 dark:bg-stone-800 border-stone-200/60 dark:border-stone-700 text-stone-600 dark:text-stone-400 hover:bg-stone-200/60'
+                        ? 'bg-accent-soft border-accent/40 text-accent font-bold'
+                        : 'bg-control border-line text-ink-muted hover:bg-control'
                     }`}
                   >
                     {preset.label}
@@ -794,8 +794,8 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({
             {/* Production Deadline */}
             <div className="space-y-1.5">
               <div className="flex items-center justify-between">
-                <label htmlFor="overview-deadline" className="text-xs font-bold text-stone-700 dark:text-stone-300 flex items-center gap-1">
-                  <Clock aria-hidden="true" className="w-3.5 h-3.5 text-amber-600 dark:text-amber-400" />
+                <label htmlFor="overview-deadline" className="text-xs font-bold text-ink flex items-center gap-1">
+                  <Clock aria-hidden="true" className="w-3.5 h-3.5 text-warning" />
                   <span>制作截稿日</span>
                 </label>
                 {deadline && (
@@ -805,7 +805,7 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({
                       setDeadline('');
                       await onUpdateTopic({ deadline: null });
                     }}
-                    className="text-[10px] text-stone-400 hover:text-red-500 cursor-pointer"
+                    className="text-[10px] text-ink-muted hover:text-danger cursor-pointer"
                   >
                     清除
                   </button>
@@ -820,10 +820,10 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({
                   setDeadline(val);
                   await onUpdateTopic({ deadline: val || null });
                 }}
-                className="w-full text-xs text-stone-800 dark:text-stone-100 bg-stone-500/[0.03] dark:bg-stone-800/60 border border-stone-200/60 dark:border-stone-700/60 rounded-xl p-2 focus:bg-[var(--surface)] dark:focus:bg-stone-800 focus:border-[var(--accent)] focus:outline-none transition-colors"
+                className="w-full text-xs text-ink bg-control border border-line rounded-xl p-2 focus:bg-surface focus:border-accent focus:outline-none transition-colors"
               />
               <div className="pt-0.5">
-                <span className="text-[10px] text-stone-500 dark:text-stone-400">
+                <span className="text-[10px] text-ink-muted">
                   {deadline ? <>定稿目标日: <ActionDateText display={deadlineDisplay} /></> : '用于内部写稿与剪辑交付倒计时'}
                 </span>
               </div>
@@ -832,20 +832,20 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({
         </div>
 
         {/* 2. 关联人物实体 (People Selector) */}
-        <div className="bg-[var(--surface)] rounded-2xl border border-[var(--line)] p-5 space-y-4 shadow-subtle transition-colors">
+        <div className="bg-surface rounded-2xl border border-line p-5 space-y-4 shadow-subtle transition-colors">
           <div className="flex items-center justify-between">
-            <h4 className="text-sm font-bold text-stone-900 dark:text-stone-100 flex items-center gap-2">
-              <span className="p-1.5 rounded-xl bg-stone-500/10 text-stone-700 dark:text-stone-300">
+            <h4 className="text-sm font-bold text-ink flex items-center gap-2">
+              <span className="p-1.5 rounded-xl bg-control text-ink">
                 <User className="w-4 h-4" />
               </span>
               <span>关联人物档案</span>
-              <span className="text-xs bg-stone-200/60 dark:bg-stone-800 text-stone-700 dark:text-stone-300 font-bold px-2 py-0.5 rounded-full font-mono">
+              <span className="text-xs bg-control text-ink font-bold px-2 py-0.5 rounded-full font-mono">
                 {topic.people?.length || 0}
               </span>
             </h4>
             <button
               onClick={() => setIsAddPersonModalOpen(true)}
-              className="flex items-center gap-1 rounded-lg bg-[var(--accent-soft)] px-2.5 py-1 text-xs font-semibold text-[var(--accent-dark)] transition-colors hover:bg-[var(--surface)] cursor-pointer"
+              className="flex items-center gap-1 rounded-lg bg-accent-soft px-2.5 py-1 text-xs font-semibold text-accent-dark transition-colors hover:bg-surface cursor-pointer"
               aria-label="新建人物档案"
             >
               <UserPlus className="w-3.5 h-3.5" />
@@ -855,31 +855,31 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({
 
           {/* Active Characters */}
           <div className="space-y-1.5">
-            <div className="text-[11px] font-semibold text-stone-600 dark:text-stone-400">本选题关联人物：</div>
+            <div className="text-[11px] font-semibold text-ink-muted">本选题关联人物：</div>
             <div className="flex flex-wrap gap-1.5 min-h-[32px]">
               {topic.people && topic.people.length > 0 ? (
                 topic.people.map((p) => (
                   <span
                     key={p.id}
-                    className="inline-flex items-center gap-1.5 px-3 py-1 bg-[var(--accent)] text-white rounded-xl text-xs font-semibold shadow-2xs"
+                    className="inline-flex items-center gap-1.5 px-3 py-1 bg-accent text-white rounded-xl text-xs font-semibold shadow-2xs"
                   >
                     <span>👤 {p.name}</span>
                     {p.identity && (
-                      <span className="text-[10px] text-stone-300 dark:text-stone-400 font-normal bg-stone-800 dark:bg-stone-700 px-1.5 py-0.2 rounded-md">
+                      <span className="text-[10px] text-canvas font-normal bg-ink px-1.5 py-0.5 rounded-md">
                         {p.identity}
                       </span>
                     )}
                     <button
                       onClick={() => togglePerson(p)}
                       aria-label="从本选题移出"
-                      className="text-stone-400 hover:text-red-300 ml-0.5 p-0.5 cursor-pointer"
+                      className="text-ink-muted hover:text-danger ml-0.5 p-0.5 cursor-pointer"
                     >
                       <X className="w-3 h-3" />
                     </button>
                   </span>
                 ))
               ) : (
-                <div className="text-xs text-stone-600 dark:text-stone-400 italic bg-stone-500/[0.03] dark:bg-stone-800/40 p-2.5 rounded-xl w-full text-center">
+                <div className="text-xs text-ink-muted italic bg-control p-2.5 rounded-xl w-full text-center">
                   暂未关联人物，可在下方快速勾选
                 </div>
               )}
@@ -887,14 +887,14 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({
           </div>
 
           {/* Global People Quick Selector */}
-          <div className="pt-3 border-t border-stone-100 dark:border-stone-800/80 space-y-2">
+          <div className="pt-3 border-t border-line space-y-2">
             <div className="flex items-center justify-between">
-              <span className="text-[11px] font-semibold text-stone-500 dark:text-stone-400">搜索全局人物库：</span>
-              <span className="text-[11px] text-stone-600 dark:text-stone-400">共 <span className="font-mono tabular-nums">{allPeople.length}</span> 人</span>
+              <span className="text-[11px] font-semibold text-ink-muted">搜索全局人物库：</span>
+              <span className="text-[11px] text-ink-muted">共 <span className="font-mono tabular-nums">{allPeople.length}</span> 人</span>
             </div>
 
             <label className="relative block">
-              <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-stone-400" aria-hidden="true" />
+              <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-ink-muted" aria-hidden="true" />
               <input
                 type="search"
                 value={personLibrarySearch}
@@ -902,7 +902,7 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({
                 aria-label="搜索全局人物库"
                 autoComplete="off"
                 placeholder="输入姓名、别名或身份..."
-                className="min-h-10 w-full rounded-xl border border-stone-200/80 bg-stone-500/[0.03] pl-9 pr-3 text-xs text-[var(--ink)] outline-none placeholder:text-stone-400 focus:border-[var(--accent)] dark:border-stone-700 dark:bg-stone-800 dark:focus:bg-stone-800"
+                className="min-h-10 w-full rounded-xl border border-line bg-control pl-9 pr-3 text-xs text-ink outline-none placeholder:text-ink-muted focus:border-accent"
               />
             </label>
 
@@ -919,8 +919,8 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({
                     aria-pressed={isSelected}
                     className={`px-2.5 py-1 rounded-lg text-xs font-medium transition-all flex items-center gap-1.5 cursor-pointer ${
                       isSelected
-                        ? 'bg-[var(--accent-soft)] text-[var(--accent-dark)] font-semibold shadow-2xs'
-                        : 'bg-stone-100/80 dark:bg-stone-800 text-stone-600 dark:text-stone-300 hover:bg-stone-200/70 dark:hover:bg-stone-700 hover:text-stone-900'
+                        ? 'bg-accent-soft text-accent-dark font-semibold shadow-2xs'
+                        : 'bg-control text-ink-muted hover:bg-control hover:text-ink'
                     }`}
                   >
                     <span>{isSelected ? '✓' : '+'}</span>
@@ -933,13 +933,13 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({
               })}
                 </div>
               ) : (
-                <p className="rounded-xl bg-[var(--canvas)] px-3 py-3 text-center text-xs text-[var(--ink-muted)]" role="status">没有找到匹配的人物。</p>
+                <p className="rounded-xl bg-canvas px-3 py-3 text-center text-xs text-ink-muted" role="status">没有找到匹配的人物。</p>
               )
             ) : (
-              <p className="rounded-xl bg-[var(--canvas)] px-3 py-3 text-center text-xs text-[var(--ink-muted)]">输入关键词后显示匹配人物。</p>
+              <p className="rounded-xl bg-canvas px-3 py-3 text-center text-xs text-ink-muted">输入关键词后显示匹配人物。</p>
             )}
             {personLibraryResults.total > QUICK_PERSON_RESULT_LIMIT && (
-              <p className="text-[11px] text-[var(--ink-muted)]" role="status">
+              <p className="text-[11px] text-ink-muted" role="status">
                 找到 {personLibraryResults.total} 人，仅显示前 {QUICK_PERSON_RESULT_LIMIT} 位，请继续缩小搜索范围。
               </p>
             )}
@@ -947,20 +947,20 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({
         </div>
 
         {/* 4. 分类标签 (Tags Selector) */}
-        <div className="bg-[var(--surface)] rounded-2xl border border-[var(--line)] p-5 space-y-4 shadow-subtle transition-colors">
+        <div className="bg-surface rounded-2xl border border-line p-5 space-y-4 shadow-subtle transition-colors">
           <div className="flex items-center justify-between">
-            <h4 className="text-sm font-bold text-stone-900 dark:text-stone-100 flex items-center gap-2">
-              <span className="p-1.5 rounded-xl bg-stone-500/10 text-stone-700 dark:text-stone-300">
+            <h4 className="text-sm font-bold text-ink flex items-center gap-2">
+              <span className="p-1.5 rounded-xl bg-control text-ink">
                 <TagIcon className="w-4 h-4" />
               </span>
               <span>分类标签与赛道</span>
-              <span className="text-xs bg-stone-200/60 dark:bg-stone-800 text-stone-700 dark:text-stone-300 font-bold px-2 py-0.5 rounded-full font-mono">
+              <span className="text-xs bg-control text-ink font-bold px-2 py-0.5 rounded-full font-mono">
                 {topic.tags?.length || 0}
               </span>
             </h4>
             <button
               onClick={() => setIsAddingTag((prev) => !prev)}
-              className="flex items-center gap-1 text-xs text-stone-600 dark:text-stone-300 hover:text-stone-900 dark:hover:text-stone-100 font-semibold bg-stone-100 dark:bg-stone-800 hover:bg-stone-200/70 dark:hover:bg-stone-700 px-2.5 py-1 rounded-lg transition-colors cursor-pointer"
+              className="flex items-center gap-1 text-xs text-ink-muted hover:text-ink font-semibold bg-control hover:bg-control px-2.5 py-1 rounded-lg transition-colors cursor-pointer"
             >
               <Plus className="w-3.5 h-3.5" />
               <span>{isAddingTag ? '收起' : '新建标签'}</span>
@@ -968,19 +968,19 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({
           </div>
 
           {isAddingTag && (
-            <form onSubmit={handleCreateAndAddTag} className="flex items-center gap-2 p-2 bg-stone-500/[0.04] dark:bg-stone-800 rounded-xl">
+            <form onSubmit={handleCreateAndAddTag} className="flex items-center gap-2 p-2 bg-control rounded-xl">
               <input
                 type="text"
                 autoFocus
                 placeholder="输入新标签 (如: 吃播/打假)..."
                 value={newTagName}
                 onChange={(e) => setNewTagName(e.target.value)}
-                className="flex-1 bg-stone-500/[0.03] dark:bg-stone-900 border border-[var(--line)] dark:border-stone-700 rounded-lg px-3 py-1.5 text-xs text-[var(--ink)] focus:outline-none focus:border-[var(--accent)] focus:bg-[var(--surface)]"
+                className="flex-1 bg-control border border-line rounded-lg px-3 py-1.5 text-xs text-ink focus:outline-none focus:border-accent focus:bg-surface"
               />
               <button
                 type="submit"
                 disabled={!newTagName.trim()}
-                className="px-3 py-1.5 bg-[var(--accent)] hover:bg-[var(--accent-dark)] text-white rounded-lg text-xs font-semibold disabled:opacity-40 transition-colors cursor-pointer shadow-2xs"
+                className="px-3 py-1.5 bg-accent hover:bg-accent-dark text-white rounded-lg text-xs font-semibold disabled:opacity-40 transition-colors cursor-pointer shadow-2xs"
               >
                 添加
               </button>
@@ -989,26 +989,26 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({
 
           {/* Active Tags */}
           <div className="space-y-1.5">
-            <div className="text-[11px] font-semibold text-stone-400 dark:text-stone-500">已应用标签：</div>
+            <div className="text-[11px] font-semibold text-ink-muted">已应用标签：</div>
             <div className="flex flex-wrap gap-1.5 min-h-[30px]">
               {topic.tags && topic.tags.length > 0 ? (
                 topic.tags.map((tag) => (
                   <span
                     key={tag.id}
-                    className="inline-flex items-center gap-1 px-2.5 py-1 bg-[var(--accent)] text-white rounded-lg text-xs font-medium shadow-2xs"
+                    className="inline-flex items-center gap-1 px-2.5 py-1 bg-accent text-white rounded-lg text-xs font-medium shadow-2xs"
                   >
                     <span>#{tag.name}</span>
                     <button
                       onClick={() => toggleTag(tag)}
                       aria-label="移除此标签"
-                      className="text-stone-400 hover:text-red-300 ml-0.5 p-0.5 cursor-pointer"
+                      className="text-ink-muted hover:text-danger ml-0.5 p-0.5 cursor-pointer"
                     >
                       <X className="w-3 h-3" />
                     </button>
                   </span>
                 ))
               ) : (
-                <div className="text-xs text-stone-400 dark:text-stone-500 italic bg-stone-500/[0.03] dark:bg-stone-800/40 p-2.5 rounded-xl w-full text-center">
+                <div className="text-xs text-ink-muted italic bg-control p-2.5 rounded-xl w-full text-center">
                   暂未添加分类标签
                 </div>
               )}
@@ -1016,10 +1016,10 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({
           </div>
 
           {/* Tag Library Quick Select */}
-          <div className="pt-3 border-t border-stone-100 dark:border-stone-800/80 space-y-2">
+          <div className="pt-3 border-t border-line space-y-2">
             <div className="flex items-center justify-between">
-              <span className="text-[11px] font-semibold text-stone-500 dark:text-stone-400">标签库：</span>
-              <span className="text-[11px] text-stone-400 dark:text-stone-500">共 <span className="font-mono tabular-nums">{allTags.length}</span> 个</span>
+              <span className="text-[11px] font-semibold text-ink-muted">标签库：</span>
+              <span className="text-[11px] text-ink-muted">共 <span className="font-mono tabular-nums">{allTags.length}</span> 个</span>
             </div>
 
             <FloatingScrollbar className="flex flex-wrap gap-1.5 pr-1" wrapperClassName="max-h-32 flex-none">
@@ -1031,8 +1031,8 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({
                     onClick={() => toggleTag(tag)}
                     className={`px-2.5 py-1 rounded-lg text-xs transition-all flex items-center gap-1 cursor-pointer ${
                       isSelected
-                        ? 'bg-[var(--accent-soft)] text-[var(--accent-dark)] font-semibold'
-                        : 'bg-stone-100/80 dark:bg-stone-800 text-stone-600 dark:text-stone-300 hover:bg-stone-200/70 dark:hover:bg-stone-700 hover:text-stone-900'
+                        ? 'bg-accent-soft text-accent-dark font-semibold'
+                        : 'bg-control text-ink-muted hover:bg-control hover:text-ink'
                     }`}
                   >
                     <span>{isSelected ? '✓' : '#'}</span>
@@ -1053,8 +1053,8 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({
       >
         <form onSubmit={handleQuickCreatePerson} className="space-y-4">
           <div className="space-y-1.5">
-            <label htmlFor="overview-person-name" className="block text-xs font-bold text-stone-800 dark:text-stone-200">
-              人物姓名 / 核心昵称 <span className="text-stone-400">*</span>
+            <label htmlFor="overview-person-name" className="block text-xs font-bold text-ink">
+              人物姓名 / 核心昵称 <span className="text-ink-muted">*</span>
             </label>
             <input
               id="overview-person-name"
@@ -1066,13 +1066,13 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({
               placeholder="例如：大胃袋良子"
               value={newPersonName}
               onChange={(e) => setNewPersonName(e.target.value)}
-              className="w-full px-3 py-2 bg-stone-500/[0.03] dark:bg-stone-800 border border-stone-300 dark:border-stone-700 rounded-lg text-sm text-[var(--ink)] focus:bg-[var(--surface)] dark:focus:bg-stone-800 focus:outline-none focus:border-[var(--accent)]"
+              className="w-full px-3 py-2 bg-control border border-line rounded-lg text-sm text-ink focus:bg-surface focus:outline-none focus:border-accent"
             />
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div className="space-y-1.5">
-              <label htmlFor="overview-person-identity" className="block text-xs font-bold text-stone-800 dark:text-stone-200">核心身份 / 标签</label>
+              <label htmlFor="overview-person-identity" className="block text-xs font-bold text-ink">核心身份 / 标签</label>
               <input
                 id="overview-person-identity"
                 name="person_identity"
@@ -1081,12 +1081,12 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({
                 placeholder="例如：吃播网红 / 探店主播"
                 value={newPersonIdentity}
                 onChange={(e) => setNewPersonIdentity(e.target.value)}
-                className="w-full px-3 py-2 bg-stone-500/[0.03] dark:bg-stone-800 border border-stone-300 dark:border-stone-700 rounded-lg text-sm text-[var(--ink)] focus:bg-[var(--surface)] dark:focus:bg-stone-800 focus:outline-none focus:border-[var(--accent)]"
+                className="w-full px-3 py-2 bg-control border border-line rounded-lg text-sm text-ink focus:bg-surface focus:outline-none focus:border-accent"
               />
             </div>
 
             <div className="space-y-1.5">
-              <label htmlFor="overview-person-aliases" className="block text-xs font-bold text-stone-800 dark:text-stone-200">别名 / 外号 / 曾用名</label>
+              <label htmlFor="overview-person-aliases" className="block text-xs font-bold text-ink">别名 / 外号 / 曾用名</label>
               <input
                 id="overview-person-aliases"
                 name="person_aliases"
@@ -1095,13 +1095,13 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({
                 placeholder="例如：良子、峨眉山战神"
                 value={newPersonAliases}
                 onChange={(e) => setNewPersonAliases(e.target.value)}
-                className="w-full px-3 py-2 bg-stone-500/[0.03] dark:bg-stone-800 border border-stone-300 dark:border-stone-700 rounded-lg text-sm text-[var(--ink)] focus:bg-[var(--surface)] dark:focus:bg-stone-800 focus:outline-none focus:border-[var(--accent)]"
+                className="w-full px-3 py-2 bg-control border border-line rounded-lg text-sm text-ink focus:bg-surface focus:outline-none focus:border-accent"
               />
             </div>
           </div>
 
           <div className="space-y-1.5">
-            <label htmlFor="overview-person-accounts" className="block text-xs font-bold text-stone-800 dark:text-stone-200">主要平台账号 / 粉丝量</label>
+            <label htmlFor="overview-person-accounts" className="block text-xs font-bold text-ink">主要平台账号 / 粉丝量</label>
             <input
               id="overview-person-accounts"
               name="person_accounts"
@@ -1110,12 +1110,12 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({
               placeholder="例如：抖音 @大胃袋良子 (120w)、B站同名"
               value={newPersonAccounts}
               onChange={(e) => setNewPersonAccounts(e.target.value)}
-              className="w-full px-3 py-2 bg-stone-500/[0.03] dark:bg-stone-800 border border-stone-300 dark:border-stone-700 rounded-lg text-sm text-[var(--ink)] focus:bg-[var(--surface)] dark:focus:bg-stone-800 focus:outline-none focus:border-[var(--accent)]"
+              className="w-full px-3 py-2 bg-control border border-line rounded-lg text-sm text-ink focus:bg-surface focus:outline-none focus:border-accent"
             />
           </div>
 
           <div className="space-y-1.5">
-            <label htmlFor="overview-person-description" className="block text-xs font-bold text-stone-800 dark:text-stone-200">人物背景简介 / 核心特质</label>
+            <label htmlFor="overview-person-description" className="block text-xs font-bold text-ink">人物背景简介 / 核心特质</label>
             <textarea
               id="overview-person-description"
               name="person_description"
@@ -1124,22 +1124,22 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({
               placeholder="简要描述该人物的背景经历、公众形象、性格特质..."
               value={newPersonDesc}
               onChange={(e) => setNewPersonDesc(e.target.value)}
-              className="w-full px-3 py-2 bg-stone-500/[0.03] dark:bg-stone-800 border border-stone-300 dark:border-stone-700 rounded-lg text-sm text-[var(--ink)] focus:bg-[var(--surface)] dark:focus:bg-stone-800 focus:outline-none focus:border-[var(--accent)]"
+              className="w-full px-3 py-2 bg-control border border-line rounded-lg text-sm text-ink focus:bg-surface focus:outline-none focus:border-accent"
             />
           </div>
 
-          <div className="flex items-center justify-end gap-3 pt-3 border-t border-stone-200 dark:border-stone-800">
+          <div className="flex items-center justify-end gap-3 pt-3 border-t border-line">
             <button
               type="button"
               onClick={() => setIsAddPersonModalOpen(false)}
-              className="px-4 py-2 text-sm text-stone-600 dark:text-stone-400 hover:bg-stone-100 dark:hover:bg-stone-800 rounded-lg"
+              className="px-4 py-2 text-sm text-ink-muted hover:bg-control rounded-lg"
             >
               取消
             </button>
             <button
               type="submit"
               disabled={!newPersonName.trim()}
-              className="px-5 py-2 text-sm bg-[var(--accent)] hover:bg-[var(--accent-dark)] text-white rounded-lg font-semibold disabled:opacity-50"
+              className="px-5 py-2 text-sm bg-accent hover:bg-accent-dark text-white rounded-lg font-semibold disabled:opacity-50"
             >
               创建并引入本期
             </button>

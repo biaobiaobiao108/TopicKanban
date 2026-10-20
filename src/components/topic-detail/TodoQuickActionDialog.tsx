@@ -58,12 +58,12 @@ export const TodoQuickActionDialog: React.FC<TodoQuickActionDialogProps> = ({
     return (
       <Modal isOpen={isOpen} onClose={onClose} title="当前行动" maxWidth="sm">
         <div className="space-y-5">
-          <div className="rounded-2xl border border-stone-200/80 dark:border-stone-800 bg-stone-50/80 dark:bg-stone-800/40 p-4 text-sm leading-relaxed text-stone-600 dark:text-stone-300">
+          <div className="rounded-2xl border border-line bg-canvas p-4 text-sm leading-relaxed text-ink-muted">
             这个选题还没有设置当前行动。可以先在执行看板中把待办移入进行中，第一项会成为当前行动。
           </div>
-          <div className="flex justify-end gap-2 border-t border-stone-200/70 dark:border-stone-800 pt-4">
-            <button type="button" onClick={onClose} className="min-h-10 rounded-xl px-4 text-xs font-semibold text-stone-600 hover:bg-stone-100 dark:text-stone-300 dark:hover:bg-stone-800 cursor-pointer">关闭</button>
-            <button type="button" onClick={() => { onClose(); onOpenTodoBoard(); }} className="min-h-10 rounded-xl bg-[var(--accent)] px-4 text-xs font-bold text-white hover:bg-[var(--accent-dark)] cursor-pointer flex items-center gap-1.5">
+          <div className="flex justify-end gap-2 border-t border-line pt-4">
+            <button type="button" onClick={onClose} className="min-h-10 rounded-xl px-4 text-xs font-semibold text-ink-muted hover:bg-control cursor-pointer">关闭</button>
+            <button type="button" onClick={() => { onClose(); onOpenTodoBoard(); }} className="min-h-10 rounded-xl bg-accent px-4 text-xs font-bold text-white hover:bg-accent-dark cursor-pointer flex items-center gap-1.5">
               <KanbanSquare className="h-4 w-4" />打开执行看板
             </button>
           </div>
@@ -75,27 +75,27 @@ export const TodoQuickActionDialog: React.FC<TodoQuickActionDialogProps> = ({
   return (
     <Modal isOpen={isOpen} onClose={onClose} title="编辑当前行动" maxWidth="md">
       <div className="space-y-4">
-        <div className="flex items-start gap-3 rounded-2xl border border-[var(--line)] bg-[var(--accent-soft)] p-4">
-          <Zap className="mt-0.5 h-5 w-5 shrink-0 text-[var(--accent)]" />
+        <div className="flex items-start gap-3 rounded-2xl border border-line bg-accent-soft p-4">
+          <Zap className="mt-0.5 h-5 w-5 shrink-0 text-accent" />
           <div className="min-w-0 flex-1">
-            <div className="text-xs font-bold text-[var(--accent)]">正在推进</div>
-            <div className="mt-1 break-words text-sm font-semibold text-stone-900 dark:text-stone-100">{todo.title}</div>
-            <div className="mt-1 text-[11px] text-stone-500 dark:text-stone-400">已持续 {getCurrentActionAgeDays(topic)} 天</div>
+            <div className="text-xs font-bold text-accent">正在推进</div>
+            <div className="mt-1 break-words text-sm font-semibold text-ink">{todo.title}</div>
+            <div className="mt-1 text-[11px] text-ink-muted">已持续 {getCurrentActionAgeDays(topic)} 天</div>
           </div>
         </div>
 
         <label className="block space-y-1.5">
-          <span className="text-xs font-bold text-stone-700 dark:text-stone-300">行动标题</span>
-          <input value={title} onChange={(event) => setTitle(event.target.value)} autoFocus className="w-full rounded-xl border border-stone-200/80 bg-stone-500/[0.03] px-3.5 py-2.5 text-sm outline-none focus:border-[var(--accent)] dark:border-stone-700 dark:bg-stone-800 dark:text-stone-100" />
+          <span className="text-xs font-bold text-ink">行动标题</span>
+          <input value={title} onChange={(event) => setTitle(event.target.value)} autoFocus className="w-full rounded-xl border border-line bg-control px-3.5 py-2.5 text-sm outline-none focus:border-accent" />
         </label>
-        <div className="flex flex-col-reverse gap-2 border-t border-stone-200/70 pt-4 sm:flex-row sm:items-center sm:justify-between dark:border-stone-800">
-          <button type="button" onClick={() => void handleComplete()} disabled={saving} className="inline-flex min-h-10 items-center justify-center gap-1.5 rounded-xl bg-emerald-500/10 px-3.5 text-xs font-bold text-emerald-700 hover:bg-emerald-500/20 disabled:opacity-50 dark:text-emerald-300 cursor-pointer">
+        <div className="flex flex-col-reverse gap-2 border-t border-line pt-4 sm:flex-row sm:items-center sm:justify-between">
+          <button type="button" onClick={() => void handleComplete()} disabled={saving} className="inline-flex min-h-10 items-center justify-center gap-1.5 rounded-xl bg-success-soft px-3.5 text-xs font-bold text-success hover:bg-success-soft disabled:opacity-50 cursor-pointer">
             <CheckCircle2 className="h-4 w-4" />完成当前行动
           </button>
           <div className="flex justify-end gap-2">
-            <button type="button" onClick={onOpenTodoBoard} disabled={saving} className="min-h-10 rounded-xl px-3.5 text-xs font-semibold text-stone-600 hover:bg-stone-100 disabled:opacity-50 dark:text-stone-300 dark:hover:bg-stone-800 cursor-pointer"><KanbanSquare className="mr-1 inline h-4 w-4" />执行看板</button>
-            <button type="button" onClick={onClose} className="min-h-10 rounded-xl px-3.5 text-xs font-semibold text-stone-600 hover:bg-stone-100 dark:text-stone-300 dark:hover:bg-stone-800 cursor-pointer">取消</button>
-            <button type="button" onClick={() => void handleSave()} disabled={saving || !title.trim()} className="min-h-10 rounded-xl bg-[var(--accent)] px-4 text-xs font-bold text-white hover:bg-[var(--accent-dark)] disabled:opacity-50 cursor-pointer">{saving ? '保存中…' : '保存修改'}</button>
+            <button type="button" onClick={onOpenTodoBoard} disabled={saving} className="min-h-10 rounded-xl px-3.5 text-xs font-semibold text-ink-muted hover:bg-control disabled:opacity-50 cursor-pointer"><KanbanSquare className="mr-1 inline h-4 w-4" />执行看板</button>
+            <button type="button" onClick={onClose} className="min-h-10 rounded-xl px-3.5 text-xs font-semibold text-ink-muted hover:bg-control cursor-pointer">取消</button>
+            <button type="button" onClick={() => void handleSave()} disabled={saving || !title.trim()} className="min-h-10 rounded-xl bg-accent px-4 text-xs font-bold text-white hover:bg-accent-dark disabled:opacity-50 cursor-pointer">{saving ? '保存中…' : '保存修改'}</button>
           </div>
         </div>
       </div>

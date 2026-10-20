@@ -419,7 +419,7 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
         extra: (
           <div className="flex items-center gap-1.5 shrink-0">
             {isCurrent && (
-              <span className="text-[10px] px-1.5 py-0.5 rounded bg-emerald-100 dark:bg-emerald-950/80 text-emerald-700 dark:text-emerald-300 font-bold shrink-0 flex items-center gap-0.5">
+              <span className="text-[10px] px-1.5 py-0.5 rounded bg-success-soft text-success font-bold shrink-0 flex items-center gap-0.5">
                 <Check className="w-3 h-3 stroke-[2.5]" />
                 <span>当前使用</span>
               </span>
@@ -807,7 +807,7 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
   const paletteContent = (
     <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-6" role="presentation">
       {/* Backdrop */}
-      <div className="fixed inset-0 bg-stone-900/40 backdrop-blur-xs" onClick={onClose} aria-hidden="true" />
+      <div className="fixed inset-0 bg-overlay backdrop-blur-xs" onClick={onClose} aria-hidden="true" />
 
       {/* Palette Modal */}
       <div
@@ -815,12 +815,12 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
         role="dialog"
         aria-modal="true"
         aria-label="全局指令搜索面板"
-        className="command-palette-dialog relative w-full max-w-[520px] bg-[var(--surface)] rounded-2xl shadow-modal border border-[var(--line)] overflow-hidden flex flex-col z-10 max-h-[85dvh]"
+        className="command-palette-dialog relative w-full max-w-[520px] bg-surface rounded-2xl shadow-modal border border-line overflow-hidden flex flex-col z-10 max-h-[85dvh]"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Search Input Header */}
-        <div className="flex items-center px-4 py-3.5 border-b border-stone-200/70 dark:border-stone-800 bg-stone-50/50 dark:bg-stone-900/90">
-          <Search className="w-5 h-5 text-stone-500 dark:text-stone-400 mr-3 shrink-0" />
+        <div className="flex items-center px-4 py-3.5 border-b border-line bg-canvas">
+          <Search className="w-5 h-5 text-ink-muted mr-3 shrink-0" />
           <input
             ref={inputRef}
             type="search"
@@ -833,9 +833,9 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             onKeyDown={handleKeyDown}
-            className="command-palette-input w-full text-sm sm:text-base bg-transparent border-none outline-none text-stone-900 dark:text-stone-100 placeholder:text-stone-400 dark:placeholder:text-stone-500 font-medium"
+            className="command-palette-input w-full text-sm sm:text-base bg-transparent border-none outline-none text-ink placeholder:text-ink-muted font-medium"
           />
-          <kbd className="text-xs bg-stone-100 dark:bg-stone-800 text-stone-700 dark:text-stone-400 px-2 py-0.5 rounded-lg border border-stone-200/70 dark:border-stone-700 font-mono shrink-0 shadow-2xs">
+          <kbd className="text-xs bg-control text-ink px-2 py-0.5 rounded-lg border border-line font-mono shrink-0 shadow-2xs">
             ESC
           </kbd>
         </div>
@@ -857,16 +857,16 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
                   onMouseMove={(e) => handleItemMouseMove(index, e)}
                   className={`w-full h-14 shrink-0 flex items-center justify-between px-3 rounded-xl text-left cursor-pointer ${
                     isSelected
-                      ? 'bg-[var(--accent-soft)] text-[var(--ink)]'
-                      : 'text-stone-700 dark:text-stone-300'
+                      ? 'bg-accent-soft text-ink'
+                      : 'text-ink'
                   }`}
                 >
                   <div className="flex items-center gap-3 min-w-0 flex-1">
                     <div
                       className={`w-7 h-7 rounded-lg flex items-center justify-center shrink-0 ${
                         isSelected
-                          ? 'bg-[var(--surface)] text-[var(--accent)]'
-                          : 'bg-stone-100 dark:bg-stone-800 text-stone-500 dark:text-stone-400'
+                          ? 'bg-surface text-accent'
+                          : 'bg-control text-ink-muted'
                       }`}
                     >
                       <Icon className="w-3.5 h-3.5" />
@@ -874,11 +874,11 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
 
                     <div className="min-w-0 flex-1">
                       <div className="h-5 flex items-center">
-                        <span className="font-semibold text-stone-900 dark:text-stone-100 text-sm truncate leading-5">
+                        <span className="font-semibold text-ink text-sm truncate leading-5">
                           {item.title}
                         </span>
                       </div>
-                      <div className="mt-0.5 h-4 truncate text-[11px] leading-4 text-stone-500/80 dark:text-stone-400/80">
+                      <div className="mt-0.5 h-4 truncate text-[11px] leading-4 text-ink-muted/80">
                         {item.subtitle}
                       </div>
                     </div>
@@ -888,7 +888,7 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
                     {item.extra}
                     <CornerDownLeft
                       className={`w-3.5 h-3.5 ${
-                        isSelected ? 'text-[var(--accent)] opacity-100' : 'text-stone-300 dark:text-stone-600 opacity-0'
+                        isSelected ? 'text-accent opacity-100' : 'text-ink-faint opacity-0'
                       }`}
                     />
                   </div>
@@ -897,9 +897,9 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
             })}
 
             {items.length === 0 && (
-              <div className="py-12 text-center text-stone-500 dark:text-stone-400 space-y-1">
+              <div className="py-12 text-center text-ink-muted space-y-1">
                 <div className="text-sm font-medium">没有找到匹配项</div>
-                <div className="text-xs text-stone-500 dark:text-stone-400">试试其他关键词</div>
+                <div className="text-xs text-ink-muted">试试其他关键词</div>
               </div>
             )}
           </div>

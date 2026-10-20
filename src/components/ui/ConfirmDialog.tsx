@@ -116,22 +116,22 @@ export const ConfirmDialog: React.FC<ConfirmDialogProps> = ({
   const IconComponent = CustomIcon || DefaultIcon;
 
   const iconBgClasses = {
-    danger: 'bg-[var(--h1-color)]/10 text-[var(--h1-color)] border border-[var(--h1-color)]/20',
-    warning: 'bg-[#966b1a]/10 text-[#966b1a] dark:text-[#d4a373] border border-[#966b1a]/20',
-    primary: 'bg-[var(--accent-soft)] text-[var(--accent)] border border-[var(--accent)]/20',
+    danger: 'bg-h1-color/10 text-h1-color border border-h1-color/20',
+    warning: 'bg-warning/10 text-warning border border-warning/20',
+    primary: 'bg-accent-soft text-accent border border-accent/20',
   };
 
   const confirmBtnClasses = {
-    danger: 'bg-[var(--h1-color)] hover:opacity-90 text-white font-medium shadow-2xs',
-    warning: 'bg-[#966b1a] hover:opacity-90 text-white font-medium shadow-2xs',
-    primary: 'bg-[var(--accent)] hover:bg-[var(--accent-dark)] text-white font-medium shadow-2xs',
+    danger: 'bg-h1-color hover:opacity-90 text-white font-medium shadow-2xs',
+    warning: 'bg-warning hover:opacity-90 text-white font-medium shadow-2xs',
+    primary: 'bg-accent hover:bg-accent-dark text-white font-medium shadow-2xs',
   };
 
   return createPortal(
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6" role="presentation">
       {/* Backdrop */}
       <div
-        className="fixed inset-0 bg-stone-900/40 backdrop-blur-sm modal-backdrop-modern animate-in fade-in duration-150"
+        className="fixed inset-0 bg-overlay backdrop-blur-sm modal-backdrop-modern animate-in fade-in duration-150"
         aria-hidden="true"
         onClick={isLoading ? undefined : onClose}
       />
@@ -144,18 +144,18 @@ export const ConfirmDialog: React.FC<ConfirmDialogProps> = ({
         aria-labelledby={titleId}
         aria-describedby={description ? descId : undefined}
         tabIndex={-1}
-        className="relative min-w-0 w-full max-w-md bg-[var(--surface)] rounded-[var(--radius-md)] shadow-modal border border-[var(--line)] overflow-hidden flex flex-col z-10 p-5 sm:p-6 space-y-4 modal-dialog-modern animate-in fade-in zoom-in-95 duration-150 ease-editorial-out"
+        className="relative min-w-0 w-full max-w-md bg-surface rounded-lg shadow-modal border border-line overflow-hidden flex flex-col z-10 p-5 sm:p-6 space-y-4 modal-dialog-modern animate-in fade-in zoom-in-95 duration-150 ease-editorial-out"
       >
         <div className="flex items-start gap-3.5">
-          <div className={`shrink-0 w-10 h-10 rounded-[var(--radius-sm)] flex items-center justify-center ${iconBgClasses[tone]}`}>
+          <div className={`shrink-0 w-10 h-10 rounded-sm flex items-center justify-center ${iconBgClasses[tone]}`}>
             <IconComponent className="w-5 h-5" />
           </div>
           <div className="min-w-0 flex-1 space-y-1">
-            <h3 id={titleId} className="text-base font-semibold text-[var(--ink)] leading-snug">
+            <h3 id={titleId} className="text-base font-semibold text-ink leading-snug">
               {title}
             </h3>
             {description && (
-              <div id={descId} className="text-xs sm:text-sm text-[var(--ink-muted)] leading-relaxed whitespace-pre-line">
+              <div id={descId} className="text-xs sm:text-sm text-ink-muted leading-relaxed whitespace-pre-line">
                 {description}
               </div>
             )}
@@ -163,12 +163,12 @@ export const ConfirmDialog: React.FC<ConfirmDialogProps> = ({
         </div>
 
         {/* Action Buttons */}
-        <div className="flex items-center justify-end gap-2.5 pt-3 border-t border-[var(--line)]">
+        <div className="flex items-center justify-end gap-2.5 pt-3 border-t border-line">
           <button
             type="button"
             disabled={isLoading}
             onClick={onClose}
-            className="min-h-9 px-3.5 py-1.5 rounded-[var(--radius-sm)] text-xs sm:text-sm font-medium text-[var(--ink-muted)] hover:text-[var(--ink)] bg-[var(--surface)] hover:bg-[var(--canvas)] border border-[var(--line)] transition-colors disabled:opacity-50 cursor-pointer"
+            className="min-h-9 px-3.5 py-1.5 rounded-sm text-xs sm:text-sm font-medium text-ink-muted hover:text-ink bg-surface hover:bg-canvas border border-line transition-colors disabled:opacity-50 cursor-pointer"
           >
             {cancelText}
           </button>
@@ -177,7 +177,7 @@ export const ConfirmDialog: React.FC<ConfirmDialogProps> = ({
             data-action="confirm"
             disabled={isLoading}
             onClick={() => void handleConfirm()}
-            className={`min-h-9 px-4 py-1.5 rounded-[var(--radius-sm)] text-xs sm:text-sm inline-flex items-center justify-center gap-1.5 transition-colors disabled:opacity-50 cursor-pointer ${confirmBtnClasses[tone]}`}
+            className={`min-h-9 px-4 py-1.5 rounded-sm text-xs sm:text-sm inline-flex items-center justify-center gap-1.5 transition-colors disabled:opacity-50 cursor-pointer ${confirmBtnClasses[tone]}`}
           >
             {isLoading && <Loader2 className="w-3.5 h-3.5 animate-spin" />}
             <span>{confirmText}</span>

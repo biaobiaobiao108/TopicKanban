@@ -914,7 +914,7 @@ function WorkspaceApp({ isAuth, setIsAuth }: WorkspaceAppProps) {
   const activeTopic = topics.find((t) => t.id === activeTopicId);
 
   return (
-    <div className="pwa-app-shell pwa-app-shell-enter flex h-dvh w-full bg-[var(--canvas)] text-stone-900 dark:text-stone-100 overflow-hidden font-sans transition-colors">
+    <div className="pwa-app-shell pwa-app-shell-enter flex h-dvh w-full bg-canvas text-ink overflow-hidden font-sans transition-colors">
       <a href="#main-content" className="skip-link">跳到主要内容</a>
       {/* Desktop Sidebar (Hidden on mobile) */}
       <Sidebar
@@ -937,18 +937,18 @@ function WorkspaceApp({ isAuth, setIsAuth }: WorkspaceAppProps) {
         {/* View Router */}
         <main id="main-content" tabIndex={-1} className="view-transition-page-content flex min-h-0 flex-1 flex-col overflow-hidden min-w-0">
           {loadError && (
-            <div className="m-4 flex items-center justify-between gap-3 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800">
+            <div className="m-4 flex items-center justify-between gap-3 rounded-xl border border-danger-line bg-danger-soft px-4 py-3 text-sm text-danger">
               <span>{loadError}</span>
-              <button type="button" onClick={() => void loadAllData()} className="shrink-0 rounded-lg border border-red-300 bg-white px-3 py-1.5 text-xs font-semibold hover:bg-red-50">
+              <button type="button" onClick={() => void loadAllData()} className="shrink-0 rounded-lg border border-danger-line bg-surface px-3 py-1.5 text-xs font-semibold hover:bg-danger-soft">
                 重新加载
               </button>
             </div>
           )}
           {isLoadingData && topics.length === 0 ? (
-            <div className="flex-1 grid place-items-center text-sm text-stone-500">正在加载工作区...</div>
+            <div className="flex-1 grid place-items-center text-sm text-ink-muted">正在加载工作区...</div>
           ) : (
           <ViewErrorBoundary key={location.pathname}>
-          <Suspense fallback={<div className="flex-1 grid place-items-center text-sm text-stone-500">正在加载工作区...</div>}>
+          <Suspense fallback={<div className="flex-1 grid place-items-center text-sm text-ink-muted">正在加载工作区...</div>}>
           {currentView === 'today' && (
             <TodayView
               topics={topics}
@@ -1045,7 +1045,7 @@ function WorkspaceApp({ isAuth, setIsAuth }: WorkspaceAppProps) {
           )}
 
           {currentView === 'topic-detail' && !isLoadingData && !activeTopic && (
-            <div className="flex-1 grid place-items-center text-sm text-stone-500">
+            <div className="flex-1 grid place-items-center text-sm text-ink-muted">
               选题不存在或已进入回收站
             </div>
           )}

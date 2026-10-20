@@ -458,7 +458,7 @@ export const TopicDetailView: React.FC<TopicDetailViewProps> = ({
   };
 
   return (
-    <div className="flex h-full min-h-0 flex-1 flex-col overflow-hidden bg-[var(--canvas)] transition-colors">
+    <div className="flex h-full min-h-0 flex-1 flex-col overflow-hidden bg-canvas transition-colors">
       <Modal
         isOpen={Boolean(draftRecovery)}
         onClose={() => undefined}
@@ -468,26 +468,26 @@ export const TopicDetailView: React.FC<TopicDetailViewProps> = ({
         {draftRecovery && (
           <div className="space-y-4">
             <div className="grid gap-3 sm:grid-cols-2">
-              <div className="rounded-xl border border-[var(--accent)]/30 bg-[var(--accent-soft)] p-4">
-                <div className="font-semibold text-[var(--accent-dark)]">浏览器本地草稿</div>
-                <div className="mt-2 text-xs text-stone-600 dark:text-stone-300">{draftRecovery.local.word_count} 字 · {formatBeijingDateTime(draftRecovery.local.updated_at)}</div>
+              <div className="rounded-xl border border-accent/30 bg-accent-soft p-4">
+                <div className="font-semibold text-accent-dark">浏览器本地草稿</div>
+                <div className="mt-2 text-xs text-ink-muted">{draftRecovery.local.word_count} 字 · {formatBeijingDateTime(draftRecovery.local.updated_at)}</div>
               </div>
-              <div className="rounded-xl border border-stone-200 dark:border-stone-800 bg-stone-50 dark:bg-stone-800/60 p-4">
-                <div className="font-semibold text-stone-900 dark:text-stone-100">云端文案</div>
-                <div className="mt-2 text-xs text-stone-600 dark:text-stone-300">{draftRecovery.remote ? `${draftRecovery.remote.word_count} 字 · ${formatBeijingDateTime(draftRecovery.remote.updated_at)}` : '云端尚无文案'}</div>
+              <div className="rounded-xl border border-line bg-canvas p-4">
+                <div className="font-semibold text-ink">云端文案</div>
+                <div className="mt-2 text-xs text-ink-muted">{draftRecovery.remote ? `${draftRecovery.remote.word_count} 字 · ${formatBeijingDateTime(draftRecovery.remote.updated_at)}` : '云端尚无文案'}</div>
               </div>
             </div>
-            <p className="text-sm text-stone-600 dark:text-stone-300">选择本地版本会立即覆盖当前云端文案；选择云端版本会清除这份本地待同步草稿。</p>
+            <p className="text-sm text-ink-muted">选择本地版本会立即覆盖当前云端文案；选择云端版本会清除这份本地待同步草稿。</p>
             <div className="flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
-              <button type="button" disabled={isResolvingDraft} onClick={() => void handleResolveDraftRecovery('remote')} className="rounded-lg border border-stone-300 dark:border-stone-700 bg-white dark:bg-stone-800 px-4 py-2 text-sm font-semibold text-stone-700 dark:text-stone-300 disabled:opacity-50 cursor-pointer">使用云端版本</button>
-              <button type="button" disabled={isResolvingDraft} onClick={() => void handleResolveDraftRecovery('local')} className="rounded-lg bg-[var(--accent)] hover:bg-[var(--accent-dark)] px-4 py-2 text-sm font-semibold text-white disabled:opacity-50 cursor-pointer">{isResolvingDraft ? '正在处理…' : '使用本地版本'}</button>
+              <button type="button" disabled={isResolvingDraft} onClick={() => void handleResolveDraftRecovery('remote')} className="rounded-lg border border-line bg-surface px-4 py-2 text-sm font-semibold text-ink disabled:opacity-50 cursor-pointer">使用云端版本</button>
+              <button type="button" disabled={isResolvingDraft} onClick={() => void handleResolveDraftRecovery('local')} className="rounded-lg bg-accent hover:bg-accent-dark px-4 py-2 text-sm font-semibold text-white disabled:opacity-50 cursor-pointer">{isResolvingDraft ? '正在处理…' : '使用本地版本'}</button>
             </div>
           </div>
         )}
       </Modal>
       {/* Module navigation stays visible across topic detail sections. */}
       {/* Module navigation stays visible across topic detail sections. */}
-      <header className="topic-detail-context-shell relative shrink-0 border-b border-[var(--line)] bg-[var(--canvas)]/95 backdrop-blur-sm transition-colors">
+      <header className="topic-detail-context-shell relative shrink-0 border-b border-line bg-canvas/95 backdrop-blur-sm transition-colors">
         <div className="grid w-full grid-cols-1 items-center gap-x-3 gap-y-2 px-4 py-2 sm:px-6 min-[1680px]:grid-cols-[minmax(0,1fr)_max-content_minmax(0,1fr)] min-[1680px]:px-8">
           {/* Left: Quick Back Navigation & Compact Topic Context */}
           <div className="flex min-w-0 items-center gap-2.5">
@@ -496,13 +496,13 @@ export const TopicDetailView: React.FC<TopicDetailViewProps> = ({
                 type="button"
                 onClick={onBack}
                 aria-label="返回上一级"
-                className="flex h-8 w-8 items-center justify-center rounded-xl border border-[var(--line)] bg-[var(--surface)] text-[var(--ink-muted)] shadow-2xs transition-all hover:bg-[var(--canvas)] hover:text-[var(--ink)] cursor-pointer shrink-0"
+                className="flex h-8 w-8 items-center justify-center rounded-xl border border-line bg-surface text-ink-muted shadow-2xs transition-all hover:bg-canvas hover:text-ink cursor-pointer shrink-0"
               >
                 <ArrowLeft className="h-4 w-4" aria-hidden="true" />
               </button>
             )}
             <div className="flex min-w-0 items-center gap-2">
-              <span className="truncate max-w-[120px] sm:max-w-[180px] md:max-w-[260px] text-xs sm:text-sm font-bold text-[var(--ink)]">
+              <span className="truncate max-w-[120px] sm:max-w-[180px] md:max-w-[260px] text-xs sm:text-sm font-bold text-ink">
                 {topic.title}
               </span>
               <StatusBadge status={topic.status} size="sm" showLabel={false} />
@@ -516,7 +516,7 @@ export const TopicDetailView: React.FC<TopicDetailViewProps> = ({
           >
             <nav
               aria-label="选题模块导航"
-              className="mx-auto inline-flex min-w-max items-center gap-1 rounded-2xl border border-[var(--line)] bg-[var(--surface)]/70 p-1 shadow-2xs backdrop-blur-xs"
+              className="mx-auto inline-flex min-w-max items-center gap-1 rounded-2xl border border-line bg-surface/70 p-1 shadow-2xs backdrop-blur-xs"
             >
               {tabs.map((tab) => {
                 const Icon = tab.icon;
@@ -530,11 +530,11 @@ export const TopicDetailView: React.FC<TopicDetailViewProps> = ({
                     aria-current={isActive ? 'page' : undefined}
                     className={`group relative flex h-8 items-center gap-1.5 rounded-xl px-2.5 text-xs font-medium transition-all cursor-pointer touch-manipulation sm:px-3 sm:text-[13px] ${
                       isActive
-                        ? 'is-active bg-[var(--surface)] text-[var(--accent-dark)] dark:text-[var(--accent)] font-semibold shadow-2xs border border-[var(--line)]'
-                        : 'text-[var(--ink-muted)] hover:bg-[var(--surface)]/80 hover:text-[var(--ink)] border border-transparent'
+                        ? 'is-active bg-surface text-accent-dark font-semibold shadow-2xs border border-line'
+                        : 'text-ink-muted hover:bg-surface/80 hover:text-ink border border-transparent'
                     }`}
                   >
-                    <Icon className={`w-3.5 h-3.5 transition-colors ${isActive ? 'text-[var(--accent)]' : 'text-[var(--ink-muted)] opacity-70 group-hover:text-[var(--ink)]'}`} />
+                    <Icon className={`w-3.5 h-3.5 transition-colors ${isActive ? 'text-accent' : 'text-ink-muted opacity-70 group-hover:text-ink'}`} />
                     <span>{tab.label}</span>
                   </button>
                 );
@@ -557,9 +557,9 @@ export const TopicDetailView: React.FC<TopicDetailViewProps> = ({
         }`}
       >
         {operationError && (
-          <div className="mx-4 mt-4 flex items-center justify-between gap-3 rounded-xl border border-red-200 bg-red-50 px-3 py-2 text-xs font-medium text-red-800 sm:mx-8">
+          <div className="mx-4 mt-4 flex items-center justify-between gap-3 rounded-xl border border-danger-line bg-danger-soft px-3 py-2 text-xs font-medium text-danger sm:mx-8">
             <span>{operationError}</span>
-            <button type="button" onClick={() => setOperationError(null)} className="shrink-0 font-semibold hover:text-red-950">关闭</button>
+            <button type="button" onClick={() => setOperationError(null)} className="shrink-0 font-semibold hover:text-danger">关闭</button>
           </div>
         )}
         {activeTab === 'overview' && (
@@ -619,7 +619,7 @@ export const TopicDetailView: React.FC<TopicDetailViewProps> = ({
         )}
 
         {activeTab === 'report' && loading && (
-          <div className="py-16 text-center text-sm text-[var(--ink-muted)]">正在加载选题报告...</div>
+          <div className="py-16 text-center text-sm text-ink-muted">正在加载选题报告...</div>
         )}
 
         {activeTab === 'people' && (
@@ -652,11 +652,11 @@ export const TopicDetailView: React.FC<TopicDetailViewProps> = ({
         )}
 
         {activeTab === 'deals' && loading && (
-          <div className="py-16 text-center text-sm text-stone-500">正在加载关联商单...</div>
+          <div className="py-16 text-center text-sm text-ink-muted">正在加载关联商单...</div>
         )}
 
         {activeTab === 'script' && !loading && (
-          <React.Suspense fallback={<div className="py-16 text-center text-sm text-stone-500">正在加载文案编辑器...</div>}>
+          <React.Suspense fallback={<div className="py-16 text-center text-sm text-ink-muted">正在加载文案编辑器...</div>}>
             <ScriptEditorTab
               topicId={topic.id}
               topicTitle={topic.title}
@@ -708,7 +708,7 @@ export const TopicDetailView: React.FC<TopicDetailViewProps> = ({
         )}
 
         {activeTab === 'publish' && !loading && workspaceQuery.data && (
-          <React.Suspense fallback={<div className="py-16 text-center text-sm text-stone-500">正在生成发布包...</div>}>
+          <React.Suspense fallback={<div className="py-16 text-center text-sm text-ink-muted">正在生成发布包...</div>}>
             <PublishPackageTab
               topic={topic}
               workspace={workspaceQuery.data}
@@ -720,15 +720,15 @@ export const TopicDetailView: React.FC<TopicDetailViewProps> = ({
         )}
 
         {activeTab === 'publish' && loading && (
-          <div className="py-16 text-center text-sm text-stone-500">正在加载发布包资料...</div>
+          <div className="py-16 text-center text-sm text-ink-muted">正在加载发布包资料...</div>
         )}
 
         {activeTab === 'script' && loading && (
-          <div className="py-16 text-center text-sm text-stone-500">正在加载文案草稿...</div>
+          <div className="py-16 text-center text-sm text-ink-muted">正在加载文案草稿...</div>
         )}
       </div>
 
-      <div className="fixed inset-x-0 bottom-0 z-40 border-t border-[var(--line)] bg-[var(--surface)]/95 px-2 pb-[max(0.5rem,env(safe-area-inset-bottom))] pt-2 backdrop-blur-md transition-colors md:hidden">
+      <div className="fixed inset-x-0 bottom-0 z-40 border-t border-line bg-surface/95 px-2 pb-[max(0.5rem,env(safe-area-inset-bottom))] pt-2 backdrop-blur-md transition-colors md:hidden">
         <FloatingMenu
           isOpen={isStageMenuOpen}
           anchorRef={stageTriggerRef}
@@ -741,7 +741,7 @@ export const TopicDetailView: React.FC<TopicDetailViewProps> = ({
           className="w-[calc(100vw-1rem)] animate-in fade-in zoom-in-95 duration-100"
         >
           <FloatingScrollbar className="p-2" wrapperClassName="min-h-0 flex-none">
-            <div className="px-2 pb-1 text-[11px] font-bold text-stone-400 dark:text-stone-500">切换生产阶段</div>
+            <div className="px-2 pb-1 text-[11px] font-bold text-ink-muted">切换生产阶段</div>
             <div className="grid grid-cols-3 gap-1.5">
               {COLUMNS.map((column) => (
                 <button
@@ -753,8 +753,8 @@ export const TopicDetailView: React.FC<TopicDetailViewProps> = ({
                   }}
                   className={`min-h-11 rounded-lg border px-2 text-xs font-semibold cursor-pointer transition-colors ${
                     topic.status === column.status
-                      ? 'border-[var(--accent)] bg-[var(--accent-soft)] text-[var(--accent-dark)]'
-                      : 'border-[var(--line)] bg-[var(--surface)] text-[var(--ink)] hover:bg-[var(--canvas)]'
+                      ? 'border-accent bg-accent-soft text-accent-dark'
+                      : 'border-line bg-surface text-ink hover:bg-canvas'
                   }`}
                 >
                   {column.label}
@@ -784,9 +784,9 @@ export const TopicDetailView: React.FC<TopicDetailViewProps> = ({
                   void handleNavigateToTab(tab.id);
                   setIsMoreMenuOpen(false);
                 }}
-                className="flex min-h-11 w-full items-center gap-2 rounded-lg px-3 text-left text-xs font-semibold text-stone-700 dark:text-stone-300 hover:bg-stone-100 dark:hover:bg-stone-800 cursor-pointer transition-colors"
+                className="flex min-h-11 w-full items-center gap-2 rounded-lg px-3 text-left text-xs font-semibold text-ink hover:bg-control cursor-pointer transition-colors"
               >
-                <tab.icon className="h-4 w-4 text-stone-400 dark:text-stone-500" /> {tab.label}
+                <tab.icon className="h-4 w-4 text-ink-muted" /> {tab.label}
               </button>
             ))}
           </FloatingScrollbar>
@@ -795,7 +795,7 @@ export const TopicDetailView: React.FC<TopicDetailViewProps> = ({
           <button
             type="button"
             onClick={() => setIsActionDialogOpen(true)}
-            className="flex min-h-12 flex-col items-center justify-center gap-0.5 rounded-xl bg-[var(--accent)] hover:bg-[var(--accent-dark)] px-1 text-[10px] font-bold text-white cursor-pointer shadow-2xs"
+            className="flex min-h-12 flex-col items-center justify-center gap-0.5 rounded-xl bg-accent hover:bg-accent-dark px-1 text-[10px] font-bold text-white cursor-pointer shadow-2xs"
           >
             <CheckCircle2 className="h-4 w-4" /> 当前行动
           </button>
@@ -808,7 +808,7 @@ export const TopicDetailView: React.FC<TopicDetailViewProps> = ({
               setIsStageMenuOpen((previous) => !previous);
               setIsMoreMenuOpen(false);
             }}
-            className="flex min-h-12 flex-col items-center justify-center gap-0.5 rounded-xl px-1 text-[10px] font-semibold text-stone-600 dark:text-stone-400 hover:bg-stone-100 dark:hover:bg-stone-800 cursor-pointer transition-colors"
+            className="flex min-h-12 flex-col items-center justify-center gap-0.5 rounded-xl px-1 text-[10px] font-semibold text-ink-muted hover:bg-control cursor-pointer transition-colors"
           >
             <GitBranch className="h-4 w-4" /> 改阶段
           </button>
@@ -817,8 +817,8 @@ export const TopicDetailView: React.FC<TopicDetailViewProps> = ({
             onClick={() => setActiveTab('script')}
             className={`flex min-h-12 flex-col items-center justify-center gap-0.5 rounded-xl px-1 text-[10px] font-semibold cursor-pointer transition-colors ${
               activeTab === 'script'
-                ? 'bg-[var(--accent)] text-white shadow-2xs'
-                : 'text-stone-600 dark:text-stone-400 hover:bg-stone-100 dark:hover:bg-stone-800'
+                ? 'bg-accent text-white shadow-2xs'
+                : 'text-ink-muted hover:bg-control'
             }`}
           >
             <PenTool className="h-4 w-4" /> 写文案
@@ -832,7 +832,7 @@ export const TopicDetailView: React.FC<TopicDetailViewProps> = ({
               setIsMoreMenuOpen((previous) => !previous);
               setIsStageMenuOpen(false);
             }}
-            className="flex min-h-12 flex-col items-center justify-center gap-0.5 rounded-xl px-1 text-[10px] font-semibold text-stone-600 dark:text-stone-400 hover:bg-stone-100 dark:hover:bg-stone-800 cursor-pointer transition-colors"
+            className="flex min-h-12 flex-col items-center justify-center gap-0.5 rounded-xl px-1 text-[10px] font-semibold text-ink-muted hover:bg-control cursor-pointer transition-colors"
           >
             <MoreHorizontal className="h-4 w-4" /> 更多
           </button>

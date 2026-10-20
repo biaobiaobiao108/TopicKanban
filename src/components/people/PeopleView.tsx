@@ -179,16 +179,16 @@ export const PeopleView: React.FC<PeopleViewProps> = ({
                 setRelDesc('');
                 setIsRelModalOpen(true);
               }}
-              className="inline-flex h-10 items-center gap-1.5 rounded-xl bg-stone-100/80 px-3.5 text-xs font-medium text-stone-800 transition-colors hover:bg-stone-200/80 dark:bg-stone-800 dark:text-stone-200 dark:hover:bg-stone-700 sm:text-sm cursor-pointer"
+              className="inline-flex h-10 items-center gap-1.5 rounded-xl bg-control px-3.5 text-xs font-medium text-ink transition-colors hover:bg-control sm:text-sm cursor-pointer"
             >
-              <Link2 className="h-4 w-4 text-stone-500 dark:text-stone-400" aria-hidden="true" />
+              <Link2 className="h-4 w-4 text-ink-muted" aria-hidden="true" />
               <span>+ 记录人物关系</span>
             </button>
 
             <button
               type="button"
               onClick={openAddPersonModal}
-              className="inline-flex h-10 items-center gap-1.5 rounded-xl bg-[var(--accent)] px-4 text-xs font-semibold text-white shadow-2xs transition-all hover:bg-[var(--accent-dark)] hover:shadow-xs active:scale-[0.98] sm:text-sm cursor-pointer"
+              className="inline-flex h-10 items-center gap-1.5 rounded-xl bg-accent px-4 text-xs font-semibold text-white shadow-2xs transition-all hover:bg-accent-dark hover:shadow-xs active:scale-[0.98] sm:text-sm cursor-pointer"
             >
               <Plus className="h-4 w-4 stroke-[2.5]" aria-hidden="true" />
               <span>新建人物档案</span>
@@ -199,7 +199,7 @@ export const PeopleView: React.FC<PeopleViewProps> = ({
 
         {/* Search Bar */}
         <div className="relative max-w-md">
-          <Search className="w-4 h-4 text-stone-400 dark:text-stone-500 absolute left-3.5 top-1/2 -translate-y-1/2" />
+          <Search className="w-4 h-4 text-ink-muted absolute left-3.5 top-1/2 -translate-y-1/2" />
           <input
             type="text"
             id="people-search"
@@ -209,7 +209,7 @@ export const PeopleView: React.FC<PeopleViewProps> = ({
             placeholder="搜索人物姓名、身份、别名或语录..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full pl-10 pr-3.5 py-2.5 bg-[var(--surface)] border border-[var(--line)] rounded-xl text-xs sm:text-sm text-[var(--ink)] placeholder:text-stone-400 dark:placeholder:text-stone-500 focus:outline-none focus:border-[var(--accent)] dark:focus:border-[var(--accent)] shadow-2xs transition-colors"
+            className="w-full pl-10 pr-3.5 py-2.5 bg-surface border border-line rounded-xl text-xs sm:text-sm text-ink placeholder:text-ink-muted focus:outline-none focus:border-accent shadow-2xs transition-colors"
           />
         </div>
 
@@ -226,7 +226,7 @@ export const PeopleView: React.FC<PeopleViewProps> = ({
             return (
               <div
                 key={person.id}
-                className="bg-[var(--surface)] rounded-2xl border border-[var(--line)] p-5 space-y-4 shadow-subtle hover:shadow-card hover:-translate-y-0.5 transition-all flex flex-col justify-between"
+                className="bg-surface rounded-2xl border border-line p-5 space-y-4 shadow-subtle hover:shadow-card hover:-translate-y-0.5 transition-all flex flex-col justify-between"
               >
                 <div className="space-y-3">
                   {/* Header info */}
@@ -240,19 +240,19 @@ export const PeopleView: React.FC<PeopleViewProps> = ({
                           height={48}
                           loading="lazy"
                           decoding="async"
-                          className="w-12 h-12 rounded-2xl object-cover border border-stone-200/70 dark:border-stone-700 shadow-2xs shrink-0"
+                          className="w-12 h-12 rounded-2xl object-cover border border-line shadow-2xs shrink-0"
                         />
                       ) : (
-                        <div className="w-12 h-12 rounded-2xl bg-[var(--accent-soft)] text-[var(--accent-dark)] flex items-center justify-center font-bold text-lg border border-[var(--accent)]/15 shrink-0">
+                        <div className="w-12 h-12 rounded-2xl bg-accent-soft text-accent-dark flex items-center justify-center font-bold text-lg border border-accent/15 shrink-0">
                           {person.name.slice(0, 1)}
                         </div>
                       )}
                       <div className="min-w-0">
-                        <h3 className="text-base sm:text-lg font-bold text-stone-900 dark:text-stone-100 leading-tight truncate">
+                        <h3 className="text-base sm:text-lg font-bold text-ink leading-tight truncate">
                           {person.name}
                         </h3>
                         {person.identity && (
-                          <span className="inline-block mt-1 text-[11px] text-[var(--accent-dark)] bg-[var(--accent-soft)] px-2 py-0.5 rounded-full font-semibold">
+                          <span className="inline-block mt-1 text-[11px] text-accent-dark bg-accent-soft px-2 py-0.5 rounded-full font-semibold">
                             {person.identity}
                           </span>
                         )}
@@ -264,7 +264,7 @@ export const PeopleView: React.FC<PeopleViewProps> = ({
                         type="button"
                         onClick={() => openEditPersonModal(person)}
                         aria-label={`编辑人物档案：${person.name}`}
-                        className="p-1.5 text-stone-400 dark:text-stone-500 hover:text-stone-700 dark:hover:text-stone-300 rounded-lg hover:bg-stone-100 dark:hover:bg-stone-800 cursor-pointer transition-colors"
+                        className="p-1.5 text-ink-muted hover:text-ink rounded-lg hover:bg-control cursor-pointer transition-colors"
                       >
                         <Edit2 aria-hidden="true" className="w-4 h-4" />
                       </button>
@@ -272,7 +272,7 @@ export const PeopleView: React.FC<PeopleViewProps> = ({
                         type="button"
                         onClick={() => setDeletingPerson(person)}
                         aria-label={`删除人物档案：${person.name}`}
-                        className="p-1.5 text-stone-400 dark:text-stone-500 hover:text-red-600 dark:hover:text-red-400 rounded-lg hover:bg-red-50 dark:hover:bg-red-950/40 cursor-pointer transition-colors"
+                        className="p-1.5 text-ink-muted hover:text-danger rounded-lg hover:bg-danger-soft cursor-pointer transition-colors"
                       >
                         <Trash2 aria-hidden="true" className="w-4 h-4" />
                       </button>
@@ -280,20 +280,20 @@ export const PeopleView: React.FC<PeopleViewProps> = ({
                   </div>
 
                   {person.aliases && (
-                    <p className="text-xs text-[var(--ink-muted)]">
-                      <strong className="text-[var(--ink)] font-semibold">昵称/外号：</strong>
+                    <p className="text-xs text-ink-muted">
+                      <strong className="text-ink font-semibold">昵称/外号：</strong>
                       {person.aliases}
                     </p>
                   )}
 
                   {person.description && (
-                    <p className="text-xs text-[var(--ink-muted)] leading-relaxed bg-[var(--canvas)] p-3 rounded-xl border border-[var(--line)]/50">
+                    <p className="text-xs text-ink-muted leading-relaxed bg-canvas p-3 rounded-xl border border-line/50">
                       {person.description}
                     </p>
                   )}
 
                   {person.quotes && (
-                    <div className="text-xs text-[var(--ink)] italic border-l-2 border-l-[var(--accent)] px-3 bg-[var(--accent-soft)]/25 py-2 rounded-r-xl">
+                    <div className="text-xs text-ink italic border-l-2 border-l-[var(--accent)] px-3 bg-accent-soft/25 py-2 rounded-r-xl">
                       “{person.quotes}”
                     </div>
                   )}
@@ -301,7 +301,7 @@ export const PeopleView: React.FC<PeopleViewProps> = ({
                   {/* Relationships list */}
                   {personRels.length > 0 && (
                     <div className="space-y-1.5 pt-1">
-                      <div className="text-[11px] font-semibold text-[var(--ink-muted)]">已知关系网：</div>
+                      <div className="text-[11px] font-semibold text-ink-muted">已知关系网：</div>
                       <div className="flex flex-wrap gap-1.5">
                         {personRels.map((r) => {
                           const targetName =
@@ -309,14 +309,14 @@ export const PeopleView: React.FC<PeopleViewProps> = ({
                           return (
                             <span
                               key={r.id}
-                              className="group inline-flex items-center gap-1 text-xs bg-stone-500/[0.04] dark:bg-white/[0.04] text-[var(--ink)] pl-2.5 pr-1.5 py-0.5 rounded-lg"
+                              className="group inline-flex items-center gap-1 text-xs bg-control text-ink pl-2.5 pr-1.5 py-0.5 rounded-lg"
                             >
                               <span>与 {targetName}: {r.relationship}</span>
                               <button
                                 type="button"
                                 aria-label={`解除与 ${targetName} 的关系`}
                                 onClick={() => setDeletingRel({ id: r.id, label: `与 ${targetName} 的「${r.relationship}」关系` })}
-                                className="text-[var(--ink-muted)] hover:text-red-600 dark:hover:text-red-400 p-0.5 rounded transition-colors cursor-pointer"
+                                className="text-ink-muted hover:text-danger p-0.5 rounded transition-colors cursor-pointer"
                               >
                                 <span className="text-xs leading-none">×</span>
                               </button>
@@ -329,8 +329,8 @@ export const PeopleView: React.FC<PeopleViewProps> = ({
                 </div>
 
                 {/* Related topics link */}
-                <div className="pt-3 border-t border-[var(--line)]/40 space-y-1.5">
-                  <div className="flex items-center justify-between text-xs text-[var(--ink-muted)]">
+                <div className="pt-3 border-t border-line/40 space-y-1.5">
+                  <div className="flex items-center justify-between text-xs text-ink-muted">
                     <span className="font-semibold">登场选题 ({relatedTopics.length})</span>
                     <span className="font-mono text-[11px] truncate max-w-[140px]">{person.platform_accounts}</span>
                   </div>
@@ -340,7 +340,7 @@ export const PeopleView: React.FC<PeopleViewProps> = ({
                         <button
                           key={t.id}
                           onClick={() => onSelectTopic(t.id)}
-                          className="w-full text-left text-xs font-medium text-[var(--ink)] hover:text-[var(--accent)] truncate block transition-colors cursor-pointer"
+                          className="w-full text-left text-xs font-medium text-ink hover:text-accent truncate block transition-colors cursor-pointer"
                         >
                           • {t.title}
                         </button>
@@ -353,17 +353,17 @@ export const PeopleView: React.FC<PeopleViewProps> = ({
           })}
 
           {filteredPeople.length === 0 && !peoplePageQuery.isFetching && (
-            <div className="col-span-full p-12 text-center border border-dashed border-[var(--line)] rounded-2xl bg-[var(--surface)] text-[var(--ink-muted)]">
+            <div className="col-span-full p-12 text-center border border-dashed border-line rounded-2xl bg-surface text-ink-muted">
               暂无人物档案记录，点击右上角新建人物！
             </div>
           )}
         </div>
 
         {totalPeople > 0 && (
-          <div className="flex items-center justify-center gap-3 text-xs text-stone-500 dark:text-stone-400">
-            <button type="button" disabled={page <= 1 || peoplePageQuery.isFetching} onClick={() => setPage((current) => Math.max(1, current - 1))} className="rounded-lg border border-[var(--line)] bg-[var(--surface)] text-[var(--ink)] px-3 py-2 font-semibold disabled:cursor-not-allowed disabled:opacity-40">上一页</button>
+          <div className="flex items-center justify-center gap-3 text-xs text-ink-muted">
+            <button type="button" disabled={page <= 1 || peoplePageQuery.isFetching} onClick={() => setPage((current) => Math.max(1, current - 1))} className="rounded-lg border border-line bg-surface text-ink px-3 py-2 font-semibold disabled:cursor-not-allowed disabled:opacity-40">上一页</button>
             <span><span className="font-mono tabular-nums">{page} / {Math.max(1, peoplePageQuery.data?.total_pages || 1)}</span> · 共 <span className="font-mono tabular-nums">{totalPeople}</span> 人</span>
-            <button type="button" disabled={page >= (peoplePageQuery.data?.total_pages || 1) || peoplePageQuery.isFetching} onClick={() => setPage((current) => current + 1)} className="rounded-lg border border-[var(--line)] bg-[var(--surface)] text-[var(--ink)] px-3 py-2 font-semibold disabled:cursor-not-allowed disabled:opacity-40">下一页</button>
+            <button type="button" disabled={page >= (peoplePageQuery.data?.total_pages || 1) || peoplePageQuery.isFetching} onClick={() => setPage((current) => current + 1)} className="rounded-lg border border-line bg-surface text-ink px-3 py-2 font-semibold disabled:cursor-not-allowed disabled:opacity-40">下一页</button>
           </div>
         )}
 
@@ -376,8 +376,8 @@ export const PeopleView: React.FC<PeopleViewProps> = ({
         >
           <form onSubmit={handlePersonSubmit} className="space-y-4">
             <div>
-              <label htmlFor="person-name" className="block text-xs font-bold text-stone-800 dark:text-stone-200 mb-1">
-                姓名 / 核心称呼 <span className="text-stone-400">*</span>
+              <label htmlFor="person-name" className="block text-xs font-bold text-ink mb-1">
+                姓名 / 核心称呼 <span className="text-ink-muted">*</span>
               </label>
               <input
                 id="person-name"
@@ -388,13 +388,13 @@ export const PeopleView: React.FC<PeopleViewProps> = ({
                 placeholder="例如：大胃袋良子"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
-                className="w-full px-3.5 py-2.5 bg-stone-500/[0.03] dark:bg-stone-800 border border-stone-200/80 dark:border-stone-700 rounded-xl text-sm text-[var(--ink)] placeholder:text-stone-400 dark:placeholder:text-stone-500 focus:bg-[var(--surface)] dark:focus:bg-stone-800 focus:border-[var(--accent)] focus:outline-none"
+                className="w-full px-3.5 py-2.5 bg-control border border-line rounded-xl text-sm text-ink placeholder:text-ink-muted focus:bg-surface focus:border-accent focus:outline-none"
               />
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div>
-                <label htmlFor="person-aliases" className="block text-xs font-bold text-stone-800 dark:text-stone-200 mb-1">常用昵称 / 别名</label>
+                <label htmlFor="person-aliases" className="block text-xs font-bold text-ink mb-1">常用昵称 / 别名</label>
                 <input
                   id="person-aliases"
                   name="aliases"
@@ -403,11 +403,11 @@ export const PeopleView: React.FC<PeopleViewProps> = ({
                   placeholder="良子, 峨眉山战神"
                   value={aliases}
                   onChange={(e) => setAliases(e.target.value)}
-                  className="w-full px-3.5 py-2.5 bg-stone-500/[0.03] dark:bg-stone-800 border border-stone-200/80 dark:border-stone-700 rounded-xl text-sm text-[var(--ink)] placeholder:text-stone-400 dark:placeholder:text-stone-500 focus:bg-[var(--surface)] dark:focus:bg-stone-800 focus:border-[var(--accent)] focus:outline-none"
+                  className="w-full px-3.5 py-2.5 bg-control border border-line rounded-xl text-sm text-ink placeholder:text-ink-muted focus:bg-surface focus:border-accent focus:outline-none"
                 />
               </div>
               <div>
-                <label htmlFor="person-identity" className="block text-xs font-bold text-stone-800 dark:text-stone-200 mb-1">身份标签</label>
+                <label htmlFor="person-identity" className="block text-xs font-bold text-ink mb-1">身份标签</label>
                 <input
                   id="person-identity"
                   name="identity"
@@ -416,13 +416,13 @@ export const PeopleView: React.FC<PeopleViewProps> = ({
                   placeholder="吃播博主 / 健身教练"
                   value={identity}
                   onChange={(e) => setIdentity(e.target.value)}
-                  className="w-full px-3.5 py-2.5 bg-stone-500/[0.03] dark:bg-stone-800 border border-stone-200/80 dark:border-stone-700 rounded-xl text-sm text-[var(--ink)] placeholder:text-stone-400 dark:placeholder:text-stone-500 focus:bg-[var(--surface)] dark:focus:bg-stone-800 focus:border-[var(--accent)] focus:outline-none"
+                  className="w-full px-3.5 py-2.5 bg-control border border-line rounded-xl text-sm text-ink placeholder:text-ink-muted focus:bg-surface focus:border-accent focus:outline-none"
                 />
               </div>
             </div>
 
             <div>
-              <label htmlFor="person-avatar-url" className="block text-xs font-bold text-stone-800 dark:text-stone-200 mb-1">头像图片 URL</label>
+              <label htmlFor="person-avatar-url" className="block text-xs font-bold text-ink mb-1">头像图片 URL</label>
               <input
                 id="person-avatar-url"
                 name="avatar_url"
@@ -431,12 +431,12 @@ export const PeopleView: React.FC<PeopleViewProps> = ({
                 placeholder="https://..."
                 value={avatarUrl}
                 onChange={(e) => setAvatarUrl(e.target.value)}
-                className="w-full px-3.5 py-2.5 bg-stone-500/[0.03] dark:bg-stone-800 border border-stone-200/80 dark:border-stone-700 rounded-xl text-sm text-[var(--ink)] placeholder:text-stone-400 dark:placeholder:text-stone-500 focus:bg-[var(--surface)] dark:focus:bg-stone-800 focus:border-[var(--accent)] focus:outline-none"
+                className="w-full px-3.5 py-2.5 bg-control border border-line rounded-xl text-sm text-ink placeholder:text-ink-muted focus:bg-surface focus:border-accent focus:outline-none"
               />
             </div>
 
             <div>
-              <label htmlFor="person-platform-accounts" className="block text-xs font-bold text-stone-800 dark:text-stone-200 mb-1">主要平台与账号</label>
+              <label htmlFor="person-platform-accounts" className="block text-xs font-bold text-ink mb-1">主要平台与账号</label>
               <input
                 id="person-platform-accounts"
                 name="platform_accounts"
@@ -445,12 +445,12 @@ export const PeopleView: React.FC<PeopleViewProps> = ({
                 placeholder="抖音: @良子大胃袋 (280w), B站: @良子吃不饱"
                 value={platformAccounts}
                 onChange={(e) => setPlatformAccounts(e.target.value)}
-                className="w-full px-3.5 py-2.5 bg-stone-500/[0.03] dark:bg-stone-800 border border-stone-200/80 dark:border-stone-700 rounded-xl text-sm text-[var(--ink)] placeholder:text-stone-400 dark:placeholder:text-stone-500 focus:bg-[var(--surface)] dark:focus:bg-stone-800 focus:border-[var(--accent)] focus:outline-none"
+                className="w-full px-3.5 py-2.5 bg-control border border-line rounded-xl text-sm text-ink placeholder:text-ink-muted focus:bg-surface focus:border-accent focus:outline-none"
               />
             </div>
 
             <div>
-              <label htmlFor="person-quotes" className="block text-xs font-bold text-stone-800 dark:text-stone-200 mb-1">经典名言 / 代表语录</label>
+              <label htmlFor="person-quotes" className="block text-xs font-bold text-ink mb-1">经典名言 / 代表语录</label>
               <input
                 id="person-quotes"
                 name="quotes"
@@ -459,12 +459,12 @@ export const PeopleView: React.FC<PeopleViewProps> = ({
                 placeholder="“这次上峨眉山，我不是来旅游的...”"
                 value={quotes}
                 onChange={(e) => setQuotes(e.target.value)}
-                className="w-full px-3.5 py-2.5 bg-stone-500/[0.03] dark:bg-stone-800 border border-stone-200/80 dark:border-stone-700 rounded-xl text-sm text-[var(--ink)] placeholder:text-stone-400 dark:placeholder:text-stone-500 focus:bg-[var(--surface)] dark:focus:bg-stone-800 focus:border-[var(--accent)] focus:outline-none"
+                className="w-full px-3.5 py-2.5 bg-control border border-line rounded-xl text-sm text-ink placeholder:text-ink-muted focus:bg-surface focus:border-accent focus:outline-none"
               />
             </div>
 
             <div>
-              <label htmlFor="person-description" className="block text-xs font-bold text-stone-800 dark:text-stone-200 mb-1">一句话人物生平与人设简介</label>
+              <label htmlFor="person-description" className="block text-xs font-bold text-ink mb-1">一句话人物生平与人设简介</label>
               <textarea
                 id="person-description"
                 name="description"
@@ -473,21 +473,21 @@ export const PeopleView: React.FC<PeopleViewProps> = ({
                 placeholder="记录该人物的行为特征、性格反差与过往核心黑历史..."
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
-                className="w-full px-3.5 py-2.5 bg-stone-500/[0.03] dark:bg-stone-800 border border-stone-200/80 dark:border-stone-700 rounded-xl text-sm text-[var(--ink)] placeholder:text-stone-400 dark:placeholder:text-stone-500 focus:bg-[var(--surface)] dark:focus:bg-stone-800 focus:border-[var(--accent)] focus:outline-none resize-none"
+                className="w-full px-3.5 py-2.5 bg-control border border-line rounded-xl text-sm text-ink placeholder:text-ink-muted focus:bg-surface focus:border-accent focus:outline-none resize-none"
               />
             </div>
 
-            <div className="flex items-center justify-end gap-2.5 pt-3 border-t border-stone-200/70 dark:border-stone-800">
+            <div className="flex items-center justify-end gap-2.5 pt-3 border-t border-line">
               <button
                 type="button"
                 onClick={() => setIsPersonModalOpen(false)}
-                className="px-4 py-2 text-xs sm:text-sm font-semibold text-stone-600 dark:text-stone-400 hover:bg-stone-100 dark:hover:bg-stone-800 rounded-xl cursor-pointer transition-colors"
+                className="px-4 py-2 text-xs sm:text-sm font-semibold text-ink-muted hover:bg-control rounded-xl cursor-pointer transition-colors"
               >
                 取消
               </button>
               <button
                 type="submit"
-                className="px-5 py-2 text-xs sm:text-sm bg-[var(--accent)] hover:bg-[var(--accent-dark)] text-white rounded-xl font-bold cursor-pointer transition-all shadow-2xs"
+                className="px-5 py-2 text-xs sm:text-sm bg-accent hover:bg-accent-dark text-white rounded-xl font-bold cursor-pointer transition-all shadow-2xs"
               >
                 {editingPerson ? '更新档案' : '创建档案'}
               </button>
@@ -505,34 +505,34 @@ export const PeopleView: React.FC<PeopleViewProps> = ({
           <form onSubmit={handleRelSubmit} className="space-y-4">
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div>
-                <label id="relationship-person-a-label" className="block text-xs font-bold text-stone-800 dark:text-stone-200 mb-1">人物 A</label>
+                <label id="relationship-person-a-label" className="block text-xs font-bold text-ink mb-1">人物 A</label>
                 <CustomSelect
                   value={relPersonA}
                   onChange={(val) => setRelPersonA(val)}
                   ariaLabel="人物 A"
                   ariaLabelledBy="relationship-person-a-label"
                   className="w-full"
-                  buttonClassName="w-full justify-between py-2 text-sm bg-stone-500/[0.03] dark:bg-stone-800 border-stone-200/80 dark:border-stone-700 rounded-xl"
+                  buttonClassName="w-full justify-between py-2 text-sm bg-control border-line rounded-xl"
                   options={peopleOptions.map((p) => ({ value: p.id, label: p.name }))}
                 />
               </div>
               <div>
-                <label id="relationship-person-b-label" className="block text-xs font-bold text-stone-800 dark:text-stone-200 mb-1">人物 B</label>
+                <label id="relationship-person-b-label" className="block text-xs font-bold text-ink mb-1">人物 B</label>
                 <CustomSelect
                   value={relPersonB}
                   onChange={(val) => setRelPersonB(val)}
                   ariaLabel="人物 B"
                   ariaLabelledBy="relationship-person-b-label"
                   className="w-full"
-                  buttonClassName="w-full justify-between py-2 text-sm bg-stone-500/[0.03] dark:bg-stone-800 border-stone-200/80 dark:border-stone-700 rounded-xl"
+                  buttonClassName="w-full justify-between py-2 text-sm bg-control border-line rounded-xl"
                   options={peopleOptions.map((p) => ({ value: p.id, label: p.name }))}
                 />
               </div>
             </div>
 
             <div>
-              <label htmlFor="relationship-name" className="block text-xs font-bold text-stone-800 dark:text-stone-200 mb-1">
-                关系定性 <span className="text-stone-400">*</span>
+              <label htmlFor="relationship-name" className="block text-xs font-bold text-ink mb-1">
+                关系定性 <span className="text-ink-muted">*</span>
               </label>
               <input
                 id="relationship-name"
@@ -543,12 +543,12 @@ export const PeopleView: React.FC<PeopleViewProps> = ({
                 placeholder="例如：师徒反目 / 商业对手 / 前合伙人"
                 value={relName}
                 onChange={(e) => setRelName(e.target.value)}
-                className="w-full px-3.5 py-2.5 bg-stone-500/[0.03] dark:bg-stone-800 border border-stone-200/80 dark:border-stone-700 rounded-xl text-sm text-[var(--ink)] placeholder:text-stone-400 dark:placeholder:text-stone-500 focus:bg-[var(--surface)] dark:focus:bg-stone-800 focus:border-[var(--accent)] focus:outline-none"
+                className="w-full px-3.5 py-2.5 bg-control border border-line rounded-xl text-sm text-ink placeholder:text-ink-muted focus:bg-surface focus:border-accent focus:outline-none"
               />
             </div>
 
             <div>
-              <label htmlFor="relationship-description" className="block text-xs font-bold text-stone-800 dark:text-stone-200 mb-1">关系背景补充说明</label>
+              <label htmlFor="relationship-description" className="block text-xs font-bold text-ink mb-1">关系背景补充说明</label>
               <textarea
                 id="relationship-description"
                 name="relationship_description"
@@ -557,21 +557,21 @@ export const PeopleView: React.FC<PeopleViewProps> = ({
                 placeholder="简要说明双方爆发冲突或合作的关键时间点与事件..."
                 value={relDesc}
                 onChange={(e) => setRelDesc(e.target.value)}
-                className="w-full px-3.5 py-2.5 bg-stone-500/[0.03] dark:bg-stone-800 border border-stone-200/80 dark:border-stone-700 rounded-xl text-sm text-[var(--ink)] placeholder:text-stone-400 dark:placeholder:text-stone-500 focus:bg-[var(--surface)] dark:focus:bg-stone-800 focus:border-[var(--accent)] focus:outline-none resize-none"
+                className="w-full px-3.5 py-2.5 bg-control border border-line rounded-xl text-sm text-ink placeholder:text-ink-muted focus:bg-surface focus:border-accent focus:outline-none resize-none"
               />
             </div>
 
-            <div className="flex items-center justify-end gap-2.5 pt-3 border-t border-stone-200/70 dark:border-stone-800">
+            <div className="flex items-center justify-end gap-2.5 pt-3 border-t border-line">
               <button
                 type="button"
                 onClick={() => setIsRelModalOpen(false)}
-                className="px-4 py-2 text-xs sm:text-sm font-semibold text-stone-600 dark:text-stone-400 hover:bg-stone-100 dark:hover:bg-stone-800 rounded-xl cursor-pointer transition-colors"
+                className="px-4 py-2 text-xs sm:text-sm font-semibold text-ink-muted hover:bg-control rounded-xl cursor-pointer transition-colors"
               >
                 取消
               </button>
               <button
                 type="submit"
-                className="px-5 py-2 text-xs sm:text-sm bg-[var(--accent)] hover:bg-[var(--accent-dark)] text-white rounded-xl font-bold cursor-pointer transition-all shadow-2xs"
+                className="px-5 py-2 text-xs sm:text-sm bg-accent hover:bg-accent-dark text-white rounded-xl font-bold cursor-pointer transition-all shadow-2xs"
               >
                 保存关系
               </button>

@@ -16,18 +16,18 @@ import { ConfirmDialog } from '../ui/ConfirmDialog';
 import { FloatingScrollbar } from '../ui/FloatingScrollbar';
 
 const statusDots: Record<TopicStatus, string> = {
-  inbox: 'bg-stone-400',
-  scripting: 'bg-indigo-500',
-  production: 'bg-purple-500',
-  published: 'bg-teal-500',
-  icebox: 'bg-stone-300',
+  inbox: 'bg-stage-inbox',
+  scripting: 'bg-stage-scripting',
+  production: 'bg-stage-production',
+  published: 'bg-stage-published',
+  icebox: 'bg-stage-icebox',
 };
 
 const priorityConfig: Record<Priority, { label: string; dot: string; desc: string }> = {
-  high: { label: '高优', dot: 'bg-amber-600 dark:bg-amber-400', desc: '重点攻坚' },
-  medium: { label: '中优', dot: 'bg-amber-500', desc: '标准节奏' },
-  low: { label: '低优', dot: 'bg-blue-500', desc: '空闲跟进' },
-  none: { label: '无优先级', dot: 'bg-stone-300 dark:bg-stone-600', desc: '未设定' },
+  high: { label: '高优', dot: 'bg-warning', desc: '重点攻坚' },
+  medium: { label: '中优', dot: 'bg-warning', desc: '标准节奏' },
+  low: { label: '低优', dot: 'bg-info', desc: '空闲跟进' },
+  none: { label: '无优先级', dot: 'bg-ink-faint', desc: '未设定' },
 };
 
 interface TopicDetailHeaderProps {
@@ -72,10 +72,10 @@ export const TopicDetailHeader: React.FC<TopicDetailHeaderProps> = ({
   };
 
   return (
-    <div data-testid="topic-detail-header" data-page-header className="col-span-full min-w-0 border-b border-[var(--line)] pb-4 transition-colors">
+    <div data-testid="topic-detail-header" data-page-header className="col-span-full min-w-0 border-b border-line pb-4 transition-colors">
       <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-x-3 gap-y-3 sm:grid-cols-[minmax(0,1fr)_auto] sm:gap-y-0">
         <div className="col-span-2 flex min-w-0 items-center gap-3 sm:col-span-1">
-          <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-[var(--accent-soft)] text-[var(--accent)]">
+          <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-accent-soft text-accent">
             <FileText className="h-5 w-5" aria-hidden="true" />
           </span>
           <div className="flex min-w-0 max-w-full flex-1 items-center gap-1.5">
@@ -98,11 +98,11 @@ export const TopicDetailHeader: React.FC<TopicDetailHeaderProps> = ({
                     }
                   }}
                   data-no-focus-ring="true"
-                  className="w-full border-b border-[var(--accent)] bg-transparent pb-1 font-sans text-xl text-[var(--ink)] outline-none ring-0 shadow-none focus:outline-none focus:ring-0 focus:shadow-none sm:text-2xl"
+                  className="w-full border-b border-accent bg-transparent pb-1 font-sans text-xl text-ink outline-none ring-0 shadow-none focus:outline-none focus:ring-0 focus:shadow-none sm:text-2xl"
                 />
                 <button
                   onClick={handleSaveTitle}
-                  className="text-xs text-[var(--accent)] hover:underline shrink-0 cursor-pointer font-medium"
+                  className="text-xs text-accent hover:underline shrink-0 cursor-pointer font-medium"
                 >
                   保存
                 </button>
@@ -111,13 +111,13 @@ export const TopicDetailHeader: React.FC<TopicDetailHeaderProps> = ({
               <div className="flex items-center gap-1.5 min-w-0 max-w-full">
                 <h1
                   onClick={() => setIsEditingTitle(true)}
-                  className="min-w-0 truncate font-sans text-xl font-bold leading-tight tracking-tight text-[var(--ink)] transition-colors hover:text-[var(--accent)] sm:text-2xl"
+                  className="min-w-0 truncate font-sans text-xl font-bold leading-tight tracking-tight text-ink transition-colors hover:text-accent sm:text-2xl"
                 >
                   {topic.title}
                 </h1>
                 <button
                   onClick={() => setIsEditingTitle(true)}
-                  className="text-[var(--ink-muted)] hover:text-[var(--ink)] p-1 rounded-[var(--radius-sm)] shrink-0 cursor-pointer transition-colors"
+                  className="text-ink-muted hover:text-ink p-1 rounded-sm shrink-0 cursor-pointer transition-colors"
                   aria-label="编辑选题标题"
                 >
                   <Edit2 className="w-3.5 h-3.5" />
@@ -139,11 +139,11 @@ export const TopicDetailHeader: React.FC<TopicDetailHeaderProps> = ({
                 setIsStatusMenuOpen(!isStatusMenuOpen);
                 setIsPriorityMenuOpen(false);
               }}
-              className={`inline-flex min-h-9 items-center gap-1.5 rounded-[var(--radius-sm)] px-2.5 py-1 text-xs font-medium transition-colors cursor-pointer select-none ${isStatusMenuOpen ? 'bg-[var(--surface)] text-[var(--ink)]' : 'text-[var(--ink)] hover:bg-[var(--surface)]'}`}
+              className={`inline-flex min-h-9 items-center gap-1.5 rounded-sm px-2.5 py-1 text-xs font-medium transition-colors cursor-pointer select-none ${isStatusMenuOpen ? 'bg-surface text-ink' : 'text-ink hover:bg-surface'}`}
             >
-              <span className={`w-2 h-2 rounded-full ${statusDots[topic.status] || 'bg-stone-400'}`} />
+              <span className={`w-2 h-2 rounded-full ${statusDots[topic.status] || 'bg-ink-faint'}`} />
               <span>{statusLabel}</span>
-              <ChevronDown className="w-3 h-3 text-[var(--ink-muted)]" />
+              <ChevronDown className="w-3 h-3 text-ink-muted" />
             </button>
 
             <FloatingMenu
@@ -158,7 +158,7 @@ export const TopicDetailHeader: React.FC<TopicDetailHeaderProps> = ({
               className="animate-in fade-in zoom-in-95 duration-100"
             >
               <FloatingScrollbar className="p-1.5 space-y-0.5" wrapperClassName="min-h-0 flex-none">
-                <div className="px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider text-stone-400 dark:text-stone-500">
+                <div className="px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider text-ink-muted">
                   活跃阶段
                 </div>
                 {COLUMNS.map((column) => {
@@ -173,21 +173,21 @@ export const TopicDetailHeader: React.FC<TopicDetailHeaderProps> = ({
                       }}
                       className={`w-full min-h-9 text-left px-2.5 py-1.5 rounded-xl text-xs font-medium flex items-center justify-between transition-colors cursor-pointer ${
                         isSelected
-                          ? 'bg-[var(--accent-soft)] text-[var(--accent-dark)] font-bold'
-                          : 'text-stone-600 dark:text-stone-400 hover:bg-stone-50 dark:hover:bg-stone-800 hover:text-stone-900 dark:hover:text-stone-100'
+                          ? 'bg-accent-soft text-accent-dark font-bold'
+                          : 'text-ink-muted hover:bg-canvas hover:text-ink'
                       }`}
                     >
                       <div className="flex items-center gap-2">
                         <span className={`w-2 h-2 rounded-full ${statusDots[column.status]}`} />
                         <span>{column.label}</span>
                       </div>
-                      {isSelected && <span className="text-[var(--accent)] text-xs">✓</span>}
+                      {isSelected && <span className="text-accent text-xs">✓</span>}
                     </button>
                   );
                 })}
 
-                <div className="my-1 border-t border-[var(--line)]" />
-                <div className="px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider text-stone-400 dark:text-stone-500">
+                <div className="my-1 border-t border-line" />
+                <div className="px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider text-ink-muted">
                   归档状态
                 </div>
 
@@ -199,15 +199,15 @@ export const TopicDetailHeader: React.FC<TopicDetailHeaderProps> = ({
                   }}
                   className={`w-full min-h-9 text-left px-2.5 py-1.5 rounded-xl text-xs font-medium flex items-center justify-between transition-colors cursor-pointer ${
                     topic.status === 'published'
-                      ? 'bg-[var(--accent-soft)] text-[var(--accent-dark)] font-bold'
-                      : 'text-stone-600 dark:text-stone-400 hover:bg-emerald-50 dark:hover:bg-emerald-950/40 hover:text-emerald-800 dark:hover:text-emerald-300'
+                      ? 'bg-accent-soft text-accent-dark font-bold'
+                      : 'text-ink-muted hover:bg-success-soft hover:text-success'
                   }`}
                 >
                   <div className="flex items-center gap-2">
-                    <span className="w-2 h-2 rounded-full bg-teal-500" />
+                    <span className="w-2 h-2 rounded-full bg-success" />
                     <span>已发布</span>
                   </div>
-                  {topic.status === 'published' && <span className="text-[var(--accent)] text-xs">✓</span>}
+                  {topic.status === 'published' && <span className="text-accent text-xs">✓</span>}
                 </button>
 
                 <button
@@ -218,15 +218,15 @@ export const TopicDetailHeader: React.FC<TopicDetailHeaderProps> = ({
                   }}
                   className={`w-full min-h-9 text-left px-2.5 py-1.5 rounded-xl text-xs font-medium flex items-center justify-between transition-colors cursor-pointer ${
                     topic.status === 'icebox'
-                      ? 'bg-[var(--accent-soft)] text-[var(--accent-dark)] font-bold'
-                      : 'text-stone-600 dark:text-stone-400 hover:bg-stone-100 dark:hover:bg-stone-800 hover:text-stone-900 dark:hover:text-stone-100'
+                      ? 'bg-accent-soft text-accent-dark font-bold'
+                      : 'text-ink-muted hover:bg-control hover:text-ink'
                   }`}
                 >
                   <div className="flex items-center gap-2">
-                    <span className="w-2 h-2 rounded-full bg-stone-300 dark:bg-stone-600" />
+                    <span className="w-2 h-2 rounded-full bg-ink-faint" />
                     <span>搁置</span>
                   </div>
-                  {topic.status === 'icebox' && <span className="text-stone-600 dark:text-stone-400 text-xs">✓</span>}
+                  {topic.status === 'icebox' && <span className="text-ink-muted text-xs">✓</span>}
                 </button>
               </FloatingScrollbar>
             </FloatingMenu>
@@ -243,11 +243,11 @@ export const TopicDetailHeader: React.FC<TopicDetailHeaderProps> = ({
                 setIsPriorityMenuOpen(!isPriorityMenuOpen);
                 setIsStatusMenuOpen(false);
               }}
-              className={`inline-flex min-h-9 items-center gap-1.5 rounded-[var(--radius-sm)] px-2.5 py-1 text-xs font-medium transition-colors cursor-pointer select-none ${isPriorityMenuOpen ? 'bg-[var(--surface)] text-[var(--ink)]' : 'text-[var(--ink)] hover:bg-[var(--surface)]'}`}
+              className={`inline-flex min-h-9 items-center gap-1.5 rounded-sm px-2.5 py-1 text-xs font-medium transition-colors cursor-pointer select-none ${isPriorityMenuOpen ? 'bg-surface text-ink' : 'text-ink hover:bg-surface'}`}
             >
-              <span className={`w-2 h-2 rounded-full ${priorityConfig[topic.priority]?.dot || 'bg-stone-300'}`} />
+              <span className={`w-2 h-2 rounded-full ${priorityConfig[topic.priority]?.dot || 'bg-ink-faint'}`} />
               <span>{priorityConfig[topic.priority]?.label || '未设'}</span>
-              <ChevronDown className="w-3 h-3 text-[var(--ink-muted)]" />
+              <ChevronDown className="w-3 h-3 text-ink-muted" />
             </button>
 
             <FloatingMenu
@@ -262,7 +262,7 @@ export const TopicDetailHeader: React.FC<TopicDetailHeaderProps> = ({
               className="animate-in fade-in zoom-in-95 duration-100"
             >
               <FloatingScrollbar className="p-1.5 space-y-0.5" wrapperClassName="min-h-0 flex-none">
-                <div className="px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider text-stone-400 dark:text-stone-500">
+                <div className="px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider text-ink-muted">
                   优先级设定
                 </div>
                 {(['high', 'medium', 'low', 'none'] as Priority[]).map((p) => {
@@ -278,16 +278,16 @@ export const TopicDetailHeader: React.FC<TopicDetailHeaderProps> = ({
                       }}
                       className={`w-full min-h-9 text-left px-2.5 py-1.5 rounded-xl text-xs font-medium flex items-center justify-between transition-colors cursor-pointer ${
                         isSelected
-                          ? 'bg-[var(--accent-soft)] text-[var(--accent-dark)] font-bold'
-                          : 'text-stone-600 dark:text-stone-400 hover:bg-stone-50 dark:hover:bg-stone-800 hover:text-stone-900 dark:hover:text-stone-100'
+                          ? 'bg-accent-soft text-accent-dark font-bold'
+                          : 'text-ink-muted hover:bg-canvas hover:text-ink'
                       }`}
                     >
                       <div className="flex min-w-0 items-center gap-2">
                         <span className={`w-2 h-2 rounded-full ${cfg.dot}`} />
                         <span className="shrink-0">{cfg.label}</span>
-                        <span className="min-w-0 truncate text-[10px] text-stone-400 font-normal">({cfg.desc})</span>
+                        <span className="min-w-0 truncate text-[10px] text-ink-muted font-normal">({cfg.desc})</span>
                       </div>
-                      {isSelected && <span className="text-[var(--accent)] text-xs">✓</span>}
+                      {isSelected && <span className="text-accent text-xs">✓</span>}
                     </button>
                   );
                 })}
@@ -310,8 +310,8 @@ export const TopicDetailHeader: React.FC<TopicDetailHeaderProps> = ({
               }}
               className={`inline-flex min-h-9 items-center gap-1.5 rounded-xl px-2.5 text-xs font-semibold transition-colors cursor-pointer ${
                 isMoreMenuOpen
-                  ? 'bg-[var(--accent-soft)] text-[var(--accent-dark)]'
-                  : 'bg-transparent text-[var(--ink-muted)] hover:bg-[var(--surface)] hover:text-[var(--ink)]'
+                  ? 'bg-accent-soft text-accent-dark'
+                  : 'bg-transparent text-ink-muted hover:bg-surface hover:text-ink'
               }`}
             >
               <MoreHorizontal className="h-4 w-4" aria-hidden="true" />
@@ -331,7 +331,7 @@ export const TopicDetailHeader: React.FC<TopicDetailHeaderProps> = ({
               className="animate-in fade-in zoom-in-95 duration-100"
             >
               <FloatingScrollbar className="space-y-0.5 p-1.5" wrapperClassName="min-h-0 flex-none">
-                <div className="px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider text-[var(--ink-muted)]">
+                <div className="px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider text-ink-muted">
                   选题操作
                 </div>
 
@@ -342,7 +342,7 @@ export const TopicDetailHeader: React.FC<TopicDetailHeaderProps> = ({
                       setIsMoreMenuOpen(false);
                       void onUpdateTopic({ status: 'inbox' });
                     }}
-                    className="flex min-h-9 w-full items-center gap-2 rounded-xl px-2.5 py-1.5 text-left text-xs font-medium text-[var(--accent)] transition-colors hover:bg-[var(--accent-soft)] cursor-pointer"
+                    className="flex min-h-9 w-full items-center gap-2 rounded-xl px-2.5 py-1.5 text-left text-xs font-medium text-accent transition-colors hover:bg-accent-soft cursor-pointer"
                   >
                     <span className="grid h-4 w-4 place-items-center text-sm" aria-hidden="true">↩</span>
                     <span>恢复至收集箱</span>
@@ -354,9 +354,9 @@ export const TopicDetailHeader: React.FC<TopicDetailHeaderProps> = ({
                       setIsMoreMenuOpen(false);
                       setIsStatusMenuOpen(true);
                     }}
-                    className="flex min-h-9 w-full items-center gap-2 rounded-xl px-2.5 py-1.5 text-left text-xs font-medium text-[var(--ink)] transition-colors hover:bg-[var(--canvas)] cursor-pointer"
+                    className="flex min-h-9 w-full items-center gap-2 rounded-xl px-2.5 py-1.5 text-left text-xs font-medium text-ink transition-colors hover:bg-canvas cursor-pointer"
                   >
-                    <Archive className="h-3.5 w-3.5 text-[var(--ink-muted)]" aria-hidden="true" />
+                    <Archive className="h-3.5 w-3.5 text-ink-muted" aria-hidden="true" />
                     <span>选择归档状态</span>
                   </button>
                 )}
@@ -368,9 +368,9 @@ export const TopicDetailHeader: React.FC<TopicDetailHeaderProps> = ({
                       setIsMoreMenuOpen(false);
                       onExportMarkdown();
                     }}
-                    className="flex min-h-9 w-full items-center gap-2 rounded-xl px-2.5 py-1.5 text-left text-xs font-medium text-[var(--ink)] transition-colors hover:bg-[var(--canvas)] cursor-pointer"
+                    className="flex min-h-9 w-full items-center gap-2 rounded-xl px-2.5 py-1.5 text-left text-xs font-medium text-ink transition-colors hover:bg-canvas cursor-pointer"
                   >
-                    <FileDown className="h-3.5 w-3.5 text-[var(--ink-muted)]" aria-hidden="true" />
+                    <FileDown className="h-3.5 w-3.5 text-ink-muted" aria-hidden="true" />
                     <span>导出 Markdown 档案</span>
                   </button>
                 )}
@@ -383,22 +383,22 @@ export const TopicDetailHeader: React.FC<TopicDetailHeaderProps> = ({
                   }}
                   className={`flex min-h-9 w-full items-center gap-2 rounded-xl px-2.5 py-1.5 text-left text-xs font-medium transition-colors cursor-pointer ${
                     topic.is_pinned
-                      ? 'bg-[var(--accent-soft)] text-[var(--accent-dark)]'
-                      : 'text-[var(--ink)] hover:bg-[var(--canvas)]'
+                      ? 'bg-accent-soft text-accent-dark'
+                      : 'text-ink hover:bg-canvas'
                   }`}
                 >
-                  <Pin className={`h-3.5 w-3.5 ${topic.is_pinned ? 'fill-current' : 'text-[var(--ink-muted)]'}`} aria-hidden="true" />
+                  <Pin className={`h-3.5 w-3.5 ${topic.is_pinned ? 'fill-current' : 'text-ink-muted'}`} aria-hidden="true" />
                   <span>{topic.is_pinned ? '取消置顶' : '置顶选题'}</span>
                 </button>
 
-                <div className="my-1 border-t border-[var(--line)]" />
+                <div className="my-1 border-t border-line" />
                 <button
                   type="button"
                   onClick={() => {
                     setIsMoreMenuOpen(false);
                     setIsDeleteDialogOpen(true);
                   }}
-                  className="flex min-h-9 w-full items-center gap-2 rounded-xl px-2.5 py-1.5 text-left text-xs font-medium text-[var(--h1-color)] transition-colors hover:bg-[var(--accent-soft)] cursor-pointer"
+                  className="flex min-h-9 w-full items-center gap-2 rounded-xl px-2.5 py-1.5 text-left text-xs font-medium text-h1-color transition-colors hover:bg-accent-soft cursor-pointer"
                 >
                   <Trash2 className="h-3.5 w-3.5" aria-hidden="true" />
                   <span>移入回收站</span>

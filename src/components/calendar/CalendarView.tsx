@@ -47,10 +47,10 @@ const CALENDAR_LAYER_OPTIONS: Array<{
   label: string;
   dotClass: string;
 }> = [
-  { key: 'showPlannedPublish', label: '计划发片', dotClass: 'bg-[var(--accent)]' },
-  { key: 'showDeadlines', label: '制作截止', dotClass: 'bg-amber-500' },
-  { key: 'showDeals', label: '商单 DDL', dotClass: 'bg-indigo-500' },
-  { key: 'showPublished', label: '历史已发', dotClass: 'bg-teal-500' },
+  { key: 'showPlannedPublish', label: '计划发片', dotClass: 'bg-accent' },
+  { key: 'showDeadlines', label: '制作截止', dotClass: 'bg-warning' },
+  { key: 'showDeals', label: '商单 DDL', dotClass: 'bg-info' },
+  { key: 'showPublished', label: '历史已发', dotClass: 'bg-success' },
 ];
 
 interface CalendarViewProps {
@@ -249,30 +249,30 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
 
   return (
     <DndContext sensors={sensors} onDragStart={handleDragStart} onDragEnd={handleDragEnd}>
-      <div className="flex h-full min-h-0 min-w-0 flex-1 overflow-hidden bg-[var(--canvas)] transition-colors">
+      <div className="flex h-full min-h-0 min-w-0 flex-1 overflow-hidden bg-canvas transition-colors">
         <div className="mx-auto flex h-full min-h-0 w-full max-w-7xl flex-col gap-3 px-4 py-3 sm:gap-4 sm:px-6 sm:py-4 lg:px-8">
           <PageHeader
             title="选题日历"
             icon={CalendarDays}
             badge={(
-              <span className="rounded-full bg-[var(--accent-soft)] px-2.5 py-1 text-xs font-semibold text-[var(--accent)]">
+              <span className="rounded-full bg-accent-soft px-2.5 py-1 text-xs font-semibold text-accent">
                 发片排期
               </span>
             )}
             actions={(
               <>
                 {/* Month navigation controls */}
-                <div aria-label="月份导航" className="inline-flex h-10 items-center gap-0.5 rounded-xl border border-[var(--line)] bg-[var(--surface)] p-1">
+                <div aria-label="月份导航" className="inline-flex h-10 items-center gap-0.5 rounded-xl border border-line bg-surface p-1">
                   <button
                     type="button"
                     onClick={handlePrev}
                     aria-label="上一周期"
-                    className="grid h-8 w-8 place-items-center rounded-lg text-[var(--ink-muted)] transition-colors hover:bg-[var(--canvas)] hover:text-[var(--ink)] cursor-pointer"
+                    className="grid h-8 w-8 place-items-center rounded-lg text-ink-muted transition-colors hover:bg-canvas hover:text-ink cursor-pointer"
                   >
                     <ChevronLeft className="h-4 w-4" aria-hidden="true" />
                   </button>
 
-                  <span className="min-w-[78px] px-2 text-center text-xs font-semibold text-[var(--ink)] sm:text-sm">
+                  <span className="min-w-[78px] px-2 text-center text-xs font-semibold text-ink sm:text-sm">
                     <span className="font-mono tabular-nums">{year}</span>年{' '}
                     <span className="font-mono tabular-nums">{monthIndex + 1}</span>月
                   </span>
@@ -281,7 +281,7 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
                     type="button"
                     onClick={handleNext}
                     aria-label="下一周期"
-                    className="grid h-8 w-8 place-items-center rounded-lg text-[var(--ink-muted)] transition-colors hover:bg-[var(--canvas)] hover:text-[var(--ink)]"
+                    className="grid h-8 w-8 place-items-center rounded-lg text-ink-muted transition-colors hover:bg-canvas hover:text-ink"
                   >
                     <ChevronRight className="h-4 w-4" aria-hidden="true" />
                   </button>
@@ -290,13 +290,13 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
                 <button
                   type="button"
                   onClick={handleToday}
-                  className="inline-flex min-h-10 items-center justify-center rounded-xl border border-transparent px-3 text-xs font-semibold text-[var(--ink-muted)] transition-colors hover:border-[var(--line)] hover:bg-[var(--surface)] hover:text-[var(--ink)]"
+                  className="inline-flex min-h-10 items-center justify-center rounded-xl border border-transparent px-3 text-xs font-semibold text-ink-muted transition-colors hover:border-line hover:bg-surface hover:text-ink"
                 >
                   回到今天
                 </button>
 
                 {/* View Switcher (文人胶囊分段器) */}
-                <div className="inline-flex h-10 items-center gap-1 rounded-full border border-[var(--line)]/50 bg-stone-500/[0.04] dark:bg-stone-400/[0.06] p-1 text-xs font-medium">
+                <div className="inline-flex h-10 items-center gap-1 rounded-full border border-line/50 bg-control p-1 text-xs font-medium">
                   {([
                     ['month', '月视图'],
                     ['week', '周视图'],
@@ -308,8 +308,8 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
                       onClick={() => setViewMode(mode)}
                       className={`rounded-full px-3 py-1 transition-all cursor-pointer ${
                         viewMode === mode
-                          ? 'bg-[var(--surface)] font-semibold text-[var(--ink)] shadow-2xs'
-                          : 'text-[var(--ink-muted)] hover:text-[var(--ink)]'
+                          ? 'bg-surface font-semibold text-ink shadow-2xs'
+                          : 'text-ink-muted hover:text-ink'
                       }`}
                     >
                       {label}
@@ -327,8 +327,8 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
                     onClick={() => setIsLayerMenuOpen((open) => !open)}
                     className={`inline-flex h-10 items-center gap-1.5 rounded-xl border px-3 text-xs font-medium transition-colors ${
                       isLayerMenuOpen || enabledLayerCount < CALENDAR_LAYER_OPTIONS.length
-                        ? 'border-[var(--line)] bg-[var(--surface)] text-[var(--ink)]'
-                        : 'border-transparent text-[var(--ink-muted)] hover:border-[var(--line)]/60 hover:bg-[var(--surface)] hover:text-[var(--ink)]'
+                        ? 'border-line bg-surface text-ink'
+                        : 'border-transparent text-ink-muted hover:border-line/60 hover:bg-surface hover:text-ink'
                     }`}
                   >
                     <Filter className="h-3.5 w-3.5" aria-hidden="true" />
@@ -349,7 +349,7 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
                     maxHeight={280}
                     className="p-1.5"
                   >
-                    <div className="px-2.5 py-1.5 text-[11px] font-medium text-[var(--ink-muted)]">
+                    <div className="px-2.5 py-1.5 text-[11px] font-medium text-ink-muted">
                       显示事项
                     </div>
                     {CALENDAR_LAYER_OPTIONS.map(({ key, label, dotClass }) => (
@@ -360,8 +360,8 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
                         onClick={() => handleToggleLayer(key)}
                         className={`flex min-h-9 w-full items-center justify-between rounded-xl px-2.5 py-1.5 text-left text-xs transition-colors ${
                           filters[key]
-                            ? 'text-[var(--ink)] hover:bg-[var(--canvas)]'
-                            : 'text-[var(--ink-muted)] opacity-60 hover:bg-[var(--canvas)] hover:opacity-100'
+                            ? 'text-ink hover:bg-canvas'
+                            : 'text-ink-muted opacity-60 hover:bg-canvas hover:opacity-100'
                         }`}
                       >
                         <span className="flex items-center gap-2">
@@ -369,7 +369,7 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
                           {label}
                         </span>
                         {filters[key] && (
-                          <Check className="h-3.5 w-3.5 text-[var(--accent)]" aria-hidden="true" />
+                          <Check className="h-3.5 w-3.5 text-accent" aria-hidden="true" />
                         )}
                       </button>
                     ))}
@@ -382,11 +382,11 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
                   onClick={() => setIsPoolOpen((prev) => !prev)}
                   className={`inline-flex h-10 items-center justify-center gap-1.5 rounded-full border px-3.5 text-xs font-semibold transition-all cursor-pointer ${
                     isPoolOpen
-                      ? 'border-[var(--line)] bg-[var(--surface)] text-[var(--ink)] shadow-2xs'
-                      : 'border-transparent text-[var(--ink-muted)] hover:border-[var(--line)]/60 hover:bg-[var(--surface)] hover:text-[var(--ink)]'
+                      ? 'border-line bg-surface text-ink shadow-2xs'
+                      : 'border-transparent text-ink-muted hover:border-line/60 hover:bg-surface hover:text-ink'
                   }`}
                 >
-                  <Inbox className="h-3.5 w-3.5 text-[var(--accent)]" aria-hidden="true" />
+                  <Inbox className="h-3.5 w-3.5 text-accent" aria-hidden="true" />
                   <span>待排期池</span>
                   <span className="font-mono text-[10px] tabular-nums opacity-75">
                     {unscheduledTopics.length}
@@ -447,12 +447,12 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
         {/* Drag Overlay */}
         <DragOverlay dropAnimation={null}>
           {draggedTopic ? (
-            <div data-testid="calendar-drag-overlay" className="p-3 rounded-xl border border-[var(--accent)]/55 bg-[var(--surface)] shadow-modal w-64 ring-1 ring-[var(--focus-ring)] select-none pointer-events-none">
+            <div data-testid="calendar-drag-overlay" className="p-3 rounded-xl border border-accent/55 bg-surface shadow-modal w-64 ring-1 ring-focus-ring select-none pointer-events-none">
               <div className="flex items-center gap-1.5 mb-1">
                 <StatusBadge status={draggedTopic.status} />
                 <PriorityBadge priority={draggedTopic.priority} />
               </div>
-              <div className="text-xs font-bold text-stone-900 dark:text-stone-100 line-clamp-1">
+              <div className="text-xs font-bold text-ink line-clamp-1">
                 {draggedTopic.title}
               </div>
             </div>

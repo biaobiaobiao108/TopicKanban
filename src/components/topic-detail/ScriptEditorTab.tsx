@@ -581,7 +581,7 @@ export const ScriptEditorTab: React.FC<ScriptEditorTabProps> = ({
     contentType: 'markdown',
     editorProps: {
       attributes: {
-        class: 'script-editor-font-stack prose prose-stone max-w-none focus:outline-none min-h-[500px] text-stone-900 dark:text-stone-100 font-normal',
+        class: 'script-editor-font-stack prose prose-stone max-w-none focus:outline-none min-h-[500px] text-ink font-normal',
       },
       handleScrollToSelection: () => isTypewriterActiveRef.current,
       handlePaste: (view, event) => {
@@ -1140,7 +1140,7 @@ export const ScriptEditorTab: React.FC<ScriptEditorTabProps> = ({
       data-script-zen-mode={String(isZenMode)}
       className={
         isZenMode
-          ? 'script-editor-surface pwa-fullscreen-surface fixed inset-0 z-50 flex flex-col bg-[var(--canvas)] transition-all duration-300 ease-in-out'
+          ? 'script-editor-surface pwa-fullscreen-surface fixed inset-0 z-50 flex flex-col bg-canvas transition-all duration-300 ease-in-out'
           : 'script-editor-surface flex h-full w-full flex-col'
       }
     >
@@ -1153,18 +1153,18 @@ export const ScriptEditorTab: React.FC<ScriptEditorTabProps> = ({
         {draftConflict && (
           <div className="space-y-4">
             <div className="grid gap-3 sm:grid-cols-2">
-              <div className="rounded-xl border border-red-200 dark:border-red-900/60 bg-red-50 dark:bg-red-950/40 p-4">
-                <div className="font-semibold text-red-900 dark:text-red-200">当前本地文案</div>
-                <div className="mt-2 text-xs text-stone-600 dark:text-stone-300">{latestContentRef.current?.wordCount || 0} 字 · 尚未同步</div>
+              <div className="rounded-xl border border-danger-line bg-danger-soft p-4">
+                <div className="font-semibold text-danger">当前本地文案</div>
+                <div className="mt-2 text-xs text-ink-muted">{latestContentRef.current?.wordCount || 0} 字 · 尚未同步</div>
               </div>
-              <div className="rounded-xl border border-stone-200 dark:border-stone-800 bg-stone-50 dark:bg-stone-800/60 p-4">
-                <div className="font-semibold text-stone-900 dark:text-stone-100">云端最新版本</div>
-                <div className="mt-2 text-xs text-stone-600 dark:text-stone-300">{draftConflict.remote ? `${draftConflict.remote.word_count} 字 · ${formatBeijingDateTime(draftConflict.remote.updated_at)}` : '云端尚无文案'}</div>
+              <div className="rounded-xl border border-line bg-canvas p-4">
+                <div className="font-semibold text-ink">云端最新版本</div>
+                <div className="mt-2 text-xs text-ink-muted">{draftConflict.remote ? `${draftConflict.remote.word_count} 字 · ${formatBeijingDateTime(draftConflict.remote.updated_at)}` : '云端尚无文案'}</div>
               </div>
             </div>
             <div className="flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
-              <button type="button" onClick={() => void resolveDraftConflict('remote')} className="min-h-11 rounded-lg border border-stone-300 dark:border-stone-700 bg-white dark:bg-stone-800 px-4 py-2 text-sm font-semibold text-stone-700 dark:text-stone-200 hover:bg-stone-50 dark:hover:bg-stone-700">使用云端版本</button>
-              <button type="button" onClick={() => void resolveDraftConflict('local')} className="min-h-11 rounded-lg bg-[var(--accent)] px-4 py-2 text-sm font-semibold text-white hover:bg-[var(--accent-dark)]">保留本地文案</button>
+              <button type="button" onClick={() => void resolveDraftConflict('remote')} className="min-h-11 rounded-lg border border-line bg-surface px-4 py-2 text-sm font-semibold text-ink hover:bg-canvas">使用云端版本</button>
+              <button type="button" onClick={() => void resolveDraftConflict('local')} className="min-h-11 rounded-lg bg-accent px-4 py-2 text-sm font-semibold text-white hover:bg-accent-dark">保留本地文案</button>
             </div>
           </div>
         )}
@@ -1173,7 +1173,7 @@ export const ScriptEditorTab: React.FC<ScriptEditorTabProps> = ({
       {/* Top Floating / Fixed Toolbar (左右空间对称排布) */}
       {/* Top Floating / Fixed Toolbar (配合顶栏设计语言，通透精致、左右对称) */}
       {!isZenMode && (
-        <div className="script-editor-toolbar relative z-30 flex h-12 w-full shrink-0 items-center justify-between border-b border-[var(--line)]/60 bg-[var(--surface)]/80 backdrop-blur-md px-3 sm:px-6 transition-colors">
+        <div className="script-editor-toolbar relative z-30 flex h-12 w-full shrink-0 items-center justify-between border-b border-line/60 bg-surface/80 backdrop-blur-md px-3 sm:px-6 transition-colors">
           {/* Left: Outline trigger & Reference panel & Auto-save badge */}
           <div className="flex items-center gap-1.5 sm:gap-2">
             {/* Outline Toggle */}
@@ -1186,11 +1186,11 @@ export const ScriptEditorTab: React.FC<ScriptEditorTabProps> = ({
               aria-controls="script-outline"
               className={`flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-medium transition-all cursor-pointer ${
                 isOutlineOpen
-                  ? 'bg-[var(--accent-soft)] text-[var(--accent-dark)] font-semibold shadow-2xs ring-1 ring-[var(--accent)]/20'
-                  : 'text-[var(--ink-muted)] hover:text-[var(--ink)] hover:bg-stone-500/[0.06]'
+                  ? 'bg-accent-soft text-accent-dark font-semibold shadow-2xs ring-1 ring-accent/20'
+                  : 'text-ink-muted hover:text-ink hover:bg-control'
               }`}
             >
-              <Compass className="h-3.5 w-3.5 text-[var(--accent)]" />
+              <Compass className="h-3.5 w-3.5 text-accent" />
               <span>大纲</span>
               {outline.flatItems.length > 0 && (
                 <span className="text-[10px] font-mono opacity-80 tabular-nums">
@@ -1208,11 +1208,11 @@ export const ScriptEditorTab: React.FC<ScriptEditorTabProps> = ({
                 aria-pressed={isReferenceOpen}
                 className={`flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-medium transition-all cursor-pointer ${
                   isReferenceOpen
-                    ? 'bg-[var(--accent-soft)] text-[var(--accent-dark)] font-semibold shadow-2xs ring-1 ring-[var(--accent)]/20'
-                    : 'text-[var(--ink-muted)] hover:text-[var(--ink)] hover:bg-stone-500/[0.06]'
+                    ? 'bg-accent-soft text-accent-dark font-semibold shadow-2xs ring-1 ring-accent/20'
+                    : 'text-ink-muted hover:text-ink hover:bg-control'
                 }`}
               >
-                <BookOpen className="h-3.5 w-3.5 text-[var(--accent)]" />
+                <BookOpen className="h-3.5 w-3.5 text-accent" />
                 <span className="hidden sm:inline">事实参考</span>
               </button>
             )}
@@ -1225,70 +1225,70 @@ export const ScriptEditorTab: React.FC<ScriptEditorTabProps> = ({
               aria-pressed={isReportSplitOpen}
               className={`flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-medium transition-all cursor-pointer ${
                 isReportSplitOpen
-                  ? 'bg-[var(--accent-soft)] text-[var(--accent-dark)] font-semibold shadow-2xs ring-1 ring-[var(--accent)]/20'
-                  : 'text-[var(--ink-muted)] hover:text-[var(--ink)] hover:bg-stone-500/[0.06]'
+                  ? 'bg-accent-soft text-accent-dark font-semibold shadow-2xs ring-1 ring-accent/20'
+                  : 'text-ink-muted hover:text-ink hover:bg-control'
               }`}
             >
-              <Columns2 className="h-3.5 w-3.5 text-[var(--accent)]" />
+              <Columns2 className="h-3.5 w-3.5 text-accent" />
               <span className="hidden sm:inline">对照报告</span>
             </button>
 
             {/* Auto save indicator pill */}
-            <div className="flex items-center gap-1.5 rounded-full bg-stone-500/[0.04] px-2.5 py-0.5 text-[11px] text-[var(--ink-muted)] select-none dark:bg-stone-400/[0.06]" role="status" aria-live="polite">
+            <div className="flex items-center gap-1.5 rounded-full bg-control px-2.5 py-0.5 text-[11px] text-ink-muted select-none" role="status" aria-live="polite">
               {saveStatus === 'saving' && (
                 <>
-                  <Cloud className="h-3 w-3 animate-pulse text-[var(--accent)]" aria-hidden="true" />
+                  <Cloud className="h-3 w-3 animate-pulse text-accent" aria-hidden="true" />
                   <span className="hidden sm:inline">同步中…</span>
                 </>
               )}
               {saveStatus === 'saved' && (
                 <>
-                  <CheckCircle2 className="h-3 w-3 text-emerald-600/90 dark:text-emerald-400/90" aria-hidden="true" />
+                  <CheckCircle2 className="h-3 w-3 text-success/90" aria-hidden="true" />
                   <span className="hidden sm:inline">已同步</span>
                 </>
               )}
               {saveStatus === 'local' && (
                 <>
-                  <Save className="h-3 w-3 text-stone-500 dark:text-stone-400" aria-hidden="true" />
+                  <Save className="h-3 w-3 text-ink-muted" aria-hidden="true" />
                   <span className="hidden sm:inline">本地已暂存</span>
                 </>
               )}
               {saveStatus === 'unsaved' && (
                 <>
-                  <Save className="h-3 w-3 text-stone-500 dark:text-stone-400" aria-hidden="true" />
+                  <Save className="h-3 w-3 text-ink-muted" aria-hidden="true" />
                   <span className="hidden sm:inline">未保存</span>
                 </>
               )}
               {saveStatus === 'pending' && (
                 <>
-                  <Save className="h-3 w-3 text-amber-600 dark:text-amber-400" aria-hidden="true" />
+                  <Save className="h-3 w-3 text-warning" aria-hidden="true" />
                   <span className="hidden sm:inline">待同步</span>
                 </>
               )}
               {saveStatus === 'cache-error' && (
                 <>
-                  <AlertTriangle className="h-3 w-3 text-red-600 dark:text-red-400" aria-hidden="true" />
-                  <span className="text-red-600 dark:text-red-400">本地暂存失败</span>
+                  <AlertTriangle className="h-3 w-3 text-danger" aria-hidden="true" />
+                  <span className="text-danger">本地暂存失败</span>
                 </>
               )}
               {saveStatus === 'conflict' && (
                 <>
-                  <AlertTriangle className="h-3 w-3 text-red-600 dark:text-red-400" aria-hidden="true" />
-                  <span className="hidden sm:inline text-red-600 dark:text-red-400 font-semibold">冲突</span>
+                  <AlertTriangle className="h-3 w-3 text-danger" aria-hidden="true" />
+                  <span className="hidden sm:inline text-danger font-semibold">冲突</span>
                 </>
               )}
             </div>
           </div>
 
           {/* Center: Word count & Estimated duration (桌面端物理绝对居中，呼应顶栏分段器) */}
-          <div className="hidden md:flex md:absolute md:left-1/2 md:-translate-x-1/2 items-center gap-1.5 rounded-full bg-stone-500/[0.04] px-3.5 py-1 text-xs text-[var(--ink-muted)] select-none border border-[var(--line)]/40 dark:bg-stone-400/[0.06]">
-            <span className="font-semibold text-[var(--ink)] tabular-nums">
+          <div className="hidden md:flex md:absolute md:left-1/2 md:-translate-x-1/2 items-center gap-1.5 rounded-full bg-control px-3.5 py-1 text-xs text-ink-muted select-none border border-line/40">
+            <span className="font-semibold text-ink tabular-nums">
               {charCount.toLocaleString()}
             </span>
             <span className="text-[11px]">字</span>
             <span className="opacity-30 mx-0.5">·</span>
             <span className="flex items-center gap-1 font-mono text-[11px] tabular-nums">
-              <Clock className="w-3 h-3 text-[var(--ink-muted)] shrink-0" />
+              <Clock className="w-3 h-3 text-ink-muted shrink-0" />
               <span>{estMinutes}分{estSeconds}秒</span>
             </span>
           </div>
@@ -1296,7 +1296,7 @@ export const ScriptEditorTab: React.FC<ScriptEditorTabProps> = ({
           {/* Right: Tools & Actions */}
           <div className="flex items-center gap-1 sm:gap-1.5">
             {/* Mobile-only word count */}
-            <div className="flex md:hidden items-center text-[11px] text-[var(--ink-muted)] font-mono tabular-nums pr-1">
+            <div className="flex md:hidden items-center text-[11px] text-ink-muted font-mono tabular-nums pr-1">
               <span>{charCount}字</span>
             </div>
 
@@ -1305,9 +1305,9 @@ export const ScriptEditorTab: React.FC<ScriptEditorTabProps> = ({
               type="button"
               onClick={copyFullScript}
               aria-label="复制文案全文"
-              className="grid h-8 w-8 place-items-center rounded-full text-xs text-[var(--ink-muted)] hover:text-[var(--ink)] hover:bg-stone-500/[0.06] transition-all cursor-pointer"
+              className="grid h-8 w-8 place-items-center rounded-full text-xs text-ink-muted hover:text-ink hover:bg-control transition-all cursor-pointer"
             >
-              {copied ? <Check className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
+              {copied ? <Check className="w-3.5 h-3.5 text-success" /> : <Copy className="w-3.5 h-3.5" />}
             </button>
 
             {/* Immersive Writing Mode (Zen Mode) Toggle */}
@@ -1315,9 +1315,9 @@ export const ScriptEditorTab: React.FC<ScriptEditorTabProps> = ({
               type="button"
               onClick={() => setIsZenMode(true)}
               aria-label="开启沉浸写作模式"
-              className="flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-medium text-[var(--ink-muted)] hover:text-[var(--ink)] hover:bg-stone-500/[0.06] transition-all cursor-pointer"
+              className="flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-medium text-ink-muted hover:text-ink hover:bg-control transition-all cursor-pointer"
             >
-              <Maximize2 className="w-3.5 h-3.5 text-[var(--accent)]" />
+              <Maximize2 className="w-3.5 h-3.5 text-accent" />
               <span className="hidden sm:inline">沉浸写作</span>
             </button>
 
@@ -1326,7 +1326,7 @@ export const ScriptEditorTab: React.FC<ScriptEditorTabProps> = ({
               type="button"
               onClick={() => setIsTeleprompterOpen(true)}
               aria-label="开启全屏沉浸录音提词器"
-              className="flex items-center gap-1.5 rounded-full bg-[var(--accent)] px-3.5 py-1 text-xs font-semibold text-white shadow-soft-pill hover:bg-[var(--accent-dark)] hover:shadow-xs active:scale-95 transition-all cursor-pointer"
+              className="flex items-center gap-1.5 rounded-full bg-accent px-3.5 py-1 text-xs font-semibold text-white shadow-soft-pill hover:bg-accent-dark hover:shadow-xs active:scale-95 transition-all cursor-pointer"
             >
               <Mic className="w-3.5 h-3.5 stroke-[2.5]" />
               <span>录音提词</span>
@@ -1337,9 +1337,9 @@ export const ScriptEditorTab: React.FC<ScriptEditorTabProps> = ({
 
       {/* Multi-device Presence Lock Conflict Alert Banner (Hidden in Zen Mode) */}
       {!isZenMode && presenceState.is_locked && !dismissLockBanner && (
-        <div className="flex shrink-0 items-center justify-between gap-2 border-b border-amber-300 dark:border-amber-800 bg-amber-50 dark:bg-amber-950/60 px-3 py-2 text-xs font-semibold text-amber-900 dark:text-amber-200 sm:px-6 animate-in fade-in duration-200">
+        <div className="flex shrink-0 items-center justify-between gap-2 border-b border-warning-soft bg-warning-soft px-3 py-2 text-xs font-semibold text-warning sm:px-6 animate-in fade-in duration-200">
           <div className="flex items-center gap-2 min-w-0">
-            <ShieldAlert className="h-4 w-4 text-amber-600 dark:text-amber-400 shrink-0" />
+            <ShieldAlert className="h-4 w-4 text-warning shrink-0" />
             <span className="truncate">
               ⚠️ 检测到本文案当前正在【{presenceState.active_editor?.device_name || '其他设备'}】上编辑中（活跃于刚刚），请留意多端同步，避免互相覆盖。
             </span>
@@ -1347,7 +1347,7 @@ export const ScriptEditorTab: React.FC<ScriptEditorTabProps> = ({
           <button
             type="button"
             onClick={() => setDismissLockBanner(true)}
-            className="text-stone-400 dark:text-stone-500 hover:text-stone-700 dark:hover:text-stone-300 p-1 rounded-lg shrink-0 cursor-pointer"
+            className="text-ink-muted hover:text-ink p-1 rounded-lg shrink-0 cursor-pointer"
             aria-label="关闭提示"
           >
             <X className="w-3.5 h-3.5" />
@@ -1368,11 +1368,11 @@ export const ScriptEditorTab: React.FC<ScriptEditorTabProps> = ({
               aria-label="切换专注打字模式"
               className={`flex items-center gap-1.5 px-3.5 py-2 rounded-full text-xs backdrop-blur-md shadow-md hover:shadow-lg hover:-translate-y-0.5 transition-all cursor-pointer ${
                 isFocusTypewriterMode
-                  ? 'border border-[var(--accent)]/40 bg-[var(--accent-soft)] text-[var(--accent-dark)] font-semibold'
-                  : 'border border-[var(--line)] bg-[var(--surface)]/95 text-stone-700 dark:text-stone-200 hover:text-stone-950 dark:hover:text-white hover:bg-[var(--canvas)] font-medium'
+                  ? 'border border-accent/40 bg-accent-soft text-accent-dark font-semibold'
+                  : 'border border-line bg-surface/95 text-ink hover:text-ink hover:bg-canvas font-medium'
               }`}
             >
-              <Target className="w-4 h-4 text-[var(--accent)]" />
+              <Target className="w-4 h-4 text-accent" />
               <span>{isFocusTypewriterMode ? '专注打字：开' : '专注打字：关'}</span>
             </button>
 
@@ -1381,46 +1381,46 @@ export const ScriptEditorTab: React.FC<ScriptEditorTabProps> = ({
                 type="button"
                 onClick={toggleReferencePanel}
                 aria-label="展开/收起事实参考"
-                className="flex items-center gap-1.5 px-3.5 py-2 rounded-full border border-[var(--line)] bg-[var(--surface)]/95 hover:bg-[var(--canvas)] backdrop-blur-md text-xs font-medium text-stone-700 dark:text-stone-200 hover:text-stone-950 dark:hover:text-white shadow-md hover:shadow-lg hover:-translate-y-0.5 transition-all cursor-pointer"
+                className="flex items-center gap-1.5 px-3.5 py-2 rounded-full border border-line bg-surface/95 hover:bg-canvas backdrop-blur-md text-xs font-medium text-ink hover:text-ink shadow-md hover:shadow-lg hover:-translate-y-0.5 transition-all cursor-pointer"
               >
-                <BookOpen className="w-4 h-4 text-[var(--accent)]" />
+                <BookOpen className="w-4 h-4 text-accent" />
                 <span className="hidden sm:inline">事实参考</span>
               </button>
             )}
           </div>
 
           {/* Bottom-Right: Floating Stats */}
-          <div className={`fixed right-5 sm:right-8 bottom-5 sm:bottom-7 z-40 flex items-center gap-2.5 bg-[var(--surface)]/95 backdrop-blur-md border border-[var(--line)] text-[var(--ink)] px-4 py-2 rounded-full text-xs font-sans shadow-md hover:shadow-lg transition-all duration-300 select-none ${isReferenceOpen ? 'script-editor-zen-reference-offset' : ''} ${isTypingZen ? 'opacity-25 hover:opacity-100' : 'opacity-100'}`}>
-            <span className="font-semibold text-[var(--ink)] font-sans">
-              <span className="font-mono tabular-nums">{charCount.toLocaleString()}</span> <span className="font-normal text-[var(--ink-muted)] text-[11px]">字</span>
+          <div className={`fixed right-5 sm:right-8 bottom-5 sm:bottom-7 z-40 flex items-center gap-2.5 bg-surface/95 backdrop-blur-md border border-line text-ink px-4 py-2 rounded-full text-xs font-sans shadow-md hover:shadow-lg transition-all duration-300 select-none ${isReferenceOpen ? 'script-editor-zen-reference-offset' : ''} ${isTypingZen ? 'opacity-25 hover:opacity-100' : 'opacity-100'}`}>
+            <span className="font-semibold text-ink font-sans">
+              <span className="font-mono tabular-nums">{charCount.toLocaleString()}</span> <span className="font-normal text-ink-muted text-[11px]">字</span>
             </span>
             <span className="opacity-40">·</span>
-            <span className="flex items-center gap-1.5 text-[var(--ink-muted)] font-sans text-[11px]">
-              <Clock className="w-3.5 h-3.5 text-[var(--ink-muted)] shrink-0" />
+            <span className="flex items-center gap-1.5 text-ink-muted font-sans text-[11px]">
+              <Clock className="w-3.5 h-3.5 text-ink-muted shrink-0" />
               <span><span className="font-mono tabular-nums">{estMinutes}</span>分<span className="font-mono tabular-nums">{estSeconds}</span>秒</span>
             </span>
-            <span className="opacity-30 text-[var(--line)]">·</span>
+            <span className="opacity-30 text-line">·</span>
             <div className="grid h-6 w-6 shrink-0 place-items-center" aria-live="polite">
               {saveStatus === 'saving' && (
-                <Cloud className="h-3.5 w-3.5 animate-pulse text-[var(--accent)]" aria-label="正在同步至云端" role="img" />
+                <Cloud className="h-3.5 w-3.5 animate-pulse text-accent" aria-label="正在同步至云端" role="img" />
               )}
               {saveStatus === 'saved' && (
-                <CheckCircle2 className="h-3.5 w-3.5 text-emerald-500" aria-label="云端已同步" role="img" />
+                <CheckCircle2 className="h-3.5 w-3.5 text-success" aria-label="云端已同步" role="img" />
               )}
               {saveStatus === 'local' && (
-                <Save className="h-3.5 w-3.5 text-stone-500 dark:text-stone-400" aria-label="文案已暂存到浏览器本地" role="img" />
+                <Save className="h-3.5 w-3.5 text-ink-muted" aria-label="文案已暂存到浏览器本地" role="img" />
               )}
               {saveStatus === 'unsaved' && (
-                <Save className="h-3.5 w-3.5 text-stone-500 dark:text-stone-400" aria-label="文案尚未保存" role="img" />
+                <Save className="h-3.5 w-3.5 text-ink-muted" aria-label="文案尚未保存" role="img" />
               )}
               {saveStatus === 'pending' && (
-                <Save className="h-3.5 w-3.5 text-amber-600 dark:text-amber-400" aria-label="文案等待同步" role="img" />
+                <Save className="h-3.5 w-3.5 text-warning" aria-label="文案等待同步" role="img" />
               )}
               {saveStatus === 'cache-error' && (
-                <AlertTriangle className="h-3.5 w-3.5 text-red-500" aria-label="浏览器本地暂存失败" role="img" />
+                <AlertTriangle className="h-3.5 w-3.5 text-danger" aria-label="浏览器本地暂存失败" role="img" />
               )}
               {saveStatus === 'conflict' && (
-                <AlertTriangle className="h-3.5 w-3.5 text-red-500" aria-label="检测到版本冲突" role="img" />
+                <AlertTriangle className="h-3.5 w-3.5 text-danger" aria-label="检测到版本冲突" role="img" />
               )}
             </div>
           </div>
@@ -1434,19 +1434,19 @@ export const ScriptEditorTab: React.FC<ScriptEditorTabProps> = ({
           <>
             <aside
               style={{ width: `${Math.min(reportSplitWidth, getSplitWidthBounds().max)}px` }}
-              className="min-w-0 shrink-0 h-full border-r border-[var(--line)] bg-[var(--surface)]/70 flex flex-col z-10 transition-all duration-75 relative select-text"
+              className="min-w-0 shrink-0 h-full border-r border-line bg-surface/70 flex flex-col z-10 transition-all duration-75 relative select-text"
             >
               {/* Split Panel Header */}
-              <div className="flex h-11 items-center justify-between border-b border-[var(--line)]/60 px-4 bg-[var(--surface)] select-none shrink-0">
+              <div className="flex h-11 items-center justify-between border-b border-line/60 px-4 bg-surface select-none shrink-0">
                 <div className="flex items-center gap-2 min-w-0">
                   <div
-                    className="flex h-6 w-6 items-center justify-center rounded-md bg-[var(--accent-soft)] text-[var(--accent-dark)] dark:text-[var(--accent)] shrink-0"
+                    className="flex h-6 w-6 items-center justify-center rounded-md bg-accent-soft text-accent-dark shrink-0"
                     aria-label="选题报告"
                   >
                     <FileText className="h-3.5 w-3.5" />
                   </div>
                   {report?.word_count ? (
-                    <span className="rounded-full bg-stone-500/[0.05] dark:bg-stone-400/[0.08] px-2 py-0.5 text-[10px] font-mono text-[var(--ink-muted)] tabular-nums shrink-0">
+                    <span className="rounded-full bg-control px-2 py-0.5 text-[10px] font-mono text-ink-muted tabular-nums shrink-0">
                       {report.word_count.toLocaleString()} 字
                     </span>
                   ) : null}
@@ -1466,7 +1466,7 @@ export const ScriptEditorTab: React.FC<ScriptEditorTabProps> = ({
                           }
                         }}
                         aria-label="引用划选内容至文案"
-                        className="inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-medium text-[var(--accent-dark)] dark:text-[var(--accent)] hover:bg-[var(--accent-soft)] transition-colors cursor-pointer"
+                        className="inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-medium text-accent-dark hover:bg-accent-soft transition-colors cursor-pointer"
                       >
                         <Quote className="h-3 w-3" />
                         <span>引用划选</span>
@@ -1475,17 +1475,17 @@ export const ScriptEditorTab: React.FC<ScriptEditorTabProps> = ({
                         type="button"
                         onClick={() => handleInsertReportContent(report.content_markdown || '', false)}
                         aria-label="插入报告全文至文案"
-                        className="inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-medium text-[var(--ink-muted)] hover:text-[var(--ink)] hover:bg-stone-500/[0.06] transition-colors cursor-pointer"
+                        className="inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-medium text-ink-muted hover:text-ink hover:bg-control transition-colors cursor-pointer"
                       >
                         <Plus className="h-3 w-3" />
                         <span>插入全文</span>
                       </button>
-                      <div className="h-3.5 w-px bg-[var(--line)]/60 mx-1" />
+                      <div className="h-3.5 w-px bg-line/60 mx-1" />
                     </>
                   )}
 
                   {/* Font size switcher */}
-                  <div className="flex items-center rounded-full bg-stone-500/[0.05] p-0.5 text-[11px] text-[var(--ink-muted)] dark:bg-stone-400/[0.08]">
+                  <div className="flex items-center rounded-full bg-control p-0.5 text-[11px] text-ink-muted">
                     <button
                       type="button"
                       onClick={() => {
@@ -1495,8 +1495,8 @@ export const ScriptEditorTab: React.FC<ScriptEditorTabProps> = ({
                       aria-label="小字号"
                       className={`px-2 py-0.5 rounded-full transition-colors cursor-pointer ${
                         reportFontSize === 'compact'
-                          ? 'bg-[var(--surface)] text-[var(--ink)] font-semibold shadow-2xs'
-                          : 'hover:text-[var(--ink)]'
+                          ? 'bg-surface text-ink font-semibold shadow-2xs'
+                          : 'hover:text-ink'
                       }`}
                     >
                       小
@@ -1510,8 +1510,8 @@ export const ScriptEditorTab: React.FC<ScriptEditorTabProps> = ({
                       aria-label="标准字号"
                       className={`px-2 py-0.5 rounded-full transition-colors cursor-pointer ${
                         reportFontSize === 'normal'
-                          ? 'bg-[var(--surface)] text-[var(--ink)] font-semibold shadow-2xs'
-                          : 'hover:text-[var(--ink)]'
+                          ? 'bg-surface text-ink font-semibold shadow-2xs'
+                          : 'hover:text-ink'
                       }`}
                     >
                       中
@@ -1525,8 +1525,8 @@ export const ScriptEditorTab: React.FC<ScriptEditorTabProps> = ({
                       aria-label="大字号"
                       className={`px-2 py-0.5 rounded-full transition-colors cursor-pointer ${
                         reportFontSize === 'large'
-                          ? 'bg-[var(--surface)] text-[var(--ink)] font-semibold shadow-2xs'
-                          : 'hover:text-[var(--ink)]'
+                          ? 'bg-surface text-ink font-semibold shadow-2xs'
+                          : 'hover:text-ink'
                       }`}
                     >
                       大
@@ -1540,7 +1540,7 @@ export const ScriptEditorTab: React.FC<ScriptEditorTabProps> = ({
                         const ok = await copyTextToClipboard(report.content_markdown || '');
                         if (ok) showToast({ message: '已复制报告全文', tone: 'success' });
                       }}
-                      className="p-1.5 text-[var(--ink-muted)] hover:text-[var(--ink)] hover:bg-stone-500/[0.06] rounded-full transition-colors cursor-pointer"
+                      className="p-1.5 text-ink-muted hover:text-ink hover:bg-control rounded-full transition-colors cursor-pointer"
                       aria-label="复制报告全文"
                     >
                       <Copy className="h-3.5 w-3.5" />
@@ -1549,7 +1549,7 @@ export const ScriptEditorTab: React.FC<ScriptEditorTabProps> = ({
                   <button
                     type="button"
                     onClick={() => setIsReportSplitOpen(false)}
-                    className="p-1.5 text-[var(--ink-muted)] hover:text-[var(--ink)] hover:bg-stone-500/[0.06] rounded-full transition-colors cursor-pointer"
+                    className="p-1.5 text-ink-muted hover:text-ink hover:bg-control rounded-full transition-colors cursor-pointer"
                     aria-label="关闭分屏"
                   >
                     <X className="h-3.5 w-3.5" />
@@ -1560,10 +1560,10 @@ export const ScriptEditorTab: React.FC<ScriptEditorTabProps> = ({
               {/* Split Panel Content */}
               <FloatingScrollbar className="p-5 sm:p-6 lg:p-7" wrapperClassName="flex-1 min-h-0">
                 {!report || !report.content_markdown?.trim() ? (
-                  <div className="py-16 text-center text-stone-400 dark:text-stone-500 space-y-2.5">
-                    <FileText className="w-8 h-8 mx-auto text-stone-300 dark:text-stone-600 stroke-[1.5]" />
-                    <div className="text-xs font-medium text-[var(--ink)]">当前选题尚未录入选题报告</div>
-                    <p className="text-[11px] text-[var(--ink-muted)] max-w-xs mx-auto leading-relaxed">
+                  <div className="py-16 text-center text-ink-muted space-y-2.5">
+                    <FileText className="w-8 h-8 mx-auto text-ink-faint stroke-[1.5]" />
+                    <div className="text-xs font-medium text-ink">当前选题尚未录入选题报告</div>
+                    <p className="text-[11px] text-ink-muted max-w-xs mx-auto leading-relaxed">
                       可切换至「选题报告」Tab 整理资料与大纲，写文案时在此分屏对照参考。
                     </p>
                   </div>
@@ -1588,7 +1588,7 @@ export const ScriptEditorTab: React.FC<ScriptEditorTabProps> = ({
               onPointerMove={handleSplitResizeMove}
               onPointerUp={handleSplitResizeEnd}
               onPointerCancel={handleSplitResizeEnd}
-              className="group relative w-1.5 shrink-0 cursor-col-resize hover:bg-[var(--accent)]/30 active:bg-[var(--accent)]/50 transition-colors select-none z-20 flex items-center justify-center"
+              className="group relative w-1.5 shrink-0 cursor-col-resize hover:bg-accent/30 active:bg-accent/50 transition-colors select-none z-20 flex items-center justify-center"
               aria-label="拖拽调整分屏宽度，双击重置"
               onDoubleClick={() => {
                 const defaultW = getDefaultReportSplitWidth();
@@ -1596,7 +1596,7 @@ export const ScriptEditorTab: React.FC<ScriptEditorTabProps> = ({
                 localStorage.setItem('topic_report_split_width', String(defaultW));
               }}
             >
-              <div className="w-0.5 h-8 rounded-full bg-stone-300 dark:bg-stone-600 group-hover:bg-[var(--accent)] transition-colors" />
+              <div className="w-0.5 h-8 rounded-full bg-ink-faint/50 group-hover:bg-accent transition-colors" />
             </div>
           </>
         )}
@@ -1615,7 +1615,7 @@ export const ScriptEditorTab: React.FC<ScriptEditorTabProps> = ({
               ['--script-editor-font-size' as string]: FONT_SIZE_MAP[settings?.editor_font_size || 'standard'],
               ['--script-editor-line-height' as string]: LINE_HEIGHT_MAP[settings?.editor_line_height || 'relaxed'],
             }}
-            className={`script-editor-canvas-container flex-1 min-w-0 bg-[var(--canvas)] flex justify-center cursor-text transition-colors ${
+            className={`script-editor-canvas-container flex-1 min-w-0 bg-canvas flex justify-center cursor-text transition-colors ${
               isTypewriterActive ? 'script-editor-focus-mode' : ''
             }`}
           >
@@ -1626,7 +1626,7 @@ export const ScriptEditorTab: React.FC<ScriptEditorTabProps> = ({
                   : 'pt-6 pb-36 sm:pt-8 sm:pb-48'
               }`}
             >
-              <div className="mb-3 border-b border-[var(--line)] pb-2">
+              <div className="mb-3 border-b border-line pb-2">
                 <label htmlFor="script-draft-title" className="sr-only">文案标题</label>
                 <input
                   id="script-draft-title"
@@ -1635,7 +1635,7 @@ export const ScriptEditorTab: React.FC<ScriptEditorTabProps> = ({
                   value={draftTitle}
                   onChange={(event) => handleDraftTitleChange(event.target.value)}
                   maxLength={200}
-                  className="script-editor-title min-h-10 w-full border-0 bg-transparent px-0 text-2xl font-semibold tracking-tight text-[var(--ink)] outline-none ring-0 shadow-none placeholder:text-[var(--ink-muted)]/40 focus:ring-0 focus:outline-none focus:shadow-none sm:text-3xl"
+                  className="script-editor-title min-h-10 w-full border-0 bg-transparent px-0 text-2xl font-semibold tracking-tight text-ink outline-none ring-0 shadow-none placeholder:text-ink-muted/40 focus:ring-0 focus:outline-none focus:shadow-none sm:text-3xl"
                   placeholder="输入这期视频的文案标题"
                 />
               </div>

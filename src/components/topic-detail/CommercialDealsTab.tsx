@@ -86,7 +86,7 @@ export const CommercialDealsTab: React.FC<CommercialDealsTabProps> = ({ topic, o
   };
 
   if (dealsQuery.isLoading) {
-    return <div className="py-16 text-center text-sm text-stone-500">正在加载关联商单...</div>;
+    return <div className="py-16 text-center text-sm text-ink-muted">正在加载关联商单...</div>;
   }
 
   return (
@@ -94,33 +94,33 @@ export const CommercialDealsTab: React.FC<CommercialDealsTabProps> = ({ topic, o
       <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
         <div>
           <div className="flex items-center gap-2">
-            <Handshake className="h-5 w-5 text-[var(--accent)]" />
-            <h3 className="text-lg font-bold text-stone-900 dark:text-stone-100">关联商单</h3>
-            <span className="rounded-full bg-[var(--accent-soft)] px-2 py-0.5 text-xs font-bold text-[var(--accent)]">{deals.length}</span>
+            <Handshake className="h-5 w-5 text-accent" />
+            <h3 className="text-lg font-bold text-ink">关联商单</h3>
+            <span className="rounded-full bg-accent-soft px-2 py-0.5 text-xs font-bold text-accent">{deals.length}</span>
           </div>
-          <p className="mt-1 text-sm text-stone-500 dark:text-stone-400">选题与商务履约保持独立；你可以显式切换主选题或解除关联。</p>
+          <p className="mt-1 text-sm text-ink-muted">选题与商务履约保持独立；你可以显式切换主选题或解除关联。</p>
         </div>
       </div>
 
-      {error && <div role="alert" aria-live="polite" className="rounded-xl border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-800 dark:border-red-900/60 dark:bg-red-950/30 dark:text-red-200">{error}</div>}
+      {error && <div role="alert" aria-live="polite" className="rounded-xl border border-danger-line bg-danger-soft px-3 py-2 text-sm text-danger">{error}</div>}
 
       {activeDeals.length === 0 ? (
-        <div className="rounded-2xl border border-dashed border-[var(--line)] bg-[var(--surface)] p-10 text-center text-sm text-[var(--ink-muted)]">这个选题暂未关联商单。</div>
+        <div className="rounded-2xl border border-dashed border-line bg-surface p-10 text-center text-sm text-ink-muted">这个选题暂未关联商单。</div>
       ) : (
         <div className="grid gap-3">
           {activeDeals.map((deal) => {
             const isBusy = busyId === deal.id;
             return (
-              <article key={deal.id} className="rounded-2xl border border-[var(--line)] bg-[var(--surface)] p-4 shadow-subtle sm:p-5">
+              <article key={deal.id} className="rounded-2xl border border-line bg-surface p-4 shadow-subtle sm:p-5">
                 <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
                   <button type="button" onClick={() => onOpenDeal(deal.id)} className="min-w-0 text-left">
-                    <div className="flex flex-wrap items-center gap-2 text-xs font-semibold text-stone-500 dark:text-stone-400">
+                    <div className="flex flex-wrap items-center gap-2 text-xs font-semibold text-ink-muted">
                       <span>{deal.brand_name || '未命名品牌'}</span>
-                      <span className="rounded-full bg-[var(--accent-soft)] px-2 py-0.5 text-[var(--accent)]">{STATUS_LABELS[deal.status]}</span>
-                      <span className={`rounded-full px-2 py-0.5 ${deal.payment_status === 'paid' ? 'bg-emerald-500/10 text-emerald-700 dark:text-emerald-300' : 'bg-amber-500/10 text-amber-700 dark:text-amber-300'}`}>{PAYMENT_LABELS[deal.payment_status]}</span>
+                      <span className="rounded-full bg-accent-soft px-2 py-0.5 text-accent">{STATUS_LABELS[deal.status]}</span>
+                      <span className={`rounded-full px-2 py-0.5 ${deal.payment_status === 'paid' ? 'bg-success-soft text-success' : 'bg-warning-soft text-warning'}`}>{PAYMENT_LABELS[deal.payment_status]}</span>
                     </div>
-                    <h4 className="mt-2 text-base font-bold text-stone-900 transition-colors hover:text-[var(--accent)] dark:text-stone-100 dark:hover:text-[var(--accent)]">{deal.title}</h4>
-                    <div className="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-xs text-stone-500 dark:text-stone-400">
+                    <h4 className="mt-2 text-base font-bold text-ink transition-colors hover:text-accent">{deal.title}</h4>
+                    <div className="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-xs text-ink-muted">
                       <span>{deal.relation_role === 'primary' ? '主选题' : '系列关联'}</span>
                       <span>
                         交付截止：{deal.delivery_due_date ? (
@@ -132,13 +132,13 @@ export const CommercialDealsTab: React.FC<CommercialDealsTabProps> = ({ topic, o
                   </button>
 
                   <div className="flex flex-wrap gap-2 lg:justify-end">
-                    <button type="button" disabled={isBusy || deal.relation_role === 'primary'} onClick={() => void changeRelation(deal.id, 'primary')} className="inline-flex min-h-11 items-center gap-1.5 rounded-xl border border-stone-200 px-3 text-xs font-semibold text-stone-700 transition-colors hover:border-[var(--accent)] hover:text-[var(--accent)] disabled:cursor-not-allowed disabled:opacity-50 dark:border-stone-700 dark:text-stone-300"><Star className="h-3.5 w-3.5" />设为主选题</button>
-                    <button type="button" disabled={isBusy} onClick={() => void changeRelation(deal.id, 'unlink')} className="inline-flex min-h-11 items-center gap-1.5 rounded-xl border border-stone-200 px-3 text-xs font-semibold text-stone-700 transition-colors hover:border-red-300 hover:text-red-700 disabled:cursor-not-allowed disabled:opacity-50 dark:border-stone-700 dark:text-stone-300 dark:hover:border-red-800 dark:hover:text-red-300"><Link2Off className="h-3.5 w-3.5" />解除关联</button>
-                    <button type="button" onClick={() => onOpenDeal(deal.id)} className="inline-flex min-h-11 items-center gap-1.5 rounded-xl bg-[var(--accent)] px-3 text-xs font-bold text-white transition-colors hover:bg-[var(--accent-dark)]"><span>打开商单</span><ArrowRight className="h-3.5 w-3.5" /></button>
+                    <button type="button" disabled={isBusy || deal.relation_role === 'primary'} onClick={() => void changeRelation(deal.id, 'primary')} className="inline-flex min-h-11 items-center gap-1.5 rounded-xl border border-line px-3 text-xs font-semibold text-ink transition-colors hover:border-accent hover:text-accent disabled:cursor-not-allowed disabled:opacity-50"><Star className="h-3.5 w-3.5" />设为主选题</button>
+                    <button type="button" disabled={isBusy} onClick={() => void changeRelation(deal.id, 'unlink')} className="inline-flex min-h-11 items-center gap-1.5 rounded-xl border border-line px-3 text-xs font-semibold text-ink transition-colors hover:border-danger-line hover:text-danger disabled:cursor-not-allowed disabled:opacity-50"><Link2Off className="h-3.5 w-3.5" />解除关联</button>
+                    <button type="button" onClick={() => onOpenDeal(deal.id)} className="inline-flex min-h-11 items-center gap-1.5 rounded-xl bg-accent px-3 text-xs font-bold text-white transition-colors hover:bg-accent-dark"><span>打开商单</span><ArrowRight className="h-3.5 w-3.5" /></button>
                   </div>
                 </div>
                 {onCreateTopicFromDeal && !deal.primary_topic_id && (
-                  <button type="button" disabled={isBusy} onClick={() => void createTopicFromDeal(deal)} className="mt-4 inline-flex min-h-11 items-center gap-2 rounded-xl border border-dashed border-[var(--accent)]/40 px-3 text-xs font-semibold text-[var(--accent)] transition-colors hover:bg-[var(--accent-soft)] disabled:opacity-50">
+                  <button type="button" disabled={isBusy} onClick={() => void createTopicFromDeal(deal)} className="mt-4 inline-flex min-h-11 items-center gap-2 rounded-xl border border-dashed border-accent/40 px-3 text-xs font-semibold text-accent transition-colors hover:bg-accent-soft disabled:opacity-50">
                     {isBusy ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Handshake className="h-3.5 w-3.5" />}
                     从商单简介创建选题
                   </button>

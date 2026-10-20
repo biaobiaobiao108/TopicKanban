@@ -60,25 +60,25 @@ export const Sidebar: React.FC<SidebarProps> = ({
       {/* Brand Header */}
       <div className="p-4 pb-3">
         <div className="flex items-center gap-3">
-          <div className="sidebar-brand-logo w-9 h-9 rounded-[var(--radius-sm)] flex items-center justify-center overflow-hidden shadow-2xs shrink-0 ring-1 ring-black/5 dark:ring-white/10">
-            <img src="/icon.png" alt="喵爪看板 Logo" width={36} height={36} className="w-full h-full object-cover rounded-[var(--radius-sm)]" />
+          <div className="sidebar-brand-logo w-9 h-9 rounded-sm flex items-center justify-center overflow-hidden shadow-2xs shrink-0 ring-1 ring-black/5">
+            <img src="/icon.png" alt="喵爪看板 Logo" width={36} height={36} className="w-full h-full object-cover rounded-sm" />
           </div>
           <div>
-            <h1 className="font-sans text-[var(--ink)] text-base font-bold tracking-tight leading-snug">喵爪看板</h1>
+            <h1 className="font-sans text-ink text-base font-bold tracking-tight leading-snug">喵爪看板</h1>
           </div>
         </div>
 
         {/* Quick actions in sidebar */}
-        <div data-testid="sidebar-quick-actions" className="mt-4 border-t border-[var(--line)]/70 pt-3">
+        <div data-testid="sidebar-quick-actions" className="mt-4 border-t border-line/70 pt-3">
           <button
             type="button"
             onClick={onOpenQuickCreate}
             aria-label="新建选题"
-            className="group flex min-h-10 w-full items-center gap-2 rounded-[var(--radius-sm)] bg-[var(--accent)] px-3.5 py-2.5 text-[13px] font-semibold text-white shadow-2xs transition-all hover:bg-[var(--accent-dark)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]/40 active:scale-[0.98] cursor-pointer"
+            className="group flex min-h-10 w-full items-center gap-2 rounded-sm bg-accent px-3.5 py-2.5 text-[13px] font-semibold text-white shadow-2xs transition-all hover:bg-accent-dark focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/40 active:scale-[0.98] cursor-pointer"
           >
             <Plus className="h-4 w-4 shrink-0 stroke-[2.5]" aria-hidden="true" />
             <span>新建选题</span>
-            <kbd className="ml-auto rounded-[var(--radius-sm)] bg-black/20 px-1.5 py-0.5 text-[11px] font-mono font-medium text-white">N</kbd>
+            <kbd className="ml-auto rounded-sm bg-overlay px-1.5 py-0.5 text-[11px] font-mono font-medium text-white">N</kbd>
           </button>
 
           <div className="mt-1.5 grid grid-cols-2 gap-1.5">
@@ -86,9 +86,9 @@ export const Sidebar: React.FC<SidebarProps> = ({
               type="button"
               onClick={onOpenCommandPalette}
               aria-label="全局搜索与指令"
-              className="group flex min-h-9 min-w-0 items-center gap-1.5 rounded-[var(--radius-sm)] border border-transparent bg-[var(--surface)]/60 px-2.5 py-2 text-[12px] font-medium text-stone-700 transition-colors hover:bg-[var(--surface)] hover:text-stone-950 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]/40 dark:text-stone-300 dark:hover:text-white cursor-pointer"
+              className="group flex min-h-9 min-w-0 items-center gap-1.5 rounded-sm border border-transparent bg-surface/60 px-2.5 py-2 text-[12px] font-medium text-ink transition-colors hover:bg-surface hover:text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/40 cursor-pointer"
             >
-              <Search className="h-3.5 w-3.5 shrink-0 text-stone-500 transition-colors group-hover:text-stone-800 dark:text-stone-400 dark:group-hover:text-stone-200" aria-hidden="true" />
+              <Search className="h-3.5 w-3.5 shrink-0 text-ink-muted transition-colors group-hover:text-ink dark:group-hover:text-ink-faint" aria-hidden="true" />
               <span className="truncate">搜索</span>
             </button>
 
@@ -97,22 +97,22 @@ export const Sidebar: React.FC<SidebarProps> = ({
                 type="button"
                 onClick={onOpenQuickDrops}
                 aria-label={quickDropCount > 0 ? `手机快投箱中有 ${quickDropCount} 条未处理灵感` : '打开手机快投灵感箱'}
-                className={`group flex min-h-9 min-w-0 items-center justify-between gap-1.5 rounded-[var(--radius-sm)] border px-2.5 py-2 text-[12px] font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]/40 cursor-pointer ${
+                className={`group flex min-h-9 min-w-0 items-center justify-between gap-1.5 rounded-sm border px-2.5 py-2 text-[12px] font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/40 cursor-pointer ${
                   quickDropCount > 0
-                    ? 'border-[var(--accent)]/15 bg-[var(--accent-soft)] text-[var(--accent-dark)] shadow-2xs'
-                    : 'border-transparent bg-[var(--surface)]/60 text-stone-700 hover:bg-[var(--surface)] hover:text-stone-950 dark:text-stone-300 dark:hover:text-white'
+                    ? 'border-accent/15 bg-accent-soft text-accent-dark shadow-2xs'
+                    : 'border-transparent bg-surface/60 text-ink hover:bg-surface hover:text-ink'
                 }`}
               >
                 <span className="flex min-w-0 items-center gap-1.5">
-                  <Smartphone className={`h-3.5 w-3.5 shrink-0 ${quickDropCount > 0 ? 'text-[var(--accent)]' : 'text-stone-500 dark:text-stone-400'}`} aria-hidden="true" />
+                  <Smartphone className={`h-3.5 w-3.5 shrink-0 ${quickDropCount > 0 ? 'text-accent' : 'text-ink-muted'}`} aria-hidden="true" />
                   <span className="truncate">快投箱</span>
                 </span>
                 {quickDropCount > 0 ? (
-                  <span className="flex h-5 min-w-5 shrink-0 items-center justify-center rounded-full bg-[var(--accent)] px-1 text-[10px] font-mono font-bold text-white">
+                  <span className="flex h-5 min-w-5 shrink-0 items-center justify-center rounded-full bg-accent px-1 text-[10px] font-mono font-bold text-white">
                     {quickDropCount}
                   </span>
                 ) : (
-                  <span className="shrink-0 text-[10px] font-normal text-stone-400 dark:text-stone-500">7天</span>
+                  <span className="shrink-0 text-[10px] font-normal text-ink-muted">7天</span>
                 )}
               </button>
             )}
@@ -123,7 +123,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
       {/* Main Navigation */}
       <nav aria-label="工作台模块" className="flex-1 min-h-0">
         <FloatingScrollbar className="p-3 space-y-1" wrapperClassName="h-full">
-          <div className="text-xs font-bold text-stone-500 dark:text-stone-400 px-3.5 py-2 uppercase tracking-wider">
+          <div className="text-xs font-bold text-ink-muted px-3.5 py-2 uppercase tracking-wider">
             工作台模块
           </div>
           {navItems.map((item) => {
@@ -135,21 +135,21 @@ export const Sidebar: React.FC<SidebarProps> = ({
                 key={item.id}
                 onClick={() => onNavigate(item.id)}
                 aria-current={isActive ? 'page' : undefined}
-                className={`group relative w-full flex items-center justify-between px-3.5 py-2.5 rounded-[var(--radius-sm)] text-[14px] sm:text-[15px] transition-all cursor-pointer ${
+                className={`group relative w-full flex items-center justify-between px-3.5 py-2.5 rounded-sm text-[14px] sm:text-[15px] transition-all cursor-pointer ${
                   isActive
-                    ? 'bg-[var(--surface)] text-[var(--ink)] font-semibold shadow-2xs'
-                    : 'text-stone-700 dark:text-stone-200 hover:bg-[var(--surface)] hover:text-stone-950 dark:hover:text-white font-medium'
+                    ? 'bg-surface text-ink font-semibold shadow-2xs'
+                    : 'text-ink hover:bg-surface hover:text-ink font-medium'
                 }`}
               >
                 <div className="flex items-center gap-3">
-                  <Icon className={`w-4.5 h-4.5 transition-colors shrink-0 ${isActive ? 'text-[var(--accent)]' : 'text-stone-500 dark:text-stone-400 group-hover:text-stone-800 dark:group-hover:text-stone-200'}`} />
+                  <Icon className={`w-4.5 h-4.5 transition-colors shrink-0 ${isActive ? 'text-accent' : 'text-ink-muted group-hover:text-ink dark:group-hover:text-ink-faint'}`} />
                   <span className="tracking-wide">{item.label}</span>
                 </div>
                 {typeof item.badge === 'number' && item.badge > 0 && (
-                  <span className={`text-xs px-2 py-0.5 rounded-[var(--radius-sm)] tabular-nums font-semibold transition-colors ${
+                  <span className={`text-xs px-2 py-0.5 rounded-sm tabular-nums font-semibold transition-colors ${
                     isActive
-                      ? 'bg-[var(--accent)] text-white shadow-2xs'
-                      : 'bg-stone-200/80 dark:bg-stone-800 text-stone-700 dark:text-stone-300'
+                      ? 'bg-accent text-white shadow-2xs'
+                      : 'bg-control text-ink'
                   }`}>
                     {item.badge}
                   </span>
@@ -163,13 +163,13 @@ export const Sidebar: React.FC<SidebarProps> = ({
       {/* Footer Info & Logout */}
       <div className="p-3.5 space-y-2">
         {(storageError || authError) && (
-          <div className="flex items-center gap-2 px-2.5 py-1.5 rounded-xl bg-red-500/10 text-red-600 dark:text-red-400 text-xs">
+          <div className="flex items-center gap-2 px-2.5 py-1.5 rounded-xl bg-danger-soft text-danger text-xs">
             {storageError && (
               <span
                 className="flex items-center gap-1.5 cursor-help min-w-0"
                 aria-label={`存储异常: ${storageError}`}
               >
-                <Database className="w-3.5 h-3.5 text-red-500 shrink-0" />
+                <Database className="w-3.5 h-3.5 text-danger shrink-0" />
                 <span className="text-[11px] font-medium truncate">存储异常</span>
               </span>
             )}
@@ -178,18 +178,18 @@ export const Sidebar: React.FC<SidebarProps> = ({
                 className="flex items-center gap-1.5 cursor-help min-w-0"
                 aria-label={`鉴权异常: ${authError}`}
               >
-                <ShieldAlert className="w-3.5 h-3.5 text-amber-500 shrink-0" />
+                <ShieldAlert className="w-3.5 h-3.5 text-warning shrink-0" />
                 <span className="text-[11px] font-medium truncate">鉴权异常</span>
               </span>
             )}
           </div>
         )}
 
-        <div className="flex items-center justify-between text-xs text-stone-500 dark:text-stone-400">
+        <div className="flex items-center justify-between text-xs text-ink-muted">
           {onLogout ? (
             <button
               onClick={onLogout}
-              className="flex items-center gap-1.5 text-xs font-medium text-stone-700 dark:text-stone-300 hover:text-red-600 dark:hover:text-red-400 px-2 py-1.5 rounded-lg hover:bg-red-50/50 dark:hover:bg-red-950/30 transition-colors cursor-pointer"
+              className="flex items-center gap-1.5 text-xs font-medium text-ink hover:text-danger px-2 py-1.5 rounded-lg hover:bg-danger-soft transition-colors cursor-pointer"
             >
               <LogOut className="w-3.5 h-3.5" />
               <span>退出登录</span>
@@ -197,7 +197,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
           ) : (
             <div />
           )}
-          <span className="text-[11px] font-mono px-2 text-stone-400 dark:text-stone-500 select-none">v1.0</span>
+          <span className="text-[11px] font-mono px-2 text-ink-muted select-none">v1.0</span>
         </div>
       </div>
     </aside>

@@ -389,9 +389,9 @@ export const PublishedView: React.FC<PublishedViewProps> = ({
                 onClick={handleBulkSyncAll}
                 disabled={isBulkSyncing}
                 aria-label="批量刷新所有包含 BV 号的视频数据"
-                className="inline-flex h-10 items-center gap-1.5 rounded-xl bg-stone-100/80 px-3.5 text-xs font-medium text-stone-800 transition-colors hover:bg-stone-200/80 disabled:opacity-50 dark:bg-stone-800 dark:text-stone-200 dark:hover:bg-stone-700 sm:text-sm cursor-pointer"
+                className="inline-flex h-10 items-center gap-1.5 rounded-xl bg-control px-3.5 text-xs font-medium text-ink transition-colors hover:bg-control disabled:opacity-50 sm:text-sm cursor-pointer"
               >
-                <RefreshCw className={`h-3.5 w-3.5 ${isBulkSyncing ? 'animate-spin text-[var(--accent)]' : 'text-stone-500 dark:text-stone-400'}`} aria-hidden="true" />
+                <RefreshCw className={`h-3.5 w-3.5 ${isBulkSyncing ? 'animate-spin text-accent' : 'text-ink-muted'}`} aria-hidden="true" />
                 <span>{isBulkSyncing ? '同步中...' : '批量同步数据'}</span>
               </button>
             )}
@@ -399,7 +399,7 @@ export const PublishedView: React.FC<PublishedViewProps> = ({
             <button
               type="button"
               onClick={openAddModal}
-              className="inline-flex h-10 items-center gap-1.5 rounded-xl bg-[var(--accent)] px-4 text-xs font-semibold text-white shadow-2xs transition-all hover:bg-[var(--accent-dark)] hover:shadow-xs active:scale-[0.98] sm:text-sm cursor-pointer"
+              className="inline-flex h-10 items-center gap-1.5 rounded-xl bg-accent px-4 text-xs font-semibold text-white shadow-2xs transition-all hover:bg-accent-dark hover:shadow-xs active:scale-[0.98] sm:text-sm cursor-pointer"
             >
               <Plus className="h-4 w-4 stroke-[2.5]" aria-hidden="true" />
               <span>归档已发布视频</span>
@@ -409,14 +409,14 @@ export const PublishedView: React.FC<PublishedViewProps> = ({
         />
 
         {/* View Switcher Tabs */}
-        <div className="flex items-center gap-1 bg-stone-100/80 dark:bg-stone-800/80 p-1 rounded-2xl border border-stone-200/70 dark:border-stone-700/80 w-fit shadow-2xs">
+        <div className="flex items-center gap-1 bg-control p-1 rounded-2xl border border-line w-fit shadow-2xs">
           <button
             type="button"
             onClick={() => setViewMode('cards')}
             className={`flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer ${
               viewMode === 'cards'
-                ? 'bg-[var(--surface)] text-[var(--ink)] shadow-subtle'
-                : 'text-[var(--ink-muted)] hover:text-[var(--ink)]'
+                ? 'bg-surface text-ink shadow-subtle'
+                : 'text-ink-muted hover:text-ink'
             }`}
           >
             <Film className="w-3.5 h-3.5" />
@@ -427,8 +427,8 @@ export const PublishedView: React.FC<PublishedViewProps> = ({
             onClick={() => setViewMode('analytics')}
             className={`flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer ${
               viewMode === 'analytics'
-                ? 'bg-[var(--surface)] text-[var(--ink)] shadow-subtle'
-                : 'text-[var(--ink-muted)] hover:text-[var(--ink)]'
+                ? 'bg-surface text-ink shadow-subtle'
+                : 'text-ink-muted hover:text-ink'
             }`}
           >
             <BarChart2 className="w-3.5 h-3.5" />
@@ -438,11 +438,11 @@ export const PublishedView: React.FC<PublishedViewProps> = ({
 
         {/* Bulk Sync Notification */}
         {bulkSyncMessage && (
-          <div className="bg-[var(--surface)] border border-[var(--line)] text-[var(--ink)] px-4 py-2.5 rounded-xl text-xs sm:text-sm flex items-center gap-2 animate-in fade-in">
+          <div className="bg-surface border border-line text-ink px-4 py-2.5 rounded-xl text-xs sm:text-sm flex items-center gap-2 animate-in fade-in">
             {isBulkSyncing ? (
-              <Loader2 className="w-4 h-4 animate-spin text-[var(--accent)] shrink-0" />
+              <Loader2 className="w-4 h-4 animate-spin text-accent shrink-0" />
             ) : (
-              <CheckCircle2 className="w-4 h-4 text-emerald-600 dark:text-emerald-400 shrink-0" />
+              <CheckCircle2 className="w-4 h-4 text-success shrink-0" />
             )}
             <span>{bulkSyncMessage}</span>
           </div>
@@ -452,8 +452,8 @@ export const PublishedView: React.FC<PublishedViewProps> = ({
         {viewMode === 'analytics' ? (
           <React.Suspense
             fallback={
-              <div className="flex items-center justify-center p-16 text-stone-400 dark:text-stone-500">
-                <Loader2 className="w-6 h-6 animate-spin text-[var(--accent)] mr-2" />
+              <div className="flex items-center justify-center p-16 text-ink-muted">
+                <Loader2 className="w-6 h-6 animate-spin text-accent mr-2" />
                 <span className="text-sm">正在载入选题分析看板...</span>
               </div>
             }
@@ -485,7 +485,7 @@ export const PublishedView: React.FC<PublishedViewProps> = ({
             })}
 
             {totalPublished === 0 && (
-              <div className="col-span-full p-12 text-center border border-dashed border-[var(--line)] rounded-xl bg-[var(--surface)] text-[var(--ink-muted)]">
+              <div className="col-span-full p-12 text-center border border-dashed border-line rounded-xl bg-surface text-ink-muted">
                 暂无已发布视频归档，制作完成发布后可在此沉淀播放与互动数据！
               </div>
             )}
@@ -493,19 +493,19 @@ export const PublishedView: React.FC<PublishedViewProps> = ({
         )}
 
         {viewMode === 'cards' && totalPublished > 0 && (
-          <div className="flex items-center justify-center gap-3 text-xs text-stone-600 dark:text-stone-400">
+          <div className="flex items-center justify-center gap-3 text-xs text-ink-muted">
             <button
               type="button"
               disabled={page <= 1 || pageQuery.isFetching}
               onClick={() => setPage((current) => Math.max(1, current - 1))}
-              className="rounded-lg border border-[var(--line)] bg-[var(--surface)] px-3 py-2 font-semibold text-[var(--ink)] hover:bg-[var(--surface-hover)] disabled:cursor-not-allowed disabled:opacity-40 dark:border-stone-700 dark:bg-stone-900"
+              className="rounded-lg border border-line bg-surface px-3 py-2 font-semibold text-ink hover:bg-surface-hover disabled:cursor-not-allowed disabled:opacity-40"
             >上一页</button>
             <span><span className="font-mono tabular-nums">{page} / {Math.max(1, pageQuery.data?.total_pages || 1)}</span> · 共 <span className="font-mono tabular-nums">{totalPublished}</span> 条</span>
             <button
               type="button"
               disabled={page >= (pageQuery.data?.total_pages || 1) || pageQuery.isFetching}
               onClick={() => setPage((current) => current + 1)}
-              className="rounded-lg border border-[var(--line)] bg-[var(--surface)] px-3 py-2 font-semibold text-[var(--ink)] hover:bg-[var(--surface-hover)] disabled:cursor-not-allowed disabled:opacity-40 dark:border-stone-700 dark:bg-stone-900"
+              className="rounded-lg border border-line bg-surface px-3 py-2 font-semibold text-ink hover:bg-surface-hover disabled:cursor-not-allowed disabled:opacity-40"
             >下一页</button>
           </div>
         )}
@@ -521,11 +521,11 @@ export const PublishedView: React.FC<PublishedViewProps> = ({
             {/* Topic Select */}
             <div>
               <div className="flex items-center justify-between mb-1">
-                <label id="published-topic-label" className="block text-xs font-semibold text-stone-700 dark:text-stone-300">
-                  对应选题 <span className="text-stone-400 dark:text-stone-500 font-normal">（自动过滤已关联选题）</span>
+                <label id="published-topic-label" className="block text-xs font-semibold text-ink">
+                  对应选题 <span className="text-ink-muted font-normal">（自动过滤已关联选题）</span>
                 </label>
                 {availableTopicTotal > 0 && (
-                  <span className="text-[11px] text-stone-400 dark:text-stone-500">
+                  <span className="text-[11px] text-ink-muted">
                     <span className="font-mono tabular-nums">{availableTopicTotal}</span> 个可用选题
                   </span>
                 )}
@@ -557,21 +557,21 @@ export const PublishedView: React.FC<PublishedViewProps> = ({
                   onSearchChange={setTopicSearchQuery}
                   placeholder="请选择关联选题"
                   className="min-w-0 flex-1"
-                  buttonClassName="w-full min-h-[42px] px-3 py-2 bg-stone-50 dark:bg-stone-800 border-stone-300 dark:border-stone-700 rounded-lg text-sm pr-10"
+                  buttonClassName="w-full min-h-[42px] px-3 py-2 bg-canvas border-line rounded-lg text-sm pr-10"
                   renderValue={() => {
                     const selectedTopic = topicMap.get(topicId);
                     return selectedTopic ? (
                       <div className="flex items-center gap-2 min-w-0">
-                        <span className="font-semibold text-stone-900 dark:text-stone-100 truncate text-xs sm:text-sm">{selectedTopic.title}</span>
+                        <span className="font-semibold text-ink truncate text-xs sm:text-sm">{selectedTopic.title}</span>
                         {selectedTopic.priority !== 'none' && <span className="hidden sm:inline-flex shrink-0"><PriorityBadge priority={selectedTopic.priority} showLabel={false} /></span>}
                       </div>
                     ) : (
-                      <span className="text-xs sm:text-sm text-stone-400 dark:text-stone-500 italic">独立归档视频（未关联选题）</span>
+                      <span className="text-xs sm:text-sm text-ink-muted italic">独立归档视频（未关联选题）</span>
                     );
                   }}
                   renderOption={(option, state) => {
                     if (!option.value) {
-                      return <span className="flex items-center gap-1.5"><span className="text-stone-400 dark:text-stone-500">✕</span><span>不关联任何选题（独立归档视频）</span>{state.selected && <span className="ml-auto">✓</span>}</span>;
+                      return <span className="flex items-center gap-1.5"><span className="text-ink-muted">✕</span><span>不关联任何选题（独立归档视频）</span>{state.selected && <span className="ml-auto">✓</span>}</span>;
                     }
                     const topic = topicMap.get(option.value);
                     if (!topic) return option.label;
@@ -579,18 +579,18 @@ export const PublishedView: React.FC<PublishedViewProps> = ({
                       <div className="flex items-center justify-between gap-2 w-full min-w-0">
                         <div className="min-w-0 pr-2 space-y-0.5">
                           <div className="text-xs sm:text-sm font-semibold truncate leading-tight">{topic.title}</div>
-                          {(topic.summary || topic.current_todo) && <div className="text-[11px] text-stone-400 dark:text-stone-500 truncate">{topic.current_todo ? `当前行动: ${topic.current_todo.title}` : topic.summary}</div>}
+                          {(topic.summary || topic.current_todo) && <div className="text-[11px] text-ink-muted truncate">{topic.current_todo ? `当前行动: ${topic.current_todo.title}` : topic.summary}</div>}
                         </div>
-                        <div className="flex items-center gap-1.5 shrink-0"><StatusBadge status={topic.status} size="sm" />{state.selected && <span className="text-[var(--accent)]">✓</span>}</div>
+                        <div className="flex items-center gap-1.5 shrink-0"><StatusBadge status={topic.status} size="sm" />{state.selected && <span className="text-accent">✓</span>}</div>
                       </div>
                     );
                   }}
                   emptyState={topicOptionsQuery.isFetching ? (
-                    <div className="py-6 text-center text-xs text-stone-400 dark:text-stone-500">正在搜索选题…</div>
+                    <div className="py-6 text-center text-xs text-ink-muted">正在搜索选题…</div>
                   ) : availableTopicTotal === 0 && !topicSearchQuery.trim() ? (
-                    <div className="py-6 text-center text-xs text-stone-400 dark:text-stone-500 space-y-1"><p className="font-semibold text-stone-600 dark:text-stone-400">所有选题均已关联视频</p><p className="text-[11px]">可选择「不关联任何选题」或前往看板新建选题</p></div>
+                    <div className="py-6 text-center text-xs text-ink-muted space-y-1"><p className="font-semibold text-ink-muted">所有选题均已关联视频</p><p className="text-[11px]">可选择「不关联任何选题」或前往看板新建选题</p></div>
                   ) : (
-                    <div className="py-6 text-center text-xs text-stone-400 dark:text-stone-500">未找到匹配「{topicSearchQuery}」的可用选题</div>
+                    <div className="py-6 text-center text-xs text-ink-muted">未找到匹配「{topicSearchQuery}」的可用选题</div>
                   )}
                 />
                 <button
@@ -598,7 +598,7 @@ export const PublishedView: React.FC<PublishedViewProps> = ({
                   onClick={() => setTopicId('')}
                   aria-label="取消关联选题"
                   disabled={!topicId}
-                  className={`flex h-[42px] w-[42px] shrink-0 items-center justify-center rounded-lg border border-stone-300 bg-stone-50 text-stone-400 transition-colors hover:border-red-300 hover:bg-red-50 hover:text-red-600 focus:outline-none focus:ring-2 focus:ring-[var(--focus-ring)] dark:border-stone-700 dark:bg-stone-800 dark:hover:border-red-800 dark:hover:bg-red-950/40 dark:hover:text-red-400 ${topicId ? '' : 'invisible pointer-events-none'}`}
+                  className={`flex h-[42px] w-[42px] shrink-0 items-center justify-center rounded-lg border border-line bg-canvas text-ink-muted transition-colors hover:border-danger-line hover:bg-danger-soft hover:text-danger focus:outline-none focus:ring-2 focus:ring-focus-ring ${topicId ? '' : 'invisible pointer-events-none'}`}
                 >
                   <X className="h-4 w-4" aria-hidden="true" />
                 </button>
@@ -606,8 +606,8 @@ export const PublishedView: React.FC<PublishedViewProps> = ({
             </div>
 
             {/* Quick Fetch Box */}
-            <div className="bg-[var(--control-surface)] border border-[var(--line)] p-3 rounded-xl space-y-2">
-              <label htmlFor="published-bvid" className="block text-xs font-bold text-stone-800 dark:text-stone-200">
+            <div className="bg-control border border-line p-3 rounded-xl space-y-2">
+              <label htmlFor="published-bvid" className="block text-xs font-bold text-ink">
                 B站 BV 号 或 视频链接
               </label>
               <div className="flex items-center gap-2">
@@ -640,13 +640,13 @@ export const PublishedView: React.FC<PublishedViewProps> = ({
                       }
                     }
                   }}
-                   className="flex-1 px-3 py-1.5 bg-stone-500/[0.03] dark:bg-stone-900 border border-stone-300 dark:border-stone-700 rounded-lg text-base text-[var(--ink)] placeholder:text-stone-400 dark:placeholder:text-stone-500 focus:bg-[var(--surface)] focus:border-[var(--accent)] focus:outline-none font-mono"
+                   className="flex-1 px-3 py-1.5 bg-control border border-line rounded-lg text-base text-ink placeholder:text-ink-muted focus:bg-surface focus:border-accent focus:outline-none font-mono"
                 />
                 <button
                   type="button"
                   onClick={() => void handleFetchBiliData()}
                   disabled={isFetchingBili || !bvid.trim()}
-                  className="flex items-center gap-1.5 bg-[var(--accent)] hover:bg-[var(--accent-dark)] disabled:opacity-50 text-white px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors shrink-0 shadow-2xs cursor-pointer"
+                  className="flex items-center gap-1.5 bg-accent hover:bg-accent-dark disabled:opacity-50 text-white px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors shrink-0 shadow-2xs cursor-pointer"
                 >
                   {isFetchingBili ? (
                     <Loader2 className="w-3.5 h-3.5 animate-spin" />
@@ -659,7 +659,7 @@ export const PublishedView: React.FC<PublishedViewProps> = ({
 
               {/* Real-time Cover Preview inside modal */}
               {modalCoverUrl && (
-                <div className="relative rounded-xl overflow-hidden border border-[var(--line)] bg-stone-100 dark:bg-stone-900 aspect-video max-h-44 w-full mt-2">
+                <div className="relative rounded-xl overflow-hidden border border-line bg-control aspect-video max-h-44 w-full mt-2">
                   <img
                     src={modalCoverUrl}
                     alt="视频封面预览"
@@ -669,22 +669,22 @@ export const PublishedView: React.FC<PublishedViewProps> = ({
                     decoding="async"
                     className="w-full h-full object-cover"
                   />
-                  <div className="absolute bottom-2 left-2 px-2 py-0.5 rounded-md bg-black/60 text-white text-[11px] font-medium backdrop-blur-xs flex items-center gap-1">
-                    <Sparkles className="w-3 h-3 text-amber-400" />
+                  <div className="absolute bottom-2 left-2 px-2 py-0.5 rounded-md bg-overlay text-white text-[11px] font-medium backdrop-blur-xs flex items-center gap-1">
+                    <Sparkles className="w-3 h-3 text-warning" />
                     <span>封面已就绪</span>
                   </div>
                 </div>
               )}
 
               {fetchError && (
-                <div className="flex items-center gap-1.5 text-xs text-red-600 dark:text-red-400 pt-0.5">
+                <div className="flex items-center gap-1.5 text-xs text-danger pt-0.5">
                   <AlertCircle className="w-3.5 h-3.5 shrink-0" />
                   <span>{fetchError}</span>
                 </div>
               )}
 
               {fetchSuccessTip && (
-                <div className="flex items-center gap-1.5 text-xs text-emerald-700 dark:text-emerald-400 pt-0.5">
+                <div className="flex items-center gap-1.5 text-xs text-success pt-0.5">
                   <CheckCircle2 className="w-3.5 h-3.5 shrink-0" />
                   <span>{fetchSuccessTip}</span>
                 </div>
@@ -693,8 +693,8 @@ export const PublishedView: React.FC<PublishedViewProps> = ({
 
             {/* Title */}
             <div>
-              <label htmlFor="published-title" className="block text-xs font-semibold text-stone-700 dark:text-stone-300 mb-1">
-                最终视频标题 <span className="text-stone-400 dark:text-stone-500">*</span>
+              <label htmlFor="published-title" className="block text-xs font-semibold text-ink mb-1">
+                最终视频标题 <span className="text-ink-muted">*</span>
               </label>
               <input
                 id="published-title"
@@ -705,24 +705,24 @@ export const PublishedView: React.FC<PublishedViewProps> = ({
                 placeholder="例如：【良子】峨眉山名场面深度复盘"
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
-                className="w-full px-3 py-2 bg-stone-500/[0.03] dark:bg-stone-800 border border-stone-300 dark:border-stone-700 rounded-lg text-sm text-[var(--ink)] placeholder:text-stone-400 dark:placeholder:text-stone-500 focus:bg-[var(--surface)] dark:focus:bg-stone-800 focus:outline-none focus:border-[var(--accent)]"
+                className="w-full px-3 py-2 bg-control border border-line rounded-lg text-sm text-ink placeholder:text-ink-muted focus:bg-surface focus:outline-none focus:border-accent"
               />
             </div>
 
             {/* Date and URL */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div>
-                <label htmlFor="published-date" className="block text-xs font-semibold text-stone-700 dark:text-stone-300 mb-1">发布日期</label>
+                <label htmlFor="published-date" className="block text-xs font-semibold text-ink mb-1">发布日期</label>
                 <DateInput
                   id="published-date"
                   name="published_at"
                   value={publishedAt}
                   onChange={setPublishedAt}
-                  className="w-full px-3 py-2 bg-stone-500/[0.03] dark:bg-stone-800 border border-stone-300 dark:border-stone-700 rounded-lg text-sm text-[var(--ink)] focus:bg-[var(--surface)] dark:focus:bg-stone-800 focus:outline-none"
+                  className="w-full px-3 py-2 bg-control border border-line rounded-lg text-sm text-ink focus:bg-surface focus:outline-none"
                 />
               </div>
               <div>
-                <label htmlFor="published-url" className="block text-xs font-semibold text-stone-700 dark:text-stone-300 mb-1">成片链接</label>
+                <label htmlFor="published-url" className="block text-xs font-semibold text-ink mb-1">成片链接</label>
                 <input
                   id="published-url"
                   name="url"
@@ -731,7 +731,7 @@ export const PublishedView: React.FC<PublishedViewProps> = ({
                   placeholder="https://www.bilibili.com/video/..."
                   value={url}
                   onChange={(e) => setUrl(e.target.value)}
-                  className="w-full px-3 py-2 bg-stone-500/[0.03] dark:bg-stone-800 border border-stone-300 dark:border-stone-700 rounded-lg text-sm text-[var(--ink)] placeholder:text-stone-400 dark:placeholder:text-stone-500 focus:bg-[var(--surface)] dark:focus:bg-stone-800 focus:outline-none focus:border-[var(--accent)]"
+                  className="w-full px-3 py-2 bg-control border border-line rounded-lg text-sm text-ink placeholder:text-ink-muted focus:bg-surface focus:outline-none focus:border-accent"
                 />
               </div>
             </div>
@@ -739,7 +739,7 @@ export const PublishedView: React.FC<PublishedViewProps> = ({
             {/* Interactive stats grid */}
             <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5 pt-1">
               <div>
-                <label htmlFor="published-views" className="block text-xs font-semibold text-stone-700 dark:text-stone-300 mb-1">播放量</label>
+                <label htmlFor="published-views" className="block text-xs font-semibold text-ink mb-1">播放量</label>
                 <input
                   id="published-views"
                   name="views"
@@ -748,11 +748,11 @@ export const PublishedView: React.FC<PublishedViewProps> = ({
                   min="0"
                   value={views}
                   onChange={(e) => setViews(Number(e.target.value))}
-                  className="w-full px-3 py-1.5 bg-stone-500/[0.03] dark:bg-stone-800 border border-stone-300 dark:border-stone-700 rounded-lg text-sm font-mono text-[var(--ink)] focus:bg-[var(--surface)] dark:focus:bg-stone-800 focus:outline-none focus:border-[var(--accent)]"
+                  className="w-full px-3 py-1.5 bg-control border border-line rounded-lg text-sm font-mono text-ink focus:bg-surface focus:outline-none focus:border-accent"
                 />
               </div>
               <div>
-                <label htmlFor="published-likes" className="block text-xs font-semibold text-stone-700 dark:text-stone-300 mb-1">点赞数</label>
+                <label htmlFor="published-likes" className="block text-xs font-semibold text-ink mb-1">点赞数</label>
                 <input
                   id="published-likes"
                   name="likes"
@@ -761,11 +761,11 @@ export const PublishedView: React.FC<PublishedViewProps> = ({
                   min="0"
                   value={likes}
                   onChange={(e) => setLikes(Number(e.target.value))}
-                  className="w-full px-3 py-1.5 bg-stone-500/[0.03] dark:bg-stone-800 border border-stone-300 dark:border-stone-700 rounded-lg text-sm font-mono text-[var(--ink)] focus:bg-[var(--surface)] dark:focus:bg-stone-800 focus:outline-none focus:border-[var(--accent)]"
+                  className="w-full px-3 py-1.5 bg-control border border-line rounded-lg text-sm font-mono text-ink focus:bg-surface focus:outline-none focus:border-accent"
                 />
               </div>
               <div>
-                <label htmlFor="published-coins" className="block text-xs font-semibold text-stone-700 dark:text-stone-300 mb-1">投币数</label>
+                <label htmlFor="published-coins" className="block text-xs font-semibold text-ink mb-1">投币数</label>
                 <input
                   id="published-coins"
                   name="coins"
@@ -774,11 +774,11 @@ export const PublishedView: React.FC<PublishedViewProps> = ({
                   min="0"
                   value={coins}
                   onChange={(e) => setCoins(Number(e.target.value))}
-                  className="w-full px-3 py-1.5 bg-stone-500/[0.03] dark:bg-stone-800 border border-stone-300 dark:border-stone-700 rounded-lg text-sm font-mono text-[var(--ink)] focus:bg-[var(--surface)] dark:focus:bg-stone-800 focus:outline-none focus:border-[var(--accent)]"
+                  className="w-full px-3 py-1.5 bg-control border border-line rounded-lg text-sm font-mono text-ink focus:bg-surface focus:outline-none focus:border-accent"
                 />
               </div>
               <div>
-                <label htmlFor="published-favorites" className="block text-xs font-semibold text-stone-700 dark:text-stone-300 mb-1">收藏数</label>
+                <label htmlFor="published-favorites" className="block text-xs font-semibold text-ink mb-1">收藏数</label>
                 <input
                   id="published-favorites"
                   name="favorites"
@@ -787,11 +787,11 @@ export const PublishedView: React.FC<PublishedViewProps> = ({
                   min="0"
                   value={favorites}
                   onChange={(e) => setFavorites(Number(e.target.value))}
-                  className="w-full px-3 py-1.5 bg-stone-500/[0.03] dark:bg-stone-800 border border-stone-300 dark:border-stone-700 rounded-lg text-sm font-mono text-[var(--ink)] focus:bg-[var(--surface)] dark:focus:bg-stone-800 focus:outline-none focus:border-[var(--accent)]"
+                  className="w-full px-3 py-1.5 bg-control border border-line rounded-lg text-sm font-mono text-ink focus:bg-surface focus:outline-none focus:border-accent"
                 />
               </div>
               <div>
-                <label htmlFor="published-comments" className="block text-xs font-semibold text-stone-700 dark:text-stone-300 mb-1">评论数</label>
+                <label htmlFor="published-comments" className="block text-xs font-semibold text-ink mb-1">评论数</label>
                 <input
                   id="published-comments"
                   name="comments"
@@ -800,14 +800,14 @@ export const PublishedView: React.FC<PublishedViewProps> = ({
                   min="0"
                   value={comments}
                   onChange={(e) => setComments(Number(e.target.value))}
-                  className="w-full px-3 py-1.5 bg-stone-500/[0.03] dark:bg-stone-800 border border-stone-300 dark:border-stone-700 rounded-lg text-sm font-mono text-[var(--ink)] focus:bg-[var(--surface)] dark:focus:bg-stone-800 focus:outline-none focus:border-[var(--accent)]"
+                  className="w-full px-3 py-1.5 bg-control border border-line rounded-lg text-sm font-mono text-ink focus:bg-surface focus:outline-none focus:border-accent"
                 />
               </div>
             </div>
 
             {/* Notes */}
             <div>
-              <label htmlFor="published-notes" className="block text-xs font-semibold text-stone-700 dark:text-stone-300 mb-1">复盘心得与观众反馈</label>
+              <label htmlFor="published-notes" className="block text-xs font-semibold text-ink mb-1">复盘心得与观众反馈</label>
               <textarea
                 id="published-notes"
                 name="notes"
@@ -816,29 +816,29 @@ export const PublishedView: React.FC<PublishedViewProps> = ({
                 placeholder="记录本期视频哪些包袱响了、弹幕集中讨论什么、哪些地方剪辑拖沓..."
                 value={notes}
                 onChange={(e) => setNotes(e.target.value)}
-                className="w-full px-3 py-2 bg-stone-500/[0.03] dark:bg-stone-800 border border-stone-300 dark:border-stone-700 rounded-lg text-sm text-[var(--ink)] placeholder:text-stone-400 dark:placeholder:text-stone-500 focus:bg-[var(--surface)] dark:focus:bg-stone-800 focus:outline-none focus:border-[var(--accent)] resize-none"
+                className="w-full px-3 py-2 bg-control border border-line rounded-lg text-sm text-ink placeholder:text-ink-muted focus:bg-surface focus:outline-none focus:border-accent resize-none"
               />
             </div>
 
             {/* Actions */}
             {submitError && (
-              <div className="flex items-start gap-2 rounded-lg border border-red-200 dark:border-red-900/60 bg-red-50 dark:bg-red-950/40 px-3 py-2 text-xs text-red-800 dark:text-red-300">
+              <div className="flex items-start gap-2 rounded-lg border border-danger-line bg-danger-soft px-3 py-2 text-xs text-danger">
                 <AlertCircle className="mt-0.5 h-3.5 w-3.5 shrink-0" />
                 <span>归档失败：{submitError}</span>
               </div>
             )}
-            <div className="flex items-center justify-end gap-2.5 pt-3 border-t border-stone-200 dark:border-stone-800">
+            <div className="flex items-center justify-end gap-2.5 pt-3 border-t border-line">
               <button
                 type="button"
                 onClick={() => setIsModalOpen(false)}
-                className="px-4 py-2 text-sm text-stone-600 dark:text-stone-400 hover:bg-stone-100 dark:hover:bg-stone-800 rounded-lg cursor-pointer transition-colors"
+                className="px-4 py-2 text-sm text-ink-muted hover:bg-control rounded-lg cursor-pointer transition-colors"
               >
                 取消
               </button>
               <button
                 type="submit"
                 disabled={isSubmitting}
-                className="px-5 py-2 text-sm bg-[var(--accent)] hover:bg-[var(--accent-dark)] text-white rounded-lg font-medium shadow-xs disabled:cursor-not-allowed disabled:opacity-60 cursor-pointer transition-colors"
+                className="px-5 py-2 text-sm bg-accent hover:bg-accent-dark text-white rounded-lg font-medium shadow-xs disabled:cursor-not-allowed disabled:opacity-60 cursor-pointer transition-colors"
               >
                 {isSubmitting ? '正在保存…' : editingVideo ? '更新归档' : '立即归档'}
               </button>

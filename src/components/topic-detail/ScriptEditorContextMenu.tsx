@@ -189,7 +189,7 @@ export const ScriptEditorContextMenu: React.FC<ScriptEditorContextMenuProps> = (
     items[nextIndex]?.focus();
   };
 
-  const itemClassName = 'flex w-full items-center gap-2.5 rounded-lg px-2.5 py-2 text-left text-sm text-[var(--ink)] outline-none transition-colors hover:bg-[var(--accent-soft)] focus-visible:bg-[var(--accent-soft)] disabled:cursor-not-allowed disabled:opacity-40';
+  const itemClassName = 'flex w-full items-center gap-2.5 rounded-lg px-2.5 py-2 text-left text-sm text-ink outline-none transition-colors hover:bg-accent-soft focus-visible:bg-accent-soft disabled:cursor-not-allowed disabled:opacity-40';
 
   return createPortal(
     <div
@@ -197,28 +197,28 @@ export const ScriptEditorContextMenu: React.FC<ScriptEditorContextMenuProps> = (
       role="menu"
       aria-label="文案编辑菜单"
       onKeyDown={handleKeyDown}
-      className="fixed z-[120] w-56 rounded-xl border border-[var(--line)] bg-[var(--surface)] p-1.5 text-[var(--ink)] shadow-modal"
+      className="fixed z-[120] w-56 rounded-xl border border-line bg-surface p-1.5 text-ink shadow-modal"
       style={{ left: position.x, top: position.y }}
     >
       <button type="button" role="menuitem" className={itemClassName} disabled={!canUndo} onClick={() => { editor.commands.undo(); closeAndFocusEditor(); }}>
-        <Undo2 className="h-4 w-4 text-[var(--ink-muted)]" /><span>撤销</span>
+        <Undo2 className="h-4 w-4 text-ink-muted" /><span>撤销</span>
       </button>
       <button type="button" role="menuitem" className={itemClassName} disabled={!canRedo} onClick={() => { editor.commands.redo(); closeAndFocusEditor(); }}>
-        <Redo2 className="h-4 w-4 text-[var(--ink-muted)]" /><span>重做</span>
+        <Redo2 className="h-4 w-4 text-ink-muted" /><span>重做</span>
       </button>
-      <div role="separator" className="my-1 border-t border-[var(--line)]/70" />
+      <div role="separator" className="my-1 border-t border-line/70" />
       <button type="button" role="menuitem" className={itemClassName} disabled={selectionIsEmpty} onClick={() => void runClipboardAction('cut')}>
-        <Scissors className="h-4 w-4 text-[var(--ink-muted)]" /><span>剪切</span>
+        <Scissors className="h-4 w-4 text-ink-muted" /><span>剪切</span>
       </button>
       <button type="button" role="menuitem" className={itemClassName} disabled={selectionIsEmpty} onClick={() => void runClipboardAction('copy')}>
-        <Copy className="h-4 w-4 text-[var(--ink-muted)]" /><span>复制</span>
+        <Copy className="h-4 w-4 text-ink-muted" /><span>复制</span>
       </button>
       <button type="button" role="menuitem" className={itemClassName} onClick={() => void runClipboardAction('paste')}>
-        <ClipboardPaste className="h-4 w-4 text-[var(--ink-muted)]" /><span>粘贴</span>
+        <ClipboardPaste className="h-4 w-4 text-ink-muted" /><span>粘贴</span>
       </button>
-      <div role="separator" className="my-1 border-t border-[var(--line)]/70" />
+      <div role="separator" className="my-1 border-t border-line/70" />
       <button type="button" role="menuitem" className={itemClassName} onClick={() => { editor.commands.selectAll(); closeAndFocusEditor(); }}>
-        <ListChecks className="h-4 w-4 text-[var(--ink-muted)]" /><span>全选</span>
+        <ListChecks className="h-4 w-4 text-ink-muted" /><span>全选</span>
       </button>
       <div
         className="relative"
@@ -234,7 +234,7 @@ export const ScriptEditorContextMenu: React.FC<ScriptEditorContextMenuProps> = (
           onFocus={() => setShowCues(true)}
           onClick={() => setShowCues(true)}
         >
-          <Mic className="h-4 w-4 text-[var(--accent)]" /><span>插入气口</span><ChevronRight className="ml-auto h-4 w-4 text-[var(--ink-muted)]" />
+          <Mic className="h-4 w-4 text-accent" /><span>插入气口</span><ChevronRight className="ml-auto h-4 w-4 text-ink-muted" />
         </button>
         {showCues && (
           <>
@@ -242,7 +242,7 @@ export const ScriptEditorContextMenu: React.FC<ScriptEditorContextMenuProps> = (
               ref={cueMenuRef}
               role="menu"
               aria-label="选择气口"
-              className="fixed z-[121] flex flex-col rounded-xl border border-[var(--line)] bg-[var(--surface)] text-[var(--ink)] shadow-modal"
+              className="fixed z-[121] flex flex-col rounded-xl border border-line bg-surface text-ink shadow-modal"
               style={cueMenuPosition ? {
                 left: cueMenuPosition.left,
                 top: cueMenuPosition.top,
@@ -261,7 +261,7 @@ export const ScriptEditorContextMenu: React.FC<ScriptEditorContextMenuProps> = (
                     type="button"
                     role="menuitem"
                     key={label}
-                    className="voiceover-cue-option flex h-[34px] w-full shrink-0 items-center gap-2 rounded-md px-2 text-left text-sm leading-5 text-[var(--ink)] outline-none transition-colors hover:bg-[var(--accent-soft)] focus-visible:bg-[var(--accent-soft)]"
+                    className="voiceover-cue-option flex h-[34px] w-full shrink-0 items-center gap-2 rounded-md px-2 text-left text-sm leading-5 text-ink outline-none transition-colors hover:bg-accent-soft focus-visible:bg-accent-soft"
                     onClick={() => { onInsertCue(label); closeAndFocusEditor(); }}
                   >
                     <span data-cue-tone={tone} aria-hidden="true" className="voiceover-cue-symbol shrink-0">{symbol}</span>

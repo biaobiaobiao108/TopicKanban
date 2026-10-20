@@ -229,7 +229,7 @@ const WrappedFloatingScrollbar = forwardRef<HTMLDivElement, FloatingScrollbarPro
                 transform: `translate3d(0, ${thumbTop}px, 0)`,
                 opacity: isVisible || isDragging ? (isDragging ? 0.65 : 0.4) : 0,
               }}
-              className="pointer-events-auto absolute right-0.5 w-1 rounded-full bg-[var(--ink)] transition-opacity duration-200 hover:w-1.5 hover:!opacity-65 cursor-pointer"
+              className="pointer-events-auto absolute right-0.5 w-1 rounded-full bg-ink transition-opacity duration-200 hover:w-1.5 hover:!opacity-65 cursor-pointer"
             />
           </div>
         )}

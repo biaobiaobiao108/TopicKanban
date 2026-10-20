@@ -194,7 +194,7 @@ export const TopicReportTab: React.FC<TopicReportTabProps> = ({
     contentType: 'markdown',
     editorProps: {
       attributes: {
-        class: 'script-editor-font-stack prose prose-stone max-w-none focus:outline-none min-h-[500px] text-stone-900 dark:text-stone-100 font-normal',
+        class: 'script-editor-font-stack prose prose-stone max-w-none focus:outline-none min-h-[500px] text-ink font-normal',
       },
       handlePaste: (view, event) => {
         const text = event.clipboardData?.getData('text/plain') || '';
@@ -370,52 +370,52 @@ export const TopicReportTab: React.FC<TopicReportTabProps> = ({
   };
 
   return (
-    <div className="flex h-full min-h-0 flex-1 flex-col overflow-hidden bg-[var(--canvas)] transition-colors">
+    <div className="flex h-full min-h-0 flex-1 flex-col overflow-hidden bg-canvas transition-colors">
       {/* Top Floating / Fixed Toolbar */}
-      <div className="relative z-30 flex h-12 w-full shrink-0 items-center justify-between border-b border-[var(--line)]/60 bg-[var(--surface)]/80 backdrop-blur-md px-3 sm:px-6 transition-colors">
+      <div className="relative z-30 flex h-12 w-full shrink-0 items-center justify-between border-b border-line/60 bg-surface/80 backdrop-blur-md px-3 sm:px-6 transition-colors">
         {/* Left: Module Badge & Auto-save status */}
         <div className="flex items-center gap-2">
-          <div className="flex items-center gap-1.5 text-xs font-semibold text-[var(--accent-dark)] dark:text-[var(--accent)]">
-            <FileText className="h-4 w-4 text-[var(--accent)]" />
+          <div className="flex items-center gap-1.5 text-xs font-semibold text-accent-dark">
+            <FileText className="h-4 w-4 text-accent" />
             <span className="hidden sm:inline">选题报告</span>
           </div>
 
-          <div className="h-3.5 w-px bg-stone-300 dark:bg-stone-700 mx-1 hidden sm:block" />
+          <div className="h-3.5 w-px bg-line mx-1 hidden sm:block" />
 
           {/* Auto-save pill */}
-          <div className="flex items-center gap-1.5 rounded-full bg-stone-500/[0.04] px-2.5 py-0.5 text-[11px] text-[var(--ink-muted)] select-none dark:bg-stone-400/[0.06]">
+          <div className="flex items-center gap-1.5 rounded-full bg-control px-2.5 py-0.5 text-[11px] text-ink-muted select-none">
             {saveStatus === 'saving' && (
               <>
-                <Cloud className="h-3 w-3 animate-pulse text-[var(--accent)]" aria-hidden="true" />
+                <Cloud className="h-3 w-3 animate-pulse text-accent" aria-hidden="true" />
                 <span className="hidden sm:inline">同步中…</span>
               </>
             )}
             {saveStatus === 'saved' && (
               <>
-                <CheckCircle2 className="h-3 w-3 text-emerald-600/90 dark:text-emerald-400/90" aria-hidden="true" />
+                <CheckCircle2 className="h-3 w-3 text-success/90" aria-hidden="true" />
                 <span className="hidden sm:inline">已同步{lastSavedTime ? ` · ${lastSavedTime}` : ''}</span>
               </>
             )}
             {saveStatus === 'unsaved' && (
               <>
-                <Save className="h-3 w-3 text-stone-500 dark:text-stone-400" aria-hidden="true" />
+                <Save className="h-3 w-3 text-ink-muted" aria-hidden="true" />
                 <span className="hidden sm:inline">未保存</span>
               </>
             )}
             {saveStatus === 'conflict' && (
               <>
-                <AlertTriangle className="h-3 w-3 text-red-600 dark:text-red-400" aria-hidden="true" />
-                <span className="text-red-600 dark:text-red-400 font-semibold">需处理版本冲突</span>
+                <AlertTriangle className="h-3 w-3 text-danger" aria-hidden="true" />
+                <span className="text-danger font-semibold">需处理版本冲突</span>
               </>
             )}
             {saveStatus === 'error' && (
               <>
-                <AlertTriangle className="h-3 w-3 text-amber-600 dark:text-amber-400" aria-hidden="true" />
-                <span className="text-amber-600 dark:text-amber-400 font-semibold">保存失败</span>
+                <AlertTriangle className="h-3 w-3 text-warning" aria-hidden="true" />
+                <span className="text-warning font-semibold">保存失败</span>
                 <button
                   type="button"
                   onClick={() => void persistReport()}
-                  className="ml-1 text-[var(--accent)] hover:underline cursor-pointer"
+                  className="ml-1 text-accent hover:underline cursor-pointer"
                 >
                   重试
                 </button>
@@ -425,8 +425,8 @@ export const TopicReportTab: React.FC<TopicReportTabProps> = ({
         </div>
 
         {/* Center: Word count */}
-        <div className="flex items-center gap-1.5 rounded-full bg-stone-500/[0.04] px-3 py-1 text-xs text-[var(--ink-muted)] select-none border border-[var(--line)]/40 dark:bg-stone-400/[0.06]">
-          <span className="font-semibold text-[var(--ink)] tabular-nums">{charCount.toLocaleString()}</span>
+        <div className="flex items-center gap-1.5 rounded-full bg-control px-3 py-1 text-xs text-ink-muted select-none border border-line/40">
+          <span className="font-semibold text-ink tabular-nums">{charCount.toLocaleString()}</span>
           <span className="text-[11px]">字</span>
         </div>
 
@@ -436,10 +436,10 @@ export const TopicReportTab: React.FC<TopicReportTabProps> = ({
             type="button"
             onClick={handleCopyReport}
             aria-label="复制报告全文"
-            className="flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-medium text-[var(--ink-muted)] hover:text-[var(--ink)] hover:bg-stone-500/[0.06] transition-all cursor-pointer"
+            className="flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-medium text-ink-muted hover:text-ink hover:bg-control transition-all cursor-pointer"
           >
             {copied ? (
-              <Check className="h-3.5 w-3.5 text-emerald-600 dark:text-emerald-400" />
+              <Check className="h-3.5 w-3.5 text-success" />
             ) : (
               <Copy className="h-3.5 w-3.5" />
             )}
@@ -450,7 +450,7 @@ export const TopicReportTab: React.FC<TopicReportTabProps> = ({
             type="button"
             onClick={() => setIsConfirmClearOpen(true)}
             aria-label="清空报告"
-            className="grid h-7 w-7 place-items-center rounded-full text-xs text-stone-400 hover:text-red-600 hover:bg-red-500/10 transition-all cursor-pointer"
+            className="grid h-7 w-7 place-items-center rounded-full text-xs text-ink-muted hover:text-danger hover:bg-danger-soft transition-all cursor-pointer"
           >
             <Trash2 className="h-3.5 w-3.5" />
           </button>
@@ -458,11 +458,11 @@ export const TopicReportTab: React.FC<TopicReportTabProps> = ({
       </div>
 
       {saveStatus === 'conflict' && (
-        <div className="shrink-0 border-b border-[var(--h1-color)]/20 bg-[var(--h1-color)]/[0.04] px-4 py-3 sm:px-6" role="alert">
+        <div className="shrink-0 border-b border-h1-color/20 bg-h1-color/[0.04] px-4 py-3 sm:px-6" role="alert">
           <div className="mx-auto flex w-full max-w-4xl flex-col gap-3">
             <div>
-              <p className="text-sm font-semibold text-[var(--ink)]">本机与云端报告都已保留</p>
-              <p className="mt-1 text-xs leading-relaxed text-[var(--ink-muted)]">
+              <p className="text-sm font-semibold text-ink">本机与云端报告都已保留</p>
+              <p className="mt-1 text-xs leading-relaxed text-ink-muted">
                 下方编辑器保留本机内容。{hasConflictSnapshot
                   ? `云端版本${conflictReport ? `为 v${conflictReport.version}` : '目前没有报告'}。检查两个版本后，明确选择保留哪一份；选择本机版本会覆盖云端全文。`
                   : '本次响应没有提供云端快照，自动保存已暂停。请先复制本机内容，再重新加载云端版本并手动合并。'}
@@ -471,11 +471,11 @@ export const TopicReportTab: React.FC<TopicReportTabProps> = ({
 
             {hasConflictSnapshot && (
               <div className="flex flex-col gap-2">
-                <details className="rounded-xl bg-[var(--surface)]/70 px-3 py-2 text-xs">
-                  <summary className="cursor-pointer font-medium text-[var(--ink)]">
+                <details className="rounded-xl bg-surface/70 px-3 py-2 text-xs">
+                  <summary className="cursor-pointer font-medium text-ink">
                     查看云端版本（{(conflictReport?.content_markdown || '').length.toLocaleString()} 字符）
                   </summary>
-                  <pre className="mt-2 whitespace-pre-wrap break-words font-sans text-xs leading-relaxed text-[var(--ink-muted)]">
+                  <pre className="mt-2 whitespace-pre-wrap break-words font-sans text-xs leading-relaxed text-ink-muted">
                     {conflictReport?.content_markdown || '云端目前没有报告。'}
                   </pre>
                 </details>
@@ -483,14 +483,14 @@ export const TopicReportTab: React.FC<TopicReportTabProps> = ({
                   <button
                     type="button"
                     onClick={() => setIsConfirmOverwriteOpen(true)}
-                    className="min-h-8 rounded-full bg-[var(--h1-color)]/10 px-3 text-xs font-medium text-[var(--h1-color)] transition-colors hover:bg-[var(--h1-color)]/15 cursor-pointer"
+                    className="min-h-8 rounded-full bg-h1-color/10 px-3 text-xs font-medium text-h1-color transition-colors hover:bg-h1-color/15 cursor-pointer"
                   >
                     保留本机并覆盖云端
                   </button>
                   <button
                     type="button"
                     onClick={() => setIsConfirmUseRemoteOpen(true)}
-                    className="min-h-8 rounded-full bg-[var(--surface)] px-3 text-xs font-medium text-[var(--ink)] transition-colors hover:bg-[var(--accent)]/10 cursor-pointer"
+                    className="min-h-8 rounded-full bg-surface px-3 text-xs font-medium text-ink transition-colors hover:bg-accent/10 cursor-pointer"
                   >
                     采用云端版本
                   </button>
@@ -502,13 +502,13 @@ export const TopicReportTab: React.FC<TopicReportTabProps> = ({
       )}
 
       {/* Editor Body */}
-      <FloatingScrollbar className="script-editor-canvas-container flex-1 bg-[var(--canvas)] flex justify-center cursor-text transition-colors">
+      <FloatingScrollbar className="script-editor-canvas-container flex-1 bg-canvas flex justify-center cursor-text transition-colors">
         <div className="min-w-0 w-full max-w-4xl px-6 sm:px-12 md:px-16 pt-8 pb-36">
-          <div className="mb-4 border-b border-[var(--line)] pb-3">
-            <h1 className="font-sans text-xl sm:text-2xl font-bold text-[var(--ink)] tracking-tight">
+          <div className="mb-4 border-b border-line pb-3">
+            <h1 className="font-sans text-xl sm:text-2xl font-bold text-ink tracking-tight">
               {topicTitle} · 选题报告
             </h1>
-            <p className="mt-1 text-xs text-[var(--ink-muted)]">
+            <p className="mt-1 text-xs text-ink-muted">
               用于整理前期资料、事件脉络与核心事实。写文案时可在文案创作中分屏对照参考。
             </p>
           </div>

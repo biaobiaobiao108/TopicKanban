@@ -31,12 +31,12 @@ interface TagsViewProps {
 }
 
 const TAG_COLOR_OPTIONS = [
-  { id: 'stone', name: '经典雅灰', bg: 'bg-stone-100', text: 'text-stone-700', border: 'border-stone-300', dot: 'bg-stone-500' },
-  { id: 'rose', name: '赤陶绯红', bg: 'bg-rose-50', text: 'text-rose-700', border: 'border-rose-300', dot: 'bg-rose-500' },
-  { id: 'amber', name: '琥珀金黄', bg: 'bg-amber-50', text: 'text-amber-800', border: 'border-amber-300', dot: 'bg-amber-500' },
-  { id: 'emerald', name: '鼠尾草绿', bg: 'bg-emerald-50', text: 'text-emerald-800', border: 'border-emerald-300', dot: 'bg-emerald-500' },
-  { id: 'indigo', name: '静谧靛蓝', bg: 'bg-indigo-50', text: 'text-indigo-800', border: 'border-indigo-300', dot: 'bg-indigo-500' },
-  { id: 'purple', name: '葡萄冷紫', bg: 'bg-purple-50', text: 'text-purple-800', border: 'border-purple-300', dot: 'bg-purple-500' },
+  { id: 'stone', name: '经典雅灰', bg: 'bg-control', text: 'text-ink', border: 'border-line', dot: 'bg-control' },
+  { id: 'rose', name: '赤陶绯红', bg: 'bg-danger-soft', text: 'text-danger', border: 'border-danger-line', dot: 'bg-danger' },
+  { id: 'amber', name: '琥珀金黄', bg: 'bg-warning-soft', text: 'text-warning', border: 'border-warning-soft', dot: 'bg-warning' },
+  { id: 'emerald', name: '鼠尾草绿', bg: 'bg-success-soft', text: 'text-success', border: 'border-success-soft', dot: 'bg-success' },
+  { id: 'indigo', name: '静谧靛蓝', bg: 'bg-info-soft', text: 'text-info', border: 'border-info-soft', dot: 'bg-info' },
+  { id: 'purple', name: '葡萄冷紫', bg: 'bg-stage-production-soft', text: 'text-stage-production', border: 'border-stage-production-soft', dot: 'bg-stage-production' },
 ];
 
 type TagWithStats = Tag & { stats?: TagStats };
@@ -55,22 +55,22 @@ function TagMetricCard({
   tone?: 'stone' | 'accent' | 'amber' | 'emerald';
 }) {
   const tones = {
-    stone: 'bg-stone-500/5 text-stone-600 dark:bg-stone-800/80 dark:text-stone-300',
-    accent: 'bg-[var(--accent-soft)] text-[var(--accent-dark)]',
-    amber: 'bg-amber-500/10 text-amber-700 dark:bg-amber-950/40 dark:text-amber-300',
-    emerald: 'bg-emerald-500/10 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-300',
+    stone: 'bg-control text-ink-muted',
+    accent: 'bg-accent-soft text-accent-dark',
+    amber: 'bg-warning-soft text-warning',
+    emerald: 'bg-success-soft text-success',
   };
 
   return (
-    <div className="flex h-full min-h-[4.5rem] items-center gap-2 rounded-2xl border border-[var(--line)] bg-[var(--surface)] px-3 py-3 shadow-subtle sm:gap-3 sm:px-4">
+    <div className="flex h-full min-h-[4.5rem] items-center gap-2 rounded-2xl border border-line bg-surface px-3 py-3 shadow-subtle sm:gap-3 sm:px-4">
       <span className={`grid h-7 w-7 shrink-0 place-items-center rounded-lg sm:h-8 sm:w-8 ${tones[tone]}`}>
         {icon}
       </span>
       <div className="min-w-0 flex-1">
-        <p className="min-w-0 truncate text-[11px] font-semibold leading-tight text-[var(--ink-muted)]">{label}</p>
+        <p className="min-w-0 truncate text-[11px] font-semibold leading-tight text-ink-muted">{label}</p>
         <div className="mt-1 flex min-w-0 items-baseline gap-1.5">
-          <p className="min-w-0 truncate text-[1.05rem] font-bold leading-tight tracking-tight text-[var(--ink)] sm:text-lg">{value}</p>
-          <span className="shrink-0 text-[10px] font-medium leading-tight text-[var(--ink-muted)]">{detail}</span>
+          <p className="min-w-0 truncate text-[1.05rem] font-bold leading-tight tracking-tight text-ink sm:text-lg">{value}</p>
+          <span className="shrink-0 text-[10px] font-medium leading-tight text-ink-muted">{detail}</span>
         </div>
       </div>
     </div>
@@ -226,7 +226,7 @@ export const TagsView: React.FC<TagsViewProps> = ({
   const activeStats = activeTag ? tagStatsMap.get(activeTag.id) : null;
 
   return (
-    <FloatingScrollbar data-testid="tags-page" className="mobile-bottom-nav-content bg-[var(--canvas)] transition-colors md:overflow-hidden" wrapperClassName="h-full min-h-0 min-w-0 w-full flex-1">
+    <FloatingScrollbar data-testid="tags-page" className="mobile-bottom-nav-content bg-canvas transition-colors md:overflow-hidden" wrapperClassName="h-full min-h-0 min-w-0 w-full flex-1">
       <div className="mx-auto flex min-h-full w-full max-w-7xl flex-1 flex-col gap-5 px-4 py-5 sm:px-6 sm:py-6 lg:px-8 md:h-full md:min-h-0">
         <PageHeader
           title="标签与创作赛道资产"
@@ -235,7 +235,7 @@ export const TagsView: React.FC<TagsViewProps> = ({
             <button
               type="button"
               onClick={openCreateModal}
-              className="inline-flex h-10 items-center justify-center gap-2 rounded-xl bg-[var(--accent)] px-4 text-xs font-semibold text-white shadow-2xs transition-all hover:bg-[var(--accent-dark)] active:scale-[0.98] sm:text-sm cursor-pointer"
+              className="inline-flex h-10 items-center justify-center gap-2 rounded-xl bg-accent px-4 text-xs font-semibold text-white shadow-2xs transition-all hover:bg-accent-dark active:scale-[0.98] sm:text-sm cursor-pointer"
             >
               <Plus className="h-4 w-4 stroke-[2.5]" aria-hidden="true" />
               <span>新建赛道标签</span>
@@ -253,7 +253,7 @@ export const TagsView: React.FC<TagsViewProps> = ({
           <TagMetricCard
             icon={<CheckCircle2 className="h-4 w-4" aria-hidden="true" />}
             label="打标覆盖率"
-            value={<><span className="font-mono tabular-nums">{coveragePercent}%</span> <span className="text-xs font-normal text-[var(--ink-muted)]"><span className="font-mono tabular-nums">({totalTaggedTopics}/{totalTopicCount})</span></span></>}
+            value={<><span className="font-mono tabular-nums">{coveragePercent}%</span> <span className="text-xs font-normal text-ink-muted"><span className="font-mono tabular-nums">({totalTaggedTopics}/{totalTopicCount})</span></span></>}
             detail="选题覆盖"
             tone="emerald"
           />
@@ -277,11 +277,11 @@ export const TagsView: React.FC<TagsViewProps> = ({
 
         <div aria-label="标签与选题工作区" className="flex min-h-[34rem] min-w-0 flex-1 flex-col gap-5 md:min-h-0 md:flex-row md:overflow-hidden">
           {/* Left / Tag Selector List Panel (w-80) - Independent rounded card */}
-          <div className="tags-sidebar-panel hidden w-full shrink-0 flex-col overflow-hidden rounded-2xl border border-[var(--line)] bg-[var(--surface)] shadow-subtle md:flex md:h-auto md:min-h-0 md:w-80">
+          <div className="tags-sidebar-panel hidden w-full shrink-0 flex-col overflow-hidden rounded-2xl border border-line bg-surface shadow-subtle md:flex md:h-auto md:min-h-0 md:w-80">
             {/* Search Box */}
-            <div className="border-b border-[var(--line)]/40 bg-[var(--surface)] p-3.5">
+            <div className="border-b border-line/40 bg-surface p-3.5">
               <div className="relative">
-                <Search className="absolute left-3 top-2.5 h-4 w-4 text-[var(--ink-muted)]" aria-hidden="true" />
+                <Search className="absolute left-3 top-2.5 h-4 w-4 text-ink-muted" aria-hidden="true" />
                 <input
                   type="text"
                   id="tags-search"
@@ -291,13 +291,13 @@ export const TagsView: React.FC<TagsViewProps> = ({
                   placeholder="搜索标签名称..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  className="min-h-9 w-full rounded-xl border border-[var(--line)]/60 bg-[var(--canvas)] px-3 pl-9 text-xs text-[var(--ink)] placeholder:text-[var(--ink-muted)] focus:border-[var(--accent)] focus:outline-none"
+                  className="min-h-9 w-full rounded-xl border border-line/60 bg-canvas px-3 pl-9 text-xs text-ink placeholder:text-ink-muted focus:border-accent focus:outline-none"
                 />
               </div>
             </div>
 
             {/* Tags List */}
-            <FloatingScrollbar className="space-y-1 bg-[var(--surface)] p-3" wrapperClassName="min-h-0 flex-1">
+            <FloatingScrollbar className="space-y-1 bg-surface p-3" wrapperClassName="min-h-0 flex-1">
               {visibleTags.map((tag) => {
                 const isSelected = activeTag?.id === tag.id;
                 const stats = tagStatsMap.get(tag.id);
@@ -309,28 +309,28 @@ export const TagsView: React.FC<TagsViewProps> = ({
                     key={tag.id}
                     className={`tag-menu-item group relative flex items-center justify-between rounded-xl border p-2.5 transition-all cursor-pointer ${
                       isSelected
-                        ? 'is-selected bg-[var(--canvas)] border-[var(--line)] text-[var(--ink)] shadow-2xs font-semibold'
-                        : 'bg-transparent border-transparent hover:border-[var(--line)]/50 hover:bg-[var(--canvas)] text-[var(--ink-muted)] hover:text-[var(--ink)]'
+                        ? 'is-selected bg-canvas border-line text-ink shadow-2xs font-semibold'
+                        : 'bg-transparent border-transparent hover:border-line/50 hover:bg-canvas text-ink-muted hover:text-ink'
                     }`}
                   >
                     <button
                       type="button"
                       onClick={() => setSelectedTagId(tag.id)}
                       aria-pressed={isSelected}
-                      className="flex min-w-0 flex-1 cursor-pointer items-center gap-2.5 rounded-lg text-left outline-none focus-visible:ring-1 focus-visible:ring-[var(--accent)]"
+                      className="flex min-w-0 flex-1 cursor-pointer items-center gap-2.5 rounded-lg text-left outline-none focus-visible:ring-1 focus-visible:ring-accent"
                     >
                       <span className={`h-2 w-2 shrink-0 rounded-full ${colorConf.dot}`} />
                       <span className="truncate">
                         <span className="flex items-center gap-1.5 truncate text-sm font-semibold leading-tight">
                           <span>#{tag.name}</span>
                         </span>
-                        <span className="mt-0.5 flex items-center gap-2 text-[10px] text-[var(--ink-muted)]">
+                        <span className="mt-0.5 flex items-center gap-2 text-[10px] text-ink-muted">
                           <span>{count} 选题</span>
                           {stats && stats.inProgressCount > 0 && (
-                            <span className="text-[var(--accent)] font-medium">{stats.inProgressCount} 写稿</span>
+                            <span className="text-accent font-medium">{stats.inProgressCount} 写稿</span>
                           )}
                           {stats && stats.publishedCount > 0 && (
-                            <span className="text-emerald-600 dark:text-emerald-400 font-medium">{stats.publishedCount} 已发布</span>
+                            <span className="text-success font-medium">{stats.publishedCount} 已发布</span>
                           )}
                         </span>
                       </span>
@@ -338,7 +338,7 @@ export const TagsView: React.FC<TagsViewProps> = ({
 
                     {/* Actions & Count Badge */}
                     <div className="flex shrink-0 items-center gap-1">
-                      <span className="px-1.5 py-0.5 font-mono text-xs tabular-nums text-[var(--ink-muted)]">
+                      <span className="px-1.5 py-0.5 font-mono text-xs tabular-nums text-ink-muted">
                         {count}
                       </span>
 
@@ -347,7 +347,7 @@ export const TagsView: React.FC<TagsViewProps> = ({
                           e.stopPropagation();
                           openEditModal(tag);
                         }}
-                        className="cursor-pointer rounded-lg p-1 text-[var(--ink-muted)] opacity-100 transition-opacity hover:text-[var(--ink)] md:opacity-0 md:group-hover:opacity-100"
+                        className="cursor-pointer rounded-lg p-1 text-ink-muted opacity-100 transition-opacity hover:text-ink md:opacity-0 md:group-hover:opacity-100"
                         aria-label="编辑标签"
                       >
                         <Edit2 className="w-3.5 h-3.5" />
@@ -358,7 +358,7 @@ export const TagsView: React.FC<TagsViewProps> = ({
                           e.stopPropagation();
                           setDeletingTag(tag);
                         }}
-                        className="cursor-pointer rounded-lg p-1 text-[var(--ink-muted)] opacity-100 transition-opacity hover:text-[var(--h1-color)] md:opacity-0 md:group-hover:opacity-100"
+                        className="cursor-pointer rounded-lg p-1 text-ink-muted opacity-100 transition-opacity hover:text-h1-color md:opacity-0 md:group-hover:opacity-100"
                         aria-label="删除标签"
                       >
                         <Trash2 className="w-3.5 h-3.5" />
@@ -369,24 +369,24 @@ export const TagsView: React.FC<TagsViewProps> = ({
               })}
 
               {visibleTags.length === 0 && !tagsPageQuery.isFetching && (
-                <div className="px-3 py-8 text-center text-xs text-[var(--ink-muted)]">
+                <div className="px-3 py-8 text-center text-xs text-ink-muted">
                   暂无匹配标签
                 </div>
               )}
             </FloatingScrollbar>
             {totalTags > 0 && (
-              <div className="flex shrink-0 items-center justify-center gap-2 border-t border-[var(--line)]/40 bg-[var(--surface)] px-3 py-2.5 text-[11px] text-[var(--ink-muted)]">
-                <button type="button" disabled={tagPage <= 1 || tagsPageQuery.isFetching} onClick={() => setTagPage((current) => Math.max(1, current - 1))} className="rounded-lg border border-[var(--line)]/60 bg-[var(--canvas)] px-2 py-1 font-medium disabled:cursor-not-allowed disabled:opacity-40">上一页</button>
+              <div className="flex shrink-0 items-center justify-center gap-2 border-t border-line/40 bg-surface px-3 py-2.5 text-[11px] text-ink-muted">
+                <button type="button" disabled={tagPage <= 1 || tagsPageQuery.isFetching} onClick={() => setTagPage((current) => Math.max(1, current - 1))} className="rounded-lg border border-line/60 bg-canvas px-2 py-1 font-medium disabled:cursor-not-allowed disabled:opacity-40">上一页</button>
                 <span className="font-mono tabular-nums">{tagPage} / {Math.max(1, tagsPageQuery.data?.total_pages || 1)}</span>
-                <button type="button" disabled={tagPage >= (tagsPageQuery.data?.total_pages || 1) || tagsPageQuery.isFetching} onClick={() => setTagPage((current) => current + 1)} className="rounded-lg border border-[var(--line)]/60 bg-[var(--canvas)] px-2 py-1 font-medium disabled:cursor-not-allowed disabled:opacity-40">下一页</button>
+                <button type="button" disabled={tagPage >= (tagsPageQuery.data?.total_pages || 1) || tagsPageQuery.isFetching} onClick={() => setTagPage((current) => current + 1)} className="rounded-lg border border-line/60 bg-canvas px-2 py-1 font-medium disabled:cursor-not-allowed disabled:opacity-40">下一页</button>
               </div>
             )}
           </div>
 
-          <div data-testid="tags-mobile-picker" className="shrink-0 rounded-2xl border border-[var(--line)]/60 bg-[var(--surface)] p-3.5 md:hidden">
+          <div data-testid="tags-mobile-picker" className="shrink-0 rounded-2xl border border-line/60 bg-surface p-3.5 md:hidden">
             <div className="mb-2 flex items-center justify-between gap-3">
-              <span id="mobile-tag-picker-label" className="text-xs font-bold text-[var(--ink)]">当前赛道</span>
-              <span className="text-[11px] text-[var(--ink-muted)]">共 {tags.length} 个标签</span>
+              <span id="mobile-tag-picker-label" className="text-xs font-bold text-ink">当前赛道</span>
+              <span className="text-[11px] text-ink-muted">共 {tags.length} 个标签</span>
             </div>
             <CustomSelect
               value={activeTag?.id || ''}
@@ -408,18 +408,18 @@ export const TagsView: React.FC<TagsViewProps> = ({
           </div>
 
           {/* Right / Selected Tag Deep Detail Stream - Independent rounded card */}
-          <div className="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden rounded-2xl border border-[var(--line)] bg-[var(--surface)] shadow-subtle">
+          <div className="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden rounded-2xl border border-line bg-surface shadow-subtle">
             {activeTag ? (
               <>
                 {/* Tag Header Banner - Compact & Pure */}
-                <div className="flex shrink-0 flex-col gap-3 border-b border-[var(--line)]/50 bg-[var(--surface)] p-4 sm:p-5">
+                <div className="flex shrink-0 flex-col gap-3 border-b border-line/50 bg-surface p-4 sm:p-5">
                   <div className="flex items-center justify-between gap-3 flex-wrap">
                     <div className="flex items-center gap-2.5 min-w-0">
-                      <span className="flex min-w-0 items-center gap-1.5 text-lg sm:text-xl font-bold text-[var(--ink)]">
-                        <Hash className="h-5 w-5 shrink-0 text-[var(--accent)]" aria-hidden="true" />
+                      <span className="flex min-w-0 items-center gap-1.5 text-lg sm:text-xl font-bold text-ink">
+                        <Hash className="h-5 w-5 shrink-0 text-accent" aria-hidden="true" />
                         <span className="truncate">{activeTag.name}</span>
                       </span>
-                      <span className="rounded-md bg-stone-500/[0.05] dark:bg-white/[0.05] px-2 py-0.5 text-xs text-[var(--ink-muted)]">
+                      <span className="rounded-md bg-control px-2 py-0.5 text-xs text-ink-muted">
                         共 <span className="font-mono tabular-nums">{activeStats?.count || 0}</span> 个选题
                       </span>
                     </div>
@@ -427,7 +427,7 @@ export const TagsView: React.FC<TagsViewProps> = ({
                     <div className="flex items-center gap-2">
                       <button
                         onClick={() => openEditModal(activeTag)}
-                        className="flex cursor-pointer items-center justify-center gap-1 rounded-lg px-2.5 py-1 text-xs font-medium text-[var(--ink-muted)] hover:text-[var(--ink)] hover:bg-stone-500/[0.06] dark:hover:bg-white/[0.06] transition-colors"
+                        className="flex cursor-pointer items-center justify-center gap-1 rounded-lg px-2.5 py-1 text-xs font-medium text-ink-muted hover:text-ink hover:bg-control transition-colors"
                       >
                         <Edit2 className="w-3.5 h-3.5" />
                         <span>编辑标签</span>
@@ -436,14 +436,14 @@ export const TagsView: React.FC<TagsViewProps> = ({
                   </div>
 
                   <div className="flex items-center justify-between gap-3 flex-wrap">
-                    <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-[var(--ink-muted)]">
-                      <span>累计产出文案：<strong className="text-[var(--ink)]"><span className="font-mono tabular-nums">{activeStats?.wordsTotal || 0}</span> 字</strong></span>
+                    <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-ink-muted">
+                      <span>累计产出文案：<strong className="text-ink"><span className="font-mono tabular-nums">{activeStats?.wordsTotal || 0}</span> 字</strong></span>
                       <span>•</span>
-                      <span>平均故事评分：<strong className="text-[var(--ink)]"><span className="font-mono tabular-nums">{activeStats?.avgScore || 0} / 10</span> 分</strong></span>
+                      <span>平均故事评分：<strong className="text-ink"><span className="font-mono tabular-nums">{activeStats?.avgScore || 0} / 10</span> 分</strong></span>
                     </div>
 
                     {/* Status Filter Micro-capsule */}
-                    <div className="inline-flex items-center gap-1 rounded-full bg-stone-500/[0.04] dark:bg-stone-400/[0.06] p-0.5 text-xs font-medium border border-[var(--line)]/30">
+                    <div className="inline-flex items-center gap-1 rounded-full bg-control p-0.5 text-xs font-medium border border-line/30">
                       {([
                         { id: 'all', label: '全部' },
                         { id: 'in_progress', label: '活跃生产中' },
@@ -455,8 +455,8 @@ export const TagsView: React.FC<TagsViewProps> = ({
                           onClick={() => setTopicStatusFilter(tab.id)}
                           className={`px-2.5 py-0.5 rounded-full transition-all cursor-pointer text-xs ${
                             topicStatusFilter === tab.id
-                              ? 'bg-[var(--surface)] text-[var(--ink)] font-semibold shadow-2xs'
-                              : 'text-[var(--ink-muted)] hover:text-[var(--ink)]'
+                              ? 'bg-surface text-ink font-semibold shadow-2xs'
+                              : 'text-ink-muted hover:text-ink'
                           }`}
                         >
                           {tab.label}
@@ -482,35 +482,35 @@ export const TagsView: React.FC<TagsViewProps> = ({
                           onSelectTopic(topic.id);
                         }
                       }}
-                      className="mobile-motion-card group flex min-w-0 cursor-pointer flex-col gap-2.5 rounded-2xl border border-[var(--line)]/70 bg-[var(--surface)] p-4 transition-colors hover:bg-[var(--canvas)] focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[var(--accent)]"
+                      className="mobile-motion-card group flex min-w-0 cursor-pointer flex-col gap-2.5 rounded-2xl border border-line/70 bg-surface p-4 transition-colors hover:bg-canvas focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-accent"
                     >
                       <div className="flex items-center justify-between gap-2">
                         <StatusBadge status={topic.status} />
                         <PriorityBadge priority={topic.priority} />
                       </div>
-                      <h4 className="line-clamp-2 font-semibold text-base leading-snug text-[var(--ink)] transition-colors group-hover:text-[var(--accent)]">
+                      <h4 className="line-clamp-2 font-semibold text-base leading-snug text-ink transition-colors group-hover:text-accent">
                         {topic.title}
                       </h4>
                     </div>
                   ))}
 
                   {activeTagTopics.length === 0 && !tagTopicsPageQuery.isFetching && (
-                    <div className="col-span-full rounded-2xl border border-dashed border-[var(--line)] bg-[var(--surface)] py-16 text-center text-[var(--ink-muted)]">
+                    <div className="col-span-full rounded-2xl border border-dashed border-line bg-surface py-16 text-center text-ink-muted">
                       当前赛道在所选筛选条件下暂无选题
                     </div>
                   )}
                 </div>
                 {(tagTopicsPageQuery.data?.total || 0) > 0 && (
-                  <div className="mt-5 flex items-center justify-center gap-3 text-xs text-[var(--ink-muted)]">
-                    <button type="button" disabled={topicPage <= 1 || tagTopicsPageQuery.isFetching} onClick={() => setTopicPage((current) => Math.max(1, current - 1))} className="min-h-9 rounded-lg border border-[var(--line)] bg-[var(--surface)] px-3 py-1.5 font-medium text-[var(--ink)] hover:bg-[var(--canvas)] disabled:cursor-not-allowed disabled:opacity-40">上一页</button>
+                  <div className="mt-5 flex items-center justify-center gap-3 text-xs text-ink-muted">
+                    <button type="button" disabled={topicPage <= 1 || tagTopicsPageQuery.isFetching} onClick={() => setTopicPage((current) => Math.max(1, current - 1))} className="min-h-9 rounded-lg border border-line bg-surface px-3 py-1.5 font-medium text-ink hover:bg-canvas disabled:cursor-not-allowed disabled:opacity-40">上一页</button>
                     <span><span className="font-mono tabular-nums">{topicPage} / {Math.max(1, tagTopicsPageQuery.data?.total_pages || 1)}</span> · 共 <span className="font-mono tabular-nums">{tagTopicsPageQuery.data?.total || 0}</span> 个选题</span>
-                    <button type="button" disabled={topicPage >= (tagTopicsPageQuery.data?.total_pages || 1) || tagTopicsPageQuery.isFetching} onClick={() => setTopicPage((current) => current + 1)} className="min-h-9 rounded-lg border border-[var(--line)] bg-[var(--surface)] px-3 py-1.5 font-medium text-[var(--ink)] hover:bg-[var(--canvas)] disabled:cursor-not-allowed disabled:opacity-40">下一页</button>
+                    <button type="button" disabled={topicPage >= (tagTopicsPageQuery.data?.total_pages || 1) || tagTopicsPageQuery.isFetching} onClick={() => setTopicPage((current) => current + 1)} className="min-h-9 rounded-lg border border-line bg-surface px-3 py-1.5 font-medium text-ink hover:bg-canvas disabled:cursor-not-allowed disabled:opacity-40">下一页</button>
                   </div>
                 )}
               </FloatingScrollbar>
             </>
           ) : (
-            <div className="flex-1 flex items-center justify-center p-12 text-[var(--ink-muted)] text-sm">
+            <div className="flex-1 flex items-center justify-center p-12 text-ink-muted text-sm">
               请选择或创建一个赛道标签
             </div>
           )}
@@ -527,11 +527,11 @@ export const TagsView: React.FC<TagsViewProps> = ({
       >
         <form onSubmit={handleSaveTagSubmit} className="space-y-4">
           <div>
-            <label className="block text-xs font-bold text-stone-800 dark:text-stone-200 mb-1">
-              标签名称 <span className="text-stone-400">*</span>
+            <label className="block text-xs font-bold text-ink mb-1">
+              标签名称 <span className="text-ink-muted">*</span>
             </label>
             <div className="relative">
-              <span className="absolute left-3 top-2.5 text-stone-400 font-bold">#</span>
+              <span className="absolute left-3 top-2.5 text-ink-muted font-bold">#</span>
               <input
                 type="text"
                 required
@@ -539,13 +539,13 @@ export const TagsView: React.FC<TagsViewProps> = ({
                 placeholder="例如：网红打假"
                 value={tagNameInput}
                 onChange={(e) => setTagNameInput(e.target.value)}
-                className="w-full pl-7 pr-3.5 py-2.5 bg-stone-500/[0.03] dark:bg-stone-800 border border-stone-200/80 dark:border-stone-700 rounded-xl text-sm text-[var(--ink)] placeholder:text-stone-400 dark:placeholder:text-stone-500 focus:bg-[var(--surface)] dark:focus:bg-stone-800 focus:border-[var(--accent)] focus:outline-none"
+                className="w-full pl-7 pr-3.5 py-2.5 bg-control border border-line rounded-xl text-sm text-ink placeholder:text-ink-muted focus:bg-surface focus:border-accent focus:outline-none"
               />
             </div>
           </div>
 
           <div>
-            <label className="block text-xs font-bold text-stone-800 dark:text-stone-200 mb-1.5">
+            <label className="block text-xs font-bold text-ink mb-1.5">
               赛道标识色
             </label>
             <div className="grid grid-cols-3 gap-2">
@@ -556,8 +556,8 @@ export const TagsView: React.FC<TagsViewProps> = ({
                   onClick={() => setTagColorInput(c.id)}
                   className={`flex items-center gap-1.5 p-2 rounded-xl border text-xs font-medium transition-all cursor-pointer ${
                     tagColorInput === c.id
-                      ? 'border-[var(--accent)] bg-[var(--accent-soft)] text-[var(--accent-dark)] dark:text-[var(--accent)] font-bold'
-                      : 'border-stone-200/70 dark:border-stone-700 bg-stone-500/[0.03] dark:bg-stone-800 text-stone-700 dark:text-stone-300 hover:bg-stone-100'
+                      ? 'border-accent bg-accent-soft text-accent-dark font-bold'
+                      : 'border-line bg-control text-ink hover:bg-control'
                   }`}
                 >
                   <span className={`w-2.5 h-2.5 rounded-full ${c.dot}`} />
@@ -567,17 +567,17 @@ export const TagsView: React.FC<TagsViewProps> = ({
             </div>
           </div>
 
-          <div className="flex items-center justify-end gap-2.5 pt-3 border-t border-stone-200/70 dark:border-stone-800">
+          <div className="flex items-center justify-end gap-2.5 pt-3 border-t border-line">
             <button
               type="button"
               onClick={() => setIsModalOpen(false)}
-              className="px-4 py-2 text-xs sm:text-sm font-semibold text-stone-600 dark:text-stone-400 hover:bg-stone-100 dark:hover:bg-stone-800 rounded-xl cursor-pointer transition-colors"
+              className="px-4 py-2 text-xs sm:text-sm font-semibold text-ink-muted hover:bg-control rounded-xl cursor-pointer transition-colors"
             >
               取消
             </button>
             <button
               type="submit"
-              className="px-5 py-2 text-xs sm:text-sm bg-[var(--accent)] hover:bg-[var(--accent-dark)] text-white rounded-xl font-bold cursor-pointer transition-all shadow-2xs"
+              className="px-5 py-2 text-xs sm:text-sm bg-accent hover:bg-accent-dark text-white rounded-xl font-bold cursor-pointer transition-all shadow-2xs"
             >
               {editingTag ? '更新标签' : '保存标签'}
             </button>

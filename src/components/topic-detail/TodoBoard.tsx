@@ -75,7 +75,7 @@ const ColumnTodoComposer: React.FC<{
   };
 
   return (
-    <form onSubmit={(event) => void submit(event)} noValidate className="todo-board-composer rounded-[var(--radius-md)] border border-[var(--line)] bg-[var(--surface)] p-2.5 shadow-subtle">
+    <form onSubmit={(event) => void submit(event)} noValidate className="todo-board-composer rounded-lg border border-line bg-surface p-2.5 shadow-subtle">
       <label htmlFor={id} className="sr-only">添加待办事项</label>
       <div className="flex min-w-0 items-center gap-2">
         <input
@@ -95,19 +95,19 @@ const ColumnTodoComposer: React.FC<{
           enterKeyHint="done"
           autoComplete="off"
           placeholder="写下下一步行动"
-          className="todo-composer-input min-h-9 min-w-0 flex-1 rounded-[var(--radius-sm)] bg-stone-500/[0.03] px-2.5 py-1.5 text-base text-[var(--ink)] outline-none ring-1 ring-transparent transition focus:ring-[var(--accent)]/40 placeholder:text-stone-400 dark:bg-stone-800 dark:placeholder:text-stone-500 sm:text-sm"
+          className="todo-composer-input min-h-9 min-w-0 flex-1 rounded-sm bg-control px-2.5 py-1.5 text-base text-ink outline-none ring-1 ring-transparent transition focus:ring-accent/40 placeholder:text-ink-muted sm:text-sm"
           aria-describedby={error ? `${id}-error` : undefined}
           aria-invalid={Boolean(error)}
         />
         <div className="flex shrink-0 items-center gap-1">
-          <button type="submit" disabled={isSubmitting || !title.trim()} className="min-h-9 rounded-[var(--radius-sm)] bg-[var(--accent)] px-3 text-xs font-semibold text-white transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-40 cursor-pointer">
+          <button type="submit" disabled={isSubmitting || !title.trim()} className="min-h-9 rounded-sm bg-accent px-3 text-xs font-semibold text-white transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-40 cursor-pointer">
             {isSubmitting ? '添加中…' : '添加'}
           </button>
-          <button type="button" onClick={onCancel} disabled={isSubmitting} className="min-h-9 rounded-[var(--radius-sm)] px-2 text-xs text-[var(--ink-muted)] transition hover:bg-[var(--canvas)] hover:text-[var(--ink)] disabled:opacity-40 cursor-pointer">取消</button>
+          <button type="button" onClick={onCancel} disabled={isSubmitting} className="min-h-9 rounded-sm px-2 text-xs text-ink-muted transition hover:bg-canvas hover:text-ink disabled:opacity-40 cursor-pointer">取消</button>
         </div>
       </div>
       {error && (
-        <p id={`${id}-error`} role="alert" className="mt-1.5 text-[11px] leading-4 text-red-600 dark:text-red-400">
+        <p id={`${id}-error`} role="alert" className="mt-1.5 text-[11px] leading-4 text-danger">
           {error}
         </p>
       )}
@@ -161,9 +161,9 @@ const InlineTitleEditor: React.FC<{
         maxLength={200}
         aria-label="编辑待办标题"
         aria-invalid={Boolean(error)}
-        className="todo-inline-editor-input min-h-8 w-full bg-transparent text-sm font-semibold text-stone-900 outline-none dark:text-stone-100"
+        className="todo-inline-editor-input min-h-8 w-full bg-transparent text-sm font-semibold text-ink outline-none"
       />
-      {error && <span role="alert" className="text-[11px] text-red-600 dark:text-red-400">{error}</span>}
+      {error && <span role="alert" className="text-[11px] text-danger">{error}</span>}
     </>
   );
 };
@@ -215,10 +215,10 @@ const SortableTodoCard: React.FC<SortableTodoCardProps> = ({ todo, status, isCur
       data-todo-id={todo.id}
       data-current={isCurrent ? 'true' : undefined}
       aria-current={isCurrent ? 'true' : undefined}
-      className={`group relative flex min-w-0 min-h-[58px] select-none touch-manipulation flex-col justify-center rounded-[var(--radius-md)] border border-[var(--line)] bg-[var(--surface)] p-3.5 shadow-subtle focus:outline-none focus-visible:ring-1 focus-visible:ring-[var(--accent)] ${
+      className={`group relative flex min-w-0 min-h-[58px] select-none touch-manipulation flex-col justify-center rounded-lg border border-line bg-surface p-3.5 shadow-subtle focus:outline-none focus-visible:ring-1 focus-visible:ring-accent ${
         isDragging
-          ? 'pointer-events-none border-dashed border-[var(--line)] bg-[var(--canvas)] opacity-30 shadow-none scale-[0.98] transition-none will-change-transform'
-          : `transition-all duration-150 ${isBusy ? 'cursor-default' : 'cursor-grab active:cursor-grabbing'} hover:border-[var(--accent)]/35 hover:shadow-subtle`
+          ? 'pointer-events-none border-dashed border-line bg-canvas opacity-30 shadow-none scale-[0.98] transition-none will-change-transform'
+          : `transition-all duration-150 ${isBusy ? 'cursor-default' : 'cursor-grab active:cursor-grabbing'} hover:border-accent/35 hover:shadow-subtle`
       }`}
     >
       <div className="flex min-w-0 items-center">
@@ -230,25 +230,25 @@ const SortableTodoCard: React.FC<SortableTodoCardProps> = ({ todo, status, isCur
               <span
                 className={`min-w-0 flex-1 break-words text-sm leading-5 font-medium ${
                   isCompleted
-                    ? 'text-[var(--ink-muted)] line-through decoration-stone-400/60 dark:decoration-stone-600'
-                    : 'text-[var(--ink)]'
+                    ? 'text-ink-muted line-through decoration-ink-faint/60'
+                    : 'text-ink'
                 }`}
               >
                 {todo.title}
               </span>
               {isCurrent && (
-                <span className="todo-current-badge inline-flex shrink-0 items-center gap-1 rounded-[var(--radius-sm)] px-1.5 py-1 text-[10px] font-semibold leading-none">
+                <span className="todo-current-badge inline-flex shrink-0 items-center gap-1 rounded-sm px-1.5 py-1 text-[10px] font-semibold leading-none">
                   <Zap className="h-3 w-3" aria-hidden="true" />
                   <span>当前行动</span>
                 </span>
               )}
               {isCompleted && (
-                <span className="inline-flex shrink-0 items-center gap-1 rounded-[var(--radius-sm)] bg-[var(--accent-soft)]/60 px-1.5 py-1 text-[10px] font-semibold leading-none text-[var(--accent)]">
+                <span className="inline-flex shrink-0 items-center gap-1 rounded-sm bg-accent-soft/60 px-1.5 py-1 text-[10px] font-semibold leading-none text-accent">
                   <Check className="h-3 w-3 stroke-[2.5]" aria-hidden="true" />
                   <span>已完成</span>
                 </span>
               )}
-              {isBusy && <span className="text-[10px] text-[var(--ink-muted)]">保存中</span>}
+              {isBusy && <span className="text-[10px] text-ink-muted">保存中</span>}
             </div>
           )}
         </div>
@@ -274,13 +274,13 @@ const TodoBoardColumn: React.FC<{
       data-testid="todo-board-column"
       data-column-status={status}
       aria-label={`${column.label}，${ids.length} 条`}
-      className={`kanban-column-container todo-board-column flex min-h-[220px] w-full min-w-0 flex-col rounded-[var(--radius-md)] border p-3 transition-colors duration-150 ${isOver ? 'border-[var(--accent)] ring-1 ring-[var(--accent)]/30 bg-[var(--accent-soft)] shadow-subtle' : 'border-[var(--line)] bg-[var(--canvas)]/60 hover:bg-[var(--canvas)]'}`}
+      className={`kanban-column-container todo-board-column flex min-h-[220px] w-full min-w-0 flex-col rounded-lg border p-3 transition-colors duration-150 ${isOver ? 'border-accent ring-1 ring-accent/30 bg-accent-soft shadow-subtle' : 'border-line bg-canvas/60 hover:bg-canvas'}`}
     >
       <header className="mb-2.5 flex items-center justify-between gap-2 px-1.5 py-1">
         <div className="flex min-w-0 items-center gap-2">
-          <span className={`h-2 w-2 shrink-0 rounded-full ${status === 'todo' ? 'bg-stone-400' : status === 'in_progress' ? 'bg-[var(--accent)]' : 'bg-emerald-600 dark:bg-emerald-500'}`} />
-          <h3 className="text-[13.5px] font-semibold tracking-tight text-[var(--ink)]">{column.label}</h3>
-          <span className="kanban-column-count ml-0.5 text-xs tabular-nums text-[var(--ink-muted)]">{ids.length}</span>
+          <span className={`h-2 w-2 shrink-0 rounded-full ${status === 'todo' ? 'bg-ink-faint' : status === 'in_progress' ? 'bg-accent' : 'bg-success'}`} />
+          <h3 className="text-[13.5px] font-semibold tracking-tight text-ink">{column.label}</h3>
+          <span className="kanban-column-count ml-0.5 text-xs tabular-nums text-ink-muted">{ids.length}</span>
         </div>
         {status === 'todo' && (
           <button
@@ -288,7 +288,7 @@ const TodoBoardColumn: React.FC<{
             onClick={onQuickAdd}
             aria-label="在待办中新增待办"
             aria-expanded={isComposerOpen}
-            className="flex h-7 w-7 shrink-0 items-center justify-center rounded-[var(--radius-sm)] text-[var(--ink-muted)] transition-colors hover:bg-[var(--surface)] hover:text-[var(--ink)] cursor-pointer"
+            className="flex h-7 w-7 shrink-0 items-center justify-center rounded-sm text-ink-muted transition-colors hover:bg-surface hover:text-ink cursor-pointer"
           >
             <Plus className="h-3.5 w-3.5" aria-hidden="true" />
           </button>
@@ -297,7 +297,7 @@ const TodoBoardColumn: React.FC<{
       <SortableContext items={ids} strategy={verticalListSortingStrategy}>
         <div className="mobile-scroll-reveal min-h-[140px] min-w-0 flex-1 space-y-2.5">
           {children}
-          {ids.length === 0 && <div className={`flex h-24 flex-col items-center justify-center rounded-[var(--radius-sm)] border border-dashed p-3 text-center text-xs transition-colors duration-150 ${isOver ? 'border-[var(--accent)] bg-[var(--accent-soft)] text-[var(--accent)]' : 'border-[var(--line)] bg-[var(--surface)]/50 text-[var(--ink-muted)]'}`}><span className="font-medium">{isOver ? '松开以移入此列' : '暂无待办'}</span><span className="mt-0.5 text-[11px] opacity-75">{isOver ? `将事项归入「${column.label}」` : '拖动事项至此可调整进度'}</span></div>}
+          {ids.length === 0 && <div className={`flex h-24 flex-col items-center justify-center rounded-sm border border-dashed p-3 text-center text-xs transition-colors duration-150 ${isOver ? 'border-accent bg-accent-soft text-accent' : 'border-line bg-surface/50 text-ink-muted'}`}><span className="font-medium">{isOver ? '松开以移入此列' : '暂无待办'}</span><span className="mt-0.5 text-[11px] opacity-75">{isOver ? `将事项归入「${column.label}」` : '拖动事项至此可调整进度'}</span></div>}
           {isComposerOpen && status === 'todo' && <ColumnTodoComposer status={status} onCreate={onCreate} onCancel={onCancelAdd} />}
         </div>
       </SortableContext>
@@ -329,16 +329,16 @@ const TodoBoardStageTab: React.FC<{
       data-stage-status={status}
       onClick={onSelect}
       aria-pressed={isActive}
-      className={`flex min-h-8 shrink-0 items-center gap-1.5 rounded-[var(--radius-sm)] px-2.5 text-xs font-medium transition-colors ${
+      className={`flex min-h-8 shrink-0 items-center gap-1.5 rounded-sm px-2.5 text-xs font-medium transition-colors ${
         isDropTarget
-          ? 'bg-[var(--accent-soft)] text-[var(--accent-dark)] ring-1 ring-[var(--accent)]/50'
+          ? 'bg-accent-soft text-accent-dark ring-1 ring-accent/50'
           : isActive
-            ? 'bg-[var(--accent)] text-white shadow-2xs'
-            : 'text-[var(--ink-muted)] hover:bg-[var(--surface)] hover:text-[var(--ink)]'
+            ? 'bg-accent text-white shadow-2xs'
+            : 'text-ink-muted hover:bg-surface hover:text-ink'
       }`}
     >
       <span>{column.label}</span>
-      <span className={`rounded-[var(--radius-sm)] px-1 text-[10px] tabular-nums ${isActive ? 'bg-[var(--accent-dark)] text-white' : 'text-[var(--ink-muted)] opacity-75'}`}>
+      <span className={`rounded-sm px-1 text-[10px] tabular-nums ${isActive ? 'bg-accent-dark text-white' : 'text-ink-muted opacity-75'}`}>
         {count}
       </span>
     </button>
@@ -359,20 +359,20 @@ const TodoDeleteDropZone: React.FC = () => {
       role="status"
       aria-live="polite"
       aria-atomic="true"
-      className="pointer-events-auto fixed right-0 bottom-[var(--mobile-bottom-nav-clearance)] z-[60] h-36 w-36 select-none text-[var(--ink-muted)] transition-colors md:bottom-0"
+      className="pointer-events-auto fixed right-0 bottom-[var(--mobile-bottom-nav-clearance)] z-[60] h-36 w-36 select-none text-ink-muted transition-colors md:bottom-0"
       style={{ clipPath: 'circle(144px at 100% 100%)' }}
     >
       <div
-        className={`absolute inset-0 transition-colors ${isOver ? 'bg-red-300/80 dark:bg-red-800/80' : 'bg-[var(--line)]/75'}`}
+        className={`absolute inset-0 transition-colors ${isOver ? 'bg-danger-soft' : 'bg-line/75'}`}
         aria-hidden="true"
       />
       <div
-        className={`absolute inset-[1px] transition-colors ${isOver ? 'bg-red-50/95 text-red-700 dark:bg-red-950/90 dark:text-red-300' : 'bg-[var(--surface)]/95'}`}
+        className={`absolute inset-[1px] transition-colors ${isOver ? 'bg-danger-soft text-danger' : 'bg-surface/95'}`}
         style={{ clipPath: 'circle(142px at 100% 100%)' }}
         aria-hidden="true"
       />
       <div className="absolute right-4 bottom-5 z-10 flex max-w-[104px] flex-col items-end gap-1 text-right text-[11px] font-semibold leading-tight">
-        <Trash2 className={`h-4 w-4 shrink-0 ${isOver ? 'text-red-600 dark:text-red-300' : ''}`} aria-hidden="true" />
+        <Trash2 className={`h-4 w-4 shrink-0 ${isOver ? 'text-danger' : ''}`} aria-hidden="true" />
         <span>{isOver ? '松开以移入回收站' : '拖到这里删除'}</span>
       </div>
     </div>
@@ -621,14 +621,14 @@ export const TodoBoard: React.FC<TodoBoardProps> = ({ topic, todos, actions, isL
     <div className="mx-auto w-full max-w-[1440px] space-y-5 px-4 py-5 sm:px-6 sm:py-7">
       <header className="flex flex-wrap items-end justify-between gap-3">
         <div>
-          <div className="flex items-center gap-2"><KanbanSquare className="h-5 w-5 text-[var(--accent)]" aria-hidden="true" /><h2 className="text-lg font-bold text-[var(--ink)]">执行看板</h2></div>
-          <p className="mt-1 text-xs text-[var(--ink-muted)]">按推进状态整理这个选题的行动；进行中第一项是当前行动，可同时推进多项工作。</p>
+          <div className="flex items-center gap-2"><KanbanSquare className="h-5 w-5 text-accent" aria-hidden="true" /><h2 className="text-lg font-bold text-ink">执行看板</h2></div>
+          <p className="mt-1 text-xs text-ink-muted">按推进状态整理这个选题的行动；进行中第一项是当前行动，可同时推进多项工作。</p>
         </div>
-        <span className="text-xs tabular-nums text-[var(--ink-muted)]">共 {todos.length} 项{busyBoardCount > 0 ? ' · 顺序保存中' : ''}</span>
+        <span className="text-xs tabular-nums text-ink-muted">共 {todos.length} 项{busyBoardCount > 0 ? ' · 顺序保存中' : ''}</span>
       </header>
 
       {isLoading ? (
-        <div className="rounded-2xl bg-[var(--surface)] p-8 text-center text-sm text-[var(--ink-muted)]">正在加载执行看板…</div>
+        <div className="rounded-2xl bg-surface p-8 text-center text-sm text-ink-muted">正在加载执行看板…</div>
       ) : (
         <>
           <DndContext
@@ -639,7 +639,7 @@ export const TodoBoard: React.FC<TodoBoardProps> = ({ topic, todos, actions, isL
             onDragEnd={handleDragEnd}
             onDragCancel={handleDragCancel}
           >
-            <div data-testid="todo-board-mobile-stage-tabs" className="flex min-h-9 items-center gap-1.5 overflow-x-auto rounded-[var(--radius-sm)] bg-[var(--canvas)] p-1 lg:hidden">
+            <div data-testid="todo-board-mobile-stage-tabs" className="flex min-h-9 items-center gap-1.5 overflow-x-auto rounded-sm bg-canvas p-1 lg:hidden">
               {TODO_BOARD_COLUMNS.map((column) => (
                 <TodoBoardStageTab
                   key={column.status}
@@ -680,9 +680,9 @@ export const TodoBoard: React.FC<TodoBoardProps> = ({ topic, todos, actions, isL
             {typeof document !== 'undefined' && createPortal(
               <DragOverlay dropAnimation={null}>
                 {activeTodo ? (
-                  <div style={activeCardWidth ? { width: activeCardWidth } : undefined} className="pointer-events-none rotate-[1deg] rounded-[var(--radius-md)] border border-[var(--accent)]/40 bg-[var(--surface)] p-3.5 shadow-modal">
-                    <div className="text-sm font-semibold text-[var(--ink)]">{activeTodo.title}</div>
-                    {activeTodoId === layout.in_progress_ids[0] && <span className="mt-1 inline-flex items-center gap-1 text-[10px] font-semibold text-[var(--accent)]"><Zap className="h-3 w-3" />当前行动</span>}
+                  <div style={activeCardWidth ? { width: activeCardWidth } : undefined} className="pointer-events-none rotate-[1deg] rounded-lg border border-accent/40 bg-surface p-3.5 shadow-modal">
+                    <div className="text-sm font-semibold text-ink">{activeTodo.title}</div>
+                    {activeTodoId === layout.in_progress_ids[0] && <span className="mt-1 inline-flex items-center gap-1 text-[10px] font-semibold text-accent"><Zap className="h-3 w-3" />当前行动</span>}
                   </div>
                 ) : null}
               </DragOverlay>,

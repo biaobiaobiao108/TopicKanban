@@ -242,26 +242,26 @@ export const CustomSelect: React.FC<CustomSelectProps> = ({
         onKeyDown={handleButtonKeyDown}
         className={`flex items-center justify-between font-medium transition-all cursor-pointer ${sizeClasses[size]} ${
           disabled
-            ? 'opacity-50 cursor-not-allowed bg-stone-100 dark:bg-stone-800 text-stone-400 border border-stone-200/60 dark:border-stone-700/60'
-            : 'bg-[var(--surface)] hover:bg-[var(--canvas)] text-[var(--ink)] border border-[var(--line)] shadow-2xs hover:shadow-xs focus:outline-none focus:ring-2 focus:ring-[var(--accent)]/20'
+            ? 'opacity-50 cursor-not-allowed bg-control text-ink-muted border border-line'
+            : 'bg-surface hover:bg-canvas text-ink border border-line shadow-2xs hover:shadow-xs focus:outline-none focus:ring-2 focus:ring-accent/20'
         } ${buttonClassName}`}
       >
         <div className="flex min-w-0 flex-1 items-center gap-1.5 overflow-hidden">
           {renderValue ? renderValue(selectedOption) : (
             <>
               {selectedOption?.dot && <span className={`w-2 h-2 rounded-full shrink-0 ${selectedOption.dot}`} />}
-              {selectedOption?.icon && <span className="shrink-0 text-stone-500 dark:text-stone-400">{selectedOption.icon}</span>}
+              {selectedOption?.icon && <span className="shrink-0 text-ink-muted">{selectedOption.icon}</span>}
               <span className="min-w-0 truncate">{selectedOption ? selectedOption.label : placeholder}</span>
             </>
           )}
         </div>
-        <ChevronDown className={`${iconSizes[size]} text-stone-400 dark:text-stone-500 transition-transform duration-200 ease-editorial-out shrink-0 ${isOpen ? 'rotate-180 text-stone-700 dark:text-stone-300' : ''}`} />
+        <ChevronDown className={`${iconSizes[size]} text-ink-muted transition-transform duration-200 ease-editorial-out shrink-0 ${isOpen ? 'rotate-180 text-ink' : ''}`} />
       </button>
 
       {isOpen && popoverPosition && typeof document !== 'undefined' && createPortal(
         <div
           ref={popoverRef}
-          className={`fixed z-[100] min-w-0 max-w-[calc(100vw-1rem)] overflow-hidden bg-[var(--surface)]/95 backdrop-blur-md border border-[var(--line)] rounded-2xl shadow-modal animate-in fade-in zoom-in-95 duration-150 ease-editorial-out flex flex-col text-[var(--ink)] ${popoverClassName}`}
+          className={`fixed z-[100] min-w-0 max-w-[calc(100vw-1rem)] overflow-hidden bg-surface/95 backdrop-blur-md border border-line rounded-2xl shadow-modal animate-in fade-in zoom-in-95 duration-150 ease-editorial-out flex flex-col text-ink ${popoverClassName}`}
           style={{
             left: `${popoverPosition.left}px`,
             top: `${popoverPosition.top}px`,
@@ -272,8 +272,8 @@ export const CustomSelect: React.FC<CustomSelectProps> = ({
           }}
         >
           {searchable && (
-            <div className="p-2 border-b border-[var(--line)] bg-[var(--canvas)]/70 flex items-center gap-2">
-              <Search className="w-3.5 h-3.5 text-stone-400 dark:text-stone-500 ml-1 shrink-0" aria-hidden="true" />
+            <div className="p-2 border-b border-line bg-canvas/70 flex items-center gap-2">
+              <Search className="w-3.5 h-3.5 text-ink-muted ml-1 shrink-0" aria-hidden="true" />
               <input
                 ref={searchRef}
                 id={searchboxId}
@@ -288,7 +288,7 @@ export const CustomSelect: React.FC<CustomSelectProps> = ({
                 value={currentSearchValue}
                 onChange={(event) => setSearch(event.target.value)}
                 onKeyDown={handleSearchKeyDown}
-                className="w-full text-xs bg-transparent outline-none placeholder:text-stone-400 dark:placeholder:text-stone-500 text-stone-900 dark:text-stone-100 font-medium"
+                className="w-full text-xs bg-transparent outline-none placeholder:text-ink-muted text-ink font-medium"
               />
             </div>
           )}
@@ -309,7 +309,7 @@ export const CustomSelect: React.FC<CustomSelectProps> = ({
                   onFocus={() => setFocusedIndex(index)}
                   onKeyDown={handleOptionKeyDown}
                   onClick={() => selectOption(index)}
-                  className={`flex w-full min-w-0 max-w-full items-start justify-between gap-2 overflow-hidden rounded-xl px-2.5 py-1.5 text-left text-xs font-medium transition-colors cursor-pointer ${isSelected ? 'bg-[var(--accent-soft)] text-[var(--accent-dark)] font-semibold' : 'text-[var(--ink)] hover:bg-[var(--canvas)]'} ${isFocused ? 'ring-1 ring-[var(--accent)]/30' : ''}`}
+                  className={`flex w-full min-w-0 max-w-full items-start justify-between gap-2 overflow-hidden rounded-xl px-2.5 py-1.5 text-left text-xs font-medium transition-colors cursor-pointer ${isSelected ? 'bg-accent-soft text-accent-dark font-semibold' : 'text-ink hover:bg-canvas'} ${isFocused ? 'ring-1 ring-accent/30' : ''}`}
                 >
                   {renderOption ? (
                     <div className="min-w-0 max-w-full flex-1 overflow-hidden">
@@ -318,14 +318,14 @@ export const CustomSelect: React.FC<CustomSelectProps> = ({
                   ) : (
                     <div className="flex min-w-0 max-w-full flex-1 items-start gap-2">
                       {option.dot && <span className={`w-2 h-2 rounded-full shrink-0 ${option.dot}`} />}
-                      {option.icon && <span className="shrink-0 text-stone-500 dark:text-stone-400">{option.icon}</span>}
+                      {option.icon && <span className="shrink-0 text-ink-muted">{option.icon}</span>}
                       <div className="min-w-0 max-w-full break-words [overflow-wrap:anywhere]">
                         <div className="line-clamp-2 whitespace-normal break-words">{option.label}</div>
-                        {option.description && <div className="line-clamp-2 text-[10px] text-stone-400 dark:text-stone-500 font-normal whitespace-normal break-words">{option.description}</div>}
+                        {option.description && <div className="line-clamp-2 text-[10px] text-ink-muted font-normal whitespace-normal break-words">{option.description}</div>}
                       </div>
                     </div>
                   )}
-                  {!renderOption && isSelected && <Check className="w-3.5 h-3.5 text-[var(--accent)] shrink-0 ml-2" aria-hidden="true" />}
+                  {!renderOption && isSelected && <Check className="w-3.5 h-3.5 text-accent shrink-0 ml-2" aria-hidden="true" />}
                 </button>
               );
             })}

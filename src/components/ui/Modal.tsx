@@ -109,24 +109,24 @@ export const Modal: React.FC<ModalProps> = ({
       <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6" role="presentation">
         {/* Backdrop */}
         <div
-          className="fixed inset-0 bg-stone-900/40 backdrop-blur-sm modal-backdrop-modern animate-in fade-in duration-200"
+          className="fixed inset-0 bg-overlay backdrop-blur-sm modal-backdrop-modern animate-in fade-in duration-200"
           aria-hidden="true"
           onClick={handleClose}
         />
 
         {/* Modal Container */}
         <div
-          className={`relative min-w-0 w-full ${maxWidthClasses[maxWidth]} bg-[var(--surface)] rounded-[var(--radius-md)] shadow-modal border border-[var(--line)] overflow-hidden flex flex-col max-h-[90dvh] z-10 modal-dialog-modern animate-in fade-in zoom-in-95 duration-200 ease-editorial-out transition-colors`}
+          className={`relative min-w-0 w-full ${maxWidthClasses[maxWidth]} bg-surface rounded-lg shadow-modal border border-line overflow-hidden flex flex-col max-h-[90dvh] z-10 modal-dialog-modern animate-in fade-in zoom-in-95 duration-200 ease-editorial-out transition-colors`}
           onClick={(event) => event.stopPropagation()}
         >
           {/* Header */}
-          <div className="flex min-w-0 items-center justify-between gap-3 px-6 py-4 border-b border-[var(--line)] bg-[var(--surface)]">
-            <h3 id={titleId} className="min-w-0 flex-1 break-words text-base font-semibold text-[var(--ink)] leading-snug">{title}</h3>
+          <div className="flex min-w-0 items-center justify-between gap-3 px-6 py-4 border-b border-line bg-surface">
+            <h3 id={titleId} className="min-w-0 flex-1 break-words text-base font-semibold text-ink leading-snug">{title}</h3>
             <button
               type="button"
               aria-label="关闭弹窗"
               onClick={handleClose}
-              className="shrink-0 text-[var(--ink-muted)] hover:text-[var(--ink)] p-1.5 rounded-[var(--radius-sm)] hover:bg-[var(--canvas)] transition-colors cursor-pointer"
+              className="shrink-0 text-ink-muted hover:text-ink p-1.5 rounded-sm hover:bg-canvas transition-colors cursor-pointer"
             >
               <X className="w-4 h-4" />
             </button>

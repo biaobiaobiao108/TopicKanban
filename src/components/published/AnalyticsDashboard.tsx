@@ -43,7 +43,7 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({
 
   if (analyticsQuery.isError) {
     return (
-      <div role="alert" className="rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800 dark:border-red-900/60 dark:bg-red-950/40 dark:text-red-200">
+      <div role="alert" className="rounded-2xl border border-danger-line bg-danger-soft px-4 py-3 text-sm text-danger">
         复盘数据加载失败，请稍后重试。
       </div>
     );
@@ -51,8 +51,8 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({
 
   if (analyticsQuery.isLoading || !analyticsQuery.data) {
     return (
-      <div className="flex items-center justify-center p-16 text-stone-400 dark:text-stone-500">
-        <BarChart3 className="w-6 h-6 animate-pulse text-[var(--accent)] mr-2" />
+      <div className="flex items-center justify-center p-16 text-ink-muted">
+        <BarChart3 className="w-6 h-6 animate-pulse text-accent mr-2" />
         <span className="text-sm">正在载入复盘数据...</span>
       </div>
     );
@@ -66,10 +66,10 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({
 
   if (analyticsQuery.data.totalVideos === 0 && range === 'all') {
     return (
-      <div className="flex flex-col items-center justify-center p-12 bg-[var(--surface)] rounded-2xl border border-[var(--line)] text-center space-y-3 shadow-subtle">
-        <BarChart3 className="w-12 h-12 text-stone-300 dark:text-stone-600 stroke-[1.5]" />
-        <h3 className="text-base font-bold text-stone-800 dark:text-stone-200">暂无已发布视频数据</h3>
-        <p className="text-xs text-stone-500 dark:text-stone-400 max-w-sm">
+      <div className="flex flex-col items-center justify-center p-12 bg-surface rounded-2xl border border-line text-center space-y-3 shadow-subtle">
+        <BarChart3 className="w-12 h-12 text-ink-faint stroke-[1.5]" />
+        <h3 className="text-base font-bold text-ink">暂无已发布视频数据</h3>
+        <p className="text-xs text-ink-muted max-w-sm">
           在「已发布视频」中添加或从 B 站同步视频数据后，系统将自动基于 5 维故事模型、人物与标签生成深度复盘分析。
         </p>
       </div>
@@ -78,10 +78,10 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({
 
   const renderGradeBadge = (grade: 'S' | 'A' | 'B' | 'C') => {
     const colors: Record<string, string> = {
-      S: 'bg-[var(--accent-soft)] text-[var(--accent)] font-bold',
-      A: 'bg-amber-500/15 text-amber-800 dark:text-amber-300 font-bold',
-      B: 'bg-blue-500/15 text-blue-700 dark:text-blue-300 font-semibold',
-      C: 'bg-stone-200/60 dark:bg-stone-800 text-stone-600 dark:text-stone-400',
+      S: 'bg-accent-soft text-accent font-bold',
+      A: 'bg-warning-soft text-warning font-bold',
+      B: 'bg-info-soft text-info font-semibold',
+      C: 'bg-control text-ink-muted',
     };
     return (
       <span className={`inline-flex items-center px-1.5 py-0.5 rounded-md text-[10px] ${colors[grade] || colors.C}`}>
@@ -93,10 +93,10 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({
   return (
     <div className="space-y-8 animate-fadeIn">
       {/* Filter range */}
-      <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-[var(--line)] bg-[var(--surface)] px-5 py-3.5 shadow-subtle">
+      <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-line bg-surface px-5 py-3.5 shadow-subtle">
         <div>
-          <div className="text-sm font-bold text-stone-900 dark:text-stone-100">复盘范围</div>
-          <div className="text-xs text-stone-500 dark:text-stone-400">按发布时间筛选，将数据规律转化为近期立项行动</div>
+          <div className="text-sm font-bold text-ink">复盘范围</div>
+          <div className="text-xs text-ink-muted">按发布时间筛选，将数据规律转化为近期立项行动</div>
         </div>
         <CustomSelect
           value={range}
@@ -112,13 +112,13 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({
       </div>
 
       {filteredVideoCount === 0 && (
-        <div className="rounded-2xl border border-amber-200/60 bg-amber-500/10 px-4 py-3 text-sm text-amber-900 dark:text-amber-200">
+        <div className="rounded-2xl border border-warning-soft bg-warning-soft px-4 py-3 text-sm text-warning">
           当前时间范围没有带有效发布日期的视频，请切换范围或补充发布日期后再复盘。
         </div>
       )}
 
       {filteredVideoCount > 0 && filteredVideoCount < 3 && (
-        <div className="rounded-2xl border border-stone-200/70 dark:border-stone-800 bg-stone-500/[0.03] dark:bg-stone-800/40 px-4 py-3 text-xs text-stone-600 dark:text-stone-300">
+        <div className="rounded-2xl border border-line bg-control px-4 py-3 text-xs text-ink-muted">
           当前只有 {filteredVideoCount} 期视频，趋势和人物/标签对比仅供参考，积累更多数据后再做结论。
         </div>
       )}
@@ -126,83 +126,83 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({
       {/* 1. Channel KPI Overview Cards */}
       <section>
         <div className="flex items-center justify-between mb-3">
-          <h3 className="text-xs font-bold uppercase tracking-wider text-stone-400 dark:text-stone-500 flex items-center gap-1.5">
-            <TrendingUp className="w-3.5 h-3.5 text-[var(--accent)]" />
+          <h3 className="text-xs font-bold uppercase tracking-wider text-ink-muted flex items-center gap-1.5">
+            <TrendingUp className="w-3.5 h-3.5 text-accent" />
             <span>全频道核心数据大盘</span>
           </h3>
-          <span className="text-xs text-stone-400 dark:text-stone-500">已沉淀 <span className="font-mono tabular-nums">{overview.totalVideos}</span> 期视频</span>
+          <span className="text-xs text-ink-muted">已沉淀 <span className="font-mono tabular-nums">{overview.totalVideos}</span> 期视频</span>
         </div>
 
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3.5">
           {/* Total Views */}
-          <div className="bg-[var(--surface)] p-4 rounded-2xl border border-[var(--line)] shadow-subtle space-y-1">
-            <div className="text-xs font-semibold text-[var(--ink-muted)] flex items-center justify-between">
+          <div className="bg-surface p-4 rounded-2xl border border-line shadow-subtle space-y-1">
+            <div className="text-xs font-semibold text-ink-muted flex items-center justify-between">
               <span>总播放量</span>
-              <Flame className="w-4 h-4 text-[var(--accent)]" />
+              <Flame className="w-4 h-4 text-accent" />
             </div>
-            <div className="text-xl sm:text-2xl font-bold font-mono tabular-nums text-[var(--ink)]">
+            <div className="text-xl sm:text-2xl font-bold font-mono tabular-nums text-ink">
               {formatViewsText(overview.totalViews)}
             </div>
-            <div className="text-[11px] text-[var(--ink-muted)]">
-              平均单片: <span className="font-semibold text-[var(--ink)] font-mono tabular-nums">{formatViewsText(overview.avgViews)}</span>
+            <div className="text-[11px] text-ink-muted">
+              平均单片: <span className="font-semibold text-ink font-mono tabular-nums">{formatViewsText(overview.avgViews)}</span>
             </div>
           </div>
 
           {/* Average Coin Ratio */}
-          <div className="bg-[var(--surface)] p-4 rounded-2xl border border-[var(--line)] shadow-subtle space-y-1">
-            <div className="text-xs font-semibold text-[var(--ink-muted)] flex items-center justify-between">
+          <div className="bg-surface p-4 rounded-2xl border border-line shadow-subtle space-y-1">
+            <div className="text-xs font-semibold text-ink-muted flex items-center justify-between">
               <span>平均投币率</span>
-              <Coins className="w-4 h-4 text-[#9b6a2f] dark:text-[#c49258]" />
+              <Coins className="w-4 h-4 text-stage-scripting" />
             </div>
-            <div className="text-xl sm:text-2xl font-bold font-mono tabular-nums text-[var(--ink)]">
+            <div className="text-xl sm:text-2xl font-bold font-mono tabular-nums text-ink">
               {overview.avgCoinRate}%
             </div>
-            <div className="text-[11px] text-[var(--ink-muted)] flex items-center gap-1">
+            <div className="text-[11px] text-ink-muted flex items-center gap-1">
               <span>B站核心权重</span>
-              <span className={`font-semibold ${overview.avgCoinRate >= 1.5 ? 'text-[var(--accent)]' : 'text-[#9b6a2f] dark:text-[#c49258]'}`}>
+              <span className={`font-semibold ${overview.avgCoinRate >= 1.5 ? 'text-accent' : 'text-stage-scripting'}`}>
                 {overview.avgCoinRate >= 1.5 ? '（优秀）' : '（良好）'}
               </span>
             </div>
           </div>
 
           {/* Average Triple Ratio */}
-          <div className="bg-[var(--surface)] p-4 rounded-2xl border border-[var(--line)] shadow-subtle space-y-1">
-            <div className="text-xs font-semibold text-[var(--ink-muted)] flex items-center justify-between">
+          <div className="bg-surface p-4 rounded-2xl border border-line shadow-subtle space-y-1">
+            <div className="text-xs font-semibold text-ink-muted flex items-center justify-between">
               <span>平均三连率</span>
-              <ThumbsUp className="w-4 h-4 text-[var(--accent)]" />
+              <ThumbsUp className="w-4 h-4 text-accent" />
             </div>
-            <div className="text-xl sm:text-2xl font-bold font-mono tabular-nums text-[var(--accent)]">
+            <div className="text-xl sm:text-2xl font-bold font-mono tabular-nums text-accent">
               {overview.avgTripleRate}%
             </div>
-            <div className="text-[11px] text-[var(--ink-muted)]">
-              总点赞: <span className="font-semibold text-[var(--ink)] font-mono tabular-nums">{formatViewsText(overview.totalLikes)}</span>
+            <div className="text-[11px] text-ink-muted">
+              总点赞: <span className="font-semibold text-ink font-mono tabular-nums">{formatViewsText(overview.totalLikes)}</span>
             </div>
           </div>
 
           {/* Average Favorite Ratio */}
-          <div className="bg-[var(--surface)] p-4 rounded-2xl border border-[var(--line)] shadow-subtle space-y-1">
-            <div className="text-xs font-semibold text-[var(--ink-muted)] flex items-center justify-between">
+          <div className="bg-surface p-4 rounded-2xl border border-line shadow-subtle space-y-1">
+            <div className="text-xs font-semibold text-ink-muted flex items-center justify-between">
               <span>收藏播放比</span>
-              <Bookmark className="w-4 h-4 text-stone-500 dark:text-stone-400" />
+              <Bookmark className="w-4 h-4 text-ink-muted" />
             </div>
-            <div className="text-xl sm:text-2xl font-bold font-mono tabular-nums text-[var(--ink)]">
+            <div className="text-xl sm:text-2xl font-bold font-mono tabular-nums text-ink">
               {overview.avgFavoriteRate}%
             </div>
-            <div className="text-[11px] text-[var(--ink-muted)]">
-              总收藏: <span className="font-semibold text-[var(--ink)] font-mono tabular-nums">{formatViewsText(overview.totalFavorites)}</span>
+            <div className="text-[11px] text-ink-muted">
+              总收藏: <span className="font-semibold text-ink font-mono tabular-nums">{formatViewsText(overview.totalFavorites)}</span>
             </div>
           </div>
 
           {/* Engagement Score */}
-          <div className="bg-[var(--surface)] p-4 rounded-2xl border border-[var(--line)] shadow-subtle space-y-1 col-span-2 sm:col-span-1">
-            <div className="text-xs font-semibold text-[var(--ink-muted)] flex items-center justify-between">
+          <div className="bg-surface p-4 rounded-2xl border border-line shadow-subtle space-y-1 col-span-2 sm:col-span-1">
+            <div className="text-xs font-semibold text-ink-muted flex items-center justify-between">
               <span>互动活力评分</span>
-              <Sparkles className="w-4 h-4 text-[var(--accent)]" />
+              <Sparkles className="w-4 h-4 text-accent" />
             </div>
-            <div className="text-xl sm:text-2xl font-bold font-mono tabular-nums text-[var(--ink)]">
-              {overview.avgEngagementScore} <span className="text-xs font-normal text-[var(--ink-muted)]">/ 100</span>
+            <div className="text-xl sm:text-2xl font-bold font-mono tabular-nums text-ink">
+              {overview.avgEngagementScore} <span className="text-xs font-normal text-ink-muted">/ 100</span>
             </div>
-            <div className="text-[11px] text-[var(--ink-muted)]">
+            <div className="text-[11px] text-ink-muted">
               加权多维互动指数
             </div>
           </div>
@@ -212,21 +212,21 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({
       {/* 2. Topic Model 5D Correlation & Hit Insights */}
       <section className="grid grid-cols-1 lg:grid-cols-12 gap-6">
         {/* Left: 5D Story Model Correlation Bars (7 Cols) */}
-        <div className="lg:col-span-7 bg-[var(--surface)] p-5 sm:p-6 rounded-2xl border border-[var(--line)] shadow-subtle space-y-5">
+        <div className="lg:col-span-7 bg-surface p-5 sm:p-6 rounded-2xl border border-line shadow-subtle space-y-5">
           {correlation.hasData ? (
             <>
-              <div className="flex items-center justify-between border-b border-stone-100 dark:border-stone-800 pb-3">
+              <div className="flex items-center justify-between border-b border-line pb-3">
                 <div>
-                  <h4 className="text-sm font-bold text-stone-900 dark:text-stone-100 flex items-center gap-2">
-                    <BarChart3 className="w-4 h-4 text-[var(--accent)]" />
+                  <h4 className="text-sm font-bold text-ink flex items-center gap-2">
+                    <BarChart3 className="w-4 h-4 text-accent" />
                     <span>5 维故事模型爆款相关性分析</span>
                   </h4>
-                  <p className="text-xs text-stone-500 dark:text-stone-400 mt-0.5">
+                  <p className="text-xs text-ink-muted mt-0.5">
                     对比 Top {correlation.topHitsCount} 部高播放爆款与全频道选题的 5 维打分特征
                   </p>
                 </div>
                 <div className="text-right">
-                  <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-[var(--accent-soft)] text-[var(--accent)]">
+                  <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-accent-soft text-accent">
                     第一驱动力: {correlation.strongestHitFactor}
                   </span>
                 </div>
@@ -242,19 +242,19 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({
                   return (
                     <div key={dim.key} className="space-y-1.5">
                       <div className="flex items-center justify-between text-xs">
-                        <span className="font-bold text-stone-800 dark:text-stone-200">{dim.label}</span>
+                        <span className="font-bold text-ink">{dim.label}</span>
                         <div className="flex items-center gap-2">
-                          <span className="text-[var(--accent)] font-bold">
+                          <span className="text-accent font-bold">
                             爆款: <span className="font-mono tabular-nums">{dim.topHitsAverage.toFixed(1)}</span>分
                           </span>
-                          <span className="text-stone-400">|</span>
-                          <span className="text-stone-500 dark:text-stone-400">
+                          <span className="text-ink-muted">|</span>
+                          <span className="text-ink-muted">
                             全量: <span className="font-mono tabular-nums">{dim.allAverage.toFixed(1)}</span>分
                           </span>
                           {dim.difference !== 0 && (
                             <span
                               className={`text-[10px] font-bold px-1.5 py-0.2 rounded-md ${
-                                isPositive ? 'bg-emerald-500/15 text-emerald-800 dark:text-emerald-300' : 'bg-stone-200/60 dark:bg-stone-800 text-stone-600 dark:text-stone-400'
+                                isPositive ? 'bg-success-soft text-success' : 'bg-control text-ink-muted'
                               }`}
                             >
                               {isPositive ? `+${dim.difference.toFixed(1)}` : dim.difference.toFixed(1)}
@@ -264,16 +264,16 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({
                       </div>
 
                       {/* Dual Bar Comparison */}
-                      <div className="h-3 bg-stone-100 dark:bg-stone-800 rounded-full overflow-hidden relative">
+                      <div className="h-3 bg-control rounded-full overflow-hidden relative">
                         {/* All average bar (Light gray baseline) */}
                         <div
-                          className="absolute top-0 bottom-0 bg-stone-300 dark:bg-stone-700 rounded-full opacity-60"
+                          className="absolute top-0 bottom-0 bg-ink-faint rounded-full opacity-60"
                           style={{ width: `${allPercent}%` }}
                           aria-hidden="true"
                         />
                         {/* Top hit average bar (pine accent) */}
                         <div
-                          className="absolute top-0 bottom-0 bg-[var(--accent)] rounded-full transition-all duration-500 opacity-90"
+                          className="absolute top-0 bottom-0 bg-accent rounded-full transition-all duration-500 opacity-90"
                           style={{ width: `${hitPercent}%` }}
                           aria-hidden="true"
                         />
@@ -283,14 +283,14 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({
                 })}
               </div>
 
-              <div className="flex items-center justify-between pt-2 border-t border-stone-100 dark:border-stone-800 text-[11px] text-stone-400 dark:text-stone-500">
+              <div className="flex items-center justify-between pt-2 border-t border-line text-[11px] text-ink-muted">
                 <div className="flex items-center gap-3">
                   <span className="flex items-center gap-1">
-                    <span className="w-2.5 h-2.5 rounded-full bg-[var(--accent)] inline-block" />
+                    <span className="w-2.5 h-2.5 rounded-full bg-accent inline-block" />
                     <span>Top 爆款选题均分</span>
                   </span>
                   <span className="flex items-center gap-1">
-                    <span className="w-2.5 h-2.5 rounded-full bg-stone-300 dark:bg-stone-700 inline-block" />
+                    <span className="w-2.5 h-2.5 rounded-full bg-ink-faint inline-block" />
                     <span>全频道基准均分</span>
                   </span>
                 </div>
@@ -298,17 +298,17 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({
               </div>
             </>
           ) : (
-            <div className="py-10 text-center text-sm text-stone-500 dark:text-stone-400">
+            <div className="py-10 text-center text-sm text-ink-muted">
               暂无关联选题的视频数据，无法进行 5 维故事模型分析。
             </div>
           )}
         </div>
 
         {/* Right: Hit Insights & Actionable Guidance (5 Cols) */}
-        <div className="lg:col-span-5 bg-[var(--surface)] p-5 sm:p-6 rounded-2xl border border-[var(--line)] shadow-subtle flex flex-col justify-between space-y-4">
+        <div className="lg:col-span-5 bg-surface p-5 sm:p-6 rounded-2xl border border-line shadow-subtle flex flex-col justify-between space-y-4">
           <div>
-            <h4 className="text-sm font-bold text-stone-900 dark:text-stone-100 flex items-center gap-2 border-b border-stone-100 dark:border-stone-800 pb-3">
-              <Lightbulb className="w-4 h-4 text-amber-500" />
+            <h4 className="text-sm font-bold text-ink flex items-center gap-2 border-b border-line pb-3">
+              <Lightbulb className="w-4 h-4 text-warning" />
               <span>爆款规律与立项洞察</span>
             </h4>
 
@@ -316,20 +316,20 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({
               {insights.map((insight) => (
                 <div
                   key={insight.id}
-                  className="p-3.5 rounded-xl border border-stone-200/60 dark:border-stone-800 bg-stone-500/[0.03] dark:bg-stone-800/40 space-y-1.5"
+                  className="p-3.5 rounded-xl border border-line bg-control space-y-1.5"
                 >
                   <div className="flex items-center justify-between">
-                    <span className="text-xs font-bold text-stone-900 dark:text-stone-100 flex items-center gap-1.5">
-                      <CheckCircle2 className="w-3.5 h-3.5 text-[var(--accent)] shrink-0" />
+                    <span className="text-xs font-bold text-ink flex items-center gap-1.5">
+                      <CheckCircle2 className="w-3.5 h-3.5 text-accent shrink-0" />
                       <span>{insight.title}</span>
                     </span>
                     {insight.badgeText && (
-                      <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-[var(--accent-soft)] text-[var(--accent)]">
+                      <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-accent-soft text-accent">
                         {insight.badgeText}
                       </span>
                     )}
                   </div>
-                  <p className="text-xs text-stone-600 dark:text-stone-300 leading-relaxed pl-5">
+                  <p className="text-xs text-ink-muted leading-relaxed pl-5">
                     {insight.description}
                   </p>
                 </div>
@@ -338,8 +338,8 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({
           </div>
 
           {correlation.hasData && (
-            <div className="p-3.5 rounded-xl bg-amber-500/10 border border-amber-500/20 text-xs text-amber-900 dark:text-amber-200 flex items-start gap-2">
-              <Sparkles className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
+            <div className="p-3.5 rounded-xl bg-warning-soft border border-warning-soft text-xs text-warning flex items-start gap-2">
+              <Sparkles className="w-4 h-4 text-warning shrink-0 mt-0.5" />
               <div className="leading-relaxed">
                 <strong>开写前小贴士：</strong> 选题开始写稿前，建议确保【{correlation.strongestHitFactor}】得分不低于 4 分，能显著提高完播与出圈概率。
               </div>
@@ -351,53 +351,53 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({
       {/* 3. High-Performance Figures & Tags Ranking */}
       <section className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {/* Figures Performance */}
-        <div className="bg-[var(--surface)] p-5 sm:p-6 rounded-2xl border border-[var(--line)] shadow-subtle space-y-4">
-          <div className="flex items-center justify-between border-b border-stone-100 dark:border-stone-800 pb-3">
-            <h4 className="text-sm font-bold text-stone-900 dark:text-stone-100 flex items-center gap-2">
-              <Users className="w-4 h-4 text-indigo-600 dark:text-indigo-400" />
+        <div className="bg-surface p-5 sm:p-6 rounded-2xl border border-line shadow-subtle space-y-4">
+          <div className="flex items-center justify-between border-b border-line pb-3">
+            <h4 className="text-sm font-bold text-ink flex items-center gap-2">
+              <Users className="w-4 h-4 text-info" />
               <span>人物票房号召力排行榜</span>
             </h4>
-            <span className="text-xs text-stone-400 dark:text-stone-500">Top <span className="font-mono tabular-nums">{peoplePerf.length}</span> 位人物</span>
+            <span className="text-xs text-ink-muted">Top <span className="font-mono tabular-nums">{peoplePerf.length}</span> 位人物</span>
           </div>
 
           {peoplePerf.length === 0 ? (
-            <p className="text-xs text-stone-400 dark:text-stone-500 py-6 text-center">暂无关联人物数据</p>
+            <p className="text-xs text-ink-muted py-6 text-center">暂无关联人物数据</p>
           ) : (
             <div className="space-y-2.5">
               {peoplePerf.slice(0, 5).map((person, idx) => (
                 <div
                   key={person.id}
-                  className="flex items-center justify-between p-3 rounded-xl border border-stone-200/50 dark:border-stone-800 bg-stone-500/[0.03] dark:bg-stone-800/40 hover:bg-stone-100/50 dark:hover:bg-stone-800/70 transition-colors"
+                  className="flex items-center justify-between p-3 rounded-xl border border-line bg-control hover:bg-control transition-colors"
                 >
                   <div className="flex items-center gap-3 min-w-0 pr-2">
                     <span
                       className={`w-5 h-5 rounded-full flex items-center justify-center text-xs font-mono font-bold shrink-0 ${
                         idx === 0
-                          ? 'bg-amber-500 text-white'
+                          ? 'bg-warning text-white'
                           : idx === 1
-                          ? 'bg-stone-400 text-white'
+                          ? 'bg-ink-faint text-white'
                           : idx === 2
-                          ? 'bg-amber-700 text-white'
-                          : 'bg-stone-200 dark:bg-stone-700 text-stone-600 dark:text-stone-300'
+                          ? 'bg-warning text-white'
+                          : 'bg-surface-subtle text-ink-muted'
                       }`}
                     >
                       {idx + 1}
                     </span>
                     <div className="min-w-0">
-                      <div className="text-xs font-bold text-stone-900 dark:text-stone-100 truncate">
+                      <div className="text-xs font-bold text-ink truncate">
                         {person.name}
                       </div>
-                      <div className="text-[11px] text-stone-400 dark:text-stone-500 truncate">
+                      <div className="text-[11px] text-ink-muted truncate">
                         {person.videoCount} 期视频 · 代表作: {person.topVideoTitle || '无'}
                       </div>
                     </div>
                   </div>
 
                   <div className="text-right shrink-0">
-                    <div className="text-xs font-bold text-stone-900 dark:text-stone-100 font-mono tabular-nums">
+                    <div className="text-xs font-bold text-ink font-mono tabular-nums">
                       {formatViewsText(person.totalViews)}
                     </div>
-                    <div className="text-[10px] text-amber-600 dark:text-amber-400 font-semibold">
+                    <div className="text-[10px] text-warning font-semibold">
                       投币率 <span className="font-mono tabular-nums">{person.avgCoinRate}%</span>
                     </div>
                   </div>
@@ -408,43 +408,43 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({
         </div>
 
         {/* Tags Performance */}
-        <div className="bg-[var(--surface)] p-5 sm:p-6 rounded-2xl border border-[var(--line)] shadow-subtle space-y-4">
-          <div className="flex items-center justify-between border-b border-stone-100 dark:border-stone-800 pb-3">
-            <h4 className="text-sm font-bold text-stone-900 dark:text-stone-100 flex items-center gap-2">
-              <Tag className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
+        <div className="bg-surface p-5 sm:p-6 rounded-2xl border border-line shadow-subtle space-y-4">
+          <div className="flex items-center justify-between border-b border-line pb-3">
+            <h4 className="text-sm font-bold text-ink flex items-center gap-2">
+              <Tag className="w-4 h-4 text-success" />
               <span>题材标签受众偏好矩阵</span>
             </h4>
-            <span className="text-xs text-stone-400 dark:text-stone-500">Top <span className="font-mono tabular-nums">{tagPerf.length}</span> 个标签</span>
+            <span className="text-xs text-ink-muted">Top <span className="font-mono tabular-nums">{tagPerf.length}</span> 个标签</span>
           </div>
 
           {tagPerf.length === 0 ? (
-            <p className="text-xs text-stone-400 dark:text-stone-500 py-6 text-center">暂无关联标签数据</p>
+            <p className="text-xs text-ink-muted py-6 text-center">暂无关联标签数据</p>
           ) : (
             <div className="space-y-2.5">
               {tagPerf.slice(0, 5).map((tag, idx) => (
                 <div
                   key={tag.id}
-                  className="flex items-center justify-between p-3 rounded-xl border border-stone-200/50 dark:border-stone-800 bg-stone-500/[0.03] dark:bg-stone-800/40 hover:bg-stone-100/50 dark:hover:bg-stone-800/70 transition-colors"
+                  className="flex items-center justify-between p-3 rounded-xl border border-line bg-control hover:bg-control transition-colors"
                 >
                   <div className="flex items-center gap-3 min-w-0 pr-2">
-                    <span className="text-xs font-mono font-bold text-stone-400 dark:text-stone-500 shrink-0">
+                    <span className="text-xs font-mono font-bold text-ink-muted shrink-0">
                       #{idx + 1}
                     </span>
                     <div className="min-w-0">
-                      <div className="text-xs font-bold text-stone-900 dark:text-stone-100 truncate">
+                      <div className="text-xs font-bold text-ink truncate">
                         #{tag.name}
                       </div>
-                      <div className="text-[11px] text-stone-400 dark:text-stone-500">
+                      <div className="text-[11px] text-ink-muted">
                         {tag.videoCount} 期视频 · 平均 {formatViewsText(tag.avgViews)}
                       </div>
                     </div>
                   </div>
 
                   <div className="text-right shrink-0">
-                    <div className="text-xs font-bold text-stone-900 dark:text-stone-100 font-mono tabular-nums">
+                    <div className="text-xs font-bold text-ink font-mono tabular-nums">
                       {formatViewsText(tag.totalViews)}
                     </div>
-                    <div className="text-[10px] text-[var(--accent)] font-semibold">
+                    <div className="text-[10px] text-accent font-semibold">
                       三连率 <span className="font-mono tabular-nums">{tag.avgTripleRate}%</span>
                     </div>
                   </div>
@@ -456,24 +456,24 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({
       </section>
 
       {/* 4. Single Video Deep Metrics Leaderboard */}
-      <section className="bg-[var(--surface)] rounded-2xl border border-[var(--line)] shadow-subtle overflow-hidden">
-        <div className="p-5 sm:p-6 border-b border-stone-100 dark:border-stone-800 flex items-center justify-between">
+      <section className="bg-surface rounded-2xl border border-line shadow-subtle overflow-hidden">
+        <div className="p-5 sm:p-6 border-b border-line flex items-center justify-between">
           <div>
-            <h4 className="text-sm font-bold text-stone-900 dark:text-stone-100 flex items-center gap-2">
-              <Award className="w-4 h-4 text-[var(--accent)]" />
+            <h4 className="text-sm font-bold text-ink flex items-center gap-2">
+              <Award className="w-4 h-4 text-accent" />
               <span>已发布视频深度复盘明细表</span>
             </h4>
-            <p className="text-xs text-stone-500 dark:text-stone-400 mt-0.5">
+            <p className="text-xs text-ink-muted mt-0.5">
               透视每部视频的真实三连率、投币率、5 维故事模型总分与千字转化产出
             </p>
           </div>
-          <span className="text-xs text-stone-400 dark:text-stone-500">按播放量降序排列</span>
+          <span className="text-xs text-ink-muted">按播放量降序排列</span>
         </div>
 
         <div className="overflow-x-auto">
           <table className="w-full text-left text-xs border-collapse">
             <thead>
-              <tr className="bg-stone-50/80 dark:bg-stone-800/80 border-b border-stone-200/70 dark:border-stone-800 text-stone-500 dark:text-stone-400">
+              <tr className="bg-canvas border-b border-line text-ink-muted">
                 <th className="py-3 px-4 font-semibold">排名/视频标题</th>
                 <th className="py-3 px-3 font-semibold text-right">播放量</th>
                 <th className="py-3 px-3 font-semibold text-center">投币率</th>
@@ -484,28 +484,28 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({
                 <th className="py-3 px-4 font-semibold">复盘心得</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-stone-100 dark:divide-stone-800">
+            <tbody className="divide-y divide-line">
               {visibleVideoTableData.map(({ video, topic, deepMetrics, storyModelTotal }, index) => (
-                <tr key={video.id} className="hover:bg-stone-50/60 dark:hover:bg-stone-800/40 transition-colors">
+                <tr key={video.id} className="hover:bg-canvas transition-colors">
                   {/* Title & Topic Link */}
                   <td className="py-3 px-4 max-w-[280px]">
                     <div className="flex items-start gap-2">
-                      <span className="font-mono tabular-nums font-bold text-stone-400 dark:text-stone-500 text-xs shrink-0 mt-0.5">
+                      <span className="font-mono tabular-nums font-bold text-ink-muted text-xs shrink-0 mt-0.5">
                         {(index + 1 + (tablePage - 1) * tablePageSize).toString().padStart(2, '0')}
                       </span>
                       <div className="min-w-0">
                         {topic ? (
                           <button
                             onClick={() => onSelectTopic(topic.id)}
-                            className="font-bold text-stone-900 dark:text-stone-100 hover:text-[var(--accent)] text-left line-clamp-1 transition-colors cursor-pointer"
+                            className="font-bold text-ink hover:text-accent text-left line-clamp-1 transition-colors cursor-pointer"
                             aria-label={`打开关联选题：${video.title}`}
                           >
                             {video.title}
                           </button>
                         ) : (
-                          <span className="font-bold text-stone-900 dark:text-stone-100 line-clamp-1">{video.title}</span>
+                          <span className="font-bold text-ink line-clamp-1">{video.title}</span>
                         )}
-                        <div className="text-[11px] text-stone-400 dark:text-stone-500 flex items-center gap-1.5 mt-0.5">
+                        <div className="text-[11px] text-ink-muted flex items-center gap-1.5 mt-0.5">
                           <span>{video.published_at || '未填日期'}</span>
                           {video.bvid && <span className="font-mono text-[10px]">{video.bvid}</span>}
                         </div>
@@ -514,14 +514,14 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({
                   </td>
 
                   {/* Views */}
-                  <td className="py-3 px-3 text-right font-mono tabular-nums font-bold text-stone-900 dark:text-stone-100">
+                  <td className="py-3 px-3 text-right font-mono tabular-nums font-bold text-ink">
                     {formatViewsText(video.views || 0)}
                   </td>
 
                   {/* Coin Rate & Grade */}
                   <td className="py-3 px-3 text-center">
                     <div className="flex items-center justify-center gap-1">
-                      <span className="font-bold text-amber-600 dark:text-amber-400 font-mono tabular-nums">{deepMetrics.coinRate}%</span>
+                      <span className="font-bold text-warning font-mono tabular-nums">{deepMetrics.coinRate}%</span>
                       {renderGradeBadge(deepMetrics.coinGrade)}
                     </div>
                   </td>
@@ -529,34 +529,34 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({
                   {/* Triple Rate & Grade */}
                   <td className="py-3 px-3 text-center">
                     <div className="flex items-center justify-center gap-1">
-                      <span className="font-bold text-[var(--accent)] font-mono tabular-nums">{deepMetrics.tripleRate}%</span>
+                      <span className="font-bold text-accent font-mono tabular-nums">{deepMetrics.tripleRate}%</span>
                       {renderGradeBadge(deepMetrics.tripleGrade)}
                     </div>
                   </td>
 
                   {/* Favorite Rate */}
-                  <td className="py-3 px-3 text-center font-mono tabular-nums font-semibold text-blue-600 dark:text-blue-400">
+                  <td className="py-3 px-3 text-center font-mono tabular-nums font-semibold text-info">
                     {deepMetrics.favoriteRate}%
                   </td>
 
                   {/* 5D Story Score Total */}
-                  <td className="py-3 px-3 text-center font-bold text-purple-700 dark:text-purple-300">
+                  <td className="py-3 px-3 text-center font-bold text-stage-production">
                     {storyModelTotal > 0 ? <><span className="font-mono tabular-nums">{storyModelTotal}</span>分</> : '-'}
                   </td>
 
                   {/* Views per 1k Words */}
-                  <td className="py-3 px-3 text-right text-stone-600 dark:text-stone-300">
+                  <td className="py-3 px-3 text-right text-ink-muted">
                     {deepMetrics.viewsPerKWord > 0 ? <><span className="font-mono tabular-nums">{formatViewsText(deepMetrics.viewsPerKWord)}</span>/千字</> : '-'}
                   </td>
 
                   {/* Notes */}
                   <td className="py-3 px-4 max-w-[220px]">
                     {video.notes ? (
-                      <span className="text-stone-600 dark:text-stone-300 line-clamp-1 text-[11px]">
+                      <span className="text-ink-muted line-clamp-1 text-[11px]">
                         {video.notes}
                       </span>
                     ) : (
-                      <span className="text-stone-300 dark:text-stone-600 text-[11px]">暂无笔记</span>
+                      <span className="text-ink-faint text-[11px]">暂无笔记</span>
                     )}
                   </td>
                 </tr>
@@ -565,10 +565,10 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({
           </table>
         </div>
         {analyticsQuery.data.ranking_total > 0 && (
-          <div className="flex items-center justify-center gap-3 border-t border-stone-100 px-5 py-3 text-xs text-stone-500 dark:border-stone-800 dark:text-stone-400">
-            <button type="button" disabled={tablePage <= 1} onClick={() => setTablePage((current) => Math.max(1, current - 1))} className="rounded-lg border border-stone-200 bg-white px-3 py-2 font-semibold disabled:cursor-not-allowed disabled:opacity-40 dark:border-stone-700 dark:bg-stone-900">上一页</button>
+          <div className="flex items-center justify-center gap-3 border-t border-line px-5 py-3 text-xs text-ink-muted">
+            <button type="button" disabled={tablePage <= 1} onClick={() => setTablePage((current) => Math.max(1, current - 1))} className="rounded-lg border border-line bg-surface px-3 py-2 font-semibold disabled:cursor-not-allowed disabled:opacity-40">上一页</button>
             <span><span className="font-mono tabular-nums">{tablePage} / {tablePageCount}</span> · 共 <span className="font-mono tabular-nums">{analyticsQuery.data.ranking_total}</span> 条</span>
-            <button type="button" disabled={tablePage >= tablePageCount} onClick={() => setTablePage((current) => Math.min(tablePageCount, current + 1))} className="rounded-lg border border-stone-200 bg-white px-3 py-2 font-semibold disabled:cursor-not-allowed disabled:opacity-40 dark:border-stone-700 dark:bg-stone-900">下一页</button>
+            <button type="button" disabled={tablePage >= tablePageCount} onClick={() => setTablePage((current) => Math.min(tablePageCount, current + 1))} className="rounded-lg border border-line bg-surface px-3 py-2 font-semibold disabled:cursor-not-allowed disabled:opacity-40">下一页</button>
           </div>
         )}
       </section>

@@ -40,22 +40,22 @@ function WeekDayRow({
       ref={setNodeRef}
       data-testid="calendar-week-day"
       data-date={day.date}
-      className={`grid min-w-0 grid-cols-[6.5rem_minmax(0,1fr)] sm:grid-cols-[8.5rem_minmax(0,1fr)] border-b border-[var(--line)] last:border-b-0 transition-colors ${
-        day.isToday ? 'bg-[var(--accent-soft)]/25' : 'bg-[var(--surface)]'
-      } ${isOver ? 'bg-[var(--accent-soft)] ring-1 ring-inset ring-[var(--accent)]/75' : ''}`}
+      className={`grid min-w-0 grid-cols-[6.5rem_minmax(0,1fr)] sm:grid-cols-[8.5rem_minmax(0,1fr)] border-b border-line last:border-b-0 transition-colors ${
+        day.isToday ? 'bg-accent-soft/25' : 'bg-surface'
+      } ${isOver ? 'bg-accent-soft ring-1 ring-inset ring-accent/75' : ''}`}
     >
       {/* Header */}
       <div
-        className={`flex min-h-[8.5rem] flex-col items-center justify-center border-r border-[var(--line)] px-2 py-4 text-center select-none sm:px-4 ${
+        className={`flex min-h-[8.5rem] flex-col items-center justify-center border-r border-line px-2 py-4 text-center select-none sm:px-4 ${
           day.isToday
-            ? 'bg-[var(--accent-soft)] text-[var(--accent-dark)] font-bold'
-            : 'bg-[var(--canvas)]/60 text-[var(--ink)]'
+            ? 'bg-accent-soft text-accent-dark font-bold'
+            : 'bg-canvas/60 text-ink'
         }`}
       >
-        <div className="text-xs font-semibold text-stone-500 dark:text-stone-400">{day.dayName}</div>
+        <div className="text-xs font-semibold text-ink-muted">{day.dayName}</div>
         <div
           className={`inline-block mt-0.5 text-base font-bold font-mono px-2 py-0.5 rounded-lg ${
-            day.isToday ? 'bg-[var(--accent)] text-white shadow-2xs' : ''
+            day.isToday ? 'bg-accent text-white shadow-2xs' : ''
           }`}
         >
           {day.dayNumber}
@@ -78,7 +78,7 @@ function WeekDayRow({
             ))}
           </div>
         ) : (
-          <div className="flex min-h-[5.5rem] items-center justify-center rounded-xl border border-dashed border-stone-200/80 px-3 text-center text-xs text-stone-400 dark:border-stone-800 dark:text-stone-500">
+          <div className="flex min-h-[5.5rem] items-center justify-center rounded-xl border border-dashed border-line px-3 text-center text-xs text-ink-muted">
             今日暂无排期与待办
           </div>
         )}
@@ -86,7 +86,7 @@ function WeekDayRow({
         <button
           type="button"
           onClick={() => onDateClick(day.date)}
-          className="mt-3 inline-flex w-full items-center justify-center gap-1 rounded-xl border border-dashed border-stone-200 py-2 text-xs font-semibold text-stone-400 transition-colors hover:bg-stone-100 hover:text-stone-800 dark:border-stone-800 dark:text-stone-500 dark:hover:bg-stone-800/80 dark:hover:text-stone-200 sm:w-auto sm:px-4 cursor-pointer"
+          className="mt-3 inline-flex w-full items-center justify-center gap-1 rounded-xl border border-dashed border-line py-2 text-xs font-semibold text-ink-muted transition-colors hover:bg-control hover:text-ink sm:w-auto sm:px-4 cursor-pointer"
         >
           <Plus className="w-3.5 h-3.5" />
           <span>排期定档</span>
@@ -108,7 +108,7 @@ export const CalendarWeekGrid: React.FC<CalendarWeekGridProps> = ({
     <FloatingScrollbar
       data-testid="calendar-week-grid"
       className="flex min-h-0 min-w-0 flex-col overscroll-contain"
-      wrapperClassName="flex-1 min-h-0 rounded-2xl border border-[var(--line)] bg-[var(--surface)] shadow-2xs [scrollbar-gutter:stable]"
+      wrapperClassName="flex-1 min-h-0 rounded-2xl border border-line bg-surface shadow-2xs [scrollbar-gutter:stable]"
     >
       {days.map((day) => {
         const events = eventsMap.get(day.date) || [];

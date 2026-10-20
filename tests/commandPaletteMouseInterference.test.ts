@@ -72,7 +72,7 @@ describe('CommandPalette 键盘优先与鼠标防干扰契约', () => {
     );
 
     // 默认第一项（selectedIndex 0）获得高亮
-    expect(html).toContain('bg-[var(--accent-soft)]');
+    expect(html).toContain('bg-accent-soft');
 
     // 未选中项不得含有独立的 hover:bg-stone-50 干扰类
     expect(/\bhover:bg-stone-50\b/.test(html)).toBe(false);

@@ -39,9 +39,9 @@ export const CalendarAgendaView: React.FC<CalendarAgendaViewProps> = ({
   const selectedDateLabel = getActionDateDisplay(selectedDate, { today }).text || selectedDate;
 
   return (
-    <div className="flex-1 flex flex-col min-w-0 bg-[var(--surface)] rounded-2xl border border-[var(--line)]/70 shadow-2xs overflow-hidden">
+    <div className="flex-1 flex flex-col min-w-0 bg-surface rounded-2xl border border-line/70 shadow-2xs overflow-hidden">
       {/* Top Week Slider Strip */}
-      <div className="p-3 border-b border-[var(--line)]/50 bg-[var(--canvas)]/70 overflow-x-auto">
+      <div className="p-3 border-b border-line/50 bg-canvas/70 overflow-x-auto">
         <div className="flex items-center gap-2 min-w-max justify-between sm:justify-start">
           {days.map((day) => {
             const hasEvents = (eventsMap.get(day.date) || []).length > 0;
@@ -53,8 +53,8 @@ export const CalendarAgendaView: React.FC<CalendarAgendaViewProps> = ({
                 onClick={() => setSelectedDate(day.date)}
                 className={`flex flex-col items-center py-2 px-3 rounded-xl transition-all cursor-pointer ${
                   isSelected
-                    ? 'bg-[var(--accent)] text-white shadow-2xs font-bold'
-                    : 'bg-[var(--surface)] text-[var(--ink)] hover:bg-[var(--canvas)] border border-[var(--line)]/50'
+                    ? 'bg-accent text-white shadow-2xs font-bold'
+                    : 'bg-surface text-ink hover:bg-canvas border border-line/50'
                 }`}
               >
                 <span className="text-[11px] opacity-80">{day.dayName}</span>
@@ -63,7 +63,7 @@ export const CalendarAgendaView: React.FC<CalendarAgendaViewProps> = ({
                   {hasEvents && (
                     <span
                       className={`w-1.5 h-1.5 rounded-full ${
-                        isSelected ? 'bg-[var(--surface)]' : 'bg-[var(--accent)]'
+                        isSelected ? 'bg-surface' : 'bg-accent'
                       }`}
                     />
                   )}
@@ -78,11 +78,11 @@ export const CalendarAgendaView: React.FC<CalendarAgendaViewProps> = ({
       <FloatingScrollbar className="p-4 space-y-4" wrapperClassName="flex-1" aria-label="所选日期排期与待办">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <CalendarIcon className="w-4 h-4 text-[var(--accent)]" />
-            <h2 className="text-sm font-bold text-[var(--ink)]">
+            <CalendarIcon className="w-4 h-4 text-accent" />
+            <h2 className="text-sm font-bold text-ink">
               {selectedDateLabel} 排期与待办
             </h2>
-            <span className="text-xs font-mono font-bold bg-[var(--canvas)] text-[var(--ink-muted)] px-2 py-0.5 rounded-full">
+            <span className="text-xs font-mono font-bold bg-canvas text-ink-muted px-2 py-0.5 rounded-full">
               {selectedDayEvents.length}
             </span>
           </div>
@@ -90,7 +90,7 @@ export const CalendarAgendaView: React.FC<CalendarAgendaViewProps> = ({
           <button
             type="button"
             onClick={() => onDateClick(selectedDate)}
-            className="flex items-center gap-1 bg-[var(--accent)] hover:bg-[var(--accent-dark)] text-white px-3 py-1.5 rounded-xl text-xs font-semibold shadow-2xs transition-all cursor-pointer"
+            className="flex items-center gap-1 bg-accent hover:bg-accent-dark text-white px-3 py-1.5 rounded-xl text-xs font-semibold shadow-2xs transition-all cursor-pointer"
           >
             <Plus className="w-3.5 h-3.5" />
             <span>定档新事项</span>
@@ -111,12 +111,12 @@ export const CalendarAgendaView: React.FC<CalendarAgendaViewProps> = ({
             ))}
           </div>
         ) : (
-          <div className="py-12 text-center border-2 border-dashed border-[var(--line)]/60 rounded-2xl p-6">
-            <p className="text-xs text-[var(--ink-muted)]">今日暂无排片与交付计划</p>
+          <div className="py-12 text-center border-2 border-dashed border-line/60 rounded-2xl p-6">
+            <p className="text-xs text-ink-muted">今日暂无排片与交付计划</p>
             <button
               type="button"
               onClick={() => onDateClick(selectedDate)}
-              className="mt-3 inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-semibold text-[var(--accent)] bg-[var(--accent-soft)] hover:bg-[var(--accent-soft)]/70 transition-colors cursor-pointer"
+              className="mt-3 inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-semibold text-accent bg-accent-soft hover:bg-accent-soft/70 transition-colors cursor-pointer"
             >
               <Plus className="w-3.5 h-3.5" />
               <span>在此日期排期定档</span>

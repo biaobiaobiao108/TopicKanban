@@ -86,19 +86,19 @@ function MonthCellDroppable({
       onClick={() => onDateClick(cell.date)}
       data-testid="calendar-month-cell"
       data-date={cell.date}
-      className={`relative group flex h-full min-h-0 select-none flex-col overflow-hidden border-b border-r border-[var(--line)]/35 p-1.5 transition-colors sm:p-2 ${
+      className={`relative group flex h-full min-h-0 select-none flex-col overflow-hidden border-b border-r border-line/35 p-1.5 transition-colors sm:p-2 ${
         cell.isCurrentMonth
           ? cell.isWeekend
-            ? 'bg-[var(--canvas)]/45'
-            : 'bg-[var(--surface)]'
-          : 'bg-stone-500/[0.02] dark:bg-stone-500/[0.04] text-[var(--ink-muted)] opacity-60'
+            ? 'bg-canvas/45'
+            : 'bg-surface'
+          : 'bg-control text-ink-muted opacity-60'
       } ${
         cell.isToday
-          ? 'bg-[var(--accent-soft)]/20'
-          : 'hover:bg-stone-500/[0.015]'
+          ? 'bg-accent-soft/20'
+          : 'hover:bg-control'
       } ${
         isOver
-          ? 'bg-[var(--accent-soft)]/60 ring-1 ring-inset ring-[var(--accent)]/50'
+          ? 'bg-accent-soft/60 ring-1 ring-inset ring-accent/50'
           : ''
       }`}
     >
@@ -112,14 +112,14 @@ function MonthCellDroppable({
               onDateClick(cell.date);
             }}
             aria-label={`在 ${cell.date} 排期定档`}
-            className={`flex h-7 w-7 cursor-pointer items-center justify-center rounded-full font-mono text-xs tabular-nums transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[var(--accent)] sm:h-8 sm:w-8 sm:text-sm ${
+            className={`flex h-7 w-7 cursor-pointer items-center justify-center rounded-full font-mono text-xs tabular-nums transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-accent sm:h-8 sm:w-8 sm:text-sm ${
               cell.isToday
-                ? 'bg-[var(--accent)] text-white shadow-2xs font-semibold'
+                ? 'bg-accent text-white shadow-2xs font-semibold'
                 : cell.isCurrentMonth
                   ? cell.isWeekend
-                    ? 'text-[var(--ink-muted)]'
-                    : 'text-[var(--ink)]'
-                : 'text-[var(--ink-muted)] opacity-50'
+                    ? 'text-ink-muted'
+                    : 'text-ink'
+                : 'text-ink-muted opacity-50'
             }`}
           >
             {cell.dayNumber}
@@ -135,7 +135,7 @@ function MonthCellDroppable({
             onDateClick(cell.date);
           }}
           aria-label="在此日期排期定档"
-          className="opacity-0 group-hover:opacity-100 hover:opacity-100 p-1 rounded-md text-stone-400 hover:text-[var(--accent)] hover:bg-stone-100 dark:hover:bg-stone-800 transition-all cursor-pointer"
+          className="opacity-0 group-hover:opacity-100 hover:opacity-100 p-1 rounded-md text-ink-muted hover:text-accent hover:bg-control transition-all cursor-pointer"
         >
           <Plus className="w-3.5 h-3.5" />
         </button>
@@ -171,9 +171,9 @@ function MonthCellDroppable({
             event.stopPropagation();
             onShowAllEvents(cell.date, events);
           }}
-          className="mt-auto flex h-5 min-w-5 w-fit items-center justify-center gap-1 self-start rounded-full bg-[var(--surface)]/80 px-1.5 text-[10px] font-medium text-[var(--ink-muted)] transition-colors hover:bg-[var(--surface)] hover:text-[var(--ink)] md:hidden"
+          className="mt-auto flex h-5 min-w-5 w-fit items-center justify-center gap-1 self-start rounded-full bg-surface/80 px-1.5 text-[10px] font-medium text-ink-muted transition-colors hover:bg-surface hover:text-ink md:hidden"
         >
-          <span className="h-1 w-1 rounded-full bg-[var(--accent)]" />
+          <span className="h-1 w-1 rounded-full bg-accent" />
           <span className="font-mono tabular-nums">{events.length}</span>
         </button>
       )}
@@ -187,7 +187,7 @@ function MonthCellDroppable({
             event.stopPropagation();
             onShowAllEvents(cell.date, events);
           }}
-          className="absolute bottom-2 right-2 hidden h-[18px] min-w-6 items-center justify-center rounded-full bg-[var(--surface)] px-1.5 text-[10px] font-medium tabular-nums text-[var(--ink-muted)] shadow-2xs transition-colors hover:text-[var(--ink)] md:flex"
+          className="absolute bottom-2 right-2 hidden h-[18px] min-w-6 items-center justify-center rounded-full bg-surface px-1.5 text-[10px] font-medium tabular-nums text-ink-muted shadow-2xs transition-colors hover:text-ink md:flex"
         >
           +{hiddenCount}
         </button>
@@ -209,14 +209,14 @@ export const CalendarMonthGrid: React.FC<CalendarMonthGridProps> = ({
   const [activeDateModal, setActiveDateModal] = useState<{ date: string; events: CalendarEventItem[] } | null>(null);
 
   return (
-    <div className="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden rounded-2xl border border-[var(--line)] bg-[var(--surface)] shadow-2xs">
+    <div className="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden rounded-2xl border border-line bg-surface shadow-2xs">
       {/* 7-Column Header */}
-      <div className="grid grid-cols-7 border-b border-stone-200/70 dark:border-stone-800 bg-stone-50 dark:bg-stone-900/90 select-none">
+      <div className="grid grid-cols-7 border-b border-line bg-canvas select-none">
         {WEEK_HEADERS.map((name, i) => (
           <div
             key={name}
             className={`py-2 text-center text-xs font-bold ${
-              i >= 5 ? 'text-stone-500 dark:text-stone-400' : 'text-stone-600 dark:text-stone-400'
+              i >= 5 ? 'text-ink-muted' : 'text-ink-muted'
             }`}
           >
             {name}

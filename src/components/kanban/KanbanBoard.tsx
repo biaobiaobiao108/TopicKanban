@@ -90,22 +90,22 @@ const TopicFlowDropTarget: React.FC<{ status: 'icebox' | 'published' }> = ({ sta
       data-over={isOver ? 'true' : 'false'}
       role="group"
       aria-label={`拖到这里将选题流转到${label}`}
-      className={`pointer-events-auto fixed bottom-[var(--mobile-bottom-nav-clearance)] md:bottom-0 z-[60] h-36 w-36 select-none text-[var(--ink-muted)] transition-colors ${isLeft ? 'left-0 md:left-64' : 'right-0'}`}
+      className={`pointer-events-auto fixed bottom-[var(--mobile-bottom-nav-clearance)] md:bottom-0 z-[60] h-36 w-36 select-none text-ink-muted transition-colors ${isLeft ? 'left-0 md:left-64' : 'right-0'}`}
       style={{
         clipPath: `circle(144px at ${isLeft ? '0%' : '100%'} 100%)`,
       }}
     >
       <div
-        className={`absolute inset-0 transition-colors ${isOver ? 'bg-[var(--line)]' : 'bg-[var(--line)]/75'}`}
+        className={`absolute inset-0 transition-colors ${isOver ? 'bg-line' : 'bg-line/75'}`}
         aria-hidden="true"
       />
       <div
-        className={`absolute inset-[1px] transition-colors ${isOver ? 'bg-[var(--accent-soft)] text-[var(--accent-dark)]' : 'bg-[var(--surface)]/95'}`}
+        className={`absolute inset-[1px] transition-colors ${isOver ? 'bg-accent-soft text-accent-dark' : 'bg-surface/95'}`}
         style={{ clipPath: `circle(142px at ${isLeft ? '0%' : '100%'} 100%)` }}
         aria-hidden="true"
       />
       <div className={`absolute bottom-5 z-10 flex max-w-[104px] flex-col gap-1 text-xs font-semibold leading-tight ${isLeft ? 'left-5 items-start text-left' : 'right-5 items-end text-right'}`}>
-        <Icon className={`h-4 w-4 ${isOver ? 'text-[var(--accent)]' : ''}`} aria-hidden="true" />
+        <Icon className={`h-4 w-4 ${isOver ? 'text-accent' : ''}`} aria-hidden="true" />
         <span>{isOver ? `松开以${label}` : label}</span>
       </div>
     </div>
@@ -941,13 +941,13 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
       <PageHeader title="选题全景看板" icon={KanbanSquare} />
 
       {statusFilter && (
-        <div className="flex items-center gap-3 text-xs text-[var(--ink-muted)]" role="status">
+        <div className="flex items-center gap-3 text-xs text-ink-muted" role="status">
           <span>当前阶段：{visibleColumns[0]?.label}</span>
           <button type="button" onClick={() => setSearchParams((previous) => {
             const next = new URLSearchParams(previous);
             next.delete('status');
             return next;
-          })} className="rounded-lg px-2 py-1 hover:bg-[var(--surface)] text-[var(--accent)] cursor-pointer">
+          })} className="rounded-lg px-2 py-1 hover:bg-surface text-accent cursor-pointer">
             显示全部阶段
           </button>
         </div>
@@ -976,11 +976,11 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
         </div>
 
         {dragSortNotice && (
-          <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-900/60 text-amber-800 dark:text-amber-200 text-xs">
+          <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-warning-soft border border-warning-soft text-warning text-xs">
             <span>已切换到「看板自定义排序」，拖拽后的位置将按卡片顺序保存</span>
             <button
               onClick={() => setDragSortNotice(false)}
-              className="ml-auto shrink-0 font-semibold hover:text-amber-950 dark:hover:text-amber-100 cursor-pointer"
+              className="ml-auto shrink-0 font-semibold hover:text-warning cursor-pointer"
               aria-label="关闭提示"
             >
               知道了
@@ -991,7 +991,7 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
       </div>
 
       {/* Mobile Stage Selector Pill Bar (iPhone Safari optimized) */}
-      <div data-testid="kanban-mobile-stage-tabs" className="md:hidden flex min-h-9 shrink-0 items-center gap-1.5 overflow-x-auto no-scrollbar -mx-2 rounded-[var(--radius-sm)] bg-[var(--canvas)] p-1 transition-colors">
+      <div data-testid="kanban-mobile-stage-tabs" className="md:hidden flex min-h-9 shrink-0 items-center gap-1.5 overflow-x-auto no-scrollbar -mx-2 rounded-sm bg-canvas p-1 transition-colors">
         {visibleColumns.map((col) => {
           const count = columnTotalCounts[col.status] || 0;
           const isActive = mobileActiveStage === col.status;
@@ -999,15 +999,15 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
             <button
               key={col.status}
               onClick={() => setMobileActiveStage(col.status)}
-              className={`shrink-0 text-xs font-medium px-2.5 py-1 rounded-[var(--radius-sm)] flex items-center gap-1.5 transition-colors cursor-pointer ${
+              className={`shrink-0 text-xs font-medium px-2.5 py-1 rounded-sm flex items-center gap-1.5 transition-colors cursor-pointer ${
                 isActive
-                  ? 'bg-[var(--accent)] text-white shadow-2xs'
-                  : 'text-[var(--ink-muted)] hover:text-[var(--ink)] hover:bg-[var(--surface)]'
+                  ? 'bg-accent text-white shadow-2xs'
+                  : 'text-ink-muted hover:text-ink hover:bg-surface'
               }`}
             >
               <span>{col.label}</span>
-              <span className={`text-[10px] px-1 py-0.2 rounded-[var(--radius-sm)] tabular-nums ${
-                isActive ? 'bg-[var(--accent-dark)] text-white' : 'text-[var(--ink-muted)] opacity-75'
+              <span className={`text-[10px] px-1 py-0.2 rounded-sm tabular-nums ${
+                isActive ? 'bg-accent-dark text-white' : 'text-ink-muted opacity-75'
               }`}>
                 {count}
               </span>

@@ -28,11 +28,11 @@ interface KanbanColumnProps {
 const DEFAULT_LIMIT = 8;
 
 const columnHeaders: Record<TopicStatus, { dot: string }> = {
-  inbox: { dot: 'bg-[var(--ink-muted)] opacity-60' },
-  scripting: { dot: 'bg-[#9b6a2f] dark:bg-[#c49258]' },
-  production: { dot: 'bg-[#6b4f73] dark:bg-[#a882b3]' },
-  published: { dot: 'bg-[var(--accent)]' },
-  icebox: { dot: 'bg-[var(--ink-muted)] opacity-40' },
+  inbox: { dot: 'bg-ink-muted opacity-60' },
+  scripting: { dot: 'bg-stage-scripting' },
+  production: { dot: 'bg-stage-production dark:bg-stage-production' },
+  published: { dot: 'bg-accent' },
+  icebox: { dot: 'bg-ink-muted opacity-40' },
 };
 
 const KanbanColumnComponent: React.FC<KanbanColumnProps> = ({
@@ -88,18 +88,18 @@ const KanbanColumnComponent: React.FC<KanbanColumnProps> = ({
     <div
       ref={setNodeRef}
       data-column-status={status}
-      className={`kanban-column-container w-full min-w-0 rounded-[var(--radius-md)] p-3 flex flex-col min-h-[220px] border transition-colors duration-150 ${
+      className={`kanban-column-container w-full min-w-0 rounded-lg p-3 flex flex-col min-h-[220px] border transition-colors duration-150 ${
         isOver
-          ? 'border-[var(--accent)] ring-1 ring-[var(--accent)]/30 bg-[var(--accent-soft)] shadow-subtle'
-          : 'border-[var(--line)] bg-[var(--canvas)]/60 hover:bg-[var(--canvas)]'
+          ? 'border-accent ring-1 ring-accent/30 bg-accent-soft shadow-subtle'
+          : 'border-line bg-canvas/60 hover:bg-canvas'
       }`}
     >
       {/* Column Header */}
       <div className="flex items-center justify-between px-1.5 py-1 mb-2.5">
         <div className="flex items-center gap-2">
           <span className={`w-2 h-2 rounded-full ${c.dot}`} />
-          <h2 className="text-[13.5px] font-semibold text-[var(--ink)] tracking-tight">{label}</h2>
-          <span className="kanban-column-count text-xs text-[var(--ink-muted)] tabular-nums ml-0.5">
+          <h2 className="text-[13.5px] font-semibold text-ink tracking-tight">{label}</h2>
+          <span className="kanban-column-count text-xs text-ink-muted tabular-nums ml-0.5">
             {totalCount}
           </span>
         </div>
@@ -108,7 +108,7 @@ const KanbanColumnComponent: React.FC<KanbanColumnProps> = ({
           type="button"
           onClick={() => onQuickAddTopic(status)}
           aria-label={`在${label}中快速建卡`}
-          className="p-1 text-[var(--ink-muted)] hover:text-[var(--ink)] hover:bg-[var(--surface)] rounded-[var(--radius-sm)] transition-colors cursor-pointer"
+          className="p-1 text-ink-muted hover:text-ink hover:bg-surface rounded-sm transition-colors cursor-pointer"
         >
           <Plus className="w-3.5 h-3.5" aria-hidden="true" />
         </button>
@@ -134,10 +134,10 @@ const KanbanColumnComponent: React.FC<KanbanColumnProps> = ({
 
         {topics.length === 0 && (
           <div
-            className={`h-24 flex flex-col items-center justify-center border border-dashed rounded-[var(--radius-sm)] text-xs p-3 text-center transition-colors duration-150 ${
+            className={`h-24 flex flex-col items-center justify-center border border-dashed rounded-sm text-xs p-3 text-center transition-colors duration-150 ${
               isOver
-                ? 'border-[var(--accent)] bg-[var(--accent-soft)] text-[var(--accent)]'
-                : 'border-[var(--line)] bg-[var(--surface)]/50 text-[var(--ink-muted)]'
+                ? 'border-accent bg-accent-soft text-accent'
+                : 'border-line bg-surface/50 text-ink-muted'
             }`}
           >
             <span className="font-medium">{isOver ? '松开以移入此阶段' : '暂无选题'}</span>
@@ -150,11 +150,11 @@ const KanbanColumnComponent: React.FC<KanbanColumnProps> = ({
 
       {/* Expand / Collapse Button if exceeding limit */}
       {!mobileMode && hiddenCount > 0 && (
-        <div className="pt-2 mt-2 border-t border-[var(--line)]/50">
+        <div className="pt-2 mt-2 border-t border-line/50">
           <button
             type="button"
             onClick={() => setIsExpanded(!isExpanded)}
-            className="w-full py-1.5 px-2 text-xs font-medium text-[var(--ink-muted)] hover:text-[var(--ink)] bg-stone-500/[0.03] hover:bg-stone-500/[0.07] dark:bg-white/[0.03] dark:hover:bg-white/[0.07] rounded-lg flex items-center justify-center gap-1 transition-colors cursor-pointer"
+            className="w-full py-1.5 px-2 text-xs font-medium text-ink-muted hover:text-ink bg-control hover:bg-control rounded-lg flex items-center justify-center gap-1 transition-colors cursor-pointer"
           >
             {isExpanded ? (
               <>
@@ -173,12 +173,12 @@ const KanbanColumnComponent: React.FC<KanbanColumnProps> = ({
 
       {/* Load More Button for paginated columns */}
       {hasMore && (
-        <div className="pt-2 mt-2 border-t border-[var(--line)]/50">
+        <div className="pt-2 mt-2 border-t border-line/50">
           <button
             type="button"
             onClick={onLoadMore}
             disabled={isLoadingMore}
-            className="w-full py-1.5 px-2 text-xs font-medium text-[var(--ink-muted)] hover:text-[var(--ink)] bg-stone-500/[0.03] hover:bg-stone-500/[0.07] dark:bg-white/[0.03] dark:hover:bg-white/[0.07] rounded-lg flex items-center justify-center gap-1 transition-colors cursor-pointer disabled:opacity-50"
+            className="w-full py-1.5 px-2 text-xs font-medium text-ink-muted hover:text-ink bg-control hover:bg-control rounded-lg flex items-center justify-center gap-1 transition-colors cursor-pointer disabled:opacity-50"
           >
             {isLoadingMore ? (
               <>

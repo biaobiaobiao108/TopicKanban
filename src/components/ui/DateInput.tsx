@@ -79,12 +79,12 @@ export const DateInput: React.FC<DateInputProps> = ({
         onBlur={validateOnBlur}
         onInvalid={() => setShowError(true)}
         className={[
-          'placeholder:text-stone-400/60 dark:placeholder:text-stone-500/60',
+          'placeholder:text-ink-muted/60',
           className,
         ].filter(Boolean).join(' ')}
       />
       {showError && result.error && (
-        <p id={errorId} role="alert" aria-live="polite" className="mt-1 text-xs font-medium text-red-600 dark:text-red-400">
+        <p id={errorId} role="alert" aria-live="polite" className="mt-1 text-xs font-medium text-danger">
           {result.error}
         </p>
       )}

@@ -126,7 +126,7 @@ export const QuickDropDrawer: React.FC<QuickDropDrawerProps> = ({
     <div className="fixed inset-0 z-50 overflow-hidden" role="presentation">
       {/* Backdrop */}
       <div
-        className="absolute inset-0 bg-stone-900/30 backdrop-blur-xs transition-opacity drawer-backdrop-enter"
+        className="absolute inset-0 bg-overlay backdrop-blur-xs transition-opacity drawer-backdrop-enter"
         aria-hidden="true"
         onClick={onClose}
       />
@@ -138,22 +138,22 @@ export const QuickDropDrawer: React.FC<QuickDropDrawerProps> = ({
         aria-modal="true"
         aria-labelledby="quick-drop-title"
         tabIndex={-1}
-        className="absolute inset-y-0 right-0 w-full max-w-md bg-[var(--surface)] shadow-2xl flex flex-col z-10 drawer-right-enter transition-colors"
+        className="absolute inset-y-0 right-0 w-full max-w-md bg-surface shadow-2xl flex flex-col z-10 drawer-right-enter transition-colors"
       >
         {/* Header */}
-        <div className="p-4 border-b border-[var(--line)] bg-[var(--surface)] flex items-center justify-between">
+        <div className="p-4 border-b border-line bg-surface flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <div className="p-2 bg-[var(--accent-soft)] text-[var(--accent)] rounded-xl">
+            <div className="p-2 bg-accent-soft text-accent rounded-xl">
               <Smartphone className="w-4 h-4" />
             </div>
             <div>
-              <h2 id="quick-drop-title" className="text-sm font-bold text-[var(--ink)] flex items-center gap-2">
+              <h2 id="quick-drop-title" className="text-sm font-bold text-ink flex items-center gap-2">
                 <span>手机快投灵感箱</span>
-                <span className="text-[10px] font-mono bg-[var(--accent-soft)] text-[var(--accent-dark)] px-2 py-0.5 rounded-full font-bold">
+                <span className="text-[10px] font-mono bg-accent-soft text-accent-dark px-2 py-0.5 rounded-full font-bold">
                   {drops.length}
                 </span>
               </h2>
-              <p className="text-[11px] text-[var(--ink-muted)]">来自快捷指令与手机分享菜单的碎片线索</p>
+              <p className="text-[11px] text-ink-muted">来自快捷指令与手机分享菜单的碎片线索</p>
             </div>
           </div>
 
@@ -163,7 +163,7 @@ export const QuickDropDrawer: React.FC<QuickDropDrawerProps> = ({
               aria-label="刷新快投列表"
               onClick={loadDrops}
               disabled={isLoading}
-              className="p-2 rounded-xl text-stone-400 dark:text-stone-500 hover:text-stone-700 dark:hover:text-stone-300 hover:bg-stone-100 dark:hover:bg-stone-800 transition-colors cursor-pointer"
+              className="p-2 rounded-xl text-ink-muted hover:text-ink hover:bg-control transition-colors cursor-pointer"
             >
               <RefreshCw className={`w-4 h-4 ${isLoading ? 'animate-spin' : ''}`} />
             </button>
@@ -172,7 +172,7 @@ export const QuickDropDrawer: React.FC<QuickDropDrawerProps> = ({
               ref={closeButtonRef}
               aria-label="关闭手机快投灵感箱"
               onClick={onClose}
-              className="p-2 rounded-xl text-stone-400 dark:text-stone-500 hover:text-stone-700 dark:hover:text-stone-300 hover:bg-stone-100 dark:hover:bg-stone-800 transition-colors cursor-pointer"
+              className="p-2 rounded-xl text-ink-muted hover:text-ink hover:bg-control transition-colors cursor-pointer"
             >
               <X className="w-4 h-4" />
             </button>
@@ -183,11 +183,11 @@ export const QuickDropDrawer: React.FC<QuickDropDrawerProps> = ({
         <FloatingScrollbar className="p-4 space-y-3" wrapperClassName="flex-1">
           {drops.length === 0 ? (
             <div className="text-center py-16 px-4 space-y-3">
-              <div className="w-12 h-12 rounded-2xl bg-stone-100 dark:bg-stone-800 text-stone-400 dark:text-stone-500 flex items-center justify-center mx-auto">
+              <div className="w-12 h-12 rounded-2xl bg-control text-ink-muted flex items-center justify-center mx-auto">
                 <Inbox className="w-6 h-6" />
               </div>
-              <h3 className="text-sm font-bold text-stone-700 dark:text-stone-300">快投箱当前为空</h3>
-              <p className="text-xs text-stone-400 dark:text-stone-500 max-w-xs mx-auto leading-relaxed">
+              <h3 className="text-sm font-bold text-ink">快投箱当前为空</h3>
+              <p className="text-xs text-ink-muted max-w-xs mx-auto leading-relaxed">
                 在手机上通过 iOS 快捷指令或分享菜单，可以随时随地把刷到的荒诞事件与爆款线索一键投递到这里。
               </p>
             </div>
@@ -199,19 +199,19 @@ export const QuickDropDrawer: React.FC<QuickDropDrawerProps> = ({
               return (
                 <div
                   key={item.id}
-                  className="p-4 rounded-2xl border border-[var(--line)] bg-[var(--surface)] hover:shadow-card hover:-translate-y-0.5 transition-all space-y-2.5 shadow-2xs"
+                  className="p-4 rounded-2xl border border-line bg-surface hover:shadow-card hover:-translate-y-0.5 transition-all space-y-2.5 shadow-2xs"
                 >
                   <div className="flex items-start justify-between gap-2">
-                    <span className="text-[10px] font-bold text-[var(--ink-muted)] bg-stone-500/10 px-2 py-0.5 rounded-full">
+                    <span className="text-[10px] font-bold text-ink-muted bg-control px-2 py-0.5 rounded-full">
                       {item.source || '快捷指令'}
                     </span>
-                    <span className="text-[10px] font-mono text-[var(--ink-muted)] flex items-center gap-1">
+                    <span className="text-[10px] font-mono text-ink-muted flex items-center gap-1">
                       <Clock className="w-3 h-3" />
                       {formatBeijingDateTime(item.created_at, 'zh-CN', { month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' })}
                     </span>
                   </div>
 
-                  <p className="text-xs text-[var(--ink)] font-medium leading-relaxed break-words whitespace-pre-wrap">
+                  <p className="text-xs text-ink font-medium leading-relaxed break-words whitespace-pre-wrap">
                     {item.content}
                   </p>
 
@@ -221,7 +221,7 @@ export const QuickDropDrawer: React.FC<QuickDropDrawerProps> = ({
                       href={safeUrl}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="inline-flex items-center gap-1 text-[11px] text-[var(--accent)] hover:text-[var(--accent-dark)] truncate max-w-full font-mono underline"
+                      className="inline-flex items-center gap-1 text-[11px] text-accent hover:text-accent-dark truncate max-w-full font-mono underline"
                     >
                       <ExternalLink className="w-3 h-3 shrink-0" />
                       <span className="truncate">{normalizedUrl}</span>
@@ -229,11 +229,11 @@ export const QuickDropDrawer: React.FC<QuickDropDrawerProps> = ({
                   </div>
                 )}
 
-                <div className="pt-2 border-t border-stone-100 dark:border-stone-800 flex items-center justify-between gap-2">
+                <div className="pt-2 border-t border-line flex items-center justify-between gap-2">
                   <button
                     type="button"
                     onClick={() => handleConvert(normalizedItem)}
-                    className="flex items-center gap-1 px-3.5 py-1.5 rounded-xl text-xs font-bold bg-[var(--accent)] hover:bg-[var(--accent-dark)] active:scale-[0.98] text-white transition-all cursor-pointer shadow-2xs"
+                    className="flex items-center gap-1 px-3.5 py-1.5 rounded-xl text-xs font-bold bg-accent hover:bg-accent-dark active:scale-[0.98] text-white transition-all cursor-pointer shadow-2xs"
                   >
                     <Plus className="w-3.5 h-3.5 stroke-[2.5]" />
                     <span>转为收集箱选题</span>
@@ -243,7 +243,7 @@ export const QuickDropDrawer: React.FC<QuickDropDrawerProps> = ({
                     type="button"
                     onClick={() => handleDelete(item.id)}
                     disabled={deletingId === item.id}
-                    className="p-1.5 rounded-lg text-stone-400 dark:text-stone-500 hover:text-red-600 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/40 transition-colors cursor-pointer"
+                    className="p-1.5 rounded-lg text-ink-muted hover:text-danger hover:bg-danger-soft transition-colors cursor-pointer"
                     aria-label="删除此灵感"
                   >
                     <Trash2 className="w-3.5 h-3.5" />
@@ -256,7 +256,7 @@ export const QuickDropDrawer: React.FC<QuickDropDrawerProps> = ({
         </FloatingScrollbar>
 
         {/* Footer info */}
-        <div className="p-3 border-t border-stone-200/70 dark:border-stone-800 bg-stone-50 dark:bg-stone-900/90 text-[11px] text-stone-400 dark:text-stone-500 text-center">
+        <div className="p-3 border-t border-line bg-canvas text-[11px] text-ink-muted text-center">
           快投碎片将在本地 SQLite 中暂存 7 天，到期后自动销毁。
         </div>
       </div>

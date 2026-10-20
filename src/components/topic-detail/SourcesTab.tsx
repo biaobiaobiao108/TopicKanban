@@ -89,7 +89,7 @@ function SourcePageControls({
   const lastItem = Math.min(page * SOURCES_PAGE_SIZE, total);
 
   return (
-    <nav aria-label={`${label}分页`} className="flex flex-wrap items-center justify-between gap-3 border-t border-[var(--line)]/50 pt-3 text-xs text-[var(--ink-muted)]">
+    <nav aria-label={`${label}分页`} className="flex flex-wrap items-center justify-between gap-3 border-t border-line/50 pt-3 text-xs text-ink-muted">
       <span aria-live="polite">显示 {firstItem}-{lastItem} / 共 {total} 条</span>
       <div className="flex items-center gap-2">
         <button
@@ -97,7 +97,7 @@ function SourcePageControls({
           aria-label={`${label}上一页`}
           disabled={page <= 1}
           onClick={() => onPageChange(Math.max(1, page - 1))}
-          className="min-h-9 rounded-xl border border-[var(--line)] bg-[var(--surface)] px-3 font-medium text-[var(--ink)] transition-colors hover:bg-[var(--canvas)] disabled:cursor-not-allowed disabled:opacity-40"
+          className="min-h-9 rounded-xl border border-line bg-surface px-3 font-medium text-ink transition-colors hover:bg-canvas disabled:cursor-not-allowed disabled:opacity-40"
         >
           上一页
         </button>
@@ -107,7 +107,7 @@ function SourcePageControls({
           aria-label={`${label}下一页`}
           disabled={page >= totalPages}
           onClick={() => onPageChange(Math.min(totalPages, page + 1))}
-          className="min-h-9 rounded-xl border border-[var(--line)] bg-[var(--surface)] px-3 font-medium text-[var(--ink)] transition-colors hover:bg-[var(--canvas)] disabled:cursor-not-allowed disabled:opacity-40"
+          className="min-h-9 rounded-xl border border-line bg-surface px-3 font-medium text-ink transition-colors hover:bg-canvas disabled:cursor-not-allowed disabled:opacity-40"
         >
           下一页
         </button>
@@ -231,12 +231,12 @@ const SortableTimelineItem: React.FC<SortableTimelineItemProps> = ({
       className={`relative group w-full ${isDragging ? 'opacity-50 z-30 scale-[1.01]' : 'opacity-100'}`}
     >
       {/* Timeline Node Dot on Left Axis */}
-      <div className="absolute -left-6 sm:-left-8 top-4 w-6 h-6 rounded-full bg-[var(--surface)] border-2 border-[var(--accent)] flex items-center justify-center text-[10px] font-bold text-[var(--accent-dark)] shadow-2xs z-10 select-none">
+      <div className="absolute -left-6 sm:-left-8 top-4 w-6 h-6 rounded-full bg-surface border-2 border-accent flex items-center justify-center text-[10px] font-bold text-accent-dark shadow-2xs z-10 select-none">
         {index + 1}
       </div>
 
       {/* Main Timeline Card */}
-      <div className="bg-[var(--surface)] rounded-2xl border border-[var(--line)] p-4 sm:p-5 shadow-subtle hover:shadow-card hover:-translate-y-0.5 transition-all space-y-2.5">
+      <div className="bg-surface rounded-2xl border border-line p-4 sm:p-5 shadow-subtle hover:shadow-card hover:-translate-y-0.5 transition-all space-y-2.5">
         <div className="flex items-center justify-between gap-2 flex-wrap">
           <div className="flex items-center gap-2 flex-wrap">
             <input
@@ -252,14 +252,14 @@ const SortableTimelineItem: React.FC<SortableTimelineItemProps> = ({
               {...(canReorder ? attributes : {})}
               {...(canReorder ? listeners : {})}
               disabled={!canReorder}
-              className={`p-1 -ml-1 rounded-lg transition-colors ${canReorder ? 'text-stone-400 dark:text-stone-500 hover:text-stone-700 dark:hover:text-stone-200 cursor-grab active:cursor-grabbing hover:bg-stone-100 dark:hover:bg-stone-800' : 'text-stone-300 dark:text-stone-600 cursor-not-allowed'}`}
+              className={`p-1 -ml-1 rounded-lg transition-colors ${canReorder ? 'text-ink-muted hover:text-ink cursor-grab active:cursor-grabbing hover:bg-control' : 'text-ink-faint cursor-not-allowed'}`}
               aria-label={canReorder ? '拖拽调整顺序' : '切换至手动顺序后可拖拽'}
             >
               <GripVertical className="w-4 h-4" />
             </button>
 
             {/* Date Badge */}
-            <span className="text-xs font-mono font-bold px-2.5 py-0.5 rounded-full inline-flex items-center gap-1 bg-[var(--accent-soft)] text-[var(--accent-dark)]">
+            <span className="text-xs font-mono font-bold px-2.5 py-0.5 rounded-full inline-flex items-center gap-1 bg-accent-soft text-accent-dark">
               📅 {formatEventDate(source.event_date ?? undefined, source.date_precision)}
             </span>
 
@@ -278,17 +278,17 @@ const SortableTimelineItem: React.FC<SortableTimelineItemProps> = ({
           </div>
 
           {/* Action buttons */}
-          <div className="flex items-center gap-1 text-stone-400">
+          <div className="flex items-center gap-1 text-ink-muted">
             {safeUrl && (
               <>
                 <button
                   type="button"
                   onClick={() => onCopyUrl(source.id, source.url)}
-                  className="p-1 hover:text-stone-700 dark:hover:text-stone-300 rounded cursor-pointer"
+                  className="p-1 hover:text-ink rounded cursor-pointer"
                   aria-label="复制链接"
                 >
                   {copiedId === source.id ? (
-                    <Check className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
+                    <Check className="w-3.5 h-3.5 text-success" />
                   ) : (
                     <Copy className="w-3.5 h-3.5" />
                   )}
@@ -297,7 +297,7 @@ const SortableTimelineItem: React.FC<SortableTimelineItemProps> = ({
                   href={safeUrl}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="p-1 hover:text-[var(--accent)] rounded"
+                  className="p-1 hover:text-accent rounded"
                   aria-label="打开来源网页"
                 >
                   <ExternalLink className="w-3.5 h-3.5" />
@@ -307,7 +307,7 @@ const SortableTimelineItem: React.FC<SortableTimelineItemProps> = ({
             <button
               type="button"
               onClick={() => onEdit(source)}
-              className="p-1 hover:text-stone-700 dark:hover:text-stone-300 rounded cursor-pointer"
+              className="p-1 hover:text-ink rounded cursor-pointer"
               aria-label="编辑素材"
             >
               <Edit2 className="w-3.5 h-3.5" />
@@ -315,7 +315,7 @@ const SortableTimelineItem: React.FC<SortableTimelineItemProps> = ({
             <button
               type="button"
               onClick={() => onDelete(source)}
-              className="p-1 hover:text-red-600 rounded cursor-pointer"
+              className="p-1 hover:text-danger rounded cursor-pointer"
               aria-label="删除素材"
             >
               <Trash2 className="w-3.5 h-3.5" />
@@ -324,20 +324,20 @@ const SortableTimelineItem: React.FC<SortableTimelineItemProps> = ({
         </div>
 
         {/* Title */}
-        <h3 className={`font-semibold text-sm sm:text-base text-[var(--ink)] leading-snug ${isExpanded ? '' : 'line-clamp-2'}`}>
+        <h3 className={`font-semibold text-sm sm:text-base text-ink leading-snug ${isExpanded ? '' : 'line-clamp-2'}`}>
           {source.title}
         </h3>
 
         {/* Content Snippet */}
         {source.content && (
-          <p className={`text-xs text-stone-600 dark:text-stone-300 leading-relaxed bg-[var(--canvas)]/70 p-3 rounded-xl ${isExpanded ? '' : 'line-clamp-3'}`}>
+          <p className={`text-xs text-ink-muted leading-relaxed bg-canvas/70 p-3 rounded-xl ${isExpanded ? '' : 'line-clamp-3'}`}>
             {source.content}
           </p>
         )}
 
         {/* Note / Tip */}
         {source.notes && (
-          <div className={`text-[11px] text-stone-600 dark:text-stone-400 bg-amber-500/[0.04] dark:bg-amber-950/30 px-2.5 py-1 rounded-lg border border-amber-500/20 ${isExpanded ? '' : 'line-clamp-2'}`}>
+          <div className={`text-[11px] text-ink-muted bg-warning-soft] px-2.5 py-1 rounded-lg border border-warning-soft ${isExpanded ? '' : 'line-clamp-2'}`}>
             💡 {source.notes}
           </div>
         )}
@@ -347,7 +347,7 @@ const SortableTimelineItem: React.FC<SortableTimelineItemProps> = ({
             type="button"
             onClick={() => setIsExpanded((expanded) => !expanded)}
             aria-expanded={isExpanded}
-            className="inline-flex min-h-8 items-center gap-1 rounded-lg px-2 text-xs font-semibold text-[var(--accent-dark)] transition-colors hover:bg-[var(--accent-soft)] dark:text-[var(--accent)]"
+            className="inline-flex min-h-8 items-center gap-1 rounded-lg px-2 text-xs font-semibold text-accent-dark transition-colors hover:bg-accent-soft"
           >
             {isExpanded ? <ChevronUp className="h-3.5 w-3.5" aria-hidden="true" /> : <ChevronDown className="h-3.5 w-3.5" aria-hidden="true" />}
             {isExpanded ? '收起详情' : '展开详情'}
@@ -356,7 +356,7 @@ const SortableTimelineItem: React.FC<SortableTimelineItemProps> = ({
 
         {/* Author & Footer */}
         {source.author && (
-          <div className="truncate text-[11px] font-medium text-stone-400 dark:text-stone-500">
+          <div className="truncate text-[11px] font-medium text-ink-muted">
             原作者：@{source.author}
           </div>
         )}
@@ -664,17 +664,17 @@ export const SourcesTab: React.FC<SourcesTabProps> = ({
   return (
     <div className="py-4 sm:py-6 space-y-5">
       {/* Header & Filter Bar */}
-      <div className="flex items-center justify-between flex-wrap gap-3 bg-[var(--surface)] p-4 sm:p-5 rounded-2xl border border-[var(--line)] shadow-subtle transition-colors">
+      <div className="flex items-center justify-between flex-wrap gap-3 bg-surface p-4 sm:p-5 rounded-2xl border border-line shadow-subtle transition-colors">
         <div className="flex items-center gap-2.5 flex-wrap flex-1">
           {/* View Mode Toggle */}
-          <div className="inline-flex items-center rounded-xl bg-stone-500/[0.04] p-1 border border-[var(--line)]/60">
+          <div className="inline-flex items-center rounded-xl bg-control p-1 border border-line/60">
             <button
               type="button"
               onClick={() => setViewMode('cards')}
               className={`flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-medium transition-all cursor-pointer ${
                 viewMode === 'cards'
-                  ? 'bg-[var(--surface)] text-[var(--accent-dark)] dark:text-[var(--accent)] font-semibold shadow-2xs'
-                  : 'text-[var(--ink-muted)] hover:text-[var(--ink)]'
+                  ? 'bg-surface text-accent-dark font-semibold shadow-2xs'
+                  : 'text-ink-muted hover:text-ink'
               }`}
             >
               <LayoutGrid className="w-3.5 h-3.5" />
@@ -685,8 +685,8 @@ export const SourcesTab: React.FC<SourcesTabProps> = ({
               onClick={() => setViewMode('timeline')}
               className={`flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-medium transition-all cursor-pointer ${
                 viewMode === 'timeline'
-                  ? 'bg-[var(--surface)] text-[var(--accent-dark)] dark:text-[var(--accent)] font-semibold shadow-2xs'
-                  : 'text-[var(--ink-muted)] hover:text-[var(--ink)]'
+                  ? 'bg-surface text-accent-dark font-semibold shadow-2xs'
+                  : 'text-ink-muted hover:text-ink'
               }`}
             >
               <Clock className="w-3.5 h-3.5" />
@@ -697,11 +697,11 @@ export const SourcesTab: React.FC<SourcesTabProps> = ({
             </button>
           </div>
 
-          <div className="h-5 w-px bg-stone-200 dark:bg-stone-700 mx-0.5 hidden sm:block" />
+          <div className="h-5 w-px bg-surface-subtle mx-0.5 hidden sm:block" />
 
           {/* Real-time Search Input */}
           <div className="relative min-w-[180px] max-w-xs flex-1">
-            <Search className="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-stone-400 dark:text-stone-500" />
+            <Search className="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-ink-muted" />
             <input
               type="text"
               id="sources-search"
@@ -711,14 +711,14 @@ export const SourcesTab: React.FC<SourcesTabProps> = ({
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="搜索素材标题、内容、备忘、日期..."
-              className="w-full pl-9 pr-7 py-1.5 bg-stone-500/[0.03] dark:bg-stone-800 border border-stone-200/70 dark:border-stone-700 rounded-xl text-xs text-[var(--ink)] placeholder:text-stone-400 focus:bg-[var(--surface)] dark:focus:bg-stone-800 focus:outline-none focus:border-[var(--accent)] transition-colors"
+              className="w-full pl-9 pr-7 py-1.5 bg-control border border-line rounded-xl text-xs text-ink placeholder:text-ink-muted focus:bg-surface focus:outline-none focus:border-accent transition-colors"
             />
             {searchQuery && (
               <button
                 type="button"
                 onClick={() => setSearchQuery('')}
                 aria-label="清除素材搜索"
-                className="absolute right-2.5 top-1/2 -translate-y-1/2 text-stone-400 hover:text-stone-600 dark:hover:text-stone-200 cursor-pointer"
+                className="absolute right-2.5 top-1/2 -translate-y-1/2 text-ink-muted hover:text-ink-muted cursor-pointer"
               >
                 <X className="w-3.5 h-3.5" />
               </button>
@@ -731,7 +731,7 @@ export const SourcesTab: React.FC<SourcesTabProps> = ({
             onChange={(val) => setFilterPlatform(val as PlatformType | 'all')}
             options={PLATFORM_OPTIONS}
             ariaLabel="平台筛选"
-            buttonClassName="py-1.5 text-xs bg-stone-500/[0.03] dark:bg-stone-800 border-stone-200/70 dark:border-stone-700 rounded-xl"
+            buttonClassName="py-1.5 text-xs bg-control border-line rounded-xl"
           />
 
           {/* Verification Status Filter */}
@@ -740,12 +740,12 @@ export const SourcesTab: React.FC<SourcesTabProps> = ({
             onChange={(val) => setFilterStatus(val as VerificationStatus | 'all')}
             options={[
               { value: 'all', label: '全部状态' },
-              { value: 'confirmed', label: '已确认', dot: 'bg-emerald-500' },
-              { value: 'unverified', label: '待核实', dot: 'bg-amber-500' },
-              { value: 'rejected', label: '不采用', dot: 'bg-stone-400' },
+              { value: 'confirmed', label: '已确认', dot: 'bg-success' },
+              { value: 'unverified', label: '待核实', dot: 'bg-warning' },
+              { value: 'rejected', label: '不采用', dot: 'bg-ink-faint' },
             ]}
             ariaLabel="可信度筛选"
-            buttonClassName="py-1.5 text-xs bg-stone-500/[0.03] dark:bg-stone-800 border-stone-200/70 dark:border-stone-700 rounded-xl"
+            buttonClassName="py-1.5 text-xs bg-control border-line rounded-xl"
           />
 
           {/* Timeline Sort Toggle (only in timeline view) */}
@@ -753,10 +753,10 @@ export const SourcesTab: React.FC<SourcesTabProps> = ({
             <button
               type="button"
               onClick={cycleTimelineSortMode}
-              className="flex items-center gap-1 px-2.5 py-1.5 rounded-xl border border-stone-200/70 dark:border-stone-700 bg-stone-500/[0.03] dark:bg-stone-800 text-xs text-[var(--ink-muted)] hover:text-[var(--ink)] transition-colors cursor-pointer"
+              className="flex items-center gap-1 px-2.5 py-1.5 rounded-xl border border-line bg-control text-xs text-ink-muted hover:text-ink transition-colors cursor-pointer"
               aria-label="切换时间轴排序方式"
             >
-              <ArrowDownUp className="w-3.5 h-3.5 text-[var(--accent)]" />
+              <ArrowDownUp className="w-3.5 h-3.5 text-accent" />
               <span>{timelineSortMode === 'date-asc' ? '日期正序' : timelineSortMode === 'date-desc' ? '日期倒序' : '手动顺序'}</span>
             </button>
           )}
@@ -768,7 +768,7 @@ export const SourcesTab: React.FC<SourcesTabProps> = ({
             <button
               type="button"
               onClick={deleteSelected}
-              className="flex items-center gap-1 rounded-xl bg-red-500/10 hover:bg-red-500/20 px-3 py-1.5 text-xs font-semibold text-red-700 dark:text-red-300 transition-colors cursor-pointer"
+              className="flex items-center gap-1 rounded-xl bg-danger-soft hover:bg-danger-soft px-3 py-1.5 text-xs font-semibold text-danger transition-colors cursor-pointer"
             >
               <Trash2 className="h-3.5 w-3.5" />
               <span>删除选中 ({selectedIds.size})</span>
@@ -778,7 +778,7 @@ export const SourcesTab: React.FC<SourcesTabProps> = ({
           <button
             type="button"
             onClick={openAddModal}
-            className="flex items-center gap-1.5 bg-[var(--accent)] hover:bg-[var(--accent-dark)] text-white px-3.5 py-2 rounded-xl text-xs font-bold transition-all shadow-2xs cursor-pointer shrink-0"
+            className="flex items-center gap-1.5 bg-accent hover:bg-accent-dark text-white px-3.5 py-2 rounded-xl text-xs font-bold transition-all shadow-2xs cursor-pointer shrink-0"
           >
             <Plus className="w-4 h-4 stroke-[2.5]" />
             <span>添加素材</span>
@@ -795,7 +795,7 @@ export const SourcesTab: React.FC<SourcesTabProps> = ({
             return (
               <div
                 key={s.id}
-                className="bg-[var(--surface)] p-4 sm:p-5 rounded-2xl border border-[var(--line)] shadow-subtle hover:shadow-card hover:-translate-y-0.5 transition-all space-y-3 flex flex-col justify-between"
+                className="bg-surface p-4 sm:p-5 rounded-2xl border border-line shadow-subtle hover:shadow-card hover:-translate-y-0.5 transition-all space-y-3 flex flex-col justify-between"
               >
                 <div className="space-y-2.5">
                   {/* Top Bar: Checkbox + Badges + Actions */}
@@ -818,17 +818,17 @@ export const SourcesTab: React.FC<SourcesTabProps> = ({
                         <VerificationBadge status={s.verification_status} />
                       </button>
                       {s.event_date && (
-                        <span className="text-[10px] font-mono font-medium px-2 py-0.5 rounded-full bg-[var(--accent-soft)] text-[var(--accent-dark)]">
+                        <span className="text-[10px] font-mono font-medium px-2 py-0.5 rounded-full bg-accent-soft text-accent-dark">
                           📅 {formatEventDate(s.event_date, s.date_precision)}
                         </span>
                       )}
                     </div>
 
-                    <div className="flex items-center gap-1 text-stone-400">
+                    <div className="flex items-center gap-1 text-ink-muted">
                       <button
                         type="button"
                         onClick={() => openEditModal(s)}
-                        className="p-1 hover:text-stone-700 dark:hover:text-stone-300 rounded cursor-pointer"
+                        className="p-1 hover:text-ink rounded cursor-pointer"
                         aria-label="编辑素材"
                       >
                         <Edit2 className="w-3.5 h-3.5" />
@@ -836,7 +836,7 @@ export const SourcesTab: React.FC<SourcesTabProps> = ({
                       <button
                         type="button"
                         onClick={() => setDeletingSource(s)}
-                        className="p-1 hover:text-red-600 rounded cursor-pointer"
+                        className="p-1 hover:text-danger rounded cursor-pointer"
                         aria-label="删除素材"
                       >
                         <Trash2 className="w-3.5 h-3.5" />
@@ -845,27 +845,27 @@ export const SourcesTab: React.FC<SourcesTabProps> = ({
                   </div>
 
                   {/* Title */}
-                  <h3 className="font-semibold text-sm sm:text-base text-[var(--ink)] leading-snug line-clamp-2">
+                  <h3 className="font-semibold text-sm sm:text-base text-ink leading-snug line-clamp-2">
                     {s.title}
                   </h3>
 
                   {/* Content snippet */}
                   {s.content && (
-                    <p className="text-xs text-stone-600 dark:text-stone-300 leading-relaxed line-clamp-3 bg-[var(--canvas)]/70 p-2.5 rounded-xl">
+                    <p className="text-xs text-ink-muted leading-relaxed line-clamp-3 bg-canvas/70 p-2.5 rounded-xl">
                       {s.content}
                     </p>
                   )}
 
                   {/* Notes / Tips */}
                   {s.notes && (
-                    <div className="text-[11px] text-stone-600 dark:text-stone-400 bg-amber-500/[0.04] dark:bg-amber-950/30 px-2.5 py-1 rounded-lg border border-amber-500/20 truncate">
+                    <div className="text-[11px] text-ink-muted bg-warning-soft] px-2.5 py-1 rounded-lg border border-warning-soft truncate">
                       💡 {s.notes}
                     </div>
                   )}
                 </div>
 
                 {/* Bottom Meta & Links */}
-                <div className="pt-2.5 border-t border-stone-100 dark:border-stone-800 flex items-center justify-between flex-wrap gap-1.5 text-[11px] text-stone-400 dark:text-stone-500">
+                <div className="pt-2.5 border-t border-line flex items-center justify-between flex-wrap gap-1.5 text-[11px] text-ink-muted">
                   <div className="flex items-center gap-2 truncate">
                     {s.author && <span className="truncate max-w-[90px] font-semibold">@{s.author}</span>}
                     {s.published_at && <span>{s.published_at}</span>}
@@ -876,11 +876,11 @@ export const SourcesTab: React.FC<SourcesTabProps> = ({
                       <button
                         type="button"
                         onClick={() => copyUrl(s.id, s.url)}
-                        className="hover:text-stone-700 dark:hover:text-stone-300 p-0.5 cursor-pointer"
+                        className="hover:text-ink p-0.5 cursor-pointer"
                         aria-label="复制链接"
                       >
                         {copiedId === s.id ? (
-                          <Check className="w-3 h-3 text-emerald-600 dark:text-emerald-400" />
+                          <Check className="w-3 h-3 text-success" />
                         ) : (
                           <Copy className="w-3 h-3" />
                         )}
@@ -889,7 +889,7 @@ export const SourcesTab: React.FC<SourcesTabProps> = ({
                         href={safeUrl}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="flex items-center gap-0.5 text-[var(--accent)] hover:text-[var(--accent-dark)] font-semibold"
+                        className="flex items-center gap-0.5 text-accent hover:text-accent-dark font-semibold"
                       >
                         <span>来源</span>
                         <ExternalLink className="w-3 h-3" />
@@ -902,11 +902,11 @@ export const SourcesTab: React.FC<SourcesTabProps> = ({
           })}
 
           {filteredSources.length === 0 && (
-            <div className="col-span-full p-12 text-center border-2 border-dashed border-[var(--line)] rounded-2xl bg-[var(--surface)] text-stone-400 dark:text-stone-500 space-y-2">
-              <p className="text-sm font-semibold text-stone-600 dark:text-stone-400">
+            <div className="col-span-full p-12 text-center border-2 border-dashed border-line rounded-2xl bg-surface text-ink-muted space-y-2">
+              <p className="text-sm font-semibold text-ink-muted">
                 {searchQuery ? `未找到包含「${searchQuery}」的素材记录` : '暂无素材记录'}
               </p>
-              <p className="text-xs text-stone-400 dark:text-stone-500">
+              <p className="text-xs text-ink-muted">
                 点击右上角「+ 添加素材」，支持一键智能抓取 B站/YouTube 视频信息
               </p>
             </div>
@@ -922,7 +922,7 @@ export const SourcesTab: React.FC<SourcesTabProps> = ({
           {/* Main Vertical Timeline List with DnD */}
           <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
             <SortableContext items={timedSources.map((s) => s.id)} strategy={verticalListSortingStrategy}>
-              <div className="relative mx-auto w-full max-w-5xl pl-6 sm:pl-8 space-y-4 before:absolute before:left-3 before:top-3 before:bottom-3 before:w-0.5 before:bg-stone-200 dark:before:bg-stone-800 transition-colors">
+              <div className="relative mx-auto w-full max-w-5xl pl-6 sm:pl-8 space-y-4 before:absolute before:left-3 before:top-3 before:bottom-3 before:w-0.5 before:bg-surface-subtle transition-colors">
                 {timedSources.map((source, idx) => (
                   <SortableTimelineItem
                     key={source.id}
@@ -940,10 +940,10 @@ export const SourcesTab: React.FC<SourcesTabProps> = ({
                 ))}
 
                 {timedSources.length === 0 && (
-                  <div className="p-8 text-center border-2 border-dashed border-[var(--line)] rounded-xl bg-[var(--surface)] text-stone-400 dark:text-stone-500 space-y-2">
-                    <Clock className="w-8 h-8 mx-auto text-stone-300 dark:text-stone-600 stroke-[1.5]" />
+                  <div className="p-8 text-center border-2 border-dashed border-line rounded-xl bg-surface text-ink-muted space-y-2">
+                    <Clock className="w-8 h-8 mx-auto text-ink-faint stroke-[1.5]" />
                     <div className="text-sm font-medium">暂无定时的素材节点</div>
-                    <p className="text-xs text-stone-400 dark:text-stone-500">
+                    <p className="text-xs text-ink-muted">
                       编辑素材并设定「发生日期」，即可按时间先后顺序在此自动串联故事线
                     </p>
                   </div>
@@ -954,41 +954,41 @@ export const SourcesTab: React.FC<SourcesTabProps> = ({
 
           {/* Undated Sources Collapsible Pool */}
           {undatedSources.length > 0 && (
-            <div className="border border-[var(--line)] rounded-2xl bg-[var(--surface)] overflow-hidden shadow-subtle">
+            <div className="border border-line rounded-2xl bg-surface overflow-hidden shadow-subtle">
               <button
                 type="button"
                 onClick={() => setUndatedCollapsed((prev) => !prev)}
-                className="w-full px-4 py-3 flex items-center justify-between text-left hover:bg-stone-500/[0.02] cursor-pointer transition-colors"
+                className="w-full px-4 py-3 flex items-center justify-between text-left hover:bg-control cursor-pointer transition-colors"
                 aria-expanded={!undatedCollapsed}
               >
                 <div className="flex items-center gap-2">
-                  {undatedCollapsed ? <ChevronRight className="w-4 h-4 text-stone-400" /> : <ChevronDown className="w-4 h-4 text-stone-400" />}
-                  <span className="text-xs font-bold text-[var(--ink)]">待定时间素材</span>
-                  <span className="px-2 py-0.5 rounded-full bg-stone-500/10 text-[var(--ink-muted)] text-[11px] font-semibold">
+                  {undatedCollapsed ? <ChevronRight className="w-4 h-4 text-ink-muted" /> : <ChevronDown className="w-4 h-4 text-ink-muted" />}
+                  <span className="text-xs font-bold text-ink">待定时间素材</span>
+                  <span className="px-2 py-0.5 rounded-full bg-control text-ink-muted text-[11px] font-semibold">
                     <span className="font-mono tabular-nums">{undatedSources.length}</span> 条
                   </span>
                 </div>
-                <span className="text-[11px] text-[var(--ink-muted)]">
+                <span className="text-[11px] text-ink-muted">
                   {undatedCollapsed ? '展开查看' : '点击收起'}
                 </span>
               </button>
 
               {!undatedCollapsed && (
-                <div className="p-4 pt-0 border-t border-[var(--line)]/50 divide-y divide-[var(--line)]/50">
+                <div className="p-4 pt-0 border-t border-line/50 divide-y divide-line/50">
                   {currentUndatedSources.map((source) => (
                     <div key={source.id} className="py-3 first:pt-3 flex items-center justify-between gap-3 flex-wrap">
                       <div className="space-y-1 min-w-0 flex-1">
                         <div className="flex items-center gap-2 flex-wrap">
                           <PlatformBadge platform={source.platform} />
-                          <h4 className="text-xs font-semibold text-[var(--ink)] truncate max-w-md">
+                          <h4 className="text-xs font-semibold text-ink truncate max-w-md">
                             {source.title}
                           </h4>
                           {source.author && (
-                            <span className="text-[11px] text-stone-400">@{source.author}</span>
+                            <span className="text-[11px] text-ink-muted">@{source.author}</span>
                           )}
                         </div>
                         {source.content && (
-                          <p className="text-[11px] text-stone-500 line-clamp-1">
+                          <p className="text-[11px] text-ink-muted line-clamp-1">
                             {source.content}
                           </p>
                         )}
@@ -999,7 +999,7 @@ export const SourcesTab: React.FC<SourcesTabProps> = ({
                         <button
                           type="button"
                           onClick={() => openEditModal(source, true)}
-                          className="flex items-center gap-1 px-2.5 py-1 rounded-lg border border-[var(--line)] hover:border-[var(--accent)] bg-[var(--canvas)] hover:bg-[var(--accent-soft)] text-xs text-[var(--accent-dark)] dark:text-[var(--accent)] font-medium transition-all cursor-pointer shadow-2xs"
+                          className="flex items-center gap-1 px-2.5 py-1 rounded-lg border border-line hover:border-accent bg-canvas hover:bg-accent-soft text-xs text-accent-dark font-medium transition-all cursor-pointer shadow-2xs"
                         >
                           <Calendar className="w-3.5 h-3.5" />
                           <span>设定时间</span>
@@ -1007,7 +1007,7 @@ export const SourcesTab: React.FC<SourcesTabProps> = ({
                         <button
                           type="button"
                           onClick={() => openEditModal(source)}
-                          className="p-1 hover:text-stone-700 dark:hover:text-stone-300 rounded cursor-pointer text-stone-400"
+                          className="p-1 hover:text-ink rounded cursor-pointer text-ink-muted"
                           aria-label="编辑素材"
                         >
                           <Edit2 className="w-3.5 h-3.5" />
@@ -1015,7 +1015,7 @@ export const SourcesTab: React.FC<SourcesTabProps> = ({
                         <button
                           type="button"
                           onClick={() => setDeletingSource(source)}
-                          className="p-1 hover:text-red-600 rounded cursor-pointer text-stone-400"
+                          className="p-1 hover:text-danger rounded cursor-pointer text-ink-muted"
                           aria-label="删除素材"
                         >
                           <Trash2 className="w-3.5 h-3.5" />
@@ -1041,14 +1041,14 @@ export const SourcesTab: React.FC<SourcesTabProps> = ({
         <form onSubmit={handleSubmit} className="space-y-4">
           {/* Smart Paste / Parse helper */}
           {!editingSource && (
-            <div className="p-3 bg-[var(--accent-soft)] rounded-xl border border-[var(--line)] space-y-2">
+            <div className="p-3 bg-accent-soft rounded-xl border border-line space-y-2">
               <div className="flex items-center justify-between text-xs">
-                <span className="font-bold text-[var(--accent-dark)] flex items-center gap-1.5">
-                  <Sparkles className="w-3.5 h-3.5 text-[var(--accent)]" />
+                <span className="font-bold text-accent-dark flex items-center gap-1.5">
+                  <Sparkles className="w-3.5 h-3.5 text-accent" />
                   <span>Bilibili / YouTube 智能识别</span>
                 </span>
                 {isParsingUrl && (
-                  <span className="text-[11px] text-[var(--accent)] font-medium flex items-center gap-1">
+                  <span className="text-[11px] text-accent font-medium flex items-center gap-1">
                     <RefreshCw className="w-3 h-3 animate-spin" />
                     <span>正在解析元数据...</span>
                   </span>
@@ -1072,14 +1072,14 @@ export const SourcesTab: React.FC<SourcesTabProps> = ({
                     }
                   }}
                   placeholder="粘贴 B站（含 b23.tv）或 YouTube 链接，自动拉取标题、UP主与简介..."
-                  className="flex-1 px-3 py-1.5 bg-stone-500/[0.03] dark:bg-stone-900 border border-[var(--line)] dark:border-stone-700 rounded-lg text-xs text-[var(--ink)] placeholder:text-stone-400 focus:outline-none focus:border-[var(--accent)] focus:bg-[var(--surface)]"
+                  className="flex-1 px-3 py-1.5 bg-control border border-line rounded-lg text-xs text-ink placeholder:text-ink-muted focus:outline-none focus:border-accent focus:bg-surface"
                 />
                 {smartPasteInput && (
                   <button
                     type="button"
                     onClick={() => void handleSmartParse(smartPasteInput)}
                     disabled={isParsingUrl}
-                    className="px-2.5 py-1.5 bg-[var(--accent)] hover:bg-[var(--accent-dark)] text-white rounded-lg text-xs font-semibold flex items-center gap-1 transition-colors shrink-0 disabled:opacity-50 cursor-pointer shadow-2xs"
+                    className="px-2.5 py-1.5 bg-accent hover:bg-accent-dark text-white rounded-lg text-xs font-semibold flex items-center gap-1 transition-colors shrink-0 disabled:opacity-50 cursor-pointer shadow-2xs"
                     aria-label="重新识别抓取"
                   >
                     <RefreshCw className={`w-3 h-3 ${isParsingUrl ? 'animate-spin' : ''}`} />
@@ -1091,8 +1091,8 @@ export const SourcesTab: React.FC<SourcesTabProps> = ({
           )}
 
           <div>
-            <label htmlFor="source-title" className="block text-xs font-semibold text-stone-700 dark:text-stone-300 mb-1">
-              素材标题 <span className="text-stone-400">*</span>
+            <label htmlFor="source-title" className="block text-xs font-semibold text-ink mb-1">
+              素材标题 <span className="text-ink-muted">*</span>
             </label>
             <input
               id="source-title"
@@ -1103,14 +1103,14 @@ export const SourcesTab: React.FC<SourcesTabProps> = ({
               placeholder="例如：良子出征誓师直播录屏"
               value={title}
               onChange={(e) => setTitle(e.target.value)}
-              className="w-full px-3 py-2 bg-stone-500/[0.03] dark:bg-stone-800 border border-stone-300 dark:border-stone-700 rounded-lg text-sm text-[var(--ink)] placeholder:text-stone-400 dark:placeholder:text-stone-500 focus:bg-[var(--surface)] dark:focus:bg-stone-800 focus:border-[var(--accent)] focus:outline-none"
+              className="w-full px-3 py-2 bg-control border border-line rounded-lg text-sm text-ink placeholder:text-ink-muted focus:bg-surface focus:border-accent focus:outline-none"
             />
           </div>
 
           {/* Event Date & Date Precision for Timeline */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
-              <label htmlFor="source-event-date" className="block text-xs font-semibold text-stone-700 dark:text-stone-300 mb-1">
+              <label htmlFor="source-event-date" className="block text-xs font-semibold text-ink mb-1">
                 故事发生时间 (时间轴排序依据)
               </label>
               <input
@@ -1121,12 +1121,12 @@ export const SourcesTab: React.FC<SourcesTabProps> = ({
                 placeholder="例如：2026-07-28 / 2026-05 / 2026"
                 value={eventDate}
                 onChange={(e) => handleEventDateChange(e.target.value)}
-                className="w-full px-3 py-2 bg-stone-500/[0.03] dark:bg-stone-800 border border-stone-300 dark:border-stone-700 rounded-lg text-sm text-[var(--ink)] placeholder:text-stone-400 dark:placeholder:text-stone-500 focus:bg-[var(--surface)] dark:focus:bg-stone-800 focus:border-[var(--accent)] focus:outline-none"
+                className="w-full px-3 py-2 bg-control border border-line rounded-lg text-sm text-ink placeholder:text-ink-muted focus:bg-surface focus:border-accent focus:outline-none"
               />
             </div>
 
             <div>
-              <label id="source-precision-label" className="block text-xs font-semibold text-stone-700 dark:text-stone-300 mb-1">
+              <label id="source-precision-label" className="block text-xs font-semibold text-ink mb-1">
                 时间精度
               </label>
               <CustomSelect
@@ -1135,7 +1135,7 @@ export const SourcesTab: React.FC<SourcesTabProps> = ({
                 ariaLabel="时间精度"
                 ariaLabelledBy="source-precision-label"
                 className="w-full"
-                buttonClassName="w-full justify-between py-2 text-sm bg-stone-500/[0.03] dark:bg-stone-800 border-stone-300 dark:border-stone-700 rounded-lg"
+                buttonClassName="w-full justify-between py-2 text-sm bg-control border-line rounded-lg"
                 options={[
                   { value: 'exact', label: '精确到日 (YYYY-MM-DD)' },
                   { value: 'year_month', label: '精确到月 (YYYY-MM)' },
@@ -1148,14 +1148,14 @@ export const SourcesTab: React.FC<SourcesTabProps> = ({
 
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label id="source-platform-label" className="block text-xs font-semibold text-stone-700 dark:text-stone-300 mb-1">来源平台</label>
+              <label id="source-platform-label" className="block text-xs font-semibold text-ink mb-1">来源平台</label>
               <CustomSelect
                 value={platform}
                 onChange={(val) => setPlatform(val as PlatformType)}
                 ariaLabel="来源平台"
                 ariaLabelledBy="source-platform-label"
                 className="w-full"
-                buttonClassName="w-full justify-between py-2 text-sm bg-stone-500/[0.03] dark:bg-stone-800 border-stone-300 dark:border-stone-700 rounded-lg"
+                buttonClassName="w-full justify-between py-2 text-sm bg-control border-line rounded-lg"
                 options={[
                   { value: 'bilibili', label: 'Bilibili' },
                   { value: 'douyin', label: '抖音' },
@@ -1173,7 +1173,7 @@ export const SourcesTab: React.FC<SourcesTabProps> = ({
             </div>
 
             <div>
-              <label htmlFor="source-author" className="block text-xs font-semibold text-stone-700 dark:text-stone-300 mb-1">原作者 / 发布者</label>
+              <label htmlFor="source-author" className="block text-xs font-semibold text-ink mb-1">原作者 / 发布者</label>
               <input
                 id="source-author"
                 name="source_author"
@@ -1182,14 +1182,14 @@ export const SourcesTab: React.FC<SourcesTabProps> = ({
                 placeholder="例如：良子官方录播组"
                 value={author}
                 onChange={(e) => setAuthor(e.target.value)}
-                className="w-full px-3 py-2 bg-stone-500/[0.03] dark:bg-stone-800 border border-stone-300 dark:border-stone-700 rounded-lg text-sm text-[var(--ink)] placeholder:text-stone-400 dark:placeholder:text-stone-500 focus:bg-[var(--surface)] dark:focus:bg-stone-800 focus:border-[var(--accent)] focus:outline-none"
+                className="w-full px-3 py-2 bg-control border border-line rounded-lg text-sm text-ink placeholder:text-ink-muted focus:bg-surface focus:border-accent focus:outline-none"
               />
             </div>
           </div>
 
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label htmlFor="source-url" className="block text-xs font-semibold text-stone-700 dark:text-stone-300 mb-1">来源 URL 链接</label>
+              <label htmlFor="source-url" className="block text-xs font-semibold text-ink mb-1">来源 URL 链接</label>
               <input
                 id="source-url"
                 name="source_url"
@@ -1204,30 +1204,30 @@ export const SourcesTab: React.FC<SourcesTabProps> = ({
                     void handleSmartParse(pasted);
                   }
                 }}
-                className="w-full px-3 py-2 bg-stone-500/[0.03] dark:bg-stone-800 border border-stone-300 dark:border-stone-700 rounded-lg text-sm text-[var(--ink)] placeholder:text-stone-400 dark:placeholder:text-stone-500 focus:bg-[var(--surface)] dark:focus:bg-stone-800 focus:border-[var(--accent)] focus:outline-none"
+                className="w-full px-3 py-2 bg-control border border-line rounded-lg text-sm text-ink placeholder:text-ink-muted focus:bg-surface focus:border-accent focus:outline-none"
               />
             </div>
 
             <div>
-              <label id="source-verification-label" className="block text-xs font-semibold text-stone-700 dark:text-stone-300 mb-1">可信度状态</label>
+              <label id="source-verification-label" className="block text-xs font-semibold text-ink mb-1">可信度状态</label>
               <CustomSelect
                 value={verificationStatus}
                 onChange={(val) => setVerificationStatus(val as VerificationStatus)}
                 ariaLabel="可信度状态"
                 ariaLabelledBy="source-verification-label"
                 className="w-full"
-                buttonClassName="w-full justify-between py-2 text-sm bg-stone-500/[0.03] dark:bg-stone-800 border-stone-300 dark:border-stone-700 rounded-lg"
+                buttonClassName="w-full justify-between py-2 text-sm bg-control border-line rounded-lg"
                 options={[
-                  { value: 'confirmed', label: '已确认 (多方可靠来源)', dot: 'bg-emerald-500' },
-                  { value: 'unverified', label: '待核实 (信息不足)', dot: 'bg-amber-500' },
-                  { value: 'rejected', label: '不采用 (已证伪或无价值)', dot: 'bg-stone-400' },
+                  { value: 'confirmed', label: '已确认 (多方可靠来源)', dot: 'bg-success' },
+                  { value: 'unverified', label: '待核实 (信息不足)', dot: 'bg-warning' },
+                  { value: 'rejected', label: '不采用 (已证伪或无价值)', dot: 'bg-ink-faint' },
                 ]}
               />
             </div>
           </div>
 
           <div>
-            <label htmlFor="source-content" className="block text-xs font-semibold text-stone-700 dark:text-stone-300 mb-1">内容摘要 / 关键发言</label>
+            <label htmlFor="source-content" className="block text-xs font-semibold text-ink mb-1">内容摘要 / 关键发言</label>
             <textarea
               id="source-content"
               name="source_content"
@@ -1236,12 +1236,12 @@ export const SourcesTab: React.FC<SourcesTabProps> = ({
               placeholder="提取原视频或文章中的关键信息、时间码（如04:15处金句）或关键截图要点..."
               value={content}
               onChange={(e) => setContent(e.target.value)}
-              className="w-full px-3 py-2 bg-stone-500/[0.03] dark:bg-stone-800 border border-stone-300 dark:border-stone-700 rounded-lg text-sm text-[var(--ink)] placeholder:text-stone-400 dark:placeholder:text-stone-500 focus:bg-[var(--surface)] dark:focus:bg-stone-800 focus:border-[var(--accent)] focus:outline-none resize-none"
+              className="w-full px-3 py-2 bg-control border border-line rounded-lg text-sm text-ink placeholder:text-ink-muted focus:bg-surface focus:border-accent focus:outline-none resize-none"
             />
           </div>
 
           <div>
-            <label htmlFor="source-notes" className="block text-xs font-semibold text-stone-700 dark:text-stone-300 mb-1">使用备注与提示</label>
+            <label htmlFor="source-notes" className="block text-xs font-semibold text-ink mb-1">使用备注与提示</label>
             <input
               id="source-notes"
               name="source_notes"
@@ -1250,22 +1250,22 @@ export const SourcesTab: React.FC<SourcesTabProps> = ({
               placeholder="例如：可用作第一章转折画面"
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
-              className="w-full px-3 py-2 bg-stone-500/[0.03] dark:bg-stone-800 border border-stone-300 dark:border-stone-700 rounded-lg text-sm text-[var(--ink)] placeholder:text-stone-400 dark:placeholder:text-stone-500 focus:bg-[var(--surface)] dark:focus:bg-stone-800 focus:border-[var(--accent)] focus:outline-none"
+              className="w-full px-3 py-2 bg-control border border-line rounded-lg text-sm text-ink placeholder:text-ink-muted focus:bg-surface focus:border-accent focus:outline-none"
             />
           </div>
 
-          <div className="flex items-center justify-end gap-2.5 pt-3 border-t border-stone-200 dark:border-stone-800">
+          <div className="flex items-center justify-end gap-2.5 pt-3 border-t border-line">
             <button
               type="button"
               onClick={closeSourceModal}
-              className="px-4 py-2 text-sm text-stone-600 dark:text-stone-400 hover:bg-stone-100 dark:hover:bg-stone-800 rounded-lg cursor-pointer transition-colors"
+              className="px-4 py-2 text-sm text-ink-muted hover:bg-control rounded-lg cursor-pointer transition-colors"
             >
               取消
             </button>
             <button
               type="submit"
               disabled={isSubmitting}
-              className="px-5 py-2 text-sm bg-[var(--accent)] hover:bg-[var(--accent-dark)] text-white rounded-lg font-medium cursor-pointer transition-colors disabled:opacity-50"
+              className="px-5 py-2 text-sm bg-accent hover:bg-accent-dark text-white rounded-lg font-medium cursor-pointer transition-colors disabled:opacity-50"
             >
               {editingSource ? '更新素材' : '添加素材'}
             </button>
