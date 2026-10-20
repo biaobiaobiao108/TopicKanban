@@ -291,10 +291,11 @@ export const TopicDetailView: React.FC<TopicDetailViewProps> = ({
     contentJson: string,
     wordCount: number,
     title: string,
-    contentMarkdown: string
+    contentMarkdown: string,
+    keepalive = false,
   ) => {
     try {
-      const updated = await saveDraft(topicId, contentHtml, contentJson, wordCount, title, contentMarkdown);
+      const updated = await saveDraft(topicId, contentHtml, contentJson, wordCount, title, contentMarkdown, keepalive);
       if (loggingOutRef.current) return;
       queryClient.setQueryData(['topic-draft', topicId], { draft: updated, conflict: null });
       onDraftWordCountChange(topicId, wordCount);
@@ -677,7 +678,7 @@ export const TopicDetailView: React.FC<TopicDetailViewProps> = ({
               onRegisterDraftFlush={registerDraftFlush}
               onCacheDraftLocally={(contentHtml, contentJson, wordCount, title, contentMarkdown) => {
                 const result = cacheDraftLocallyWithStatus(topic.id, contentHtml, contentJson, wordCount, title, contentMarkdown);
-                const cached = result.draft;
+                const cached = { ...result.draft, pending_sync: true };
                 if (!loggingOutRef.current) {
                   queryClient.setQueryData(['topic-draft', topic.id], (prev?: { draft: Draft | null; conflict: DraftRecoveryConflict | null }) => ({
                     draft: cached,
@@ -689,7 +690,7 @@ export const TopicDetailView: React.FC<TopicDetailViewProps> = ({
               }}
               onSaveDraftImmediately={(contentHtml, contentJson, wordCount, title, contentMarkdown) => {
                 const result = saveDraftImmediatelyWithStatus(topic.id, contentHtml, contentJson, wordCount, title, contentMarkdown);
-                const updated = result.draft;
+                const updated = { ...result.draft, pending_sync: true };
                 if (!loggingOutRef.current) {
                   queryClient.setQueryData(['topic-draft', topic.id], (prev?: { draft: Draft | null; conflict: DraftRecoveryConflict | null }) => ({
                     draft: updated,

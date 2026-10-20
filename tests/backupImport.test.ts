@@ -2,6 +2,7 @@ import { describe, expect, it } from 'bun:test';
 import { Database } from 'bun:sqlite';
 import type { BackupData, Topic, TopicTodo } from '../src/types';
 import { validateBackupData } from '../src/lib/backupValidation';
+import { insertTopic } from '../src/server/repositories/topics';
 import {
   assertBackupImportWithinLimits,
   exportAllData,
@@ -34,6 +35,36 @@ function createBackup(overrides: Partial<BackupData> = {}): BackupData {
 }
 
 describe('backup import limits', () => {
+  it('preserves topic creation and update timestamps through backup restore and export', async () => {
+    const sqlite = new Database(':memory:');
+    sqlite.exec(await Bun.file('database/schema.sql').text());
+    const topic: Topic = {
+      id: 'topic-history', title: '历史选题', summary: '', hook: '', storyline: '', why_now: '',
+      status: 'scripting', priority: 'medium', score_character: 0, score_conflict: 0,
+      score_contrast: 0, score_material: 0, score_story: 0, is_pinned: 0, sort_order: 1,
+      created_at: '2025-01-02T03:04:05.000Z', updated_at: '2025-08-09T10:11:12.000Z',
+    };
+
+    try {
+      await replaceAllData(sqlite, createBackup({ topics: [topic] }));
+      const exported = await exportAllData(sqlite);
+      expect(exported.topics[0]).toMatchObject({
+        id: topic.id, created_at: topic.created_at, updated_at: topic.updated_at,
+      });
+
+      const beforeCreate = Date.now();
+      await insertTopic(sqlite, { id: 'topic-new', title: '新建选题' });
+      const created = sqlite.query<{ created_at: string; updated_at: string }, []>(
+        'SELECT created_at, updated_at FROM topics WHERE id = \'topic-new\'',
+      ).get()!;
+      expect(created.created_at).toBe(created.updated_at);
+      expect(Date.parse(created.updated_at)).toBeGreaterThanOrEqual(beforeCreate);
+      expect(Date.parse(created.updated_at)).toBeLessThanOrEqual(Date.now());
+    } finally {
+      sqlite.close();
+    }
+  });
+
   it('counts fixed writes and relation writes before importing', () => {
     const backup = createBackup({
       topics: [{

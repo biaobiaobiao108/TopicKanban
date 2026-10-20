@@ -154,6 +154,62 @@ describe('跨视图实体缓存同步', () => {
     expect(queryClient.getQueryData<PaginatedTopics>(key('scripting'))?.total).toBe(1);
   });
 
+  it('连续编辑第二页选题不插入第一页，也不增加任何分页总数', () => {
+    const queryClient = new QueryClient();
+    const current = topic('second');
+    const key = (pageNumber: number) => ['kanban-column-page', 'production', '', 'all', 'all', 'all', 'sort_order', pageNumber];
+    queryClient.setQueryData(key(1), { ...page([topic('first')]), page_size: 1, total: 2, total_pages: 2 });
+    queryClient.setQueryData(key(2), { ...page([current]), page: 2, page_size: 1, total: 2, total_pages: 2 });
+
+    updateTopicCaches(queryClient, current.id, { title: '修改标题' });
+    updateTopicCaches(queryClient, current.id, { summary: '继续修改摘要' });
+
+    expect(queryClient.getQueryData<PaginatedTopics>(key(1))?.items.map((item) => item.id)).toEqual(['first']);
+    expect(queryClient.getQueryData<PaginatedTopics>(key(2))?.items[0]).toMatchObject({ title: '修改标题', summary: '继续修改摘要' });
+    for (const pageNumber of [1, 2]) {
+      expect(queryClient.getQueryData<PaginatedTopics>(key(pageNumber))).toMatchObject({ total: 2, total_pages: 2 });
+    }
+  });
+
+  const membershipChanges: { name: string; previous: Partial<Topic>; updates: Partial<Topic>; before: unknown[]; after: unknown[] }[] = [
+    { name: '阶段', previous: { status: 'production' }, updates: { status: 'scripting' }, before: ['production', '', 'all', 'all', 'all'], after: ['scripting', '', 'all', 'all', 'all'] },
+    { name: '搜索', previous: { title: '旧标题' }, updates: { title: '新标题' }, before: ['production', '旧标题', 'all', 'all', 'all'], after: ['production', '新标题', 'all', 'all', 'all'] },
+    { name: '优先级', previous: { priority: 'medium' }, updates: { priority: 'high' }, before: ['production', '', 'medium', 'all', 'all'], after: ['production', '', 'high', 'all', 'all'] },
+    { name: '标签', previous: { tags: [{ id: 'old-tag' } as Tag] }, updates: { tags: [{ id: 'new-tag' } as Tag] }, before: ['production', '', 'all', 'old-tag', 'all'], after: ['production', '', 'all', 'new-tag', 'all'] },
+    { name: '人物', previous: { people: [{ id: 'old-person' } as Person] }, updates: { people: [{ id: 'new-person' } as Person] }, before: ['production', '', 'all', 'all', 'old-person'], after: ['production', '', 'all', 'all', 'new-person'] },
+  ];
+
+  for (const change of membershipChanges) {
+    it(`${change.name}筛选进出使用编辑前的成员资格，所有缓存页总数一致且不猜测插入位置`, () => {
+      const queryClient = new QueryClient();
+      const current = topic('moving-topic', change.previous);
+      const key = (filters: unknown[], pageNumber: number) => ['kanban-column-page', ...filters, 'sort_order', pageNumber];
+      // Only page two owns the edited topic; page one must still lose a member.
+      for (const pageNumber of [1, 2]) {
+        queryClient.setQueryData(key(change.before, pageNumber), {
+          ...page([pageNumber === 2 ? current : topic('before-first')]),
+          page: pageNumber, page_size: 1, total: 2, total_pages: 2,
+        });
+        queryClient.setQueryData(key(change.after, pageNumber), {
+          ...page([topic(`after-${pageNumber}`)]), page: pageNumber, page_size: 1, total: 2, total_pages: 2,
+        });
+      }
+      queryClient.setQueryData(['topic', current.id], current);
+
+      updateTopicCaches(queryClient, current.id, change.updates);
+      // A successful response containing the same values must not count twice.
+      updateTopicCaches(queryClient, current.id, change.updates);
+
+      for (const pageNumber of [1, 2]) {
+        expect(queryClient.getQueryData<PaginatedTopics>(key(change.before, pageNumber))).toMatchObject({ total: 1, total_pages: 1 });
+        const destination = queryClient.getQueryData<PaginatedTopics>(key(change.after, pageNumber));
+        expect(destination).toMatchObject({ total: 3, total_pages: 3 });
+        expect(destination?.items.map((item) => item.id)).toEqual([`after-${pageNumber}`]);
+      }
+      expect(queryClient.getQueryData<PaginatedTopics>(key(change.before, 2))?.items).toEqual([]);
+    });
+  }
+
   it('跨列后旧工作区快照不会隐藏目标列卡片，返回原列也不重复', () => {
     const queryClient = new QueryClient();
     const staleWorkspaceTopic = topic('startup-topic', { status: 'inbox', sort_order: 8 });

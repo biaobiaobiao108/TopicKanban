@@ -725,18 +725,29 @@ async function uploadDraft(draft: Draft, keepalive = false, generation = storage
   if (draftConflicts.get(draft.topic_id) !== undefined || readPendingDrafts()[draft.topic_id]?.requires_resolution) {
     throw new DraftConflictError(draftConflicts.get(draft.topic_id) ?? null);
   }
+  const baseVersion = knownDraftVersions.get(draft.topic_id) ?? draft.version ?? 0;
   try {
     const saved = await apiRequest<Draft>(
       `/api/topics/${encodeURIComponent(draft.topic_id)}/draft`,
       jsonRequest('PUT', {
         ...draft,
-        base_version: knownDraftVersions.get(draft.topic_id) ?? draft.version ?? 0,
+        base_version: baseVersion,
       }, keepalive)
     );
-    if (generation === storageMemoryGeneration) {
+    if (generation === storageMemoryGeneration && epoch === (draftUploadEpochs.get(draft.topic_id) ?? 0)) {
       knownDraftVersions.set(draft.topic_id, saved.version);
+      clearPendingDraftIfCurrent(draft);
+      const pending = readPendingDrafts()[draft.topic_id];
+      // A newer local edit descends from this upload. Preserve its content,
+      // but advance its base so reloading does not invent a remote conflict.
+      if (pending && !pending.requires_resolution && pending.base_version === baseVersion) {
+        writePendingDraft({
+          ...pending,
+          base_version: saved.version,
+          draft: { ...pending.draft, version: saved.version },
+        }, draft.topic_id);
+      }
     }
-    clearPendingDraftIfCurrent(draft);
     invalidateBootstrap();
     return saved;
   } catch (error) {
@@ -850,9 +861,11 @@ export async function saveDraft(
   wordCount: number,
   title: string,
   contentMarkdown: string,
+  keepalive = false,
 ): Promise<Draft> {
   const draft = cacheDraftLocally(topicId, contentHtml, contentJson, wordCount, title, contentMarkdown);
-  const saved = await enqueueDraftUpload(draft);
+  const draftBytes = new TextEncoder().encode(JSON.stringify(draft)).byteLength;
+  const saved = await enqueueDraftUpload(draft, keepalive && draftBytes < 60000);
   return saved;
 }
 

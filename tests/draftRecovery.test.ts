@@ -53,6 +53,61 @@ async function createConflict() {
 }
 
 describe('草稿冲突防覆盖与恢复', () => {
+  it('旧快照上传成功后推进较新本地稿的基础版本，重新进入无需处理虚假冲突', async () => {
+    await fetchDraftByTopicId('topic-1');
+    const request = globalThis.fetch;
+    let release!: () => void;
+    const gate = new Promise<void>((resolve) => { release = resolve; });
+    globalThis.fetch = (async (input: RequestInfo | URL, init?: RequestInit) => {
+      if (init?.method === 'PUT') await gate;
+      return request(input, init);
+    }) as typeof fetch;
+
+    const uploading = saveLocal();
+    cacheDraftLocally('topic-1', '<p>较新本地稿</p>', '{}', 5, '新标题', '较新本地稿');
+    release();
+    await uploading;
+
+    expect(pending()).toMatchObject({ base_version: 2, draft: { version: 2, content_markdown: '较新本地稿', title: '新标题' } });
+    clearStorageMemoryCaches();
+    const recovered = await fetchDraftByTopicId('topic-1');
+    expect(recovered.conflict).toBeNull();
+    expect(recovered.draft?.content_markdown).toBe('较新本地稿');
+    await saveDraft('topic-1', '<p>较新本地稿</p>', '{}', 5, '新标题', '较新本地稿');
+    expect(cloud.version).toBe(3);
+    expect(pending()).toBeUndefined();
+  });
+
+  it('后台保存的失败可见，重试后才清除本地恢复记录', async () => {
+    await fetchDraftByTopicId('topic-1');
+    const request = globalThis.fetch;
+    let keepalive: boolean | undefined;
+    globalThis.fetch = (async (_input: RequestInfo | URL, init?: RequestInit) => {
+      keepalive = init?.keepalive;
+      throw new TypeError('offline');
+    }) as unknown as typeof fetch;
+    await expect(saveDraft('topic-1', '<p>离线稿</p>', '{}', 3, '标题', '离线稿', true)).rejects.toThrow('offline');
+    expect(keepalive).toBe(true);
+    expect(pending().draft.content_markdown).toBe('离线稿');
+    globalThis.fetch = request;
+    await saveDraft('topic-1', '<p>离线稿</p>', '{}', 3, '标题', '离线稿', true);
+    expect(pending()).toBeUndefined();
+    expect(cloud.content_markdown).toBe('离线稿');
+  });
+
+  it('大文案后台保存不使用超过浏览器配额的 keepalive 请求', async () => {
+    await fetchDraftByTopicId('topic-1');
+    const request = globalThis.fetch;
+    let keepalive: boolean | undefined;
+    globalThis.fetch = (async (input: RequestInfo | URL, init?: RequestInit) => {
+      keepalive = init?.keepalive;
+      return request(input, init);
+    }) as typeof fetch;
+    await saveDraft('topic-1', '', '{}', 30000, '标题', '文'.repeat(30000), true);
+    expect(keepalive).toBe(false);
+    expect(pending()).toBeUndefined();
+  });
+
   it('409 后排队保存、后台同步和再次保存均不覆盖云端', async () => {
     await fetchDraftByTopicId('topic-1');
     cloud = { ...cloud, version: 2 };

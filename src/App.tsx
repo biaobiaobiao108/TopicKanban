@@ -60,7 +60,6 @@ import {
   updateTopicCaches,
   findTopicInCaches,
   replaceTopicTodoCaches,
-  replaceTopicPinCaches,
 } from './lib/queryCacheSync';
 import { lazyWithReload } from './lib/lazyWithReload';
 import { useToast } from './components/ui/Toast';
@@ -70,6 +69,7 @@ import { Database } from 'lucide-react';
 import { invalidateQueryGroups } from './lib/topicQueryCache';
 import { getBeijingDateString } from './lib/actionDate';
 import { useTopicTodoActions } from './hooks/useTopicTodoActions';
+import { TopicMutationTracker } from './lib/topicMutationTracker';
 
 const VIEW_PATHS: Record<Exclude<NavView, 'topic-detail'>, string> = {
   today: '/today',
@@ -114,14 +114,6 @@ function getBackLabel(path: string | undefined, fallback: string): string {
   return '返回上一页';
 }
 
-type TopicField = keyof Topic;
-
-interface PendingTopicFieldState {
-  baseValue: unknown;
-  pending: Array<{ sequence: number; value: unknown }>;
-  latestResolved?: { sequence: number; value: unknown };
-}
-
 const CalendarView = lazyWithReload(() => import('./components/calendar/CalendarView').then((module) => ({ default: module.CalendarView })));
 const KanbanBoard = lazyWithReload(() => import('./components/kanban/KanbanBoard').then((module) => ({ default: module.KanbanBoard })));
 const TopicDetailView = lazyWithReload(() => import('./components/topic-detail/TopicDetailView').then((module) => ({ default: module.TopicDetailView })));
@@ -153,8 +145,7 @@ function WorkspaceApp({ isAuth, setIsAuth }: WorkspaceAppProps) {
   const activeTopicId = topicMatch?.params.topicId || null;
   const dealMatch = matchPath('/deals/:dealId', location.pathname);
   const activeDealId = dealMatch?.params.dealId || null;
-  const topicMutationSequenceRef = useRef(0);
-  const pendingTopicFieldsRef = useRef(new Map<string, Map<TopicField, PendingTopicFieldState>>());
+  const topicMutationsRef = useRef(new TopicMutationTracker());
   const topicWriteQueuesRef = useRef(new Map<string, Promise<void>>());
 
   const runTopicWrite = useCallback(<T,>(topicId: string, write: () => Promise<T>): Promise<T> => {
@@ -351,67 +342,18 @@ function WorkspaceApp({ isAuth, setIsAuth }: WorkspaceAppProps) {
 
   const currentLocation = `${location.pathname}${location.search}${location.hash}`;
 
-  const beginTopicMutation = (topicId: string, updates: Partial<Topic>) => {
-    const sequence = ++topicMutationSequenceRef.current;
-    const fields = Object.keys(updates) as TopicField[];
-    const currentTopic = topics.find((topic) => topic.id === topicId);
-    const topicFields = pendingTopicFieldsRef.current.get(topicId) || new Map<TopicField, PendingTopicFieldState>();
-    fields.forEach((field) => {
-      const currentField = topicFields.get(field);
-      const baseValue = currentField?.pending.length
-        ? currentField.pending[currentField.pending.length - 1].value
-        : currentTopic?.[field];
-      const state = currentField || { baseValue, pending: [] };
-      state.pending.push({ sequence, value: updates[field] });
-      topicFields.set(field, state);
-    });
-    pendingTopicFieldsRef.current.set(topicId, topicFields);
-    return sequence;
-  };
+  const beginTopicMutation = (topicId: string, updates: Partial<Topic>) => (
+    topicMutationsRef.current.begin(topicId, updates,
+      findTopicInCaches(queryClient, topicId) || topics.find((topic) => topic.id === topicId))
+  );
 
-  const reconcileTopicMutation = (topicId: string, updates: Partial<Topic>, serverTopic: Topic, sequence: number) => {
-    const topicFields = pendingTopicFieldsRef.current.get(topicId);
-    const patch: Record<string, unknown> = {};
-    const fields = Object.keys(updates) as TopicField[];
-    fields.forEach((field) => {
-      const state = topicFields?.get(field);
-      const pendingIndex = state?.pending.findIndex((entry) => entry.sequence === sequence) ?? -1;
-      const serverValue = Object.prototype.hasOwnProperty.call(serverTopic, field) ? serverTopic[field] : updates[field];
-      if (!state || pendingIndex < 0) {
-        patch[field] = serverValue;
-        return;
-      }
-      state.pending.splice(pendingIndex, 1);
-      if (!state.latestResolved || state.latestResolved.sequence < sequence) {
-        state.latestResolved = { sequence, value: serverValue };
-      }
-      const latestPending = state.pending[state.pending.length - 1];
-      patch[field] = latestPending
-        ? latestPending.value
-        : state.latestResolved ? state.latestResolved.value : serverValue;
-      if (state.pending.length === 0) topicFields?.delete(field);
-    });
-    if (topicFields?.size === 0) pendingTopicFieldsRef.current.delete(topicId);
-    return patch as Partial<Topic>;
-  };
+  const reconcileTopicMutation = (topicId: string, updates: Partial<Topic>, serverTopic: Topic, sequence: number) => (
+    topicMutationsRef.current.settle(topicId, updates, sequence, serverTopic)
+  );
 
-  const rollbackTopicMutation = (topicId: string, updates: Partial<Topic>, sequence: number) => {
-    const topicFields = pendingTopicFieldsRef.current.get(topicId);
-    const patch: Record<string, unknown> = {};
-    (Object.keys(updates) as TopicField[]).forEach((field) => {
-      const state = topicFields?.get(field);
-      const pendingIndex = state?.pending.findIndex((entry) => entry.sequence === sequence) ?? -1;
-      if (!state || pendingIndex < 0) return;
-      state.pending.splice(pendingIndex, 1);
-      const latestPending = state.pending[state.pending.length - 1];
-      patch[field] = latestPending
-        ? latestPending.value
-        : state.latestResolved ? state.latestResolved.value : state.baseValue;
-      if (state.pending.length === 0) topicFields?.delete(field);
-    });
-    if (topicFields?.size === 0) pendingTopicFieldsRef.current.delete(topicId);
-    return patch as Partial<Topic>;
-  };
+  const rollbackTopicMutation = (topicId: string, updates: Partial<Topic>, sequence: number) => (
+    topicMutationsRef.current.settle(topicId, updates, sequence)
+  );
 
   const handleOpenDeal = (dealId: string) => {
     safeNavigate(`/deals/${encodeURIComponent(dealId)}`, {
@@ -661,42 +603,54 @@ function WorkspaceApp({ isAuth, setIsAuth }: WorkspaceAppProps) {
       return;
     }
 
-    const previousTopics = topics;
-    const activeTopicIds = new Set(previousTopics
-      .filter((item) => item.status !== 'published' && item.status !== 'icebox' && !item.deleted_at)
-      .map((item) => item.id));
-    const applyOptimisticPin = (value: 0 | 1) => {
-      setTopics((current) => current.map((item) => {
-        if (item.id === topic.id) return { ...item, is_pinned: value };
-        return value === 1 && activeTopicIds.has(item.id) ? { ...item, is_pinned: 0 } : item;
-      }));
-      updateTopicCaches(queryClient, topic.id, { is_pinned: value });
-      if (value === 1) {
-        previousTopics.forEach((item) => {
-          if (item.id !== topic.id && activeTopicIds.has(item.id) && item.is_pinned === 1) {
-            updateTopicCaches(queryClient, item.id, { is_pinned: 0 });
-          }
-        });
-      }
+    // Pinning is exclusive across every cached active topic, including pages
+    // outside the workspace. Track only pin fields; unrelated edits stay intact.
+    const cachedTopics = new Map(topics.map((item) => [item.id, item]));
+    for (const query of queryClient.getQueryCache().getAll()) {
+      const key = query.queryKey[0];
+      if (!['topic', 'workspace', 'today-focus', 'kanban-column-page', 'topics-page', 'tag-topics-page', 'command-topic-search'].includes(String(key))) continue;
+      const data = query.state.data as { topics?: Topic[]; attention_topics?: Topic[]; items?: Topic[] } | undefined;
+      const items = key === 'topic' ? [query.state.data as Topic | undefined]
+        : [...(data?.topics || []), ...(data?.attention_topics || []), ...(data?.items || [])];
+      items.forEach((item) => { if (item) cachedTopics.set(item.id, item); });
+    }
+    cachedTopics.set(topic.id, topic);
+    const mutations = [...cachedTopics.values()]
+      .filter((item) => item.id === topic.id || (nextPin === 1 && !item.deleted_at && !['published', 'icebox'].includes(item.status)))
+      .map((item) => {
+        const updates: Partial<Topic> = { is_pinned: item.id === topic.id ? nextPin : 0 };
+        return { id: item.id, updates, sequence: beginTopicMutation(item.id, updates) };
+      });
+    const applyPatch = (id: string, patch: Partial<Topic>) => {
+      setTopics((current) => current.map((item) => item.id === id ? { ...item, ...patch } : item));
+      updateTopicCaches(queryClient, id, patch);
     };
-
-    applyOptimisticPin(nextPin);
+    mutations.forEach((mutation) => applyPatch(mutation.id, mutation.updates));
     try {
-      const result: TopicPinMutationResult = await setTopicPinned(topic.id, nextPin);
-      setTopics((current) => current.map((item) => {
-        if (item.id === result.topic.id) return { ...item, ...result.topic };
-        return result.cleared_topic_ids.includes(item.id) ? { ...item, is_pinned: 0 } : item;
-      }));
-      replaceTopicPinCaches(queryClient, result);
-      await refreshTopics({ includeLists: true });
+      // Serialize exclusive pin writes and normal writes on affected topics.
+      const result: TopicPinMutationResult = await runTopicWriteBatch(
+        ['topic-pin-operation', ...mutations.map((mutation) => mutation.id)],
+        () => setTopicPinned(topic.id, nextPin),
+      );
+      mutations.forEach((mutation) => {
+        const serverFields = mutation.id === result.topic.id
+          ? { is_pinned: result.topic.is_pinned, updated_at: result.topic.updated_at }
+          : { is_pinned: 0 as const };
+        const patch = topicMutationsRef.current.settle(mutation.id, mutation.updates, mutation.sequence, serverFields);
+        applyPatch(mutation.id, patch);
+      });
+      result.cleared_topic_ids.forEach((id) => {
+        if (!mutations.some((mutation) => mutation.id === id)) applyPatch(id, { is_pinned: 0 });
+      });
     } catch (error) {
-      setTopics(previousTopics);
-      previousTopics.forEach((item) => replaceTopicCaches(queryClient, item));
-      if (!previousTopics.some((item) => item.id === topic.id)) {
-        replaceTopicCaches(queryClient, topic);
-      }
+      mutations.forEach((mutation) => applyPatch(mutation.id,
+        rollbackTopicMutation(mutation.id, mutation.updates, mutation.sequence)));
       showToast({ tone: 'error', message: error instanceof Error ? error.message : '主推设置失败，请稍后重试' });
     }
+    // Revalidate after queued edits finish so a failed pin cannot refetch an
+    // older title over an optimistic edit that is still waiting to be saved.
+    await Promise.all([...topicWriteQueuesRef.current.values()]);
+    await refreshTopics({ includeLists: true, includeTopicDetails: false });
   };
 
   const handleUpdateTopicStatus = async (

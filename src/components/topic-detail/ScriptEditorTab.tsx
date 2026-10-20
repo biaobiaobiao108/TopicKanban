@@ -206,7 +206,8 @@ interface ScriptEditorTabProps {
     contentJson: string,
     wordCount: number,
     title: string,
-    contentMarkdown: string
+    contentMarkdown: string,
+    keepalive?: boolean,
   ) => Promise<void>;
   onResolveDraftConflict: (conflict: DraftRecoveryConflict, choice: 'local' | 'remote') => Promise<Draft | null>;
   onCacheDraftLocally: (contentHtml: string, contentJson: string, wordCount: number, title: string, contentMarkdown: string) => boolean;
@@ -245,9 +246,9 @@ export const ScriptEditorTab: React.FC<ScriptEditorTabProps> = ({
     () => sanitizeReportPreviewHtml(report?.content_html || (report?.content_markdown ? (scriptMarked.parse(report.content_markdown) as string) : '')),
     [report?.content_html, report?.content_markdown]
   );
-  const hasRecoveredPendingDraft = Boolean(
+  const hasRecoveredPendingDraft = useRef(Boolean(
     initialDraft && (initialDraft as Draft & { pending_sync?: boolean }).pending_sync
-  );
+  )).current;
   const initialTitle = initialDraft?.title?.trim() || topicTitle;
   const [draftTitle, setDraftTitle] = useState(initialTitle);
   const [saveStatus, setSaveStatus] = useState<'saved' | 'saving' | 'unsaved' | 'local' | 'pending' | 'cache-error' | 'conflict'>(
@@ -380,7 +381,6 @@ export const ScriptEditorTab: React.FC<ScriptEditorTabProps> = ({
   const editorMountedRef = useRef(false);
   const draftTitleRef = useRef(initialTitle);
   const draftSavePromiseRef = useRef<Promise<void> | null>(null);
-  const immediateSaveRef = useRef(onSaveDraftImmediately);
 
   useEffect(() => {
     editorMountedRef.current = true;
@@ -400,7 +400,7 @@ export const ScriptEditorTab: React.FC<ScriptEditorTabProps> = ({
   const lastInjectedOutlineRef = useRef<string | null>(null);
   const markdownEditorRef = useRef<TiptapEditor | null>(null);
 
-  const persistLatestDraft = useCallback(async () => {
+  const persistLatestDraft = useCallback(async (keepalive = false) => {
     while (true) {
       const latest = latestContentRef.current;
       if (!latest || !hasUnsavedChangesRef.current) return;
@@ -414,7 +414,7 @@ export const ScriptEditorTab: React.FC<ScriptEditorTabProps> = ({
       const savePromise = (async () => {
         setSaveStatus('saving');
         try {
-          await onSaveDraft(topicId, latest.html, latest.json, latest.wordCount, latest.title, latest.markdown);
+          await onSaveDraft(topicId, latest.html, latest.json, latest.wordCount, latest.title, latest.markdown, keepalive);
           saveRetryAttemptRef.current = 0;
           if (saveRetryTimeoutRef.current) {
             clearTimeout(saveRetryTimeoutRef.current);
@@ -439,12 +439,14 @@ export const ScriptEditorTab: React.FC<ScriptEditorTabProps> = ({
             // A single failed upload previously left the cloud copy frozen until
             // the next keystroke. Retry with backoff so a network blip or a
             // server restart cannot silently strand the edit.
-            if (!saveRetryTimeoutRef.current) {
+            if (editorMountedRef.current && !saveRetryTimeoutRef.current) {
               const delay = SAVE_RETRY_DELAY_MS[Math.min(saveRetryAttemptRef.current, SAVE_RETRY_DELAY_MS.length - 1)];
               saveRetryAttemptRef.current += 1;
               saveRetryTimeoutRef.current = setTimeout(() => {
                 saveRetryTimeoutRef.current = null;
-                void persistLatestDraft().catch(() => undefined);
+                if (editorMountedRef.current) {
+                  void persistLatestDraftRef.current().catch(() => undefined);
+                }
               }, delay);
             }
           }
@@ -460,6 +462,9 @@ export const ScriptEditorTab: React.FC<ScriptEditorTabProps> = ({
       }
     }
   }, [onSaveDraft, topicId]);
+
+  const persistLatestDraftRef = useRef(persistLatestDraft);
+  persistLatestDraftRef.current = persistLatestDraft;
 
   useEffect(() => {
     onRegisterDraftFlush?.(persistLatestDraft);
@@ -532,10 +537,6 @@ export const ScriptEditorTab: React.FC<ScriptEditorTabProps> = ({
   }, [topicId]);
 
   isTypewriterActiveRef.current = isTypewriterActive;
-
-  useEffect(() => {
-    immediateSaveRef.current = onSaveDraftImmediately;
-  }, [onSaveDraftImmediately]);
 
   useEffect(() => {
     localCacheRef.current = onCacheDraftLocally;
@@ -886,11 +887,15 @@ export const ScriptEditorTab: React.FC<ScriptEditorTabProps> = ({
         localSaveTimeoutRef.current = null;
       }
       const latest = latestContentRef.current;
-      const persisted = (draftConflictRef.current ? localCacheRef.current : immediateSaveRef.current)(latest.html, latest.json, latest.wordCount, latest.title, latest.markdown);
+      const persisted = localCacheRef.current(latest.html, latest.json, latest.wordCount, latest.title, latest.markdown);
       localCacheAvailableRef.current = persisted;
       localCacheFailedRef.current = !persisted;
       setSaveStatus(draftConflictRef.current ? 'conflict' : persisted ? 'local' : 'cache-error');
-      if (!draftConflictRef.current) hasUnsavedChangesRef.current = false;
+      if (!draftConflictRef.current) {
+        // Keep dirty state until the upload succeeds, including when the user
+        // returns from a hidden tab after an offline save. Reuse normal backoff.
+        void persistLatestDraftRef.current(true).catch(() => undefined);
+      }
     };
     const flushWhenHidden = () => {
       if (document.visibilityState === 'hidden') flushPendingDraft();

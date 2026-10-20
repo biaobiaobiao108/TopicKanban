@@ -120,23 +120,27 @@ function compareTopicsForKanbanSort(a: Topic, b: Topic, sortBy: unknown): number
   return (a.sort_order || 0) - (b.sort_order || 0);
 }
 
-function updateKanbanTopicCaches(queryClient: QueryClient, topicId: string, updates: Partial<Topic>) {
+function updateKanbanTopicCaches(queryClient: QueryClient, previousTopic: Topic, updates: Partial<Topic>) {
   const cachedQueries = queryClient.getQueriesData<PaginatedTopics>({ queryKey: ['kanban-column-page'] });
-  const existing = cachedQueries.flatMap(([, data]) => data?.items || []).find((topic) => topic.id === topicId);
-  if (!existing) return;
-
-  const updatedTopic = { ...existing, ...updates };
+  const topicId = previousTopic.id;
+  const updatedTopic = { ...previousTopic, ...updates };
   cachedQueries.forEach(([queryKey, current]) => {
     if (!current || !Array.isArray(current.items)) return;
     const hasItem = current.items.some((topic) => topic.id === topicId);
+    const previouslyIncluded = topicMatchesKanbanQuery(previousTopic, queryKey);
     const shouldInclude = topicMatchesKanbanQuery(updatedTopic, queryKey);
     const page = typeof queryKey[7] === 'number' ? queryKey[7] : 1;
     let items = current.items.filter((topic) => topic.id !== topicId);
-    if (shouldInclude && (hasItem || page === 1)) {
+    // Only a complete first page has enough ordering information to insert a
+    // newly matching topic. Other pages are corrected by the query refresh.
+    const canInsert = !previouslyIncluded && page === 1 && current.items.length === current.total;
+    if (shouldInclude && (hasItem || canInsert)) {
       items = [...items, updatedTopic].sort((a, b) => compareTopicsForKanbanSort(a, b, queryKey[6]));
       if (current.page_size > 0) items = items.slice(0, current.page_size);
     }
-    const delta = (shouldInclude && !hasItem && page === 1 ? 1 : 0) - (!shouldInclude && hasItem ? 1 : 0);
+    // Membership belongs to the whole filtered collection, not an individual
+    // page. Apply the same transition to every cached page's metadata.
+    const delta = Number(shouldInclude) - Number(previouslyIncluded);
     const total = Math.max(0, current.total + delta);
     const totalPages = current.page_size > 0 ? Math.ceil(total / current.page_size) : current.total_pages;
     queryClient.setQueryData<PaginatedTopics>(queryKey, { ...current, items, total, total_pages: totalPages });
@@ -216,10 +220,11 @@ function mapTopicCollections(queryClient: QueryClient, updater: (topic: Topic) =
 }
 
 export function updateTopicCaches(queryClient: QueryClient, topicId: string, updates: Partial<Topic>) {
+  const previousTopic = findTopicInCaches(queryClient, topicId);
   updateTopicCollections(queryClient, topicId, (topic) => ({ ...topic, ...updates }));
   // Search, filter and relation edits can change whether a cached Kanban page
   // should contain the topic, not just stage changes.
-  updateKanbanTopicCaches(queryClient, topicId, updates);
+  if (previousTopic) updateKanbanTopicCaches(queryClient, previousTopic, updates);
 }
 
 export function replaceTopicCaches(queryClient: QueryClient, topic: Topic) {

@@ -489,7 +489,7 @@ function buildTopicStatement(
     topic.target_publish_date ?? null, topic.deadline ?? null,
     topic.score_character ?? 0, topic.score_conflict ?? 0, topic.score_contrast ?? 0,
     topic.score_material ?? 0, topic.score_story ?? 0, topic.is_pinned ?? 0, topic.sort_order ?? 0,
-    topic.created_at ?? now, now, topic.published_at ?? null, topic.deleted_at ?? null,
+    topic.created_at ?? now, topic.updated_at ?? now, topic.published_at ?? null, topic.deleted_at ?? null,
   ]);
 }
 
