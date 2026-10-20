@@ -1,7 +1,6 @@
 import { afterEach, describe, expect, it } from 'bun:test';
 import { Database } from 'bun:sqlite';
 import type { QuickDropItem } from '../src/types';
-import { SqliteDatabase } from '../src/server/sqlite';
 import { QuickDropRepository } from '../src/server/repositories/quickDrops';
 
 describe('QuickDropRepository', () => {
@@ -14,8 +13,8 @@ describe('QuickDropRepository', () => {
 
   async function createRepository(): Promise<QuickDropRepository> {
     sqlite = new Database(':memory:');
-    sqlite.exec(await Bun.file('drizzle/0000_schema.sql').text());
-    return new QuickDropRepository(new SqliteDatabase(sqlite));
+    sqlite.exec(await Bun.file('database/schema.sql').text());
+    return new QuickDropRepository(sqlite);
   }
 
   it('stores, lists, counts and deletes quick drops using explicit fields', async () => {

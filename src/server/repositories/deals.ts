@@ -8,8 +8,8 @@ import type {
   PaginatedCommercialDeals,
   PublishedVideo,
 } from '../../types';
-import type { SqliteDatabase, SqlitePreparedStatement } from '../sqlite';
-import { bind } from './shared';
+import type { Database } from 'bun:sqlite';
+import { command, execute, executeTransaction, readAll, readOne, readTransaction, type SqlCommand } from './shared';
 
 export interface CommercialDealPageOptions {
   page: number;
@@ -99,12 +99,12 @@ function buildCommercialDealFilter(options: CommercialDealPageOptions): { condit
   return { conditions, values };
 }
 
-export async function loadCommercialDealPage(db: SqliteDatabase, options: CommercialDealPageOptions): Promise<PaginatedCommercialDeals> {
+export async function loadCommercialDealPage(db: Database, options: CommercialDealPageOptions): Promise<PaginatedCommercialDeals> {
   const filter = buildCommercialDealFilter(options);
   const where = filter.conditions.length ? `WHERE ${filter.conditions.join(' AND ')}` : '';
   const offset = (options.page - 1) * options.pageSize;
-  const [countResult, rowsResult] = await db.batch([
-    bind(db, `SELECT
+  const [countRows, dealRows] = readTransaction(db, [
+    command(db, `SELECT
       COUNT(*) AS total,
       SUM(CASE WHEN d.status IN ('communicating', 'producing') THEN 1 ELSE 0 END) AS active_count,
       SUM(CASE WHEN d.status IN ('communicating', 'producing')
@@ -114,16 +114,16 @@ export async function loadCommercialDealPage(db: SqliteDatabase, options: Commer
       SUM(CASE WHEN d.payment_status = 'unpaid' AND d.status != 'archived' THEN d.amount_cents ELSE 0 END) AS unpaid_amount_cents,
       SUM(CASE WHEN d.payment_status = 'unpaid' AND d.status != 'archived' THEN 1 ELSE 0 END) AS unpaid_count
       FROM commercial_deals d ${where}`, filter.values),
-    bind(db, `SELECT ${commercialDealProjection()}
+    command(db, `SELECT ${commercialDealProjection()}
       FROM commercial_deals d ${where}
       ORDER BY CASE WHEN d.delivery_due_date IS NULL THEN 1 ELSE 0 END,
         d.delivery_due_date ASC, d.updated_at DESC, d.id DESC
       LIMIT ? OFFSET ?`, [...filter.values, options.pageSize, offset]),
   ]);
-  const summaryRow = (countResult.results[0] || {}) as Record<string, unknown>;
+  const summaryRow = (countRows[0] || {}) as Record<string, unknown>;
   const total = Number(summaryRow.total || 0);
   return {
-    items: (rowsResult.results as unknown as Array<Record<string, unknown>>).map(normalizeCommercialDeal),
+    items: (dealRows as Array<Record<string, unknown>>).map(normalizeCommercialDeal),
     page: options.page,
     page_size: options.pageSize,
     total,
@@ -139,88 +139,86 @@ export async function loadCommercialDealPage(db: SqliteDatabase, options: Commer
 }
 
 export async function loadCommercialDealsForCalendar(
-  db: SqliteDatabase,
+  db: Database,
   startDate: string,
   endDate: string,
 ): Promise<CommercialDeal[]> {
-  const result = await db.prepare(`SELECT ${commercialDealProjection()}
+  const result = readAll<Record<string, unknown>>(db, `SELECT ${commercialDealProjection()}
     FROM commercial_deals d
     WHERE d.delivery_due_date BETWEEN ? AND ?
       OR d.publish_date BETWEEN ? AND ?
       OR d.next_action_due_date BETWEEN ? AND ?
     ORDER BY COALESCE(d.delivery_due_date, d.publish_date, d.next_action_due_date) ASC,
-      d.updated_at DESC, d.id DESC`)
-    .bind(startDate, endDate, startDate, endDate, startDate, endDate)
-    .all<Record<string, unknown>>();
-  return result.results.map(normalizeCommercialDeal);
+      d.updated_at DESC, d.id DESC`, [startDate, endDate, startDate, endDate, startDate, endDate]);
+  return result.map(normalizeCommercialDeal);
 }
 
-export async function loadCommercialDeal(db: SqliteDatabase, id: string): Promise<CommercialDealDetail | null> {
-  const [dealRow, topicsResult, activitiesResult] = await db.batch([
-    bind(db, `SELECT ${commercialDealProjection()} FROM commercial_deals d WHERE d.id = ? LIMIT 1`, [id]),
-    bind(db, `SELECT cdt.*, t.title AS topic_title, t.status AS topic_status, t.deleted_at AS topic_deleted_at
+export async function loadCommercialDeal(db: Database, id: string): Promise<CommercialDealDetail | null> {
+  const [dealRows, topicRows, activityRows] = readTransaction(db, [
+    command(db, `SELECT ${commercialDealProjection()} FROM commercial_deals d WHERE d.id = ? LIMIT 1`, [id]),
+    command(db, `SELECT cdt.*, t.title AS topic_title, t.status AS topic_status, t.deleted_at AS topic_deleted_at
       FROM commercial_deal_topics cdt
       INNER JOIN topics t ON t.id = cdt.topic_id
       WHERE cdt.deal_id = ?
       ORDER BY CASE WHEN cdt.relation_role = 'primary' THEN 0 ELSE 1 END, cdt.created_at ASC`, [id]),
-    bind(db, 'SELECT * FROM commercial_deal_activities WHERE deal_id = ? ORDER BY created_at DESC', [id]),
+    command(db, 'SELECT * FROM commercial_deal_activities WHERE deal_id = ? ORDER BY created_at DESC', [id]),
   ]);
-  const row = (dealRow.results[0] || null) as Record<string, unknown> | null;
+  const row = (dealRows[0] || null) as Record<string, unknown> | null;
   if (!row) return null;
   const deal = normalizeCommercialDeal(row);
   const publishedVideo = deal.published_video_id
-    ? await db.prepare('SELECT * FROM published_videos WHERE id = ?').bind(deal.published_video_id).first<PublishedVideo>()
+    ? readOne<PublishedVideo>(db, 'SELECT * FROM published_videos WHERE id = ?', [deal.published_video_id])
     : null;
   return {
     ...deal,
-    topics: topicsResult.results as unknown as CommercialDealTopic[],
-    activities: activitiesResult.results as unknown as CommercialDealActivity[],
+    topics: topicRows as CommercialDealTopic[],
+    activities: activityRows as CommercialDealActivity[],
     published_video: publishedVideo || null,
   };
 }
 
-export async function deleteCommercialDeal(db: SqliteDatabase, id: string): Promise<boolean> {
-  const existing = await db.prepare('SELECT id FROM commercial_deals WHERE id = ?').bind(id).first<{ id: string }>();
+export async function deleteCommercialDeal(db: Database, id: string): Promise<boolean> {
+  const existing = readOne<{ id: string }>(db, 'SELECT id FROM commercial_deals WHERE id = ?', [id]);
   if (!existing) return false;
-  await db.batch([
-    db.prepare('DELETE FROM commercial_deal_activities WHERE deal_id = ?').bind(id),
-    db.prepare('DELETE FROM commercial_deal_topics WHERE deal_id = ?').bind(id),
-    db.prepare('DELETE FROM commercial_deals WHERE id = ?').bind(id),
+  executeTransaction(db, [
+    command(db, 'DELETE FROM commercial_deal_activities WHERE deal_id = ?', [id]),
+    command(db, 'DELETE FROM commercial_deal_topics WHERE deal_id = ?', [id]),
+    command(db, 'DELETE FROM commercial_deals WHERE id = ?', [id]),
   ]);
   return true;
 }
 
-export async function loadCommercialDealsByTopicId(db: SqliteDatabase, topicId: string): Promise<CommercialDeal[]> {
-  const result = await db.prepare(`SELECT ${commercialDealProjection()}, cdt.relation_role AS relation_role
+export async function loadCommercialDealsByTopicId(db: Database, topicId: string): Promise<CommercialDeal[]> {
+  const result = readAll<Record<string, unknown>>(db, `SELECT ${commercialDealProjection()}, cdt.relation_role AS relation_role
     FROM commercial_deals d
     INNER JOIN commercial_deal_topics cdt ON cdt.deal_id = d.id
     WHERE cdt.topic_id = ?
-    ORDER BY CASE WHEN cdt.relation_role = 'primary' THEN 0 ELSE 1 END, d.updated_at DESC`).bind(topicId).all<Record<string, unknown>>();
-  return result.results.map(normalizeCommercialDeal);
+    ORDER BY CASE WHEN cdt.relation_role = 'primary' THEN 0 ELSE 1 END, d.updated_at DESC`, [topicId]);
+  return result.map(normalizeCommercialDeal);
 }
 
-export async function loadCommercialDealFocus(db: SqliteDatabase): Promise<DealFocusData> {
-  const [dueResult, unpaidResult, countResult] = await db.batch([
-    db.prepare(`SELECT ${commercialDealProjection()} FROM commercial_deals d
+export async function loadCommercialDealFocus(db: Database): Promise<DealFocusData> {
+  const [dueRows, unpaidRows, countRows] = readTransaction(db, [
+    command(db, `SELECT ${commercialDealProjection()} FROM commercial_deals d
       WHERE d.status IN ('communicating', 'producing')
         AND (d.delivery_due_date <= date('now', '+8 hours')
           OR d.next_action = '')
       ORDER BY CASE WHEN d.delivery_due_date IS NULL THEN 1 ELSE 0 END,
         d.delivery_due_date ASC, d.updated_at DESC LIMIT 8`),
-    db.prepare(`SELECT ${commercialDealProjection()} FROM commercial_deals d
+    command(db, `SELECT ${commercialDealProjection()} FROM commercial_deals d
       WHERE d.status = 'delivered' AND d.payment_status = 'unpaid'
       ORDER BY d.updated_at DESC LIMIT 8`),
-    db.prepare("SELECT COUNT(*) AS count FROM commercial_deals WHERE status IN ('communicating', 'producing')"),
+    command(db, "SELECT COUNT(*) AS count FROM commercial_deals WHERE status IN ('communicating', 'producing')"),
   ]);
   return {
-    due_items: (dueResult.results as unknown as Array<Record<string, unknown>>).map(normalizeCommercialDeal),
-    unpaid_items: (unpaidResult.results as unknown as Array<Record<string, unknown>>).map(normalizeCommercialDeal),
-    total_active: Number((countResult.results[0] as { count?: number } | undefined)?.count || 0),
+    due_items: (dueRows as Array<Record<string, unknown>>).map(normalizeCommercialDeal),
+    unpaid_items: (unpaidRows as Array<Record<string, unknown>>).map(normalizeCommercialDeal),
+    total_active: Number((countRows[0] as { count?: number } | undefined)?.count || 0),
   };
 }
 
-export function commercialDealStatement(db: SqliteDatabase, deal: CommercialDeal): SqlitePreparedStatement {
-  return bind(db, `INSERT INTO commercial_deals (
+export function commercialDealStatement(db: Database, deal: CommercialDeal): SqlCommand {
+  return command(db, `INSERT INTO commercial_deals (
     id, title, brand_name, agency_name, contact_name, contact_channel, source,
     deliverable_type, status, contract_status, contract_summary, brief, requirements,
     restrictions, amount_cents, payment_status, paid_at, delivery_due_date, publish_date,
@@ -243,8 +241,8 @@ export function commercialDealStatement(db: SqliteDatabase, deal: CommercialDeal
   ]);
 }
 
-export function commercialDealTopicStatement(db: SqliteDatabase, relation: CommercialDealTopic): SqlitePreparedStatement {
-  return bind(db, `INSERT INTO commercial_deal_topics (id, deal_id, topic_id, relation_role, created_at)
+export function commercialDealTopicStatement(db: Database, relation: CommercialDealTopic): SqlCommand {
+  return command(db, `INSERT INTO commercial_deal_topics (id, deal_id, topic_id, relation_role, created_at)
     VALUES (?, ?, ?, ?, ?)
     ON CONFLICT(id) DO UPDATE SET
       deal_id=excluded.deal_id, topic_id=excluded.topic_id, relation_role=excluded.relation_role`, [
@@ -252,24 +250,24 @@ export function commercialDealTopicStatement(db: SqliteDatabase, relation: Comme
   ]);
 }
 
-export function commercialDealActivityStatement(db: SqliteDatabase, activity: CommercialDealActivity): SqlitePreparedStatement {
-  return bind(db, `INSERT INTO commercial_deal_activities (id, deal_id, kind, content, created_at)
+export function commercialDealActivityStatement(db: Database, activity: CommercialDealActivity): SqlCommand {
+  return command(db, `INSERT INTO commercial_deal_activities (id, deal_id, kind, content, created_at)
     VALUES (?, ?, ?, ?, ?)
     ON CONFLICT(id) DO UPDATE SET
       deal_id=excluded.deal_id, kind=excluded.kind, content=excluded.content, created_at=excluded.created_at`, [
     activity.id, activity.deal_id, activity.kind, activity.content, activity.created_at,
   ]);
 }
-export async function insertCommercialDeal(db: SqliteDatabase, deal: CommercialDeal): Promise<void> {
-  await commercialDealStatement(db, deal).run();
+export async function insertCommercialDeal(db: Database, deal: CommercialDeal): Promise<void> {
+  executeTransaction(db, [commercialDealStatement(db, deal)]);
 }
 
-export async function findCommercialDeal(db: SqliteDatabase, id: string): Promise<CommercialDeal | null> {
-  return db.prepare('SELECT * FROM commercial_deals WHERE id = ?').bind(id).first<CommercialDeal>();
+export async function findCommercialDeal(db: Database, id: string): Promise<CommercialDeal | null> {
+  return readOne<CommercialDeal>(db, 'SELECT * FROM commercial_deals WHERE id = ?', [id]);
 }
 
-export async function publishedVideoExists(db: SqliteDatabase, id: string): Promise<boolean> {
-  const row = await db.prepare('SELECT id FROM published_videos WHERE id = ?').bind(id).first<{ id: string }>();
+export async function publishedVideoExists(db: Database, id: string): Promise<boolean> {
+  const row = readOne<{ id: string }>(db, 'SELECT id FROM published_videos WHERE id = ?', [id]);
   return Boolean(row);
 }
 
@@ -281,24 +279,24 @@ const COMMERCIAL_DEAL_UPDATE_FIELDS = [
 ] as const;
 
 export async function updateCommercialDeal(
-  db: SqliteDatabase,
+  db: Database,
   id: string,
   body: Record<string, unknown>
 ): Promise<CommercialDeal | null> {
-  const updated = db.sqlite.transaction(() => {
+  const updated = db.transaction(() => {
     // Read the previous state inside the same SQLite transaction as the update
     // and activity writes. Otherwise concurrent patches can both report a
     // transition from the same stale state.
-    const existing = db.sqlite.query(
+    const existing = db.query(
       'SELECT status, payment_status FROM commercial_deals WHERE id = ?'
     ).get(id) as Pick<CommercialDeal, 'status' | 'payment_status'> | undefined;
     if (!existing) return false;
 
     const fields = COMMERCIAL_DEAL_UPDATE_FIELDS.filter((field) => Object.prototype.hasOwnProperty.call(body, field));
     const now = new Date().toISOString();
-    const statements: SqlitePreparedStatement[] = [];
+    const statements: SqlCommand[] = [];
     if (fields.length > 0) {
-      statements.push(bind(db,
+      statements.push(command(db,
         `UPDATE commercial_deals SET ${fields.map((field) => `${field} = ?`).join(', ')}, updated_at = ? WHERE id = ?`,
         [...fields.map((field) => body[field]), now, id]
       ));
@@ -315,7 +313,7 @@ export async function updateCommercialDeal(
         content: `回款状态：${existing.payment_status} → ${String(body.payment_status)}`, created_at: now,
       }));
     }
-    statements.forEach((statement) => statement.executeSync());
+    statements.forEach(({ statement, values }) => statement.run(...values));
     return true;
   })();
   if (!updated) return null;
@@ -323,7 +321,7 @@ export async function updateCommercialDeal(
 }
 
 export async function replaceCommercialDealTopics(
-  db: SqliteDatabase,
+  db: Database,
   dealId: string,
   primaryTopicId: string | null,
   relatedTopicIds: string[]
@@ -336,12 +334,11 @@ export async function replaceCommercialDealTopics(
   ]));
   if (topicIds.length > 0) {
     const placeholders = topicIds.map(() => '?').join(',');
-    const result = await db.prepare(`SELECT id FROM topics WHERE deleted_at IS NULL AND id IN (${placeholders})`)
-      .bind(...topicIds).all<{ id: string }>();
-    if (result.results.length !== topicIds.length) return 'topic_not_found';
+    const result = readAll<{ id: string }>(db, `SELECT id FROM topics WHERE deleted_at IS NULL AND id IN (${placeholders})`, topicIds);
+    if (result.length !== topicIds.length) return 'topic_not_found';
   }
   const now = new Date().toISOString();
-  const statementsToRun: SqlitePreparedStatement[] = [bind(
+  const statementsToRun: SqlCommand[] = [command(
     db,
     'DELETE FROM commercial_deal_topics WHERE deal_id = ?',
     [dealId]
@@ -353,29 +350,29 @@ export async function replaceCommercialDealTopics(
     relation_role: topicId === primaryTopicId ? 'primary' : 'related',
     created_at: now,
   })));
-  await db.batch(statementsToRun);
+  executeTransaction(db, statementsToRun);
   return loadCommercialDeal(db, dealId);
 }
 
 export async function insertCommercialDealActivity(
-  db: SqliteDatabase,
+  db: Database,
   activity: CommercialDealActivity
 ): Promise<void> {
-  await db.batch([
+  executeTransaction(db, [
     commercialDealActivityStatement(db, activity),
-    bind(db, 'UPDATE commercial_deals SET updated_at = ? WHERE id = ?', [activity.created_at, activity.deal_id]),
+    command(db, 'UPDATE commercial_deals SET updated_at = ? WHERE id = ?', [activity.created_at, activity.deal_id]),
   ]);
 }
 
 export async function linkPublishedVideoToDeal(
-  db: SqliteDatabase,
+  db: Database,
   id: string,
   publishedVideoId: string | null
 ): Promise<'deal_not_found' | 'video_not_found' | CommercialDealDetail | null> {
   const deal = await findCommercialDeal(db, id);
   if (!deal) return 'deal_not_found';
   if (publishedVideoId && !(await publishedVideoExists(db, publishedVideoId))) return 'video_not_found';
-  await bind(db, 'UPDATE commercial_deals SET published_video_id = ?, updated_at = ? WHERE id = ?',
-    [publishedVideoId, new Date().toISOString(), id]).run();
+  execute(db, 'UPDATE commercial_deals SET published_video_id = ?, updated_at = ? WHERE id = ?',
+    [publishedVideoId, new Date().toISOString(), id]);
   return loadCommercialDeal(db, id);
 }

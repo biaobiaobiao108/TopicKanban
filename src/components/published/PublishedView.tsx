@@ -23,7 +23,7 @@ import {
   BarChart2,
   Sparkles,
 } from 'lucide-react';
-import { fetchPublishedVideoPage, fetchTopic, fetchTopicPage } from '../../lib/storage';
+import { fetchPublishedVideoPage, fetchTopic, fetchTopicPage } from '../../lib/storageApi';
 import { getBeijingDateString } from '../../lib/actionDate';
 
 const AnalyticsDashboard = React.lazy(() =>

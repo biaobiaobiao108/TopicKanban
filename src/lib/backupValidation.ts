@@ -198,7 +198,7 @@ const commercialDealSchema = z.object({
   brief: longText,
   requirements: longText,
   restrictions: longText,
-  amount_cents: z.number().int().nonnegative(),
+  amount_cents: z.number().int().nonnegative().refine(Number.isSafeInteger, '商单金额必须是安全整数'),
   payment_status: z.enum(['unpaid', 'paid']),
   paid_at: optionalDateOnly,
   delivery_due_date: optionalDateOnly,

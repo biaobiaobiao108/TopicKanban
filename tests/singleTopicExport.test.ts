@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'bun:test';
-import { exportSingleTopicMarkdown, htmlToCleanMarkdown } from '../src/lib/remoteStorage';
+import { exportSingleTopicMarkdown, htmlToCleanMarkdown } from '../src/lib/storageApi';
 import { fetchAndExportSingleTopicMarkdown } from '../src/lib/singleTopicExport';
 import type { Topic, Source, Draft } from '../src/types';
 

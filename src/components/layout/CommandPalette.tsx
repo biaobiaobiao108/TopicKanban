@@ -26,7 +26,7 @@ import {
 import { Topic, Person, Tag, AppTheme, TopicStatus } from '../../types';
 import { NavView } from './Sidebar';
 import { StatusBadge, PriorityBadge } from '../ui/Badge';
-import { fetchTopicPage } from '../../lib/storage';
+import { fetchTopicPage } from '../../lib/storageApi';
 import { THEME_CONFIG_LIST } from '../../lib/theme';
 import { FloatingScrollbar } from '../ui/FloatingScrollbar';
 

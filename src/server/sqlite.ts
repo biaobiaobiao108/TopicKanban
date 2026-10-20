@@ -1,211 +1,145 @@
 import { Database } from 'bun:sqlite';
 import { joinPath, resolvePath } from './bunPaths';
 
-export interface SqliteStatement {
-  get(...params: unknown[]): unknown;
-  all(...params: unknown[]): unknown[];
-  values(...params: unknown[]): unknown[][];
-  columns(): Array<{ name: string }>;
-  run(...params: unknown[]): { changes: number; lastInsertRowid: number | bigint };
-}
-
-export interface SqliteResult<T = unknown> {
-  results: T[];
-  success: boolean;
-  meta: {
-    changes: number;
-    last_row_id: number;
-    duration: number;
-  };
-}
-
-export class SqlitePreparedStatement {
-  private readonly stmt: SqliteStatement;
-  private readonly boundValues: unknown[];
-  private readonly query: string;
-
-  constructor(stmt: SqliteStatement, query: string, boundValues: unknown[] = []) {
-    this.stmt = stmt;
-    this.query = query;
-    this.boundValues = boundValues;
-  }
-
-  bind(...values: unknown[]): SqlitePreparedStatement {
-    return new SqlitePreparedStatement(this.stmt, this.query, values);
-  }
-
-  async first<T = Record<string, unknown>>(colName?: string): Promise<T | null> {
-    const row = this.stmt.get(...this.boundValues) as Record<string, unknown> | undefined;
-    if (!row) return null;
-    if (colName) return (row[colName] as T) ?? null;
-    return row as T;
-  }
-
-  async run<T = Record<string, unknown>>(): Promise<SqliteResult<T>> {
-    const start = performance.now();
-    const info = this.stmt.run(...this.boundValues);
-    return {
-      results: [] as T[],
-      success: true,
-      meta: {
-        changes: info.changes,
-        last_row_id: Number(info.lastInsertRowid),
-        duration: performance.now() - start,
-      },
-    };
-  }
-
-  async all<T = Record<string, unknown>>(): Promise<SqliteResult<T>> {
-    const start = performance.now();
-    const rows = this.stmt.all(...this.boundValues) as T[];
-    return {
-      results: rows,
-      success: true,
-      meta: {
-        changes: 0,
-        last_row_id: 0,
-        duration: performance.now() - start,
-      },
-    };
-  }
-
-  async raw<T = unknown[]>(options?: { columnNames?: boolean }): Promise<any> {
-    const rows = this.stmt.values(...this.boundValues) as T[];
-    if (options?.columnNames) {
-      const colNames = this.stmt.columns().map((column) => column.name);
-      return [colNames, ...rows];
-    }
-    return rows;
-  }
-
-  executeSync(): SqliteResult {
-    const start = performance.now();
-    const isSelect = /^\s*(SELECT|PRAGMA|WITH)\b/i.test(this.query);
-    if (isSelect) {
-      const rows = this.stmt.all(...this.boundValues);
-      return {
-        results: rows,
-        success: true,
-        meta: { changes: 0, last_row_id: 0, duration: performance.now() - start },
-      };
-    }
-    const info = this.stmt.run(...this.boundValues);
-    return {
-      results: [],
-      success: true,
-      meta: {
-        changes: info.changes,
-        last_row_id: Number(info.lastInsertRowid),
-        duration: performance.now() - start,
-      },
-    };
-  }
-}
-
-export class SqliteDatabase {
-  readonly sqlite: Database;
-  readonly dbFilePath?: string;
-
-  constructor(sqlite: Database, dbFilePath?: string) {
-    this.sqlite = sqlite;
-    this.dbFilePath = dbFilePath;
-  }
-
-  prepare(query: string): SqlitePreparedStatement {
-    return new SqlitePreparedStatement(this.sqlite.query(query) as unknown as SqliteStatement, query);
-  }
-
-  async batch(statements: SqlitePreparedStatement[]): Promise<SqliteResult[]> {
-    const executeBatch = this.sqlite.transaction((items: SqlitePreparedStatement[]) => {
-      return items.map((statement) => statement.executeSync());
-    });
-    return executeBatch(statements);
-  }
-
-  async exec(query: string): Promise<{ count: number; duration: number }> {
-    const start = performance.now();
-    this.sqlite.exec(query);
-    return { count: 1, duration: performance.now() - start };
-  }
-
-  close(): void {
-    this.sqlite.close();
-  }
-}
-
 export const CURRENT_SCHEMA_VERSION = 6;
 
-function schemaObjectExists(sqlite: Database, name: string): boolean {
-  return Boolean(sqlite.query("SELECT 1 FROM sqlite_master WHERE name = ? LIMIT 1").get(name));
+const REQUIRED_TABLES = [
+  'topics',
+  'topic_todos',
+  'sources',
+  'topic_reports',
+  'people',
+  'person_relationships',
+  'topic_people',
+  'drafts',
+  'draft_citations',
+  'tags',
+  'topic_tags',
+  'published_videos',
+  'publish_packages',
+  'commercial_deals',
+  'commercial_deal_topics',
+  'commercial_deal_activities',
+  'quick_drops',
+  'topic_search',
+] as const;
+const REQUIRED_INDEXES = [
+  'idx_topics_target_publish_date',
+  'idx_topics_deadline',
+  'idx_topic_todos_topic_status_order',
+  'idx_topic_todos_current',
+  'idx_sources_topic_sort',
+  'idx_sources_topic_event_date',
+  'idx_topics_status_sort',
+  'idx_topics_updated_at',
+  'idx_topics_deleted_at',
+  'idx_sources_topic_id',
+  'idx_drafts_topic_id',
+  'idx_draft_citations_topic_id',
+  'idx_draft_citations_reference',
+  'idx_tags_name_unique',
+  'idx_topic_tags_unique',
+  'idx_topic_tags_tag_id',
+  'idx_topic_people_unique',
+  'idx_topic_people_person_id',
+  'idx_relationships_people',
+  'idx_published_topic_id',
+  'idx_published_page_order',
+  'idx_publish_packages_updated_at',
+  'idx_commercial_deals_status',
+  'idx_commercial_deals_due_date',
+  'idx_commercial_deals_publish_date',
+  'idx_commercial_deals_next_action_due_date',
+  'idx_commercial_deals_payment',
+  'idx_commercial_deals_published_video',
+  'idx_commercial_deal_topics_topic',
+  'idx_commercial_deal_topics_deal',
+  'idx_commercial_deal_primary_topic',
+  'idx_commercial_deal_activities_deal',
+  'idx_topics_active_updated',
+  'idx_topics_active_focus',
+  'idx_topic_todos_current_age',
+  'idx_quick_drops_expiry_order',
+] as const;
+const REQUIRED_TRIGGERS = [
+  'topic_search_ai',
+  'topic_search_au',
+  'topic_search_ad',
+] as const;
+
+function schemaObjectExists(database: Database, type: 'table' | 'index', name: string): boolean {
+  return Boolean(database.query('SELECT 1 FROM sqlite_master WHERE type = ? AND name = ? LIMIT 1').get(type, name));
 }
 
-function assertCurrentSchema(sqlite: Database): void {
-  const versionRow = sqlite.query('PRAGMA user_version').get() as { user_version?: number } | undefined;
+function schemaTriggerExists(database: Database, name: string): boolean {
+  return Boolean(database.query('SELECT 1 FROM sqlite_master WHERE type = \'trigger\' AND name = ? LIMIT 1').get(name));
+}
+
+function assertCurrentSchema(database: Database): void {
+  const versionRow = database.query('PRAGMA user_version').get() as { user_version?: number } | undefined;
   const actualVersion = Number(versionRow?.user_version || 0);
   if (actualVersion !== CURRENT_SCHEMA_VERSION) {
     throw new Error(
       `SQLite schema version mismatch: expected baseline v${CURRENT_SCHEMA_VERSION}, found v${actualVersion}. `
-      + 'This project does not migrate old databases; recreate the database from drizzle/0000_schema.sql.',
+      + 'This project does not migrate old databases; recreate the database from database/schema.sql.',
     );
   }
 
-  const requiredObjects = ['topics', 'topic_todos', 'topic_search', 'publish_packages', 'commercial_deals', 'sources', 'topic_reports', 'quick_drops'];
-  const missingObjects = requiredObjects.filter((name) => !schemaObjectExists(sqlite, name));
-  if (missingObjects.length > 0) {
+  const missingTables = REQUIRED_TABLES.filter((name) => !schemaObjectExists(database, 'table', name));
+  if (missingTables.length > 0) {
     throw new Error(
-      `SQLite schema is incomplete: missing ${missingObjects.join(', ')}. `
-      + 'Recreate the local database from drizzle/0000_schema.sql.',
+      `SQLite schema is incomplete: missing ${missingTables.join(', ')}. `
+      + 'Recreate the local database from database/schema.sql.',
+    );
+  }
+
+  const missingIndexes = REQUIRED_INDEXES.filter((name) => !schemaObjectExists(database, 'index', name));
+  if (missingIndexes.length > 0) {
+    throw new Error(
+      `SQLite schema is incomplete: missing indexes ${missingIndexes.join(', ')}. `
+      + 'Recreate the local database from database/schema.sql.',
+    );
+  }
+
+  const missingTriggers = REQUIRED_TRIGGERS.filter((name) => !schemaTriggerExists(database, name));
+  if (missingTriggers.length > 0) {
+    throw new Error(
+      `SQLite schema is incomplete: missing triggers ${missingTriggers.join(', ')}. `
+      + 'Recreate the local database from database/schema.sql.',
     );
   }
 }
 
-function ensurePerformanceIndexes(sqlite: Database): void {
-  // These indexes are part of the v6 baseline, so freshly created databases
-  // already have them. Databases created by an earlier build of v6 may not, and
-  // index creation is additive and idempotent, so replaying it costs one
-  // sqlite_master lookup per index while fixing those older files in place.
-  sqlite.exec(`
-    CREATE INDEX IF NOT EXISTS idx_published_page_order
-      ON published_videos(published_at DESC, updated_at DESC, id DESC);
-    CREATE INDEX IF NOT EXISTS idx_commercial_deals_publish_date
-      ON commercial_deals(publish_date);
-    CREATE INDEX IF NOT EXISTS idx_commercial_deals_next_action_due_date
-      ON commercial_deals(next_action_due_date);
-  `);
-}
-
-export async function initializeSqliteDatabase(dbFilePath: string, schemaDir?: string): Promise<{ db: SqliteDatabase; sqlite: Database }> {
+export async function initializeSqliteDatabase(dbFilePath: string, schemaPath?: string): Promise<Database> {
   const dbFile = Bun.file(dbFilePath);
   if (!(await dbFile.exists())) {
     await Bun.write(dbFilePath, '', { createPath: true });
   }
 
-  const sqlite = new Database(dbFilePath);
-  sqlite.exec(`
-    PRAGMA journal_mode = WAL;
-    PRAGMA foreign_keys = ON;
-    PRAGMA busy_timeout = 5000;
-    PRAGMA synchronous = NORMAL;
-  `);
-
-  const tableCheck = sqlite.query("SELECT count(*) as count FROM sqlite_master WHERE type = 'table' AND name NOT LIKE 'sqlite_%'").get() as { count: number };
-
-  const resolvedSchemaDir = schemaDir || resolvePath(process.cwd(), 'drizzle');
-  if (tableCheck.count === 0) {
-    const schemaFile = joinPath(resolvedSchemaDir, '0000_schema.sql');
-    const schema = Bun.file(schemaFile);
-    if (await schema.exists()) {
-      sqlite.exec(await schema.text());
-    }
-  }
-
+  const database = new Database(dbFilePath);
   try {
-    assertCurrentSchema(sqlite);
-    ensurePerformanceIndexes(sqlite);
+    database.exec(`
+      PRAGMA journal_mode = WAL;
+      PRAGMA foreign_keys = ON;
+      PRAGMA busy_timeout = 5000;
+      PRAGMA synchronous = NORMAL;
+    `);
+
+    const tableCheck = database.query("SELECT count(*) as count FROM sqlite_master WHERE type = 'table' AND name NOT LIKE 'sqlite_%'").get() as { count: number };
+    const resolvedSchemaPath = schemaPath || resolvePath(process.cwd(), 'database/schema.sql');
+    if (tableCheck.count === 0) {
+      const schema = Bun.file(resolvedSchemaPath);
+      if (!(await schema.exists())) {
+        throw new Error(`SQLite schema baseline not found: ${resolvedSchemaPath}`);
+      }
+      const schemaSql = await schema.text();
+      database.transaction(() => database.exec(schemaSql))();
+    }
+    assertCurrentSchema(database);
   } catch (error) {
-    sqlite.close();
+    database.close();
     throw error;
   }
 
-  return { db: new SqliteDatabase(sqlite, dbFilePath), sqlite };
+  return database;
 }

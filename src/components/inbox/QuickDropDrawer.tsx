@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import { QuickDropItem } from '../../types';
-import { fetchQuickDrops, deleteQuickDrop } from '../../lib/storage';
+import { fetchQuickDrops, deleteQuickDrop } from '../../lib/storageApi';
 import { sanitizeExternalHttpUrl } from '../../lib/urlSafety';
 import { normalizeQuickDropUrl } from '../../lib/quickDrop';
 import { formatBeijingDateTime } from '../../lib/actionDate';

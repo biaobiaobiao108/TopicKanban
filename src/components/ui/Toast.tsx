@@ -30,6 +30,7 @@ export function useToast(): ToastContextValue {
 
 export const ToastProvider: React.FC<React.PropsWithChildren> = ({ children }) => {
   const [items, setItems] = useState<ToastItem[]>([]);
+  const [pendingActionIds, setPendingActionIds] = useState<Set<number>>(() => new Set());
   const dismissToast = useCallback((id: number) => {
     setItems((current) => current.filter((item) => item.id !== id));
   }, []);
@@ -41,6 +42,28 @@ export const ToastProvider: React.FC<React.PropsWithChildren> = ({ children }) =
     }
     return id;
   }, [dismissToast]);
+  const handleAction = useCallback(async (item: ToastItem) => {
+    if (!item.onAction || pendingActionIds.has(item.id)) return;
+    setPendingActionIds((current) => new Set(current).add(item.id));
+    try {
+      await item.onAction();
+      dismissToast(item.id);
+    } catch (error) {
+      showToast({
+        message: error instanceof Error && error.message.trim()
+          ? `操作失败：${error.message}`
+          : '操作失败，请稍后重试',
+        tone: 'error',
+        duration: 7000,
+      });
+    } finally {
+      setPendingActionIds((current) => {
+        const next = new Set(current);
+        next.delete(item.id);
+        return next;
+      });
+    }
+  }, [dismissToast, pendingActionIds, showToast]);
   const value = useMemo(() => ({ showToast, dismissToast }), [showToast, dismissToast]);
 
   return (
@@ -59,8 +82,13 @@ export const ToastProvider: React.FC<React.PropsWithChildren> = ({ children }) =
               <Icon className="h-4 w-4 shrink-0 animate-pop" />
               <span className="min-w-0 flex-1">{item.message}</span>
               {item.actionLabel && item.onAction && (
-                <button type="button" className="shrink-0 rounded-lg px-2 py-1 text-xs font-bold underline underline-offset-2" onClick={() => { void item.onAction?.(); dismissToast(item.id); }}>
-                  {item.actionLabel}
+                <button
+                  type="button"
+                  disabled={pendingActionIds.has(item.id)}
+                  className="shrink-0 rounded-lg px-2 py-1 text-xs font-bold underline underline-offset-2 disabled:cursor-wait disabled:opacity-60"
+                  onClick={() => { void handleAction(item); }}
+                >
+                  {pendingActionIds.has(item.id) ? '处理中…' : item.actionLabel}
                 </button>
               )}
               <button type="button" aria-label="关闭通知" className="shrink-0 rounded p-1 opacity-60 hover:opacity-100" onClick={() => dismissToast(item.id)}>

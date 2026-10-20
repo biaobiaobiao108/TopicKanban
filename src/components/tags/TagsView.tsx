@@ -14,7 +14,7 @@ import {
   CheckCircle2,
   PenTool,
 } from 'lucide-react';
-import { fetchTagsPage, fetchTopicPage } from '../../lib/storage';
+import { fetchTagsPage, fetchTopicPage } from '../../lib/storageApi';
 import { PageHeader } from '../layout/PageHeader';
 import { CustomSelect, type SelectOption } from '../ui/CustomSelect';
 import { ConfirmDialog } from '../ui/ConfirmDialog';

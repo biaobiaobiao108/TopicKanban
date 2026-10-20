@@ -13,5 +13,5 @@ public/tailwind.generated.css
 !src/**
 !scripts/
 !scripts/**
-!drizzle/
-!drizzle/**
+!database/
+!database/**

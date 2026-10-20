@@ -6,7 +6,7 @@ import {
   fetchCommercialDeal,
   fetchCommercialDealsByTopicId,
   replaceCommercialDealTopics,
-} from '../../lib/storage';
+} from '../../lib/storageApi';
 import { updateCommercialDealCaches } from '../../lib/queryCacheSync';
 import { invalidateQueryGroups } from '../../lib/topicQueryCache';
 import { ActionDate } from '../ui/ActionDate';

@@ -22,7 +22,7 @@ COPY --link bunfig.toml tsconfig.json index.html tailwind.config.js ./
 COPY --link public ./public
 COPY --link src ./src
 COPY --link scripts ./scripts
-COPY --link drizzle ./drizzle
+COPY --link database ./database
 RUN bun run build
 
 # Stage 2: Ultra-slim Production Runner
@@ -33,9 +33,9 @@ ENV NODE_ENV=production
 ENV PORT=3030
 ENV DATA_DIR=/app/data
 
-# Copy compiled SPA static files, bundled server, and database migrations
+# Copy compiled SPA static files, bundled server, and the SQLite schema baseline
 COPY --from=builder /app/dist ./dist
-COPY --from=builder /app/drizzle ./drizzle
+COPY --from=builder /app/database ./database
 
 # Persistent data directory
 VOLUME ["/app/data"]

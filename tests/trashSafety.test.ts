@@ -1,76 +1,70 @@
-import { describe, expect, it, vi } from 'bun:test';
+import { Database } from 'bun:sqlite';
+import { afterEach, beforeEach, describe, expect, it } from 'bun:test';
 import {
   loadTrashedTopics,
   permanentlyDeleteTrashedTopics,
   TopicNotInTrashError,
 } from '../src/server/repositories/topics';
-import type { SqliteDatabase } from '../src/server/sqlite';
-
-type FakeStatement = {
-  sql: string;
-  values?: unknown[];
-  bind: (...values: unknown[]) => FakeStatement;
-  all: <T>() => Promise<{ results: T[] }>;
-};
-
-function statement(sql: string, results: unknown[] = []): FakeStatement {
-  return {
-    sql,
-    bind(...values: unknown[]) {
-      return { ...this, values };
-    },
-    async all<T>() {
-      return { results: results as T[] };
-    },
-  };
-}
 
 describe('trash safety', () => {
+  let db: Database;
+
+  beforeEach(() => {
+    db = new Database(':memory:');
+  });
+
+  afterEach(() => {
+    db.close();
+  });
+
+  async function createDatabase(): Promise<void> {
+    db.exec(await Bun.file('database/schema.sql').text());
+  }
+
+  function insertTopic(id: string, deletedAt: string | null): void {
+    db.query('INSERT INTO topics (id, title, created_at, updated_at, deleted_at) VALUES (?, ?, ?, ?, ?)')
+      .run(id, id, '2026-01-01T00:00:00.000Z', '2026-01-01T00:00:00.000Z', deletedAt);
+  }
+
   it('loads every trashed topic instead of truncating at 100', async () => {
-    const topics = Array.from({ length: 101 }, (_, index) => ({ id: `topic-${index}` }));
-    const batch = vi.fn(async (_statements: FakeStatement[]) => [
-      { results: topics },
-      { results: [] },
-      { results: [] },
-      { results: [] },
-      { results: [] },
-      { results: [] },
-    ]);
-    const db = {
-      prepare: (sql: string) => statement(sql),
-      batch,
-    } as unknown as SqliteDatabase;
+    await createDatabase();
+    const insert = db.query('INSERT INTO topics (id, title, created_at, updated_at, deleted_at) VALUES (?, ?, ?, ?, ?)');
+    const now = '2026-01-01T00:00:00.000Z';
+    const insertAll = db.transaction(() => {
+      for (let index = 0; index < 101; index += 1) {
+        const id = `topic-${index}`;
+        insert.run(id, id, now, now, now);
+      }
+    });
+    insertAll();
 
     const result = await loadTrashedTopics(db);
 
     expect(result).toHaveLength(101);
-    const firstBatch = batch.mock.calls[0]?.[0] ?? [];
-    expect(firstBatch[0]?.sql).toContain('WHERE t.deleted_at IS NOT NULL');
   });
 
   it('rejects a permanent-delete batch when any topic is not in trash', async () => {
-    const batch = vi.fn();
-    const db = {
-      prepare: (sql: string) => statement(sql, [{ id: 'trash-1' }]),
-      batch,
-    } as unknown as SqliteDatabase;
+    await createDatabase();
+    insertTopic('trash-1', '2026-01-01T00:00:00.000Z');
+    insertTopic('active-1', null);
 
     await expect(permanentlyDeleteTrashedTopics(db, ['trash-1', 'active-1']))
       .rejects.toBeInstanceOf(TopicNotInTrashError);
-    expect(batch).not.toHaveBeenCalled();
+    expect(db.query('SELECT COUNT(*) AS count FROM topics').get()).toEqual({ count: 2 });
   });
 
-  it('guards every destructive statement with the trash condition', async () => {
-    const batch = vi.fn(async (_statements: FakeStatement[]) => []);
-    const db = {
-      prepare: (sql: string) => statement(sql, [{ id: 'trash-1' }]),
-      batch,
-    } as unknown as SqliteDatabase;
+  it('permanently deletes only the requested trashed topic and its associated drafts', async () => {
+    await createDatabase();
+    insertTopic('trash-1', '2026-01-01T00:00:00.000Z');
+    insertTopic('active-1', null);
+    db.query('INSERT INTO drafts (id, topic_id, updated_at) VALUES (?, ?, ?)')
+      .run('trash-draft', 'trash-1', '2026-01-01T00:00:00.000Z');
+    db.query('INSERT INTO drafts (id, topic_id, updated_at) VALUES (?, ?, ?)')
+      .run('active-draft', 'active-1', '2026-01-01T00:00:00.000Z');
 
     await permanentlyDeleteTrashedTopics(db, ['trash-1']);
 
-    const statements = batch.mock.calls[0]?.[0] ?? [];
-    expect(statements).toHaveLength(10);
-    statements.forEach((item) => expect(item.sql).toContain('deleted_at IS NOT NULL'));
+    expect(db.query('SELECT id FROM topics ORDER BY id').all()).toEqual([{ id: 'active-1' }]);
+    expect(db.query('SELECT id FROM drafts').all()).toEqual([{ id: 'active-draft' }]);
   });
 });

@@ -89,13 +89,13 @@
 * **空闲页复用优先 (Freelist-first)**：遵循 SQLite 最佳实践，日常单条/批量永久删除选题与回收站超期清理均采用纯净的标准 SQL `DELETE`。释放的页面保留在 SQLite 内部空闲页池（Freelist）中，供后续新建选题与文案撰写时直接原地复用，**杜绝日常高频删除自动重写全库带来的写放大与锁阻塞**。
 * **存储物理指标透明化**：设置页内嵌实时探测面板，精准展示主数据库文件物理大小、WAL 预写日志大小、可收缩空闲页数（Freelist 空间）及回收站积压数。
 * **主动优化收缩 (Manual VACUUM)**：将物理截断控制权还给用户，在设置页提供「整理并压缩存储」操作，按需执行 `PRAGMA wal_checkpoint(TRUNCATE)` 与 `VACUUM` 物理释放磁盘空间。
-* **回收站生命周期治理**：选题进入回收站后固定保留 30 天；超过期限的选题会在读取回收站列表时自动级联清理，避免历史文案与素材无限积压。
+* **回收站生命周期治理**：选题进入回收站后固定保留 30 天；打开回收站时前端显式请求清理超期选题，列表 GET 接口保持只读，避免预取或重试触发删除。
 * **协同编辑锁内存化隔离**：文案在线编辑的 30 秒感知租约锁（`lock:*`）由内存 LeaseMap 高效维护，彻底消灭高频心跳写库产生的页碎片与 WAL 日志膨胀。
 
 ### 14. 🧱 单一数据库基线 (Single Schema Baseline)
-* 当前没有生产数据，因此数据库不保留历史迁移链；`drizzle/0000_schema.sql` 是唯一真实 schema，内部通过 `PRAGMA user_version = 5` 标识当前基线。
-* 启动时只初始化空数据库并校验现有数据库，不会自动 ALTER、补表或猜测旧字段含义。检测到版本不匹配或结构不完整时会明确报错；需要重建时，从当前基线初始化数据库。
-* JSON 备份只接受当前完整 `5.0` 结构，不包含旧时间线表或旧主题映射；数据库 schema、备份 schema 和前端类型共用当前领域模型。
+* 当前没有生产数据，因此数据库不保留历史迁移链；`database/schema.sql` 是唯一真实 schema，内部通过 `PRAGMA user_version = 6` 标识当前基线。
+* Bun 服务通过 `bun:sqlite` 原生 `Database` 与 `Statement` 读写 SQLite。启动时只初始化空数据库并校验现有数据库，不会自动 ALTER、补表或猜测旧字段含义；发现版本不匹配或缺少领域表时明确报错。
+* JSON 备份继续使用 `5.0` 数据格式版本，不包含旧时间线表或旧主题映射；数据库 schema、备份 schema 和前端类型共用当前领域模型。
 
 ---
 
@@ -129,10 +129,10 @@
 
 ### 1. 使用 Docker Compose / Podman Compose
 
-项目已提供 `docker-compose.yml` 和 `.env.example`。首次启动前，将 `.env.example` 复制为 `.env`，并把 `APP_PASSWORD` 占位值替换成密码管理器生成的唯一长随机密码。仓库中的占位值不是秘密，不能用于实际部署：
+项目已提供 `docker-compose.yml` 和 `.env.example`。首次启动前，将 `.env.example` 复制为 `.env`，并设置密码管理器生成的唯一长随机密码。模板中的 `APP_PASSWORD` 故意留空，未配置时 Compose 会拒绝启动：
 
 ```dotenv
-APP_PASSWORD=replace-this-with-a-unique-random-password-before-deployment
+APP_PASSWORD=
 QUICK_DROP_TOKEN=
 PUBLIC_BASE_URL=https://kanban.yourdomain.com
 TRUST_PROXY_HEADERS=false
@@ -175,7 +175,7 @@ podman compose up -d --build
 
 若要在可信局域网直连，将端口映射改为宿主机的局域网地址，例如 `192.168.1.20:3030:3030`，并通过防火墙限制来源。直连仍使用 HTTP，只适合可信网络。公网访问应保留回环绑定，由反向代理提供 HTTPS；代理在另一台主机时，将映射改为服务机私网地址（例如 `192.168.1.20:3030:3030`），通过可信私网或 VPN 连接，并限制防火墙仅允许代理 IP 访问。切勿将 `0.0.0.0:3030` 暴露到互联网。
 
-容器不会使用默认生产密码；`APP_PASSWORD` 必须在 `.env` 或环境变量中显式设置，并在启动前替换模板占位值。`.env.example` 只用于提供 Compose 所需的非空配置格式。
+容器不会使用默认生产密码；`APP_PASSWORD` 必须在 `.env` 或环境变量中显式设置。`.env.example` 中的空值可避免误把模板口令当成正式凭据。
 
 ---
 
@@ -267,8 +267,8 @@ kanban/
 │   └── workflows/
 │       ├── ci.yml                       # 主分支自动化测试、类型检查、构建与体积预算门禁
 │       └── docker-publish.yml           # 版本发布多架构 Docker 镜像自动打包与推送
-├── drizzle/
-│   └── 0000_schema.sql                  # 当前完整数据库基线表结构 SQL
+├── database/
+│   └── schema.sql                       # 当前完整 SQLite 数据库基线
 ├── src/
 │   ├── components/
 │   │   ├── auth/                        # 登录鉴权组件
@@ -288,14 +288,14 @@ kanban/
 │   ├── lib/
 │   │   ├── clientUrlParser.ts           # 全站客户端直连解析（Bilibili JSONP / YouTube CORS）
 │   │   ├── publicUrl.ts                 # 反代公网域名推导与规范化
-│   │   ├── remoteStorage.ts             # REST API 通信门面
-│   │   ├── theme.ts                     # 3 套主题与系统模式配置
+│   │   ├── storageApi.ts                # 业务 API 客户端（SQLite 持久化由服务端负责）
+│   │   ├── theme.ts                     # 4 套主题与系统模式配置
 │   │   └── auth.ts                      # Web Crypto HMAC-SHA256 Token 鉴权
 │   ├── server/
 │   │   ├── app.ts                       # API 应用组合与鉴权中间件
 │   │   ├── server.ts                    # Bun 独立服务端入口 (静态托管 + API)
 │   │   ├── native.ts                    # Bun 原生请求上下文与路由适配
-│   │   ├── sqlite.ts                    # bun:sqlite 数据库封装
+│   │   ├── sqlite.ts                    # bun:sqlite 初始化与 schema 校验
 │   │   ├── presenceLeases.ts            # 进程内在线编辑租约
 │   │   ├── apiShared.ts                 # API 常量、校验、Token 与通用辅助
 │   │   ├── routes/                      # 按业务领域组织的 REST 路由注册模块

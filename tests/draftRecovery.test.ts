@@ -1,8 +1,8 @@
 import { afterEach, beforeEach, describe, expect, it } from 'bun:test';
 import {
-  cacheDraftLocally, clearRemoteStorageMemoryCaches, DraftConflictError,
+  cacheDraftLocally, clearStorageMemoryCaches, DraftConflictError,
   fetchDraftByTopicId, resolveDraftRecovery, saveDraft, saveDraftImmediatelyWithStatus,
-} from '../src/lib/remoteStorage';
+} from '../src/lib/storageApi';
 import type { Draft } from '../src/types';
 
 const pendingKey = 'topic_kanban_pending_drafts_v3';
@@ -19,7 +19,7 @@ beforeEach(() => {
     setItem: (key: string, value: string) => store.set(key, value),
     removeItem: (key: string) => store.delete(key),
   } });
-  clearRemoteStorageMemoryCaches();
+  clearStorageMemoryCaches();
   puts = [];
   cloud = { id: 'draft-1', topic_id: 'topic-1', title: '云端标题', content_markdown: '云端正文',
     content_html: '<p>云端正文</p>', content_json: '{}', word_count: 4, version: 1,
@@ -40,7 +40,7 @@ afterEach(async () => {
   globalThis.fetch = originalFetch;
   if (originalStorage) Object.defineProperty(globalThis, 'localStorage', originalStorage);
   else Reflect.deleteProperty(globalThis, 'localStorage');
-  clearRemoteStorageMemoryCaches();
+  clearStorageMemoryCaches();
 });
 
 const saveLocal = () => saveDraft('topic-1', '<p>旧本地稿</p>', '{}', 4, '本地标题', '旧本地稿');
@@ -70,7 +70,7 @@ describe('草稿冲突防覆盖与恢复', () => {
 
   it('重新加载冲突时保留旧 base，后台仍只保留本地稿', async () => {
     await createConflict();
-    clearRemoteStorageMemoryCaches();
+    clearStorageMemoryCaches();
     const result = await fetchDraftByTopicId('topic-1');
     expect(result.conflict?.base_version).toBe(1);
     cacheDraftLocally('topic-1', '<p>后续修改</p>', '{}', 4, '本地标题', '后续修改');
@@ -97,7 +97,7 @@ describe('草稿冲突防覆盖与恢复', () => {
     expect(pending()).toBeUndefined();
     expect(puts).toHaveLength(1);
     expect(await fetchDraftByTopicId('topic-1')).toEqual({ draft: cloud, conflict: null });
-    clearRemoteStorageMemoryCaches();
+    clearStorageMemoryCaches();
     expect(await fetchDraftByTopicId('topic-1')).toEqual({ draft: cloud, conflict: null });
   });
 });

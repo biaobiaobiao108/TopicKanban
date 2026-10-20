@@ -3,7 +3,7 @@ import { useQuery } from '@tanstack/react-query';
 import { Topic, TopicStatus, Priority } from '../../types';
 import { StatusBadge, PriorityBadge } from '../ui/Badge';
 import { COLUMNS } from './columns';
-import { fetchTopicPage, purgeExpiredTrash } from '../../lib/storage';
+import { fetchTopicPage, purgeExpiredTrash } from '../../lib/storageApi';
 import {
   Pin,
   ArrowUpDown,

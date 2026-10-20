@@ -7,7 +7,7 @@ import TaskItem from '@tiptap/extension-task-item';
 import Placeholder from '@tiptap/extension-placeholder';
 import CharacterCount from '@tiptap/extension-character-count';
 import { TopicReport } from '../../types';
-import { TopicReportConflictError } from '../../lib/storage';
+import { TopicReportConflictError } from '../../lib/storageApi';
 import { ScriptStarterKit } from './ScriptStarterKit';
 import { ScriptCodeBlock } from './ScriptCodeBlock';
 import { CodeBlockDoubleEnter } from './ScriptCodeBlockEnter';

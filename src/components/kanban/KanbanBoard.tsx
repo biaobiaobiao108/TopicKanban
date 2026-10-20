@@ -29,7 +29,7 @@ import { PageHeader } from '../layout/PageHeader';
 import { FloatingScrollbar } from '../ui/FloatingScrollbar';
 import { applyOptimisticKanbanPageUpdates, hasMoreKanbanPages, mergeKanbanTopic, rollbackFailedKanbanPage } from '../../lib/kanbanPagination';
 import { matchesTopicSearch } from '../../lib/topicSearch';
-import { fetchTopicPage } from '../../lib/storage';
+import { fetchTopicPage } from '../../lib/storageApi';
 
 const activeStatuses: TopicStatus[] = ['inbox', 'scripting', 'production'];
 const terminalStatuses: Array<'icebox' | 'published'> = ['icebox', 'published'];

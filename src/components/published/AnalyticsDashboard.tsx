@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { keepPreviousData, useQuery } from '@tanstack/react-query';
-import { fetchPublishedAnalytics } from '../../lib/storage';
+import { fetchPublishedAnalytics } from '../../lib/storageApi';
 import { formatViewsText, type PublishedAnalyticsPayload } from '../../lib/videoAnalytics';
 import {
   TrendingUp,

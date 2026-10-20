@@ -10,7 +10,7 @@ import type {
   Tag,
   Topic,
 } from '../types';
-import { fetchActiveTopicCount, fetchBootstrap, fetchCommercialDealFocus, fetchPeople, fetchRelationships, fetchTags, fetchTagsPage, fetchPublishedVideos, fetchTopic, fetchTodayFocus, invalidateBootstrap, clearRemoteStorageMemoryCaches } from '../lib/storage';
+import { fetchActiveTopicCount, fetchBootstrap, fetchCommercialDealFocus, fetchPeople, fetchRelationships, fetchTags, fetchTagsPage, fetchPublishedVideos, fetchTopic, fetchTodayFocus, invalidateBootstrap, clearStorageMemoryCaches } from '../lib/storageApi';
 import { loadLocalSettings, saveLocalSettings } from '../lib/localSettings';
 import { refreshTopicData, type RefreshTopicDataOptions } from '../lib/topicQueryCache';
 
@@ -131,7 +131,7 @@ export function useWorkspace(enabled: boolean, view: string = 'today', topicId?:
   const refreshTopics = useCallback((options?: RefreshTopicDataOptions) => refreshTopicData(queryClient, options), [queryClient]);
   const clear = useCallback(() => {
     queryClient.clear();
-    clearRemoteStorageMemoryCaches();
+    clearStorageMemoryCaches();
   }, [queryClient]);
 
   const activeErrors: Array<[string, unknown]> = [

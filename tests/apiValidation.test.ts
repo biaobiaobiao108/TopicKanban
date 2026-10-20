@@ -11,7 +11,6 @@ import {
 } from '../src/server/apiShared';
 import { draftSaveSchema, externalUrlSchema, parseWithZod } from '../src/server/schemas';
 import { Database } from 'bun:sqlite';
-import { SqliteDatabase } from '../src/server/sqlite';
 import { createApp } from '../src/server/app';
 
 /** Mirrors the route-level helper that the shared schema replaced. */
@@ -99,8 +98,8 @@ describe('API validation boundaries', () => {
   it('rejects an empty commercial creation request without persisting a deal', async () => {
     const sqlite = new Database(':memory:');
     try {
-      sqlite.exec(await Bun.file('drizzle/0000_schema.sql').text());
-      const db = new SqliteDatabase(sqlite);
+      sqlite.exec(await Bun.file('database/schema.sql').text());
+      const db = sqlite;
       const app = createApp({ DB: db, APP_PASSWORD: 'title-test-password' });
       const login = await app.request('/api/auth/login', {
         method: 'POST', headers: { 'Content-Type': 'application/json' },

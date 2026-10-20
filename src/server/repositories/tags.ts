@@ -1,6 +1,6 @@
-import type { PageMeta, PaginatedTags, Tag } from '../../types';
-import type { SqliteDatabase } from '../sqlite';
-import { bind, escapeLike } from './shared';
+import type { Database } from 'bun:sqlite';
+import type { PaginatedTags, Tag } from '../../types';
+import { command, execute, executeTransaction, readAll, readOne, readTransaction } from './shared';
 
 interface PageOptions {
   page: number;
@@ -8,7 +8,7 @@ interface PageOptions {
   query?: string;
 }
 
-export async function loadTagsPage(db: SqliteDatabase, options: PageOptions): Promise<PaginatedTags> {
+export async function loadTagsPage(db: Database, options: PageOptions): Promise<PaginatedTags> {
   const conditions: string[] = [];
   const values: unknown[] = [];
   if (options.query?.trim()) {
@@ -18,14 +18,14 @@ export async function loadTagsPage(db: SqliteDatabase, options: PageOptions): Pr
   }
   const where = conditions.length ? `WHERE ${conditions.join(' AND ')}` : '';
   const offset = (options.page - 1) * options.pageSize;
-  const [countResult, summaryResult, rowsResult] = await db.batch([
-    bind(db, `SELECT COUNT(*) AS count FROM tags tg ${where}`, values),
-    db.prepare(`SELECT
+  const [countRows, summaryRows, tagRows] = readTransaction(db, [
+    command(db, `SELECT COUNT(*) AS count FROM tags tg ${where}`, values),
+    command(db, `SELECT
       COUNT(DISTINCT CASE WHEN t.deleted_at IS NULL THEN t.id END) AS tagged_topics,
       (SELECT COUNT(*) FROM topics WHERE deleted_at IS NULL) AS total_topics
       FROM topic_tags tt
       INNER JOIN topics t ON t.id = tt.topic_id`),
-    bind(db, `SELECT tg.id, tg.name, tg.color,
+    command(db, `SELECT tg.id, tg.name, tg.color,
       COUNT(DISTINCT CASE WHEN t.deleted_at IS NULL THEN t.id END) AS tag_count,
       COUNT(DISTINCT CASE WHEN t.deleted_at IS NULL AND t.status IN ('scripting', 'production') THEN t.id END) AS in_progress_count,
       COUNT(DISTINCT CASE WHEN t.deleted_at IS NULL AND t.status = 'published' THEN t.id END) AS published_count,
@@ -39,15 +39,15 @@ export async function loadTagsPage(db: SqliteDatabase, options: PageOptions): Pr
       GROUP BY tg.id, tg.name, tg.color
       ORDER BY tg.name COLLATE NOCASE ASC, tg.id ASC LIMIT ? OFFSET ?`, [...values, options.pageSize, offset]),
   ]);
-  const rows = rowsResult.results as unknown as Array<Tag & {
+  const rows = tagRows as Array<Tag & {
     tag_count?: number;
     in_progress_count?: number;
     published_count?: number;
     words_total?: number;
     avg_score?: number;
   }>;
-  const total = Number((countResult.results[0] as { count?: number } | undefined)?.count || 0);
-  const summaryRow = summaryResult.results[0] as { tagged_topics?: number; total_topics?: number } | undefined;
+  const total = Number((countRows[0] as { count?: number } | undefined)?.count || 0);
+  const summaryRow = summaryRows[0] as { tagged_topics?: number; total_topics?: number } | undefined;
   return {
     items: rows.map(({ tag_count, in_progress_count, published_count, words_total, avg_score, ...tag }) => ({
       ...tag,
@@ -70,27 +70,28 @@ export async function loadTagsPage(db: SqliteDatabase, options: PageOptions): Pr
   };
 }
 
-export async function listTags(db: SqliteDatabase): Promise<Tag[]> {
-  const result = await db.prepare('SELECT id, name, color FROM tags ORDER BY name ASC').all<Tag>();
-  return result.results;
+export async function listTags(db: Database): Promise<Tag[]> {
+  return readAll<Tag>(db, 'SELECT id, name, color FROM tags ORDER BY name ASC');
 }
 
-export async function insertTag(db: SqliteDatabase, tag: Tag): Promise<Tag | null> {
-  const existing = await db.prepare('SELECT id, name, color FROM tags WHERE name = ? COLLATE NOCASE')
-    .bind(tag.name).first<Tag>();
+export async function insertTag(db: Database, tag: Tag): Promise<Tag | null> {
+  const existing = readOne<Tag>(db, 'SELECT id, name, color FROM tags WHERE name = ? COLLATE NOCASE', [tag.name]);
   if (existing) return existing;
-  await bind(db, 'INSERT INTO tags (id, name, color, created_at) VALUES (?, ?, ?, ?)',
-    [tag.id, tag.name, tag.color, new Date().toISOString()]).run();
+  execute(db, 'INSERT INTO tags (id, name, color, created_at) VALUES (?, ?, ?, ?)',
+    [tag.id, tag.name, tag.color, new Date().toISOString()]);
   return null;
 }
 
 export async function updateTag(
-  db: SqliteDatabase,
+  db: Database,
   id: string,
   body: Record<string, unknown>
 ): Promise<Tag | 'duplicate' | null> {
-  const existing = await db.prepare('SELECT id, name, color FROM tags WHERE name = ? COLLATE NOCASE')
-    .bind(body.name).first<{ id: string; name: string; color: string }>();
+  const existing = readOne<{ id: string; name: string; color: string }>(
+    db,
+    'SELECT id, name, color FROM tags WHERE name = ? COLLATE NOCASE',
+    [body.name],
+  );
   if (existing && existing.id !== id) return 'duplicate';
   const fields = ['name'];
   const values: unknown[] = [body.name];
@@ -98,13 +99,13 @@ export async function updateTag(
     fields.push('color');
     values.push(body.color);
   }
-  await bind(db, `UPDATE tags SET ${fields.map((field) => `${field} = ?`).join(', ')} WHERE id = ?`, [...values, id]).run();
-  return db.prepare('SELECT id, name, color FROM tags WHERE id = ?').bind(id).first<Tag>();
+  execute(db, `UPDATE tags SET ${fields.map((field) => `${field} = ?`).join(', ')} WHERE id = ?`, [...values, id]);
+  return readOne<Tag>(db, 'SELECT id, name, color FROM tags WHERE id = ?', [id]);
 }
 
-export async function deleteTag(db: SqliteDatabase, id: string): Promise<void> {
-  await db.batch([
-    bind(db, 'DELETE FROM topic_tags WHERE tag_id = ?', [id]),
-    bind(db, 'DELETE FROM tags WHERE id = ?', [id]),
+export async function deleteTag(db: Database, id: string): Promise<void> {
+  executeTransaction(db, [
+    command(db, 'DELETE FROM topic_tags WHERE tag_id = ?', [id]),
+    command(db, 'DELETE FROM tags WHERE id = ?', [id]),
   ]);
 }

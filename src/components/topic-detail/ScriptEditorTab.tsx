@@ -57,7 +57,7 @@ import { formatBeijingDateTime } from '../../lib/actionDate';
 import {
   reportPresenceHeartbeat,
   releasePresenceHeartbeat,
-} from '../../lib/storage';
+} from '../../lib/storageApi';
 import { countValidCharacters, calculateEstimatedDuration } from '../../lib/textMetrics';
 import type { PresenceState } from '../../types';
 
@@ -98,7 +98,7 @@ function getDeviceIdentifier(): { clientId: string; deviceName: string } {
   else if (/Linux/i.test(ua)) deviceName = 'Linux 工作站';
   return { clientId, deviceName };
 }
-import { DraftConflictError } from '../../lib/remoteStorage';
+import { DraftConflictError } from '../../lib/storageApi';
 import {
   EMPTY_SCRIPT_OUTLINE,
   extractScriptOutline,

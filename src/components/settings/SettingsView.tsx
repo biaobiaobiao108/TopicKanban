@@ -10,7 +10,7 @@ import {
   StorageOptimizeResult,
 } from '../../types';
 import { validateBackupData } from '../../lib/backupValidation';
-import { exportBackupData, importBackupData, exportScriptsMarkdown, fetchStorageStats, optimizeStorage, MAX_BACKUP_IMPORT_BYTES } from '../../lib/storage';
+import { exportBackupData, importBackupData, exportScriptsMarkdown, fetchStorageStats, optimizeStorage, MAX_BACKUP_IMPORT_BYTES } from '../../lib/storageApi';
 import { authenticatedFetch } from '../../lib/auth';
 import { applyTheme } from '../../lib/theme';
 import { resolvePublicUrl } from '../../lib/publicUrl';
@@ -327,10 +327,17 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
     try {
       const result = await importBackupData(pendingImportContent.file);
       if (!result.success) throw new Error(result.error || '导入失败');
-      await onReloadAllData();
-      setImportStatus({ type: 'success', text: '备份数据恢复成功！' });
-      schedule(() => setImportStatus(null), 3000);
       setPendingImportContent(null);
+      try {
+        await onReloadAllData();
+      } catch {
+        setImportStatus({ type: 'error', text: '备份数据已恢复，但工作台刷新失败，请重新加载页面。' });
+        return;
+      }
+      setImportStatus(result.settingsWarning
+        ? { type: 'info', text: result.settingsWarning }
+        : { type: 'success', text: '备份数据恢复成功！' });
+      schedule(() => setImportStatus(null), 3000);
     } catch (error) {
       setImportStatus({ type: 'error', text: error instanceof Error ? `导入失败：${error.message}` : '导入失败' });
     } finally {

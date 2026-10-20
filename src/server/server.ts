@@ -87,10 +87,10 @@ export async function startServer(options: ServerOptions = {}) {
   const port = resolveServerPort(Bun.env.PORT, options.port);
   const dataDir = Bun.env.DATA_DIR || resolvePath(process.cwd(), 'data');
   const dbFilePath = options.databasePath || joinPath(dataDir, 'kanban.db');
-  const schemaDir = resolvePath(process.cwd(), 'drizzle');
+  const schemaPath = resolvePath(process.cwd(), 'database/schema.sql');
 
   console.log(`[Kanban Server] Initializing SQLite database at: ${dbFilePath}`);
-  const { db, sqlite } = await initializeSqliteDatabase(dbFilePath, schemaDir);
+  const db = await initializeSqliteDatabase(dbFilePath, schemaPath);
 
   const appPassword = Bun.env.APP_PASSWORD || (isProduction ? '' : 'admin');
   const quickDropToken = Bun.env.QUICK_DROP_TOKEN || '';
@@ -218,8 +218,8 @@ export async function startServer(options: ServerOptions = {}) {
   let databaseClosed = false;
   const closeDatabase = () => {
     if (databaseClosed) return;
-    sqlite.exec('PRAGMA wal_checkpoint(TRUNCATE)');
-    sqlite.close();
+    db.exec('PRAGMA wal_checkpoint(TRUNCATE)');
+    db.close();
     databaseClosed = true;
   };
   const runningServer = Object.assign(server, { closeDatabase });

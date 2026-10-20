@@ -33,7 +33,7 @@ import {
   deleteTag,
   exportBackupData,
   exportScriptsMarkdown,
-} from './lib/storage';
+} from './lib/storageApi';
 import { isAuthenticated, logout } from './lib/auth';
 import { LoginView } from './components/auth/LoginView';
 import { Sidebar, NavView } from './components/layout/Sidebar';
@@ -44,7 +44,7 @@ import { TodayView } from './components/today/TodayView';
 import { TodoQuickActionDialog } from './components/topic-detail/TodoQuickActionDialog';
 import { ViewErrorBoundary } from './components/ui/ViewErrorBoundary';
 import { QuickDropDrawer } from './components/inbox/QuickDropDrawer';
-import { fetchQuickDropCount } from './lib/storage';
+import { fetchQuickDropCount } from './lib/storageApi';
 import { applyTheme } from './lib/theme';
 import { matchPath, useLocation, useNavigate } from 'react-router-dom';
 import { useWorkspace } from './hooks/useWorkspace';

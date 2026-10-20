@@ -2,7 +2,6 @@ import { afterEach, beforeEach, describe, expect, it } from 'bun:test';
 import { Database } from 'bun:sqlite';
 import { createApp } from '../src/server/app';
 import { NativeApp } from '../src/server/native';
-import { SqliteDatabase } from '../src/server/sqlite';
 import type { ApiBindings } from '../src/server/apiShared';
 
 describe('batch reorder validation', () => {
@@ -12,8 +11,8 @@ describe('batch reorder validation', () => {
 
   beforeEach(async () => {
     sqlite = new Database(':memory:');
-    sqlite.exec(await Bun.file('drizzle/0000_schema.sql').text());
-    const db = new SqliteDatabase(sqlite);
+    sqlite.exec(await Bun.file('database/schema.sql').text());
+    const db = sqlite;
     app = createApp({
       DB: db,
       APP_PASSWORD: 'reorder-test-password',

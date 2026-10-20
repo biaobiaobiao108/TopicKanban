@@ -1,7 +1,7 @@
 import fs from 'node:fs';
-import type { SqliteDatabase } from '../sqlite';
+import type { Database } from 'bun:sqlite';
 import type { StorageStats, StorageOptimizeResult } from '../../types';
-import { permanentlyDeleteTrashedTopics } from './topics';
+import { readAll, readOne } from './shared';
 
 function formatBytes(bytes: number): string {
   if (bytes < 1024) return `${bytes} B`;
@@ -9,16 +9,15 @@ function formatBytes(bytes: number): string {
   return `${(bytes / (1024 * 1024)).toFixed(2)} MB`;
 }
 
-export async function countDatabaseTables(db: SqliteDatabase): Promise<number> {
-  const result = await db.prepare("SELECT count(*) AS count FROM sqlite_master WHERE type='table'")
-    .all<{ count: number }>();
-  return Number(result.results[0]?.count || 0);
+export async function countDatabaseTables(db: Database): Promise<number> {
+  const row = readOne<{ count: number }>(db, "SELECT count(*) AS count FROM sqlite_master WHERE type='table'");
+  return Number(row?.count || 0);
 }
 
-export function getStorageStatsSync(db: SqliteDatabase): StorageStats {
-  const pageCountRow = db.sqlite.query('PRAGMA page_count').get() as { page_count?: number } | undefined;
-  const pageSizeRow = db.sqlite.query('PRAGMA page_size').get() as { page_size?: number } | undefined;
-  const freelistCountRow = db.sqlite.query('PRAGMA freelist_count').get() as { freelist_count?: number } | undefined;
+export function getStorageStatsSync(db: Database): StorageStats {
+  const pageCountRow = readOne<{ page_count?: number }>(db, 'PRAGMA page_count');
+  const pageSizeRow = readOne<{ page_size?: number }>(db, 'PRAGMA page_size');
+  const freelistCountRow = readOne<{ freelist_count?: number }>(db, 'PRAGMA freelist_count');
 
   const pageCount = Number(pageCountRow?.page_count || 0);
   const pageSize = Number(pageSizeRow?.page_size || 4096);
@@ -28,22 +27,22 @@ export function getStorageStatsSync(db: SqliteDatabase): StorageStats {
   let dbFileBytes = pageCount * pageSize;
   let walFileBytes = 0;
 
-  if (db.dbFilePath && db.dbFilePath !== ':memory:') {
+  if (db.filename && db.filename !== ':memory:') {
     try {
-      if (fs.existsSync(db.dbFilePath)) {
-        dbFileBytes = fs.statSync(db.dbFilePath).size;
+      if (fs.existsSync(db.filename)) {
+        dbFileBytes = fs.statSync(db.filename).size;
       }
-      const walPath = `${db.dbFilePath}-wal`;
+      const walPath = `${db.filename}-wal`;
       if (fs.existsSync(walPath)) {
         walFileBytes = fs.statSync(walPath).size;
       }
     } catch {
-      // Fallback to page calculation on read error
+      // Fall back to page calculation when the files cannot be inspected.
     }
   }
 
-  const trashedRow = db.sqlite.query('SELECT COUNT(*) AS count FROM topics WHERE deleted_at IS NOT NULL').get() as { count?: number } | undefined;
-  const activeRow = db.sqlite.query('SELECT COUNT(*) AS count FROM topics WHERE deleted_at IS NULL').get() as { count?: number } | undefined;
+  const trashedRow = readOne<{ count?: number }>(db, 'SELECT COUNT(*) AS count FROM topics WHERE deleted_at IS NOT NULL');
+  const activeRow = readOne<{ count?: number }>(db, 'SELECT COUNT(*) AS count FROM topics WHERE deleted_at IS NULL');
 
   return {
     db_file_bytes: dbFileBytes,
@@ -58,14 +57,14 @@ export function getStorageStatsSync(db: SqliteDatabase): StorageStats {
   };
 }
 
-export async function getStorageStats(db: SqliteDatabase): Promise<StorageStats> {
+export async function getStorageStats(db: Database): Promise<StorageStats> {
   return getStorageStatsSync(db);
 }
 
-export async function vacuumDatabase(db: SqliteDatabase): Promise<StorageOptimizeResult> {
+export async function vacuumDatabase(db: Database): Promise<StorageOptimizeResult> {
   const before = getStorageStatsSync(db);
 
-  db.sqlite.exec(`
+  db.exec(`
     PRAGMA wal_checkpoint(TRUNCATE);
     VACUUM;
     PRAGMA wal_checkpoint(TRUNCATE);
@@ -84,25 +83,57 @@ export async function vacuumDatabase(db: SqliteDatabase): Promise<StorageOptimiz
   };
 }
 
-export async function listExpiredTrashTopicIds(db: SqliteDatabase, retentionDays: number): Promise<string[]> {
+export async function listExpiredTrashTopicIds(db: Database, retentionDays: number): Promise<string[]> {
   if (retentionDays <= 0) {
     return [];
   }
 
   const cutoff = new Date(Date.now() - retentionDays * 86400 * 1000).toISOString();
-  const rows = db.sqlite.query('SELECT id FROM topics WHERE deleted_at IS NOT NULL AND deleted_at <= ?').all(cutoff) as Array<{ id?: string }>;
-  return rows.map((r) => String(r.id || '')).filter(Boolean);
+  const rows = readAll<{ id?: string }>(
+    db,
+    'SELECT id FROM topics WHERE deleted_at IS NOT NULL AND deleted_at <= ?',
+    [cutoff],
+  );
+  return rows.map((row) => String(row.id || '')).filter(Boolean);
 }
 
 export async function purgeExpiredTrashTopics(
-  db: SqliteDatabase,
+  db: Database,
   retentionDays: number
 ): Promise<{ purged_count: number; purged_ids: string[] }> {
-  const ids = await listExpiredTrashTopicIds(db, retentionDays);
-  if (ids.length === 0) {
+  if (retentionDays <= 0) {
     return { purged_count: 0, purged_ids: [] };
   }
 
-  await permanentlyDeleteTrashedTopics(db, ids);
-  return { purged_count: ids.length, purged_ids: ids };
+  const cutoff = new Date(Date.now() - retentionDays * 86400 * 1000).toISOString();
+  const purge = db.transaction(() => {
+    const expiredIds = readAll<{ id: string }>(
+      db,
+      'SELECT id FROM topics WHERE deleted_at IS NOT NULL AND deleted_at <= ?',
+      [cutoff],
+    ).map((row) => row.id);
+    if (expiredIds.length === 0) return expiredIds;
+
+    const trashedTopic = 'SELECT id FROM topics WHERE id = ? AND deleted_at IS NOT NULL';
+    const dependentDeletes = [
+      db.query(`DELETE FROM draft_citations WHERE topic_id IN (${trashedTopic})`),
+      db.query(`DELETE FROM drafts WHERE topic_id IN (${trashedTopic})`),
+      db.query(`DELETE FROM topic_reports WHERE topic_id IN (${trashedTopic})`),
+      db.query(`DELETE FROM sources WHERE topic_id IN (${trashedTopic})`),
+      db.query(`DELETE FROM topic_tags WHERE topic_id IN (${trashedTopic})`),
+      db.query(`DELETE FROM topic_people WHERE topic_id IN (${trashedTopic})`),
+      db.query(`DELETE FROM commercial_deal_topics WHERE topic_id IN (${trashedTopic})`),
+      db.query(`DELETE FROM published_videos WHERE topic_id IN (${trashedTopic})`),
+      db.query(`DELETE FROM topic_todos WHERE topic_id IN (${trashedTopic})`),
+    ];
+    const deleteTopic = db.query('DELETE FROM topics WHERE id = ? AND deleted_at IS NOT NULL');
+    for (const id of expiredIds) {
+      dependentDeletes.forEach((statement) => statement.run(id));
+      deleteTopic.run(id);
+    }
+    return expiredIds;
+  });
+  const purgedIds = purge.immediate();
+
+  return { purged_count: purgedIds.length, purged_ids: purgedIds };
 }

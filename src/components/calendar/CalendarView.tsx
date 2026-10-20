@@ -10,7 +10,7 @@ import {
   DragEndEvent,
 } from '@dnd-kit/core';
 import { Topic, CommercialDeal, PublishedVideo, Tag, Priority, TopicStatus } from '../../types';
-import { fetchCommercialDealsForCalendar, fetchPublishedVideos, fetchTags } from '../../lib/storage';
+import { fetchCommercialDealsForCalendar, fetchPublishedVideos, fetchTags } from '../../lib/storageApi';
 import { PageHeader } from '../layout/PageHeader';
 import { useSearchParams } from 'react-router-dom';
 import {

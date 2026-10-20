@@ -1,7 +1,6 @@
 import { describe, it, expect, beforeEach, afterEach } from 'bun:test';
 import { Database } from 'bun:sqlite';
 import { createApp } from '../src/server/app';
-import { SqliteDatabase } from '../src/server/sqlite';
 import { NativeApp } from '../src/server/native';
 import type { ApiBindings } from '../src/server/apiShared';
 
@@ -15,10 +14,10 @@ describe('Bun Server Integration (Local SQLite & API)', () => {
   beforeEach(async () => {
     sqlite = new Database(':memory:');
     // Load schema
-    const schemaSql = await Bun.file('drizzle/0000_schema.sql').text();
+    const schemaSql = await Bun.file('database/schema.sql').text();
     sqlite.exec(schemaSql);
 
-    const db = new SqliteDatabase(sqlite);
+    const db = sqlite;
     const bindings: ApiBindings = {
       DB: db,
       APP_PASSWORD: testPassword,
@@ -48,7 +47,6 @@ describe('Bun Server Integration (Local SQLite & API)', () => {
     expect(healthData.public_base_url).toBe(publicBaseUrl);
     expect(healthData.database.tables).toBeGreaterThan(0);
     expect(healthData.database.message).toContain('SQLite');
-    expect(healthData).not.toHaveProperty('kv');
 
     // 2. Login
     const loginRes = await app.request('/api/auth/login', {
@@ -364,7 +362,6 @@ describe('Bun Server Integration (Local SQLite & API)', () => {
     expect(restoreRes.status).toBe(200);
     expect(sqlite.query('SELECT title_simplified FROM publish_packages WHERE topic_id = ?').get(topic.id)).toEqual({ title_simplified: '简体发布标题' });
     expect(sqlite.query("SELECT name FROM sqlite_master WHERE type = 'table' AND name = 'settings'").get()).toBeNull();
-    expect(sqlite.query("SELECT name FROM sqlite_master WHERE type = 'table' AND name = '_kv_store'").get()).toBeNull();
   });
 
   it('preserves a tag color when PATCH only changes the name', async () => {
@@ -593,7 +590,7 @@ describe('Bun Server Integration (Local SQLite & API)', () => {
 
   it('uses the trusted single-hop real IP instead of spoofable X-Forwarded-For for login rate limiting', async () => {
     const trustedApp = createApp({
-      DB: new SqliteDatabase(sqlite),
+      DB: sqlite,
       APP_PASSWORD: testPassword,
       QUICK_DROP_TOKEN: testDropToken,
       PUBLIC_BASE_URL: publicBaseUrl,

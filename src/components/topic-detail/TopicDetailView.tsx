@@ -32,7 +32,7 @@ import {
   TopicReportConflictError,
   resolveDraftRecovery,
   saveDraftCitation,
-} from '../../lib/storage';
+} from '../../lib/storageApi';
 import { fetchAndExportSingleTopicMarkdown } from '../../lib/singleTopicExport';
 import { Modal } from '../ui/Modal';
 import { FloatingMenu } from '../ui/FloatingMenu';

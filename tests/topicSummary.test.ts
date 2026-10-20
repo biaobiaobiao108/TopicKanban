@@ -1,13 +1,12 @@
 import { describe, expect, it } from 'bun:test';
 import { Database } from 'bun:sqlite';
 import { loadTopicPage } from '../src/server/repositories/topics';
-import { SqliteDatabase } from '../src/server/sqlite';
 
 describe('选题库全库摘要', () => {
   it('保持分页筛选数量，同时统计全库未删除选题的写稿数和字数', async () => {
     const sqlite = new Database(':memory:');
     try {
-      sqlite.exec(await Bun.file('drizzle/0000_schema.sql').text());
+      sqlite.exec(await Bun.file('database/schema.sql').text());
       const now = '2026-09-25T00:00:00.000Z';
       const insertTopic = sqlite.query(`INSERT INTO topics
         (id, title, status, deleted_at, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?)`);
@@ -23,7 +22,7 @@ describe('选题库全库摘要', () => {
         insertDraft.run(`draft-${id}`, id, words, now);
       }
 
-      const db = new SqliteDatabase(sqlite);
+      const db = sqlite;
       const active = await loadTopicPage(db, { scope: 'active', page: 1, pageSize: 50, status: 'production' });
       expect(active.total).toBe(1);
       expect(active.items.map((topic) => topic.id)).toEqual(['making']);

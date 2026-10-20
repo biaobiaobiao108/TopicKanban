@@ -3,8 +3,8 @@ import { Database } from 'bun:sqlite';
 import { joinPath, resolvePath } from '../src/server/bunPaths';
 import { initializeSqliteDatabase } from '../src/server/sqlite';
 
-const schemaSql = await Bun.file(joinPath(process.cwd(), 'drizzle/0000_schema.sql')).text();
-const schemaDir = resolvePath(process.cwd(), 'drizzle');
+const schemaSql = await Bun.file(joinPath(process.cwd(), 'database/schema.sql')).text();
+const schemaPath = resolvePath(process.cwd(), 'database/schema.sql');
 
 function temporaryDatabasePath(prefix: string): string {
   const tempRoot = Bun.env.TMPDIR || Bun.env.TEMP || Bun.env.TMP || process.cwd();
@@ -66,15 +66,35 @@ describe('Database schema contract', () => {
 
       const commercialDealTableSql = sqlite.query("SELECT sql FROM sqlite_master WHERE type = 'table' AND name = 'commercial_deals'").get() as { sql: string };
       expect(commercialDealTableSql.sql).toContain("status IN ('communicating', 'producing', 'delivered', 'archived')");
-      const expectedPerformanceIndexes = [
+      const expectedIndexes = [
+        'idx_topics_target_publish_date', 'idx_topics_deadline',
+        'idx_topic_todos_topic_status_order', 'idx_topic_todos_current',
+        'idx_sources_topic_sort', 'idx_sources_topic_event_date',
+        'idx_topics_status_sort', 'idx_topics_updated_at', 'idx_topics_deleted_at',
+        'idx_sources_topic_id', 'idx_drafts_topic_id',
+        'idx_draft_citations_topic_id', 'idx_draft_citations_reference',
+        'idx_tags_name_unique', 'idx_topic_tags_unique', 'idx_topic_tags_tag_id',
+        'idx_topic_people_unique', 'idx_topic_people_person_id', 'idx_relationships_people',
+        'idx_published_topic_id', 'idx_published_page_order', 'idx_publish_packages_updated_at',
+        'idx_commercial_deals_status', 'idx_commercial_deals_due_date',
         'idx_commercial_deals_publish_date',
         'idx_commercial_deals_next_action_due_date',
-        'idx_published_page_order',
+        'idx_commercial_deals_payment', 'idx_commercial_deals_published_video',
+        'idx_commercial_deal_topics_topic', 'idx_commercial_deal_topics_deal',
+        'idx_commercial_deal_primary_topic', 'idx_commercial_deal_activities_deal',
+        'idx_topics_active_updated', 'idx_topics_active_focus',
+        'idx_topic_todos_current_age', 'idx_quick_drops_expiry_order',
       ];
       const performanceIndexes = sqlite.query("SELECT name FROM sqlite_master WHERE type = 'index'")
         .all() as Array<{ name: string }>;
-      for (const indexName of expectedPerformanceIndexes) {
+      for (const indexName of expectedIndexes) {
         expect(performanceIndexes.some((index) => index.name === indexName)).toBe(true);
+      }
+      const expectedSearchTriggers = ['topic_search_ai', 'topic_search_au', 'topic_search_ad'];
+      const searchTriggers = sqlite.query("SELECT name FROM sqlite_master WHERE type = 'trigger'")
+        .all() as Array<{ name: string }>;
+      for (const triggerName of expectedSearchTriggers) {
+        expect(searchTriggers.some((trigger) => trigger.name === triggerName)).toBe(true);
       }
       const citationTableSql = sqlite.query("SELECT sql FROM sqlite_master WHERE type = 'table' AND name = 'draft_citations'").get() as { sql: string };
       expect(citationTableSql.sql).toContain("reference_type IN ('source', 'report', 'person', 'outline')");
@@ -86,7 +106,7 @@ describe('Database schema contract', () => {
 
   it('initializes a fresh local database from the current baseline schema', async () => {
     const dbPath = temporaryDatabasePath('kanban-schema');
-    const { sqlite } = await initializeSqliteDatabase(dbPath, schemaDir);
+    const sqlite = await initializeSqliteDatabase(dbPath, schemaPath);
     try {
       expect(sqlite.query("SELECT name FROM sqlite_master WHERE type = 'table' AND name = 'publish_packages'").get()).not.toBeNull();
       expect(sqlite.query("SELECT name FROM sqlite_master WHERE type = 'table' AND name = 'commercial_deals'").get()).not.toBeNull();
@@ -104,32 +124,63 @@ describe('Database schema contract', () => {
     }
   });
 
-  it('adds query indexes to an existing current-version database without changing its schema version', async () => {
-    const dbPath = temporaryDatabasePath('kanban-existing-indexes');
-    const existing = new Database(dbPath);
-    existing.exec(schemaSql);
-    existing.exec(`
-      DROP INDEX idx_published_page_order;
-      DROP INDEX idx_commercial_deals_publish_date;
-      DROP INDEX idx_commercial_deals_next_action_due_date;
-    `);
-    existing.close();
+  it('rejects a current-version database missing domain tables without patching it', async () => {
+    const dbPath = temporaryDatabasePath('kanban-incomplete-schema');
+    const incomplete = new Database(dbPath);
+    incomplete.exec('CREATE TABLE topics (id TEXT PRIMARY KEY); PRAGMA user_version = 6;');
+    incomplete.close();
 
     try {
-      const { sqlite } = await initializeSqliteDatabase(dbPath, schemaDir);
+      await expect(initializeSqliteDatabase(dbPath, schemaPath)).rejects.toThrow('SQLite schema is incomplete: missing topic_todos');
+      const unchanged = new Database(dbPath);
       try {
-        const indexes = sqlite.query("SELECT name FROM sqlite_master WHERE type = 'index'")
-          .all() as Array<{ name: string }>;
-        for (const indexName of [
-          'idx_published_page_order',
-          'idx_commercial_deals_publish_date',
-          'idx_commercial_deals_next_action_due_date',
-        ]) {
-          expect(indexes.some((index) => index.name === indexName)).toBe(true);
-        }
-        expect(sqlite.query('PRAGMA user_version').get()).toEqual({ user_version: 6 });
+        expect(unchanged.query("SELECT name FROM sqlite_master WHERE type = 'table' AND name = 'quick_drops'").get()).toBeNull();
       } finally {
-        sqlite.close();
+        unchanged.close();
+      }
+    } finally {
+      await removeSqliteArtifacts(dbPath);
+    }
+  });
+
+  it('rejects a current-version database missing a baseline index without patching it', async () => {
+    const dbPath = temporaryDatabasePath('kanban-incomplete-index');
+    const incomplete = new Database(dbPath);
+    incomplete.exec(schemaSql);
+    incomplete.exec('DROP INDEX idx_published_page_order;');
+    incomplete.close();
+
+    try {
+      await expect(initializeSqliteDatabase(dbPath, schemaPath)).rejects.toThrow(
+        'SQLite schema is incomplete: missing indexes idx_published_page_order',
+      );
+      const unchanged = new Database(dbPath);
+      try {
+        expect(unchanged.query("SELECT name FROM sqlite_master WHERE type = 'index' AND name = 'idx_published_page_order'").get()).toBeNull();
+      } finally {
+        unchanged.close();
+      }
+    } finally {
+      await removeSqliteArtifacts(dbPath);
+    }
+  });
+
+  it('rejects a current-version database missing a search trigger without patching it', async () => {
+    const dbPath = temporaryDatabasePath('kanban-incomplete-trigger');
+    const incomplete = new Database(dbPath);
+    incomplete.exec(schemaSql);
+    incomplete.exec('DROP TRIGGER topic_search_au;');
+    incomplete.close();
+
+    try {
+      await expect(initializeSqliteDatabase(dbPath, schemaPath)).rejects.toThrow(
+        'SQLite schema is incomplete: missing triggers topic_search_au',
+      );
+      const unchanged = new Database(dbPath);
+      try {
+        expect(unchanged.query("SELECT name FROM sqlite_master WHERE type = 'trigger' AND name = 'topic_search_au'").get()).toBeNull();
+      } finally {
+        unchanged.close();
       }
     } finally {
       await removeSqliteArtifacts(dbPath);
@@ -151,7 +202,7 @@ describe('Database schema contract', () => {
     outdated.close();
 
     try {
-      await expect(initializeSqliteDatabase(dbPath, schemaDir)).rejects.toThrow('SQLite schema version mismatch: expected baseline v6');
+      await expect(initializeSqliteDatabase(dbPath, schemaPath)).rejects.toThrow('SQLite schema version mismatch: expected baseline v6');
       const unchanged = new Database(dbPath);
       try {
         expect(unchanged.query("SELECT name FROM sqlite_master WHERE type = 'table' AND name = 'quick_drops'").get()).toBeNull();

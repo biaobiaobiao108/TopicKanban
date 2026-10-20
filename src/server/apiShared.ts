@@ -1,5 +1,5 @@
 import { createHash, timingSafeEqual } from 'node:crypto';
-import type { SqliteDatabase } from './sqlite';
+import type { Database } from 'bun:sqlite';
 import {
   commercialDealSchema,
   parseWithZod,
@@ -8,7 +8,7 @@ import {
 } from './schemas';
 
 export type ApiBindings = {
-  DB: SqliteDatabase;
+  DB: Database;
   APP_PASSWORD?: string;
   QUICK_DROP_TOKEN?: string;
   PUBLIC_BASE_URL?: string;
@@ -147,7 +147,7 @@ export async function verifyToken(token: string, password: string): Promise<bool
   }
 }
 
-export function requireDb(c: { env: ApiBindings }): SqliteDatabase {
+export function requireDb(c: { env: ApiBindings }): Database {
   if (!c.env.DB) throw new Error('SQLite database is not configured');
   return c.env.DB;
 }

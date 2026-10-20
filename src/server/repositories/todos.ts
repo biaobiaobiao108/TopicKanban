@@ -1,6 +1,6 @@
 import type { TopicTodo, TopicTodoBoardLayout, TopicTodoMutationResult, TopicTodoStatus } from '../../types';
-import type { SqliteDatabase, SqlitePreparedStatement } from '../sqlite';
-import { bind } from './shared';
+import type { Database } from 'bun:sqlite';
+import { command, execute, readAll, readOne, type SqlCommand } from './shared';
 import { loadTopic } from './topics';
 
 export class TopicTodoNotFoundError extends Error {}
@@ -19,41 +19,40 @@ function todoRowToRecord(row: TopicTodo): TopicTodo {
   };
 }
 
-function loadTopicTodoRows(db: SqliteDatabase, topicId: string): TopicTodo[] {
-  const result = db.prepare(`SELECT * FROM topic_todos
+function loadTopicTodoRows(db: Database, topicId: string): TopicTodo[] {
+  const result = readAll<TopicTodo>(db, `SELECT * FROM topic_todos
     WHERE topic_id = ?
     ORDER BY CASE status WHEN 'todo' THEN 0 WHEN 'in_progress' THEN 1 ELSE 2 END,
-      sort_order ASC, created_at ASC`).bind(topicId).executeSync();
-  return (result.results as TopicTodo[]).map(todoRowToRecord);
+      sort_order ASC, created_at ASC`, [topicId]);
+  return result.map(todoRowToRecord);
 }
 
-export async function loadTopicTodos(db: SqliteDatabase, topicId: string): Promise<TopicTodo[]> {
+export async function loadTopicTodos(db: Database, topicId: string): Promise<TopicTodo[]> {
   return loadTopicTodoRows(db, topicId);
 }
 
-export async function loadAllTopicTodos(db: SqliteDatabase): Promise<TopicTodo[]> {
-  const result = await db.prepare(`SELECT * FROM topic_todos
+export async function loadAllTopicTodos(db: Database): Promise<TopicTodo[]> {
+  const result = readAll<TopicTodo>(db, `SELECT * FROM topic_todos
     ORDER BY topic_id ASC,
       CASE status WHEN 'todo' THEN 0 WHEN 'in_progress' THEN 1 ELSE 2 END,
-      sort_order ASC, created_at ASC`).all<TopicTodo>();
-  return result.results.map(todoRowToRecord);
+      sort_order ASC, created_at ASC`);
+  return result.map(todoRowToRecord);
 }
 
 export async function loadCurrentTodosByTopicIds(
-  db: SqliteDatabase,
+  db: Database,
   topicIds: string[]
 ): Promise<Map<string, TopicTodo>> {
   if (topicIds.length === 0) return new Map();
   const placeholders = topicIds.map(() => '?').join(',');
-  const result = await db.prepare(`SELECT * FROM topic_todos
+  const result = readAll<TopicTodo>(db, `SELECT * FROM topic_todos
     WHERE topic_id IN (${placeholders}) AND status = 'in_progress' AND is_current = 1
-    ORDER BY topic_id ASC`)
-    .bind(...topicIds).all<TopicTodo>();
-  return new Map(result.results.map((row) => [row.topic_id, todoRowToRecord(row)]));
+    ORDER BY topic_id ASC`, topicIds);
+  return new Map(result.map((row) => [row.topic_id, todoRowToRecord(row)]));
 }
 
-export function topicTodoStatement(db: SqliteDatabase, todo: TopicTodo): SqlitePreparedStatement {
-  return bind(db, `INSERT INTO topic_todos (
+export function topicTodoStatement(db: Database, todo: TopicTodo): SqlCommand {
+  return command(db, `INSERT INTO topic_todos (
     id, topic_id, title, status, is_current, current_started_at,
     completed_at, sort_order, created_at, updated_at
   ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`, [
@@ -63,12 +62,12 @@ export function topicTodoStatement(db: SqliteDatabase, todo: TopicTodo): SqliteP
   ]);
 }
 
-function loadTodo(db: SqliteDatabase, id: string): TopicTodo | null {
-  const row = db.prepare('SELECT * FROM topic_todos WHERE id = ?').bind(id).executeSync().results[0] as TopicTodo | undefined;
+function loadTodo(db: Database, id: string): TopicTodo | null {
+  const row = readOne<TopicTodo>(db, 'SELECT * FROM topic_todos WHERE id = ?', [id]);
   return row ? todoRowToRecord(row) : null;
 }
 
-async function loadMutationResult(db: SqliteDatabase, topicId: string): Promise<TopicTodoMutationResult> {
+async function loadMutationResult(db: Database, topicId: string): Promise<TopicTodoMutationResult> {
   const [topic, todos] = await Promise.all([loadTopic(db, topicId), loadTopicTodos(db, topicId)]);
   if (!topic) throw new TopicTodoNotFoundError('Topic not found');
   return { topic, todos };
@@ -105,15 +104,15 @@ function validateBoardLayout(todos: TopicTodo[], layout: TopicTodoBoardLayout): 
 }
 
 function persistBoardLayout(
-  db: SqliteDatabase,
+  db: Database,
   topicId: string,
   previousTodos: TopicTodo[],
   nextTodos: TopicTodo[],
   layout: TopicTodoBoardLayout,
   now: string,
-  extraStatements: SqlitePreparedStatement[] = [],
+  extraStatements: SqlCommand[] = [],
 ): void {
-  const topic = db.prepare('SELECT id FROM topics WHERE id = ?').bind(topicId).executeSync().results[0];
+  const topic = readOne<{ id: string }>(db, 'SELECT id FROM topics WHERE id = ?', [topicId]);
   if (!topic) throw new TopicTodoNotFoundError('Topic not found');
   validateBoardLayout(nextTodos, layout);
 
@@ -132,9 +131,9 @@ function persistBoardLayout(
     ['completed', layout.completed_ids],
   ];
 
-  const statements: SqlitePreparedStatement[] = [
+  const statements: SqlCommand[] = [
     ...extraStatements,
-    bind(db, `UPDATE topic_todos SET is_current = 0, current_started_at = NULL
+    command(db, `UPDATE topic_todos SET is_current = 0, current_started_at = NULL
       WHERE topic_id = ?`, [topicId]),
   ];
 
@@ -147,7 +146,7 @@ function persistBoardLayout(
       const startedAt = isCurrent
         ? currentId === previousCurrentId ? previousCurrent?.current_started_at || now : currentStartedAt
         : null;
-      statements.push(bind(db, `UPDATE topic_todos SET status = ?, is_current = ?,
+      statements.push(command(db, `UPDATE topic_todos SET status = ?, is_current = ?,
         current_started_at = ?, completed_at = ?, sort_order = ?, updated_at = ?
         WHERE id = ? AND topic_id = ?`, [
         status,
@@ -161,29 +160,29 @@ function persistBoardLayout(
       ]));
     });
   });
-  statements.push(bind(db, 'UPDATE topics SET updated_at = ? WHERE id = ?', [now, topicId]));
+  statements.push(command(db, 'UPDATE topics SET updated_at = ? WHERE id = ?', [now, topicId]));
 
   // The caller owns the transaction, including the reads used to derive this layout.
-  statements.forEach((statement) => statement.executeSync());
+  statements.forEach(({ statement, values }) => statement.run(...values));
 }
 
 export async function updateTopicTodoBoard(
-  db: SqliteDatabase,
+  db: Database,
   topicId: string,
   layout: TopicTodoBoardLayout,
 ): Promise<TopicTodoMutationResult> {
-  db.sqlite.transaction(() => {
+  db.transaction(() => {
     const todos = loadTopicTodoRows(db, topicId);
     persistBoardLayout(db, topicId, todos, todos, layout, new Date().toISOString());
   }).immediate();
   return loadMutationResult(db, topicId);
 }
 
-export async function insertTopicTodo(db: SqliteDatabase, todo: TopicTodo): Promise<TopicTodoMutationResult> {
+export async function insertTopicTodo(db: Database, todo: TopicTodo): Promise<TopicTodoMutationResult> {
   if (todo.status !== 'todo' && todo.status !== 'in_progress') {
     throw new TopicTodoInvalidStateError('New Todo must be todo or in progress');
   }
-  db.sqlite.transaction(() => {
+  db.transaction(() => {
     const existing = loadTopicTodoRows(db, todo.topic_id);
     const nextTodo: TopicTodo = {
       ...todo,
@@ -204,28 +203,28 @@ export async function insertTopicTodo(db: SqliteDatabase, todo: TopicTodo): Prom
 }
 
 export async function updateTopicTodo(
-  db: SqliteDatabase,
+  db: Database,
   id: string,
   body: Pick<Partial<TopicTodo>, 'title'>
 ): Promise<TopicTodoMutationResult> {
-  const topicId = db.sqlite.transaction(() => {
+  const topicId = db.transaction(() => {
     const existing = loadTodo(db, id);
     if (!existing) throw new TopicTodoNotFoundError('Todo not found');
     const fields = ['title'].filter((field) => Object.prototype.hasOwnProperty.call(body, field));
     const now = new Date().toISOString();
     if (fields.length > 0) {
-      bind(db, `UPDATE topic_todos SET ${fields.map((field) => `${field} = ?`).join(', ')}, updated_at = ? WHERE id = ?`, [
+      execute(db, `UPDATE topic_todos SET ${fields.map((field) => `${field} = ?`).join(', ')}, updated_at = ? WHERE id = ?`, [
         ...fields.map((field) => body[field as keyof typeof body]), now, id,
-      ]).executeSync();
+      ]);
     }
-    bind(db, 'UPDATE topics SET updated_at = ? WHERE id = ?', [now, existing.topic_id]).executeSync();
+    execute(db, 'UPDATE topics SET updated_at = ? WHERE id = ?', [now, existing.topic_id]);
     return existing.topic_id;
   }).immediate();
   return loadMutationResult(db, topicId);
 }
 
-export async function setCurrentTopicTodo(db: SqliteDatabase, id: string): Promise<TopicTodoMutationResult> {
-  const topicId = db.sqlite.transaction(() => {
+export async function setCurrentTopicTodo(db: Database, id: string): Promise<TopicTodoMutationResult> {
+  const topicId = db.transaction(() => {
     const existing = loadTodo(db, id);
     if (!existing) throw new TopicTodoNotFoundError('Todo not found');
     if (existing.status === 'completed') throw new TopicTodoInvalidStateError('Completed Todo cannot become current');
@@ -239,8 +238,8 @@ export async function setCurrentTopicTodo(db: SqliteDatabase, id: string): Promi
   return loadMutationResult(db, topicId);
 }
 
-export async function completeTopicTodo(db: SqliteDatabase, id: string): Promise<TopicTodoMutationResult> {
-  const topicId = db.sqlite.transaction(() => {
+export async function completeTopicTodo(db: Database, id: string): Promise<TopicTodoMutationResult> {
+  const topicId = db.transaction(() => {
     const existing = loadTodo(db, id);
     if (!existing) throw new TopicTodoNotFoundError('Todo not found');
     if (existing.status === 'completed') return existing.topic_id;
@@ -255,8 +254,8 @@ export async function completeTopicTodo(db: SqliteDatabase, id: string): Promise
   return loadMutationResult(db, topicId);
 }
 
-export async function reopenTopicTodo(db: SqliteDatabase, id: string): Promise<TopicTodoMutationResult> {
-  const topicId = db.sqlite.transaction(() => {
+export async function reopenTopicTodo(db: Database, id: string): Promise<TopicTodoMutationResult> {
+  const topicId = db.transaction(() => {
     const existing = loadTodo(db, id);
     if (!existing) throw new TopicTodoNotFoundError('Todo not found');
     if (existing.status !== 'completed') throw new TopicTodoInvalidStateError('Only completed Todo can be reopened');
@@ -270,15 +269,15 @@ export async function reopenTopicTodo(db: SqliteDatabase, id: string): Promise<T
   return loadMutationResult(db, topicId);
 }
 
-export async function deleteTopicTodo(db: SqliteDatabase, id: string): Promise<TopicTodoMutationResult> {
-  const topicId = db.sqlite.transaction(() => {
+export async function deleteTopicTodo(db: Database, id: string): Promise<TopicTodoMutationResult> {
+  const topicId = db.transaction(() => {
     const existing = loadTodo(db, id);
     if (!existing) throw new TopicTodoNotFoundError('Todo not found');
     const todos = loadTopicTodoRows(db, existing.topic_id);
     const nextTodos = todos.filter((todo) => todo.id !== id);
     const layout = boardLayoutFromTodos(nextTodos);
     persistBoardLayout(db, existing.topic_id, todos, nextTodos, layout, new Date().toISOString(), [
-      bind(db, 'DELETE FROM topic_todos WHERE id = ?', [id]),
+      command(db, 'DELETE FROM topic_todos WHERE id = ?', [id]),
     ]);
     return existing.topic_id;
   }).immediate();

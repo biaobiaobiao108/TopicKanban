@@ -1,9 +1,8 @@
 import { describe, it, expect, beforeEach, afterEach } from 'bun:test';
 import { Database } from 'bun:sqlite';
-import { SqliteDatabase } from '../src/server/sqlite';
 import { createApp } from '../src/server/app';
 import { NativeApp } from '../src/server/native';
-import { acquirePresenceLease, releasePresenceLease } from '../src/server/presenceLeases';
+import { acquirePresenceLease, MAX_LEASES, releasePresenceLease } from '../src/server/presenceLeases';
 import {
   getStorageStats,
   vacuumDatabase,
@@ -15,14 +14,14 @@ import type { ApiBindings } from '../src/server/apiShared';
 
 describe('Storage Optimization & Compaction', () => {
   let sqlite: Database;
-  let db: SqliteDatabase;
+  let db: Database;
   let app: NativeApp;
   let authHeaders: { Authorization: string; 'Content-Type': string };
 
   beforeEach(async () => {
     sqlite = new Database(':memory:');
-    sqlite.exec(await Bun.file('drizzle/0000_schema.sql').text());
-    db = new SqliteDatabase(sqlite);
+    sqlite.exec(await Bun.file('database/schema.sql').text());
+    db = sqlite;
     app = createApp({ DB: db, APP_PASSWORD: 'test-password' } satisfies ApiBindings);
 
     const loginRes = await app.request('/api/auth/login', {
@@ -325,6 +324,45 @@ describe('Storage Optimization & Compaction', () => {
       30
     );
     expect(lease3.acquired).toBe(true);
+    expect(releasePresenceLease('lock:topic-writer-1', 'client-B')).toBe('released');
+  });
+
+  it('keeps existing presence leases when renewing at capacity', () => {
+    const prefix = `lock:capacity-${crypto.randomUUID()}`;
+    const keys = Array.from({ length: MAX_LEASES }, (_, index) => `${prefix}-${index}`);
+    try {
+      keys.forEach((key, index) => {
+        const acquired = acquirePresenceLease(
+          key,
+          `owner-${index}`,
+          { client_id: `owner-${index}`, device_name: '测试设备', updated_at: new Date().toISOString() },
+          index === 0 ? 7200 : 3600,
+        );
+        expect(acquired.acquired).toBe(true);
+      });
+
+      const renewed = acquirePresenceLease(
+        keys[keys.length - 1]!,
+        `owner-${MAX_LEASES - 1}`,
+        { client_id: `owner-${MAX_LEASES - 1}`, device_name: '测试设备', updated_at: new Date().toISOString() },
+        3600,
+      );
+      expect(renewed.acquired).toBe(true);
+
+      const firstLease = acquirePresenceLease(
+        keys[0]!,
+        'intruder',
+        { client_id: 'intruder', device_name: '其他设备', updated_at: new Date().toISOString() },
+        3600,
+      );
+      expect(firstLease.acquired).toBe(false);
+      expect(firstLease.current?.client_id).toBe('owner-0');
+    } finally {
+      keys.forEach((key, index) => {
+        releasePresenceLease(key, `owner-${index}`);
+        releasePresenceLease(key, 'intruder');
+      });
+    }
   });
 
   it('serves storage stats and vacuum API endpoints correctly', async () => {

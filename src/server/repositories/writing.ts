@@ -1,3 +1,4 @@
+import type { Database } from 'bun:sqlite';
 import type {
   Draft,
   DraftCitation,
@@ -5,19 +6,18 @@ import type {
   TopicReport,
 } from '../../types';
 import { createId } from '../apiShared';
-import type { SqliteDatabase, SqlitePreparedStatement } from '../sqlite';
-import { bind } from './shared';
+import { command, execute, readAll, readOne } from './shared';
 
 export type TopicReportSaveResult =
   | { kind: 'saved'; report: TopicReport }
   | { kind: 'conflict'; current: TopicReport | null };
 
-export async function loadTopicReport(db: SqliteDatabase, topicId: string): Promise<TopicReport | null> {
-  return db.prepare('SELECT * FROM topic_reports WHERE topic_id = ?').bind(topicId).first<TopicReport>();
+export async function loadTopicReport(db: Database, topicId: string): Promise<TopicReport | null> {
+  return readOne<TopicReport>(db, 'SELECT * FROM topic_reports WHERE topic_id = ?', [topicId]);
 }
 
 export async function saveTopicReport(
-  db: SqliteDatabase,
+  db: Database,
   topicId: string,
   body: Partial<TopicReport> & { base_version?: number }
 ): Promise<TopicReportSaveResult> {
@@ -38,27 +38,28 @@ export async function saveTopicReport(
     version: existing ? existing.version + 1 : 1,
     updated_at: now,
   };
-  const result = existing
-    ? await bind(db, `UPDATE topic_reports SET title = ?, content_markdown = ?, content_json = ?, content_html = ?, word_count = ?,
+  const statement = existing
+    ? command(db, `UPDATE topic_reports SET title = ?, content_markdown = ?, content_json = ?, content_html = ?, word_count = ?,
         version = version + 1, updated_at = ? WHERE topic_id = ? AND version = ?`, [
       report.title, report.content_markdown, report.content_json, report.content_html, report.word_count,
       report.updated_at, topicId, baseVersion,
-    ]).run()
-    : await bind(db, `INSERT INTO topic_reports
+    ])
+    : command(db, `INSERT INTO topic_reports
         (id, topic_id, title, content_markdown, content_json, content_html, word_count, version, updated_at)
         VALUES (?, ?, ?, ?, ?, ?, ?, 1, ?) ON CONFLICT(topic_id) DO NOTHING`, [
       report.id, report.topic_id, report.title, report.content_markdown, report.content_json, report.content_html,
       report.word_count, report.updated_at,
-    ]).run();
-  if ((result.meta.changes || 0) === 0) {
+    ]);
+  const result = statement.statement.run(...statement.values);
+  if (result.changes === 0) {
     return { kind: 'conflict', current: await loadTopicReport(db, topicId) };
   }
   const saved = await loadTopicReport(db, topicId);
-  return { kind: 'saved', report: (saved as TopicReport) || report };
+  return { kind: 'saved', report: saved || report };
 }
 
-export function topicReportStatement(db: SqliteDatabase, report: TopicReport): SqlitePreparedStatement {
-  return bind(db, `INSERT INTO topic_reports (
+export function topicReportStatement(db: Database, report: TopicReport) {
+  return command(db, `INSERT INTO topic_reports (
     id, topic_id, title, content_markdown, content_json, content_html, word_count, version, updated_at
   ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`, [
     report.id, report.topic_id, report.title, report.content_markdown, report.content_json, report.content_html,
@@ -83,8 +84,8 @@ export function normalizePublishPackageRecord(row: Record<string, unknown> | nul
   };
 }
 
-export async function loadDraft(db: SqliteDatabase, topicId: string): Promise<Draft | null> {
-  return db.prepare('SELECT * FROM drafts WHERE topic_id = ?').bind(topicId).first<Draft>();
+export async function loadDraft(db: Database, topicId: string): Promise<Draft | null> {
+  return readOne<Draft>(db, 'SELECT * FROM drafts WHERE topic_id = ?', [topicId]);
 }
 
 export type DraftSaveResult =
@@ -92,7 +93,7 @@ export type DraftSaveResult =
   | { kind: 'conflict'; current: Draft | null };
 
 export async function saveDraft(
-  db: SqliteDatabase,
+  db: Database,
   topicId: string,
   body: Partial<Draft> & { base_version?: number }
 ): Promise<DraftSaveResult> {
@@ -113,19 +114,20 @@ export async function saveDraft(
     version: existing ? existing.version + 1 : 1,
     updated_at: now,
   };
-  const result = existing
-    ? await bind(db, `UPDATE drafts SET title = ?, content_markdown = ?, content_json = ?, content_html = ?, word_count = ?,
+  const statement = existing
+    ? command(db, `UPDATE drafts SET title = ?, content_markdown = ?, content_json = ?, content_html = ?, word_count = ?,
         version = version + 1, updated_at = ? WHERE topic_id = ? AND version = ?`, [
       draft.title, draft.content_markdown, draft.content_json, draft.content_html, draft.word_count,
       draft.updated_at, topicId, baseVersion,
-    ]).run()
-    : await bind(db, `INSERT INTO drafts
+    ])
+    : command(db, `INSERT INTO drafts
         (id, topic_id, title, content_markdown, content_json, content_html, word_count, version, updated_at)
         VALUES (?, ?, ?, ?, ?, ?, ?, 1, ?) ON CONFLICT(topic_id) DO NOTHING`, [
       draft.id, draft.topic_id, draft.title, draft.content_markdown, draft.content_json, draft.content_html,
       draft.word_count, draft.updated_at,
-    ]).run();
-  if ((result.meta.changes || 0) === 0) {
+    ]);
+  const result = statement.statement.run(...statement.values);
+  if (result.changes === 0) {
     return { kind: 'conflict', current: await loadDraft(db, topicId) };
   }
   return { kind: 'saved', draft };
@@ -135,19 +137,17 @@ export type PublishPackageSaveResult =
   | { kind: 'saved'; publishPackage: PublishPackageRecord }
   | { kind: 'conflict'; current: PublishPackageRecord | null };
 
-export async function loadPublishPackage(db: SqliteDatabase, topicId: string): Promise<PublishPackageRecord | null> {
-  const row = await db.prepare('SELECT * FROM publish_packages WHERE topic_id = ?')
-    .bind(topicId).first<Record<string, unknown>>();
+export async function loadPublishPackage(db: Database, topicId: string): Promise<PublishPackageRecord | null> {
+  const row = readOne<Record<string, unknown>>(db, 'SELECT * FROM publish_packages WHERE topic_id = ?', [topicId]);
   return normalizePublishPackageRecord(row);
 }
 
 export async function savePublishPackage(
-  db: SqliteDatabase,
+  db: Database,
   topicId: string,
   body: Record<string, unknown>
 ): Promise<PublishPackageSaveResult> {
-  const existing = await db.prepare('SELECT * FROM publish_packages WHERE topic_id = ?')
-    .bind(topicId).first<Record<string, unknown>>();
+  const existing = readOne<Record<string, unknown>>(db, 'SELECT * FROM publish_packages WHERE topic_id = ?', [topicId]);
   const baseVersion = Number(body.base_version ?? 0);
   const existingVersion = Number(existing?.version || 0);
   if (baseVersion !== existingVersion) {
@@ -167,22 +167,23 @@ export async function savePublishPackage(
     contentJson,
     now,
   ];
-  const result = existing
-    ? await bind(db, `UPDATE publish_packages SET
+  const statement = existing
+    ? command(db, `UPDATE publish_packages SET
         title_simplified = ?, title_traditional = ?, description_simplified = ?, description_traditional = ?,
         title_traditional_auto = ?, description_traditional_auto = ?, content_json = ?, version = ?, updated_at = ?
         WHERE topic_id = ? AND version = ?`, [
       ...values.slice(0, 7), nextVersion, values[7], topicId, existingVersion,
-    ]).run()
-    : await bind(db, `INSERT INTO publish_packages (
+    ])
+    : command(db, `INSERT INTO publish_packages (
         id, topic_id, version, title_simplified, title_traditional, description_simplified, description_traditional,
         title_traditional_auto, description_traditional_auto, content_json, updated_at
       ) VALUES (?, ?, 1, ?, ?, ?, ?, ?, ?, ?, ?)
       ON CONFLICT(topic_id) DO NOTHING`, [
       createId('publish-package'), topicId, ...values.slice(0, 7), values[7],
-    ]).run();
+    ]);
+  const result = statement.statement.run(...statement.values);
 
-  if ((result.meta.changes || 0) === 0) {
+  if (result.changes === 0) {
     return {
       kind: 'conflict',
       current: await loadPublishPackage(db, topicId),
@@ -192,29 +193,27 @@ export async function savePublishPackage(
   return { kind: 'saved', publishPackage: saved as PublishPackageRecord };
 }
 
-export async function loadCitations(db: SqliteDatabase, topicId: string): Promise<DraftCitation[]> {
-  const result = await db.prepare('SELECT * FROM draft_citations WHERE topic_id = ? ORDER BY created_at DESC')
-    .bind(topicId).all<DraftCitation>();
-  return result.results;
+export async function loadCitations(db: Database, topicId: string): Promise<DraftCitation[]> {
+  return readAll<DraftCitation>(db, 'SELECT * FROM draft_citations WHERE topic_id = ? ORDER BY created_at DESC', [topicId]);
 }
 
-export async function insertCitation(db: SqliteDatabase, citation: DraftCitation): Promise<void> {
-  await bind(db, `INSERT INTO draft_citations (
+export async function insertCitation(db: Database, citation: DraftCitation): Promise<void> {
+  execute(db, `INSERT INTO draft_citations (
     id, topic_id, reference_type, reference_id, reference_title, reference_snapshot,
     quoted_text, verification_status, created_at
   ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`, [
     citation.id, citation.topic_id, citation.reference_type, citation.reference_id,
     citation.reference_title, citation.reference_snapshot, citation.quoted_text,
     citation.verification_status, citation.created_at,
-  ]).run();
+  ]);
 }
 
-export async function deleteCitation(db: SqliteDatabase, id: string): Promise<void> {
-  await bind(db, 'DELETE FROM draft_citations WHERE id = ?', [id]).run();
+export async function deleteCitation(db: Database, id: string): Promise<void> {
+  execute(db, 'DELETE FROM draft_citations WHERE id = ?', [id]);
 }
 
-export function draftStatement(db: SqliteDatabase, draft: Draft): SqlitePreparedStatement {
-  return bind(db, `INSERT INTO drafts (
+export function draftStatement(db: Database, draft: Draft) {
+  return command(db, `INSERT INTO drafts (
     id, topic_id, title, content_markdown, content_json, content_html, word_count, version, updated_at
   ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`, [
     draft.id, draft.topic_id, draft.title, draft.content_markdown, draft.content_json, draft.content_html,
@@ -222,8 +221,8 @@ export function draftStatement(db: SqliteDatabase, draft: Draft): SqlitePrepared
   ]);
 }
 
-export function citationStatement(db: SqliteDatabase, citation: DraftCitation): SqlitePreparedStatement {
-  return bind(db, `INSERT INTO draft_citations (
+export function citationStatement(db: Database, citation: DraftCitation) {
+  return command(db, `INSERT INTO draft_citations (
     id, topic_id, reference_type, reference_id, reference_title, reference_snapshot,
     quoted_text, verification_status, created_at
   ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`, [
@@ -233,8 +232,8 @@ export function citationStatement(db: SqliteDatabase, citation: DraftCitation): 
   ]);
 }
 
-export function publishPackageStatement(db: SqliteDatabase, publishPackage: PublishPackageRecord): SqlitePreparedStatement {
-  return bind(db, `INSERT INTO publish_packages (
+export function publishPackageStatement(db: Database, publishPackage: PublishPackageRecord) {
+  return command(db, `INSERT INTO publish_packages (
     id, topic_id, version, title_simplified, title_traditional, description_simplified, description_traditional,
     title_traditional_auto, description_traditional_auto, content_json, updated_at
   ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`, [

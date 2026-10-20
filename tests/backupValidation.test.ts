@@ -2,7 +2,6 @@ import { describe, expect, it } from 'bun:test';
 import type { BackupData, Topic, TopicTodo } from '../src/types';
 import { validateBackupData } from '../src/lib/backupValidation';
 import { Database } from 'bun:sqlite';
-import { SqliteDatabase } from '../src/server/sqlite';
 import { createApp } from '../src/server/app';
 
 function createBackup(overrides: Partial<BackupData> = {}): BackupData {
@@ -96,8 +95,8 @@ describe('backup schema validation', () => {
   it('can restore an exported draft whose saved JSON exceeds 2 MiB', async () => {
     const sqlite = new Database(':memory:');
     try {
-      sqlite.exec(await Bun.file('drizzle/0000_schema.sql').text());
-      const db = new SqliteDatabase(sqlite);
+      sqlite.exec(await Bun.file('database/schema.sql').text());
+      const db = sqlite;
       const app = createApp({ DB: db, APP_PASSWORD: 'backup-test-password' });
       const login = await app.request('/api/auth/login', {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
@@ -358,6 +357,24 @@ describe('backup schema validation', () => {
     }));
 
     expect(result.success).toBe(true);
+  });
+
+  it('rejects commercial deal amounts outside the JavaScript safe integer range', () => {
+    const deal = {
+      id: 'deal-unsafe-amount', title: '金额边界校验', brand_name: '', agency_name: '', contact_name: '', contact_channel: '',
+      source: 'other' as const, deliverable_type: 'other' as const, status: 'communicating' as const,
+      contract_status: 'not_started' as const, contract_summary: '', brief: '', requirements: '', restrictions: '',
+      amount_cents: Number.MAX_SAFE_INTEGER, payment_status: 'unpaid' as const, paid_at: null, delivery_due_date: null,
+      publish_date: null, next_action: '', next_action_due_date: null, published_video_id: null,
+      created_at: '', updated_at: '',
+    };
+    expect(validateBackupData(createBackup({ commercial_deals: [deal] })).success).toBe(true);
+
+    const parsedUnsafeAmount = JSON.parse('9007199254740993') as number;
+    expect(Number.isSafeInteger(parsedUnsafeAmount)).toBe(false);
+    expect(validateBackupData(createBackup({
+      commercial_deals: [{ ...deal, amount_cents: parsedUnsafeAmount }],
+    })).success).toBe(false);
   });
 
   it('rejects commercial relations that point to missing entities', () => {

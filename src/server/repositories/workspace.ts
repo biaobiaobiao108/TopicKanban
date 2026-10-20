@@ -1,13 +1,12 @@
+import type { Database } from 'bun:sqlite';
 import type {
   Draft,
   DraftCitation,
   PublishPackageRecord,
   Source,
-  TopicReport,
   TopicWorkspaceData,
 } from '../../types';
-import type { SqliteDatabase, SqlitePreparedStatement } from '../sqlite';
-import { bind } from './shared';
+import { command, execute, readAll, readOne } from './shared';
 import { loadTopicReport } from './writing';
 
 export class SourceReorderInvalidStateError extends Error {}
@@ -29,31 +28,29 @@ function normalizePublishPackageRecord(row: Record<string, unknown> | null): Pub
   };
 }
 
-export async function loadTopicWorkspace(db: SqliteDatabase, topicId: string): Promise<TopicWorkspaceData> {
-  const [sourcesResult, report, draft, citationsResult, publishPackageResult] = await Promise.all([
-    db.prepare('SELECT * FROM sources WHERE topic_id = ? ORDER BY sort_order ASC, created_at DESC').bind(topicId).all<Source>(),
+export async function loadTopicWorkspace(db: Database, topicId: string): Promise<TopicWorkspaceData> {
+  const [sources, report, draft, citations, publishPackage] = await Promise.all([
+    Promise.resolve(readAll<Source>(db, 'SELECT * FROM sources WHERE topic_id = ? ORDER BY sort_order ASC, created_at DESC', [topicId])),
     loadTopicReport(db, topicId),
-    db.prepare('SELECT * FROM drafts WHERE topic_id = ?').bind(topicId).first<Draft>(),
-    db.prepare('SELECT * FROM draft_citations WHERE topic_id = ? ORDER BY created_at DESC').bind(topicId).all<DraftCitation>(),
-    db.prepare('SELECT * FROM publish_packages WHERE topic_id = ?').bind(topicId).first<Record<string, unknown>>(),
+    Promise.resolve(readOne<Draft>(db, 'SELECT * FROM drafts WHERE topic_id = ?', [topicId])),
+    Promise.resolve(readAll<DraftCitation>(db, 'SELECT * FROM draft_citations WHERE topic_id = ? ORDER BY created_at DESC', [topicId])),
+    Promise.resolve(readOne<Record<string, unknown>>(db, 'SELECT * FROM publish_packages WHERE topic_id = ?', [topicId])),
   ]);
   return {
-    sources: sourcesResult.results,
+    sources,
     report,
-    draft: draft || null,
-    citations: citationsResult.results,
-    publish_package: normalizePublishPackageRecord(publishPackageResult),
+    draft,
+    citations,
+    publish_package: normalizePublishPackageRecord(publishPackage),
   };
 }
 
-export async function loadSourcesByTopic(db: SqliteDatabase, topicId: string): Promise<Source[]> {
-  const result = await db.prepare('SELECT * FROM sources WHERE topic_id = ? ORDER BY sort_order ASC, created_at DESC')
-    .bind(topicId).all<Source>();
-  return result.results;
+export async function loadSourcesByTopic(db: Database, topicId: string): Promise<Source[]> {
+  return readAll<Source>(db, 'SELECT * FROM sources WHERE topic_id = ? ORDER BY sort_order ASC, created_at DESC', [topicId]);
 }
 
-export function sourceStatement(db: SqliteDatabase, source: Source): SqlitePreparedStatement {
-  return bind(db, `INSERT INTO sources (
+export function sourceStatement(db: Database, source: Source) {
+  return command(db, `INSERT INTO sources (
     id, topic_id, title, content, url, platform, author, published_at,
     verification_status, notes, event_date, date_precision, sort_order, created_at, updated_at
   ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`, [
@@ -64,53 +61,54 @@ export function sourceStatement(db: SqliteDatabase, source: Source): SqlitePrepa
   ]);
 }
 
-export async function insertSource(db: SqliteDatabase, source: Source): Promise<void> {
-  await sourceStatement(db, source).run();
+export async function insertSource(db: Database, source: Source): Promise<void> {
+  const { statement, values } = sourceStatement(db, source);
+  statement.run(...values);
 }
 
-export async function updateSource(db: SqliteDatabase, id: string, body: Record<string, unknown>): Promise<Source | null> {
+export async function updateSource(db: Database, id: string, body: Record<string, unknown>): Promise<Source | null> {
   const fields = ['title', 'content', 'url', 'platform', 'author', 'published_at', 'verification_status', 'notes', 'event_date', 'date_precision', 'sort_order']
     .filter((field) => Object.prototype.hasOwnProperty.call(body, field));
   if (fields.length > 0) {
-    await bind(db, `UPDATE sources SET ${fields.map((field) => `${field} = ?`).join(', ')}, updated_at = ? WHERE id = ?`,
-      [...fields.map((field) => body[field]), new Date().toISOString(), id]).run();
+    execute(db, `UPDATE sources SET ${fields.map((field) => `${field} = ?`).join(', ')}, updated_at = ? WHERE id = ?`,
+      [...fields.map((field) => body[field]), new Date().toISOString(), id]);
   }
-  return db.prepare('SELECT * FROM sources WHERE id = ?').bind(id).first<Source>();
+  return readOne<Source>(db, 'SELECT * FROM sources WHERE id = ?', [id]);
 }
 
-export async function reorderSources(db: SqliteDatabase, sources: Array<{ id: string; topic_id: string }>): Promise<string> {
+export async function reorderSources(db: Database, sources: Array<{ id: string; topic_id: string }>): Promise<string> {
   const now = new Date().toISOString();
   if (sources.length > 0) {
-    const sourceIds = sources.map((s) => s.id);
+    const sourceIds = sources.map((source) => source.id);
     if (new Set(sourceIds).size !== sourceIds.length) {
       throw new SourceReorderInvalidStateError('Duplicate source ids are not allowed');
     }
 
-    const executeReorder = db.sqlite.transaction(() => {
+    db.transaction(() => {
       const placeholders = sourceIds.map(() => '?').join(',');
-      const existing = (db.sqlite.query(
-        `SELECT id, topic_id FROM sources WHERE id IN (${placeholders})`
-      ).all(...sourceIds)) as Array<{ id: string; topic_id: string }>;
+      const existing = readAll<{ id: string; topic_id: string }>(
+        db,
+        `SELECT id, topic_id FROM sources WHERE id IN (${placeholders})`,
+        sourceIds,
+      );
 
       if (existing.length !== sourceIds.length) {
         throw new SourceReorderInvalidStateError('All sources must exist before reordering');
       }
-      const requestedTopicIds = new Set(sources.map((s) => s.topic_id));
-      if (requestedTopicIds.size !== 1 || existing.some((s) => s.topic_id !== sources[0]?.topic_id)) {
+      const requestedTopicIds = new Set(sources.map((source) => source.topic_id));
+      if (requestedTopicIds.size !== 1 || existing.some((source) => source.topic_id !== sources[0]?.topic_id)) {
         throw new SourceReorderInvalidStateError('Sources must belong to the same topic');
       }
 
-      const updateStmt = db.sqlite.query('UPDATE sources SET sort_order = ?, updated_at = ? WHERE id = ?');
-      sources.forEach((s, index) => {
-        updateStmt.run(index + 1, now, s.id);
+      const updateStatement = db.query('UPDATE sources SET sort_order = ?, updated_at = ? WHERE id = ?');
+      sources.forEach((source, index) => {
+        updateStatement.run(index + 1, now, source.id);
       });
-    });
-
-    executeReorder.immediate();
+    }).immediate();
   }
   return now;
 }
 
-export async function deleteSource(db: SqliteDatabase, id: string): Promise<void> {
-  await bind(db, 'DELETE FROM sources WHERE id = ?', [id]).run();
+export async function deleteSource(db: Database, id: string): Promise<void> {
+  execute(db, 'DELETE FROM sources WHERE id = ?', [id]);
 }

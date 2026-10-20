@@ -30,7 +30,7 @@ import {
   linkPublishedVideoToCommercialDeal,
   replaceCommercialDealTopics,
   saveCommercialDeal,
-} from '../../lib/storage';
+} from '../../lib/storageApi';
 import { extractBvid } from '../../lib/bilibili';
 import { sanitizeExternalHttpUrl } from '../../lib/urlSafety';
 import { removeCommercialDealCaches, updateCommercialDealCaches } from '../../lib/queryCacheSync';

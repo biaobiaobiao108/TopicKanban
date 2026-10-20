@@ -1,5 +1,5 @@
 import type { QueryClient } from '@tanstack/react-query';
-import { invalidateBootstrap } from './storage';
+import { invalidateBootstrap } from './storageApi';
 
 const topicAggregateQueryKeys = [
   ['today-focus'],

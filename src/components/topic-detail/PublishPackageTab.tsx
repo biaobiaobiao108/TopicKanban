@@ -34,7 +34,7 @@ import {
 } from '../../lib/publishPackage';
 import { sanitizeExternalHttpUrl } from '../../lib/urlSafety';
 import { toTraditionalChinese, toTraditionalChineseAsync, getTraditionalConverter } from '../../lib/traditionalChinese';
-import { PublishPackageConflictError } from '../../lib/storage';
+import { PublishPackageConflictError } from '../../lib/storageApi';
 import { copyTextToClipboard } from '../../lib/clipboard';
 import { useToast } from '../ui/Toast';
 import { formatBeijingDateTime } from '../../lib/actionDate';

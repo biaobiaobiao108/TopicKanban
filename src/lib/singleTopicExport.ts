@@ -1,5 +1,5 @@
 import type { Topic } from '../types';
-import { exportSingleTopicMarkdown, fetchTopicWorkspace } from './storage';
+import { exportSingleTopicMarkdown, fetchTopicWorkspace } from './storageApi';
 
 /** Load the complete archive independently of which detail tabs have been opened. */
 export async function fetchAndExportSingleTopicMarkdown(topic: Topic, readingSpeed: number): Promise<string> {

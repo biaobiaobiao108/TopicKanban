@@ -1,7 +1,6 @@
 import { afterEach, describe, expect, it } from 'bun:test';
 import { Database } from 'bun:sqlite';
 import { loadTodayFocus } from '../src/server/repositories/topics';
-import { SqliteDatabase } from '../src/server/sqlite';
 
 describe('Today focus stale action age', () => {
   let sqlite: Database | null = null;
@@ -13,8 +12,8 @@ describe('Today focus stale action age', () => {
 
   it('compares UTC instants without adding eight hours to elapsed time', async () => {
     sqlite = new Database(':memory:');
-    sqlite.exec(await Bun.file('drizzle/0000_schema.sql').text());
-    const db = new SqliteDatabase(sqlite);
+    sqlite.exec(await Bun.file('database/schema.sql').text());
+    const db = sqlite;
     const now = new Date().toISOString();
     const startedAt = new Date(Date.now() - (5 * 24 - 1) * 60 * 60 * 1000).toISOString();
     sqlite.query(`INSERT INTO topics (id, title, status, created_at, updated_at)
@@ -29,8 +28,8 @@ describe('Today focus stale action age', () => {
 
   it('uses the current marker instead of picking an older backlog item with the same lane order', async () => {
     sqlite = new Database(':memory:');
-    sqlite.exec(await Bun.file('drizzle/0000_schema.sql').text());
-    const db = new SqliteDatabase(sqlite);
+    sqlite.exec(await Bun.file('database/schema.sql').text());
+    const db = sqlite;
     const now = new Date().toISOString();
     sqlite.query(`INSERT INTO topics (id, title, status, created_at, updated_at)
       VALUES ('lane-split', '分列后的当前行动', 'production', ?, ?)`).run(now, now);

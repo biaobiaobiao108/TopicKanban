@@ -9,7 +9,6 @@ import {
   MAX_IMPORT_STATEMENTS,
   replaceAllData,
 } from '../src/server/repositories/backup';
-import { SqliteDatabase } from '../src/server/sqlite';
 
 function createBackup(overrides: Partial<BackupData> = {}): BackupData {
   return {
@@ -68,7 +67,7 @@ describe('backup import limits', () => {
 
   it('round trips Todo states and each lane order', async () => {
     const sqlite = new Database(':memory:');
-    sqlite.exec(await Bun.file('drizzle/0000_schema.sql').text());
+    sqlite.exec(await Bun.file('database/schema.sql').text());
     const now = '2026-09-01T00:00:00.000Z';
     const topic: Topic = {
       id: 'topic-board', title: '看板备份', summary: '', hook: '', storyline: '', why_now: '',
@@ -95,8 +94,8 @@ describe('backup import limits', () => {
     const backup = createBackup({ topics: [topic], todos });
 
     try {
-      await replaceAllData(new SqliteDatabase(sqlite), backup);
-      const exported = await exportAllData(new SqliteDatabase(sqlite));
+      await replaceAllData(sqlite, backup);
+      const exported = await exportAllData(sqlite);
       expect(exported.version).toBe('5.0');
       expect(exported.todos.map((todo) => [todo.id, todo.status, todo.sort_order])).toEqual([
         ['todo-first', 'todo', 1], ['todo-later', 'todo', 2],
@@ -111,7 +110,7 @@ describe('backup import limits', () => {
 
   it('restores current-format dated sources and citations without rewriting them', async () => {
     const sqlite = new Database(':memory:');
-    sqlite.exec(await Bun.file('drizzle/0000_schema.sql').text());
+    sqlite.exec(await Bun.file('database/schema.sql').text());
     const now = '2026-09-01T00:00:00.000Z';
     const topic: Topic = {
       id: 'topic-current-backup', title: '当前格式备份', summary: '', hook: '', storyline: '', why_now: '',
@@ -139,9 +138,9 @@ describe('backup import limits', () => {
       const validated = validateBackupData(backup);
       expect(validated.success).toBe(true);
       if (!validated.success) throw new Error(validated.error);
-      await replaceAllData(new SqliteDatabase(sqlite), validated.data);
+      await replaceAllData(sqlite, validated.data);
 
-      const exported = await exportAllData(new SqliteDatabase(sqlite));
+      const exported = await exportAllData(sqlite);
       expect(exported.version).toBe('5.0');
       expect(exported.reports).toEqual([]);
       expect(exported).not.toHaveProperty('timeline');
@@ -158,7 +157,7 @@ describe('backup import limits', () => {
 
   it('rolls back the complete restore when a later write violates a constraint', async () => {
     const sqlite = new Database(':memory:');
-    sqlite.exec(await Bun.file('drizzle/0000_schema.sql').text());
+    sqlite.exec(await Bun.file('database/schema.sql').text());
     sqlite.query(`INSERT INTO quick_drops (id, content, source, created_at, expires_at)
       VALUES (?, ?, ?, ?, ?)`)
       .run('keep-drop', '保留快投', 'test', '2026-01-01T00:00:00.000Z', Date.now() + 60_000);
@@ -173,7 +172,7 @@ describe('backup import limits', () => {
     });
 
     try {
-      await expect(replaceAllData(new SqliteDatabase(sqlite), backup)).rejects.toThrow();
+      await expect(replaceAllData(sqlite, backup)).rejects.toThrow();
       expect(sqlite.query('SELECT id, title FROM topics WHERE id = ?').get('old-topic')).toEqual({ id: 'old-topic', title: '旧数据' });
       expect(sqlite.query('SELECT COUNT(*) AS count FROM tags').get()).toEqual({ count: 0 });
       expect(sqlite.query('SELECT id, content FROM quick_drops WHERE id = ?').get('keep-drop')).toEqual({ id: 'keep-drop', content: '保留快投' });

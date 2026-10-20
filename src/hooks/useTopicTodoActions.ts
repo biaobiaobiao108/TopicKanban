@@ -8,7 +8,7 @@ import {
   setTopicTodoCurrent,
   updateTopicTodo,
   updateTopicTodoBoard,
-} from '../lib/storage';
+} from '../lib/storageApi';
 import type { TopicTodoActions } from '../components/topic-detail/todoTypes';
 
 export function useTopicTodoActions(

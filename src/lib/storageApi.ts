@@ -103,11 +103,12 @@ const KNOWN_STATE_CACHE_TTL_MS = 30 * 60 * 1000;
 const knownDraftVersions = new BoundedMemoryCache<string, number>(KNOWN_STATE_CACHE_MAX_ENTRIES, KNOWN_STATE_CACHE_TTL_MS);
 const draftConflicts = new BoundedMemoryCache<string, Draft | null>(KNOWN_STATE_CACHE_MAX_ENTRIES, KNOWN_STATE_CACHE_TTL_MS);
 const draftUploadEpochs = new BoundedMemoryCache<string, number>(KNOWN_STATE_CACHE_MAX_ENTRIES, KNOWN_STATE_CACHE_TTL_MS);
-let remoteStorageMemoryGeneration = 0;
+let storageMemoryGeneration = 0;
 
 export interface BackupImportResult {
   success: boolean;
   error?: string;
+  settingsWarning?: string;
 }
 
 export class DraftConflictError extends Error {
@@ -149,10 +150,6 @@ export class TopicTrashExpiredError extends Error {
 
 const knownReportVersions = new BoundedMemoryCache<string, number>(KNOWN_STATE_CACHE_MAX_ENTRIES, KNOWN_STATE_CACHE_TTL_MS);
 
-export function isRemoteStorage(): boolean {
-  return getAuthToken()?.startsWith('v1.') === true;
-}
-
 async function apiRequest<T>(path: string, init: RequestInit = {}): Promise<T> {
   const response = await authenticatedFetch(path, init);
   const data = await response.json().catch(() => null) as (T & { code?: string; error?: string; current?: Draft | PublishPackageRecord | TopicReport | null }) | null;
@@ -185,8 +182,8 @@ export function invalidateBootstrap(): void {
   bootstrapPromise = null;
 }
 
-export function clearRemoteStorageMemoryCaches(): void {
-  remoteStorageMemoryGeneration += 1;
+export function clearStorageMemoryCaches(): void {
+  storageMemoryGeneration += 1;
   bootstrapPromise = null;
   bootstrapToken = null;
   knownDraftVersions.clear();
@@ -195,7 +192,7 @@ export function clearRemoteStorageMemoryCaches(): void {
   knownReportVersions.clear();
 }
 
-export function clearRemoteStorageTopicCaches(topicId: string): void {
+export function clearStorageTopicCaches(topicId: string): void {
   knownDraftVersions.delete(topicId);
   draftConflicts.delete(topicId);
   draftUploadEpochs.set(topicId, (draftUploadEpochs.get(topicId) ?? 0) + 1);
@@ -455,7 +452,7 @@ export async function purgeExpiredTrash(): Promise<TrashPurgeResult> {
     ? result.purged_ids.filter((id): id is string => typeof id === 'string')
     : [];
   if (purgedIds.length > 0) {
-    purgedIds.forEach(clearRemoteStorageTopicCaches);
+    purgedIds.forEach(clearStorageTopicCaches);
     invalidateBootstrap();
   }
   return { purged_count: Number(result.purged_count) || purgedIds.length, purged_ids: purgedIds };
@@ -469,14 +466,14 @@ export async function restoreTopic(id: string): Promise<Topic> {
 
 export async function permanentlyDeleteTopic(id: string): Promise<void> {
   await apiRequest(`/api/topics/${encodeURIComponent(id)}/permanent`, { method: 'DELETE' });
-  clearRemoteStorageTopicCaches(id);
+  clearStorageTopicCaches(id);
   invalidateBootstrap();
 }
 
 export async function permanentlyDeleteTopicsBatch(ids: string[]): Promise<void> {
   if (ids.length === 0) return;
   await apiRequest('/api/topics/batch/permanent', jsonRequest('POST', { ids }));
-  ids.forEach(clearRemoteStorageTopicCaches);
+  ids.forEach(clearStorageTopicCaches);
   invalidateBootstrap();
 }
 
@@ -485,8 +482,8 @@ export async function emptyTrash(): Promise<string[]> {
   const deletedIds = Array.isArray(result.ids)
     ? [...new Set(result.ids.filter((id): id is string => typeof id === 'string'))]
     : [];
-  deletedIds.forEach(clearRemoteStorageTopicCaches);
-  clearRemoteStorageMemoryCaches();
+  deletedIds.forEach(clearStorageTopicCaches);
+  clearStorageMemoryCaches();
   invalidateBootstrap();
   return deletedIds;
 }
@@ -723,7 +720,7 @@ function clearPendingDraftIfCurrent(draft: Draft): void {
   }
 }
 
-async function uploadDraft(draft: Draft, keepalive = false, generation = remoteStorageMemoryGeneration, epoch = draftUploadEpochs.get(draft.topic_id) ?? 0): Promise<Draft> {
+async function uploadDraft(draft: Draft, keepalive = false, generation = storageMemoryGeneration, epoch = draftUploadEpochs.get(draft.topic_id) ?? 0): Promise<Draft> {
   if (epoch !== (draftUploadEpochs.get(draft.topic_id) ?? 0)) throw new Error('草稿保存已被版本选择取代');
   if (draftConflicts.get(draft.topic_id) !== undefined || readPendingDrafts()[draft.topic_id]?.requires_resolution) {
     throw new DraftConflictError(draftConflicts.get(draft.topic_id) ?? null);
@@ -736,7 +733,7 @@ async function uploadDraft(draft: Draft, keepalive = false, generation = remoteS
         base_version: knownDraftVersions.get(draft.topic_id) ?? draft.version ?? 0,
       }, keepalive)
     );
-    if (generation === remoteStorageMemoryGeneration) {
+    if (generation === storageMemoryGeneration) {
       knownDraftVersions.set(draft.topic_id, saved.version);
     }
     clearPendingDraftIfCurrent(draft);
@@ -744,7 +741,7 @@ async function uploadDraft(draft: Draft, keepalive = false, generation = remoteS
     return saved;
   } catch (error) {
     if (error instanceof DraftConflictError) {
-      if (generation === remoteStorageMemoryGeneration) {
+      if (generation === storageMemoryGeneration) {
         draftConflicts.set(draft.topic_id, error.current);
         const pending = readPendingDrafts()[draft.topic_id];
         if (pending) writePendingDraft({ ...pending, requires_resolution: true }, draft.topic_id);
@@ -755,7 +752,7 @@ async function uploadDraft(draft: Draft, keepalive = false, generation = remoteS
 }
 
 function enqueueDraftUpload(draft: Draft, keepalive = false): Promise<Draft> {
-  const generation = remoteStorageMemoryGeneration;
+  const generation = storageMemoryGeneration;
   const epoch = draftUploadEpochs.get(draft.topic_id) ?? 0;
   const previous = draftUploadQueues.get(draft.topic_id);
   const upload = previous
@@ -770,14 +767,14 @@ function enqueueDraftUpload(draft: Draft, keepalive = false): Promise<Draft> {
   return upload;
 }
 
-function mergePendingDraft(topicId: string, serverDraft: Draft | null, generation = remoteStorageMemoryGeneration): DraftLoadResult {
+function mergePendingDraft(topicId: string, serverDraft: Draft | null, generation = storageMemoryGeneration): DraftLoadResult {
   const pending = readPendingDrafts()[topicId];
-  if (generation === remoteStorageMemoryGeneration) {
+  if (generation === storageMemoryGeneration) {
     knownDraftVersions.set(topicId, pending?.base_version ?? serverDraft?.version ?? 0);
   }
   if (pending) {
     if (pending.requires_resolution || pending.base_version !== (serverDraft?.version || 0)) {
-      if (generation === remoteStorageMemoryGeneration) {
+      if (generation === storageMemoryGeneration) {
         draftConflicts.set(topicId, serverDraft);
         writePendingDraft({ ...pending, requires_resolution: true }, topicId);
       }
@@ -792,13 +789,13 @@ function mergePendingDraft(topicId: string, serverDraft: Draft | null, generatio
 }
 
 export async function fetchDraftByTopicId(topicId: string): Promise<DraftLoadResult> {
-  const generation = remoteStorageMemoryGeneration;
+  const generation = storageMemoryGeneration;
   const serverDraft = await apiRequest<Draft | null>(`/api/topics/${encodeURIComponent(topicId)}/draft`);
   return mergePendingDraft(topicId, serverDraft, generation);
 }
 
 export async function fetchTopicWorkspace(topicId: string): Promise<TopicWorkspaceLoad> {
-  const generation = remoteStorageMemoryGeneration;
+  const generation = storageMemoryGeneration;
   const data = await apiRequest<TopicWorkspaceData>(`/api/topics/${encodeURIComponent(topicId)}/workspace`);
   return { ...data, draft: mergePendingDraft(topicId, data.draft, generation) };
 }
@@ -1191,21 +1188,36 @@ export function exportSingleTopicMarkdown(
 }
 
 export async function importBackupData(input: string | File): Promise<BackupImportResult> {
+  let localSettings: unknown;
+  let hasSettings = false;
   try {
     const jsonString = typeof input === 'string' ? input : await input.text();
     const data = JSON.parse(jsonString) as unknown;
     const backup = data && typeof data === 'object' ? data as Record<string, unknown> : {};
     const { settings, ...businessData } = backup;
+    hasSettings = Object.prototype.hasOwnProperty.call(backup, 'settings');
+    localSettings = settings;
     await apiRequest('/api/backup', jsonRequest('PUT', { data: businessData }));
-    if ('settings' in backup) {
-      saveLocalSettings(settings);
-    }
-    invalidateBootstrap();
-    return { success: true };
   } catch (error) {
-    console.error('Remote import failed', error);
+    console.error('Backup import failed', error);
     return { success: false, error: error instanceof Error ? error.message : '导入失败' };
   }
+
+  // The server replacement has committed. Invalidate remote data before any
+  // browser-only preference write so a localStorage failure cannot report the
+  // completed business import as failed or leave stale bootstrap data cached.
+  invalidateBootstrap();
+  if (hasSettings) {
+    try {
+      saveLocalSettings(localSettings);
+    } catch {
+      return {
+        success: true,
+        settingsWarning: '业务数据已恢复，但本地偏好设置未能保存。请检查浏览器存储权限后，在此浏览器重新设置。',
+      };
+    }
+  }
+  return { success: true };
 }
 
 /* =========================================================================

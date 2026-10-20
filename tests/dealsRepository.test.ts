@@ -2,7 +2,6 @@ import { afterEach, describe, expect, it } from 'bun:test';
 import { Database } from 'bun:sqlite';
 import type { CommercialDeal } from '../src/types';
 import { insertCommercialDeal, updateCommercialDeal } from '../src/server/repositories/deals';
-import { SqliteDatabase } from '../src/server/sqlite';
 
 describe('commercial deal repository', () => {
   let sqlite: Database | null = null;
@@ -14,8 +13,8 @@ describe('commercial deal repository', () => {
 
   it('records status and payment transitions from the serialized prior state', async () => {
     sqlite = new Database(':memory:');
-    sqlite.exec(await Bun.file('drizzle/0000_schema.sql').text());
-    const db = new SqliteDatabase(sqlite);
+    sqlite.exec(await Bun.file('database/schema.sql').text());
+    const db = sqlite;
     const now = '2026-01-01T00:00:00.000Z';
     const deal: CommercialDeal = {
       id: 'deal-concurrent-audit',

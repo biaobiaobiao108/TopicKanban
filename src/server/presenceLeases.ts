@@ -12,21 +12,20 @@ function cleanExpired(now: number): void {
   for (const [key, lease] of leases) {
     if (lease.expiresAt <= now) leases.delete(key);
   }
-  while (leases.size >= MAX_LEASES) {
-    // Evict the lease closest to expiry (the one whose owner stopped sending
-    // heartbeats earliest) instead of the oldest insertion. Insertion order
-    // would kick out a live editor while a stale lock kept its slot.
-    let victimKey: string | null = null;
-    let victimExpiry = Number.POSITIVE_INFINITY;
-    for (const [key, lease] of leases) {
-      if (lease.expiresAt < victimExpiry) {
-        victimExpiry = lease.expiresAt;
-        victimKey = key;
-      }
+}
+
+function evictSoonestExpiring(): void {
+  // Keep the map bounded when a new topic needs a slot. Existing leases are
+  // renewed below without evicting another active editor.
+  let victimKey: string | null = null;
+  let victimExpiry = Number.POSITIVE_INFINITY;
+  for (const [key, lease] of leases) {
+    if (lease.expiresAt < victimExpiry) {
+      victimExpiry = lease.expiresAt;
+      victimKey = key;
     }
-    if (victimKey === null) break;
-    leases.delete(victimKey);
   }
+  if (victimKey !== null) leases.delete(victimKey);
 }
 
 export function acquirePresenceLease(
@@ -39,6 +38,7 @@ export function acquirePresenceLease(
   cleanExpired(now);
   const existing = leases.get(key);
   if (existing && existing.clientId !== clientId) return { acquired: false, current: existing.value };
+  if (!existing && leases.size >= MAX_LEASES) evictSoonestExpiring();
   leases.set(key, { value, clientId, expiresAt: now + ttlSeconds * 1000 });
   return { acquired: true, current: value };
 }

@@ -19,13 +19,11 @@ import type {
   TopicReport,
 } from '../../types';
 import { CURRENT_BACKUP_VERSION } from '../../types';
-import type { SqliteDatabase, SqlitePreparedStatement } from '../sqlite';
-import { bind } from './shared';
+import type { Database } from 'bun:sqlite';
+import { command, executeTransaction, readAll } from './shared';
 import { topicStatement } from './topics';
 import { topicTodoStatement } from './todos';
 import { personStatement, relationshipStatement } from './people';
-import { sourceStatement } from './workspace';
-import { citationStatement, draftStatement, publishPackageStatement, topicReportStatement } from './writing';
 import {
   commercialDealActivityStatement,
   commercialDealStatement,
@@ -53,6 +51,59 @@ export interface BackupImportSummary {
   todos: number;
 }
 export class BackupImportLimitError extends Error {}
+
+function sourceCommand(db: Database, source: Source) {
+  return command(db, `INSERT INTO sources (
+    id, topic_id, title, content, url, platform, author, published_at,
+    verification_status, notes, event_date, date_precision, sort_order, created_at, updated_at
+  ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`, [
+    source.id, source.topic_id, source.title, source.content || '', source.url || '', source.platform || 'bilibili',
+    source.author || '', source.published_at || '', source.verification_status || 'unverified', source.notes || '',
+    source.event_date ?? null, source.date_precision || 'exact', source.sort_order || 0,
+    source.created_at, source.updated_at,
+  ]);
+}
+
+function topicReportCommand(db: Database, report: TopicReport) {
+  return command(db, `INSERT INTO topic_reports (
+    id, topic_id, title, content_markdown, content_json, content_html, word_count, version, updated_at
+  ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`, [
+    report.id, report.topic_id, report.title, report.content_markdown, report.content_json, report.content_html,
+    report.word_count, report.version || 1, report.updated_at,
+  ]);
+}
+
+function draftCommand(db: Database, draft: Draft) {
+  return command(db, `INSERT INTO drafts (
+    id, topic_id, title, content_markdown, content_json, content_html, word_count, version, updated_at
+  ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`, [
+    draft.id, draft.topic_id, draft.title, draft.content_markdown, draft.content_json, draft.content_html,
+    draft.word_count, draft.version || 1, draft.updated_at,
+  ]);
+}
+
+function citationCommand(db: Database, citation: DraftCitation) {
+  return command(db, `INSERT INTO draft_citations (
+    id, topic_id, reference_type, reference_id, reference_title, reference_snapshot,
+    quoted_text, verification_status, created_at
+  ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`, [
+    citation.id, citation.topic_id, citation.reference_type, citation.reference_id,
+    citation.reference_title, citation.reference_snapshot, citation.quoted_text,
+    citation.verification_status, citation.created_at,
+  ]);
+}
+
+function publishPackageCommand(db: Database, publishPackage: PublishPackageRecord) {
+  return command(db, `INSERT INTO publish_packages (
+    id, topic_id, version, title_simplified, title_traditional, description_simplified, description_traditional,
+    title_traditional_auto, description_traditional_auto, content_json, updated_at
+  ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`, [
+    publishPackage.id, publishPackage.topic_id, publishPackage.version, publishPackage.title_simplified,
+    publishPackage.title_traditional, publishPackage.description_simplified, publishPackage.description_traditional,
+    publishPackage.title_traditional_auto ? 1 : 0, publishPackage.description_traditional_auto ? 1 : 0,
+    publishPackage.content_json, publishPackage.updated_at,
+  ]);
+}
 
 export function getBackupImportSummary(data: BackupData): BackupImportSummary {
   const topicRelations = data.topics.reduce(
@@ -96,21 +147,21 @@ export function assertBackupImportWithinLimits(data: BackupData): BackupImportSu
   return summary;
 }
 
-export async function replaceAllData(db: SqliteDatabase, data: BackupData): Promise<void> {
+export async function replaceAllData(db: Database, data: BackupData): Promise<void> {
   assertBackupImportWithinLimits(data);
-  const statements: SqlitePreparedStatement[] = [
-    db.prepare('DELETE FROM commercial_deal_activities'),
-    db.prepare('DELETE FROM commercial_deal_topics'),
-    db.prepare('DELETE FROM commercial_deals'),
-    db.prepare('DELETE FROM topic_todos'),
-    db.prepare('DELETE FROM topic_tags'), db.prepare('DELETE FROM topic_people'),
-    db.prepare('DELETE FROM sources'), db.prepare('DELETE FROM topic_reports'),
-    db.prepare('DELETE FROM draft_citations'), db.prepare('DELETE FROM drafts'), db.prepare('DELETE FROM person_relationships'),
-    db.prepare('DELETE FROM publish_packages'), db.prepare('DELETE FROM published_videos'), db.prepare('DELETE FROM topics'),
-    db.prepare('DELETE FROM people'), db.prepare('DELETE FROM tags'),
+  const statements = [
+    command(db, 'DELETE FROM commercial_deal_activities'),
+    command(db, 'DELETE FROM commercial_deal_topics'),
+    command(db, 'DELETE FROM commercial_deals'),
+    command(db, 'DELETE FROM topic_todos'),
+    command(db, 'DELETE FROM topic_tags'), command(db, 'DELETE FROM topic_people'),
+    command(db, 'DELETE FROM sources'), command(db, 'DELETE FROM topic_reports'),
+    command(db, 'DELETE FROM draft_citations'), command(db, 'DELETE FROM drafts'), command(db, 'DELETE FROM person_relationships'),
+    command(db, 'DELETE FROM publish_packages'), command(db, 'DELETE FROM published_videos'), command(db, 'DELETE FROM topics'),
+    command(db, 'DELETE FROM people'), command(db, 'DELETE FROM tags'),
   ];
 
-  data.tags.forEach((tag) => statements.push(bind(db,
+  data.tags.forEach((tag) => statements.push(command(db,
     'INSERT INTO tags (id, name, color, created_at) VALUES (?, ?, ?, ?)',
     [tag.id, tag.name, tag.color ?? 'stone', data.export_at]
   )));
@@ -126,36 +177,36 @@ export async function replaceAllData(db: SqliteDatabase, data: BackupData): Prom
     is_pinned: topic.id === pinnedTopicId ? 1 : 0,
   })));
   data.topics.forEach((topic) => {
-    topic.tags?.forEach((tag) => statements.push(bind(db,
+    topic.tags?.forEach((tag) => statements.push(command(db,
       'INSERT OR IGNORE INTO topic_tags (id, topic_id, tag_id) VALUES (?, ?, ?)',
       [`${topic.id}:${tag.id}`, topic.id, tag.id]
     )));
-    topic.people?.forEach((person) => statements.push(bind(db,
+    topic.people?.forEach((person) => statements.push(command(db,
       'INSERT OR IGNORE INTO topic_people (id, topic_id, person_id, role) VALUES (?, ?, ?, ?)',
       [`${topic.id}:${person.id}`, topic.id, person.id, '']
     )));
   });
   data.todos.forEach((todo) => statements.push(topicTodoStatement(db, todo)));
-  data.sources.forEach((source) => statements.push(sourceStatement(db, source)));
-  data.reports.forEach((report) => statements.push(topicReportStatement(db, report)));
-  data.drafts.forEach((draft) => statements.push(draftStatement(db, draft)));
-  data.citations.forEach((citation) => statements.push(citationStatement(db, citation)));
+  data.sources.forEach((source) => statements.push(sourceCommand(db, source)));
+  data.reports.forEach((report) => statements.push(topicReportCommand(db, report)));
+  data.drafts.forEach((draft) => statements.push(draftCommand(db, draft)));
+  data.citations.forEach((citation) => statements.push(citationCommand(db, citation)));
   data.relationships.forEach((relationship) => statements.push(relationshipStatement(db, relationship)));
-  data.published.forEach((video) => statements.push(bind(db, `INSERT INTO published_videos (
+  data.published.forEach((video) => statements.push(command(db, `INSERT INTO published_videos (
     id, topic_id, title, url, bvid, published_at, views, likes, coins, favorites, comments, notes, updated_at
   ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`, [
     video.id, video.topic_id, video.title, video.url, video.bvid, video.published_at,
     video.views, video.likes, video.coins, video.favorites, video.comments, video.notes, video.updated_at,
   ])));
-  data.publish_packages.forEach((publishPackage) => statements.push(publishPackageStatement(db, publishPackage)));
+  data.publish_packages.forEach((publishPackage) => statements.push(publishPackageCommand(db, publishPackage)));
   data.commercial_deals.forEach((deal) => statements.push(commercialDealStatement(db, deal)));
   data.commercial_deal_topics.forEach((relation) => statements.push(commercialDealTopicStatement(db, relation)));
   data.commercial_deal_activities.forEach((activity) => statements.push(commercialDealActivityStatement(db, activity)));
-  await db.batch(statements);
+  executeTransaction(db, statements);
 }
 
-function loadTopicsForBackup(db: SqliteDatabase): Topic[] {
-  const query = <T>(sql: string): T[] => db.sqlite.query(sql).all() as T[];
+function loadTopicsForBackup(db: Database): Topic[] {
+  const query = <T>(sql: string): T[] => readAll<T>(db, sql);
   const topicRows = query<Topic>(`SELECT t.*,
     (SELECT COUNT(*) FROM sources s WHERE s.topic_id = t.id) AS sources_count,
     (SELECT COUNT(*) FROM sources s WHERE s.topic_id = t.id AND s.verification_status = 'confirmed') AS verified_sources_count,
@@ -192,15 +243,15 @@ function loadTopicsForBackup(db: SqliteDatabase): Topic[] {
   }));
 }
 
-export function exportScriptsData(db: SqliteDatabase): BackupScriptsData {
-  return db.sqlite.transaction(() => {
-    const topics = db.sqlite.query(`SELECT id, title, status, priority, hook, summary
-      FROM topics ORDER BY is_pinned DESC, sort_order ASC, updated_at DESC`).all() as BackupScriptsTopic[];
-    const rows = db.sqlite.query(`SELECT topic_id, title, word_count, content_markdown,
+export function exportScriptsData(db: Database): BackupScriptsData {
+  return db.transaction(() => {
+    const topics = readAll<BackupScriptsTopic>(db, `SELECT id, title, status, priority, hook, summary
+      FROM topics ORDER BY is_pinned DESC, sort_order ASC, updated_at DESC`);
+    const rows = readAll<Omit<BackupScriptsDraft, 'has_content_json'> & { has_content_json: number }>(db, `SELECT topic_id, title, word_count, content_markdown,
       CASE WHEN COALESCE(content_markdown, '') = '' THEN COALESCE(content_html, '') ELSE '' END AS content_html,
       CASE WHEN COALESCE(content_json, '') = '' THEN 0 ELSE 1 END AS has_content_json,
       updated_at
-      FROM drafts ORDER BY updated_at DESC`).all() as Array<Omit<BackupScriptsDraft, 'has_content_json'> & { has_content_json: number }>;
+      FROM drafts ORDER BY updated_at DESC`);
     return {
       topics,
       drafts: rows.map((draft) => ({ ...draft, has_content_json: draft.has_content_json === 1 })),
@@ -208,10 +259,10 @@ export function exportScriptsData(db: SqliteDatabase): BackupScriptsData {
   })();
 }
 
-export async function exportAllData(db: SqliteDatabase): Promise<BackupData> {
+export async function exportAllData(db: Database): Promise<BackupData> {
   const exportAt = new Date().toISOString();
-  return db.sqlite.transaction(() => {
-    const query = <T>(sql: string): T[] => db.sqlite.query(sql).all() as T[];
+  return db.transaction(() => {
+    const query = <T>(sql: string): T[] => readAll<T>(db, sql);
     const allTopics = loadTopicsForBackup(db);
     const people = query<Person>(`SELECT p.*,
       (SELECT COUNT(*) FROM topic_people tp WHERE tp.person_id = p.id) AS related_topics_count

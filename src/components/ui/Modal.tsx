@@ -34,7 +34,8 @@ export const Modal: React.FC<ModalProps> = ({
   };
 
   const handleClose = () => {
-    if (dialogRef.current?.open) dialogRef.current.close();
+    // The parent owns the open state. Closing the native dialog here can leave
+    // it hidden when a controlled modal intentionally ignores onClose.
     onCloseRef.current();
   };
 

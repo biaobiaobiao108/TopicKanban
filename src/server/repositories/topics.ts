@@ -1,6 +1,6 @@
 import { STALE_ACTION_THRESHOLD_DAYS, TRASH_RETENTION_DAYS, type PaginatedTopics, type Person, type Tag, type TodayActionProgress, type TodayFocusData, type Topic, type TopicPinMutationResult, type TopicStatus, type TopicTodo } from '../../types';
-import type { SqliteDatabase, SqlitePreparedStatement } from '../sqlite';
-import { bind } from './shared';
+import type { Database } from 'bun:sqlite';
+import { command, executeTransaction, readAll, readOne, readTransaction, type SqlCommand } from './shared';
 
 const MAX_TOPIC_BATCH_QUERY_IDS = 500;
 type TopicCoreInput = Partial<Omit<Topic, 'current_todo' | 'tags' | 'people'>> & {
@@ -26,40 +26,40 @@ function buildFtsSearchQuery(value: string): string {
   return `"${value.trim().replace(/"/g, '""')}"`;
 }
 
-export async function loadTopics(db: SqliteDatabase, scope: 'active' | 'trash' | 'all' = 'active'): Promise<Topic[]> {
+export async function loadTopics(db: Database, scope: 'active' | 'trash' | 'all' = 'active'): Promise<Topic[]> {
   const topicFilter = scope === 'active'
     ? 'WHERE t.deleted_at IS NULL'
     : scope === 'trash'
       ? 'WHERE t.deleted_at IS NOT NULL'
       : '';
-  const results = await db.batch([
-    db.prepare(`SELECT t.*,
+  const results = readTransaction(db, [
+    command(db, `SELECT t.*,
       (SELECT COUNT(*) FROM sources s WHERE s.topic_id = t.id) AS sources_count,
       (SELECT COUNT(*) FROM sources s WHERE s.topic_id = t.id AND s.verification_status = 'confirmed') AS verified_sources_count,
       (SELECT COUNT(*) FROM commercial_deal_topics cdt WHERE cdt.topic_id = t.id) AS commercial_deals_count,
       COALESCE((SELECT word_count FROM drafts d WHERE d.topic_id = t.id LIMIT 1), 0) AS draft_word_count
       FROM topics t ${topicFilter}
       ORDER BY t.is_pinned DESC, t.sort_order ASC, t.updated_at DESC`),
-    db.prepare(`SELECT tt.topic_id, tg.*
+    command(db, `SELECT tt.topic_id, tg.*
       FROM topic_tags tt
       INNER JOIN tags tg ON tg.id = tt.tag_id
       INNER JOIN topics t ON t.id = tt.topic_id
       ${topicFilter}`),
-    db.prepare(`SELECT tp.topic_id, p.*
+    command(db, `SELECT tp.topic_id, p.*
       FROM topic_people tp
       INNER JOIN people p ON p.id = tp.person_id
       INNER JOIN topics t ON t.id = tp.topic_id
       ${topicFilter}`),
-    db.prepare(`SELECT * FROM topic_todos
+    command(db, `SELECT * FROM topic_todos
       WHERE status = 'in_progress' AND is_current = 1
         AND topic_id IN (SELECT t.id FROM topics t ${topicFilter})
       ORDER BY topic_id ASC`),
   ]);
 
-  const topicRows = results[0].results as unknown as Topic[];
-  const topicTags = results[1].results as unknown as Array<Tag & { topic_id: string }>;
-  const topicPeople = results[2].results as unknown as Array<Person & { topic_id: string }>;
-  const currentTodos = results[3].results as unknown as TopicTodo[];
+  const topicRows = results[0] as Topic[];
+  const topicTags = results[1] as Array<Tag & { topic_id: string }>;
+  const topicPeople = results[2] as Array<Person & { topic_id: string }>;
+  const currentTodos = results[3] as TopicTodo[];
   const currentTodoByTopic = new Map<string, TopicTodo>();
   currentTodos.forEach((todo) => {
     if (!currentTodoByTopic.has(todo.topic_id)) currentTodoByTopic.set(todo.topic_id, todo);
@@ -82,46 +82,46 @@ export async function loadTopics(db: SqliteDatabase, scope: 'active' | 'trash' |
   }));
 }
 
-export async function loadTrashedTopics(db: SqliteDatabase): Promise<Topic[]> {
+export async function loadTrashedTopics(db: Database): Promise<Topic[]> {
   return loadTopics(db, 'trash');
 }
 
-export async function loadTodayFocus(db: SqliteDatabase): Promise<TodayFocusData> {
+export async function loadTodayFocus(db: Database): Promise<TodayFocusData> {
   const activeCondition = "t.deleted_at IS NULL AND t.status NOT IN ('published', 'icebox')";
   const safeStaleDays = STALE_ACTION_THRESHOLD_DAYS;
   const currentTodoJoin = "LEFT JOIN topic_todos tt ON tt.topic_id = t.id AND tt.status = 'in_progress' AND tt.is_current = 1";
   const staleExpression = "julianday('now') - julianday(COALESCE(tt.current_started_at, t.updated_at))";
-  const [focusResult, priorityResult, recentResult, progressResult, attentionResult] = await db.batch([
-    db.prepare(`SELECT t.id FROM topics t WHERE ${activeCondition}
+  const [focusResult, priorityResult, recentResult, progressResult, attentionResult] = readTransaction(db, [
+    command(db, `SELECT t.id FROM topics t WHERE ${activeCondition}
       ORDER BY t.is_pinned DESC,
         CASE WHEN t.status IN ('scripting', 'production') THEN 1 ELSE 0 END DESC,
         CASE t.priority WHEN 'high' THEN 3 WHEN 'medium' THEN 2 WHEN 'low' THEN 1 ELSE 0 END DESC,
         t.updated_at DESC, t.id DESC LIMIT 1`),
-    db.prepare(`SELECT t.id FROM topics t WHERE ${activeCondition}
+    command(db, `SELECT t.id FROM topics t WHERE ${activeCondition}
       ORDER BY t.is_pinned DESC,
         CASE t.priority WHEN 'high' THEN 3 WHEN 'medium' THEN 2 WHEN 'low' THEN 1 ELSE 0 END DESC,
         t.updated_at DESC, t.id DESC LIMIT 5`),
-    db.prepare(`SELECT t.id FROM topics t WHERE t.deleted_at IS NULL ORDER BY t.updated_at DESC, t.id DESC LIMIT 8`),
-    db.prepare(`SELECT
+    command(db, `SELECT t.id FROM topics t WHERE t.deleted_at IS NULL ORDER BY t.updated_at DESC, t.id DESC LIMIT 8`),
+    command(db, `SELECT
         COUNT(*) AS active_count,
         COALESCE(SUM(CASE WHEN tt.id IS NOT NULL THEN 1 ELSE 0 END), 0) AS covered_count,
         COALESCE(SUM(CASE WHEN tt.id IS NULL THEN 1 ELSE 0 END), 0) AS missing_action_count,
         COALESCE(SUM(CASE WHEN tt.id IS NOT NULL AND ${staleExpression} >= ? THEN 1 ELSE 0 END), 0) AS stale_action_count
-      FROM topics t ${currentTodoJoin} WHERE ${activeCondition}`).bind(safeStaleDays),
-    db.prepare(`SELECT t.id FROM topics t ${currentTodoJoin}
+      FROM topics t ${currentTodoJoin} WHERE ${activeCondition}`, [safeStaleDays]),
+    command(db, `SELECT t.id FROM topics t ${currentTodoJoin}
       WHERE ${activeCondition}
         AND (tt.id IS NULL OR ${staleExpression} >= ?)
-      ORDER BY CASE WHEN tt.id IS NULL THEN 0 ELSE 1 END, t.updated_at DESC, t.id DESC LIMIT 3`).bind(safeStaleDays),
+        ORDER BY CASE WHEN tt.id IS NULL THEN 0 ELSE 1 END, t.updated_at DESC, t.id DESC LIMIT 3`, [safeStaleDays]),
   ]);
   const orderedIds = Array.from(new Set([
-    ...(focusResult.results as unknown as Array<{ id: string }>).map((row) => row.id),
-    ...(priorityResult.results as unknown as Array<{ id: string }>).map((row) => row.id),
-    ...(recentResult.results as unknown as Array<{ id: string }>).map((row) => row.id),
+    ...(focusResult as Array<{ id: string }>).map((row) => row.id),
+    ...(priorityResult as Array<{ id: string }>).map((row) => row.id),
+    ...(recentResult as Array<{ id: string }>).map((row) => row.id),
   ]));
-  const attentionIds = (attentionResult.results as unknown as Array<{ id: string }>).map((row) => row.id);
+  const attentionIds = (attentionResult as Array<{ id: string }>).map((row) => row.id);
   const loadedTopics = await loadTopicBatch(db, Array.from(new Set([...orderedIds, ...attentionIds])));
   const topicsById = new Map(loadedTopics.map((topic) => [topic.id, topic]));
-  const progressRow = (progressResult.results[0] || {}) as Partial<TodayActionProgress>;
+  const progressRow = ((progressResult as Array<Partial<TodayActionProgress>>)[0] || {}) as Partial<TodayActionProgress>;
   const actionProgress: TodayActionProgress = {
     active_count: Number(progressRow.active_count || 0),
     covered_count: Number(progressRow.covered_count || 0),
@@ -136,10 +136,10 @@ export async function loadTodayFocus(db: SqliteDatabase): Promise<TodayFocusData
   };
 }
 
-export async function loadActiveTopicCount(db: SqliteDatabase): Promise<number> {
-  const result = await db.prepare(
+export async function loadActiveTopicCount(db: Database): Promise<number> {
+  const result = readOne<{ count?: number }>(db,
     "SELECT COUNT(*) AS count FROM topics t WHERE t.deleted_at IS NULL AND t.status NOT IN ('published', 'icebox')"
-  ).first<{ count?: number }>();
+  );
   return Number(result?.count || 0);
 }
 export class TopicNotInTrashError extends Error {}
@@ -147,40 +147,40 @@ export class TopicPinInvalidStateError extends Error {}
 export class TopicReorderInvalidStateError extends Error {}
 export class TopicAlreadyExistsError extends Error {}
 
-export async function ensureTopicsInTrash(db: SqliteDatabase, ids: string[]): Promise<void> {
+export async function ensureTopicsInTrash(db: Database, ids: string[]): Promise<void> {
   if (ids.length === 0) return;
   const placeholders = ids.map(() => '?').join(', ');
-  const result = await bind(db,
+  const result = readAll<{ id: string }>(db,
     `SELECT id FROM topics WHERE deleted_at IS NOT NULL AND id IN (${placeholders})`, ids
-  ).all<{ id: string }>();
-  if (result.results.length !== ids.length) {
+  );
+  if (result.length !== ids.length) {
     throw new TopicNotInTrashError('All topics must be in trash before permanent deletion');
   }
 }
 
 export async function setTopicPinned(
-  db: SqliteDatabase,
+  db: Database,
   id: string,
   isPinned: 0 | 1,
 ): Promise<TopicPinMutationResult> {
-  const clearedTopicIds = db.sqlite.transaction(() => {
-    const existing = db.sqlite.query('SELECT status, deleted_at FROM topics WHERE id = ?').get(id) as
+  const clearedTopicIds = db.transaction(() => {
+    const existing = db.query('SELECT status, deleted_at FROM topics WHERE id = ?').get(id) as
       { status: TopicStatus; deleted_at?: string | null } | undefined;
     if (!existing) throw new TopicPinInvalidStateError('Topic not found');
     const isActive = !existing.deleted_at && !['published', 'icebox'].includes(existing.status);
     if (isPinned === 1 && !isActive) throw new TopicPinInvalidStateError('Only active topics can be pinned');
 
     const cleared = isPinned === 1
-      ? db.sqlite.query(`SELECT id FROM topics
+      ? db.query(`SELECT id FROM topics
         WHERE id != ? AND deleted_at IS NULL AND status NOT IN ('published', 'icebox') AND is_pinned = 1`)
         .all(id) as Array<{ id: string }>
       : [];
     const now = new Date().toISOString();
     if (isPinned === 1) {
-      db.sqlite.query(`UPDATE topics SET is_pinned = 0
+      db.query(`UPDATE topics SET is_pinned = 0
         WHERE id != ? AND deleted_at IS NULL AND status NOT IN ('published', 'icebox') AND is_pinned = 1`).run(id);
     }
-    const updated = db.sqlite.query(`UPDATE topics SET is_pinned = ?, updated_at = ?
+    const updated = db.query(`UPDATE topics SET is_pinned = ?, updated_at = ?
       WHERE id = ? AND (? = 0 OR (deleted_at IS NULL AND status NOT IN ('published', 'icebox')))`).run(
       isPinned, now, id, isPinned,
     );
@@ -192,27 +192,27 @@ export async function setTopicPinned(
   return { topic, cleared_topic_ids: clearedTopicIds };
 }
 
-function permanentDeleteStatements(db: SqliteDatabase, id: string): SqlitePreparedStatement[] {
+function permanentDeleteStatements(db: Database, id: string) {
   const trashedTopic = 'SELECT id FROM topics WHERE id = ? AND deleted_at IS NOT NULL';
   return [
-    bind(db, `DELETE FROM draft_citations WHERE topic_id IN (${trashedTopic})`, [id]),
-    bind(db, `DELETE FROM drafts WHERE topic_id IN (${trashedTopic})`, [id]),
-    bind(db, `DELETE FROM topic_reports WHERE topic_id IN (${trashedTopic})`, [id]),
-    bind(db, `DELETE FROM sources WHERE topic_id IN (${trashedTopic})`, [id]),
-    bind(db, `DELETE FROM topic_tags WHERE topic_id IN (${trashedTopic})`, [id]),
-    bind(db, `DELETE FROM topic_people WHERE topic_id IN (${trashedTopic})`, [id]),
-    bind(db, `DELETE FROM commercial_deal_topics WHERE topic_id IN (${trashedTopic})`, [id]),
-    bind(db, `DELETE FROM published_videos WHERE topic_id IN (${trashedTopic})`, [id]),
-    bind(db, `DELETE FROM topic_todos WHERE topic_id IN (${trashedTopic})`, [id]),
-    bind(db, 'DELETE FROM topics WHERE id = ? AND deleted_at IS NOT NULL', [id]),
+    command(db, `DELETE FROM draft_citations WHERE topic_id IN (${trashedTopic})`, [id]),
+    command(db, `DELETE FROM drafts WHERE topic_id IN (${trashedTopic})`, [id]),
+    command(db, `DELETE FROM topic_reports WHERE topic_id IN (${trashedTopic})`, [id]),
+    command(db, `DELETE FROM sources WHERE topic_id IN (${trashedTopic})`, [id]),
+    command(db, `DELETE FROM topic_tags WHERE topic_id IN (${trashedTopic})`, [id]),
+    command(db, `DELETE FROM topic_people WHERE topic_id IN (${trashedTopic})`, [id]),
+    command(db, `DELETE FROM commercial_deal_topics WHERE topic_id IN (${trashedTopic})`, [id]),
+    command(db, `DELETE FROM published_videos WHERE topic_id IN (${trashedTopic})`, [id]),
+    command(db, `DELETE FROM topic_todos WHERE topic_id IN (${trashedTopic})`, [id]),
+    command(db, 'DELETE FROM topics WHERE id = ? AND deleted_at IS NOT NULL', [id]),
   ];
 }
 
-export async function permanentlyDeleteTrashedTopics(db: SqliteDatabase, ids: string[]): Promise<void> {
+export async function permanentlyDeleteTrashedTopics(db: Database, ids: string[]): Promise<void> {
   if (ids.length === 0) return;
   await ensureTopicsInTrash(db, ids);
 
-  await db.batch(ids.flatMap((id) => permanentDeleteStatements(db, id)));
+  executeTransaction(db, ids.flatMap((id) => permanentDeleteStatements(db, id)));
 }
 export interface TopicPageOptions {
   scope: 'active' | 'archived' | 'trash' | 'all';
@@ -288,7 +288,7 @@ function getTopicScopeCondition(scope: TopicPageOptions['scope']): string {
   return 't.deleted_at IS NULL';
 }
 
-export async function loadTopicPage(db: SqliteDatabase, options: TopicPageOptions): Promise<PaginatedTopics> {
+export async function loadTopicPage(db: Database, options: TopicPageOptions): Promise<PaginatedTopics> {
   const baseFilter = buildTopicFilterConditions(options);
   const conditions = [getTopicScopeCondition(options.scope), ...baseFilter.conditions];
   const values = baseFilter.values;
@@ -304,49 +304,49 @@ export async function loadTopicPage(db: SqliteDatabase, options: TopicPageOption
   const offset = (options.page - 1) * options.pageSize;
   const includeMetadata = options.includeMetadata !== false;
   const statements = [
-    bind(db, `SELECT COUNT(*) AS count FROM topics t ${where}`, values),
-    ...(includeMetadata ? [db.prepare(`SELECT
+    command(db, `SELECT COUNT(*) AS count FROM topics t ${where}`, values),
+    ...(includeMetadata ? [command(db, `SELECT
       COALESCE(SUM(COALESCE(d.word_count, 0)), 0) AS total_words,
       COALESCE(SUM(CASE WHEN t.status = 'scripting' THEN 1 ELSE 0 END), 0) AS in_scripting_count
       FROM topics t LEFT JOIN drafts d ON d.topic_id = t.id WHERE t.deleted_at IS NULL`)] : []),
-    ...(includeMetadata ? [bind(db, `SELECT
+    ...(includeMetadata ? [command(db, `SELECT
       COALESCE(SUM(CASE WHEN t.deleted_at IS NULL AND t.status NOT IN ('published', 'icebox') THEN 1 ELSE 0 END), 0) AS active,
       COALESCE(SUM(CASE WHEN t.deleted_at IS NULL AND t.status IN ('published', 'icebox') THEN 1 ELSE 0 END), 0) AS archived,
       COALESCE(SUM(CASE WHEN t.deleted_at IS NOT NULL THEN 1 ELSE 0 END), 0) AS trash
       FROM topics t ${baseWhere}`, baseFilter.values)] : []),
-    bind(db, `SELECT t.*,
+    command(db, `SELECT t.*,
       (SELECT COUNT(*) FROM sources s WHERE s.topic_id = t.id) AS sources_count,
       (SELECT COUNT(*) FROM sources s WHERE s.topic_id = t.id AND s.verification_status = 'confirmed') AS verified_sources_count,
       (SELECT COUNT(*) FROM commercial_deal_topics cdt WHERE cdt.topic_id = t.id) AS commercial_deals_count,
       COALESCE((SELECT word_count FROM drafts d WHERE d.topic_id = t.id LIMIT 1), 0) AS draft_word_count
       FROM topics t ${where} ORDER BY ${sort} ${direction}, t.id ASC LIMIT ? OFFSET ?`, [...values, options.pageSize, offset]),
   ];
-  const results = await db.batch(statements);
+  const results = readTransaction(db, statements);
   const countResult = results[0];
   const summaryResult = includeMetadata ? results[1] : undefined;
   const scopeCountsResult = includeMetadata ? results[2] : undefined;
   const rowsResult = results[includeMetadata ? 3 : 1];
-  const rows = rowsResult.results as unknown as Topic[];
+  const rows = rowsResult as Topic[];
   const ids = rows.map((row) => row.id);
   if (ids.length > 0) {
     const placeholders = ids.map(() => '?').join(',');
-    const [tagResult, personResult, currentTodoResult] = await db.batch([
-      bind(db, `SELECT tt.topic_id, tg.* FROM topic_tags tt INNER JOIN tags tg ON tg.id = tt.tag_id WHERE tt.topic_id IN (${placeholders})`, ids),
-      bind(db, `SELECT tp.topic_id, p.* FROM topic_people tp INNER JOIN people p ON p.id = tp.person_id WHERE tp.topic_id IN (${placeholders})`, ids),
-      bind(db, `SELECT * FROM topic_todos
+    const [tagResult, personResult, currentTodoResult] = readTransaction(db, [
+      command(db, `SELECT tt.topic_id, tg.* FROM topic_tags tt INNER JOIN tags tg ON tg.id = tt.tag_id WHERE tt.topic_id IN (${placeholders})`, ids),
+      command(db, `SELECT tp.topic_id, p.* FROM topic_people tp INNER JOIN people p ON p.id = tp.person_id WHERE tp.topic_id IN (${placeholders})`, ids),
+      command(db, `SELECT * FROM topic_todos
         WHERE status = 'in_progress' AND is_current = 1 AND topic_id IN (${placeholders})
         ORDER BY topic_id ASC`, ids),
     ]);
     const currentTodoByTopic = new Map<string, TopicTodo>();
-    (currentTodoResult.results as unknown as TopicTodo[]).forEach((todo) => {
+    (currentTodoResult as TopicTodo[]).forEach((todo) => {
       if (!currentTodoByTopic.has(todo.topic_id)) currentTodoByTopic.set(todo.topic_id, todo);
     });
     const tagsByTopic = new Map<string, Array<Tag & { topic_id: string }>>();
     const peopleByTopic = new Map<string, Array<Person & { topic_id: string }>>();
-    (tagResult.results as unknown as Array<Tag & { topic_id: string }>).forEach((tag) => {
+    (tagResult as Array<Tag & { topic_id: string }>).forEach((tag) => {
       appendToRelationMap(tagsByTopic, tag.topic_id, tag);
     });
-    (personResult.results as unknown as Array<Person & { topic_id: string }>).forEach((person) => {
+    (personResult as Array<Person & { topic_id: string }>).forEach((person) => {
       appendToRelationMap(peopleByTopic, person.topic_id, person);
     });
     rows.forEach((topic) => {
@@ -355,9 +355,9 @@ export async function loadTopicPage(db: SqliteDatabase, options: TopicPageOption
       topic.current_todo = currentTodoByTopic.get(topic.id) || null;
     });
   }
-  const total = Number((countResult.results[0] as { count?: number } | undefined)?.count || 0);
-  const summaryRow = summaryResult?.results[0] as { total_words?: number; in_scripting_count?: number } | undefined;
-  const scopeCountsRow = scopeCountsResult?.results[0] as { active?: number; archived?: number; trash?: number } | undefined;
+  const total = Number((countResult[0] as { count?: number } | undefined)?.count || 0);
+  const summaryRow = summaryResult?.[0] as { total_words?: number; in_scripting_count?: number } | undefined;
+  const scopeCountsRow = scopeCountsResult?.[0] as { active?: number; archived?: number; trash?: number } | undefined;
   return {
     items: rows,
     page: options.page,
@@ -377,37 +377,37 @@ export async function loadTopicPage(db: SqliteDatabase, options: TopicPageOption
     } : {}),
   };
 }
-export async function loadTopic(db: SqliteDatabase, id: string): Promise<Topic | null> {
-  const results = await db.batch([
-    bind(db, `SELECT t.*,
+export async function loadTopic(db: Database, id: string): Promise<Topic | null> {
+  const results = readTransaction(db, [
+    command(db, `SELECT t.*,
       (SELECT COUNT(*) FROM sources s WHERE s.topic_id = t.id) AS sources_count,
       (SELECT COUNT(*) FROM sources s WHERE s.topic_id = t.id AND s.verification_status = 'confirmed') AS verified_sources_count,
       (SELECT COUNT(*) FROM commercial_deal_topics cdt WHERE cdt.topic_id = t.id) AS commercial_deals_count,
       COALESCE((SELECT word_count FROM drafts d WHERE d.topic_id = t.id LIMIT 1), 0) AS draft_word_count
       FROM topics t WHERE t.id = ? AND t.deleted_at IS NULL LIMIT 1`, [id]),
-    bind(db, `SELECT tg.* FROM tags tg
+    command(db, `SELECT tg.* FROM tags tg
       INNER JOIN topic_tags tt ON tt.tag_id = tg.id
       WHERE tt.topic_id = ?`, [id]),
-    bind(db, `SELECT p.* FROM people p
+    command(db, `SELECT p.* FROM people p
       INNER JOIN topic_people tp ON tp.person_id = p.id
       WHERE tp.topic_id = ?`, [id]),
-    bind(db, `SELECT * FROM topic_todos
+    command(db, `SELECT * FROM topic_todos
       WHERE topic_id = ? AND status = 'in_progress' AND is_current = 1
       LIMIT 1`, [id]),
   ]);
 
-  const topic = (results[0].results as unknown as Topic[])[0];
+  const topic = (results[0] as Topic[])[0];
   if (!topic) return null;
 
   return {
     ...topic,
-    tags: (results[1].results as unknown as Tag[]) || [],
-    people: (results[2].results as unknown as Person[]) || [],
-    current_todo: ((results[3].results as unknown as TopicTodo[])[0] || null),
+    tags: (results[1] as Tag[]) || [],
+    people: (results[2] as Person[]) || [],
+    current_todo: ((results[3] as TopicTodo[])[0] || null),
   };
 }
 
-export async function loadTopicBatch(db: SqliteDatabase, ids: string[]): Promise<Topic[]> {
+export async function loadTopicBatch(db: Database, ids: string[]): Promise<Topic[]> {
   if (ids.length === 0) return [];
   if (ids.length > MAX_TOPIC_BATCH_QUERY_IDS) {
     const topics: Topic[] = [];
@@ -417,35 +417,35 @@ export async function loadTopicBatch(db: SqliteDatabase, ids: string[]): Promise
     return topics;
   }
   const placeholders = ids.map(() => '?').join(',');
-  const results = await db.batch([
-    bind(db, `SELECT t.*,
+  const results = readTransaction(db, [
+    command(db, `SELECT t.*,
       (SELECT COUNT(*) FROM sources s WHERE s.topic_id = t.id) AS sources_count,
       (SELECT COUNT(*) FROM sources s WHERE s.topic_id = t.id AND s.verification_status = 'confirmed') AS verified_sources_count,
       (SELECT COUNT(*) FROM commercial_deal_topics cdt WHERE cdt.topic_id = t.id) AS commercial_deals_count,
       COALESCE((SELECT word_count FROM drafts d WHERE d.topic_id = t.id LIMIT 1), 0) AS draft_word_count
       FROM topics t WHERE t.deleted_at IS NULL AND t.id IN (${placeholders})`, ids),
-    bind(db, `SELECT tt.topic_id, tg.* FROM topic_tags tt
+    command(db, `SELECT tt.topic_id, tg.* FROM topic_tags tt
       INNER JOIN tags tg ON tg.id = tt.tag_id
       WHERE tt.topic_id IN (${placeholders})`, ids),
-    bind(db, `SELECT tp.topic_id, p.* FROM topic_people tp
+    command(db, `SELECT tp.topic_id, p.* FROM topic_people tp
       INNER JOIN people p ON p.id = tp.person_id
       WHERE tp.topic_id IN (${placeholders})`, ids),
-    bind(db, `SELECT * FROM topic_todos
+    command(db, `SELECT * FROM topic_todos
       WHERE topic_id IN (${placeholders}) AND status = 'in_progress' AND is_current = 1
       ORDER BY topic_id ASC`, ids),
   ]);
 
-  const topics = results[0].results as unknown as Topic[];
+  const topics = results[0] as Topic[];
   const tagsByTopic = new Map<string, Tag[]>();
   const peopleByTopic = new Map<string, Person[]>();
   const currentTodoByTopic = new Map<string, TopicTodo>();
-  (results[1].results as unknown as Array<Tag & { topic_id: string }>).forEach((tag) => {
+  (results[1] as Array<Tag & { topic_id: string }>).forEach((tag) => {
     appendToRelationMap(tagsByTopic, tag.topic_id, tag);
   });
-  (results[2].results as unknown as Array<Person & { topic_id: string }>).forEach((person) => {
+  (results[2] as Array<Person & { topic_id: string }>).forEach((person) => {
     appendToRelationMap(peopleByTopic, person.topic_id, person);
   });
-  (results[3].results as unknown as TopicTodo[]).forEach((todo) => {
+  (results[3] as TopicTodo[]).forEach((todo) => {
     if (!currentTodoByTopic.has(todo.topic_id)) currentTodoByTopic.set(todo.topic_id, todo);
   });
 
@@ -462,10 +462,10 @@ export async function loadTopicBatch(db: SqliteDatabase, ids: string[]): Promise
 }
 
 function buildTopicStatement(
-  db: SqliteDatabase,
+  db: Database,
   topic: TopicCoreInput,
   upsert: boolean,
-): SqlitePreparedStatement {
+ ) {
   const now = new Date().toISOString();
   const conflictClause = upsert ? `
   ON CONFLICT(id) DO UPDATE SET
@@ -477,7 +477,7 @@ function buildTopicStatement(
     score_material=excluded.score_material, score_story=excluded.score_story,
     is_pinned=excluded.is_pinned, sort_order=excluded.sort_order, updated_at=excluded.updated_at,
     published_at=excluded.published_at, deleted_at=excluded.deleted_at` : '';
-  return bind(db, `INSERT INTO topics (
+  return command(db, `INSERT INTO topics (
     id, title, summary, hook, storyline, why_now, status, priority,
     target_publish_date, deadline,
     score_character, score_conflict, score_contrast, score_material, score_story,
@@ -493,33 +493,33 @@ function buildTopicStatement(
   ]);
 }
 
-export function topicStatement(db: SqliteDatabase, topic: TopicCoreInput): SqlitePreparedStatement {
+export function topicStatement(db: Database, topic: TopicCoreInput) {
   return buildTopicStatement(db, topic, true);
 }
 
-function topicInsertStatement(db: SqliteDatabase, topic: TopicCoreInput): SqlitePreparedStatement {
+function topicInsertStatement(db: Database, topic: TopicCoreInput) {
   return buildTopicStatement(db, topic, false);
 }
 
 export async function insertTopic(
-  db: SqliteDatabase,
+  db: Database,
   topic: TopicCoreInput,
   tagIds: string[] = [],
   personIds: string[] = [],
   initialTodo?: { id: string; title: string }
 ): Promise<void> {
-  const existing = await db.prepare('SELECT id FROM topics WHERE id = ?').bind(topic.id).first<{ id: string }>();
+  const existing = readOne<{ id: string }>(db, 'SELECT id FROM topics WHERE id = ?', [topic.id]);
   if (existing) throw new TopicAlreadyExistsError('Topic already exists');
 
   const isActive = !topic.deleted_at && !['published', 'icebox'].includes(topic.status || 'inbox');
-  const batch: SqlitePreparedStatement[] = [
-    ...(topic.is_pinned === 1 && isActive ? [bind(db, `UPDATE topics SET is_pinned = 0
-      WHERE deleted_at IS NULL AND status NOT IN ('published', 'icebox')`, [])] : []),
+  const batch = [
+    ...(topic.is_pinned === 1 && isActive ? [command(db, `UPDATE topics SET is_pinned = 0
+      WHERE deleted_at IS NULL AND status NOT IN ('published', 'icebox')`)] : []),
     topicInsertStatement(db, { ...topic, is_pinned: topic.is_pinned === 1 && isActive ? 1 : 0 }),
   ];
   if (initialTodo) {
     const now = new Date().toISOString();
-    batch.push(bind(db, `INSERT INTO topic_todos (
+    batch.push(command(db, `INSERT INTO topic_todos (
       id, topic_id, title, status, is_current, current_started_at,
       completed_at, sort_order, created_at, updated_at
     ) VALUES (?, ?, ?, 'in_progress', 1, ?, NULL, 1, ?, ?)`, [
@@ -527,16 +527,16 @@ export async function insertTopic(
       now, now, now,
     ]));
   }
-  tagIds.forEach((tagId) => batch.push(bind(db,
+  tagIds.forEach((tagId) => batch.push(command(db,
     'INSERT OR IGNORE INTO topic_tags (id, topic_id, tag_id) VALUES (?, ?, ?)',
     [`${topic.id}:${tagId}`, topic.id, tagId]
   )));
-  personIds.forEach((personId) => batch.push(bind(db,
+  personIds.forEach((personId) => batch.push(command(db,
     'INSERT OR IGNORE INTO topic_people (id, topic_id, person_id, role) VALUES (?, ?, ?, ?)',
     [`${topic.id}:${personId}`, topic.id, personId, '']
   )));
   try {
-    await db.batch(batch);
+    executeTransaction(db, batch);
   } catch (error) {
     if (error instanceof Error && error.message.includes('UNIQUE constraint failed: topics.id')) {
       throw new TopicAlreadyExistsError('Topic already exists');
@@ -546,12 +546,12 @@ export async function insertTopic(
 }
 
 export async function updateTopic(
-  db: SqliteDatabase,
+  db: Database,
   id: string,
   body: TopicUpdateInput
 ): Promise<void> {
-  db.sqlite.transaction(() => {
-    const existing = db.sqlite.query('SELECT status, deleted_at FROM topics WHERE id = ?').get(id) as
+  db.transaction(() => {
+    const existing = db.query('SELECT status, deleted_at FROM topics WHERE id = ?').get(id) as
       { status: TopicStatus; deleted_at?: string | null } | undefined;
     if (!existing) return;
     const requestedStatus = (body.status || existing.status || 'inbox') as TopicStatus;
@@ -559,7 +559,7 @@ export async function updateTopic(
     if (body.is_pinned === 1 && !isActive) throw new TopicPinInvalidStateError('Only active topics can be pinned');
     const shouldClearPin = !isActive;
     const hasPinField = Object.prototype.hasOwnProperty.call(body, 'is_pinned');
-    const statements: SqlitePreparedStatement[] = [];
+    const statements: SqlCommand[] = [];
     const fields = [
       'title', 'summary', 'hook', 'storyline', 'why_now', 'status', 'priority',
       'target_publish_date', 'deadline',
@@ -567,39 +567,39 @@ export async function updateTopic(
       'is_pinned', 'sort_order', 'published_at', 'deleted_at',
     ].filter((field) => Object.prototype.hasOwnProperty.call(body, field) || (field === 'is_pinned' && shouldClearPin));
     if (body.is_pinned === 1 && isActive) {
-      statements.push(bind(db, `UPDATE topics SET is_pinned = 0
+      statements.push(command(db, `UPDATE topics SET is_pinned = 0
         WHERE id != ? AND deleted_at IS NULL AND status NOT IN ('published', 'icebox')`, [id]));
     }
     if (fields.length > 0) {
       const values = fields.map((field) => field === 'is_pinned' && shouldClearPin && !hasPinField
         ? 0
         : body[field as keyof TopicUpdateInput]);
-      statements.push(bind(db,
+      statements.push(command(db,
         `UPDATE topics SET ${fields.map((field) => `${field} = ?`).join(', ')}, updated_at = ? WHERE id = ?`,
         [...values, new Date().toISOString(), id]
       ));
     }
     if (body.tags) {
-      statements.push(bind(db, 'DELETE FROM topic_tags WHERE topic_id = ?', [id]));
-      body.tags.forEach((tag) => statements.push(bind(db,
+      statements.push(command(db, 'DELETE FROM topic_tags WHERE topic_id = ?', [id]));
+      body.tags.forEach((tag) => statements.push(command(db,
         'INSERT OR IGNORE INTO topic_tags (id, topic_id, tag_id) VALUES (?, ?, ?)',
         [`${id}:${tag.id}`, id, tag.id]
       )));
     }
     if (body.people) {
-      statements.push(bind(db, 'DELETE FROM topic_people WHERE topic_id = ?', [id]));
-      body.people.forEach((person) => statements.push(bind(db,
+      statements.push(command(db, 'DELETE FROM topic_people WHERE topic_id = ?', [id]));
+      body.people.forEach((person) => statements.push(command(db,
         'INSERT OR IGNORE INTO topic_people (id, topic_id, person_id, role) VALUES (?, ?, ?, ?)',
         [`${id}:${person.id}`, id, person.id, '']
       )));
     }
-    statements.forEach((statement) => statement.executeSync());
+    statements.forEach(({ statement, values }) => statement.run(...values));
   }).immediate();
 }
 
-export async function softDeleteTopic(db: SqliteDatabase, id: string): Promise<void> {
+export async function softDeleteTopic(db: Database, id: string): Promise<void> {
   const now = new Date().toISOString();
-  await bind(db, 'UPDATE topics SET deleted_at = ?, is_pinned = 0, updated_at = ? WHERE id = ? AND deleted_at IS NULL', [now, now, id]).run();
+  db.query('UPDATE topics SET deleted_at = ?, is_pinned = 0, updated_at = ? WHERE id = ? AND deleted_at IS NULL').run(now, now, id);
 }
 
 /**
@@ -611,12 +611,12 @@ export async function softDeleteTopic(db: SqliteDatabase, id: string): Promise<v
  * the dedicated trash cleanup path instead.
  */
 export async function restoreTopic(
-  db: SqliteDatabase,
+  db: Database,
   id: string,
   retentionDays = TRASH_RETENTION_DAYS,
 ): Promise<'restored' | 'expired' | 'not_found'> {
-  return db.sqlite.transaction(() => {
-    const existing = db.sqlite.query('SELECT deleted_at FROM topics WHERE id = ?').get(id) as
+  return db.transaction(() => {
+    const existing = db.query('SELECT deleted_at FROM topics WHERE id = ?').get(id) as
       { deleted_at?: string | null } | undefined;
     if (!existing) return 'not_found';
 
@@ -626,19 +626,18 @@ export async function restoreTopic(
       if (Date.parse(deletedAt) <= cutoff) return 'expired';
     }
 
-    db.sqlite.query('UPDATE topics SET deleted_at = NULL, updated_at = ? WHERE id = ?')
+    db.query('UPDATE topics SET deleted_at = NULL, updated_at = ? WHERE id = ?')
       .run(new Date().toISOString(), id);
     return 'restored';
   }).immediate();
 }
 
-export async function listTrashedTopicIds(db: SqliteDatabase): Promise<string[]> {
-  const result = await db.prepare('SELECT id FROM topics WHERE deleted_at IS NOT NULL').all<{ id: string }>();
-  return result.results.map((row) => row.id);
+export async function listTrashedTopicIds(db: Database): Promise<string[]> {
+  return readAll<{ id: string }>(db, 'SELECT id FROM topics WHERE deleted_at IS NOT NULL').map((row) => row.id);
 }
 
 export async function reorderTopics(
-  db: SqliteDatabase,
+  db: Database,
   updates: Array<{ id: string; status: TopicStatus; sort_order: number }>
 ): Promise<string> {
   const now = new Date().toISOString();
@@ -648,9 +647,9 @@ export async function reorderTopics(
     throw new TopicReorderInvalidStateError('Duplicate topic ids are not allowed');
   }
 
-  const executeReorder = db.sqlite.transaction(() => {
+  const executeReorder = db.transaction(() => {
     const updatePlaceholders = updateIds.map(() => '?').join(',');
-    const updatedTopics = (db.sqlite.query(
+    const updatedTopics = (db.query(
       `SELECT id, status FROM topics WHERE deleted_at IS NULL AND id IN (${updatePlaceholders})`
     ).all(...updateIds)) as Array<{ id: string; status: TopicStatus }>;
 
@@ -663,7 +662,7 @@ export async function reorderTopics(
       ...updatedTopics.map((topic) => topic.status),
     ]));
     const placeholders = affectedStatuses.map(() => '?').join(',');
-    const existing = (db.sqlite.query(
+    const existing = (db.query(
       `SELECT id, status FROM topics WHERE deleted_at IS NULL AND status IN (${placeholders}) ORDER BY status ASC, sort_order ASC, id ASC`
     ).all(...affectedStatuses)) as Array<{ id: string; status: TopicStatus }>;
 
@@ -690,7 +689,7 @@ export async function reorderTopics(
         });
     });
 
-    const updateStmt = db.sqlite.query(
+    const updateStmt = db.query(
       `UPDATE topics SET status = ?, sort_order = ?,
         is_pinned = CASE WHEN ? IN ('published', 'icebox') THEN 0 ELSE is_pinned END,
         updated_at = ? WHERE id = ?`

@@ -1,7 +1,6 @@
 import { describe, it, expect, beforeEach, afterEach } from 'bun:test';
 import { Database } from 'bun:sqlite';
 import { createApp } from '../src/server/app';
-import { SqliteDatabase } from '../src/server/sqlite';
 import { NativeApp } from '../src/server/native';
 import type { ApiBindings } from '../src/server/apiShared';
 import {
@@ -22,16 +21,16 @@ import type { Source } from '../src/types';
 
 describe('Topic Report and Sources Timeline Integration', () => {
   let sqlite: Database;
-  let db: SqliteDatabase;
+  let db: Database;
   let app: NativeApp;
   let headers: Record<string, string>;
 
   beforeEach(async () => {
     sqlite = new Database(':memory:');
-    const schemaSql = await Bun.file('drizzle/0000_schema.sql').text();
+    const schemaSql = await Bun.file('database/schema.sql').text();
     sqlite.exec(schemaSql);
 
-    db = new SqliteDatabase(sqlite);
+    db = sqlite;
 
     const bindings: ApiBindings = {
       DB: db,

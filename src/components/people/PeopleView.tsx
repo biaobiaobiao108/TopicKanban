@@ -21,7 +21,7 @@ import {
 import { CustomSelect } from '../ui/CustomSelect';
 import { ConfirmDialog } from '../ui/ConfirmDialog';
 import { PageHeader } from '../layout/PageHeader';
-import { fetchPeopleOptions, fetchPeoplePage } from '../../lib/storage';
+import { fetchPeopleOptions, fetchPeoplePage } from '../../lib/storageApi';
 import { sanitizeExternalHttpUrl } from '../../lib/urlSafety';
 import { invalidateQueryGroups } from '../../lib/topicQueryCache';
 
