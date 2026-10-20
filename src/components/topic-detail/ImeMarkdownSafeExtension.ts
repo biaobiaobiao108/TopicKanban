@@ -33,7 +33,7 @@ function getTargetBlockInfo($from: ResolvedPos) {
   if (currentBlockType === 'paragraph') {
     for (let d = $from.depth - 1; d >= 1; d--) {
       const ancestor = $from.node(d);
-      if (['blockquote', 'listItem'].includes(ancestor.type.name)) {
+      if (['blockquote', 'listItem', 'taskItem'].includes(ancestor.type.name)) {
         return {
           block: currentBlock,
           start: $from.start(),
@@ -46,7 +46,7 @@ function getTargetBlockInfo($from: ResolvedPos) {
   // 深度为 0 的边界容错
   if ($from.depth === 0 && $from.nodeAfter) {
     const node = $from.nodeAfter;
-    if (['heading', 'blockquote', 'listItem', 'codeBlock'].includes(node.type.name)) {
+    if (['heading', 'blockquote', 'listItem', 'taskItem', 'codeBlock'].includes(node.type.name)) {
       return {
         block: node,
         start: $from.pos + 1,
@@ -279,11 +279,15 @@ export const ImeMarkdownSafeExtension = Extension.create({
       );
     }
 
-    if (this.editor.schema.nodes.taskList) {
+    const targetTaskItemType = this.editor.schema.nodes.taskItem || this.editor.schema.nodes.taskList;
+    if (targetTaskItemType) {
       rules.push(
         wrappingInputRule({
-          find: /^\s*(?:\[(?: |x|X)\]|【(?: |x|X)】)[\s\u3000]$/,
-          type: this.editor.schema.nodes.taskList,
+          find: /^\s*(?:[-－+＋*＊·•]\s+)?(?:\[([ xX])\]|【([ xX])】)[\s\u3000]$/,
+          type: targetTaskItemType,
+          getAttributes: (match) => ({
+            checked: /x/i.test(match[1] || match[2] || ''),
+          }),
         })
       );
     }

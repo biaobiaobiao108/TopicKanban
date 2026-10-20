@@ -171,7 +171,12 @@ const SCRIPT_MARKDOWN_EXTENSIONS = [
   ...createTableExtensions(),
   ScriptLink.configure({ openOnClick: false, autolink: true, linkOnPaste: true }),
   TaskList,
-  TaskItem.configure({ nested: true }),
+  TaskItem.configure({
+    nested: true,
+    HTMLAttributes: {
+      'data-type': 'taskItem',
+    },
+  }),
   Placeholder.configure({ placeholder: '在此撰写视频解说文案……支持 Markdown 快捷语法，输入 / 插入结构。' }),
   CharacterCount,
   CitationMark,

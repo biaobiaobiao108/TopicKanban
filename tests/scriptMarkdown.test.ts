@@ -30,7 +30,7 @@ const markdown = new MarkdownManager({
     ScriptCodeBlock.configure({ exitOnTripleEnter: false }),
     ScriptLink,
     TaskList,
-    TaskItem.configure({ nested: true }),
+    TaskItem.configure({ nested: true, HTMLAttributes: { 'data-type': 'taskItem' } }),
     ...createTableExtensions(),
     CitationMark,
     VoiceoverCueNode,
@@ -213,5 +213,27 @@ describe('script Markdown source', () => {
     collectBold(document);
     expect(boldTexts).toEqual(['判断：', '主线：', '注意！']);
   });
-});
+  it('configures TaskItem with data-type="taskItem" HTML attributes', () => {
+    const configuredTaskItem = TaskItem.configure({
+      nested: true,
+      HTMLAttributes: {
+        'data-type': 'taskItem',
+      },
+    });
 
+    expect(configuredTaskItem.options.HTMLAttributes['data-type']).toBe('taskItem');
+    expect(configuredTaskItem.options.nested).toBe(true);
+
+    const renderFn = configuredTaskItem.config.renderHTML as ((props: unknown) => unknown) | undefined;
+    expect(renderFn).toBeDefined();
+
+    const rendered = renderFn?.call(configuredTaskItem, {
+      node: { attrs: { checked: false } },
+      HTMLAttributes: { 'data-type': 'taskItem' },
+    });
+    const serialized = JSON.stringify(rendered);
+    expect(serialized).toContain('taskItem');
+    expect(serialized).toContain('data-type');
+  });
+
+});

@@ -166,4 +166,22 @@ describe('ImeMarkdownSafeExtension 纯逻辑与自愈规则测试', () => {
     expect(orderedRegex.test('1、 ')).toBe(true); // 顿号
     expect(orderedRegex.test('1． ')).toBe(true); // 全角点
   });
+  it('待办事项与任务列表 Markdown 正则校验：支持全角半角括号、前导破折号与全角空格', () => {
+    const taskRegex = /^\s*(?:[-－+＋*＊·•]\s+)?(?:\[([ xX])\]|【([ xX])】)[\s\u3000]$/;
+    expect(taskRegex.test('[ ] ')).toBe(true);
+    expect(taskRegex.test('[x] ')).toBe(true);
+    expect(taskRegex.test('[X] ')).toBe(true);
+    expect(taskRegex.test('[ ]　')).toBe(true); // 全角空格
+    expect(taskRegex.test('【 】 ')).toBe(true); // 中文全角方括号
+    expect(taskRegex.test('【x】 ')).toBe(true);
+    expect(taskRegex.test('【X】 ')).toBe(true);
+    expect(taskRegex.test('【 】　')).toBe(true);
+    expect(taskRegex.test('- [ ] ')).toBe(true); // 标准 Markdown 前缀
+    expect(taskRegex.test('- [x] ')).toBe(true);
+    expect(taskRegex.test('* [ ] ')).toBe(true);
+    expect(taskRegex.test('+ [ ] ')).toBe(true);
+    expect(taskRegex.test('• [ ] ')).toBe(true);
+    expect(taskRegex.test('－ [ ] ')).toBe(true);
+  });
+
 });

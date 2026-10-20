@@ -649,36 +649,93 @@ html.theme-kyoto-zen .tiptap hr { border-top-color: #dadfd5; }
 .floating-scrollbar-control--vertical .floating-scrollbar-control-track { inset: 0 auto 0 5px; width: 2px; height: auto; }
 .floating-scrollbar-control--vertical .floating-scrollbar-control-thumb { inset-inline-start: 2px; top: auto; width: 8px; min-width: 0; height: auto; }
 
-.script-editor-canvas-container .tiptap ul[data-type="taskList"] {
+.script-editor-canvas-container .tiptap ul[data-type="taskList"],
+.topic-report-reader ul[data-type="taskList"] {
   list-style: none;
+  list-style-type: none;
   padding-left: 0.2rem;
 }
 
-.script-editor-canvas-container .tiptap li[data-type="taskItem"] {
+.script-editor-canvas-container .tiptap ul[data-type="taskList"] ul[data-type="taskList"],
+.topic-report-reader ul[data-type="taskList"] ul[data-type="taskList"] {
+  list-style: none;
+  list-style-type: none;
+  padding-left: 1.35rem;
+  margin: 0.25rem 0;
+}
+
+.script-editor-canvas-container .tiptap li[data-type="taskItem"],
+.script-editor-canvas-container .tiptap ul[data-type="taskList"] > li,
+.topic-report-reader li[data-type="taskItem"],
+.topic-report-reader ul[data-type="taskList"] > li {
   align-items: flex-start;
   display: flex;
   gap: 0.55rem;
   list-style: none;
+  list-style-type: none;
   margin: 0.35rem 0;
 }
 
-.script-editor-canvas-container .tiptap li[data-type="taskItem"] > label {
+.script-editor-canvas-container .tiptap li[data-type="taskItem"] > label,
+.script-editor-canvas-container .tiptap ul[data-type="taskList"] > li > label,
+.topic-report-reader li[data-type="taskItem"] > label,
+.topic-report-reader ul[data-type="taskList"] > li > label {
   align-items: center;
   display: inline-flex;
   flex: 0 0 auto;
   margin-top: 0.43em;
+  user-select: none;
+  cursor: pointer;
 }
 
-.script-editor-canvas-container .tiptap li[data-type="taskItem"] > label input {
+.script-editor-canvas-container .tiptap li[data-type="taskItem"] > label input,
+.script-editor-canvas-container .tiptap ul[data-type="taskList"] > li > label input,
+.topic-report-reader li[data-type="taskItem"] > label input,
+.topic-report-reader ul[data-type="taskList"] > li > label input {
   accent-color: var(--accent);
   height: 0.95rem;
   margin: 0;
   width: 0.95rem;
+  cursor: pointer;
+  border-radius: 0.25rem;
 }
 
-.script-editor-canvas-container .tiptap li[data-type="taskItem"] > div { min-width: 0; flex: 1; }
-.script-editor-canvas-container .tiptap li[data-type="taskItem"][data-checked="true"] > div { color: var(--ink-muted); }
-.script-editor-canvas-container .tiptap li[data-type="taskItem"][data-checked="true"] > div p { text-decoration: line-through; text-decoration-color: color-mix(in srgb, var(--ink-muted) 50%, transparent); }
+.script-editor-canvas-container .tiptap li[data-type="taskItem"] > div,
+.script-editor-canvas-container .tiptap ul[data-type="taskList"] > li > div,
+.topic-report-reader li[data-type="taskItem"] > div,
+.topic-report-reader ul[data-type="taskList"] > li > div {
+  min-width: 0;
+  flex: 1;
+}
+
+.script-editor-canvas-container .tiptap li[data-type="taskItem"] > div > p,
+.script-editor-canvas-container .tiptap ul[data-type="taskList"] > li > div > p,
+.topic-report-reader li[data-type="taskItem"] > div > p,
+.topic-report-reader ul[data-type="taskList"] > li > div > p {
+  margin: 0;
+}
+
+.script-editor-canvas-container .tiptap li[data-type="taskItem"] > div > p + p,
+.script-editor-canvas-container .tiptap ul[data-type="taskList"] > li > div > p + p,
+.topic-report-reader li[data-type="taskItem"] > div > p + p,
+.topic-report-reader ul[data-type="taskList"] > li > div > p + p {
+  margin-top: 0.35rem;
+}
+
+.script-editor-canvas-container .tiptap li[data-type="taskItem"][data-checked="true"] > div,
+.script-editor-canvas-container .tiptap ul[data-type="taskList"] > li[data-checked="true"] > div,
+.topic-report-reader li[data-type="taskItem"][data-checked="true"] > div,
+.topic-report-reader ul[data-type="taskList"] > li[data-checked="true"] > div {
+  color: var(--ink-muted);
+}
+
+.script-editor-canvas-container .tiptap li[data-type="taskItem"][data-checked="true"] > div :where(p, span),
+.script-editor-canvas-container .tiptap ul[data-type="taskList"] > li[data-checked="true"] > div :where(p, span),
+.topic-report-reader li[data-type="taskItem"][data-checked="true"] > div :where(p, span),
+.topic-report-reader ul[data-type="taskList"] > li[data-checked="true"] > div :where(p, span) {
+  text-decoration: line-through;
+  text-decoration-color: color-mix(in srgb, var(--ink-muted) 50%, transparent);
+}
 
 .script-editor-canvas-container .tiptap aside.script-callout {
   --callout-color: var(--accent);
