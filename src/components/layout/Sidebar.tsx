@@ -124,7 +124,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
           <div className="text-xs font-semibold text-ink-muted px-3.5 py-2 tracking-[0.12em]">
             工作台模块
           </div>
-          <div className="flex max-h-[32rem] flex-1 flex-col justify-between gap-2">
+          <div className="flex flex-col gap-1.5">
             {navItems.map((item) => {
               const Icon = item.icon;
               const isActive = currentView === item.id;
