@@ -652,25 +652,7 @@ html.dark .script-citation::after {
     --sidebar-surface: rgba(31, 35, 53, 0.94);
     --scrollbar-thumb: rgba(169, 177, 214, 0.28);
     --scrollbar-track: transparent;
-
-    /* Keep existing Tailwind stone utilities inside the Tokyo Night palette. */
-    --color-stone-50: #c0caf5;
-    --color-stone-100: #b4bfeb;
-    --color-stone-200: #a9b1d6;
-    --color-stone-300: #9aa5ce;
-    --color-stone-400: #9aa5ce;
-    --color-stone-500: #9aa5ce;
-    --color-stone-600: #414868;
-    --color-stone-700: #353b58;
-    --color-stone-800: #292e42;
-    --color-stone-900: #24283b;
-    --color-stone-950: #1a1b26;
     color-scheme: dark;
-  }
-
-  html.dark [class~="dark:text-stone-600"],
-  html.dark [class~="dark:text-stone-700"] {
-    color: #9aa5ce !important;
   }
 
   @media (prefers-contrast: more) {
@@ -972,96 +954,8 @@ mark, .mark-highlight {
 }
 
 /* ==========================================================================
-   0. Xiangyin Natural Paper White Eye-Care System (象映纸境护眼系统)
-   ========================================================================== */
-/* 1. 彻底吸收全站与卡片内的刺眼纯白，柔化为象映柔白纸面 */
-html.theme-light .bg-white,
-:root:not(.dark):not(.theme-warm-paper) .bg-white {
-  background-color: var(--surface) !important;
-}
-
-/* 2. 吸收卡片内部嵌套的各种半透明纯白方块，柔化为内嵌次级纸底 */
-html.theme-light .bg-white\/50,
-html.theme-light .bg-white\/60,
-html.theme-light .bg-white\/65,
-html.theme-light .bg-white\/70,
-html.theme-light .bg-white\/75,
-html.theme-light .bg-white\/80,
-html.theme-light .bg-white\/85,
-html.theme-light .bg-white\/90,
-html.theme-light .bg-white\/95,
-:root:not(.dark):not(.theme-warm-paper) .bg-white\/50,
-:root:not(.dark):not(.theme-warm-paper) .bg-white\/60,
-:root:not(.dark):not(.theme-warm-paper) .bg-white\/65,
-:root:not(.dark):not(.theme-warm-paper) .bg-white\/70,
-:root:not(.dark):not(.theme-warm-paper) .bg-white\/75,
-:root:not(.dark):not(.theme-warm-paper) .bg-white\/80,
-:root:not(.dark):not(.theme-warm-paper) .bg-white\/85,
-:root:not(.dark):not(.theme-warm-paper) .bg-white\/90,
-:root:not(.dark):not(.theme-warm-paper) .bg-white\/95 {
-  background-color: var(--surface-muted) !important;
-}
-
-/* 3. 卡片内输入控件聚焦时，保持自然纸白，严禁突兀白光漫射 */
-html.theme-light input:not(.script-editor-title):focus,
-html.theme-light textarea:focus,
-:root:not(.dark):not(.theme-warm-paper) input:not(.script-editor-title):focus,
-:root:not(.dark):not(.theme-warm-paper) textarea:focus {
-  background-color: var(--surface) !important;
-}
-
-/* 4. 象映纸质微阴影 */
-html.theme-light .shadow-subtle,
-:root:not(.dark):not(.theme-warm-paper) .shadow-subtle {
-  box-shadow: 0 1px 3px rgba(32, 38, 33, 0.04), 0 1px 2px rgba(32, 38, 33, 0.02) !important;
-}
-
-/* ==========================================================================
    1. Warm Paper (暖沙纸境) - Natural Warm Paper & Chestnut Ink System
    ========================================================================== */
-
-/* 1. Main Workspace Canvas */
-html.theme-warm-paper body,
-html.theme-warm-paper #root,
-html.theme-warm-paper main,
-html.theme-warm-paper .bg-\[\#fafaf9\],
-html.theme-warm-paper .bg-stone-50 {
-  background-color: #f5f0e5 !important;
-}
-
-/* 2. All Common White Surfaces */
-html.theme-warm-paper .bg-white,
-html.theme-warm-paper .bg-white\/50,
-html.theme-warm-paper .bg-white\/60,
-html.theme-warm-paper .bg-white\/70,
-html.theme-warm-paper .bg-white\/80,
-html.theme-warm-paper .bg-white\/85,
-html.theme-warm-paper .bg-white\/90,
-html.theme-warm-paper .bg-white\/95,
-html.theme-warm-paper .kanban-column-container .bg-white,
-html.theme-warm-paper .today-spotlight-card,
-html.theme-warm-paper .today-priority-item,
-html.theme-warm-paper .today-action-progress-panel,
-html.theme-warm-paper .today-recent-updates-panel {
-  background-color: #faf6ee !important;
-  border-color: #e6ded1 !important;
-}
-
-html.theme-warm-paper .kanban-column-container .bg-white,
-html.theme-warm-paper .today-priority-item,
-html.theme-warm-paper .today-spotlight-card,
-html.theme-warm-paper .today-action-progress-panel,
-html.theme-warm-paper .today-recent-updates-panel,
-html.theme-warm-paper .shadow-subtle {
-  box-shadow: 0 1px 3px rgba(60, 45, 30, 0.04), 0 1px 2px rgba(60, 45, 30, 0.02) !important;
-}
-
-html.theme-warm-paper .kanban-column-container .bg-white:hover,
-html.theme-warm-paper .today-priority-item:hover {
-  background-color: #faf6ee !important;
-  border-color: #dcd1c1 !important;
-  box-shadow: 0 4px 14px rgba(60, 45, 30, 0.06) !important;
-}
 
 /* 3. Kanban Board & 3 Columns (Vintage Book Stages) */
 html.theme-warm-paper .kanban-column-container[data-column-status="inbox"] {
@@ -1094,94 +988,14 @@ html.theme-warm-paper .kanban-column-container[data-column-status="production"] 
   color: #2a526d !important;
 }
 
-/* 4. Subtabs & Scope Navigation */
-html.theme-warm-paper .detail-subtabs-container,
-html.theme-warm-paper .table-scope-tabs-container,
-html.theme-warm-paper .tags-header-banner,
-html.theme-warm-paper .script-editor-canvas-container {
-  background-color: #f5f0e5 !important;
-  border-bottom-color: transparent !important;
-}
-
-html.theme-warm-paper .table-scope-tabs-container button.is-active {
-  background-color: #faf6ee !important;
-  border: 1px solid transparent !important;
-  box-shadow: 0 1px 3px rgba(60, 45, 30, 0.05) !important;
-  color: #24201d !important;
-  font-weight: 700 !important;
-}
-
-html.theme-warm-paper .detail-subtabs-container button:not(.is-active) {
-  border-color: transparent !important;
-  color: #7d756c !important;
-}
-
-/* 5. Outer Framework */
-html.theme-warm-paper aside.sidebar-container,
-html.theme-warm-paper .sidebar-container,
-html.theme-warm-paper .mobile-drawer-container,
-html.theme-warm-paper .mobile-nav-container {
-  background-color: #ece4d6 !important;
-  border-color: #ded5c4 !important;
-}
-
+/* 品牌标识与悬浮按钮的强调色点睛（结构性类，非工具类补丁） */
 html.theme-warm-paper .sidebar-brand-logo,
 html.theme-warm-paper .mobile-fab-create-button {
-  background-color: var(--accent) !important;
-  box-shadow: 0 2px 8px color-mix(in oklab, var(--accent) 26%, transparent) !important;
+  background-color: var(--accent);
+  box-shadow: 0 2px 8px color-mix(in oklab, var(--accent) 26%, transparent);
 }
 
-html.theme-warm-paper aside.sidebar-container nav button.bg-stone-100,
-html.theme-warm-paper aside nav button.bg-stone-100,
-html.theme-warm-paper .mobile-drawer-container nav button.bg-stone-100,
-html.theme-warm-paper .tags-sidebar-panel .tag-menu-item.is-selected {
-  background-color: #faf6ee !important;
-  border: 1px solid #ded5c4 !important;
-  box-shadow: 0 1px 3px rgba(60, 45, 30, 0.04) !important;
-  color: #24201d !important;
-  font-weight: 700 !important;
-}
-
-/* 6. Primary Action Buttons & CTA */
-html.theme-warm-paper aside.sidebar-container button.bg-stone-900,
-html.theme-warm-paper .mobile-drawer-container button.bg-stone-900 {
-  background-color: var(--accent) !important;
-  color: #ffffff !important;
-}
-html.theme-warm-paper aside.sidebar-container button.bg-stone-900:hover,
-html.theme-warm-paper .mobile-drawer-container button.bg-stone-900:hover {
-  background-color: var(--accent-dark) !important;
-}
-
-/* 8. Controls & Modals */
-html.theme-warm-paper .shadow-modal {
-  background-color: #faf6ee !important;
-  border: 1px solid #ded5c4 !important;
-  box-shadow: 0 20px 35px -5px rgba(60, 45, 30, 0.12), 0 8px 12px -6px rgba(60, 45, 30, 0.06) !important;
-}
-html.theme-warm-paper input[type="text"],
-html.theme-warm-paper input[type="number"],
-html.theme-warm-paper input[type="search"],
-html.theme-warm-paper textarea,
-html.theme-warm-paper select {
-  background-color: #faf6ee !important;
-  border-color: #ded5c4 !important;
-  color: #24201d !important;
-}
-html.theme-warm-paper input[type="text"]:not(.script-editor-title):not([data-no-focus-ring]):not(.command-palette-input):not(.todo-composer-input):not(.todo-inline-editor-input):focus,
-html.theme-warm-paper input[type="number"]:focus,
-html.theme-warm-paper input[type="search"]:focus,
-html.theme-warm-paper textarea:not(.script-editor-title):not([data-no-focus-ring]):focus,
-html.theme-warm-paper select:focus {
-  border-color: var(--command-palette-focus) !important;
-  box-shadow: 0 0 0 2px color-mix(in oklab, var(--command-palette-focus) 22%, transparent) !important;
-}
-html.theme-warm-paper input[type="checkbox"]:checked {
-  background-color: var(--accent) !important;
-  border-color: var(--accent) !important;
-}
-
-/* 9. TipTap & Scrollbars */
+/* 9. Scrollbars */
 html.theme-warm-paper ::-webkit-scrollbar-thumb { background: #d7cdbe; }
 html.theme-warm-paper ::-webkit-scrollbar-thumb:hover { background: #c2b6a2; }
 
