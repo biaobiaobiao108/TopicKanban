@@ -266,7 +266,6 @@ export const PeopleTab: React.FC<PeopleTabProps> = ({
           <div className="flex flex-wrap items-start justify-between gap-2">
             <div>
               <h4 className="text-sm font-bold text-ink">从全局人物库快速引入</h4>
-              <p className="mt-1 text-xs text-ink-muted">搜索姓名、别名或身份，再选择要关联的人物。</p>
             </div>
             <span className="text-xs text-ink-muted">未关联 <span className="font-mono tabular-nums">{unattachedPeople.length}</span> 人</span>
           </div>
@@ -335,7 +334,6 @@ export const PeopleTab: React.FC<PeopleTabProps> = ({
       <div className="space-y-4">
         <div className="flex items-center justify-between">
           <h4 className="text-base font-bold text-ink">本期人物关系网 (Relationships)</h4>
-          <span className="text-xs text-ink-muted">自动匹配本期出场人物之间的既有关系</span>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-3">

@@ -434,9 +434,6 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({
               </div>
               <div>
                 <h2 className="font-serif text-sm font-bold text-ink">选题定位</h2>
-                <p className="mt-0.5 text-2xs text-ink-muted">
-                  先说清内容，再确认看点与时机。
-                </p>
               </div>
             </div>
 
@@ -553,9 +550,6 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({
               </div>
               <div>
                 <h3 className="font-serif text-sm font-bold text-ink">故事结构</h3>
-                <p className="mt-0.5 text-2xs text-ink-muted">
-                  按四段梳理从背景到结果，适用于人物、事件、产品、观点和过程类选题。
-                </p>
               </div>
             </div>
 

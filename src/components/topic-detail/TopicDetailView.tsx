@@ -488,8 +488,8 @@ export const TopicDetailView: React.FC<TopicDetailViewProps> = ({
       {/* Module navigation stays visible across topic detail sections. */}
       {/* Module navigation stays visible across topic detail sections. */}
       <header className="topic-detail-context-shell relative shrink-0 border-b border-line bg-canvas/95 backdrop-blur-sm transition-colors">
-        <div className="grid w-full grid-cols-1 items-center gap-x-3 gap-y-2 px-4 py-2 sm:px-6 min-[1680px]:grid-cols-[minmax(0,1fr)_max-content_minmax(0,1fr)] min-[1680px]:px-8">
-          {/* Left: Quick Back Navigation & Compact Topic Context */}
+        <div className="grid w-full grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center gap-x-3 px-4 py-2 sm:px-6 min-[1680px]:px-8">
+          {/* Left: quick back navigation with compact status dot */}
           <div className="flex min-w-0 items-center gap-2.5">
             {onBack && (
               <button
@@ -501,18 +501,13 @@ export const TopicDetailView: React.FC<TopicDetailViewProps> = ({
                 <ArrowLeft className="h-4 w-4" aria-hidden="true" />
               </button>
             )}
-            <div className="flex min-w-0 items-center gap-2">
-              <span className="truncate max-w-[120px] sm:max-w-[180px] md:max-w-[260px] text-xs sm:text-sm font-bold text-ink">
-                {topic.title}
-              </span>
-              <StatusBadge status={topic.status} size="sm" showLabel={false} />
-            </div>
+            <StatusBadge status={topic.status} size="sm" showLabel={false} />
           </div>
 
-          {/* Center: scrollable tabs occupy their own grid column to avoid title overlap */}
+          {/* Center: scrollable tabs share the back-button row and stay optically centered */}
           <div
             ref={detailSubtabsRef}
-            className="detail-subtabs-container flex min-w-0 w-full justify-start overflow-x-auto bg-transparent transition-colors no-scrollbar py-0.5 min-[1680px]:col-start-2 min-[1680px]:row-start-1 min-[1680px]:w-max min-[1680px]:justify-center"
+            className="detail-subtabs-container flex min-w-0 max-w-full justify-center overflow-x-auto bg-transparent transition-colors no-scrollbar py-0.5"
           >
             <nav
               aria-label="选题模块导航"
@@ -542,8 +537,8 @@ export const TopicDetailView: React.FC<TopicDetailViewProps> = ({
             </nav>
           </div>
 
-          {/* Right: keeps the topic title and navigation area balanced */}
-          <div className="hidden w-8 shrink-0 pointer-events-none min-[1680px]:col-start-3 min-[1680px]:row-start-1 min-[1680px]:block" aria-hidden="true" />
+          {/* Right: balances the left column so the tabs stay optically centered */}
+          <div className="min-w-0" aria-hidden="true" />
         </div>
       </header>
 

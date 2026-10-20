@@ -98,7 +98,6 @@ export const CommercialDealsTab: React.FC<CommercialDealsTabProps> = ({ topic, o
             <h3 className="text-lg font-bold text-ink">关联商单</h3>
             <span className="rounded-full bg-accent-soft px-2 py-0.5 text-xs font-bold text-accent">{deals.length}</span>
           </div>
-          <p className="mt-1 text-sm text-ink-muted">选题与商务履约保持独立；你可以显式切换主选题或解除关联。</p>
         </div>
       </div>
 

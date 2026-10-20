@@ -63,10 +63,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
           <div className="sidebar-brand-logo w-9 h-9 rounded-sm flex items-center justify-center overflow-hidden shadow-2xs shrink-0 ring-1 ring-black/5">
             <img src="/icon.png" alt="喵爪看板 Logo" width={36} height={36} className="w-full h-full object-cover rounded-sm" />
           </div>
-          <div className="flex min-w-0 items-center gap-2">
-            <h1 className="font-serif text-ink text-[19px] font-bold tracking-[0.02em] leading-snug">喵爪看板</h1>
-            <span aria-hidden="true" className="grid h-5 w-5 shrink-0 place-items-center rounded-sm bg-h1-color/[0.12] font-serif text-2xs font-bold leading-none text-h1-color">喵</span>
-          </div>
+          <h1 className="font-serif text-ink text-[19px] font-bold tracking-[0.02em] leading-snug">喵爪看板</h1>
         </div>
 
         {/* Quick actions in sidebar */}

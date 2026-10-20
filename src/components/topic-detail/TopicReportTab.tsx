@@ -503,14 +503,11 @@ export const TopicReportTab: React.FC<TopicReportTabProps> = ({
 
       {/* Editor Body */}
       <FloatingScrollbar className="script-editor-canvas-container flex-1 bg-canvas flex justify-center cursor-text transition-colors">
-        <div className="min-w-0 w-full max-w-4xl px-6 sm:px-12 md:px-16 pt-8 pb-36">
+        <div className="mx-auto min-w-0 w-full max-w-4xl px-6 sm:px-12 md:px-16 pt-8 pb-36">
           <div className="mb-4 border-b border-line pb-3">
             <h1 className="font-serif text-xl sm:text-2xl font-bold text-ink tracking-[0.01em]">
               {topicTitle} · 选题报告
             </h1>
-            <p className="mt-1 text-xs text-ink-muted">
-              用于整理前期资料、事件脉络与核心事实。写文案时可在文案创作中分屏对照参考。
-            </p>
           </div>
 
           <EditorContent

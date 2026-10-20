@@ -167,7 +167,6 @@ export const TodayView: React.FC<TodayViewProps> = ({
         <PageHeader
           title="今日生产聚焦"
           icon={Calendar}
-          badge={<span className="rounded-full bg-accent-soft px-2.5 py-1 text-xs font-semibold text-accent-dark">专注当下</span>}
           actions={(
             <button
               type="button"
@@ -323,7 +322,6 @@ export const TodayView: React.FC<TodayViewProps> = ({
                   商单待推进
                   <span className="rounded-full bg-accent-soft px-2 py-0.5 text-xs font-mono font-bold text-accent-dark">{focusDeals.length}</span>
                 </h2>
-                <p className="mt-1 text-xs text-ink-muted">交付节点、下一步行动与已交付未回款事项集中在这里。</p>
               </div>
               <button type="button" onClick={() => onOpenDeal(focusDeals[0].id)} className="min-h-11 shrink-0 rounded-xl border border-line bg-surface px-3 text-xs font-semibold text-ink-muted transition-colors hover:border-accent/35 hover:text-accent-dark">打开商单</button>
             </div>
