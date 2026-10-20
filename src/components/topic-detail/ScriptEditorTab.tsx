@@ -1193,7 +1193,7 @@ export const ScriptEditorTab: React.FC<ScriptEditorTabProps> = ({
               <Compass className="h-3.5 w-3.5 text-accent" />
               <span>大纲</span>
               {outline.flatItems.length > 0 && (
-                <span className="text-[10px] font-mono opacity-80 tabular-nums">
+                <span className="text-3xs font-mono opacity-80 tabular-nums">
                   {outline.flatItems.length}
                 </span>
               )}
@@ -1234,7 +1234,7 @@ export const ScriptEditorTab: React.FC<ScriptEditorTabProps> = ({
             </button>
 
             {/* Auto save indicator pill */}
-            <div className="flex items-center gap-1.5 rounded-full bg-control px-2.5 py-0.5 text-[11px] text-ink-muted select-none" role="status" aria-live="polite">
+            <div className="flex items-center gap-1.5 rounded-full bg-control px-2.5 py-0.5 text-2xs text-ink-muted select-none" role="status" aria-live="polite">
               {saveStatus === 'saving' && (
                 <>
                   <Cloud className="h-3 w-3 animate-pulse text-accent" aria-hidden="true" />
@@ -1285,9 +1285,9 @@ export const ScriptEditorTab: React.FC<ScriptEditorTabProps> = ({
             <span className="font-semibold text-ink tabular-nums">
               {charCount.toLocaleString()}
             </span>
-            <span className="text-[11px]">字</span>
+            <span className="text-2xs">字</span>
             <span className="opacity-30 mx-0.5">·</span>
-            <span className="flex items-center gap-1 font-mono text-[11px] tabular-nums">
+            <span className="flex items-center gap-1 font-mono text-2xs tabular-nums">
               <Clock className="w-3 h-3 text-ink-muted shrink-0" />
               <span>{estMinutes}分{estSeconds}秒</span>
             </span>
@@ -1296,7 +1296,7 @@ export const ScriptEditorTab: React.FC<ScriptEditorTabProps> = ({
           {/* Right: Tools & Actions */}
           <div className="flex items-center gap-1 sm:gap-1.5">
             {/* Mobile-only word count */}
-            <div className="flex md:hidden items-center text-[11px] text-ink-muted font-mono tabular-nums pr-1">
+            <div className="flex md:hidden items-center text-2xs text-ink-muted font-mono tabular-nums pr-1">
               <span>{charCount}字</span>
             </div>
 
@@ -1341,7 +1341,7 @@ export const ScriptEditorTab: React.FC<ScriptEditorTabProps> = ({
           <div className="flex items-center gap-2 min-w-0">
             <ShieldAlert className="h-4 w-4 text-warning shrink-0" />
             <span className="truncate">
-              ⚠️ 检测到本文案当前正在【{presenceState.active_editor?.device_name || '其他设备'}】上编辑中（活跃于刚刚），请留意多端同步，避免互相覆盖。
+              检测到本文案当前正在【{presenceState.active_editor?.device_name || '其他设备'}】上编辑中（活跃于刚刚），请留意多端同步，避免互相覆盖。
             </span>
           </div>
           <button
@@ -1392,10 +1392,10 @@ export const ScriptEditorTab: React.FC<ScriptEditorTabProps> = ({
           {/* Bottom-Right: Floating Stats */}
           <div className={`fixed right-5 sm:right-8 bottom-5 sm:bottom-7 z-40 flex items-center gap-2.5 bg-surface/95 backdrop-blur-md border border-line text-ink px-4 py-2 rounded-full text-xs font-sans shadow-md hover:shadow-lg transition-all duration-300 select-none ${isReferenceOpen ? 'script-editor-zen-reference-offset' : ''} ${isTypingZen ? 'opacity-25 hover:opacity-100' : 'opacity-100'}`}>
             <span className="font-semibold text-ink font-sans">
-              <span className="font-mono tabular-nums">{charCount.toLocaleString()}</span> <span className="font-normal text-ink-muted text-[11px]">字</span>
+              <span className="font-mono tabular-nums">{charCount.toLocaleString()}</span> <span className="font-normal text-ink-muted text-2xs">字</span>
             </span>
             <span className="opacity-40">·</span>
-            <span className="flex items-center gap-1.5 text-ink-muted font-sans text-[11px]">
+            <span className="flex items-center gap-1.5 text-ink-muted font-sans text-2xs">
               <Clock className="w-3.5 h-3.5 text-ink-muted shrink-0" />
               <span><span className="font-mono tabular-nums">{estMinutes}</span>分<span className="font-mono tabular-nums">{estSeconds}</span>秒</span>
             </span>
@@ -1446,7 +1446,7 @@ export const ScriptEditorTab: React.FC<ScriptEditorTabProps> = ({
                     <FileText className="h-3.5 w-3.5" />
                   </div>
                   {report?.word_count ? (
-                    <span className="rounded-full bg-control px-2 py-0.5 text-[10px] font-mono text-ink-muted tabular-nums shrink-0">
+                    <span className="rounded-full bg-control px-2 py-0.5 text-3xs font-mono text-ink-muted tabular-nums shrink-0">
                       {report.word_count.toLocaleString()} 字
                     </span>
                   ) : null}
@@ -1485,7 +1485,7 @@ export const ScriptEditorTab: React.FC<ScriptEditorTabProps> = ({
                   )}
 
                   {/* Font size switcher */}
-                  <div className="flex items-center rounded-full bg-control p-0.5 text-[11px] text-ink-muted">
+                  <div className="flex items-center rounded-full bg-control p-0.5 text-2xs text-ink-muted">
                     <button
                       type="button"
                       onClick={() => {
@@ -1563,7 +1563,7 @@ export const ScriptEditorTab: React.FC<ScriptEditorTabProps> = ({
                   <div className="py-16 text-center text-ink-muted space-y-2.5">
                     <FileText className="w-8 h-8 mx-auto text-ink-faint stroke-[1.5]" />
                     <div className="text-xs font-medium text-ink">当前选题尚未录入选题报告</div>
-                    <p className="text-[11px] text-ink-muted max-w-xs mx-auto leading-relaxed">
+                    <p className="text-2xs text-ink-muted max-w-xs mx-auto leading-relaxed">
                       可切换至「选题报告」Tab 整理资料与大纲，写文案时在此分屏对照参考。
                     </p>
                   </div>

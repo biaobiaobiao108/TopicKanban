@@ -71,7 +71,7 @@ function DealFocusCard({ deal, onOpen }: { deal: CommercialDeal; onOpen: () => v
           >
             {deal.brand_name || '未命名品牌'} · {deal.title}
           </span>
-          <span className="max-w-[4.5rem] shrink-0 truncate rounded-full bg-control px-2 py-0.5 text-[10px] font-bold text-ink-muted">
+          <span className="max-w-[4.5rem] shrink-0 truncate rounded-full bg-control px-2 py-0.5 text-3xs font-bold text-ink-muted">
             {DEAL_STATUS_LABELS[deal.status]}
           </span>
         </span>
@@ -202,7 +202,7 @@ export const TodayView: React.FC<TodayViewProps> = ({
                 </div>
 
                 <div className="flex items-center gap-2">
-                  <div className="text-right text-[11px] text-ink-muted">
+                  <div className="text-right text-2xs text-ink-muted">
                     <div>{focusTopic.is_pinned === 1 ? '唯一置顶 · 主推' : '按阶段、优先级与最近更新'}</div>
                     <div className="mt-0.5">
                       {focusTopic.current_todo
@@ -343,7 +343,7 @@ export const TodayView: React.FC<TodayViewProps> = ({
                 <span>行动推进</span>
                 <span className="rounded-full bg-control px-2 py-0.5 text-xs font-mono font-bold tabular-nums text-ink-muted">{activeTopicTotal}</span>
               </h2>
-              <span className="text-[11px] font-semibold text-ink-muted">{actionProgress.covered}/{activeTopicTotal || 0} 已落地</span>
+              <span className="text-2xs font-semibold text-ink-muted">{actionProgress.covered}/{activeTopicTotal || 0} 已落地</span>
             </div>
 
             <div data-testid="today-action-progress-panel" className="today-action-progress-panel flex min-h-0 flex-1 flex-col overflow-hidden rounded-2xl border border-line bg-surface p-4 shadow-subtle">
@@ -352,7 +352,7 @@ export const TodayView: React.FC<TodayViewProps> = ({
                   <div className="text-2xl font-bold tracking-tight text-ink">{coveragePercent}%</div>
                   <p className="mt-0.5 text-xs text-ink-muted">活跃选题已有明确下一步</p>
                 </div>
-                <div className="flex items-center gap-1.5 text-[11px] text-ink-muted">
+                <div className="flex items-center gap-1.5 text-2xs text-ink-muted">
                   <span className="h-2 w-2 rounded-full bg-warning" />
                   <span>{actionProgress.staleCount} 条需重新推进</span>
                 </div>
@@ -372,7 +372,7 @@ export const TodayView: React.FC<TodayViewProps> = ({
                       </span>
                       <span className="min-w-0 flex-1">
                         <span className="block truncate text-xs font-semibold text-ink">{topic.title}</span>
-                        <span className="mt-0.5 block truncate text-[11px] text-ink-muted">{hasAction ? getCurrentActionWarning(topic) || '行动需要重新推进' : '尚未设置当前行动'}</span>
+                        <span className="mt-0.5 block truncate text-2xs text-ink-muted">{hasAction ? getCurrentActionWarning(topic) || '行动需要重新推进' : '尚未设置当前行动'}</span>
                       </span>
                       <ArrowRight className="h-3.5 w-3.5 shrink-0 text-ink-muted" aria-hidden="true" />
                     </button>
@@ -387,7 +387,7 @@ export const TodayView: React.FC<TodayViewProps> = ({
               </FloatingScrollbar>
 
               {actionProgress.attention.length > 0 && (
-                <div data-testid="today-action-progress-footer" className="mt-3 border-t border-line/40 pt-3 text-[11px] text-ink-muted">
+                <div data-testid="today-action-progress-footer" className="mt-3 border-t border-line/40 pt-3 text-2xs text-ink-muted">
                   <div className="flex items-center justify-between gap-3 font-semibold">
                     <span className="flex items-center gap-1.5">
                       {actionProgress.missingCount > 0 ? <Zap className="h-3.5 w-3.5 text-warning" aria-hidden="true" /> : <AlertTriangle className="h-3.5 w-3.5 text-warning" aria-hidden="true" />}
@@ -434,7 +434,7 @@ export const TodayView: React.FC<TodayViewProps> = ({
                       )}
                     </span>
 
-                    <span className="shrink-0 text-[11px] text-ink-muted">
+                    <span className="shrink-0 text-2xs text-ink-muted">
                       <time dateTime={t.updated_at} className="tabular-nums">
                         {formatBeijingDateTime(t.updated_at, 'zh-CN', { month: 'numeric', day: 'numeric' })}
                       </time>
@@ -442,7 +442,7 @@ export const TodayView: React.FC<TodayViewProps> = ({
                   </button>
                 ))}
               </FloatingScrollbar>
-              <div data-testid="today-recent-activity-footer" className="mt-3 shrink-0 border-t border-line/40 pt-3 text-[11px] text-ink-muted">
+              <div data-testid="today-recent-activity-footer" className="mt-3 shrink-0 border-t border-line/40 pt-3 text-2xs text-ink-muted">
                 <div className="flex items-center justify-between gap-3 font-semibold">
                   <span className="flex items-center gap-1.5">
                     <Clock className="h-3.5 w-3.5 text-ink-muted" aria-hidden="true" />

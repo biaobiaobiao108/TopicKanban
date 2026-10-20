@@ -114,16 +114,17 @@
 ## 🎨 四、UI/UX 与文人笔记设计系统 (The Literary Editorial Design System)
 
 1. **风格基调（文人笔记的内敛、克制与纯净质感）**：
-   * **核心色彩语义化**：严禁在业务组件中直接硬编码 `text-stone-900` / `bg-white dark:bg-stone-900` 等具象颜色类；统一使用核心设计变量：暖白画布（`--canvas`）、表面卡片（`--surface`）、石墨正文（`--ink`）、次要微墨（`--ink-muted`）、极细淡线（`--line` 或 `--line/50`）、复古松柏军绿（`--accent` 聚焦/行动强调色）、沉敛朱砂红（`--h1-color` 卷首印章点睛与危险提示）。在 4 套主题（纸境、浅色、深色、跟随系统）下自动协调一致。
+   * **核心色彩语义化**：严禁在业务组件中直接硬编码 `text-stone-900` / `bg-white dark:bg-stone-900` 等具象原始调色板类，也严禁再写 `dark:` 平行宇宙类；统一使用核心设计变量：暖白画布（`--canvas`）、表面卡片（`--surface` / `surface-muted` / `surface-subtle`）、石墨正文（`--ink`）、次要微墨（`--ink-muted` / `--ink-faint`）、极细淡线（`--line` 或 `--line/50`）、控件底（`--control-surface`）、复古松柏军绿（`--accent` 聚焦/行动强调色）、沉敛朱砂红（`--h1-color` 仅限卷首印章与衬线标题点睛）；危险、警告、成功、信息与生命周期阶段一律使用语义族：`danger/warning/success/info` 的 `fg/soft/line`（如 `text-danger` / `bg-danger-soft` / `border-danger-line`）与 `stage-inbox/scripting/production/published/icebox`（-soft），主题内自动换色。在 4 套主题（纸境、浅色、深色、跟随系统）下自动协调一致。
    * **去 AI Slop 铁律（杜绝机械感、炫目彩色与多层嵌套方盒）**：
      - **严禁花哨彩色小网格**：禁止使用 5 列彩色小表格或高饱和度大彩字堆砌 KPI（如扎眼的红绿黄紫大数字），数据指标流统一以石墨文字（`--ink`）、次要微墨（`--ink-muted`）与等宽数值（`font-mono tabular-nums`）克制呈现；
-     - **去封闭硬方框**：优先依靠留白与柔和底色层级（`--canvas` 与 `--surface`）组织信息；摘录、引用与当前行动一律采用出版物规范的左侧单立引线（`border-l-2 border-l-[var(--accent)]`）或柔和无边框画布浅底，严禁密集斑马线与粗边框嵌套方盒；
-     - **表格与网格极致通透**：表格与日历单元格采用极细淡线（`divide-[var(--line)]/30`、`border-[var(--line)]/35`），表头与浮层采用半透明微磨砂质感。
+     - **去封闭硬方框**：优先依靠留白与柔和底色层级（`--canvas` 与 `--surface`）组织信息；摘录、引用与当前行动一律采用出版物规范的左侧单立引线（`border-l-2 border-l-accent`）或柔和无边框画布浅底，严禁密集斑马线与粗边框嵌套方盒；严禁用彩色图标方块（`rounded-lg` 色块内嵌小图标）充当标题，标题识别统一交给衬线字体与朱砂印章；
+     - **表格与网格极致通透**：表格与日历单元格采用极细淡线（`divide-line/30`、`border-line/35`），表头与浮层采用半透明微磨砂质感。
    * **微胶囊与微晶片交互规范 (Micro-capsules & Micro-chips)**：
-     - 范围过滤栏、视图切换器与状态流转分段器统一采用轻盈微胶囊设计（`rounded-full bg-stone-500/[0.04] p-1`）；
+     - 范围过滤栏、视图切换器与状态流转分段器统一采用轻盈微胶囊设计（`rounded-full bg-control p-1`）；
      - 常规操作按钮、状态徽标与行内操作一律采用无边框轻量微晶片，默认纯净半透明或极浅微底，鼠标悬浮时才平滑响应轻浅底色或极细淡线，禁止五颜六色、生硬刻板的大胶囊；
-     - 分段器与 Tab 标签页采用无外边框设计，依靠激活项浅底色（`bg-[var(--surface)]` 或 `bg-[var(--accent)]/10`）体现选中。
-   * **表单控件**：输入框与文本域采用自然浅底微圆角（`rounded-xl bg-stone-500/[0.03] dark:bg-stone-800`，聚焦时呈现松柏强调色）；同一组输入控件统一 `min-height`、内边距和行高；占位符统一使用 `placeholder:text-stone-400 dark:placeholder:text-stone-500`。
+     - 分段器与 Tab 标签页采用无外边框设计，依靠激活项浅底色（`bg-surface` 或 `bg-accent/10`）体现选中。
+   * **表单控件**：输入框与文本域采用自然浅底微圆角（`rounded-xl bg-control border border-line`，聚焦时 `focus:bg-surface focus:border-accent` 呈现松柏强调色）；同一组输入控件统一 `min-height`、内边距和行高；占位符统一使用 `placeholder:text-ink-muted`（弱化处可用 `placeholder:text-ink-muted/60`）。
+   * **字体与图标尺度**：中文业务文本一律无衬线；衬线（`font-serif`）仅用于卷首大标题、品牌名、章节标题与印章点缀；超小辅助字号收敛到命名级阶 `text-2xs`（11px）与 `text-3xs`（10px），不得再随手写 `text-[10px]/text-[11px]` 任意值；图标尺寸使用 `h-3/h-3.5/h-4/h-5` 标准级阶或显式 `h-[18px] w-[18px]`，禁止 `h-4.5 w-4.5`；界面符号一律使用 lucide 图标组件，禁止在文案中混排 emoji 或 ✓/✕/⚠ 等文本字符（解析类正则与 Markdown 导出内容除外）。
    * **排版与中文输入**：
      - 左侧主导航与工作台顶栏当前行动模块字号适中清晰，状态表述简洁（杜绝冗余重复，如“14天 14d”）；
      - 文案编辑器全面兼容中文输入习惯，Markdown 快捷语法对中文全角符号（如 `》` 触发引用块）保持宽容与流畅解析。

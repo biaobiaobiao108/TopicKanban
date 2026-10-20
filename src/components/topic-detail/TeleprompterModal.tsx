@@ -719,7 +719,7 @@ function renderScriptTextWithCues(text: string): React.ReactNode {
               <button
                 key={f.level}
                 onClick={() => setFontLevelWithStorage(f.level)}
-                className={`px-1.5 py-0.5 rounded text-[11px] font-bold transition-colors cursor-pointer ${
+                className={`px-1.5 py-0.5 rounded text-2xs font-bold transition-colors cursor-pointer ${
                   fontLevel === f.level
                     ? 'bg-accent text-white shadow-xs'
                     : isDark
@@ -799,7 +799,7 @@ function renderScriptTextWithCues(text: string): React.ReactNode {
             'border-accent/60'
           }`}
         >
-          <div className="absolute right-4 -top-3 text-[10px] font-sans tracking-wide text-accent font-bold">
+          <div className="absolute right-4 -top-3 text-3xs font-sans tracking-wide text-accent font-bold">
             视线聚焦线
           </div>
         </div>
@@ -872,7 +872,7 @@ function renderScriptTextWithCues(text: string): React.ReactNode {
           {/* Bottom Padding so last line can reach the top */}
           <div className="h-[60vh] flex flex-col items-center justify-center text-center space-y-3 text-ink-muted">
             <CheckCircle2 className="w-12 h-12 text-accent stroke-[1.5]" />
-            <p className="text-lg font-bold">🎉 全篇文案朗读完成！</p>
+            <p className="text-lg font-bold">全篇文案朗读完成！</p>
             <button
               onClick={handleReset}
               className="px-4 py-2 rounded-xl bg-stone-800 hover:bg-stone-700 text-ink-faint text-sm font-semibold transition-colors inline-flex items-center gap-2"

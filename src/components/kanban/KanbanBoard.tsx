@@ -1006,7 +1006,7 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
               }`}
             >
               <span>{col.label}</span>
-              <span className={`text-[10px] px-1 py-0.2 rounded-sm tabular-nums ${
+              <span className={`text-3xs px-1 py-0.2 rounded-sm tabular-nums ${
                 isActive ? 'bg-accent-dark text-white' : 'text-ink-muted opacity-75'
               }`}>
                 {count}

@@ -80,7 +80,7 @@ export const TodoQuickActionDialog: React.FC<TodoQuickActionDialogProps> = ({
           <div className="min-w-0 flex-1">
             <div className="text-xs font-bold text-accent">正在推进</div>
             <div className="mt-1 break-words text-sm font-semibold text-ink">{todo.title}</div>
-            <div className="mt-1 text-[11px] text-ink-muted">已持续 {getCurrentActionAgeDays(topic)} 天</div>
+            <div className="mt-1 text-2xs text-ink-muted">已持续 {getCurrentActionAgeDays(topic)} 天</div>
           </div>
         </div>
 

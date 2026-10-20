@@ -171,7 +171,7 @@ function MonthCellDroppable({
             event.stopPropagation();
             onShowAllEvents(cell.date, events);
           }}
-          className="mt-auto flex h-5 min-w-5 w-fit items-center justify-center gap-1 self-start rounded-full bg-surface/80 px-1.5 text-[10px] font-medium text-ink-muted transition-colors hover:bg-surface hover:text-ink md:hidden"
+          className="mt-auto flex h-5 min-w-5 w-fit items-center justify-center gap-1 self-start rounded-full bg-surface/80 px-1.5 text-3xs font-medium text-ink-muted transition-colors hover:bg-surface hover:text-ink md:hidden"
         >
           <span className="h-1 w-1 rounded-full bg-accent" />
           <span className="font-mono tabular-nums">{events.length}</span>
@@ -187,7 +187,7 @@ function MonthCellDroppable({
             event.stopPropagation();
             onShowAllEvents(cell.date, events);
           }}
-          className="absolute bottom-2 right-2 hidden h-[18px] min-w-6 items-center justify-center rounded-full bg-surface px-1.5 text-[10px] font-medium tabular-nums text-ink-muted shadow-2xs transition-colors hover:text-ink md:flex"
+          className="absolute bottom-2 right-2 hidden h-[18px] min-w-6 items-center justify-center rounded-full bg-surface px-1.5 text-3xs font-medium tabular-nums text-ink-muted shadow-2xs transition-colors hover:text-ink md:flex"
         >
           +{hiddenCount}
         </button>

@@ -65,7 +65,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
           </div>
           <div className="flex min-w-0 items-center gap-2">
             <h1 className="font-serif text-ink text-[19px] font-bold tracking-[0.02em] leading-snug">喵爪看板</h1>
-            <span aria-hidden="true" className="grid h-5 w-5 shrink-0 place-items-center rounded-sm bg-h1-color/[0.12] font-serif text-[11px] font-bold leading-none text-h1-color">喵</span>
+            <span aria-hidden="true" className="grid h-5 w-5 shrink-0 place-items-center rounded-sm bg-h1-color/[0.12] font-serif text-2xs font-bold leading-none text-h1-color">喵</span>
           </div>
         </div>
 
@@ -79,7 +79,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
           >
             <Plus className="h-4 w-4 shrink-0 stroke-[2.5]" aria-hidden="true" />
             <span>新建选题</span>
-            <kbd className="ml-auto rounded-sm bg-overlay px-1.5 py-0.5 text-[11px] font-mono font-medium text-white">N</kbd>
+            <kbd className="ml-auto rounded-sm bg-overlay px-1.5 py-0.5 text-2xs font-mono font-medium text-white">N</kbd>
           </button>
 
           <div className="mt-1.5 grid grid-cols-2 gap-1.5">
@@ -87,9 +87,9 @@ export const Sidebar: React.FC<SidebarProps> = ({
               type="button"
               onClick={onOpenCommandPalette}
               aria-label="全局搜索与指令"
-              className="group flex min-h-9 min-w-0 items-center gap-1.5 rounded-sm border border-transparent bg-surface/60 px-2.5 py-2 text-[12px] font-medium text-ink transition-colors hover:bg-surface hover:text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/40 cursor-pointer"
+              className="group flex min-h-9 min-w-0 items-center gap-1.5 rounded-sm border border-transparent bg-surface/60 px-2.5 py-2 text-xs font-medium text-ink transition-colors hover:bg-surface hover:text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/40 cursor-pointer"
             >
-              <Search className="h-3.5 w-3.5 shrink-0 text-ink-muted transition-colors group-hover:text-ink dark:group-hover:text-ink-faint" aria-hidden="true" />
+              <Search className="h-3.5 w-3.5 shrink-0 text-ink-muted transition-colors group-hover:text-ink" aria-hidden="true" />
               <span className="truncate">搜索</span>
             </button>
 
@@ -98,7 +98,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
                 type="button"
                 onClick={onOpenQuickDrops}
                 aria-label={quickDropCount > 0 ? `手机快投箱中有 ${quickDropCount} 条未处理灵感` : '打开手机快投灵感箱'}
-                className={`group flex min-h-9 min-w-0 items-center justify-between gap-1.5 rounded-sm border px-2.5 py-2 text-[12px] font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/40 cursor-pointer ${
+                className={`group flex min-h-9 min-w-0 items-center justify-between gap-1.5 rounded-sm border px-2.5 py-2 text-xs font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/40 cursor-pointer ${
                   quickDropCount > 0
                     ? 'border-accent/15 bg-accent-soft text-accent-dark shadow-2xs'
                     : 'border-transparent bg-surface/60 text-ink hover:bg-surface hover:text-ink'
@@ -109,11 +109,11 @@ export const Sidebar: React.FC<SidebarProps> = ({
                   <span className="truncate">快投箱</span>
                 </span>
                 {quickDropCount > 0 ? (
-                  <span className="flex h-5 min-w-5 shrink-0 items-center justify-center rounded-full bg-accent px-1 text-[10px] font-mono font-bold text-white">
+                  <span className="flex h-5 min-w-5 shrink-0 items-center justify-center rounded-full bg-accent px-1 text-3xs font-mono font-bold text-white">
                     {quickDropCount}
                   </span>
                 ) : (
-                  <span className="shrink-0 text-[10px] font-normal text-ink-muted">7天</span>
+                  <span className="shrink-0 text-3xs font-normal text-ink-muted">7天</span>
                 )}
               </button>
             )}
@@ -144,7 +144,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
               >
                 {isActive && <span aria-hidden="true" className="absolute left-0 top-1/2 -translate-y-1/2 h-5 w-[3px] rounded-full bg-accent" />}
                 <div className="flex items-center gap-3">
-                  <Icon className={`h-[18px] w-[18px] transition-colors shrink-0 ${isActive ? 'text-accent' : 'text-ink-muted group-hover:text-ink dark:group-hover:text-ink-faint'}`} />
+                  <Icon className={`h-[18px] w-[18px] transition-colors shrink-0 ${isActive ? 'text-accent' : 'text-ink-muted group-hover:text-ink'}`} />
                   <span className="tracking-wide">{item.label}</span>
                 </div>
                 {typeof item.badge === 'number' && item.badge > 0 && (
@@ -172,7 +172,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
                 aria-label={`存储异常: ${storageError}`}
               >
                 <Database className="w-3.5 h-3.5 text-danger shrink-0" />
-                <span className="text-[11px] font-medium truncate">存储异常</span>
+                <span className="text-2xs font-medium truncate">存储异常</span>
               </span>
             )}
             {authError && (
@@ -181,7 +181,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
                 aria-label={`鉴权异常: ${authError}`}
               >
                 <ShieldAlert className="w-3.5 h-3.5 text-warning shrink-0" />
-                <span className="text-[11px] font-medium truncate">鉴权异常</span>
+                <span className="text-2xs font-medium truncate">鉴权异常</span>
               </span>
             )}
           </div>
@@ -199,7 +199,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
           ) : (
             <div />
           )}
-          <span className="text-[11px] font-mono px-2 text-ink-muted select-none">v1.0</span>
+          <span className="text-2xs font-mono px-2 text-ink-muted select-none">v1.0</span>
         </div>
       </div>
     </aside>

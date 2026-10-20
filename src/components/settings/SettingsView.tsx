@@ -395,7 +395,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
           <div className="space-y-2.5">
             <label className="text-xs sm:text-sm font-bold text-ink flex items-center gap-1.5">
               <span>视觉主题调色</span>
-              <span className="text-[11px] font-normal text-ink-muted">(即时生效)</span>
+              <span className="text-2xs font-normal text-ink-muted">(即时生效)</span>
             </label>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
@@ -455,7 +455,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                           )}
                         </div>
                       </div>
-                      <p className="text-[11px] text-ink-muted leading-normal">
+                      <p className="text-2xs text-ink-muted leading-normal">
                         {themeOpt.desc}
                       </p>
                     </div>
@@ -519,7 +519,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                         }`}
                       >
                         <div className="text-xs">{opt.label}</div>
-                        <div className="text-[10px] text-ink-muted font-normal">{opt.sub}</div>
+                        <div className="text-3xs text-ink-muted font-normal">{opt.sub}</div>
                       </button>
                     );
                   })}
@@ -551,7 +551,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                         }`}
                       >
                         <div className="text-xs">{opt.label}</div>
-                        <div className="text-[10px] text-ink-muted font-normal">{opt.sub}</div>
+                        <div className="text-3xs text-ink-muted font-normal">{opt.sub}</div>
                       </button>
                     );
                   })}
@@ -566,7 +566,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                   <Eye className="w-4 h-4 text-accent" />
                   <span>排版实时效果预览 (所见即所得)</span>
                 </div>
-                <div className="flex items-center gap-2 text-[11px] font-mono">
+                <div className="flex items-center gap-2 text-2xs font-mono">
                   <span className="bg-control text-ink-muted px-2.5 py-0.5 rounded-full font-semibold font-mono tabular-nums border border-line">
                     {editorFontSize === 'compact' ? '14px 紧凑' : editorFontSize === 'large' ? '19px 播音大字' : '16px 标准'}
                   </span>
@@ -694,7 +694,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
               {onLogout && (
                 <button
                   onClick={onLogout}
-                  className="flex items-center gap-1 text-[11px] text-danger hover:text-danger bg-danger-soft px-2.5 py-1 rounded-xl font-semibold transition-colors cursor-pointer"
+                  className="flex items-center gap-1 text-2xs text-danger hover:text-danger bg-danger-soft px-2.5 py-1 rounded-xl font-semibold transition-colors cursor-pointer"
                 >
                   <LogOut className="w-3 h-3" />
                   <span>退出登录</span>
@@ -739,13 +739,13 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
               <div className="space-y-2.5 pt-1">
                 <div className="grid grid-cols-2 gap-2 text-xs">
                   <div className="p-2.5 rounded-xl bg-control border border-line">
-                    <span className="text-[11px] text-ink-muted block">主数据库文件</span>
+                    <span className="text-2xs text-ink-muted block">主数据库文件</span>
                     <span className="font-mono font-bold text-ink">
                       {formatBytes(storageStats.db_file_bytes)}
                     </span>
                   </div>
                   <div className="p-2.5 rounded-xl bg-control border border-line">
-                    <span className="text-[11px] text-ink-muted block">WAL 预写日志</span>
+                    <span className="text-2xs text-ink-muted block">WAL 预写日志</span>
                     <span className="font-mono font-bold text-ink">
                       {formatBytes(storageStats.wal_file_bytes)}
                     </span>
@@ -753,7 +753,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                 </div>
 
                 <div className="p-2.5 rounded-xl bg-control border border-line flex items-center justify-between text-xs">
-                  <span className="text-ink-muted text-[11px]">
+                  <span className="text-ink-muted text-2xs">
                     可收缩空闲页 (Freelist)：
                   </span>
                   <span className="font-mono text-ink font-semibold">
@@ -768,7 +768,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                 </div>
 
                 <div className="flex items-center justify-between pt-1">
-                  <span className="text-[11px] text-ink-muted">
+                  <span className="text-2xs text-ink-muted">
                     回收站积压：<strong className="text-ink">{storageStats.trashed_topics_count}</strong> 个选题
                   </span>
                   <button
@@ -783,7 +783,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                 </div>
               </div>
             ) : (
-              <p className="text-[11px] text-ink-muted truncate">
+              <p className="text-2xs text-ink-muted truncate">
                 {runtimeStatus.databaseMessage}
               </p>
             )}
@@ -814,18 +814,18 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                   setIsCopiedDropUrl(true);
                   setTimeout(() => setIsCopiedDropUrl(false), 2000);
                 }}
-                className="inline-flex items-center gap-1 text-[11px] font-semibold text-accent hover:text-accent-dark cursor-pointer"
+                className="inline-flex items-center gap-1 text-2xs font-semibold text-accent hover:text-accent-dark cursor-pointer"
               >
                 {isCopiedDropUrl ? <Check className="w-3.5 h-3.5 text-success" /> : <Copy className="w-3.5 h-3.5" />}
                 <span>{isCopiedDropUrl ? '已复制接口地址' : '复制地址'}</span>
               </button>
             </div>
 
-            <div className="p-3 bg-canvas/80 rounded-xl border border-line font-mono text-[11px] text-ink select-all break-all">
+            <div className="p-3 bg-canvas/80 rounded-xl border border-line font-mono text-2xs text-ink select-all break-all">
               {resolvePublicUrl('/api/inbox/quick-drop', runtimeStatus.publicBaseUrl)}
             </div>
 
-            <div className="space-y-1.5 pt-1 text-[11px] text-ink-muted">
+            <div className="space-y-1.5 pt-1 text-2xs text-ink-muted">
               <p><strong>iOS 快捷指令配置参数：</strong></p>
               <ul className="list-disc list-inside space-y-1 pl-1 text-ink-muted">
                 <li>请求方法：<code className="bg-control px-1 py-0.5 rounded font-mono text-ink">POST</code></li>

@@ -57,7 +57,7 @@ export const CalendarAgendaView: React.FC<CalendarAgendaViewProps> = ({
                     : 'bg-surface text-ink hover:bg-canvas border border-line/50'
                 }`}
               >
-                <span className="text-[11px] opacity-80">{day.dayName}</span>
+                <span className="text-2xs opacity-80">{day.dayName}</span>
                 <span className="text-base font-bold font-mono mt-0.5">{day.dayNumber}</span>
                 <span className="flex gap-0.5 mt-1 h-1.5">
                   {hasEvents && (

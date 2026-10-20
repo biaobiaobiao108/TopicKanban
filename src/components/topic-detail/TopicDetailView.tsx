@@ -528,7 +528,7 @@ export const TopicDetailView: React.FC<TopicDetailViewProps> = ({
                     onClick={() => void handleNavigateToTab(tab.id)}
                     disabled={isFlushingDraft}
                     aria-current={isActive ? 'page' : undefined}
-                    className={`group relative flex h-8 items-center gap-1.5 rounded-xl px-2.5 text-xs font-medium transition-all cursor-pointer touch-manipulation sm:px-3 sm:text-[13px] ${
+                    className={`group relative flex h-8 items-center gap-1.5 rounded-xl px-2.5 text-xs font-medium transition-all cursor-pointer touch-manipulation sm:px-3 sm:text-sm ${
                       isActive
                         ? 'is-active bg-surface text-accent-dark font-semibold shadow-2xs border border-line'
                         : 'text-ink-muted hover:bg-surface/80 hover:text-ink border border-transparent'
@@ -741,7 +741,7 @@ export const TopicDetailView: React.FC<TopicDetailViewProps> = ({
           className="w-[calc(100vw-1rem)] animate-in fade-in zoom-in-95 duration-100"
         >
           <FloatingScrollbar className="p-2" wrapperClassName="min-h-0 flex-none">
-            <div className="px-2 pb-1 text-[11px] font-bold text-ink-muted">切换生产阶段</div>
+            <div className="px-2 pb-1 text-2xs font-bold text-ink-muted">切换生产阶段</div>
             <div className="grid grid-cols-3 gap-1.5">
               {COLUMNS.map((column) => (
                 <button
@@ -795,7 +795,7 @@ export const TopicDetailView: React.FC<TopicDetailViewProps> = ({
           <button
             type="button"
             onClick={() => setIsActionDialogOpen(true)}
-            className="flex min-h-12 flex-col items-center justify-center gap-0.5 rounded-xl bg-accent hover:bg-accent-dark px-1 text-[10px] font-bold text-white cursor-pointer shadow-2xs"
+            className="flex min-h-12 flex-col items-center justify-center gap-0.5 rounded-xl bg-accent hover:bg-accent-dark px-1 text-3xs font-bold text-white cursor-pointer shadow-2xs"
           >
             <CheckCircle2 className="h-4 w-4" /> 当前行动
           </button>
@@ -808,14 +808,14 @@ export const TopicDetailView: React.FC<TopicDetailViewProps> = ({
               setIsStageMenuOpen((previous) => !previous);
               setIsMoreMenuOpen(false);
             }}
-            className="flex min-h-12 flex-col items-center justify-center gap-0.5 rounded-xl px-1 text-[10px] font-semibold text-ink-muted hover:bg-control cursor-pointer transition-colors"
+            className="flex min-h-12 flex-col items-center justify-center gap-0.5 rounded-xl px-1 text-3xs font-semibold text-ink-muted hover:bg-control cursor-pointer transition-colors"
           >
             <GitBranch className="h-4 w-4" /> 改阶段
           </button>
           <button
             type="button"
             onClick={() => setActiveTab('script')}
-            className={`flex min-h-12 flex-col items-center justify-center gap-0.5 rounded-xl px-1 text-[10px] font-semibold cursor-pointer transition-colors ${
+            className={`flex min-h-12 flex-col items-center justify-center gap-0.5 rounded-xl px-1 text-3xs font-semibold cursor-pointer transition-colors ${
               activeTab === 'script'
                 ? 'bg-accent text-white shadow-2xs'
                 : 'text-ink-muted hover:bg-control'
@@ -832,7 +832,7 @@ export const TopicDetailView: React.FC<TopicDetailViewProps> = ({
               setIsMoreMenuOpen((previous) => !previous);
               setIsStageMenuOpen(false);
             }}
-            className="flex min-h-12 flex-col items-center justify-center gap-0.5 rounded-xl px-1 text-[10px] font-semibold text-ink-muted hover:bg-control cursor-pointer transition-colors"
+            className="flex min-h-12 flex-col items-center justify-center gap-0.5 rounded-xl px-1 text-3xs font-semibold text-ink-muted hover:bg-control cursor-pointer transition-colors"
           >
             <MoreHorizontal className="h-4 w-4" /> 更多
           </button>

@@ -161,7 +161,7 @@ export const QuickCreateModal: React.FC<QuickCreateModalProps> = ({
           <div>
             <label htmlFor="quick-create-title" className="mb-1.5 flex items-center gap-2 text-sm font-semibold text-ink">
               <span>选题标题</span>
-              <span className="text-[11px] font-medium text-ink-muted">必填</span>
+              <span className="text-2xs font-medium text-ink-muted">必填</span>
             </label>
             <input
               id="quick-create-title"
@@ -179,7 +179,7 @@ export const QuickCreateModal: React.FC<QuickCreateModalProps> = ({
           <div>
             <label htmlFor="quick-create-summary" className="mb-1.5 flex items-center gap-2 text-sm font-semibold text-ink">
               <span>一句话概述</span>
-              <span className="text-[11px] font-medium text-ink-muted">选填</span>
+              <span className="text-2xs font-medium text-ink-muted">选填</span>
             </label>
             <textarea
               id="quick-create-summary"
@@ -325,7 +325,7 @@ export const QuickCreateModal: React.FC<QuickCreateModalProps> = ({
 
               {unselectedAvailableTags.length > 0 && (
                 <div className="flex flex-wrap items-center gap-1.5">
-                  <span className="text-[11px] font-medium text-ink-muted">可选标签：</span>
+                  <span className="text-2xs font-medium text-ink-muted">可选标签：</span>
                   {unselectedAvailableTags.map((t) => (
                     <button
                       type="button"
@@ -342,7 +342,7 @@ export const QuickCreateModal: React.FC<QuickCreateModalProps> = ({
 
               <div className="grid grid-cols-[minmax(0,1fr)_auto] items-end gap-2">
                 <div className="min-w-0">
-                  <label htmlFor="quick-create-custom-tag" className="mb-1.5 block text-[11px] font-semibold text-ink-muted">
+                  <label htmlFor="quick-create-custom-tag" className="mb-1.5 block text-2xs font-semibold text-ink-muted">
                     自定义标签
                   </label>
                   <input

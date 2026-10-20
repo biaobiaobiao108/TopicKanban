@@ -110,10 +110,10 @@ export const PwaInstallButton: React.FC<PwaInstallButtonProps> = ({ variant = 'i
         <span>{label}</span>
       </button>
       {!isSecureContext && (
-        <p className="mt-2 text-[11px] text-warning">当前地址不是 HTTPS，正式部署后才能获得完整安装能力。</p>
+        <p className="mt-2 text-2xs text-warning">当前地址不是 HTTPS，正式部署后才能获得完整安装能力。</p>
       )}
       {!isSupported && (
-        <p className="mt-2 text-[11px] text-ink-muted">当前浏览器不提供 PWA 安装能力，建议使用 Safari 或最新版 Chrome。</p>
+        <p className="mt-2 text-2xs text-ink-muted">当前浏览器不提供 PWA 安装能力，建议使用 Safari 或最新版 Chrome。</p>
       )}
       <InstallHelpModal
         mode={helpMode || 'manual'}

@@ -383,7 +383,7 @@ export const TopicReportTab: React.FC<TopicReportTabProps> = ({
           <div className="h-3.5 w-px bg-line mx-1 hidden sm:block" />
 
           {/* Auto-save pill */}
-          <div className="flex items-center gap-1.5 rounded-full bg-control px-2.5 py-0.5 text-[11px] text-ink-muted select-none">
+          <div className="flex items-center gap-1.5 rounded-full bg-control px-2.5 py-0.5 text-2xs text-ink-muted select-none">
             {saveStatus === 'saving' && (
               <>
                 <Cloud className="h-3 w-3 animate-pulse text-accent" aria-hidden="true" />
@@ -427,7 +427,7 @@ export const TopicReportTab: React.FC<TopicReportTabProps> = ({
         {/* Center: Word count */}
         <div className="flex items-center gap-1.5 rounded-full bg-control px-3 py-1 text-xs text-ink-muted select-none border border-line/40">
           <span className="font-semibold text-ink tabular-nums">{charCount.toLocaleString()}</span>
-          <span className="text-[11px]">字</span>
+          <span className="text-2xs">字</span>
         </div>
 
         {/* Right: Actions */}

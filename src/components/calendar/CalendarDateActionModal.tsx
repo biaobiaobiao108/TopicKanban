@@ -299,7 +299,7 @@ export const CalendarDateActionModal: React.FC<CalendarDateActionModalProps> = (
                       key={s}
                       type="button"
                       onClick={() => setNewStatus(s)}
-                      className={`flex-1 py-1.5 rounded-lg text-[11px] font-semibold transition-colors cursor-pointer ${
+                      className={`flex-1 py-1.5 rounded-lg text-2xs font-semibold transition-colors cursor-pointer ${
                         newStatus === s
                           ? 'bg-accent text-white'
                           : 'bg-control text-ink-muted'
@@ -321,7 +321,7 @@ export const CalendarDateActionModal: React.FC<CalendarDateActionModalProps> = (
                       key={p}
                       type="button"
                       onClick={() => setNewPriority(p)}
-                      className={`flex-1 py-1.5 rounded-lg text-[11px] font-semibold transition-colors cursor-pointer ${
+                      className={`flex-1 py-1.5 rounded-lg text-2xs font-semibold transition-colors cursor-pointer ${
                         newPriority === p
                           ? 'bg-accent text-white'
                           : 'bg-control text-ink-muted'

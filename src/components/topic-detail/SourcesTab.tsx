@@ -231,7 +231,7 @@ const SortableTimelineItem: React.FC<SortableTimelineItemProps> = ({
       className={`relative group w-full ${isDragging ? 'opacity-50 z-30 scale-[1.01]' : 'opacity-100'}`}
     >
       {/* Timeline Node Dot on Left Axis */}
-      <div className="absolute -left-6 sm:-left-8 top-4 w-6 h-6 rounded-full bg-surface border-2 border-accent flex items-center justify-center text-[10px] font-bold text-accent-dark shadow-2xs z-10 select-none">
+      <div className="absolute -left-6 sm:-left-8 top-4 w-6 h-6 rounded-full bg-surface border-2 border-accent flex items-center justify-center text-3xs font-bold text-accent-dark shadow-2xs z-10 select-none">
         {index + 1}
       </div>
 
@@ -337,7 +337,7 @@ const SortableTimelineItem: React.FC<SortableTimelineItemProps> = ({
 
         {/* Note / Tip */}
         {source.notes && (
-          <div className={`text-[11px] text-ink-muted bg-warning-soft] px-2.5 py-1 rounded-lg border border-warning-soft ${isExpanded ? '' : 'line-clamp-2'}`}>
+          <div className={`text-2xs text-ink-muted bg-warning-soft] px-2.5 py-1 rounded-lg border border-warning-soft ${isExpanded ? '' : 'line-clamp-2'}`}>
             💡 {source.notes}
           </div>
         )}
@@ -356,7 +356,7 @@ const SortableTimelineItem: React.FC<SortableTimelineItemProps> = ({
 
         {/* Author & Footer */}
         {source.author && (
-          <div className="truncate text-[11px] font-medium text-ink-muted">
+          <div className="truncate text-2xs font-medium text-ink-muted">
             原作者：@{source.author}
           </div>
         )}
@@ -692,7 +692,7 @@ export const SourcesTab: React.FC<SourcesTabProps> = ({
               <Clock className="w-3.5 h-3.5" />
               <span>故事时间轴</span>
               {timedSources.length > 0 && (
-                <span className="text-[10px] font-mono opacity-80 tabular-nums">({timedSources.length})</span>
+                <span className="text-3xs font-mono opacity-80 tabular-nums">({timedSources.length})</span>
               )}
             </button>
           </div>
@@ -818,7 +818,7 @@ export const SourcesTab: React.FC<SourcesTabProps> = ({
                         <VerificationBadge status={s.verification_status} />
                       </button>
                       {s.event_date && (
-                        <span className="text-[10px] font-mono font-medium px-2 py-0.5 rounded-full bg-accent-soft text-accent-dark">
+                        <span className="text-3xs font-mono font-medium px-2 py-0.5 rounded-full bg-accent-soft text-accent-dark">
                           📅 {formatEventDate(s.event_date, s.date_precision)}
                         </span>
                       )}
@@ -858,14 +858,14 @@ export const SourcesTab: React.FC<SourcesTabProps> = ({
 
                   {/* Notes / Tips */}
                   {s.notes && (
-                    <div className="text-[11px] text-ink-muted bg-warning-soft] px-2.5 py-1 rounded-lg border border-warning-soft truncate">
+                    <div className="text-2xs text-ink-muted bg-warning-soft] px-2.5 py-1 rounded-lg border border-warning-soft truncate">
                       💡 {s.notes}
                     </div>
                   )}
                 </div>
 
                 {/* Bottom Meta & Links */}
-                <div className="pt-2.5 border-t border-line flex items-center justify-between flex-wrap gap-1.5 text-[11px] text-ink-muted">
+                <div className="pt-2.5 border-t border-line flex items-center justify-between flex-wrap gap-1.5 text-2xs text-ink-muted">
                   <div className="flex items-center gap-2 truncate">
                     {s.author && <span className="truncate max-w-[90px] font-semibold">@{s.author}</span>}
                     {s.published_at && <span>{s.published_at}</span>}
@@ -964,11 +964,11 @@ export const SourcesTab: React.FC<SourcesTabProps> = ({
                 <div className="flex items-center gap-2">
                   {undatedCollapsed ? <ChevronRight className="w-4 h-4 text-ink-muted" /> : <ChevronDown className="w-4 h-4 text-ink-muted" />}
                   <span className="text-xs font-bold text-ink">待定时间素材</span>
-                  <span className="px-2 py-0.5 rounded-full bg-control text-ink-muted text-[11px] font-semibold">
+                  <span className="px-2 py-0.5 rounded-full bg-control text-ink-muted text-2xs font-semibold">
                     <span className="font-mono tabular-nums">{undatedSources.length}</span> 条
                   </span>
                 </div>
-                <span className="text-[11px] text-ink-muted">
+                <span className="text-2xs text-ink-muted">
                   {undatedCollapsed ? '展开查看' : '点击收起'}
                 </span>
               </button>
@@ -984,11 +984,11 @@ export const SourcesTab: React.FC<SourcesTabProps> = ({
                             {source.title}
                           </h4>
                           {source.author && (
-                            <span className="text-[11px] text-ink-muted">@{source.author}</span>
+                            <span className="text-2xs text-ink-muted">@{source.author}</span>
                           )}
                         </div>
                         {source.content && (
-                          <p className="text-[11px] text-ink-muted line-clamp-1">
+                          <p className="text-2xs text-ink-muted line-clamp-1">
                             {source.content}
                           </p>
                         )}
@@ -1048,7 +1048,7 @@ export const SourcesTab: React.FC<SourcesTabProps> = ({
                   <span>Bilibili / YouTube 智能识别</span>
                 </span>
                 {isParsingUrl && (
-                  <span className="text-[11px] text-accent font-medium flex items-center gap-1">
+                  <span className="text-2xs text-accent font-medium flex items-center gap-1">
                     <RefreshCw className="w-3 h-3 animate-spin" />
                     <span>正在解析元数据...</span>
                   </span>

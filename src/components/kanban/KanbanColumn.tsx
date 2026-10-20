@@ -30,7 +30,7 @@ const DEFAULT_LIMIT = 8;
 const columnHeaders: Record<TopicStatus, { dot: string }> = {
   inbox: { dot: 'bg-ink-muted opacity-60' },
   scripting: { dot: 'bg-stage-scripting' },
-  production: { dot: 'bg-stage-production dark:bg-stage-production' },
+  production: { dot: 'bg-stage-production' },
   published: { dot: 'bg-accent' },
   icebox: { dot: 'bg-ink-muted opacity-40' },
 };
@@ -98,7 +98,7 @@ const KanbanColumnComponent: React.FC<KanbanColumnProps> = ({
       <div className="flex items-center justify-between px-1.5 py-1 mb-2.5">
         <div className="flex items-center gap-2">
           <span className={`w-2 h-2 rounded-full ${c.dot}`} />
-          <h2 className="text-[13.5px] font-semibold text-ink tracking-tight">{label}</h2>
+          <h2 className="text-sm font-semibold text-ink tracking-tight">{label}</h2>
           <span className="kanban-column-count text-xs text-ink-muted tabular-nums ml-0.5">
             {totalCount}
           </span>
@@ -141,7 +141,7 @@ const KanbanColumnComponent: React.FC<KanbanColumnProps> = ({
             }`}
           >
             <span className="font-medium">{isOver ? '松开以移入此阶段' : '暂无选题'}</span>
-            <span className="text-[11px] opacity-75 mt-0.5">
+            <span className="text-2xs opacity-75 mt-0.5">
               {isOver ? `将卡片归入「${label}」` : '拖拽卡片至此可变更状态'}
             </span>
           </div>

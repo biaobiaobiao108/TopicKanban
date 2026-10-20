@@ -67,10 +67,10 @@ function TagMetricCard({
         {icon}
       </span>
       <div className="min-w-0 flex-1">
-        <p className="min-w-0 truncate text-[11px] font-semibold leading-tight text-ink-muted">{label}</p>
+        <p className="min-w-0 truncate text-2xs font-semibold leading-tight text-ink-muted">{label}</p>
         <div className="mt-1 flex min-w-0 items-baseline gap-1.5">
           <p className="min-w-0 truncate text-[1.05rem] font-bold leading-tight tracking-tight text-ink sm:text-lg">{value}</p>
-          <span className="shrink-0 text-[10px] font-medium leading-tight text-ink-muted">{detail}</span>
+          <span className="shrink-0 text-3xs font-medium leading-tight text-ink-muted">{detail}</span>
         </div>
       </div>
     </div>
@@ -324,7 +324,7 @@ export const TagsView: React.FC<TagsViewProps> = ({
                         <span className="flex items-center gap-1.5 truncate text-sm font-semibold leading-tight">
                           <span>#{tag.name}</span>
                         </span>
-                        <span className="mt-0.5 flex items-center gap-2 text-[10px] text-ink-muted">
+                        <span className="mt-0.5 flex items-center gap-2 text-3xs text-ink-muted">
                           <span>{count} 选题</span>
                           {stats && stats.inProgressCount > 0 && (
                             <span className="text-accent font-medium">{stats.inProgressCount} 写稿</span>
@@ -375,7 +375,7 @@ export const TagsView: React.FC<TagsViewProps> = ({
               )}
             </FloatingScrollbar>
             {totalTags > 0 && (
-              <div className="flex shrink-0 items-center justify-center gap-2 border-t border-line/40 bg-surface px-3 py-2.5 text-[11px] text-ink-muted">
+              <div className="flex shrink-0 items-center justify-center gap-2 border-t border-line/40 bg-surface px-3 py-2.5 text-2xs text-ink-muted">
                 <button type="button" disabled={tagPage <= 1 || tagsPageQuery.isFetching} onClick={() => setTagPage((current) => Math.max(1, current - 1))} className="rounded-lg border border-line/60 bg-canvas px-2 py-1 font-medium disabled:cursor-not-allowed disabled:opacity-40">上一页</button>
                 <span className="font-mono tabular-nums">{tagPage} / {Math.max(1, tagsPageQuery.data?.total_pages || 1)}</span>
                 <button type="button" disabled={tagPage >= (tagsPageQuery.data?.total_pages || 1) || tagsPageQuery.isFetching} onClick={() => setTagPage((current) => current + 1)} className="rounded-lg border border-line/60 bg-canvas px-2 py-1 font-medium disabled:cursor-not-allowed disabled:opacity-40">下一页</button>
@@ -386,7 +386,7 @@ export const TagsView: React.FC<TagsViewProps> = ({
           <div data-testid="tags-mobile-picker" className="shrink-0 rounded-2xl border border-line/60 bg-surface p-3.5 md:hidden">
             <div className="mb-2 flex items-center justify-between gap-3">
               <span id="mobile-tag-picker-label" className="text-xs font-bold text-ink">当前赛道</span>
-              <span className="text-[11px] text-ink-muted">共 {tags.length} 个标签</span>
+              <span className="text-2xs text-ink-muted">共 {tags.length} 个标签</span>
             </div>
             <CustomSelect
               value={activeTag?.id || ''}

@@ -1,11 +1,12 @@
 import React from 'react';
+import { Check, HelpCircle, X, type LucideIcon } from 'lucide-react';
 import { Priority, TopicStatus, VerificationStatus, PlatformType } from '../../types';
 
 export const StatusBadge: React.FC<{ status: TopicStatus; size?: 'sm' | 'md'; showLabel?: boolean }> = ({ status, size = 'sm', showLabel = true }) => {
   const configs: Record<TopicStatus, { label: string; dot: string; text: string }> = {
     inbox: {
       label: '收集箱',
-      dot: 'bg-ink-muted opacity-60',
+      dot: 'bg-stage-inbox',
       text: 'text-ink-muted',
     },
     scripting: {
@@ -20,18 +21,18 @@ export const StatusBadge: React.FC<{ status: TopicStatus; size?: 'sm' | 'md'; sh
     },
     published: {
       label: '已发布',
-      dot: 'bg-accent',
-      text: 'text-accent font-medium',
+      dot: 'bg-stage-published',
+      text: 'text-stage-published font-medium',
     },
     icebox: {
       label: '搁置',
-      dot: 'bg-ink-muted opacity-40',
+      dot: 'bg-stage-icebox',
       text: 'text-ink-muted opacity-75',
     },
   };
 
   const c = configs[status] || configs.inbox;
-  const textSize = size === 'sm' ? 'text-[11px]' : 'text-xs';
+  const textSize = size === 'sm' ? 'text-2xs' : 'text-xs';
 
   return (
     <span
@@ -72,7 +73,7 @@ export const PriorityBadge: React.FC<{ priority: Priority; showLabel?: boolean; 
   const c = configs[priority] || configs.none;
 
   return (
-    <span className={`inline-flex items-center gap-1 text-[11px] whitespace-nowrap select-none ${c.text}`}>
+    <span className={`inline-flex items-center gap-1 text-2xs whitespace-nowrap select-none ${c.text}`}>
       {showDot && <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${c.dot}`} />}
       {showLabel && <span>{c.label}</span>}
     </span>
@@ -80,20 +81,20 @@ export const PriorityBadge: React.FC<{ priority: Priority; showLabel?: boolean; 
 };
 
 export const VerificationBadge: React.FC<{ status: VerificationStatus }> = ({ status }) => {
-  const configs: Record<VerificationStatus, { label: string; icon: string; text: string }> = {
+  const configs: Record<VerificationStatus, { label: string; icon: LucideIcon; text: string }> = {
     confirmed: {
       label: '已确认',
-      icon: '✓',
+      icon: Check,
       text: 'text-accent font-medium',
     },
     unverified: {
       label: '待核实',
-      icon: '?',
+      icon: HelpCircle,
       text: 'text-stage-scripting font-medium',
     },
     rejected: {
       label: '不采用',
-      icon: '✕',
+      icon: X,
       text: 'text-ink-muted line-through opacity-70 font-normal',
     },
   };
@@ -101,7 +102,7 @@ export const VerificationBadge: React.FC<{ status: VerificationStatus }> = ({ st
   const c = configs[status] || configs.unverified;
   return (
     <span className={`inline-flex items-center gap-1 text-xs select-none ${c.text}`}>
-      <span className="font-mono text-[11px]">{c.icon}</span>
+      <c.icon className="h-3 w-3 shrink-0" aria-hidden="true" />
       <span>{c.label}</span>
     </span>
   );
@@ -123,7 +124,7 @@ export const PlatformBadge: React.FC<{ platform: PlatformType }> = ({ platform }
   };
 
   return (
-    <span className="inline-flex items-center px-1.5 py-0.5 rounded-sm bg-canvas border border-line text-ink-muted text-[11px] font-normal select-none">
+    <span className="inline-flex items-center px-1.5 py-0.5 rounded-sm bg-canvas border border-line text-ink-muted text-2xs font-normal select-none">
       {names[platform] || platform}
     </span>
   );

@@ -84,7 +84,7 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({
       C: 'bg-control text-ink-muted',
     };
     return (
-      <span className={`inline-flex items-center px-1.5 py-0.5 rounded-md text-[10px] ${colors[grade] || colors.C}`}>
+      <span className={`inline-flex items-center px-1.5 py-0.5 rounded-md text-3xs ${colors[grade] || colors.C}`}>
         {grade}级
       </span>
     );
@@ -143,7 +143,7 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({
             <div className="text-xl sm:text-2xl font-bold font-mono tabular-nums text-ink">
               {formatViewsText(overview.totalViews)}
             </div>
-            <div className="text-[11px] text-ink-muted">
+            <div className="text-2xs text-ink-muted">
               平均单片: <span className="font-semibold text-ink font-mono tabular-nums">{formatViewsText(overview.avgViews)}</span>
             </div>
           </div>
@@ -157,7 +157,7 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({
             <div className="text-xl sm:text-2xl font-bold font-mono tabular-nums text-ink">
               {overview.avgCoinRate}%
             </div>
-            <div className="text-[11px] text-ink-muted flex items-center gap-1">
+            <div className="text-2xs text-ink-muted flex items-center gap-1">
               <span>B站核心权重</span>
               <span className={`font-semibold ${overview.avgCoinRate >= 1.5 ? 'text-accent' : 'text-stage-scripting'}`}>
                 {overview.avgCoinRate >= 1.5 ? '（优秀）' : '（良好）'}
@@ -174,7 +174,7 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({
             <div className="text-xl sm:text-2xl font-bold font-mono tabular-nums text-accent">
               {overview.avgTripleRate}%
             </div>
-            <div className="text-[11px] text-ink-muted">
+            <div className="text-2xs text-ink-muted">
               总点赞: <span className="font-semibold text-ink font-mono tabular-nums">{formatViewsText(overview.totalLikes)}</span>
             </div>
           </div>
@@ -188,7 +188,7 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({
             <div className="text-xl sm:text-2xl font-bold font-mono tabular-nums text-ink">
               {overview.avgFavoriteRate}%
             </div>
-            <div className="text-[11px] text-ink-muted">
+            <div className="text-2xs text-ink-muted">
               总收藏: <span className="font-semibold text-ink font-mono tabular-nums">{formatViewsText(overview.totalFavorites)}</span>
             </div>
           </div>
@@ -202,7 +202,7 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({
             <div className="text-xl sm:text-2xl font-bold font-mono tabular-nums text-ink">
               {overview.avgEngagementScore} <span className="text-xs font-normal text-ink-muted">/ 100</span>
             </div>
-            <div className="text-[11px] text-ink-muted">
+            <div className="text-2xs text-ink-muted">
               加权多维互动指数
             </div>
           </div>
@@ -226,7 +226,7 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({
                   </p>
                 </div>
                 <div className="text-right">
-                  <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-accent-soft text-accent">
+                  <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-2xs font-bold bg-accent-soft text-accent">
                     第一驱动力: {correlation.strongestHitFactor}
                   </span>
                 </div>
@@ -253,7 +253,7 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({
                           </span>
                           {dim.difference !== 0 && (
                             <span
-                              className={`text-[10px] font-bold px-1.5 py-0.2 rounded-md ${
+                              className={`text-3xs font-bold px-1.5 py-0.2 rounded-md ${
                                 isPositive ? 'bg-success-soft text-success' : 'bg-control text-ink-muted'
                               }`}
                             >
@@ -283,7 +283,7 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({
                 })}
               </div>
 
-              <div className="flex items-center justify-between pt-2 border-t border-line text-[11px] text-ink-muted">
+              <div className="flex items-center justify-between pt-2 border-t border-line text-2xs text-ink-muted">
                 <div className="flex items-center gap-3">
                   <span className="flex items-center gap-1">
                     <span className="w-2.5 h-2.5 rounded-full bg-accent inline-block" />
@@ -324,7 +324,7 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({
                       <span>{insight.title}</span>
                     </span>
                     {insight.badgeText && (
-                      <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-accent-soft text-accent">
+                      <span className="text-3xs font-semibold px-2 py-0.5 rounded-full bg-accent-soft text-accent">
                         {insight.badgeText}
                       </span>
                     )}
@@ -387,7 +387,7 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({
                       <div className="text-xs font-bold text-ink truncate">
                         {person.name}
                       </div>
-                      <div className="text-[11px] text-ink-muted truncate">
+                      <div className="text-2xs text-ink-muted truncate">
                         {person.videoCount} 期视频 · 代表作: {person.topVideoTitle || '无'}
                       </div>
                     </div>
@@ -397,7 +397,7 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({
                     <div className="text-xs font-bold text-ink font-mono tabular-nums">
                       {formatViewsText(person.totalViews)}
                     </div>
-                    <div className="text-[10px] text-warning font-semibold">
+                    <div className="text-3xs text-warning font-semibold">
                       投币率 <span className="font-mono tabular-nums">{person.avgCoinRate}%</span>
                     </div>
                   </div>
@@ -434,7 +434,7 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({
                       <div className="text-xs font-bold text-ink truncate">
                         #{tag.name}
                       </div>
-                      <div className="text-[11px] text-ink-muted">
+                      <div className="text-2xs text-ink-muted">
                         {tag.videoCount} 期视频 · 平均 {formatViewsText(tag.avgViews)}
                       </div>
                     </div>
@@ -444,7 +444,7 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({
                     <div className="text-xs font-bold text-ink font-mono tabular-nums">
                       {formatViewsText(tag.totalViews)}
                     </div>
-                    <div className="text-[10px] text-accent font-semibold">
+                    <div className="text-3xs text-accent font-semibold">
                       三连率 <span className="font-mono tabular-nums">{tag.avgTripleRate}%</span>
                     </div>
                   </div>
@@ -505,9 +505,9 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({
                         ) : (
                           <span className="font-bold text-ink line-clamp-1">{video.title}</span>
                         )}
-                        <div className="text-[11px] text-ink-muted flex items-center gap-1.5 mt-0.5">
+                        <div className="text-2xs text-ink-muted flex items-center gap-1.5 mt-0.5">
                           <span>{video.published_at || '未填日期'}</span>
-                          {video.bvid && <span className="font-mono text-[10px]">{video.bvid}</span>}
+                          {video.bvid && <span className="font-mono text-3xs">{video.bvid}</span>}
                         </div>
                       </div>
                     </div>
@@ -552,11 +552,11 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({
                   {/* Notes */}
                   <td className="py-3 px-4 max-w-[220px]">
                     {video.notes ? (
-                      <span className="text-ink-muted line-clamp-1 text-[11px]">
+                      <span className="text-ink-muted line-clamp-1 text-2xs">
                         {video.notes}
                       </span>
                     ) : (
-                      <span className="text-ink-faint text-[11px]">暂无笔记</span>
+                      <span className="text-ink-faint text-2xs">暂无笔记</span>
                     )}
                   </td>
                 </tr>

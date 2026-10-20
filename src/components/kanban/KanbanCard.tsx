@@ -26,7 +26,7 @@ interface KanbanCardProps {
 }
 
 const CARD_META_VALUE_CLASS = 'tabular-nums';
-const SCHEDULE_BADGE_CLASS = 'inline-flex items-center gap-1 rounded-md px-1.5 py-0.5 text-[11px] font-sans leading-4 whitespace-nowrap bg-control text-ink-muted';
+const SCHEDULE_BADGE_CLASS = 'inline-flex items-center gap-1 rounded-md px-1.5 py-0.5 text-2xs font-sans leading-4 whitespace-nowrap bg-control text-ink-muted';
 
 const TopicScheduleBadges: React.FC<{
   scheduleDate: ActionDateDisplay;
@@ -114,7 +114,7 @@ const KanbanCardComponent: React.FC<KanbanCardProps> = ({
           </div>
         ) : null}
 
-        <div className="flex items-center justify-between gap-2 text-[11px]">
+        <div className="flex items-center justify-between gap-2 text-2xs">
           <div className="flex min-w-0 items-center gap-2">
             <span className={`min-w-0 truncate ${actionWarning ? 'font-medium text-stage-scripting' : 'text-ink-muted'}`}>
             {actionWarning || `行动持续 ${getCurrentActionAgeDays(topic)} 天`}
@@ -197,13 +197,13 @@ const KanbanCardComponent: React.FC<KanbanCardProps> = ({
         <button
           type="button"
           onClick={(event) => { event.stopPropagation(); onOpenCurrentAction?.(topic.id); }}
-          className="w-full rounded-sm border border-dashed border-line/70 p-2 text-[11px] text-ink-muted text-center hover:border-accent/40 hover:text-accent hover:bg-accent-soft/20 cursor-pointer transition-colors"
+          className="w-full rounded-sm border border-dashed border-line/70 p-2 text-2xs text-ink-muted text-center hover:border-accent/40 hover:text-accent hover:bg-accent-soft/20 cursor-pointer transition-colors"
         >
           未设置当前行动
         </button>
       )}
 
-      <div className="flex items-center justify-between gap-2 text-[11px]">
+      <div className="flex items-center justify-between gap-2 text-2xs">
         <div className="flex min-w-0 items-center gap-2">
           <span className={`min-w-0 truncate ${actionWarning ? 'font-medium text-stage-scripting' : 'text-ink-muted'}`}>
           {actionWarning || `行动持续 ${getCurrentActionAgeDays(topic)} 天`}
@@ -224,7 +224,7 @@ const KanbanCardComponent: React.FC<KanbanCardProps> = ({
       <TopicScheduleBadges scheduleDate={scheduleDate} deadlineDate={deadlineDate} />
 
       {/* Secondary context */}
-      <div className="flex items-center justify-between pt-2 border-t border-line/50 text-[11px] text-ink-muted">
+      <div className="flex items-center justify-between pt-2 border-t border-line/50 text-2xs text-ink-muted">
         <div className="min-w-0 truncate pr-2">
           {topic.people?.slice(0, 2).map((person) => person.name).join(' / ') || '未关联人物'}
           {topic.tags?.length ? ` · ${topic.tags.slice(0, 2).map((tag) => `#${tag.name}`).join(' ')}` : ''}

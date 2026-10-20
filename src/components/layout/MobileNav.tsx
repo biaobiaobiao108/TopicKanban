@@ -63,9 +63,9 @@ export const MobileBottomNav: React.FC<MobileBottomNavProps> = ({
             }`}
           >
             <Icon className={`w-5 h-5 ${isActive ? 'stroke-[2.5]' : 'stroke-2'}`} />
-            <span className="text-[10px] mt-0.5">{item.label}</span>
+            <span className="text-3xs mt-0.5">{item.label}</span>
             {typeof item.badge === 'number' && item.badge > 0 && (
-              <span className="absolute top-0 right-1 min-w-4 h-4 px-1 bg-accent text-white rounded-full text-[9px] font-bold flex items-center justify-center font-mono">
+              <span className="absolute top-0 right-1 min-w-4 h-4 px-1 bg-accent text-white rounded-full text-3xs font-bold flex items-center justify-center font-mono">
                 {item.badge}
               </span>
             )}
@@ -80,7 +80,7 @@ export const MobileBottomNav: React.FC<MobileBottomNavProps> = ({
         className="mobile-nav-item flex min-h-11 w-full min-w-0 touch-manipulation flex-col items-center justify-center rounded-lg px-0.5 py-1 text-ink-muted transition-colors hover:text-ink"
       >
         <Menu className="h-5 w-5 stroke-2" aria-hidden="true" />
-        <span className="mt-0.5 text-[10px]">菜单</span>
+        <span className="mt-0.5 text-3xs">菜单</span>
       </button>
 
       {/* Floating Create Button */}
@@ -224,7 +224,7 @@ export const MobileDrawer: React.FC<MobileDrawerProps> = ({
                 aria-label="全局搜索与指令"
                 className={`group flex min-h-11 min-w-0 items-center gap-1.5 rounded-xl border border-transparent bg-surface/60 px-3 py-2 text-xs font-medium text-ink transition-colors hover:bg-surface hover:text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/40 cursor-pointer ${onOpenQuickDrops ? '' : 'col-span-2'}`}
               >
-                <Search className="h-3.5 w-3.5 shrink-0 text-ink-muted transition-colors group-hover:text-ink dark:group-hover:text-ink-faint" aria-hidden="true" />
+                <Search className="h-3.5 w-3.5 shrink-0 text-ink-muted transition-colors group-hover:text-ink" aria-hidden="true" />
                 <span className="truncate">搜索</span>
               </button>
 
@@ -247,11 +247,11 @@ export const MobileDrawer: React.FC<MobileDrawerProps> = ({
                     <span className="truncate">快投箱</span>
                   </span>
                   {quickDropCount > 0 ? (
-                    <span className="flex h-5 min-w-5 shrink-0 items-center justify-center rounded-full bg-accent px-1 text-[10px] font-mono font-bold text-white">
+                    <span className="flex h-5 min-w-5 shrink-0 items-center justify-center rounded-full bg-accent px-1 text-3xs font-mono font-bold text-white">
                       {quickDropCount}
                     </span>
                   ) : (
-                    <span className="shrink-0 text-[10px] font-normal text-ink-muted">7天</span>
+                    <span className="shrink-0 text-3xs font-normal text-ink-muted">7天</span>
                   )}
                 </button>
               )}
@@ -280,7 +280,7 @@ export const MobileDrawer: React.FC<MobileDrawerProps> = ({
                   }`}
                 >
                   <div className="flex items-center gap-3">
-                    <Icon className={`w-4.5 h-4.5 transition-colors shrink-0 ${isActive ? 'text-accent' : 'text-ink-muted'}`} />
+                    <Icon className={`w-[18px] h-[18px] transition-colors shrink-0 ${isActive ? 'text-accent' : 'text-ink-muted'}`} />
                     <span>{item.label}</span>
                   </div>
                   {typeof item.badge === 'number' && item.badge > 0 && (

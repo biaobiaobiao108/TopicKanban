@@ -419,7 +419,7 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
         extra: (
           <div className="flex items-center gap-1.5 shrink-0">
             {isCurrent && (
-              <span className="text-[10px] px-1.5 py-0.5 rounded bg-success-soft text-success font-bold shrink-0 flex items-center gap-0.5">
+              <span className="text-3xs px-1.5 py-0.5 rounded bg-success-soft text-success font-bold shrink-0 flex items-center gap-0.5">
                 <Check className="w-3 h-3 stroke-[2.5]" />
                 <span>当前使用</span>
               </span>
@@ -558,7 +558,7 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
           category: 'topic',
           categoryLabel: '近期活跃选题',
           title: topic.title,
-          subtitle: topic.current_todo ? `⚡ 当前行动：${topic.current_todo.title}` : topic.summary || topic.hook || undefined,
+          subtitle: topic.current_todo ? `当前行动：${topic.current_todo.title}` : topic.summary || topic.hook || undefined,
           icon: FileText,
           extra: (
             <div className="flex items-center gap-1.5 shrink-0">
@@ -644,7 +644,7 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
           category: 'topic',
           categoryLabel: '匹配选题',
           title: topic.title,
-          subtitle: topic.current_todo ? `⚡ 当前行动：${topic.current_todo.title}` : topic.summary || topic.hook || undefined,
+          subtitle: topic.current_todo ? `当前行动：${topic.current_todo.title}` : topic.summary || topic.hook || undefined,
           icon: FileText,
           extra: (
             <div className="flex items-center gap-1.5 shrink-0">
@@ -878,7 +878,7 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
                           {item.title}
                         </span>
                       </div>
-                      <div className="mt-0.5 h-4 truncate text-[11px] leading-4 text-ink-muted/80">
+                      <div className="mt-0.5 h-4 truncate text-2xs leading-4 text-ink-muted/80">
                         {item.subtitle}
                       </div>
                     </div>

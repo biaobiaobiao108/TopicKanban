@@ -149,11 +149,11 @@ export const QuickDropDrawer: React.FC<QuickDropDrawerProps> = ({
             <div>
               <h2 id="quick-drop-title" className="text-sm font-bold text-ink flex items-center gap-2">
                 <span>手机快投灵感箱</span>
-                <span className="text-[10px] font-mono bg-accent-soft text-accent-dark px-2 py-0.5 rounded-full font-bold">
+                <span className="text-3xs font-mono bg-accent-soft text-accent-dark px-2 py-0.5 rounded-full font-bold">
                   {drops.length}
                 </span>
               </h2>
-              <p className="text-[11px] text-ink-muted">来自快捷指令与手机分享菜单的碎片线索</p>
+              <p className="text-2xs text-ink-muted">来自快捷指令与手机分享菜单的碎片线索</p>
             </div>
           </div>
 
@@ -202,10 +202,10 @@ export const QuickDropDrawer: React.FC<QuickDropDrawerProps> = ({
                   className="p-4 rounded-2xl border border-line bg-surface hover:shadow-card hover:-translate-y-0.5 transition-all space-y-2.5 shadow-2xs"
                 >
                   <div className="flex items-start justify-between gap-2">
-                    <span className="text-[10px] font-bold text-ink-muted bg-control px-2 py-0.5 rounded-full">
+                    <span className="text-3xs font-bold text-ink-muted bg-control px-2 py-0.5 rounded-full">
                       {item.source || '快捷指令'}
                     </span>
-                    <span className="text-[10px] font-mono text-ink-muted flex items-center gap-1">
+                    <span className="text-3xs font-mono text-ink-muted flex items-center gap-1">
                       <Clock className="w-3 h-3" />
                       {formatBeijingDateTime(item.created_at, 'zh-CN', { month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' })}
                     </span>
@@ -221,7 +221,7 @@ export const QuickDropDrawer: React.FC<QuickDropDrawerProps> = ({
                       href={safeUrl}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="inline-flex items-center gap-1 text-[11px] text-accent hover:text-accent-dark truncate max-w-full font-mono underline"
+                      className="inline-flex items-center gap-1 text-2xs text-accent hover:text-accent-dark truncate max-w-full font-mono underline"
                     >
                       <ExternalLink className="w-3 h-3 shrink-0" />
                       <span className="truncate">{normalizedUrl}</span>
@@ -256,7 +256,7 @@ export const QuickDropDrawer: React.FC<QuickDropDrawerProps> = ({
         </FloatingScrollbar>
 
         {/* Footer info */}
-        <div className="p-3 border-t border-line bg-canvas text-[11px] text-ink-muted text-center">
+        <div className="p-3 border-t border-line bg-canvas text-2xs text-ink-muted text-center">
           快投碎片将在本地 SQLite 中暂存 7 天，到期后自动销毁。
         </div>
       </div>

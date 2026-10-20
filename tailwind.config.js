@@ -70,6 +70,10 @@ export default {
           700: 'var(--accent-dark)',
         }
       },
+      fontSize: {
+        '3xs': '10px',
+        '2xs': '11px',
+      },
       borderRadius: {
         sm: 'var(--radius-sm, 8px)',
         DEFAULT: 'var(--radius-sm, 8px)',

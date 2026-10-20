@@ -472,7 +472,7 @@ function SummaryCard({
         <span className={`grid h-8 w-8 shrink-0 place-items-center rounded-lg ${tones[tone]}`}>{icon}</span>
         <div className="min-w-0">
           <p className="truncate text-xs font-semibold text-ink">{label}</p>
-          <p className="truncate text-[10px] text-ink-muted">{detail}</p>
+          <p className="truncate text-3xs text-ink-muted">{detail}</p>
         </div>
       </div>
       <div className="shrink-0 text-right">
@@ -772,7 +772,7 @@ function LinkedTopicRow({
       <button type="button" onClick={onOpen} className="min-w-0 flex-1 text-left">
         <div className="flex min-w-0 items-center gap-2">
           {relation.relation_role === 'primary' && (
-            <span className="shrink-0 rounded-full bg-accent-soft px-2 py-0.5 text-[11px] font-bold text-accent-dark">
+            <span className="shrink-0 rounded-full bg-accent-soft px-2 py-0.5 text-2xs font-bold text-accent-dark">
               主选题
             </span>
           )}
@@ -1055,7 +1055,7 @@ function CommercialDealDetailView({
           {option.label}
         </div>
         {option.description && (
-          <div className="mt-0.5 truncate text-[10px] font-normal text-ink-muted">{option.description}</div>
+          <div className="mt-0.5 truncate text-3xs font-normal text-ink-muted">{option.description}</div>
         )}
       </div>
       {state.selected && <Check className="mt-0.5 h-3.5 w-3.5 shrink-0 text-accent" aria-hidden="true" />}
@@ -1459,7 +1459,7 @@ function CommercialDealDetailView({
                               className="h-4 w-4 accent-[var(--accent)]"
                             />
                             <span className="min-w-0 flex-1 break-words">{topic.title}</span>
-                            {topic.id === primaryTopicId && <span className="shrink-0 text-[10px] text-accent">主选题</span>}
+                            {topic.id === primaryTopicId && <span className="shrink-0 text-3xs text-accent">主选题</span>}
                           </label>
                         );
                       })}
@@ -1504,10 +1504,10 @@ function CommercialDealDetailView({
                 {deal.activities.map((item) => (
                   <div key={item.id} className="py-3 first:pt-0">
                     <div className="flex items-center justify-between gap-3">
-                      <span className="rounded-full bg-control px-2 py-0.5 text-[11px] font-semibold text-ink-muted">
+                      <span className="rounded-full bg-control px-2 py-0.5 text-2xs font-semibold text-ink-muted">
                         {item.kind === 'payment' ? '回款' : item.kind === 'status_change' ? '阶段' : '沟通'}
                       </span>
-                      <time className="shrink-0 text-[11px] text-ink-muted" dateTime={item.created_at}>
+                      <time className="shrink-0 text-2xs text-ink-muted" dateTime={item.created_at}>
                         {formatBeijingDateTime(item.created_at, 'zh-CN', {
                           month: 'numeric',
                           day: 'numeric',
@@ -1679,7 +1679,7 @@ function CommercialDealDetailView({
                   />
                   {deal.published_video && (
                     <div className="mt-3 min-w-0 rounded-lg border border-line bg-canvas/70 p-3">
-                      <p className="text-[11px] font-semibold text-ink-muted">已绑定视频标题</p>
+                      <p className="text-2xs font-semibold text-ink-muted">已绑定视频标题</p>
                       <p
                         className="mt-1 break-words whitespace-normal text-sm font-bold leading-relaxed text-ink"
                         style={{ overflowWrap: 'anywhere' }}
@@ -1764,7 +1764,7 @@ function CommercialDealDetailView({
 function MetaItem({ label, value, tone }: { label: string; value: React.ReactNode; tone?: 'danger' }) {
   return (
     <div className="min-w-0">
-      <p className="text-[11px] font-semibold text-ink-muted">{label}</p>
+      <p className="text-2xs font-semibold text-ink-muted">{label}</p>
       <p
         className={`mt-1 break-words text-sm font-bold ${tone === 'danger' ? 'text-danger' : 'text-ink'}`}
         style={{ overflowWrap: 'anywhere' }}

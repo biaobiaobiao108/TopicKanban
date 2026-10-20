@@ -2,6 +2,7 @@ import React, { useId, useState, useEffect, useRef } from 'react';
 import { Topic, TopicStatus, Priority } from '../../types';
 import { COLUMNS } from '../kanban/columns';
 import {
+  Check,
   Pin,
   Trash2,
   Edit2,
@@ -156,7 +157,7 @@ export const TopicDetailHeader: React.FC<TopicDetailHeaderProps> = ({
               className="animate-in fade-in zoom-in-95 duration-100"
             >
               <FloatingScrollbar className="p-1.5 space-y-0.5" wrapperClassName="min-h-0 flex-none">
-                <div className="px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider text-ink-muted">
+                <div className="px-2.5 py-1 text-3xs font-bold uppercase tracking-wider text-ink-muted">
                   活跃阶段
                 </div>
                 {COLUMNS.map((column) => {
@@ -179,13 +180,13 @@ export const TopicDetailHeader: React.FC<TopicDetailHeaderProps> = ({
                         <span className={`w-2 h-2 rounded-full ${statusDots[column.status]}`} />
                         <span>{column.label}</span>
                       </div>
-                      {isSelected && <span className="text-accent text-xs">✓</span>}
+                      {isSelected && <Check className="h-3 w-3 text-accent" aria-hidden="true" />}
                     </button>
                   );
                 })}
 
                 <div className="my-1 border-t border-line" />
-                <div className="px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider text-ink-muted">
+                <div className="px-2.5 py-1 text-3xs font-bold uppercase tracking-wider text-ink-muted">
                   归档状态
                 </div>
 
@@ -205,7 +206,7 @@ export const TopicDetailHeader: React.FC<TopicDetailHeaderProps> = ({
                     <span className="w-2 h-2 rounded-full bg-success" />
                     <span>已发布</span>
                   </div>
-                  {topic.status === 'published' && <span className="text-accent text-xs">✓</span>}
+                  {topic.status === 'published' && <Check className="h-3 w-3 text-accent" aria-hidden="true" />}
                 </button>
 
                 <button
@@ -224,7 +225,7 @@ export const TopicDetailHeader: React.FC<TopicDetailHeaderProps> = ({
                     <span className="w-2 h-2 rounded-full bg-ink-faint" />
                     <span>搁置</span>
                   </div>
-                  {topic.status === 'icebox' && <span className="text-ink-muted text-xs">✓</span>}
+                  {topic.status === 'icebox' && <Check className="h-3 w-3 text-ink-muted" aria-hidden="true" />}
                 </button>
               </FloatingScrollbar>
             </FloatingMenu>
@@ -260,7 +261,7 @@ export const TopicDetailHeader: React.FC<TopicDetailHeaderProps> = ({
               className="animate-in fade-in zoom-in-95 duration-100"
             >
               <FloatingScrollbar className="p-1.5 space-y-0.5" wrapperClassName="min-h-0 flex-none">
-                <div className="px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider text-ink-muted">
+                <div className="px-2.5 py-1 text-3xs font-bold uppercase tracking-wider text-ink-muted">
                   优先级设定
                 </div>
                 {(['high', 'medium', 'low', 'none'] as Priority[]).map((p) => {
@@ -283,9 +284,9 @@ export const TopicDetailHeader: React.FC<TopicDetailHeaderProps> = ({
                       <div className="flex min-w-0 items-center gap-2">
                         <span className={`w-2 h-2 rounded-full ${cfg.dot}`} />
                         <span className="shrink-0">{cfg.label}</span>
-                        <span className="min-w-0 truncate text-[10px] text-ink-muted font-normal">({cfg.desc})</span>
+                        <span className="min-w-0 truncate text-3xs text-ink-muted font-normal">({cfg.desc})</span>
                       </div>
-                      {isSelected && <span className="text-accent text-xs">✓</span>}
+                      {isSelected && <Check className="h-3 w-3 text-accent" aria-hidden="true" />}
                     </button>
                   );
                 })}
@@ -329,7 +330,7 @@ export const TopicDetailHeader: React.FC<TopicDetailHeaderProps> = ({
               className="animate-in fade-in zoom-in-95 duration-100"
             >
               <FloatingScrollbar className="space-y-0.5 p-1.5" wrapperClassName="min-h-0 flex-none">
-                <div className="px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider text-ink-muted">
+                <div className="px-2.5 py-1 text-3xs font-bold uppercase tracking-wider text-ink-muted">
                   选题操作
                 </div>
 

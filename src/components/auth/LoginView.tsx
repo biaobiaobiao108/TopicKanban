@@ -95,12 +95,12 @@ export const LoginView: React.FC<LoginViewProps> = ({ onLoginSuccess }) => {
 
         {/* Security Info */}
         <div className="pt-4 border-t border-line space-y-2.5 text-center">
-          <div className="text-[11px] text-ink-muted bg-control p-3 rounded-xl border border-line">
+          <div className="text-2xs text-ink-muted bg-control p-3 rounded-xl border border-line">
             <span className="font-semibold text-ink">访问口令由工作台管理员配置</span>
-            <div className="text-[10px] text-ink-muted mt-0.5">本地开发默认密码为 admin，云端由 APP_PASSWORD 统一管理</div>
+            <div className="text-3xs text-ink-muted mt-0.5">本地开发默认密码为 admin，云端由 APP_PASSWORD 统一管理</div>
           </div>
 
-          <div className="flex items-center justify-center gap-1.5 text-[10px] text-ink-muted">
+          <div className="flex items-center justify-center gap-1.5 text-3xs text-ink-muted">
             <ShieldCheck className="w-3.5 h-3.5 text-success" />
             <span>已开启端到端访问权限隔离保护</span>
           </div>

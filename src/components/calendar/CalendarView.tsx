@@ -333,7 +333,7 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
                   >
                     <Filter className="h-3.5 w-3.5" aria-hidden="true" />
                     <span>图层</span>
-                    <span className="font-mono text-[10px] tabular-nums opacity-70">
+                    <span className="font-mono text-3xs tabular-nums opacity-70">
                       {enabledLayerCount}/{CALENDAR_LAYER_OPTIONS.length}
                     </span>
                   </button>
@@ -349,7 +349,7 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
                     maxHeight={280}
                     className="p-1.5"
                   >
-                    <div className="px-2.5 py-1.5 text-[11px] font-medium text-ink-muted">
+                    <div className="px-2.5 py-1.5 text-2xs font-medium text-ink-muted">
                       显示事项
                     </div>
                     {CALENDAR_LAYER_OPTIONS.map(({ key, label, dotClass }) => (
@@ -388,7 +388,7 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
                 >
                   <Inbox className="h-3.5 w-3.5 text-accent" aria-hidden="true" />
                   <span>待排期池</span>
-                  <span className="font-mono text-[10px] tabular-nums opacity-75">
+                  <span className="font-mono text-3xs tabular-nums opacity-75">
                     {unscheduledTopics.length}
                   </span>
                 </button>

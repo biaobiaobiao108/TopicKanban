@@ -9,6 +9,7 @@ import {
   X,
   Plus,
   Check,
+  AlertTriangle,
 } from 'lucide-react';
 import { FloatingScrollbar } from '../ui/FloatingScrollbar';
 
@@ -109,7 +110,7 @@ export const ScriptReferenceDrawer: React.FC<ScriptReferenceDrawerProps> = ({
                 key={tab.id}
                 type="button"
                 onClick={() => setActiveTab(tab.id as RefTab)}
-                className={`px-2 py-1 rounded-lg shrink-0 text-[11px] transition-all cursor-pointer border-0 ${
+                className={`px-2 py-1 rounded-lg shrink-0 text-2xs transition-all cursor-pointer border-0 ${
                   activeTab === tab.id
                     ? 'bg-surface text-accent-dark font-semibold shadow-2xs'
                     : 'text-ink-muted hover:text-ink font-medium'
@@ -126,7 +127,7 @@ export const ScriptReferenceDrawer: React.FC<ScriptReferenceDrawerProps> = ({
           {/* 1. Outline & Hook */}
           {(activeTab === 'all' || activeTab === 'outline') && hasOutlineContent && (
             <div className="space-y-2">
-              <div className="text-[10px] font-semibold text-ink-muted uppercase tracking-wider flex items-center gap-1">
+              <div className="text-3xs font-semibold text-ink-muted uppercase tracking-wider flex items-center gap-1">
                 <Sparkles className="w-3 h-3 text-accent" />
                 <span>核心看点与大纲</span>
               </div>
@@ -141,13 +142,13 @@ export const ScriptReferenceDrawer: React.FC<ScriptReferenceDrawerProps> = ({
                         reference_type: 'outline', reference_id: 'hook', reference_title: '核心 Hook',
                         reference_snapshot: topic.hook, quoted_text: topic.hook, verification_status: 'confirmed',
                       })}
-                      className="text-[11px] bg-black/[0.04] hover:bg-accent hover:text-white text-ink-muted px-2 py-0.5 rounded-md flex items-center gap-1 cursor-pointer font-medium transition-colors border-0"
+                      className="text-2xs bg-black/[0.04] hover:bg-accent hover:text-white text-ink-muted px-2 py-0.5 rounded-md flex items-center gap-1 cursor-pointer font-medium transition-colors border-0"
                     >
                       {insertedId === 'hook' ? <Check className="w-2.5 h-2.5 text-inherit" /> : <Plus className="w-2.5 h-2.5" />}
                       <span>插入</span>
                     </button>
                   </div>
-                  <p className="text-ink leading-relaxed italic text-[11px] bg-canvas/70 p-2.5 rounded-lg border-0">{topic.hook}</p>
+                  <p className="text-ink leading-relaxed italic text-2xs bg-canvas/70 p-2.5 rounded-lg border-0">{topic.hook}</p>
                 </div>
               )}
 
@@ -161,13 +162,13 @@ export const ScriptReferenceDrawer: React.FC<ScriptReferenceDrawerProps> = ({
                         reference_type: 'outline', reference_id: 'storyline', reference_title: '故事主线',
                         reference_snapshot: topic.storyline, quoted_text: topic.storyline, verification_status: 'confirmed',
                       })}
-                      className="text-[11px] bg-black/[0.04] hover:bg-accent hover:text-white text-ink-muted px-2 py-0.5 rounded-md flex items-center gap-1 cursor-pointer font-medium transition-colors border-0"
+                      className="text-2xs bg-black/[0.04] hover:bg-accent hover:text-white text-ink-muted px-2 py-0.5 rounded-md flex items-center gap-1 cursor-pointer font-medium transition-colors border-0"
                     >
                       {insertedId === 'storyline' ? <Check className="w-2.5 h-2.5 text-inherit" /> : <Plus className="w-2.5 h-2.5" />}
                       <span>插入</span>
                     </button>
                   </div>
-                  <p className="text-ink leading-relaxed whitespace-pre-wrap text-[11px] bg-canvas/70 p-2.5 rounded-lg border-0">{topic.storyline}</p>
+                  <p className="text-ink leading-relaxed whitespace-pre-wrap text-2xs bg-canvas/70 p-2.5 rounded-lg border-0">{topic.storyline}</p>
                 </div>
               )}
             </div>
@@ -176,7 +177,7 @@ export const ScriptReferenceDrawer: React.FC<ScriptReferenceDrawerProps> = ({
           {/* 2. People & Quotes */}
           {(activeTab === 'all' || activeTab === 'people') && filteredPeople.length > 0 && (
             <div className="space-y-2">
-              <div className="text-[10px] font-semibold text-ink-muted uppercase tracking-wider flex items-center gap-1">
+              <div className="text-3xs font-semibold text-ink-muted uppercase tracking-wider flex items-center gap-1">
                 <User className="w-3 h-3 text-ink-muted" />
                 <span>人物语录与名言</span>
               </div>
@@ -187,7 +188,7 @@ export const ScriptReferenceDrawer: React.FC<ScriptReferenceDrawerProps> = ({
                     <div className="flex items-center gap-1.5">
                       <span className="font-semibold text-ink text-xs">{person.name}</span>
                       {person.identity && (
-                        <span className="text-[10px] bg-black/[0.04] text-ink-muted px-1.5 py-0.5 rounded-md font-medium border-0">
+                        <span className="text-3xs bg-black/[0.04] text-ink-muted px-1.5 py-0.5 rounded-md font-medium border-0">
                           {person.identity}
                         </span>
                       )}
@@ -196,7 +197,7 @@ export const ScriptReferenceDrawer: React.FC<ScriptReferenceDrawerProps> = ({
 
                   {person.quotes ? (
                     <div className="border border-line bg-canvas/60 px-3 py-2 rounded-lg space-y-1.5">
-                      <div className="flex items-center justify-between text-accent-dark font-medium text-[11px]">
+                      <div className="flex items-center justify-between text-accent-dark font-medium text-2xs">
                         <span className="flex items-center gap-1">
                           <Quote className="w-2.5 h-2.5 text-accent" /> 经典原话
                         </span>
@@ -207,16 +208,16 @@ export const ScriptReferenceDrawer: React.FC<ScriptReferenceDrawerProps> = ({
                             reference_snapshot: `“${person.quotes}” —— ${person.name}`,
                             quoted_text: `“${person.quotes}” —— ${person.name}`, verification_status: 'confirmed',
                           })}
-                          className="text-[11px] bg-black/[0.04] hover:bg-accent hover:text-white text-ink-muted px-2 py-0.5 rounded-md flex items-center gap-1 cursor-pointer font-medium transition-colors border-0"
+                          className="text-2xs bg-black/[0.04] hover:bg-accent hover:text-white text-ink-muted px-2 py-0.5 rounded-md flex items-center gap-1 cursor-pointer font-medium transition-colors border-0"
                         >
                           {insertedId === `quote-${person.id}` ? <Check className="w-2.5 h-2.5 text-inherit" /> : <Plus className="w-2.5 h-2.5" />}
                           <span>插入引用</span>
                         </button>
                       </div>
-                      <p className="text-ink italic leading-relaxed text-[11px]">“{person.quotes}”</p>
+                      <p className="text-ink italic leading-relaxed text-2xs">“{person.quotes}”</p>
                     </div>
                   ) : (
-                    <p className="text-[11px] text-ink-muted">{person.description || '暂无语录记录'}</p>
+                    <p className="text-2xs text-ink-muted">{person.description || '暂无语录记录'}</p>
                   )}
                 </div>
               ))}
@@ -226,7 +227,7 @@ export const ScriptReferenceDrawer: React.FC<ScriptReferenceDrawerProps> = ({
           {/* Sources */}
           {(activeTab === 'all' || activeTab === 'sources') && filteredSources.length > 0 && (
             <div className="space-y-2">
-              <div className="text-[10px] font-semibold text-ink-muted uppercase tracking-wider flex items-center gap-1">
+              <div className="text-3xs font-semibold text-ink-muted uppercase tracking-wider flex items-center gap-1">
                 <FileSearch className="w-3 h-3 text-ink-muted" />
                 <span>资料素材 ({filteredSources.length})</span>
               </div>
@@ -238,7 +239,7 @@ export const ScriptReferenceDrawer: React.FC<ScriptReferenceDrawerProps> = ({
                       <div className="space-y-0.5 min-w-0 flex-1">
                         <div className="font-semibold text-ink text-xs truncate">{source.title}</div>
                         {source.event_date && (
-                          <span className="inline-block text-[10px] font-mono text-accent-dark bg-accent-soft px-1.5 py-0.2 rounded font-medium">
+                          <span className="inline-block text-3xs font-mono text-accent-dark bg-accent-soft px-1.5 py-0.2 rounded font-medium">
                             📅 {source.event_date}
                           </span>
                         )}
@@ -250,21 +251,23 @@ export const ScriptReferenceDrawer: React.FC<ScriptReferenceDrawerProps> = ({
                           reference_snapshot: source.content || source.title, quoted_text: source.content || source.title,
                           verification_status: source.verification_status,
                         })}
-                        className="text-[11px] bg-black/[0.04] hover:bg-accent hover:text-white text-ink-muted px-2 py-0.5 rounded-md shrink-0 flex items-center gap-1 cursor-pointer font-medium transition-colors border-0"
+                        className="text-2xs bg-black/[0.04] hover:bg-accent hover:text-white text-ink-muted px-2 py-0.5 rounded-md shrink-0 flex items-center gap-1 cursor-pointer font-medium transition-colors border-0"
                       >
                         {insertedId === `src-${source.id}` ? <Check className="w-2.5 h-2.5 text-inherit" /> : <Plus className="w-2.5 h-2.5" />}
                         <span>插入</span>
                       </button>
                     </div>
                     {source.content && (
-                      <p className="text-ink-muted line-clamp-3 text-[11px] bg-canvas/70 p-2.5 rounded-lg border-0 leading-relaxed">
+                      <p className="text-ink-muted line-clamp-3 text-2xs bg-canvas/70 p-2.5 rounded-lg border-0 leading-relaxed">
                         {source.content}
                       </p>
                     )}
-                    <div className={`text-[10px] pt-0.5 ${
+                    <div className={`text-3xs pt-0.5 ${
                       source.verification_status === 'confirmed' ? 'text-accent font-medium' : 'text-stage-scripting'
                     }`}>
-                      {source.verification_status === 'confirmed' ? '✓ 已核实' : '⚠ 待核实'}
+                      {source.verification_status === 'confirmed'
+                        ? <span className="inline-flex items-center gap-1"><Check className="h-3 w-3" aria-hidden="true" />已核实</span>
+                        : <span className="inline-flex items-center gap-1"><AlertTriangle className="h-3 w-3" aria-hidden="true" />待核实</span>}
                       {staleReferenceIds.includes(source.id) && <span className="ml-2 text-warning">引用后有修改</span>}
                     </div>
                   </div>

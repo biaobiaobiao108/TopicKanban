@@ -21,6 +21,7 @@ import {
   Zap,
   X,
   BarChart2,
+  Check,
   Sparkles,
 } from 'lucide-react';
 import { fetchPublishedVideoPage, fetchTopic, fetchTopicPage } from '../../lib/storageApi';
@@ -525,7 +526,7 @@ export const PublishedView: React.FC<PublishedViewProps> = ({
                   对应选题 <span className="text-ink-muted font-normal">（自动过滤已关联选题）</span>
                 </label>
                 {availableTopicTotal > 0 && (
-                  <span className="text-[11px] text-ink-muted">
+                  <span className="text-2xs text-ink-muted">
                     <span className="font-mono tabular-nums">{availableTopicTotal}</span> 个可用选题
                   </span>
                 )}
@@ -571,7 +572,7 @@ export const PublishedView: React.FC<PublishedViewProps> = ({
                   }}
                   renderOption={(option, state) => {
                     if (!option.value) {
-                      return <span className="flex items-center gap-1.5"><span className="text-ink-muted">✕</span><span>不关联任何选题（独立归档视频）</span>{state.selected && <span className="ml-auto">✓</span>}</span>;
+                      return <span className="flex items-center gap-1.5"><X className="h-3 w-3 text-ink-faint" aria-hidden="true" /><span>不关联任何选题（独立归档视频）</span>{state.selected && <Check className="ml-auto h-3.5 w-3.5 text-accent" aria-hidden="true" />}</span>;
                     }
                     const topic = topicMap.get(option.value);
                     if (!topic) return option.label;
@@ -579,16 +580,16 @@ export const PublishedView: React.FC<PublishedViewProps> = ({
                       <div className="flex items-center justify-between gap-2 w-full min-w-0">
                         <div className="min-w-0 pr-2 space-y-0.5">
                           <div className="text-xs sm:text-sm font-semibold truncate leading-tight">{topic.title}</div>
-                          {(topic.summary || topic.current_todo) && <div className="text-[11px] text-ink-muted truncate">{topic.current_todo ? `当前行动: ${topic.current_todo.title}` : topic.summary}</div>}
+                          {(topic.summary || topic.current_todo) && <div className="text-2xs text-ink-muted truncate">{topic.current_todo ? `当前行动: ${topic.current_todo.title}` : topic.summary}</div>}
                         </div>
-                        <div className="flex items-center gap-1.5 shrink-0"><StatusBadge status={topic.status} size="sm" />{state.selected && <span className="text-accent">✓</span>}</div>
+                        <div className="flex items-center gap-1.5 shrink-0"><StatusBadge status={topic.status} size="sm" />{state.selected && <Check className="h-3.5 w-3.5 text-accent" aria-hidden="true" />}</div>
                       </div>
                     );
                   }}
                   emptyState={topicOptionsQuery.isFetching ? (
                     <div className="py-6 text-center text-xs text-ink-muted">正在搜索选题…</div>
                   ) : availableTopicTotal === 0 && !topicSearchQuery.trim() ? (
-                    <div className="py-6 text-center text-xs text-ink-muted space-y-1"><p className="font-semibold text-ink-muted">所有选题均已关联视频</p><p className="text-[11px]">可选择「不关联任何选题」或前往看板新建选题</p></div>
+                    <div className="py-6 text-center text-xs text-ink-muted space-y-1"><p className="font-semibold text-ink-muted">所有选题均已关联视频</p><p className="text-2xs">可选择「不关联任何选题」或前往看板新建选题</p></div>
                   ) : (
                     <div className="py-6 text-center text-xs text-ink-muted">未找到匹配「{topicSearchQuery}」的可用选题</div>
                   )}
@@ -669,7 +670,7 @@ export const PublishedView: React.FC<PublishedViewProps> = ({
                     decoding="async"
                     className="w-full h-full object-cover"
                   />
-                  <div className="absolute bottom-2 left-2 px-2 py-0.5 rounded-md bg-overlay text-white text-[11px] font-medium backdrop-blur-xs flex items-center gap-1">
+                  <div className="absolute bottom-2 left-2 px-2 py-0.5 rounded-md bg-overlay text-white text-2xs font-medium backdrop-blur-xs flex items-center gap-1">
                     <Sparkles className="w-3 h-3 text-warning" />
                     <span>封面已就绪</span>
                   </div>

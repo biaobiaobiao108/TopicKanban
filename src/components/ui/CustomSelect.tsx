@@ -215,7 +215,7 @@ export const CustomSelect: React.FC<CustomSelectProps> = ({
   };
 
   const sizeClasses = {
-    xs: 'px-2 py-1 text-[11px] rounded-lg gap-1.5',
+    xs: 'px-2 py-1 text-2xs rounded-lg gap-1.5',
     sm: 'px-2.5 py-1.5 text-xs rounded-xl gap-2',
     md: 'px-3 py-2 text-sm rounded-xl gap-2.5',
   };
@@ -321,7 +321,7 @@ export const CustomSelect: React.FC<CustomSelectProps> = ({
                       {option.icon && <span className="shrink-0 text-ink-muted">{option.icon}</span>}
                       <div className="min-w-0 max-w-full break-words [overflow-wrap:anywhere]">
                         <div className="line-clamp-2 whitespace-normal break-words">{option.label}</div>
-                        {option.description && <div className="line-clamp-2 text-[10px] text-ink-muted font-normal whitespace-normal break-words">{option.description}</div>}
+                        {option.description && <div className="line-clamp-2 text-3xs text-ink-muted font-normal whitespace-normal break-words">{option.description}</div>}
                       </div>
                     </div>
                   )}

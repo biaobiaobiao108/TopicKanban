@@ -220,7 +220,7 @@ export const PeopleTab: React.FC<PeopleTabProps> = ({
                 )}
 
                 {person.platform_accounts && (
-                  <div className="text-[11px] text-ink-muted bg-control px-2.5 py-1 rounded-lg border border-line font-mono truncate">
+                  <div className="text-2xs text-ink-muted bg-control px-2.5 py-1 rounded-lg border border-line font-mono truncate">
                     {person.platform_accounts}
                   </div>
                 )}
@@ -296,7 +296,7 @@ export const PeopleTab: React.FC<PeopleTabProps> = ({
                 <div className="min-w-0">
                   <div className="font-bold text-xs text-ink truncate">👤 {person.name}</div>
                   {person.identity && (
-                    <div className="text-[10px] text-ink-muted truncate">{person.identity}</div>
+                    <div className="text-3xs text-ink-muted truncate">{person.identity}</div>
                   )}
                 </div>
 

@@ -79,13 +79,13 @@ export const PublishedVideoCard: React.FC<PublishedVideoCardProps> = ({
               {/* Quick Watch Icon */}
               <div className="absolute top-2 right-2 opacity-0 group-hover/cover:opacity-100 transition-opacity duration-200 bg-overlay hover:bg-accent text-white p-1.5 rounded-lg text-xs backdrop-blur-xs flex items-center gap-1 shadow-xs font-semibold">
                 <ExternalLink className="w-3.5 h-3.5" />
-                <span className="text-[10px] pr-0.5 hidden sm:inline">打开</span>
+                <span className="text-3xs pr-0.5 hidden sm:inline">打开</span>
               </div>
             </a>
           ) : (
             <div className="w-full h-full flex flex-col items-center justify-center text-ink-muted bg-control p-4">
               <Film className="w-7 h-7 stroke-[1.5] mb-1 opacity-40 text-ink-muted" />
-              <span className="text-[10px] opacity-60 text-center line-clamp-1">
+              <span className="text-3xs opacity-60 text-center line-clamp-1">
                 {cleanBvid ? (isCoverLoading ? '加载封面...' : '未获取封面') : '无 BV 号'}
               </span>
             </div>
@@ -97,14 +97,14 @@ export const PublishedVideoCard: React.FC<PublishedVideoCardProps> = ({
           {/* Row 1: Header Row (BV + Topic + Actions) */}
           <div className="flex items-center justify-between gap-2">
             <div className="flex items-center gap-1.5 overflow-hidden min-w-0 flex-1">
-              <span className="text-[11px] font-mono font-bold text-accent bg-accent-soft px-2 py-0.5 rounded-full shrink-0">
+              <span className="text-2xs font-mono font-bold text-accent bg-accent-soft px-2 py-0.5 rounded-full shrink-0">
                 {video.bvid || 'BVxxxxxx'}
               </span>
               {video.topic_title && (
                 <button
                   type="button"
                   onClick={() => video.topic_id && onSelectTopic(video.topic_id)}
-                  className="text-[11px] text-ink-muted hover:text-accent bg-control hover:bg-accent-soft px-2 py-0.5 rounded-full truncate max-w-[130px] sm:max-w-[170px] transition-colors text-left cursor-pointer font-medium"
+                  className="text-2xs text-ink-muted hover:text-accent bg-control hover:bg-accent-soft px-2 py-0.5 rounded-full truncate max-w-[130px] sm:max-w-[170px] transition-colors text-left cursor-pointer font-medium"
                 >
                   选题: {video.topic_title}
                 </button>
@@ -183,11 +183,11 @@ export const PublishedVideoCard: React.FC<PublishedVideoCardProps> = ({
 
             {/* Subtle Ratio Micro Pills (内敛微墨质感) */}
             {video.views > 0 && (
-              <div className="flex items-center gap-2 sm:gap-2.5 overflow-hidden text-[10px] text-ink-muted font-mono">
+              <div className="flex items-center gap-2 sm:gap-2.5 overflow-hidden text-3xs text-ink-muted font-mono">
                 <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-control shrink-0">
                   <span className="opacity-70">投币率</span>
                   <strong className="text-ink font-semibold">{metrics.coinRate}%</strong>
-                  <span className="text-[9px] px-1 rounded-full bg-warning-soft text-warning font-bold">
+                  <span className="text-3xs px-1 rounded-full bg-warning-soft text-warning font-bold">
                     {metrics.coinGrade}
                   </span>
                 </span>
@@ -204,7 +204,7 @@ export const PublishedVideoCard: React.FC<PublishedVideoCardProps> = ({
           </div>
 
           {/* Row 4: Bottom Bar (Date + Note Badge + Link) */}
-          <div className="pt-2 border-t border-line flex items-center justify-between text-[11px] text-ink-muted">
+          <div className="pt-2 border-t border-line flex items-center justify-between text-2xs text-ink-muted">
             <span className="flex items-center gap-1 shrink-0">
               <Calendar className="w-3 h-3" />
               <span>{video.published_at}</span>
@@ -213,7 +213,7 @@ export const PublishedVideoCard: React.FC<PublishedVideoCardProps> = ({
             {/* Notes Badge if present (Clean inline badge without hover popup) */}
             {video.notes && (
               <div className="flex items-center mx-1 min-w-0">
-                <span className="text-[10px] text-warning bg-warning-soft border border-warning-soft px-1.5 py-0.5 rounded flex items-center gap-1 font-medium max-w-[120px] sm:max-w-[160px] truncate">
+                <span className="text-3xs text-warning bg-warning-soft border border-warning-soft px-1.5 py-0.5 rounded flex items-center gap-1 font-medium max-w-[120px] sm:max-w-[160px] truncate">
                   <FileText className="w-2.5 h-2.5 shrink-0 text-warning" />
                   <span className="truncate">{video.notes}</span>
                 </span>

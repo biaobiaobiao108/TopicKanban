@@ -107,7 +107,7 @@ const ColumnTodoComposer: React.FC<{
         </div>
       </div>
       {error && (
-        <p id={`${id}-error`} role="alert" className="mt-1.5 text-[11px] leading-4 text-danger">
+        <p id={`${id}-error`} role="alert" className="mt-1.5 text-2xs leading-4 text-danger">
           {error}
         </p>
       )}
@@ -163,7 +163,7 @@ const InlineTitleEditor: React.FC<{
         aria-invalid={Boolean(error)}
         className="todo-inline-editor-input min-h-8 w-full bg-transparent text-sm font-semibold text-ink outline-none"
       />
-      {error && <span role="alert" className="text-[11px] text-danger">{error}</span>}
+      {error && <span role="alert" className="text-2xs text-danger">{error}</span>}
     </>
   );
 };
@@ -237,18 +237,18 @@ const SortableTodoCard: React.FC<SortableTodoCardProps> = ({ todo, status, isCur
                 {todo.title}
               </span>
               {isCurrent && (
-                <span className="todo-current-badge inline-flex shrink-0 items-center gap-1 rounded-sm px-1.5 py-1 text-[10px] font-semibold leading-none">
+                <span className="todo-current-badge inline-flex shrink-0 items-center gap-1 rounded-sm px-1.5 py-1 text-3xs font-semibold leading-none">
                   <Zap className="h-3 w-3" aria-hidden="true" />
                   <span>当前行动</span>
                 </span>
               )}
               {isCompleted && (
-                <span className="inline-flex shrink-0 items-center gap-1 rounded-sm bg-accent-soft/60 px-1.5 py-1 text-[10px] font-semibold leading-none text-accent">
+                <span className="inline-flex shrink-0 items-center gap-1 rounded-sm bg-accent-soft/60 px-1.5 py-1 text-3xs font-semibold leading-none text-accent">
                   <Check className="h-3 w-3 stroke-[2.5]" aria-hidden="true" />
                   <span>已完成</span>
                 </span>
               )}
-              {isBusy && <span className="text-[10px] text-ink-muted">保存中</span>}
+              {isBusy && <span className="text-3xs text-ink-muted">保存中</span>}
             </div>
           )}
         </div>
@@ -279,7 +279,7 @@ const TodoBoardColumn: React.FC<{
       <header className="mb-2.5 flex items-center justify-between gap-2 px-1.5 py-1">
         <div className="flex min-w-0 items-center gap-2">
           <span className={`h-2 w-2 shrink-0 rounded-full ${status === 'todo' ? 'bg-ink-faint' : status === 'in_progress' ? 'bg-accent' : 'bg-success'}`} />
-          <h3 className="text-[13.5px] font-semibold tracking-tight text-ink">{column.label}</h3>
+          <h3 className="text-sm font-semibold tracking-tight text-ink">{column.label}</h3>
           <span className="kanban-column-count ml-0.5 text-xs tabular-nums text-ink-muted">{ids.length}</span>
         </div>
         {status === 'todo' && (
@@ -297,7 +297,7 @@ const TodoBoardColumn: React.FC<{
       <SortableContext items={ids} strategy={verticalListSortingStrategy}>
         <div className="mobile-scroll-reveal min-h-[140px] min-w-0 flex-1 space-y-2.5">
           {children}
-          {ids.length === 0 && <div className={`flex h-24 flex-col items-center justify-center rounded-sm border border-dashed p-3 text-center text-xs transition-colors duration-150 ${isOver ? 'border-accent bg-accent-soft text-accent' : 'border-line bg-surface/50 text-ink-muted'}`}><span className="font-medium">{isOver ? '松开以移入此列' : '暂无待办'}</span><span className="mt-0.5 text-[11px] opacity-75">{isOver ? `将事项归入「${column.label}」` : '拖动事项至此可调整进度'}</span></div>}
+          {ids.length === 0 && <div className={`flex h-24 flex-col items-center justify-center rounded-sm border border-dashed p-3 text-center text-xs transition-colors duration-150 ${isOver ? 'border-accent bg-accent-soft text-accent' : 'border-line bg-surface/50 text-ink-muted'}`}><span className="font-medium">{isOver ? '松开以移入此列' : '暂无待办'}</span><span className="mt-0.5 text-2xs opacity-75">{isOver ? `将事项归入「${column.label}」` : '拖动事项至此可调整进度'}</span></div>}
           {isComposerOpen && status === 'todo' && <ColumnTodoComposer status={status} onCreate={onCreate} onCancel={onCancelAdd} />}
         </div>
       </SortableContext>
@@ -338,7 +338,7 @@ const TodoBoardStageTab: React.FC<{
       }`}
     >
       <span>{column.label}</span>
-      <span className={`rounded-sm px-1 text-[10px] tabular-nums ${isActive ? 'bg-accent-dark text-white' : 'text-ink-muted opacity-75'}`}>
+      <span className={`rounded-sm px-1 text-3xs tabular-nums ${isActive ? 'bg-accent-dark text-white' : 'text-ink-muted opacity-75'}`}>
         {count}
       </span>
     </button>
@@ -371,7 +371,7 @@ const TodoDeleteDropZone: React.FC = () => {
         style={{ clipPath: 'circle(142px at 100% 100%)' }}
         aria-hidden="true"
       />
-      <div className="absolute right-4 bottom-5 z-10 flex max-w-[104px] flex-col items-end gap-1 text-right text-[11px] font-semibold leading-tight">
+      <div className="absolute right-4 bottom-5 z-10 flex max-w-[104px] flex-col items-end gap-1 text-right text-2xs font-semibold leading-tight">
         <Trash2 className={`h-4 w-4 shrink-0 ${isOver ? 'text-danger' : ''}`} aria-hidden="true" />
         <span>{isOver ? '松开以移入回收站' : '拖到这里删除'}</span>
       </div>
@@ -682,7 +682,7 @@ export const TodoBoard: React.FC<TodoBoardProps> = ({ topic, todos, actions, isL
                 {activeTodo ? (
                   <div style={activeCardWidth ? { width: activeCardWidth } : undefined} className="pointer-events-none rotate-[1deg] rounded-lg border border-accent/40 bg-surface p-3.5 shadow-modal">
                     <div className="text-sm font-semibold text-ink">{activeTodo.title}</div>
-                    {activeTodoId === layout.in_progress_ids[0] && <span className="mt-1 inline-flex items-center gap-1 text-[10px] font-semibold text-accent"><Zap className="h-3 w-3" />当前行动</span>}
+                    {activeTodoId === layout.in_progress_ids[0] && <span className="mt-1 inline-flex items-center gap-1 text-3xs font-semibold text-accent"><Zap className="h-3 w-3" />当前行动</span>}
                   </div>
                 ) : null}
               </DragOverlay>,

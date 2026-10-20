@@ -19,6 +19,7 @@ import {
   Columns3,
   Rows3,
   Bookmark,
+  Check,
   CheckSquare,
 } from 'lucide-react';
 import { CustomSelect } from '../ui/CustomSelect';
@@ -148,7 +149,7 @@ function TableStatusCell({
             }`}
           >
             <span>{col.label}</span>
-            {topic.status === col.status && <span className="text-accent">✓</span>}
+            {topic.status === col.status && <Check className="h-3.5 w-3.5 text-accent" aria-hidden="true" />}
           </button>
         ))}
       </FloatingMenu>
@@ -504,7 +505,7 @@ export const TopicTableView: React.FC<TopicTableViewProps> = ({
             }`}
           >
             <span>活跃推进中</span>
-            <span className="text-[10px] tabular-nums font-mono opacity-75">
+            <span className="text-3xs tabular-nums font-mono opacity-75">
               {activeCount}
             </span>
           </button>
@@ -518,7 +519,7 @@ export const TopicTableView: React.FC<TopicTableViewProps> = ({
             }`}
           >
             <span>归档</span>
-            <span className="text-[10px] tabular-nums font-mono opacity-75">
+            <span className="text-3xs tabular-nums font-mono opacity-75">
               {archivedCount}
             </span>
           </button>
@@ -532,7 +533,7 @@ export const TopicTableView: React.FC<TopicTableViewProps> = ({
             }`}
           >
             <span>全部选题</span>
-            <span className="text-[10px] tabular-nums font-mono opacity-75">
+            <span className="text-3xs tabular-nums font-mono opacity-75">
               {activeCount + archivedCount}
             </span>
           </button>
@@ -547,7 +548,7 @@ export const TopicTableView: React.FC<TopicTableViewProps> = ({
           >
             <span>回收站</span>
             {trashCount > 0 && (
-              <span className="text-[10px] tabular-nums font-mono text-danger">
+              <span className="text-3xs tabular-nums font-mono text-danger">
                 {trashCount}
               </span>
             )}
@@ -603,7 +604,7 @@ export const TopicTableView: React.FC<TopicTableViewProps> = ({
             ariaLabel="自定义表格显示列"
             className="p-2"
           >
-            <div className="px-2 pb-1 text-[10px] font-bold text-ink-muted">
+            <div className="px-2 pb-1 text-3xs font-bold text-ink-muted">
               标题列始终显示并冻结
             </div>
             <FloatingScrollbar className="space-y-0.5" wrapperClassName="max-h-[300px] flex-none">
@@ -783,7 +784,7 @@ export const TopicTableView: React.FC<TopicTableViewProps> = ({
                     options={COLUMNS.map((column) => ({ value: column.status, label: column.label }))}
                   />
                   <PriorityBadge priority={topic.priority} />
-                  <span className="ml-auto text-[11px] text-ink-muted">{formatRelativeTime(topic.updated_at)}</span>
+                  <span className="ml-auto text-2xs text-ink-muted">{formatRelativeTime(topic.updated_at)}</span>
                 </div>
 
                 <div className="mt-3 rounded-sm border border-line bg-canvas/60 px-3 py-2 text-xs text-ink">
@@ -794,12 +795,12 @@ export const TopicTableView: React.FC<TopicTableViewProps> = ({
                 {(topic.tags?.length || topic.people?.length) ? (
                   <div className="mt-3 flex flex-wrap gap-1.5">
                     {topic.tags?.slice(0, 3).map((tag) => (
-                      <span key={tag.id || tag.name} className="rounded-md bg-canvas px-2 py-1 text-[10px] text-ink-muted">
+                      <span key={tag.id || tag.name} className="rounded-md bg-canvas px-2 py-1 text-3xs text-ink-muted">
                         #{tag.name}
                       </span>
                     ))}
                     {topic.people?.slice(0, 2).map((person) => (
-                      <span key={person.id} className="rounded-md bg-canvas px-2 py-1 text-[10px] text-ink-muted">
+                      <span key={person.id} className="rounded-md bg-canvas px-2 py-1 text-3xs text-ink-muted">
                         {person.name}
                       </span>
                     ))}
@@ -808,15 +809,15 @@ export const TopicTableView: React.FC<TopicTableViewProps> = ({
 
                 <div className="mt-3 grid grid-cols-3 divide-x divide-line rounded-sm bg-canvas/65 py-2 text-center">
                   <div>
-                    <div className="text-[10px] text-ink-muted">故事评分</div>
+                    <div className="text-3xs text-ink-muted">故事评分</div>
                     <div className="mt-0.5 font-mono text-xs font-medium text-ink">{totalScore || '—'}{totalScore ? '/10' : ''}</div>
                   </div>
                   <div>
-                    <div className="text-[10px] text-ink-muted">文案字数</div>
+                    <div className="text-3xs text-ink-muted">文案字数</div>
                     <div className="mt-0.5 font-mono text-xs font-medium text-ink">{(topic.draft_word_count || 0).toLocaleString()}</div>
                   </div>
                   <div>
-                    <div className="text-[10px] text-ink-muted">预估时长</div>
+                    <div className="text-3xs text-ink-muted">预估时长</div>
                     <div className="mt-0.5 text-xs font-medium text-ink"><span className="font-mono tabular-nums">{minutes}</span> 分钟</div>
                   </div>
                 </div>
@@ -896,7 +897,7 @@ export const TopicTableView: React.FC<TopicTableViewProps> = ({
       >
         <table className="w-max min-w-full text-left border-collapse text-xs">
           {/* Table Header */}
-          <thead className="table-header-row bg-surface/95 backdrop-blur-md sticky top-0 z-10 border-b border-line/60 text-ink-muted text-[11px] font-semibold select-none tracking-wider">
+          <thead className="table-header-row bg-surface/95 backdrop-blur-md sticky top-0 z-10 border-b border-line/60 text-ink-muted text-2xs font-semibold select-none tracking-wider">
             <tr>
               <th scope="col" className="w-10 px-3 py-3 text-center">
                 <input
@@ -1067,11 +1068,11 @@ export const TopicTableView: React.FC<TopicTableViewProps> = ({
                         </button>
                       )}
                       {topic.summary ? (
-                        <p className="text-[11px] text-ink-muted line-clamp-1 group-hover:text-ink dark:group-hover:text-ink-faint transition-colors">
+                        <p className="text-2xs text-ink-muted line-clamp-1 group-hover:text-ink transition-colors">
                           {topic.summary}
                         </p>
                       ) : topic.hook ? (
-                        <p className="text-[11px] text-ink-muted italic line-clamp-1 group-hover:text-ink dark:group-hover:text-ink-faint transition-colors">
+                        <p className="text-2xs text-ink-muted italic line-clamp-1 group-hover:text-ink transition-colors">
                           Hook: {topic.hook}
                         </p>
                       ) : null}
@@ -1102,7 +1103,7 @@ export const TopicTableView: React.FC<TopicTableViewProps> = ({
                         event.stopPropagation();
                         onOpenCurrentAction(topic.id);
                       }}
-                      className={`inline-flex max-w-[240px] items-center gap-1.5 truncate rounded-sm px-2 py-1 text-left text-[11px] font-medium transition-colors cursor-pointer ${topic.current_todo ? 'bg-accent-soft/60 text-accent-dark hover:bg-accent-soft' : 'text-ink-muted hover:bg-canvas'}`}
+                      className={`inline-flex max-w-[240px] items-center gap-1.5 truncate rounded-sm px-2 py-1 text-left text-2xs font-medium transition-colors cursor-pointer ${topic.current_todo ? 'bg-accent-soft/60 text-accent-dark hover:bg-accent-soft' : 'text-ink-muted hover:bg-canvas'}`}
                       aria-label="管理当前行动"
                     >
                       <Zap className={`h-3 w-3 shrink-0 ${topic.current_todo ? 'text-accent' : 'text-ink-muted'}`} aria-hidden="true" />
@@ -1117,16 +1118,16 @@ export const TopicTableView: React.FC<TopicTableViewProps> = ({
                         topic.tags.slice(0, 2).map((tag) => (
                           <span
                             key={tag.id || tag.name}
-                            className="inline-flex items-center text-[10px] font-medium bg-control text-ink-muted px-2 py-0.5 rounded-md select-none"
+                            className="inline-flex items-center text-3xs font-medium bg-control text-ink-muted px-2 py-0.5 rounded-md select-none"
                           >
                             #{tag.name}
                           </span>
                         ))
                       ) : (
-                        <span className="text-ink-faint italic text-[11px]">-</span>
+                        <span className="text-ink-faint italic text-2xs">-</span>
                       )}
                       {topic.tags && topic.tags.length > 2 && (
-                        <span className="text-[10px] text-ink-muted font-mono">+{topic.tags.length - 2}</span>
+                        <span className="text-3xs text-ink-muted font-mono">+{topic.tags.length - 2}</span>
                       )}
                     </div>
                   </td>}
@@ -1138,13 +1139,13 @@ export const TopicTableView: React.FC<TopicTableViewProps> = ({
                         topic.people.slice(0, 2).map((person) => (
                           <span
                             key={person.id}
-                            className="inline-flex items-center text-[10px] text-ink-muted px-1 py-0.5 select-none"
+                            className="inline-flex items-center text-3xs text-ink-muted px-1 py-0.5 select-none"
                           >
                             {person.name}
                           </span>
                         ))
                       ) : (
-                        <span className="text-ink-faint italic text-[11px]">-</span>
+                        <span className="text-ink-faint italic text-2xs">-</span>
                       )}
                     </div>
                   </td>}
@@ -1154,10 +1155,10 @@ export const TopicTableView: React.FC<TopicTableViewProps> = ({
                     {totalScore > 0 ? (
                       <div className="inline-flex items-center gap-1 font-mono font-medium text-xs text-ink select-none">
                         <span>{totalScore}</span>
-                        <span className="text-[10px] text-ink-muted font-normal">/10</span>
+                        <span className="text-3xs text-ink-muted font-normal">/10</span>
                       </div>
                     ) : (
-                      <span className="text-ink-muted text-[11px]">未评分</span>
+                      <span className="text-ink-muted text-2xs">未评分</span>
                     )}
                   </td>}
 
@@ -1166,15 +1167,15 @@ export const TopicTableView: React.FC<TopicTableViewProps> = ({
                     {topic.draft_word_count ? (
                       <div>
                         <div className="font-bold text-ink"><span className="font-mono tabular-nums">{topic.draft_word_count.toLocaleString()}</span> 字</div>
-                        <div className="text-[10px] text-ink-muted">~<span className="font-mono tabular-nums">{minutes}</span> 分钟</div>
+                        <div className="text-3xs text-ink-muted">~<span className="font-mono tabular-nums">{minutes}</span> 分钟</div>
                       </div>
                     ) : (
-                      <span className="text-ink-faint text-[11px]"><span className="font-mono tabular-nums">0</span> 字</span>
+                      <span className="text-ink-faint text-2xs"><span className="font-mono tabular-nums">0</span> 字</span>
                     )}
                   </td>}
 
                   {/* 10. Updated Time */}
-                  {isColumnVisible('updated_at') && <td className={`${rowPadding} px-3 text-right text-ink-muted text-[11px] tabular-nums`}>
+                  {isColumnVisible('updated_at') && <td className={`${rowPadding} px-3 text-right text-ink-muted text-2xs tabular-nums`}>
                     {formatRelativeTime(topic.updated_at)}
                   </td>}
 

@@ -81,12 +81,12 @@ function DraggableTopicCard({
       </button>
 
       {topic.current_todo && (
-        <div className="truncate rounded-lg bg-canvas px-2 py-1 text-[11px] text-ink-muted">
+        <div className="truncate rounded-lg bg-canvas px-2 py-1 text-2xs text-ink-muted">
           当前行动: {topic.current_todo.title}
         </div>
       )}
 
-      <div className="flex items-center justify-between border-t border-line pt-1 text-[10px] text-ink-muted">
+      <div className="flex items-center justify-between border-t border-line pt-1 text-3xs text-ink-muted">
         <span>
           {(topic.draft_word_count || 0) > 0 ? <><span className="font-mono tabular-nums">{topic.draft_word_count}</span>字</> : '未动笔'}
         </span>
@@ -94,7 +94,7 @@ function DraggableTopicCard({
         <button
           type="button"
           onClick={() => onScheduleTopic(topic)}
-          className="inline-flex cursor-pointer items-center gap-1 rounded-lg px-2 py-1 text-[11px] font-semibold text-accent transition-colors hover:bg-accent-soft hover:text-accent-dark"
+          className="inline-flex cursor-pointer items-center gap-1 rounded-lg px-2 py-1 text-2xs font-semibold text-accent transition-colors hover:bg-accent-soft hover:text-accent-dark"
         >
           <CalendarPlus className="w-3 h-3" />
           <span>定档</span>
@@ -231,7 +231,7 @@ export const UnscheduledTopicPool: React.FC<UnscheduledTopicPoolProps> = ({
         </div>
 
         {/* Stage Pills */}
-        <div className="flex items-center gap-1 overflow-x-auto text-[11px]">
+        <div className="flex items-center gap-1 overflow-x-auto text-2xs">
           {[
             { id: 'all', label: '全部' },
             { id: 'scripting', label: '写稿中' },
@@ -257,7 +257,7 @@ export const UnscheduledTopicPool: React.FC<UnscheduledTopicPoolProps> = ({
 
       {/* Topics Stream */}
       <FloatingScrollbar className="space-y-2.5 p-3" wrapperClassName="min-h-0 flex-1">
-        <div className="px-1 text-[11px] text-ink-muted">
+        <div className="px-1 text-2xs text-ink-muted">
           💡 提示：按住卡片右侧把手可直接拖拽至左侧日历日期定档
         </div>
 
