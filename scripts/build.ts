@@ -110,8 +110,6 @@ const precacheUrls = [
   '/manifest.webmanifest',
   '/icon-192.png?v=2',
   '/icon-512.png?v=2',
-  '/icon-maskable-1024.png',
-  '/apple-touch-icon.png?v=2',
   ...initialAssetUrls,
 ];
 const serviceWorkerPath = joinPath(distDir, 'sw.js');

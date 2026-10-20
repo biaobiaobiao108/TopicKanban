@@ -43,7 +43,8 @@ const serviceWorkerSource = await Bun.file(serviceWorkerPath).text();
 const precacheMatch = serviceWorkerSource.match(/const PRECACHE_URLS = (\[[\s\S]*?\]);/);
 const precacheUrls = precacheMatch ? JSON.parse(precacheMatch[1]) as string[] : [];
 const precacheBytes = (await Promise.all(precacheUrls.map(async (url) => {
-  const filePath = resolvePath(distDir, url.replace(/^\//, ''));
+  const pathname = new URL(url, 'http://bundle.local').pathname;
+  const filePath = resolvePath(distDir, decodeURIComponent(pathname).replace(/^\//, ''));
   const file = Bun.file(filePath);
   return (await file.exists()) ? file.size : 0;
 }))).reduce((total, size) => total + size, 0);
