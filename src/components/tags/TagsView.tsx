@@ -358,7 +358,7 @@ export const TagsView: React.FC<TagsViewProps> = ({
                           e.stopPropagation();
                           setDeletingTag(tag);
                         }}
-                        className="cursor-pointer rounded-lg p-1 text-ink-muted opacity-100 transition-opacity hover:text-h1-color md:opacity-0 md:group-hover:opacity-100"
+                        className="cursor-pointer rounded-lg p-1 text-ink-muted opacity-100 transition-opacity hover:text-danger md:opacity-0 md:group-hover:opacity-100"
                         aria-label="删除标签"
                       >
                         <Trash2 className="w-3.5 h-3.5" />

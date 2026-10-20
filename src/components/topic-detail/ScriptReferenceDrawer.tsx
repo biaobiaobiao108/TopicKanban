@@ -265,7 +265,7 @@ export const ScriptReferenceDrawer: React.FC<ScriptReferenceDrawerProps> = ({
                       source.verification_status === 'confirmed' ? 'text-accent font-medium' : 'text-stage-scripting'
                     }`}>
                       {source.verification_status === 'confirmed' ? '✓ 已核实' : '⚠ 待核实'}
-                      {staleReferenceIds.includes(source.id) && <span className="ml-2 text-h1-color">引用后有修改</span>}
+                      {staleReferenceIds.includes(source.id) && <span className="ml-2 text-warning">引用后有修改</span>}
                     </div>
                   </div>
                 ))}

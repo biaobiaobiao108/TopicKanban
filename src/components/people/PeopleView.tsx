@@ -179,7 +179,7 @@ export const PeopleView: React.FC<PeopleViewProps> = ({
                 setRelDesc('');
                 setIsRelModalOpen(true);
               }}
-              className="inline-flex h-10 items-center gap-1.5 rounded-xl bg-control px-3.5 text-xs font-medium text-ink transition-colors hover:bg-control sm:text-sm cursor-pointer"
+              className="inline-flex h-10 items-center gap-1.5 rounded-xl bg-control px-3.5 text-xs font-medium text-ink transition-colors hover:bg-control-hover sm:text-sm cursor-pointer"
             >
               <Link2 className="h-4 w-4 text-ink-muted" aria-hidden="true" />
               <span>+ 记录人物关系</span>
@@ -188,7 +188,7 @@ export const PeopleView: React.FC<PeopleViewProps> = ({
             <button
               type="button"
               onClick={openAddPersonModal}
-              className="inline-flex h-10 items-center gap-1.5 rounded-xl bg-accent px-4 text-xs font-semibold text-white shadow-2xs transition-all hover:bg-accent-dark hover:shadow-xs active:scale-[0.98] sm:text-sm cursor-pointer"
+              className="inline-flex h-10 items-center gap-1.5 rounded-xl bg-accent px-4 text-xs font-semibold text-white shadow-2xs transition-all hover:bg-accent-dark active:scale-[0.98] sm:text-sm cursor-pointer"
             >
               <Plus className="h-4 w-4 stroke-[2.5]" aria-hidden="true" />
               <span>新建人物档案</span>

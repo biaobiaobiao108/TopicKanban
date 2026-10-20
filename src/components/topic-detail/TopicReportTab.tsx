@@ -458,7 +458,7 @@ export const TopicReportTab: React.FC<TopicReportTabProps> = ({
       </div>
 
       {saveStatus === 'conflict' && (
-        <div className="shrink-0 border-b border-h1-color/20 bg-h1-color/[0.04] px-4 py-3 sm:px-6" role="alert">
+        <div className="shrink-0 border-b border-warning/20 bg-warning-soft px-4 py-3 sm:px-6" role="alert">
           <div className="mx-auto flex w-full max-w-4xl flex-col gap-3">
             <div>
               <p className="text-sm font-semibold text-ink">本机与云端报告都已保留</p>
@@ -483,7 +483,7 @@ export const TopicReportTab: React.FC<TopicReportTabProps> = ({
                   <button
                     type="button"
                     onClick={() => setIsConfirmOverwriteOpen(true)}
-                    className="min-h-8 rounded-full bg-h1-color/10 px-3 text-xs font-medium text-h1-color transition-colors hover:bg-h1-color/15 cursor-pointer"
+                    className="min-h-8 rounded-full bg-danger-soft px-3 text-xs font-medium text-danger transition-colors hover:bg-danger/15 cursor-pointer"
                   >
                     保留本机并覆盖云端
                   </button>
@@ -505,7 +505,7 @@ export const TopicReportTab: React.FC<TopicReportTabProps> = ({
       <FloatingScrollbar className="script-editor-canvas-container flex-1 bg-canvas flex justify-center cursor-text transition-colors">
         <div className="min-w-0 w-full max-w-4xl px-6 sm:px-12 md:px-16 pt-8 pb-36">
           <div className="mb-4 border-b border-line pb-3">
-            <h1 className="font-sans text-xl sm:text-2xl font-bold text-ink tracking-tight">
+            <h1 className="font-serif text-xl sm:text-2xl font-bold text-ink tracking-[0.01em]">
               {topicTitle} · 选题报告
             </h1>
             <p className="mt-1 text-xs text-ink-muted">

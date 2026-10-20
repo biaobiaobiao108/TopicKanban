@@ -389,7 +389,7 @@ export const PublishedView: React.FC<PublishedViewProps> = ({
                 onClick={handleBulkSyncAll}
                 disabled={isBulkSyncing}
                 aria-label="批量刷新所有包含 BV 号的视频数据"
-                className="inline-flex h-10 items-center gap-1.5 rounded-xl bg-control px-3.5 text-xs font-medium text-ink transition-colors hover:bg-control disabled:opacity-50 sm:text-sm cursor-pointer"
+                className="inline-flex h-10 items-center gap-1.5 rounded-xl bg-control px-3.5 text-xs font-medium text-ink transition-colors hover:bg-control-hover disabled:opacity-50 sm:text-sm cursor-pointer"
               >
                 <RefreshCw className={`h-3.5 w-3.5 ${isBulkSyncing ? 'animate-spin text-accent' : 'text-ink-muted'}`} aria-hidden="true" />
                 <span>{isBulkSyncing ? '同步中...' : '批量同步数据'}</span>
@@ -399,7 +399,7 @@ export const PublishedView: React.FC<PublishedViewProps> = ({
             <button
               type="button"
               onClick={openAddModal}
-              className="inline-flex h-10 items-center gap-1.5 rounded-xl bg-accent px-4 text-xs font-semibold text-white shadow-2xs transition-all hover:bg-accent-dark hover:shadow-xs active:scale-[0.98] sm:text-sm cursor-pointer"
+              className="inline-flex h-10 items-center gap-1.5 rounded-xl bg-accent px-4 text-xs font-semibold text-white shadow-2xs transition-all hover:bg-accent-dark active:scale-[0.98] sm:text-sm cursor-pointer"
             >
               <Plus className="h-4 w-4 stroke-[2.5]" aria-hidden="true" />
               <span>归档已发布视频</span>

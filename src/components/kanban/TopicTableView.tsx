@@ -541,13 +541,13 @@ export const TopicTableView: React.FC<TopicTableViewProps> = ({
             onClick={() => setArchiveScope('trash')}
             className={`px-3 py-1 rounded-full transition-all cursor-pointer flex items-center gap-1.5 ${
               archiveScope === 'trash'
-                ? 'bg-surface text-h1-color font-semibold shadow-2xs'
-                : 'text-ink-muted hover:text-h1-color'
+                ? 'bg-surface text-danger font-semibold shadow-2xs'
+                : 'text-ink-muted hover:text-danger'
             }`}
           >
             <span>回收站</span>
             {trashCount > 0 && (
-              <span className="text-[10px] tabular-nums font-mono text-h1-color">
+              <span className="text-[10px] tabular-nums font-mono text-danger">
                 {trashCount}
               </span>
             )}
@@ -560,7 +560,7 @@ export const TopicTableView: React.FC<TopicTableViewProps> = ({
               type="button"
               onClick={() => void handleEmptyTrash()}
               disabled={isBulkUpdating}
-              className="flex h-8 items-center gap-1.5 rounded-full px-3 text-xs font-semibold text-h1-color hover:bg-danger-soft transition-colors cursor-pointer disabled:opacity-50"
+              className="flex h-8 items-center gap-1.5 rounded-full px-3 text-xs font-semibold text-danger hover:bg-danger-soft transition-colors cursor-pointer disabled:opacity-50"
             >
               <Trash2 className="h-3.5 w-3.5 text-danger" />
               <span>清空回收站 ({trashCount})</span>
@@ -659,7 +659,7 @@ export const TopicTableView: React.FC<TopicTableViewProps> = ({
               type="button"
               onClick={handleBulkTrash}
               disabled={isBulkUpdating}
-              className="min-h-9 inline-flex items-center gap-1.5 rounded-sm px-3 text-xs font-medium text-h1-color hover:bg-surface disabled:opacity-50 transition-colors cursor-pointer"
+              className="min-h-9 inline-flex items-center gap-1.5 rounded-sm px-3 text-xs font-medium text-danger hover:bg-surface disabled:opacity-50 transition-colors cursor-pointer"
             >
               <Trash2 className="h-3.5 w-3.5" />
               <span>{isBulkUpdating ? '处理中…' : '批量移入回收站'}</span>
@@ -690,7 +690,7 @@ export const TopicTableView: React.FC<TopicTableViewProps> = ({
               type="button"
               onClick={() => void handleBulkPermanentDelete()}
               disabled={isBulkUpdating}
-              className="flex items-center gap-1 min-h-9 rounded-sm px-3 text-xs font-medium text-h1-color hover:bg-surface disabled:opacity-50 transition-colors cursor-pointer"
+              className="flex items-center gap-1 min-h-9 rounded-sm px-3 text-xs font-medium text-danger hover:bg-surface disabled:opacity-50 transition-colors cursor-pointer"
             >
               <Trash2 className="h-3.5 w-3.5" />
               <span>{isBulkUpdating ? '删除中…' : '批量永久删除'}</span>
@@ -861,7 +861,7 @@ export const TopicTableView: React.FC<TopicTableViewProps> = ({
                   {archiveScope !== 'trash' && <button
                     onClick={() => requestDeleteTopic(topic)}
                     aria-label="移入回收站"
-                    className="flex h-10 w-10 items-center justify-center rounded-sm text-h1-color hover:bg-canvas cursor-pointer"
+                    className="flex h-10 w-10 items-center justify-center rounded-sm text-danger hover:bg-canvas cursor-pointer"
                   >
                     <Trash2 className="h-4 w-4" />
                   </button>}

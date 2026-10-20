@@ -1326,7 +1326,7 @@ export const ScriptEditorTab: React.FC<ScriptEditorTabProps> = ({
               type="button"
               onClick={() => setIsTeleprompterOpen(true)}
               aria-label="开启全屏沉浸录音提词器"
-              className="flex items-center gap-1.5 rounded-full bg-accent px-3.5 py-1 text-xs font-semibold text-white shadow-soft-pill hover:bg-accent-dark hover:shadow-xs active:scale-95 transition-all cursor-pointer"
+              className="flex items-center gap-1.5 rounded-full bg-accent px-3.5 py-1 text-xs font-semibold text-white shadow-soft-pill hover:bg-accent-dark active:scale-95 transition-all cursor-pointer"
             >
               <Mic className="w-3.5 h-3.5 stroke-[2.5]" />
               <span>录音提词</span>

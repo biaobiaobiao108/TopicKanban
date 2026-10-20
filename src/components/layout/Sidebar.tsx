@@ -63,8 +63,9 @@ export const Sidebar: React.FC<SidebarProps> = ({
           <div className="sidebar-brand-logo w-9 h-9 rounded-sm flex items-center justify-center overflow-hidden shadow-2xs shrink-0 ring-1 ring-black/5">
             <img src="/icon.png" alt="喵爪看板 Logo" width={36} height={36} className="w-full h-full object-cover rounded-sm" />
           </div>
-          <div>
-            <h1 className="font-sans text-ink text-base font-bold tracking-tight leading-snug">喵爪看板</h1>
+          <div className="flex min-w-0 items-center gap-2">
+            <h1 className="font-serif text-ink text-[19px] font-bold tracking-[0.02em] leading-snug">喵爪看板</h1>
+            <span aria-hidden="true" className="grid h-5 w-5 shrink-0 place-items-center rounded-sm bg-h1-color/[0.12] font-serif text-[11px] font-bold leading-none text-h1-color">喵</span>
           </div>
         </div>
 
@@ -74,7 +75,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
             type="button"
             onClick={onOpenQuickCreate}
             aria-label="新建选题"
-            className="group flex min-h-10 w-full items-center gap-2 rounded-sm bg-accent px-3.5 py-2.5 text-[13px] font-semibold text-white shadow-2xs transition-all hover:bg-accent-dark focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/40 active:scale-[0.98] cursor-pointer"
+            className="group flex min-h-10 w-full items-center gap-2 rounded-sm bg-accent px-3.5 py-2.5 text-sm font-semibold text-white shadow-2xs transition-all hover:bg-accent-dark focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/40 active:scale-[0.98] cursor-pointer"
           >
             <Plus className="h-4 w-4 shrink-0 stroke-[2.5]" aria-hidden="true" />
             <span>新建选题</span>
@@ -123,7 +124,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
       {/* Main Navigation */}
       <nav aria-label="工作台模块" className="flex-1 min-h-0">
         <FloatingScrollbar className="p-3 space-y-1" wrapperClassName="h-full">
-          <div className="text-xs font-bold text-ink-muted px-3.5 py-2 uppercase tracking-wider">
+          <div className="text-xs font-semibold text-ink-muted px-3.5 py-2 tracking-[0.12em]">
             工作台模块
           </div>
           {navItems.map((item) => {
@@ -135,14 +136,15 @@ export const Sidebar: React.FC<SidebarProps> = ({
                 key={item.id}
                 onClick={() => onNavigate(item.id)}
                 aria-current={isActive ? 'page' : undefined}
-                className={`group relative w-full flex items-center justify-between px-3.5 py-2.5 rounded-sm text-[14px] sm:text-[15px] transition-all cursor-pointer ${
+                className={`group relative w-full flex items-center justify-between px-3.5 py-2.5 rounded-sm text-sm transition-all cursor-pointer ${
                   isActive
                     ? 'bg-surface text-ink font-semibold shadow-2xs'
                     : 'text-ink hover:bg-surface hover:text-ink font-medium'
                 }`}
               >
+                {isActive && <span aria-hidden="true" className="absolute left-0 top-1/2 -translate-y-1/2 h-5 w-[3px] rounded-full bg-accent" />}
                 <div className="flex items-center gap-3">
-                  <Icon className={`w-4.5 h-4.5 transition-colors shrink-0 ${isActive ? 'text-accent' : 'text-ink-muted group-hover:text-ink dark:group-hover:text-ink-faint'}`} />
+                  <Icon className={`h-[18px] w-[18px] transition-colors shrink-0 ${isActive ? 'text-accent' : 'text-ink-muted group-hover:text-ink dark:group-hover:text-ink-faint'}`} />
                   <span className="tracking-wide">{item.label}</span>
                 </div>
                 {typeof item.badge === 'number' && item.badge > 0 && (

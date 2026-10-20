@@ -40,7 +40,7 @@ export const LoginView: React.FC<LoginViewProps> = ({ onLoginSuccess }) => {
           <div className="w-14 h-14 rounded-2xl flex items-center justify-center overflow-hidden mx-auto shadow-2xs border border-line p-1 bg-surface">
             <img src="/icon.png" alt="喵爪看板 Logo" width={56} height={56} className="w-full h-full object-cover rounded-xl" />
           </div>
-          <h1 className="text-xl font-bold text-ink tracking-tight">喵爪看板</h1>
+          <h1 className="font-serif text-[22px] font-bold text-ink tracking-[0.02em]">喵爪看板</h1>
           <p className="text-xs text-ink-muted">
             视频创作者专属工作台 • 访问鉴权保护
           </p>

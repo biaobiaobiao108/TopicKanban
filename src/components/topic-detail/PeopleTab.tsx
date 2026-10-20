@@ -132,7 +132,7 @@ export const PeopleTab: React.FC<PeopleTabProps> = ({
         <div className="flex items-center justify-between flex-wrap gap-3">
           <div>
             <h3 className="text-base font-bold text-ink flex items-center gap-2">
-              <span className="p-1.5 rounded-xl bg-accent-soft text-accent">
+              <span className="text-accent">
                 <User className="w-4 h-4" />
               </span>
               <span>本期视频核心出场人物 ({topicPeople.length})</span>

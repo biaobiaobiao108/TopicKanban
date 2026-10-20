@@ -116,13 +116,13 @@ export const ConfirmDialog: React.FC<ConfirmDialogProps> = ({
   const IconComponent = CustomIcon || DefaultIcon;
 
   const iconBgClasses = {
-    danger: 'bg-h1-color/10 text-h1-color border border-h1-color/20',
+    danger: 'bg-danger-soft text-danger border border-danger-line',
     warning: 'bg-warning/10 text-warning border border-warning/20',
     primary: 'bg-accent-soft text-accent border border-accent/20',
   };
 
   const confirmBtnClasses = {
-    danger: 'bg-h1-color hover:opacity-90 text-white font-medium shadow-2xs',
+    danger: 'bg-danger hover:opacity-90 text-white font-medium shadow-2xs',
     warning: 'bg-warning hover:opacity-90 text-white font-medium shadow-2xs',
     primary: 'bg-accent hover:bg-accent-dark text-white font-medium shadow-2xs',
   };

@@ -139,7 +139,7 @@ export const TagPill: React.FC<{ name: string; onRemove?: () => void }> = ({ nam
           e.stopPropagation();
           onRemove();
         }}
-        className="hover:text-h1-color text-ink-muted ml-0.5 cursor-pointer"
+        className="hover:text-danger text-ink-muted ml-0.5 cursor-pointer"
         aria-label={`移除标签 ${name}`}
       >
         ×

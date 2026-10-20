@@ -243,7 +243,7 @@ export const CustomSelect: React.FC<CustomSelectProps> = ({
         className={`flex items-center justify-between font-medium transition-all cursor-pointer ${sizeClasses[size]} ${
           disabled
             ? 'opacity-50 cursor-not-allowed bg-control text-ink-muted border border-line'
-            : 'bg-surface hover:bg-canvas text-ink border border-line shadow-2xs hover:shadow-xs focus:outline-none focus:ring-2 focus:ring-accent/20'
+            : 'bg-surface hover:bg-canvas text-ink border border-line shadow-2xs focus:outline-none focus:ring-2 focus:ring-accent/20'
         } ${buttonClassName}`}
       >
         <div className="flex min-w-0 flex-1 items-center gap-1.5 overflow-hidden">

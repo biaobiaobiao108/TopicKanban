@@ -621,7 +621,7 @@ export const TodoBoard: React.FC<TodoBoardProps> = ({ topic, todos, actions, isL
     <div className="mx-auto w-full max-w-[1440px] space-y-5 px-4 py-5 sm:px-6 sm:py-7">
       <header className="flex flex-wrap items-end justify-between gap-3">
         <div>
-          <div className="flex items-center gap-2"><KanbanSquare className="h-5 w-5 text-accent" aria-hidden="true" /><h2 className="text-lg font-bold text-ink">执行看板</h2></div>
+          <div className="flex items-center gap-2"><KanbanSquare className="h-5 w-5 text-accent" aria-hidden="true" /><h2 className="font-serif text-lg font-bold text-ink">执行看板</h2></div>
           <p className="mt-1 text-xs text-ink-muted">按推进状态整理这个选题的行动；进行中第一项是当前行动，可同时推进多项工作。</p>
         </div>
         <span className="text-xs tabular-nums text-ink-muted">共 {todos.length} 项{busyBoardCount > 0 ? ' · 顺序保存中' : ''}</span>

@@ -27,7 +27,7 @@ export class ViewErrorBoundary extends React.Component<ViewErrorBoundaryProps, V
 
     return (
       <div className="flex-1 grid place-items-center p-6">
-        <div role="alert" className="w-full max-w-lg rounded-2xl border border-h1-color/25 bg-surface p-5 text-ink">
+        <div role="alert" className="w-full max-w-lg rounded-2xl border border-danger-line bg-surface p-5 text-ink">
           <h2 className="text-base font-bold">{this.props.title || '页面加载失败'}</h2>
           <p className="mt-2 text-sm text-ink-muted">
             {this.props.description || '部署更新后，浏览器中的旧资源可能已经失效。请刷新页面加载最新版本。'}

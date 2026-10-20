@@ -182,15 +182,12 @@ export const TodayView: React.FC<TodayViewProps> = ({
 
         {/* 1. Spotlight Feature Topic Card (Editorial Hero Spotlight) */}
         {focusTopic ? (
-          <div className="today-spotlight-card relative bg-surface rounded-3xl border border-line p-6 sm:p-8 shadow-subtle transition-all">
-            {/* Subtle atmospheric glow */}
-            <div className="absolute -right-12 -top-12 w-48 h-48 bg-accent-soft rounded-full blur-3xl pointer-events-none" />
-
+          <div className="today-spotlight-card relative bg-surface rounded-2xl border border-line p-6 sm:p-8 shadow-subtle transition-all">
             <div className="relative space-y-5 sm:space-y-6">
               {/* Header Badges & Pin */}
               <div className="flex items-center justify-between gap-2 flex-wrap">
                 <div className="flex items-center gap-2 flex-wrap">
-                  <span className="inline-flex items-center gap-1 text-xs font-bold text-white bg-accent px-3 py-1 rounded-full shadow-2xs">
+                  <span className="inline-flex items-center gap-1.5 font-serif text-xs font-bold text-h1-color bg-h1-color/[0.08] border border-h1-color/25 px-2.5 py-0.5 rounded-sm">
                     <Flame className="w-3.5 h-3.5" />
                     <span>主推选题</span>
                   </span>
@@ -198,7 +195,7 @@ export const TodayView: React.FC<TodayViewProps> = ({
                   <PriorityBadge priority={focusTopic.priority} />
                   {focusTopic.is_pinned === 1 && (
                     <span className="inline-flex items-center gap-1 text-xs font-semibold text-warning bg-warning-soft px-2.5 py-0.5 rounded-full">
-                      <Pin className="w-3 h-3 fill-amber-600" />
+                      <Pin className="w-3 h-3 fill-warning" />
                       置顶
                     </span>
                   )}
@@ -219,7 +216,7 @@ export const TodayView: React.FC<TodayViewProps> = ({
                       onClick={() => void onTogglePin(focusTopic.id)}
                       className={`inline-flex min-h-9 items-center gap-1.5 rounded-xl border px-2.5 text-xs font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/30 ${focusTopic.is_pinned === 1 ? 'border-warning-soft bg-warning-soft text-warning hover:bg-warning-soft' : 'border-line bg-surface text-ink-muted hover:border-accent/30 hover:text-accent-dark'}`}
                     >
-                      <Pin className={`h-3.5 w-3.5 ${focusTopic.is_pinned === 1 ? 'fill-amber-500' : ''}`} aria-hidden="true" />
+                      <Pin className={`h-3.5 w-3.5 ${focusTopic.is_pinned === 1 ? 'fill-warning' : ''}`} aria-hidden="true" />
                       <span>{focusTopic.is_pinned === 1 ? '取消主推' : '设为主推'}</span>
                     </button>
                   )}
@@ -230,7 +227,7 @@ export const TodayView: React.FC<TodayViewProps> = ({
               <div>
                 <h2
                   onClick={() => onOpenDetail(focusTopic.id)}
-                  className="text-xl sm:text-2xl lg:text-3xl font-bold text-ink hover:text-accent transition-colors cursor-pointer leading-tight text-pretty"
+                  className="font-serif text-2xl sm:text-[26px] lg:text-3xl font-bold text-ink hover:text-accent transition-colors cursor-pointer leading-tight tracking-[0.01em] text-pretty"
                 >
                   {focusTopic.title}
                 </h2>
@@ -241,14 +238,11 @@ export const TodayView: React.FC<TodayViewProps> = ({
                 )}
               </div>
 
-              {/* Current Action Callout (Editorial Action Hero Tile) */}
-              <div className="bg-accent-soft rounded-2xl p-5 sm:p-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 transition-colors">
+              {/* Current Action Callout (Editorial lead-rule) */}
+              <div className="border-l-2 border-l-accent rounded-r-lg bg-accent-soft p-5 sm:p-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 transition-colors">
                 <div className="space-y-1.5 flex-1 min-w-0">
                   <div className="text-xs font-bold tracking-wide text-accent-dark flex items-center gap-2">
-                    <span className="relative flex h-2 w-2 shrink-0">
-                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-accent opacity-35"></span>
-                      <span className="relative inline-flex rounded-full h-2 w-2 bg-accent"></span>
-                    </span>
+                    <span className="relative inline-flex h-2 w-2 shrink-0 rounded-full bg-accent" aria-hidden="true" />
                     <Zap className="w-3.5 h-3.5 fill-accent/20" />
                     <span>当前核心行动</span>
                   </div>
@@ -260,14 +254,14 @@ export const TodayView: React.FC<TodayViewProps> = ({
                 <div className="flex w-full shrink-0 flex-col gap-2.5 sm:w-auto sm:flex-row">
                   <button
                     onClick={() => setActionTopic(focusTopic)}
-                    className="w-full sm:w-auto shrink-0 flex items-center justify-center gap-2 bg-accent hover:bg-accent-dark text-white px-5 py-2.5 rounded-xl text-sm font-semibold transition-all shadow-2xs hover:shadow-xs active:scale-[0.98] cursor-pointer"
+                    className="w-full sm:w-auto shrink-0 flex items-center justify-center gap-2 bg-accent hover:bg-accent-dark text-white px-5 py-2.5 rounded-xl text-sm font-semibold transition-all shadow-2xs active:scale-[0.98] cursor-pointer"
                   >
                     <CheckCircle2 className="w-4 h-4" />
                     <span>{focusTopic.current_todo ? '推进 / 完成行动' : '设置当前行动'}</span>
                   </button>
                   <button
                     onClick={() => onOpenDetail(focusTopic.id)}
-                    className="w-full sm:w-auto shrink-0 flex items-center justify-center gap-2 bg-surface hover:bg-canvas text-ink border border-line px-4 py-2.5 rounded-xl text-sm font-semibold transition-all shadow-2xs hover:shadow-xs active:scale-[0.98] cursor-pointer"
+                    className="w-full sm:w-auto shrink-0 flex items-center justify-center gap-2 bg-surface hover:bg-canvas text-ink border border-line px-4 py-2.5 rounded-xl text-sm font-semibold transition-all shadow-2xs active:scale-[0.98] cursor-pointer"
                   >
                     <span>进入工作台</span>
                     <ArrowRight className="w-4 h-4" />
@@ -277,7 +271,7 @@ export const TodayView: React.FC<TodayViewProps> = ({
 
               {getCurrentActionWarning(focusTopic) && (
                 <div className="-mt-3 text-xs font-semibold text-warning flex items-center gap-1.5">
-                  <span>⚠</span>
+                  <AlertTriangle className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
                   <span>{getCurrentActionWarning(focusTopic)}</span>
                 </div>
               )}
@@ -344,7 +338,7 @@ export const TodayView: React.FC<TodayViewProps> = ({
           {/* Left: Action Progress */}
           <section aria-labelledby="today-action-progress-heading" data-testid="today-action-progress-column" className="flex h-[22rem] min-h-0 flex-col space-y-3.5">
             <div className="flex items-center justify-between gap-3">
-              <h2 id="today-action-progress-heading" className="flex items-center gap-2 text-base font-bold text-ink">
+              <h2 id="today-action-progress-heading" className="font-serif flex items-center gap-2 text-base font-bold text-ink">
                 <ListChecks className="h-4 w-4 text-accent" />
                 <span>行动推进</span>
                 <span className="rounded-full bg-control px-2 py-0.5 text-xs font-mono font-bold tabular-nums text-ink-muted">{activeTopicTotal}</span>
@@ -409,7 +403,7 @@ export const TodayView: React.FC<TodayViewProps> = ({
           {/* Right: Recent Activity / Worklog */}
           <section aria-labelledby="today-recent-activity-heading" data-testid="today-recent-activity-column" className="flex h-[22rem] min-h-0 flex-col space-y-3.5">
             <div className="flex items-center justify-between">
-              <h2 id="today-recent-activity-heading" className="text-base font-bold text-ink flex items-center gap-2">
+              <h2 id="today-recent-activity-heading" className="font-serif text-base font-bold text-ink flex items-center gap-2">
                 <Clock className="w-4 h-4 text-ink-muted" />
                 <span>近期活跃轨迹</span>
               </h2>

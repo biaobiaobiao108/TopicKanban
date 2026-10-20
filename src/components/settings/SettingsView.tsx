@@ -382,7 +382,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
         <div className="bg-surface rounded-2xl border border-line p-5 sm:p-6 space-y-5 shadow-subtle transition-colors">
           <div className="flex items-center justify-between border-b border-line pb-3">
             <div className="flex items-center gap-2">
-              <span className="p-1.5 rounded-xl bg-accent-soft text-accent">
+              <span className="text-accent">
                 <Palette className="w-5 h-5" />
               </span>
               <div>
@@ -482,7 +482,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
         <div className="bg-surface rounded-2xl border border-line p-5 sm:p-6 space-y-6 shadow-subtle transition-colors">
           <div className="flex items-center justify-between border-b border-line pb-3">
             <div className="flex items-center gap-2">
-              <span className="p-1.5 rounded-xl bg-warning-soft text-warning">
+              <span className="text-warning">
                 <Mic className="w-5 h-5" />
               </span>
               <div>
@@ -793,7 +793,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
         {/* 5. Quick Drop Ingestion Configuration */}
         <div className="bg-surface rounded-2xl border border-line p-5 sm:p-6 space-y-4 shadow-subtle transition-colors">
           <div className="flex items-center gap-2">
-            <span className="p-1.5 rounded-xl bg-accent-soft text-accent">
+            <span className="text-accent">
               <Smartphone className="w-5 h-5" />
             </span>
             <h2 className="text-base font-bold text-ink">手机快捷指令 · 灵感碎片快投配置</h2>
@@ -840,7 +840,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
         {/* 6. Data Backup & Markdown Archive */}
         <div className="bg-surface rounded-2xl border border-line p-5 sm:p-6 space-y-4 shadow-subtle transition-colors">
           <div className="flex items-center gap-2">
-            <span className="p-1.5 rounded-xl bg-success-soft text-success">
+            <span className="text-success">
               <Database className="w-5 h-5" />
             </span>
             <h2 className="text-base font-bold text-ink">数据安全、全量备份与文案归档</h2>

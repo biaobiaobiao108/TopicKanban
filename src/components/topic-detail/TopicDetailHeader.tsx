@@ -75,9 +75,7 @@ export const TopicDetailHeader: React.FC<TopicDetailHeaderProps> = ({
     <div data-testid="topic-detail-header" data-page-header className="col-span-full min-w-0 border-b border-line pb-4 transition-colors">
       <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-x-3 gap-y-3 sm:grid-cols-[minmax(0,1fr)_auto] sm:gap-y-0">
         <div className="col-span-2 flex min-w-0 items-center gap-3 sm:col-span-1">
-          <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-accent-soft text-accent">
-            <FileText className="h-5 w-5" aria-hidden="true" />
-          </span>
+          <FileText className="h-5 w-5 shrink-0 text-accent" aria-hidden="true" />
           <div className="flex min-w-0 max-w-full flex-1 items-center gap-1.5">
             {isEditingTitle ? (
               <div className="flex w-full items-center gap-2">
@@ -98,7 +96,7 @@ export const TopicDetailHeader: React.FC<TopicDetailHeaderProps> = ({
                     }
                   }}
                   data-no-focus-ring="true"
-                  className="w-full border-b border-accent bg-transparent pb-1 font-sans text-xl text-ink outline-none ring-0 shadow-none focus:outline-none focus:ring-0 focus:shadow-none sm:text-2xl"
+                  className="w-full border-b border-accent bg-transparent pb-1 font-serif text-xl text-ink outline-none ring-0 shadow-none focus:outline-none focus:ring-0 focus:shadow-none sm:text-2xl"
                 />
                 <button
                   onClick={handleSaveTitle}
@@ -111,7 +109,7 @@ export const TopicDetailHeader: React.FC<TopicDetailHeaderProps> = ({
               <div className="flex items-center gap-1.5 min-w-0 max-w-full">
                 <h1
                   onClick={() => setIsEditingTitle(true)}
-                  className="min-w-0 truncate font-sans text-xl font-bold leading-tight tracking-tight text-ink transition-colors hover:text-accent sm:text-2xl"
+                  className="min-w-0 truncate font-serif text-xl font-bold leading-tight tracking-[0.01em] text-ink transition-colors hover:text-accent sm:text-2xl"
                 >
                   {topic.title}
                 </h1>
@@ -398,7 +396,7 @@ export const TopicDetailHeader: React.FC<TopicDetailHeaderProps> = ({
                     setIsMoreMenuOpen(false);
                     setIsDeleteDialogOpen(true);
                   }}
-                  className="flex min-h-9 w-full items-center gap-2 rounded-xl px-2.5 py-1.5 text-left text-xs font-medium text-h1-color transition-colors hover:bg-accent-soft cursor-pointer"
+                  className="flex min-h-9 w-full items-center gap-2 rounded-xl px-2.5 py-1.5 text-left text-xs font-medium text-danger transition-colors hover:bg-danger-soft cursor-pointer"
                 >
                   <Trash2 className="h-3.5 w-3.5" aria-hidden="true" />
                   <span>移入回收站</span>

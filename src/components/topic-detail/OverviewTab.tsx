@@ -428,11 +428,11 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({
         <div className="bg-surface rounded-2xl border border-line p-5 space-y-4 shadow-subtle transition-colors">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <div className="p-1.5 rounded-xl bg-accent-soft text-accent">
+              <div className="text-accent">
                 <Target className="w-4 h-4" />
               </div>
               <div>
-                <h2 className="text-sm font-bold text-ink">选题定位</h2>
+                <h2 className="font-serif text-sm font-bold text-ink">选题定位</h2>
                 <p className="mt-0.5 text-[11px] text-ink-muted">
                   先说清内容，再确认看点与时机。
                 </p>
@@ -547,11 +547,11 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({
         <div className="bg-surface rounded-2xl border border-line p-5 space-y-4 shadow-subtle transition-colors">
           <div className="flex items-center justify-between flex-wrap gap-2">
             <div className="flex items-center gap-2">
-              <div className="p-1.5 rounded-xl bg-success-soft text-success">
+              <div className="text-success">
                 <Clapperboard className="w-4 h-4" />
               </div>
               <div>
-                <h3 className="text-sm font-bold text-ink">故事结构</h3>
+                <h3 className="font-serif text-sm font-bold text-ink">故事结构</h3>
                 <p className="mt-0.5 text-[11px] text-ink-muted">
                   按四段梳理从背景到结果，适用于人物、事件、产品、观点和过程类选题。
                 </p>
@@ -593,7 +593,7 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({
               {STORY_STRUCTURE_STEPS.map((step) => {
                 const styles = STORY_STRUCTURE_CARD_STYLES[step.key];
                 return (
-                  <div key={step.key} className="rounded-xl border border-line bg-control p-3.5 space-y-1.5">
+                  <div key={step.key} className="rounded-lg bg-control p-3.5 space-y-1.5">
                     <div className={`flex items-start justify-between gap-2 text-xs font-bold ${styles.header}`}>
                       <div className="flex items-center gap-2 min-w-0">
                         <span className={`w-5 h-5 shrink-0 rounded-md flex items-center justify-center font-mono text-[11px] ${styles.badge}`}>
@@ -678,11 +678,11 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({
         <div className="bg-surface rounded-2xl border border-line p-5 space-y-4 shadow-subtle transition-colors">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <div className="p-1.5 rounded-xl bg-accent-soft text-accent">
+              <div className="text-accent">
                 <Zap className="w-4 h-4 fill-current/20" />
               </div>
               <div>
-                <h4 className="text-sm font-bold text-ink">生产节奏与排期驾驶舱</h4>
+                <h4 className="font-serif text-sm font-bold text-ink">生产节奏与排期驾驶舱</h4>
               </div>
             </div>
             {targetPublishDate && (
@@ -834,8 +834,8 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({
         {/* 2. 关联人物实体 (People Selector) */}
         <div className="bg-surface rounded-2xl border border-line p-5 space-y-4 shadow-subtle transition-colors">
           <div className="flex items-center justify-between">
-            <h4 className="text-sm font-bold text-ink flex items-center gap-2">
-              <span className="p-1.5 rounded-xl bg-control text-ink">
+            <h4 className="font-serif text-sm font-bold text-ink flex items-center gap-2">
+              <span className="text-ink-muted">
                 <User className="w-4 h-4" />
               </span>
               <span>关联人物档案</span>
@@ -949,8 +949,8 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({
         {/* 4. 分类标签 (Tags Selector) */}
         <div className="bg-surface rounded-2xl border border-line p-5 space-y-4 shadow-subtle transition-colors">
           <div className="flex items-center justify-between">
-            <h4 className="text-sm font-bold text-ink flex items-center gap-2">
-              <span className="p-1.5 rounded-xl bg-control text-ink">
+            <h4 className="font-serif text-sm font-bold text-ink flex items-center gap-2">
+              <span className="text-ink-muted">
                 <TagIcon className="w-4 h-4" />
               </span>
               <span>分类标签与赛道</span>
