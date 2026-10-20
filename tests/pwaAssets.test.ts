@@ -39,6 +39,7 @@ describe('PWA static assets', () => {
     expect(staticFiles.has('sw.js')).toBe(true);
     expect(staticFiles.has('icon-192.png')).toBe(true);
     expect(staticFiles.has('icon-512.png')).toBe(true);
+    expect(staticFiles.has('icon-maskable-1024.png')).toBe(true);
   });
 
   it('uses the configured PORT while preserving explicit and default port behavior', () => {
@@ -50,6 +51,7 @@ describe('PWA static assets', () => {
   it('defines an installable standalone manifest and exact-size icons', async () => {
     const indexHtml = await Bun.file('index.html').text();
     expect(indexHtml).toContain('<link rel="manifest" href="./public/manifest.webmanifest" />');
+    expect(indexHtml).toContain('<link rel="apple-touch-icon" sizes="180x180" href="./public/apple-touch-icon.png?v=2" />');
 
     const manifest = JSON.parse(
       await Bun.file('public/manifest.webmanifest').text(),
@@ -68,11 +70,14 @@ describe('PWA static assets', () => {
     expect(manifest.scope).toBe('/');
     expect(manifest.display).toBe('standalone');
     expect(manifest.icons).toEqual([
-      { src: '/icon-192.png', sizes: '192x192', type: 'image/png', purpose: 'any' },
-      { src: '/icon-512.png', sizes: '512x512', type: 'image/png', purpose: 'any' },
+      { src: '/icon-192.png?v=2', sizes: '192x192', type: 'image/png', purpose: 'any' },
+      { src: '/icon-512.png?v=2', sizes: '512x512', type: 'image/png', purpose: 'any' },
+      { src: '/icon-maskable-1024.png', sizes: '1024x1024', type: 'image/png', purpose: 'maskable' },
     ]);
     await expect(readPngDimensions('icon-192.png')).resolves.toEqual({ width: 192, height: 192 });
     await expect(readPngDimensions('icon-512.png')).resolves.toEqual({ width: 512, height: 512 });
+    await expect(readPngDimensions('icon-maskable-1024.png')).resolves.toEqual({ width: 1024, height: 1024 });
+    await expect(readPngDimensions('apple-touch-icon.png')).resolves.toEqual({ width: 180, height: 180 });
   });
 
   it('serves the manifest and service worker with update-safe headers', async () => {
@@ -84,6 +89,16 @@ describe('PWA static assets', () => {
     expect(manifestResponse.status).toBe(200);
     expect(manifestResponse.headers.get('content-type')).toContain('application/manifest+json');
     expect(manifestResponse.headers.get('cache-control')).toContain('no-cache');
+
+    const manifest = await manifestResponse.json() as { icons: Array<{ src: string }> };
+    for (const icon of manifest.icons) {
+      const response = await fetch(new URL(icon.src, baseUrl));
+      expect(response.status).toBe(200);
+      expect(response.headers.get('content-type')).toContain('image/png');
+    }
+    const appleIconResponse = await fetch(`${baseUrl}/apple-touch-icon.png?v=2`);
+    expect(appleIconResponse.status).toBe(200);
+    expect(appleIconResponse.headers.get('content-type')).toContain('image/png');
 
     const serviceWorkerResponse = await fetch(`${baseUrl}/sw.js`);
     expect(serviceWorkerResponse.status).toBe(200);

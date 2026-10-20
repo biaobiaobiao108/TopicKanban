@@ -19,6 +19,7 @@ const DEFAULT_STATIC_FILES = [
   'sw.js',
   'icon-192.png',
   'icon-512.png',
+  'icon-maskable-1024.png',
 ];
 
 const BLOCKED_STATIC_FILE_NAMES = new Set([
