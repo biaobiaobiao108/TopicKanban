@@ -43,7 +43,7 @@ import type {
 import { authenticatedFetch, getAuthToken } from './auth';
 import type { PublishedAnalyticsPayload } from './videoAnalytics';
 import { formatBeijingDateTime } from './actionDate';
-import { loadLocalSettings, saveLocalSettings } from './localSettings';
+import { hasSavedLocalSettings, loadLocalSettings, saveLocalSettings } from './localSettings';
 
 const PENDING_DRAFTS_KEY = 'topic_kanban_pending_drafts_v3';
 const PENDING_DRAFT_MAX_ENTRIES = 8;
@@ -994,6 +994,17 @@ export async function savePublishedVideo(
 export async function deletePublishedVideo(id: string): Promise<void> {
   await apiRequest(`/api/published/${encodeURIComponent(id)}`, { method: 'DELETE' });
   invalidateBootstrap();
+}
+
+/** Import legacy server preferences once, then keep settings browser-local. */
+export async function loadLocalSettingsForSession() {
+  if (hasSavedLocalSettings()) return loadLocalSettings();
+  try {
+    const result = await apiRequest<{ settings?: unknown }>('/api/system/legacy-settings');
+    return saveLocalSettings(result.settings);
+  } catch {
+    return loadLocalSettings();
+  }
 }
 
 export async function fetchStorageStats(): Promise<StorageStats> {

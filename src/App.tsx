@@ -34,7 +34,7 @@ import {
   exportBackupData,
   exportScriptsMarkdown,
 } from './lib/storageApi';
-import { isAuthenticated, logout } from './lib/auth';
+import { isAuthenticated } from './lib/auth';
 import { LoginView } from './components/auth/LoginView';
 import { Sidebar, NavView } from './components/layout/Sidebar';
 import { MobileBottomNav, MobileDrawer } from './components/layout/MobileNav';
@@ -70,6 +70,8 @@ import { invalidateQueryGroups } from './lib/topicQueryCache';
 import { getBeijingDateString } from './lib/actionDate';
 import { useTopicTodoActions } from './hooks/useTopicTodoActions';
 import { TopicMutationTracker } from './lib/topicMutationTracker';
+import { useGlobalShortcuts } from './hooks/useGlobalShortcuts';
+import { useWorkspaceSession } from './hooks/useWorkspaceSession';
 
 const VIEW_PATHS: Record<Exclude<NavView, 'topic-detail'>, string> = {
   today: '/today',
@@ -200,6 +202,7 @@ function WorkspaceApp({ isAuth, setIsAuth }: WorkspaceAppProps) {
     setSettings: setAppSettings,
     refreshTopics,
   } = useWorkspace(isAuth, currentView, activeTopicId);
+  const { logout: handleLogout } = useWorkspaceSession(clearWorkspace, setIsAuth);
 
   // Apply visual theme
   useEffect(() => {
@@ -217,6 +220,14 @@ function WorkspaceApp({ isAuth, setIsAuth }: WorkspaceAppProps) {
   const [quickDropCount, setQuickDropCount] = useState(0);
   const [searchTerm, setSearchTerm] = useState('');
   const [quickActionTopicId, setQuickActionTopicId] = useState<string | null>(null);
+
+  useGlobalShortcuts({
+    isCommandPaletteOpen,
+    isQuickCreateOpen,
+    setIsCommandPaletteOpen,
+    setIsQuickCreateOpen,
+    setQuickCreateStatus,
+  });
 
   useEffect(() => {
     if (!isAuth) {
@@ -259,75 +270,6 @@ function WorkspaceApp({ isAuth, setIsAuth }: WorkspaceAppProps) {
       navigate('/today', { replace: true });
     }
   }, [location.pathname, navigate]);
-
-  useEffect(() => {
-    const handleUnauthorized = () => {
-      window.dispatchEvent(new Event('kanban:logout'));
-      clearWorkspace();
-      setIsAuth(false);
-    };
-    window.addEventListener('kanban:unauthorized', handleUnauthorized);
-    return () => window.removeEventListener('kanban:unauthorized', handleUnauthorized);
-  }, [clearWorkspace]);
-
-  // Global Keyboard Shortcuts: platform-specific command palette chord, /, and N
-  useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      const target = e.target as HTMLElement;
-      const isInput =
-        target.tagName === 'INPUT' ||
-        target.tagName === 'TEXTAREA' ||
-        target.isContentEditable;
-      const isScriptEditor = target.closest('.script-editor-canvas-container [contenteditable="true"]') !== null;
-      const platform = `${navigator.platform} ${navigator.userAgent}`;
-      const isMacOS = /Mac|iPhone|iPad|iPod/i.test(platform);
-      const isWindows = /Win/i.test(platform);
-      const hasCommandPaletteModifier = isMacOS
-        ? e.metaKey && !e.ctrlKey && !e.altKey
-        : isWindows
-          ? e.altKey && !e.metaKey && !e.ctrlKey
-          : (e.ctrlKey || e.metaKey) && !e.altKey;
-
-      // Keep the chord available in the script editor while avoiding regular text inputs.
-      if (hasCommandPaletteModifier && !e.shiftKey && e.key === '/' && (!isInput || isScriptEditor)) {
-        e.preventDefault();
-        e.stopPropagation();
-        setIsCommandPaletteOpen((prev) => !prev);
-        return;
-      }
-
-      if (isInput) return;
-
-      // Prevent triggering global single-key shortcuts if a modal is already open
-      const hasActiveModal =
-        isCommandPaletteOpen ||
-        isQuickCreateOpen ||
-        Boolean(document.querySelector('.shadow-modal, [role="dialog"]'));
-
-      if (e.key === '/' && !e.metaKey && !e.ctrlKey && !hasActiveModal) {
-        e.preventDefault();
-        setIsCommandPaletteOpen(true);
-        return;
-      }
-
-      // 'N' hotkey to quick create topic
-      if ((e.key === 'n' || e.key === 'N') && !e.metaKey && !e.ctrlKey && !hasActiveModal) {
-        e.preventDefault();
-        setQuickCreateStatus('inbox');
-        setIsQuickCreateOpen(true);
-      }
-    };
-
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [isCommandPaletteOpen, isQuickCreateOpen]);
-
-  const handleLogout = () => {
-    window.dispatchEvent(new Event('kanban:logout'));
-    logout();
-    clearWorkspace();
-    setIsAuth(false);
-  };
 
   const safeNavigate = useCallback((to: string, options?: { state?: any; replace?: boolean; viewTransition?: boolean }) => {
     const reducedMotion = typeof window !== 'undefined'

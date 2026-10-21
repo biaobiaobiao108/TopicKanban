@@ -348,6 +348,7 @@ export function updatePublishedCaches(queryClient: QueryClient, video: Published
   queryClient.setQueriesData<PublishedVideo[]>({ queryKey: ['published-for-deal'] }, (current) => current
     ? mapItems(current, video.id, (item) => ({ ...item, ...video })) || []
     : current);
+  syncPublishedVideoReferences(queryClient, video.id, video);
 }
 
 export function removePublishedCaches(queryClient: QueryClient, videoId: string) {
@@ -357,6 +358,56 @@ export function removePublishedCaches(queryClient: QueryClient, videoId: string)
   queryClient.setQueryData<PublishedVideo[]>(['published'], (current) => removeItems(current, videoId) || current);
   removePaginatedItem(queryClient, ['published-page'], videoId);
   queryClient.setQueriesData<PublishedVideo[]>({ queryKey: ['published-for-deal'] }, (current) => current?.filter((item) => item.id !== videoId));
+  syncPublishedVideoReferences(queryClient, videoId, null);
+}
+
+function patchDealForPublishedVideo(
+  deal: CommercialDeal,
+  videoId: string,
+  video: PublishedVideo | null,
+): CommercialDeal {
+  if (deal.published_video_id !== videoId) return deal;
+  return {
+    ...deal,
+    published_video_id: video ? videoId : null,
+    published_video_title: video?.title ?? null,
+  };
+}
+
+/** Keep denormalized published-video references coherent in every cached deal view. */
+function syncPublishedVideoReferences(
+  queryClient: QueryClient,
+  videoId: string,
+  video: PublishedVideo | null,
+) {
+  queryClient.setQueriesData<CommercialDealDetail>({ queryKey: ['commercial-deal'] }, (current) => {
+    if (!current || (current.published_video_id !== videoId && current.published_video?.id !== videoId)) return current;
+    return {
+      ...current,
+      published_video_id: video ? videoId : null,
+      published_video_title: video?.title ?? null,
+      published_video: video ? { ...current.published_video, ...video } : null,
+    };
+  });
+
+  queryClient.setQueriesData<PaginatedCommercialDeals>({ queryKey: ['commercial-deal-page'] }, (current) => current
+    ? { ...current, items: current.items.map((deal) => patchDealForPublishedVideo(deal, videoId, video)) }
+    : current);
+
+  queryClient.setQueriesData<DealFocusData>({ queryKey: ['deal-focus'] }, (current) => current
+    ? {
+      ...current,
+      due_items: current.due_items.map((deal) => patchDealForPublishedVideo(deal, videoId, video)),
+      unpaid_items: current.unpaid_items.map((deal) => patchDealForPublishedVideo(deal, videoId, video)),
+    }
+    : current);
+
+  queryClient.setQueriesData<CommercialDeal[]>({ queryKey: ['commercial-deals-calendar'] }, (current) => current
+    ? current.map((deal) => patchDealForPublishedVideo(deal, videoId, video))
+    : current);
+  queryClient.setQueriesData<CommercialDeal[]>({ queryKey: ['topic-deals'] }, (current) => current
+    ? current.map((deal) => patchDealForPublishedVideo(deal, videoId, video))
+    : current);
 }
 
 function updateDealArray(current: CommercialDeal[] | undefined, deal: CommercialDeal): CommercialDeal[] | undefined {

@@ -191,6 +191,8 @@ export const VERIFICATION_STATUSES = ['confirmed', 'unverified', 'rejected'] as 
 export const DATE_PRECISIONS = ['exact', 'year_month', 'year', 'unknown'] as const;
 export const PLATFORM_TYPES = ['bilibili', 'douyin', 'kuaishou', 'weibo', 'xiaohongshu', 'wechat', 'zhihu', 'youtube', 'news', 'live', 'other'] as const;
 
+export const MAX_BATCH_SIZE = 200;
+
 export { isValidSourceEventDate } from '../lib/dateInput';
 
 export const topicTodoUpdateSchema = z.object({
@@ -299,6 +301,15 @@ export const sourceUpdateSchema = z.object({
     message: 'Invalid source platform',
   }).optional(),
   sort_order: z.number().int('sort_order must be a non-negative integer').min(0, 'sort_order must be a non-negative integer').optional(),
+}).strict();
+
+export const sourceReorderBatchSchema = z.object({
+  sources: z.array(z.object({
+    id: z.string().min(1).max(200),
+    topic_id: z.string().min(1).max(200),
+  }).strict())
+    .min(1, 'sources array is required')
+    .max(MAX_BATCH_SIZE, `At most ${MAX_BATCH_SIZE} sources can be reordered at once`),
 }).strict();
 
 export const publishedVideoCreateSchema = z.object({

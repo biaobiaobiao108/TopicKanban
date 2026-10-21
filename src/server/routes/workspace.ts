@@ -8,6 +8,7 @@ import {
 } from '../apiShared';
 import {
   parseWithZod,
+  sourceReorderBatchSchema,
   sourceCreateSchema,
   sourceUpdateSchema,
 } from '../schemas';
@@ -69,10 +70,9 @@ export function registerWorkspaceRoutes(app: NativeApp): void {
 
   app.patch('/sources/reorder/batch', async (c) => {
     try {
-      const body = await c.req.json<{ sources?: Array<{ id: string; topic_id: string }> }>();
-      const sources = body?.sources;
-      if (!Array.isArray(sources) || sources.length === 0) return c.json({ error: 'sources array is required' }, 400);
-      const updated_at = await reorderSources(requireDb(c), sources);
+      const parsed = parseWithZod(sourceReorderBatchSchema, await c.req.json());
+      if (!parsed.success) return jsonValidationError(c, parsed.error, parsed.issues);
+      const updated_at = await reorderSources(requireDb(c), parsed.data.sources);
       return c.json({ success: true, updated_at });
     } catch (error) {
       if (error instanceof SourceReorderInvalidStateError) return c.json({ error: error.message }, 400);

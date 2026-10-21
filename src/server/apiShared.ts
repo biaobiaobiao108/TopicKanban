@@ -18,7 +18,7 @@ export type ApiBindings = {
 
 const TOKEN_TTL_SECONDS = 60 * 60 * 24 * 7;
 export const MAX_DRAFT_BYTES = 4 * 1024 * 1024;
-export const MAX_BATCH_SIZE = 200;
+export { MAX_BATCH_SIZE } from './schemas';
 export const MAX_REQUEST_BYTES = 10 * 1024 * 1024;
 export const MAX_LOGIN_REQUEST_BYTES = 16 * 1024;
 export const MAX_QUICK_DROP_REQUEST_BYTES = 64 * 1024;

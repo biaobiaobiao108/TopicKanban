@@ -63,8 +63,9 @@
 * 生产镜像必须保持 Dockerfile 未显式设置 `USER` 时的默认 root 用户运行。任何任务不得新增、删除或修改镜像用户，也不得通过 Compose 或 workflow 覆盖容器用户；只有用户明确授权时才可改变此约束。
 
 #### 存储分工原则：
-* **主业务持久库 (`DB` / SQLite)**：负责强关系型业务资产（`topics`, `topic_todos`, `sources`, `timeline_events`, `people`, `person_relationships`, `drafts`, `draft_citations`, `tags`, `topic_tags`, `published_videos`, `commercial_deals`, `commercial_deal_activities`）。
-* **浏览器偏好设置**：语速、主题与编辑器排版保存在当前浏览器 `localStorage`，不经服务端 API 或 SQLite；数据备份由浏览器端将偏好与业务数据一起导出。
+* **主业务持久库 (`DB` / SQLite)**：负责强关系型业务资产（`topics`, `topic_todos`, `sources`（含时间线日期与排序）, `people`, `person_relationships`, `topic_people`, `topic_reports`, `drafts`, `draft_citations`, `tags`, `topic_tags`, `published_videos`, `publish_packages`, `commercial_deals`, `commercial_deal_topics`, `commercial_deal_activities`, `quick_drops`）。
+* **浏览器偏好设置**：语速、主题与编辑器排版保存在当前浏览器 `localStorage`，不经常规服务端 API 或 SQLite；从 v5 升级时仅允许通过 `/api/system/legacy-settings` 一次性读取旧偏好并写入本地，数据备份由浏览器端将偏好与业务数据一起导出。
+* **数据库升级**：`database/schema.sql` 是空库的最新基线；已有数据库必须通过 `src/server/sqlite.ts` 中按版本连续注册、事务执行的迁移升级。新增 schema 版本时必须提供上一版本到目标版本的迁移；迁移失败必须回滚，禁止要求用户重建已有业务数据库。
 * **快投箱**：手机/快捷指令投递数据保存在 SQLite `quick_drops` 表，7 天自动过期且最多保留 100 条。
 * **在线编辑租约**：`src/server/presenceLeases.ts` 使用进程内 Map 维护 30 秒租约，不写入 SQLite。
 * **配置约束**：浏览器显示偏好放在 `localStorage`；服务端业务状态放 SQLite 领域表；不要再引入通用 KV 兼容层。

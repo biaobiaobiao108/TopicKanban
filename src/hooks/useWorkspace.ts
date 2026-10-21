@@ -10,7 +10,7 @@ import type {
   Tag,
   Topic,
 } from '../types';
-import { fetchActiveTopicCount, fetchBootstrap, fetchCommercialDealFocus, fetchPeople, fetchRelationships, fetchTags, fetchTagsPage, fetchPublishedVideos, fetchTopic, fetchTodayFocus, invalidateBootstrap, clearStorageMemoryCaches } from '../lib/storageApi';
+import { fetchActiveTopicCount, fetchBootstrap, fetchCommercialDealFocus, fetchPeople, fetchRelationships, fetchTags, fetchTagsPage, fetchPublishedVideos, fetchTopic, fetchTodayFocus, invalidateBootstrap, clearStorageMemoryCaches, loadLocalSettingsForSession } from '../lib/storageApi';
 import { loadLocalSettings, saveLocalSettings } from '../lib/localSettings';
 import { refreshTopicData, type RefreshTopicDataOptions } from '../lib/topicQueryCache';
 
@@ -37,7 +37,7 @@ export function useWorkspace(enabled: boolean, view: string = 'today', topicId?:
     enabled: topicDetailEnabled,
     subscribed: topicDetailEnabled,
   });
-  const settingsQuery = useQuery({ queryKey: ['settings'], queryFn: loadLocalSettings, enabled, subscribed: enabled });
+  const settingsQuery = useQuery({ queryKey: ['settings'], queryFn: loadLocalSettingsForSession, enabled, subscribed: enabled });
   const todayQuery = useQuery({
     queryKey: ['today-focus'],
     queryFn: fetchTodayFocus,
