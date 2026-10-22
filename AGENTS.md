@@ -15,7 +15,7 @@
 
 - 本项目是视频创作者选题看板。领域状态、字段和 API 契约以 `src/types/`、`src/server/schemas.ts` 与数据库结构为准。
 - 运行环境为 Bun + SQLite。浏览器偏好存 `localStorage`；快投箱存 SQLite，按现有保留期限和容量清理；在线编辑租约只在进程内存中维护。
-- `database/schema.sql` 是新数据库基线；已有数据库通过 `src/server/sqlite.ts` 中连续、事务化的迁移升级。每次增加 schema 版本都提供迁移；失败须回滚，不要求用户重建业务数据库。保留 v5 升级所需的一次性旧偏好导入。
+- `database/schema.sql` 是当前 v1 数据库基线；首次部署前本地数据库可丢弃。首次部署后每次增加 schema 版本都提供连续、事务化的迁移；失败须回滚，不要求用户重建业务数据库。
 - 后端分层：`app.ts` 负责组装、中间件和路由注册；`routes/` 负责解析、校验与 HTTP 响应，不写 SQL；`schemas.ts` 集中请求校验；`repositories/` 负责 SQL、事务及关联数据。业务变更按边界同步更新相关路由、repository 和测试；基础设施不反向依赖业务层。
 - 删除选题、清空回收站或超期清理使用 SQL `DELETE`，日常删除不得自动 `VACUUM`；仅用户主动整理时执行 `VACUUM`。GET 保持只读，过期恢复失败不得顺带物理删除。
 - 国内视频与社交平台链接解析只在客户端通过 `src/lib/clientUrlParser.ts` 执行，禁止服务端代理抓取。

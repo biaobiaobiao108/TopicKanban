@@ -320,4 +320,4 @@ CREATE INDEX idx_quick_drops_expiry_order
 INSERT INTO topic_search(topic_id, title, summary, hook, storyline, why_now)
 SELECT id, title, summary, hook, storyline, why_now FROM topics;
 
-PRAGMA user_version = 6;
+PRAGMA user_version = 1;

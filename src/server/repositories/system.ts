@@ -3,23 +3,6 @@ import type { Database } from 'bun:sqlite';
 import type { StorageStats, StorageOptimizeResult } from '../../types';
 import { readAll, readOne } from './shared';
 
-/** One-time browser handoff for preferences stored before v6 moved them local. */
-export function loadLegacyAppSettings(db: Database): unknown | null {
-  const kvStore = readOne<{ name: string }>(
-    db,
-    "SELECT name FROM sqlite_master WHERE type = 'table' AND name = '_kv_store' LIMIT 1",
-  );
-  if (!kvStore) return null;
-
-  const row = readOne<{ value: string }>(db, 'SELECT value FROM _kv_store WHERE key = ?', ['app_settings']);
-  if (!row) return null;
-  try {
-    return JSON.parse(row.value) as unknown;
-  } catch {
-    return null;
-  }
-}
-
 function formatBytes(bytes: number): string {
   if (bytes < 1024) return `${bytes} B`;
   if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;

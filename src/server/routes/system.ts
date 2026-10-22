@@ -9,7 +9,6 @@ import {
   replaceAllData,
   vacuumDatabase,
   invalidatePublishedAnalyticsCache,
-  loadLegacyAppSettings,
 } from '../repositories';
 import { validateBackupData } from '../../lib/backupValidation';
 import type { ApiBindings } from '../apiShared';
@@ -131,14 +130,6 @@ export function registerSystemRoutes(app: NativeApp): void {
             : undefined,
         ),
       );
-    } catch (error) {
-      return jsonError(c, error);
-    }
-  });
-
-  app.get('/system/legacy-settings', c => {
-    try {
-      return c.json({ settings: loadLegacyAppSettings(requireDb(c)) });
     } catch (error) {
       return jsonError(c, error);
     }

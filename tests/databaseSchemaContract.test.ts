@@ -190,7 +190,7 @@ describe('Database schema contract', () => {
       expect(
         sqlite.query("SELECT name FROM sqlite_master WHERE type = 'table' AND name = '_schema_migrations'").get(),
       ).toBeNull();
-      expect(sqlite.query('PRAGMA user_version').get()).toEqual({ user_version: 6 });
+      expect(sqlite.query('PRAGMA user_version').get()).toEqual({ user_version: 1 });
       sqlite
         .query(
           "INSERT INTO commercial_deals (id, title, created_at, updated_at) VALUES ('valid', '有效商单', '2026-08-27', '2026-08-27')",
@@ -212,7 +212,7 @@ describe('Database schema contract', () => {
   it('rejects a current-version database missing domain tables without patching it', async () => {
     const dbPath = temporaryDatabasePath('kanban-incomplete-schema');
     const incomplete = new Database(dbPath);
-    incomplete.exec('CREATE TABLE topics (id TEXT PRIMARY KEY); PRAGMA user_version = 6;');
+    incomplete.exec('CREATE TABLE topics (id TEXT PRIMARY KEY); PRAGMA user_version = 1;');
     incomplete.close();
 
     try {
@@ -292,13 +292,13 @@ describe('Database schema contract', () => {
         created_at TEXT NOT NULL,
         updated_at TEXT NOT NULL
       );
-      PRAGMA user_version = 1;
+      PRAGMA user_version = 0;
     `);
     outdated.close();
 
     try {
       await expect(initializeSqliteDatabase(dbPath, schemaPath)).rejects.toThrow(
-        'SQLite schema version mismatch: expected baseline v6',
+        'SQLite schema version mismatch: expected baseline v1, found v0',
       );
       const unchanged = new Database(dbPath);
       try {

@@ -93,7 +93,7 @@
 * **协同编辑锁内存化隔离**：文案在线编辑的 30 秒感知租约锁（`lock:*`）由内存 LeaseMap 高效维护，彻底消灭高频心跳写库产生的页碎片与 WAL 日志膨胀。
 
 ### 14. 🧱 单一数据库基线 (Single Schema Baseline)
-* 当前没有生产数据，因此数据库不保留历史迁移链；`database/schema.sql` 是唯一真实 schema，内部通过 `PRAGMA user_version = 6` 标识当前基线。
+* 当前没有生产数据，因此数据库不保留历史迁移链；`database/schema.sql` 是唯一真实 schema，内部通过 `PRAGMA user_version = 1` 标识当前基线。
 * Bun 服务通过 `bun:sqlite` 原生 `Database` 与 `Statement` 读写 SQLite。启动时只初始化空数据库并校验现有数据库，不会自动 ALTER、补表或猜测旧字段含义；发现版本不匹配或缺少领域表时明确报错。
 * JSON 备份继续使用 `5.0` 数据格式版本，不包含旧时间线表或旧主题映射；数据库 schema、备份 schema 和前端类型共用当前领域模型。
 

@@ -23,7 +23,6 @@ import {
   fetchTodayFocus,
   invalidateBootstrap,
   clearStorageMemoryCaches,
-  loadLocalSettingsForSession,
 } from '../lib/storageApi';
 import { loadLocalSettings, saveLocalSettings } from '../lib/localSettings';
 import { refreshTopicData, type RefreshTopicDataOptions } from '../lib/topicQueryCache';
@@ -55,7 +54,7 @@ export function useWorkspace(enabled: boolean, view: string = 'today', topicId?:
   });
   const settingsQuery = useQuery({
     queryKey: ['settings'],
-    queryFn: loadLocalSettingsForSession,
+    queryFn: loadLocalSettings,
     enabled,
     subscribed: enabled,
   });

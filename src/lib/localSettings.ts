@@ -32,14 +32,6 @@ export function loadLocalSettings(): AppSettings {
   }
 }
 
-export function hasSavedLocalSettings(): boolean {
-  try {
-    return localStorage.getItem(STORAGE_KEY) !== null;
-  } catch {
-    return false;
-  }
-}
-
 export function saveLocalSettings(value: unknown): AppSettings {
   const settings = sanitizeAppSettings(value);
   localStorage.setItem(STORAGE_KEY, JSON.stringify(settings));
