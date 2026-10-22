@@ -206,6 +206,10 @@ export const TopicTableView: React.FC<TopicTableViewProps> = ({
       sort: sortCol, direction: sortDir,
     }),
   });
+  useEffect(() => {
+    const totalPages = Math.max(1, pageQuery.data?.total_pages || 1);
+    if (page > totalPages) setPage(totalPages);
+  }, [page, pageQuery.data?.total_pages]);
 
   // Opening the trash view is the agreed moment to drop entries past the
   // 30-day retention window. It is an explicit POST so that a replayed or

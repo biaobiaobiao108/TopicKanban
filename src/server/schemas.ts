@@ -266,7 +266,7 @@ export const sourceCreateSchema = z.object({
     message: 'Invalid verification status',
   }).optional(),
   notes: textField('notes', 20000).optional(),
-  event_date: z.union([z.string(), z.null()]).optional().transform((val) => val === '' ? null : val).refine((val) => val === undefined || val === null || isValidSourceEventDate(val), {
+  event_date: z.union([z.string(), z.null()]).optional().transform((val) => val === undefined ? undefined : val === null || val === '' ? '' : val).refine((val) => val === undefined || isValidSourceEventDate(val), {
     message: 'event_date must be a valid YYYY, YYYY-MM, or YYYY-MM-DD date',
   }),
   date_precision: z.enum(DATE_PRECISIONS, {
@@ -291,7 +291,7 @@ export const sourceUpdateSchema = z.object({
     message: 'Invalid verification status',
   }).optional(),
   notes: textField('notes', 20000).optional(),
-  event_date: z.union([z.string(), z.null()]).optional().transform((val) => val === '' ? null : val).refine((val) => val === undefined || val === null || isValidSourceEventDate(val), {
+  event_date: z.union([z.string(), z.null()]).optional().transform((val) => val === undefined ? undefined : val === null || val === '' ? '' : val).refine((val) => val === undefined || isValidSourceEventDate(val), {
     message: 'event_date must be a valid YYYY, YYYY-MM, or YYYY-MM-DD date',
   }),
   date_precision: z.enum(DATE_PRECISIONS, {

@@ -29,7 +29,6 @@ export class QuickDropRepository {
 
   list(): QuickDropItem[] {
     const now = Date.now();
-    this.pruneExpired(now);
     const rows = readAll<QuickDropItem & { url: string | null }>(this.db, `SELECT id, content, url, source, created_at FROM quick_drops
       WHERE expires_at > ? ORDER BY created_at DESC, id DESC LIMIT ?`, [now, QUICK_DROP_MAX_ITEMS]);
     return rows.map(({ url, ...item }) => ({ ...item, ...(url ? { url } : {}) }));
@@ -37,7 +36,6 @@ export class QuickDropRepository {
 
   count(): number {
     const now = Date.now();
-    this.pruneExpired(now);
     const row = readOne<{ count: number }>(this.db, 'SELECT COUNT(*) AS count FROM quick_drops WHERE expires_at > ?', [now]);
     return Number(row?.count || 0);
   }

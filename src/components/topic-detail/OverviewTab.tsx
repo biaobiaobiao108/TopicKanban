@@ -228,7 +228,8 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({
     }
     if (statusTimerRef.current) clearTimeout(statusTimerRef.current);
     setSaveStatus('saving');
-    debounceTimerRef.current = setTimeout(async () => {
+    const timer = setTimeout(async () => {
+      if (debounceTimerRef.current === timer) debounceTimerRef.current = null;
       try {
         await onUpdateTopic(updates);
         setSaveStatus('saved');
@@ -237,6 +238,7 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({
         setSaveStatus('error');
       }
     }, 800);
+    debounceTimerRef.current = timer;
   };
 
   // Handle act change in 4-act mode
@@ -268,6 +270,7 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({
   // Immediate save on blur or shortcut
   const handleImmediateSave = async () => {
     if (debounceTimerRef.current) clearTimeout(debounceTimerRef.current);
+    debounceTimerRef.current = null;
     if (statusTimerRef.current) clearTimeout(statusTimerRef.current);
     setSaveStatus('saving');
     try {

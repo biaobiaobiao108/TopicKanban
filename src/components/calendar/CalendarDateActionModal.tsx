@@ -6,6 +6,7 @@ import { Calendar, Plus, Check, Trash2, Clock, Sparkles } from 'lucide-react';
 import { StatusBadge, PriorityBadge } from '../ui/Badge';
 import { getActionDateDisplay, useBeijingToday } from '../../lib/actionDate';
 import { FloatingScrollbar } from '../ui/FloatingScrollbar';
+import { useToast } from '../ui/Toast';
 
 interface CalendarDateActionModalProps {
   isOpen: boolean;
@@ -36,6 +37,7 @@ export const CalendarDateActionModal: React.FC<CalendarDateActionModalProps> = (
   onUpdateTopic,
   onCreateTopic,
 }) => {
+  const { showToast } = useToast();
   const today = useBeijingToday();
   const [tab, setTab] = useState<'schedule_existing' | 'create_new'>(
     activeTopic ? 'schedule_existing' : (unscheduledTopics.length > 0 ? 'schedule_existing' : 'create_new')
@@ -64,7 +66,10 @@ export const CalendarDateActionModal: React.FC<CalendarDateActionModalProps> = (
       });
       onClose();
     } catch (err) {
-      console.error(err);
+      showToast({
+        message: err instanceof Error && err.message.trim() ? `排期保存失败：${err.message}` : '排期保存失败，请检查网络后重试',
+        tone: 'error',
+      });
     } finally {
       setIsSubmitting(false);
     }
@@ -85,7 +90,10 @@ export const CalendarDateActionModal: React.FC<CalendarDateActionModalProps> = (
       });
       onClose();
     } catch (err) {
-      console.error(err);
+      showToast({
+        message: err instanceof Error && err.message.trim() ? `创建选题失败：${err.message}` : '创建选题失败，请检查网络后重试',
+        tone: 'error',
+      });
     } finally {
       setIsSubmitting(false);
     }
@@ -100,7 +108,10 @@ export const CalendarDateActionModal: React.FC<CalendarDateActionModalProps> = (
       });
       onClose();
     } catch (err) {
-      console.error(err);
+      showToast({
+        message: err instanceof Error && err.message.trim() ? `清除排期失败：${err.message}` : '清除排期失败，请检查网络后重试',
+        tone: 'error',
+      });
     } finally {
       setIsSubmitting(false);
     }

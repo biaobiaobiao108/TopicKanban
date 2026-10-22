@@ -15,8 +15,8 @@ const optionalDateOnly = z.string().nullable().optional()
   .transform((value) => value === '' ? null : value)
   .refine((value) => value === undefined || value === null || isValidIsoDate(value), '日期必须是有效的 YYYY-MM-DD');
 const optionalSourceEventDate = z.string().max(50).nullable().optional()
-  .transform((value) => value === '' ? null : value)
-  .refine((value) => value === undefined || value === null || isValidSourceEventDate(value), '事件日期必须是有效的 YYYY、YYYY-MM 或 YYYY-MM-DD');
+  .transform((value) => value === undefined ? undefined : value === null || value === '' ? '' : value)
+  .refine((value) => value === undefined || isValidSourceEventDate(value), '事件日期必须是有效的 YYYY、YYYY-MM 或 YYYY-MM-DD');
 const verificationStatus = z.enum(['confirmed', 'unverified', 'rejected']);
 const themeSchema = z.enum(APP_THEMES);
 
@@ -355,8 +355,14 @@ const backupSchema = z.object({
       addIssue(['todos'], `进行中首项必须是当前行动：${topicId}`);
     }
   });
+  const publishedTopicIds = new Set<string>();
   data.published.forEach((item, index) => {
-    if (item.topic_id) requireTopic(item.topic_id, ['published', index, 'topic_id']);
+    if (!item.topic_id) return;
+    requireTopic(item.topic_id, ['published', index, 'topic_id']);
+    if (publishedTopicIds.has(item.topic_id)) {
+      addIssue(['published', index, 'topic_id'], `一个选题只能关联一个已发布视频：${item.topic_id}`);
+    }
+    publishedTopicIds.add(item.topic_id);
   });
   const dealIds = new Set((data.commercial_deals || []).map((item) => item.id));
   const publishedIds = new Set(data.published.map((item) => item.id));

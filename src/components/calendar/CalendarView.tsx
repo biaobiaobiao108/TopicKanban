@@ -39,6 +39,7 @@ import { CalendarAgendaView } from './CalendarAgendaView';
 import { UnscheduledTopicPool } from './UnscheduledTopicPool';
 import { CalendarDateActionModal } from './CalendarDateActionModal';
 import { StatusBadge, PriorityBadge } from '../ui/Badge';
+import { useToast } from '../ui/Toast';
 import { createBeijingCalendarDate, useBeijingToday } from '../../lib/actionDate';
 import { FloatingMenu } from '../ui/FloatingMenu';
 
@@ -94,6 +95,7 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
   onUpdateTopic,
   onCreateTopic,
 }) => {
+  const { showToast } = useToast();
   const [searchParams, setSearchParams] = useSearchParams();
   const [currentDate, setCurrentDate] = useState<Date>(() => parseCalendarDate(searchParams.get('date')) || createBeijingCalendarDate());
   const [viewMode, setViewMode] = useState<CalendarViewMode>(() => parseCalendarView(searchParams.get('view')));
@@ -236,7 +238,16 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
 
     if (topic && targetDate && /^\d{4}-\d{2}-\d{2}$/.test(targetDate)) {
       if (topic.target_publish_date !== targetDate) {
-        await onUpdateTopic(topic.id, { target_publish_date: targetDate });
+        try {
+          await onUpdateTopic(topic.id, { target_publish_date: targetDate });
+        } catch (error) {
+          showToast({
+            message: error instanceof Error && error.message.trim()
+              ? `排期保存失败：${error.message}`
+              : '排期保存失败，请检查网络后重试',
+            tone: 'error',
+          });
+        }
       }
     }
   };

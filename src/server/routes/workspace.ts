@@ -55,7 +55,7 @@ export function registerWorkspaceRoutes(app: NativeApp): void {
         published_at: parsed.data.published_at || '',
         verification_status: parsed.data.verification_status || 'unverified',
         notes: parsed.data.notes || '',
-        event_date: parsed.data.event_date ?? null,
+        event_date: parsed.data.event_date ?? '',
         date_precision: parsed.data.date_precision || 'exact',
         sort_order: typeof parsed.data.sort_order === 'number' ? parsed.data.sort_order : 0,
         created_at: parsed.data.created_at || now,

@@ -192,6 +192,7 @@ export async function startServer(options: ServerOptions = {}) {
 
   const server = Bun.serve({
     development: isDevelopment ? { hmr: true } : false,
+    ...(isDevelopment ? { hostname: '127.0.0.1' } : {}),
     routes: {
       ...apiApp.toBunRoutes(withSecurityHeaders),
       ...frontendRoutes,

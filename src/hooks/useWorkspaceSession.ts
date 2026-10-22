@@ -1,5 +1,5 @@
 import { useCallback, useEffect, type Dispatch, type SetStateAction } from 'react';
-import { logout as clearAuthToken } from '../lib/auth';
+import { AUTH_STORAGE_KEY, logout as clearAuthToken } from '../lib/auth';
 
 type SetAuthenticated = Dispatch<SetStateAction<boolean>>;
 
@@ -14,8 +14,18 @@ export function useWorkspaceSession(
       clearWorkspace();
       setIsAuthenticated(false);
     };
+    const handleCrossTabLogout = (event: StorageEvent) => {
+      if (event.key !== AUTH_STORAGE_KEY || event.newValue !== null) return;
+      window.dispatchEvent(new Event('kanban:logout'));
+      clearWorkspace();
+      setIsAuthenticated(false);
+    };
     window.addEventListener('kanban:unauthorized', handleUnauthorized);
-    return () => window.removeEventListener('kanban:unauthorized', handleUnauthorized);
+    window.addEventListener('storage', handleCrossTabLogout);
+    return () => {
+      window.removeEventListener('kanban:unauthorized', handleUnauthorized);
+      window.removeEventListener('storage', handleCrossTabLogout);
+    };
   }, [clearWorkspace, setIsAuthenticated]);
 
   const logout = useCallback(() => {

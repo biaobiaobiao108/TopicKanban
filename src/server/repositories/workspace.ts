@@ -56,7 +56,7 @@ export function sourceStatement(db: Database, source: Source) {
   ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`, [
     source.id, source.topic_id, source.title, source.content || '', source.url || '', source.platform || 'bilibili',
     source.author || '', source.published_at || '', source.verification_status || 'unverified', source.notes || '',
-    source.event_date ?? null, source.date_precision || 'exact', source.sort_order || 0,
+    source.event_date ?? '', source.date_precision || 'exact', source.sort_order || 0,
     source.created_at, source.updated_at,
   ]);
 }
@@ -71,7 +71,7 @@ export async function updateSource(db: Database, id: string, body: Record<string
     .filter((field) => Object.prototype.hasOwnProperty.call(body, field));
   if (fields.length > 0) {
     execute(db, `UPDATE sources SET ${fields.map((field) => `${field} = ?`).join(', ')}, updated_at = ? WHERE id = ?`,
-      [...fields.map((field) => body[field]), new Date().toISOString(), id]);
+      [...fields.map((field) => field === 'event_date' ? body[field] ?? '' : body[field]), new Date().toISOString(), id]);
   }
   return readOne<Source>(db, 'SELECT * FROM sources WHERE id = ?', [id]);
 }
