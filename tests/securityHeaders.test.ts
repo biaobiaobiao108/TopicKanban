@@ -16,7 +16,7 @@ describe('Production security headers', () => {
 
     expect(indexHtml).not.toContain('lxgw-wenkai');
     expect(editorStyles).not.toContain('LXGW WenKai');
-    expect(editorStyles).toContain('font-family: system-ui');
+    expect(editorStyles).toMatch(/font-family:\s*system-ui/);
     for (const source of [serverSource, pagesHeaders]) {
       expect(source).toContain('style-src');
       expect(source).toContain('font-src');
