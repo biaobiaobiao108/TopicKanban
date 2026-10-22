@@ -1,10 +1,7 @@
 import React, { useState } from 'react';
 import { Download, MoreVertical, Plus, Share, Smartphone, X } from 'lucide-react';
 import { usePwaInstall } from '../../hooks/usePwaInstall';
-import {
-  dismissPwaInstallBanner,
-  isPwaInstallBannerDismissed,
-} from '../../lib/pwa';
+import { dismissPwaInstallBanner, isPwaInstallBannerDismissed } from '../../lib/pwa';
 import { Modal } from './Modal';
 import { useToast } from './Toast';
 
@@ -18,23 +15,46 @@ interface InstallHelpModalProps {
 }
 
 const InstallHelpModal: React.FC<InstallHelpModalProps> = ({ mode, isOpen, onClose }) => (
-  <Modal isOpen={isOpen} onClose={onClose} title={mode === 'macos_safari' ? '添加到程序坞' : '安装到设备'} maxWidth="sm">
+  <Modal
+    isOpen={isOpen}
+    onClose={onClose}
+    title={mode === 'macos_safari' ? '添加到程序坞' : '安装到设备'}
+    maxWidth="sm"
+  >
     <div className="space-y-4 text-sm leading-6 text-ink">
       {mode === 'ios' ? (
         <>
           <p>当前浏览器没有自动安装按钮，请按下面步骤将工作台添加到主屏幕：</p>
           <ol className="space-y-3">
             <li className="flex items-start gap-3">
-              <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-accent-soft text-accent-dark"><Share className="h-4 w-4" /></span>
-              <span><strong className="text-ink">打开分享菜单</strong><br />点击浏览器底部或顶部的分享按钮。</span>
+              <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-accent-soft text-accent-dark">
+                <Share className="h-4 w-4" />
+              </span>
+              <span>
+                <strong className="text-ink">打开分享菜单</strong>
+                <br />
+                点击浏览器底部或顶部的分享按钮。
+              </span>
             </li>
             <li className="flex items-start gap-3">
-              <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-accent-soft text-accent-dark"><Plus className="h-4 w-4" /></span>
-              <span><strong className="text-ink">添加到主屏幕</strong><br />在分享菜单中选择“添加到主屏幕”。</span>
+              <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-accent-soft text-accent-dark">
+                <Plus className="h-4 w-4" />
+              </span>
+              <span>
+                <strong className="text-ink">添加到主屏幕</strong>
+                <br />
+                在分享菜单中选择“添加到主屏幕”。
+              </span>
             </li>
             <li className="flex items-start gap-3">
-              <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-accent-soft text-accent-dark"><Smartphone className="h-4 w-4" /></span>
-              <span><strong className="text-ink">确认添加</strong><br />从主屏幕图标打开后，会以独立 App 窗口运行。</span>
+              <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-accent-soft text-accent-dark">
+                <Smartphone className="h-4 w-4" />
+              </span>
+              <span>
+                <strong className="text-ink">确认添加</strong>
+                <br />
+                从主屏幕图标打开后，会以独立 App 窗口运行。
+              </span>
             </li>
           </ol>
         </>
@@ -43,12 +63,23 @@ const InstallHelpModal: React.FC<InstallHelpModalProps> = ({ mode, isOpen, onClo
           <p>Safari 可以把工作台添加为独立网页应用：</p>
           <ol className="space-y-3">
             <li className="flex items-start gap-3">
-              <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-accent-soft text-accent-dark"><Plus className="h-4 w-4" /></span>
-              <span><strong className="text-ink">打开添加菜单</strong><br />在 Safari 菜单栏选择“文件”→“添加到程序坞”，或从工具栏分享菜单选择“添加到程序坞”。</span>
+              <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-accent-soft text-accent-dark">
+                <Plus className="h-4 w-4" />
+              </span>
+              <span>
+                <strong className="text-ink">打开添加菜单</strong>
+                <br />在 Safari 菜单栏选择“文件”→“添加到程序坞”，或从工具栏分享菜单选择“添加到程序坞”。
+              </span>
             </li>
             <li className="flex items-start gap-3">
-              <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-accent-soft text-accent-dark"><Smartphone className="h-4 w-4" /></span>
-              <span><strong className="text-ink">确认添加</strong><br />之后可从程序坞或 Spotlight 独立打开工作台。</span>
+              <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-accent-soft text-accent-dark">
+                <Smartphone className="h-4 w-4" />
+              </span>
+              <span>
+                <strong className="text-ink">确认添加</strong>
+                <br />
+                之后可从程序坞或 Spotlight 独立打开工作台。
+              </span>
             </li>
           </ol>
         </>
@@ -57,7 +88,9 @@ const InstallHelpModal: React.FC<InstallHelpModalProps> = ({ mode, isOpen, onClo
           <p>请打开浏览器菜单，选择“安装应用”“添加到主屏幕”或同类选项。</p>
           <div className="flex items-start gap-3 rounded-xl border border-line bg-canvas px-3 py-3">
             <MoreVertical className="mt-0.5 h-5 w-5 shrink-0 text-accent" />
-            <span>如果看不到安装选项，请确认当前地址使用 HTTPS，并优先使用最新版 Chrome、Edge 或 Samsung Internet。</span>
+            <span>
+              如果看不到安装选项，请确认当前地址使用 HTTPS，并优先使用最新版 Chrome、Edge 或 Samsung Internet。
+            </span>
           </div>
         </>
       )}
@@ -92,16 +125,11 @@ export const PwaInstallButton: React.FC<PwaInstallButtonProps> = ({ variant = 'i
     }
   };
 
-  const label = isIOS
-    ? '添加到主屏幕'
-    : isMacSafari
-      ? '添加到程序坞'
-      : canPrompt
-        ? '安装到设备'
-        : '查看安装说明';
-  const buttonClass = variant === 'menu'
-    ? 'flex min-h-11 w-full items-center gap-2 rounded-xl border border-line bg-canvas px-3 py-2 text-xs font-semibold text-ink transition-colors hover:bg-control'
-    : 'inline-flex min-h-11 items-center gap-2 rounded-xl bg-accent px-4 py-2 text-xs font-bold text-white shadow-2xs transition-all hover:bg-accent-dark active:scale-[0.98]';
+  const label = isIOS ? '添加到主屏幕' : isMacSafari ? '添加到程序坞' : canPrompt ? '安装到设备' : '查看安装说明';
+  const buttonClass =
+    variant === 'menu'
+      ? 'flex min-h-11 w-full items-center gap-2 rounded-xl border border-line bg-canvas px-3 py-2 text-xs font-semibold text-ink transition-colors hover:bg-control'
+      : 'inline-flex min-h-11 items-center gap-2 rounded-xl bg-accent px-4 py-2 text-xs font-bold text-white shadow-2xs transition-all hover:bg-accent-dark active:scale-[0.98]';
 
   return (
     <>
@@ -115,11 +143,7 @@ export const PwaInstallButton: React.FC<PwaInstallButtonProps> = ({ variant = 'i
       {!isSupported && (
         <p className="mt-2 text-2xs text-ink-muted">当前浏览器不提供 PWA 安装能力，建议使用 Safari 或最新版 Chrome。</p>
       )}
-      <InstallHelpModal
-        mode={helpMode || 'manual'}
-        isOpen={helpMode !== null}
-        onClose={() => setHelpMode(null)}
-      />
+      <InstallHelpModal mode={helpMode || 'manual'} isOpen={helpMode !== null} onClose={() => setHelpMode(null)} />
     </>
   );
 };
@@ -131,7 +155,9 @@ export const PwaInstallCard: React.FC = () => {
     <section className="rounded-2xl border border-line bg-surface p-5 shadow-subtle transition-colors sm:p-6">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex items-start gap-3">
-          <span className="rounded-xl bg-accent-soft p-1.5 text-accent"><Smartphone className="h-5 w-5" /></span>
+          <span className="rounded-xl bg-accent-soft p-1.5 text-accent">
+            <Smartphone className="h-5 w-5" />
+          </span>
           <div>
             <h2 className="text-base font-bold text-ink">安装到设备</h2>
             <p className="mt-1 text-xs leading-5 text-ink-muted">
@@ -167,14 +193,18 @@ export const PwaInstallPromptBanner: React.FC = () => {
   };
 
   return (
-    <div className={`pwa-install-banner ${isClosing ? 'pwa-install-banner-closing' : ''} border-b border-line bg-accent-soft px-4 py-2.5 sm:px-6`}>
+    <div
+      className={`pwa-install-banner ${isClosing ? 'pwa-install-banner-closing' : ''} border-b border-line bg-accent-soft px-4 py-2.5 sm:px-6`}
+    >
       <div className="mx-auto flex max-w-7xl items-center gap-3 text-xs text-ink">
         <Smartphone className="h-4 w-4 shrink-0 text-accent" aria-hidden="true" />
-        <p className="min-w-0 flex-1">{isIOS
-          ? '把喵爪看板添加到主屏幕，随时像 App 一样打开。'
-          : isMacSafari
-            ? '将喵爪看板添加到程序坞，在独立窗口中使用。'
-            : '把喵爪看板安装到设备，获得独立 App 窗口。'}</p>
+        <p className="min-w-0 flex-1">
+          {isIOS
+            ? '把喵爪看板添加到主屏幕，随时像 App 一样打开。'
+            : isMacSafari
+              ? '将喵爪看板添加到程序坞，在独立窗口中使用。'
+              : '把喵爪看板安装到设备，获得独立 App 窗口。'}
+        </p>
         <PwaInstallButton />
         <button
           type="button"

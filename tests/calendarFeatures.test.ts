@@ -13,12 +13,9 @@ import { Topic, CommercialDeal, PublishedVideo } from '../src/types';
 
 describe('Calendar utilities and event extraction', () => {
   it('clamps month navigation to the last valid day of the destination month', () => {
-    expect(shiftCalendarMonth(new Date('2026-01-31T12:00:00.000Z'), 1).toISOString())
-      .toBe('2026-02-28T12:00:00.000Z');
-    expect(shiftCalendarMonth(new Date('2026-03-31T12:00:00.000Z'), -1).toISOString())
-      .toBe('2026-02-28T12:00:00.000Z');
-    expect(shiftCalendarMonth(new Date('2026-04-30T12:00:00.000Z'), 1).toISOString())
-      .toBe('2026-05-30T12:00:00.000Z');
+    expect(shiftCalendarMonth(new Date('2026-01-31T12:00:00.000Z'), 1).toISOString()).toBe('2026-02-28T12:00:00.000Z');
+    expect(shiftCalendarMonth(new Date('2026-03-31T12:00:00.000Z'), -1).toISOString()).toBe('2026-02-28T12:00:00.000Z');
+    expect(shiftCalendarMonth(new Date('2026-04-30T12:00:00.000Z'), 1).toISOString()).toBe('2026-05-30T12:00:00.000Z');
   });
 
   it('generates consistent month grid days starting on Monday', () => {
@@ -32,13 +29,13 @@ describe('Calendar utilities and event extraction', () => {
     expect(days[0].isCurrentMonth).toBe(false);
 
     // Find Aug 1
-    const aug1 = days.find((d) => d.date === '2026-08-01');
+    const aug1 = days.find(d => d.date === '2026-08-01');
     expect(aug1).toBeDefined();
     expect(aug1?.isCurrentMonth).toBe(true);
     expect(aug1?.isWeekend).toBe(true);
 
     // Find Aug 31
-    const aug31 = days.find((d) => d.date === '2026-08-31');
+    const aug31 = days.find(d => d.date === '2026-08-31');
     expect(aug31).toBeDefined();
     expect(aug31?.isCurrentMonth).toBe(true);
   });
@@ -62,7 +59,7 @@ describe('Calendar utilities and event extraction', () => {
     expect(resolveAgendaSelectedDate(nextWeek, '2026-08-26')).toBe('2026-09-02');
     expect(resolveAgendaSelectedDate(previousWeek, '2026-08-26')).toBe('2026-08-26');
 
-    const currentWeek = nextWeek.map((day) => ({ ...day, isToday: day.date === '2026-09-01' }));
+    const currentWeek = nextWeek.map(day => ({ ...day, isToday: day.date === '2026-09-01' }));
     expect(resolveAgendaSelectedDate(currentWeek, '2026-08-26')).toBe('2026-09-01');
   });
 
@@ -158,22 +155,22 @@ describe('Calendar utilities and event extraction', () => {
     // Check target publish date on 2026-08-30
     const aug30Events = eventsMap.get('2026-08-30');
     expect(aug30Events).toBeDefined();
-    expect(aug30Events?.some((e) => e.type === 'planned_publish' && e.topicId === 't1')).toBe(true);
+    expect(aug30Events?.some(e => e.type === 'planned_publish' && e.topicId === 't1')).toBe(true);
 
     // Check deadline on 2026-08-28
     const aug28Events = eventsMap.get('2026-08-28');
     expect(aug28Events).toBeDefined();
-    expect(aug28Events?.some((e) => e.type === 'deadline' && e.topicId === 't1')).toBe(true);
+    expect(aug28Events?.some(e => e.type === 'deadline' && e.topicId === 't1')).toBe(true);
 
     // Check commercial deal on 2026-08-29
     const aug29Events = eventsMap.get('2026-08-29');
     expect(aug29Events).toBeDefined();
-    expect(aug29Events?.some((e) => e.type === 'commercial_deal' && e.dealId === 'd1')).toBe(true);
+    expect(aug29Events?.some(e => e.type === 'commercial_deal' && e.dealId === 'd1')).toBe(true);
 
     // Check published video on 2026-08-15
     const aug15Events = eventsMap.get('2026-08-15');
     expect(aug15Events).toBeDefined();
-    expect(aug15Events?.some((e) => e.type === 'published' && e.publishedVideoId === 'p1')).toBe(true);
+    expect(aug15Events?.some(e => e.type === 'published' && e.publishedVideoId === 'p1')).toBe(true);
 
     // Calculate month stats for August 2026
     const stats = calculateMonthStats(eventsMap, 2026, 7, topics);
@@ -221,16 +218,16 @@ describe('Calendar utilities and event extraction', () => {
   it('keeps dayNumber and date precisely aligned regardless of timezone', () => {
     // September 2026: Sept 1 is Tuesday, Aug 31 is Monday
     const days = getMonthGridDays(2026, 8);
-    const dayOne = days.find((d) => d.dayNumber === 1 && d.isCurrentMonth);
+    const dayOne = days.find(d => d.dayNumber === 1 && d.isCurrentMonth);
     expect(dayOne).toBeDefined();
     expect(dayOne?.date).toBe('2026-09-01');
 
-    const dayLast = days.find((d) => d.dayNumber === 30 && d.isCurrentMonth);
+    const dayLast = days.find(d => d.dayNumber === 30 && d.isCurrentMonth);
     expect(dayLast).toBeDefined();
     expect(dayLast?.date).toBe('2026-09-30');
 
     // Prev month padding
-    const prevPadding = days.find((d) => !d.isCurrentMonth && d.dayNumber === 31);
+    const prevPadding = days.find(d => !d.isCurrentMonth && d.dayNumber === 31);
     expect(prevPadding?.date).toBe('2026-08-31');
   });
 
@@ -254,6 +251,6 @@ describe('Calendar utilities and event extraction', () => {
     ];
 
     const events = extractCalendarEvents([], [], published, DEFAULT_CALENDAR_LAYERS);
-    expect(events.get('2026-09-08')?.some((e) => e.publishedVideoId === 'p_early')).toBe(true);
+    expect(events.get('2026-09-08')?.some(e => e.publishedVideoId === 'p_early')).toBe(true);
   });
 });

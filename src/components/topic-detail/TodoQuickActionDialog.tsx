@@ -62,9 +62,23 @@ export const TodoQuickActionDialog: React.FC<TodoQuickActionDialogProps> = ({
             这个选题还没有设置当前行动。可以先在执行看板中把待办移入进行中，第一项会成为当前行动。
           </div>
           <div className="flex justify-end gap-2 border-t border-line pt-4">
-            <button type="button" onClick={onClose} className="min-h-10 rounded-xl px-4 text-xs font-semibold text-ink-muted hover:bg-control cursor-pointer">关闭</button>
-            <button type="button" onClick={() => { onClose(); onOpenTodoBoard(); }} className="min-h-10 rounded-xl bg-accent px-4 text-xs font-bold text-white hover:bg-accent-dark cursor-pointer flex items-center gap-1.5">
-              <KanbanSquare className="h-4 w-4" />打开执行看板
+            <button
+              type="button"
+              onClick={onClose}
+              className="min-h-10 rounded-xl px-4 text-xs font-semibold text-ink-muted hover:bg-control cursor-pointer"
+            >
+              关闭
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                onClose();
+                onOpenTodoBoard();
+              }}
+              className="min-h-10 rounded-xl bg-accent px-4 text-xs font-bold text-white hover:bg-accent-dark cursor-pointer flex items-center gap-1.5"
+            >
+              <KanbanSquare className="h-4 w-4" />
+              打开执行看板
             </button>
           </div>
         </div>
@@ -86,16 +100,48 @@ export const TodoQuickActionDialog: React.FC<TodoQuickActionDialogProps> = ({
 
         <label className="block space-y-1.5">
           <span className="text-xs font-bold text-ink">行动标题</span>
-          <input value={title} onChange={(event) => setTitle(event.target.value)} autoFocus className="w-full rounded-xl border border-line bg-control px-3.5 py-2.5 text-sm outline-none focus:border-accent" />
+          <input
+            value={title}
+            onChange={event => setTitle(event.target.value)}
+            autoFocus
+            className="w-full rounded-xl border border-line bg-control px-3.5 py-2.5 text-sm outline-none focus:border-accent"
+          />
         </label>
         <div className="flex flex-col-reverse gap-2 border-t border-line pt-4 sm:flex-row sm:items-center sm:justify-between">
-          <button type="button" onClick={() => void handleComplete()} disabled={saving} className="inline-flex min-h-10 items-center justify-center gap-1.5 rounded-xl bg-success-soft px-3.5 text-xs font-bold text-success hover:bg-success-soft disabled:opacity-50 cursor-pointer">
-            <CheckCircle2 className="h-4 w-4" />完成当前行动
+          <button
+            type="button"
+            onClick={() => void handleComplete()}
+            disabled={saving}
+            className="inline-flex min-h-10 items-center justify-center gap-1.5 rounded-xl bg-success-soft px-3.5 text-xs font-bold text-success hover:bg-success-soft disabled:opacity-50 cursor-pointer"
+          >
+            <CheckCircle2 className="h-4 w-4" />
+            完成当前行动
           </button>
           <div className="flex justify-end gap-2">
-            <button type="button" onClick={onOpenTodoBoard} disabled={saving} className="min-h-10 rounded-xl px-3.5 text-xs font-semibold text-ink-muted hover:bg-control disabled:opacity-50 cursor-pointer"><KanbanSquare className="mr-1 inline h-4 w-4" />执行看板</button>
-            <button type="button" onClick={onClose} className="min-h-10 rounded-xl px-3.5 text-xs font-semibold text-ink-muted hover:bg-control cursor-pointer">取消</button>
-            <button type="button" onClick={() => void handleSave()} disabled={saving || !title.trim()} className="min-h-10 rounded-xl bg-accent px-4 text-xs font-bold text-white hover:bg-accent-dark disabled:opacity-50 cursor-pointer">{saving ? '保存中…' : '保存修改'}</button>
+            <button
+              type="button"
+              onClick={onOpenTodoBoard}
+              disabled={saving}
+              className="min-h-10 rounded-xl px-3.5 text-xs font-semibold text-ink-muted hover:bg-control disabled:opacity-50 cursor-pointer"
+            >
+              <KanbanSquare className="mr-1 inline h-4 w-4" />
+              执行看板
+            </button>
+            <button
+              type="button"
+              onClick={onClose}
+              className="min-h-10 rounded-xl px-3.5 text-xs font-semibold text-ink-muted hover:bg-control cursor-pointer"
+            >
+              取消
+            </button>
+            <button
+              type="button"
+              onClick={() => void handleSave()}
+              disabled={saving || !title.trim()}
+              className="min-h-10 rounded-xl bg-accent px-4 text-xs font-bold text-white hover:bg-accent-dark disabled:opacity-50 cursor-pointer"
+            >
+              {saving ? '保存中…' : '保存修改'}
+            </button>
           </div>
         </div>
       </div>

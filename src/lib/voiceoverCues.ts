@@ -18,9 +18,9 @@ export const VOICEOVER_CUES = [
 ] as const satisfies readonly VoiceoverCuePreset[];
 
 export function getVoiceoverCueTone(label: string): VoiceoverCueTone {
-  return VOICEOVER_CUES.find((cue) => cue.label === label)?.tone ?? 'rhythm';
+  return VOICEOVER_CUES.find(cue => cue.label === label)?.tone ?? 'rhythm';
 }
 
 export function getVoiceoverCueSymbol(label: string): string {
-  return VOICEOVER_CUES.find((cue) => cue.label === label)?.symbol ?? 'Ⅱ';
+  return VOICEOVER_CUES.find(cue => cue.label === label)?.symbol ?? 'Ⅱ';
 }

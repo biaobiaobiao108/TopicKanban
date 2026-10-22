@@ -81,7 +81,7 @@ if (!serverResult.success) {
   process.exit(1);
 }
 
-const serverOutput = serverResult.outputs.find((output) => output.path.endsWith('server.js')) ?? serverResult.outputs[0];
+const serverOutput = serverResult.outputs.find(output => output.path.endsWith('server.js')) ?? serverResult.outputs[0];
 if (!serverOutput) {
   console.error('Bun server build did not produce server.js.');
   process.exit(1);
@@ -91,18 +91,13 @@ await Bun.write(joinPath(distDir, 'server.js'), await serverOutput.arrayBuffer()
 for (const relativePath of await listFiles(publicDir, '**/*')) {
   const normalizedPath = relativePath.replace(/\\/g, '/');
   if (normalizedPath === 'tailwind.generated.css') continue;
-  await Bun.write(
-    joinPath(distDir, normalizedPath),
-    Bun.file(joinPath(publicDir, normalizedPath)),
-    { createPath: true },
-  );
+  await Bun.write(joinPath(distDir, normalizedPath), Bun.file(joinPath(publicDir, normalizedPath)), {
+    createPath: true,
+  });
 }
 
 const indexHtml = await Bun.file(joinPath(distDir, 'index.html')).text();
-const initialAssetUrls = Array.from(
-  indexHtml.matchAll(/(?:src|href)="(\/assets\/[^"?#]+)"/g),
-  (match) => match[1],
-);
+const initialAssetUrls = Array.from(indexHtml.matchAll(/(?:src|href)="(\/assets\/[^"?#]+)"/g), match => match[1]);
 const precacheUrls = [
   '/',
   '/index.html',
@@ -126,13 +121,9 @@ if (await Bun.file(serviceWorkerPath).exists()) {
   const buildVersion = `v${Date.now()}`;
   await Bun.write(
     serviceWorkerPath,
-    serviceWorkerSource.replace(
-      precacheDeclaration,
-      `const PRECACHE_URLS = ${JSON.stringify(precacheUrls)};`,
-    ).replace(
-      cacheNameDeclaration,
-      `const CACHE_NAME = 'topic-kanban-shell-${buildVersion}';`,
-    ),
+    serviceWorkerSource
+      .replace(precacheDeclaration, `const PRECACHE_URLS = ${JSON.stringify(precacheUrls)};`)
+      .replace(cacheNameDeclaration, `const CACHE_NAME = 'topic-kanban-shell-${buildVersion}';`),
   );
 }
 

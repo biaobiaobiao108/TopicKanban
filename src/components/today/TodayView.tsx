@@ -61,14 +61,14 @@ function DealFocusCard({ deal, onOpen }: { deal: CommercialDeal; onOpen: () => v
       onClick={onOpen}
       className="flex min-h-20 w-full items-center gap-3 rounded-2xl border border-line bg-surface p-4 text-left shadow-subtle transition-all hover:-translate-y-0.5 hover:shadow-card cursor-pointer"
     >
-      <span className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl ${isUnpaid ? 'bg-warning-soft text-warning' : 'bg-accent-soft text-accent'}`}>
+      <span
+        className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl ${isUnpaid ? 'bg-warning-soft text-warning' : 'bg-accent-soft text-accent'}`}
+      >
         {isUnpaid ? <WalletCards className="h-5 w-5" /> : <Handshake className="h-5 w-5" />}
       </span>
       <span className="min-w-0 flex-1">
         <span className="flex min-w-0 items-center gap-2">
-          <span
-            className="min-w-0 flex-1 truncate text-sm font-bold text-ink"
-          >
+          <span className="min-w-0 flex-1 truncate text-sm font-bold text-ink">
             {deal.brand_name || '未命名品牌'} · {deal.title}
           </span>
           <span className="max-w-[4.5rem] shrink-0 truncate rounded-full bg-control px-2 py-0.5 text-3xs font-bold text-ink-muted">
@@ -76,8 +76,19 @@ function DealFocusCard({ deal, onOpen }: { deal: CommercialDeal; onOpen: () => v
           </span>
         </span>
         <span className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-ink-muted">
-          {isUnpaid ? <span className="font-semibold text-warning">已交付待回款</span> : <span className={isDue ? 'font-semibold text-danger' : ''}>{isDue ? '截止' : '交付截止'}：{deliveryDate.state === 'empty' ? '未设截止日期' : <ActionDateText display={deliveryDate} />}</span>}
-          {deal.next_action ? <span className="truncate">下一步：{deal.next_action}</span> : <span className="font-semibold text-warning">缺少下一步行动</span>}
+          {isUnpaid ? (
+            <span className="font-semibold text-warning">已交付待回款</span>
+          ) : (
+            <span className={isDue ? 'font-semibold text-danger' : ''}>
+              {isDue ? '截止' : '交付截止'}：
+              {deliveryDate.state === 'empty' ? '未设截止日期' : <ActionDateText display={deliveryDate} />}
+            </span>
+          )}
+          {deal.next_action ? (
+            <span className="truncate">下一步：{deal.next_action}</span>
+          ) : (
+            <span className="font-semibold text-warning">缺少下一步行动</span>
+          )}
         </span>
       </span>
       <ArrowRight className="h-4 w-4 shrink-0 text-ink-muted" />
@@ -113,8 +124,8 @@ export const TodayView: React.FC<TodayViewProps> = ({
   const [actionTopic, setActionTopic] = useState<Topic | null>(null);
 
   const activeTopics = useMemo(
-    () => topics.filter((topic) => topic.status !== 'published' && topic.status !== 'icebox'),
-    [topics]
+    () => topics.filter(topic => topic.status !== 'published' && topic.status !== 'icebox'),
+    [topics],
   );
 
   // Main focus: the unique active pin first, then production stage, priority and recency.
@@ -129,7 +140,7 @@ export const TodayView: React.FC<TodayViewProps> = ({
     const attentionSource = todayActionProgress ? attentionTopics : activeTopics;
     const missingAction: Topic[] = [];
     const staleAction: Topic[] = [];
-    attentionSource.forEach((topic) => {
+    attentionSource.forEach(topic => {
       if (!topic.current_todo) {
         missingAction.push(topic);
       } else if (getCurrentActionAgeDays(topic) >= STALE_ACTION_THRESHOLD_DAYS) {
@@ -140,7 +151,7 @@ export const TodayView: React.FC<TodayViewProps> = ({
       missingAction,
       staleAction,
       attention: todayActionProgress ? attentionTopics.slice(0, 3) : [...missingAction, ...staleAction].slice(0, 3),
-      covered: todayActionProgress?.covered_count ?? (activeTopics.length - missingAction.length),
+      covered: todayActionProgress?.covered_count ?? activeTopics.length - missingAction.length,
       activeCount: todayActionProgress?.active_count ?? activeTopics.length,
       missingCount: todayActionProgress?.missing_action_count ?? missingAction.length,
       staleCount: todayActionProgress?.stale_action_count ?? staleAction.length,
@@ -154,11 +165,13 @@ export const TodayView: React.FC<TodayViewProps> = ({
   const recentUpdates = useMemo(() => takeMostRecentTopics(topics, 8), [topics]);
   const focusDeals = useMemo(() => {
     const seen = new Set<string>();
-    return [...dealFocus.due_items, ...dealFocus.unpaid_items].filter((deal) => {
-      if (seen.has(deal.id)) return false;
-      seen.add(deal.id);
-      return true;
-    }).slice(0, 8);
+    return [...dealFocus.due_items, ...dealFocus.unpaid_items]
+      .filter(deal => {
+        if (seen.has(deal.id)) return false;
+        seen.add(deal.id);
+        return true;
+      })
+      .slice(0, 8);
   }, [dealFocus.due_items, dealFocus.unpaid_items]);
 
   return (
@@ -167,7 +180,7 @@ export const TodayView: React.FC<TodayViewProps> = ({
         <PageHeader
           title="今日生产聚焦"
           icon={Calendar}
-          actions={(
+          actions={
             <button
               type="button"
               onClick={onOpenQuickCreate}
@@ -176,7 +189,7 @@ export const TodayView: React.FC<TodayViewProps> = ({
               <Sparkles className="h-4 w-4 text-warning" aria-hidden="true" />
               <span>记录新灵感</span>
             </button>
-          )}
+          }
         />
 
         {/* 1. Spotlight Feature Topic Card (Editorial Hero Spotlight) */}
@@ -204,9 +217,14 @@ export const TodayView: React.FC<TodayViewProps> = ({
                   <div className="text-right text-2xs text-ink-muted">
                     <div>{focusTopic.is_pinned === 1 ? '唯一置顶 · 主推' : '按阶段、优先级与最近更新'}</div>
                     <div className="mt-0.5">
-                      {focusTopic.current_todo
-                        ? <>行动持续 <span className="font-mono tabular-nums">{getCurrentActionAgeDays(focusTopic)}</span> 天</>
-                        : '未设置当前行动'}
+                      {focusTopic.current_todo ? (
+                        <>
+                          行动持续 <span className="font-mono tabular-nums">{getCurrentActionAgeDays(focusTopic)}</span>{' '}
+                          天
+                        </>
+                      ) : (
+                        '未设置当前行动'
+                      )}
                     </div>
                   </div>
                   {onTogglePin && (
@@ -215,7 +233,10 @@ export const TodayView: React.FC<TodayViewProps> = ({
                       onClick={() => void onTogglePin(focusTopic.id)}
                       className={`inline-flex min-h-9 items-center gap-1.5 rounded-xl border px-2.5 text-xs font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/30 ${focusTopic.is_pinned === 1 ? 'border-warning-soft bg-warning-soft text-warning hover:bg-warning-soft' : 'border-line bg-surface text-ink-muted hover:border-accent/30 hover:text-accent-dark'}`}
                     >
-                      <Pin className={`h-3.5 w-3.5 ${focusTopic.is_pinned === 1 ? 'fill-warning' : ''}`} aria-hidden="true" />
+                      <Pin
+                        className={`h-3.5 w-3.5 ${focusTopic.is_pinned === 1 ? 'fill-warning' : ''}`}
+                        aria-hidden="true"
+                      />
                       <span>{focusTopic.is_pinned === 1 ? '取消主推' : '设为主推'}</span>
                     </button>
                   )}
@@ -281,10 +302,10 @@ export const TodayView: React.FC<TodayViewProps> = ({
                   {focusTopic.people && focusTopic.people.length > 0 && (
                     <span className="flex items-center gap-1 font-medium text-ink">
                       <User className="w-3.5 h-3.5 text-ink-muted" />
-                      {focusTopic.people.map((p) => p.name).join(' / ')}
+                      {focusTopic.people.map(p => p.name).join(' / ')}
                     </span>
                   )}
-                  {focusTopic.tags?.map((t) => (
+                  {focusTopic.tags?.map(t => (
                     <TagPill key={t.id} name={t.name} />
                   ))}
                 </div>
@@ -320,13 +341,23 @@ export const TodayView: React.FC<TodayViewProps> = ({
                 <h2 id="today-deals-heading" className="flex items-center gap-2 text-base font-bold text-ink">
                   <Handshake className="h-4 w-4 text-accent" />
                   商单待推进
-                  <span className="rounded-full bg-accent-soft px-2 py-0.5 text-xs font-mono font-bold text-accent-dark">{focusDeals.length}</span>
+                  <span className="rounded-full bg-accent-soft px-2 py-0.5 text-xs font-mono font-bold text-accent-dark">
+                    {focusDeals.length}
+                  </span>
                 </h2>
               </div>
-              <button type="button" onClick={() => onOpenDeal(focusDeals[0].id)} className="min-h-11 shrink-0 rounded-xl border border-line bg-surface px-3 text-xs font-semibold text-ink-muted transition-colors hover:border-accent/35 hover:text-accent-dark">打开商单</button>
+              <button
+                type="button"
+                onClick={() => onOpenDeal(focusDeals[0].id)}
+                className="min-h-11 shrink-0 rounded-xl border border-line bg-surface px-3 text-xs font-semibold text-ink-muted transition-colors hover:border-accent/35 hover:text-accent-dark"
+              >
+                打开商单
+              </button>
             </div>
             <div className="grid gap-3 md:grid-cols-2">
-              {focusDeals.map((deal) => <DealFocusCard key={deal.id} deal={deal} onOpen={() => onOpenDeal(deal.id)} />)}
+              {focusDeals.map(deal => (
+                <DealFocusCard key={deal.id} deal={deal} onOpen={() => onOpenDeal(deal.id)} />
+              ))}
             </div>
           </section>
         )}
@@ -334,17 +365,31 @@ export const TodayView: React.FC<TodayViewProps> = ({
         {/* 2-Column Section: Action Progress & Recent Activity */}
         <div data-testid="today-focus-columns" className="grid grid-cols-1 gap-6 md:grid-cols-2">
           {/* Left: Action Progress */}
-          <section aria-labelledby="today-action-progress-heading" data-testid="today-action-progress-column" className="flex h-[22rem] min-h-0 flex-col space-y-3.5">
+          <section
+            aria-labelledby="today-action-progress-heading"
+            data-testid="today-action-progress-column"
+            className="flex h-[22rem] min-h-0 flex-col space-y-3.5"
+          >
             <div className="flex items-center justify-between gap-3">
-              <h2 id="today-action-progress-heading" className="font-serif flex items-center gap-2 text-base font-bold text-ink">
+              <h2
+                id="today-action-progress-heading"
+                className="font-serif flex items-center gap-2 text-base font-bold text-ink"
+              >
                 <ListChecks className="h-4 w-4 text-accent" />
                 <span>行动推进</span>
-                <span className="rounded-full bg-control px-2 py-0.5 text-xs font-mono font-bold tabular-nums text-ink-muted">{activeTopicTotal}</span>
+                <span className="rounded-full bg-control px-2 py-0.5 text-xs font-mono font-bold tabular-nums text-ink-muted">
+                  {activeTopicTotal}
+                </span>
               </h2>
-              <span className="text-2xs font-semibold text-ink-muted">{actionProgress.covered}/{activeTopicTotal || 0} 已落地</span>
+              <span className="text-2xs font-semibold text-ink-muted">
+                {actionProgress.covered}/{activeTopicTotal || 0} 已落地
+              </span>
             </div>
 
-            <div data-testid="today-action-progress-panel" className="today-action-progress-panel flex min-h-0 flex-1 flex-col overflow-hidden rounded-2xl border border-line bg-surface p-4 shadow-subtle">
+            <div
+              data-testid="today-action-progress-panel"
+              className="today-action-progress-panel flex min-h-0 flex-1 flex-col overflow-hidden rounded-2xl border border-line bg-surface p-4 shadow-subtle"
+            >
               <div className="flex items-end justify-between gap-3">
                 <div>
                   <div className="text-2xl font-bold tracking-tight text-ink">{coveragePercent}%</div>
@@ -356,26 +401,58 @@ export const TodayView: React.FC<TodayViewProps> = ({
                 </div>
               </div>
 
-              <div className="mt-3 h-2 overflow-hidden rounded-full bg-control" aria-label={`当前行动覆盖率 ${coveragePercent}%`} role="progressbar" aria-valuemin={0} aria-valuemax={100} aria-valuenow={coveragePercent}>
-                <div className="h-full rounded-full bg-accent transition-[width] duration-300 motion-reduce:transition-none" style={{ width: `${coveragePercent}%` }} />
+              <div
+                className="mt-3 h-2 overflow-hidden rounded-full bg-control"
+                aria-label={`当前行动覆盖率 ${coveragePercent}%`}
+                role="progressbar"
+                aria-valuemin={0}
+                aria-valuemax={100}
+                aria-valuenow={coveragePercent}
+              >
+                <div
+                  className="h-full rounded-full bg-accent transition-[width] duration-300 motion-reduce:transition-none"
+                  style={{ width: `${coveragePercent}%` }}
+                />
               </div>
 
-              <FloatingScrollbar data-testid="today-action-progress-scroll" role="region" tabIndex={0} aria-label="行动推进列表" className="today-focus-scroll divide-y divide-line/30" wrapperClassName="mt-4 flex-1 min-h-0">
-                {actionProgress.attention.length > 0 ? actionProgress.attention.map((topic) => {
-                  const hasAction = Boolean(topic.current_todo);
-                  return (
-                    <button key={topic.id} type="button" onClick={() => onOpenDetail(topic.id, 'todos')} className="flex min-h-12 w-full items-center gap-3 py-2 text-left transition-colors hover:text-accent cursor-pointer">
-                      <span className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-lg ${hasAction ? 'bg-warning-soft text-warning' : 'bg-accent-soft text-accent'}`}>
-                        {hasAction ? <AlertTriangle className="h-3.5 w-3.5" aria-hidden="true" /> : <Zap className="h-3.5 w-3.5" aria-hidden="true" />}
-                      </span>
-                      <span className="min-w-0 flex-1">
-                        <span className="block truncate text-xs font-semibold text-ink">{topic.title}</span>
-                        <span className="mt-0.5 block truncate text-2xs text-ink-muted">{hasAction ? getCurrentActionWarning(topic) || '行动需要重新推进' : '尚未设置当前行动'}</span>
-                      </span>
-                      <ArrowRight className="h-3.5 w-3.5 shrink-0 text-ink-muted" aria-hidden="true" />
-                    </button>
-                  );
-                }) : (
+              <FloatingScrollbar
+                data-testid="today-action-progress-scroll"
+                role="region"
+                tabIndex={0}
+                aria-label="行动推进列表"
+                className="today-focus-scroll divide-y divide-line/30"
+                wrapperClassName="mt-4 flex-1 min-h-0"
+              >
+                {actionProgress.attention.length > 0 ? (
+                  actionProgress.attention.map(topic => {
+                    const hasAction = Boolean(topic.current_todo);
+                    return (
+                      <button
+                        key={topic.id}
+                        type="button"
+                        onClick={() => onOpenDetail(topic.id, 'todos')}
+                        className="flex min-h-12 w-full items-center gap-3 py-2 text-left transition-colors hover:text-accent cursor-pointer"
+                      >
+                        <span
+                          className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-lg ${hasAction ? 'bg-warning-soft text-warning' : 'bg-accent-soft text-accent'}`}
+                        >
+                          {hasAction ? (
+                            <AlertTriangle className="h-3.5 w-3.5" aria-hidden="true" />
+                          ) : (
+                            <Zap className="h-3.5 w-3.5" aria-hidden="true" />
+                          )}
+                        </span>
+                        <span className="min-w-0 flex-1">
+                          <span className="block truncate text-xs font-semibold text-ink">{topic.title}</span>
+                          <span className="mt-0.5 block truncate text-2xs text-ink-muted">
+                            {hasAction ? getCurrentActionWarning(topic) || '行动需要重新推进' : '尚未设置当前行动'}
+                          </span>
+                        </span>
+                        <ArrowRight className="h-3.5 w-3.5 shrink-0 text-ink-muted" aria-hidden="true" />
+                      </button>
+                    );
+                  })
+                ) : (
                   <div className="flex min-h-36 flex-col items-center justify-center text-center">
                     <CheckCircle2 className="h-6 w-6 text-success" aria-hidden="true" />
                     <p className="mt-2 text-sm font-semibold text-ink">当前行动都已就位</p>
@@ -385,13 +462,22 @@ export const TodayView: React.FC<TodayViewProps> = ({
               </FloatingScrollbar>
 
               {actionProgress.attention.length > 0 && (
-                <div data-testid="today-action-progress-footer" className="mt-3 border-t border-line/40 pt-3 text-2xs text-ink-muted">
+                <div
+                  data-testid="today-action-progress-footer"
+                  className="mt-3 border-t border-line/40 pt-3 text-2xs text-ink-muted"
+                >
                   <div className="flex items-center justify-between gap-3 font-semibold">
                     <span className="flex items-center gap-1.5">
-                      {actionProgress.missingCount > 0 ? <Zap className="h-3.5 w-3.5 text-warning" aria-hidden="true" /> : <AlertTriangle className="h-3.5 w-3.5 text-warning" aria-hidden="true" />}
+                      {actionProgress.missingCount > 0 ? (
+                        <Zap className="h-3.5 w-3.5 text-warning" aria-hidden="true" />
+                      ) : (
+                        <AlertTriangle className="h-3.5 w-3.5 text-warning" aria-hidden="true" />
+                      )}
                       <span>{actionProgress.missingCount > 0 ? '等待补充行动' : '需要重新推进'}</span>
                     </span>
-                    <span data-testid="today-action-progress-count" className="font-mono tabular-nums text-ink">{actionProgress.missingCount > 0 ? actionProgress.missingCount : actionProgress.staleCount}</span>
+                    <span data-testid="today-action-progress-count" className="font-mono tabular-nums text-ink">
+                      {actionProgress.missingCount > 0 ? actionProgress.missingCount : actionProgress.staleCount}
+                    </span>
                   </div>
                 </div>
               )}
@@ -399,17 +485,34 @@ export const TodayView: React.FC<TodayViewProps> = ({
           </section>
 
           {/* Right: Recent Activity / Worklog */}
-          <section aria-labelledby="today-recent-activity-heading" data-testid="today-recent-activity-column" className="flex h-[22rem] min-h-0 flex-col space-y-3.5">
+          <section
+            aria-labelledby="today-recent-activity-heading"
+            data-testid="today-recent-activity-column"
+            className="flex h-[22rem] min-h-0 flex-col space-y-3.5"
+          >
             <div className="flex items-center justify-between">
-              <h2 id="today-recent-activity-heading" className="font-serif text-base font-bold text-ink flex items-center gap-2">
+              <h2
+                id="today-recent-activity-heading"
+                className="font-serif text-base font-bold text-ink flex items-center gap-2"
+              >
                 <Clock className="w-4 h-4 text-ink-muted" />
                 <span>近期活跃轨迹</span>
               </h2>
             </div>
 
-            <div data-testid="today-recent-activity-panel" className="today-recent-updates-panel flex min-h-0 flex-1 flex-col overflow-hidden rounded-2xl border border-line bg-surface p-4 shadow-subtle">
-              <FloatingScrollbar data-testid="today-recent-activity-scroll" role="region" tabIndex={0} aria-label="近期活跃轨迹列表" className="today-focus-scroll divide-y divide-line/30" wrapperClassName="flex-1 min-h-0">
-                {recentUpdates.map((t) => (
+            <div
+              data-testid="today-recent-activity-panel"
+              className="today-recent-updates-panel flex min-h-0 flex-1 flex-col overflow-hidden rounded-2xl border border-line bg-surface p-4 shadow-subtle"
+            >
+              <FloatingScrollbar
+                data-testid="today-recent-activity-scroll"
+                role="region"
+                tabIndex={0}
+                aria-label="近期活跃轨迹列表"
+                className="today-focus-scroll divide-y divide-line/30"
+                wrapperClassName="flex-1 min-h-0"
+              >
+                {recentUpdates.map(t => (
                   <button
                     type="button"
                     key={t.id}
@@ -440,13 +543,18 @@ export const TodayView: React.FC<TodayViewProps> = ({
                   </button>
                 ))}
               </FloatingScrollbar>
-              <div data-testid="today-recent-activity-footer" className="mt-3 shrink-0 border-t border-line/40 pt-3 text-2xs text-ink-muted">
+              <div
+                data-testid="today-recent-activity-footer"
+                className="mt-3 shrink-0 border-t border-line/40 pt-3 text-2xs text-ink-muted"
+              >
                 <div className="flex items-center justify-between gap-3 font-semibold">
                   <span className="flex items-center gap-1.5">
                     <Clock className="h-3.5 w-3.5 text-ink-muted" aria-hidden="true" />
                     <span>近期活跃选题</span>
                   </span>
-                  <span data-testid="today-recent-activity-count" className="font-mono tabular-nums text-ink">{recentUpdates.length}</span>
+                  <span data-testid="today-recent-activity-count" className="font-mono tabular-nums text-ink">
+                    {recentUpdates.length}
+                  </span>
                 </div>
               </div>
             </div>
@@ -457,8 +565,8 @@ export const TodayView: React.FC<TodayViewProps> = ({
       {actionTopic && (
         <TodoQuickActionDialog
           isOpen
-          topic={topics.find((topic) => topic.id === actionTopic.id) || actionTopic}
-          todo={(topics.find((topic) => topic.id === actionTopic.id) || actionTopic).current_todo}
+          topic={topics.find(topic => topic.id === actionTopic.id) || actionTopic}
+          todo={(topics.find(topic => topic.id === actionTopic.id) || actionTopic).current_todo}
           onClose={() => setActionTopic(null)}
           onOpenTodoBoard={() => {
             setActionTopic(null);

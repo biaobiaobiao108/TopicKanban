@@ -31,7 +31,7 @@ function positionsEqual(left: FloatingPosition | null, right: FloatingPosition):
     left.top === right.top &&
     left.minWidth === right.minWidth &&
     left.width === right.width &&
-    left.maxHeight === right.maxHeight
+    left.maxHeight === right.maxHeight,
   );
 }
 
@@ -58,42 +58,28 @@ export function useFloatingPosition({
     const viewportWidth = window.visualViewport?.width || window.innerWidth;
     const viewportHeight = window.visualViewport?.height || window.innerHeight;
     const availableWidth = Math.max(0, viewportWidth - viewportGutter * 2);
-    const maxWidth = Math.min(
-      availableWidth,
-      requestedMaxWidth ?? Number.POSITIVE_INFINITY,
-    );
-    const minWidth = Math.min(
-      Math.max(requestedMinWidth, rect.width),
-      maxWidth,
-    );
+    const maxWidth = Math.min(availableWidth, requestedMaxWidth ?? Number.POSITIVE_INFINITY);
+    const minWidth = Math.min(Math.max(requestedMinWidth, rect.width), maxWidth);
     const measuredWidth = popoverRef.current?.getBoundingClientRect().width;
-    const preferredWidth = widthMode === 'fixed'
-      ? width ?? minWidth
-      : widthMode === 'content'
-        ? measuredWidth || minWidth
-        : minWidth;
+    const preferredWidth =
+      widthMode === 'fixed' ? (width ?? minWidth) : widthMode === 'content' ? measuredWidth || minWidth : minWidth;
     const panelWidth = Math.min(Math.max(preferredWidth, minWidth), maxWidth);
     const availableBelow = Math.max(0, viewportHeight - rect.bottom - gap - viewportGutter);
     const availableAbove = Math.max(0, rect.top - gap - viewportGutter);
-    const estimatedHeight = popoverRef.current?.scrollHeight
-      || popoverRef.current?.getBoundingClientRect().height
-      || requestedMaxHeight;
-    const shouldOpenAbove = availableAbove > 0 && (
-      (availableBelow === 0 && availableAbove > availableBelow)
-      || (availableBelow < Math.min(estimatedHeight, 220) && availableAbove > availableBelow)
-    );
+    const estimatedHeight =
+      popoverRef.current?.scrollHeight || popoverRef.current?.getBoundingClientRect().height || requestedMaxHeight;
+    const shouldOpenAbove =
+      availableAbove > 0 &&
+      ((availableBelow === 0 && availableAbove > availableBelow) ||
+        (availableBelow < Math.min(estimatedHeight, 220) && availableAbove > availableBelow));
     const availableHeight = shouldOpenAbove ? availableAbove : availableBelow;
-    const maxHeight = availableHeight >= 48
-      ? Math.min(requestedMaxHeight, availableHeight)
-      : availableHeight;
+    const maxHeight = availableHeight >= 48 ? Math.min(requestedMaxHeight, availableHeight) : availableHeight;
     const preferredLeft = align === 'right' ? rect.right - panelWidth : rect.left;
     const left = Math.min(
       Math.max(preferredLeft, viewportGutter),
       Math.max(viewportGutter, viewportWidth - panelWidth - viewportGutter),
     );
-    const top = shouldOpenAbove
-      ? Math.max(viewportGutter, rect.top - gap - maxHeight)
-      : rect.bottom + gap;
+    const top = shouldOpenAbove ? Math.max(viewportGutter, rect.top - gap - maxHeight) : rect.bottom + gap;
     const nextPosition: FloatingPosition = {
       left,
       top,
@@ -102,8 +88,19 @@ export function useFloatingPosition({
       maxHeight,
     };
 
-    setPosition((previous) => positionsEqual(previous, nextPosition) ? previous : nextPosition);
-  }, [align, anchorRef, gap, popoverRef, requestedMaxHeight, requestedMaxWidth, requestedMinWidth, viewportGutter, width, widthMode]);
+    setPosition(previous => (positionsEqual(previous, nextPosition) ? previous : nextPosition));
+  }, [
+    align,
+    anchorRef,
+    gap,
+    popoverRef,
+    requestedMaxHeight,
+    requestedMaxWidth,
+    requestedMinWidth,
+    viewportGutter,
+    width,
+    widthMode,
+  ]);
 
   useLayoutEffect(() => {
     if (!open) {
@@ -124,9 +121,7 @@ export function useFloatingPosition({
     const initialFrame = requestAnimationFrame(() => {
       updatePosition();
     });
-    const resizeObserver = typeof ResizeObserver !== 'undefined'
-      ? new ResizeObserver(schedulePositionUpdate)
-      : null;
+    const resizeObserver = typeof ResizeObserver !== 'undefined' ? new ResizeObserver(schedulePositionUpdate) : null;
     if (resizeObserver) {
       if (anchorRef.current) resizeObserver.observe(anchorRef.current);
       if (position !== null && popoverRef.current) resizeObserver.observe(popoverRef.current);

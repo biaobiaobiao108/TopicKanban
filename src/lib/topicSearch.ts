@@ -10,9 +10,9 @@ export function matchesTopicSearch(topic: Topic, searchTerm: string): boolean {
     topic.hook,
     topic.storyline,
     topic.current_todo?.title,
-    ...(topic.tags || []).map((tag) => tag.name),
-    ...(topic.people || []).flatMap((person) => [person.name, person.aliases, person.identity]),
+    ...(topic.tags || []).map(tag => tag.name),
+    ...(topic.people || []).flatMap(person => [person.name, person.aliases, person.identity]),
   ];
 
-  return searchableValues.some((value) => typeof value === 'string' && value.toLowerCase().includes(query));
+  return searchableValues.some(value => typeof value === 'string' && value.toLowerCase().includes(query));
 }

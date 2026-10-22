@@ -35,10 +35,14 @@ export async function invalidateQueryGroups(
   queryClient: QueryClient,
   queryKeys: readonly (readonly unknown[])[],
 ): Promise<void> {
-  await Promise.all(queryKeys.map((queryKey) => queryClient.invalidateQueries({
-    queryKey,
-    refetchType: 'active',
-  })));
+  await Promise.all(
+    queryKeys.map(queryKey =>
+      queryClient.invalidateQueries({
+        queryKey,
+        refetchType: 'active',
+      }),
+    ),
+  );
 }
 
 /**
@@ -46,15 +50,10 @@ export async function invalidateQueryGroups(
  * the currently visible view. Aggregates are re-read from the server rather
  * than guessed from the current client cache.
  */
-export async function refreshTopicData(
-  queryClient: QueryClient,
-  options: RefreshTopicDataOptions = {},
-): Promise<void> {
+export async function refreshTopicData(queryClient: QueryClient, options: RefreshTopicDataOptions = {}): Promise<void> {
   invalidateBootstrap();
   await invalidateQueryGroups(queryClient, [
-    ...topicAggregateQueryKeys.filter((queryKey) => (
-      options.includeTopicDetails !== false || queryKey[0] !== 'topic'
-    )),
+    ...topicAggregateQueryKeys.filter(queryKey => options.includeTopicDetails !== false || queryKey[0] !== 'topic'),
     ...(options.includeLists ? topicListQueryKeys : []),
   ]);
 }

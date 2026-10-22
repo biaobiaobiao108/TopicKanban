@@ -107,9 +107,11 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
 
     const handleTabKeyDown = (event: KeyboardEvent) => {
       if (event.key !== 'Tab' || !dialogRef.current) return;
-      const focusable = Array.from(dialogRef.current.querySelectorAll<HTMLElement>(
-        'button:not([disabled]), [href], input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])'
-      ));
+      const focusable = Array.from(
+        dialogRef.current.querySelectorAll<HTMLElement>(
+          'button:not([disabled]), [href], input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])',
+        ),
+      );
       if (focusable.length === 0) {
         event.preventDefault();
         dialogRef.current.focus({ preventScroll: true });
@@ -170,7 +172,13 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
     if (rawQ.startsWith('@')) return { mode: 'person', cleanQ: rawQ.slice(1).trim().toLowerCase() };
     if (rawQ.startsWith('>')) return { mode: 'action', cleanQ: rawQ.slice(1).trim().toLowerCase() };
     if (rawQ.startsWith('?') || rawQ.startsWith('？') || rawQ === 'help' || rawQ === '帮助') {
-      return { mode: 'help', cleanQ: rawQ.replace(/^[?？]/, '').trim().toLowerCase() };
+      return {
+        mode: 'help',
+        cleanQ: rawQ
+          .replace(/^[?？]/, '')
+          .trim()
+          .toLowerCase(),
+      };
     }
     return { mode: 'all', cleanQ: rawQ.toLowerCase() };
   }, [rawQ]);
@@ -182,7 +190,15 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
 
   const topicSearchQuery = useQuery({
     queryKey: ['command-topic-search', debouncedCleanQ],
-    queryFn: () => fetchTopicPage({ scope: 'all', q: debouncedCleanQ, page: 1, page_size: 20, sort: 'updated_at', include_metadata: false }),
+    queryFn: () =>
+      fetchTopicPage({
+        scope: 'all',
+        q: debouncedCleanQ,
+        page: 1,
+        page_size: 20,
+        sort: 'updated_at',
+        include_metadata: false,
+      }),
     enabled: isOpen && mode === 'all' && debouncedCleanQ.length > 0,
     subscribed: isOpen && mode === 'all' && debouncedCleanQ.length > 0,
   });
@@ -196,84 +212,144 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
   }, [isOpen, queryClient]);
 
   // 1. Navigation commands
-  const allNavCommands = useMemo(() => [
-    { label: '前往 今日生产聚焦', view: 'today' as NavView, icon: Calendar, desc: '查看今天的重点选题', keywords: ['今日', '聚焦', 'today', 'focus', '任务'] },
-    { label: '前往 选题全景看板', view: 'kanban' as NavView, icon: Kanban, desc: '按生产阶段管理选题', keywords: ['看板', 'kanban', 'board', '选题看板', '主页'] },
-    { label: '前往 选题日历', view: 'calendar' as NavView, icon: CalendarDays, desc: '查看排期与交付日历', keywords: ['日历', '选题日历', '排期', '排产', 'calendar', '更文', '排片'] },
-    { label: '前往 标签与创作赛道', view: 'tags' as NavView, icon: Hash, desc: '管理赛道与选题标签', keywords: ['标签', '赛道', 'tags', 'track', '分类'] },
-    { label: '前往 人物档案库', view: 'people' as NavView, icon: User, desc: '维护人物与关系档案', keywords: ['人物', '网红', '档案', 'people', '关系网', '主播'] },
-    { label: '前往 已发布视频复盘', view: 'published' as NavView, icon: Film, desc: '复盘已发布视频数据', keywords: ['发布', '复盘', 'published', '成片', '视频', 'bilibili', 'b站'] },
-    { label: '前往 商单中心', view: 'deals' as NavView, icon: Handshake, desc: '管理商务交付与回款', keywords: ['商单', '商务', '品牌', '客户', '回款', '花火', 'deal'] },
-    { label: '前往 选题库', view: 'database' as NavView, icon: Database, desc: '查看全量选题数据', keywords: ['选题库', '数据表格', 'database', '表格', '归档'] },
-    { label: '前往 偏好与数据备份', view: 'settings' as NavView, icon: Settings, desc: '调整偏好与备份数据', keywords: ['设置', '偏好', '备份', 'settings', '主题', '语速', '导出'] },
-  ], []);
+  const allNavCommands = useMemo(
+    () => [
+      {
+        label: '前往 今日生产聚焦',
+        view: 'today' as NavView,
+        icon: Calendar,
+        desc: '查看今天的重点选题',
+        keywords: ['今日', '聚焦', 'today', 'focus', '任务'],
+      },
+      {
+        label: '前往 选题全景看板',
+        view: 'kanban' as NavView,
+        icon: Kanban,
+        desc: '按生产阶段管理选题',
+        keywords: ['看板', 'kanban', 'board', '选题看板', '主页'],
+      },
+      {
+        label: '前往 选题日历',
+        view: 'calendar' as NavView,
+        icon: CalendarDays,
+        desc: '查看排期与交付日历',
+        keywords: ['日历', '选题日历', '排期', '排产', 'calendar', '更文', '排片'],
+      },
+      {
+        label: '前往 标签与创作赛道',
+        view: 'tags' as NavView,
+        icon: Hash,
+        desc: '管理赛道与选题标签',
+        keywords: ['标签', '赛道', 'tags', 'track', '分类'],
+      },
+      {
+        label: '前往 人物档案库',
+        view: 'people' as NavView,
+        icon: User,
+        desc: '维护人物与关系档案',
+        keywords: ['人物', '网红', '档案', 'people', '关系网', '主播'],
+      },
+      {
+        label: '前往 已发布视频复盘',
+        view: 'published' as NavView,
+        icon: Film,
+        desc: '复盘已发布视频数据',
+        keywords: ['发布', '复盘', 'published', '成片', '视频', 'bilibili', 'b站'],
+      },
+      {
+        label: '前往 商单中心',
+        view: 'deals' as NavView,
+        icon: Handshake,
+        desc: '管理商务交付与回款',
+        keywords: ['商单', '商务', '品牌', '客户', '回款', '花火', 'deal'],
+      },
+      {
+        label: '前往 选题库',
+        view: 'database' as NavView,
+        icon: Database,
+        desc: '查看全量选题数据',
+        keywords: ['选题库', '数据表格', 'database', '表格', '归档'],
+      },
+      {
+        label: '前往 偏好与数据备份',
+        view: 'settings' as NavView,
+        icon: Settings,
+        desc: '调整偏好与备份数据',
+        keywords: ['设置', '偏好', '备份', 'settings', '主题', '语速', '导出'],
+      },
+    ],
+    [],
+  );
 
   // 2. Help items
-  const helpItems: SelectableItem[] = useMemo(() => [
-    {
-      id: 'help-cmd-slash',
-      category: 'help',
-      categoryLabel: '全局快捷键',
-      title: 'macOS Command+/ · Windows Alt+/',
-      subtitle: '打开全局指令搜索面板',
-      keywords: ['command+/', 'cmd+/', '⌘+/', 'alt+/', '快捷键', '搜索', '指令'],
-      icon: Keyboard,
-      onSelect: () => onClose(),
-    },
-    {
-      id: 'help-teleprompter',
-      category: 'help',
-      categoryLabel: '文案与演播',
-      title: 'Cmd / Ctrl + Shift + P',
-      subtitle: '打开沉浸式录音提词器',
-      keywords: ['提词器', '录音', 'teleprompter', '演播'],
-      icon: Keyboard,
-      onSelect: () => onClose(),
-    },
-    {
-      id: 'help-zen',
-      category: 'help',
-      categoryLabel: '文案与演播',
-      title: 'Cmd / Ctrl + Shift + F',
-      subtitle: '切换沉浸写作模式',
-      keywords: ['专注', '全屏', 'zen', '写作'],
-      icon: Keyboard,
-      onSelect: () => onClose(),
-    },
-    {
-      id: 'help-quick-new',
-      category: 'help',
-      categoryLabel: '看板操作',
-      title: 'N',
-      subtitle: '快速新建选题',
-      keywords: ['新建', 'n', 'new'],
-      icon: Keyboard,
-      onSelect: () => {
-        onClose();
-        onOpenQuickCreate('');
+  const helpItems: SelectableItem[] = useMemo(
+    () => [
+      {
+        id: 'help-cmd-slash',
+        category: 'help',
+        categoryLabel: '全局快捷键',
+        title: 'macOS Command+/ · Windows Alt+/',
+        subtitle: '打开全局指令搜索面板',
+        keywords: ['command+/', 'cmd+/', '⌘+/', 'alt+/', '快捷键', '搜索', '指令'],
+        icon: Keyboard,
+        onSelect: () => onClose(),
       },
-    },
-    {
-      id: 'help-search-slash',
-      category: 'help',
-      categoryLabel: '看板操作',
-      title: '/',
-      subtitle: '打开指令搜索面板',
-      keywords: ['/', '斜杠', '搜索'],
-      icon: Keyboard,
-      onSelect: () => onClose(),
-    },
-    {
-      id: 'help-esc',
-      category: 'help',
-      categoryLabel: '通用操作',
-      title: 'Esc',
-      subtitle: '关闭浮层或退出沉浸模式',
-      keywords: ['esc', '退出', '关闭'],
-      icon: Keyboard,
-      onSelect: () => onClose(),
-    },
-  ], [onClose, onOpenQuickCreate]);
+      {
+        id: 'help-teleprompter',
+        category: 'help',
+        categoryLabel: '文案与演播',
+        title: 'Cmd / Ctrl + Shift + P',
+        subtitle: '打开沉浸式录音提词器',
+        keywords: ['提词器', '录音', 'teleprompter', '演播'],
+        icon: Keyboard,
+        onSelect: () => onClose(),
+      },
+      {
+        id: 'help-zen',
+        category: 'help',
+        categoryLabel: '文案与演播',
+        title: 'Cmd / Ctrl + Shift + F',
+        subtitle: '切换沉浸写作模式',
+        keywords: ['专注', '全屏', 'zen', '写作'],
+        icon: Keyboard,
+        onSelect: () => onClose(),
+      },
+      {
+        id: 'help-quick-new',
+        category: 'help',
+        categoryLabel: '看板操作',
+        title: 'N',
+        subtitle: '快速新建选题',
+        keywords: ['新建', 'n', 'new'],
+        icon: Keyboard,
+        onSelect: () => {
+          onClose();
+          onOpenQuickCreate('');
+        },
+      },
+      {
+        id: 'help-search-slash',
+        category: 'help',
+        categoryLabel: '看板操作',
+        title: '/',
+        subtitle: '打开指令搜索面板',
+        keywords: ['/', '斜杠', '搜索'],
+        icon: Keyboard,
+        onSelect: () => onClose(),
+      },
+      {
+        id: 'help-esc',
+        category: 'help',
+        categoryLabel: '通用操作',
+        title: 'Esc',
+        subtitle: '关闭浮层或退出沉浸模式',
+        keywords: ['esc', '退出', '关闭'],
+        icon: Keyboard,
+        onSelect: () => onClose(),
+      },
+    ],
+    [onClose, onOpenQuickCreate],
+  );
 
   // Match item helper supporting title, subtitle, categoryLabel, and rich keywords
   const matchItem = (item: SelectableItem, q: string): boolean => {
@@ -281,7 +357,7 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
     if (item.title.toLowerCase().includes(q)) return true;
     if (item.subtitle && item.subtitle.toLowerCase().includes(q)) return true;
     if (item.categoryLabel.toLowerCase().includes(q)) return true;
-    if (item.keywords && item.keywords.some((k) => k.toLowerCase().includes(q))) return true;
+    if (item.keywords && item.keywords.some(k => k.toLowerCase().includes(q))) return true;
     return false;
   };
 
@@ -394,7 +470,7 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
     });
 
     // Theme actions use the canonical options from THEME_CONFIG_LIST.
-    const themeActions: SelectableItem[] = THEME_CONFIG_LIST.map((t) => {
+    const themeActions: SelectableItem[] = THEME_CONFIG_LIST.map(t => {
       const isCurrent = currentTheme === t.id;
       const isDarkType = t.id.includes('dark') || t.id.includes('obsidian');
       return {
@@ -480,8 +556,8 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
 
     // Tag Mode
     if (mode === 'tag') {
-      const matched = cleanQ ? tags.filter((t) => t.name.toLowerCase().includes(cleanQ)) : tags;
-      matched.forEach((tag) => {
+      const matched = cleanQ ? tags.filter(t => t.name.toLowerCase().includes(cleanQ)) : tags;
+      matched.forEach(tag => {
         list.push({
           id: `tag-${tag.id}`,
           category: 'tag',
@@ -503,19 +579,21 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
     if (mode === 'person') {
       const matched = cleanQ
         ? people.filter(
-            (p) =>
+            p =>
               p.name.toLowerCase().includes(cleanQ) ||
               (p.aliases || '').toLowerCase().includes(cleanQ) ||
-              (p.identity || '').toLowerCase().includes(cleanQ)
+              (p.identity || '').toLowerCase().includes(cleanQ),
           )
         : people;
-      matched.forEach((person) => {
+      matched.forEach(person => {
         list.push({
           id: `person-${person.id}`,
           category: 'person',
           categoryLabel: '人物档案',
           title: person.name,
-          subtitle: person.identity ? `${person.identity}${person.aliases ? ` · 别名：${person.aliases}` : ''}` : person.aliases || undefined,
+          subtitle: person.identity
+            ? `${person.identity}${person.aliases ? ` · 别名：${person.aliases}` : ''}`
+            : person.aliases || undefined,
           icon: User,
           onSelect: () => {
             onSelectPerson(person.id);
@@ -529,7 +607,7 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
     // Action Mode ('>' prefix)
     if (mode === 'action') {
       const allActionPool = [...utilityActions, ...statusActions, ...themeActions];
-      const matched = cleanQ ? allActionPool.filter((c) => matchItem(c, cleanQ)) : allActionPool;
+      const matched = cleanQ ? allActionPool.filter(c => matchItem(c, cleanQ)) : allActionPool;
       return quickCreateAction ? [...matched, quickCreateAction] : matched;
     }
 
@@ -537,7 +615,7 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
     if (!cleanQ) {
       list.push(...utilityActions.slice(0, 4));
       list.push(...themeActions);
-      allNavCommands.forEach((cmd) => {
+      allNavCommands.forEach(cmd => {
         list.push({
           id: `nav-${cmd.view}`,
           category: 'nav',
@@ -552,20 +630,20 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
           },
         });
       });
-      topics.slice(0, 5).forEach((topic) => {
+      topics.slice(0, 5).forEach(topic => {
         list.push({
           id: `topic-${topic.id}`,
           category: 'topic',
           categoryLabel: '近期活跃选题',
           title: topic.title,
-          subtitle: topic.current_todo ? `当前行动：${topic.current_todo.title}` : topic.summary || topic.hook || undefined,
+          subtitle: topic.current_todo
+            ? `当前行动：${topic.current_todo.title}`
+            : topic.summary || topic.hook || undefined,
           icon: FileText,
           extra: (
             <div className="flex items-center gap-1.5 shrink-0">
               <StatusBadge status={topic.status} />
-              {topic.priority && topic.priority !== 'none' && (
-                <PriorityBadge priority={topic.priority} />
-              )}
+              {topic.priority && topic.priority !== 'none' && <PriorityBadge priority={topic.priority} />}
             </div>
           ),
           onSelect: () => {
@@ -574,7 +652,7 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
           },
         });
       });
-      tags.slice(0, 4).forEach((tag) => {
+      tags.slice(0, 4).forEach(tag => {
         list.push({
           id: `tag-${tag.id}`,
           category: 'tag',
@@ -595,17 +673,17 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
     // When query is entered in 'all' mode:
     if (cleanQ) {
       // 1. Matched Theme Actions (NEVER truncate themes so all 8 are visible when searching theme/外观)
-      const matchedThemes = themeActions.filter((t) => matchItem(t, cleanQ));
+      const matchedThemes = themeActions.filter(t => matchItem(t, cleanQ));
       if (matchedThemes.length > 0) {
         list.push(...matchedThemes);
       }
 
       // 2. Matched Utility & Status Actions
-      const matchedActions = [...utilityActions, ...statusActions].filter((c) => matchItem(c, cleanQ));
+      const matchedActions = [...utilityActions, ...statusActions].filter(c => matchItem(c, cleanQ));
       list.push(...matchedActions.slice(0, 5));
 
       // 3. Matched Navs
-      const matchedNavs = allNavCommands.filter((cmd) => {
+      const matchedNavs = allNavCommands.filter(cmd => {
         const item: SelectableItem = {
           id: `nav-${cmd.view}`,
           category: 'nav',
@@ -618,7 +696,7 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
         };
         return matchItem(item, cleanQ);
       });
-      matchedNavs.forEach((cmd) => {
+      matchedNavs.forEach(cmd => {
         list.push({
           id: `nav-${cmd.view}`,
           category: 'nav',
@@ -635,23 +713,24 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
       });
 
       // 4. Matched Topics
-      const matchedTopics = isCurrentTopicSearch && topicSearchQuery.data
-        ? topicSearchQuery.data.items
-        : topics.filter((t) => t.title.toLowerCase().includes(cleanQ));
-      matchedTopics.slice(0, 6).forEach((topic) => {
+      const matchedTopics =
+        isCurrentTopicSearch && topicSearchQuery.data
+          ? topicSearchQuery.data.items
+          : topics.filter(t => t.title.toLowerCase().includes(cleanQ));
+      matchedTopics.slice(0, 6).forEach(topic => {
         list.push({
           id: `topic-${topic.id}`,
           category: 'topic',
           categoryLabel: '匹配选题',
           title: topic.title,
-          subtitle: topic.current_todo ? `当前行动：${topic.current_todo.title}` : topic.summary || topic.hook || undefined,
+          subtitle: topic.current_todo
+            ? `当前行动：${topic.current_todo.title}`
+            : topic.summary || topic.hook || undefined,
           icon: FileText,
           extra: (
             <div className="flex items-center gap-1.5 shrink-0">
               <StatusBadge status={topic.status} />
-              {topic.priority && topic.priority !== 'none' && (
-                <PriorityBadge priority={topic.priority} />
-              )}
+              {topic.priority && topic.priority !== 'none' && <PriorityBadge priority={topic.priority} />}
             </div>
           ),
           onSelect: () => {
@@ -663,18 +742,20 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
 
       // 5. Matched People
       const matchedPeople = people.filter(
-        (p) =>
+        p =>
           p.name.toLowerCase().includes(cleanQ) ||
           (p.aliases || '').toLowerCase().includes(cleanQ) ||
-          (p.identity || '').toLowerCase().includes(cleanQ)
+          (p.identity || '').toLowerCase().includes(cleanQ),
       );
-      matchedPeople.slice(0, 4).forEach((person) => {
+      matchedPeople.slice(0, 4).forEach(person => {
         list.push({
           id: `person-${person.id}`,
           category: 'person',
           categoryLabel: '人物档案',
           title: person.name,
-          subtitle: person.identity ? `${person.identity}${person.aliases ? ` · 别名：${person.aliases}` : ''}` : person.aliases || undefined,
+          subtitle: person.identity
+            ? `${person.identity}${person.aliases ? ` · 别名：${person.aliases}` : ''}`
+            : person.aliases || undefined,
           icon: User,
           onSelect: () => {
             onSelectPerson(person.id);
@@ -684,8 +765,8 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
       });
 
       // 6. Matched Tags
-      const matchedTags = tags.filter((t) => t.name.toLowerCase().includes(cleanQ));
-      matchedTags.slice(0, 4).forEach((tag) => {
+      const matchedTags = tags.filter(t => t.name.toLowerCase().includes(cleanQ));
+      matchedTags.slice(0, 4).forEach(tag => {
         list.push({
           id: `tag-${tag.id}`,
           category: 'tag',
@@ -735,7 +816,7 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
   }, [query]);
 
   useEffect(() => {
-    setSelectedIndex((current) => Math.min(current, Math.max(items.length - 1, 0)));
+    setSelectedIndex(current => Math.min(current, Math.max(items.length - 1, 0)));
   }, [items.length]);
 
   // Keep the selected row and its highlight inside the list's fixed edge inset.
@@ -772,11 +853,11 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
     if (e.key === 'ArrowDown') {
       e.preventDefault();
       lastMousePositionRef.current = null;
-      setSelectedIndex((prev) => Math.min(prev + 1, items.length - 1));
+      setSelectedIndex(prev => Math.min(prev + 1, items.length - 1));
     } else if (e.key === 'ArrowUp') {
       e.preventDefault();
       lastMousePositionRef.current = null;
-      setSelectedIndex((prev) => Math.max(prev - 1, 0));
+      setSelectedIndex(prev => Math.max(prev - 1, 0));
     } else if (e.key === 'Enter') {
       e.preventDefault();
       if (items[selectedIndex]) {
@@ -816,7 +897,7 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
         aria-modal="true"
         aria-label="全局指令搜索面板"
         className="command-palette-dialog relative w-full max-w-[520px] bg-surface rounded-2xl shadow-modal border border-line overflow-hidden flex flex-col z-10 max-h-[85dvh]"
-        onClick={(e) => e.stopPropagation()}
+        onClick={e => e.stopPropagation()}
       >
         {/* Search Input Header */}
         <div className="flex items-center px-4 py-3.5 border-b border-line bg-canvas">
@@ -831,7 +912,7 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
             spellCheck={false}
             placeholder="搜索选题或指令 · #标签 @人物 >动作 ?帮助"
             value={query}
-            onChange={(e) => setQuery(e.target.value)}
+            onChange={e => setQuery(e.target.value)}
             onKeyDown={handleKeyDown}
             className="command-palette-input w-full text-sm sm:text-base bg-transparent border-none outline-none text-ink placeholder:text-ink-muted font-medium"
           />
@@ -842,7 +923,11 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
 
         {/* Results List */}
         {/* Six 56px rows, five 4px gaps, and 12px padding on both ends. */}
-        <FloatingScrollbar ref={listRef} className="overflow-x-hidden" wrapperClassName="h-[min(380px,calc(85dvh-3.5rem))] flex-none">
+        <FloatingScrollbar
+          ref={listRef}
+          className="overflow-x-hidden"
+          wrapperClassName="h-[min(380px,calc(85dvh-3.5rem))] flex-none"
+        >
           <div className="flex flex-col gap-1 p-3">
             {items.map((item, index) => {
               const isSelected = index === selectedIndex;
@@ -851,22 +936,20 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
               return (
                 <button
                   key={item.id}
-                  ref={(el) => { itemRefs.current[index] = el; }}
+                  ref={el => {
+                    itemRefs.current[index] = el;
+                  }}
                   onClick={item.onSelect}
                   onPointerDown={() => setSelectedIndex(index)}
-                  onMouseMove={(e) => handleItemMouseMove(index, e)}
+                  onMouseMove={e => handleItemMouseMove(index, e)}
                   className={`w-full h-14 shrink-0 flex items-center justify-between px-3 rounded-xl text-left cursor-pointer ${
-                    isSelected
-                      ? 'bg-accent-soft text-ink'
-                      : 'text-ink'
+                    isSelected ? 'bg-accent-soft text-ink' : 'text-ink'
                   }`}
                 >
                   <div className="flex items-center gap-3 min-w-0 flex-1">
                     <div
                       className={`w-7 h-7 rounded-lg flex items-center justify-center shrink-0 ${
-                        isSelected
-                          ? 'bg-surface text-accent'
-                          : 'bg-control text-ink-muted'
+                        isSelected ? 'bg-surface text-accent' : 'bg-control text-ink-muted'
                       }`}
                     >
                       <Icon className="w-3.5 h-3.5" />
@@ -874,22 +957,16 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
 
                     <div className="min-w-0 flex-1">
                       <div className="h-5 flex items-center">
-                        <span className="font-semibold text-ink text-sm truncate leading-5">
-                          {item.title}
-                        </span>
+                        <span className="font-semibold text-ink text-sm truncate leading-5">{item.title}</span>
                       </div>
-                      <div className="mt-0.5 h-4 truncate text-2xs leading-4 text-ink-muted/80">
-                        {item.subtitle}
-                      </div>
+                      <div className="mt-0.5 h-4 truncate text-2xs leading-4 text-ink-muted/80">{item.subtitle}</div>
                     </div>
                   </div>
 
                   <div className="flex items-center gap-2 ml-3 shrink-0">
                     {item.extra}
                     <CornerDownLeft
-                      className={`w-3.5 h-3.5 ${
-                        isSelected ? 'text-accent opacity-100' : 'text-ink-faint opacity-0'
-                      }`}
+                      className={`w-3.5 h-3.5 ${isSelected ? 'text-accent opacity-100' : 'text-ink-faint opacity-0'}`}
                     />
                   </div>
                 </button>

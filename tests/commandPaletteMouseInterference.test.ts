@@ -67,8 +67,8 @@ describe('CommandPalette 键盘优先与鼠标防干扰契约', () => {
           onSelectPerson: () => {},
           onNavigate: () => {},
           onOpenQuickCreate: () => {},
-        })
-      )
+        }),
+      ),
     );
 
     // 默认第一项（selectedIndex 0）获得高亮

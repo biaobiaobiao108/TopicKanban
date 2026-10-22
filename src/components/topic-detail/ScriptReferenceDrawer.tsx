@@ -1,16 +1,6 @@
 import React, { useState } from 'react';
 import { CitationInput, Topic, Source } from '../../types';
-import {
-  User,
-  Quote,
-  Sparkles,
-  FileSearch,
-  Search,
-  X,
-  Plus,
-  Check,
-  AlertTriangle,
-} from 'lucide-react';
+import { User, Quote, Sparkles, FileSearch, Search, X, Plus, Check, AlertTriangle } from 'lucide-react';
 import { FloatingScrollbar } from '../ui/FloatingScrollbar';
 
 interface ScriptReferenceDrawerProps {
@@ -47,24 +37,34 @@ export const ScriptReferenceDrawer: React.FC<ScriptReferenceDrawerProps> = ({
   const q = searchQuery.toLowerCase().trim();
 
   const peopleList = topic.people || [];
-  const filteredPeople = peopleList.filter((p) =>
-    !q || p.name.toLowerCase().includes(q) || (p.quotes || '').toLowerCase().includes(q) || (p.identity || '').toLowerCase().includes(q)
+  const filteredPeople = peopleList.filter(
+    p =>
+      !q ||
+      p.name.toLowerCase().includes(q) ||
+      (p.quotes || '').toLowerCase().includes(q) ||
+      (p.identity || '').toLowerCase().includes(q),
   );
 
-  const filteredSources = sources.filter((s) =>
-    !q || s.title.toLowerCase().includes(q) || (s.content || '').toLowerCase().includes(q) || (s.author || '').toLowerCase().includes(q) || (s.event_date || '').toLowerCase().includes(q)
+  const filteredSources = sources.filter(
+    s =>
+      !q ||
+      s.title.toLowerCase().includes(q) ||
+      (s.content || '').toLowerCase().includes(q) ||
+      (s.author || '').toLowerCase().includes(q) ||
+      (s.event_date || '').toLowerCase().includes(q),
   );
 
   const showHook = Boolean(topic.hook && (!q || topic.hook.toLowerCase().includes(q)));
   const showStoryline = Boolean(topic.storyline && (!q || topic.storyline.toLowerCase().includes(q)));
   const hasOutlineContent = showHook || showStoryline;
-  const hasVisibleContent = activeTab === 'people'
-    ? filteredPeople.length > 0
-    : activeTab === 'outline'
-      ? hasOutlineContent
-      : activeTab === 'sources'
-        ? filteredSources.length > 0
-        : hasOutlineContent || filteredPeople.length > 0 || filteredSources.length > 0;
+  const hasVisibleContent =
+    activeTab === 'people'
+      ? filteredPeople.length > 0
+      : activeTab === 'outline'
+        ? hasOutlineContent
+        : activeTab === 'sources'
+          ? filteredSources.length > 0
+          : hasOutlineContent || filteredPeople.length > 0 || filteredSources.length > 0;
 
   return (
     <>
@@ -83,7 +83,7 @@ export const ScriptReferenceDrawer: React.FC<ScriptReferenceDrawerProps> = ({
               type="text"
               placeholder="搜索人物语录、资料..."
               value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
+              onChange={e => setSearchQuery(e.target.value)}
               className="w-full pl-8 pr-3 py-1.5 bg-black/[0.04] rounded-xl text-xs text-ink placeholder:text-ink-muted focus:outline-none focus:bg-surface focus:ring-1 focus:ring-accent transition-all border-0"
             />
           </div>
@@ -105,7 +105,7 @@ export const ScriptReferenceDrawer: React.FC<ScriptReferenceDrawerProps> = ({
               { id: 'sources', label: '资料' },
               { id: 'people', label: '人物' },
               { id: 'outline', label: '大纲' },
-            ].map((tab) => (
+            ].map(tab => (
               <button
                 key={tab.id}
                 type="button"
@@ -138,17 +138,29 @@ export const ScriptReferenceDrawer: React.FC<ScriptReferenceDrawerProps> = ({
                     <span className="font-semibold text-ink">🎯 黄金 3 秒 Hook</span>
                     <button
                       type="button"
-                      onClick={() => void handleInsert('hook', {
-                        reference_type: 'outline', reference_id: 'hook', reference_title: '核心 Hook',
-                        reference_snapshot: topic.hook, quoted_text: topic.hook, verification_status: 'confirmed',
-                      })}
+                      onClick={() =>
+                        void handleInsert('hook', {
+                          reference_type: 'outline',
+                          reference_id: 'hook',
+                          reference_title: '核心 Hook',
+                          reference_snapshot: topic.hook,
+                          quoted_text: topic.hook,
+                          verification_status: 'confirmed',
+                        })
+                      }
                       className="text-2xs bg-black/[0.04] hover:bg-accent hover:text-white text-ink-muted px-2 py-0.5 rounded-md flex items-center gap-1 cursor-pointer font-medium transition-colors border-0"
                     >
-                      {insertedId === 'hook' ? <Check className="w-2.5 h-2.5 text-inherit" /> : <Plus className="w-2.5 h-2.5" />}
+                      {insertedId === 'hook' ? (
+                        <Check className="w-2.5 h-2.5 text-inherit" />
+                      ) : (
+                        <Plus className="w-2.5 h-2.5" />
+                      )}
                       <span>插入</span>
                     </button>
                   </div>
-                  <p className="text-ink leading-relaxed italic text-2xs bg-canvas/70 p-2.5 rounded-lg border-0">{topic.hook}</p>
+                  <p className="text-ink leading-relaxed italic text-2xs bg-canvas/70 p-2.5 rounded-lg border-0">
+                    {topic.hook}
+                  </p>
                 </div>
               )}
 
@@ -158,17 +170,29 @@ export const ScriptReferenceDrawer: React.FC<ScriptReferenceDrawerProps> = ({
                     <span className="font-semibold text-ink">📖 故事主线阶段</span>
                     <button
                       type="button"
-                      onClick={() => void handleInsert('storyline', {
-                        reference_type: 'outline', reference_id: 'storyline', reference_title: '故事主线',
-                        reference_snapshot: topic.storyline, quoted_text: topic.storyline, verification_status: 'confirmed',
-                      })}
+                      onClick={() =>
+                        void handleInsert('storyline', {
+                          reference_type: 'outline',
+                          reference_id: 'storyline',
+                          reference_title: '故事主线',
+                          reference_snapshot: topic.storyline,
+                          quoted_text: topic.storyline,
+                          verification_status: 'confirmed',
+                        })
+                      }
                       className="text-2xs bg-black/[0.04] hover:bg-accent hover:text-white text-ink-muted px-2 py-0.5 rounded-md flex items-center gap-1 cursor-pointer font-medium transition-colors border-0"
                     >
-                      {insertedId === 'storyline' ? <Check className="w-2.5 h-2.5 text-inherit" /> : <Plus className="w-2.5 h-2.5" />}
+                      {insertedId === 'storyline' ? (
+                        <Check className="w-2.5 h-2.5 text-inherit" />
+                      ) : (
+                        <Plus className="w-2.5 h-2.5" />
+                      )}
                       <span>插入</span>
                     </button>
                   </div>
-                  <p className="text-ink leading-relaxed whitespace-pre-wrap text-2xs bg-canvas/70 p-2.5 rounded-lg border-0">{topic.storyline}</p>
+                  <p className="text-ink leading-relaxed whitespace-pre-wrap text-2xs bg-canvas/70 p-2.5 rounded-lg border-0">
+                    {topic.storyline}
+                  </p>
                 </div>
               )}
             </div>
@@ -182,7 +206,7 @@ export const ScriptReferenceDrawer: React.FC<ScriptReferenceDrawerProps> = ({
                 <span>人物语录与名言</span>
               </div>
 
-              {filteredPeople.map((person) => (
+              {filteredPeople.map(person => (
                 <div key={person.id} className="bg-surface p-3.5 rounded-xl shadow-subtle space-y-2.5 border-0">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-1.5">
@@ -203,14 +227,23 @@ export const ScriptReferenceDrawer: React.FC<ScriptReferenceDrawerProps> = ({
                         </span>
                         <button
                           type="button"
-                          onClick={() => void handleInsert(`quote-${person.id}`, {
-                            reference_type: 'person', reference_id: person.id, reference_title: `${person.name}语录`,
-                            reference_snapshot: `“${person.quotes}” —— ${person.name}`,
-                            quoted_text: `“${person.quotes}” —— ${person.name}`, verification_status: 'confirmed',
-                          })}
+                          onClick={() =>
+                            void handleInsert(`quote-${person.id}`, {
+                              reference_type: 'person',
+                              reference_id: person.id,
+                              reference_title: `${person.name}语录`,
+                              reference_snapshot: `“${person.quotes}” —— ${person.name}`,
+                              quoted_text: `“${person.quotes}” —— ${person.name}`,
+                              verification_status: 'confirmed',
+                            })
+                          }
                           className="text-2xs bg-black/[0.04] hover:bg-accent hover:text-white text-ink-muted px-2 py-0.5 rounded-md flex items-center gap-1 cursor-pointer font-medium transition-colors border-0"
                         >
-                          {insertedId === `quote-${person.id}` ? <Check className="w-2.5 h-2.5 text-inherit" /> : <Plus className="w-2.5 h-2.5" />}
+                          {insertedId === `quote-${person.id}` ? (
+                            <Check className="w-2.5 h-2.5 text-inherit" />
+                          ) : (
+                            <Plus className="w-2.5 h-2.5" />
+                          )}
                           <span>插入引用</span>
                         </button>
                       </div>
@@ -233,7 +266,7 @@ export const ScriptReferenceDrawer: React.FC<ScriptReferenceDrawerProps> = ({
               </div>
 
               <div className="space-y-2.5">
-                {filteredSources.map((source) => (
+                {filteredSources.map(source => (
                   <div key={source.id} className="bg-surface p-3.5 rounded-xl shadow-subtle space-y-2 border-0">
                     <div className="flex items-start justify-between gap-1">
                       <div className="space-y-0.5 min-w-0 flex-1">
@@ -246,14 +279,23 @@ export const ScriptReferenceDrawer: React.FC<ScriptReferenceDrawerProps> = ({
                       </div>
                       <button
                         type="button"
-                        onClick={() => void handleInsert(`src-${source.id}`, {
-                          reference_type: 'source', reference_id: source.id, reference_title: source.title,
-                          reference_snapshot: source.content || source.title, quoted_text: source.content || source.title,
-                          verification_status: source.verification_status,
-                        })}
+                        onClick={() =>
+                          void handleInsert(`src-${source.id}`, {
+                            reference_type: 'source',
+                            reference_id: source.id,
+                            reference_title: source.title,
+                            reference_snapshot: source.content || source.title,
+                            quoted_text: source.content || source.title,
+                            verification_status: source.verification_status,
+                          })
+                        }
                         className="text-2xs bg-black/[0.04] hover:bg-accent hover:text-white text-ink-muted px-2 py-0.5 rounded-md shrink-0 flex items-center gap-1 cursor-pointer font-medium transition-colors border-0"
                       >
-                        {insertedId === `src-${source.id}` ? <Check className="w-2.5 h-2.5 text-inherit" /> : <Plus className="w-2.5 h-2.5" />}
+                        {insertedId === `src-${source.id}` ? (
+                          <Check className="w-2.5 h-2.5 text-inherit" />
+                        ) : (
+                          <Plus className="w-2.5 h-2.5" />
+                        )}
                         <span>插入</span>
                       </button>
                     </div>
@@ -262,12 +304,22 @@ export const ScriptReferenceDrawer: React.FC<ScriptReferenceDrawerProps> = ({
                         {source.content}
                       </p>
                     )}
-                    <div className={`text-3xs pt-0.5 ${
-                      source.verification_status === 'confirmed' ? 'text-accent font-medium' : 'text-stage-scripting'
-                    }`}>
-                      {source.verification_status === 'confirmed'
-                        ? <span className="inline-flex items-center gap-1"><Check className="h-3 w-3" aria-hidden="true" />已核实</span>
-                        : <span className="inline-flex items-center gap-1"><AlertTriangle className="h-3 w-3" aria-hidden="true" />待核实</span>}
+                    <div
+                      className={`text-3xs pt-0.5 ${
+                        source.verification_status === 'confirmed' ? 'text-accent font-medium' : 'text-stage-scripting'
+                      }`}
+                    >
+                      {source.verification_status === 'confirmed' ? (
+                        <span className="inline-flex items-center gap-1">
+                          <Check className="h-3 w-3" aria-hidden="true" />
+                          已核实
+                        </span>
+                      ) : (
+                        <span className="inline-flex items-center gap-1">
+                          <AlertTriangle className="h-3 w-3" aria-hidden="true" />
+                          待核实
+                        </span>
+                      )}
                       {staleReferenceIds.includes(source.id) && <span className="ml-2 text-warning">引用后有修改</span>}
                     </div>
                   </div>
@@ -277,11 +329,7 @@ export const ScriptReferenceDrawer: React.FC<ScriptReferenceDrawerProps> = ({
           )}
 
           {/* Empty state */}
-          {!hasVisibleContent && (
-            <div className="py-12 text-center text-ink-muted text-xs">
-              暂无匹配的事实资料
-            </div>
-          )}
+          {!hasVisibleContent && <div className="py-12 text-center text-ink-muted text-xs">暂无匹配的事实资料</div>}
         </FloatingScrollbar>
       </aside>
     </>

@@ -12,10 +12,12 @@ function temporaryDatabasePath(prefix: string): string {
 }
 
 async function removeSqliteArtifacts(dbPath: string): Promise<void> {
-  await Promise.all(['', '-wal', '-shm', '-journal'].map(async (suffix) => {
-    const file = Bun.file(`${dbPath}${suffix}`);
-    if (await file.exists()) await file.unlink();
-  }));
+  await Promise.all(
+    ['', '-wal', '-shm', '-journal'].map(async suffix => {
+      const file = Bun.file(`${dbPath}${suffix}`);
+      if (await file.exists()) await file.unlink();
+    }),
+  );
 }
 
 describe('Database schema contract', () => {
@@ -24,79 +26,138 @@ describe('Database schema contract', () => {
     try {
       sqlite.exec(schemaSql);
 
-      const tables = sqlite.query("SELECT name FROM sqlite_master WHERE type = 'table' ORDER BY name")
-        .all() as Array<{ name: string }>;
-      expect(tables.map((table) => table.name)).toEqual([
-        'commercial_deal_activities', 'commercial_deal_topics', 'commercial_deals',
-        'draft_citations', 'drafts', 'people', 'person_relationships', 'publish_packages',
-        'published_videos', 'quick_drops', 'sources', 'tags', 'topic_people', 'topic_reports',
-        'topic_search', 'topic_search_config', 'topic_search_content',
-        'topic_search_data', 'topic_search_docsize', 'topic_search_idx', 'topic_tags',
-        'topic_todos', 'topics',
+      const tables = sqlite.query("SELECT name FROM sqlite_master WHERE type = 'table' ORDER BY name").all() as Array<{
+        name: string;
+      }>;
+      expect(tables.map(table => table.name)).toEqual([
+        'commercial_deal_activities',
+        'commercial_deal_topics',
+        'commercial_deals',
+        'draft_citations',
+        'drafts',
+        'people',
+        'person_relationships',
+        'publish_packages',
+        'published_videos',
+        'quick_drops',
+        'sources',
+        'tags',
+        'topic_people',
+        'topic_reports',
+        'topic_search',
+        'topic_search_config',
+        'topic_search_content',
+        'topic_search_data',
+        'topic_search_docsize',
+        'topic_search_idx',
+        'topic_tags',
+        'topic_todos',
+        'topics',
       ]);
 
       const sourceColumns = sqlite.query('PRAGMA table_info(sources)').all() as Array<{ name: string }>;
-      expect(sourceColumns.some((column) => column.name === 'type')).toBe(false);
-      expect(sourceColumns.some((column) => column.name === 'event_date')).toBe(true);
-      expect(sourceColumns.some((column) => column.name === 'date_precision')).toBe(true);
-      expect(sourceColumns.some((column) => column.name === 'sort_order')).toBe(true);
+      expect(sourceColumns.some(column => column.name === 'type')).toBe(false);
+      expect(sourceColumns.some(column => column.name === 'event_date')).toBe(true);
+      expect(sourceColumns.some(column => column.name === 'date_precision')).toBe(true);
+      expect(sourceColumns.some(column => column.name === 'sort_order')).toBe(true);
 
       const topicColumns = sqlite.query('PRAGMA table_info(topics)').all() as Array<{ name: string }>;
-      expect(topicColumns.some((column) => column.name === 'target_publish_date')).toBe(true);
-      expect(topicColumns.some((column) => column.name === 'deadline')).toBe(true);
-      expect(topicColumns.some((column) => column.name === 'next_action')).toBe(false);
-      expect(topicColumns.some((column) => column.name === 'next_action_updated_at')).toBe(false);
-      expect(topicColumns.some((column) => column.name === 'next_action_deferred_until')).toBe(false);
+      expect(topicColumns.some(column => column.name === 'target_publish_date')).toBe(true);
+      expect(topicColumns.some(column => column.name === 'deadline')).toBe(true);
+      expect(topicColumns.some(column => column.name === 'next_action')).toBe(false);
+      expect(topicColumns.some(column => column.name === 'next_action_updated_at')).toBe(false);
+      expect(topicColumns.some(column => column.name === 'next_action_deferred_until')).toBe(false);
 
       const todoColumns = sqlite.query('PRAGMA table_info(topic_todos)').all() as Array<{ name: string }>;
-      expect(todoColumns.map((column) => column.name)).toEqual([
-        'id', 'topic_id', 'title', 'status', 'is_current', 'current_started_at',
-        'completed_at', 'sort_order', 'created_at', 'updated_at',
+      expect(todoColumns.map(column => column.name)).toEqual([
+        'id',
+        'topic_id',
+        'title',
+        'status',
+        'is_current',
+        'current_started_at',
+        'completed_at',
+        'sort_order',
+        'created_at',
+        'updated_at',
       ]);
-      const currentIndex = sqlite.query("SELECT sql FROM sqlite_master WHERE type = 'index' AND name = 'idx_topic_todos_current'").get() as { sql: string };
+      const currentIndex = sqlite
+        .query("SELECT sql FROM sqlite_master WHERE type = 'index' AND name = 'idx_topic_todos_current'")
+        .get() as { sql: string };
       expect(currentIndex.sql).toMatch(/WHERE is_current\s*=\s*1 AND completed_at IS NULL/);
-      const todoTable = sqlite.query("SELECT sql FROM sqlite_master WHERE type = 'table' AND name = 'topic_todos'").get() as { sql: string };
-      expect(todoTable.sql).toContain("(is_current = 1) = (current_started_at IS NOT NULL)");
-      const statusIndex = sqlite.query("SELECT sql FROM sqlite_master WHERE type = 'index' AND name = 'idx_topic_todos_topic_status_order'").get() as { sql: string };
+      const todoTable = sqlite
+        .query("SELECT sql FROM sqlite_master WHERE type = 'table' AND name = 'topic_todos'")
+        .get() as { sql: string };
+      expect(todoTable.sql).toContain('(is_current = 1) = (current_started_at IS NOT NULL)');
+      const statusIndex = sqlite
+        .query("SELECT sql FROM sqlite_master WHERE type = 'index' AND name = 'idx_topic_todos_topic_status_order'")
+        .get() as { sql: string };
       expect(statusIndex.sql).toContain('topic_id, status, sort_order');
 
-      const publishedTopicColumn = sqlite.query('PRAGMA table_info(published_videos)')
-        .all() as Array<{ name: string; notnull: number }>;
-      expect(publishedTopicColumn.find((column) => column.name === 'topic_id')?.notnull).toBe(0);
+      const publishedTopicColumn = sqlite.query('PRAGMA table_info(published_videos)').all() as Array<{
+        name: string;
+        notnull: number;
+      }>;
+      expect(publishedTopicColumn.find(column => column.name === 'topic_id')?.notnull).toBe(0);
 
-      const commercialDealTableSql = sqlite.query("SELECT sql FROM sqlite_master WHERE type = 'table' AND name = 'commercial_deals'").get() as { sql: string };
+      const commercialDealTableSql = sqlite
+        .query("SELECT sql FROM sqlite_master WHERE type = 'table' AND name = 'commercial_deals'")
+        .get() as { sql: string };
       expect(commercialDealTableSql.sql).toContain("status IN ('communicating', 'producing', 'delivered', 'archived')");
       const expectedIndexes = [
-        'idx_topics_target_publish_date', 'idx_topics_deadline',
-        'idx_topic_todos_topic_status_order', 'idx_topic_todos_current',
-        'idx_sources_topic_sort', 'idx_sources_topic_event_date',
-        'idx_topics_status_sort', 'idx_topics_updated_at', 'idx_topics_deleted_at',
-        'idx_sources_topic_id', 'idx_drafts_topic_id',
-        'idx_draft_citations_topic_id', 'idx_draft_citations_reference',
-        'idx_tags_name_unique', 'idx_topic_tags_unique', 'idx_topic_tags_tag_id',
-        'idx_topic_people_unique', 'idx_topic_people_person_id', 'idx_relationships_people',
-        'idx_published_topic_id', 'idx_published_page_order', 'idx_publish_packages_updated_at',
-        'idx_commercial_deals_status', 'idx_commercial_deals_due_date',
+        'idx_topics_target_publish_date',
+        'idx_topics_deadline',
+        'idx_topic_todos_topic_status_order',
+        'idx_topic_todos_current',
+        'idx_sources_topic_sort',
+        'idx_sources_topic_event_date',
+        'idx_topics_status_sort',
+        'idx_topics_updated_at',
+        'idx_topics_deleted_at',
+        'idx_sources_topic_id',
+        'idx_drafts_topic_id',
+        'idx_draft_citations_topic_id',
+        'idx_draft_citations_reference',
+        'idx_tags_name_unique',
+        'idx_topic_tags_unique',
+        'idx_topic_tags_tag_id',
+        'idx_topic_people_unique',
+        'idx_topic_people_person_id',
+        'idx_relationships_people',
+        'idx_published_topic_id',
+        'idx_published_page_order',
+        'idx_publish_packages_updated_at',
+        'idx_commercial_deals_status',
+        'idx_commercial_deals_due_date',
         'idx_commercial_deals_publish_date',
         'idx_commercial_deals_next_action_due_date',
-        'idx_commercial_deals_payment', 'idx_commercial_deals_published_video',
-        'idx_commercial_deal_topics_topic', 'idx_commercial_deal_topics_deal',
-        'idx_commercial_deal_primary_topic', 'idx_commercial_deal_activities_deal',
-        'idx_topics_active_updated', 'idx_topics_active_focus',
-        'idx_topic_todos_current_age', 'idx_quick_drops_expiry_order',
+        'idx_commercial_deals_payment',
+        'idx_commercial_deals_published_video',
+        'idx_commercial_deal_topics_topic',
+        'idx_commercial_deal_topics_deal',
+        'idx_commercial_deal_primary_topic',
+        'idx_commercial_deal_activities_deal',
+        'idx_topics_active_updated',
+        'idx_topics_active_focus',
+        'idx_topic_todos_current_age',
+        'idx_quick_drops_expiry_order',
       ];
-      const performanceIndexes = sqlite.query("SELECT name FROM sqlite_master WHERE type = 'index'")
-        .all() as Array<{ name: string }>;
+      const performanceIndexes = sqlite.query("SELECT name FROM sqlite_master WHERE type = 'index'").all() as Array<{
+        name: string;
+      }>;
       for (const indexName of expectedIndexes) {
-        expect(performanceIndexes.some((index) => index.name === indexName)).toBe(true);
+        expect(performanceIndexes.some(index => index.name === indexName)).toBe(true);
       }
       const expectedSearchTriggers = ['topic_search_ai', 'topic_search_au', 'topic_search_ad'];
-      const searchTriggers = sqlite.query("SELECT name FROM sqlite_master WHERE type = 'trigger'")
-        .all() as Array<{ name: string }>;
+      const searchTriggers = sqlite.query("SELECT name FROM sqlite_master WHERE type = 'trigger'").all() as Array<{
+        name: string;
+      }>;
       for (const triggerName of expectedSearchTriggers) {
-        expect(searchTriggers.some((trigger) => trigger.name === triggerName)).toBe(true);
+        expect(searchTriggers.some(trigger => trigger.name === triggerName)).toBe(true);
       }
-      const citationTableSql = sqlite.query("SELECT sql FROM sqlite_master WHERE type = 'table' AND name = 'draft_citations'").get() as { sql: string };
+      const citationTableSql = sqlite
+        .query("SELECT sql FROM sqlite_master WHERE type = 'table' AND name = 'draft_citations'")
+        .get() as { sql: string };
       expect(citationTableSql.sql).toContain("reference_type IN ('source', 'report', 'person', 'outline')");
       expect(citationTableSql.sql).not.toContain("'timeline'");
     } finally {
@@ -108,16 +169,40 @@ describe('Database schema contract', () => {
     const dbPath = temporaryDatabasePath('kanban-schema');
     const sqlite = await initializeSqliteDatabase(dbPath, schemaPath);
     try {
-      expect(sqlite.query("SELECT name FROM sqlite_master WHERE type = 'table' AND name = 'publish_packages'").get()).not.toBeNull();
-      expect(sqlite.query("SELECT name FROM sqlite_master WHERE type = 'table' AND name = 'commercial_deals'").get()).not.toBeNull();
-      expect(sqlite.query("SELECT name FROM sqlite_master WHERE type = 'table' AND name = 'commercial_deal_topics'").get()).not.toBeNull();
-      expect(sqlite.query("SELECT name FROM sqlite_master WHERE type = 'table' AND name = 'commercial_deal_activities'").get()).not.toBeNull();
-      expect(sqlite.query("SELECT name FROM sqlite_master WHERE type = 'table' AND name = 'topic_reports'").get()).not.toBeNull();
+      expect(
+        sqlite.query("SELECT name FROM sqlite_master WHERE type = 'table' AND name = 'publish_packages'").get(),
+      ).not.toBeNull();
+      expect(
+        sqlite.query("SELECT name FROM sqlite_master WHERE type = 'table' AND name = 'commercial_deals'").get(),
+      ).not.toBeNull();
+      expect(
+        sqlite.query("SELECT name FROM sqlite_master WHERE type = 'table' AND name = 'commercial_deal_topics'").get(),
+      ).not.toBeNull();
+      expect(
+        sqlite
+          .query("SELECT name FROM sqlite_master WHERE type = 'table' AND name = 'commercial_deal_activities'")
+          .get(),
+      ).not.toBeNull();
+      expect(
+        sqlite.query("SELECT name FROM sqlite_master WHERE type = 'table' AND name = 'topic_reports'").get(),
+      ).not.toBeNull();
 
-      expect(sqlite.query("SELECT name FROM sqlite_master WHERE type = 'table' AND name = '_schema_migrations'").get()).toBeNull();
+      expect(
+        sqlite.query("SELECT name FROM sqlite_master WHERE type = 'table' AND name = '_schema_migrations'").get(),
+      ).toBeNull();
       expect(sqlite.query('PRAGMA user_version').get()).toEqual({ user_version: 6 });
-      sqlite.query("INSERT INTO commercial_deals (id, title, created_at, updated_at) VALUES ('valid', '有效商单', '2026-08-27', '2026-08-27')").run();
-      expect(() => sqlite.query("INSERT INTO commercial_deals (id, title, status, created_at, updated_at) VALUES ('invalid', '非法阶段', 'reviewing', '2026-08-27', '2026-08-27')").run()).toThrow();
+      sqlite
+        .query(
+          "INSERT INTO commercial_deals (id, title, created_at, updated_at) VALUES ('valid', '有效商单', '2026-08-27', '2026-08-27')",
+        )
+        .run();
+      expect(() =>
+        sqlite
+          .query(
+            "INSERT INTO commercial_deals (id, title, status, created_at, updated_at) VALUES ('invalid', '非法阶段', 'reviewing', '2026-08-27', '2026-08-27')",
+          )
+          .run(),
+      ).toThrow();
     } finally {
       sqlite.close();
       await removeSqliteArtifacts(dbPath);
@@ -131,10 +216,14 @@ describe('Database schema contract', () => {
     incomplete.close();
 
     try {
-      await expect(initializeSqliteDatabase(dbPath, schemaPath)).rejects.toThrow('SQLite schema is incomplete: missing topic_todos');
+      await expect(initializeSqliteDatabase(dbPath, schemaPath)).rejects.toThrow(
+        'SQLite schema is incomplete: missing topic_todos',
+      );
       const unchanged = new Database(dbPath);
       try {
-        expect(unchanged.query("SELECT name FROM sqlite_master WHERE type = 'table' AND name = 'quick_drops'").get()).toBeNull();
+        expect(
+          unchanged.query("SELECT name FROM sqlite_master WHERE type = 'table' AND name = 'quick_drops'").get(),
+        ).toBeNull();
       } finally {
         unchanged.close();
       }
@@ -156,7 +245,11 @@ describe('Database schema contract', () => {
       );
       const unchanged = new Database(dbPath);
       try {
-        expect(unchanged.query("SELECT name FROM sqlite_master WHERE type = 'index' AND name = 'idx_published_page_order'").get()).toBeNull();
+        expect(
+          unchanged
+            .query("SELECT name FROM sqlite_master WHERE type = 'index' AND name = 'idx_published_page_order'")
+            .get(),
+        ).toBeNull();
       } finally {
         unchanged.close();
       }
@@ -178,7 +271,9 @@ describe('Database schema contract', () => {
       );
       const unchanged = new Database(dbPath);
       try {
-        expect(unchanged.query("SELECT name FROM sqlite_master WHERE type = 'trigger' AND name = 'topic_search_au'").get()).toBeNull();
+        expect(
+          unchanged.query("SELECT name FROM sqlite_master WHERE type = 'trigger' AND name = 'topic_search_au'").get(),
+        ).toBeNull();
       } finally {
         unchanged.close();
       }
@@ -202,10 +297,14 @@ describe('Database schema contract', () => {
     outdated.close();
 
     try {
-      await expect(initializeSqliteDatabase(dbPath, schemaPath)).rejects.toThrow('SQLite schema version mismatch: expected baseline v6');
+      await expect(initializeSqliteDatabase(dbPath, schemaPath)).rejects.toThrow(
+        'SQLite schema version mismatch: expected baseline v6',
+      );
       const unchanged = new Database(dbPath);
       try {
-        expect(unchanged.query("SELECT name FROM sqlite_master WHERE type = 'table' AND name = 'quick_drops'").get()).toBeNull();
+        expect(
+          unchanged.query("SELECT name FROM sqlite_master WHERE type = 'table' AND name = 'quick_drops'").get(),
+        ).toBeNull();
       } finally {
         unchanged.close();
       }

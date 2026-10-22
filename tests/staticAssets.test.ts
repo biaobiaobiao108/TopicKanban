@@ -7,10 +7,12 @@ describe('Static Assets Route Serving', () => {
   let databasePath = '';
 
   async function cleanTestDatabase(): Promise<void> {
-    await Promise.all(['', '-wal', '-shm', '-journal'].map(async (suffix) => {
-      const file = Bun.file(`${databasePath}${suffix}`);
-      if (await file.exists()) await file.unlink();
-    }));
+    await Promise.all(
+      ['', '-wal', '-shm', '-journal'].map(async suffix => {
+        const file = Bun.file(`${databasePath}${suffix}`);
+        if (await file.exists()) await file.unlink();
+      }),
+    );
   }
 
   afterEach(async () => {
@@ -23,7 +25,10 @@ describe('Static Assets Route Serving', () => {
   });
 
   it('serves /icon.png with image/png in development mode even with wildcard fallback', async () => {
-    databasePath = joinPath(Bun.env.TEMP || Bun.env.TMPDIR || process.cwd(), `topic-kanban-static-${crypto.randomUUID()}.db`);
+    databasePath = joinPath(
+      Bun.env.TEMP || Bun.env.TMPDIR || process.cwd(),
+      `topic-kanban-static-${crypto.randomUUID()}.db`,
+    );
     server = await startServer({
       development: true,
       port: 0,
@@ -63,11 +68,16 @@ describe('Static Assets Route Serving', () => {
     const createdMockDist = !(await indexHtmlFile.exists());
 
     if (createdMockDist) {
-      await Bun.write(indexHtmlPath, '<!doctype html><html><body><div id="root"></div></body></html>', { createPath: true });
+      await Bun.write(indexHtmlPath, '<!doctype html><html><body><div id="root"></div></body></html>', {
+        createPath: true,
+      });
     }
 
     try {
-      databasePath = joinPath(Bun.env.TEMP || Bun.env.TMPDIR || process.cwd(), `topic-kanban-spa-${crypto.randomUUID()}.db`);
+      databasePath = joinPath(
+        Bun.env.TEMP || Bun.env.TMPDIR || process.cwd(),
+        `topic-kanban-spa-${crypto.randomUUID()}.db`,
+      );
       server = await startServer({
         port: 0,
         databasePath,
@@ -80,7 +90,7 @@ describe('Static Assets Route Serving', () => {
       const html = await res.text();
       expect(html).toContain('<div id="root"></div>');
     } finally {
-      if (createdMockDist && await Bun.file(indexHtmlPath).exists()) {
+      if (createdMockDist && (await Bun.file(indexHtmlPath).exists())) {
         await Bun.file(indexHtmlPath).unlink();
       }
     }

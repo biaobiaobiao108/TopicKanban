@@ -75,13 +75,10 @@ export const DateInput: React.FC<DateInputProps> = ({
           focusedRef.current = true;
           setShowError(false);
         }}
-        onChange={(event) => handleInput(event.currentTarget.value)}
+        onChange={event => handleInput(event.currentTarget.value)}
         onBlur={validateOnBlur}
         onInvalid={() => setShowError(true)}
-        className={[
-          'placeholder:text-ink-muted/60',
-          className,
-        ].filter(Boolean).join(' ')}
+        className={['placeholder:text-ink-muted/60', className].filter(Boolean).join(' ')}
       />
       {showError && result.error && (
         <p id={errorId} role="alert" aria-live="polite" className="mt-1 text-xs font-medium text-danger">

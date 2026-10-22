@@ -89,8 +89,13 @@ function SourcePageControls({
   const lastItem = Math.min(page * SOURCES_PAGE_SIZE, total);
 
   return (
-    <nav aria-label={`${label}分页`} className="flex flex-wrap items-center justify-between gap-3 border-t border-line/50 pt-3 text-xs text-ink-muted">
-      <span aria-live="polite">显示 {firstItem}-{lastItem} / 共 {total} 条</span>
+    <nav
+      aria-label={`${label}分页`}
+      className="flex flex-wrap items-center justify-between gap-3 border-t border-line/50 pt-3 text-xs text-ink-muted"
+    >
+      <span aria-live="polite">
+        显示 {firstItem}-{lastItem} / 共 {total} 条
+      </span>
       <div className="flex items-center gap-2">
         <button
           type="button"
@@ -101,7 +106,9 @@ function SourcePageControls({
         >
           上一页
         </button>
-        <span className="min-w-14 text-center font-mono tabular-nums">{page} / {totalPages}</span>
+        <span className="min-w-14 text-center font-mono tabular-nums">
+          {page} / {totalPages}
+        </span>
         <button
           type="button"
           aria-label={`${label}下一页`}
@@ -138,12 +145,12 @@ export function normalizeTimelineDate(date?: string): string | null {
 }
 
 export function reorderVisibleSourcesInFullList(sources: Source[], reorderedVisible: Source[]): Source[] {
-  const reorderedIds = new Set(reorderedVisible.map((source) => source.id));
+  const reorderedIds = new Set(reorderedVisible.map(source => source.id));
   const fullOrder = [...sources].sort((a, b) => (a.sort_order ?? 0) - (b.sort_order ?? 0));
   let nextVisibleIndex = 0;
-  return fullOrder.map((source) => (
-    reorderedIds.has(source.id) ? reorderedVisible[nextVisibleIndex++] || source : source
-  ));
+  return fullOrder.map(source =>
+    reorderedIds.has(source.id) ? reorderedVisible[nextVisibleIndex++] || source : source,
+  );
 }
 
 export function canReorderTimeline(mode: TimelineSortMode): boolean {
@@ -204,14 +211,10 @@ const SortableTimelineItem: React.FC<SortableTimelineItemProps> = ({
   onToggleSelected,
 }) => {
   const [isExpanded, setIsExpanded] = useState(false);
-  const {
-    attributes,
-    listeners,
-    setNodeRef,
-    transform,
-    transition,
-    isDragging,
-  } = useSortable({ id: source.id, disabled: !canReorder });
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
+    id: source.id,
+    disabled: !canReorder,
+  });
 
   const style = {
     transform: CSS.Transform.toString(transform),
@@ -219,9 +222,8 @@ const SortableTimelineItem: React.FC<SortableTimelineItemProps> = ({
   };
 
   const safeUrl = sanitizeExternalHttpUrl(source.url);
-  const hasLongDetails = source.title.length > 64
-    || (source.content?.length || 0) > 220
-    || (source.notes?.length || 0) > 100;
+  const hasLongDetails =
+    source.title.length > 64 || (source.content?.length || 0) > 220 || (source.notes?.length || 0) > 100;
 
   return (
     <div
@@ -330,14 +332,18 @@ const SortableTimelineItem: React.FC<SortableTimelineItemProps> = ({
 
         {/* Content Snippet */}
         {source.content && (
-          <p className={`text-xs text-ink-muted leading-relaxed bg-canvas/70 p-3 rounded-xl ${isExpanded ? '' : 'line-clamp-3'}`}>
+          <p
+            className={`text-xs text-ink-muted leading-relaxed bg-canvas/70 p-3 rounded-xl ${isExpanded ? '' : 'line-clamp-3'}`}
+          >
             {source.content}
           </p>
         )}
 
         {/* Note / Tip */}
         {source.notes && (
-          <div className={`text-2xs text-ink-muted bg-warning-soft] px-2.5 py-1 rounded-lg border border-warning-soft ${isExpanded ? '' : 'line-clamp-2'}`}>
+          <div
+            className={`text-2xs text-ink-muted bg-warning-soft] px-2.5 py-1 rounded-lg border border-warning-soft ${isExpanded ? '' : 'line-clamp-2'}`}
+          >
             💡 {source.notes}
           </div>
         )}
@@ -345,21 +351,21 @@ const SortableTimelineItem: React.FC<SortableTimelineItemProps> = ({
         {hasLongDetails && (
           <button
             type="button"
-            onClick={() => setIsExpanded((expanded) => !expanded)}
+            onClick={() => setIsExpanded(expanded => !expanded)}
             aria-expanded={isExpanded}
             className="inline-flex min-h-8 items-center gap-1 rounded-lg px-2 text-xs font-semibold text-accent-dark transition-colors hover:bg-accent-soft"
           >
-            {isExpanded ? <ChevronUp className="h-3.5 w-3.5" aria-hidden="true" /> : <ChevronDown className="h-3.5 w-3.5" aria-hidden="true" />}
+            {isExpanded ? (
+              <ChevronUp className="h-3.5 w-3.5" aria-hidden="true" />
+            ) : (
+              <ChevronDown className="h-3.5 w-3.5" aria-hidden="true" />
+            )}
             {isExpanded ? '收起详情' : '展开详情'}
           </button>
         )}
 
         {/* Author & Footer */}
-        {source.author && (
-          <div className="truncate text-2xs font-medium text-ink-muted">
-            原作者：@{source.author}
-          </div>
-        )}
+        {source.author && <div className="truncate text-2xs font-medium text-ink-muted">原作者：@{source.author}</div>}
       </div>
     </div>
   );
@@ -417,7 +423,7 @@ export const SourcesTab: React.FC<SourcesTabProps> = ({
   // Sensors for DnD in timeline
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
-    useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates })
+    useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates }),
   );
 
   const invalidateSmartParse = () => {
@@ -516,8 +522,8 @@ export const SourcesTab: React.FC<SourcesTabProps> = ({
       s.verification_status === 'confirmed'
         ? 'unverified'
         : s.verification_status === 'unverified'
-        ? 'rejected'
-        : 'confirmed';
+          ? 'rejected'
+          : 'confirmed';
     await onSaveSource({
       id: s.id,
       topic_id: topicId,
@@ -531,10 +537,12 @@ export const SourcesTab: React.FC<SourcesTabProps> = ({
     if (!title.trim()) return;
 
     const normalizedUrl = url.trim().toLowerCase().replace(/\/$/, '');
-    const duplicate = sources.find((source) => source.id !== editingSource?.id && (
-      (normalizedUrl && source.url.trim().toLowerCase().replace(/\/$/, '') === normalizedUrl)
-      || source.title.trim().toLowerCase() === title.trim().toLowerCase()
-    ));
+    const duplicate = sources.find(
+      source =>
+        source.id !== editingSource?.id &&
+        ((normalizedUrl && source.url.trim().toLowerCase().replace(/\/$/, '') === normalizedUrl) ||
+          source.title.trim().toLowerCase() === title.trim().toLowerCase()),
+    );
     if (duplicate) showToast({ message: `检测到可能重复的素材：「${duplicate.title}」，仍会继续保存`, tone: 'info' });
 
     setIsSubmitting(true);
@@ -561,11 +569,13 @@ export const SourcesTab: React.FC<SourcesTabProps> = ({
     }
   };
 
-  const toggleSelected = (id: string) => setSelectedIds((current) => {
-    const next = new Set(current);
-    if (next.has(id)) next.delete(id); else next.add(id);
-    return next;
-  });
+  const toggleSelected = (id: string) =>
+    setSelectedIds(current => {
+      const next = new Set(current);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
 
   const deleteSelected = () => {
     if (selectedIds.size === 0) return;
@@ -584,7 +594,7 @@ export const SourcesTab: React.FC<SourcesTabProps> = ({
 
   const q = searchQuery.toLowerCase().trim();
   const filteredSources = useMemo(() => {
-    return sources.filter((s) => {
+    return sources.filter(s => {
       if (filterPlatform !== 'all' && s.platform !== filterPlatform) return false;
       if (filterStatus !== 'all' && s.verification_status !== filterStatus) return false;
       if (q) {
@@ -621,7 +631,10 @@ export const SourcesTab: React.FC<SourcesTabProps> = ({
   const cardPageCount = Math.max(1, Math.ceil(filteredSources.length / SOURCES_PAGE_SIZE));
   const undatedPageCount = Math.max(1, Math.ceil(undatedSources.length / SOURCES_PAGE_SIZE));
   const currentCardSources = filteredSources.slice((cardPage - 1) * SOURCES_PAGE_SIZE, cardPage * SOURCES_PAGE_SIZE);
-  const currentUndatedSources = undatedSources.slice((undatedPage - 1) * SOURCES_PAGE_SIZE, undatedPage * SOURCES_PAGE_SIZE);
+  const currentUndatedSources = undatedSources.slice(
+    (undatedPage - 1) * SOURCES_PAGE_SIZE,
+    undatedPage * SOURCES_PAGE_SIZE,
+  );
 
   useEffect(() => {
     setCardPage(1);
@@ -629,15 +642,15 @@ export const SourcesTab: React.FC<SourcesTabProps> = ({
   }, [filterPlatform, filterStatus, searchQuery]);
 
   useEffect(() => {
-    setCardPage((page) => Math.min(page, cardPageCount));
+    setCardPage(page => Math.min(page, cardPageCount));
   }, [cardPageCount]);
 
   useEffect(() => {
-    setUndatedPage((page) => Math.min(page, undatedPageCount));
+    setUndatedPage(page => Math.min(page, undatedPageCount));
   }, [undatedPageCount]);
 
   const cycleTimelineSortMode = () => {
-    setTimelineSortMode((current) => {
+    setTimelineSortMode(current => {
       const next = current === 'date-asc' ? 'date-desc' : current === 'date-desc' ? 'manual' : 'date-asc';
       try {
         localStorage.setItem(`source_timeline_sort_mode:${topicId}`, next);
@@ -652,8 +665,8 @@ export const SourcesTab: React.FC<SourcesTabProps> = ({
     const { active, over } = event;
     if (!canReorderTimeline(timelineSortMode) || !over || active.id === over.id || !onReorderSources) return;
 
-    const oldIndex = timedSources.findIndex((item) => item.id === active.id);
-    const newIndex = timedSources.findIndex((item) => item.id === over.id);
+    const oldIndex = timedSources.findIndex(item => item.id === active.id);
+    const newIndex = timedSources.findIndex(item => item.id === over.id);
     if (oldIndex !== -1 && newIndex !== -1) {
       const reorderedVisibleSources = arrayMove(timedSources, oldIndex, newIndex);
       const nextFullOrder = reorderVisibleSourcesInFullList(sources, reorderedVisibleSources);
@@ -709,7 +722,7 @@ export const SourcesTab: React.FC<SourcesTabProps> = ({
               aria-label="搜索素材"
               autoComplete="off"
               value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
+              onChange={e => setSearchQuery(e.target.value)}
               placeholder="搜索素材标题、内容、备忘、日期..."
               className="w-full pl-9 pr-7 py-1.5 bg-control border border-line rounded-xl text-xs text-ink placeholder:text-ink-muted focus:bg-surface focus:outline-none focus:border-accent transition-colors"
             />
@@ -728,7 +741,7 @@ export const SourcesTab: React.FC<SourcesTabProps> = ({
           {/* Platform Filter */}
           <CustomSelect
             value={filterPlatform}
-            onChange={(val) => setFilterPlatform(val as PlatformType | 'all')}
+            onChange={val => setFilterPlatform(val as PlatformType | 'all')}
             options={PLATFORM_OPTIONS}
             ariaLabel="平台筛选"
             buttonClassName="py-1.5 text-xs bg-control border-line rounded-xl"
@@ -737,7 +750,7 @@ export const SourcesTab: React.FC<SourcesTabProps> = ({
           {/* Verification Status Filter */}
           <CustomSelect
             value={filterStatus}
-            onChange={(val) => setFilterStatus(val as VerificationStatus | 'all')}
+            onChange={val => setFilterStatus(val as VerificationStatus | 'all')}
             options={[
               { value: 'all', label: '全部状态' },
               { value: 'confirmed', label: '已确认', dot: 'bg-success' },
@@ -757,7 +770,13 @@ export const SourcesTab: React.FC<SourcesTabProps> = ({
               aria-label="切换时间轴排序方式"
             >
               <ArrowDownUp className="w-3.5 h-3.5 text-accent" />
-              <span>{timelineSortMode === 'date-asc' ? '日期正序' : timelineSortMode === 'date-desc' ? '日期倒序' : '手动顺序'}</span>
+              <span>
+                {timelineSortMode === 'date-asc'
+                  ? '日期正序'
+                  : timelineSortMode === 'date-desc'
+                    ? '日期倒序'
+                    : '手动顺序'}
+              </span>
             </button>
           )}
         </div>
@@ -790,129 +809,132 @@ export const SourcesTab: React.FC<SourcesTabProps> = ({
       {viewMode === 'cards' && (
         <>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {currentCardSources.map((s) => {
-            const safeUrl = sanitizeExternalHttpUrl(s.url);
-            return (
-              <div
-                key={s.id}
-                className="bg-surface p-4 sm:p-5 rounded-2xl border border-line shadow-subtle hover:shadow-card hover:-translate-y-0.5 transition-all space-y-3 flex flex-col justify-between"
-              >
-                <div className="space-y-2.5">
-                  {/* Top Bar: Checkbox + Badges + Actions */}
-                  <div className="flex items-center justify-between gap-1 flex-wrap">
-                    <div className="flex items-center gap-1.5 flex-wrap">
-                      <input
-                        type="checkbox"
-                        checked={selectedIds.has(s.id)}
-                        onChange={() => toggleSelected(s.id)}
-                        aria-label={`选择素材「${s.title}」`}
-                        className="h-3.5 w-3.5 rounded accent-[var(--accent)] cursor-pointer"
-                      />
-                      <PlatformBadge platform={s.platform} />
-                      <button
-                        type="button"
-                        onClick={() => handleCycleVerification(s)}
-                        className="cursor-pointer"
-                        aria-label="切换核实状态"
-                      >
-                        <VerificationBadge status={s.verification_status} />
-                      </button>
-                      {s.event_date && (
-                        <span className="text-3xs font-mono font-medium px-2 py-0.5 rounded-full bg-accent-soft text-accent-dark">
-                          📅 {formatEventDate(s.event_date, s.date_precision)}
-                        </span>
-                      )}
-                    </div>
-
-                    <div className="flex items-center gap-1 text-ink-muted">
-                      <button
-                        type="button"
-                        onClick={() => openEditModal(s)}
-                        className="p-1 hover:text-ink rounded cursor-pointer"
-                        aria-label="编辑素材"
-                      >
-                        <Edit2 className="w-3.5 h-3.5" />
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => setDeletingSource(s)}
-                        className="p-1 hover:text-danger rounded cursor-pointer"
-                        aria-label="删除素材"
-                      >
-                        <Trash2 className="w-3.5 h-3.5" />
-                      </button>
-                    </div>
-                  </div>
-
-                  {/* Title */}
-                  <h3 className="font-semibold text-sm sm:text-base text-ink leading-snug line-clamp-2">
-                    {s.title}
-                  </h3>
-
-                  {/* Content snippet */}
-                  {s.content && (
-                    <p className="text-xs text-ink-muted leading-relaxed line-clamp-3 bg-canvas/70 p-2.5 rounded-xl">
-                      {s.content}
-                    </p>
-                  )}
-
-                  {/* Notes / Tips */}
-                  {s.notes && (
-                    <div className="text-2xs text-ink-muted bg-warning-soft] px-2.5 py-1 rounded-lg border border-warning-soft truncate">
-                      💡 {s.notes}
-                    </div>
-                  )}
-                </div>
-
-                {/* Bottom Meta & Links */}
-                <div className="pt-2.5 border-t border-line flex items-center justify-between flex-wrap gap-1.5 text-2xs text-ink-muted">
-                  <div className="flex items-center gap-2 truncate">
-                    {s.author && <span className="truncate max-w-[90px] font-semibold">@{s.author}</span>}
-                    {s.published_at && <span>{s.published_at}</span>}
-                  </div>
-
-                  {safeUrl && (
-                    <div className="flex items-center gap-1 shrink-0">
-                      <button
-                        type="button"
-                        onClick={() => copyUrl(s.id, s.url)}
-                        className="hover:text-ink p-0.5 cursor-pointer"
-                        aria-label="复制链接"
-                      >
-                        {copiedId === s.id ? (
-                          <Check className="w-3 h-3 text-success" />
-                        ) : (
-                          <Copy className="w-3 h-3" />
+            {currentCardSources.map(s => {
+              const safeUrl = sanitizeExternalHttpUrl(s.url);
+              return (
+                <div
+                  key={s.id}
+                  className="bg-surface p-4 sm:p-5 rounded-2xl border border-line shadow-subtle hover:shadow-card hover:-translate-y-0.5 transition-all space-y-3 flex flex-col justify-between"
+                >
+                  <div className="space-y-2.5">
+                    {/* Top Bar: Checkbox + Badges + Actions */}
+                    <div className="flex items-center justify-between gap-1 flex-wrap">
+                      <div className="flex items-center gap-1.5 flex-wrap">
+                        <input
+                          type="checkbox"
+                          checked={selectedIds.has(s.id)}
+                          onChange={() => toggleSelected(s.id)}
+                          aria-label={`选择素材「${s.title}」`}
+                          className="h-3.5 w-3.5 rounded accent-[var(--accent)] cursor-pointer"
+                        />
+                        <PlatformBadge platform={s.platform} />
+                        <button
+                          type="button"
+                          onClick={() => handleCycleVerification(s)}
+                          className="cursor-pointer"
+                          aria-label="切换核实状态"
+                        >
+                          <VerificationBadge status={s.verification_status} />
+                        </button>
+                        {s.event_date && (
+                          <span className="text-3xs font-mono font-medium px-2 py-0.5 rounded-full bg-accent-soft text-accent-dark">
+                            📅 {formatEventDate(s.event_date, s.date_precision)}
+                          </span>
                         )}
-                      </button>
-                      <a
-                        href={safeUrl}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="flex items-center gap-0.5 text-accent hover:text-accent-dark font-semibold"
-                      >
-                        <span>来源</span>
-                        <ExternalLink className="w-3 h-3" />
-                      </a>
-                    </div>
-                  )}
-                </div>
-              </div>
-            );
-          })}
+                      </div>
 
-          {filteredSources.length === 0 && (
-            <div className="col-span-full p-12 text-center border-2 border-dashed border-line rounded-2xl bg-surface text-ink-muted space-y-2">
-              <p className="text-sm font-semibold text-ink-muted">
-                {searchQuery ? `未找到包含「${searchQuery}」的素材记录` : '暂无素材记录'}
-              </p>
-              <p className="text-xs text-ink-muted">
-                点击右上角「+ 添加素材」，支持一键智能抓取 B站/YouTube 视频信息
-              </p>
-            </div>
-          )}
+                      <div className="flex items-center gap-1 text-ink-muted">
+                        <button
+                          type="button"
+                          onClick={() => openEditModal(s)}
+                          className="p-1 hover:text-ink rounded cursor-pointer"
+                          aria-label="编辑素材"
+                        >
+                          <Edit2 className="w-3.5 h-3.5" />
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setDeletingSource(s)}
+                          className="p-1 hover:text-danger rounded cursor-pointer"
+                          aria-label="删除素材"
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
+                    </div>
+
+                    {/* Title */}
+                    <h3 className="font-semibold text-sm sm:text-base text-ink leading-snug line-clamp-2">{s.title}</h3>
+
+                    {/* Content snippet */}
+                    {s.content && (
+                      <p className="text-xs text-ink-muted leading-relaxed line-clamp-3 bg-canvas/70 p-2.5 rounded-xl">
+                        {s.content}
+                      </p>
+                    )}
+
+                    {/* Notes / Tips */}
+                    {s.notes && (
+                      <div className="text-2xs text-ink-muted bg-warning-soft] px-2.5 py-1 rounded-lg border border-warning-soft truncate">
+                        💡 {s.notes}
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Bottom Meta & Links */}
+                  <div className="pt-2.5 border-t border-line flex items-center justify-between flex-wrap gap-1.5 text-2xs text-ink-muted">
+                    <div className="flex items-center gap-2 truncate">
+                      {s.author && <span className="truncate max-w-[90px] font-semibold">@{s.author}</span>}
+                      {s.published_at && <span>{s.published_at}</span>}
+                    </div>
+
+                    {safeUrl && (
+                      <div className="flex items-center gap-1 shrink-0">
+                        <button
+                          type="button"
+                          onClick={() => copyUrl(s.id, s.url)}
+                          className="hover:text-ink p-0.5 cursor-pointer"
+                          aria-label="复制链接"
+                        >
+                          {copiedId === s.id ? (
+                            <Check className="w-3 h-3 text-success" />
+                          ) : (
+                            <Copy className="w-3 h-3" />
+                          )}
+                        </button>
+                        <a
+                          href={safeUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="flex items-center gap-0.5 text-accent hover:text-accent-dark font-semibold"
+                        >
+                          <span>来源</span>
+                          <ExternalLink className="w-3 h-3" />
+                        </a>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              );
+            })}
+
+            {filteredSources.length === 0 && (
+              <div className="col-span-full p-12 text-center border-2 border-dashed border-line rounded-2xl bg-surface text-ink-muted space-y-2">
+                <p className="text-sm font-semibold text-ink-muted">
+                  {searchQuery ? `未找到包含「${searchQuery}」的素材记录` : '暂无素材记录'}
+                </p>
+                <p className="text-xs text-ink-muted">
+                  点击右上角「+ 添加素材」，支持一键智能抓取 B站/YouTube 视频信息
+                </p>
+              </div>
+            )}
           </div>
-          <SourcePageControls page={cardPage} total={filteredSources.length} label="素材列表" onPageChange={setCardPage} />
+          <SourcePageControls
+            page={cardPage}
+            total={filteredSources.length}
+            label="素材列表"
+            onPageChange={setCardPage}
+          />
         </>
       )}
 
@@ -921,7 +943,7 @@ export const SourcesTab: React.FC<SourcesTabProps> = ({
         <div className="space-y-6">
           {/* Main Vertical Timeline List with DnD */}
           <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
-            <SortableContext items={timedSources.map((s) => s.id)} strategy={verticalListSortingStrategy}>
+            <SortableContext items={timedSources.map(s => s.id)} strategy={verticalListSortingStrategy}>
               <div className="relative mx-auto w-full max-w-5xl pl-6 sm:pl-8 space-y-4 before:absolute before:left-3 before:top-3 before:bottom-3 before:w-0.5 before:bg-surface-subtle transition-colors">
                 {timedSources.map((source, idx) => (
                   <SortableTimelineItem
@@ -930,7 +952,7 @@ export const SourcesTab: React.FC<SourcesTabProps> = ({
                     index={idx}
                     canReorder={canReorderTimeline(timelineSortMode)}
                     onEdit={openEditModal}
-                    onDelete={(s) => setDeletingSource(s)}
+                    onDelete={s => setDeletingSource(s)}
                     onCycleVerification={handleCycleVerification}
                     onCopyUrl={copyUrl}
                     copiedId={copiedId}
@@ -957,41 +979,35 @@ export const SourcesTab: React.FC<SourcesTabProps> = ({
             <div className="border border-line rounded-2xl bg-surface overflow-hidden shadow-subtle">
               <button
                 type="button"
-                onClick={() => setUndatedCollapsed((prev) => !prev)}
+                onClick={() => setUndatedCollapsed(prev => !prev)}
                 className="w-full px-4 py-3 flex items-center justify-between text-left hover:bg-control cursor-pointer transition-colors"
                 aria-expanded={!undatedCollapsed}
               >
                 <div className="flex items-center gap-2">
-                  {undatedCollapsed ? <ChevronRight className="w-4 h-4 text-ink-muted" /> : <ChevronDown className="w-4 h-4 text-ink-muted" />}
+                  {undatedCollapsed ? (
+                    <ChevronRight className="w-4 h-4 text-ink-muted" />
+                  ) : (
+                    <ChevronDown className="w-4 h-4 text-ink-muted" />
+                  )}
                   <span className="text-xs font-bold text-ink">待定时间素材</span>
                   <span className="px-2 py-0.5 rounded-full bg-control text-ink-muted text-2xs font-semibold">
                     <span className="font-mono tabular-nums">{undatedSources.length}</span> 条
                   </span>
                 </div>
-                <span className="text-2xs text-ink-muted">
-                  {undatedCollapsed ? '展开查看' : '点击收起'}
-                </span>
+                <span className="text-2xs text-ink-muted">{undatedCollapsed ? '展开查看' : '点击收起'}</span>
               </button>
 
               {!undatedCollapsed && (
                 <div className="p-4 pt-0 border-t border-line/50 divide-y divide-line/50">
-                  {currentUndatedSources.map((source) => (
+                  {currentUndatedSources.map(source => (
                     <div key={source.id} className="py-3 first:pt-3 flex items-center justify-between gap-3 flex-wrap">
                       <div className="space-y-1 min-w-0 flex-1">
                         <div className="flex items-center gap-2 flex-wrap">
                           <PlatformBadge platform={source.platform} />
-                          <h4 className="text-xs font-semibold text-ink truncate max-w-md">
-                            {source.title}
-                          </h4>
-                          {source.author && (
-                            <span className="text-2xs text-ink-muted">@{source.author}</span>
-                          )}
+                          <h4 className="text-xs font-semibold text-ink truncate max-w-md">{source.title}</h4>
+                          {source.author && <span className="text-2xs text-ink-muted">@{source.author}</span>}
                         </div>
-                        {source.content && (
-                          <p className="text-2xs text-ink-muted line-clamp-1">
-                            {source.content}
-                          </p>
-                        )}
+                        {source.content && <p className="text-2xs text-ink-muted line-clamp-1">{source.content}</p>}
                       </div>
 
                       {/* Quick Assign Date Button */}
@@ -1023,7 +1039,12 @@ export const SourcesTab: React.FC<SourcesTabProps> = ({
                       </div>
                     </div>
                   ))}
-                  <SourcePageControls page={undatedPage} total={undatedSources.length} label="待定时间素材" onPageChange={setUndatedPage} />
+                  <SourcePageControls
+                    page={undatedPage}
+                    total={undatedSources.length}
+                    label="待定时间素材"
+                    onPageChange={setUndatedPage}
+                  />
                 </div>
               )}
             </div>
@@ -1063,8 +1084,8 @@ export const SourcesTab: React.FC<SourcesTabProps> = ({
                   autoComplete="url"
                   inputMode="url"
                   value={smartPasteInput}
-                  onChange={(e) => setSmartPasteInput(e.target.value)}
-                  onPaste={(e) => {
+                  onChange={e => setSmartPasteInput(e.target.value)}
+                  onPaste={e => {
                     const pasted = e.clipboardData.getData('text');
                     if (pasted) {
                       setSmartPasteInput(pasted);
@@ -1102,7 +1123,7 @@ export const SourcesTab: React.FC<SourcesTabProps> = ({
               autoComplete="off"
               placeholder="例如：良子出征誓师直播录屏"
               value={title}
-              onChange={(e) => setTitle(e.target.value)}
+              onChange={e => setTitle(e.target.value)}
               className="w-full px-3 py-2 bg-control border border-line rounded-lg text-sm text-ink placeholder:text-ink-muted focus:bg-surface focus:border-accent focus:outline-none"
             />
           </div>
@@ -1120,7 +1141,7 @@ export const SourcesTab: React.FC<SourcesTabProps> = ({
                 autoComplete="off"
                 placeholder="例如：2026-07-28 / 2026-05 / 2026"
                 value={eventDate}
-                onChange={(e) => handleEventDateChange(e.target.value)}
+                onChange={e => handleEventDateChange(e.target.value)}
                 className="w-full px-3 py-2 bg-control border border-line rounded-lg text-sm text-ink placeholder:text-ink-muted focus:bg-surface focus:border-accent focus:outline-none"
               />
             </div>
@@ -1131,7 +1152,7 @@ export const SourcesTab: React.FC<SourcesTabProps> = ({
               </label>
               <CustomSelect
                 value={datePrecision}
-                onChange={(val) => setDatePrecision(val as DatePrecision)}
+                onChange={val => setDatePrecision(val as DatePrecision)}
                 ariaLabel="时间精度"
                 ariaLabelledBy="source-precision-label"
                 className="w-full"
@@ -1148,10 +1169,12 @@ export const SourcesTab: React.FC<SourcesTabProps> = ({
 
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label id="source-platform-label" className="block text-xs font-semibold text-ink mb-1">来源平台</label>
+              <label id="source-platform-label" className="block text-xs font-semibold text-ink mb-1">
+                来源平台
+              </label>
               <CustomSelect
                 value={platform}
-                onChange={(val) => setPlatform(val as PlatformType)}
+                onChange={val => setPlatform(val as PlatformType)}
                 ariaLabel="来源平台"
                 ariaLabelledBy="source-platform-label"
                 className="w-full"
@@ -1173,7 +1196,9 @@ export const SourcesTab: React.FC<SourcesTabProps> = ({
             </div>
 
             <div>
-              <label htmlFor="source-author" className="block text-xs font-semibold text-ink mb-1">原作者 / 发布者</label>
+              <label htmlFor="source-author" className="block text-xs font-semibold text-ink mb-1">
+                原作者 / 发布者
+              </label>
               <input
                 id="source-author"
                 name="source_author"
@@ -1181,7 +1206,7 @@ export const SourcesTab: React.FC<SourcesTabProps> = ({
                 autoComplete="name"
                 placeholder="例如：良子官方录播组"
                 value={author}
-                onChange={(e) => setAuthor(e.target.value)}
+                onChange={e => setAuthor(e.target.value)}
                 className="w-full px-3 py-2 bg-control border border-line rounded-lg text-sm text-ink placeholder:text-ink-muted focus:bg-surface focus:border-accent focus:outline-none"
               />
             </div>
@@ -1189,7 +1214,9 @@ export const SourcesTab: React.FC<SourcesTabProps> = ({
 
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label htmlFor="source-url" className="block text-xs font-semibold text-ink mb-1">来源 URL 链接</label>
+              <label htmlFor="source-url" className="block text-xs font-semibold text-ink mb-1">
+                来源 URL 链接
+              </label>
               <input
                 id="source-url"
                 name="source_url"
@@ -1197,8 +1224,8 @@ export const SourcesTab: React.FC<SourcesTabProps> = ({
                 autoComplete="url"
                 placeholder="https://www.bilibili.com/video/..."
                 value={url}
-                onChange={(e) => setUrl(e.target.value)}
-                onPaste={(e) => {
+                onChange={e => setUrl(e.target.value)}
+                onPaste={e => {
                   const pasted = e.clipboardData.getData('text');
                   if (pasted && !title.trim()) {
                     void handleSmartParse(pasted);
@@ -1209,10 +1236,12 @@ export const SourcesTab: React.FC<SourcesTabProps> = ({
             </div>
 
             <div>
-              <label id="source-verification-label" className="block text-xs font-semibold text-ink mb-1">可信度状态</label>
+              <label id="source-verification-label" className="block text-xs font-semibold text-ink mb-1">
+                可信度状态
+              </label>
               <CustomSelect
                 value={verificationStatus}
-                onChange={(val) => setVerificationStatus(val as VerificationStatus)}
+                onChange={val => setVerificationStatus(val as VerificationStatus)}
                 ariaLabel="可信度状态"
                 ariaLabelledBy="source-verification-label"
                 className="w-full"
@@ -1227,7 +1256,9 @@ export const SourcesTab: React.FC<SourcesTabProps> = ({
           </div>
 
           <div>
-            <label htmlFor="source-content" className="block text-xs font-semibold text-ink mb-1">内容摘要 / 关键发言</label>
+            <label htmlFor="source-content" className="block text-xs font-semibold text-ink mb-1">
+              内容摘要 / 关键发言
+            </label>
             <textarea
               id="source-content"
               name="source_content"
@@ -1235,13 +1266,15 @@ export const SourcesTab: React.FC<SourcesTabProps> = ({
               rows={3}
               placeholder="提取原视频或文章中的关键信息、时间码（如04:15处金句）或关键截图要点..."
               value={content}
-              onChange={(e) => setContent(e.target.value)}
+              onChange={e => setContent(e.target.value)}
               className="w-full px-3 py-2 bg-control border border-line rounded-lg text-sm text-ink placeholder:text-ink-muted focus:bg-surface focus:border-accent focus:outline-none resize-none"
             />
           </div>
 
           <div>
-            <label htmlFor="source-notes" className="block text-xs font-semibold text-ink mb-1">使用备注与提示</label>
+            <label htmlFor="source-notes" className="block text-xs font-semibold text-ink mb-1">
+              使用备注与提示
+            </label>
             <input
               id="source-notes"
               name="source_notes"
@@ -1249,7 +1282,7 @@ export const SourcesTab: React.FC<SourcesTabProps> = ({
               autoComplete="off"
               placeholder="例如：可用作第一章转折画面"
               value={notes}
-              onChange={(e) => setNotes(e.target.value)}
+              onChange={e => setNotes(e.target.value)}
               className="w-full px-3 py-2 bg-control border border-line rounded-lg text-sm text-ink placeholder:text-ink-muted focus:bg-surface focus:border-accent focus:outline-none"
             />
           </div>

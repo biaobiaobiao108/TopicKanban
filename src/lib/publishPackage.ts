@@ -81,18 +81,14 @@ function decodeHtmlEntities(value: string): string {
 }
 
 function stripHtml(value: string): string {
-  return decodeHtmlEntities(
-    value
-      .replace(/<br\s*\/?\s*>/gi, '\n')
-      .replace(/<[^>]+>/g, '')
-  );
+  return decodeHtmlEntities(value.replace(/<br\s*\/?\s*>/gi, '\n').replace(/<[^>]+>/g, ''));
 }
 
 function jsonRoot(contentJson: string): JsonNode | null {
   if (!contentJson) return null;
   try {
     const parsed = JSON.parse(contentJson) as unknown;
-    return parsed && typeof parsed === 'object' ? parsed as JsonNode : null;
+    return parsed && typeof parsed === 'object' ? (parsed as JsonNode) : null;
   } catch {
     return null;
   }
@@ -108,7 +104,10 @@ function extractSectionsFromJson(contentJson: string): ScriptSection[] {
     if (node.type === 'heading') {
       const level = Number(node.attrs?.level || 0);
       if (level <= 2 && level >= 1) {
-        current = { title: normalizeText(node.content?.map((child) => child.text || '').join('')) || '未命名章节', charCount: 0 };
+        current = {
+          title: normalizeText(node.content?.map(child => child.text || '').join('')) || '未命名章节',
+          charCount: 0,
+        };
         sections.push(current);
       }
       return;
@@ -169,9 +168,7 @@ function sectionsToChapters(sections: ScriptSection[], readingSpeed: number): Pu
 function extractChapters(draft: Draft | null, readingSpeed: number): PublishChapter[] {
   if (!draft) return [];
   const jsonSections = extractSectionsFromJson(draft.content_json);
-  const sections = jsonSections.length > 0
-    ? jsonSections
-    : extractSectionsFromHtml(draft.content_html);
+  const sections = jsonSections.length > 0 ? jsonSections : extractSectionsFromHtml(draft.content_html);
   return sectionsToChapters(sections, readingSpeed);
 }
 
@@ -199,7 +196,7 @@ function getActiveCitations(draft: Draft | null, citations: DraftCitation[]): Dr
   if (!root) return citations;
   const activeIds = new Set<string>();
   const visit = (node: JsonNode) => {
-    node.marks?.forEach((mark) => {
+    node.marks?.forEach(mark => {
       if (mark.type === 'citation' && typeof mark.attrs?.citationId === 'string') {
         activeIds.add(mark.attrs.citationId);
       }
@@ -207,19 +204,19 @@ function getActiveCitations(draft: Draft | null, citations: DraftCitation[]): Dr
     node.content?.forEach(visit);
   };
   visit(root);
-  return citations.filter((citation) => activeIds.has(citation.id));
+  return citations.filter(citation => activeIds.has(citation.id));
 }
 
 function buildDescription(topic: Topic, people: Person[]): string {
   const parts = [normalizeText(topic.summary)];
   if (normalizeText(topic.why_now)) parts.push(`为什么是现在：${normalizeText(topic.why_now)}`);
-  const names = people.map((person) => normalizeText(person.name)).filter(Boolean);
+  const names = people.map(person => normalizeText(person.name)).filter(Boolean);
   if (names.length > 0) parts.push(`本期人物：${names.join('、')}`);
   return parts.filter(Boolean).join('\n\n');
 }
 
 function buildSourceCredits(sources: Source[]): PublishSourceCredit[] {
-  return sources.map((source) => ({
+  return sources.map(source => ({
     id: source.id,
     title: normalizeText(source.title) || '未命名资料',
     author: normalizeText(source.author),
@@ -233,73 +230,150 @@ function buildSourceCredits(sources: Source[]): PublishSourceCredit[] {
 
 function getLevelCounts(checks: PublishCheck[]): { blockers: number; warnings: number } {
   return {
-    blockers: checks.filter((check) => check.level === 'blocker').length,
-    warnings: checks.filter((check) => check.level === 'warning').length,
+    blockers: checks.filter(check => check.level === 'blocker').length,
+    warnings: checks.filter(check => check.level === 'warning').length,
   };
 }
 
 export function evaluatePublishChecks(
-  input: PublishPackageBuildInput & { editable: PublishPackageEditableFields; estimatedDurationSeconds?: number }
+  input: PublishPackageBuildInput & { editable: PublishPackageEditableFields; estimatedDurationSeconds?: number },
 ): PublishCheck[] {
   const checks: PublishCheck[] = [];
   const { topic, draft, sources, citations, editable, draftConflict = false } = input;
-  const estimatedDurationSeconds = input.estimatedDurationSeconds ?? Math.round((getWordCount(draft) / (input.readingSpeed || 280)) * 60);
+  const estimatedDurationSeconds =
+    input.estimatedDurationSeconds ?? Math.round((getWordCount(draft) / (input.readingSpeed || 280)) * 60);
 
   if (!normalizeText(editable.title_simplified)) {
     checks.push({ id: 'title-required', level: 'blocker', label: '标题为空', detail: '请补充一个投稿标题。' });
   }
   if (!draft || getWordCount(draft) <= 0) {
-    checks.push({ id: 'draft-required', level: 'blocker', label: '文案正文为空', detail: '发布包需要基于最新文案生成章节和时长。' });
+    checks.push({
+      id: 'draft-required',
+      level: 'blocker',
+      label: '文案正文为空',
+      detail: '发布包需要基于最新文案生成章节和时长。',
+    });
   }
   if (draftConflict) {
-    checks.push({ id: 'draft-conflict', level: 'blocker', label: '草稿存在版本冲突', detail: '请先选择要保留的本地或云端版本。' });
+    checks.push({
+      id: 'draft-conflict',
+      level: 'blocker',
+      label: '草稿存在版本冲突',
+      detail: '请先选择要保留的本地或云端版本。',
+    });
   }
   if (!normalizeText(editable.description_simplified)) {
-    checks.push({ id: 'description-empty', level: 'warning', label: '简介为空', detail: 'B站投稿时仍需要手动补充视频简介。' });
+    checks.push({
+      id: 'description-empty',
+      level: 'warning',
+      label: '简介为空',
+      detail: 'B站投稿时仍需要手动补充视频简介。',
+    });
   }
   if (editable.tags.length === 0) {
-    checks.push({ id: 'tags-empty', level: 'warning', label: '尚未设置标签', detail: '可以从现有选题标签中选择，或临时添加投稿标签。' });
+    checks.push({
+      id: 'tags-empty',
+      level: 'warning',
+      label: '尚未设置标签',
+      detail: '可以从现有选题标签中选择，或临时添加投稿标签。',
+    });
   }
   if (editable.chapters.length === 0) {
-    checks.push({ id: 'chapters-empty', level: 'warning', label: '没有自动章节', detail: '当前文案没有 H1/H2 标题，可以手动添加章节。' });
+    checks.push({
+      id: 'chapters-empty',
+      level: 'warning',
+      label: '没有自动章节',
+      detail: '当前文案没有 H1/H2 标题，可以手动添加章节。',
+    });
   }
 
   const activeCitations = getActiveCitations(draft, citations);
   const citationHealth = getCitationHealth(activeCitations, { topic, sources });
-  const missingCitationCount = citationHealth.states.filter((state) => state.missing).length;
+  const missingCitationCount = citationHealth.states.filter(state => state.missing).length;
   if (missingCitationCount > 0) {
-    checks.push({ id: 'citation-missing', level: 'warning', label: '存在失效引用', detail: `${missingCitationCount} 条正文引用已找不到对应资料。` });
+    checks.push({
+      id: 'citation-missing',
+      level: 'warning',
+      label: '存在失效引用',
+      detail: `${missingCitationCount} 条正文引用已找不到对应资料。`,
+    });
   }
-  const unverifiedCitationCount = citationHealth.states.filter((state) => state.unverified).length;
+  const unverifiedCitationCount = citationHealth.states.filter(state => state.unverified).length;
   if (unverifiedCitationCount > 0) {
-    checks.push({ id: 'citation-unverified', level: 'warning', label: '存在待核实引用', detail: `${unverifiedCitationCount} 条正文引用的资料尚未确认。` });
+    checks.push({
+      id: 'citation-unverified',
+      level: 'warning',
+      label: '存在待核实引用',
+      detail: `${unverifiedCitationCount} 条正文引用的资料尚未确认。`,
+    });
   }
-  const staleCitationCount = citationHealth.states.filter((state) => state.stale && !state.missing).length;
+  const staleCitationCount = citationHealth.states.filter(state => state.stale && !state.missing).length;
   if (staleCitationCount > 0) {
-    checks.push({ id: 'citation-stale', level: 'warning', label: '引用内容已变化', detail: `${staleCitationCount} 条正文引用与当前资料快照不一致。` });
+    checks.push({
+      id: 'citation-stale',
+      level: 'warning',
+      label: '引用内容已变化',
+      detail: `${staleCitationCount} 条正文引用与当前资料快照不一致。`,
+    });
   }
 
-  const invalidUrlCount = sources.filter((source) => normalizeText(source.url) && !sanitizeExternalHttpUrl(source.url)).length;
+  const invalidUrlCount = sources.filter(
+    source => normalizeText(source.url) && !sanitizeExternalHttpUrl(source.url),
+  ).length;
   if (invalidUrlCount > 0) {
-    checks.push({ id: 'source-url-invalid', level: 'warning', label: '存在不可导出的来源链接', detail: `${invalidUrlCount} 条来源链接不是安全的 HTTP(S) 地址，已从发布包链接中排除。` });
+    checks.push({
+      id: 'source-url-invalid',
+      level: 'warning',
+      label: '存在不可导出的来源链接',
+      detail: `${invalidUrlCount} 条来源链接不是安全的 HTTP(S) 地址，已从发布包链接中排除。`,
+    });
   }
-  const pendingDatedSourceCount = sources.filter((source) => source.event_date && source.verification_status !== 'confirmed').length;
+  const pendingDatedSourceCount = sources.filter(
+    source => source.event_date && source.verification_status !== 'confirmed',
+  ).length;
   if (pendingDatedSourceCount > 0) {
-    checks.push({ id: 'dated-source-unverified', level: 'warning', label: '时间线素材仍有待核实', detail: `${pendingDatedSourceCount} 条带日期的素材尚未确认。` });
+    checks.push({
+      id: 'dated-source-unverified',
+      level: 'warning',
+      label: '时间线素材仍有待核实',
+      detail: `${pendingDatedSourceCount} 条带日期的素材尚未确认。`,
+    });
   }
-  const invalidChapterOrder = editable.chapters.some((chapter, index, all) => index > 0 && chapter.start_seconds < all[index - 1].start_seconds);
+  const invalidChapterOrder = editable.chapters.some(
+    (chapter, index, all) => index > 0 && chapter.start_seconds < all[index - 1].start_seconds,
+  );
   if (invalidChapterOrder) {
-    checks.push({ id: 'chapter-order', level: 'warning', label: '章节时间顺序不连续', detail: '请检查章节时间，确保后一个章节不早于前一个章节。' });
+    checks.push({
+      id: 'chapter-order',
+      level: 'warning',
+      label: '章节时间顺序不连续',
+      detail: '请检查章节时间，确保后一个章节不早于前一个章节。',
+    });
   }
   if (draft && getWordCount(draft) > 0 && estimatedDurationSeconds <= 0) {
-    checks.push({ id: 'duration-unavailable', level: 'warning', label: '无法估算文案时长', detail: '请检查文案字数或语速设置。' });
+    checks.push({
+      id: 'duration-unavailable',
+      level: 'warning',
+      label: '无法估算文案时长',
+      detail: '请检查文案字数或语速设置。',
+    });
   }
 
   const levelCounts = getLevelCounts(checks);
   if (levelCounts.blockers === 0 && levelCounts.warnings === 0) {
-    checks.push({ id: 'ready', level: 'info', label: '发布内容已具备', detail: '可以复制或导出发布包，再到 B 站投稿后台完成最后确认。' });
+    checks.push({
+      id: 'ready',
+      level: 'info',
+      label: '发布内容已具备',
+      detail: '可以复制或导出发布包，再到 B 站投稿后台完成最后确认。',
+    });
   } else if (estimatedDurationSeconds > 0) {
-    checks.push({ id: 'duration', level: 'info', label: '预计解说时长', detail: `约 ${formatDuration(estimatedDurationSeconds)}，仅供录制和剪辑估算。` });
+    checks.push({
+      id: 'duration',
+      level: 'info',
+      label: '预计解说时长',
+      detail: `约 ${formatDuration(estimatedDurationSeconds)}，仅供录制和剪辑估算。`,
+    });
   }
 
   return checks;
@@ -328,7 +402,7 @@ export function buildPublishPackage(input: PublishPackageBuildInput): PublishPac
     description_traditional_auto: true,
     title_candidates: title ? [title] : [],
     cover_text: normalizeText(input.topic.hook) || title,
-    tags: (input.topic.tags || []).map((tag) => normalizeText(tag.name)).filter(Boolean),
+    tags: (input.topic.tags || []).map(tag => normalizeText(tag.name)).filter(Boolean),
     chapters: extractChapters(input.draft, readingSpeed),
     pinned_comment: '',
     source_credits: buildSourceCredits(input.sources),
@@ -344,7 +418,7 @@ export function buildPublishPackage(input: PublishPackageBuildInput): PublishPac
 }
 
 function includedCredits(sourceCredits: PublishSourceCredit[]): PublishSourceCredit[] {
-  return sourceCredits.filter((source) => source.included);
+  return sourceCredits.filter(source => source.included);
 }
 
 export function parsePublishPackageContent(contentJson: string): Partial<PublishPackagePersistedContent> {
@@ -357,7 +431,7 @@ export function parsePublishPackageContent(contentJson: string): Partial<Publish
 }
 
 export function toPersistedPublishPackageContent(
-  editable: PublishPackageEditableFields
+  editable: PublishPackageEditableFields,
 ): PublishPackagePersistedContent {
   return {
     title_candidates: editable.title_candidates,
@@ -365,13 +439,13 @@ export function toPersistedPublishPackageContent(
     tags: editable.tags,
     chapters: editable.chapters,
     pinned_comment: editable.pinned_comment,
-    included_source_ids: editable.source_credits.filter((source) => source.included).map((source) => source.id),
+    included_source_ids: editable.source_credits.filter(source => source.included).map(source => source.id),
   };
 }
 
 export function mergeSavedPublishPackage(
   generated: PublishPackage,
-  saved: PublishPackageRecord | null
+  saved: PublishPackageRecord | null,
 ): PublishPackageEditableFields {
   if (!saved) {
     return {
@@ -384,9 +458,9 @@ export function mergeSavedPublishPackage(
       title_candidates: [...generated.title_candidates],
       cover_text: generated.cover_text,
       tags: [...generated.tags],
-      chapters: generated.chapters.map((chapter) => ({ ...chapter })),
+      chapters: generated.chapters.map(chapter => ({ ...chapter })),
       pinned_comment: generated.pinned_comment,
-      source_credits: generated.source_credits.map((source) => ({ ...source })),
+      source_credits: generated.source_credits.map(source => ({ ...source })),
     };
   }
 
@@ -409,11 +483,19 @@ export function mergeSavedPublishPackage(
       ? content.tags.filter((value): value is string => typeof value === 'string')
       : [...generated.tags],
     chapters: Array.isArray(content.chapters)
-      ? content.chapters.filter((chapter): chapter is PublishChapter => Boolean(chapter && typeof chapter === 'object' && typeof chapter.title === 'string' && typeof chapter.time === 'string'))
-        .map((chapter) => ({ ...chapter }))
-      : generated.chapters.map((chapter) => ({ ...chapter })),
+      ? content.chapters
+          .filter((chapter): chapter is PublishChapter =>
+            Boolean(
+              chapter &&
+              typeof chapter === 'object' &&
+              typeof chapter.title === 'string' &&
+              typeof chapter.time === 'string',
+            ),
+          )
+          .map(chapter => ({ ...chapter }))
+      : generated.chapters.map(chapter => ({ ...chapter })),
     pinned_comment: typeof content.pinned_comment === 'string' ? content.pinned_comment : generated.pinned_comment,
-    source_credits: generated.source_credits.map((source) => ({
+    source_credits: generated.source_credits.map(source => ({
       ...source,
       included: includedSourceIds ? includedSourceIds.has(source.id) : source.included,
     })),
@@ -422,18 +504,20 @@ export function mergeSavedPublishPackage(
 
 export function formatPublishPackageText(packageData: PublishPackageEditableFields): string {
   const tags = packageData.tags.join(' ');
-  const chapters = packageData.chapters.map((chapter) => `${chapter.time} ${chapter.title}`).join('\n');
-  const credits = includedCredits(packageData.source_credits).map((source) => {
-    const meta = [source.platform_label, source.author].filter(Boolean).join(' · ');
-    return `- ${source.title}${meta ? `（${meta}）` : ''}${source.url ? `\n  ${source.url}` : ''}`;
-  }).join('\n');
-  const candidates = packageData.title_candidates.filter((title) => title && title !== packageData.title_simplified);
+  const chapters = packageData.chapters.map(chapter => `${chapter.time} ${chapter.title}`).join('\n');
+  const credits = includedCredits(packageData.source_credits)
+    .map(source => {
+      const meta = [source.platform_label, source.author].filter(Boolean).join(' · ');
+      return `- ${source.title}${meta ? `（${meta}）` : ''}${source.url ? `\n  ${source.url}` : ''}`;
+    })
+    .join('\n');
+  const candidates = packageData.title_candidates.filter(title => title && title !== packageData.title_simplified);
 
   return [
     'Bilibili（简体）',
     '标题：',
     packageData.title_simplified,
-    candidates.length > 0 ? `候选标题：\n${candidates.map((title) => `- ${title}`).join('\n')}` : '',
+    candidates.length > 0 ? `候选标题：\n${candidates.map(title => `- ${title}`).join('\n')}` : '',
     '视频简介：',
     packageData.description_simplified,
     '',
@@ -452,24 +536,28 @@ export function formatPublishPackageText(packageData: PublishPackageEditableFiel
     packageData.pinned_comment,
     '参考资料：',
     credits,
-  ].filter((section) => section !== '').join('\n\n');
+  ]
+    .filter(section => section !== '')
+    .join('\n\n');
 }
 
 export function formatPublishPackageMarkdown(packageData: PublishPackageEditableFields): string {
   const tags = packageData.tags.join(' ');
-  const chapters = packageData.chapters.map((chapter) => `- **${chapter.time}** ${chapter.title}`).join('\n');
-  const credits = includedCredits(packageData.source_credits).map((source) => {
-    const meta = [source.platform_label, source.author].filter(Boolean).join(' · ');
-    return `- ${source.title}${meta ? `（${meta}）` : ''}${source.url ? ` — ${source.url}` : ''}`;
-  }).join('\n');
-  const candidates = packageData.title_candidates.filter((title) => title && title !== packageData.title_simplified);
+  const chapters = packageData.chapters.map(chapter => `- **${chapter.time}** ${chapter.title}`).join('\n');
+  const credits = includedCredits(packageData.source_credits)
+    .map(source => {
+      const meta = [source.platform_label, source.author].filter(Boolean).join(' · ');
+      return `- ${source.title}${meta ? `（${meta}）` : ''}${source.url ? ` — ${source.url}` : ''}`;
+    })
+    .join('\n');
+  const candidates = packageData.title_candidates.filter(title => title && title !== packageData.title_simplified);
 
   return [
     '# 双平台发布包',
     '## Bilibili（简体）',
     '### 标题',
     packageData.title_simplified || '（未填写）',
-    candidates.length > 0 ? `\n### 候选标题\n${candidates.map((title) => `- ${title}`).join('\n')}` : '',
+    candidates.length > 0 ? `\n### 候选标题\n${candidates.map(title => `- ${title}`).join('\n')}` : '',
     '### 视频简介',
     packageData.description_simplified || '（未填写）',
     '## YouTube（繁体）',
@@ -488,5 +576,7 @@ export function formatPublishPackageMarkdown(packageData: PublishPackageEditable
     packageData.pinned_comment || '（未填写）',
     '### 参考资料',
     credits || '（暂无参考资料）',
-  ].filter(Boolean).join('\n\n');
+  ]
+    .filter(Boolean)
+    .join('\n\n');
 }

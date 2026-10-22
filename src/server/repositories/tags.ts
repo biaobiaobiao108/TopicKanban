@@ -20,12 +20,17 @@ export async function loadTagsPage(db: Database, options: PageOptions): Promise<
   const offset = (options.page - 1) * options.pageSize;
   const [countRows, summaryRows, tagRows] = readTransaction(db, [
     command(db, `SELECT COUNT(*) AS count FROM tags tg ${where}`, values),
-    command(db, `SELECT
+    command(
+      db,
+      `SELECT
       COUNT(DISTINCT CASE WHEN t.deleted_at IS NULL THEN t.id END) AS tagged_topics,
       (SELECT COUNT(*) FROM topics WHERE deleted_at IS NULL) AS total_topics
       FROM topic_tags tt
-      INNER JOIN topics t ON t.id = tt.topic_id`),
-    command(db, `SELECT tg.id, tg.name, tg.color,
+      INNER JOIN topics t ON t.id = tt.topic_id`,
+    ),
+    command(
+      db,
+      `SELECT tg.id, tg.name, tg.color,
       COUNT(DISTINCT CASE WHEN t.deleted_at IS NULL THEN t.id END) AS tag_count,
       COUNT(DISTINCT CASE WHEN t.deleted_at IS NULL AND t.status IN ('scripting', 'production') THEN t.id END) AS in_progress_count,
       COUNT(DISTINCT CASE WHEN t.deleted_at IS NULL AND t.status = 'published' THEN t.id END) AS published_count,
@@ -37,15 +42,19 @@ export async function loadTagsPage(db: Database, options: PageOptions): Promise<
       LEFT JOIN topics t ON t.id = tt.topic_id
       ${where}
       GROUP BY tg.id, tg.name, tg.color
-      ORDER BY tg.name COLLATE NOCASE ASC, tg.id ASC LIMIT ? OFFSET ?`, [...values, options.pageSize, offset]),
+      ORDER BY tg.name COLLATE NOCASE ASC, tg.id ASC LIMIT ? OFFSET ?`,
+      [...values, options.pageSize, offset],
+    ),
   ]);
-  const rows = tagRows as Array<Tag & {
-    tag_count?: number;
-    in_progress_count?: number;
-    published_count?: number;
-    words_total?: number;
-    avg_score?: number;
-  }>;
+  const rows = tagRows as Array<
+    Tag & {
+      tag_count?: number;
+      in_progress_count?: number;
+      published_count?: number;
+      words_total?: number;
+      avg_score?: number;
+    }
+  >;
   const total = Number((countRows[0] as { count?: number } | undefined)?.count || 0);
   const summaryRow = summaryRows[0] as { tagged_topics?: number; total_topics?: number } | undefined;
   return {
@@ -77,15 +86,19 @@ export async function listTags(db: Database): Promise<Tag[]> {
 export async function insertTag(db: Database, tag: Tag): Promise<Tag | null> {
   const existing = readOne<Tag>(db, 'SELECT id, name, color FROM tags WHERE name = ? COLLATE NOCASE', [tag.name]);
   if (existing) return existing;
-  execute(db, 'INSERT INTO tags (id, name, color, created_at) VALUES (?, ?, ?, ?)',
-    [tag.id, tag.name, tag.color, new Date().toISOString()]);
+  execute(db, 'INSERT INTO tags (id, name, color, created_at) VALUES (?, ?, ?, ?)', [
+    tag.id,
+    tag.name,
+    tag.color,
+    new Date().toISOString(),
+  ]);
   return null;
 }
 
 export async function updateTag(
   db: Database,
   id: string,
-  body: Record<string, unknown>
+  body: Record<string, unknown>,
 ): Promise<Tag | 'duplicate' | null> {
   const existing = readOne<{ id: string; name: string; color: string }>(
     db,
@@ -99,7 +112,7 @@ export async function updateTag(
     fields.push('color');
     values.push(body.color);
   }
-  execute(db, `UPDATE tags SET ${fields.map((field) => `${field} = ?`).join(', ')} WHERE id = ?`, [...values, id]);
+  execute(db, `UPDATE tags SET ${fields.map(field => `${field} = ?`).join(', ')} WHERE id = ?`, [...values, id]);
   return readOne<Tag>(db, 'SELECT id, name, color FROM tags WHERE id = ?', [id]);
 }
 

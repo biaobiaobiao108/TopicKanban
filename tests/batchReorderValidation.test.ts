@@ -23,7 +23,7 @@ describe('batch reorder validation', () => {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ password: 'reorder-test-password' }),
     });
-    const { token } = await login.json() as { token: string };
+    const { token } = (await login.json()) as { token: string };
     headers = { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' };
   });
 
@@ -32,36 +32,49 @@ describe('batch reorder validation', () => {
   it('rejects unknown and duplicate topic IDs while preserving cross-stage moves', async () => {
     const create = async (title: string, status: string) => {
       const response = await app.request('/api/topics', {
-        method: 'POST', headers, body: JSON.stringify({ title, status }),
+        method: 'POST',
+        headers,
+        body: JSON.stringify({ title, status }),
       });
       expect(response.status).toBe(201);
-      return await response.json() as { id: string };
+      return (await response.json()) as { id: string };
     };
     const inbox = await create('收集箱选题', 'inbox');
     const scripting = await create('写稿中选题', 'scripting');
 
     const unknown = await app.request('/api/topics/reorder/batch', {
-      method: 'PATCH', headers,
+      method: 'PATCH',
+      headers,
       body: JSON.stringify({ updates: [{ id: 'missing-topic', status: 'inbox', sort_order: 1 }] }),
     });
     expect(unknown.status).toBe(400);
 
     const duplicate = await app.request('/api/topics/reorder/batch', {
-      method: 'PATCH', headers,
-      body: JSON.stringify({ updates: [
-        { id: inbox.id, status: 'inbox', sort_order: 1 },
-        { id: inbox.id, status: 'scripting', sort_order: 1 },
-      ] }),
+      method: 'PATCH',
+      headers,
+      body: JSON.stringify({
+        updates: [
+          { id: inbox.id, status: 'inbox', sort_order: 1 },
+          { id: inbox.id, status: 'scripting', sort_order: 1 },
+        ],
+      }),
     });
     expect(duplicate.status).toBe(400);
 
     const moved = await app.request('/api/topics/reorder/batch', {
-      method: 'PATCH', headers,
+      method: 'PATCH',
+      headers,
       body: JSON.stringify({ updates: [{ id: inbox.id, status: 'scripting', sort_order: 1 }] }),
     });
     expect(moved.status).toBe(200);
-    expect(sqlite.query('SELECT status, sort_order FROM topics WHERE id = ?').get(inbox.id)).toEqual({ status: 'scripting', sort_order: 1 });
-    expect(sqlite.query('SELECT status, sort_order FROM topics WHERE id = ?').get(scripting.id)).toEqual({ status: 'scripting', sort_order: 2 });
+    expect(sqlite.query('SELECT status, sort_order FROM topics WHERE id = ?').get(inbox.id)).toEqual({
+      status: 'scripting',
+      sort_order: 1,
+    });
+    expect(sqlite.query('SELECT status, sort_order FROM topics WHERE id = ?').get(scripting.id)).toEqual({
+      status: 'scripting',
+      sort_order: 2,
+    });
   });
 
   it('rejects unknown, duplicate, and cross-topic source IDs', async () => {
@@ -76,38 +89,57 @@ describe('batch reorder validation', () => {
     sourceInsert.run('source-a-2', 'source-topic-a', 'A 素材 2', 2, now, now);
     sourceInsert.run('source-b-1', 'source-topic-b', 'B 素材 1', 1, now, now);
 
-    const request = (sources: unknown[]) => app.request('/api/sources/reorder/batch', {
-      method: 'PATCH', headers, body: JSON.stringify({ sources }),
-    });
+    const request = (sources: unknown[]) =>
+      app.request('/api/sources/reorder/batch', {
+        method: 'PATCH',
+        headers,
+        body: JSON.stringify({ sources }),
+      });
 
     expect((await request([{ id: 'missing-source', topic_id: 'source-topic-a' }])).status).toBe(400);
-    expect((await request([
-      { id: 'source-a-1', topic_id: 'source-topic-a' },
-      { id: 'source-a-1', topic_id: 'source-topic-a' },
-    ])).status).toBe(400);
-    expect((await request([
-      { id: 'source-a-1', topic_id: 'source-topic-a' },
-      { id: 'source-b-1', topic_id: 'source-topic-b' },
-    ])).status).toBe(400);
+    expect(
+      (
+        await request([
+          { id: 'source-a-1', topic_id: 'source-topic-a' },
+          { id: 'source-a-1', topic_id: 'source-topic-a' },
+        ])
+      ).status,
+    ).toBe(400);
+    expect(
+      (
+        await request([
+          { id: 'source-a-1', topic_id: 'source-topic-a' },
+          { id: 'source-b-1', topic_id: 'source-topic-b' },
+        ])
+      ).status,
+    ).toBe(400);
 
-    expect((await request([
-      { id: 'source-a-2', topic_id: 'source-topic-a' },
-      { id: 'source-a-1', topic_id: 'source-topic-a' },
-    ])).status).toBe(200);
+    expect(
+      (
+        await request([
+          { id: 'source-a-2', topic_id: 'source-topic-a' },
+          { id: 'source-a-1', topic_id: 'source-topic-a' },
+        ])
+      ).status,
+    ).toBe(200);
     expect(sqlite.query('SELECT sort_order FROM sources WHERE id = ?').get('source-a-2')).toEqual({ sort_order: 1 });
     expect(sqlite.query('SELECT sort_order FROM sources WHERE id = ?').get('source-a-1')).toEqual({ sort_order: 2 });
   });
 
   it('rate-limits quick-drop ingestion and keeps its backing store bounded', async () => {
     const clientIp = `quick-drop-test-${Date.now()}-${Math.random()}`;
-    const request = () => app.fetch(new Request('http://localhost/api/inbox/quick-drop', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'X-Quick-Drop-Token': 'reorder-test-drop-token',
-      },
-      body: JSON.stringify({ content: '快投测试内容' }),
-    }), clientIp);
+    const request = () =>
+      app.fetch(
+        new Request('http://localhost/api/inbox/quick-drop', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'X-Quick-Drop-Token': 'reorder-test-drop-token',
+          },
+          body: JSON.stringify({ content: '快投测试内容' }),
+        }),
+        clientIp,
+      );
 
     for (let index = 0; index < 120; index += 1) {
       expect((await request()).status).toBe(201);

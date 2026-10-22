@@ -62,8 +62,15 @@ describe('行动日期展示', () => {
   });
 
   it('固定用北京时间格式化日期时间，不依赖运行设备时区', () => {
-    expect(formatBeijingDateTime('2026-08-31T15:59:00.000Z', 'en-GB', {
-      day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit', hourCycle: 'h23',
-    })).toContain('31/08/2026, 23:59');
+    expect(
+      formatBeijingDateTime('2026-08-31T15:59:00.000Z', 'en-GB', {
+        day: '2-digit',
+        month: '2-digit',
+        year: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit',
+        hourCycle: 'h23',
+      }),
+    ).toContain('31/08/2026, 23:59');
   });
 });

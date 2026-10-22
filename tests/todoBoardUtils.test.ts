@@ -1,6 +1,11 @@
 import { describe, expect, it } from 'bun:test';
 import type { TopicTodo } from '../src/types';
-import { findTodoStatus, getTodoBoardLayout, moveTodoOnBoard, reorderTodoInColumn } from '../src/components/topic-detail/todoBoardUtils';
+import {
+  findTodoStatus,
+  getTodoBoardLayout,
+  moveTodoOnBoard,
+  reorderTodoInColumn,
+} from '../src/components/topic-detail/todoBoardUtils';
 
 function todo(id: string, status: TopicTodo['status'], sortOrder: number): TopicTodo {
   return {
@@ -20,9 +25,12 @@ function todo(id: string, status: TopicTodo['status'], sortOrder: number): Topic
 describe('topic Todo board layout helpers', () => {
   it('groups and orders all three board columns independently', () => {
     const layout = getTodoBoardLayout([
-      todo('done-2', 'completed', 2), todo('doing-2', 'in_progress', 2),
-      todo('todo-2', 'todo', 2), todo('doing-1', 'in_progress', 1),
-      todo('todo-1', 'todo', 1), todo('done-1', 'completed', 1),
+      todo('done-2', 'completed', 2),
+      todo('doing-2', 'in_progress', 2),
+      todo('todo-2', 'todo', 2),
+      todo('doing-1', 'in_progress', 1),
+      todo('todo-1', 'todo', 1),
+      todo('done-1', 'completed', 1),
     ]);
     expect(layout).toEqual({
       todo_ids: ['todo-1', 'todo-2'],
@@ -41,7 +49,9 @@ describe('topic Todo board layout helpers', () => {
   it('reorders within a column without changing other columns', () => {
     const layout = { todo_ids: ['a', 'b'], in_progress_ids: ['c', 'd'], completed_ids: [] };
     expect(reorderTodoInColumn(layout, 'c', 'd')).toEqual({
-      todo_ids: ['a', 'b'], in_progress_ids: ['d', 'c'], completed_ids: [],
+      todo_ids: ['a', 'b'],
+      in_progress_ids: ['d', 'c'],
+      completed_ids: [],
     });
   });
 });

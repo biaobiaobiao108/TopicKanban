@@ -11,9 +11,12 @@ function ScriptCodeBlockView({ node }: ReactNodeViewProps) {
   const [copied, setCopied] = useState(false);
   const resetTimer = useRef<number | null>(null);
 
-  useEffect(() => () => {
-    if (resetTimer.current !== null) window.clearTimeout(resetTimer.current);
-  }, []);
+  useEffect(
+    () => () => {
+      if (resetTimer.current !== null) window.clearTimeout(resetTimer.current);
+    },
+    [],
+  );
 
   const copyCode = useCallback(async () => {
     const success = await copyTextToClipboard(node.textContent);
@@ -37,8 +40,10 @@ function ScriptCodeBlockView({ node }: ReactNodeViewProps) {
         className="script-code-block-copy"
         contentEditable={false}
         aria-label={copied ? '代码已复制' : '复制代码'}
-        onMouseDown={(event) => event.preventDefault()}
-        onClick={() => { void copyCode(); }}
+        onMouseDown={event => event.preventDefault()}
+        onClick={() => {
+          void copyCode();
+        }}
       >
         {copied ? <Check aria-hidden="true" /> : <Copy aria-hidden="true" />}
         <span className="sr-only">{copied ? '代码已复制' : '复制代码'}</span>

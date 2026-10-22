@@ -156,22 +156,22 @@ describe('Storage Optimization & Compaction', () => {
 
     // Reading the trash must not destroy anything.
     const readOnlyTrash = await app.request('/api/topics/trash', { headers: authHeaders });
-    const readOnlyList = await readOnlyTrash.json() as Array<{ id: string }>;
-    expect(readOnlyList.map((topic) => topic.id).sort()).toEqual(['topic-old-trash', 'topic-recent-trash']);
+    const readOnlyList = (await readOnlyTrash.json()) as Array<{ id: string }>;
+    expect(readOnlyList.map(topic => topic.id).sort()).toEqual(['topic-old-trash', 'topic-recent-trash']);
 
     const purgeResponse = await app.request('/api/topics/trash/purge', { method: 'POST', headers: authHeaders });
     expect(purgeResponse.status).toBe(200);
-    const purgeResult = await purgeResponse.json() as { purged_count: number; purged_ids: string[] };
+    const purgeResult = (await purgeResponse.json()) as { purged_count: number; purged_ids: string[] };
     expect(purgeResult.purged_count).toBe(1);
     expect(purgeResult.purged_ids).toEqual(['topic-old-trash']);
 
     const trashResponse = await app.request('/api/topics/trash', { headers: authHeaders });
     expect(trashResponse.status).toBe(200);
-    const trashList = await trashResponse.json() as Array<{ id: string }>;
-    expect(trashList.map((topic) => topic.id)).toEqual(['topic-recent-trash']);
+    const trashList = (await trashResponse.json()) as Array<{ id: string }>;
+    expect(trashList.map(topic => topic.id)).toEqual(['topic-recent-trash']);
 
     const remaining = sqlite.query('SELECT id FROM topics WHERE deleted_at IS NOT NULL').all() as Array<{ id: string }>;
-    expect(remaining.map((r) => r.id)).toEqual(['topic-recent-trash']);
+    expect(remaining.map(r => r.id)).toEqual(['topic-recent-trash']);
   });
 
   it('keeps expired rows visible when reading paginated trash so a GET never destroys data', async () => {
@@ -215,18 +215,20 @@ describe('Storage Optimization & Compaction', () => {
 
     const pageResponse = await app.request('/api/topics?scope=trash&page=1&page_size=50', { headers: authHeaders });
     expect(pageResponse.status).toBe(200);
-    const pageData = await pageResponse.json() as { items: Array<{ id: string }>; scope_counts: { trash: number } };
-    expect(pageData.items.map((item) => item.id).sort()).toEqual(['topic-old-trash-page', 'topic-recent-trash-page']);
+    const pageData = (await pageResponse.json()) as { items: Array<{ id: string }>; scope_counts: { trash: number } };
+    expect(pageData.items.map(item => item.id).sort()).toEqual(['topic-old-trash-page', 'topic-recent-trash-page']);
     expect(pageData.scope_counts.trash).toBe(2);
 
     const remaining = sqlite.query('SELECT id FROM topics WHERE deleted_at IS NOT NULL').all() as Array<{ id: string }>;
-    expect(remaining.map((r) => r.id).sort()).toEqual(['topic-old-trash-page', 'topic-recent-trash-page']);
+    expect(remaining.map(r => r.id).sort()).toEqual(['topic-old-trash-page', 'topic-recent-trash-page']);
 
     const purgeResponse = await app.request('/api/topics/trash/purge', { method: 'POST', headers: authHeaders });
-    const purgeResult = await purgeResponse.json() as { purged_count: number };
+    const purgeResult = (await purgeResponse.json()) as { purged_count: number };
     expect(purgeResult.purged_count).toBe(1);
-    const afterPurge = sqlite.query('SELECT id FROM topics WHERE deleted_at IS NOT NULL').all() as Array<{ id: string }>;
-    expect(afterPurge.map((r) => r.id)).toEqual(['topic-recent-trash-page']);
+    const afterPurge = sqlite.query('SELECT id FROM topics WHERE deleted_at IS NOT NULL').all() as Array<{
+      id: string;
+    }>;
+    expect(afterPurge.map(r => r.id)).toEqual(['topic-recent-trash-page']);
   });
 
   it('refuses to restore an expired topic without destroying it', async () => {
@@ -234,7 +236,8 @@ describe('Storage Optimization & Compaction', () => {
     const expiredAt = new Date(now - 40 * 86400 * 1000).toISOString();
     const recentAt = new Date(now - 5 * 86400 * 1000).toISOString();
     const recentOffsetAt = new Date(now - 30 * 86400 * 1000 + 2 * 60 * 60 * 1000 - 8 * 60 * 60 * 1000)
-      .toISOString().replace(/Z$/u, '-08:00');
+      .toISOString()
+      .replace(/Z$/u, '-08:00');
     const createdAt = new Date(now).toISOString();
     const insertTrashedTopic = async (id: string, deletedAt: string) => {
       await insertTopic(db, {
@@ -258,14 +261,19 @@ describe('Storage Optimization & Compaction', () => {
     await insertTrashedTopic('topic-expired-restore', expiredAt);
     await insertTrashedTopic('topic-recent-restore', recentAt);
     await insertTrashedTopic('topic-recent-offset-restore', recentOffsetAt);
-    sqlite.query(`INSERT INTO sources (id, topic_id, title, created_at, updated_at)
-      VALUES (?, ?, ?, ?, ?)`).run('source-expired-restore', 'topic-expired-restore', '关联资料', createdAt, createdAt);
+    sqlite
+      .query(
+        `INSERT INTO sources (id, topic_id, title, created_at, updated_at)
+      VALUES (?, ?, ?, ?, ?)`,
+      )
+      .run('source-expired-restore', 'topic-expired-restore', '关联资料', createdAt, createdAt);
 
     const expiredRestore = await app.request('/api/topics/topic-expired-restore/restore', {
-      method: 'POST', headers: authHeaders,
+      method: 'POST',
+      headers: authHeaders,
     });
     expect(expiredRestore.status).toBe(410);
-    const expiredPayload = await expiredRestore.json() as { code: string; error: string };
+    const expiredPayload = (await expiredRestore.json()) as { code: string; error: string };
     expect(expiredPayload.code).toBe('TOPIC_TRASH_EXPIRED');
     expect(expiredPayload.error).toContain('无法恢复');
     // Restoring must never be the trigger that deletes data.
@@ -273,13 +281,15 @@ describe('Storage Optimization & Compaction', () => {
     expect(sqlite.query('SELECT id FROM sources WHERE id = ?').get('source-expired-restore')).not.toBeNull();
 
     const recentRestore = await app.request('/api/topics/topic-recent-restore/restore', {
-      method: 'POST', headers: authHeaders,
+      method: 'POST',
+      headers: authHeaders,
     });
     expect(recentRestore.status).toBe(200);
-    expect((await recentRestore.json() as { id: string; deleted_at: string | null }).deleted_at).toBeNull();
+    expect(((await recentRestore.json()) as { id: string; deleted_at: string | null }).deleted_at).toBeNull();
 
     const recentOffsetRestore = await app.request('/api/topics/topic-recent-offset-restore/restore', {
-      method: 'POST', headers: authHeaders,
+      method: 'POST',
+      headers: authHeaders,
     });
     expect(recentOffsetRestore.status).toBe(200);
   });
@@ -289,7 +299,7 @@ describe('Storage Optimization & Compaction', () => {
       'lock:topic-writer-1',
       'client-A',
       { client_id: 'client-A', device_name: 'Macbook Pro', updated_at: new Date().toISOString() },
-      30
+      30,
     );
     expect(lease1.acquired).toBe(true);
 
@@ -298,7 +308,7 @@ describe('Storage Optimization & Compaction', () => {
       'lock:topic-writer-1',
       'client-B',
       { client_id: 'client-B', device_name: 'iPad', updated_at: new Date().toISOString() },
-      30
+      30,
     );
     expect(lease2.acquired).toBe(false);
     expect(lease2.current?.client_id).toBe('client-A');
@@ -308,7 +318,7 @@ describe('Storage Optimization & Compaction', () => {
       'lock:topic-writer-1',
       'client-A',
       { client_id: 'client-A', device_name: 'Macbook Pro', updated_at: new Date().toISOString() },
-      30
+      30,
     );
     expect(renew.acquired).toBe(true);
 
@@ -321,7 +331,7 @@ describe('Storage Optimization & Compaction', () => {
       'lock:topic-writer-1',
       'client-B',
       { client_id: 'client-B', device_name: 'iPad', updated_at: new Date().toISOString() },
-      30
+      30,
     );
     expect(lease3.acquired).toBe(true);
     expect(releasePresenceLease('lock:topic-writer-1', 'client-B')).toBe('released');

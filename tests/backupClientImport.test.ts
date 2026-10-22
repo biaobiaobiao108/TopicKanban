@@ -16,8 +16,10 @@ describe('client backup import', () => {
     Object.defineProperty(globalThis, 'localStorage', {
       configurable: true,
       value: {
-        getItem: (key: string) => key === 'topic_kanban_auth_token_v1' ? 'v1.test-token' : null,
-        setItem: () => { throw new Error('storage unavailable'); },
+        getItem: (key: string) => (key === 'topic_kanban_auth_token_v1' ? 'v1.test-token' : null),
+        setItem: () => {
+          throw new Error('storage unavailable');
+        },
         removeItem: () => undefined,
       },
     });
@@ -26,11 +28,13 @@ describe('client backup import', () => {
       return Response.json({ success: true });
     }) as typeof fetch;
 
-    const result = await importBackupData(JSON.stringify({
-      version: '5.0',
-      topics: [],
-      settings: { reading_speed: 280, theme: 'light' },
-    }));
+    const result = await importBackupData(
+      JSON.stringify({
+        version: '5.0',
+        topics: [],
+        settings: { reading_speed: 280, theme: 'light' },
+      }),
+    );
 
     expect(requests).toHaveLength(1);
     expect(requests[0]?.method).toBe('PUT');

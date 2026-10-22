@@ -1,5 +1,11 @@
 import { describe, it, expect } from 'bun:test';
-import { DEFAULT_APP_SETTINGS, APP_THEMES, STALE_ACTION_THRESHOLD_DAYS, TRASH_RETENTION_DAYS, type AppSettings } from '../src/types';
+import {
+  DEFAULT_APP_SETTINGS,
+  APP_THEMES,
+  STALE_ACTION_THRESHOLD_DAYS,
+  TRASH_RETENTION_DAYS,
+  type AppSettings,
+} from '../src/types';
 import { loadLocalSettings, sanitizeAppSettings, saveLocalSettings } from '../src/lib/localSettings';
 import { THEME_CONFIG_LIST } from '../src/lib/theme';
 import { VOICEOVER_CUES, getVoiceoverCueTone } from '../src/lib/voiceoverCues';
@@ -32,7 +38,14 @@ describe('Browser-local settings model and sanitization', () => {
 
   it('uses the fixed voiceover cue set with distinct semantic tone groups', () => {
     expect(VOICEOVER_CUES.map(({ label }) => label)).toEqual([
-      '停顿', '重音', '反问', '反讽', '加快', '放慢', '克制', '迟疑',
+      '停顿',
+      '重音',
+      '反问',
+      '反讽',
+      '加快',
+      '放慢',
+      '克制',
+      '迟疑',
     ]);
     expect(getVoiceoverCueTone('停顿')).toBe('rhythm');
     expect(getVoiceoverCueTone('重音')).toBe('emphasis');
@@ -78,6 +91,5 @@ describe('Browser-local settings model and sanitization', () => {
       expect(settings.reading_speed).toBe(260);
       expect(settings.theme).toBe(theme);
     }
-
   });
 });

@@ -1,11 +1,6 @@
 import type { NativeApp } from '../native';
 import type { Person, PersonRelationship } from '../../types';
-import {
-  createId,
-  jsonError,
-  jsonValidationError,
-  requireDb,
-} from '../apiShared';
+import { createId, jsonError, jsonValidationError, requireDb } from '../apiShared';
 import {
   parseWithZod,
   personCreateSchema,
@@ -28,10 +23,14 @@ import {
 } from '../repositories';
 
 export function registerPeopleRoutes(app: NativeApp): void {
-  app.get('/people', async (c) => {
+  app.get('/people', async c => {
     try {
       const data = await loadBootstrap(requireDb(c), {
-        includeTopics: false, includePeople: true, includeRelationships: false, includePublished: false, includeTags: false,
+        includeTopics: false,
+        includePeople: true,
+        includeRelationships: false,
+        includePublished: false,
+        includeTags: false,
       });
       return c.json(data.people);
     } catch (error) {
@@ -39,7 +38,7 @@ export function registerPeopleRoutes(app: NativeApp): void {
     }
   });
 
-  app.get('/people/page', async (c) => {
+  app.get('/people/page', async c => {
     try {
       const page = Math.max(1, Number.parseInt(c.req.query('page') || '1', 10) || 1);
       const pageSize = Math.min(100, Math.max(1, Number.parseInt(c.req.query('page_size') || '30', 10) || 30));
@@ -49,7 +48,7 @@ export function registerPeopleRoutes(app: NativeApp): void {
     }
   });
 
-  app.get('/people/options', async (c) => {
+  app.get('/people/options', async c => {
     try {
       return c.json(await listPeopleOptions(requireDb(c)));
     } catch (error) {
@@ -57,7 +56,7 @@ export function registerPeopleRoutes(app: NativeApp): void {
     }
   });
 
-  app.post('/people', async (c) => {
+  app.post('/people', async c => {
     try {
       const parsed = parseWithZod(personCreateSchema, await c.req.json());
       if (!parsed.success) return jsonValidationError(c, parsed.error, parsed.issues);
@@ -83,7 +82,7 @@ export function registerPeopleRoutes(app: NativeApp): void {
     }
   });
 
-  app.patch('/people/:id', async (c) => {
+  app.patch('/people/:id', async c => {
     try {
       const parsed = parseWithZod(personUpdateSchema, await c.req.json());
       if (!parsed.success) return jsonValidationError(c, parsed.error, parsed.issues);
@@ -95,7 +94,7 @@ export function registerPeopleRoutes(app: NativeApp): void {
     }
   });
 
-  app.delete('/people/:id', async (c) => {
+  app.delete('/people/:id', async c => {
     try {
       await deletePerson(requireDb(c), c.req.param('id'));
       invalidatePublishedAnalyticsCache();
@@ -105,10 +104,14 @@ export function registerPeopleRoutes(app: NativeApp): void {
     }
   });
 
-  app.get('/relationships', async (c) => {
+  app.get('/relationships', async c => {
     try {
       const data = await loadBootstrap(requireDb(c), {
-        includeTopics: false, includePeople: false, includeRelationships: true, includePublished: false, includeTags: false,
+        includeTopics: false,
+        includePeople: false,
+        includeRelationships: true,
+        includePublished: false,
+        includeTags: false,
       });
       return c.json(data.relationships);
     } catch (error) {
@@ -116,7 +119,7 @@ export function registerPeopleRoutes(app: NativeApp): void {
     }
   });
 
-  app.post('/relationships', async (c) => {
+  app.post('/relationships', async c => {
     try {
       const parsed = parseWithZod(personRelationshipCreateSchema, await c.req.json());
       if (!parsed.success) return jsonValidationError(c, parsed.error, parsed.issues);
@@ -135,7 +138,7 @@ export function registerPeopleRoutes(app: NativeApp): void {
     }
   });
 
-  app.patch('/relationships/:id', async (c) => {
+  app.patch('/relationships/:id', async c => {
     try {
       const db = requireDb(c);
       const id = c.req.param('id');
@@ -156,7 +159,7 @@ export function registerPeopleRoutes(app: NativeApp): void {
     }
   });
 
-  app.delete('/relationships/:id', async (c) => {
+  app.delete('/relationships/:id', async c => {
     try {
       await deleteRelationship(requireDb(c), c.req.param('id'));
       return c.json({ success: true });

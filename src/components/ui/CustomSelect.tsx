@@ -64,7 +64,12 @@ export const CustomSelect: React.FC<CustomSelectProps> = ({
   emptyState = '暂无可选项',
 }) => {
   const [isOpen, setIsOpen] = useState(false);
-  const [focusedIndex, setFocusedIndex] = useState(() => Math.max(0, options.findIndex((opt) => opt.value === value)));
+  const [focusedIndex, setFocusedIndex] = useState(() =>
+    Math.max(
+      0,
+      options.findIndex(opt => opt.value === value),
+    ),
+  );
   const [internalSearchValue, setInternalSearchValue] = useState('');
   const containerRef = useRef<HTMLDivElement>(null);
   const buttonRef = useRef<HTMLButtonElement>(null);
@@ -74,7 +79,7 @@ export const CustomSelect: React.FC<CustomSelectProps> = ({
   const listboxId = useId();
   const searchboxId = `${listboxId}-search`;
 
-  const selectedOption = options.find((option) => option.value === value);
+  const selectedOption = options.find(option => option.value === value);
   const currentSearchValue = searchValue ?? internalSearchValue;
 
   const popoverPosition = useFloatingPosition({
@@ -89,7 +94,7 @@ export const CustomSelect: React.FC<CustomSelectProps> = ({
 
   useEffect(() => {
     if (!isOpen) return;
-    const selectedIndex = options.findIndex((option) => option.value === value);
+    const selectedIndex = options.findIndex(option => option.value === value);
     const nextIndex = selectedIndex >= 0 ? selectedIndex : 0;
     setFocusedIndex(nextIndex);
     requestAnimationFrame(() => {
@@ -149,7 +154,10 @@ export const CustomSelect: React.FC<CustomSelectProps> = ({
       close();
       return;
     }
-    if (!isOpen && (event.key === 'Enter' || event.key === ' ' || event.key === 'ArrowDown' || event.key === 'ArrowUp')) {
+    if (
+      !isOpen &&
+      (event.key === 'Enter' || event.key === ' ' || event.key === 'ArrowDown' || event.key === 'ArrowUp')
+    ) {
       event.preventDefault();
       setIsOpen(true);
       return;
@@ -247,7 +255,9 @@ export const CustomSelect: React.FC<CustomSelectProps> = ({
         } ${buttonClassName}`}
       >
         <div className="flex min-w-0 flex-1 items-center gap-1.5 overflow-hidden">
-          {renderValue ? renderValue(selectedOption) : (
+          {renderValue ? (
+            renderValue(selectedOption)
+          ) : (
             <>
               {selectedOption?.dot && <span className={`w-2 h-2 rounded-full shrink-0 ${selectedOption.dot}`} />}
               {selectedOption?.icon && <span className="shrink-0 text-ink-muted">{selectedOption.icon}</span>}
@@ -255,84 +265,105 @@ export const CustomSelect: React.FC<CustomSelectProps> = ({
             </>
           )}
         </div>
-        <ChevronDown className={`${iconSizes[size]} text-ink-muted transition-transform duration-200 ease-editorial-out shrink-0 ${isOpen ? 'rotate-180 text-ink' : ''}`} />
+        <ChevronDown
+          className={`${iconSizes[size]} text-ink-muted transition-transform duration-200 ease-editorial-out shrink-0 ${isOpen ? 'rotate-180 text-ink' : ''}`}
+        />
       </button>
 
-      {isOpen && popoverPosition && typeof document !== 'undefined' && createPortal(
-        <div
-          ref={popoverRef}
-          className={`fixed z-[100] min-w-0 max-w-[calc(100vw-1rem)] overflow-hidden bg-surface/95 backdrop-blur-md border border-line rounded-2xl shadow-modal animate-in fade-in zoom-in-95 duration-150 ease-editorial-out flex flex-col text-ink ${popoverClassName}`}
-          style={{
-            left: `${popoverPosition.left}px`,
-            top: `${popoverPosition.top}px`,
-            minWidth: `${popoverPosition.minWidth}px`,
-            ...(popoverPosition.width ? { width: `${popoverPosition.width}px` } : {}),
-            maxWidth: 'calc(100vw - 1rem)',
-            maxHeight: `${popoverPosition.maxHeight}px`,
-          }}
-        >
-          {searchable && (
-            <div className="p-2 border-b border-line bg-canvas/70 flex items-center gap-2">
-              <Search className="w-3.5 h-3.5 text-ink-muted ml-1 shrink-0" aria-hidden="true" />
-              <input
-                ref={searchRef}
-                id={searchboxId}
-                type="search"
-                enterKeyHint="search"
-                autoComplete="off"
-                autoCorrect="off"
-                spellCheck={false}
-                role="searchbox"
-                aria-controls={listboxId}
-                placeholder={searchPlaceholder}
-                value={currentSearchValue}
-                onChange={(event) => setSearch(event.target.value)}
-                onKeyDown={handleSearchKeyDown}
-                className="w-full text-xs bg-transparent outline-none placeholder:text-ink-muted text-ink font-medium"
-              />
-            </div>
-          )}
+      {isOpen &&
+        popoverPosition &&
+        typeof document !== 'undefined' &&
+        createPortal(
+          <div
+            ref={popoverRef}
+            className={`fixed z-[100] min-w-0 max-w-[calc(100vw-1rem)] overflow-hidden bg-surface/95 backdrop-blur-md border border-line rounded-2xl shadow-modal animate-in fade-in zoom-in-95 duration-150 ease-editorial-out flex flex-col text-ink ${popoverClassName}`}
+            style={{
+              left: `${popoverPosition.left}px`,
+              top: `${popoverPosition.top}px`,
+              minWidth: `${popoverPosition.minWidth}px`,
+              ...(popoverPosition.width ? { width: `${popoverPosition.width}px` } : {}),
+              maxWidth: 'calc(100vw - 1rem)',
+              maxHeight: `${popoverPosition.maxHeight}px`,
+            }}
+          >
+            {searchable && (
+              <div className="p-2 border-b border-line bg-canvas/70 flex items-center gap-2">
+                <Search className="w-3.5 h-3.5 text-ink-muted ml-1 shrink-0" aria-hidden="true" />
+                <input
+                  ref={searchRef}
+                  id={searchboxId}
+                  type="search"
+                  enterKeyHint="search"
+                  autoComplete="off"
+                  autoCorrect="off"
+                  spellCheck={false}
+                  role="searchbox"
+                  aria-controls={listboxId}
+                  placeholder={searchPlaceholder}
+                  value={currentSearchValue}
+                  onChange={event => setSearch(event.target.value)}
+                  onKeyDown={handleSearchKeyDown}
+                  className="w-full text-xs bg-transparent outline-none placeholder:text-ink-muted text-ink font-medium"
+                />
+              </div>
+            )}
 
-          <FloatingScrollbar id={listboxId} role="listbox" aria-label={ariaLabel || selectedOption?.label || placeholder} className="p-1.5 space-y-0.5" wrapperClassName="min-h-0 min-w-0 flex-1">
-            {options.length === 0 ? emptyState : options.map((option, index) => {
-              const isSelected = option.value === value;
-              const isFocused = focusedIndex === index;
-              return (
-                <button
-                  ref={(element) => { optionRefs.current[index] = element; }}
-                  key={option.value}
-                  id={`${listboxId}-option-${index}`}
-                  type="button"
-                  role="option"
-                  aria-selected={isSelected}
-                  tabIndex={isFocused ? 0 : -1}
-                  onFocus={() => setFocusedIndex(index)}
-                  onKeyDown={handleOptionKeyDown}
-                  onClick={() => selectOption(index)}
-                  className={`flex w-full min-w-0 max-w-full items-start justify-between gap-2 overflow-hidden rounded-xl px-2.5 py-1.5 text-left text-xs font-medium transition-colors cursor-pointer ${isSelected ? 'bg-accent-soft text-accent-dark font-semibold' : 'text-ink hover:bg-canvas'} ${isFocused ? 'ring-1 ring-accent/30' : ''}`}
-                >
-                  {renderOption ? (
-                    <div className="min-w-0 max-w-full flex-1 overflow-hidden">
-                      {renderOption(option, { selected: isSelected, focused: isFocused })}
-                    </div>
-                  ) : (
-                    <div className="flex min-w-0 max-w-full flex-1 items-start gap-2">
-                      {option.dot && <span className={`w-2 h-2 rounded-full shrink-0 ${option.dot}`} />}
-                      {option.icon && <span className="shrink-0 text-ink-muted">{option.icon}</span>}
-                      <div className="min-w-0 max-w-full break-words [overflow-wrap:anywhere]">
-                        <div className="line-clamp-2 whitespace-normal break-words">{option.label}</div>
-                        {option.description && <div className="line-clamp-2 text-3xs text-ink-muted font-normal whitespace-normal break-words">{option.description}</div>}
-                      </div>
-                    </div>
-                  )}
-                  {!renderOption && isSelected && <Check className="w-3.5 h-3.5 text-accent shrink-0 ml-2" aria-hidden="true" />}
-                </button>
-              );
-            })}
-          </FloatingScrollbar>
-        </div>,
-        containerRef.current?.closest('dialog') || document.body,
-      )}
+            <FloatingScrollbar
+              id={listboxId}
+              role="listbox"
+              aria-label={ariaLabel || selectedOption?.label || placeholder}
+              className="p-1.5 space-y-0.5"
+              wrapperClassName="min-h-0 min-w-0 flex-1"
+            >
+              {options.length === 0
+                ? emptyState
+                : options.map((option, index) => {
+                    const isSelected = option.value === value;
+                    const isFocused = focusedIndex === index;
+                    return (
+                      <button
+                        ref={element => {
+                          optionRefs.current[index] = element;
+                        }}
+                        key={option.value}
+                        id={`${listboxId}-option-${index}`}
+                        type="button"
+                        role="option"
+                        aria-selected={isSelected}
+                        tabIndex={isFocused ? 0 : -1}
+                        onFocus={() => setFocusedIndex(index)}
+                        onKeyDown={handleOptionKeyDown}
+                        onClick={() => selectOption(index)}
+                        className={`flex w-full min-w-0 max-w-full items-start justify-between gap-2 overflow-hidden rounded-xl px-2.5 py-1.5 text-left text-xs font-medium transition-colors cursor-pointer ${isSelected ? 'bg-accent-soft text-accent-dark font-semibold' : 'text-ink hover:bg-canvas'} ${isFocused ? 'ring-1 ring-accent/30' : ''}`}
+                      >
+                        {renderOption ? (
+                          <div className="min-w-0 max-w-full flex-1 overflow-hidden">
+                            {renderOption(option, { selected: isSelected, focused: isFocused })}
+                          </div>
+                        ) : (
+                          <div className="flex min-w-0 max-w-full flex-1 items-start gap-2">
+                            {option.dot && <span className={`w-2 h-2 rounded-full shrink-0 ${option.dot}`} />}
+                            {option.icon && <span className="shrink-0 text-ink-muted">{option.icon}</span>}
+                            <div className="min-w-0 max-w-full break-words [overflow-wrap:anywhere]">
+                              <div className="line-clamp-2 whitespace-normal break-words">{option.label}</div>
+                              {option.description && (
+                                <div className="line-clamp-2 text-3xs text-ink-muted font-normal whitespace-normal break-words">
+                                  {option.description}
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                        )}
+                        {!renderOption && isSelected && (
+                          <Check className="w-3.5 h-3.5 text-accent shrink-0 ml-2" aria-hidden="true" />
+                        )}
+                      </button>
+                    );
+                  })}
+            </FloatingScrollbar>
+          </div>,
+          containerRef.current?.closest('dialog') || document.body,
+        )}
     </div>
   );
 };

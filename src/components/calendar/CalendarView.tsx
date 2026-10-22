@@ -13,19 +13,8 @@ import { Topic, CommercialDeal, PublishedVideo, Tag, Priority, TopicStatus } fro
 import { fetchCommercialDealsForCalendar, fetchPublishedVideos, fetchTags } from '../../lib/storageApi';
 import { PageHeader } from '../layout/PageHeader';
 import { useSearchParams } from 'react-router-dom';
-import {
-  CalendarDays,
-  ChevronLeft,
-  ChevronRight,
-  Inbox,
-  Filter,
-  Check,
-} from 'lucide-react';
-import {
-  CalendarLayerFilters,
-  CalendarViewMode,
-  DEFAULT_CALENDAR_LAYERS,
-} from './CalendarTypes';
+import { CalendarDays, ChevronLeft, ChevronRight, Inbox, Filter, Check } from 'lucide-react';
+import { CalendarLayerFilters, CalendarViewMode, DEFAULT_CALENDAR_LAYERS } from './CalendarTypes';
 import {
   getBeijingDateString,
   getMonthGridDays,
@@ -97,7 +86,9 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
 }) => {
   const { showToast } = useToast();
   const [searchParams, setSearchParams] = useSearchParams();
-  const [currentDate, setCurrentDate] = useState<Date>(() => parseCalendarDate(searchParams.get('date')) || createBeijingCalendarDate());
+  const [currentDate, setCurrentDate] = useState<Date>(
+    () => parseCalendarDate(searchParams.get('date')) || createBeijingCalendarDate(),
+  );
   const [viewMode, setViewMode] = useState<CalendarViewMode>(() => parseCalendarView(searchParams.get('view')));
   const [filters, setFilters] = useState<CalendarLayerFilters>(DEFAULT_CALENDAR_LAYERS);
   const [isLayerMenuOpen, setIsLayerMenuOpen] = useState(false);
@@ -115,11 +106,11 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
   useEffect(() => {
     const nextViewMode = parseCalendarView(searchParams.get('view'));
     const nextDate = parseCalendarDate(searchParams.get('date'));
-    setViewMode((previous) => (previous === nextViewMode ? previous : nextViewMode));
+    setViewMode(previous => (previous === nextViewMode ? previous : nextViewMode));
     if (nextDate) {
-      setCurrentDate((previous) => (
-        getBeijingDateString(previous) === getBeijingDateString(nextDate) ? previous : nextDate
-      ));
+      setCurrentDate(previous =>
+        getBeijingDateString(previous) === getBeijingDateString(nextDate) ? previous : nextDate,
+      );
     }
   }, [searchParams]);
 
@@ -138,7 +129,7 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
       activationConstraint: {
         distance: 5,
       },
-    })
+    }),
   );
 
   const year = currentDate.getUTCFullYear();
@@ -198,10 +189,15 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
   });
 
   const effectivePublishedList = publishedQuery.data || publishedList || [];
-  const fallbackDeals = useMemo(() => deals.filter((deal) => (
-    [deal.delivery_due_date, deal.publish_date, deal.next_action_due_date]
-      .some((date) => Boolean(date && date >= calendarRangeStart && date <= calendarRangeEnd))
-  )), [calendarRangeEnd, calendarRangeStart, deals]);
+  const fallbackDeals = useMemo(
+    () =>
+      deals.filter(deal =>
+        [deal.delivery_due_date, deal.publish_date, deal.next_action_due_date].some(date =>
+          Boolean(date && date >= calendarRangeStart && date <= calendarRangeEnd),
+        ),
+      ),
+    [calendarRangeEnd, calendarRangeStart, deals],
+  );
   const effectiveDeals = dealsQuery.data || fallbackDeals;
   const effectiveTags = tagsQuery.data || availableTags || [];
 
@@ -213,10 +209,7 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
   // Unscheduled active topics
   const unscheduledTopics = useMemo(() => {
     return topics.filter(
-      (t) => !t.deleted_at &&
-        t.status !== 'published' &&
-        t.status !== 'icebox' &&
-        !t.target_publish_date
+      t => !t.deleted_at && t.status !== 'published' && t.status !== 'icebox' && !t.target_publish_date,
     );
   }, [topics]);
 
@@ -242,9 +235,10 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
           await onUpdateTopic(topic.id, { target_publish_date: targetDate });
         } catch (error) {
           showToast({
-            message: error instanceof Error && error.message.trim()
-              ? `排期保存失败：${error.message}`
-              : '排期保存失败，请检查网络后重试',
+            message:
+              error instanceof Error && error.message.trim()
+                ? `排期保存失败：${error.message}`
+                : '排期保存失败，请检查网络后重试',
             tone: 'error',
           });
         }
@@ -253,7 +247,7 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
   };
 
   const handleToggleLayer = (key: keyof CalendarLayerFilters) => {
-    setFilters((prev) => ({ ...prev, [key]: !prev[key] }));
+    setFilters(prev => ({ ...prev, [key]: !prev[key] }));
   };
 
   const enabledLayerCount = Object.values(filters).filter(Boolean).length;
@@ -265,15 +259,18 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
           <PageHeader
             title="选题日历"
             icon={CalendarDays}
-            badge={(
+            badge={
               <span className="rounded-full bg-accent-soft px-2.5 py-1 text-xs font-semibold text-accent">
                 发片排期
               </span>
-            )}
-            actions={(
+            }
+            actions={
               <>
                 {/* Month navigation controls */}
-                <div aria-label="月份导航" className="inline-flex h-10 items-center gap-0.5 rounded-xl border border-line bg-surface p-1">
+                <div
+                  aria-label="月份导航"
+                  className="inline-flex h-10 items-center gap-0.5 rounded-xl border border-line bg-surface p-1"
+                >
                   <button
                     type="button"
                     onClick={handlePrev}
@@ -308,11 +305,13 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
 
                 {/* View Switcher (文人胶囊分段器) */}
                 <div className="inline-flex h-10 items-center gap-1 rounded-full border border-line/50 bg-control p-1 text-xs font-medium">
-                  {([
-                    ['month', '月视图'],
-                    ['week', '周视图'],
-                    ['agenda', '日程流'],
-                  ] as const).map(([mode, label]) => (
+                  {(
+                    [
+                      ['month', '月视图'],
+                      ['week', '周视图'],
+                      ['agenda', '日程流'],
+                    ] as const
+                  ).map(([mode, label]) => (
                     <button
                       key={mode}
                       type="button"
@@ -335,7 +334,7 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
                     aria-label="筛选日历图层"
                     aria-expanded={isLayerMenuOpen}
                     aria-controls={isLayerMenuOpen ? 'calendar-layer-menu' : undefined}
-                    onClick={() => setIsLayerMenuOpen((open) => !open)}
+                    onClick={() => setIsLayerMenuOpen(open => !open)}
                     className={`inline-flex h-10 items-center gap-1.5 rounded-xl border px-3 text-xs font-medium transition-colors ${
                       isLayerMenuOpen || enabledLayerCount < CALENDAR_LAYER_OPTIONS.length
                         ? 'border-line bg-surface text-ink'
@@ -360,9 +359,7 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
                     maxHeight={280}
                     className="p-1.5"
                   >
-                    <div className="px-2.5 py-1.5 text-2xs font-medium text-ink-muted">
-                      显示事项
-                    </div>
+                    <div className="px-2.5 py-1.5 text-2xs font-medium text-ink-muted">显示事项</div>
                     {CALENDAR_LAYER_OPTIONS.map(({ key, label, dotClass }) => (
                       <button
                         key={key}
@@ -379,9 +376,7 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
                           <span className={`h-1.5 w-1.5 rounded-full ${dotClass}`} />
                           {label}
                         </span>
-                        {filters[key] && (
-                          <Check className="h-3.5 w-3.5 text-accent" aria-hidden="true" />
-                        )}
+                        {filters[key] && <Check className="h-3.5 w-3.5 text-accent" aria-hidden="true" />}
                       </button>
                     ))}
                   </FloatingMenu>
@@ -390,7 +385,7 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
                 {/* Toggle Unscheduled Drawer */}
                 <button
                   type="button"
-                  onClick={() => setIsPoolOpen((prev) => !prev)}
+                  onClick={() => setIsPoolOpen(prev => !prev)}
                   className={`inline-flex h-10 items-center justify-center gap-1.5 rounded-full border px-3.5 text-xs font-semibold transition-all cursor-pointer ${
                     isPoolOpen
                       ? 'border-line bg-surface text-ink shadow-2xs'
@@ -399,12 +394,10 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
                 >
                   <Inbox className="h-3.5 w-3.5 text-accent" aria-hidden="true" />
                   <span>待排期池</span>
-                  <span className="font-mono text-3xs tabular-nums opacity-75">
-                    {unscheduledTopics.length}
-                  </span>
+                  <span className="font-mono text-3xs tabular-nums opacity-75">{unscheduledTopics.length}</span>
                 </button>
               </>
-            )}
+            }
           />
 
           <section aria-label="日历视图与排期池" className="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden">
@@ -414,9 +407,9 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
                 <CalendarMonthGrid
                   days={monthDays}
                   eventsMap={eventsMap}
-                  onDateClick={(date) => setActionModal({ date })}
+                  onDateClick={date => setActionModal({ date })}
                   onOpenTopic={onOpenDetail}
-                  onOpenDeal={(id) => onOpenDeal?.(id)}
+                  onOpenDeal={id => onOpenDeal?.(id)}
                   onOpenPublished={() => onOpenPublished?.()}
                 />
               )}
@@ -425,9 +418,9 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
                 <CalendarWeekGrid
                   days={weekDays}
                   eventsMap={eventsMap}
-                  onDateClick={(date) => setActionModal({ date })}
+                  onDateClick={date => setActionModal({ date })}
                   onOpenTopic={onOpenDetail}
-                  onOpenDeal={(id) => onOpenDeal?.(id)}
+                  onOpenDeal={id => onOpenDeal?.(id)}
                   onOpenPublished={() => onOpenPublished?.()}
                 />
               )}
@@ -436,9 +429,9 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
                 <CalendarAgendaView
                   days={weekDays}
                   eventsMap={eventsMap}
-                  onDateClick={(date) => setActionModal({ date })}
+                  onDateClick={date => setActionModal({ date })}
                   onOpenTopic={onOpenDetail}
-                  onOpenDeal={(id) => onOpenDeal?.(id)}
+                  onOpenDeal={id => onOpenDeal?.(id)}
                   onOpenPublished={() => onOpenPublished?.()}
                 />
               )}
@@ -449,7 +442,7 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
                 isOpen={isPoolOpen}
                 onClose={() => setIsPoolOpen(false)}
                 onOpenDetail={onOpenDetail}
-                onScheduleTopic={(topic) => setActionModal({ date: getBeijingDateString(new Date()), topic })}
+                onScheduleTopic={topic => setActionModal({ date: getBeijingDateString(new Date()), topic })}
               />
             </div>
           </section>
@@ -458,14 +451,15 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
         {/* Drag Overlay */}
         <DragOverlay dropAnimation={null}>
           {draggedTopic ? (
-            <div data-testid="calendar-drag-overlay" className="p-3 rounded-xl border border-accent/55 bg-surface shadow-modal w-64 ring-1 ring-focus-ring select-none pointer-events-none">
+            <div
+              data-testid="calendar-drag-overlay"
+              className="p-3 rounded-xl border border-accent/55 bg-surface shadow-modal w-64 ring-1 ring-focus-ring select-none pointer-events-none"
+            >
               <div className="flex items-center gap-1.5 mb-1">
                 <StatusBadge status={draggedTopic.status} />
                 <PriorityBadge priority={draggedTopic.priority} />
               </div>
-              <div className="text-xs font-bold text-ink line-clamp-1">
-                {draggedTopic.title}
-              </div>
+              <div className="text-xs font-bold text-ink line-clamp-1">{draggedTopic.title}</div>
             </div>
           ) : null}
         </DragOverlay>

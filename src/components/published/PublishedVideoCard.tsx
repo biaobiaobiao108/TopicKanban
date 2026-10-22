@@ -46,7 +46,8 @@ export const PublishedVideoCard: React.FC<PublishedVideoCardProps> = ({
   const cleanBvid = extractBvid(video.bvid || video.url);
   const { data: coverUrl, isLoading: isCoverLoading } = useBilibiliCover(cleanBvid);
 
-  const safeUrl = sanitizeExternalHttpUrl(video.url) || (cleanBvid ? `https://www.bilibili.com/video/${cleanBvid}` : '');
+  const safeUrl =
+    sanitizeExternalHttpUrl(video.url) || (cleanBvid ? `https://www.bilibili.com/video/${cleanBvid}` : '');
   const metrics = calculateDeepMetrics(video, topic);
   const displayCover = !imageError && Boolean(coverUrl);
 
@@ -120,7 +121,10 @@ export const PublishedVideoCard: React.FC<PublishedVideoCardProps> = ({
                   className="p-1 text-ink-muted hover:text-accent rounded-lg hover:bg-accent-soft transition-colors disabled:opacity-50 cursor-pointer"
                   aria-label="从 B站 同步最新数据"
                 >
-                  <RefreshCw aria-hidden="true" className={`w-3.5 h-3.5 ${isSyncingThis ? 'animate-spin text-accent' : ''}`} />
+                  <RefreshCw
+                    aria-hidden="true"
+                    className={`w-3.5 h-3.5 ${isSyncingThis ? 'animate-spin text-accent' : ''}`}
+                  />
                 </button>
               )}
               <button

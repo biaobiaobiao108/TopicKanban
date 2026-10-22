@@ -1,10 +1,7 @@
 /** @type {import('tailwindcss').Config} */
 export default {
   darkMode: 'class',
-  content: [
-    "./index.html",
-    "./src/**/*.{js,ts,jsx,tsx}",
-  ],
+  content: ['./index.html', './src/**/*.{js,ts,jsx,tsx}'],
   theme: {
     extend: {
       colors: {
@@ -68,7 +65,7 @@ export default {
           500: 'var(--accent)',
           600: 'var(--accent)',
           700: 'var(--accent-dark)',
-        }
+        },
       },
       fontSize: {
         '3xs': '10px',
@@ -98,7 +95,7 @@ export default {
           'sans-serif',
         ],
         serif: ['Georgia', 'Cambria', '"Songti SC"', 'SimSun', 'serif'],
-        mono: ['JetBrains Mono', 'Fira Code', 'Menlo', 'Monaco', 'Consolas', 'monospace']
+        mono: ['JetBrains Mono', 'Fira Code', 'Menlo', 'Monaco', 'Consolas', 'monospace'],
       },
       boxShadow: {
         '2xs': '0 1px 2px 0 rgba(0, 0, 0, 0.02)',
@@ -112,9 +109,9 @@ export default {
       transitionTimingFunction: {
         'editorial-out': 'cubic-bezier(0.16, 1, 0.3, 1)',
         'editorial-in-out': 'cubic-bezier(0.4, 0, 0.2, 1)',
-        'spring': 'cubic-bezier(0.34, 1.4, 0.64, 1)',
-      }
+        spring: 'cubic-bezier(0.34, 1.4, 0.64, 1)',
+      },
     },
   },
   plugins: [],
-}
+};

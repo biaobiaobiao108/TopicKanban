@@ -73,9 +73,11 @@ export const QuickDropDrawer: React.FC<QuickDropDrawerProps> = ({
         return;
       }
       if (event.key !== 'Tab' || !drawerRef.current) return;
-      const focusable = Array.from(drawerRef.current.querySelectorAll<HTMLElement>(
-        'button:not([disabled]), [href], input:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])'
-      ));
+      const focusable = Array.from(
+        drawerRef.current.querySelectorAll<HTMLElement>(
+          'button:not([disabled]), [href], input:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])',
+        ),
+      );
       if (focusable.length === 0) {
         event.preventDefault();
         drawerRef.current.focus({ preventScroll: true });
@@ -105,8 +107,8 @@ export const QuickDropDrawer: React.FC<QuickDropDrawerProps> = ({
     setDeletingId(id);
     try {
       await deleteQuickDrop(id);
-      setDrops((prev) => {
-        const next = prev.filter((item) => item.id !== id);
+      setDrops(prev => {
+        const next = prev.filter(item => item.id !== id);
         onDropCountChange?.(next.length);
         return next;
       });
@@ -192,7 +194,7 @@ export const QuickDropDrawer: React.FC<QuickDropDrawerProps> = ({
               </p>
             </div>
           ) : (
-            drops.map((item) => {
+            drops.map(item => {
               const normalizedUrl = normalizeQuickDropUrl(item.url);
               const safeUrl = sanitizeExternalHttpUrl(normalizedUrl);
               const normalizedItem = normalizedUrl === item.url ? item : { ...item, url: normalizedUrl };
@@ -207,7 +209,12 @@ export const QuickDropDrawer: React.FC<QuickDropDrawerProps> = ({
                     </span>
                     <span className="text-3xs font-mono text-ink-muted flex items-center gap-1">
                       <Clock className="w-3 h-3" />
-                      {formatBeijingDateTime(item.created_at, 'zh-CN', { month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' })}
+                      {formatBeijingDateTime(item.created_at, 'zh-CN', {
+                        month: '2-digit',
+                        day: '2-digit',
+                        hour: '2-digit',
+                        minute: '2-digit',
+                      })}
                     </span>
                   </div>
 
@@ -215,41 +222,41 @@ export const QuickDropDrawer: React.FC<QuickDropDrawerProps> = ({
                     {item.content}
                   </p>
 
-                {safeUrl && (
-                  <div className="pt-0.5">
-                    <a
-                      href={safeUrl}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="inline-flex items-center gap-1 text-2xs text-accent hover:text-accent-dark truncate max-w-full font-mono underline"
+                  {safeUrl && (
+                    <div className="pt-0.5">
+                      <a
+                        href={safeUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center gap-1 text-2xs text-accent hover:text-accent-dark truncate max-w-full font-mono underline"
+                      >
+                        <ExternalLink className="w-3 h-3 shrink-0" />
+                        <span className="truncate">{normalizedUrl}</span>
+                      </a>
+                    </div>
+                  )}
+
+                  <div className="pt-2 border-t border-line flex items-center justify-between gap-2">
+                    <button
+                      type="button"
+                      onClick={() => handleConvert(normalizedItem)}
+                      className="flex items-center gap-1 px-3.5 py-1.5 rounded-xl text-xs font-bold bg-accent hover:bg-accent-dark active:scale-[0.98] text-white transition-all cursor-pointer shadow-2xs"
                     >
-                      <ExternalLink className="w-3 h-3 shrink-0" />
-                      <span className="truncate">{normalizedUrl}</span>
-                    </a>
+                      <Plus className="w-3.5 h-3.5 stroke-[2.5]" />
+                      <span>转为收集箱选题</span>
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => handleDelete(item.id)}
+                      disabled={deletingId === item.id}
+                      className="p-1.5 rounded-lg text-ink-muted hover:text-danger hover:bg-danger-soft transition-colors cursor-pointer"
+                      aria-label="删除此灵感"
+                    >
+                      <Trash2 className="w-3.5 h-3.5" />
+                    </button>
                   </div>
-                )}
-
-                <div className="pt-2 border-t border-line flex items-center justify-between gap-2">
-                  <button
-                    type="button"
-                    onClick={() => handleConvert(normalizedItem)}
-                    className="flex items-center gap-1 px-3.5 py-1.5 rounded-xl text-xs font-bold bg-accent hover:bg-accent-dark active:scale-[0.98] text-white transition-all cursor-pointer shadow-2xs"
-                  >
-                    <Plus className="w-3.5 h-3.5 stroke-[2.5]" />
-                    <span>转为收集箱选题</span>
-                  </button>
-
-                  <button
-                    type="button"
-                    onClick={() => handleDelete(item.id)}
-                    disabled={deletingId === item.id}
-                    className="p-1.5 rounded-lg text-ink-muted hover:text-danger hover:bg-danger-soft transition-colors cursor-pointer"
-                    aria-label="删除此灵感"
-                  >
-                    <Trash2 className="w-3.5 h-3.5" />
-                  </button>
                 </div>
-              </div>
               );
             })
           )}

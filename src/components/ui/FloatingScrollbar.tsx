@@ -1,11 +1,4 @@
-import React, {
-  forwardRef,
-  useCallback,
-  useEffect,
-  useImperativeHandle,
-  useRef,
-  useState,
-} from 'react';
+import React, { forwardRef, useCallback, useEffect, useImperativeHandle, useRef, useState } from 'react';
 
 export interface FloatingScrollbarProps extends React.HTMLAttributes<HTMLDivElement> {
   children?: React.ReactNode;
@@ -38,7 +31,7 @@ const WrappedFloatingScrollbar = forwardRef<HTMLDivElement, FloatingScrollbarPro
       onScroll,
       ...props
     },
-    ref
+    ref,
   ) => {
     const scrollContainerRef = useRef<HTMLDivElement>(null);
     useImperativeHandle(ref, () => scrollContainerRef.current as HTMLDivElement);
@@ -75,22 +68,19 @@ const WrappedFloatingScrollbar = forwardRef<HTMLDivElement, FloatingScrollbarPro
 
       const { scrollTop, scrollHeight, clientHeight } = container;
       if (scrollHeight <= clientHeight + 2) {
-        setIsScrollable((current) => current ? false : current);
-        setThumbHeight((current) => current === 0 ? current : 0);
+        setIsScrollable(current => (current ? false : current));
+        setThumbHeight(current => (current === 0 ? current : 0));
         return;
       }
 
-      setIsScrollable((current) => current ? current : true);
-      const computedThumbHeight = Math.max(
-        minThumbSize,
-        Math.round((clientHeight / scrollHeight) * clientHeight)
-      );
+      setIsScrollable(current => (current ? current : true));
+      const computedThumbHeight = Math.max(minThumbSize, Math.round((clientHeight / scrollHeight) * clientHeight));
       const maxScrollTop = scrollHeight - clientHeight;
       const maxThumbTop = clientHeight - computedThumbHeight - 4; // 2px top & bottom margin
       const computedThumbTop = 2 + (scrollTop / maxScrollTop) * maxThumbTop;
 
-      setThumbHeight((current) => current === computedThumbHeight ? current : computedThumbHeight);
-      setThumbTop((current) => Math.abs(current - computedThumbTop) < 0.5 ? current : computedThumbTop);
+      setThumbHeight(current => (current === computedThumbHeight ? current : computedThumbHeight));
+      setThumbTop(current => (Math.abs(current - computedThumbTop) < 0.5 ? current : computedThumbTop));
     }, [minThumbSize]);
 
     const scheduleScrollMetrics = useCallback(() => {
@@ -120,9 +110,12 @@ const WrappedFloatingScrollbar = forwardRef<HTMLDivElement, FloatingScrollbarPro
 
       updateScrollMetrics();
 
-      const observer = typeof ResizeObserver === 'undefined' ? null : new ResizeObserver(() => {
-        scheduleScrollMetrics();
-      });
+      const observer =
+        typeof ResizeObserver === 'undefined'
+          ? null
+          : new ResizeObserver(() => {
+              scheduleScrollMetrics();
+            });
 
       if (observer) {
         observer.observe(container);
@@ -235,7 +228,7 @@ const WrappedFloatingScrollbar = forwardRef<HTMLDivElement, FloatingScrollbarPro
         )}
       </div>
     );
-  }
+  },
 );
 
 WrappedFloatingScrollbar.displayName = 'WrappedFloatingScrollbar';
@@ -258,7 +251,13 @@ function TargetFloatingScrollbar({
   const dragRef = useRef<{ pointerId: number; startCoordinate: number; startOffset: number } | null>(null);
   const [isVisible, setIsVisible] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
-  const [metrics, setMetrics] = useState({ scrollable: false, thumbExtent: 0, thumbOffset: 0, maxScroll: 0, scrollOffset: 0 });
+  const [metrics, setMetrics] = useState({
+    scrollable: false,
+    thumbExtent: 0,
+    thumbOffset: 0,
+    maxScroll: 0,
+    scrollOffset: 0,
+  });
 
   const updateMetrics = useCallback(() => {
     const target = scrollTargetRef?.current;
@@ -273,18 +272,29 @@ function TargetFloatingScrollbar({
     // Keep the thumb mounted while the layout is measuring a newly mounted track.
     // ResizeObserver will populate its extent once the track has a rendered size.
     const scrollable = enabled && maxScroll > 1;
-    const thumbExtent = scrollable && contentExtent > 0
-      ? Math.min(trackExtent, Math.max(minThumbSize, Math.round(trackExtent * viewportExtent / contentExtent)))
-      : 0;
+    const thumbExtent =
+      scrollable && contentExtent > 0
+        ? Math.min(trackExtent, Math.max(minThumbSize, Math.round((trackExtent * viewportExtent) / contentExtent)))
+        : 0;
     const maxThumbOffset = Math.max(0, trackExtent - thumbExtent);
     const boundedOffset = Math.min(maxScroll, Math.max(0, scrollOffset));
-    const thumbOffset = maxScroll > 0 && maxThumbOffset > 0 ? boundedOffset / maxScroll * maxThumbOffset : 0;
-    const next = { scrollable, thumbExtent, thumbOffset, maxScroll: Math.round(maxScroll), scrollOffset: Math.round(boundedOffset) };
-    setMetrics((current) => current.scrollable === next.scrollable &&
+    const thumbOffset = maxScroll > 0 && maxThumbOffset > 0 ? (boundedOffset / maxScroll) * maxThumbOffset : 0;
+    const next = {
+      scrollable,
+      thumbExtent,
+      thumbOffset,
+      maxScroll: Math.round(maxScroll),
+      scrollOffset: Math.round(boundedOffset),
+    };
+    setMetrics(current =>
+      current.scrollable === next.scrollable &&
       current.thumbExtent === next.thumbExtent &&
       Math.abs(current.thumbOffset - next.thumbOffset) < 0.5 &&
       current.maxScroll === next.maxScroll &&
-      current.scrollOffset === next.scrollOffset ? current : next);
+      current.scrollOffset === next.scrollOffset
+        ? current
+        : next,
+    );
   }, [enabled, minThumbSize, orientation, scrollTargetRef]);
 
   const scheduleMetrics = useCallback(() => {
@@ -314,7 +324,10 @@ function TargetFloatingScrollbar({
     if (target.firstElementChild) resizeObserver?.observe(target.firstElementChild);
     const mutationObserver = typeof MutationObserver === 'undefined' ? null : new MutationObserver(scheduleMetrics);
     mutationObserver?.observe(target, { childList: true, subtree: true, characterData: true });
-    const showOnActivity = () => { scheduleMetrics(); reveal(); };
+    const showOnActivity = () => {
+      scheduleMetrics();
+      reveal();
+    };
     target.addEventListener('scroll', showOnActivity, { passive: true });
     target.addEventListener('pointerenter', showOnActivity);
     target.addEventListener('pointermove', showOnActivity);
@@ -344,10 +357,13 @@ function TargetFloatingScrollbar({
     dragRef.current = null;
   }, [enabled, scheduleMetrics]);
 
-  useEffect(() => () => {
-    if (hideTimerRef.current !== null) clearTimeout(hideTimerRef.current);
-    if (frameRef.current !== null) window.cancelAnimationFrame(frameRef.current);
-  }, []);
+  useEffect(
+    () => () => {
+      if (hideTimerRef.current !== null) clearTimeout(hideTimerRef.current);
+      if (frameRef.current !== null) window.cancelAnimationFrame(frameRef.current);
+    },
+    [],
+  );
 
   const handlePointerDown = (event: React.PointerEvent<HTMLButtonElement>) => {
     const target = scrollTargetRef?.current;
@@ -376,10 +392,15 @@ function TargetFloatingScrollbar({
     const coordinate = horizontal ? event.clientX : event.clientY;
     const trackExtent = horizontal ? track.clientWidth : track.clientHeight;
     const thumbExtent = metrics.thumbExtent;
-    const maxScroll = horizontal ? Math.max(0, target.scrollWidth - target.clientWidth) : Math.max(0, target.scrollHeight - target.clientHeight);
+    const maxScroll = horizontal
+      ? Math.max(0, target.scrollWidth - target.clientWidth)
+      : Math.max(0, target.scrollHeight - target.clientHeight);
     const maxThumbOffset = Math.max(0, trackExtent - thumbExtent);
     if (maxScroll > 0 && maxThumbOffset > 0) {
-      const offset = Math.min(maxScroll, Math.max(0, drag.startOffset + (coordinate - drag.startCoordinate) / maxThumbOffset * maxScroll));
+      const offset = Math.min(
+        maxScroll,
+        Math.max(0, drag.startOffset + ((coordinate - drag.startCoordinate) / maxThumbOffset) * maxScroll),
+      );
       if (horizontal) target.scrollLeft = offset;
       else target.scrollTop = offset;
       scheduleMetrics();
@@ -389,7 +410,8 @@ function TargetFloatingScrollbar({
 
   const finishDrag = (event: React.PointerEvent<HTMLButtonElement>) => {
     if (dragRef.current?.pointerId !== event.pointerId) return;
-    if (event.currentTarget.hasPointerCapture(event.pointerId)) event.currentTarget.releasePointerCapture(event.pointerId);
+    if (event.currentTarget.hasPointerCapture(event.pointerId))
+      event.currentTarget.releasePointerCapture(event.pointerId);
     dragRef.current = null;
     setIsDragging(false);
     reveal();
@@ -399,7 +421,9 @@ function TargetFloatingScrollbar({
     const target = scrollTargetRef?.current;
     if (!target) return;
     const horizontal = orientation === 'horizontal';
-    const maxScroll = horizontal ? Math.max(0, target.scrollWidth - target.clientWidth) : Math.max(0, target.scrollHeight - target.clientHeight);
+    const maxScroll = horizontal
+      ? Math.max(0, target.scrollWidth - target.clientWidth)
+      : Math.max(0, target.scrollHeight - target.clientHeight);
     const currentOffset = horizontal ? target.scrollLeft : target.scrollTop;
     let nextOffset: number | undefined;
     if (horizontal && event.key === 'ArrowLeft') nextOffset = currentOffset - 48;
@@ -423,41 +447,46 @@ function TargetFloatingScrollbar({
   const thumbStyle = horizontal
     ? { insetInlineStart: `${metrics.thumbOffset}px`, width: `${metrics.thumbExtent}px` }
     : { top: `${metrics.thumbOffset}px`, height: `${metrics.thumbExtent}px` };
-  return <div
-    ref={trackRef}
-    className={`floating-scrollbar-control floating-scrollbar-control--${orientation} ${isVisible || isDragging ? 'is-visible' : ''} ${className}`}
-    style={style}
-    aria-hidden={!active}
-    onPointerEnter={reveal}
-    onPointerLeave={() => {
-      if (hideTimerRef.current !== null) clearTimeout(hideTimerRef.current);
-      hideTimerRef.current = setTimeout(() => {
-        if (!dragRef.current && document.activeElement !== trackRef.current?.querySelector('button')) setIsVisible(false);
-      }, autoHideDelay);
-    }}
-    {...props}
-  >
-    <div className="floating-scrollbar-control-track" aria-hidden="true" />
-    {active && <button
-      className={`floating-scrollbar-control-thumb ${isDragging ? 'is-dragging' : ''}`}
-      type="button"
-      role="scrollbar"
-      aria-label={ariaLabel}
-      aria-controls={controlsId || scrollTargetRef?.current?.id}
-      aria-orientation={orientation}
-      aria-valuemin={0}
-      aria-valuemax={metrics.maxScroll}
-      aria-valuenow={metrics.scrollOffset}
-      style={thumbStyle}
-      onFocus={reveal}
-      onBlur={reveal}
-      onPointerDown={handlePointerDown}
-      onPointerMove={handlePointerMove}
-      onPointerUp={finishDrag}
-      onPointerCancel={finishDrag}
-      onKeyDown={handleKeyDown}
-    />}
-  </div>;
+  return (
+    <div
+      ref={trackRef}
+      className={`floating-scrollbar-control floating-scrollbar-control--${orientation} ${isVisible || isDragging ? 'is-visible' : ''} ${className}`}
+      style={style}
+      aria-hidden={!active}
+      onPointerEnter={reveal}
+      onPointerLeave={() => {
+        if (hideTimerRef.current !== null) clearTimeout(hideTimerRef.current);
+        hideTimerRef.current = setTimeout(() => {
+          if (!dragRef.current && document.activeElement !== trackRef.current?.querySelector('button'))
+            setIsVisible(false);
+        }, autoHideDelay);
+      }}
+      {...props}
+    >
+      <div className="floating-scrollbar-control-track" aria-hidden="true" />
+      {active && (
+        <button
+          className={`floating-scrollbar-control-thumb ${isDragging ? 'is-dragging' : ''}`}
+          type="button"
+          role="scrollbar"
+          aria-label={ariaLabel}
+          aria-controls={controlsId || scrollTargetRef?.current?.id}
+          aria-orientation={orientation}
+          aria-valuemin={0}
+          aria-valuemax={metrics.maxScroll}
+          aria-valuenow={metrics.scrollOffset}
+          style={thumbStyle}
+          onFocus={reveal}
+          onBlur={reveal}
+          onPointerDown={handlePointerDown}
+          onPointerMove={handlePointerMove}
+          onPointerUp={finishDrag}
+          onPointerCancel={finishDrag}
+          onKeyDown={handleKeyDown}
+        />
+      )}
+    </div>
+  );
 }
 
 export const FloatingScrollbar = forwardRef<HTMLDivElement, FloatingScrollbarProps>((props, ref) => {

@@ -28,7 +28,7 @@ import { fetchPublishedVideoPage, fetchTopic, fetchTopicPage } from '../../lib/s
 import { getBeijingDateString } from '../../lib/actionDate';
 
 const AnalyticsDashboard = React.lazy(() =>
-  import('./AnalyticsDashboard').then((m) => ({ default: m.AnalyticsDashboard }))
+  import('./AnalyticsDashboard').then(m => ({ default: m.AnalyticsDashboard })),
 );
 
 interface PublishedViewProps {
@@ -85,17 +85,18 @@ export const PublishedView: React.FC<PublishedViewProps> = ({
   const deferredTopicSearchQuery = useDeferredValue(topicSearchQuery.trim());
   const topicOptionsQuery = useQuery({
     queryKey: ['published-topic-options', editingVideo?.id || 'new', deferredTopicSearchQuery],
-    queryFn: () => fetchTopicPage({
-      scope: 'all',
-      include_metadata: false,
-      page: 1,
-      page_size: 50,
-      q: deferredTopicSearchQuery,
-      available_for_published: true,
-      published_video_id: editingVideo?.id,
-      sort: 'updated_at',
-      direction: 'desc',
-    }),
+    queryFn: () =>
+      fetchTopicPage({
+        scope: 'all',
+        include_metadata: false,
+        page: 1,
+        page_size: 50,
+        q: deferredTopicSearchQuery,
+        available_for_published: true,
+        published_video_id: editingVideo?.id,
+        sort: 'updated_at',
+        direction: 'desc',
+      }),
     enabled: isModalOpen,
     subscribed: isModalOpen,
     placeholderData: keepPreviousData,
@@ -113,10 +114,13 @@ export const PublishedView: React.FC<PublishedViewProps> = ({
   const fetchSuccessTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const bulkSyncTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  useEffect(() => () => {
-    if (fetchSuccessTimerRef.current) clearTimeout(fetchSuccessTimerRef.current);
-    if (bulkSyncTimerRef.current) clearTimeout(bulkSyncTimerRef.current);
-  }, []);
+  useEffect(
+    () => () => {
+      if (fetchSuccessTimerRef.current) clearTimeout(fetchSuccessTimerRef.current);
+      if (bulkSyncTimerRef.current) clearTimeout(bulkSyncTimerRef.current);
+    },
+    [],
+  );
 
   const refreshPublishedQueries = async () => {
     await Promise.all([
@@ -130,22 +134,36 @@ export const PublishedView: React.FC<PublishedViewProps> = ({
 
   const remoteTopicOptions = topicOptionsQuery.data?.items || topicOptions;
   const selectableTopics = useMemo(() => {
-    if (deferredTopicSearchQuery || !selectedTopicOption || remoteTopicOptions.some((topic) => topic.id === selectedTopicOption.id)) {
+    if (
+      deferredTopicSearchQuery ||
+      !selectedTopicOption ||
+      remoteTopicOptions.some(topic => topic.id === selectedTopicOption.id)
+    ) {
       return remoteTopicOptions;
     }
     return [selectedTopicOption, ...remoteTopicOptions];
   }, [deferredTopicSearchQuery, remoteTopicOptions, selectedTopicOption]);
-  const topicMap = useMemo(() => new Map(
-    [...topics, ...topicOptions, ...remoteTopicOptions, ...(selectedTopicOption ? [selectedTopicOption] : [])]
-      .map((topic) => [topic.id, topic]),
-  ), [topics, topicOptions, remoteTopicOptions, selectedTopicOption]);
+  const topicMap = useMemo(
+    () =>
+      new Map(
+        [...topics, ...topicOptions, ...remoteTopicOptions, ...(selectedTopicOption ? [selectedTopicOption] : [])].map(
+          topic => [topic.id, topic],
+        ),
+      ),
+    [topics, topicOptions, remoteTopicOptions, selectedTopicOption],
+  );
   const availableTopicTotal = topicOptionsQuery.data?.total ?? topicOptions.length;
 
   const openAddModal = async () => {
     setEditingVideo(null);
     setModalCoverUrl(null);
     const topicPage = await fetchTopicPage({
-      scope: 'all', page: 1, page_size: 50, q: '', available_for_published: true, include_metadata: false,
+      scope: 'all',
+      page: 1,
+      page_size: 50,
+      q: '',
+      available_for_published: true,
+      include_metadata: false,
     });
     setTopicOptions(topicPage.items);
     const defaultTopic = topicPage.items[0] || null;
@@ -172,7 +190,12 @@ export const PublishedView: React.FC<PublishedViewProps> = ({
   const openEditModal = async (v: PublishedVideo) => {
     const [topicPage, linkedTopic] = await Promise.all([
       fetchTopicPage({
-        scope: 'all', page: 1, page_size: 50, q: '', available_for_published: true, include_metadata: false,
+        scope: 'all',
+        page: 1,
+        page_size: 50,
+        q: '',
+        available_for_published: true,
+        include_metadata: false,
         published_video_id: v.id,
       }),
       v.topic_id ? fetchTopic(v.topic_id).catch(() => null) : Promise.resolve(null),
@@ -249,7 +272,7 @@ export const PublishedView: React.FC<PublishedViewProps> = ({
     e.preventDefault();
     if (!title.trim()) return;
 
-    const matchedTopic = topics.find((t) => t.id === topicId);
+    const matchedTopic = topics.find(t => t.id === topicId);
     const cleanBvid = extractBvid(bvid) || bvid.trim();
     setIsSubmitting(true);
     setSubmitError(null);
@@ -289,7 +312,7 @@ export const PublishedView: React.FC<PublishedViewProps> = ({
     setSyncingId(video.id);
     try {
       const meta = await fetchBilibiliVideoData(cleanBvid);
-      const matchedTopic = topics.find((t) => t.id === video.topic_id);
+      const matchedTopic = topics.find(t => t.id === video.topic_id);
       await onSavePublished({
         ...video,
         bvid: meta.bvid,
@@ -305,7 +328,10 @@ export const PublishedView: React.FC<PublishedViewProps> = ({
       });
       await refreshPublishedQueries();
     } catch (err) {
-      showToast({ message: `同步「${video.title}」失败: ${err instanceof Error ? err.message : '未知错误'}`, tone: 'error' });
+      showToast({
+        message: `同步「${video.title}」失败: ${err instanceof Error ? err.message : '未知错误'}`,
+        tone: 'error',
+      });
     } finally {
       setSyncingId(null);
     }
@@ -313,7 +339,7 @@ export const PublishedView: React.FC<PublishedViewProps> = ({
 
   // Bulk sync all videos with BV id
   const handleBulkSyncAll = async () => {
-    const syncable = pageItems.filter((v) => extractBvid(v.bvid || v.url));
+    const syncable = pageItems.filter(v => extractBvid(v.bvid || v.url));
     if (syncable.length === 0) {
       showToast({ message: '没有找到包含有效 BV 号的已发布视频', tone: 'info' });
       return;
@@ -331,7 +357,7 @@ export const PublishedView: React.FC<PublishedViewProps> = ({
       setBulkSyncMessage(`正在同步 (${i + 1}/${syncable.length}): ${video.title}...`);
       try {
         const meta = await fetchBilibiliVideoData(cleanBvid);
-        const matchedTopic = topics.find((t) => t.id === video.topic_id);
+        const matchedTopic = topics.find(t => t.id === video.topic_id);
         await onSavePublished({
           ...video,
           bvid: meta.bvid,
@@ -350,7 +376,7 @@ export const PublishedView: React.FC<PublishedViewProps> = ({
         console.error(`Failed to sync ${video.title}`, e);
       }
       if (i < syncable.length - 1) {
-        await new Promise((resolve) => window.setTimeout(resolve, 350));
+        await new Promise(resolve => window.setTimeout(resolve, 350));
       }
     }
 
@@ -368,46 +394,45 @@ export const PublishedView: React.FC<PublishedViewProps> = ({
     return num.toLocaleString();
   };
 
-  const syncableCount = pageItems.filter((v) => extractBvid(v.bvid || v.url)).length;
+  const syncableCount = pageItems.filter(v => extractBvid(v.bvid || v.url)).length;
 
   return (
     <div className="min-h-0 min-w-0 flex-1 w-full h-full overflow-y-auto overscroll-contain mobile-bottom-nav-content transition-colors">
       {onBack && (
-        <BackNavigationBar
-          onBack={onBack}
-          label={backLabel || '返回上一页'}
-          title={backLabel || '返回上一页'}
-        />
+        <BackNavigationBar onBack={onBack} label={backLabel || '返回上一页'} title={backLabel || '返回上一页'} />
       )}
       <div className="mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8 py-5 sm:py-6 space-y-6">
         <PageHeader
           title="已发布视频复盘与数据沉淀"
           icon={Film}
-          actions={(
+          actions={
             <>
-            {syncableCount > 0 && (
+              {syncableCount > 0 && (
+                <button
+                  type="button"
+                  onClick={handleBulkSyncAll}
+                  disabled={isBulkSyncing}
+                  aria-label="批量刷新所有包含 BV 号的视频数据"
+                  className="inline-flex h-10 items-center gap-1.5 rounded-xl bg-control px-3.5 text-xs font-medium text-ink transition-colors hover:bg-control-hover disabled:opacity-50 sm:text-sm cursor-pointer"
+                >
+                  <RefreshCw
+                    className={`h-3.5 w-3.5 ${isBulkSyncing ? 'animate-spin text-accent' : 'text-ink-muted'}`}
+                    aria-hidden="true"
+                  />
+                  <span>{isBulkSyncing ? '同步中...' : '批量同步数据'}</span>
+                </button>
+              )}
+
               <button
                 type="button"
-                onClick={handleBulkSyncAll}
-                disabled={isBulkSyncing}
-                aria-label="批量刷新所有包含 BV 号的视频数据"
-                className="inline-flex h-10 items-center gap-1.5 rounded-xl bg-control px-3.5 text-xs font-medium text-ink transition-colors hover:bg-control-hover disabled:opacity-50 sm:text-sm cursor-pointer"
+                onClick={openAddModal}
+                className="inline-flex h-10 items-center gap-1.5 rounded-xl bg-accent px-4 text-xs font-semibold text-white shadow-2xs transition-all hover:bg-accent-dark active:scale-[0.98] sm:text-sm cursor-pointer"
               >
-                <RefreshCw className={`h-3.5 w-3.5 ${isBulkSyncing ? 'animate-spin text-accent' : 'text-ink-muted'}`} aria-hidden="true" />
-                <span>{isBulkSyncing ? '同步中...' : '批量同步数据'}</span>
+                <Plus className="h-4 w-4 stroke-[2.5]" aria-hidden="true" />
+                <span>归档已发布视频</span>
               </button>
-            )}
-
-            <button
-              type="button"
-              onClick={openAddModal}
-              className="inline-flex h-10 items-center gap-1.5 rounded-xl bg-accent px-4 text-xs font-semibold text-white shadow-2xs transition-all hover:bg-accent-dark active:scale-[0.98] sm:text-sm cursor-pointer"
-            >
-              <Plus className="h-4 w-4 stroke-[2.5]" aria-hidden="true" />
-              <span>归档已发布视频</span>
-            </button>
             </>
-          )}
+          }
         />
 
         {/* View Switcher Tabs */}
@@ -416,9 +441,7 @@ export const PublishedView: React.FC<PublishedViewProps> = ({
             type="button"
             onClick={() => setViewMode('cards')}
             className={`flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer ${
-              viewMode === 'cards'
-                ? 'bg-surface text-ink shadow-subtle'
-                : 'text-ink-muted hover:text-ink'
+              viewMode === 'cards' ? 'bg-surface text-ink shadow-subtle' : 'text-ink-muted hover:text-ink'
             }`}
           >
             <Film className="w-3.5 h-3.5" />
@@ -428,9 +451,7 @@ export const PublishedView: React.FC<PublishedViewProps> = ({
             type="button"
             onClick={() => setViewMode('analytics')}
             className={`flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer ${
-              viewMode === 'analytics'
-                ? 'bg-surface text-ink shadow-subtle'
-                : 'text-ink-muted hover:text-ink'
+              viewMode === 'analytics' ? 'bg-surface text-ink shadow-subtle' : 'text-ink-muted hover:text-ink'
             }`}
           >
             <BarChart2 className="w-3.5 h-3.5" />
@@ -460,14 +481,12 @@ export const PublishedView: React.FC<PublishedViewProps> = ({
               </div>
             }
           >
-            <AnalyticsDashboard
-              onSelectTopic={onSelectTopic}
-            />
+            <AnalyticsDashboard onSelectTopic={onSelectTopic} />
           </React.Suspense>
         ) : (
           /* Published Cards List */
           <div className="grid grid-cols-1 xl:grid-cols-2 gap-4 sm:gap-5">
-            {pageItems.map((video) => {
+            {pageItems.map(video => {
               const matchedTopic = video.topic_id ? topicMap.get(video.topic_id) : undefined;
 
               return (
@@ -499,16 +518,25 @@ export const PublishedView: React.FC<PublishedViewProps> = ({
             <button
               type="button"
               disabled={page <= 1 || pageQuery.isFetching}
-              onClick={() => setPage((current) => Math.max(1, current - 1))}
+              onClick={() => setPage(current => Math.max(1, current - 1))}
               className="rounded-lg border border-line bg-surface px-3 py-2 font-semibold text-ink hover:bg-surface-hover disabled:cursor-not-allowed disabled:opacity-40"
-            >上一页</button>
-            <span><span className="font-mono tabular-nums">{page} / {Math.max(1, pageQuery.data?.total_pages || 1)}</span> · 共 <span className="font-mono tabular-nums">{totalPublished}</span> 条</span>
+            >
+              上一页
+            </button>
+            <span>
+              <span className="font-mono tabular-nums">
+                {page} / {Math.max(1, pageQuery.data?.total_pages || 1)}
+              </span>{' '}
+              · 共 <span className="font-mono tabular-nums">{totalPublished}</span> 条
+            </span>
             <button
               type="button"
               disabled={page >= (pageQuery.data?.total_pages || 1) || pageQuery.isFetching}
-              onClick={() => setPage((current) => current + 1)}
+              onClick={() => setPage(current => current + 1)}
               className="rounded-lg border border-line bg-surface px-3 py-2 font-semibold text-ink hover:bg-surface-hover disabled:cursor-not-allowed disabled:opacity-40"
-            >下一页</button>
+            >
+              下一页
+            </button>
           </div>
         )}
 
@@ -538,7 +566,7 @@ export const PublishedView: React.FC<PublishedViewProps> = ({
                   value={topicId}
                   ariaLabel="关联选题"
                   ariaLabelledBy="published-topic-label"
-                  onChange={(nextTopicId) => {
+                  onChange={nextTopicId => {
                     setTopicId(nextTopicId);
                     if (nextTopicId) {
                       const selectedTopic = topicMap.get(nextTopicId);
@@ -551,7 +579,7 @@ export const PublishedView: React.FC<PublishedViewProps> = ({
                   }}
                   options={[
                     { value: '', label: '不关联任何选题（独立归档视频）' },
-                    ...selectableTopics.map((topic) => ({ value: topic.id, label: topic.title })),
+                    ...selectableTopics.map(topic => ({ value: topic.id, label: topic.title })),
                   ]}
                   searchable
                   searchPlaceholder="搜索选题标题、看点、赛道标签..."
@@ -564,8 +592,14 @@ export const PublishedView: React.FC<PublishedViewProps> = ({
                     const selectedTopic = topicMap.get(topicId);
                     return selectedTopic ? (
                       <div className="flex items-center gap-2 min-w-0">
-                        <span className="font-semibold text-ink truncate text-xs sm:text-sm">{selectedTopic.title}</span>
-                        {selectedTopic.priority !== 'none' && <span className="hidden sm:inline-flex shrink-0"><PriorityBadge priority={selectedTopic.priority} showLabel={false} /></span>}
+                        <span className="font-semibold text-ink truncate text-xs sm:text-sm">
+                          {selectedTopic.title}
+                        </span>
+                        {selectedTopic.priority !== 'none' && (
+                          <span className="hidden sm:inline-flex shrink-0">
+                            <PriorityBadge priority={selectedTopic.priority} showLabel={false} />
+                          </span>
+                        )}
                       </div>
                     ) : (
                       <span className="text-xs sm:text-sm text-ink-muted italic">独立归档视频（未关联选题）</span>
@@ -573,7 +607,13 @@ export const PublishedView: React.FC<PublishedViewProps> = ({
                   }}
                   renderOption={(option, state) => {
                     if (!option.value) {
-                      return <span className="flex items-center gap-1.5"><X className="h-3 w-3 text-ink-faint" aria-hidden="true" /><span>不关联任何选题（独立归档视频）</span>{state.selected && <Check className="ml-auto h-3.5 w-3.5 text-accent" aria-hidden="true" />}</span>;
+                      return (
+                        <span className="flex items-center gap-1.5">
+                          <X className="h-3 w-3 text-ink-faint" aria-hidden="true" />
+                          <span>不关联任何选题（独立归档视频）</span>
+                          {state.selected && <Check className="ml-auto h-3.5 w-3.5 text-accent" aria-hidden="true" />}
+                        </span>
+                      );
                     }
                     const topic = topicMap.get(option.value);
                     if (!topic) return option.label;
@@ -581,19 +621,33 @@ export const PublishedView: React.FC<PublishedViewProps> = ({
                       <div className="flex items-center justify-between gap-2 w-full min-w-0">
                         <div className="min-w-0 pr-2 space-y-0.5">
                           <div className="text-xs sm:text-sm font-semibold truncate leading-tight">{topic.title}</div>
-                          {(topic.summary || topic.current_todo) && <div className="text-2xs text-ink-muted truncate">{topic.current_todo ? `当前行动: ${topic.current_todo.title}` : topic.summary}</div>}
+                          {(topic.summary || topic.current_todo) && (
+                            <div className="text-2xs text-ink-muted truncate">
+                              {topic.current_todo ? `当前行动: ${topic.current_todo.title}` : topic.summary}
+                            </div>
+                          )}
                         </div>
-                        <div className="flex items-center gap-1.5 shrink-0"><StatusBadge status={topic.status} size="sm" />{state.selected && <Check className="h-3.5 w-3.5 text-accent" aria-hidden="true" />}</div>
+                        <div className="flex items-center gap-1.5 shrink-0">
+                          <StatusBadge status={topic.status} size="sm" />
+                          {state.selected && <Check className="h-3.5 w-3.5 text-accent" aria-hidden="true" />}
+                        </div>
                       </div>
                     );
                   }}
-                  emptyState={topicOptionsQuery.isFetching ? (
-                    <div className="py-6 text-center text-xs text-ink-muted">正在搜索选题…</div>
-                  ) : availableTopicTotal === 0 && !topicSearchQuery.trim() ? (
-                    <div className="py-6 text-center text-xs text-ink-muted space-y-1"><p className="font-semibold text-ink-muted">所有选题均已关联视频</p><p className="text-2xs">可选择「不关联任何选题」或前往看板新建选题</p></div>
-                  ) : (
-                    <div className="py-6 text-center text-xs text-ink-muted">未找到匹配「{topicSearchQuery}」的可用选题</div>
-                  )}
+                  emptyState={
+                    topicOptionsQuery.isFetching ? (
+                      <div className="py-6 text-center text-xs text-ink-muted">正在搜索选题…</div>
+                    ) : availableTopicTotal === 0 && !topicSearchQuery.trim() ? (
+                      <div className="py-6 text-center text-xs text-ink-muted space-y-1">
+                        <p className="font-semibold text-ink-muted">所有选题均已关联视频</p>
+                        <p className="text-2xs">可选择「不关联任何选题」或前往看板新建选题</p>
+                      </div>
+                    ) : (
+                      <div className="py-6 text-center text-xs text-ink-muted">
+                        未找到匹配「{topicSearchQuery}」的可用选题
+                      </div>
+                    )
+                  }
                 />
                 <button
                   type="button"
@@ -620,7 +674,7 @@ export const PublishedView: React.FC<PublishedViewProps> = ({
                   autoComplete="off"
                   placeholder="例如：BV1xx411c7xx 或粘贴 B站播放链接"
                   value={bvid}
-                  onPaste={(e) => {
+                  onPaste={e => {
                     const pasted = e.clipboardData.getData('text');
                     if (pasted) {
                       setBvid(pasted);
@@ -631,7 +685,7 @@ export const PublishedView: React.FC<PublishedViewProps> = ({
                       }
                     }
                   }}
-                  onChange={(e) => {
+                  onChange={e => {
                     const val = e.target.value;
                     setBvid(val);
                     const clean = extractBvid(val);
@@ -642,7 +696,7 @@ export const PublishedView: React.FC<PublishedViewProps> = ({
                       }
                     }
                   }}
-                   className="flex-1 px-3 py-1.5 bg-control border border-line rounded-lg text-base text-ink placeholder:text-ink-muted focus:bg-surface focus:border-accent focus:outline-none font-mono"
+                  className="flex-1 px-3 py-1.5 bg-control border border-line rounded-lg text-base text-ink placeholder:text-ink-muted focus:bg-surface focus:border-accent focus:outline-none font-mono"
                 />
                 <button
                   type="button"
@@ -650,11 +704,7 @@ export const PublishedView: React.FC<PublishedViewProps> = ({
                   disabled={isFetchingBili || !bvid.trim()}
                   className="flex items-center gap-1.5 bg-accent hover:bg-accent-dark disabled:opacity-50 text-white px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors shrink-0 shadow-2xs cursor-pointer"
                 >
-                  {isFetchingBili ? (
-                    <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                  ) : (
-                    <Zap className="w-3.5 h-3.5" />
-                  )}
+                  {isFetchingBili ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Zap className="w-3.5 h-3.5" />}
                   <span>{isFetchingBili ? '抓取中...' : '一键抓取'}</span>
                 </button>
               </div>
@@ -706,7 +756,7 @@ export const PublishedView: React.FC<PublishedViewProps> = ({
                 autoComplete="off"
                 placeholder="例如：【良子】峨眉山名场面深度复盘"
                 value={title}
-                onChange={(e) => setTitle(e.target.value)}
+                onChange={e => setTitle(e.target.value)}
                 className="w-full px-3 py-2 bg-control border border-line rounded-lg text-sm text-ink placeholder:text-ink-muted focus:bg-surface focus:outline-none focus:border-accent"
               />
             </div>
@@ -714,7 +764,9 @@ export const PublishedView: React.FC<PublishedViewProps> = ({
             {/* Date and URL */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div>
-                <label htmlFor="published-date" className="block text-xs font-semibold text-ink mb-1">发布日期</label>
+                <label htmlFor="published-date" className="block text-xs font-semibold text-ink mb-1">
+                  发布日期
+                </label>
                 <DateInput
                   id="published-date"
                   name="published_at"
@@ -724,7 +776,9 @@ export const PublishedView: React.FC<PublishedViewProps> = ({
                 />
               </div>
               <div>
-                <label htmlFor="published-url" className="block text-xs font-semibold text-ink mb-1">成片链接</label>
+                <label htmlFor="published-url" className="block text-xs font-semibold text-ink mb-1">
+                  成片链接
+                </label>
                 <input
                   id="published-url"
                   name="url"
@@ -732,7 +786,7 @@ export const PublishedView: React.FC<PublishedViewProps> = ({
                   autoComplete="url"
                   placeholder="https://www.bilibili.com/video/..."
                   value={url}
-                  onChange={(e) => setUrl(e.target.value)}
+                  onChange={e => setUrl(e.target.value)}
                   className="w-full px-3 py-2 bg-control border border-line rounded-lg text-sm text-ink placeholder:text-ink-muted focus:bg-surface focus:outline-none focus:border-accent"
                 />
               </div>
@@ -741,7 +795,9 @@ export const PublishedView: React.FC<PublishedViewProps> = ({
             {/* Interactive stats grid */}
             <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5 pt-1">
               <div>
-                <label htmlFor="published-views" className="block text-xs font-semibold text-ink mb-1">播放量</label>
+                <label htmlFor="published-views" className="block text-xs font-semibold text-ink mb-1">
+                  播放量
+                </label>
                 <input
                   id="published-views"
                   name="views"
@@ -749,12 +805,14 @@ export const PublishedView: React.FC<PublishedViewProps> = ({
                   inputMode="numeric"
                   min="0"
                   value={views}
-                  onChange={(e) => setViews(Number(e.target.value))}
+                  onChange={e => setViews(Number(e.target.value))}
                   className="w-full px-3 py-1.5 bg-control border border-line rounded-lg text-sm font-mono text-ink focus:bg-surface focus:outline-none focus:border-accent"
                 />
               </div>
               <div>
-                <label htmlFor="published-likes" className="block text-xs font-semibold text-ink mb-1">点赞数</label>
+                <label htmlFor="published-likes" className="block text-xs font-semibold text-ink mb-1">
+                  点赞数
+                </label>
                 <input
                   id="published-likes"
                   name="likes"
@@ -762,12 +820,14 @@ export const PublishedView: React.FC<PublishedViewProps> = ({
                   inputMode="numeric"
                   min="0"
                   value={likes}
-                  onChange={(e) => setLikes(Number(e.target.value))}
+                  onChange={e => setLikes(Number(e.target.value))}
                   className="w-full px-3 py-1.5 bg-control border border-line rounded-lg text-sm font-mono text-ink focus:bg-surface focus:outline-none focus:border-accent"
                 />
               </div>
               <div>
-                <label htmlFor="published-coins" className="block text-xs font-semibold text-ink mb-1">投币数</label>
+                <label htmlFor="published-coins" className="block text-xs font-semibold text-ink mb-1">
+                  投币数
+                </label>
                 <input
                   id="published-coins"
                   name="coins"
@@ -775,12 +835,14 @@ export const PublishedView: React.FC<PublishedViewProps> = ({
                   inputMode="numeric"
                   min="0"
                   value={coins}
-                  onChange={(e) => setCoins(Number(e.target.value))}
+                  onChange={e => setCoins(Number(e.target.value))}
                   className="w-full px-3 py-1.5 bg-control border border-line rounded-lg text-sm font-mono text-ink focus:bg-surface focus:outline-none focus:border-accent"
                 />
               </div>
               <div>
-                <label htmlFor="published-favorites" className="block text-xs font-semibold text-ink mb-1">收藏数</label>
+                <label htmlFor="published-favorites" className="block text-xs font-semibold text-ink mb-1">
+                  收藏数
+                </label>
                 <input
                   id="published-favorites"
                   name="favorites"
@@ -788,12 +850,14 @@ export const PublishedView: React.FC<PublishedViewProps> = ({
                   inputMode="numeric"
                   min="0"
                   value={favorites}
-                  onChange={(e) => setFavorites(Number(e.target.value))}
+                  onChange={e => setFavorites(Number(e.target.value))}
                   className="w-full px-3 py-1.5 bg-control border border-line rounded-lg text-sm font-mono text-ink focus:bg-surface focus:outline-none focus:border-accent"
                 />
               </div>
               <div>
-                <label htmlFor="published-comments" className="block text-xs font-semibold text-ink mb-1">评论数</label>
+                <label htmlFor="published-comments" className="block text-xs font-semibold text-ink mb-1">
+                  评论数
+                </label>
                 <input
                   id="published-comments"
                   name="comments"
@@ -801,7 +865,7 @@ export const PublishedView: React.FC<PublishedViewProps> = ({
                   inputMode="numeric"
                   min="0"
                   value={comments}
-                  onChange={(e) => setComments(Number(e.target.value))}
+                  onChange={e => setComments(Number(e.target.value))}
                   className="w-full px-3 py-1.5 bg-control border border-line rounded-lg text-sm font-mono text-ink focus:bg-surface focus:outline-none focus:border-accent"
                 />
               </div>
@@ -809,7 +873,9 @@ export const PublishedView: React.FC<PublishedViewProps> = ({
 
             {/* Notes */}
             <div>
-              <label htmlFor="published-notes" className="block text-xs font-semibold text-ink mb-1">复盘心得与观众反馈</label>
+              <label htmlFor="published-notes" className="block text-xs font-semibold text-ink mb-1">
+                复盘心得与观众反馈
+              </label>
               <textarea
                 id="published-notes"
                 name="notes"
@@ -817,7 +883,7 @@ export const PublishedView: React.FC<PublishedViewProps> = ({
                 rows={3}
                 placeholder="记录本期视频哪些包袱响了、弹幕集中讨论什么、哪些地方剪辑拖沓..."
                 value={notes}
-                onChange={(e) => setNotes(e.target.value)}
+                onChange={e => setNotes(e.target.value)}
                 className="w-full px-3 py-2 bg-control border border-line rounded-lg text-sm text-ink placeholder:text-ink-muted focus:bg-surface focus:outline-none focus:border-accent resize-none"
               />
             </div>
@@ -854,12 +920,16 @@ export const PublishedView: React.FC<PublishedViewProps> = ({
           onConfirm={async () => {
             if (!deletingVideo) return;
             await onDeletePublished(deletingVideo.id);
-            if (pageItems.length === 1 && page > 1) setPage((current) => current - 1);
+            if (pageItems.length === 1 && page > 1) setPage(current => current - 1);
             await refreshPublishedQueries();
             setDeletingVideo(null);
           }}
           title="删除发布归档"
-          description={deletingVideo ? `确定要删除发布归档「${deletingVideo.title}」吗？\n\n关联的成片互动数据将一并清除，但不会删除原选题。` : ''}
+          description={
+            deletingVideo
+              ? `确定要删除发布归档「${deletingVideo.title}」吗？\n\n关联的成片互动数据将一并清除，但不会删除原选题。`
+              : ''
+          }
           confirmText="删除归档"
           tone="danger"
         />

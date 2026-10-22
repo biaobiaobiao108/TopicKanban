@@ -7,9 +7,13 @@ export async function fetchAndExportSingleTopicMarkdown(topic: Topic, readingSpe
   if (workspace.draft.conflict) {
     throw new Error('文案存在本机与云端版本冲突，请先在文案创作中解决后再导出');
   }
-  return exportSingleTopicMarkdown(topic, {
-    sources: workspace.sources,
-    report: workspace.report,
-    draft: workspace.draft.draft,
-  }, readingSpeed);
+  return exportSingleTopicMarkdown(
+    topic,
+    {
+      sources: workspace.sources,
+      report: workspace.report,
+      draft: workspace.draft.draft,
+    },
+    readingSpeed,
+  );
 }

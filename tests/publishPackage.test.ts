@@ -32,10 +32,21 @@ const topic: Topic = {
   created_at: '2026-08-20T00:00:00.000Z',
   updated_at: '2026-08-20T00:00:00.000Z',
   tags: [{ id: 'tag-1', name: '人物故事' }],
-  people: [{
-    id: 'person-1', name: '张三', aliases: '', avatar_url: '', description: '', identity: '',
-    platform_accounts: '', quotes: '', notes: '', created_at: '', updated_at: '',
-  }],
+  people: [
+    {
+      id: 'person-1',
+      name: '张三',
+      aliases: '',
+      avatar_url: '',
+      description: '',
+      identity: '',
+      platform_accounts: '',
+      quotes: '',
+      notes: '',
+      created_at: '',
+      updated_at: '',
+    },
+  ],
 };
 
 const source = (overrides: Partial<Source> = {}): Source => ({
@@ -163,8 +174,8 @@ describe('publish package generator', () => {
       readingSpeed: 280,
     });
 
-    expect(packageData.chapters.map((chapter) => chapter.title)).toEqual(['开场', '第一次反转']);
-    expect(packageData.chapters.map((chapter) => chapter.time)).toEqual(['00:00', '01:00']);
+    expect(packageData.chapters.map(chapter => chapter.title)).toEqual(['开场', '第一次反转']);
+    expect(packageData.chapters.map(chapter => chapter.time)).toEqual(['00:00', '01:00']);
   });
 
   it('falls back to HTML headings when the editor JSON is invalid', () => {
@@ -176,75 +187,87 @@ describe('publish package generator', () => {
       readingSpeed: 280,
     });
 
-    expect(packageData.chapters.map((chapter) => chapter.title)).toEqual(['开场', '结尾']);
+    expect(packageData.chapters.map(chapter => chapter.title)).toEqual(['开场', '结尾']);
   });
 
   it('omits unsafe source URLs and reports the issue without blocking export', () => {
     const packageData = buildPublishPackage({
       topic,
-      draft: draft(JSON.stringify({ type: 'doc', content: [{ type: 'paragraph', content: [{ type: 'text', text: '正文' }] }] })),
+      draft: draft(
+        JSON.stringify({ type: 'doc', content: [{ type: 'paragraph', content: [{ type: 'text', text: '正文' }] }] }),
+      ),
       sources: [source({ url: 'javascript:alert(1)' })],
       citations: [],
       readingSpeed: 280,
     });
 
     expect(packageData.source_credits[0].url).toBe('');
-    expect(packageData.checks.some((check) => check.id === 'source-url-invalid')).toBe(true);
-    expect(packageData.checks.some((check) => check.level === 'blocker')).toBe(false);
+    expect(packageData.checks.some(check => check.id === 'source-url-invalid')).toBe(true);
+    expect(packageData.checks.some(check => check.level === 'blocker')).toBe(false);
   });
 
   it('checks unverified dated sources as timeline material', () => {
     const packageData = buildPublishPackage({
       topic,
-      draft: draft(JSON.stringify({ type: 'doc', content: [{ type: 'paragraph', content: [{ type: 'text', text: '正文' }] }] })),
+      draft: draft(
+        JSON.stringify({ type: 'doc', content: [{ type: 'paragraph', content: [{ type: 'text', text: '正文' }] }] }),
+      ),
       sources: [source({ event_date: '2026-08-20', verification_status: 'unverified' })],
       citations: [],
       readingSpeed: 280,
     });
 
-    expect(packageData.checks.some((check) => check.id === 'dated-source-unverified')).toBe(true);
+    expect(packageData.checks.some(check => check.id === 'dated-source-unverified')).toBe(true);
   });
 
   it('reports active unresolved citations and draft conflicts as checks', () => {
     const contentJson = JSON.stringify({
       type: 'doc',
-      content: [{
-        type: 'paragraph',
-        content: [{
-          type: 'text',
-          text: '带引用的正文',
-          marks: [{ type: 'citation', attrs: { citationId: 'citation-1' } }],
-        }],
-      }],
+      content: [
+        {
+          type: 'paragraph',
+          content: [
+            {
+              type: 'text',
+              text: '带引用的正文',
+              marks: [{ type: 'citation', attrs: { citationId: 'citation-1' } }],
+            },
+          ],
+        },
+      ],
     });
     const packageData = buildPublishPackage({
       topic,
       draft: draft(contentJson),
       sources: [source({ verification_status: 'unverified' })],
-      citations: [{
-        id: 'citation-1',
-        topic_id: topic.id,
-        reference_type: 'source',
-        reference_id: 'source-1',
-        reference_title: '公开资料',
-        reference_snapshot: '旧资料内容',
-        quoted_text: '带引用的正文',
-        verification_status: 'unverified',
-        created_at: '',
-      }],
+      citations: [
+        {
+          id: 'citation-1',
+          topic_id: topic.id,
+          reference_type: 'source',
+          reference_id: 'source-1',
+          reference_title: '公开资料',
+          reference_snapshot: '旧资料内容',
+          quoted_text: '带引用的正文',
+          verification_status: 'unverified',
+          created_at: '',
+        },
+      ],
       readingSpeed: 280,
       draftConflict: true,
     });
 
-    expect(packageData.checks.some((check) => check.id === 'draft-conflict' && check.level === 'blocker')).toBe(true);
-    expect(packageData.checks.some((check) => check.id === 'citation-unverified')).toBe(true);
-    expect(packageData.checks.some((check) => check.id === 'citation-stale')).toBe(true);
+    expect(packageData.checks.some(check => check.id === 'draft-conflict' && check.level === 'blocker')).toBe(true);
+    expect(packageData.checks.some(check => check.id === 'citation-unverified')).toBe(true);
+    expect(packageData.checks.some(check => check.id === 'citation-stale')).toBe(true);
   });
 
   it('formats plain text and Markdown output with the agreed sections', () => {
     const packageData = buildPublishPackage({
       topic,
-      draft: draft(JSON.stringify({ type: 'doc', content: [{ type: 'paragraph', content: [{ type: 'text', text: '正文' }] }] })),
+      draft: draft(
+        JSON.stringify({ type: 'doc', content: [{ type: 'paragraph', content: [{ type: 'text', text: '正文' }] }] }),
+      ),
       sources: [source()],
       citations: [],
       readingSpeed: 280,

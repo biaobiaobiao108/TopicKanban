@@ -20,7 +20,13 @@ import {
   Trash2,
   WalletCards,
 } from 'lucide-react';
-import type { CommercialDeal, CommercialDealDetail, CommercialDealStatus, CommercialDealTopic, Topic } from '../../types';
+import type {
+  CommercialDeal,
+  CommercialDealDetail,
+  CommercialDealStatus,
+  CommercialDealTopic,
+  Topic,
+} from '../../types';
 import {
   addCommercialDealActivity,
   deleteCommercialDeal,
@@ -93,13 +99,13 @@ const CONTRACT_LABELS: Record<CommercialDeal['contract_status'], string> = {
 
 const ALL_STATUS_OPTIONS: SelectOption[] = [
   { value: '', label: '全部阶段' },
-  ...STATUS_FLOW.map((value) => ({
+  ...STATUS_FLOW.map(value => ({
     value,
     label: STATUS_LABELS[value],
     dot: STATUS_DOTS[value],
   })),
 ];
-const STATUS_OPTIONS: SelectOption[] = STATUS_FLOW.map((value) => ({
+const STATUS_OPTIONS: SelectOption[] = STATUS_FLOW.map(value => ({
   value,
   label: STATUS_LABELS[value],
   dot: STATUS_DOTS[value],
@@ -109,7 +115,10 @@ const PAYMENT_OPTIONS: SelectOption[] = [
   { value: 'paid', label: '已回款' },
 ];
 const SOURCE_OPTIONS: SelectOption[] = Object.entries(SOURCE_LABELS).map(([value, label]) => ({ value, label }));
-const DELIVERABLE_OPTIONS: SelectOption[] = Object.entries(DELIVERABLE_LABELS).map(([value, label]) => ({ value, label }));
+const DELIVERABLE_OPTIONS: SelectOption[] = Object.entries(DELIVERABLE_LABELS).map(([value, label]) => ({
+  value,
+  label,
+}));
 const CONTRACT_OPTIONS: SelectOption[] = Object.entries(CONTRACT_LABELS).map(([value, label]) => ({ value, label }));
 const DEALS_PAGE_SIZE = 24;
 
@@ -120,7 +129,8 @@ function getSafePublishedVideoUrl(video: NonNullable<CommercialDealDetail['publi
   return bvid ? `https://www.bilibili.com/video/${bvid}` : '';
 }
 
-const formatMoney = (cents: number) => (cents > 0 ? `¥${(cents / 100).toLocaleString('zh-CN', { minimumFractionDigits: 2 })}` : '未报价');
+const formatMoney = (cents: number) =>
+  cents > 0 ? `¥${(cents / 100).toLocaleString('zh-CN', { minimumFractionDigits: 2 })}` : '未报价';
 
 const fieldClass =
   'mt-1.5 w-full rounded-xl border border-line bg-control px-3 py-2.5 text-sm text-ink outline-none transition-colors placeholder:text-ink-muted focus:border-accent focus:bg-surface';
@@ -184,7 +194,9 @@ function createDealFormState(deal?: CommercialDeal | null): DealFormState {
 
 function StatusPill({ status }: { status: CommercialDealStatus }) {
   return (
-    <span className={`inline-flex shrink-0 items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-semibold ${STATUS_CLASSES[status]}`}>
+    <span
+      className={`inline-flex shrink-0 items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-semibold ${STATUS_CLASSES[status]}`}
+    >
       <span className={`h-1.5 w-1.5 rounded-full ${STATUS_DOTS[status]}`} />
       {STATUS_LABELS[status]}
     </span>
@@ -235,7 +247,7 @@ function DealFormModal({
     }
   }, [isOpen]);
   const setField = <K extends keyof DealFormState>(key: K, value: DealFormState[K]) => {
-    setForm((current) => ({ ...current, [key]: value }));
+    setForm(current => ({ ...current, [key]: value }));
     setError('');
   };
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
@@ -277,7 +289,7 @@ function DealFormModal({
                 required
                 maxLength={200}
                 value={form.title}
-                onChange={(event) => setField('title', event.target.value)}
+                onChange={event => setField('title', event.target.value)}
                 className={fieldClass}
                 placeholder="例如：某品牌夏季定制视频"
               />
@@ -288,7 +300,7 @@ function DealFormModal({
                 name="brand_name"
                 maxLength={200}
                 value={form.brand_name}
-                onChange={(event) => setField('brand_name', event.target.value)}
+                onChange={event => setField('brand_name', event.target.value)}
                 className={fieldClass}
                 placeholder="品牌方"
               />
@@ -299,7 +311,7 @@ function DealFormModal({
                 name="agency_name"
                 maxLength={200}
                 value={form.agency_name}
-                onChange={(event) => setField('agency_name', event.target.value)}
+                onChange={event => setField('agency_name', event.target.value)}
                 className={fieldClass}
                 placeholder="没有可留空"
               />
@@ -310,7 +322,7 @@ function DealFormModal({
                 name="contact_name"
                 maxLength={200}
                 value={form.contact_name}
-                onChange={(event) => setField('contact_name', event.target.value)}
+                onChange={event => setField('contact_name', event.target.value)}
                 className={fieldClass}
                 placeholder="姓名 / 花火账号"
               />
@@ -321,7 +333,7 @@ function DealFormModal({
                 name="contact_channel"
                 maxLength={2000}
                 value={form.contact_channel}
-                onChange={(event) => setField('contact_channel', event.target.value)}
+                onChange={event => setField('contact_channel', event.target.value)}
                 className={fieldClass}
                 placeholder="微信、邮箱或其他备注"
               />
@@ -333,14 +345,14 @@ function DealFormModal({
               label="商单来源"
               value={form.source}
               options={SOURCE_OPTIONS}
-              onChange={(value) => setField('source', value as CommercialDeal['source'])}
+              onChange={value => setField('source', value as CommercialDeal['source'])}
             />
             <SelectField
               name="deliverable_type"
               label="交付类型"
               value={form.deliverable_type}
               options={DELIVERABLE_OPTIONS}
-              onChange={(value) => setField('deliverable_type', value as CommercialDeal['deliverable_type'])}
+              onChange={value => setField('deliverable_type', value as CommercialDeal['deliverable_type'])}
             />
           </div>
         </fieldset>
@@ -409,11 +421,15 @@ function DealCard({ deal, onOpen }: { deal: CommercialDeal; onOpen: (id: string)
       <div className="mt-4 min-w-0 space-y-2 border-t border-line/40 pt-3 text-xs text-ink-muted">
         <div className="flex min-w-0 items-center justify-between gap-3">
           <span>{DELIVERABLE_LABELS[deal.deliverable_type]}</span>
-          <span className="shrink-0 font-mono font-semibold tabular-nums text-ink">{formatMoney(deal.amount_cents)}</span>
+          <span className="shrink-0 font-mono font-semibold tabular-nums text-ink">
+            {formatMoney(deal.amount_cents)}
+          </span>
         </div>
         <div className={`flex items-center gap-1.5 ${overdue ? 'font-bold text-danger' : ''}`}>
           <CalendarClock className="h-3.5 w-3.5 shrink-0" />
-          {deliveryDate.state === 'empty' ? '尚未设置交付日' : (
+          {deliveryDate.state === 'empty' ? (
+            '尚未设置交付日'
+          ) : (
             <>
               {!overdue && '交付 · '}
               <ActionDateText display={deliveryDate} />
@@ -436,9 +452,7 @@ function DealCard({ deal, onOpen }: { deal: CommercialDeal; onOpen: (id: string)
             暂未绑定选题
           </div>
         )}
-        <div
-          className={`min-w-0 break-words ${deal.next_action ? 'text-ink' : 'font-semibold text-warning'}`}
-        >
+        <div className={`min-w-0 break-words ${deal.next_action ? 'text-ink' : 'font-semibold text-warning'}`}>
           <span className="font-semibold text-accent-dark">下一步：</span>
           {deal.next_action || '尚未设置'}
         </div>
@@ -482,7 +496,10 @@ function SummaryCard({
   );
 }
 
-function CommercialDealsView({ topics, onCreateTopicFromDeal }: Pick<DealsViewProps, 'topics' | 'onCreateTopicFromDeal'>) {
+function CommercialDealsView({
+  topics,
+  onCreateTopicFromDeal,
+}: Pick<DealsViewProps, 'topics' | 'onCreateTopicFromDeal'>) {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const [query, setQuery] = useState('');
@@ -503,7 +520,7 @@ function CommercialDealsView({ topics, onCreateTopicFromDeal }: Pick<DealsViewPr
         status,
         payment_status: paymentStatus as 'unpaid' | 'paid' | undefined,
       }),
-    placeholderData: (previous) => previous,
+    placeholderData: previous => previous,
   });
   const pageData = dealsQuery.data;
   const deals = pageData?.items || [];
@@ -516,7 +533,13 @@ function CommercialDealsView({ topics, onCreateTopicFromDeal }: Pick<DealsViewPr
 
   const handleSaved = (deal: CommercialDealDetail) => {
     updateCommercialDealCaches(queryClient, deal);
-    void invalidateQueryGroups(queryClient, [['commercial-deal-page'], ['deal-focus'], ['commercial-deals-calendar'], ['topic-deals'], ['workspace']]);
+    void invalidateQueryGroups(queryClient, [
+      ['commercial-deal-page'],
+      ['deal-focus'],
+      ['commercial-deals-calendar'],
+      ['topic-deals'],
+      ['workspace'],
+    ]);
     queryClient.setQueryData(['commercial-deal', deal.id], deal);
   };
   const handleStatusFilter = (value: string) => {
@@ -525,7 +548,7 @@ function CommercialDealsView({ topics, onCreateTopicFromDeal }: Pick<DealsViewPr
     setPage(1);
   };
   const handleScopeToggle = () => {
-    setShowActiveOnly((value) => !value);
+    setShowActiveOnly(value => !value);
     setStatus('');
     setPage(1);
   };
@@ -590,7 +613,7 @@ function CommercialDealsView({ topics, onCreateTopicFromDeal }: Pick<DealsViewPr
               <input
                 name="deal_search"
                 value={query}
-                onChange={(event) => {
+                onChange={event => {
                   setQuery(event.target.value);
                   setPage(1);
                 }}
@@ -608,7 +631,7 @@ function CommercialDealsView({ topics, onCreateTopicFromDeal }: Pick<DealsViewPr
             />
             <CustomSelect
               value={paymentStatus}
-              onChange={(value) => {
+              onChange={value => {
                 setPaymentStatus(value);
                 setPage(1);
               }}
@@ -632,10 +655,7 @@ function CommercialDealsView({ topics, onCreateTopicFromDeal }: Pick<DealsViewPr
             正在加载商单…
           </div>
         ) : dealsQuery.error ? (
-          <div
-            role="alert"
-            className="rounded-2xl border border-danger-line bg-danger-soft p-5 text-sm text-danger"
-          >
+          <div role="alert" className="rounded-2xl border border-danger-line bg-danger-soft p-5 text-sm text-danger">
             商单加载失败：
             {dealsQuery.error instanceof Error ? dealsQuery.error.message : '未知错误'}
           </div>
@@ -655,13 +675,15 @@ function CommercialDealsView({ topics, onCreateTopicFromDeal }: Pick<DealsViewPr
         ) : (
           <>
             <div className="grid min-w-0 grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
-              {deals.map((deal) => (
-                <DealCard key={deal.id} deal={deal} onOpen={(id) => navigate(`/deals/${encodeURIComponent(id)}`)} />
+              {deals.map(deal => (
+                <DealCard key={deal.id} deal={deal} onOpen={id => navigate(`/deals/${encodeURIComponent(id)}`)} />
               ))}
             </div>
             <div className="flex flex-col gap-2 border-t border-line/50 pt-3 text-xs text-ink-muted sm:flex-row sm:items-center sm:justify-between">
               <div className="flex items-center justify-center gap-2 sm:justify-start" aria-live="polite">
-                <span>显示 {firstItem}-{lastItem} 条 · 共 {total} 单</span>
+                <span>
+                  显示 {firstItem}-{lastItem} 条 · 共 {total} 单
+                </span>
                 {dealsQuery.isFetching && <span className="text-ink-muted/70">更新中…</span>}
               </div>
               <div className="flex items-center justify-center gap-1 sm:justify-end">
@@ -669,7 +691,7 @@ function CommercialDealsView({ topics, onCreateTopicFromDeal }: Pick<DealsViewPr
                   type="button"
                   aria-label="上一页"
                   disabled={page <= 1 || dealsQuery.isFetching}
-                  onClick={() => setPage((current) => Math.max(1, current - 1))}
+                  onClick={() => setPage(current => Math.max(1, current - 1))}
                   className="rounded-sm px-2.5 py-1.5 text-ink-muted transition-colors hover:bg-surface hover:text-ink disabled:cursor-not-allowed disabled:opacity-40"
                 >
                   上一页
@@ -681,7 +703,7 @@ function CommercialDealsView({ topics, onCreateTopicFromDeal }: Pick<DealsViewPr
                   type="button"
                   aria-label="下一页"
                   disabled={page >= totalPages || dealsQuery.isFetching}
-                  onClick={() => setPage((current) => Math.min(totalPages, current + 1))}
+                  onClick={() => setPage(current => Math.min(totalPages, current + 1))}
                   className="rounded-sm px-2.5 py-1.5 text-ink-muted transition-colors hover:bg-surface hover:text-ink disabled:cursor-not-allowed disabled:opacity-40"
                 >
                   下一页
@@ -780,7 +802,9 @@ function LinkedTopicRow({
             {relation.topic_title}
           </span>
         </div>
-    <span className="mt-1 block text-xs text-ink-muted">{relation.topic_deleted_at ? '关联选题已归档' : relation.topic_status}</span>
+        <span className="mt-1 block text-xs text-ink-muted">
+          {relation.topic_deleted_at ? '关联选题已归档' : relation.topic_status}
+        </span>
       </button>
       <div className="flex items-center gap-2">
         <button
@@ -839,33 +863,46 @@ function CommercialDealDetailView({
   const deal = dealQuery.data;
   const deliveryDate = useActionDateDisplay(
     deal?.delivery_due_date,
-    !deal || !['delivered', 'archived'].includes(deal.status)
+    !deal || !['delivered', 'archived'].includes(deal.status),
   );
   const publishDate = useActionDateDisplay(
     deal?.publish_date,
-    !deal || !['delivered', 'archived'].includes(deal.status)
+    !deal || !['delivered', 'archived'].includes(deal.status),
   );
   const nextActionDueDate = useActionDateDisplay(deal?.next_action_due_date, !deal || deal.status !== 'archived');
 
   useEffect(() => {
     if (!deal) return;
-    setPrimaryTopicId(deal.topics.find((relation) => relation.relation_role === 'primary')?.topic_id || null);
-    setRelatedTopicIds(deal.topics.filter((relation) => relation.relation_role === 'related').map((relation) => relation.topic_id));
+    setPrimaryTopicId(deal.topics.find(relation => relation.relation_role === 'primary')?.topic_id || null);
+    setRelatedTopicIds(
+      deal.topics.filter(relation => relation.relation_role === 'related').map(relation => relation.topic_id),
+    );
     setTitleDraft(deal.title);
     setForm(createDealFormState(deal));
   }, [deal]);
 
-  if (dealQuery.isLoading) return <div className="grid flex-1 place-items-center text-sm text-ink-muted">正在加载商单详情…</div>;
+  if (dealQuery.isLoading)
+    return <div className="grid flex-1 place-items-center text-sm text-ink-muted">正在加载商单详情…</div>;
   if (dealQuery.error || !deal)
-    return <div className="grid flex-1 place-items-center px-6 text-center text-sm text-ink-muted">商单不存在或加载失败。</div>;
+    return (
+      <div className="grid flex-1 place-items-center px-6 text-center text-sm text-ink-muted">
+        商单不存在或加载失败。
+      </div>
+    );
   const safePublishedVideoUrl = deal.published_video ? getSafePublishedVideoUrl(deal.published_video) : '';
 
   const updateDealCache = (saved: CommercialDealDetail) => {
     updateCommercialDealCaches(queryClient, saved);
-    void invalidateQueryGroups(queryClient, [['commercial-deal-page'], ['deal-focus'], ['commercial-deals-calendar'], ['topic-deals'], ['workspace']]);
+    void invalidateQueryGroups(queryClient, [
+      ['commercial-deal-page'],
+      ['deal-focus'],
+      ['commercial-deals-calendar'],
+      ['topic-deals'],
+      ['workspace'],
+    ]);
   };
   const setField = <K extends keyof DealFormState>(key: K, value: DealFormState[K]) => {
-    setForm((current) => ({ ...current, [key]: value }));
+    setForm(current => ({ ...current, [key]: value }));
     setSectionError('');
   };
   const startEdit = (section: 'cooperation' | 'brief' | 'delivery') => {
@@ -874,7 +911,10 @@ function CommercialDealDetailView({
     setEditingSection(section);
   };
 
-  const handleSectionSubmit = async (event: React.FormEvent<HTMLFormElement>, section: 'cooperation' | 'brief' | 'delivery') => {
+  const handleSectionSubmit = async (
+    event: React.FormEvent<HTMLFormElement>,
+    section: 'cooperation' | 'brief' | 'delivery',
+  ) => {
     event.preventDefault();
     let patch: Partial<CommercialDeal> = {};
     if (section === 'cooperation')
@@ -977,7 +1017,13 @@ function CommercialDealDetailView({
     try {
       await deleteCommercialDeal(deal.id);
       removeCommercialDealCaches(queryClient, deal.id);
-      await invalidateQueryGroups(queryClient, [['commercial-deal-page'], ['deal-focus'], ['commercial-deals-calendar'], ['topic-deals'], ['workspace']]);
+      await invalidateQueryGroups(queryClient, [
+        ['commercial-deal-page'],
+        ['deal-focus'],
+        ['commercial-deals-calendar'],
+        ['topic-deals'],
+        ['workspace'],
+      ]);
       setIsDeleteModalOpen(false);
       navigate('/deals');
     } catch (error) {
@@ -1042,7 +1088,7 @@ function CommercialDealDetailView({
   const currentPublishedId = deal.published_video_id || '';
   const publishedOptions: SelectOption[] = [
     { value: '', label: '暂不绑定发布视频' },
-    ...(publishedQuery.data || []).map((video) => ({
+    ...(publishedQuery.data || []).map(video => ({
       value: video.id,
       label: video.title,
       description: video.bvid || video.published_at,
@@ -1062,7 +1108,7 @@ function CommercialDealDetailView({
     </div>
   );
   const linkedTopicIds = new Set([...(primaryTopicId ? [primaryTopicId] : []), ...relatedTopicIds]);
-  const availableTopics = topics.filter((topic) => !topic.deleted_at);
+  const availableTopics = topics.filter(topic => !topic.deleted_at);
   const canShowTopicCta = deal.status === 'producing' && !primaryTopicId;
   const overdue = deliveryDate.state === 'overdue';
   const currentFlowIndex = STATUS_FLOW.indexOf(deal.status);
@@ -1088,7 +1134,10 @@ function CommercialDealDetailView({
                   )}
                 </div>
                 {isEditingTitle ? (
-                  <form onSubmit={handleTitleSubmit} className="mt-3 flex min-w-0 flex-col gap-2 sm:flex-row sm:items-center">
+                  <form
+                    onSubmit={handleTitleSubmit}
+                    className="mt-3 flex min-w-0 flex-col gap-2 sm:flex-row sm:items-center"
+                  >
                     <label htmlFor="deal-detail-title" className="sr-only">
                       商单名称
                     </label>
@@ -1099,7 +1148,7 @@ function CommercialDealDetailView({
                       maxLength={200}
                       autoFocus
                       value={titleDraft}
-                      onChange={(event) => setTitleDraft(event.target.value)}
+                      onChange={event => setTitleDraft(event.target.value)}
                       className="min-h-11 min-w-0 flex-1 rounded-xl border border-line bg-surface px-3 text-xl font-bold text-ink outline-none focus:ring-2 focus:ring-focus-ring"
                     />
                     <button
@@ -1138,7 +1187,10 @@ function CommercialDealDetailView({
                     </button>
                   </div>
                 )}
-                <p className="mt-1 break-words text-sm font-semibold text-ink-muted" style={{ overflowWrap: 'anywhere' }}>
+                <p
+                  className="mt-1 break-words text-sm font-semibold text-ink-muted"
+                  style={{ overflowWrap: 'anywhere' }}
+                >
                   {deal.brand_name || '未填写品牌'}
                   {deal.agency_name ? ` · ${deal.agency_name}` : ''}
                 </p>
@@ -1149,7 +1201,7 @@ function CommercialDealDetailView({
                   <input type="hidden" name="status" value={deal.status} />
                   <CustomSelect
                     value={deal.status}
-                    onChange={(value) => void handleStatusChange(value)}
+                    onChange={value => void handleStatusChange(value)}
                     options={STATUS_OPTIONS}
                     ariaLabel="直接修改商单阶段"
                     disabled={isStatusSaving}
@@ -1197,7 +1249,9 @@ function CommercialDealDetailView({
             </div>
             <button
               type="button"
-              onClick={() => document.getElementById('deal-topic-section')?.scrollIntoView({ behavior: 'smooth', block: 'center' })}
+              onClick={() =>
+                document.getElementById('deal-topic-section')?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+              }
               className="min-h-11 rounded-xl bg-warning px-4 text-sm font-bold text-white hover:bg-warning"
             >
               去绑定选题
@@ -1209,10 +1263,12 @@ function CommercialDealDetailView({
             <SectionCard
               title="合作信息"
               icon={<MessageSquare className="h-4 w-4 text-accent" />}
-              action={editingSection !== 'cooperation' && <EditSectionButton onClick={() => startEdit('cooperation')} />}
+              action={
+                editingSection !== 'cooperation' && <EditSectionButton onClick={() => startEdit('cooperation')} />
+              }
             >
               {editingSection === 'cooperation' ? (
-                <form onSubmit={(event) => void handleSectionSubmit(event, 'cooperation')} className="space-y-4">
+                <form onSubmit={event => void handleSectionSubmit(event, 'cooperation')} className="space-y-4">
                   <fieldset className="space-y-4">
                     <legend className="sr-only">编辑合作信息</legend>
                     <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
@@ -1222,7 +1278,7 @@ function CommercialDealDetailView({
                           name="brand_name"
                           maxLength={200}
                           value={form.brand_name}
-                          onChange={(event) => setField('brand_name', event.target.value)}
+                          onChange={event => setField('brand_name', event.target.value)}
                           className={fieldClass}
                         />
                       </label>
@@ -1232,7 +1288,7 @@ function CommercialDealDetailView({
                           name="agency_name"
                           maxLength={200}
                           value={form.agency_name}
-                          onChange={(event) => setField('agency_name', event.target.value)}
+                          onChange={event => setField('agency_name', event.target.value)}
                           className={fieldClass}
                         />
                       </label>
@@ -1242,7 +1298,7 @@ function CommercialDealDetailView({
                           name="contact_name"
                           maxLength={200}
                           value={form.contact_name}
-                          onChange={(event) => setField('contact_name', event.target.value)}
+                          onChange={event => setField('contact_name', event.target.value)}
                           className={fieldClass}
                         />
                       </label>
@@ -1252,7 +1308,7 @@ function CommercialDealDetailView({
                           name="contact_channel"
                           maxLength={2000}
                           value={form.contact_channel}
-                          onChange={(event) => setField('contact_channel', event.target.value)}
+                          onChange={event => setField('contact_channel', event.target.value)}
                           className={fieldClass}
                         />
                       </label>
@@ -1263,14 +1319,14 @@ function CommercialDealDetailView({
                         label="商单来源"
                         value={form.source}
                         options={SOURCE_OPTIONS}
-                        onChange={(value) => setField('source', value as CommercialDeal['source'])}
+                        onChange={value => setField('source', value as CommercialDeal['source'])}
                       />
                       <SelectField
                         name="deliverable_type"
                         label="交付类型"
                         value={form.deliverable_type}
                         options={DELIVERABLE_OPTIONS}
-                        onChange={(value) => setField('deliverable_type', value as CommercialDeal['deliverable_type'])}
+                        onChange={value => setField('deliverable_type', value as CommercialDeal['deliverable_type'])}
                       />
                     </div>
                   </fieldset>
@@ -1296,7 +1352,7 @@ function CommercialDealDetailView({
               action={editingSection !== 'brief' && <EditSectionButton onClick={() => startEdit('brief')} />}
             >
               {editingSection === 'brief' ? (
-                <form onSubmit={(event) => void handleSectionSubmit(event, 'brief')} className="space-y-4">
+                <form onSubmit={event => void handleSectionSubmit(event, 'brief')} className="space-y-4">
                   <fieldset className="space-y-4">
                     <legend className="sr-only">编辑执行单与合作口径</legend>
                     <SelectField
@@ -1304,7 +1360,7 @@ function CommercialDealDetailView({
                       label="合同状态"
                       value={form.contract_status}
                       options={CONTRACT_OPTIONS}
-                      onChange={(value) => setField('contract_status', value as CommercialDeal['contract_status'])}
+                      onChange={value => setField('contract_status', value as CommercialDeal['contract_status'])}
                     />
                     <label className="block text-xs font-semibold text-ink-muted">
                       商单简介
@@ -1312,7 +1368,7 @@ function CommercialDealDetailView({
                         name="brief"
                         maxLength={20000}
                         value={form.brief}
-                        onChange={(event) => setField('brief', event.target.value)}
+                        onChange={event => setField('brief', event.target.value)}
                         className={textareaClass}
                       />
                     </label>
@@ -1322,7 +1378,7 @@ function CommercialDealDetailView({
                         name="requirements"
                         maxLength={20000}
                         value={form.requirements}
-                        onChange={(event) => setField('requirements', event.target.value)}
+                        onChange={event => setField('requirements', event.target.value)}
                         className={textareaClass}
                       />
                     </label>
@@ -1332,7 +1388,7 @@ function CommercialDealDetailView({
                         name="restrictions"
                         maxLength={20000}
                         value={form.restrictions}
-                        onChange={(event) => setField('restrictions', event.target.value)}
+                        onChange={event => setField('restrictions', event.target.value)}
                         className={textareaClass}
                       />
                     </label>
@@ -1342,7 +1398,7 @@ function CommercialDealDetailView({
                         name="contract_summary"
                         maxLength={20000}
                         value={form.contract_summary}
-                        onChange={(event) => setField('contract_summary', event.target.value)}
+                        onChange={event => setField('contract_summary', event.target.value)}
                         className={textareaClass}
                       />
                     </label>
@@ -1370,20 +1426,22 @@ function CommercialDealDetailView({
             >
               <div id="deal-topic-section" className="space-y-3">
                 {deal.topics.length > 0 ? (
-                  deal.topics.map((relation) => (
+                  deal.topics.map(relation => (
                     <LinkedTopicRow
                       key={relation.id}
                       relation={relation}
                       onOpen={() => navigate(`/topics/${encodeURIComponent(relation.topic_id)}?tab=overview`)}
                       onMakePrimary={() => {
-                        const nextRelated = deal.topics.filter((item) => item.topic_id !== relation.topic_id).map((item) => item.topic_id);
+                        const nextRelated = deal.topics
+                          .filter(item => item.topic_id !== relation.topic_id)
+                          .map(item => item.topic_id);
                         setPrimaryTopicId(relation.topic_id);
                         setRelatedTopicIds(nextRelated);
                         void handleSaveTopics(relation.topic_id, nextRelated);
                       }}
                       onRemove={() => {
                         const nextPrimary = primaryTopicId === relation.topic_id ? null : primaryTopicId;
-                        const nextRelated = relatedTopicIds.filter((topicId) => topicId !== relation.topic_id);
+                        const nextRelated = relatedTopicIds.filter(topicId => topicId !== relation.topic_id);
                         setPrimaryTopicId(nextPrimary);
                         setRelatedTopicIds(nextRelated);
                         void handleSaveTopics(nextPrimary, nextRelated);
@@ -1401,16 +1459,16 @@ function CommercialDealDetailView({
                     <span className="mb-1.5 block text-xs font-semibold text-ink-muted">选择主选题</span>
                     <CustomSelect
                       value={primaryTopicId || ''}
-                      onChange={(value) => {
+                      onChange={value => {
                         const nextPrimary = value || null;
-                        const nextRelated = relatedTopicIds.filter((topicId) => topicId !== nextPrimary);
+                        const nextRelated = relatedTopicIds.filter(topicId => topicId !== nextPrimary);
                         setPrimaryTopicId(nextPrimary);
                         setRelatedTopicIds(nextRelated);
                         void handleSaveTopics(nextPrimary, nextRelated);
                       }}
                       options={[
                         { value: '', label: '暂不绑定主选题' },
-                        ...availableTopics.map((topic) => ({
+                        ...availableTopics.map(topic => ({
                           value: topic.id,
                           label: topic.title,
                           description: topic.status,
@@ -1436,8 +1494,11 @@ function CommercialDealDetailView({
                 {availableTopics.length > 0 && (
                   <div>
                     <span className="mb-1.5 block text-xs font-semibold text-ink-muted">系列关联选题</span>
-                    <FloatingScrollbar className="space-y-1 rounded-xl border border-line p-2" wrapperClassName="max-h-44 flex-none">
-                      {availableTopics.map((topic) => {
+                    <FloatingScrollbar
+                      className="space-y-1 rounded-xl border border-line p-2"
+                      wrapperClassName="max-h-44 flex-none"
+                    >
+                      {availableTopics.map(topic => {
                         const checked = linkedTopicIds.has(topic.id);
                         return (
                           <label
@@ -1451,7 +1512,7 @@ function CommercialDealDetailView({
                               onChange={() => {
                                 if (topic.id === primaryTopicId) return;
                                 const nextRelated = checked
-                                  ? relatedTopicIds.filter((topicId) => topicId !== topic.id)
+                                  ? relatedTopicIds.filter(topicId => topicId !== topic.id)
                                   : [...relatedTopicIds, topic.id];
                                 setRelatedTopicIds(nextRelated);
                                 void handleSaveTopics(primaryTopicId, nextRelated);
@@ -1459,7 +1520,9 @@ function CommercialDealDetailView({
                               className="h-4 w-4 accent-[var(--accent)]"
                             />
                             <span className="min-w-0 flex-1 break-words">{topic.title}</span>
-                            {topic.id === primaryTopicId && <span className="shrink-0 text-3xs text-accent">主选题</span>}
+                            {topic.id === primaryTopicId && (
+                              <span className="shrink-0 text-3xs text-accent">主选题</span>
+                            )}
                           </label>
                         );
                       })}
@@ -1477,7 +1540,7 @@ function CommercialDealDetailView({
                     <textarea
                       name="activity"
                       value={activity}
-                      onChange={(event) => {
+                      onChange={event => {
                         setActivity(event.target.value);
                         setActivityError('');
                       }}
@@ -1501,7 +1564,7 @@ function CommercialDealDetailView({
                 </div>
               </form>
               <div className="mt-5 divide-y divide-line">
-                {deal.activities.map((item) => (
+                {deal.activities.map(item => (
                   <div key={item.id} className="py-3 first:pt-0">
                     <div className="flex items-center justify-between gap-3">
                       <span className="rounded-full bg-control px-2 py-0.5 text-2xs font-semibold text-ink-muted">
@@ -1532,7 +1595,7 @@ function CommercialDealDetailView({
               action={editingSection !== 'delivery' && <EditSectionButton onClick={() => startEdit('delivery')} />}
             >
               {editingSection === 'delivery' ? (
-                <form onSubmit={(event) => void handleSectionSubmit(event, 'delivery')} className="space-y-4">
+                <form onSubmit={event => void handleSectionSubmit(event, 'delivery')} className="space-y-4">
                   <fieldset className="space-y-4">
                     <legend className="sr-only">编辑交付与回款</legend>
                     <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-1">
@@ -1544,7 +1607,7 @@ function CommercialDealDetailView({
                           inputMode="decimal"
                           maxLength={20}
                           value={form.amount_yuan}
-                          onChange={(event) => setField('amount_yuan', event.target.value)}
+                          onChange={event => setField('amount_yuan', event.target.value)}
                           className={fieldClass}
                           placeholder="例如 5000"
                         />
@@ -1554,14 +1617,14 @@ function CommercialDealDetailView({
                         label="回款状态"
                         value={form.payment_status}
                         options={PAYMENT_OPTIONS}
-                        onChange={(value) => setField('payment_status', value as CommercialDeal['payment_status'])}
+                        onChange={value => setField('payment_status', value as CommercialDeal['payment_status'])}
                       />
                       <label className="text-xs font-semibold text-ink-muted">
                         交付截止日
                         <DateInput
                           name="delivery_due_date"
                           value={form.delivery_due_date}
-                          onChange={(value) => setField('delivery_due_date', value)}
+                          onChange={value => setField('delivery_due_date', value)}
                           className={fieldClass}
                         />
                       </label>
@@ -1570,7 +1633,7 @@ function CommercialDealDetailView({
                         <DateInput
                           name="publish_date"
                           value={form.publish_date}
-                          onChange={(value) => setField('publish_date', value)}
+                          onChange={value => setField('publish_date', value)}
                           className={fieldClass}
                         />
                       </label>
@@ -1579,7 +1642,7 @@ function CommercialDealDetailView({
                         <DateInput
                           name="paid_at"
                           value={form.paid_at}
-                          onChange={(value) => setField('paid_at', value)}
+                          onChange={value => setField('paid_at', value)}
                           className={fieldClass}
                         />
                       </label>
@@ -1589,7 +1652,7 @@ function CommercialDealDetailView({
                           name="next_action"
                           maxLength={2000}
                           value={form.next_action}
-                          onChange={(event) => setField('next_action', event.target.value)}
+                          onChange={event => setField('next_action', event.target.value)}
                           className={fieldClass}
                           placeholder="例如：把脚本第一版发给客户确认"
                         />
@@ -1599,7 +1662,7 @@ function CommercialDealDetailView({
                         <DateInput
                           name="next_action_due_date"
                           value={form.next_action_due_date}
-                          onChange={(value) => setField('next_action_due_date', value)}
+                          onChange={value => setField('next_action_due_date', value)}
                           className={fieldClass}
                         />
                       </label>
@@ -1616,25 +1679,32 @@ function CommercialDealDetailView({
                 <div className="space-y-4">
                   <div className="rounded-xl border border-line p-4">
                     <p className="text-xs font-semibold text-ink-muted">应收成交金额</p>
-                    <p className="mt-1 text-2xl font-bold tracking-tight text-ink">
-                      {formatMoney(deal.amount_cents)}
-                    </p>
+                    <p className="mt-1 text-2xl font-bold tracking-tight text-ink">{formatMoney(deal.amount_cents)}</p>
                     <div className="mt-4 flex flex-wrap items-center justify-between gap-3 text-sm">
                       <span
                         className={
-                          deal.payment_status === 'paid'
-                            ? 'font-semibold text-success'
-                            : 'font-semibold text-warning'
+                          deal.payment_status === 'paid' ? 'font-semibold text-success' : 'font-semibold text-warning'
                         }
                       >
                         {deal.payment_status === 'paid' ? '已收到款项' : '等待回款'}
                       </span>
-                      {deal.paid_at && <span className="text-xs text-ink-muted">到账 <ActionDate value={deal.paid_at} active={false} /></span>}
+                      {deal.paid_at && (
+                        <span className="text-xs text-ink-muted">
+                          到账 <ActionDate value={deal.paid_at} active={false} />
+                        </span>
+                      )}
                     </div>
                   </div>
                   <div className="grid grid-cols-2 gap-3">
-                    <MetaItem label="交付截止" value={deliveryDate.state === 'empty' ? '未设置' : <ActionDateText display={deliveryDate} />} tone={overdue ? 'danger' : undefined} />
-                    <MetaItem label="计划上线日" value={publishDate.state === 'empty' ? '未设置' : <ActionDateText display={publishDate} />} />
+                    <MetaItem
+                      label="交付截止"
+                      value={deliveryDate.state === 'empty' ? '未设置' : <ActionDateText display={deliveryDate} />}
+                      tone={overdue ? 'danger' : undefined}
+                    />
+                    <MetaItem
+                      label="计划上线日"
+                      value={publishDate.state === 'empty' ? '未设置' : <ActionDateText display={publishDate} />}
+                    />
                   </div>
                   <div className="rounded-xl bg-accent-soft p-4">
                     <p className="text-xs font-bold text-accent-dark">下一步行动</p>
@@ -1658,10 +1728,10 @@ function CommercialDealDetailView({
                   <p className="text-xs font-semibold text-ink-muted">发布视频</p>
                   <CustomSelect
                     value={currentPublishedId}
-                    onChange={(value) => void handlePublishedVideo(value)}
+                    onChange={value => void handlePublishedVideo(value)}
                     options={publishedOptions}
                     renderOption={renderPublishedOption}
-                    renderValue={(option) => (
+                    renderValue={option => (
                       <span
                         className="line-clamp-2 min-w-0 max-w-full whitespace-normal break-words text-left text-sm"
                         style={{ overflowWrap: 'anywhere' }}
@@ -1691,7 +1761,7 @@ function CommercialDealDetailView({
                           href={safePublishedVideoUrl}
                           target="_blank"
                           rel="noopener noreferrer"
-                        className="mt-2 inline-flex max-w-full items-center gap-1.5 break-words text-xs font-semibold text-accent hover:underline"
+                          className="mt-2 inline-flex max-w-full items-center gap-1.5 break-words text-xs font-semibold text-accent hover:underline"
                         >
                           打开 B 站视频 <ExternalLink className="h-3.5 w-3.5 shrink-0" />
                         </a>
@@ -1706,7 +1776,10 @@ function CommercialDealDetailView({
                 </div>
                 <div className="grid grid-cols-2 gap-3">
                   <MetaItem label="发布视频 BV 号" value={deal.published_video?.bvid || '未绑定'} />
-                  <MetaItem label="计划上线日" value={publishDate.state === 'empty' ? '未设置' : <ActionDateText display={publishDate} />} />
+                  <MetaItem
+                    label="计划上线日"
+                    value={publishDate.state === 'empty' ? '未设置' : <ActionDateText display={publishDate} />}
+                  />
                 </div>
               </div>
             </SectionCard>
@@ -1732,11 +1805,7 @@ function CommercialDealDetailView({
                     >
                       {index < currentFlowIndex ? <Check className="h-3 w-3" /> : index + 1}
                     </span>
-                    <span
-                      className={
-                        deal.status === status ? 'font-bold text-ink' : 'text-ink-muted'
-                      }
-                    >
+                    <span className={deal.status === status ? 'font-bold text-ink' : 'text-ink-muted'}>
                       {STATUS_LABELS[status]}
                     </span>
                   </div>

@@ -5,7 +5,7 @@ export const formatBilibiliDate = (timestamp: number = Date.now()): string => {
     month: '2-digit',
     day: '2-digit',
   }).formatToParts(new Date(timestamp));
-  const datePart = (type: 'year' | 'month' | 'day') => parts.find((part) => part.type === type)?.value || '';
+  const datePart = (type: 'year' | 'month' | 'day') => parts.find(part => part.type === type)?.value || '';
   return `${datePart('year')}-${datePart('month')}-${datePart('day')}`;
 };
 
@@ -112,7 +112,9 @@ function prunePersistentCoverCache(now = Date.now()): void {
       entries.push({ key, cachedAt: entry.cachedAt });
     }
     entries.sort((a, b) => a.cachedAt - b.cachedAt || a.key.localeCompare(b.key));
-    entries.slice(0, Math.max(0, entries.length - COVER_CACHE_MAX_ENTRIES)).forEach(({ key }) => localStorage.removeItem(key));
+    entries
+      .slice(0, Math.max(0, entries.length - COVER_CACHE_MAX_ENTRIES))
+      .forEach(({ key }) => localStorage.removeItem(key));
   } catch {
     // Ignore quota or private mode errors.
   }
@@ -155,7 +157,10 @@ export const setBilibiliCoverToCache = (bvid: string, coverUrl: string): void =>
   rememberCoverInMemory(bvid, coverUrl);
   try {
     if (typeof localStorage !== 'undefined') {
-      localStorage.setItem(`${COVER_CACHE_PREFIX}${bvid}`, JSON.stringify({ url: coverUrl, cachedAt: Date.now() } satisfies StoredCoverCacheEntry));
+      localStorage.setItem(
+        `${COVER_CACHE_PREFIX}${bvid}`,
+        JSON.stringify({ url: coverUrl, cachedAt: Date.now() } satisfies StoredCoverCacheEntry),
+      );
       prunePersistentCoverCache();
     }
   } catch {
@@ -176,9 +181,7 @@ const normalizeBilibiliVideo = (raw: BilibiliRawVideoData, bvid: string): Bilibi
     author: raw.owner?.name || '',
     desc: raw.desc || '',
     cover_url: normalizedCover,
-    published_at: raw.pubdate
-      ? formatBilibiliDate(raw.pubdate * 1000)
-      : formatBilibiliDate(),
+    published_at: raw.pubdate ? formatBilibiliDate(raw.pubdate * 1000) : formatBilibiliDate(),
     views: Number(stat.view || 0),
     likes: Number(stat.like || 0),
     coins: Number(stat.coin || 0),
@@ -188,43 +191,44 @@ const normalizeBilibiliVideo = (raw: BilibiliRawVideoData, bvid: string): Bilibi
   };
 };
 
-const fetchBilibiliWithJsonp = (bvid: string): Promise<BilibiliVideoMeta> => new Promise((resolve, reject) => {
-  const callbackName = `__bilibili_jsonp_${Date.now()}_${Math.random().toString(36).slice(2)}`;
-  const jsonpWindow = window as typeof window & Record<string, (payload: BilibiliApiResponse) => void>;
-  const script = document.createElement('script');
-  const timeout = window.setTimeout(() => {
-    cleanup();
-    reject(new Error('B站直连请求超时'));
-  }, 8000);
+const fetchBilibiliWithJsonp = (bvid: string): Promise<BilibiliVideoMeta> =>
+  new Promise((resolve, reject) => {
+    const callbackName = `__bilibili_jsonp_${Date.now()}_${Math.random().toString(36).slice(2)}`;
+    const jsonpWindow = window as typeof window & Record<string, (payload: BilibiliApiResponse) => void>;
+    const script = document.createElement('script');
+    const timeout = window.setTimeout(() => {
+      cleanup();
+      reject(new Error('B站直连请求超时'));
+    }, 8000);
 
-  const cleanup = () => {
-    window.clearTimeout(timeout);
-    script.remove();
-    jsonpWindow[callbackName] = () => {
-      delete jsonpWindow[callbackName];
+    const cleanup = () => {
+      window.clearTimeout(timeout);
+      script.remove();
+      jsonpWindow[callbackName] = () => {
+        delete jsonpWindow[callbackName];
+      };
+      window.setTimeout(() => {
+        delete jsonpWindow[callbackName];
+      }, 15000);
     };
-    window.setTimeout(() => {
-      delete jsonpWindow[callbackName];
-    }, 15000);
-  };
 
-  jsonpWindow[callbackName] = (payload) => {
-    cleanup();
-    if (payload.code !== 0 || !payload.data || !payload.data.title) {
-      reject(new Error(payload.message || 'B站直连数据异常'));
-      return;
-    }
-    resolve(normalizeBilibiliVideo(payload.data, bvid));
-  };
+    jsonpWindow[callbackName] = payload => {
+      cleanup();
+      if (payload.code !== 0 || !payload.data || !payload.data.title) {
+        reject(new Error(payload.message || 'B站直连数据异常'));
+        return;
+      }
+      resolve(normalizeBilibiliVideo(payload.data, bvid));
+    };
 
-  script.async = true;
-  script.src = `https://api.bilibili.com/x/web-interface/view?bvid=${encodeURIComponent(bvid)}&jsonp=jsonp&callback=${encodeURIComponent(callbackName)}`;
-  script.onerror = () => {
-    cleanup();
-    reject(new Error('B站直连请求失败'));
-  };
-  document.head.appendChild(script);
-});
+    script.async = true;
+    script.src = `https://api.bilibili.com/x/web-interface/view?bvid=${encodeURIComponent(bvid)}&jsonp=jsonp&callback=${encodeURIComponent(callbackName)}`;
+    script.onerror = () => {
+      cleanup();
+      reject(new Error('B站直连请求失败'));
+    };
+    document.head.appendChild(script);
+  });
 
 /**
  * Extract clean BV ID from arbitrary input (BV number, Bilibili URL, mobile share link, etc.)

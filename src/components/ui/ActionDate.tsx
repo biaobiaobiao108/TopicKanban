@@ -9,11 +9,12 @@ interface ActionDateTextProps {
 export const ActionDateText: React.FC<ActionDateTextProps> = ({ display, className = '' }) => {
   if (display.state === 'empty') return null;
 
-  const relativeLabel = display.state === 'today'
-    ? '今天'
-    : display.state === 'overdue'
-      ? `已逾期 ${Math.abs(display.daysFromToday || 0)} 天`
-      : '';
+  const relativeLabel =
+    display.state === 'today'
+      ? '今天'
+      : display.state === 'overdue'
+        ? `已逾期 ${Math.abs(display.daysFromToday || 0)} 天`
+        : '';
   const accessibleLabel = relativeLabel ? `${relativeLabel}，${display.fullDate}` : display.fullDate;
 
   return (

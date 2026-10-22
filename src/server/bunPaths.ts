@@ -44,7 +44,7 @@ export function resolvePath(...segments: string[]): string {
 
 /** Join known local path segments while keeping the result absolute and normalized. */
 export function joinPath(first: string, ...rest: string[]): string {
-  return resolvePath(first, ...rest.map((segment) => segment.replace(/^[\\/]+/, '')));
+  return resolvePath(first, ...rest.map(segment => segment.replace(/^[\\/]+/, '')));
 }
 
 /** Check containment using normalized file URLs, including Windows drive-letter casing. */

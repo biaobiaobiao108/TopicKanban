@@ -16,7 +16,10 @@ const testSchema = new Schema({
       group: 'block',
       content: 'text*',
       attrs: { level: { default: 1 } },
-      parseDOM: [{ tag: 'h1', attrs: { level: 1 } }, { tag: 'h2', attrs: { level: 2 } }],
+      parseDOM: [
+        { tag: 'h1', attrs: { level: 1 } },
+        { tag: 'h2', attrs: { level: 2 } },
+      ],
     },
     blockquote: { group: 'block', content: 'block*' },
     text: { inline: true },
@@ -183,5 +186,4 @@ describe('ImeMarkdownSafeExtension 纯逻辑与自愈规则测试', () => {
     expect(taskRegex.test('• [ ] ')).toBe(true);
     expect(taskRegex.test('－ [ ] ')).toBe(true);
   });
-
 });

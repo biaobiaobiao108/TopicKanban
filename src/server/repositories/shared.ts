@@ -25,9 +25,7 @@ export function execute(db: Database, sql: string, values: unknown[] = []): void
 }
 
 export function readTransaction(db: Database, queries: SqlCommand[]): unknown[][] {
-  return db.transaction(() => queries.map(({ statement, values }) => (
-    statement.all(...values) as unknown[]
-  )))();
+  return db.transaction(() => queries.map(({ statement, values }) => statement.all(...values) as unknown[]))();
 }
 
 export function executeTransaction(db: Database, commands: SqlCommand[]): void {

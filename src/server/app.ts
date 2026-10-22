@@ -1,10 +1,6 @@
 import { NativeApp, bodyLimit } from './native';
 import type { ApiBindings } from './apiShared';
-import {
-  MAX_REQUEST_BYTES,
-  verifyQuickDropCredential,
-  verifyToken,
-} from './apiShared';
+import { MAX_REQUEST_BYTES, verifyQuickDropCredential, verifyToken } from './apiShared';
 import { registerDealRoutes } from './routes/deals';
 import { registerPeopleRoutes } from './routes/people';
 import { registerPublishedRoutes } from './routes/published';
@@ -20,11 +16,14 @@ import { registerWritingRoutes } from './routes/writing';
 export function createApp(bindings: ApiBindings): NativeApp {
   const app = new NativeApp(bindings, '/api');
 
-  app.use('*', bodyLimit({
-    maxSize: MAX_REQUEST_BYTES,
-    preflightOnly: true,
-    onError: (c) => c.json({ error: 'Request body is too large' }, 413),
-  }));
+  app.use(
+    '*',
+    bodyLimit({
+      maxSize: MAX_REQUEST_BYTES,
+      preflightOnly: true,
+      onError: c => c.json({ error: 'Request body is too large' }, 413),
+    }),
+  );
 
   app.use('*', async (c, next) => {
     const path = c.req.path;

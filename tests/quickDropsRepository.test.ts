@@ -20,7 +20,10 @@ describe('QuickDropRepository', () => {
   it('stores, lists, counts and deletes quick drops using explicit fields', async () => {
     const repository = await createRepository();
     const item: QuickDropItem = {
-      id: 'drop-1', content: '灵感内容', url: 'https://example.com', source: '测试',
+      id: 'drop-1',
+      content: '灵感内容',
+      url: 'https://example.com',
+      source: '测试',
       created_at: new Date().toISOString(),
     };
 

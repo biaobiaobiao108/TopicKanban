@@ -57,8 +57,8 @@ describe('script Markdown source', () => {
     });
 
     const beforeEdit = extractScriptOutline(editor);
-    expect(beforeEdit.flatItems.map((item) => item.title)).toEqual(['开场', '内嵌标题', '后续标题']);
-    expect(beforeEdit.flatItems.map((item) => item.id)).toEqual(['heading-0', 'heading-1', 'heading-2']);
+    expect(beforeEdit.flatItems.map(item => item.title)).toEqual(['开场', '内嵌标题', '后续标题']);
+    expect(beforeEdit.flatItems.map(item => item.id)).toEqual(['heading-0', 'heading-1', 'heading-2']);
 
     const lastHeading = beforeEdit.flatItems[2];
     editor.view.dispatch(editor.state.tr.insertText('x', beforeEdit.flatItems[0].textPos));
@@ -92,7 +92,7 @@ describe('script Markdown source', () => {
 
       expect(editor.state.selection.$from.parent.type.name).toBe('paragraph');
       expect(editor.isActive(markName)).toBe(false);
-      expect(editor.state.storedMarks?.some((mark) => mark.type.name === markName) ?? false).toBe(false);
+      expect(editor.state.storedMarks?.some(mark => mark.type.name === markName) ?? false).toBe(false);
       editor.destroy();
     }
   });
@@ -158,16 +158,30 @@ describe('script Markdown source', () => {
     const columns = groupScriptMarkdownCommands(commands);
 
     expect(columns).toHaveLength(3);
-    expect(columns.flatMap((column) => column.items.map((command) => command.id))).toEqual(commands.map((command) => command.id));
-    expect(getNextGroupedScriptMarkdownCommandIndex(0, 'ArrowDown', columns.map((column) => column.items))).toBe(1);
-    expect(getNextGroupedScriptMarkdownCommandIndex(0, 'ArrowRight', columns.map((column) => column.items))).toBe(columns[0].items.length);
+    expect(columns.flatMap(column => column.items.map(command => command.id))).toEqual(
+      commands.map(command => command.id),
+    );
+    expect(
+      getNextGroupedScriptMarkdownCommandIndex(
+        0,
+        'ArrowDown',
+        columns.map(column => column.items),
+      ),
+    ).toBe(1);
+    expect(
+      getNextGroupedScriptMarkdownCommandIndex(
+        0,
+        'ArrowRight',
+        columns.map(column => column.items),
+      ),
+    ).toBe(columns[0].items.length);
     expect(getNextScriptMarkdownCommandIndex(0, 'ArrowUp', 4)).toBe(3);
   });
 
   it('filters slash commands by Chinese names and Markdown aliases', () => {
-    expect(filterScriptMarkdownCommands('表格').map((command) => command.id)).toEqual(['table']);
-    expect(filterScriptMarkdownCommands('checkbox').map((command) => command.id)).toEqual(['task-list']);
-    expect(filterScriptMarkdownCommands('超链接').map((command) => command.id)).toEqual(['link']);
+    expect(filterScriptMarkdownCommands('表格').map(command => command.id)).toEqual(['table']);
+    expect(filterScriptMarkdownCommands('checkbox').map(command => command.id)).toEqual(['task-list']);
+    expect(filterScriptMarkdownCommands('超链接').map(command => command.id)).toEqual(['link']);
   });
 
   it('matches completed Chinese slash queries without requiring another keypress', () => {
@@ -181,7 +195,7 @@ describe('script Markdown source', () => {
     });
 
     expect(match?.query).toBe('一级标题');
-    expect(filterScriptMarkdownCommands(match?.query ?? '').map((command) => command.id)).toContain('heading-1');
+    expect(filterScriptMarkdownCommands(match?.query ?? '').map(command => command.id)).toContain('heading-1');
   });
 
   it('detects Markdown pasted alongside rich clipboard HTML', () => {
@@ -235,5 +249,4 @@ describe('script Markdown source', () => {
     expect(serialized).toContain('taskItem');
     expect(serialized).toContain('data-type');
   });
-
 });

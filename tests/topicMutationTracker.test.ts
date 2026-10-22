@@ -2,9 +2,14 @@ import { describe, expect, it } from 'bun:test';
 import type { Topic } from '../src/types';
 import { TopicMutationTracker } from '../src/lib/topicMutationTracker';
 
-const topic = (overrides: Partial<Topic> = {}) => ({
-  id: 'topic-a', title: '旧标题', is_pinned: 0, updated_at: '2026-01-01T00:00:00Z', ...overrides,
-}) as Topic;
+const topic = (overrides: Partial<Topic> = {}) =>
+  ({
+    id: 'topic-a',
+    title: '旧标题',
+    is_pinned: 0,
+    updated_at: '2026-01-01T00:00:00Z',
+    ...overrides,
+  }) as Topic;
 
 describe('TopicMutationTracker', () => {
   it('keeps a later successful title edit when an earlier pin request fails', () => {
@@ -29,7 +34,8 @@ describe('TopicMutationTracker', () => {
     const pinSequence = tracker.begin(current.id, pin, current);
     tracker.begin(current.id, { title: '正在修改' }, current);
     const patch = tracker.settle(current.id, pin, pinSequence, {
-      is_pinned: 1, updated_at: '2026-02-01T00:00:00Z',
+      is_pinned: 1,
+      updated_at: '2026-02-01T00:00:00Z',
     });
     expect({ ...current, title: '正在修改', ...patch }).toMatchObject({ title: '正在修改', is_pinned: 1 });
     expect(patch).not.toHaveProperty('title');
@@ -63,7 +69,10 @@ describe('TopicMutationTracker', () => {
     const current = topic({ is_pinned: 1 });
     const edit = { status: 'published' as const };
     const sequence = tracker.begin(current.id, edit, current);
-    expect(tracker.settle(current.id, edit, sequence, topic({ ...edit, updated_at: '2026-03-01T00:00:00Z' })))
-      .toEqual({ status: 'published', is_pinned: 0, updated_at: '2026-03-01T00:00:00Z' });
+    expect(tracker.settle(current.id, edit, sequence, topic({ ...edit, updated_at: '2026-03-01T00:00:00Z' }))).toEqual({
+      status: 'published',
+      is_pinned: 0,
+      updated_at: '2026-03-01T00:00:00Z',
+    });
   });
 });

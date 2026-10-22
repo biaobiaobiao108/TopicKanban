@@ -3,20 +3,9 @@ import { Database } from 'bun:sqlite';
 import { createApp } from '../src/server/app';
 import { NativeApp } from '../src/server/native';
 import type { ApiBindings } from '../src/server/apiShared';
-import {
-  loadTopicReport,
-  saveTopicReport,
-} from '../src/server/repositories/writing';
-import {
-  loadTopicWorkspace,
-  insertSource,
-  reorderSources,
-} from '../src/server/repositories/workspace';
-import {
-  insertTopic,
-  permanentlyDeleteTrashedTopics,
-  softDeleteTopic,
-} from '../src/server/repositories/topics';
+import { loadTopicReport, saveTopicReport } from '../src/server/repositories/writing';
+import { loadTopicWorkspace, insertSource, reorderSources } from '../src/server/repositories/workspace';
+import { insertTopic, permanentlyDeleteTrashedTopics, softDeleteTopic } from '../src/server/repositories/topics';
 import type { Source } from '../src/types';
 
 describe('Topic Report and Sources Timeline Integration', () => {
@@ -275,10 +264,38 @@ describe('Topic Report and Sources Timeline Integration', () => {
 
     // 4. Sources reorder batch endpoint
     const srcA: Source = {
-      id: 'src-a', topic_id: topic.id, title: 'A', content: '', url: '', platform: 'bilibili', author: '', published_at: '', verification_status: 'confirmed', notes: '', event_date: '', date_precision: 'exact', sort_order: 1, created_at: new Date().toISOString(), updated_at: new Date().toISOString()
+      id: 'src-a',
+      topic_id: topic.id,
+      title: 'A',
+      content: '',
+      url: '',
+      platform: 'bilibili',
+      author: '',
+      published_at: '',
+      verification_status: 'confirmed',
+      notes: '',
+      event_date: '',
+      date_precision: 'exact',
+      sort_order: 1,
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
     };
     const srcB: Source = {
-      id: 'src-b', topic_id: topic.id, title: 'B', content: '', url: '', platform: 'bilibili', author: '', published_at: '', verification_status: 'confirmed', notes: '', event_date: '', date_precision: 'exact', sort_order: 2, created_at: new Date().toISOString(), updated_at: new Date().toISOString()
+      id: 'src-b',
+      topic_id: topic.id,
+      title: 'B',
+      content: '',
+      url: '',
+      platform: 'bilibili',
+      author: '',
+      published_at: '',
+      verification_status: 'confirmed',
+      notes: '',
+      event_date: '',
+      date_precision: 'exact',
+      sort_order: 2,
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
     };
     await insertSource(db, srcA);
     await insertSource(db, srcB);

@@ -26,8 +26,8 @@ export const CalendarAgendaView: React.FC<CalendarAgendaViewProps> = ({
 }) => {
   const today = useBeijingToday();
   const [selectedDate, setSelectedDate] = useState<string>(() => {
-    const today = days.find((d) => d.isToday);
-    return today ? today.date : (days[0]?.date || '');
+    const today = days.find(d => d.isToday);
+    return today ? today.date : days[0]?.date || '';
   });
 
   React.useEffect(() => {
@@ -43,7 +43,7 @@ export const CalendarAgendaView: React.FC<CalendarAgendaViewProps> = ({
       {/* Top Week Slider Strip */}
       <div className="p-3 border-b border-line/50 bg-canvas/70 overflow-x-auto">
         <div className="flex items-center gap-2 min-w-max justify-between sm:justify-start">
-          {days.map((day) => {
+          {days.map(day => {
             const hasEvents = (eventsMap.get(day.date) || []).length > 0;
             const isSelected = day.date === selectedDate;
             return (
@@ -61,11 +61,7 @@ export const CalendarAgendaView: React.FC<CalendarAgendaViewProps> = ({
                 <span className="text-base font-bold font-mono mt-0.5">{day.dayNumber}</span>
                 <span className="flex gap-0.5 mt-1 h-1.5">
                   {hasEvents && (
-                    <span
-                      className={`w-1.5 h-1.5 rounded-full ${
-                        isSelected ? 'bg-surface' : 'bg-accent'
-                      }`}
-                    />
+                    <span className={`w-1.5 h-1.5 rounded-full ${isSelected ? 'bg-surface' : 'bg-accent'}`} />
                   )}
                 </span>
               </button>
@@ -79,9 +75,7 @@ export const CalendarAgendaView: React.FC<CalendarAgendaViewProps> = ({
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
             <CalendarIcon className="w-4 h-4 text-accent" />
-            <h2 className="text-sm font-bold text-ink">
-              {selectedDateLabel} 排期与待办
-            </h2>
+            <h2 className="text-sm font-bold text-ink">{selectedDateLabel} 排期与待办</h2>
             <span className="text-xs font-mono font-bold bg-canvas text-ink-muted px-2 py-0.5 rounded-full">
               {selectedDayEvents.length}
             </span>
@@ -99,7 +93,7 @@ export const CalendarAgendaView: React.FC<CalendarAgendaViewProps> = ({
 
         {selectedDayEvents.length > 0 ? (
           <div className="space-y-3">
-            {selectedDayEvents.map((ev) => (
+            {selectedDayEvents.map(ev => (
               <CalendarEventPill
                 key={ev.id}
                 event={ev}

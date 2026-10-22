@@ -1,11 +1,6 @@
 import type { NativeApp } from '../native';
 import type { TopicTodo, TopicTodoBoardLayout } from '../../types';
-import {
-  createId,
-  jsonError,
-  jsonValidationError,
-  requireDb,
-} from '../apiShared';
+import { createId, jsonError, jsonValidationError, requireDb } from '../apiShared';
 import { parseWithZod, topicTodoCreateSchema, topicTodoUpdateSchema, todoBoardLayoutSchema } from '../schemas';
 import {
   completeTopicTodo,
@@ -28,7 +23,7 @@ function handleTodoError(c: any, error: unknown) {
 }
 
 export function registerTodoRoutes(app: NativeApp): void {
-  app.get('/todos', async (c) => {
+  app.get('/todos', async c => {
     try {
       return c.json(await loadAllTopicTodos(requireDb(c)));
     } catch (error) {
@@ -36,7 +31,7 @@ export function registerTodoRoutes(app: NativeApp): void {
     }
   });
 
-  app.get('/topics/:id/todos', async (c) => {
+  app.get('/topics/:id/todos', async c => {
     try {
       return c.json(await loadTopicTodos(requireDb(c), c.req.param('id')));
     } catch (error) {
@@ -44,7 +39,7 @@ export function registerTodoRoutes(app: NativeApp): void {
     }
   });
 
-  app.post('/topics/:id/todos', async (c) => {
+  app.post('/topics/:id/todos', async c => {
     try {
       const db = requireDb(c);
       const parsed = parseWithZod(topicTodoCreateSchema, await c.req.json());
@@ -68,19 +63,21 @@ export function registerTodoRoutes(app: NativeApp): void {
     }
   });
 
-  app.patch('/todos/:id', async (c) => {
+  app.patch('/todos/:id', async c => {
     try {
       const parsed = parseWithZod(topicTodoUpdateSchema, await c.req.json());
       if (!parsed.success) return jsonValidationError(c, parsed.error, parsed.issues);
-      return c.json(await updateTopicTodo(requireDb(c), c.req.param('id'), {
-        ...(parsed.data.title !== undefined ? { title: parsed.data.title.trim() } : {}),
-      }));
+      return c.json(
+        await updateTopicTodo(requireDb(c), c.req.param('id'), {
+          ...(parsed.data.title !== undefined ? { title: parsed.data.title.trim() } : {}),
+        }),
+      );
     } catch (error) {
       return handleTodoError(c, error);
     }
   });
 
-  app.post('/todos/:id/current', async (c) => {
+  app.post('/todos/:id/current', async c => {
     try {
       return c.json(await setCurrentTopicTodo(requireDb(c), c.req.param('id')));
     } catch (error) {
@@ -88,7 +85,7 @@ export function registerTodoRoutes(app: NativeApp): void {
     }
   });
 
-  app.post('/todos/:id/complete', async (c) => {
+  app.post('/todos/:id/complete', async c => {
     try {
       return c.json(await completeTopicTodo(requireDb(c), c.req.param('id')));
     } catch (error) {
@@ -96,7 +93,7 @@ export function registerTodoRoutes(app: NativeApp): void {
     }
   });
 
-  app.post('/todos/:id/reopen', async (c) => {
+  app.post('/todos/:id/reopen', async c => {
     try {
       return c.json(await reopenTopicTodo(requireDb(c), c.req.param('id')));
     } catch (error) {
@@ -104,7 +101,7 @@ export function registerTodoRoutes(app: NativeApp): void {
     }
   });
 
-  app.delete('/todos/:id', async (c) => {
+  app.delete('/todos/:id', async c => {
     try {
       return c.json(await deleteTopicTodo(requireDb(c), c.req.param('id')));
     } catch (error) {
@@ -112,15 +109,11 @@ export function registerTodoRoutes(app: NativeApp): void {
     }
   });
 
-  app.patch('/topics/:id/todos/board', async (c) => {
+  app.patch('/topics/:id/todos/board', async c => {
     try {
       const parsed = parseWithZod(todoBoardLayoutSchema, await c.req.json());
       if (!parsed.success) return jsonValidationError(c, parsed.error, parsed.issues);
-      return c.json(await updateTopicTodoBoard(
-        requireDb(c),
-        c.req.param('id'),
-        parsed.data as TopicTodoBoardLayout,
-      ));
+      return c.json(await updateTopicTodoBoard(requireDb(c), c.req.param('id'), parsed.data as TopicTodoBoardLayout));
     } catch (error) {
       return handleTodoError(c, error);
     }

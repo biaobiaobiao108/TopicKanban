@@ -2,7 +2,11 @@ import React from 'react';
 import { Check, HelpCircle, X, type LucideIcon } from 'lucide-react';
 import { Priority, TopicStatus, VerificationStatus, PlatformType } from '../../types';
 
-export const StatusBadge: React.FC<{ status: TopicStatus; size?: 'sm' | 'md'; showLabel?: boolean }> = ({ status, size = 'sm', showLabel = true }) => {
+export const StatusBadge: React.FC<{ status: TopicStatus; size?: 'sm' | 'md'; showLabel?: boolean }> = ({
+  status,
+  size = 'sm',
+  showLabel = true,
+}) => {
   const configs: Record<TopicStatus, { label: string; dot: string; text: string }> = {
     inbox: {
       label: '收集箱',
@@ -46,7 +50,11 @@ export const StatusBadge: React.FC<{ status: TopicStatus; size?: 'sm' | 'md'; sh
   );
 };
 
-export const PriorityBadge: React.FC<{ priority: Priority; showLabel?: boolean; showDot?: boolean }> = ({ priority, showLabel = true, showDot = true }) => {
+export const PriorityBadge: React.FC<{ priority: Priority; showLabel?: boolean; showDot?: boolean }> = ({
+  priority,
+  showLabel = true,
+  showDot = true,
+}) => {
   const configs: Record<Priority, { label: string; dot: string; text: string }> = {
     high: {
       label: '高',
@@ -136,7 +144,7 @@ export const TagPill: React.FC<{ name: string; onRemove?: () => void }> = ({ nam
     {onRemove && (
       <button
         type="button"
-        onClick={(e) => {
+        onClick={e => {
           e.stopPropagation();
           onRemove();
         }}

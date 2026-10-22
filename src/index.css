@@ -1,4 +1,4 @@
-@import "tailwindcss" source(none);
+@import 'tailwindcss' source(none);
 @config "../tailwind.config.js";
 @source ".";
 @source "../index.html";
@@ -127,54 +127,54 @@ html.dark .script-citation:hover {
   line-height: inherit;
 }
 
-:is(.inline-voiceover-cue, .voiceover-cue-option)[data-cue-tone="rhythm"] {
+:is(.inline-voiceover-cue, .voiceover-cue-option)[data-cue-tone='rhythm'] {
   color: var(--cue-rhythm);
 }
 
-.inline-voiceover-cue[data-cue-tone="rhythm"] {
+.inline-voiceover-cue[data-cue-tone='rhythm'] {
   background-color: color-mix(in srgb, var(--cue-rhythm) 7%, var(--surface));
 }
 
-:is(.inline-voiceover-cue, .voiceover-cue-option)[data-cue-tone="emphasis"] {
+:is(.inline-voiceover-cue, .voiceover-cue-option)[data-cue-tone='emphasis'] {
   color: var(--cue-emphasis);
 }
 
-.inline-voiceover-cue[data-cue-tone="emphasis"] {
+.inline-voiceover-cue[data-cue-tone='emphasis'] {
   background-color: color-mix(in srgb, var(--cue-emphasis) 7%, var(--surface));
 }
 
-:is(.inline-voiceover-cue, .voiceover-cue-option)[data-cue-tone="intent"] {
+:is(.inline-voiceover-cue, .voiceover-cue-option)[data-cue-tone='intent'] {
   color: var(--cue-intent);
 }
 
-.inline-voiceover-cue[data-cue-tone="intent"] {
+.inline-voiceover-cue[data-cue-tone='intent'] {
   background-color: color-mix(in srgb, var(--cue-intent) 7%, var(--surface));
 }
 
-:is(.inline-voiceover-cue, .voiceover-cue-option)[data-cue-tone="emotion"] {
+:is(.inline-voiceover-cue, .voiceover-cue-option)[data-cue-tone='emotion'] {
   color: var(--cue-emotion);
 }
 
-.inline-voiceover-cue[data-cue-tone="emotion"] {
+.inline-voiceover-cue[data-cue-tone='emotion'] {
   background-color: color-mix(in srgb, var(--cue-emotion) 7%, var(--surface));
 }
 
-.voiceover-cue-option[data-cue-tone="rhythm"] .voiceover-cue-symbol {
+.voiceover-cue-option[data-cue-tone='rhythm'] .voiceover-cue-symbol {
   color: var(--cue-rhythm);
   background: color-mix(in srgb, var(--cue-rhythm) 9%, var(--surface));
 }
 
-.voiceover-cue-option[data-cue-tone="emphasis"] .voiceover-cue-symbol {
+.voiceover-cue-option[data-cue-tone='emphasis'] .voiceover-cue-symbol {
   color: var(--cue-emphasis);
   background: color-mix(in srgb, var(--cue-emphasis) 9%, var(--surface));
 }
 
-.voiceover-cue-option[data-cue-tone="intent"] .voiceover-cue-symbol {
+.voiceover-cue-option[data-cue-tone='intent'] .voiceover-cue-symbol {
   color: var(--cue-intent);
   background: color-mix(in srgb, var(--cue-intent) 9%, var(--surface));
 }
 
-.voiceover-cue-option[data-cue-tone="emotion"] .voiceover-cue-symbol {
+.voiceover-cue-option[data-cue-tone='emotion'] .voiceover-cue-symbol {
   color: var(--cue-emotion);
   background: color-mix(in srgb, var(--cue-emotion) 9%, var(--surface));
 }
@@ -184,7 +184,7 @@ html.dark .script-citation:hover {
 }
 
 .script-citation::after {
-  content: "〔" attr(data-reference-title) "〕";
+  content: '〔' attr(data-reference-title) '〕';
   display: inline-block;
   text-decoration: none !important;
   margin-left: 0.25rem;
@@ -203,14 +203,13 @@ html.dark .script-citation:hover {
 }
 
 .script-citation:not([data-reference-title])::after,
-.script-citation[data-reference-title=""]::after {
+.script-citation[data-reference-title='']::after {
   display: none;
 }
 
 html.dark .script-citation::after {
   color: var(--accent);
 }
-
 
 /* ==========================================================================
    Editorial Motion & GPU-Accelerated Animation Framework (温润编辑部微质感)
@@ -259,60 +258,148 @@ html.dark .script-citation::after {
 }
 
 /* Opacity modifiers */
-.fade-in { --tw-enter-opacity: 0; }
-.fade-in-0 { --tw-enter-opacity: 0; }
-.fade-in-25 { --tw-enter-opacity: 0.25; }
-.fade-in-50 { --tw-enter-opacity: 0.5; }
-.fade-in-75 { --tw-enter-opacity: 0.75; }
-.fade-in-100 { --tw-enter-opacity: 1; }
+.fade-in {
+  --tw-enter-opacity: 0;
+}
+.fade-in-0 {
+  --tw-enter-opacity: 0;
+}
+.fade-in-25 {
+  --tw-enter-opacity: 0.25;
+}
+.fade-in-50 {
+  --tw-enter-opacity: 0.5;
+}
+.fade-in-75 {
+  --tw-enter-opacity: 0.75;
+}
+.fade-in-100 {
+  --tw-enter-opacity: 1;
+}
 
-.fade-out { --tw-exit-opacity: 0; }
-.fade-out-0 { --tw-exit-opacity: 0; }
-.fade-out-50 { --tw-exit-opacity: 0.5; }
-.fade-out-100 { --tw-exit-opacity: 1; }
+.fade-out {
+  --tw-exit-opacity: 0;
+}
+.fade-out-0 {
+  --tw-exit-opacity: 0;
+}
+.fade-out-50 {
+  --tw-exit-opacity: 0.5;
+}
+.fade-out-100 {
+  --tw-exit-opacity: 1;
+}
 
 /* Scale modifiers */
-.zoom-in-50 { --tw-enter-scale: 0.5; }
-.zoom-in-75 { --tw-enter-scale: 0.75; }
-.zoom-in-90 { --tw-enter-scale: 0.9; }
-.zoom-in-95 { --tw-enter-scale: 0.95; }
-.zoom-in-100 { --tw-enter-scale: 1; }
-.zoom-in-105 { --tw-enter-scale: 1.05; }
+.zoom-in-50 {
+  --tw-enter-scale: 0.5;
+}
+.zoom-in-75 {
+  --tw-enter-scale: 0.75;
+}
+.zoom-in-90 {
+  --tw-enter-scale: 0.9;
+}
+.zoom-in-95 {
+  --tw-enter-scale: 0.95;
+}
+.zoom-in-100 {
+  --tw-enter-scale: 1;
+}
+.zoom-in-105 {
+  --tw-enter-scale: 1.05;
+}
 
-.zoom-out-75 { --tw-exit-scale: 0.75; }
-.zoom-out-90 { --tw-exit-scale: 0.9; }
-.zoom-out-95 { --tw-exit-scale: 0.95; }
-.zoom-out-100 { --tw-exit-scale: 1; }
+.zoom-out-75 {
+  --tw-exit-scale: 0.75;
+}
+.zoom-out-90 {
+  --tw-exit-scale: 0.9;
+}
+.zoom-out-95 {
+  --tw-exit-scale: 0.95;
+}
+.zoom-out-100 {
+  --tw-exit-scale: 1;
+}
 
 /* Translate modifiers */
-.slide-in-from-top { --tw-enter-translate-y: -100%; }
-.slide-in-from-top-1 { --tw-enter-translate-y: -0.25rem; }
-.slide-in-from-top-2 { --tw-enter-translate-y: -0.5rem; }
-.slide-in-from-top-4 { --tw-enter-translate-y: -1rem; }
-.slide-in-from-top-6 { --tw-enter-translate-y: -1.5rem; }
-.slide-in-from-top-8 { --tw-enter-translate-y: -2rem; }
+.slide-in-from-top {
+  --tw-enter-translate-y: -100%;
+}
+.slide-in-from-top-1 {
+  --tw-enter-translate-y: -0.25rem;
+}
+.slide-in-from-top-2 {
+  --tw-enter-translate-y: -0.5rem;
+}
+.slide-in-from-top-4 {
+  --tw-enter-translate-y: -1rem;
+}
+.slide-in-from-top-6 {
+  --tw-enter-translate-y: -1.5rem;
+}
+.slide-in-from-top-8 {
+  --tw-enter-translate-y: -2rem;
+}
 
-.slide-in-from-bottom { --tw-enter-translate-y: 100%; }
-.slide-in-from-bottom-1 { --tw-enter-translate-y: 0.25rem; }
-.slide-in-from-bottom-2 { --tw-enter-translate-y: 0.5rem; }
-.slide-in-from-bottom-4 { --tw-enter-translate-y: 1rem; }
-.slide-in-from-bottom-6 { --tw-enter-translate-y: 1.5rem; }
-.slide-in-from-bottom-8 { --tw-enter-translate-y: 2rem; }
+.slide-in-from-bottom {
+  --tw-enter-translate-y: 100%;
+}
+.slide-in-from-bottom-1 {
+  --tw-enter-translate-y: 0.25rem;
+}
+.slide-in-from-bottom-2 {
+  --tw-enter-translate-y: 0.5rem;
+}
+.slide-in-from-bottom-4 {
+  --tw-enter-translate-y: 1rem;
+}
+.slide-in-from-bottom-6 {
+  --tw-enter-translate-y: 1.5rem;
+}
+.slide-in-from-bottom-8 {
+  --tw-enter-translate-y: 2rem;
+}
 
-.slide-in-from-left { --tw-enter-translate-x: -100%; }
-.slide-in-from-left-2 { --tw-enter-translate-x: -0.5rem; }
-.slide-in-from-left-4 { --tw-enter-translate-x: -1rem; }
-.slide-in-from-left-8 { --tw-enter-translate-x: -2rem; }
+.slide-in-from-left {
+  --tw-enter-translate-x: -100%;
+}
+.slide-in-from-left-2 {
+  --tw-enter-translate-x: -0.5rem;
+}
+.slide-in-from-left-4 {
+  --tw-enter-translate-x: -1rem;
+}
+.slide-in-from-left-8 {
+  --tw-enter-translate-x: -2rem;
+}
 
-.slide-in-from-right { --tw-enter-translate-x: 100%; }
-.slide-in-from-right-2 { --tw-enter-translate-x: 0.5rem; }
-.slide-in-from-right-4 { --tw-enter-translate-x: 1rem; }
-.slide-in-from-right-8 { --tw-enter-translate-x: 2rem; }
+.slide-in-from-right {
+  --tw-enter-translate-x: 100%;
+}
+.slide-in-from-right-2 {
+  --tw-enter-translate-x: 0.5rem;
+}
+.slide-in-from-right-4 {
+  --tw-enter-translate-x: 1rem;
+}
+.slide-in-from-right-8 {
+  --tw-enter-translate-x: 2rem;
+}
 
-.slide-out-to-top { --tw-exit-translate-y: -100%; }
-.slide-out-to-bottom { --tw-exit-translate-y: 100%; }
-.slide-out-to-left { --tw-exit-translate-x: -100%; }
-.slide-out-to-right { --tw-exit-translate-x: 100%; }
+.slide-out-to-top {
+  --tw-exit-translate-y: -100%;
+}
+.slide-out-to-bottom {
+  --tw-exit-translate-y: 100%;
+}
+.slide-out-to-left {
+  --tw-exit-translate-x: -100%;
+}
+.slide-out-to-right {
+  --tw-exit-translate-x: 100%;
+}
 
 /* Micro-interaction Keyframes */
 @keyframes popIn {
@@ -335,9 +422,18 @@ html.dark .script-citation::after {
 }
 
 @keyframes subtleShake {
-  0%, 100% { transform: translate3d(0, 0, 0); }
-  20%, 60% { transform: translate3d(-4px, 0, 0); }
-  40%, 80% { transform: translate3d(4px, 0, 0); }
+  0%,
+  100% {
+    transform: translate3d(0, 0, 0);
+  }
+  20%,
+  60% {
+    transform: translate3d(-4px, 0, 0);
+  }
+  40%,
+  80% {
+    transform: translate3d(4px, 0, 0);
+  }
 }
 
 .animate-shake {
@@ -345,7 +441,8 @@ html.dark .script-citation::after {
 }
 
 @keyframes subtlePulse {
-  0%, 100% {
+  0%,
+  100% {
     opacity: 1;
     transform: scale3d(1, 1, 1);
   }
@@ -672,13 +769,16 @@ html.dark .script-citation::after {
   body {
     background-color: var(--canvas);
     color: var(--ink);
-    font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+    font-feature-settings: 'cv02', 'cv03', 'cv04', 'cv11';
     -webkit-tap-highlight-color: transparent;
-    transition: background-color 0.15s ease, color 0.15s ease;
+    transition:
+      background-color 0.15s ease,
+      color 0.15s ease;
   }
 
-  .font-seal, .title-seal {
-    font-family: Georgia, Cambria, "Songti SC", "SimSun", serif;
+  .font-seal,
+  .title-seal {
+    font-family: Georgia, Cambria, 'Songti SC', 'SimSun', serif;
     color: var(--h1-color);
   }
 }
@@ -686,9 +786,12 @@ html.dark .script-citation::after {
 /* Script headings use Xiangyin's restrained editorial palette and type scale. */
 .script-prose :is(h1, h2, h3),
 .script-editor-canvas-container .tiptap :is(h1, h2, h3),
-.prose h1, .ProseMirror h1,
-.prose h2, .ProseMirror h2,
-.prose h3, .ProseMirror h3 {
+.prose h1,
+.ProseMirror h1,
+.prose h2,
+.ProseMirror h2,
+.prose h3,
+.ProseMirror h3 {
   font-family: inherit !important;
   letter-spacing: 0;
   line-height: 1.25;
@@ -696,7 +799,8 @@ html.dark .script-citation::after {
 
 .script-prose h1,
 .script-editor-canvas-container .tiptap h1,
-.prose h1, .ProseMirror h1 {
+.prose h1,
+.ProseMirror h1 {
   font-size: 1.85rem;
   color: var(--h1-color) !important;
   font-weight: 700 !important;
@@ -705,7 +809,8 @@ html.dark .script-citation::after {
 
 .script-prose h2,
 .script-editor-canvas-container .tiptap h2,
-.prose h2, .ProseMirror h2 {
+.prose h2,
+.ProseMirror h2 {
   font-size: 1.45rem;
   color: var(--h2-color) !important;
   font-weight: 650 !important;
@@ -713,13 +818,16 @@ html.dark .script-citation::after {
 
 .script-prose h3,
 .script-editor-canvas-container .tiptap h3,
-.prose h3, .ProseMirror h3 {
+.prose h3,
+.ProseMirror h3 {
   font-size: 1.18rem;
   color: var(--h3-color) !important;
   font-weight: 600 !important;
 }
 
-.prose blockquote, .ProseMirror blockquote, blockquote.quote-block {
+.prose blockquote,
+.ProseMirror blockquote,
+blockquote.quote-block {
   position: relative;
   background: var(--accent-soft) !important;
   border: 0 !important;
@@ -734,8 +842,10 @@ html.dark .script-citation::after {
   margin: 1.15em 0 !important;
 }
 
-.prose blockquote::before, .ProseMirror blockquote::before, blockquote.quote-block::before {
-  content: "";
+.prose blockquote::before,
+.ProseMirror blockquote::before,
+blockquote.quote-block::before {
+  content: '';
   position: absolute;
   top: 10px;
   bottom: 10px;
@@ -746,29 +856,42 @@ html.dark .script-citation::after {
   opacity: 0.88;
 }
 
-.prose blockquote > :first-child, .ProseMirror blockquote > :first-child, blockquote.quote-block > :first-child {
+.prose blockquote > :first-child,
+.ProseMirror blockquote > :first-child,
+blockquote.quote-block > :first-child {
   margin-top: 0;
 }
 
-.prose blockquote p, .ProseMirror blockquote p, blockquote.quote-block p {
+.prose blockquote p,
+.ProseMirror blockquote p,
+blockquote.quote-block p {
   margin-block: 0 0.5em;
 }
 
-.prose blockquote > :last-child, .ProseMirror blockquote > :last-child, blockquote.quote-block > :last-child,
-.prose blockquote p:last-child, .ProseMirror blockquote p:last-child, blockquote.quote-block p:last-child {
+.prose blockquote > :last-child,
+.ProseMirror blockquote > :last-child,
+blockquote.quote-block > :last-child,
+.prose blockquote p:last-child,
+.ProseMirror blockquote p:last-child,
+blockquote.quote-block p:last-child {
   margin-bottom: 0;
 }
 
-.prose blockquote blockquote, .ProseMirror blockquote blockquote, blockquote.quote-block blockquote {
+.prose blockquote blockquote,
+.ProseMirror blockquote blockquote,
+blockquote.quote-block blockquote {
   margin-block: 0.75em 0.25em !important;
   background: color-mix(in srgb, var(--surface) 65%, transparent) !important;
 }
 
-.prose blockquote blockquote::before, .ProseMirror blockquote blockquote::before, blockquote.quote-block blockquote::before {
+.prose blockquote blockquote::before,
+.ProseMirror blockquote blockquote::before,
+blockquote.quote-block blockquote::before {
   opacity: 0.65;
 }
 
-mark, .mark-highlight {
+mark,
+.mark-highlight {
   background-color: var(--accent-soft) !important;
   color: var(--accent-dark) !important;
   border-radius: var(--radius-sm) !important;
@@ -862,23 +985,45 @@ mark, .mark-highlight {
 }
 
 @keyframes mobile-drawer-backdrop-enter {
-  from { opacity: 0; }
-  to { opacity: 1; }
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
 }
 
 @keyframes mobile-drawer-panel-enter {
-  from { opacity: 0; transform: translate3d(-1rem, 0, 0); }
-  to { opacity: 1; transform: translate3d(0, 0, 0); }
+  from {
+    opacity: 0;
+    transform: translate3d(-1rem, 0, 0);
+  }
+  to {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+  }
 }
 
 @keyframes pwa-install-banner-enter {
-  from { opacity: 0; transform: translate3d(0, 0.35rem, 0); }
-  to { opacity: 1; transform: translate3d(0, 0, 0); }
+  from {
+    opacity: 0;
+    transform: translate3d(0, 0.35rem, 0);
+  }
+  to {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+  }
 }
 
 @keyframes pwa-install-banner-exit {
-  from { opacity: 1; transform: translate3d(0, 0, 0); }
-  to { opacity: 0; transform: translate3d(0, 0.35rem, 0); }
+  from {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+  }
+  to {
+    opacity: 0;
+    transform: translate3d(0, 0.35rem, 0);
+  }
 }
 
 @media (max-width: 767px) and (prefers-reduced-motion: no-preference) {
@@ -908,10 +1053,12 @@ mark, .mark-highlight {
   }
 
   .mobile-nav-item svg {
-    transition: transform 180ms cubic-bezier(0.16, 1, 0.3, 1), opacity 180ms ease-out;
+    transition:
+      transform 180ms cubic-bezier(0.16, 1, 0.3, 1),
+      opacity 180ms ease-out;
   }
 
-  .mobile-nav-item[aria-current="page"] svg {
+  .mobile-nav-item[aria-current='page'] svg {
     transform: translate3d(0, -1px, 0) scale(1.06);
   }
 
@@ -958,32 +1105,32 @@ mark, .mark-highlight {
    ========================================================================== */
 
 /* 3. Kanban Board & 3 Columns (Vintage Book Stages) */
-html.theme-warm-paper .kanban-column-container[data-column-status="inbox"] {
+html.theme-warm-paper .kanban-column-container[data-column-status='inbox'] {
   background-color: #faf3eb !important;
   border-color: #ede1d3 !important;
   border-top-color: #e5d5c3 !important;
 }
-html.theme-warm-paper .kanban-column-container[data-column-status="inbox"] .kanban-column-count {
+html.theme-warm-paper .kanban-column-container[data-column-status='inbox'] .kanban-column-count {
   background-color: #f4e3d1 !important;
   color: #7f4922 !important;
 }
 
-html.theme-warm-paper .kanban-column-container[data-column-status="scripting"] {
+html.theme-warm-paper .kanban-column-container[data-column-status='scripting'] {
   background-color: #f5f0e5 !important;
   border-color: #e5ded0 !important;
   border-top-color: #dcd2c2 !important;
 }
-html.theme-warm-paper .kanban-column-container[data-column-status="scripting"] .kanban-column-count {
+html.theme-warm-paper .kanban-column-container[data-column-status='scripting'] .kanban-column-count {
   background-color: #ece4d5 !important;
   color: #614d33 !important;
 }
 
-html.theme-warm-paper .kanban-column-container[data-column-status="production"] {
+html.theme-warm-paper .kanban-column-container[data-column-status='production'] {
   background-color: #f0f4f7 !important;
   border-color: #dbe5eb !important;
   border-top-color: #cde0ec !important;
 }
-html.theme-warm-paper .kanban-column-container[data-column-status="production"] .kanban-column-count {
+html.theme-warm-paper .kanban-column-container[data-column-status='production'] .kanban-column-count {
   background-color: #dfeaf0 !important;
   color: #2a526d !important;
 }
@@ -996,8 +1143,12 @@ html.theme-warm-paper .mobile-fab-create-button {
 }
 
 /* 9. Scrollbars */
-html.theme-warm-paper ::-webkit-scrollbar-thumb { background: #d7cdbe; }
-html.theme-warm-paper ::-webkit-scrollbar-thumb:hover { background: #c2b6a2; }
+html.theme-warm-paper ::-webkit-scrollbar-thumb {
+  background: #d7cdbe;
+}
+html.theme-warm-paper ::-webkit-scrollbar-thumb:hover {
+  background: #c2b6a2;
+}
 
 .tags-sidebar-panel,
 .script-reference-drawer {
@@ -1023,15 +1174,14 @@ html.theme-warm-paper {
   scroll-behavior: auto !important;
 }
 
-.command-palette-dialog [data-testid="floating-scrollbar-thumb"] {
+.command-palette-dialog [data-testid='floating-scrollbar-thumb'] {
   opacity: 0.4 !important;
 }
 
-
 .command-palette-input:focus,
 .command-palette-input:focus-visible,
-html[class*="theme-"] input.command-palette-input:focus,
-html[class*="theme-"] input.command-palette-input:focus-visible {
+html[class*='theme-'] input.command-palette-input:focus,
+html[class*='theme-'] input.command-palette-input:focus-visible {
   background-color: transparent !important;
   border-color: transparent !important;
   border-style: none !important;
@@ -1048,18 +1198,18 @@ html[class*="theme-"] input.command-palette-input:focus-visible {
 }
 
 /* Shared focus and control treatment for the notebook palette. */
-input:not([type="checkbox"]):not([type="radio"]):focus-visible,
+input:not([type='checkbox']):not([type='radio']):focus-visible,
 textarea:focus-visible,
 select:focus-visible,
-[role="combobox"]:focus-visible {
+[role='combobox']:focus-visible {
   border-color: var(--accent) !important;
   outline-color: var(--focus-ring);
 }
 
-input:not([type="checkbox"]):not([type="radio"]):focus,
+input:not([type='checkbox']):not([type='radio']):focus,
 textarea:focus,
 select:focus,
-[role="combobox"]:focus {
+[role='combobox']:focus {
   border-color: var(--accent) !important;
 }
 
@@ -1128,8 +1278,8 @@ body.todo-dragging * {
 
 .todo-composer-input,
 .todo-inline-editor-input,
-html[class*="theme-"] input.todo-composer-input,
-html[class*="theme-"] input.todo-inline-editor-input,
+html[class*='theme-'] input.todo-composer-input,
+html[class*='theme-'] input.todo-inline-editor-input,
 html.dark input.todo-composer-input,
 html.dark input.todo-inline-editor-input {
   border-color: transparent !important;
@@ -1145,8 +1295,8 @@ html.dark input.todo-inline-editor-input {
 
 .todo-composer-input:focus,
 .todo-inline-editor-input:focus,
-html[class*="theme-"] input.todo-composer-input:focus,
-html[class*="theme-"] input.todo-inline-editor-input:focus,
+html[class*='theme-'] input.todo-composer-input:focus,
+html[class*='theme-'] input.todo-inline-editor-input:focus,
 html.dark input.todo-composer-input:focus,
 html.dark input.todo-inline-editor-input:focus {
   border-color: transparent !important;
@@ -1164,7 +1314,9 @@ html.dark input.todo-inline-editor-input:focus {
 }
 
 /* All text-like controls use the active theme accent for their focus border. */
-input:not([type="checkbox"]):not([type="radio"]):not(.command-palette-input):not(.todo-composer-input):not(.todo-inline-editor-input):not(.script-editor-title):not([data-no-focus-ring]):focus,
+input:not([type='checkbox']):not([type='radio']):not(.command-palette-input):not(.todo-composer-input):not(
+    .todo-inline-editor-input
+  ):not(.script-editor-title):not([data-no-focus-ring]):focus,
 textarea:not(.script-editor-title):not([data-no-focus-ring]):focus,
 select:focus {
   border-color: var(--command-palette-focus) !important;
@@ -1310,7 +1462,9 @@ html.script-editor-zen-mode .pwa-install-banner {
    ========================================================================== */
 .modal-backdrop-modern {
   opacity: 1;
-  transition: opacity 200ms ease-out, display 200ms allow-discrete;
+  transition:
+    opacity 200ms ease-out,
+    display 200ms allow-discrete;
 
   @starting-style {
     opacity: 0;
@@ -1320,9 +1474,10 @@ html.script-editor-zen-mode .pwa-install-banner {
 .modal-dialog-modern {
   opacity: 1;
   transform: scale(1);
-  transition: opacity 200ms cubic-bezier(0.16, 1, 0.3, 1),
-              transform 200ms cubic-bezier(0.16, 1, 0.3, 1),
-              display 200ms allow-discrete;
+  transition:
+    opacity 200ms cubic-bezier(0.16, 1, 0.3, 1),
+    transform 200ms cubic-bezier(0.16, 1, 0.3, 1),
+    display 200ms allow-discrete;
 
   @starting-style {
     opacity: 0;

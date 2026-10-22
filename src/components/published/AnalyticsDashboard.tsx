@@ -18,7 +18,7 @@ import {
   FileText,
   CheckCircle2,
   ArrowUpRight,
-  HelpCircle
+  HelpCircle,
 } from 'lucide-react';
 import { CustomSelect } from '../ui/CustomSelect';
 
@@ -26,9 +26,7 @@ interface AnalyticsDashboardProps {
   onSelectTopic: (topicId: string) => void;
 }
 
-export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({
-  onSelectTopic,
-}) => {
+export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({ onSelectTopic }) => {
   const [range, setRange] = useState<'all' | '90d' | 'year'>('all');
   const [tablePage, setTablePage] = useState(1);
   const analyticsQuery = useQuery<PublishedAnalyticsPayload>({
@@ -58,7 +56,14 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({
     );
   }
 
-  const { overview, correlation, people: peoplePerf, tags: tagPerf, insights, ranking: videoTableData } = analyticsQuery.data;
+  const {
+    overview,
+    correlation,
+    people: peoplePerf,
+    tags: tagPerf,
+    insights,
+    ranking: videoTableData,
+  } = analyticsQuery.data;
   const filteredVideoCount = analyticsQuery.data.totalVideos;
   const tablePageSize = 30;
   const tablePageCount = Math.max(1, Math.ceil(analyticsQuery.data.ranking_total / tablePageSize));
@@ -100,7 +105,7 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({
         </div>
         <CustomSelect
           value={range}
-          onChange={(value) => setRange(value as 'all' | '90d' | 'year')}
+          onChange={value => setRange(value as 'all' | '90d' | 'year')}
           ariaLabel="复盘时间范围"
           size="sm"
           options={[
@@ -130,7 +135,9 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({
             <TrendingUp className="w-3.5 h-3.5 text-accent" />
             <span>全频道核心数据大盘</span>
           </h3>
-          <span className="text-xs text-ink-muted">已沉淀 <span className="font-mono tabular-nums">{overview.totalVideos}</span> 期视频</span>
+          <span className="text-xs text-ink-muted">
+            已沉淀 <span className="font-mono tabular-nums">{overview.totalVideos}</span> 期视频
+          </span>
         </div>
 
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3.5">
@@ -144,7 +151,10 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({
               {formatViewsText(overview.totalViews)}
             </div>
             <div className="text-2xs text-ink-muted">
-              平均单片: <span className="font-semibold text-ink font-mono tabular-nums">{formatViewsText(overview.avgViews)}</span>
+              平均单片:{' '}
+              <span className="font-semibold text-ink font-mono tabular-nums">
+                {formatViewsText(overview.avgViews)}
+              </span>
             </div>
           </div>
 
@@ -154,9 +164,7 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({
               <span>平均投币率</span>
               <Coins className="w-4 h-4 text-stage-scripting" />
             </div>
-            <div className="text-xl sm:text-2xl font-bold font-mono tabular-nums text-ink">
-              {overview.avgCoinRate}%
-            </div>
+            <div className="text-xl sm:text-2xl font-bold font-mono tabular-nums text-ink">{overview.avgCoinRate}%</div>
             <div className="text-2xs text-ink-muted flex items-center gap-1">
               <span>B站核心权重</span>
               <span className={`font-semibold ${overview.avgCoinRate >= 1.5 ? 'text-accent' : 'text-stage-scripting'}`}>
@@ -175,7 +183,10 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({
               {overview.avgTripleRate}%
             </div>
             <div className="text-2xs text-ink-muted">
-              总点赞: <span className="font-semibold text-ink font-mono tabular-nums">{formatViewsText(overview.totalLikes)}</span>
+              总点赞:{' '}
+              <span className="font-semibold text-ink font-mono tabular-nums">
+                {formatViewsText(overview.totalLikes)}
+              </span>
             </div>
           </div>
 
@@ -189,7 +200,10 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({
               {overview.avgFavoriteRate}%
             </div>
             <div className="text-2xs text-ink-muted">
-              总收藏: <span className="font-semibold text-ink font-mono tabular-nums">{formatViewsText(overview.totalFavorites)}</span>
+              总收藏:{' '}
+              <span className="font-semibold text-ink font-mono tabular-nums">
+                {formatViewsText(overview.totalFavorites)}
+              </span>
             </div>
           </div>
 
@@ -202,9 +216,7 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({
             <div className="text-xl sm:text-2xl font-bold font-mono tabular-nums text-ink">
               {overview.avgEngagementScore} <span className="text-xs font-normal text-ink-muted">/ 100</span>
             </div>
-            <div className="text-2xs text-ink-muted">
-              加权多维互动指数
-            </div>
+            <div className="text-2xs text-ink-muted">加权多维互动指数</div>
           </div>
         </div>
       </section>
@@ -233,7 +245,7 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({
               </div>
 
               <div className="space-y-4">
-                {correlation.dimensions.map((dim) => {
+                {correlation.dimensions.map(dim => {
                   const maxScore = 5.0;
                   const hitPercent = Math.min(100, Math.max(0, (dim.topHitsAverage / maxScore) * 100));
                   const allPercent = Math.min(100, Math.max(0, (dim.allAverage / maxScore) * 100));
@@ -313,11 +325,8 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({
             </h4>
 
             <div className="mt-3.5 space-y-3">
-              {insights.map((insight) => (
-                <div
-                  key={insight.id}
-                  className="p-3.5 rounded-xl border border-line bg-control space-y-1.5"
-                >
+              {insights.map(insight => (
+                <div key={insight.id} className="p-3.5 rounded-xl border border-line bg-control space-y-1.5">
                   <div className="flex items-center justify-between">
                     <span className="text-xs font-bold text-ink flex items-center gap-1.5">
                       <CheckCircle2 className="w-3.5 h-3.5 text-accent shrink-0" />
@@ -329,9 +338,7 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({
                       </span>
                     )}
                   </div>
-                  <p className="text-xs text-ink-muted leading-relaxed pl-5">
-                    {insight.description}
-                  </p>
+                  <p className="text-xs text-ink-muted leading-relaxed pl-5">{insight.description}</p>
                 </div>
               ))}
             </div>
@@ -341,7 +348,8 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({
             <div className="p-3.5 rounded-xl bg-warning-soft border border-warning-soft text-xs text-warning flex items-start gap-2">
               <Sparkles className="w-4 h-4 text-warning shrink-0 mt-0.5" />
               <div className="leading-relaxed">
-                <strong>开写前小贴士：</strong> 选题开始写稿前，建议确保【{correlation.strongestHitFactor}】得分不低于 4 分，能显著提高完播与出圈概率。
+                <strong>开写前小贴士：</strong> 选题开始写稿前，建议确保【{correlation.strongestHitFactor}】得分不低于 4
+                分，能显著提高完播与出圈概率。
               </div>
             </div>
           )}
@@ -357,7 +365,9 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({
               <Users className="w-4 h-4 text-info" />
               <span>人物票房号召力排行榜</span>
             </h4>
-            <span className="text-xs text-ink-muted">Top <span className="font-mono tabular-nums">{peoplePerf.length}</span> 位人物</span>
+            <span className="text-xs text-ink-muted">
+              Top <span className="font-mono tabular-nums">{peoplePerf.length}</span> 位人物
+            </span>
           </div>
 
           {peoplePerf.length === 0 ? (
@@ -375,18 +385,16 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({
                         idx === 0
                           ? 'bg-warning text-white'
                           : idx === 1
-                          ? 'bg-ink-faint text-white'
-                          : idx === 2
-                          ? 'bg-warning text-white'
-                          : 'bg-surface-subtle text-ink-muted'
+                            ? 'bg-ink-faint text-white'
+                            : idx === 2
+                              ? 'bg-warning text-white'
+                              : 'bg-surface-subtle text-ink-muted'
                       }`}
                     >
                       {idx + 1}
                     </span>
                     <div className="min-w-0">
-                      <div className="text-xs font-bold text-ink truncate">
-                        {person.name}
-                      </div>
+                      <div className="text-xs font-bold text-ink truncate">{person.name}</div>
                       <div className="text-2xs text-ink-muted truncate">
                         {person.videoCount} 期视频 · 代表作: {person.topVideoTitle || '无'}
                       </div>
@@ -414,7 +422,9 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({
               <Tag className="w-4 h-4 text-success" />
               <span>题材标签受众偏好矩阵</span>
             </h4>
-            <span className="text-xs text-ink-muted">Top <span className="font-mono tabular-nums">{tagPerf.length}</span> 个标签</span>
+            <span className="text-xs text-ink-muted">
+              Top <span className="font-mono tabular-nums">{tagPerf.length}</span> 个标签
+            </span>
           </div>
 
           {tagPerf.length === 0 ? (
@@ -427,13 +437,9 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({
                   className="flex items-center justify-between p-3 rounded-xl border border-line bg-control hover:bg-control transition-colors"
                 >
                   <div className="flex items-center gap-3 min-w-0 pr-2">
-                    <span className="text-xs font-mono font-bold text-ink-muted shrink-0">
-                      #{idx + 1}
-                    </span>
+                    <span className="text-xs font-mono font-bold text-ink-muted shrink-0">#{idx + 1}</span>
                     <div className="min-w-0">
-                      <div className="text-xs font-bold text-ink truncate">
-                        #{tag.name}
-                      </div>
+                      <div className="text-xs font-bold text-ink truncate">#{tag.name}</div>
                       <div className="text-2xs text-ink-muted">
                         {tag.videoCount} 期视频 · 平均 {formatViewsText(tag.avgViews)}
                       </div>
@@ -541,20 +547,31 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({
 
                   {/* 5D Story Score Total */}
                   <td className="py-3 px-3 text-center font-bold text-stage-production">
-                    {storyModelTotal > 0 ? <><span className="font-mono tabular-nums">{storyModelTotal}</span>分</> : '-'}
+                    {storyModelTotal > 0 ? (
+                      <>
+                        <span className="font-mono tabular-nums">{storyModelTotal}</span>分
+                      </>
+                    ) : (
+                      '-'
+                    )}
                   </td>
 
                   {/* Views per 1k Words */}
                   <td className="py-3 px-3 text-right text-ink-muted">
-                    {deepMetrics.viewsPerKWord > 0 ? <><span className="font-mono tabular-nums">{formatViewsText(deepMetrics.viewsPerKWord)}</span>/千字</> : '-'}
+                    {deepMetrics.viewsPerKWord > 0 ? (
+                      <>
+                        <span className="font-mono tabular-nums">{formatViewsText(deepMetrics.viewsPerKWord)}</span>
+                        /千字
+                      </>
+                    ) : (
+                      '-'
+                    )}
                   </td>
 
                   {/* Notes */}
                   <td className="py-3 px-4 max-w-[220px]">
                     {video.notes ? (
-                      <span className="text-ink-muted line-clamp-1 text-2xs">
-                        {video.notes}
-                      </span>
+                      <span className="text-ink-muted line-clamp-1 text-2xs">{video.notes}</span>
                     ) : (
                       <span className="text-ink-faint text-2xs">暂无笔记</span>
                     )}
@@ -566,9 +583,28 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({
         </div>
         {analyticsQuery.data.ranking_total > 0 && (
           <div className="flex items-center justify-center gap-3 border-t border-line px-5 py-3 text-xs text-ink-muted">
-            <button type="button" disabled={tablePage <= 1} onClick={() => setTablePage((current) => Math.max(1, current - 1))} className="rounded-lg border border-line bg-surface px-3 py-2 font-semibold disabled:cursor-not-allowed disabled:opacity-40">上一页</button>
-            <span><span className="font-mono tabular-nums">{tablePage} / {tablePageCount}</span> · 共 <span className="font-mono tabular-nums">{analyticsQuery.data.ranking_total}</span> 条</span>
-            <button type="button" disabled={tablePage >= tablePageCount} onClick={() => setTablePage((current) => Math.min(tablePageCount, current + 1))} className="rounded-lg border border-line bg-surface px-3 py-2 font-semibold disabled:cursor-not-allowed disabled:opacity-40">下一页</button>
+            <button
+              type="button"
+              disabled={tablePage <= 1}
+              onClick={() => setTablePage(current => Math.max(1, current - 1))}
+              className="rounded-lg border border-line bg-surface px-3 py-2 font-semibold disabled:cursor-not-allowed disabled:opacity-40"
+            >
+              上一页
+            </button>
+            <span>
+              <span className="font-mono tabular-nums">
+                {tablePage} / {tablePageCount}
+              </span>{' '}
+              · 共 <span className="font-mono tabular-nums">{analyticsQuery.data.ranking_total}</span> 条
+            </span>
+            <button
+              type="button"
+              disabled={tablePage >= tablePageCount}
+              onClick={() => setTablePage(current => Math.min(tablePageCount, current + 1))}
+              className="rounded-lg border border-line bg-surface px-3 py-2 font-semibold disabled:cursor-not-allowed disabled:opacity-40"
+            >
+              下一页
+            </button>
           </div>
         )}
       </section>

@@ -29,7 +29,7 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
         </BrowserRouter>
       </ToastProvider>
     </QueryClientProvider>
-  </React.StrictMode>
+  </React.StrictMode>,
 );
 
 initializePwa();

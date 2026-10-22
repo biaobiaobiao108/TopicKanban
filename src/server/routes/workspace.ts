@@ -1,17 +1,7 @@
 import type { NativeApp } from '../native';
 import type { Source } from '../../types';
-import {
-  createId,
-  jsonError,
-  jsonValidationError,
-  requireDb,
-} from '../apiShared';
-import {
-  parseWithZod,
-  sourceReorderBatchSchema,
-  sourceCreateSchema,
-  sourceUpdateSchema,
-} from '../schemas';
+import { createId, jsonError, jsonValidationError, requireDb } from '../apiShared';
+import { parseWithZod, sourceReorderBatchSchema, sourceCreateSchema, sourceUpdateSchema } from '../schemas';
 import {
   deleteSource,
   insertSource,
@@ -23,7 +13,7 @@ import {
 } from '../repositories';
 
 export function registerWorkspaceRoutes(app: NativeApp): void {
-  app.get('/topics/:id/workspace', async (c) => {
+  app.get('/topics/:id/workspace', async c => {
     try {
       return c.json(await loadTopicWorkspace(requireDb(c), c.req.param('id')));
     } catch (error) {
@@ -31,7 +21,7 @@ export function registerWorkspaceRoutes(app: NativeApp): void {
     }
   });
 
-  app.get('/topics/:id/sources', async (c) => {
+  app.get('/topics/:id/sources', async c => {
     try {
       return c.json(await loadSourcesByTopic(requireDb(c), c.req.param('id')));
     } catch (error) {
@@ -39,7 +29,7 @@ export function registerWorkspaceRoutes(app: NativeApp): void {
     }
   });
 
-  app.post('/sources', async (c) => {
+  app.post('/sources', async c => {
     try {
       const parsed = parseWithZod(sourceCreateSchema, await c.req.json());
       if (!parsed.success) return jsonValidationError(c, parsed.error, parsed.issues);
@@ -68,7 +58,7 @@ export function registerWorkspaceRoutes(app: NativeApp): void {
     }
   });
 
-  app.patch('/sources/reorder/batch', async (c) => {
+  app.patch('/sources/reorder/batch', async c => {
     try {
       const parsed = parseWithZod(sourceReorderBatchSchema, await c.req.json());
       if (!parsed.success) return jsonValidationError(c, parsed.error, parsed.issues);
@@ -80,7 +70,7 @@ export function registerWorkspaceRoutes(app: NativeApp): void {
     }
   });
 
-  app.patch('/sources/:id', async (c) => {
+  app.patch('/sources/:id', async c => {
     try {
       const parsed = parseWithZod(sourceUpdateSchema, await c.req.json());
       if (!parsed.success) return jsonValidationError(c, parsed.error, parsed.issues);
@@ -91,7 +81,7 @@ export function registerWorkspaceRoutes(app: NativeApp): void {
     }
   });
 
-  app.delete('/sources/:id', async (c) => {
+  app.delete('/sources/:id', async c => {
     try {
       await deleteSource(requireDb(c), c.req.param('id'));
       return c.json({ success: true });
@@ -99,5 +89,4 @@ export function registerWorkspaceRoutes(app: NativeApp): void {
       return jsonError(c, error);
     }
   });
-
 }

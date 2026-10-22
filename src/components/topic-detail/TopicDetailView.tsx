@@ -2,7 +2,22 @@ import React, { useId, useState, useEffect, useLayoutEffect, useRef, useCallback
 import './editor.css';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useSearchParams } from 'react-router-dom';
-import { CitationInput, Topic, Source, TopicReport, Person, PersonRelationship, Draft, DraftCitation, DraftRecoveryConflict, Tag, AppSettings, PublishPackageSaveInput, PublishPackageRecord, TopicTodo } from '../../types';
+import {
+  CitationInput,
+  Topic,
+  Source,
+  TopicReport,
+  Person,
+  PersonRelationship,
+  Draft,
+  DraftCitation,
+  DraftRecoveryConflict,
+  Tag,
+  AppSettings,
+  PublishPackageSaveInput,
+  PublishPackageRecord,
+  TopicTodo,
+} from '../../types';
 import { OverviewTab } from './OverviewTab';
 import { SourcesTab } from './SourcesTab';
 import { TopicReportTab } from './TopicReportTab';
@@ -39,7 +54,20 @@ import { FloatingMenu } from '../ui/FloatingMenu';
 import { FloatingScrollbar } from '../ui/FloatingScrollbar';
 import { formatBeijingDateTime } from '../../lib/actionDate';
 import { StatusBadge } from '../ui/Badge';
-import { LayoutDashboard, FileSearch, ScrollText, Users, PenTool, FileText, Handshake, CheckCircle2, GitBranch, MoreHorizontal, KanbanSquare, ArrowLeft } from 'lucide-react';
+import {
+  LayoutDashboard,
+  FileSearch,
+  ScrollText,
+  Users,
+  PenTool,
+  FileText,
+  Handshake,
+  CheckCircle2,
+  GitBranch,
+  MoreHorizontal,
+  KanbanSquare,
+  ArrowLeft,
+} from 'lucide-react';
 
 interface TopicDetailViewProps {
   topic: Topic;
@@ -64,11 +92,11 @@ interface TopicDetailViewProps {
 type DetailTab = 'overview' | 'todos' | 'sources' | 'report' | 'people' | 'deals' | 'script' | 'publish';
 
 const PublishPackageTab = React.lazy(() =>
-  import('./PublishPackageTab').then((module) => ({ default: module.PublishPackageTab }))
+  import('./PublishPackageTab').then(module => ({ default: module.PublishPackageTab })),
 );
 
 const ScriptEditorTab = React.lazy(() =>
-  import('./ScriptEditorTab').then((module) => ({ default: module.ScriptEditorTab }))
+  import('./ScriptEditorTab').then(module => ({ default: module.ScriptEditorTab })),
 );
 
 export const TopicDetailView: React.FC<TopicDetailViewProps> = ({
@@ -95,22 +123,26 @@ export const TopicDetailView: React.FC<TopicDetailViewProps> = ({
   const [pendingOutlineHtml, setPendingOutlineHtml] = useState<string | null>(null);
   const [searchParams, setSearchParams] = useSearchParams();
   const rawTab = searchParams.get('tab');
-  const activeTab: DetailTab = (rawTab && ['overview', 'todos', 'sources', 'report', 'people', 'deals', 'script', 'publish'].includes(rawTab))
-    ? (rawTab as DetailTab)
-    : 'overview';
+  const activeTab: DetailTab =
+    rawTab && ['overview', 'todos', 'sources', 'report', 'people', 'deals', 'script', 'publish'].includes(rawTab)
+      ? (rawTab as DetailTab)
+      : 'overview';
   const detailSubtabsRef = useRef<HTMLDivElement | null>(null);
   const activeSubtabRef = useRef<HTMLButtonElement | null>(null);
 
   const setActiveTab = (tab: DetailTab) => {
-    setSearchParams((prev) => {
-      const next = new URLSearchParams(prev);
-      if (tab === 'overview') {
-        next.delete('tab');
-      } else {
-        next.set('tab', tab);
-      }
-      return next;
-    }, { replace: true });
+    setSearchParams(
+      prev => {
+        const next = new URLSearchParams(prev);
+        if (tab === 'overview') {
+          next.delete('tab');
+        } else {
+          next.set('tab', tab);
+        }
+        return next;
+      },
+      { replace: true },
+    );
   };
 
   const [draftRecovery, setDraftRecovery] = useState<DraftRecoveryConflict | null>(null);
@@ -202,18 +234,19 @@ export const TopicDetailView: React.FC<TopicDetailViewProps> = ({
     }
   }, [draftQuery.data?.conflict]);
 
-  const loading = (activeTab === 'sources' && sourcesQuery.isLoading)
-    || (activeTab === 'report' && reportQuery.isLoading)
-    || (activeTab === 'deals' && dealsQuery.isLoading)
-    || (activeTab === 'script' && (draftQuery.isLoading || citationsQuery.isLoading || sourcesQuery.isLoading))
-    || (activeTab === 'publish' && workspaceQuery.isLoading)
-    || (activeTab === 'todos' && todosQuery.isLoading);
+  const loading =
+    (activeTab === 'sources' && sourcesQuery.isLoading) ||
+    (activeTab === 'report' && reportQuery.isLoading) ||
+    (activeTab === 'deals' && dealsQuery.isLoading) ||
+    (activeTab === 'script' && (draftQuery.isLoading || citationsQuery.isLoading || sourcesQuery.isLoading)) ||
+    (activeTab === 'publish' && workspaceQuery.isLoading) ||
+    (activeTab === 'todos' && todosQuery.isLoading);
 
   useEffect(() => {
     if (sourcesQuery.data) {
       onTopicMetricsChangeRef.current(topic.id, {
         sources_count: sourcesQuery.data.length,
-        verified_sources_count: sourcesQuery.data.filter((source) => source.verification_status === 'confirmed').length,
+        verified_sources_count: sourcesQuery.data.filter(source => source.verification_status === 'confirmed').length,
       });
     }
   }, [sourcesQuery.data, topic.id]);
@@ -227,11 +260,24 @@ export const TopicDetailView: React.FC<TopicDetailViewProps> = ({
   }, [draftQuery.data?.draft, topic.id]);
 
   useEffect(() => {
-    const error = sourcesQuery.error || reportQuery.error || dealsQuery.error || draftQuery.error || citationsQuery.error || workspaceQuery.error;
+    const error =
+      sourcesQuery.error ||
+      reportQuery.error ||
+      dealsQuery.error ||
+      draftQuery.error ||
+      citationsQuery.error ||
+      workspaceQuery.error;
     if (!error) return;
     console.error(error);
     setOperationError(error instanceof Error ? `加载选题资料失败：${error.message}` : '加载选题资料失败');
-  }, [sourcesQuery.error, reportQuery.error, dealsQuery.error, draftQuery.error, citationsQuery.error, workspaceQuery.error]);
+  }, [
+    sourcesQuery.error,
+    reportQuery.error,
+    dealsQuery.error,
+    draftQuery.error,
+    citationsQuery.error,
+    workspaceQuery.error,
+  ]);
 
   const handleSaveSource = async (sourceData: Partial<Source> & { topic_id: string; title: string }) => {
     try {
@@ -240,7 +286,7 @@ export const TopicDetailView: React.FC<TopicDetailViewProps> = ({
       queryClient.setQueryData(['topic-sources', topic.id], updated);
       onTopicMetricsChange(topic.id, {
         sources_count: updated.length,
-        verified_sources_count: updated.filter((source) => source.verification_status === 'confirmed').length,
+        verified_sources_count: updated.filter(source => source.verification_status === 'confirmed').length,
       });
     } catch (error) {
       setOperationError(error instanceof Error ? `保存资料失败：${error.message}` : '保存资料失败');
@@ -255,7 +301,7 @@ export const TopicDetailView: React.FC<TopicDetailViewProps> = ({
       queryClient.setQueryData(['topic-sources', topic.id], updated);
       onTopicMetricsChange(topic.id, {
         sources_count: updated.length,
-        verified_sources_count: updated.filter((source) => source.verification_status === 'confirmed').length,
+        verified_sources_count: updated.filter(source => source.verification_status === 'confirmed').length,
       });
     } catch (error) {
       setOperationError(error instanceof Error ? `删除资料失败：${error.message}` : '删除资料失败');
@@ -263,27 +309,30 @@ export const TopicDetailView: React.FC<TopicDetailViewProps> = ({
     }
   };
 
-  const handleSaveTopicReport = useCallback(async (reportData: {
-    content_markdown?: string;
-    content_html?: string;
-    content_json?: string;
-    word_count?: number;
-    base_version?: number;
-  }) => {
-    try {
-      const saved = await saveTopicReport(topic.id, reportData);
-      queryClient.setQueryData(['topic-report', topic.id], saved);
-      setOperationError(null);
-      return saved;
-    } catch (error) {
-      if (error instanceof TopicReportConflictError) {
-        setOperationError('选题报告已在其他设备更新，请刷新后重新编辑。');
-      } else {
-        setOperationError(error instanceof Error ? `保存选题报告失败：${error.message}` : '保存选题报告失败');
+  const handleSaveTopicReport = useCallback(
+    async (reportData: {
+      content_markdown?: string;
+      content_html?: string;
+      content_json?: string;
+      word_count?: number;
+      base_version?: number;
+    }) => {
+      try {
+        const saved = await saveTopicReport(topic.id, reportData);
+        queryClient.setQueryData(['topic-report', topic.id], saved);
+        setOperationError(null);
+        return saved;
+      } catch (error) {
+        if (error instanceof TopicReportConflictError) {
+          setOperationError('选题报告已在其他设备更新，请刷新后重新编辑。');
+        } else {
+          setOperationError(error instanceof Error ? `保存选题报告失败：${error.message}` : '保存选题报告失败');
+        }
+        throw error;
       }
-      throw error;
-    }
-  }, [queryClient, topic.id]);
+    },
+    [queryClient, topic.id],
+  );
 
   const handleSaveDraft = async (
     topicId: string,
@@ -310,12 +359,18 @@ export const TopicDetailView: React.FC<TopicDetailViewProps> = ({
   const handleSavePublishPackage = async (input: PublishPackageSaveInput): Promise<PublishPackageRecord> => {
     try {
       const saved = await savePublishPackage(topic.id, input);
-      queryClient.setQueryData(['topic-workspace', topic.id], (current?: typeof workspaceQuery.data) => current
-        ? { ...current, publish_package: saved }
-        : current);
+      queryClient.setQueryData(['topic-workspace', topic.id], (current?: typeof workspaceQuery.data) =>
+        current ? { ...current, publish_package: saved } : current,
+      );
       return saved;
     } catch (error) {
-      setOperationError(error instanceof PublishPackageConflictError ? '发布包已在其他设备更新，请刷新后重新编辑。' : error instanceof Error ? `保存发布包失败：${error.message}` : '保存发布包失败');
+      setOperationError(
+        error instanceof PublishPackageConflictError
+          ? '发布包已在其他设备更新，请刷新后重新编辑。'
+          : error instanceof Error
+            ? `保存发布包失败：${error.message}`
+            : '保存发布包失败',
+      );
       throw error;
     }
   };
@@ -362,7 +417,9 @@ export const TopicDetailView: React.FC<TopicDetailViewProps> = ({
       await queryClient.invalidateQueries({ queryKey: ['topic-workspace', topic.id] });
       setActiveTab('publish');
     } catch (error) {
-      setOperationError(error instanceof Error ? `同步最新文案失败：${error.message}` : '同步最新文案失败，请先解决文案保存问题');
+      setOperationError(
+        error instanceof Error ? `同步最新文案失败：${error.message}` : '同步最新文案失败，请先解决文案保存问题',
+      );
     } finally {
       setIsFlushingDraft(false);
     }
@@ -388,8 +445,7 @@ export const TopicDetailView: React.FC<TopicDetailViewProps> = ({
     const containerRect = container.getBoundingClientRect();
     const activeButtonRect = activeButton.getBoundingClientRect();
     const isOutsideViewport =
-      activeButtonRect.left < containerRect.left ||
-      activeButtonRect.right > containerRect.right;
+      activeButtonRect.left < containerRect.left || activeButtonRect.right > containerRect.right;
 
     if (isOutsideViewport) {
       activeButton.scrollIntoView({ block: 'nearest', inline: 'nearest' });
@@ -399,7 +455,7 @@ export const TopicDetailView: React.FC<TopicDetailViewProps> = ({
   const metricTopic: Topic = {
     ...topic,
     sources_count: sources.length,
-    verified_sources_count: sources.filter((source) => source.verification_status === 'confirmed').length,
+    verified_sources_count: sources.filter(source => source.verification_status === 'confirmed').length,
     draft_word_count: draft?.word_count || topic.draft_word_count || 0,
   };
 
@@ -461,28 +517,45 @@ export const TopicDetailView: React.FC<TopicDetailViewProps> = ({
 
   return (
     <div className="flex h-full min-h-0 flex-1 flex-col overflow-hidden bg-canvas transition-colors">
-      <Modal
-        isOpen={Boolean(draftRecovery)}
-        onClose={() => undefined}
-        title="发现两份不同的文案"
-        maxWidth="lg"
-      >
+      <Modal isOpen={Boolean(draftRecovery)} onClose={() => undefined} title="发现两份不同的文案" maxWidth="lg">
         {draftRecovery && (
           <div className="space-y-4">
             <div className="grid gap-3 sm:grid-cols-2">
               <div className="rounded-xl border border-accent/30 bg-accent-soft p-4">
                 <div className="font-semibold text-accent-dark">浏览器本地草稿</div>
-                <div className="mt-2 text-xs text-ink-muted">{draftRecovery.local.word_count} 字 · {formatBeijingDateTime(draftRecovery.local.updated_at)}</div>
+                <div className="mt-2 text-xs text-ink-muted">
+                  {draftRecovery.local.word_count} 字 · {formatBeijingDateTime(draftRecovery.local.updated_at)}
+                </div>
               </div>
               <div className="rounded-xl border border-line bg-canvas p-4">
                 <div className="font-semibold text-ink">云端文案</div>
-                <div className="mt-2 text-xs text-ink-muted">{draftRecovery.remote ? `${draftRecovery.remote.word_count} 字 · ${formatBeijingDateTime(draftRecovery.remote.updated_at)}` : '云端尚无文案'}</div>
+                <div className="mt-2 text-xs text-ink-muted">
+                  {draftRecovery.remote
+                    ? `${draftRecovery.remote.word_count} 字 · ${formatBeijingDateTime(draftRecovery.remote.updated_at)}`
+                    : '云端尚无文案'}
+                </div>
               </div>
             </div>
-            <p className="text-sm text-ink-muted">选择本地版本会立即覆盖当前云端文案；选择云端版本会清除这份本地待同步草稿。</p>
+            <p className="text-sm text-ink-muted">
+              选择本地版本会立即覆盖当前云端文案；选择云端版本会清除这份本地待同步草稿。
+            </p>
             <div className="flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
-              <button type="button" disabled={isResolvingDraft} onClick={() => void handleResolveDraftRecovery('remote')} className="rounded-lg border border-line bg-surface px-4 py-2 text-sm font-semibold text-ink disabled:opacity-50 cursor-pointer">使用云端版本</button>
-              <button type="button" disabled={isResolvingDraft} onClick={() => void handleResolveDraftRecovery('local')} className="rounded-lg bg-accent hover:bg-accent-dark px-4 py-2 text-sm font-semibold text-white disabled:opacity-50 cursor-pointer">{isResolvingDraft ? '正在处理…' : '使用本地版本'}</button>
+              <button
+                type="button"
+                disabled={isResolvingDraft}
+                onClick={() => void handleResolveDraftRecovery('remote')}
+                className="rounded-lg border border-line bg-surface px-4 py-2 text-sm font-semibold text-ink disabled:opacity-50 cursor-pointer"
+              >
+                使用云端版本
+              </button>
+              <button
+                type="button"
+                disabled={isResolvingDraft}
+                onClick={() => void handleResolveDraftRecovery('local')}
+                className="rounded-lg bg-accent hover:bg-accent-dark px-4 py-2 text-sm font-semibold text-white disabled:opacity-50 cursor-pointer"
+              >
+                {isResolvingDraft ? '正在处理…' : '使用本地版本'}
+              </button>
             </div>
           </div>
         )}
@@ -515,7 +588,7 @@ export const TopicDetailView: React.FC<TopicDetailViewProps> = ({
               aria-label="选题模块导航"
               className="mx-auto inline-flex min-w-max items-center gap-1 rounded-2xl border border-line bg-surface/70 p-1 shadow-2xs backdrop-blur-xs"
             >
-              {tabs.map((tab) => {
+              {tabs.map(tab => {
                 const Icon = tab.icon;
                 const isActive = activeTab === tab.id;
                 return (
@@ -531,7 +604,9 @@ export const TopicDetailView: React.FC<TopicDetailViewProps> = ({
                         : 'text-ink-muted hover:bg-surface/80 hover:text-ink border border-transparent'
                     }`}
                   >
-                    <Icon className={`w-3.5 h-3.5 transition-colors ${isActive ? 'text-accent' : 'text-ink-muted opacity-70 group-hover:text-ink'}`} />
+                    <Icon
+                      className={`w-3.5 h-3.5 transition-colors ${isActive ? 'text-accent' : 'text-ink-muted opacity-70 group-hover:text-ink'}`}
+                    />
                     <span>{tab.label}</span>
                   </button>
                 );
@@ -556,7 +631,13 @@ export const TopicDetailView: React.FC<TopicDetailViewProps> = ({
         {operationError && (
           <div className="mx-4 mt-4 flex items-center justify-between gap-3 rounded-xl border border-danger-line bg-danger-soft px-3 py-2 text-xs font-medium text-danger sm:mx-8">
             <span>{operationError}</span>
-            <button type="button" onClick={() => setOperationError(null)} className="shrink-0 font-semibold hover:text-danger">关闭</button>
+            <button
+              type="button"
+              onClick={() => setOperationError(null)}
+              className="shrink-0 font-semibold hover:text-danger"
+            >
+              关闭
+            </button>
           </div>
         )}
         {activeTab === 'overview' && (
@@ -596,7 +677,7 @@ export const TopicDetailView: React.FC<TopicDetailViewProps> = ({
                   ...source,
                   sort_order: index + 1,
                 }));
-                await reorderSources(orderedSources.map((source) => ({ id: source.id, topic_id: topic.id })));
+                await reorderSources(orderedSources.map(source => ({ id: source.id, topic_id: topic.id })));
                 queryClient.setQueryData(['topic-sources', topic.id], orderedSources);
               }}
             />
@@ -625,10 +706,10 @@ export const TopicDetailView: React.FC<TopicDetailViewProps> = ({
               topicPeople={topic.people || []}
               allPeople={allPeople}
               relationships={relationships}
-              onToggleTopicPerson={async (person) => {
+              onToggleTopicPerson={async person => {
                 const cur = topic.people || [];
-                const exists = cur.some((p) => p.id === person.id);
-                const updated = exists ? cur.filter((p) => p.id !== person.id) : [...cur, person];
+                const exists = cur.some(p => p.id === person.id);
+                const updated = exists ? cur.filter(p => p.id !== person.id) : [...cur, person];
                 await onUpdateTopic({ people: updated });
               }}
               onSavePerson={onSavePerson}
@@ -653,7 +734,9 @@ export const TopicDetailView: React.FC<TopicDetailViewProps> = ({
         )}
 
         {activeTab === 'script' && !loading && (
-          <React.Suspense fallback={<div className="py-16 text-center text-sm text-ink-muted">正在加载文案编辑器...</div>}>
+          <React.Suspense
+            fallback={<div className="py-16 text-center text-sm text-ink-muted">正在加载文案编辑器...</div>}
+          >
             <ScriptEditorTab
               topicId={topic.id}
               topicTitle={topic.title}
@@ -677,25 +760,45 @@ export const TopicDetailView: React.FC<TopicDetailViewProps> = ({
               onSaveCitation={handleSaveCitation}
               onRegisterDraftFlush={registerDraftFlush}
               onCacheDraftLocally={(contentHtml, contentJson, wordCount, title, contentMarkdown) => {
-                const result = cacheDraftLocallyWithStatus(topic.id, contentHtml, contentJson, wordCount, title, contentMarkdown);
+                const result = cacheDraftLocallyWithStatus(
+                  topic.id,
+                  contentHtml,
+                  contentJson,
+                  wordCount,
+                  title,
+                  contentMarkdown,
+                );
                 const cached = { ...result.draft, pending_sync: true };
                 if (!loggingOutRef.current) {
-                  queryClient.setQueryData(['topic-draft', topic.id], (prev?: { draft: Draft | null; conflict: DraftRecoveryConflict | null }) => ({
-                    draft: cached,
-                    conflict: prev?.conflict || null,
-                  }));
+                  queryClient.setQueryData(
+                    ['topic-draft', topic.id],
+                    (prev?: { draft: Draft | null; conflict: DraftRecoveryConflict | null }) => ({
+                      draft: cached,
+                      conflict: prev?.conflict || null,
+                    }),
+                  );
                   onDraftWordCountChange(topic.id, wordCount);
                 }
                 return result.persisted;
               }}
               onSaveDraftImmediately={(contentHtml, contentJson, wordCount, title, contentMarkdown) => {
-                const result = saveDraftImmediatelyWithStatus(topic.id, contentHtml, contentJson, wordCount, title, contentMarkdown);
+                const result = saveDraftImmediatelyWithStatus(
+                  topic.id,
+                  contentHtml,
+                  contentJson,
+                  wordCount,
+                  title,
+                  contentMarkdown,
+                );
                 const updated = { ...result.draft, pending_sync: true };
                 if (!loggingOutRef.current) {
-                  queryClient.setQueryData(['topic-draft', topic.id], (prev?: { draft: Draft | null; conflict: DraftRecoveryConflict | null }) => ({
-                    draft: updated,
-                    conflict: prev?.conflict || null,
-                  }));
+                  queryClient.setQueryData(
+                    ['topic-draft', topic.id],
+                    (prev?: { draft: Draft | null; conflict: DraftRecoveryConflict | null }) => ({
+                      draft: updated,
+                      conflict: prev?.conflict || null,
+                    }),
+                  );
                   onDraftWordCountChange(topic.id, wordCount);
                 }
                 return result.persisted;
@@ -740,7 +843,7 @@ export const TopicDetailView: React.FC<TopicDetailViewProps> = ({
           <FloatingScrollbar className="p-2" wrapperClassName="min-h-0 flex-none">
             <div className="px-2 pb-1 text-2xs font-bold text-ink-muted">切换生产阶段</div>
             <div className="grid grid-cols-3 gap-1.5">
-              {COLUMNS.map((column) => (
+              {COLUMNS.map(column => (
                 <button
                   key={column.status}
                   type="button"
@@ -773,19 +876,21 @@ export const TopicDetailView: React.FC<TopicDetailViewProps> = ({
           className="animate-in fade-in zoom-in-95 duration-100 p-2"
         >
           <FloatingScrollbar wrapperClassName="min-h-0 max-h-full flex-none">
-            {tabs.filter((tab) => tab.id !== 'script').map((tab) => (
-              <button
-                key={tab.id}
-                type="button"
-                onClick={() => {
-                  void handleNavigateToTab(tab.id);
-                  setIsMoreMenuOpen(false);
-                }}
-                className="flex min-h-11 w-full items-center gap-2 rounded-lg px-3 text-left text-xs font-semibold text-ink hover:bg-control cursor-pointer transition-colors"
-              >
-                <tab.icon className="h-4 w-4 text-ink-muted" /> {tab.label}
-              </button>
-            ))}
+            {tabs
+              .filter(tab => tab.id !== 'script')
+              .map(tab => (
+                <button
+                  key={tab.id}
+                  type="button"
+                  onClick={() => {
+                    void handleNavigateToTab(tab.id);
+                    setIsMoreMenuOpen(false);
+                  }}
+                  className="flex min-h-11 w-full items-center gap-2 rounded-lg px-3 text-left text-xs font-semibold text-ink hover:bg-control cursor-pointer transition-colors"
+                >
+                  <tab.icon className="h-4 w-4 text-ink-muted" /> {tab.label}
+                </button>
+              ))}
           </FloatingScrollbar>
         </FloatingMenu>
         <div className="grid grid-cols-4 gap-1">
@@ -802,7 +907,7 @@ export const TopicDetailView: React.FC<TopicDetailViewProps> = ({
             aria-expanded={isStageMenuOpen}
             aria-controls={isStageMenuOpen ? stageMenuId : undefined}
             onClick={() => {
-              setIsStageMenuOpen((previous) => !previous);
+              setIsStageMenuOpen(previous => !previous);
               setIsMoreMenuOpen(false);
             }}
             className="flex min-h-12 flex-col items-center justify-center gap-0.5 rounded-xl px-1 text-3xs font-semibold text-ink-muted hover:bg-control cursor-pointer transition-colors"
@@ -813,9 +918,7 @@ export const TopicDetailView: React.FC<TopicDetailViewProps> = ({
             type="button"
             onClick={() => setActiveTab('script')}
             className={`flex min-h-12 flex-col items-center justify-center gap-0.5 rounded-xl px-1 text-3xs font-semibold cursor-pointer transition-colors ${
-              activeTab === 'script'
-                ? 'bg-accent text-white shadow-2xs'
-                : 'text-ink-muted hover:bg-control'
+              activeTab === 'script' ? 'bg-accent text-white shadow-2xs' : 'text-ink-muted hover:bg-control'
             }`}
           >
             <PenTool className="h-4 w-4" /> 写文案
@@ -826,7 +929,7 @@ export const TopicDetailView: React.FC<TopicDetailViewProps> = ({
             aria-expanded={isMoreMenuOpen}
             aria-controls={isMoreMenuOpen ? moreMenuId : undefined}
             onClick={() => {
-              setIsMoreMenuOpen((previous) => !previous);
+              setIsMoreMenuOpen(previous => !previous);
               setIsStageMenuOpen(false);
             }}
             className="flex min-h-12 flex-col items-center justify-center gap-0.5 rounded-xl px-1 text-3xs font-semibold text-ink-muted hover:bg-control cursor-pointer transition-colors"

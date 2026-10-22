@@ -6,6 +6,6 @@ describe('Docker runtime configuration', () => {
 
     expect(dockerfile).toContain('process.env.PORT');
     expect(dockerfile).toContain('Number(process.env.PORT) || 3030');
-    expect(dockerfile).not.toContain("http://127.0.0.1:3030/api/health");
+    expect(dockerfile).not.toContain('http://127.0.0.1:3030/api/health');
   });
 });

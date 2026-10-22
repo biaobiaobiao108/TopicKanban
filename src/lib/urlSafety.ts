@@ -4,7 +4,7 @@ function isPrivateIpv4(ip: string): boolean {
   const match = ip.match(/^(\d{1,3})\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})$/);
   if (!match) return false;
   const octets = match.slice(1).map(Number);
-  if (octets.some((octet) => !Number.isInteger(octet) || octet < 0 || octet > 255)) return true;
+  if (octets.some(octet => !Number.isInteger(octet) || octet < 0 || octet > 255)) return true;
 
   const [first, second, third] = octets;
   if (first === 0 || first === 10 || first === 127) return true;
@@ -21,7 +21,13 @@ function isPrivateIpv4(ip: string): boolean {
 function isPrivateIpv6(hostname: string): boolean {
   const clean = hostname.replace(/^\[|\]$/g, '').toLowerCase();
   if (!clean.includes(':')) return false;
-  if (clean === '::' || clean === '::1' || clean.startsWith('fc') || clean.startsWith('fd') || /^fe[89ab]/.test(clean)) {
+  if (
+    clean === '::' ||
+    clean === '::1' ||
+    clean.startsWith('fc') ||
+    clean.startsWith('fd') ||
+    /^fe[89ab]/.test(clean)
+  ) {
     return true;
   }
 
@@ -32,7 +38,7 @@ function isPrivateIpv6(hostname: string): boolean {
       if (isPrivateIpv4(rest)) return true;
     } else {
       const parts = rest.split(':');
-      if (parts.length === 2 && parts.every((part) => /^[0-9a-f]{1,4}$/.test(part))) {
+      if (parts.length === 2 && parts.every(part => /^[0-9a-f]{1,4}$/.test(part))) {
         const first = Number.parseInt(parts[0], 16);
         const second = Number.parseInt(parts[1], 16);
         const ipv4 = `${first >> 8}.${first & 0xff}.${second >> 8}.${second & 0xff}`;
@@ -46,7 +52,7 @@ function isPrivateIpv6(hostname: string): boolean {
     const mapped = clean.slice('::ffff:'.length);
     if (mapped.includes('.')) return isPrivateIpv4(mapped);
     const parts = mapped.split(':');
-    if (parts.length === 2 && parts.every((part) => /^[0-9a-f]{1,4}$/.test(part))) {
+    if (parts.length === 2 && parts.every(part => /^[0-9a-f]{1,4}$/.test(part))) {
       const first = Number.parseInt(parts[0], 16);
       const second = Number.parseInt(parts[1], 16);
       const ipv4 = `${first >> 8}.${first & 0xff}.${second >> 8}.${second & 0xff}`;
@@ -73,7 +79,7 @@ export function isSafeExternalHttpUrl(value: unknown): value is string {
     const hostname = parsed.hostname.toLowerCase().replace(/\.+$/, '');
     if (parsed.protocol !== 'http:' && parsed.protocol !== 'https:') return false;
     if (!hostname) return false;
-    if (hostname === 'localhost' || PRIVATE_HOST_SUFFIXES.some((suffix) => hostname.endsWith(suffix))) return false;
+    if (hostname === 'localhost' || PRIVATE_HOST_SUFFIXES.some(suffix => hostname.endsWith(suffix))) return false;
     // Single-label hostnames (e.g. router, nas, intranet) without dots are local network hostnames
     if (!hostname.includes('.') && !hostname.includes(':')) return false;
     if (isPrivateIpv4(hostname) || isPrivateIpv6(hostname)) return false;

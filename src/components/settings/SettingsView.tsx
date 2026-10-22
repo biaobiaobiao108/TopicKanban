@@ -10,7 +10,14 @@ import {
   StorageOptimizeResult,
 } from '../../types';
 import { validateBackupData } from '../../lib/backupValidation';
-import { exportBackupData, importBackupData, exportScriptsMarkdown, fetchStorageStats, optimizeStorage, MAX_BACKUP_IMPORT_BYTES } from '../../lib/storageApi';
+import {
+  exportBackupData,
+  importBackupData,
+  exportScriptsMarkdown,
+  fetchStorageStats,
+  optimizeStorage,
+  MAX_BACKUP_IMPORT_BYTES,
+} from '../../lib/storageApi';
 import { authenticatedFetch } from '../../lib/auth';
 import { applyTheme } from '../../lib/theme';
 import { resolvePublicUrl } from '../../lib/publicUrl';
@@ -90,17 +97,16 @@ function formatBytes(bytes: number): string {
   return `${(bytes / (1024 * 1024)).toFixed(2)} MB`;
 }
 
-export const SettingsView: React.FC<SettingsViewProps> = ({
-  settings,
-  onSaveSettings,
-  onReloadAllData,
-  onLogout,
-}) => {
+export const SettingsView: React.FC<SettingsViewProps> = ({ settings, onSaveSettings, onReloadAllData, onLogout }) => {
   const { showToast } = useToast();
   const [readingSpeed, setReadingSpeed] = useState(settings.reading_speed || DEFAULT_APP_SETTINGS.reading_speed);
   const [selectedTheme, setSelectedTheme] = useState<AppTheme>(settings.theme || DEFAULT_APP_SETTINGS.theme);
-  const [editorFontSize, setEditorFontSize] = useState<EditorFontSize>(settings.editor_font_size || DEFAULT_APP_SETTINGS.editor_font_size || 'standard');
-  const [editorLineHeight, setEditorLineHeight] = useState<EditorLineHeight>(settings.editor_line_height || DEFAULT_APP_SETTINGS.editor_line_height || 'relaxed');
+  const [editorFontSize, setEditorFontSize] = useState<EditorFontSize>(
+    settings.editor_font_size || DEFAULT_APP_SETTINGS.editor_font_size || 'standard',
+  );
+  const [editorLineHeight, setEditorLineHeight] = useState<EditorLineHeight>(
+    settings.editor_line_height || DEFAULT_APP_SETTINGS.editor_line_height || 'relaxed',
+  );
 
   const [storageStats, setStorageStats] = useState<StorageStats | null>(null);
   const [isLoadingStorage, setIsLoadingStorage] = useState(false);
@@ -127,7 +133,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
 
   const schedule = useCallback((callback: () => void, delay: number) => {
     const timeoutId = setTimeout(() => {
-      timeoutIdsRef.current = timeoutIdsRef.current.filter((id) => id !== timeoutId);
+      timeoutIdsRef.current = timeoutIdsRef.current.filter(id => id !== timeoutId);
       callback();
     }, delay);
     timeoutIdsRef.current.push(timeoutId);
@@ -145,7 +151,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
     healthControllerRef.current?.abort();
     const controller = new AbortController();
     healthControllerRef.current = controller;
-    setRuntimeStatus((prev) => ({ ...prev, isChecking: true }));
+    setRuntimeStatus(prev => ({ ...prev, isChecking: true }));
     let timeoutId: ReturnType<typeof setTimeout> | null = null;
     try {
       timeoutId = setTimeout(() => controller.abort(), 3000);
@@ -161,7 +167,11 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
           databaseMessage: data.database?.message || '数据库状态未知',
           databaseTables: data.database?.tables,
           publicBaseUrl: data.public_base_url || '',
-          lastChecked: formatBeijingDateTime(new Date(), 'zh-CN', { hour: '2-digit', minute: '2-digit', second: '2-digit' }),
+          lastChecked: formatBeijingDateTime(new Date(), 'zh-CN', {
+            hour: '2-digit',
+            minute: '2-digit',
+            second: '2-digit',
+          }),
         });
       } else {
         throw new Error('API 返回异常状态码');
@@ -173,7 +183,11 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
         runtime: 'unknown',
         databaseConnected: false,
         databaseMessage: '后端服务未连接，请确认 Bun 服务正常运行',
-        lastChecked: formatBeijingDateTime(new Date(), 'zh-CN', { hour: '2-digit', minute: '2-digit', second: '2-digit' }),
+        lastChecked: formatBeijingDateTime(new Date(), 'zh-CN', {
+          hour: '2-digit',
+          minute: '2-digit',
+          second: '2-digit',
+        }),
         publicBaseUrl: '',
       });
     } finally {
@@ -203,9 +217,10 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
         setIsOptimizeDialogOpen(false);
       }
       showToast({
-        message: result.reclaimed_bytes > 0
-          ? `存储压缩完成，已释放 ${formatBytes(result.reclaimed_bytes)} 磁盘空间`
-          : '数据库已完成重整，当前处于最佳紧凑状态',
+        message:
+          result.reclaimed_bytes > 0
+            ? `存储压缩完成，已释放 ${formatBytes(result.reclaimed_bytes)} 磁盘空间`
+            : '数据库已完成重整，当前处于最佳紧凑状态',
         tone: 'success',
       });
       void checkRuntimeStatus();
@@ -247,7 +262,10 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
       setSavedSuccess(true);
       schedule(() => setSavedSuccess(false), 2500);
     } catch (error) {
-      setImportStatus({ type: 'error', text: error instanceof Error ? `保存设置失败：${error.message}` : '保存设置失败' });
+      setImportStatus({
+        type: 'error',
+        text: error instanceof Error ? `保存设置失败：${error.message}` : '保存设置失败',
+      });
     } finally {
       setIsSaving(false);
     }
@@ -282,7 +300,10 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
       a.click();
       URL.revokeObjectURL(url);
     } catch (error) {
-      setImportStatus({ type: 'error', text: error instanceof Error ? `导出文案失败：${error.message}` : '导出文案失败' });
+      setImportStatus({
+        type: 'error',
+        text: error instanceof Error ? `导出文案失败：${error.message}` : '导出文案失败',
+      });
     } finally {
       setIsExportingMd(false);
     }
@@ -298,26 +319,38 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
     if (!file) return;
     e.target.value = '';
     if (file.size > MAX_BACKUP_IMPORT_BYTES) {
-      setImportStatus({ type: 'error', text: `备份文件超过 ${(MAX_BACKUP_IMPORT_BYTES / 1024 / 1024).toFixed(0)} MB 限制` });
+      setImportStatus({
+        type: 'error',
+        text: `备份文件超过 ${(MAX_BACKUP_IMPORT_BYTES / 1024 / 1024).toFixed(0)} MB 限制`,
+      });
       return;
     }
 
-    void file.text().then((content) => {
-      if (!content) return;
-      try {
-        const data = JSON.parse(content) as unknown;
-        const validation = validateBackupData(data);
-        if (!validation.success) throw new Error(validation.error);
-        setPendingImportContent({
-          file,
-          summary: formatBackupSummary(validation.data),
+    void file
+      .text()
+      .then(content => {
+        if (!content) return;
+        try {
+          const data = JSON.parse(content) as unknown;
+          const validation = validateBackupData(data);
+          if (!validation.success) throw new Error(validation.error);
+          setPendingImportContent({
+            file,
+            summary: formatBackupSummary(validation.data),
+          });
+        } catch (error) {
+          setImportStatus({
+            type: 'error',
+            text: error instanceof Error ? `导入解析失败：${error.message}` : '导入解析失败',
+          });
+        }
+      })
+      .catch(error => {
+        setImportStatus({
+          type: 'error',
+          text: error instanceof Error ? `导入解析失败：${error.message}` : '导入解析失败',
         });
-      } catch (error) {
-        setImportStatus({ type: 'error', text: error instanceof Error ? `导入解析失败：${error.message}` : '导入解析失败' });
-      }
-    }).catch((error) => {
-      setImportStatus({ type: 'error', text: error instanceof Error ? `导入解析失败：${error.message}` : '导入解析失败' });
-    });
+      });
   };
 
   const handleConfirmImport = async () => {
@@ -334,9 +367,11 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
         setImportStatus({ type: 'error', text: '备份数据已恢复，但工作台刷新失败，请重新加载页面。' });
         return;
       }
-      setImportStatus(result.settingsWarning
-        ? { type: 'info', text: result.settingsWarning }
-        : { type: 'success', text: '备份数据恢复成功！' });
+      setImportStatus(
+        result.settingsWarning
+          ? { type: 'info', text: result.settingsWarning }
+          : { type: 'success', text: '备份数据恢复成功！' },
+      );
       schedule(() => setImportStatus(null), 3000);
     } catch (error) {
       setImportStatus({ type: 'error', text: error instanceof Error ? `导入失败：${error.message}` : '导入失败' });
@@ -356,24 +391,24 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
         <PageHeader
           title="偏好设置与数据管理"
           icon={Settings}
-          actions={(
+          actions={
             <>
-            {savedSuccess && (
-              <span className="flex items-center gap-1 text-xs font-semibold text-success animate-in fade-in">
-                <CheckCircle2 className="h-4 w-4" aria-hidden="true" /> 偏好已保存在此浏览器
-              </span>
-            )}
-            <button
-              type="button"
-              onClick={handleSaveAllPreferences}
-              disabled={isSaving}
-              className="inline-flex h-10 items-center gap-1.5 rounded-xl bg-accent px-4 text-xs font-semibold text-white shadow-2xs transition-all hover:bg-accent-dark disabled:opacity-50 sm:text-sm cursor-pointer"
-            >
-              <Zap className={`h-4 w-4 ${isSaving ? 'animate-spin' : ''}`} aria-hidden="true" />
-              <span>{isSaving ? '正在保存…' : '保存全部偏好设置'}</span>
-            </button>
+              {savedSuccess && (
+                <span className="flex items-center gap-1 text-xs font-semibold text-success animate-in fade-in">
+                  <CheckCircle2 className="h-4 w-4" aria-hidden="true" /> 偏好已保存在此浏览器
+                </span>
+              )}
+              <button
+                type="button"
+                onClick={handleSaveAllPreferences}
+                disabled={isSaving}
+                className="inline-flex h-10 items-center gap-1.5 rounded-xl bg-accent px-4 text-xs font-semibold text-white shadow-2xs transition-all hover:bg-accent-dark disabled:opacity-50 sm:text-sm cursor-pointer"
+              >
+                <Zap className={`h-4 w-4 ${isSaving ? 'animate-spin' : ''}`} aria-hidden="true" />
+                <span>{isSaving ? '正在保存…' : '保存全部偏好设置'}</span>
+              </button>
             </>
-          )}
+          }
         />
 
         <PwaInstallCard />
@@ -427,7 +462,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                   desc: '自动跟随操作系统的深浅色模式切换',
                   icon: Laptop,
                 },
-              ].map((themeOpt) => {
+              ].map(themeOpt => {
                 const Icon = themeOpt.icon;
                 const isSelected = selectedTheme === themeOpt.id;
                 return (
@@ -450,14 +485,10 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                           </span>
                         </div>
                         <div className="flex items-center gap-1.5">
-                          {isSelected && (
-                            <span className="w-2 h-2 rounded-full bg-accent" />
-                          )}
+                          {isSelected && <span className="w-2 h-2 rounded-full bg-accent" />}
                         </div>
                       </div>
-                      <p className="text-2xs text-ink-muted leading-normal">
-                        {themeOpt.desc}
-                      </p>
+                      <p className="text-2xs text-ink-muted leading-normal">{themeOpt.desc}</p>
                     </div>
 
                     {themeOpt.colors && (
@@ -505,7 +536,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                     { id: 'compact' as const, label: '紧凑 14px', sub: '高信息密度' },
                     { id: 'standard' as const, label: '标准 16px', sub: '编辑部默认' },
                     { id: 'large' as const, label: '大字 19px', sub: '播音提词防错' },
-                  ].map((opt) => {
+                  ].map(opt => {
                     const isSelected = editorFontSize === opt.id;
                     return (
                       <button
@@ -514,7 +545,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                         onClick={() => setEditorFontSize(opt.id)}
                         className={`p-2.5 rounded-xl border text-center transition-all cursor-pointer ${
                           isSelected
-                          ? 'border-accent/45 bg-accent-soft text-ink font-bold'
+                            ? 'border-accent/45 bg-accent-soft text-ink font-bold'
                             : 'border-line bg-control text-ink hover:bg-control'
                         }`}
                       >
@@ -537,7 +568,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                     { id: 'normal' as const, label: '紧凑 1.6', sub: '紧凑版面' },
                     { id: 'relaxed' as const, label: '舒适 1.8', sub: '推荐阅读' },
                     { id: 'loose' as const, label: '宽松 2.1', sub: '扫读播音' },
-                  ].map((opt) => {
+                  ].map(opt => {
                     const isSelected = editorLineHeight === opt.id;
                     return (
                       <button
@@ -546,7 +577,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                         onClick={() => setEditorLineHeight(opt.id)}
                         className={`p-2.5 rounded-xl border text-center transition-all cursor-pointer ${
                           isSelected
-                          ? 'border-accent/45 bg-accent-soft text-ink font-bold'
+                            ? 'border-accent/45 bg-accent-soft text-ink font-bold'
                             : 'border-line bg-control text-ink hover:bg-control'
                         }`}
                       >
@@ -568,10 +599,18 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                 </div>
                 <div className="flex items-center gap-2 text-2xs font-mono">
                   <span className="bg-control text-ink-muted px-2.5 py-0.5 rounded-full font-semibold font-mono tabular-nums border border-line">
-                    {editorFontSize === 'compact' ? '14px 紧凑' : editorFontSize === 'large' ? '19px 播音大字' : '16px 标准'}
+                    {editorFontSize === 'compact'
+                      ? '14px 紧凑'
+                      : editorFontSize === 'large'
+                        ? '19px 播音大字'
+                        : '16px 标准'}
                   </span>
                   <span className="bg-control text-ink-muted px-2.5 py-0.5 rounded-full font-semibold font-mono tabular-nums border border-line">
-                    {editorLineHeight === 'normal' ? '1.6 倍行距' : editorLineHeight === 'loose' ? '2.1 倍行距' : '1.8 倍行距'}
+                    {editorLineHeight === 'normal'
+                      ? '1.6 倍行距'
+                      : editorLineHeight === 'loose'
+                        ? '2.1 倍行距'
+                        : '1.8 倍行距'}
                   </span>
                 </div>
               </div>
@@ -586,14 +625,16 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                 <h3 className="border-b border-line/60 pb-2 font-bold leading-snug" style={{ fontSize: '1.15em' }}>
                   【解说样段】镜头拉远，时代的荒诞切片
                 </h3>
-                <p>
-                  很多人以为这只是一场荒诞闹剧。镜头拉远之后，我们才看见事件背后令人唏嘘的现实切片。
-                </p>
+                <p>很多人以为这只是一场荒诞闹剧。镜头拉远之后，我们才看见事件背后令人唏嘘的现实切片。</p>
                 <p>
                   在长达三年的跟踪调查中，我们发现了三个截然不同的事实反转：当事人的说法变了，旁观者的记忆也变了，只有时间留下的细节始终对得上。
                 </p>
                 <p>
-                  这段内容会分行展示：<br />短句停顿之后，继续把关键细节说清楚。<br />行距变化也会同步反映在这里。
+                  这段内容会分行展示：
+                  <br />
+                  短句停顿之后，继续把关键细节说清楚。
+                  <br />
+                  行距变化也会同步反映在这里。
                 </p>
                 <ul className="list-disc space-y-1 pl-6 marker:text-accent">
                   <li>先交代故事发生的背景</li>
@@ -609,7 +650,9 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-1.5">
                 <Gauge className="w-4 h-4 text-ink-muted" />
-                <label htmlFor="settings-reading-speed" className="text-xs sm:text-sm font-bold text-ink">文案朗读语速基准</label>
+                <label htmlFor="settings-reading-speed" className="text-xs sm:text-sm font-bold text-ink">
+                  文案朗读语速基准
+                </label>
               </div>
               <span className="font-mono font-bold text-xs sm:text-sm text-accent-dark bg-accent-soft px-2.5 py-0.5 rounded-full">
                 {readingSpeed} 字 / 分钟
@@ -667,7 +710,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
               max="420"
               step="10"
               value={readingSpeed}
-              onChange={(e) => setReadingSpeed(Number(e.target.value))}
+              onChange={e => setReadingSpeed(Number(e.target.value))}
               className="w-full h-2 bg-surface-subtle rounded-lg appearance-none cursor-pointer accent-[var(--accent)]"
             />
 
@@ -702,7 +745,8 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
               )}
             </div>
             <p className="text-xs text-ink-muted leading-relaxed">
-              访问密码由环境变量 <code className="bg-control px-1 py-0.5 rounded font-mono text-ink">APP_PASSWORD</code> 统一管理；无状态 HMAC Token 自动维持 7 天免密。
+              访问密码由环境变量 <code className="bg-control px-1 py-0.5 rounded font-mono text-ink">APP_PASSWORD</code>{' '}
+              统一管理；无状态 HMAC Token 自动维持 7 天免密。
             </p>
           </div>
 
@@ -722,16 +766,18 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                 className="p-1 rounded-lg text-ink-muted hover:text-ink cursor-pointer"
                 aria-label="重新检测存储状态"
               >
-                <RefreshCw className={`w-3.5 h-3.5 ${runtimeStatus.isChecking || isLoadingStorage ? 'animate-spin' : ''}`} />
+                <RefreshCw
+                  className={`w-3.5 h-3.5 ${runtimeStatus.isChecking || isLoadingStorage ? 'animate-spin' : ''}`}
+                />
               </button>
             </div>
 
             <div className="flex items-center gap-2">
-              <span className={`w-2 h-2 rounded-full ${runtimeStatus.databaseConnected ? 'bg-success' : 'bg-warning'}`} />
+              <span
+                className={`w-2 h-2 rounded-full ${runtimeStatus.databaseConnected ? 'bg-success' : 'bg-warning'}`}
+              />
               <span className="text-xs font-semibold text-ink">
-                {runtimeStatus.databaseConnected
-                  ? 'Bun + SQLite 本地引擎正常运行中'
-                  : '后端服务未连通'}
+                {runtimeStatus.databaseConnected ? 'Bun + SQLite 本地引擎正常运行中' : '后端服务未连通'}
               </span>
             </div>
 
@@ -740,22 +786,16 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                 <div className="grid grid-cols-2 gap-2 text-xs">
                   <div className="p-2.5 rounded-xl bg-control border border-line">
                     <span className="text-2xs text-ink-muted block">主数据库文件</span>
-                    <span className="font-mono font-bold text-ink">
-                      {formatBytes(storageStats.db_file_bytes)}
-                    </span>
+                    <span className="font-mono font-bold text-ink">{formatBytes(storageStats.db_file_bytes)}</span>
                   </div>
                   <div className="p-2.5 rounded-xl bg-control border border-line">
                     <span className="text-2xs text-ink-muted block">WAL 预写日志</span>
-                    <span className="font-mono font-bold text-ink">
-                      {formatBytes(storageStats.wal_file_bytes)}
-                    </span>
+                    <span className="font-mono font-bold text-ink">{formatBytes(storageStats.wal_file_bytes)}</span>
                   </div>
                 </div>
 
                 <div className="p-2.5 rounded-xl bg-control border border-line flex items-center justify-between text-xs">
-                  <span className="text-ink-muted text-2xs">
-                    可收缩空闲页 (Freelist)：
-                  </span>
+                  <span className="text-ink-muted text-2xs">可收缩空闲页 (Freelist)：</span>
                   <span className="font-mono text-ink font-semibold">
                     {storageStats.freelist_count > 0 ? (
                       <span className="text-warning font-bold">
@@ -783,9 +823,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                 </div>
               </div>
             ) : (
-              <p className="text-2xs text-ink-muted truncate">
-                {runtimeStatus.databaseMessage}
-              </p>
+              <p className="text-2xs text-ink-muted truncate">{runtimeStatus.databaseMessage}</p>
             )}
           </div>
         </div>
@@ -805,7 +843,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
               <button
                 type="button"
                 onClick={async () => {
-              const url = resolvePublicUrl('/api/inbox/quick-drop', runtimeStatus.publicBaseUrl);
+                  const url = resolvePublicUrl('/api/inbox/quick-drop', runtimeStatus.publicBaseUrl);
                   const copied = await copyTextToClipboard(url);
                   if (!copied) {
                     showToast({ message: '无法复制接口地址，请检查浏览器剪贴板权限后重试', tone: 'info' });
@@ -826,12 +864,30 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
             </div>
 
             <div className="space-y-1.5 pt-1 text-2xs text-ink-muted">
-              <p><strong>iOS 快捷指令配置参数：</strong></p>
+              <p>
+                <strong>iOS 快捷指令配置参数：</strong>
+              </p>
               <ul className="list-disc list-inside space-y-1 pl-1 text-ink-muted">
-                <li>请求方法：<code className="bg-control px-1 py-0.5 rounded font-mono text-ink">POST</code></li>
-                <li>请求头：<code className="bg-control px-1 py-0.5 rounded font-mono text-ink">X-Quick-Drop-Token: 你的独立快投 Token</code></li>
-                <li>快投 Token 由环境变量 <code className="bg-control px-1 py-0.5 rounded font-mono text-ink">QUICK_DROP_TOKEN</code> 配置，独立于工作台主密码。</li>
-                <li>请求体 JSON：<code className="bg-control px-1 py-0.5 rounded font-mono text-ink">&#123; "content": "分享内容", "url": "网页链接" &#125;</code></li>
+                <li>
+                  请求方法：<code className="bg-control px-1 py-0.5 rounded font-mono text-ink">POST</code>
+                </li>
+                <li>
+                  请求头：
+                  <code className="bg-control px-1 py-0.5 rounded font-mono text-ink">
+                    X-Quick-Drop-Token: 你的独立快投 Token
+                  </code>
+                </li>
+                <li>
+                  快投 Token 由环境变量{' '}
+                  <code className="bg-control px-1 py-0.5 rounded font-mono text-ink">QUICK_DROP_TOKEN</code>{' '}
+                  配置，独立于工作台主密码。
+                </li>
+                <li>
+                  请求体 JSON：
+                  <code className="bg-control px-1 py-0.5 rounded font-mono text-ink">
+                    &#123; "content": "分享内容", "url": "网页链接" &#125;
+                  </code>
+                </li>
               </ul>
             </div>
           </div>
@@ -847,11 +903,15 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
           </div>
 
           {importStatus && (
-            <div className={`p-3.5 rounded-xl text-xs font-semibold flex items-center gap-2 border ${
-              importStatus.type === 'error' ? 'bg-danger-soft text-danger border-danger-line' :
-              importStatus.type === 'success' ? 'bg-success-soft text-success border-success-soft' :
-              'bg-info-soft text-info border-info-soft'
-            }`}>
+            <div
+              className={`p-3.5 rounded-xl text-xs font-semibold flex items-center gap-2 border ${
+                importStatus.type === 'error'
+                  ? 'bg-danger-soft text-danger border-danger-line'
+                  : importStatus.type === 'success'
+                    ? 'bg-success-soft text-success border-success-soft'
+                    : 'bg-info-soft text-info border-info-soft'
+              }`}
+            >
               <Sparkles className="w-4 h-4" />
               <span>{importStatus.text}</span>
             </div>
@@ -879,7 +939,9 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
             </button>
 
             {/* Restore File */}
-            <label className={`flex items-center gap-2 bg-control hover:bg-control text-ink px-4 py-2.5 rounded-xl text-xs sm:text-sm font-semibold border border-line transition-colors ${isImporting || isExporting ? 'cursor-not-allowed opacity-50' : 'cursor-pointer'}`}>
+            <label
+              className={`flex items-center gap-2 bg-control hover:bg-control text-ink px-4 py-2.5 rounded-xl text-xs sm:text-sm font-semibold border border-line transition-colors ${isImporting || isExporting ? 'cursor-not-allowed opacity-50' : 'cursor-pointer'}`}
+            >
               <Upload className="w-4 h-4 text-ink-muted" />
               <span>{isImporting ? '正在恢复...' : '恢复备份文件'}</span>
               <input
@@ -899,7 +961,11 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
         onClose={() => setPendingImportContent(null)}
         onConfirm={handleConfirmImport}
         title="确认恢复数据备份"
-        description={pendingImportContent ? `将覆盖当前所有数据，且操作无法撤销。\n\n备份包含：${pendingImportContent.summary}\n\n确定继续恢复吗？` : ''}
+        description={
+          pendingImportContent
+            ? `将覆盖当前所有数据，且操作无法撤销。\n\n备份包含：${pendingImportContent.summary}\n\n确定继续恢复吗？`
+            : ''
+        }
         confirmText="覆盖并恢复备份"
         tone="danger"
         isLoading={isImporting}

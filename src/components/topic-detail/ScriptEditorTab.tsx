@@ -11,7 +11,18 @@ import { Extension } from '@tiptap/core';
 import type { Editor as TiptapEditor } from '@tiptap/core';
 import { Plugin, PluginKey } from '@tiptap/pm/state';
 import { Decoration, DecorationSet } from '@tiptap/pm/view';
-import { CitationInput, Draft, DraftRecoveryConflict, DraftCitation, Topic, Source, AppSettings, EditorFontSize, EditorLineHeight, TopicReport } from '../../types';
+import {
+  CitationInput,
+  Draft,
+  DraftRecoveryConflict,
+  DraftCitation,
+  Topic,
+  Source,
+  AppSettings,
+  EditorFontSize,
+  EditorLineHeight,
+  TopicReport,
+} from '../../types';
 import { VOICEOVER_CUES } from '../../lib/voiceoverCues';
 import { ScriptReferenceDrawer } from './ScriptReferenceDrawer';
 import { ScriptOutlinePanel } from './ScriptOutlinePanel';
@@ -54,23 +65,47 @@ import { pastePlainTextIntoCodeBlock, shouldParseMarkdownPaste } from './scriptM
 import { getCitationHealth } from '../../lib/citations';
 import { copyTextToClipboard } from '../../lib/clipboard';
 import { formatBeijingDateTime } from '../../lib/actionDate';
-import {
-  reportPresenceHeartbeat,
-  releasePresenceHeartbeat,
-} from '../../lib/storageApi';
+import { reportPresenceHeartbeat, releasePresenceHeartbeat } from '../../lib/storageApi';
 import { countValidCharacters, calculateEstimatedDuration } from '../../lib/textMetrics';
 import type { PresenceState } from '../../types';
 
-const TeleprompterModal = React.lazy(() =>
-  import('./TeleprompterModal').then((m) => ({ default: m.TeleprompterModal }))
-);
+const TeleprompterModal = React.lazy(() => import('./TeleprompterModal').then(m => ({ default: m.TeleprompterModal })));
 
 function sanitizeReportPreviewHtml(html: string): string {
   return DOMPurify.sanitize(html, {
     ALLOWED_TAGS: [
-      'a', 'aside', 'blockquote', 'br', 'code', 'del', 'div', 'em', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6',
-      'hr', 'li', 'ol', 'p', 'pre', 's', 'span', 'strong', 'sub', 'sup', 'table', 'tbody', 'td', 'th',
-      'thead', 'tr', 'u', 'ul',
+      'a',
+      'aside',
+      'blockquote',
+      'br',
+      'code',
+      'del',
+      'div',
+      'em',
+      'h1',
+      'h2',
+      'h3',
+      'h4',
+      'h5',
+      'h6',
+      'hr',
+      'li',
+      'ol',
+      'p',
+      'pre',
+      's',
+      'span',
+      'strong',
+      'sub',
+      'sup',
+      'table',
+      'tbody',
+      'td',
+      'th',
+      'thead',
+      'tr',
+      'u',
+      'ul',
     ],
     ALLOWED_ATTR: ['class', 'colspan', 'rowspan', 'scope', 'href'],
     ALLOW_DATA_ATTR: false,
@@ -99,12 +134,7 @@ function getDeviceIdentifier(): { clientId: string; deviceName: string } {
   return { clientId, deviceName };
 }
 import { DraftConflictError } from '../../lib/storageApi';
-import {
-  EMPTY_SCRIPT_OUTLINE,
-  extractScriptOutline,
-  findActiveOutlineItem,
-  type OutlineItem,
-} from '../../lib/outline';
+import { EMPTY_SCRIPT_OUTLINE, extractScriptOutline, findActiveOutlineItem, type OutlineItem } from '../../lib/outline';
 
 export const FONT_SIZE_MAP: Record<EditorFontSize, string> = {
   compact: '14px',
@@ -210,8 +240,20 @@ interface ScriptEditorTabProps {
     keepalive?: boolean,
   ) => Promise<void>;
   onResolveDraftConflict: (conflict: DraftRecoveryConflict, choice: 'local' | 'remote') => Promise<Draft | null>;
-  onCacheDraftLocally: (contentHtml: string, contentJson: string, wordCount: number, title: string, contentMarkdown: string) => boolean;
-  onSaveDraftImmediately: (contentHtml: string, contentJson: string, wordCount: number, title: string, contentMarkdown: string) => boolean;
+  onCacheDraftLocally: (
+    contentHtml: string,
+    contentJson: string,
+    wordCount: number,
+    title: string,
+    contentMarkdown: string,
+  ) => boolean;
+  onSaveDraftImmediately: (
+    contentHtml: string,
+    contentJson: string,
+    wordCount: number,
+    title: string,
+    contentMarkdown: string,
+  ) => boolean;
   onSaveCitation: (input: CitationInput) => Promise<DraftCitation>;
   onRegisterDraftFlush?: (flush: (() => Promise<void>) | null) => void;
 }
@@ -219,8 +261,7 @@ interface ScriptEditorTabProps {
 const canKeepBothSidePanelsOpen = () =>
   typeof window !== 'undefined' && window.matchMedia('(min-width: 1024px)').matches;
 
-const isMobileEditor = () =>
-  typeof window !== 'undefined' && window.matchMedia('(max-width: 767px)').matches;
+const isMobileEditor = () => typeof window !== 'undefined' && window.matchMedia('(max-width: 767px)').matches;
 
 export const ScriptEditorTab: React.FC<ScriptEditorTabProps> = ({
   topicId,
@@ -243,25 +284,35 @@ export const ScriptEditorTab: React.FC<ScriptEditorTabProps> = ({
 }) => {
   const { showToast } = useToast();
   const sanitizedReportHtml = useMemo(
-    () => sanitizeReportPreviewHtml(report?.content_html || (report?.content_markdown ? (scriptMarked.parse(report.content_markdown) as string) : '')),
-    [report?.content_html, report?.content_markdown]
+    () =>
+      sanitizeReportPreviewHtml(
+        report?.content_html ||
+          (report?.content_markdown ? (scriptMarked.parse(report.content_markdown) as string) : ''),
+      ),
+    [report?.content_html, report?.content_markdown],
   );
-  const hasRecoveredPendingDraft = useRef(Boolean(
-    initialDraft && (initialDraft as Draft & { pending_sync?: boolean }).pending_sync
-  )).current;
+  const hasRecoveredPendingDraft = useRef(
+    Boolean(initialDraft && (initialDraft as Draft & { pending_sync?: boolean }).pending_sync),
+  ).current;
   const initialTitle = initialDraft?.title?.trim() || topicTitle;
   const [draftTitle, setDraftTitle] = useState(initialTitle);
-  const [saveStatus, setSaveStatus] = useState<'saved' | 'saving' | 'unsaved' | 'local' | 'pending' | 'cache-error' | 'conflict'>(
-    hasRecoveredPendingDraft ? 'pending' : 'saved'
-  );
+  const [saveStatus, setSaveStatus] = useState<
+    'saved' | 'saving' | 'unsaved' | 'local' | 'pending' | 'cache-error' | 'conflict'
+  >(hasRecoveredPendingDraft ? 'pending' : 'saved');
   const [draftConflict, setDraftConflict] = useState<{ remote: Draft | null } | null>(null);
   const draftConflictRef = useRef(false);
   const [lastSavedTime, setLastSavedTime] = useState<string>(
-    initialDraft?.updated_at ? formatBeijingDateTime(initialDraft.updated_at, 'zh-CN', { hour: '2-digit', minute: '2-digit', second: '2-digit' }) : '刚刚'
+    initialDraft?.updated_at
+      ? formatBeijingDateTime(initialDraft.updated_at, 'zh-CN', {
+          hour: '2-digit',
+          minute: '2-digit',
+          second: '2-digit',
+        })
+      : '刚刚',
   );
   const [copied, setCopied] = useState(false);
   const [isZenMode, setIsZenMode] = useState(false);
-  
+
   // Unified "Focus Typewriter Mode" (active in Zen Mode, merges center typing + paragraph spotlight)
   const [isFocusTypewriterMode, setIsFocusTypewriterMode] = useState(true);
 
@@ -312,7 +363,7 @@ export const ScriptEditorTab: React.FC<ScriptEditorTabProps> = ({
     const area = splitAreaRef.current;
     const clampToAvailableWidth = () => {
       const { min, max } = getSplitWidthBounds();
-      setReportSplitWidth((current) => Math.min(max, Math.max(min, current)));
+      setReportSplitWidth(current => Math.min(max, Math.max(min, current)));
     };
     clampToAvailableWidth();
     if (typeof ResizeObserver !== 'undefined') {
@@ -376,7 +427,13 @@ export const ScriptEditorTab: React.FC<ScriptEditorTabProps> = ({
   const hasUnsavedChangesRef = useRef(false);
   const localCacheAvailableRef = useRef(false);
   const localCacheFailedRef = useRef(false);
-  const latestContentRef = useRef<{ markdown: string; html: string; json: string; wordCount: number; title: string } | null>(null);
+  const latestContentRef = useRef<{
+    markdown: string;
+    html: string;
+    json: string;
+    wordCount: number;
+    title: string;
+  } | null>(null);
   const recoveredDraftUploadStartedRef = useRef(false);
   const editorMountedRef = useRef(false);
   const draftTitleRef = useRef(initialTitle);
@@ -400,68 +457,82 @@ export const ScriptEditorTab: React.FC<ScriptEditorTabProps> = ({
   const lastInjectedOutlineRef = useRef<string | null>(null);
   const markdownEditorRef = useRef<TiptapEditor | null>(null);
 
-  const persistLatestDraft = useCallback(async (keepalive = false) => {
-    while (true) {
-      const latest = latestContentRef.current;
-      if (!latest || !hasUnsavedChangesRef.current) return;
-      if (draftConflictRef.current) throw new Error('请先解决文案版本冲突');
-      if (draftSavePromiseRef.current) {
-        await draftSavePromiseRef.current;
-        continue;
-      }
-
-      const savingVersion = editVersionRef.current;
-      const savePromise = (async () => {
-        setSaveStatus('saving');
-        try {
-          await onSaveDraft(topicId, latest.html, latest.json, latest.wordCount, latest.title, latest.markdown, keepalive);
-          saveRetryAttemptRef.current = 0;
-          if (saveRetryTimeoutRef.current) {
-            clearTimeout(saveRetryTimeoutRef.current);
-            saveRetryTimeoutRef.current = null;
-          }
-          if (savingVersion === editVersionRef.current) {
-            hasUnsavedChangesRef.current = false;
-            localCacheAvailableRef.current = false;
-            localCacheFailedRef.current = false;
-            setSaveStatus('saved');
-            setLastSavedTime(formatBeijingDateTime(new Date(), 'zh-CN', { hour: '2-digit', minute: '2-digit', second: '2-digit' }));
-          } else {
-            setSaveStatus('unsaved');
-          }
-        } catch (error) {
-          if (error instanceof DraftConflictError) {
-            setSaveStatus('conflict');
-            draftConflictRef.current = true;
-            setDraftConflict({ remote: error.current });
-          } else {
-            setSaveStatus(localCacheFailedRef.current && !localCacheAvailableRef.current ? 'cache-error' : 'pending');
-            // A single failed upload previously left the cloud copy frozen until
-            // the next keystroke. Retry with backoff so a network blip or a
-            // server restart cannot silently strand the edit.
-            if (editorMountedRef.current && !saveRetryTimeoutRef.current) {
-              const delay = SAVE_RETRY_DELAY_MS[Math.min(saveRetryAttemptRef.current, SAVE_RETRY_DELAY_MS.length - 1)];
-              saveRetryAttemptRef.current += 1;
-              saveRetryTimeoutRef.current = setTimeout(() => {
-                saveRetryTimeoutRef.current = null;
-                if (editorMountedRef.current) {
-                  void persistLatestDraftRef.current().catch(() => undefined);
-                }
-              }, delay);
-            }
-          }
-          throw error;
+  const persistLatestDraft = useCallback(
+    async (keepalive = false) => {
+      while (true) {
+        const latest = latestContentRef.current;
+        if (!latest || !hasUnsavedChangesRef.current) return;
+        if (draftConflictRef.current) throw new Error('请先解决文案版本冲突');
+        if (draftSavePromiseRef.current) {
+          await draftSavePromiseRef.current;
+          continue;
         }
-      })();
 
-      draftSavePromiseRef.current = savePromise;
-      try {
-        await savePromise;
-      } finally {
-        if (draftSavePromiseRef.current === savePromise) draftSavePromiseRef.current = null;
+        const savingVersion = editVersionRef.current;
+        const savePromise = (async () => {
+          setSaveStatus('saving');
+          try {
+            await onSaveDraft(
+              topicId,
+              latest.html,
+              latest.json,
+              latest.wordCount,
+              latest.title,
+              latest.markdown,
+              keepalive,
+            );
+            saveRetryAttemptRef.current = 0;
+            if (saveRetryTimeoutRef.current) {
+              clearTimeout(saveRetryTimeoutRef.current);
+              saveRetryTimeoutRef.current = null;
+            }
+            if (savingVersion === editVersionRef.current) {
+              hasUnsavedChangesRef.current = false;
+              localCacheAvailableRef.current = false;
+              localCacheFailedRef.current = false;
+              setSaveStatus('saved');
+              setLastSavedTime(
+                formatBeijingDateTime(new Date(), 'zh-CN', { hour: '2-digit', minute: '2-digit', second: '2-digit' }),
+              );
+            } else {
+              setSaveStatus('unsaved');
+            }
+          } catch (error) {
+            if (error instanceof DraftConflictError) {
+              setSaveStatus('conflict');
+              draftConflictRef.current = true;
+              setDraftConflict({ remote: error.current });
+            } else {
+              setSaveStatus(localCacheFailedRef.current && !localCacheAvailableRef.current ? 'cache-error' : 'pending');
+              // A single failed upload previously left the cloud copy frozen until
+              // the next keystroke. Retry with backoff so a network blip or a
+              // server restart cannot silently strand the edit.
+              if (editorMountedRef.current && !saveRetryTimeoutRef.current) {
+                const delay =
+                  SAVE_RETRY_DELAY_MS[Math.min(saveRetryAttemptRef.current, SAVE_RETRY_DELAY_MS.length - 1)];
+                saveRetryAttemptRef.current += 1;
+                saveRetryTimeoutRef.current = setTimeout(() => {
+                  saveRetryTimeoutRef.current = null;
+                  if (editorMountedRef.current) {
+                    void persistLatestDraftRef.current().catch(() => undefined);
+                  }
+                }, delay);
+              }
+            }
+            throw error;
+          }
+        })();
+
+        draftSavePromiseRef.current = savePromise;
+        try {
+          await savePromise;
+        } finally {
+          if (draftSavePromiseRef.current === savePromise) draftSavePromiseRef.current = null;
+        }
       }
-    }
-  }, [onSaveDraft, topicId]);
+    },
+    [onSaveDraft, topicId],
+  );
 
   const persistLatestDraftRef = useRef(persistLatestDraft);
   persistLatestDraftRef.current = persistLatestDraft;
@@ -478,26 +549,35 @@ export const ScriptEditorTab: React.FC<ScriptEditorTabProps> = ({
     localSaveTimeoutRef.current = setTimeout(() => {
       const latest = latestContentRef.current;
       if (!latest) return;
-      const persisted = localCacheRef.current(latest.html, latest.json, latest.wordCount, latest.title, latest.markdown);
+      const persisted = localCacheRef.current(
+        latest.html,
+        latest.json,
+        latest.wordCount,
+        latest.title,
+        latest.markdown,
+      );
       localCacheAvailableRef.current = persisted;
       localCacheFailedRef.current = !persisted;
       setSaveStatus(draftConflictRef.current ? 'conflict' : persisted ? 'local' : 'cache-error');
     }, 1500);
 
     saveTimeoutRef.current = setTimeout(() => {
-      void persistLatestDraft().catch((error) => console.error(error));
+      void persistLatestDraft().catch(error => console.error(error));
     }, 45000);
   }, [persistLatestDraft]);
 
-  const markDraftChanged = useCallback((content: { markdown: string; html: string; json: string; wordCount: number; title: string }) => {
-    editVersionRef.current += 1;
-    latestContentRef.current = content;
-    hasUnsavedChangesRef.current = true;
-    localCacheAvailableRef.current = false;
-    localCacheFailedRef.current = false;
-    setSaveStatus('unsaved');
-    scheduleDraftPersistence();
-  }, [scheduleDraftPersistence]);
+  const markDraftChanged = useCallback(
+    (content: { markdown: string; html: string; json: string; wordCount: number; title: string }) => {
+      editVersionRef.current += 1;
+      latestContentRef.current = content;
+      hasUnsavedChangesRef.current = true;
+      localCacheAvailableRef.current = false;
+      localCacheFailedRef.current = false;
+      setSaveStatus('unsaved');
+      scheduleDraftPersistence();
+    },
+    [scheduleDraftPersistence],
+  );
 
   // Presence & Multi-device lock state
   const [presenceState, setPresenceState] = useState<PresenceState>({ is_locked: false });
@@ -572,7 +652,7 @@ export const ScriptEditorTab: React.FC<ScriptEditorTabProps> = ({
       // Cmd/Ctrl + Shift + F -> Toggle Zen Mode
       if ((e.metaKey || e.ctrlKey) && e.shiftKey && (e.key === 'F' || e.key === 'f')) {
         e.preventDefault();
-        setIsZenMode((prev) => !prev);
+        setIsZenMode(prev => !prev);
         return;
       }
       if (e.key === 'Escape') {
@@ -599,7 +679,8 @@ export const ScriptEditorTab: React.FC<ScriptEditorTabProps> = ({
     contentType: 'markdown',
     editorProps: {
       attributes: {
-        class: 'script-editor-font-stack prose prose-stone max-w-none focus:outline-none min-h-[500px] text-ink font-normal',
+        class:
+          'script-editor-font-stack prose prose-stone max-w-none focus:outline-none min-h-[500px] text-ink font-normal',
       },
       handleScrollToSelection: () => isTypewriterActiveRef.current,
       handlePaste: (view, event) => {
@@ -634,9 +715,7 @@ export const ScriptEditorTab: React.FC<ScriptEditorTabProps> = ({
       const nextOutline = extractScriptOutline(editor);
       outlineRef.current = nextOutline;
       outlineActiveSourceRef.current = 'selection';
-      setActiveOutlineItemId(
-        findActiveOutlineItem(nextOutline, editor.state.selection.from)?.id || null
-      );
+      setActiveOutlineItemId(findActiveOutlineItem(nextOutline, editor.state.selection.from)?.id || null);
 
       if (outlineDebounceRef.current) clearTimeout(outlineDebounceRef.current);
       outlineDebounceRef.current = setTimeout(() => {
@@ -676,7 +755,7 @@ export const ScriptEditorTab: React.FC<ScriptEditorTabProps> = ({
     hasUnsavedChangesRef.current = true;
     localCacheAvailableRef.current = true;
     setSaveStatus('pending');
-    void persistLatestDraft().catch((error) => console.error(error));
+    void persistLatestDraft().catch(error => console.error(error));
   }, [editor, hasRecoveredPendingDraft, initialTitle, persistLatestDraft]);
 
   useEffect(() => {
@@ -705,18 +784,14 @@ export const ScriptEditorTab: React.FC<ScriptEditorTabProps> = ({
     outlineRef.current = nextOutline;
     outlineActiveSourceRef.current = 'selection';
     setOutline(nextOutline);
-    setActiveOutlineItemId(
-      findActiveOutlineItem(nextOutline, editor.state.selection.from)?.id || null
-    );
+    setActiveOutlineItemId(findActiveOutlineItem(nextOutline, editor.state.selection.from)?.id || null);
   }, [editor]);
 
   useEffect(() => {
     if (!editor) return;
     const handleSelectionUpdate = () => {
       outlineActiveSourceRef.current = 'selection';
-      setActiveOutlineItemId(
-        findActiveOutlineItem(outlineRef.current, editor.state.selection.from)?.id || null
-      );
+      setActiveOutlineItemId(findActiveOutlineItem(outlineRef.current, editor.state.selection.from)?.id || null);
     };
     const handleEditorFocus = () => handleSelectionUpdate();
     editor.on('selectionUpdate', handleSelectionUpdate);
@@ -743,9 +818,9 @@ export const ScriptEditorTab: React.FC<ScriptEditorTabProps> = ({
       if (!headingElement) continue;
       const headingRect = headingElement.getBoundingClientRect();
       if (
-        firstVisibleItemId === null
-        && headingRect.bottom > containerRect.top
-        && headingRect.top < containerRect.bottom
+        firstVisibleItemId === null &&
+        headingRect.bottom > containerRect.top &&
+        headingRect.top < containerRect.bottom
       ) {
         firstVisibleItemId = item.id;
       }
@@ -762,7 +837,7 @@ export const ScriptEditorTab: React.FC<ScriptEditorTabProps> = ({
     }
 
     const nextActiveItemId = activeItemId || firstVisibleItemId || items[0]?.id || null;
-    setActiveOutlineItemId((current) => current === nextActiveItemId ? current : nextActiveItemId);
+    setActiveOutlineItemId(current => (current === nextActiveItemId ? current : nextActiveItemId));
   }, [editor]);
 
   useEffect(() => {
@@ -865,7 +940,13 @@ export const ScriptEditorTab: React.FC<ScriptEditorTabProps> = ({
       localCacheFailedRef.current = false;
       draftConflictRef.current = false;
       setSaveStatus('saved');
-      setLastSavedTime(formatBeijingDateTime(resolved?.updated_at || new Date(), 'zh-CN', { hour: '2-digit', minute: '2-digit', second: '2-digit' }));
+      setLastSavedTime(
+        formatBeijingDateTime(resolved?.updated_at || new Date(), 'zh-CN', {
+          hour: '2-digit',
+          minute: '2-digit',
+          second: '2-digit',
+        }),
+      );
       setDraftConflict(null);
     } catch (error) {
       if (error instanceof DraftConflictError) setDraftConflict({ remote: error.current });
@@ -887,7 +968,13 @@ export const ScriptEditorTab: React.FC<ScriptEditorTabProps> = ({
         localSaveTimeoutRef.current = null;
       }
       const latest = latestContentRef.current;
-      const persisted = localCacheRef.current(latest.html, latest.json, latest.wordCount, latest.title, latest.markdown);
+      const persisted = localCacheRef.current(
+        latest.html,
+        latest.json,
+        latest.wordCount,
+        latest.title,
+        latest.markdown,
+      );
       localCacheAvailableRef.current = persisted;
       localCacheFailedRef.current = !persisted;
       setSaveStatus(draftConflictRef.current ? 'conflict' : persisted ? 'local' : 'cache-error');
@@ -969,10 +1056,7 @@ export const ScriptEditorTab: React.FC<ScriptEditorTabProps> = ({
         const cursorCenterY = (coords.top + coords.bottom) / 2;
         const targetY = containerRect.top + containerRect.height * 0.6;
         const maxScrollTop = Math.max(0, container.scrollHeight - container.clientHeight);
-        const nextScrollTop = Math.min(
-          maxScrollTop,
-          Math.max(0, container.scrollTop + cursorCenterY - targetY)
-        );
+        const nextScrollTop = Math.min(maxScrollTop, Math.max(0, container.scrollTop + cursorCenterY - targetY));
 
         scrollTargetRef.current = nextScrollTop;
         if (prefersReducedMotionRef.current) {
@@ -1037,14 +1121,20 @@ export const ScriptEditorTab: React.FC<ScriptEditorTabProps> = ({
   const handleInsertFromDrawer = async (input: CitationInput) => {
     if (!editor) return;
     const citation = await onSaveCitation(input);
-    editor.chain().focus().insertContent({
-      type: 'paragraph',
-      content: [{
-        type: 'text',
-        text: input.quoted_text,
-        marks: [{ type: 'citation', attrs: { citationId: citation.id, referenceTitle: citation.reference_title } }],
-      }],
-    }).run();
+    editor
+      .chain()
+      .focus()
+      .insertContent({
+        type: 'paragraph',
+        content: [
+          {
+            type: 'text',
+            text: input.quoted_text,
+            marks: [{ type: 'citation', attrs: { citationId: citation.id, referenceTitle: citation.reference_title } }],
+          },
+        ],
+      })
+      .run();
   };
 
   const handleInsertReportContent = async (text: string, isQuote = false) => {
@@ -1059,14 +1149,20 @@ export const ScriptEditorTab: React.FC<ScriptEditorTabProps> = ({
           quoted_text: text.trim(),
           verification_status: 'confirmed',
         });
-        editor.chain().focus().insertContent({
-          type: 'paragraph',
-          content: [{
-            type: 'text',
-            text: text.trim(),
-            marks: [{ type: 'citation', attrs: { citationId: citation.id, referenceTitle: '选题报告' } }],
-          }],
-        }).run();
+        editor
+          .chain()
+          .focus()
+          .insertContent({
+            type: 'paragraph',
+            content: [
+              {
+                type: 'text',
+                text: text.trim(),
+                marks: [{ type: 'citation', attrs: { citationId: citation.id, referenceTitle: '选题报告' } }],
+              },
+            ],
+          })
+          .run();
         showToast({ message: '已引用选题报告内容至草稿', tone: 'success' });
         return;
       } catch {
@@ -1078,34 +1174,35 @@ export const ScriptEditorTab: React.FC<ScriptEditorTabProps> = ({
   };
 
   const currentHtml = editor?.getHTML() || initialDraft?.content_html || '';
-  const activeCitations = citations.filter((citation) => currentHtml.includes(`data-citation-id=\"${citation.id}\"`));
+  const activeCitations = citations.filter(citation => currentHtml.includes(`data-citation-id=\"${citation.id}\"`));
   const citationHealth = topic ? getCitationHealth(activeCitations, { topic, sources }) : null;
 
   const toggleOutlinePanel = () => {
     if (!isOutlineOpen && !canKeepBothSidePanelsOpen()) setIsReferenceOpen(false);
-    setIsOutlineOpen((current) => !current);
+    setIsOutlineOpen(current => !current);
   };
 
   const toggleReferencePanel = () => {
     if (!isReferenceOpen && !canKeepBothSidePanelsOpen()) setIsOutlineOpen(false);
-    setIsReferenceOpen((current) => !current);
+    setIsReferenceOpen(current => !current);
   };
 
   const toggleReportSplit = () => {
-    setIsReportSplitOpen((current) => !current);
+    setIsReportSplitOpen(current => !current);
   };
 
   const handleSelectOutlineItem = (item: OutlineItem) => {
     if (!editor) return;
 
     try {
-      const currentItem = outlineRef.current.flatItems.find((candidate) => candidate.id === item.id) || item;
+      const currentItem = outlineRef.current.flatItems.find(candidate => candidate.id === item.id) || item;
       outlineActiveSourceRef.current = 'selection';
       editor.chain().focus().setTextSelection(currentItem.textPos).run();
       setActiveOutlineItemId(currentItem.id);
 
       requestAnimationFrame(() => {
-        const headingElement = editor.view.dom.querySelectorAll<HTMLElement>('h1, h2, h3, h4, h5, h6')[currentItem.index];
+        const headingElement =
+          editor.view.dom.querySelectorAll<HTMLElement>('h1, h2, h3, h4, h5, h6')[currentItem.index];
         if (!headingElement) return;
 
         const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -1113,27 +1210,26 @@ export const ScriptEditorTab: React.FC<ScriptEditorTabProps> = ({
         outlineHighlightAnimationRef.current?.cancel();
         if (reduceMotion) return;
         outlineHighlightAnimationRef.current = headingElement.animate(
-          [
-            { backgroundColor: 'rgb(255 241 242 / 0.95)' },
-            { backgroundColor: 'transparent' },
-          ],
-          { duration: 1200, easing: 'ease-out' }
+          [{ backgroundColor: 'rgb(255 241 242 / 0.95)' }, { backgroundColor: 'transparent' }],
+          { duration: 1200, easing: 'ease-out' },
         );
       });
-
     } catch {
       // The document may have changed between rendering the outline and clicking an item.
     }
   };
 
-  useEffect(() => () => {
-    outlineHighlightAnimationRef.current?.cancel();
-    if (copyFeedbackTimeoutRef.current) clearTimeout(copyFeedbackTimeoutRef.current);
-    if (zenTypingTimeoutRef.current) clearTimeout(zenTypingTimeoutRef.current);
-    if (saveTimeoutRef.current) clearTimeout(saveTimeoutRef.current);
-    if (localSaveTimeoutRef.current) clearTimeout(localSaveTimeoutRef.current);
-    if (saveRetryTimeoutRef.current) clearTimeout(saveRetryTimeoutRef.current);
-  }, []);
+  useEffect(
+    () => () => {
+      outlineHighlightAnimationRef.current?.cancel();
+      if (copyFeedbackTimeoutRef.current) clearTimeout(copyFeedbackTimeoutRef.current);
+      if (zenTypingTimeoutRef.current) clearTimeout(zenTypingTimeoutRef.current);
+      if (saveTimeoutRef.current) clearTimeout(saveTimeoutRef.current);
+      if (localSaveTimeoutRef.current) clearTimeout(localSaveTimeoutRef.current);
+      if (saveRetryTimeoutRef.current) clearTimeout(saveRetryTimeoutRef.current);
+    },
+    [],
+  );
 
   const copyFullScript = async () => {
     if (!editor) return;
@@ -1196,27 +1292,40 @@ export const ScriptEditorTab: React.FC<ScriptEditorTabProps> = ({
           : 'script-editor-surface flex h-full w-full flex-col'
       }
     >
-      <Modal
-        isOpen={Boolean(draftConflict)}
-        onClose={() => undefined}
-        title="云端文案已有更新"
-        maxWidth="md"
-      >
+      <Modal isOpen={Boolean(draftConflict)} onClose={() => undefined} title="云端文案已有更新" maxWidth="md">
         {draftConflict && (
           <div className="space-y-4">
             <div className="grid gap-3 sm:grid-cols-2">
               <div className="rounded-xl border border-danger-line bg-danger-soft p-4">
                 <div className="font-semibold text-danger">当前本地文案</div>
-                <div className="mt-2 text-xs text-ink-muted">{latestContentRef.current?.wordCount || 0} 字 · 尚未同步</div>
+                <div className="mt-2 text-xs text-ink-muted">
+                  {latestContentRef.current?.wordCount || 0} 字 · 尚未同步
+                </div>
               </div>
               <div className="rounded-xl border border-line bg-canvas p-4">
                 <div className="font-semibold text-ink">云端最新版本</div>
-                <div className="mt-2 text-xs text-ink-muted">{draftConflict.remote ? `${draftConflict.remote.word_count} 字 · ${formatBeijingDateTime(draftConflict.remote.updated_at)}` : '云端尚无文案'}</div>
+                <div className="mt-2 text-xs text-ink-muted">
+                  {draftConflict.remote
+                    ? `${draftConflict.remote.word_count} 字 · ${formatBeijingDateTime(draftConflict.remote.updated_at)}`
+                    : '云端尚无文案'}
+                </div>
               </div>
             </div>
             <div className="flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
-              <button type="button" onClick={() => void resolveDraftConflict('remote')} className="min-h-11 rounded-lg border border-line bg-surface px-4 py-2 text-sm font-semibold text-ink hover:bg-canvas">使用云端版本</button>
-              <button type="button" onClick={() => void resolveDraftConflict('local')} className="min-h-11 rounded-lg bg-accent px-4 py-2 text-sm font-semibold text-white hover:bg-accent-dark">保留本地文案</button>
+              <button
+                type="button"
+                onClick={() => void resolveDraftConflict('remote')}
+                className="min-h-11 rounded-lg border border-line bg-surface px-4 py-2 text-sm font-semibold text-ink hover:bg-canvas"
+              >
+                使用云端版本
+              </button>
+              <button
+                type="button"
+                onClick={() => void resolveDraftConflict('local')}
+                className="min-h-11 rounded-lg bg-accent px-4 py-2 text-sm font-semibold text-white hover:bg-accent-dark"
+              >
+                保留本地文案
+              </button>
             </div>
           </div>
         )}
@@ -1245,9 +1354,7 @@ export const ScriptEditorTab: React.FC<ScriptEditorTabProps> = ({
               <Compass className="h-3.5 w-3.5 text-accent" />
               <span>大纲</span>
               {outline.flatItems.length > 0 && (
-                <span className="text-3xs font-mono opacity-80 tabular-nums">
-                  {outline.flatItems.length}
-                </span>
+                <span className="text-3xs font-mono opacity-80 tabular-nums">{outline.flatItems.length}</span>
               )}
             </button>
 
@@ -1286,7 +1393,11 @@ export const ScriptEditorTab: React.FC<ScriptEditorTabProps> = ({
             </button>
 
             {/* Auto save indicator pill */}
-            <div className="flex items-center gap-1.5 rounded-full bg-control px-2.5 py-0.5 text-2xs text-ink-muted select-none" role="status" aria-live="polite">
+            <div
+              className="flex items-center gap-1.5 rounded-full bg-control px-2.5 py-0.5 text-2xs text-ink-muted select-none"
+              role="status"
+              aria-live="polite"
+            >
               {saveStatus === 'saving' && (
                 <>
                   <Cloud className="h-3 w-3 animate-pulse text-accent" aria-hidden="true" />
@@ -1334,14 +1445,14 @@ export const ScriptEditorTab: React.FC<ScriptEditorTabProps> = ({
 
           {/* Center: Word count & Estimated duration (桌面端物理绝对居中，呼应顶栏分段器) */}
           <div className="hidden md:flex md:absolute md:left-1/2 md:-translate-x-1/2 items-center gap-1.5 rounded-full bg-control px-3.5 py-1 text-xs text-ink-muted select-none border border-line/40">
-            <span className="font-semibold text-ink tabular-nums">
-              {charCount.toLocaleString()}
-            </span>
+            <span className="font-semibold text-ink tabular-nums">{charCount.toLocaleString()}</span>
             <span className="text-2xs">字</span>
             <span className="opacity-30 mx-0.5">·</span>
             <span className="flex items-center gap-1 font-mono text-2xs tabular-nums">
               <Clock className="w-3 h-3 text-ink-muted shrink-0" />
-              <span>{estMinutes}分{estSeconds}秒</span>
+              <span>
+                {estMinutes}分{estSeconds}秒
+              </span>
             </span>
           </div>
 
@@ -1393,7 +1504,8 @@ export const ScriptEditorTab: React.FC<ScriptEditorTabProps> = ({
           <div className="flex items-center gap-2 min-w-0">
             <ShieldAlert className="h-4 w-4 text-warning shrink-0" />
             <span className="truncate">
-              检测到本文案当前正在【{presenceState.active_editor?.device_name || '其他设备'}】上编辑中（活跃于刚刚），请留意多端同步，避免互相覆盖。
+              检测到本文案当前正在【{presenceState.active_editor?.device_name || '其他设备'}
+              】上编辑中（活跃于刚刚），请留意多端同步，避免互相覆盖。
             </span>
           </div>
           <button
@@ -1407,16 +1519,17 @@ export const ScriptEditorTab: React.FC<ScriptEditorTabProps> = ({
         </div>
       )}
 
-
       {/* Floating Zen Controls (Ambient Dynamic Respiration HUD) */}
       {isZenMode && (
         <>
           {/* Top-Right: Floating Controls & Exit Button */}
-          <div className={`fixed right-5 sm:right-8 top-5 sm:top-7 z-40 flex items-center gap-2 transition-all duration-300 ${isReferenceOpen ? 'script-editor-zen-reference-offset' : ''} ${isTypingZen ? 'opacity-25 hover:opacity-100' : 'opacity-100'}`}>
+          <div
+            className={`fixed right-5 sm:right-8 top-5 sm:top-7 z-40 flex items-center gap-2 transition-all duration-300 ${isReferenceOpen ? 'script-editor-zen-reference-offset' : ''} ${isTypingZen ? 'opacity-25 hover:opacity-100' : 'opacity-100'}`}
+          >
             {/* Unified Focus Typewriter Mode Toggle (仅在沉浸写作中出现) */}
             <button
               type="button"
-              onClick={() => setIsFocusTypewriterMode((prev) => !prev)}
+              onClick={() => setIsFocusTypewriterMode(prev => !prev)}
               aria-label="切换专注打字模式"
               className={`flex items-center gap-1.5 px-3.5 py-2 rounded-full text-xs backdrop-blur-md shadow-md hover:shadow-lg hover:-translate-y-0.5 transition-all cursor-pointer ${
                 isFocusTypewriterMode
@@ -1442,14 +1555,20 @@ export const ScriptEditorTab: React.FC<ScriptEditorTabProps> = ({
           </div>
 
           {/* Bottom-Right: Floating Stats */}
-          <div className={`fixed right-5 sm:right-8 bottom-5 sm:bottom-7 z-40 flex items-center gap-2.5 bg-surface/95 backdrop-blur-md border border-line text-ink px-4 py-2 rounded-full text-xs font-sans shadow-md hover:shadow-lg transition-all duration-300 select-none ${isReferenceOpen ? 'script-editor-zen-reference-offset' : ''} ${isTypingZen ? 'opacity-25 hover:opacity-100' : 'opacity-100'}`}>
+          <div
+            className={`fixed right-5 sm:right-8 bottom-5 sm:bottom-7 z-40 flex items-center gap-2.5 bg-surface/95 backdrop-blur-md border border-line text-ink px-4 py-2 rounded-full text-xs font-sans shadow-md hover:shadow-lg transition-all duration-300 select-none ${isReferenceOpen ? 'script-editor-zen-reference-offset' : ''} ${isTypingZen ? 'opacity-25 hover:opacity-100' : 'opacity-100'}`}
+          >
             <span className="font-semibold text-ink font-sans">
-              <span className="font-mono tabular-nums">{charCount.toLocaleString()}</span> <span className="font-normal text-ink-muted text-2xs">字</span>
+              <span className="font-mono tabular-nums">{charCount.toLocaleString()}</span>{' '}
+              <span className="font-normal text-ink-muted text-2xs">字</span>
             </span>
             <span className="opacity-40">·</span>
             <span className="flex items-center gap-1.5 text-ink-muted font-sans text-2xs">
               <Clock className="w-3.5 h-3.5 text-ink-muted shrink-0" />
-              <span><span className="font-mono tabular-nums">{estMinutes}</span>分<span className="font-mono tabular-nums">{estSeconds}</span>秒</span>
+              <span>
+                <span className="font-mono tabular-nums">{estMinutes}</span>分
+                <span className="font-mono tabular-nums">{estSeconds}</span>秒
+              </span>
             </span>
             <span className="opacity-30 text-line">·</span>
             <div className="grid h-6 w-6 shrink-0 place-items-center" aria-live="polite">
@@ -1546,9 +1665,7 @@ export const ScriptEditorTab: React.FC<ScriptEditorTabProps> = ({
                       }}
                       aria-label="小字号"
                       className={`px-2 py-0.5 rounded-full transition-colors cursor-pointer ${
-                        reportFontSize === 'compact'
-                          ? 'bg-surface text-ink font-semibold shadow-2xs'
-                          : 'hover:text-ink'
+                        reportFontSize === 'compact' ? 'bg-surface text-ink font-semibold shadow-2xs' : 'hover:text-ink'
                       }`}
                     >
                       小
@@ -1561,9 +1678,7 @@ export const ScriptEditorTab: React.FC<ScriptEditorTabProps> = ({
                       }}
                       aria-label="标准字号"
                       className={`px-2 py-0.5 rounded-full transition-colors cursor-pointer ${
-                        reportFontSize === 'normal'
-                          ? 'bg-surface text-ink font-semibold shadow-2xs'
-                          : 'hover:text-ink'
+                        reportFontSize === 'normal' ? 'bg-surface text-ink font-semibold shadow-2xs' : 'hover:text-ink'
                       }`}
                     >
                       中
@@ -1576,9 +1691,7 @@ export const ScriptEditorTab: React.FC<ScriptEditorTabProps> = ({
                       }}
                       aria-label="大字号"
                       className={`px-2 py-0.5 rounded-full transition-colors cursor-pointer ${
-                        reportFontSize === 'large'
-                          ? 'bg-surface text-ink font-semibold shadow-2xs'
-                          : 'hover:text-ink'
+                        reportFontSize === 'large' ? 'bg-surface text-ink font-semibold shadow-2xs' : 'hover:text-ink'
                       }`}
                     >
                       大
@@ -1625,8 +1738,8 @@ export const ScriptEditorTab: React.FC<ScriptEditorTabProps> = ({
                       reportFontSize === 'large'
                         ? 'text-[16.5px] leading-[1.8]'
                         : reportFontSize === 'compact'
-                        ? 'text-[13.5px] leading-[1.65]'
-                        : 'text-[15px] leading-[1.75]'
+                          ? 'text-[13.5px] leading-[1.65]'
+                          : 'text-[15px] leading-[1.75]'
                     }`}
                     dangerouslySetInnerHTML={{ __html: sanitizedReportHtml }}
                   />
@@ -1673,29 +1786,25 @@ export const ScriptEditorTab: React.FC<ScriptEditorTabProps> = ({
           >
             <div
               className={`script-editor-document ${
-                isTypewriterActive
-                  ? 'pt-8 sm:pt-12'
-                  : 'pt-6 pb-36 sm:pt-8 sm:pb-48'
+                isTypewriterActive ? 'pt-8 sm:pt-12' : 'pt-6 pb-36 sm:pt-8 sm:pb-48'
               }`}
             >
               <div className="mb-3 border-b border-line pb-2">
-                <label htmlFor="script-draft-title" className="sr-only">文案标题</label>
+                <label htmlFor="script-draft-title" className="sr-only">
+                  文案标题
+                </label>
                 <input
                   id="script-draft-title"
                   name="script_draft_title"
                   data-no-focus-ring="true"
                   value={draftTitle}
-                  onChange={(event) => handleDraftTitleChange(event.target.value)}
+                  onChange={event => handleDraftTitleChange(event.target.value)}
                   maxLength={200}
                   className="script-editor-title min-h-10 w-full border-0 bg-transparent px-0 text-2xl font-semibold tracking-tight text-ink outline-none ring-0 shadow-none placeholder:text-ink-muted/40 focus:ring-0 focus:outline-none focus:shadow-none sm:text-3xl"
                   placeholder="输入这期视频的文案标题"
                 />
               </div>
-              <EditorContent
-                editor={editor}
-                className="min-h-[500px]"
-                onContextMenu={handleEditorContextMenu}
-              />
+              <EditorContent editor={editor} className="min-h-[500px]" onContextMenu={handleEditorContextMenu} />
               {editor && <TableEdgeControls editor={editor} deferredLoading={false} />}
               {isTypewriterActive && <div ref={typewriterBottomSpacerRef} aria-hidden="true" />}
             </div>
@@ -1709,9 +1818,9 @@ export const ScriptEditorTab: React.FC<ScriptEditorTabProps> = ({
             onClose={() => setIsReferenceOpen(false)}
             topic={topic}
             sources={sources}
-            staleReferenceIds={citationHealth?.states
-              .filter((state) => state.stale)
-              .map((state) => state.citation.reference_id) || []}
+            staleReferenceIds={
+              citationHealth?.states.filter(state => state.stale).map(state => state.citation.reference_id) || []
+            }
             onInsertContent={handleInsertFromDrawer}
           />
         )}
@@ -1725,7 +1834,7 @@ export const ScriptEditorTab: React.FC<ScriptEditorTabProps> = ({
           y={contextMenuPosition.y}
           onClose={() => setContextMenuPosition(null)}
           onInsertCue={handleInsertVoiceoverCue}
-          onClipboardError={(message) => showToast({ message, tone: 'info' })}
+          onClipboardError={message => showToast({ message, tone: 'info' })}
         />
       )}
 
@@ -1743,7 +1852,6 @@ export const ScriptEditorTab: React.FC<ScriptEditorTabProps> = ({
           />
         </React.Suspense>
       )}
-
     </div>
   );
 

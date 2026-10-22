@@ -8,11 +8,11 @@ export function applyOptimisticKanbanPageUpdates(
   currentTopics: Record<string, Topic>,
   updatedAt: string,
 ): PaginatedTopics {
-  const updateMap = new Map(updates.map((update) => [update.id, update]));
-  const pageItems = new Map(oldData.items.map((topic) => [topic.id, topic]));
+  const updateMap = new Map(updates.map(update => [update.id, update]));
+  const pageItems = new Map(oldData.items.map(topic => [topic.id, topic]));
 
   const additions: Topic[] = [];
-  updates.forEach((update) => {
+  updates.forEach(update => {
     if (update.status !== queryStatus) return;
     const pageItem = pageItems.get(update.id);
     const currentTopic = currentTopics[update.id];
@@ -27,12 +27,12 @@ export function applyOptimisticKanbanPageUpdates(
     });
   });
 
-  const keptItems = oldData.items.filter((topic) => {
+  const keptItems = oldData.items.filter(topic => {
     const update = updateMap.get(topic.id);
     return !update || update.status === queryStatus;
   });
-  const mergedItems = new Map(keptItems.map((topic) => [topic.id, topic]));
-  additions.forEach((topic) => mergedItems.set(topic.id, topic));
+  const mergedItems = new Map(keptItems.map(topic => [topic.id, topic]));
+  additions.forEach(topic => mergedItems.set(topic.id, topic));
   const items = Array.from(mergedItems.values()).sort((a, b) => (a.sort_order || 0) - (b.sort_order || 0));
   const total = Math.max(0, oldData.total + items.length - oldData.items.length);
 

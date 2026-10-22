@@ -35,14 +35,10 @@ describe('source timeline ordering', () => {
   });
 
   it('sorts unpadded dates chronologically and only enables drag ordering in manual mode', () => {
-    const dates = [
-      source('may-2', 1, '2026-5-2'),
-      source('april', 2, '2026-4-29'),
-      source('may', 3, '2026-5'),
-    ];
+    const dates = [source('may-2', 1, '2026-5-2'), source('april', 2, '2026-4-29'), source('may', 3, '2026-5')];
 
-    expect(sortTimelineSources(dates, 'date-asc').map((item) => item.id)).toEqual(['april', 'may', 'may-2']);
-    expect(sortTimelineSources(dates, 'date-desc').map((item) => item.id)).toEqual(['may-2', 'may', 'april']);
+    expect(sortTimelineSources(dates, 'date-asc').map(item => item.id)).toEqual(['april', 'may', 'may-2']);
+    expect(sortTimelineSources(dates, 'date-desc').map(item => item.id)).toEqual(['may-2', 'may', 'april']);
     expect(canReorderTimeline('date-asc')).toBe(false);
     expect(canReorderTimeline('date-desc')).toBe(false);
     expect(canReorderTimeline('manual')).toBe(true);
@@ -51,7 +47,7 @@ describe('source timeline ordering', () => {
   it('uses persisted sort order in manual mode', () => {
     const dates = [source('later-date', 1, '2027-1-1'), source('earlier-date', 2, '2026-1-1')];
 
-    expect(sortTimelineSources(dates, 'manual').map((item) => item.id)).toEqual(['later-date', 'earlier-date']);
+    expect(sortTimelineSources(dates, 'manual').map(item => item.id)).toEqual(['later-date', 'earlier-date']);
   });
 
   it('only fills the event date when the user has not touched the field', () => {
@@ -64,7 +60,7 @@ describe('source timeline ordering', () => {
     const full = [source('a', 1), source('hidden-1', 2), source('b', 3), source('hidden-2', 4), source('c', 5)];
     const reordered = reorderVisibleSourcesInFullList(full, [full[4], full[0], full[2]]);
 
-    expect(reordered.map((item) => item.id)).toEqual(['c', 'hidden-1', 'a', 'hidden-2', 'b']);
-    expect(reordered.filter((item) => item.id.startsWith('hidden'))).toEqual([full[1], full[3]]);
+    expect(reordered.map(item => item.id)).toEqual(['c', 'hidden-1', 'a', 'hidden-2', 'b']);
+    expect(reordered.filter(item => item.id.startsWith('hidden'))).toEqual([full[1], full[3]]);
   });
 });

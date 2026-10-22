@@ -47,9 +47,7 @@ function WeekDayRow({
       {/* Header */}
       <div
         className={`flex min-h-[8.5rem] flex-col items-center justify-center border-r border-line px-2 py-4 text-center select-none sm:px-4 ${
-          day.isToday
-            ? 'bg-accent-soft text-accent-dark font-bold'
-            : 'bg-canvas/60 text-ink'
+          day.isToday ? 'bg-accent-soft text-accent-dark font-bold' : 'bg-canvas/60 text-ink'
         }`}
       >
         <div className="text-xs font-semibold text-ink-muted">{day.dayName}</div>
@@ -66,7 +64,7 @@ function WeekDayRow({
       <div className="min-w-0 min-h-[8.5rem] p-3 sm:p-4">
         {events.length > 0 ? (
           <div className="grid min-w-0 grid-cols-1 gap-2.5 md:grid-cols-[repeat(auto-fit,minmax(240px,1fr))]">
-            {events.map((ev) => (
+            {events.map(ev => (
               <CalendarEventPill
                 key={ev.id}
                 event={ev}
@@ -110,9 +108,19 @@ export const CalendarWeekGrid: React.FC<CalendarWeekGridProps> = ({
       className="flex min-h-0 min-w-0 flex-col overscroll-contain"
       wrapperClassName="flex-1 min-h-0 rounded-2xl border border-line bg-surface shadow-2xs [scrollbar-gutter:stable]"
     >
-      {days.map((day) => {
+      {days.map(day => {
         const events = eventsMap.get(day.date) || [];
-        return <WeekDayRow key={day.date} day={day} events={events} onDateClick={onDateClick} onOpenTopic={onOpenTopic} onOpenDeal={onOpenDeal} onOpenPublished={onOpenPublished} />;
+        return (
+          <WeekDayRow
+            key={day.date}
+            day={day}
+            events={events}
+            onDateClick={onDateClick}
+            onOpenTopic={onOpenTopic}
+            onOpenDeal={onOpenDeal}
+            onOpenPublished={onOpenPublished}
+          />
+        );
       })}
     </FloatingScrollbar>
   );

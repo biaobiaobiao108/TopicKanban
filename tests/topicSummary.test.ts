@@ -25,7 +25,7 @@ describe('选题库全库摘要', () => {
       const db = sqlite;
       const active = await loadTopicPage(db, { scope: 'active', page: 1, pageSize: 50, status: 'production' });
       expect(active.total).toBe(1);
-      expect(active.items.map((topic) => topic.id)).toEqual(['making']);
+      expect(active.items.map(topic => topic.id)).toEqual(['making']);
       expect(active.summary).toEqual({ total_words: 600, in_scripting_count: 1 });
 
       const archived = await loadTopicPage(db, { scope: 'archived', page: 1, pageSize: 50 });
@@ -33,10 +33,14 @@ describe('选题库全库摘要', () => {
       expect(archived.summary).toEqual(active.summary);
 
       const lean = await loadTopicPage(db, {
-        scope: 'active', page: 1, pageSize: 50, status: 'production', includeMetadata: false,
+        scope: 'active',
+        page: 1,
+        pageSize: 50,
+        status: 'production',
+        includeMetadata: false,
       });
       expect(lean.total).toBe(active.total);
-      expect(lean.items.map((topic) => topic.id)).toEqual(active.items.map((topic) => topic.id));
+      expect(lean.items.map(topic => topic.id)).toEqual(active.items.map(topic => topic.id));
       expect(lean.summary).toBeUndefined();
       expect(lean.scope_counts).toBeUndefined();
     } finally {

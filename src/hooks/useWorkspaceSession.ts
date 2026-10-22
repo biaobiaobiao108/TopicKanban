@@ -4,10 +4,7 @@ import { AUTH_STORAGE_KEY, logout as clearAuthToken } from '../lib/auth';
 type SetAuthenticated = Dispatch<SetStateAction<boolean>>;
 
 /** Owns the app-wide session boundary: user logout and API 401 cleanup. */
-export function useWorkspaceSession(
-  clearWorkspace: () => void,
-  setIsAuthenticated: SetAuthenticated,
-) {
+export function useWorkspaceSession(clearWorkspace: () => void, setIsAuthenticated: SetAuthenticated) {
   useEffect(() => {
     const handleUnauthorized = () => {
       window.dispatchEvent(new Event('kanban:logout'));

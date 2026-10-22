@@ -3,17 +3,7 @@ import { keepPreviousData, useQuery, useQueryClient } from '@tanstack/react-quer
 import { Topic, Tag, TagStats } from '../../types';
 import { StatusBadge, PriorityBadge } from '../ui/Badge';
 import { Modal } from '../ui/Modal';
-import {
-  Hash,
-  Plus,
-  Search,
-  Edit2,
-  Trash2,
-  TrendingUp,
-  Layers,
-  CheckCircle2,
-  PenTool,
-} from 'lucide-react';
+import { Hash, Plus, Search, Edit2, Trash2, TrendingUp, Layers, CheckCircle2, PenTool } from 'lucide-react';
 import { fetchTagsPage, fetchTopicPage } from '../../lib/storageApi';
 import { PageHeader } from '../layout/PageHeader';
 import { CustomSelect, type SelectOption } from '../ui/CustomSelect';
@@ -32,11 +22,39 @@ interface TagsViewProps {
 
 const TAG_COLOR_OPTIONS = [
   { id: 'stone', name: '经典雅灰', bg: 'bg-control', text: 'text-ink', border: 'border-line', dot: 'bg-control' },
-  { id: 'rose', name: '赤陶绯红', bg: 'bg-danger-soft', text: 'text-danger', border: 'border-danger-line', dot: 'bg-danger' },
-  { id: 'amber', name: '琥珀金黄', bg: 'bg-warning-soft', text: 'text-warning', border: 'border-warning-soft', dot: 'bg-warning' },
-  { id: 'emerald', name: '鼠尾草绿', bg: 'bg-success-soft', text: 'text-success', border: 'border-success-soft', dot: 'bg-success' },
+  {
+    id: 'rose',
+    name: '赤陶绯红',
+    bg: 'bg-danger-soft',
+    text: 'text-danger',
+    border: 'border-danger-line',
+    dot: 'bg-danger',
+  },
+  {
+    id: 'amber',
+    name: '琥珀金黄',
+    bg: 'bg-warning-soft',
+    text: 'text-warning',
+    border: 'border-warning-soft',
+    dot: 'bg-warning',
+  },
+  {
+    id: 'emerald',
+    name: '鼠尾草绿',
+    bg: 'bg-success-soft',
+    text: 'text-success',
+    border: 'border-success-soft',
+    dot: 'bg-success',
+  },
   { id: 'indigo', name: '静谧靛蓝', bg: 'bg-info-soft', text: 'text-info', border: 'border-info-soft', dot: 'bg-info' },
-  { id: 'purple', name: '葡萄冷紫', bg: 'bg-stage-production-soft', text: 'text-stage-production', border: 'border-stage-production-soft', dot: 'bg-stage-production' },
+  {
+    id: 'purple',
+    name: '葡萄冷紫',
+    bg: 'bg-stage-production-soft',
+    text: 'text-stage-production',
+    border: 'border-stage-production-soft',
+    dot: 'bg-stage-production',
+  },
 ];
 
 type TagWithStats = Tag & { stats?: TagStats };
@@ -63,13 +81,13 @@ function TagMetricCard({
 
   return (
     <div className="flex h-full min-h-[4.5rem] items-center gap-2 rounded-2xl border border-line bg-surface px-3 py-3 shadow-subtle sm:gap-3 sm:px-4">
-      <span className={`grid h-7 w-7 shrink-0 place-items-center rounded-lg sm:h-8 sm:w-8 ${tones[tone]}`}>
-        {icon}
-      </span>
+      <span className={`grid h-7 w-7 shrink-0 place-items-center rounded-lg sm:h-8 sm:w-8 ${tones[tone]}`}>{icon}</span>
       <div className="min-w-0 flex-1">
         <p className="min-w-0 truncate text-2xs font-semibold leading-tight text-ink-muted">{label}</p>
         <div className="mt-1 flex min-w-0 items-baseline gap-1.5">
-          <p className="min-w-0 truncate text-[1.05rem] font-bold leading-tight tracking-tight text-ink sm:text-lg">{value}</p>
+          <p className="min-w-0 truncate text-[1.05rem] font-bold leading-tight tracking-tight text-ink sm:text-lg">
+            {value}
+          </p>
           <span className="shrink-0 text-3xs font-medium leading-tight text-ink-muted">{detail}</span>
         </div>
       </div>
@@ -120,37 +138,46 @@ export const TagsView: React.FC<TagsViewProps> = ({
   const [deletingTag, setDeletingTag] = useState<Tag | null>(null);
 
   const allTagCandidates = useMemo(() => {
-    const tagMap = new Map<string, TagWithStats>(tags.map((tag) => [tag.id, tag]));
-    visibleTags.forEach((tag) => {
+    const tagMap = new Map<string, TagWithStats>(tags.map(tag => [tag.id, tag]));
+    visibleTags.forEach(tag => {
       const existing = tagMap.get(tag.id);
       tagMap.set(tag.id, existing ? { ...existing, ...tag } : tag);
     });
     return [...tagMap.values()];
   }, [tags, visibleTags]);
 
-  const tagStatsMap = useMemo(() => new Map(allTagCandidates.map((tag) => [tag.id, {
-    count: tag.stats?.count || 0,
-    inProgressCount: tag.stats?.in_progress_count || 0,
-    publishedCount: tag.stats?.published_count || 0,
-    wordsTotal: tag.stats?.words_total || 0,
-    avgScore: tag.stats?.avg_score || 0,
-  }])), [allTagCandidates]);
+  const tagStatsMap = useMemo(
+    () =>
+      new Map(
+        allTagCandidates.map(tag => [
+          tag.id,
+          {
+            count: tag.stats?.count || 0,
+            inProgressCount: tag.stats?.in_progress_count || 0,
+            publishedCount: tag.stats?.published_count || 0,
+            wordsTotal: tag.stats?.words_total || 0,
+            avgScore: tag.stats?.avg_score || 0,
+          },
+        ]),
+      ),
+    [allTagCandidates],
+  );
 
   const totalTaggedTopics = tagsPageQuery.data?.summary.tagged_topics || 0;
   const totalTopicCount = tagsPageQuery.data?.summary.total_topics || 0;
   const coveragePercent = totalTopicCount > 0 ? Math.round((totalTaggedTopics / totalTopicCount) * 100) : 0;
 
   // Active selected tag
-  const activeTag = allTagCandidates.find((t) => t.id === selectedTagId) || allTagCandidates[0] || null;
+  const activeTag = allTagCandidates.find(t => t.id === selectedTagId) || allTagCandidates[0] || null;
 
   const mobileTagOptions = useMemo<SelectOption[]>(() => {
     const query = tagPickerSearch.trim().toLowerCase();
     return allTagCandidates
-      .filter((tag) => !query || tag.name.toLowerCase().includes(query))
-      .map((tag) => ({
+      .filter(tag => !query || tag.name.toLowerCase().includes(query))
+      .map(tag => ({
         value: tag.id,
         label: `#${tag.name}`,
-        dot: (TAG_COLOR_OPTIONS.find((color) => color.id === tag.color) || TAG_COLOR_OPTIONS[0]).dot,
+        dot: (TAG_COLOR_OPTIONS.find(color => color.id === tag.color) || TAG_COLOR_OPTIONS[0]).dot,
         description: `${tag.stats?.count || 0} 个选题`,
       }));
   }, [allTagCandidates, tagPickerSearch]);
@@ -164,22 +191,27 @@ export const TagsView: React.FC<TagsViewProps> = ({
   }, [activeTag?.id, topicStatusFilter]);
 
   // Topics belonging to active selected tag
-  const topicStatus = topicStatusFilter === 'in_progress'
-    ? 'scripting,production'
-    : topicStatusFilter === 'pending' ? 'inbox'
-      : topicStatusFilter === 'published' ? 'published,icebox' : undefined;
+  const topicStatus =
+    topicStatusFilter === 'in_progress'
+      ? 'scripting,production'
+      : topicStatusFilter === 'pending'
+        ? 'inbox'
+        : topicStatusFilter === 'published'
+          ? 'published,icebox'
+          : undefined;
   const tagTopicsPageQuery = useQuery({
     queryKey: ['tag-topics-page', activeTag?.id || '', topicStatusFilter, topicPage],
-    queryFn: () => fetchTopicPage({
-      scope: 'all',
-      include_metadata: false,
-      page: topicPage,
-      page_size: 30,
-      tag_id: activeTag?.id,
-      status: topicStatus,
-      sort: 'updated_at',
-      direction: 'desc',
-    }),
+    queryFn: () =>
+      fetchTopicPage({
+        scope: 'all',
+        include_metadata: false,
+        page: topicPage,
+        page_size: 30,
+        tag_id: activeTag?.id,
+        status: topicStatus,
+        sort: 'updated_at',
+        direction: 'desc',
+      }),
     enabled: Boolean(activeTag),
     subscribed: Boolean(activeTag),
     placeholderData: keepPreviousData,
@@ -206,7 +238,13 @@ export const TagsView: React.FC<TagsViewProps> = ({
     if (!name) return;
 
     const saved = await onSaveTag(name, tagColorInput, editingTag?.id);
-    await invalidateQueryGroups(queryClient, [['tags'], ['tags-page'], ['tags-options'], ['tag-topics-page'], ['workspace']]);
+    await invalidateQueryGroups(queryClient, [
+      ['tags'],
+      ['tags-page'],
+      ['tags-options'],
+      ['tag-topics-page'],
+      ['workspace'],
+    ]);
     setSelectedTagId(saved.id);
     setIsModalOpen(false);
   };
@@ -215,23 +253,33 @@ export const TagsView: React.FC<TagsViewProps> = ({
     if (!deletingTag) return;
     await onDeleteTag(deletingTag.id);
     if (selectedTagId === deletingTag.id) {
-      const remaining = visibleTags.filter((t) => t.id !== deletingTag.id);
+      const remaining = visibleTags.filter(t => t.id !== deletingTag.id);
       setSelectedTagId(remaining[0]?.id || null);
     }
-    if (visibleTags.length === 1 && tagPage > 1) setTagPage((current) => current - 1);
-    await invalidateQueryGroups(queryClient, [['tags'], ['tags-page'], ['tags-options'], ['tag-topics-page'], ['workspace']]);
+    if (visibleTags.length === 1 && tagPage > 1) setTagPage(current => current - 1);
+    await invalidateQueryGroups(queryClient, [
+      ['tags'],
+      ['tags-page'],
+      ['tags-options'],
+      ['tag-topics-page'],
+      ['workspace'],
+    ]);
     setDeletingTag(null);
   };
 
   const activeStats = activeTag ? tagStatsMap.get(activeTag.id) : null;
 
   return (
-    <FloatingScrollbar data-testid="tags-page" className="mobile-bottom-nav-content bg-canvas transition-colors md:overflow-hidden" wrapperClassName="h-full min-h-0 min-w-0 w-full flex-1">
+    <FloatingScrollbar
+      data-testid="tags-page"
+      className="mobile-bottom-nav-content bg-canvas transition-colors md:overflow-hidden"
+      wrapperClassName="h-full min-h-0 min-w-0 w-full flex-1"
+    >
       <div className="mx-auto flex min-h-full w-full max-w-7xl flex-1 flex-col gap-5 px-4 py-5 sm:px-6 sm:py-6 lg:px-8 md:h-full md:min-h-0">
         <PageHeader
           title="标签与创作赛道资产"
           icon={Hash}
-          actions={(
+          actions={
             <button
               type="button"
               onClick={openCreateModal}
@@ -240,42 +288,67 @@ export const TagsView: React.FC<TagsViewProps> = ({
               <Plus className="h-4 w-4 stroke-[2.5]" aria-hidden="true" />
               <span>新建赛道标签</span>
             </button>
-          )}
+          }
         />
 
         <section aria-label="标签资产概览" className="tags-metrics-container grid grid-cols-2 gap-2.5 lg:grid-cols-4">
           <TagMetricCard
             icon={<Layers className="h-4 w-4" aria-hidden="true" />}
             label="赛道标签总数"
-            value={<><span className="font-mono tabular-nums">{totalTags}</span> 个</>}
+            value={
+              <>
+                <span className="font-mono tabular-nums">{totalTags}</span> 个
+              </>
+            }
             detail="标签资产"
           />
           <TagMetricCard
             icon={<CheckCircle2 className="h-4 w-4" aria-hidden="true" />}
             label="打标覆盖率"
-            value={<><span className="font-mono tabular-nums">{coveragePercent}%</span> <span className="text-xs font-normal text-ink-muted"><span className="font-mono tabular-nums">({totalTaggedTopics}/{totalTopicCount})</span></span></>}
+            value={
+              <>
+                <span className="font-mono tabular-nums">{coveragePercent}%</span>{' '}
+                <span className="text-xs font-normal text-ink-muted">
+                  <span className="font-mono tabular-nums">
+                    ({totalTaggedTopics}/{totalTopicCount})
+                  </span>
+                </span>
+              </>
+            }
             detail="选题覆盖"
             tone="emerald"
           />
           <TagMetricCard
             icon={<TrendingUp className="h-4 w-4" aria-hidden="true" />}
             label="储备最丰富赛道"
-            value={visibleTags.length > 0
-              ? `#${[...visibleTags].sort((a, b) => (tagStatsMap.get(b.id)?.count || 0) - (tagStatsMap.get(a.id)?.count || 0))[0]?.name}`
-              : '暂无'}
+            value={
+              visibleTags.length > 0
+                ? `#${[...visibleTags].sort((a, b) => (tagStatsMap.get(b.id)?.count || 0) - (tagStatsMap.get(a.id)?.count || 0))[0]?.name}`
+                : '暂无'
+            }
             detail="选题储备"
             tone="accent"
           />
           <TagMetricCard
             icon={<PenTool className="h-4 w-4" aria-hidden="true" />}
             label="在写稿赛道数"
-            value={<><span className="font-mono tabular-nums">{visibleTags.filter((t) => (tagStatsMap.get(t.id)?.inProgressCount || 0) > 0).length}</span> 赛道</>}
+            value={
+              <>
+                <span className="font-mono tabular-nums">
+                  {visibleTags.filter(t => (tagStatsMap.get(t.id)?.inProgressCount || 0) > 0).length}
+                </span>{' '}
+                赛道
+              </>
+            }
             detail="活跃生产"
             tone="amber"
           />
         </section>
 
-        <div aria-label="标签与选题工作区" className="flex min-h-[34rem] min-w-0 flex-1 flex-col gap-5 md:min-h-0 md:flex-row md:overflow-hidden">
+        <div
+          aria-label="标签与选题工作区"
+          className="flex min-h-[34rem] min-w-0 flex-1 flex-col gap-5 md:min-h-0 md:flex-row md:overflow-hidden"
+        >
           {/* Left / Tag Selector List Panel (w-80) - Independent rounded card */}
           <div className="tags-sidebar-panel hidden w-full shrink-0 flex-col overflow-hidden rounded-2xl border border-line bg-surface shadow-subtle md:flex md:h-auto md:min-h-0 md:w-80">
             {/* Search Box */}
@@ -290,7 +363,7 @@ export const TagsView: React.FC<TagsViewProps> = ({
                   autoComplete="off"
                   placeholder="搜索标签名称..."
                   value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
+                  onChange={e => setSearchTerm(e.target.value)}
                   className="min-h-9 w-full rounded-xl border border-line/60 bg-canvas px-3 pl-9 text-xs text-ink placeholder:text-ink-muted focus:border-accent focus:outline-none"
                 />
               </div>
@@ -298,11 +371,11 @@ export const TagsView: React.FC<TagsViewProps> = ({
 
             {/* Tags List */}
             <FloatingScrollbar className="space-y-1 bg-surface p-3" wrapperClassName="min-h-0 flex-1">
-              {visibleTags.map((tag) => {
+              {visibleTags.map(tag => {
                 const isSelected = activeTag?.id === tag.id;
                 const stats = tagStatsMap.get(tag.id);
                 const count = stats?.count || 0;
-                const colorConf = TAG_COLOR_OPTIONS.find((c) => c.id === tag.color) || TAG_COLOR_OPTIONS[0];
+                const colorConf = TAG_COLOR_OPTIONS.find(c => c.id === tag.color) || TAG_COLOR_OPTIONS[0];
 
                 return (
                   <div
@@ -338,12 +411,10 @@ export const TagsView: React.FC<TagsViewProps> = ({
 
                     {/* Actions & Count Badge */}
                     <div className="flex shrink-0 items-center gap-1">
-                      <span className="px-1.5 py-0.5 font-mono text-xs tabular-nums text-ink-muted">
-                        {count}
-                      </span>
+                      <span className="px-1.5 py-0.5 font-mono text-xs tabular-nums text-ink-muted">{count}</span>
 
                       <button
-                        onClick={(e) => {
+                        onClick={e => {
                           e.stopPropagation();
                           openEditModal(tag);
                         }}
@@ -354,7 +425,7 @@ export const TagsView: React.FC<TagsViewProps> = ({
                       </button>
 
                       <button
-                        onClick={(e) => {
+                        onClick={e => {
                           e.stopPropagation();
                           setDeletingTag(tag);
                         }}
@@ -369,28 +440,47 @@ export const TagsView: React.FC<TagsViewProps> = ({
               })}
 
               {visibleTags.length === 0 && !tagsPageQuery.isFetching && (
-                <div className="px-3 py-8 text-center text-xs text-ink-muted">
-                  暂无匹配标签
-                </div>
+                <div className="px-3 py-8 text-center text-xs text-ink-muted">暂无匹配标签</div>
               )}
             </FloatingScrollbar>
             {totalTags > 0 && (
               <div className="flex shrink-0 items-center justify-center gap-2 border-t border-line/40 bg-surface px-3 py-2.5 text-2xs text-ink-muted">
-                <button type="button" disabled={tagPage <= 1 || tagsPageQuery.isFetching} onClick={() => setTagPage((current) => Math.max(1, current - 1))} className="rounded-lg border border-line/60 bg-canvas px-2 py-1 font-medium disabled:cursor-not-allowed disabled:opacity-40">上一页</button>
-                <span className="font-mono tabular-nums">{tagPage} / {Math.max(1, tagsPageQuery.data?.total_pages || 1)}</span>
-                <button type="button" disabled={tagPage >= (tagsPageQuery.data?.total_pages || 1) || tagsPageQuery.isFetching} onClick={() => setTagPage((current) => current + 1)} className="rounded-lg border border-line/60 bg-canvas px-2 py-1 font-medium disabled:cursor-not-allowed disabled:opacity-40">下一页</button>
+                <button
+                  type="button"
+                  disabled={tagPage <= 1 || tagsPageQuery.isFetching}
+                  onClick={() => setTagPage(current => Math.max(1, current - 1))}
+                  className="rounded-lg border border-line/60 bg-canvas px-2 py-1 font-medium disabled:cursor-not-allowed disabled:opacity-40"
+                >
+                  上一页
+                </button>
+                <span className="font-mono tabular-nums">
+                  {tagPage} / {Math.max(1, tagsPageQuery.data?.total_pages || 1)}
+                </span>
+                <button
+                  type="button"
+                  disabled={tagPage >= (tagsPageQuery.data?.total_pages || 1) || tagsPageQuery.isFetching}
+                  onClick={() => setTagPage(current => current + 1)}
+                  className="rounded-lg border border-line/60 bg-canvas px-2 py-1 font-medium disabled:cursor-not-allowed disabled:opacity-40"
+                >
+                  下一页
+                </button>
               </div>
             )}
           </div>
 
-          <div data-testid="tags-mobile-picker" className="shrink-0 rounded-2xl border border-line/60 bg-surface p-3.5 md:hidden">
+          <div
+            data-testid="tags-mobile-picker"
+            className="shrink-0 rounded-2xl border border-line/60 bg-surface p-3.5 md:hidden"
+          >
             <div className="mb-2 flex items-center justify-between gap-3">
-              <span id="mobile-tag-picker-label" className="text-xs font-bold text-ink">当前赛道</span>
+              <span id="mobile-tag-picker-label" className="text-xs font-bold text-ink">
+                当前赛道
+              </span>
               <span className="text-2xs text-ink-muted">共 {tags.length} 个标签</span>
             </div>
             <CustomSelect
               value={activeTag?.id || ''}
-              onChange={(value) => {
+              onChange={value => {
                 setSelectedTagId(value || null);
                 setTopicPage(1);
               }}
@@ -437,19 +527,31 @@ export const TagsView: React.FC<TagsViewProps> = ({
 
                   <div className="flex items-center justify-between gap-3 flex-wrap">
                     <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-ink-muted">
-                      <span>累计产出文案：<strong className="text-ink"><span className="font-mono tabular-nums">{activeStats?.wordsTotal || 0}</span> 字</strong></span>
+                      <span>
+                        累计产出文案：
+                        <strong className="text-ink">
+                          <span className="font-mono tabular-nums">{activeStats?.wordsTotal || 0}</span> 字
+                        </strong>
+                      </span>
                       <span>•</span>
-                      <span>平均故事评分：<strong className="text-ink"><span className="font-mono tabular-nums">{activeStats?.avgScore || 0} / 10</span> 分</strong></span>
+                      <span>
+                        平均故事评分：
+                        <strong className="text-ink">
+                          <span className="font-mono tabular-nums">{activeStats?.avgScore || 0} / 10</span> 分
+                        </strong>
+                      </span>
                     </div>
 
                     {/* Status Filter Micro-capsule */}
                     <div className="inline-flex items-center gap-1 rounded-full bg-control p-0.5 text-xs font-medium border border-line/30">
-                      {([
-                        { id: 'all', label: '全部' },
-                        { id: 'in_progress', label: '活跃生产中' },
-                        { id: 'pending', label: '待立项/收集箱' },
-                        { id: 'published', label: '已发布成片' },
-                      ] as const).map((tab) => (
+                      {(
+                        [
+                          { id: 'all', label: '全部' },
+                          { id: 'in_progress', label: '活跃生产中' },
+                          { id: 'pending', label: '待立项/收集箱' },
+                          { id: 'published', label: '已发布成片' },
+                        ] as const
+                      ).map(tab => (
                         <button
                           key={tab.id}
                           onClick={() => setTopicStatusFilter(tab.id)}
@@ -467,54 +569,81 @@ export const TagsView: React.FC<TagsViewProps> = ({
                 </div>
 
                 {/* Topics Grid */}
-              <FloatingScrollbar key={`${activeTag.id}-${topicStatusFilter}-${topicPage}`} data-testid="tags-topic-stream" className="mobile-scroll-reveal p-4 sm:p-6" wrapperClassName="min-h-0 flex-none md:flex-1">
-                <div className="grid min-w-0 grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
-                  {activeTagTopics.map((topic) => (
-                    <div
-                      key={topic.id}
-                      onClick={() => onSelectTopic(topic.id)}
-                      role="button"
-                      tabIndex={0}
-                      aria-label={`打开选题：${topic.title}`}
-                      onKeyDown={(event) => {
-                        if (event.key === 'Enter' || event.key === ' ') {
-                          event.preventDefault();
-                          onSelectTopic(topic.id);
-                        }
-                      }}
-                      className="mobile-motion-card group flex min-w-0 cursor-pointer flex-col gap-2.5 rounded-2xl border border-line/70 bg-surface p-4 transition-colors hover:bg-canvas focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-accent"
-                    >
-                      <div className="flex items-center justify-between gap-2">
-                        <StatusBadge status={topic.status} />
-                        <PriorityBadge priority={topic.priority} />
+                <FloatingScrollbar
+                  key={`${activeTag.id}-${topicStatusFilter}-${topicPage}`}
+                  data-testid="tags-topic-stream"
+                  className="mobile-scroll-reveal p-4 sm:p-6"
+                  wrapperClassName="min-h-0 flex-none md:flex-1"
+                >
+                  <div className="grid min-w-0 grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
+                    {activeTagTopics.map(topic => (
+                      <div
+                        key={topic.id}
+                        onClick={() => onSelectTopic(topic.id)}
+                        role="button"
+                        tabIndex={0}
+                        aria-label={`打开选题：${topic.title}`}
+                        onKeyDown={event => {
+                          if (event.key === 'Enter' || event.key === ' ') {
+                            event.preventDefault();
+                            onSelectTopic(topic.id);
+                          }
+                        }}
+                        className="mobile-motion-card group flex min-w-0 cursor-pointer flex-col gap-2.5 rounded-2xl border border-line/70 bg-surface p-4 transition-colors hover:bg-canvas focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-accent"
+                      >
+                        <div className="flex items-center justify-between gap-2">
+                          <StatusBadge status={topic.status} />
+                          <PriorityBadge priority={topic.priority} />
+                        </div>
+                        <h4 className="line-clamp-2 font-semibold text-base leading-snug text-ink transition-colors group-hover:text-accent">
+                          {topic.title}
+                        </h4>
                       </div>
-                      <h4 className="line-clamp-2 font-semibold text-base leading-snug text-ink transition-colors group-hover:text-accent">
-                        {topic.title}
-                      </h4>
-                    </div>
-                  ))}
+                    ))}
 
-                  {activeTagTopics.length === 0 && !tagTopicsPageQuery.isFetching && (
-                    <div className="col-span-full rounded-2xl border border-dashed border-line bg-surface py-16 text-center text-ink-muted">
-                      当前赛道在所选筛选条件下暂无选题
+                    {activeTagTopics.length === 0 && !tagTopicsPageQuery.isFetching && (
+                      <div className="col-span-full rounded-2xl border border-dashed border-line bg-surface py-16 text-center text-ink-muted">
+                        当前赛道在所选筛选条件下暂无选题
+                      </div>
+                    )}
+                  </div>
+                  {(tagTopicsPageQuery.data?.total || 0) > 0 && (
+                    <div className="mt-5 flex items-center justify-center gap-3 text-xs text-ink-muted">
+                      <button
+                        type="button"
+                        disabled={topicPage <= 1 || tagTopicsPageQuery.isFetching}
+                        onClick={() => setTopicPage(current => Math.max(1, current - 1))}
+                        className="min-h-9 rounded-lg border border-line bg-surface px-3 py-1.5 font-medium text-ink hover:bg-canvas disabled:cursor-not-allowed disabled:opacity-40"
+                      >
+                        上一页
+                      </button>
+                      <span>
+                        <span className="font-mono tabular-nums">
+                          {topicPage} / {Math.max(1, tagTopicsPageQuery.data?.total_pages || 1)}
+                        </span>{' '}
+                        · 共 <span className="font-mono tabular-nums">{tagTopicsPageQuery.data?.total || 0}</span>{' '}
+                        个选题
+                      </span>
+                      <button
+                        type="button"
+                        disabled={
+                          topicPage >= (tagTopicsPageQuery.data?.total_pages || 1) || tagTopicsPageQuery.isFetching
+                        }
+                        onClick={() => setTopicPage(current => current + 1)}
+                        className="min-h-9 rounded-lg border border-line bg-surface px-3 py-1.5 font-medium text-ink hover:bg-canvas disabled:cursor-not-allowed disabled:opacity-40"
+                      >
+                        下一页
+                      </button>
                     </div>
                   )}
-                </div>
-                {(tagTopicsPageQuery.data?.total || 0) > 0 && (
-                  <div className="mt-5 flex items-center justify-center gap-3 text-xs text-ink-muted">
-                    <button type="button" disabled={topicPage <= 1 || tagTopicsPageQuery.isFetching} onClick={() => setTopicPage((current) => Math.max(1, current - 1))} className="min-h-9 rounded-lg border border-line bg-surface px-3 py-1.5 font-medium text-ink hover:bg-canvas disabled:cursor-not-allowed disabled:opacity-40">上一页</button>
-                    <span><span className="font-mono tabular-nums">{topicPage} / {Math.max(1, tagTopicsPageQuery.data?.total_pages || 1)}</span> · 共 <span className="font-mono tabular-nums">{tagTopicsPageQuery.data?.total || 0}</span> 个选题</span>
-                    <button type="button" disabled={topicPage >= (tagTopicsPageQuery.data?.total_pages || 1) || tagTopicsPageQuery.isFetching} onClick={() => setTopicPage((current) => current + 1)} className="min-h-9 rounded-lg border border-line bg-surface px-3 py-1.5 font-medium text-ink hover:bg-canvas disabled:cursor-not-allowed disabled:opacity-40">下一页</button>
-                  </div>
-                )}
-              </FloatingScrollbar>
-            </>
-          ) : (
-            <div className="flex-1 flex items-center justify-center p-12 text-ink-muted text-sm">
-              请选择或创建一个赛道标签
-            </div>
-          )}
-        </div>
+                </FloatingScrollbar>
+              </>
+            ) : (
+              <div className="flex-1 flex items-center justify-center p-12 text-ink-muted text-sm">
+                请选择或创建一个赛道标签
+              </div>
+            )}
+          </div>
         </div>
       </div>
 
@@ -538,18 +667,16 @@ export const TagsView: React.FC<TagsViewProps> = ({
                 autoFocus
                 placeholder="例如：网红打假"
                 value={tagNameInput}
-                onChange={(e) => setTagNameInput(e.target.value)}
+                onChange={e => setTagNameInput(e.target.value)}
                 className="w-full pl-7 pr-3.5 py-2.5 bg-control border border-line rounded-xl text-sm text-ink placeholder:text-ink-muted focus:bg-surface focus:border-accent focus:outline-none"
               />
             </div>
           </div>
 
           <div>
-            <label className="block text-xs font-bold text-ink mb-1.5">
-              赛道标识色
-            </label>
+            <label className="block text-xs font-bold text-ink mb-1.5">赛道标识色</label>
             <div className="grid grid-cols-3 gap-2">
-              {TAG_COLOR_OPTIONS.map((c) => (
+              {TAG_COLOR_OPTIONS.map(c => (
                 <button
                   key={c.id}
                   type="button"

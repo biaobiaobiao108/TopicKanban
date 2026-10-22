@@ -50,8 +50,6 @@ export const ScriptLink = Link.extend({
     const href = String(node.attrs?.href || '');
     const title = String(node.attrs?.title || '');
     const label = helpers.renderChildren(node);
-    return title
-      ? `[${label}](${href} "${escapeMarkdownTitle(title)}")`
-      : `[${label}](${href})`;
+    return title ? `[${label}](${href} "${escapeMarkdownTitle(title)}")` : `[${label}](${href})`;
   },
 });

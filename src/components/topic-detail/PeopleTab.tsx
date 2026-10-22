@@ -13,7 +13,7 @@ import {
   CheckCircle2,
   Search,
   X,
-  UserPlus
+  UserPlus,
 } from 'lucide-react';
 import { sanitizeExternalHttpUrl } from '../../lib/urlSafety';
 
@@ -50,9 +50,9 @@ export const PeopleTab: React.FC<PeopleTabProps> = ({
   const [notes, setNotes] = useState('');
 
   // Filter relationships where both or either person is involved in this topic
-  const topicPersonIds = new Set(topicPeople.map((p) => p.id));
+  const topicPersonIds = new Set(topicPeople.map(p => p.id));
   const relevantRelationships = relationships.filter(
-    (r) => topicPersonIds.has(r.person_a_id) || topicPersonIds.has(r.person_b_id)
+    r => topicPersonIds.has(r.person_a_id) || topicPersonIds.has(r.person_b_id),
   );
 
   const openCreateModal = () => {
@@ -97,7 +97,7 @@ export const PeopleTab: React.FC<PeopleTabProps> = ({
 
       // If creating new, automatically attach to this topic
       if (!editingPerson) {
-        if (!topicPeople.some((p) => p.id === saved.id)) {
+        if (!topicPeople.some(p => p.id === saved.id)) {
           await onToggleTopicPerson(saved);
         }
       }
@@ -108,16 +108,17 @@ export const PeopleTab: React.FC<PeopleTabProps> = ({
 
   // Other people in library not yet attached to this topic
   const unattachedPeople = useMemo(
-    () => allPeople.filter((person) => !topicPersonIds.has(person.id)),
+    () => allPeople.filter(person => !topicPersonIds.has(person.id)),
     [allPeople, topicPeople],
   );
   const personSearchResults = useMemo(() => {
     const query = personSearch.trim().toLocaleLowerCase();
     if (!query) return { people: [] as Person[], total: 0 };
 
-    const matchedPeople = unattachedPeople.filter((person) =>
-      [person.name, person.aliases, person.identity, person.platform_accounts]
-        .some((value) => value?.toLocaleLowerCase().includes(query)),
+    const matchedPeople = unattachedPeople.filter(person =>
+      [person.name, person.aliases, person.identity, person.platform_accounts].some(value =>
+        value?.toLocaleLowerCase().includes(query),
+      ),
     );
     return {
       people: matchedPeople.slice(0, QUICK_ATTACH_LIMIT),
@@ -159,7 +160,7 @@ export const PeopleTab: React.FC<PeopleTabProps> = ({
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {topicPeople.map((person) => (
+          {topicPeople.map(person => (
             <div
               key={person.id}
               className="bg-surface rounded-2xl border border-line p-5 space-y-3 shadow-subtle flex flex-col justify-between hover:shadow-card hover:-translate-y-0.5 transition-all"
@@ -267,15 +268,20 @@ export const PeopleTab: React.FC<PeopleTabProps> = ({
             <div>
               <h4 className="text-sm font-bold text-ink">从全局人物库快速引入</h4>
             </div>
-            <span className="text-xs text-ink-muted">未关联 <span className="font-mono tabular-nums">{unattachedPeople.length}</span> 人</span>
+            <span className="text-xs text-ink-muted">
+              未关联 <span className="font-mono tabular-nums">{unattachedPeople.length}</span> 人
+            </span>
           </div>
 
           <label className="relative block">
-            <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-ink-muted" aria-hidden="true" />
+            <Search
+              className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-ink-muted"
+              aria-hidden="true"
+            />
             <input
               type="search"
               value={personSearch}
-              onChange={(event) => setPersonSearch(event.target.value)}
+              onChange={event => setPersonSearch(event.target.value)}
               aria-label="搜索未关联人物"
               autoComplete="off"
               placeholder="输入人物姓名、别名或身份..."
@@ -287,28 +293,26 @@ export const PeopleTab: React.FC<PeopleTabProps> = ({
             personSearchResults.people.length > 0 ? (
               <>
                 <div className="grid grid-cols-1 gap-2.5 sm:grid-cols-2 lg:grid-cols-3" aria-live="polite">
-                  {personSearchResults.people.map((person) => (
-              <div
-                key={person.id}
-                className="p-3 rounded-xl border border-line bg-control hover:bg-control flex items-center justify-between gap-2 transition-all"
-              >
-                <div className="min-w-0">
-                  <div className="font-bold text-xs text-ink truncate">👤 {person.name}</div>
-                  {person.identity && (
-                    <div className="text-3xs text-ink-muted truncate">{person.identity}</div>
-                  )}
-                </div>
+                  {personSearchResults.people.map(person => (
+                    <div
+                      key={person.id}
+                      className="p-3 rounded-xl border border-line bg-control hover:bg-control flex items-center justify-between gap-2 transition-all"
+                    >
+                      <div className="min-w-0">
+                        <div className="font-bold text-xs text-ink truncate">👤 {person.name}</div>
+                        {person.identity && <div className="text-3xs text-ink-muted truncate">{person.identity}</div>}
+                      </div>
 
-                <button
-                  type="button"
-                  onClick={() => onToggleTopicPerson(person)}
-                  aria-label={`引入人物：${person.name}`}
-                  className="shrink-0 flex items-center gap-1 text-xs font-semibold text-accent-dark bg-accent-soft hover:bg-surface px-2.5 py-1 rounded-xl transition-colors cursor-pointer"
-                >
-                  <Plus className="w-3 h-3" />
-                  <span>引入</span>
-                </button>
-              </div>
+                      <button
+                        type="button"
+                        onClick={() => onToggleTopicPerson(person)}
+                        aria-label={`引入人物：${person.name}`}
+                        className="shrink-0 flex items-center gap-1 text-xs font-semibold text-accent-dark bg-accent-soft hover:bg-surface px-2.5 py-1 rounded-xl transition-colors cursor-pointer"
+                      >
+                        <Plus className="w-3 h-3" />
+                        <span>引入</span>
+                      </button>
+                    </div>
                   ))}
                 </div>
                 {personSearchResults.total > QUICK_ATTACH_LIMIT && (
@@ -337,7 +341,7 @@ export const PeopleTab: React.FC<PeopleTabProps> = ({
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-          {relevantRelationships.map((rel) => (
+          {relevantRelationships.map(rel => (
             <div
               key={rel.id}
               className="bg-surface rounded-2xl border border-line p-4 flex items-center justify-between shadow-subtle"
@@ -350,9 +354,7 @@ export const PeopleTab: React.FC<PeopleTabProps> = ({
                   </span>
                   <span>{rel.person_b_name || '人物B'}</span>
                 </div>
-                {rel.description && (
-                  <p className="text-xs text-ink-muted">{rel.description}</p>
-                )}
+                {rel.description && <p className="text-xs text-ink-muted">{rel.description}</p>}
               </div>
             </div>
           ))}
@@ -382,7 +384,7 @@ export const PeopleTab: React.FC<PeopleTabProps> = ({
               autoFocus
               placeholder="例如：大胃袋良子"
               value={name}
-              onChange={(e) => setName(e.target.value)}
+              onChange={e => setName(e.target.value)}
               className="w-full px-3.5 py-2 bg-control border border-line rounded-xl text-sm text-ink placeholder:text-ink-muted focus:bg-surface focus:border-accent focus:outline-none"
             />
           </div>
@@ -394,7 +396,7 @@ export const PeopleTab: React.FC<PeopleTabProps> = ({
                 type="text"
                 placeholder="例如：吃播网红 / 探店博主"
                 value={identity}
-                onChange={(e) => setIdentity(e.target.value)}
+                onChange={e => setIdentity(e.target.value)}
                 className="w-full px-3.5 py-2 bg-control border border-line rounded-xl text-sm text-ink placeholder:text-ink-muted focus:bg-surface focus:border-accent focus:outline-none"
               />
             </div>
@@ -405,7 +407,7 @@ export const PeopleTab: React.FC<PeopleTabProps> = ({
                 type="text"
                 placeholder="例如：良子、峨眉山战神"
                 value={aliases}
-                onChange={(e) => setAliases(e.target.value)}
+                onChange={e => setAliases(e.target.value)}
                 className="w-full px-3.5 py-2 bg-control border border-line rounded-xl text-sm text-ink placeholder:text-ink-muted focus:bg-surface focus:border-accent focus:outline-none"
               />
             </div>
@@ -417,7 +419,7 @@ export const PeopleTab: React.FC<PeopleTabProps> = ({
               type="text"
               placeholder="例如：抖音 @大胃袋良子 (120w)、B站同名"
               value={platformAccounts}
-              onChange={(e) => setPlatformAccounts(e.target.value)}
+              onChange={e => setPlatformAccounts(e.target.value)}
               className="w-full px-3.5 py-2 bg-control border border-line rounded-xl text-sm text-ink placeholder:text-ink-muted focus:bg-surface focus:border-accent focus:outline-none"
             />
           </div>
@@ -428,7 +430,7 @@ export const PeopleTab: React.FC<PeopleTabProps> = ({
               type="text"
               placeholder="例如：“今天这顿必须拿下！”"
               value={quotes}
-              onChange={(e) => setQuotes(e.target.value)}
+              onChange={e => setQuotes(e.target.value)}
               className="w-full px-3.5 py-2 bg-control border border-line rounded-xl text-sm text-ink placeholder:text-ink-muted focus:bg-surface focus:border-accent focus:outline-none"
             />
           </div>
@@ -439,7 +441,7 @@ export const PeopleTab: React.FC<PeopleTabProps> = ({
               rows={3}
               placeholder="简要概括该人物的生平经历、公共事件、人设演变..."
               value={description}
-              onChange={(e) => setDescription(e.target.value)}
+              onChange={e => setDescription(e.target.value)}
               className="w-full px-3.5 py-2 bg-control border border-line rounded-xl text-sm text-ink placeholder:text-ink-muted focus:bg-surface focus:border-accent focus:outline-none"
             />
           </div>

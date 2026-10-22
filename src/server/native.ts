@@ -218,32 +218,34 @@ function compilePath(path: string): { matcher: RegExp; params: string[]; score: 
   const params: string[] = [];
   const segments = path.split('/').filter(Boolean);
   let score = 0;
-  const pattern = segments.map((segment) => {
-    if (segment === '*') {
-      params.push('*');
-      score += 1;
-      return '(.*)';
-    }
-    if (segment.startsWith(':')) {
-      params.push(segment.slice(1));
-      score += 2;
-      return '([^/]+)';
-    }
-    score += 3;
-    return segment.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-  }).join('/');
+  const pattern = segments
+    .map(segment => {
+      if (segment === '*') {
+        params.push('*');
+        score += 1;
+        return '(.*)';
+      }
+      if (segment.startsWith(':')) {
+        params.push(segment.slice(1));
+        score += 2;
+        return '([^/]+)';
+      }
+      score += 3;
+      return segment.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    })
+    .join('/');
   return { matcher: new RegExp(`^/${pattern}/?$`), params, score };
 }
 
 function matchRoute(routes: RegisteredRoute[], method: string, pathname: string): RouteMatch | null {
-  const candidates = routes
-    .filter((route) => route.method === method)
-    .sort((a, b) => b.score - a.score);
+  const candidates = routes.filter(route => route.method === method).sort((a, b) => b.score - a.score);
   for (const route of candidates) {
     const match = route.matcher.exec(pathname);
     if (!match) continue;
     const params: Record<string, string> = {};
-    route.params.forEach((name, index) => { params[name] = match[index + 1] || ''; });
+    route.params.forEach((name, index) => {
+      params[name] = match[index + 1] || '';
+    });
     return { route, params };
   }
   return null;
@@ -278,9 +280,7 @@ export class NativeApp {
   use(pathOrMiddleware: string | NativeMiddleware, ...handlers: NativeMiddleware[]): this {
     const isBareHandler = typeof pathOrMiddleware === 'function';
     const path = isBareHandler ? '*' : pathOrMiddleware;
-    const middlewareHandlers = isBareHandler
-      ? [pathOrMiddleware as NativeMiddleware, ...handlers]
-      : handlers;
+    const middlewareHandlers = isBareHandler ? [pathOrMiddleware as NativeMiddleware, ...handlers] : handlers;
     if (middlewareHandlers.length === 0) return this;
     this.middlewares.push({ matcher: compileMiddlewareMatcher(path), handlers: middlewareHandlers });
     return this;
@@ -315,20 +315,21 @@ export class NativeApp {
 
   private async dispatch(request: BunRequestLike, match: RouteMatch, requestIp?: string): Promise<Response> {
     const forwardedRealIp = request.headers.get('x-real-ip')?.trim();
-    const clientIp = this.env.CLIENT_IP
+    const clientIp =
+      this.env.CLIENT_IP ||
       // X-Forwarded-For is an append-only proxy chain in common configurations
       // (including $proxy_add_x_forwarded_for), so its leftmost value can be
       // supplied by the client. Use the single-hop header that the edge proxy
       // must overwrite instead.
-      || (this.env.TRUST_PROXY_HEADERS ? forwardedRealIp : undefined)
-      || requestIp
-      || 'unknown';
+      (this.env.TRUST_PROXY_HEADERS ? forwardedRealIp : undefined) ||
+      requestIp ||
+      'unknown';
     const context = new NativeContext(request, { ...this.env, CLIENT_IP: clientIp });
     context.header('Cache-Control', 'no-store');
     const pathname = context.req.path;
     const matchedMiddlewares = this.middlewares
-      .filter((middleware) => middleware.matcher.test(pathname))
-      .flatMap((middleware) => middleware.handlers);
+      .filter(middleware => middleware.matcher.test(pathname))
+      .flatMap(middleware => middleware.handlers);
     const routeHandlers = [...matchedMiddlewares, ...match.route.handlers];
     const startedAt = performance.now();
     let index = -1;
@@ -354,21 +355,30 @@ export class NativeApp {
   }
 
   request(input: string | URL, init?: RequestInit): Promise<Response> {
-    const url = typeof input === 'string' && input.startsWith('/')
-      ? `http://localhost${input}`
-      : input;
+    const url = typeof input === 'string' && input.startsWith('/') ? `http://localhost${input}` : input;
     return this.fetch(new Request(url, init));
   }
 
-  toBunRoutes(finalize: (response: Response) => Response = (response) => response): Record<string, Record<string, (request: BunRequestLike, server: BunServerLike) => Promise<Response>>> {
-    const grouped = new Map<string, Record<string, (request: BunRequestLike, server: BunServerLike) => Promise<Response>>>();
+  toBunRoutes(
+    finalize: (response: Response) => Response = response => response,
+  ): Record<string, Record<string, (request: BunRequestLike, server: BunServerLike) => Promise<Response>>> {
+    const grouped = new Map<
+      string,
+      Record<string, (request: BunRequestLike, server: BunServerLike) => Promise<Response>>
+    >();
     for (const route of this.routes) {
       const methodHandlers = grouped.get(route.path) || {};
       methodHandlers[route.method] = async (request, server) => {
-        return finalize(await this.dispatch(request, {
-          route,
-          params: request.params || {},
-        }, server.requestIP?.(request)?.address));
+        return finalize(
+          await this.dispatch(
+            request,
+            {
+              route,
+              params: request.params || {},
+            },
+            server.requestIP?.(request)?.address,
+          ),
+        );
       };
       grouped.set(route.path, methodHandlers);
     }

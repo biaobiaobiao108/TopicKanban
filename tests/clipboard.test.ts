@@ -26,7 +26,11 @@ describe('copyTextToClipboard', () => {
   it('resolves true when the Async Clipboard API succeeds', async () => {
     let copiedText = '';
     replaceGlobal('navigator', {
-      clipboard: { writeText: async (text: string) => { copiedText = text; } },
+      clipboard: {
+        writeText: async (text: string) => {
+          copiedText = text;
+        },
+      },
     });
 
     await expect(copyTextToClipboard('复制内容')).resolves.toBe(true);
@@ -35,7 +39,11 @@ describe('copyTextToClipboard', () => {
 
   it('resolves false when Safari rejects a clipboard write', async () => {
     replaceGlobal('navigator', {
-      clipboard: { writeText: async () => { throw new Error('NotAllowedError'); } },
+      clipboard: {
+        writeText: async () => {
+          throw new Error('NotAllowedError');
+        },
+      },
     });
 
     await expect(copyTextToClipboard('文案')).resolves.toBe(false);
@@ -51,7 +59,9 @@ describe('copyTextToClipboard', () => {
       style: {} as Record<string, string>,
       setAttribute: () => undefined,
       focus: () => undefined,
-      select: () => { copiedText = textarea.value; },
+      select: () => {
+        copiedText = textarea.value;
+      },
       setSelectionRange: () => undefined,
       remove: () => undefined,
     };

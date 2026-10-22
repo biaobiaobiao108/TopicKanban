@@ -1,16 +1,10 @@
 import type { Database } from 'bun:sqlite';
-import type {
-  Draft,
-  DraftCitation,
-  PublishPackageRecord,
-  TopicReport,
-} from '../../types';
+import type { Draft, DraftCitation, PublishPackageRecord, TopicReport } from '../../types';
 import { createId } from '../apiShared';
 import { command, execute, readAll, readOne } from './shared';
 
 export type TopicReportSaveResult =
-  | { kind: 'saved'; report: TopicReport }
-  | { kind: 'conflict'; current: TopicReport | null };
+  { kind: 'saved'; report: TopicReport } | { kind: 'conflict'; current: TopicReport | null };
 
 export async function loadTopicReport(db: Database, topicId: string): Promise<TopicReport | null> {
   return readOne<TopicReport>(db, 'SELECT * FROM topic_reports WHERE topic_id = ?', [topicId]);
@@ -19,7 +13,7 @@ export async function loadTopicReport(db: Database, topicId: string): Promise<To
 export async function saveTopicReport(
   db: Database,
   topicId: string,
-  body: Partial<TopicReport> & { base_version?: number }
+  body: Partial<TopicReport> & { base_version?: number },
 ): Promise<TopicReportSaveResult> {
   const existing = await loadTopicReport(db, topicId);
   const baseVersion = Number(body.base_version ?? 0);
@@ -39,17 +33,37 @@ export async function saveTopicReport(
     updated_at: now,
   };
   const statement = existing
-    ? command(db, `UPDATE topic_reports SET title = ?, content_markdown = ?, content_json = ?, content_html = ?, word_count = ?,
-        version = version + 1, updated_at = ? WHERE topic_id = ? AND version = ?`, [
-      report.title, report.content_markdown, report.content_json, report.content_html, report.word_count,
-      report.updated_at, topicId, baseVersion,
-    ])
-    : command(db, `INSERT INTO topic_reports
+    ? command(
+        db,
+        `UPDATE topic_reports SET title = ?, content_markdown = ?, content_json = ?, content_html = ?, word_count = ?,
+        version = version + 1, updated_at = ? WHERE topic_id = ? AND version = ?`,
+        [
+          report.title,
+          report.content_markdown,
+          report.content_json,
+          report.content_html,
+          report.word_count,
+          report.updated_at,
+          topicId,
+          baseVersion,
+        ],
+      )
+    : command(
+        db,
+        `INSERT INTO topic_reports
         (id, topic_id, title, content_markdown, content_json, content_html, word_count, version, updated_at)
-        VALUES (?, ?, ?, ?, ?, ?, ?, 1, ?) ON CONFLICT(topic_id) DO NOTHING`, [
-      report.id, report.topic_id, report.title, report.content_markdown, report.content_json, report.content_html,
-      report.word_count, report.updated_at,
-    ]);
+        VALUES (?, ?, ?, ?, ?, ?, ?, 1, ?) ON CONFLICT(topic_id) DO NOTHING`,
+        [
+          report.id,
+          report.topic_id,
+          report.title,
+          report.content_markdown,
+          report.content_json,
+          report.content_html,
+          report.word_count,
+          report.updated_at,
+        ],
+      );
   const result = statement.statement.run(...statement.values);
   if (result.changes === 0) {
     return { kind: 'conflict', current: await loadTopicReport(db, topicId) };
@@ -59,12 +73,23 @@ export async function saveTopicReport(
 }
 
 export function topicReportStatement(db: Database, report: TopicReport) {
-  return command(db, `INSERT INTO topic_reports (
+  return command(
+    db,
+    `INSERT INTO topic_reports (
     id, topic_id, title, content_markdown, content_json, content_html, word_count, version, updated_at
-  ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`, [
-    report.id, report.topic_id, report.title, report.content_markdown, report.content_json, report.content_html,
-    report.word_count, report.version || 1, report.updated_at,
-  ]);
+  ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+    [
+      report.id,
+      report.topic_id,
+      report.title,
+      report.content_markdown,
+      report.content_json,
+      report.content_html,
+      report.word_count,
+      report.version || 1,
+      report.updated_at,
+    ],
+  );
 }
 
 export function normalizePublishPackageRecord(row: Record<string, unknown> | null): PublishPackageRecord | null {
@@ -88,14 +113,12 @@ export async function loadDraft(db: Database, topicId: string): Promise<Draft | 
   return readOne<Draft>(db, 'SELECT * FROM drafts WHERE topic_id = ?', [topicId]);
 }
 
-export type DraftSaveResult =
-  | { kind: 'saved'; draft: Draft }
-  | { kind: 'conflict'; current: Draft | null };
+export type DraftSaveResult = { kind: 'saved'; draft: Draft } | { kind: 'conflict'; current: Draft | null };
 
 export async function saveDraft(
   db: Database,
   topicId: string,
-  body: Partial<Draft> & { base_version?: number }
+  body: Partial<Draft> & { base_version?: number },
 ): Promise<DraftSaveResult> {
   const existing = await loadDraft(db, topicId);
   const baseVersion = Number(body.base_version ?? 0);
@@ -115,17 +138,37 @@ export async function saveDraft(
     updated_at: now,
   };
   const statement = existing
-    ? command(db, `UPDATE drafts SET title = ?, content_markdown = ?, content_json = ?, content_html = ?, word_count = ?,
-        version = version + 1, updated_at = ? WHERE topic_id = ? AND version = ?`, [
-      draft.title, draft.content_markdown, draft.content_json, draft.content_html, draft.word_count,
-      draft.updated_at, topicId, baseVersion,
-    ])
-    : command(db, `INSERT INTO drafts
+    ? command(
+        db,
+        `UPDATE drafts SET title = ?, content_markdown = ?, content_json = ?, content_html = ?, word_count = ?,
+        version = version + 1, updated_at = ? WHERE topic_id = ? AND version = ?`,
+        [
+          draft.title,
+          draft.content_markdown,
+          draft.content_json,
+          draft.content_html,
+          draft.word_count,
+          draft.updated_at,
+          topicId,
+          baseVersion,
+        ],
+      )
+    : command(
+        db,
+        `INSERT INTO drafts
         (id, topic_id, title, content_markdown, content_json, content_html, word_count, version, updated_at)
-        VALUES (?, ?, ?, ?, ?, ?, ?, 1, ?) ON CONFLICT(topic_id) DO NOTHING`, [
-      draft.id, draft.topic_id, draft.title, draft.content_markdown, draft.content_json, draft.content_html,
-      draft.word_count, draft.updated_at,
-    ]);
+        VALUES (?, ?, ?, ?, ?, ?, ?, 1, ?) ON CONFLICT(topic_id) DO NOTHING`,
+        [
+          draft.id,
+          draft.topic_id,
+          draft.title,
+          draft.content_markdown,
+          draft.content_json,
+          draft.content_html,
+          draft.word_count,
+          draft.updated_at,
+        ],
+      );
   const result = statement.statement.run(...statement.values);
   if (result.changes === 0) {
     return { kind: 'conflict', current: await loadDraft(db, topicId) };
@@ -134,8 +177,7 @@ export async function saveDraft(
 }
 
 export type PublishPackageSaveResult =
-  | { kind: 'saved'; publishPackage: PublishPackageRecord }
-  | { kind: 'conflict'; current: PublishPackageRecord | null };
+  { kind: 'saved'; publishPackage: PublishPackageRecord } | { kind: 'conflict'; current: PublishPackageRecord | null };
 
 export async function loadPublishPackage(db: Database, topicId: string): Promise<PublishPackageRecord | null> {
   const row = readOne<Record<string, unknown>>(db, 'SELECT * FROM publish_packages WHERE topic_id = ?', [topicId]);
@@ -145,7 +187,7 @@ export async function loadPublishPackage(db: Database, topicId: string): Promise
 export async function savePublishPackage(
   db: Database,
   topicId: string,
-  body: Record<string, unknown>
+  body: Record<string, unknown>,
 ): Promise<PublishPackageSaveResult> {
   const existing = readOne<Record<string, unknown>>(db, 'SELECT * FROM publish_packages WHERE topic_id = ?', [topicId]);
   const baseVersion = Number(body.base_version ?? 0);
@@ -168,19 +210,23 @@ export async function savePublishPackage(
     now,
   ];
   const statement = existing
-    ? command(db, `UPDATE publish_packages SET
+    ? command(
+        db,
+        `UPDATE publish_packages SET
         title_simplified = ?, title_traditional = ?, description_simplified = ?, description_traditional = ?,
         title_traditional_auto = ?, description_traditional_auto = ?, content_json = ?, version = ?, updated_at = ?
-        WHERE topic_id = ? AND version = ?`, [
-      ...values.slice(0, 7), nextVersion, values[7], topicId, existingVersion,
-    ])
-    : command(db, `INSERT INTO publish_packages (
+        WHERE topic_id = ? AND version = ?`,
+        [...values.slice(0, 7), nextVersion, values[7], topicId, existingVersion],
+      )
+    : command(
+        db,
+        `INSERT INTO publish_packages (
         id, topic_id, version, title_simplified, title_traditional, description_simplified, description_traditional,
         title_traditional_auto, description_traditional_auto, content_json, updated_at
       ) VALUES (?, ?, 1, ?, ?, ?, ?, ?, ?, ?, ?)
-      ON CONFLICT(topic_id) DO NOTHING`, [
-      createId('publish-package'), topicId, ...values.slice(0, 7), values[7],
-    ]);
+      ON CONFLICT(topic_id) DO NOTHING`,
+        [createId('publish-package'), topicId, ...values.slice(0, 7), values[7]],
+      );
   const result = statement.statement.run(...statement.values);
 
   if (result.changes === 0) {
@@ -194,18 +240,30 @@ export async function savePublishPackage(
 }
 
 export async function loadCitations(db: Database, topicId: string): Promise<DraftCitation[]> {
-  return readAll<DraftCitation>(db, 'SELECT * FROM draft_citations WHERE topic_id = ? ORDER BY created_at DESC', [topicId]);
+  return readAll<DraftCitation>(db, 'SELECT * FROM draft_citations WHERE topic_id = ? ORDER BY created_at DESC', [
+    topicId,
+  ]);
 }
 
 export async function insertCitation(db: Database, citation: DraftCitation): Promise<void> {
-  execute(db, `INSERT INTO draft_citations (
+  execute(
+    db,
+    `INSERT INTO draft_citations (
     id, topic_id, reference_type, reference_id, reference_title, reference_snapshot,
     quoted_text, verification_status, created_at
-  ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`, [
-    citation.id, citation.topic_id, citation.reference_type, citation.reference_id,
-    citation.reference_title, citation.reference_snapshot, citation.quoted_text,
-    citation.verification_status, citation.created_at,
-  ]);
+  ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+    [
+      citation.id,
+      citation.topic_id,
+      citation.reference_type,
+      citation.reference_id,
+      citation.reference_title,
+      citation.reference_snapshot,
+      citation.quoted_text,
+      citation.verification_status,
+      citation.created_at,
+    ],
+  );
 }
 
 export async function deleteCitation(db: Database, id: string): Promise<void> {
@@ -213,33 +271,65 @@ export async function deleteCitation(db: Database, id: string): Promise<void> {
 }
 
 export function draftStatement(db: Database, draft: Draft) {
-  return command(db, `INSERT INTO drafts (
+  return command(
+    db,
+    `INSERT INTO drafts (
     id, topic_id, title, content_markdown, content_json, content_html, word_count, version, updated_at
-  ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`, [
-    draft.id, draft.topic_id, draft.title, draft.content_markdown, draft.content_json, draft.content_html,
-    draft.word_count, draft.version || 1, draft.updated_at,
-  ]);
+  ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+    [
+      draft.id,
+      draft.topic_id,
+      draft.title,
+      draft.content_markdown,
+      draft.content_json,
+      draft.content_html,
+      draft.word_count,
+      draft.version || 1,
+      draft.updated_at,
+    ],
+  );
 }
 
 export function citationStatement(db: Database, citation: DraftCitation) {
-  return command(db, `INSERT INTO draft_citations (
+  return command(
+    db,
+    `INSERT INTO draft_citations (
     id, topic_id, reference_type, reference_id, reference_title, reference_snapshot,
     quoted_text, verification_status, created_at
-  ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`, [
-    citation.id, citation.topic_id, citation.reference_type, citation.reference_id,
-    citation.reference_title, citation.reference_snapshot, citation.quoted_text,
-    citation.verification_status, citation.created_at,
-  ]);
+  ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+    [
+      citation.id,
+      citation.topic_id,
+      citation.reference_type,
+      citation.reference_id,
+      citation.reference_title,
+      citation.reference_snapshot,
+      citation.quoted_text,
+      citation.verification_status,
+      citation.created_at,
+    ],
+  );
 }
 
 export function publishPackageStatement(db: Database, publishPackage: PublishPackageRecord) {
-  return command(db, `INSERT INTO publish_packages (
+  return command(
+    db,
+    `INSERT INTO publish_packages (
     id, topic_id, version, title_simplified, title_traditional, description_simplified, description_traditional,
     title_traditional_auto, description_traditional_auto, content_json, updated_at
-  ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`, [
-    publishPackage.id, publishPackage.topic_id, publishPackage.version, publishPackage.title_simplified,
-    publishPackage.title_traditional, publishPackage.description_simplified, publishPackage.description_traditional,
-    publishPackage.title_traditional_auto ? 1 : 0, publishPackage.description_traditional_auto ? 1 : 0,
-    publishPackage.content_json, publishPackage.updated_at,
-  ]);
+  ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+    [
+      publishPackage.id,
+      publishPackage.topic_id,
+      publishPackage.version,
+      publishPackage.title_simplified,
+      publishPackage.title_traditional,
+      publishPackage.description_simplified,
+      publishPackage.description_traditional,
+      publishPackage.title_traditional_auto ? 1 : 0,
+      publishPackage.description_traditional_auto ? 1 : 0,
+      publishPackage.content_json,
+      publishPackage.updated_at,
+    ],
+  );
 }

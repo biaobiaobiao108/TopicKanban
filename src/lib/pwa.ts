@@ -52,19 +52,15 @@ export function syncPwaChrome(theme: AppTheme, resolvedDark = false): void {
   if (typeof document === 'undefined') return;
 
   const isDark = theme === 'dark' || (theme === 'system' && resolvedDark);
-  const themeColor = theme === 'system'
-    ? (isDark ? PWA_SURFACE_COLORS.dark : PWA_SURFACE_COLORS.light)
-    : PWA_SURFACE_COLORS[theme];
+  const themeColor =
+    theme === 'system' ? (isDark ? PWA_SURFACE_COLORS.dark : PWA_SURFACE_COLORS.light) : PWA_SURFACE_COLORS[theme];
 
   ensureMeta('theme-color').setAttribute('content', themeColor);
-  ensureMeta('apple-mobile-web-app-status-bar-style').setAttribute(
-    'content',
-    isDark ? 'black-translucent' : 'default',
-  );
+  ensureMeta('apple-mobile-web-app-status-bar-style').setAttribute('content', isDark ? 'black-translucent' : 'default');
 }
 
 function notifySubscribers(): void {
-  subscribers.forEach((subscriber) => subscriber());
+  subscribers.forEach(subscriber => subscriber());
 }
 
 function isIOSDevice(): boolean {
@@ -78,18 +74,14 @@ function isIOSDevice(): boolean {
 export function detectMacSafari(userAgent: string, platform: string, maxTouchPoints: number): boolean {
   const isIPadDesktopMode = platform === 'MacIntel' && maxTouchPoints > 1;
   const isMac = /Macintosh|Mac OS X/i.test(userAgent) || platform === 'MacIntel';
-  const isSafari = /Safari/i.test(userAgent)
-    && !/(Chrome|Chromium|CriOS|Edg|OPR|Firefox|FxiOS)/i.test(userAgent);
+  const isSafari = /Safari/i.test(userAgent) && !/(Chrome|Chromium|CriOS|Edg|OPR|Firefox|FxiOS)/i.test(userAgent);
   return isMac && !isIPadDesktopMode && isSafari;
 }
 
 function isStandaloneDisplay(): boolean {
   if (typeof window === 'undefined' || typeof navigator === 'undefined') return false;
   const standaloneNavigator = navigator as Navigator & { standalone?: boolean };
-  return Boolean(
-    (window.matchMedia?.(standaloneMediaQuery).matches)
-    || standaloneNavigator.standalone === true,
-  );
+  return Boolean(window.matchMedia?.(standaloneMediaQuery).matches || standaloneNavigator.standalone === true);
 }
 
 function isSecurePwaContext(): boolean {
@@ -101,11 +93,12 @@ function isSecurePwaContext(): boolean {
 
 function readSnapshot(): PwaInstallSnapshot {
   const isIOS = isIOSDevice();
-  const isMacSafari = typeof navigator !== 'undefined'
-    && detectMacSafari(navigator.userAgent || '', navigator.platform || '', navigator.maxTouchPoints || 0);
+  const isMacSafari =
+    typeof navigator !== 'undefined' &&
+    detectMacSafari(navigator.userAgent || '', navigator.platform || '', navigator.maxTouchPoints || 0);
   const isStandalone = isStandaloneDisplay();
-  const isSupported = typeof navigator !== 'undefined'
-    && ('serviceWorker' in navigator || isIOS || deferredInstallPrompt !== null);
+  const isSupported =
+    typeof navigator !== 'undefined' && ('serviceWorker' in navigator || isIOS || deferredInstallPrompt !== null);
   const canPrompt = deferredInstallPrompt !== null;
   return {
     canPrompt,
@@ -121,14 +114,15 @@ function readSnapshot(): PwaInstallSnapshot {
 function refreshSnapshot(): void {
   const next = readSnapshot();
   if (
-    next.canPrompt === snapshot.canPrompt
-    && next.isIOS === snapshot.isIOS
-    && next.isMacSafari === snapshot.isMacSafari
-    && next.isInstallable === snapshot.isInstallable
-    && next.isSecureContext === snapshot.isSecureContext
-    && next.isStandalone === snapshot.isStandalone
-    && next.isSupported === snapshot.isSupported
-  ) return;
+    next.canPrompt === snapshot.canPrompt &&
+    next.isIOS === snapshot.isIOS &&
+    next.isMacSafari === snapshot.isMacSafari &&
+    next.isInstallable === snapshot.isInstallable &&
+    next.isSecureContext === snapshot.isSecureContext &&
+    next.isStandalone === snapshot.isStandalone &&
+    next.isSupported === snapshot.isSupported
+  )
+    return;
   snapshot = next;
   notifySubscribers();
 }
@@ -137,7 +131,7 @@ export function initializePwa(): void {
   if (initialized || typeof window === 'undefined') return;
   initialized = true;
 
-  window.addEventListener('beforeinstallprompt', (event) => {
+  window.addEventListener('beforeinstallprompt', event => {
     const installEvent = event as BeforeInstallPromptEvent;
     if (typeof installEvent.prompt !== 'function') return;
     event.preventDefault();
@@ -186,18 +180,16 @@ export async function promptPwaInstall(): Promise<PwaInstallOutcome> {
 }
 
 export function registerPwaServiceWorker(): void {
-  if (
-    typeof window === 'undefined'
-    || !('serviceWorker' in navigator)
-    || !isSecurePwaContext()
-  ) return;
+  if (typeof window === 'undefined' || !('serviceWorker' in navigator) || !isSecurePwaContext()) return;
 
-  void navigator.serviceWorker.register('/sw.js', {
-    scope: '/',
-    updateViaCache: 'none',
-  }).catch((error: unknown) => {
-    console.warn('PWA Service Worker registration failed:', error);
-  });
+  void navigator.serviceWorker
+    .register('/sw.js', {
+      scope: '/',
+      updateViaCache: 'none',
+    })
+    .catch((error: unknown) => {
+      console.warn('PWA Service Worker registration failed:', error);
+    });
 }
 
 export function isPwaInstallBannerDismissed(): boolean {

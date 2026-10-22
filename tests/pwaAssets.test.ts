@@ -6,10 +6,12 @@ let server: Awaited<ReturnType<typeof startServer>> | null = null;
 let databasePath = '';
 
 async function cleanTestDatabase(): Promise<void> {
-  await Promise.all(['', '-wal', '-shm', '-journal'].map(async (suffix) => {
-    const file = Bun.file(`${databasePath}${suffix}`);
-    if (await file.exists()) await file.unlink();
-  }));
+  await Promise.all(
+    ['', '-wal', '-shm', '-journal'].map(async suffix => {
+      const file = Bun.file(`${databasePath}${suffix}`);
+      if (await file.exists()) await file.unlink();
+    }),
+  );
 }
 
 async function readPngDimensions(fileName: string): Promise<{ width: number; height: number }> {
@@ -51,11 +53,11 @@ describe('PWA static assets', () => {
   it('defines an installable standalone manifest and exact-size icons', async () => {
     const indexHtml = await Bun.file('index.html').text();
     expect(indexHtml).toContain('<link rel="manifest" href="./public/manifest.webmanifest" />');
-    expect(indexHtml).toContain('<link rel="apple-touch-icon" sizes="180x180" href="./public/apple-touch-icon.png?v=2" />');
+    expect(indexHtml).toContain(
+      '<link rel="apple-touch-icon" sizes="180x180" href="./public/apple-touch-icon.png?v=2" />',
+    );
 
-    const manifest = JSON.parse(
-      await Bun.file('public/manifest.webmanifest').text(),
-    ) as {
+    const manifest = JSON.parse(await Bun.file('public/manifest.webmanifest').text()) as {
       name?: string;
       short_name?: string;
       start_url?: string;
@@ -81,7 +83,10 @@ describe('PWA static assets', () => {
   });
 
   it('serves the manifest and service worker with update-safe headers', async () => {
-    databasePath = joinPath(Bun.env.TEMP || Bun.env.TMPDIR || process.cwd(), `topic-kanban-pwa-${crypto.randomUUID()}.db`);
+    databasePath = joinPath(
+      Bun.env.TEMP || Bun.env.TMPDIR || process.cwd(),
+      `topic-kanban-pwa-${crypto.randomUUID()}.db`,
+    );
     server = await startServer({ development: true, port: 0, databasePath });
     const baseUrl = `http://localhost:${server.port}`;
 
@@ -90,7 +95,7 @@ describe('PWA static assets', () => {
     expect(manifestResponse.headers.get('content-type')).toContain('application/manifest+json');
     expect(manifestResponse.headers.get('cache-control')).toContain('no-cache');
 
-    const manifest = await manifestResponse.json() as { icons: Array<{ src: string }> };
+    const manifest = (await manifestResponse.json()) as { icons: Array<{ src: string }> };
     for (const icon of manifest.icons) {
       const response = await fetch(new URL(icon.src, baseUrl));
       expect(response.status).toBe(200);
@@ -109,7 +114,7 @@ describe('PWA static assets', () => {
 
   it('keeps API responses outside the service worker cache boundary', async () => {
     const serviceWorkerSource = await Bun.file('public/sw.js').text();
-    expect(serviceWorkerSource).toContain("if (isApiRequest(url)) return;");
+    expect(serviceWorkerSource).toContain('if (isApiRequest(url)) return;');
     expect(serviceWorkerSource).toContain("url.pathname.startsWith('/api/')");
     expect(serviceWorkerSource).toContain("const CACHE_NAME = 'topic-kanban-shell-v1';");
   });

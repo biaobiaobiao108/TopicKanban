@@ -3,29 +3,30 @@ const PRECACHE_URLS = [];
 const MAX_RUNTIME_ASSETS = 80;
 const PRECACHED_PATHS = new Set(PRECACHE_URLS);
 
-const isSameOrigin = (request) => new URL(request.url).origin === self.location.origin;
-const isApiRequest = (url) => url.pathname === '/api' || url.pathname.startsWith('/api/');
-const isStaticAsset = (url) => (
-  url.pathname.startsWith('/assets/')
-  || url.pathname === '/manifest.webmanifest'
-  || url.pathname === '/icon-192.png'
-  || url.pathname === '/icon-512.png'
-  || url.pathname === '/apple-touch-icon.png'
-  || url.pathname === '/favicon.ico'
-);
+const isSameOrigin = request => new URL(request.url).origin === self.location.origin;
+const isApiRequest = url => url.pathname === '/api' || url.pathname.startsWith('/api/');
+const isStaticAsset = url =>
+  url.pathname.startsWith('/assets/') ||
+  url.pathname === '/manifest.webmanifest' ||
+  url.pathname === '/icon-192.png' ||
+  url.pathname === '/icon-512.png' ||
+  url.pathname === '/apple-touch-icon.png' ||
+  url.pathname === '/favicon.ico';
 
 async function cacheResponse(request, response) {
   if (!response || !response.ok || response.type !== 'basic') return response;
   const cache = await caches.open(CACHE_NAME);
   await cache.put(request, response.clone());
-  const assetRequests = (await cache.keys()).filter((cachedRequest) => {
+  const assetRequests = (await cache.keys()).filter(cachedRequest => {
     const cachedPath = new URL(cachedRequest.url).pathname;
     return cachedPath.startsWith('/assets/') && !PRECACHED_PATHS.has(cachedPath);
   });
   if (assetRequests.length > MAX_RUNTIME_ASSETS) {
-    await Promise.all(assetRequests
-      .slice(0, assetRequests.length - MAX_RUNTIME_ASSETS)
-      .map((cachedRequest) => cache.delete(cachedRequest)));
+    await Promise.all(
+      assetRequests
+        .slice(0, assetRequests.length - MAX_RUNTIME_ASSETS)
+        .map(cachedRequest => cache.delete(cachedRequest)),
+    );
   }
   return response;
 }
@@ -39,12 +40,14 @@ async function networkFirstNavigation(request) {
     }
     return response;
   } catch {
-    return (await cache.match('/index.html'))
-      || (await cache.match('/'))
-      || new Response('当前处于离线状态，请恢复网络后重试。', {
+    return (
+      (await cache.match('/index.html')) ||
+      (await cache.match('/')) ||
+      new Response('当前处于离线状态，请恢复网络后重试。', {
         status: 503,
         headers: { 'Content-Type': 'text/plain; charset=utf-8' },
-      });
+      })
+    );
   }
 }
 
@@ -58,25 +61,31 @@ async function cacheFirstAsset(request) {
   }
 }
 
-self.addEventListener('install', (event) => {
-  event.waitUntil((async () => {
-    const cache = await caches.open(CACHE_NAME);
-    await cache.addAll(PRECACHE_URLS);
-    await self.skipWaiting();
-  })());
+self.addEventListener('install', event => {
+  event.waitUntil(
+    (async () => {
+      const cache = await caches.open(CACHE_NAME);
+      await cache.addAll(PRECACHE_URLS);
+      await self.skipWaiting();
+    })(),
+  );
 });
 
-self.addEventListener('activate', (event) => {
-  event.waitUntil((async () => {
-    const cacheNames = await caches.keys();
-    await Promise.all(cacheNames
-      .filter((name) => name.startsWith('topic-kanban-shell-') && name !== CACHE_NAME)
-      .map((name) => caches.delete(name)));
-    await self.clients.claim();
-  })());
+self.addEventListener('activate', event => {
+  event.waitUntil(
+    (async () => {
+      const cacheNames = await caches.keys();
+      await Promise.all(
+        cacheNames
+          .filter(name => name.startsWith('topic-kanban-shell-') && name !== CACHE_NAME)
+          .map(name => caches.delete(name)),
+      );
+      await self.clients.claim();
+    })(),
+  );
 });
 
-self.addEventListener('fetch', (event) => {
+self.addEventListener('fetch', event => {
   const request = event.request;
   if (request.method !== 'GET' || !isSameOrigin(request)) return;
 

@@ -64,34 +64,38 @@ function resetFailedLogin(ip: string): void {
 }
 
 export function registerSystemRoutes(app: NativeApp): void {
-  app.post('/auth/login', bodyLimit({
-    maxSize: MAX_LOGIN_REQUEST_BYTES,
-    onError: (c) => c.json({ success: false, message: '请求体过大' }, 413),
-  }), async (c) => {
-    try {
-      const clientIp = c.env.CLIENT_IP || 'unknown';
+  app.post(
+    '/auth/login',
+    bodyLimit({
+      maxSize: MAX_LOGIN_REQUEST_BYTES,
+      onError: c => c.json({ success: false, message: '请求体过大' }, 413),
+    }),
+    async c => {
+      try {
+        const clientIp = c.env.CLIENT_IP || 'unknown';
 
-      if (!checkLoginRateLimit(clientIp)) {
-        return c.json({ success: false, message: '登录尝试过于频繁，请 1 分钟后再试' }, 429);
-      }
+        if (!checkLoginRateLimit(clientIp)) {
+          return c.json({ success: false, message: '登录尝试过于频繁，请 1 分钟后再试' }, 429);
+        }
 
-      const { password } = await c.req.json<{ password?: string }>();
-      const correctPassword = c.env.APP_PASSWORD;
-      if (!correctPassword) {
-        return c.json({ success: false, message: '访问密码尚未配置，请设置 APP_PASSWORD' }, 503);
+        const { password } = await c.req.json<{ password?: string }>();
+        const correctPassword = c.env.APP_PASSWORD;
+        if (!correctPassword) {
+          return c.json({ success: false, message: '访问密码尚未配置，请设置 APP_PASSWORD' }, 503);
+        }
+        if (!password || !timingSafeEqualString(password, correctPassword)) {
+          recordFailedLogin(clientIp);
+          return c.json({ success: false, message: '密码错误' }, 401);
+        }
+        resetFailedLogin(clientIp);
+        return c.json({ success: true, token: await createToken(correctPassword) });
+      } catch (error) {
+        return jsonError(c, error);
       }
-      if (!password || !timingSafeEqualString(password, correctPassword)) {
-        recordFailedLogin(clientIp);
-        return c.json({ success: false, message: '密码错误' }, 401);
-      }
-      resetFailedLogin(clientIp);
-      return c.json({ success: true, token: await createToken(correctPassword) });
-    } catch (error) {
-      return jsonError(c, error);
-    }
-  });
+    },
+  );
 
-  app.get('/health', async (c) => {
+  app.get('/health', async c => {
     try {
       const db = requireDb(c);
       const tablesCount = await countDatabaseTables(db);
@@ -115,19 +119,24 @@ export function registerSystemRoutes(app: NativeApp): void {
     }
   });
 
-  app.get('/bootstrap', async (c) => {
+  app.get('/bootstrap', async c => {
     try {
       const scope = c.req.query('scope');
       const db = requireDb(c);
-      return c.json(await loadBootstrap(db, scope === 'core'
-        ? { includePeople: false, includeRelationships: false, includePublished: false, includeTags: false }
-        : undefined));
+      return c.json(
+        await loadBootstrap(
+          db,
+          scope === 'core'
+            ? { includePeople: false, includeRelationships: false, includePublished: false, includeTags: false }
+            : undefined,
+        ),
+      );
     } catch (error) {
       return jsonError(c, error);
     }
   });
 
-  app.get('/system/legacy-settings', (c) => {
+  app.get('/system/legacy-settings', c => {
     try {
       return c.json({ settings: loadLegacyAppSettings(requireDb(c)) });
     } catch (error) {
@@ -135,7 +144,7 @@ export function registerSystemRoutes(app: NativeApp): void {
     }
   });
 
-  app.get('/backup', async (c) => {
+  app.get('/backup', async c => {
     try {
       const data = await exportAllData(requireDb(c));
       if (c.req.query('format') === 'download') {
@@ -150,25 +159,29 @@ export function registerSystemRoutes(app: NativeApp): void {
     }
   });
 
-  app.post('/backup/export', bodyLimit({
-    maxSize: MAX_BACKUP_EXPORT_SETTINGS_BYTES,
-    onError: (c) => c.json({ error: 'Backup export settings request body is too large' }, 413),
-  }), async (c) => {
-    try {
-      const parsed = parseWithZod(backupExportRequestSchema, await c.req.json<unknown>());
-      if (!parsed.success) return jsonValidationError(c, parsed.error, parsed.issues);
-      const data = await exportAllData(requireDb(c));
-      const serialized = JSON.stringify({ ...data, settings: parsed.data.settings }, null, 2);
-      return c.body(serialized, 200, {
-        'Content-Type': 'application/json; charset=UTF-8',
-        'Content-Disposition': 'attachment; filename="topic-kanban-backup.json"',
-      });
-    } catch (error) {
-      return jsonError(c, error);
-    }
-  });
+  app.post(
+    '/backup/export',
+    bodyLimit({
+      maxSize: MAX_BACKUP_EXPORT_SETTINGS_BYTES,
+      onError: c => c.json({ error: 'Backup export settings request body is too large' }, 413),
+    }),
+    async c => {
+      try {
+        const parsed = parseWithZod(backupExportRequestSchema, await c.req.json<unknown>());
+        if (!parsed.success) return jsonValidationError(c, parsed.error, parsed.issues);
+        const data = await exportAllData(requireDb(c));
+        const serialized = JSON.stringify({ ...data, settings: parsed.data.settings }, null, 2);
+        return c.body(serialized, 200, {
+          'Content-Type': 'application/json; charset=UTF-8',
+          'Content-Disposition': 'attachment; filename="topic-kanban-backup.json"',
+        });
+      } catch (error) {
+        return jsonError(c, error);
+      }
+    },
+  );
 
-  app.get('/backup/scripts', async (c) => {
+  app.get('/backup/scripts', async c => {
     try {
       return c.json(await exportScriptsData(requireDb(c)));
     } catch (error) {
@@ -176,24 +189,28 @@ export function registerSystemRoutes(app: NativeApp): void {
     }
   });
 
-  app.put('/backup', bodyLimit({
-    maxSize: MAX_BACKUP_REQUEST_BYTES,
-    onError: (c) => c.json({ error: 'Backup request body is too large' }, 413),
-  }), async (c) => {
-    try {
-      const { data } = await c.req.json<{ data?: unknown }>();
-      const validation = validateBackupData(data);
-      if (!validation.success) return c.json({ error: validation.error }, 400);
-      await replaceAllData(requireDb(c), validation.data);
-      invalidatePublishedAnalyticsCache();
-      return c.json({ success: true });
-    } catch (error) {
-      if (error instanceof BackupImportLimitError) return c.json({ error: error.message }, 413);
-      return jsonError(c, error);
-    }
-  });
+  app.put(
+    '/backup',
+    bodyLimit({
+      maxSize: MAX_BACKUP_REQUEST_BYTES,
+      onError: c => c.json({ error: 'Backup request body is too large' }, 413),
+    }),
+    async c => {
+      try {
+        const { data } = await c.req.json<{ data?: unknown }>();
+        const validation = validateBackupData(data);
+        if (!validation.success) return c.json({ error: validation.error }, 400);
+        await replaceAllData(requireDb(c), validation.data);
+        invalidatePublishedAnalyticsCache();
+        return c.json({ success: true });
+      } catch (error) {
+        if (error instanceof BackupImportLimitError) return c.json({ error: error.message }, 413);
+        return jsonError(c, error);
+      }
+    },
+  );
 
-  app.get('/system/storage', async (c) => {
+  app.get('/system/storage', async c => {
     try {
       const stats = await getStorageStats(requireDb(c));
       return c.json(stats);
@@ -202,7 +219,7 @@ export function registerSystemRoutes(app: NativeApp): void {
     }
   });
 
-  app.post('/system/storage/vacuum', async (c) => {
+  app.post('/system/storage/vacuum', async c => {
     try {
       const result = await vacuumDatabase(requireDb(c));
       return c.json(result);
@@ -210,5 +227,4 @@ export function registerSystemRoutes(app: NativeApp): void {
       return jsonError(c, error);
     }
   });
-
 }

@@ -42,19 +42,20 @@ const BLOCKED_STATIC_FILE_NAMES = new Set([
   'yarn.lock',
 ]);
 
-const BLOCKED_STATIC_FILE_SUFFIX = /(?:\.map(?:\.[a-z0-9_-]+)?|\.pem|\.key|\.crt|\.cer|\.p12|\.pfx|\.der|\.jks|\.env(?:\.[^/]*)?|\.db(?:-(?:wal|shm|journal))?|\.sqlite\d?(?:-(?:wal|shm|journal))?|\.sql|\.log|\.bak|\.backup|\.old|\.orig|\.swp|\.tmp)$/i;
+const BLOCKED_STATIC_FILE_SUFFIX =
+  /(?:\.map(?:\.[a-z0-9_-]+)?|\.pem|\.key|\.crt|\.cer|\.p12|\.pfx|\.der|\.jks|\.env(?:\.[^/]*)?|\.db(?:-(?:wal|shm|journal))?|\.sqlite\d?(?:-(?:wal|shm|journal))?|\.sql|\.log|\.bak|\.backup|\.old|\.orig|\.swp|\.tmp)$/i;
 
 function isSafeStaticFilePath(relativePath: string): boolean {
   const normalizedPath = relativePath.replace(/\\/g, '/');
   if (!normalizedPath || normalizedPath.startsWith('/') || /^[a-z]:\//i.test(normalizedPath)) return false;
 
   const segments = normalizedPath.split('/');
-  if (segments.some((segment) => !segment || segment === '.' || segment === '..' || segment.startsWith('.'))) return false;
+  if (segments.some(segment => !segment || segment === '.' || segment === '..' || segment.startsWith('.')))
+    return false;
 
   const fileName = segments[segments.length - 1]?.toLowerCase();
   if (!fileName) return false;
-  return !BLOCKED_STATIC_FILE_NAMES.has(fileName)
-    && !BLOCKED_STATIC_FILE_SUFFIX.test(fileName);
+  return !BLOCKED_STATIC_FILE_NAMES.has(fileName) && !BLOCKED_STATIC_FILE_SUFFIX.test(fileName);
 }
 
 export function resolveServerPort(configuredPort?: string, explicitPort?: number): number {
@@ -81,9 +82,14 @@ export async function startServer(options: ServerOptions = {}) {
   const distPath = resolvePath(process.cwd(), 'dist');
   const hasDist = await Bun.file(joinPath(distPath, 'index.html')).exists();
 
-  const isDevelopment = options.development !== undefined
-    ? options.development
-    : (Bun.env.NODE_ENV === 'development' ? true : (Bun.env.NODE_ENV === 'production' ? false : !hasDist));
+  const isDevelopment =
+    options.development !== undefined
+      ? options.development
+      : Bun.env.NODE_ENV === 'development'
+        ? true
+        : Bun.env.NODE_ENV === 'production'
+          ? false
+          : !hasDist;
   const isProduction = !isDevelopment;
   const port = resolveServerPort(Bun.env.PORT, options.port);
   const dataDir = Bun.env.DATA_DIR || resolvePath(process.cwd(), 'data');
@@ -120,7 +126,10 @@ export async function startServer(options: ServerOptions = {}) {
     headers.set('Permissions-Policy', 'camera=(), microphone=(), geolocation=()');
     headers.set('Cross-Origin-Opener-Policy', 'same-origin-allow-popups');
     headers.set('Cross-Origin-Resource-Policy', 'same-origin');
-    headers.set('Content-Security-Policy', "default-src 'self'; script-src 'self' https://api.bilibili.com; worker-src 'self'; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src 'self' data: blob: https:; connect-src 'self' https://api.bilibili.com https://www.youtube.com; object-src 'none'; base-uri 'self'; frame-ancestors 'none'; form-action 'self'");
+    headers.set(
+      'Content-Security-Policy',
+      "default-src 'self'; script-src 'self' https://api.bilibili.com; worker-src 'self'; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src 'self' data: blob: https:; connect-src 'self' https://api.bilibili.com https://www.youtube.com; object-src 'none'; base-uri 'self'; frame-ancestors 'none'; form-action 'self'",
+    );
     return response;
   }
 
@@ -144,13 +153,13 @@ export async function startServer(options: ServerOptions = {}) {
   }
 
   function assetPathFromRequest(request: Request): string | null {
-  const pathname = new URL(request.url).pathname;
-  if (!pathname.startsWith('/assets/')) return null;
-  try {
-    return decodeURIComponent(pathname.slice('/assets/'.length));
-  } catch {
-    return null;
-  }
+    const pathname = new URL(request.url).pathname;
+    if (!pathname.startsWith('/assets/')) return null;
+    try {
+      return decodeURIComponent(pathname.slice('/assets/'.length));
+    } catch {
+      return null;
+    }
   }
 
   const frontendRoutes: Record<string, unknown> = { ...(options.frontendRoutes ?? {}) };
@@ -161,9 +170,11 @@ export async function startServer(options: ServerOptions = {}) {
         const relativePath = assetPathFromRequest(request);
         const assetPath = relativePath === null ? null : safeAssetPath(relativePath);
         if (!assetPath) return withSecurityHeaders(new Response('Forbidden', { status: 403 }));
-        return withSecurityHeaders(await serveFile(assetPath, {
-          'Cache-Control': 'public, max-age=31536000, immutable',
-        }));
+        return withSecurityHeaders(
+          await serveFile(assetPath, {
+            'Cache-Control': 'public, max-age=31536000, immutable',
+          }),
+        );
       },
     };
   }
@@ -173,18 +184,19 @@ export async function startServer(options: ServerOptions = {}) {
   const staticFiles = await discoverStaticFiles(staticRoot);
 
   for (const fileName of staticFiles) {
-    const staticHeaders: HeadersInit = fileName === 'manifest.webmanifest'
-      ? {
-          'Content-Type': 'application/manifest+json; charset=utf-8',
-          'Cache-Control': 'no-cache, no-store, must-revalidate',
-        }
-      : fileName === 'sw.js'
+    const staticHeaders: HeadersInit =
+      fileName === 'manifest.webmanifest'
         ? {
-            'Content-Type': 'application/javascript; charset=utf-8',
+            'Content-Type': 'application/manifest+json; charset=utf-8',
             'Cache-Control': 'no-cache, no-store, must-revalidate',
-            'Service-Worker-Allowed': '/',
           }
-        : {};
+        : fileName === 'sw.js'
+          ? {
+              'Content-Type': 'application/javascript; charset=utf-8',
+              'Cache-Control': 'no-cache, no-store, must-revalidate',
+              'Service-Worker-Allowed': '/',
+            }
+          : {};
     frontendRoutes[`/${fileName}`] = {
       GET: () => serveFile(joinPath(staticRoot, fileName), staticHeaders).then(withSecurityHeaders),
     };
@@ -208,11 +220,13 @@ export async function startServer(options: ServerOptions = {}) {
       if (!hasDist) {
         return withSecurityHeaders(new Response('喵爪看板 API Server is running. Frontend dist not built yet.'));
       }
-      return withSecurityHeaders(await serveFile(joinPath(distPath, 'index.html'), {
-        'Cache-Control': 'no-cache, no-store, must-revalidate',
-        Pragma: 'no-cache',
-        Expires: '0',
-      }));
+      return withSecurityHeaders(
+        await serveFile(joinPath(distPath, 'index.html'), {
+          'Cache-Control': 'no-cache, no-store, must-revalidate',
+          Pragma: 'no-cache',
+          Expires: '0',
+        }),
+      );
     },
     port,
   });

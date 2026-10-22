@@ -23,10 +23,7 @@ export function applyTheme(theme: AppTheme = 'light'): void {
   }
 
   // Clear specific theme class tokens
-  root.classList.remove(
-    'theme-warm-paper',
-    'theme-light'
-  );
+  root.classList.remove('theme-warm-paper', 'theme-light');
 
   if (theme === 'dark') {
     root.classList.add('dark');

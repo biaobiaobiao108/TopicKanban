@@ -54,9 +54,11 @@ export const ConfirmDialog: React.FC<ConfirmDialogProps> = ({
         return;
       }
       if (e.key !== 'Tab' || !dialogRef.current) return;
-      const focusable = Array.from(dialogRef.current.querySelectorAll<HTMLElement>(
-        'button:not([disabled]), [href], input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])'
-      ));
+      const focusable = Array.from(
+        dialogRef.current.querySelectorAll<HTMLElement>(
+          'button:not([disabled]), [href], input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])',
+        ),
+      );
       if (focusable.length === 0) {
         e.preventDefault();
         dialogRef.current.focus({ preventScroll: true });
@@ -102,9 +104,7 @@ export const ConfirmDialog: React.FC<ConfirmDialogProps> = ({
       }
     } catch (error) {
       showToast({
-        message: error instanceof Error && error.message.trim()
-          ? `操作失败：${error.message}`
-          : '操作失败，请稍后重试',
+        message: error instanceof Error && error.message.trim() ? `操作失败：${error.message}` : '操作失败，请稍后重试',
         tone: 'error',
       });
     } finally {
@@ -185,6 +185,6 @@ export const ConfirmDialog: React.FC<ConfirmDialogProps> = ({
         </div>
       </div>
     </div>,
-    document.body
+    document.body,
   );
 };

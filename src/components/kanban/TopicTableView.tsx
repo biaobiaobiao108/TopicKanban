@@ -60,10 +60,25 @@ interface TableViewPreferences {
 }
 
 const TABLE_VIEW_KEY = 'topic_kanban_table_view_v1';
-const ALL_COLUMN_KEYS: ColumnKey[] = ['status', 'priority', 'current_action', 'tags', 'people', 'score', 'words', 'updated_at'];
+const ALL_COLUMN_KEYS: ColumnKey[] = [
+  'status',
+  'priority',
+  'current_action',
+  'tags',
+  'people',
+  'score',
+  'words',
+  'updated_at',
+];
 const COLUMN_LABELS: Record<ColumnKey, string> = {
-  status: '阶段状态', priority: '优先级', current_action: '当前行动', tags: '分类标签',
-  people: '关联人物', score: '故事评分', words: '字数 / 时长', updated_at: '更新时间',
+  status: '阶段状态',
+  priority: '优先级',
+  current_action: '当前行动',
+  tags: '分类标签',
+  people: '关联人物',
+  score: '故事评分',
+  words: '字数 / 时长',
+  updated_at: '更新时间',
 };
 
 function readTablePreferences(): TableViewPreferences {
@@ -74,10 +89,18 @@ function readTablePreferences(): TableViewPreferences {
       sortCol: saved.sortCol || 'updated_at',
       sortDir: saved.sortDir || 'desc',
       density: saved.density || 'comfortable',
-      visibleColumns: saved.visibleColumns?.filter((column): column is ColumnKey => ALL_COLUMN_KEYS.includes(column as ColumnKey)) || ALL_COLUMN_KEYS,
+      visibleColumns:
+        saved.visibleColumns?.filter((column): column is ColumnKey => ALL_COLUMN_KEYS.includes(column as ColumnKey)) ||
+        ALL_COLUMN_KEYS,
     };
   } catch {
-    return { archiveScope: 'active', sortCol: 'updated_at', sortDir: 'desc', density: 'comfortable', visibleColumns: ALL_COLUMN_KEYS };
+    return {
+      archiveScope: 'active',
+      sortCol: 'updated_at',
+      sortDir: 'desc',
+      density: 'comfortable',
+      visibleColumns: ALL_COLUMN_KEYS,
+    };
   }
 }
 
@@ -109,14 +132,11 @@ function TableStatusCell({
   const triggerRef = useRef<HTMLButtonElement>(null);
 
   return (
-    <td
-      onClick={(e) => e.stopPropagation()}
-      className={`${rowPadding} px-3`}
-    >
+    <td onClick={e => e.stopPropagation()} className={`${rowPadding} px-3`}>
       <button
         ref={triggerRef}
         type="button"
-        onClick={() => setIsOpen((prev) => !prev)}
+        onClick={() => setIsOpen(prev => !prev)}
         className="flex items-center gap-1 hover:opacity-80 transition-opacity cursor-pointer"
         aria-label="修改阶段"
       >
@@ -134,7 +154,7 @@ function TableStatusCell({
         ariaLabel="修改选题阶段"
         className="p-1.5 space-y-0.5"
       >
-        {COLUMNS.map((col) => (
+        {COLUMNS.map(col => (
           <button
             key={col.status}
             type="button"
@@ -201,10 +221,15 @@ export const TopicTableView: React.FC<TopicTableViewProps> = ({
   useEffect(() => setSelectedIds(new Set()), [archiveScope, page, searchTerm, sortCol, sortDir]);
   const pageQuery = useQuery({
     queryKey: ['topics-page', archiveScope, page, searchTerm, sortCol, sortDir],
-    queryFn: () => fetchTopicPage({
-      scope: archiveScope, page, page_size: 50, q: searchTerm,
-      sort: sortCol, direction: sortDir,
-    }),
+    queryFn: () =>
+      fetchTopicPage({
+        scope: archiveScope,
+        page,
+        page_size: 50,
+        q: searchTerm,
+        sort: sortCol,
+        direction: sortDir,
+      }),
   });
   useEffect(() => {
     const totalPages = Math.max(1, pageQuery.data?.total_pages || 1);
@@ -218,12 +243,14 @@ export const TopicTableView: React.FC<TopicTableViewProps> = ({
     if (archiveScope !== 'trash') return;
     let cancelled = false;
     void purgeExpiredTrash()
-      .then((result) => {
+      .then(result => {
         if (cancelled || result.purged_count === 0) return;
         void pageQuery.refetch();
       })
       .catch(() => undefined);
-    return () => { cancelled = true; };
+    return () => {
+      cancelled = true;
+    };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [archiveScope]);
 
@@ -257,7 +284,7 @@ export const TopicTableView: React.FC<TopicTableViewProps> = ({
 
   const handleHeaderClick = (col: SortCol) => {
     if (sortCol === col) {
-      setSortDir((prev) => (prev === 'asc' ? 'desc' : 'asc'));
+      setSortDir(prev => (prev === 'asc' ? 'desc' : 'asc'));
     } else {
       setSortCol(col);
       setSortDir('desc');
@@ -273,7 +300,6 @@ export const TopicTableView: React.FC<TopicTableViewProps> = ({
     });
   };
 
-
   // 1. Scoped topics pre-sorted and paginated by the SQLite database
   const scopedTopics = useMemo(() => {
     return pageQuery.data?.items || [];
@@ -281,13 +307,13 @@ export const TopicTableView: React.FC<TopicTableViewProps> = ({
 
   // Directly use the backend sorted topics to avoid double sorting
   const sortedTopics = scopedTopics;
-  const allVisibleSelected = sortedTopics.length > 0 && sortedTopics.every((topic) => selectedIds.has(topic.id));
+  const allVisibleSelected = sortedTopics.length > 0 && sortedTopics.every(topic => selectedIds.has(topic.id));
 
   const toggleSelectAll = () => {
-    setSelectedIds((previous) => {
+    setSelectedIds(previous => {
       const next = new Set(previous);
-      if (allVisibleSelected) sortedTopics.forEach((topic) => next.delete(topic.id));
-      else sortedTopics.forEach((topic) => next.add(topic.id));
+      if (allVisibleSelected) sortedTopics.forEach(topic => next.delete(topic.id));
+      else sortedTopics.forEach(topic => next.add(topic.id));
       return next;
     });
   };
@@ -296,7 +322,7 @@ export const TopicTableView: React.FC<TopicTableViewProps> = ({
     if (selectedIds.size === 0) return;
     setIsBulkUpdating(true);
     try {
-      await Promise.all([...selectedIds].map((topicId) => updateTopicStatus(topicId, bulkStatus)));
+      await Promise.all([...selectedIds].map(topicId => updateTopicStatus(topicId, bulkStatus)));
       setSelectedIds(new Set());
     } finally {
       setIsBulkUpdating(false);
@@ -339,16 +365,17 @@ export const TopicTableView: React.FC<TopicTableViewProps> = ({
       tone: 'warning',
       onConfirm: async () => {
         await deleteTopic(topic.id);
-        setConfirmDialog((prev) => ({ ...prev, isOpen: false }));
+        setConfirmDialog(prev => ({ ...prev, isOpen: false }));
         showToast({ message: `已将选题「${topic.title}」移入回收站`, tone: 'info' });
       },
     });
   };
 
   const requestPermanentlyDeleteTopic = (topic: Topic) => {
-    const linkedVideoNotice = topic.status === 'published'
-      ? '\n\n该选题已标记为「已发布」，其已发布视频记录与播放、点赞、投币等互动数据也会一并删除，分析看板中的历史数据将同步消失。'
-      : '';
+    const linkedVideoNotice =
+      topic.status === 'published'
+        ? '\n\n该选题已标记为「已发布」，其已发布视频记录与播放、点赞、投币等互动数据也会一并删除，分析看板中的历史数据将同步消失。'
+        : '';
     setConfirmDialog({
       isOpen: true,
       title: '永久删除选题',
@@ -357,7 +384,7 @@ export const TopicTableView: React.FC<TopicTableViewProps> = ({
       tone: 'danger',
       onConfirm: async () => {
         await permanentlyDeleteTopic(topic.id);
-        setConfirmDialog((prev) => ({ ...prev, isOpen: false }));
+        setConfirmDialog(prev => ({ ...prev, isOpen: false }));
         showToast({ message: `已永久删除选题「${topic.title}」`, tone: 'info' });
       },
     });
@@ -380,7 +407,7 @@ export const TopicTableView: React.FC<TopicTableViewProps> = ({
             await deleteTopic(id);
           }
           setSelectedIds(new Set());
-          setConfirmDialog((prev) => ({ ...prev, isOpen: false }));
+          setConfirmDialog(prev => ({ ...prev, isOpen: false }));
           showToast({ message: `已将选中的 ${count} 个选题移入回收站`, tone: 'info' });
         } finally {
           setIsBulkUpdating(false);
@@ -410,7 +437,7 @@ export const TopicTableView: React.FC<TopicTableViewProps> = ({
             }
           }
           setSelectedIds(new Set());
-          setConfirmDialog((prev) => ({ ...prev, isOpen: false }));
+          setConfirmDialog(prev => ({ ...prev, isOpen: false }));
           showToast({ message: `已永久删除选中的 ${count} 个选题`, tone: 'info' });
         } finally {
           setIsBulkUpdating(false);
@@ -433,13 +460,13 @@ export const TopicTableView: React.FC<TopicTableViewProps> = ({
           if (onEmptyTrash) {
             await onEmptyTrash();
           } else {
-            const ids = trashedTopics.map((t) => t.id);
+            const ids = trashedTopics.map(t => t.id);
             for (const id of ids) {
               await permanentlyDeleteTopic(id);
             }
           }
           setSelectedIds(new Set());
-          setConfirmDialog((prev) => ({ ...prev, isOpen: false }));
+          setConfirmDialog(prev => ({ ...prev, isOpen: false }));
           showToast({ message: `已清空回收站`, tone: 'info' });
         } finally {
           setIsBulkUpdating(false);
@@ -450,7 +477,12 @@ export const TopicTableView: React.FC<TopicTableViewProps> = ({
 
   const renderSortIndicator = (col: SortCol) => {
     if (sortCol !== col) {
-      return <ArrowUpDown aria-hidden="true" className="w-3 h-3 text-ink-faint opacity-0 group-hover:opacity-100 transition-opacity" />;
+      return (
+        <ArrowUpDown
+          aria-hidden="true"
+          className="w-3 h-3 text-ink-faint opacity-0 group-hover:opacity-100 transition-opacity"
+        />
+      );
     }
     return sortDir === 'asc' ? (
       <ArrowUp aria-hidden="true" className="w-3 h-3 text-accent" />
@@ -465,7 +497,11 @@ export const TopicTableView: React.FC<TopicTableViewProps> = ({
       onClick={() => handleHeaderClick(col)}
       aria-label={`按${label}排序${sortCol === col ? `，当前${sortDir === 'asc' ? '升序' : '降序'}` : ''}`}
       className={`group flex min-h-8 w-full items-center gap-1.5 rounded-md px-1 py-1 transition-colors hover:bg-canvas focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus-ring ${
-        alignment === 'center' ? 'justify-center text-center' : alignment === 'right' ? 'justify-end text-right' : 'justify-start text-left'
+        alignment === 'center'
+          ? 'justify-center text-center'
+          : alignment === 'right'
+            ? 'justify-end text-right'
+            : 'justify-start text-left'
       }`}
     >
       <span>{label}</span>
@@ -509,9 +545,7 @@ export const TopicTableView: React.FC<TopicTableViewProps> = ({
             }`}
           >
             <span>活跃推进中</span>
-            <span className="text-3xs tabular-nums font-mono opacity-75">
-              {activeCount}
-            </span>
+            <span className="text-3xs tabular-nums font-mono opacity-75">{activeCount}</span>
           </button>
 
           <button
@@ -523,23 +557,17 @@ export const TopicTableView: React.FC<TopicTableViewProps> = ({
             }`}
           >
             <span>归档</span>
-            <span className="text-3xs tabular-nums font-mono opacity-75">
-              {archivedCount}
-            </span>
+            <span className="text-3xs tabular-nums font-mono opacity-75">{archivedCount}</span>
           </button>
 
           <button
             onClick={() => setArchiveScope('all')}
             className={`px-3 py-1 rounded-full transition-all cursor-pointer flex items-center gap-1.5 ${
-              archiveScope === 'all'
-                ? 'bg-surface text-ink font-semibold shadow-2xs'
-                : 'text-ink-muted hover:text-ink'
+              archiveScope === 'all' ? 'bg-surface text-ink font-semibold shadow-2xs' : 'text-ink-muted hover:text-ink'
             }`}
           >
             <span>全部选题</span>
-            <span className="text-3xs tabular-nums font-mono opacity-75">
-              {activeCount + archivedCount}
-            </span>
+            <span className="text-3xs tabular-nums font-mono opacity-75">{activeCount + archivedCount}</span>
           </button>
 
           <button
@@ -551,11 +579,7 @@ export const TopicTableView: React.FC<TopicTableViewProps> = ({
             }`}
           >
             <span>回收站</span>
-            {trashCount > 0 && (
-              <span className="text-3xs tabular-nums font-mono text-danger">
-                {trashCount}
-              </span>
-            )}
+            {trashCount > 0 && <span className="text-3xs tabular-nums font-mono text-danger">{trashCount}</span>}
           </button>
         </div>
 
@@ -575,7 +599,7 @@ export const TopicTableView: React.FC<TopicTableViewProps> = ({
           <div className="hidden items-center gap-1 md:flex">
             <button
               type="button"
-              onClick={() => setDensity((previous) => previous === 'compact' ? 'comfortable' : 'compact')}
+              onClick={() => setDensity(previous => (previous === 'compact' ? 'comfortable' : 'compact'))}
               className="flex h-8 items-center gap-1.5 rounded-full px-2.5 text-xs font-medium text-ink-muted hover:text-ink hover:bg-control transition-all cursor-pointer"
             >
               <Rows3 className="h-3.5 w-3.5" /> {density === 'compact' ? '紧凑' : '舒适'}
@@ -583,7 +607,7 @@ export const TopicTableView: React.FC<TopicTableViewProps> = ({
             <button
               ref={columnButtonRef}
               type="button"
-              onClick={() => setIsColumnMenuOpen((previous) => !previous)}
+              onClick={() => setIsColumnMenuOpen(previous => !previous)}
               className="flex h-8 items-center gap-1.5 rounded-full px-2.5 text-xs font-medium text-ink-muted hover:text-ink hover:bg-control transition-all cursor-pointer"
             >
               <Columns3 className="h-3.5 w-3.5" /> 显示列
@@ -608,11 +632,9 @@ export const TopicTableView: React.FC<TopicTableViewProps> = ({
             ariaLabel="自定义表格显示列"
             className="p-2"
           >
-            <div className="px-2 pb-1 text-3xs font-bold text-ink-muted">
-              标题列始终显示并冻结
-            </div>
+            <div className="px-2 pb-1 text-3xs font-bold text-ink-muted">标题列始终显示并冻结</div>
             <FloatingScrollbar className="space-y-0.5" wrapperClassName="max-h-[300px] flex-none">
-              {ALL_COLUMN_KEYS.map((column) => (
+              {ALL_COLUMN_KEYS.map(column => (
                 <label
                   key={column}
                   className="flex min-h-8 cursor-pointer items-center gap-2 rounded-lg px-2 text-xs text-ink hover:bg-canvas"
@@ -621,10 +643,8 @@ export const TopicTableView: React.FC<TopicTableViewProps> = ({
                     type="checkbox"
                     checked={isColumnVisible(column)}
                     onChange={() =>
-                      setVisibleColumns((previous) =>
-                        previous.includes(column)
-                          ? previous.filter((item) => item !== column)
-                          : [...previous, column]
+                      setVisibleColumns(previous =>
+                        previous.includes(column) ? previous.filter(item => item !== column) : [...previous, column],
                       )
                     }
                     className="accent-[var(--accent)]"
@@ -647,10 +667,10 @@ export const TopicTableView: React.FC<TopicTableViewProps> = ({
           <div className="flex items-center gap-2 ml-auto flex-wrap">
             <CustomSelect
               value={bulkStatus}
-              onChange={(val) => setBulkStatus(val as TopicStatus)}
+              onChange={val => setBulkStatus(val as TopicStatus)}
               ariaLabel="批量修改阶段"
               size="sm"
-              options={COLUMNS.map((column) => ({ value: column.status, label: column.label }))}
+              options={COLUMNS.map(column => ({ value: column.status, label: column.label }))}
             />
             <button
               type="button"
@@ -669,7 +689,13 @@ export const TopicTableView: React.FC<TopicTableViewProps> = ({
               <Trash2 className="h-3.5 w-3.5" />
               <span>{isBulkUpdating ? '处理中…' : '批量移入回收站'}</span>
             </button>
-            <button type="button" onClick={() => setSelectedIds(new Set())} className="min-h-9 px-2 text-xs font-semibold text-ink-muted hover:text-ink cursor-pointer">取消</button>
+            <button
+              type="button"
+              onClick={() => setSelectedIds(new Set())}
+              className="min-h-9 px-2 text-xs font-semibold text-ink-muted hover:text-ink cursor-pointer"
+            >
+              取消
+            </button>
           </div>
         </div>
       )}
@@ -712,597 +738,697 @@ export const TopicTableView: React.FC<TopicTableViewProps> = ({
       )}
 
       {/* Mobile Card List */}
-      <FloatingScrollbar className="space-y-3 p-3 pb-[max(5rem,var(--mobile-bottom-nav-clearance))]" wrapperClassName="flex-1 min-h-0 lg:hidden" aria-label="选题卡片列表">
-          {sortedTopics.map((topic) => {
-            const totalScore =
-              (topic.score_character || 0) +
-              (topic.score_conflict || 0) +
-              (topic.score_contrast || 0) +
-              (topic.score_material || 0) +
-              (topic.score_story || 0);
-            const minutes = topic.draft_word_count
-              ? (topic.draft_word_count / readingSpeed).toFixed(1)
-              : '0';
-            const isArchived = topic.status === 'published' || topic.status === 'icebox';
+      <FloatingScrollbar
+        className="space-y-3 p-3 pb-[max(5rem,var(--mobile-bottom-nav-clearance))]"
+        wrapperClassName="flex-1 min-h-0 lg:hidden"
+        aria-label="选题卡片列表"
+      >
+        {sortedTopics.map(topic => {
+          const totalScore =
+            (topic.score_character || 0) +
+            (topic.score_conflict || 0) +
+            (topic.score_contrast || 0) +
+            (topic.score_material || 0) +
+            (topic.score_story || 0);
+          const minutes = topic.draft_word_count ? (topic.draft_word_count / readingSpeed).toFixed(1) : '0';
+          const isArchived = topic.status === 'published' || topic.status === 'icebox';
 
-            return (
-              <article key={topic.id} className="rounded-lg border border-line bg-surface p-4 cv-card shadow-subtle">
-                <div className="flex items-start justify-between gap-3">
-                  <div className="flex items-start gap-2.5 min-w-0 flex-1">
-                    <input
-                      type="checkbox"
-                      checked={selectedIds.has(topic.id)}
-                      onChange={(event) => {
-                        event.stopPropagation();
-                        setSelectedIds((previous) => {
-                          const next = new Set(previous);
-                          if (next.has(topic.id)) next.delete(topic.id);
-                          else next.add(topic.id);
-                          return next;
-                        });
-                      }}
-                      className="mt-1 h-4 w-4 rounded border-line accent-[var(--accent)] shrink-0 cursor-pointer"
-                      aria-label={`选择选题「${topic.title}」`}
-                    />
-                    {archiveScope === 'trash' ? (
-                      <div className="min-w-0 flex-1">
-                        <span className="block truncate text-base font-semibold text-ink">{topic.title}</span>
-                        {(topic.summary || topic.hook) && <span className="mt-1 block line-clamp-2 text-xs leading-relaxed text-ink-muted">{topic.summary || topic.hook}</span>}
-                      </div>
-                    ) : (
-                      <button
-                        type="button"
-                        onClick={() => onOpenDetail(topic.id)}
-                        aria-label={`打开选题：${topic.title}`}
-                        className="min-w-0 flex-1 text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus-ring"
-                      >
-                        <span className="block truncate text-base font-semibold text-ink">{topic.title}</span>
-                        {(topic.summary || topic.hook) && (
-                          <span className="mt-1 block line-clamp-2 text-xs leading-relaxed text-ink-muted">
-                            {topic.summary || topic.hook}
-                          </span>
-                        )}
-                      </button>
-                    )}
-                  </div>
-                  <button
-                    onClick={() => void togglePin(topic.id)}
-                    disabled={archiveScope === 'trash' || isArchived}
-                    className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border transition-colors ${
-                      topic.is_pinned
-                        ? 'border-accent/25 bg-accent-soft text-accent'
-                        : 'border-line text-ink-muted'
-                    }`}
-                    aria-label={isArchived ? '归档选题不可设为主推' : topic.is_pinned ? '取消置顶' : '置顶选题'}
-                  >
-                    <Pin className={`h-4 w-4 ${topic.is_pinned ? 'fill-current' : ''}`} />
-                  </button>
-                </div>
-
-                <div className="mt-3 flex items-center gap-2">
-                  <CustomSelect
-                    value={topic.status}
-                    onChange={(val) => void updateTopicStatus(topic.id, val as TopicStatus).catch(() => undefined)}
-                    ariaLabel={`修改「${topic.title}」阶段`}
-                    size="sm"
-                    options={COLUMNS.map((column) => ({ value: column.status, label: column.label }))}
+          return (
+            <article key={topic.id} className="rounded-lg border border-line bg-surface p-4 cv-card shadow-subtle">
+              <div className="flex items-start justify-between gap-3">
+                <div className="flex items-start gap-2.5 min-w-0 flex-1">
+                  <input
+                    type="checkbox"
+                    checked={selectedIds.has(topic.id)}
+                    onChange={event => {
+                      event.stopPropagation();
+                      setSelectedIds(previous => {
+                        const next = new Set(previous);
+                        if (next.has(topic.id)) next.delete(topic.id);
+                        else next.add(topic.id);
+                        return next;
+                      });
+                    }}
+                    className="mt-1 h-4 w-4 rounded border-line accent-[var(--accent)] shrink-0 cursor-pointer"
+                    aria-label={`选择选题「${topic.title}」`}
                   />
-                  <PriorityBadge priority={topic.priority} />
-                  <span className="ml-auto text-2xs text-ink-muted">{formatRelativeTime(topic.updated_at)}</span>
-                </div>
-
-                <div className="mt-3 rounded-sm border border-line bg-canvas/60 px-3 py-2 text-xs text-ink">
-                  <span className="font-medium text-accent">当前行动：</span>
-                  {topic.current_todo?.title || '未设置当前行动'}
-                </div>
-
-                {(topic.tags?.length || topic.people?.length) ? (
-                  <div className="mt-3 flex flex-wrap gap-1.5">
-                    {topic.tags?.slice(0, 3).map((tag) => (
-                      <span key={tag.id || tag.name} className="rounded-md bg-canvas px-2 py-1 text-3xs text-ink-muted">
-                        #{tag.name}
-                      </span>
-                    ))}
-                    {topic.people?.slice(0, 2).map((person) => (
-                      <span key={person.id} className="rounded-md bg-canvas px-2 py-1 text-3xs text-ink-muted">
-                        {person.name}
-                      </span>
-                    ))}
-                  </div>
-                ) : null}
-
-                <div className="mt-3 grid grid-cols-3 divide-x divide-line rounded-sm bg-canvas/65 py-2 text-center">
-                  <div>
-                    <div className="text-3xs text-ink-muted">故事评分</div>
-                    <div className="mt-0.5 font-mono text-xs font-medium text-ink">{totalScore || '—'}{totalScore ? '/10' : ''}</div>
-                  </div>
-                  <div>
-                    <div className="text-3xs text-ink-muted">文案字数</div>
-                    <div className="mt-0.5 font-mono text-xs font-medium text-ink">{(topic.draft_word_count || 0).toLocaleString()}</div>
-                  </div>
-                  <div>
-                    <div className="text-3xs text-ink-muted">预估时长</div>
-                    <div className="mt-0.5 text-xs font-medium text-ink"><span className="font-mono tabular-nums">{minutes}</span> 分钟</div>
-                  </div>
-                </div>
-
-                <div className="mt-3 flex items-center justify-end gap-2 border-t border-line pt-3">
                   {archiveScope === 'trash' ? (
-                    <>
-                      <button
-                        onClick={() => void restoreTopic(topic.id)}
-                        className="flex min-h-10 items-center gap-1.5 rounded-xl border border-success-soft px-3 text-xs font-semibold text-success"
-                      >
-                        <RotateCcw className="h-4 w-4" /> 恢复选题
-                      </button>
-                      <button
-                        onClick={() => requestPermanentlyDeleteTopic(topic)}
-                        className="flex min-h-10 items-center gap-1.5 rounded-xl border border-danger-line px-3 text-xs font-semibold text-danger"
-                      >
-                        <Trash2 className="h-4 w-4" /> 永久删除
-                      </button>
-                    </>
-                  ) : isArchived ? (
-                    <button
-                      onClick={() => void updateTopicStatus(topic.id, 'inbox').catch(() => undefined)}
-                      className="flex min-h-10 items-center gap-1.5 rounded-sm px-3 text-xs font-medium text-accent hover:bg-canvas"
-                    >
-                      <RotateCcw className="h-4 w-4" /> 恢复至收集箱
-                    </button>
+                    <div className="min-w-0 flex-1">
+                      <span className="block truncate text-base font-semibold text-ink">{topic.title}</span>
+                      {(topic.summary || topic.hook) && (
+                        <span className="mt-1 block line-clamp-2 text-xs leading-relaxed text-ink-muted">
+                          {topic.summary || topic.hook}
+                        </span>
+                      )}
+                    </div>
                   ) : (
                     <button
-                      onClick={() => setArchiveTopicId(topic.id)}
-                      className="flex min-h-10 items-center gap-1.5 rounded-sm px-3 text-xs font-medium text-ink-muted hover:bg-canvas"
+                      type="button"
+                      onClick={() => onOpenDetail(topic.id)}
+                      aria-label={`打开选题：${topic.title}`}
+                      className="min-w-0 flex-1 text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus-ring"
                     >
-                      <Archive className="h-4 w-4" /> 归档
+                      <span className="block truncate text-base font-semibold text-ink">{topic.title}</span>
+                      {(topic.summary || topic.hook) && (
+                        <span className="mt-1 block line-clamp-2 text-xs leading-relaxed text-ink-muted">
+                          {topic.summary || topic.hook}
+                        </span>
+                      )}
                     </button>
                   )}
-                  {archiveScope !== 'trash' && <button
+                </div>
+                <button
+                  onClick={() => void togglePin(topic.id)}
+                  disabled={archiveScope === 'trash' || isArchived}
+                  className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border transition-colors ${
+                    topic.is_pinned ? 'border-accent/25 bg-accent-soft text-accent' : 'border-line text-ink-muted'
+                  }`}
+                  aria-label={isArchived ? '归档选题不可设为主推' : topic.is_pinned ? '取消置顶' : '置顶选题'}
+                >
+                  <Pin className={`h-4 w-4 ${topic.is_pinned ? 'fill-current' : ''}`} />
+                </button>
+              </div>
+
+              <div className="mt-3 flex items-center gap-2">
+                <CustomSelect
+                  value={topic.status}
+                  onChange={val => void updateTopicStatus(topic.id, val as TopicStatus).catch(() => undefined)}
+                  ariaLabel={`修改「${topic.title}」阶段`}
+                  size="sm"
+                  options={COLUMNS.map(column => ({ value: column.status, label: column.label }))}
+                />
+                <PriorityBadge priority={topic.priority} />
+                <span className="ml-auto text-2xs text-ink-muted">{formatRelativeTime(topic.updated_at)}</span>
+              </div>
+
+              <div className="mt-3 rounded-sm border border-line bg-canvas/60 px-3 py-2 text-xs text-ink">
+                <span className="font-medium text-accent">当前行动：</span>
+                {topic.current_todo?.title || '未设置当前行动'}
+              </div>
+
+              {topic.tags?.length || topic.people?.length ? (
+                <div className="mt-3 flex flex-wrap gap-1.5">
+                  {topic.tags?.slice(0, 3).map(tag => (
+                    <span key={tag.id || tag.name} className="rounded-md bg-canvas px-2 py-1 text-3xs text-ink-muted">
+                      #{tag.name}
+                    </span>
+                  ))}
+                  {topic.people?.slice(0, 2).map(person => (
+                    <span key={person.id} className="rounded-md bg-canvas px-2 py-1 text-3xs text-ink-muted">
+                      {person.name}
+                    </span>
+                  ))}
+                </div>
+              ) : null}
+
+              <div className="mt-3 grid grid-cols-3 divide-x divide-line rounded-sm bg-canvas/65 py-2 text-center">
+                <div>
+                  <div className="text-3xs text-ink-muted">故事评分</div>
+                  <div className="mt-0.5 font-mono text-xs font-medium text-ink">
+                    {totalScore || '—'}
+                    {totalScore ? '/10' : ''}
+                  </div>
+                </div>
+                <div>
+                  <div className="text-3xs text-ink-muted">文案字数</div>
+                  <div className="mt-0.5 font-mono text-xs font-medium text-ink">
+                    {(topic.draft_word_count || 0).toLocaleString()}
+                  </div>
+                </div>
+                <div>
+                  <div className="text-3xs text-ink-muted">预估时长</div>
+                  <div className="mt-0.5 text-xs font-medium text-ink">
+                    <span className="font-mono tabular-nums">{minutes}</span> 分钟
+                  </div>
+                </div>
+              </div>
+
+              <div className="mt-3 flex items-center justify-end gap-2 border-t border-line pt-3">
+                {archiveScope === 'trash' ? (
+                  <>
+                    <button
+                      onClick={() => void restoreTopic(topic.id)}
+                      className="flex min-h-10 items-center gap-1.5 rounded-xl border border-success-soft px-3 text-xs font-semibold text-success"
+                    >
+                      <RotateCcw className="h-4 w-4" /> 恢复选题
+                    </button>
+                    <button
+                      onClick={() => requestPermanentlyDeleteTopic(topic)}
+                      className="flex min-h-10 items-center gap-1.5 rounded-xl border border-danger-line px-3 text-xs font-semibold text-danger"
+                    >
+                      <Trash2 className="h-4 w-4" /> 永久删除
+                    </button>
+                  </>
+                ) : isArchived ? (
+                  <button
+                    onClick={() => void updateTopicStatus(topic.id, 'inbox').catch(() => undefined)}
+                    className="flex min-h-10 items-center gap-1.5 rounded-sm px-3 text-xs font-medium text-accent hover:bg-canvas"
+                  >
+                    <RotateCcw className="h-4 w-4" /> 恢复至收集箱
+                  </button>
+                ) : (
+                  <button
+                    onClick={() => setArchiveTopicId(topic.id)}
+                    className="flex min-h-10 items-center gap-1.5 rounded-sm px-3 text-xs font-medium text-ink-muted hover:bg-canvas"
+                  >
+                    <Archive className="h-4 w-4" /> 归档
+                  </button>
+                )}
+                {archiveScope !== 'trash' && (
+                  <button
                     onClick={() => onOpenDetail(topic.id)}
                     className="flex min-h-10 items-center gap-1.5 rounded-sm bg-accent px-3 text-xs font-medium text-white hover:opacity-90"
                   >
                     打开工作台 <ArrowRight className="h-4 w-4" />
-                  </button>}
-                  {archiveScope !== 'trash' && <button
+                  </button>
+                )}
+                {archiveScope !== 'trash' && (
+                  <button
                     onClick={() => requestDeleteTopic(topic)}
                     aria-label="移入回收站"
                     className="flex h-10 w-10 items-center justify-center rounded-sm text-danger hover:bg-canvas cursor-pointer"
                   >
                     <Trash2 className="h-4 w-4" />
-                  </button>}
-                </div>
-              </article>
-            );
-          })}
+                  </button>
+                )}
+              </div>
+            </article>
+          );
+        })}
 
-          {sortedTopics.length === 0 && (
-            <div className="py-16 text-center text-sm text-ink-muted">
-              {archiveScope === 'trash' ? '回收站为空' : archiveScope === 'archived' ? '归档库暂无已发布或搁置的选题' : '暂无匹配的选题数据'}
-            </div>
-          )}
+        {sortedTopics.length === 0 && (
+          <div className="py-16 text-center text-sm text-ink-muted">
+            {archiveScope === 'trash'
+              ? '回收站为空'
+              : archiveScope === 'archived'
+                ? '归档库暂无已发布或搁置的选题'
+                : '暂无匹配的选题数据'}
+          </div>
+        )}
       </FloatingScrollbar>
 
       {/* Table Scroll Container */}
       <div className="hidden flex-1 min-h-0 flex-col lg:flex">
-      <FloatingScrollbar
-        ref={tableScrollRef}
-        id="topic-table-scroll"
-        role="region"
-        tabIndex={0}
-        aria-label="选题表格，可使用左右方向键浏览更多列"
-        onKeyDown={(event) => {
-          if (event.key === 'ArrowLeft' || event.key === 'ArrowRight') {
-            event.preventDefault();
-            scrollTableHorizontally(event.key === 'ArrowLeft' ? -1 : 1);
-          }
-        }}
-        className="topic-table-container w-full min-w-full overflow-x-auto overscroll-contain focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-focus-ring"
-        wrapperClassName="flex-1 min-h-0"
-      >
-        <table className="w-max min-w-full text-left border-collapse text-xs">
-          {/* Table Header */}
-          <thead className="table-header-row bg-surface/95 backdrop-blur-md sticky top-0 z-10 border-b border-line/60 text-ink-muted text-2xs font-semibold select-none tracking-wider">
-            <tr>
-              <th scope="col" className="w-10 px-3 py-3 text-center">
-                <input
-                  type="checkbox"
-                  aria-label="选择当前页全部选题"
-                  checked={allVisibleSelected}
-                  onChange={toggleSelectAll}
-                  className="accent-[var(--accent)]"
-                />
-              </th>
-              <th scope="col" className="py-3 px-3 w-10 text-center"><Pin className="mx-auto h-3.5 w-3.5" aria-label="置顶" /></th>
+        <FloatingScrollbar
+          ref={tableScrollRef}
+          id="topic-table-scroll"
+          role="region"
+          tabIndex={0}
+          aria-label="选题表格，可使用左右方向键浏览更多列"
+          onKeyDown={event => {
+            if (event.key === 'ArrowLeft' || event.key === 'ArrowRight') {
+              event.preventDefault();
+              scrollTableHorizontally(event.key === 'ArrowLeft' ? -1 : 1);
+            }
+          }}
+          className="topic-table-container w-full min-w-full overflow-x-auto overscroll-contain focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-focus-ring"
+          wrapperClassName="flex-1 min-h-0"
+        >
+          <table className="w-max min-w-full text-left border-collapse text-xs">
+            {/* Table Header */}
+            <thead className="table-header-row bg-surface/95 backdrop-blur-md sticky top-0 z-10 border-b border-line/60 text-ink-muted text-2xs font-semibold select-none tracking-wider">
+              <tr>
+                <th scope="col" className="w-10 px-3 py-3 text-center">
+                  <input
+                    type="checkbox"
+                    aria-label="选择当前页全部选题"
+                    checked={allVisibleSelected}
+                    onChange={toggleSelectAll}
+                    className="accent-[var(--accent)]"
+                  />
+                </th>
+                <th scope="col" className="py-3 px-3 w-10 text-center">
+                  <Pin className="mx-auto h-3.5 w-3.5" aria-label="置顶" />
+                </th>
 
-              <th
-                scope="col"
-                aria-sort={sortCol === 'title' ? (sortDir === 'asc' ? 'ascending' : 'descending') : undefined}
-                className="min-w-[240px] px-3 py-2"
-              >
-                {renderSortButton('选题标题与核心看点', 'title')}
-              </th>
-
-              {isColumnVisible('status') && <th
-                scope="col"
-                aria-sort={sortCol === 'status' ? (sortDir === 'asc' ? 'ascending' : 'descending') : undefined}
-                className="py-2 px-3 w-28"
-              >
-                {renderSortButton('阶段状态', 'status')}
-              </th>}
-
-              {isColumnVisible('priority') && <th
-                scope="col"
-                aria-sort={sortCol === 'priority' ? (sortDir === 'asc' ? 'ascending' : 'descending') : undefined}
-                className="py-2 px-3 w-20 text-center"
-              >
-                {renderSortButton('优先级', 'priority', 'center')}
-              </th>}
-
-              {isColumnVisible('current_action') && <th scope="col" className="py-3 px-3 min-w-[180px]">
-                <span>当前行动</span>
-              </th>}
-
-              {isColumnVisible('tags') && <th scope="col" className="py-3 px-3 min-w-[130px]">
-                <span>分类标签</span>
-              </th>}
-
-              {isColumnVisible('people') && <th scope="col" className="py-3 px-3 min-w-[120px]">
-                <span>关联人物</span>
-              </th>}
-
-              {isColumnVisible('score') && <th
-                scope="col"
-                aria-sort={sortCol === 'score' ? (sortDir === 'asc' ? 'ascending' : 'descending') : undefined}
-                className="py-2 px-3 w-24 text-center"
-              >
-                {renderSortButton('故事评分', 'score', 'center')}
-              </th>}
-
-              {isColumnVisible('words') && <th
-                scope="col"
-                aria-sort={sortCol === 'words' ? (sortDir === 'asc' ? 'ascending' : 'descending') : undefined}
-                className="py-2 px-3 w-28 text-right"
-              >
-                {renderSortButton('字数 / 预估时长', 'words', 'right')}
-              </th>}
-
-              {isColumnVisible('updated_at') && <th
-                scope="col"
-                aria-sort={sortCol === 'updated_at' ? (sortDir === 'asc' ? 'ascending' : 'descending') : undefined}
-                className="py-2 px-3 w-24 text-right"
-              >
-                {renderSortButton('更新时间', 'updated_at', 'right')}
-              </th>}
-
-              <th scope="col" className="py-3 px-3 w-28 text-center">操作</th>
-            </tr>
-          </thead>
-
-          {/* Table Body */}
-          <tbody className="divide-y divide-line/30">
-            {sortedTopics.map((topic) => {
-              const totalScore =
-                (topic.score_character || 0) +
-                (topic.score_conflict || 0) +
-                (topic.score_contrast || 0) +
-                (topic.score_material || 0) +
-                (topic.score_story || 0);
-
-              const minutes = topic.draft_word_count
-                ? (topic.draft_word_count / readingSpeed).toFixed(1)
-                : '0';
-
-              const isArchived = topic.status === 'published' || topic.status === 'icebox';
-
-              return (
-                <tr
-                  key={topic.id}
-                  onClick={() => archiveScope !== 'trash' && onOpenDetail(topic.id)}
-                  className={`transition-colors duration-150 group cv-auto ${
-                    archiveScope === 'trash' ? '' : 'cursor-pointer'
-                  } ${
-                    selectedIds.has(topic.id)
-                      ? 'bg-accent-soft/60 hover:bg-accent-soft/80'
-                      : 'hover:bg-control'
-                  }`}
+                <th
+                  scope="col"
+                  aria-sort={sortCol === 'title' ? (sortDir === 'asc' ? 'ascending' : 'descending') : undefined}
+                  className="min-w-[240px] px-3 py-2"
                 >
-                  <td
-                    onClick={(event) => event.stopPropagation()}
-                    className={`${rowPadding} px-3 text-center border-l-2 transition-colors ${
-                      selectedIds.has(topic.id)
-                        ? 'border-accent'
-                        : 'border-transparent group-hover:border-accent/35'
-                    }`}
+                  {renderSortButton('选题标题与核心看点', 'title')}
+                </th>
+
+                {isColumnVisible('status') && (
+                  <th
+                    scope="col"
+                    aria-sort={sortCol === 'status' ? (sortDir === 'asc' ? 'ascending' : 'descending') : undefined}
+                    className="py-2 px-3 w-28"
                   >
-                    <input
-                      type="checkbox"
-                      aria-label={`选择「${topic.title}」`}
-                      checked={selectedIds.has(topic.id)}
-                      onChange={() => setSelectedIds((previous) => {
-                        const next = new Set(previous);
-                        if (next.has(topic.id)) next.delete(topic.id);
-                        else next.add(topic.id);
-                        return next;
-                      })}
-                      className="accent-[var(--accent)] cursor-pointer"
-                    />
-                  </td>
-                  {/* 1. Pin / Index */}
-                  <td
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      if (archiveScope !== 'trash' && !isArchived) void togglePin(topic.id);
-                    }}
-                    className={`${rowPadding} px-3 text-center`}
+                    {renderSortButton('阶段状态', 'status')}
+                  </th>
+                )}
+
+                {isColumnVisible('priority') && (
+                  <th
+                    scope="col"
+                    aria-sort={sortCol === 'priority' ? (sortDir === 'asc' ? 'ascending' : 'descending') : undefined}
+                    className="py-2 px-3 w-20 text-center"
                   >
-                    <button
-                      type="button"
-                      onClick={(event) => {
-                        event.stopPropagation();
-                        if (archiveScope !== 'trash' && !isArchived) void togglePin(topic.id);
-                      }}
-                      disabled={archiveScope === 'trash' || isArchived}
-                      aria-label={isArchived ? '归档选题不可设为主推' : topic.is_pinned ? '取消置顶' : '置顶选题'}
-                      className={`p-1 rounded transition-colors ${isArchived ? 'cursor-not-allowed opacity-30' : 'cursor-pointer'} ${
-                        topic.is_pinned
-                          ? 'text-accent hover:text-ink-muted'
-                          : 'text-ink-faint hover:text-ink-muted opacity-0 group-hover:opacity-100'
+                    {renderSortButton('优先级', 'priority', 'center')}
+                  </th>
+                )}
+
+                {isColumnVisible('current_action') && (
+                  <th scope="col" className="py-3 px-3 min-w-[180px]">
+                    <span>当前行动</span>
+                  </th>
+                )}
+
+                {isColumnVisible('tags') && (
+                  <th scope="col" className="py-3 px-3 min-w-[130px]">
+                    <span>分类标签</span>
+                  </th>
+                )}
+
+                {isColumnVisible('people') && (
+                  <th scope="col" className="py-3 px-3 min-w-[120px]">
+                    <span>关联人物</span>
+                  </th>
+                )}
+
+                {isColumnVisible('score') && (
+                  <th
+                    scope="col"
+                    aria-sort={sortCol === 'score' ? (sortDir === 'asc' ? 'ascending' : 'descending') : undefined}
+                    className="py-2 px-3 w-24 text-center"
+                  >
+                    {renderSortButton('故事评分', 'score', 'center')}
+                  </th>
+                )}
+
+                {isColumnVisible('words') && (
+                  <th
+                    scope="col"
+                    aria-sort={sortCol === 'words' ? (sortDir === 'asc' ? 'ascending' : 'descending') : undefined}
+                    className="py-2 px-3 w-28 text-right"
+                  >
+                    {renderSortButton('字数 / 预估时长', 'words', 'right')}
+                  </th>
+                )}
+
+                {isColumnVisible('updated_at') && (
+                  <th
+                    scope="col"
+                    aria-sort={sortCol === 'updated_at' ? (sortDir === 'asc' ? 'ascending' : 'descending') : undefined}
+                    className="py-2 px-3 w-24 text-right"
+                  >
+                    {renderSortButton('更新时间', 'updated_at', 'right')}
+                  </th>
+                )}
+
+                <th scope="col" className="py-3 px-3 w-28 text-center">
+                  操作
+                </th>
+              </tr>
+            </thead>
+
+            {/* Table Body */}
+            <tbody className="divide-y divide-line/30">
+              {sortedTopics.map(topic => {
+                const totalScore =
+                  (topic.score_character || 0) +
+                  (topic.score_conflict || 0) +
+                  (topic.score_contrast || 0) +
+                  (topic.score_material || 0) +
+                  (topic.score_story || 0);
+
+                const minutes = topic.draft_word_count ? (topic.draft_word_count / readingSpeed).toFixed(1) : '0';
+
+                const isArchived = topic.status === 'published' || topic.status === 'icebox';
+
+                return (
+                  <tr
+                    key={topic.id}
+                    onClick={() => archiveScope !== 'trash' && onOpenDetail(topic.id)}
+                    className={`transition-colors duration-150 group cv-auto ${
+                      archiveScope === 'trash' ? '' : 'cursor-pointer'
+                    } ${selectedIds.has(topic.id) ? 'bg-accent-soft/60 hover:bg-accent-soft/80' : 'hover:bg-control'}`}
+                  >
+                    <td
+                      onClick={event => event.stopPropagation()}
+                      className={`${rowPadding} px-3 text-center border-l-2 transition-colors ${
+                        selectedIds.has(topic.id) ? 'border-accent' : 'border-transparent group-hover:border-accent/35'
                       }`}
                     >
-                      <Pin className={`w-3.5 h-3.5 ${topic.is_pinned ? 'fill-current' : ''}`} />
-                    </button>
-                  </td>
+                      <input
+                        type="checkbox"
+                        aria-label={`选择「${topic.title}」`}
+                        checked={selectedIds.has(topic.id)}
+                        onChange={() =>
+                          setSelectedIds(previous => {
+                            const next = new Set(previous);
+                            if (next.has(topic.id)) next.delete(topic.id);
+                            else next.add(topic.id);
+                            return next;
+                          })
+                        }
+                        className="accent-[var(--accent)] cursor-pointer"
+                      />
+                    </td>
+                    {/* 1. Pin / Index */}
+                    <td
+                      onClick={e => {
+                        e.stopPropagation();
+                        if (archiveScope !== 'trash' && !isArchived) void togglePin(topic.id);
+                      }}
+                      className={`${rowPadding} px-3 text-center`}
+                    >
+                      <button
+                        type="button"
+                        onClick={event => {
+                          event.stopPropagation();
+                          if (archiveScope !== 'trash' && !isArchived) void togglePin(topic.id);
+                        }}
+                        disabled={archiveScope === 'trash' || isArchived}
+                        aria-label={isArchived ? '归档选题不可设为主推' : topic.is_pinned ? '取消置顶' : '置顶选题'}
+                        className={`p-1 rounded transition-colors ${isArchived ? 'cursor-not-allowed opacity-30' : 'cursor-pointer'} ${
+                          topic.is_pinned
+                            ? 'text-accent hover:text-ink-muted'
+                            : 'text-ink-faint hover:text-ink-muted opacity-0 group-hover:opacity-100'
+                        }`}
+                      >
+                        <Pin className={`w-3.5 h-3.5 ${topic.is_pinned ? 'fill-current' : ''}`} />
+                      </button>
+                    </td>
 
-                  {/* 2. Title & Hook */}
-                  <td className={`${rowPadding} px-3`}>
-                    <div className="space-y-0.5 max-w-sm">
-                      {archiveScope === 'trash' ? (
-                        <span className="block truncate font-semibold text-ink text-xs">{topic.title}</span>
-                      ) : (
+                    {/* 2. Title & Hook */}
+                    <td className={`${rowPadding} px-3`}>
+                      <div className="space-y-0.5 max-w-sm">
+                        {archiveScope === 'trash' ? (
+                          <span className="block truncate font-semibold text-ink text-xs">{topic.title}</span>
+                        ) : (
+                          <button
+                            type="button"
+                            onClick={event => {
+                              event.stopPropagation();
+                              onOpenDetail(topic.id);
+                            }}
+                            aria-label={`打开选题：${topic.title}`}
+                            className="block max-w-full truncate text-left font-semibold text-ink text-xs transition-colors hover:text-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus-ring"
+                          >
+                            {topic.title}
+                          </button>
+                        )}
+                        {topic.summary ? (
+                          <p className="text-2xs text-ink-muted line-clamp-1 group-hover:text-ink transition-colors">
+                            {topic.summary}
+                          </p>
+                        ) : topic.hook ? (
+                          <p className="text-2xs text-ink-muted italic line-clamp-1 group-hover:text-ink transition-colors">
+                            Hook: {topic.hook}
+                          </p>
+                        ) : null}
+                      </div>
+                    </td>
+
+                    {/* 3. Status (With Dropdown Streamlining) */}
+                    {isColumnVisible('status') && (
+                      <TableStatusCell topic={topic} rowPadding={rowPadding} updateTopicStatus={updateTopicStatus} />
+                    )}
+
+                    {/* 4. Priority */}
+                    {isColumnVisible('priority') && (
+                      <td className={`${rowPadding} px-3 text-center`}>
+                        <div className="flex items-center justify-center">
+                          <PriorityBadge priority={topic.priority} />
+                        </div>
+                      </td>
+                    )}
+
+                    {/* 5. Current Action */}
+                    {isColumnVisible('current_action') && (
+                      <td className={`${rowPadding} px-3`}>
                         <button
                           type="button"
-                          onClick={(event) => {
+                          onClick={event => {
                             event.stopPropagation();
-                            onOpenDetail(topic.id);
+                            onOpenCurrentAction(topic.id);
                           }}
-                          aria-label={`打开选题：${topic.title}`}
-                          className="block max-w-full truncate text-left font-semibold text-ink text-xs transition-colors hover:text-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus-ring"
+                          className={`inline-flex max-w-[240px] items-center gap-1.5 truncate rounded-sm px-2 py-1 text-left text-2xs font-medium transition-colors cursor-pointer ${topic.current_todo ? 'bg-accent-soft/60 text-accent-dark hover:bg-accent-soft' : 'text-ink-muted hover:bg-canvas'}`}
+                          aria-label="管理当前行动"
                         >
-                          {topic.title}
+                          <Zap
+                            className={`h-3 w-3 shrink-0 ${topic.current_todo ? 'text-accent' : 'text-ink-muted'}`}
+                            aria-hidden="true"
+                          />
+                          <span className="truncate">{topic.current_todo?.title || '未设置当前行动'}</span>
                         </button>
-                      )}
-                      {topic.summary ? (
-                        <p className="text-2xs text-ink-muted line-clamp-1 group-hover:text-ink transition-colors">
-                          {topic.summary}
-                        </p>
-                      ) : topic.hook ? (
-                        <p className="text-2xs text-ink-muted italic line-clamp-1 group-hover:text-ink transition-colors">
-                          Hook: {topic.hook}
-                        </p>
-                      ) : null}
-                    </div>
-                  </td>
-
-                  {/* 3. Status (With Dropdown Streamlining) */}
-                  {isColumnVisible('status') && (
-                    <TableStatusCell
-                      topic={topic}
-                      rowPadding={rowPadding}
-                      updateTopicStatus={updateTopicStatus}
-                    />
-                  )}
-
-                  {/* 4. Priority */}
-                  {isColumnVisible('priority') && <td className={`${rowPadding} px-3 text-center`}>
-                    <div className="flex items-center justify-center">
-                      <PriorityBadge priority={topic.priority} />
-                    </div>
-                  </td>}
-
-                  {/* 5. Current Action */}
-                  {isColumnVisible('current_action') && <td className={`${rowPadding} px-3`}>
-                    <button
-                      type="button"
-                      onClick={(event) => {
-                        event.stopPropagation();
-                        onOpenCurrentAction(topic.id);
-                      }}
-                      className={`inline-flex max-w-[240px] items-center gap-1.5 truncate rounded-sm px-2 py-1 text-left text-2xs font-medium transition-colors cursor-pointer ${topic.current_todo ? 'bg-accent-soft/60 text-accent-dark hover:bg-accent-soft' : 'text-ink-muted hover:bg-canvas'}`}
-                      aria-label="管理当前行动"
-                    >
-                      <Zap className={`h-3 w-3 shrink-0 ${topic.current_todo ? 'text-accent' : 'text-ink-muted'}`} aria-hidden="true" />
-                      <span className="truncate">{topic.current_todo?.title || '未设置当前行动'}</span>
-                    </button>
-                  </td>}
-
-                  {/* 6. Tags */}
-                  {isColumnVisible('tags') && <td className={`${rowPadding} px-3`}>
-                    <div className="flex flex-wrap gap-1 max-w-[160px]">
-                      {topic.tags && topic.tags.length > 0 ? (
-                        topic.tags.slice(0, 2).map((tag) => (
-                          <span
-                            key={tag.id || tag.name}
-                            className="inline-flex items-center text-3xs font-medium bg-control text-ink-muted px-2 py-0.5 rounded-md select-none"
-                          >
-                            #{tag.name}
-                          </span>
-                        ))
-                      ) : (
-                        <span className="text-ink-faint italic text-2xs">-</span>
-                      )}
-                      {topic.tags && topic.tags.length > 2 && (
-                        <span className="text-3xs text-ink-muted font-mono">+{topic.tags.length - 2}</span>
-                      )}
-                    </div>
-                  </td>}
-
-                  {/* 7. People */}
-                  {isColumnVisible('people') && <td className={`${rowPadding} px-3`}>
-                    <div className="flex flex-wrap gap-1 max-w-[140px]">
-                      {topic.people && topic.people.length > 0 ? (
-                        topic.people.slice(0, 2).map((person) => (
-                          <span
-                            key={person.id}
-                            className="inline-flex items-center text-3xs text-ink-muted px-1 py-0.5 select-none"
-                          >
-                            {person.name}
-                          </span>
-                        ))
-                      ) : (
-                        <span className="text-ink-faint italic text-2xs">-</span>
-                      )}
-                    </div>
-                  </td>}
-
-                  {/* 8. Story Rating Score */}
-                  {isColumnVisible('score') && <td className={`${rowPadding} px-3 text-center`}>
-                    {totalScore > 0 ? (
-                      <div className="inline-flex items-center gap-1 font-mono font-medium text-xs text-ink select-none">
-                        <span>{totalScore}</span>
-                        <span className="text-3xs text-ink-muted font-normal">/10</span>
-                      </div>
-                    ) : (
-                      <span className="text-ink-muted text-2xs">未评分</span>
+                      </td>
                     )}
-                  </td>}
 
-                  {/* 9. Word Count & Estimated Duration */}
-                  {isColumnVisible('words') && <td className={`${rowPadding} px-3 text-right`}>
-                    {topic.draft_word_count ? (
-                      <div>
-                        <div className="font-bold text-ink"><span className="font-mono tabular-nums">{topic.draft_word_count.toLocaleString()}</span> 字</div>
-                        <div className="text-3xs text-ink-muted">~<span className="font-mono tabular-nums">{minutes}</span> 分钟</div>
-                      </div>
-                    ) : (
-                      <span className="text-ink-faint text-2xs"><span className="font-mono tabular-nums">0</span> 字</span>
+                    {/* 6. Tags */}
+                    {isColumnVisible('tags') && (
+                      <td className={`${rowPadding} px-3`}>
+                        <div className="flex flex-wrap gap-1 max-w-[160px]">
+                          {topic.tags && topic.tags.length > 0 ? (
+                            topic.tags.slice(0, 2).map(tag => (
+                              <span
+                                key={tag.id || tag.name}
+                                className="inline-flex items-center text-3xs font-medium bg-control text-ink-muted px-2 py-0.5 rounded-md select-none"
+                              >
+                                #{tag.name}
+                              </span>
+                            ))
+                          ) : (
+                            <span className="text-ink-faint italic text-2xs">-</span>
+                          )}
+                          {topic.tags && topic.tags.length > 2 && (
+                            <span className="text-3xs text-ink-muted font-mono">+{topic.tags.length - 2}</span>
+                          )}
+                        </div>
+                      </td>
                     )}
-                  </td>}
 
-                  {/* 10. Updated Time */}
-                  {isColumnVisible('updated_at') && <td className={`${rowPadding} px-3 text-right text-ink-muted text-2xs tabular-nums`}>
-                    {formatRelativeTime(topic.updated_at)}
-                  </td>}
+                    {/* 7. People */}
+                    {isColumnVisible('people') && (
+                      <td className={`${rowPadding} px-3`}>
+                        <div className="flex flex-wrap gap-1 max-w-[140px]">
+                          {topic.people && topic.people.length > 0 ? (
+                            topic.people.slice(0, 2).map(person => (
+                              <span
+                                key={person.id}
+                                className="inline-flex items-center text-3xs text-ink-muted px-1 py-0.5 select-none"
+                              >
+                                {person.name}
+                              </span>
+                            ))
+                          ) : (
+                            <span className="text-ink-faint italic text-2xs">-</span>
+                          )}
+                        </div>
+                      </td>
+                    )}
 
-                  {/* 11. Actions */}
-                  <td
-                    onClick={(e) => e.stopPropagation()}
-                    className={`${rowPadding} px-3 text-center`}
-                  >
-                    <div className="flex items-center justify-center gap-1 opacity-70 group-hover:opacity-100 transition-opacity">
-                      {/* Archive / Restore action */}
-                      {archiveScope === 'trash' ? (
-                        <>
+                    {/* 8. Story Rating Score */}
+                    {isColumnVisible('score') && (
+                      <td className={`${rowPadding} px-3 text-center`}>
+                        {totalScore > 0 ? (
+                          <div className="inline-flex items-center gap-1 font-mono font-medium text-xs text-ink select-none">
+                            <span>{totalScore}</span>
+                            <span className="text-3xs text-ink-muted font-normal">/10</span>
+                          </div>
+                        ) : (
+                          <span className="text-ink-muted text-2xs">未评分</span>
+                        )}
+                      </td>
+                    )}
+
+                    {/* 9. Word Count & Estimated Duration */}
+                    {isColumnVisible('words') && (
+                      <td className={`${rowPadding} px-3 text-right`}>
+                        {topic.draft_word_count ? (
+                          <div>
+                            <div className="font-bold text-ink">
+                              <span className="font-mono tabular-nums">{topic.draft_word_count.toLocaleString()}</span>{' '}
+                              字
+                            </div>
+                            <div className="text-3xs text-ink-muted">
+                              ~<span className="font-mono tabular-nums">{minutes}</span> 分钟
+                            </div>
+                          </div>
+                        ) : (
+                          <span className="text-ink-faint text-2xs">
+                            <span className="font-mono tabular-nums">0</span> 字
+                          </span>
+                        )}
+                      </td>
+                    )}
+
+                    {/* 10. Updated Time */}
+                    {isColumnVisible('updated_at') && (
+                      <td className={`${rowPadding} px-3 text-right text-ink-muted text-2xs tabular-nums`}>
+                        {formatRelativeTime(topic.updated_at)}
+                      </td>
+                    )}
+
+                    {/* 11. Actions */}
+                    <td onClick={e => e.stopPropagation()} className={`${rowPadding} px-3 text-center`}>
+                      <div className="flex items-center justify-center gap-1 opacity-70 group-hover:opacity-100 transition-opacity">
+                        {/* Archive / Restore action */}
+                        {archiveScope === 'trash' ? (
+                          <>
+                            <button
+                              onClick={() => void restoreTopic(topic.id)}
+                              className="p-1.5 text-success hover:text-success hover:bg-success-soft rounded-lg transition-colors cursor-pointer"
+                              aria-label="恢复选题"
+                            >
+                              <RotateCcw className="w-3.5 h-3.5" />
+                            </button>
+                            <button
+                              onClick={() => requestPermanentlyDeleteTopic(topic)}
+                              className="p-1.5 text-danger hover:text-danger hover:bg-danger-soft rounded-lg transition-colors cursor-pointer"
+                              aria-label="永久删除"
+                            >
+                              <Trash2 className="w-3.5 h-3.5" />
+                            </button>
+                          </>
+                        ) : isArchived ? (
                           <button
-                            onClick={() => void restoreTopic(topic.id)}
-                            className="p-1.5 text-success hover:text-success hover:bg-success-soft rounded-lg transition-colors cursor-pointer"
-                            aria-label="恢复选题"
+                            onClick={() => void updateTopicStatus(topic.id, 'inbox').catch(() => undefined)}
+                            className="p-1.5 text-accent hover:bg-canvas rounded-sm transition-colors cursor-pointer"
+                            aria-label="从归档中恢复至收集箱"
                           >
                             <RotateCcw className="w-3.5 h-3.5" />
                           </button>
+                        ) : (
                           <button
-                            onClick={() => requestPermanentlyDeleteTopic(topic)}
-                            className="p-1.5 text-danger hover:text-danger hover:bg-danger-soft rounded-lg transition-colors cursor-pointer"
-                            aria-label="永久删除"
+                            onClick={() => setArchiveTopicId(topic.id)}
+                            className="p-1.5 text-ink-muted hover:text-ink hover:bg-control rounded-lg transition-colors cursor-pointer"
+                            aria-label="归档此选题"
+                          >
+                            <Archive className="w-3.5 h-3.5" />
+                          </button>
+                        )}
+
+                        {archiveScope !== 'trash' && (
+                          <button
+                            onClick={() => requestDeleteTopic(topic)}
+                            className="p-1.5 text-ink-faint hover:text-danger hover:bg-danger-soft rounded-lg transition-colors cursor-pointer"
+                            aria-label="移入回收站"
                           >
                             <Trash2 className="w-3.5 h-3.5" />
                           </button>
-                        </>
-                      ) : isArchived ? (
-                        <button
-                          onClick={() => void updateTopicStatus(topic.id, 'inbox').catch(() => undefined)}
-                          className="p-1.5 text-accent hover:bg-canvas rounded-sm transition-colors cursor-pointer"
-                          aria-label="从归档中恢复至收集箱"
-                        >
-                          <RotateCcw className="w-3.5 h-3.5" />
-                        </button>
-                      ) : (
-                        <button
-                          onClick={() => setArchiveTopicId(topic.id)}
-                          className="p-1.5 text-ink-muted hover:text-ink hover:bg-control rounded-lg transition-colors cursor-pointer"
-                          aria-label="归档此选题"
-                        >
-                          <Archive className="w-3.5 h-3.5" />
-                        </button>
-                      )}
+                        )}
+                      </div>
+                    </td>
+                  </tr>
+                );
+              })}
 
-
-                      {archiveScope !== 'trash' && <button
-                        onClick={() => requestDeleteTopic(topic)}
-                        className="p-1.5 text-ink-faint hover:text-danger hover:bg-danger-soft rounded-lg transition-colors cursor-pointer"
-                        aria-label="移入回收站"
-                      >
-                        <Trash2 className="w-3.5 h-3.5" />
-                      </button>}
-                    </div>
+              {sortedTopics.length === 0 && (
+                <tr>
+                  <td colSpan={4 + visibleColumns.length} className="py-16 text-center text-ink-muted text-sm">
+                    {archiveScope === 'trash'
+                      ? '回收站为空'
+                      : archiveScope === 'archived'
+                        ? '归档库暂无已发布或搁置的选题'
+                        : '暂无匹配的选题数据'}
                   </td>
                 </tr>
-              );
-            })}
-
-            {sortedTopics.length === 0 && (
-              <tr>
-                <td colSpan={4 + visibleColumns.length} className="py-16 text-center text-ink-muted text-sm">
-                  {archiveScope === 'trash' ? '回收站为空' : archiveScope === 'archived' ? '归档库暂无已发布或搁置的选题' : '暂无匹配的选题数据'}
-                </td>
-              </tr>
-            )}
-          </tbody>
-        </table>
-      </FloatingScrollbar>
-      <div className="flex shrink-0 items-center justify-between gap-3 border-t border-line/40 bg-canvas/45 px-3 py-2 text-xs text-ink-muted">
-        <span>表格可横向滚动，也可聚焦表格后使用 ← / → 键</span>
-        <div className="flex shrink-0 items-center gap-1">
-          <button
-            type="button"
-            aria-label="向左滚动选题表格"
-            aria-controls="topic-table-scroll"
-            onClick={() => scrollTableHorizontally(-1)}
-            className="inline-flex min-h-9 min-w-9 items-center justify-center rounded-lg hover:bg-surface focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus-ring"
-          >
-            <ArrowLeft className="h-4 w-4" aria-hidden="true" />
-          </button>
-          <button
-            type="button"
-            aria-label="向右滚动选题表格"
-            aria-controls="topic-table-scroll"
-            onClick={() => scrollTableHorizontally(1)}
-            className="inline-flex min-h-9 min-w-9 items-center justify-center rounded-lg hover:bg-surface focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus-ring"
-          >
-            <ArrowRight className="h-4 w-4" aria-hidden="true" />
-          </button>
+              )}
+            </tbody>
+          </table>
+        </FloatingScrollbar>
+        <div className="flex shrink-0 items-center justify-between gap-3 border-t border-line/40 bg-canvas/45 px-3 py-2 text-xs text-ink-muted">
+          <span>表格可横向滚动，也可聚焦表格后使用 ← / → 键</span>
+          <div className="flex shrink-0 items-center gap-1">
+            <button
+              type="button"
+              aria-label="向左滚动选题表格"
+              aria-controls="topic-table-scroll"
+              onClick={() => scrollTableHorizontally(-1)}
+              className="inline-flex min-h-9 min-w-9 items-center justify-center rounded-lg hover:bg-surface focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus-ring"
+            >
+              <ArrowLeft className="h-4 w-4" aria-hidden="true" />
+            </button>
+            <button
+              type="button"
+              aria-label="向右滚动选题表格"
+              aria-controls="topic-table-scroll"
+              onClick={() => scrollTableHorizontally(1)}
+              className="inline-flex min-h-9 min-w-9 items-center justify-center rounded-lg hover:bg-surface focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus-ring"
+            >
+              <ArrowRight className="h-4 w-4" aria-hidden="true" />
+            </button>
+          </div>
         </div>
-      </div>
       </div>
 
       {/* Table Summary Footer */}
       <div className="hidden p-3.5 bg-canvas/55 border-t border-line lg:flex items-center justify-between text-xs text-ink-muted font-medium shrink-0 flex-wrap gap-2">
         <div className="flex items-center gap-4">
-          <span>当前页：<strong className="text-ink"><span className="font-mono tabular-nums">{sortedTopics.length}</span> 个选题</strong></span>
+          <span>
+            当前页：
+            <strong className="text-ink">
+              <span className="font-mono tabular-nums">{sortedTopics.length}</span> 个选题
+            </strong>
+          </span>
           <span>•</span>
-          <span>全库写稿中：<strong className="text-accent"><span className="font-mono tabular-nums">{inScriptingCount}</span> 篇</strong></span>
+          <span>
+            全库写稿中：
+            <strong className="text-accent">
+              <span className="font-mono tabular-nums">{inScriptingCount}</span> 篇
+            </strong>
+          </span>
           <span>•</span>
-          <span>全库累计文案：<strong className="text-ink"><span className="font-mono tabular-nums">{totalWords.toLocaleString()}</span> 字</strong></span>
+          <span>
+            全库累计文案：
+            <strong className="text-ink">
+              <span className="font-mono tabular-nums">{totalWords.toLocaleString()}</span> 字
+            </strong>
+          </span>
         </div>
 
         <div className="flex items-center gap-2">
-          <button type="button" disabled={page <= 1 || pageQuery.isFetching} onClick={() => setPage((value) => Math.max(1, value - 1))} className="rounded-sm px-2.5 py-1.5 text-ink-muted hover:bg-surface disabled:opacity-40">上一页</button>
-          <span><span className="font-mono tabular-nums">{page} / {Math.max(1, pageQuery.data?.total_pages || 1)}</span> · 共 <span className="font-mono tabular-nums">{pageQuery.data?.total || 0}</span> 条</span>
-          <button type="button" disabled={page >= (pageQuery.data?.total_pages || 1) || pageQuery.isFetching} onClick={() => setPage((value) => value + 1)} className="rounded-sm px-2.5 py-1.5 text-ink-muted hover:bg-surface disabled:opacity-40">下一页</button>
+          <button
+            type="button"
+            disabled={page <= 1 || pageQuery.isFetching}
+            onClick={() => setPage(value => Math.max(1, value - 1))}
+            className="rounded-sm px-2.5 py-1.5 text-ink-muted hover:bg-surface disabled:opacity-40"
+          >
+            上一页
+          </button>
+          <span>
+            <span className="font-mono tabular-nums">
+              {page} / {Math.max(1, pageQuery.data?.total_pages || 1)}
+            </span>{' '}
+            · 共 <span className="font-mono tabular-nums">{pageQuery.data?.total || 0}</span> 条
+          </span>
+          <button
+            type="button"
+            disabled={page >= (pageQuery.data?.total_pages || 1) || pageQuery.isFetching}
+            onClick={() => setPage(value => value + 1)}
+            className="rounded-sm px-2.5 py-1.5 text-ink-muted hover:bg-surface disabled:opacity-40"
+          >
+            下一页
+          </button>
         </div>
       </div>
 
       <div className="flex items-center justify-center gap-2 border-t border-line bg-canvas/55 p-3 text-xs lg:hidden">
-        <button type="button" disabled={page <= 1 || pageQuery.isFetching} onClick={() => setPage((value) => Math.max(1, value - 1))} className="rounded-sm px-3 py-2 text-ink-muted hover:bg-surface disabled:opacity-40">上一页</button>
-        <span className="text-ink-muted font-mono tabular-nums">{page} / {Math.max(1, pageQuery.data?.total_pages || 1)}</span>
-        <button type="button" disabled={page >= (pageQuery.data?.total_pages || 1) || pageQuery.isFetching} onClick={() => setPage((value) => value + 1)} className="rounded-sm px-3 py-2 text-ink-muted hover:bg-surface disabled:opacity-40">下一页</button>
+        <button
+          type="button"
+          disabled={page <= 1 || pageQuery.isFetching}
+          onClick={() => setPage(value => Math.max(1, value - 1))}
+          className="rounded-sm px-3 py-2 text-ink-muted hover:bg-surface disabled:opacity-40"
+        >
+          上一页
+        </button>
+        <span className="text-ink-muted font-mono tabular-nums">
+          {page} / {Math.max(1, pageQuery.data?.total_pages || 1)}
+        </span>
+        <button
+          type="button"
+          disabled={page >= (pageQuery.data?.total_pages || 1) || pageQuery.isFetching}
+          onClick={() => setPage(value => value + 1)}
+          className="rounded-sm px-3 py-2 text-ink-muted hover:bg-surface disabled:opacity-40"
+        >
+          下一页
+        </button>
       </div>
 
-      <Modal
-        isOpen={Boolean(archiveTopicId)}
-        onClose={() => setArchiveTopicId(null)}
-        title="归档选题"
-        maxWidth="sm"
-      >
+      <Modal isOpen={Boolean(archiveTopicId)} onClose={() => setArchiveTopicId(null)} title="归档选题" maxWidth="sm">
         <p className="text-xs leading-relaxed text-ink-muted">请选择归档状态；取消不会修改当前选题。</p>
         <div className="mt-4 grid grid-cols-2 gap-2">
           <button
@@ -1340,7 +1466,7 @@ export const TopicTableView: React.FC<TopicTableViewProps> = ({
       {/* Confirmation Dialog */}
       <ConfirmDialog
         isOpen={confirmDialog.isOpen}
-        onClose={() => setConfirmDialog((prev) => ({ ...prev, isOpen: false }))}
+        onClose={() => setConfirmDialog(prev => ({ ...prev, isOpen: false }))}
         onConfirm={confirmDialog.onConfirm}
         title={confirmDialog.title}
         description={confirmDialog.description}

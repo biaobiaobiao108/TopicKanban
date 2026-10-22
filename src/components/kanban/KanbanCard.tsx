@@ -3,12 +3,7 @@ import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import { Topic } from '../../types';
 import { PriorityBadge } from '../ui/Badge';
-import {
-  Pin,
-  Calendar,
-  Clock,
-  Zap,
-} from 'lucide-react';
+import { Pin, Calendar, Clock, Zap } from 'lucide-react';
 import { getCurrentActionAgeDays, getCurrentActionWarning } from '../../lib/topicMetrics';
 import { ActionDateText } from '../ui/ActionDate';
 import { useActionDateDisplay, type ActionDateDisplay } from '../../lib/actionDate';
@@ -26,7 +21,8 @@ interface KanbanCardProps {
 }
 
 const CARD_META_VALUE_CLASS = 'tabular-nums';
-const SCHEDULE_BADGE_CLASS = 'inline-flex items-center gap-1 rounded-md px-1.5 py-0.5 text-2xs font-sans leading-4 whitespace-nowrap bg-control text-ink-muted';
+const SCHEDULE_BADGE_CLASS =
+  'inline-flex items-center gap-1 rounded-md px-1.5 py-0.5 text-2xs font-sans leading-4 whitespace-nowrap bg-control text-ink-muted';
 
 const TopicScheduleBadges: React.FC<{
   scheduleDate: ActionDateDisplay;
@@ -39,13 +35,17 @@ const TopicScheduleBadges: React.FC<{
       {scheduleDate.state !== 'empty' && (
         <span data-testid="topic-schedule-badge" className={SCHEDULE_BADGE_CLASS}>
           <Calendar className="w-3 h-3 text-accent" />
-          <span>排期 <ActionDateText display={scheduleDate} /></span>
+          <span>
+            排期 <ActionDateText display={scheduleDate} />
+          </span>
         </span>
       )}
       {deadlineDate.state !== 'empty' && (
         <span data-testid="topic-deadline-badge" className={SCHEDULE_BADGE_CLASS}>
           <Clock className="w-3 h-3 text-stage-scripting" />
-          <span>截稿 <ActionDateText display={deadlineDate} /></span>
+          <span>
+            截稿 <ActionDateText display={deadlineDate} />
+          </span>
         </span>
       )}
     </div>
@@ -63,14 +63,7 @@ const KanbanCardComponent: React.FC<KanbanCardProps> = ({
   isOverlay = false,
   mobileMotion = false,
 }) => {
-  const {
-    attributes,
-    listeners,
-    setNodeRef,
-    transform,
-    transition,
-    isDragging,
-  } = useSortable({
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
     id: topic.id,
     disabled: sortableDisabled || isOverlay,
     data: {
@@ -94,39 +87,43 @@ const KanbanCardComponent: React.FC<KanbanCardProps> = ({
   // Floating Overlay State (inside DragOverlay)
   if (isOverlay) {
     return (
-      <div
-        className="relative bg-surface rounded-lg border border-accent/70 p-3.5 shadow-modal ring-1 ring-accent/20 scale-[1.02] rotate-[1deg] opacity-98 cursor-grabbing flex flex-col gap-2.5 select-none pointer-events-none w-full transition-transform duration-75"
-      >
+      <div className="relative bg-surface rounded-lg border border-accent/70 p-3.5 shadow-modal ring-1 ring-accent/20 scale-[1.02] rotate-[1deg] opacity-98 cursor-grabbing flex flex-col gap-2.5 select-none pointer-events-none w-full transition-transform duration-75">
         <div className="flex items-start justify-between gap-2">
           <h3 className="min-w-0 flex-1 text-[15px] font-semibold text-ink leading-snug tracking-tight line-clamp-2">
             {topic.title}
           </h3>
-          {topic.is_pinned === 1 && <Pin className="mt-0.5 h-3.5 w-3.5 shrink-0 fill-stage-scripting text-stage-scripting" aria-label="置顶" />}
+          {topic.is_pinned === 1 && (
+            <Pin className="mt-0.5 h-3.5 w-3.5 shrink-0 fill-stage-scripting text-stage-scripting" aria-label="置顶" />
+          )}
         </div>
 
         {/* Current Action Highlight Bar */}
         {topic.current_todo ? (
           <div className="bg-canvas/75 border border-line/60 rounded-sm px-2.5 py-2 flex items-start gap-2 text-xs text-ink">
             <Zap className="mt-0.5 h-3.5 w-3.5 shrink-0 text-accent" aria-hidden="true" />
-            <span className="flex-1 min-w-0 font-normal leading-5 line-clamp-2">
-              {topic.current_todo.title}
-            </span>
+            <span className="flex-1 min-w-0 font-normal leading-5 line-clamp-2">{topic.current_todo.title}</span>
           </div>
         ) : null}
 
         <div className="flex items-center justify-between gap-2 text-2xs">
           <div className="flex min-w-0 items-center gap-2">
-            <span className={`min-w-0 truncate ${actionWarning ? 'font-medium text-stage-scripting' : 'text-ink-muted'}`}>
-            {actionWarning || `行动持续 ${getCurrentActionAgeDays(topic)} 天`}
+            <span
+              className={`min-w-0 truncate ${actionWarning ? 'font-medium text-stage-scripting' : 'text-ink-muted'}`}
+            >
+              {actionWarning || `行动持续 ${getCurrentActionAgeDays(topic)} 天`}
             </span>
             <PriorityBadge priority={topic.priority} showDot={false} />
           </div>
           <div data-testid="topic-card-meta" className="flex items-center gap-1.5 text-ink-muted">
             {(topic.sources_count || 0) > 0 && (
-              <span><span className={CARD_META_VALUE_CLASS}>{topic.sources_count}</span>资料</span>
+              <span>
+                <span className={CARD_META_VALUE_CLASS}>{topic.sources_count}</span>资料
+              </span>
             )}
             {(topic.draft_word_count || 0) > 0 && (
-              <span><span className={CARD_META_VALUE_CLASS}>{topic.draft_word_count}</span>字</span>
+              <span>
+                <span className={CARD_META_VALUE_CLASS}>{topic.draft_word_count}</span>字
+              </span>
             )}
           </div>
         </div>
@@ -146,7 +143,7 @@ const KanbanCardComponent: React.FC<KanbanCardProps> = ({
       tabIndex={0}
       role="group"
       aria-label={`${topic.title}，${topic.status}`}
-      onKeyDown={(event) => {
+      onKeyDown={event => {
         if (event.key === 'ArrowLeft' && onKeyboardMove) {
           event.preventDefault();
           onKeyboardMove(topic, -1);
@@ -169,9 +166,7 @@ const KanbanCardComponent: React.FC<KanbanCardProps> = ({
           : sortableDisabled
             ? 'transition-all duration-150 border-line cursor-default'
             : 'transition-all duration-150 border-line hover:border-accent/35 hover:shadow-card cursor-grab active:cursor-grabbing'
-      } ${
-        topic.is_pinned && !isDragging ? 'bg-canvas/40' : ''
-      }`}
+      } ${topic.is_pinned && !isDragging ? 'bg-canvas/40' : ''}`}
     >
       {/* Main Title and Quick Stage */}
       <div className="flex items-start justify-between gap-2">
@@ -185,18 +180,25 @@ const KanbanCardComponent: React.FC<KanbanCardProps> = ({
         <button
           type="button"
           aria-label={`当前行动：${topic.current_todo.title}`}
-          onClick={(event) => { event.stopPropagation(); onOpenCurrentAction?.(topic.id); }}
+          onClick={event => {
+            event.stopPropagation();
+            onOpenCurrentAction?.(topic.id);
+          }}
           className="group/action w-full text-left bg-canvas/75 hover:bg-accent-soft/25 border border-line/60 hover:border-accent/35 rounded-sm px-2.5 py-2 flex items-start gap-2 text-xs text-ink transition-colors cursor-pointer"
         >
-          <Zap className="mt-0.5 h-3.5 w-3.5 shrink-0 text-accent group-hover/action:scale-110 transition-transform" aria-hidden="true" />
-          <span className="flex-1 min-w-0 font-normal leading-5 line-clamp-2">
-            {topic.current_todo.title}
-          </span>
+          <Zap
+            className="mt-0.5 h-3.5 w-3.5 shrink-0 text-accent group-hover/action:scale-110 transition-transform"
+            aria-hidden="true"
+          />
+          <span className="flex-1 min-w-0 font-normal leading-5 line-clamp-2">{topic.current_todo.title}</span>
         </button>
       ) : (
         <button
           type="button"
-          onClick={(event) => { event.stopPropagation(); onOpenCurrentAction?.(topic.id); }}
+          onClick={event => {
+            event.stopPropagation();
+            onOpenCurrentAction?.(topic.id);
+          }}
           className="w-full rounded-sm border border-dashed border-line/70 p-2 text-2xs text-ink-muted text-center hover:border-accent/40 hover:text-accent hover:bg-accent-soft/20 cursor-pointer transition-colors"
         >
           未设置当前行动
@@ -206,16 +208,20 @@ const KanbanCardComponent: React.FC<KanbanCardProps> = ({
       <div className="flex items-center justify-between gap-2 text-2xs">
         <div className="flex min-w-0 items-center gap-2">
           <span className={`min-w-0 truncate ${actionWarning ? 'font-medium text-stage-scripting' : 'text-ink-muted'}`}>
-          {actionWarning || `行动持续 ${getCurrentActionAgeDays(topic)} 天`}
+            {actionWarning || `行动持续 ${getCurrentActionAgeDays(topic)} 天`}
           </span>
           <PriorityBadge priority={topic.priority} showDot={false} />
         </div>
         <div data-testid="topic-card-meta" className="flex items-center gap-1.5 text-ink-muted">
           {(topic.sources_count || 0) > 0 && (
-            <span><span className={CARD_META_VALUE_CLASS}>{topic.sources_count}</span>资料</span>
+            <span>
+              <span className={CARD_META_VALUE_CLASS}>{topic.sources_count}</span>资料
+            </span>
           )}
           {(topic.draft_word_count || 0) > 0 && (
-            <span><span className={CARD_META_VALUE_CLASS}>{topic.draft_word_count}</span>字</span>
+            <span>
+              <span className={CARD_META_VALUE_CLASS}>{topic.draft_word_count}</span>字
+            </span>
           )}
         </div>
       </div>
@@ -226,13 +232,21 @@ const KanbanCardComponent: React.FC<KanbanCardProps> = ({
       {/* Secondary context */}
       <div className="flex items-center justify-between pt-2 border-t border-line/50 text-2xs text-ink-muted">
         <div className="min-w-0 truncate pr-2">
-          {topic.people?.slice(0, 2).map((person) => person.name).join(' / ') || '未关联人物'}
-          {topic.tags?.length ? ` · ${topic.tags.slice(0, 2).map((tag) => `#${tag.name}`).join(' ')}` : ''}
+          {topic.people
+            ?.slice(0, 2)
+            .map(person => person.name)
+            .join(' / ') || '未关联人物'}
+          {topic.tags?.length
+            ? ` · ${topic.tags
+                .slice(0, 2)
+                .map(tag => `#${tag.name}`)
+                .join(' ')}`
+            : ''}
         </div>
 
         <div className="flex items-center gap-1">
           <button
-            onClick={(e) => {
+            onClick={e => {
               e.stopPropagation();
               onTogglePin(topic.id);
             }}
@@ -240,7 +254,10 @@ const KanbanCardComponent: React.FC<KanbanCardProps> = ({
             aria-label={topic.is_pinned ? '取消置顶' : '置顶'}
             className="p-1 text-ink-muted hover:text-stage-scripting rounded-sm cursor-pointer transition-colors"
           >
-            <Pin aria-hidden="true" className={`w-3.5 h-3.5 ${topic.is_pinned ? 'fill-stage-scripting text-stage-scripting' : 'opacity-30 group-hover:opacity-100 hover:opacity-100'}`} />
+            <Pin
+              aria-hidden="true"
+              className={`w-3.5 h-3.5 ${topic.is_pinned ? 'fill-stage-scripting text-stage-scripting' : 'opacity-30 group-hover:opacity-100 hover:opacity-100'}`}
+            />
           </button>
         </div>
       </div>

@@ -15,31 +15,23 @@ interface OutlineListProps {
   onSelectHeading: (item: OutlineItem) => void;
 }
 
-const OutlineList: React.FC<OutlineListProps> = ({
-  items,
-  activeItemId,
-  onSelectHeading,
-}) => (
+const OutlineList: React.FC<OutlineListProps> = ({ items, activeItemId, onSelectHeading }) => (
   <ol className="script-outline-list">
-    {items.map((item) => {
+    {items.map(item => {
       const isActive = activeItemId === item.id;
       return (
-        <li
-          key={item.id}
-          className={`script-outline-item script-outline-item--level-${item.level}`}
-        >
+        <li key={item.id} className={`script-outline-item script-outline-item--level-${item.level}`}>
           <button
             type="button"
             data-outline-id={item.id}
             aria-current={isActive ? 'true' : undefined}
             aria-label={item.title}
-            onMouseDown={(event) => event.preventDefault()}
+            onMouseDown={event => event.preventDefault()}
             onClick={() => onSelectHeading(item)}
             className="script-outline-item-button"
           >
             <span className="script-outline-item-title">{item.title}</span>
           </button>
-
         </li>
       );
     })}
@@ -88,9 +80,9 @@ export const ScriptOutlinePanel: React.FC<ScriptOutlinePanelProps> = ({
     const container = outlineScrollRef.current;
     if (!container) return;
 
-    const activeButton = Array.from(
-      container.querySelectorAll<HTMLButtonElement>('[data-outline-id]')
-    ).find((button) => button.dataset.outlineId === activeItemId);
+    const activeButton = Array.from(container.querySelectorAll<HTMLButtonElement>('[data-outline-id]')).find(
+      button => button.dataset.outlineId === activeItemId,
+    );
     if (!activeButton) return;
 
     const containerRect = container.getBoundingClientRect();
@@ -111,11 +103,7 @@ export const ScriptOutlinePanel: React.FC<ScriptOutlinePanelProps> = ({
   if (!isOpen) return null;
 
   return (
-    <aside
-      id="script-outline"
-      aria-label="文案大纲"
-      className="script-outline-panel"
-    >
+    <aside id="script-outline" aria-label="文案大纲" className="script-outline-panel">
       <div className="script-outline-scroll-shell relative flex-1 min-h-0 flex flex-col">
         <div
           ref={outlineScrollRef}
@@ -130,12 +118,7 @@ export const ScriptOutlinePanel: React.FC<ScriptOutlinePanelProps> = ({
             </div>
           ) : (
             <div className="script-outline-content">
-              <OutlineList
-                items={outline.flatItems}
-                activeItemId={activeItemId}
-                onSelectHeading={onSelectHeading}
-              />
-
+              <OutlineList items={outline.flatItems} activeItemId={activeItemId} onSelectHeading={onSelectHeading} />
             </div>
           )}
         </div>

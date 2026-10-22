@@ -157,7 +157,7 @@ export function calculateDeepMetrics(video: PublishedVideo, topic?: AnalyticsTop
 }
 
 export function calculateChannelOverview(videos: PublishedVideo[], topics: AnalyticsTopic[]): ChannelOverviewMetrics {
-  const topicMap = new Map(topics.map((t) => [t.id, t]));
+  const topicMap = new Map(topics.map(t => [t.id, t]));
 
   if (!videos.length) {
     return {
@@ -191,7 +191,7 @@ export function calculateChannelOverview(videos: PublishedVideo[], topics: Analy
 
   const allMetrics: VideoDeepMetrics[] = [];
 
-  videos.forEach((v) => {
+  videos.forEach(v => {
     totalViews += v.views || 0;
     totalLikes += v.likes || 0;
     totalCoins += v.coins || 0;
@@ -220,7 +220,9 @@ export function calculateChannelOverview(videos: PublishedVideo[], topics: Analy
   const n = videos.length;
   const avgViews = Math.round(totalViews / n);
   const avgCoinRate = roundPercent(totalViews > 0 ? (totalCoins / totalViews) * 100 : 0);
-  const avgTripleRate = roundPercent(totalViews > 0 ? ((totalLikes + totalCoins + totalFavorites) / totalViews) * 100 : 0);
+  const avgTripleRate = roundPercent(
+    totalViews > 0 ? ((totalLikes + totalCoins + totalFavorites) / totalViews) * 100 : 0,
+  );
   const avgFavoriteRate = roundPercent(totalViews > 0 ? (totalFavorites / totalViews) * 100 : 0);
   const avgEngagementScore = Math.round(allMetrics.reduce((sum, m) => sum + m.engagementScore, 0) / n);
 
@@ -241,12 +243,15 @@ export function calculateChannelOverview(videos: PublishedVideo[], topics: Analy
   };
 }
 
-export function analyzeTopicModelCorrelation(videos: PublishedVideo[], topics: AnalyticsTopic[]): FiveDModelCorrelation {
-  const topicMap = new Map(topics.map((t) => [t.id, t]));
+export function analyzeTopicModelCorrelation(
+  videos: PublishedVideo[],
+  topics: AnalyticsTopic[],
+): FiveDModelCorrelation {
+  const topicMap = new Map(topics.map(t => [t.id, t]));
 
   // Attach topics to videos
   const pairs = videos
-    .map((v) => ({ video: v, topic: v.topic_id ? topicMap.get(v.topic_id) : undefined }))
+    .map(v => ({ video: v, topic: v.topic_id ? topicMap.get(v.topic_id) : undefined }))
     .filter((p): p is { video: PublishedVideo; topic: Topic } => Boolean(p.topic));
 
   const dimConfigs: Array<{
@@ -277,7 +282,7 @@ export function analyzeTopicModelCorrelation(videos: PublishedVideo[], topics: A
   let maxDiff = -Infinity;
   let strongestHitFactor = '荒诞反差';
 
-  const dimensions: DimensionComparison[] = dimConfigs.map((d) => {
+  const dimensions: DimensionComparison[] = dimConfigs.map(d => {
     const allSum = pairs.reduce((sum, p) => sum + (p.topic[d.key] || 0), 0);
     const allAverage = roundPercent(allSum / pairs.length);
 
@@ -309,7 +314,7 @@ export function analyzeTopicModelCorrelation(videos: PublishedVideo[], topics: A
 }
 
 export function analyzePeoplePerformance(videos: PublishedVideo[], topics: AnalyticsTopic[]): EntityPerformance[] {
-  const topicMap = new Map(topics.map((t) => [t.id, t]));
+  const topicMap = new Map(topics.map(t => [t.id, t]));
   const peopleMap = new Map<
     string,
     {
@@ -325,11 +330,11 @@ export function analyzePeoplePerformance(videos: PublishedVideo[], topics: Analy
     }
   >();
 
-  videos.forEach((video) => {
+  videos.forEach(video => {
     const topic = video.topic_id ? topicMap.get(video.topic_id) : undefined;
     if (!topic || !topic.people?.length) return;
 
-    topic.people.forEach((person) => {
+    topic.people.forEach(person => {
       let entry = peopleMap.get(person.id);
       if (!entry) {
         entry = {
@@ -361,11 +366,13 @@ export function analyzePeoplePerformance(videos: PublishedVideo[], topics: Analy
   });
 
   return Array.from(peopleMap.values())
-    .map((entry) => {
+    .map(entry => {
       const avgViews = Math.round(entry.totalViews / entry.videoCount);
       const avgCoinRate = roundPercent(entry.totalViews > 0 ? (entry.totalCoins / entry.totalViews) * 100 : 0);
       const avgTripleRate = roundPercent(
-        entry.totalViews > 0 ? ((entry.totalLikes + entry.totalCoins + entry.totalFavorites) / entry.totalViews) * 100 : 0
+        entry.totalViews > 0
+          ? ((entry.totalLikes + entry.totalCoins + entry.totalFavorites) / entry.totalViews) * 100
+          : 0,
       );
 
       return {
@@ -383,7 +390,7 @@ export function analyzePeoplePerformance(videos: PublishedVideo[], topics: Analy
 }
 
 export function analyzeTagPerformance(videos: PublishedVideo[], topics: AnalyticsTopic[]): EntityPerformance[] {
-  const topicMap = new Map(topics.map((t) => [t.id, t]));
+  const topicMap = new Map(topics.map(t => [t.id, t]));
   const tagMap = new Map<
     string,
     {
@@ -397,11 +404,11 @@ export function analyzeTagPerformance(videos: PublishedVideo[], topics: Analytic
     }
   >();
 
-  videos.forEach((video) => {
+  videos.forEach(video => {
     const topic = video.topic_id ? topicMap.get(video.topic_id) : undefined;
     if (!topic || !topic.tags?.length) return;
 
-    topic.tags.forEach((tag) => {
+    topic.tags.forEach(tag => {
       let entry = tagMap.get(tag.id);
       if (!entry) {
         entry = {
@@ -426,11 +433,13 @@ export function analyzeTagPerformance(videos: PublishedVideo[], topics: Analytic
   });
 
   return Array.from(tagMap.values())
-    .map((entry) => {
+    .map(entry => {
       const avgViews = Math.round(entry.totalViews / entry.videoCount);
       const avgCoinRate = roundPercent(entry.totalViews > 0 ? (entry.totalCoins / entry.totalViews) * 100 : 0);
       const avgTripleRate = roundPercent(
-        entry.totalViews > 0 ? ((entry.totalLikes + entry.totalCoins + entry.totalFavorites) / entry.totalViews) * 100 : 0
+        entry.totalViews > 0
+          ? ((entry.totalLikes + entry.totalCoins + entry.totalFavorites) / entry.totalViews) * 100
+          : 0,
       );
 
       return {
@@ -457,7 +466,10 @@ export function generateAnalyticsInsights(videos: PublishedVideo[], topics: Anal
 
   // 1. Five-dimensional story model insight
   if (correlation.topHitsCount > 0) {
-    const strongest = correlation.dimensions.reduce((max, d) => (d.difference > max.difference ? d : max), correlation.dimensions[0]);
+    const strongest = correlation.dimensions.reduce(
+      (max, d) => (d.difference > max.difference ? d : max),
+      correlation.dimensions[0],
+    );
     if (strongest.difference > 0.3) {
       insights.push({
         id: '5d-strongest',

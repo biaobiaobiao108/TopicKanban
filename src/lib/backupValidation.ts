@@ -11,12 +11,22 @@ const timestamp = z.string().max(50);
 const optionalTimestamp = timestamp.nullable().optional();
 const deletedAtTimestamp = z.string().max(50).refine(isValidIsoTimestamp, '必须是有效的 ISO 8601 时间戳');
 const optionalDeletedAtTimestamp = deletedAtTimestamp.nullable().optional();
-const optionalDateOnly = z.string().nullable().optional()
-  .transform((value) => value === '' ? null : value)
-  .refine((value) => value === undefined || value === null || isValidIsoDate(value), '日期必须是有效的 YYYY-MM-DD');
-const optionalSourceEventDate = z.string().max(50).nullable().optional()
-  .transform((value) => value === undefined ? undefined : value === null || value === '' ? '' : value)
-  .refine((value) => value === undefined || isValidSourceEventDate(value), '事件日期必须是有效的 YYYY、YYYY-MM 或 YYYY-MM-DD');
+const optionalDateOnly = z
+  .string()
+  .nullable()
+  .optional()
+  .transform(value => (value === '' ? null : value))
+  .refine(value => value === undefined || value === null || isValidIsoDate(value), '日期必须是有效的 YYYY-MM-DD');
+const optionalSourceEventDate = z
+  .string()
+  .max(50)
+  .nullable()
+  .optional()
+  .transform(value => (value === undefined ? undefined : value === null || value === '' ? '' : value))
+  .refine(
+    value => value === undefined || isValidSourceEventDate(value),
+    '事件日期必须是有效的 YYYY、YYYY-MM 或 YYYY-MM-DD',
+  );
 const verificationStatus = z.enum(['confirmed', 'unverified', 'rejected']);
 const themeSchema = z.enum(APP_THEMES);
 
@@ -55,44 +65,48 @@ const personSchema = z.object({
   updated_at: timestamp,
 });
 
-const topicSchema = z.object({
-  id,
-  title: shortText.trim().min(1, '选题标题不能为空'),
-  summary: mediumText,
-  hook: mediumText,
-  storyline: longText,
-  why_now: mediumText,
-  status: z.enum(['inbox', 'scripting', 'production', 'published', 'icebox']),
-  priority: z.enum(['high', 'medium', 'low', 'none']),
-  target_publish_date: optionalDateOnly,
-  deadline: optionalDateOnly,
-  score_character: z.number().int().min(0).max(2),
-  score_conflict: z.number().int().min(0).max(2),
-  score_contrast: z.number().int().min(0).max(2),
-  score_material: z.number().int().min(0).max(2),
-  score_story: z.number().int().min(0).max(2),
-  is_pinned: z.union([z.literal(0), z.literal(1)]),
-  sort_order: z.number().int().nonnegative(),
-  created_at: timestamp,
-  updated_at: timestamp,
-  published_at: optionalTimestamp,
-  deleted_at: optionalDeletedAtTimestamp,
-  tags: z.array(tagSchema).optional(),
-  people: z.array(personSchema).optional(),
-}).passthrough();
+const topicSchema = z
+  .object({
+    id,
+    title: shortText.trim().min(1, '选题标题不能为空'),
+    summary: mediumText,
+    hook: mediumText,
+    storyline: longText,
+    why_now: mediumText,
+    status: z.enum(['inbox', 'scripting', 'production', 'published', 'icebox']),
+    priority: z.enum(['high', 'medium', 'low', 'none']),
+    target_publish_date: optionalDateOnly,
+    deadline: optionalDateOnly,
+    score_character: z.number().int().min(0).max(2),
+    score_conflict: z.number().int().min(0).max(2),
+    score_contrast: z.number().int().min(0).max(2),
+    score_material: z.number().int().min(0).max(2),
+    score_story: z.number().int().min(0).max(2),
+    is_pinned: z.union([z.literal(0), z.literal(1)]),
+    sort_order: z.number().int().nonnegative(),
+    created_at: timestamp,
+    updated_at: timestamp,
+    published_at: optionalTimestamp,
+    deleted_at: optionalDeletedAtTimestamp,
+    tags: z.array(tagSchema).optional(),
+    people: z.array(personSchema).optional(),
+  })
+  .passthrough();
 
-const todoSchema = z.object({
-  id,
-  topic_id: id,
-  title: shortText.trim().min(1, 'Todo 标题不能为空'),
-  status: z.enum(['todo', 'in_progress', 'completed']),
-  is_current: z.union([z.literal(0), z.literal(1)]),
-  current_started_at: optionalTimestamp,
-  completed_at: optionalTimestamp,
-  sort_order: z.number().int().nonnegative(),
-  created_at: timestamp,
-  updated_at: timestamp,
-}).passthrough();
+const todoSchema = z
+  .object({
+    id,
+    topic_id: id,
+    title: shortText.trim().min(1, 'Todo 标题不能为空'),
+    status: z.enum(['todo', 'in_progress', 'completed']),
+    is_current: z.union([z.literal(0), z.literal(1)]),
+    current_started_at: optionalTimestamp,
+    completed_at: optionalTimestamp,
+    sort_order: z.number().int().nonnegative(),
+    created_at: timestamp,
+    updated_at: timestamp,
+  })
+  .passthrough();
 
 const sourceSchema = z.object({
   id,
@@ -100,7 +114,19 @@ const sourceSchema = z.object({
   title: shortText.trim().min(1),
   content: longText,
   url: z.string().max(2_048).refine(isSafeExternalHttpUrl, '必须是 HTTP(S) URL'),
-  platform: z.enum(['bilibili', 'douyin', 'kuaishou', 'weibo', 'xiaohongshu', 'wechat', 'zhihu', 'youtube', 'news', 'live', 'other']),
+  platform: z.enum([
+    'bilibili',
+    'douyin',
+    'kuaishou',
+    'weibo',
+    'xiaohongshu',
+    'wechat',
+    'zhihu',
+    'youtube',
+    'news',
+    'live',
+    'other',
+  ]),
   author: shortText,
   published_at: timestamp,
   verification_status: verificationStatus,
@@ -124,38 +150,44 @@ const reportSchema = z.object({
   updated_at: timestamp,
 });
 
-const relationshipSchema = z.object({
-  id,
-  person_a_id: id,
-  person_b_id: id,
-  relationship: shortText.trim().min(1),
-  description: longText,
-  created_at: timestamp,
-  person_a_name: z.string().max(200).optional(),
-  person_b_name: z.string().max(200).optional(),
-}).passthrough();
+const relationshipSchema = z
+  .object({
+    id,
+    person_a_id: id,
+    person_b_id: id,
+    relationship: shortText.trim().min(1),
+    description: longText,
+    created_at: timestamp,
+    person_a_name: z.string().max(200).optional(),
+    person_b_name: z.string().max(200).optional(),
+  })
+  .passthrough();
 
-const draftSchema = z.object({
-  id,
-  topic_id: id,
-  title: shortText,
-  content_markdown: z.string().max(4 * 1024 * 1024),
-  content_json: z.string().max(4 * 1024 * 1024),
-  content_html: z.string().max(4 * 1024 * 1024),
-  word_count: z.number().int().min(0).max(200_000),
-  version: z.number().int().min(1),
-  updated_at: timestamp,
-}).superRefine((draft, ctx) => {
-  const bytes = new TextEncoder().encode(`${draft.content_markdown}${draft.content_json}${draft.content_html}`).byteLength;
-  if (bytes > 4 * 1024 * 1024) ctx.addIssue({ code: 'custom', message: '草稿正文超过 4 MiB 限制' });
-  if (draft.content_json) {
-    try {
-      JSON.parse(draft.content_json);
-    } catch {
-      ctx.addIssue({ code: 'custom', path: ['content_json'], message: '草稿 content_json 不是合法 JSON' });
+const draftSchema = z
+  .object({
+    id,
+    topic_id: id,
+    title: shortText,
+    content_markdown: z.string().max(4 * 1024 * 1024),
+    content_json: z.string().max(4 * 1024 * 1024),
+    content_html: z.string().max(4 * 1024 * 1024),
+    word_count: z.number().int().min(0).max(200_000),
+    version: z.number().int().min(1),
+    updated_at: timestamp,
+  })
+  .superRefine((draft, ctx) => {
+    const bytes = new TextEncoder().encode(
+      `${draft.content_markdown}${draft.content_json}${draft.content_html}`,
+    ).byteLength;
+    if (bytes > 4 * 1024 * 1024) ctx.addIssue({ code: 'custom', message: '草稿正文超过 4 MiB 限制' });
+    if (draft.content_json) {
+      try {
+        JSON.parse(draft.content_json);
+      } catch {
+        ctx.addIssue({ code: 'custom', path: ['content_json'], message: '草稿 content_json 不是合法 JSON' });
+      }
     }
-  }
-});
+  });
 
 const citationSchema = z.object({
   id,
@@ -169,65 +201,73 @@ const citationSchema = z.object({
   created_at: timestamp,
 });
 
-const publishedSchema = z.object({
-  id,
-  topic_id: id.nullable(),
-  title: shortText.trim().min(1),
-  url: z.string().max(2_048).refine(isSafeExternalHttpUrl, '必须是 HTTP(S) URL'),
-  bvid: z.string().max(50),
-  published_at: timestamp,
-  views: z.number().int().nonnegative().refine(Number.isSafeInteger, '必须是安全整数'),
-  likes: z.number().int().nonnegative().refine(Number.isSafeInteger, '必须是安全整数'),
-  coins: z.number().int().nonnegative().refine(Number.isSafeInteger, '必须是安全整数'),
-  favorites: z.number().int().nonnegative().refine(Number.isSafeInteger, '必须是安全整数'),
-  comments: z.number().int().nonnegative().refine(Number.isSafeInteger, '必须是安全整数'),
-  notes: longText,
-  updated_at: timestamp,
-  topic_title: z.string().max(200).nullable().optional(),
-}).passthrough();
+const publishedSchema = z
+  .object({
+    id,
+    topic_id: id.nullable(),
+    title: shortText.trim().min(1),
+    url: z.string().max(2_048).refine(isSafeExternalHttpUrl, '必须是 HTTP(S) URL'),
+    bvid: z.string().max(50),
+    published_at: timestamp,
+    views: z.number().int().nonnegative().refine(Number.isSafeInteger, '必须是安全整数'),
+    likes: z.number().int().nonnegative().refine(Number.isSafeInteger, '必须是安全整数'),
+    coins: z.number().int().nonnegative().refine(Number.isSafeInteger, '必须是安全整数'),
+    favorites: z.number().int().nonnegative().refine(Number.isSafeInteger, '必须是安全整数'),
+    comments: z.number().int().nonnegative().refine(Number.isSafeInteger, '必须是安全整数'),
+    notes: longText,
+    updated_at: timestamp,
+    topic_title: z.string().max(200).nullable().optional(),
+  })
+  .passthrough();
 
-const commercialDealSchema = z.object({
-  id,
-  title: shortText.trim().min(1),
-  brand_name: shortText,
-  agency_name: shortText,
-  contact_name: shortText,
-  contact_channel: mediumText,
-  source: z.enum(['huahuo', 'brand_direct', 'agency', 'mcn', 'other']),
-  deliverable_type: z.enum(['custom_video', 'dynamic', 'live', 'offline_activity', 'other']),
-  status: z.enum(['communicating', 'producing', 'delivered', 'archived']),
-  contract_status: z.enum(['not_started', 'drafting', 'signed']),
-  contract_summary: longText,
-  brief: longText,
-  requirements: longText,
-  restrictions: longText,
-  amount_cents: z.number().int().nonnegative().refine(Number.isSafeInteger, '商单金额必须是安全整数'),
-  payment_status: z.enum(['unpaid', 'paid']),
-  paid_at: optionalDateOnly,
-  delivery_due_date: optionalDateOnly,
-  publish_date: optionalDateOnly,
-  next_action: mediumText,
-  next_action_due_date: optionalDateOnly,
-  published_video_id: id.nullable().optional(),
-  created_at: timestamp,
-  updated_at: timestamp,
-}).passthrough();
+const commercialDealSchema = z
+  .object({
+    id,
+    title: shortText.trim().min(1),
+    brand_name: shortText,
+    agency_name: shortText,
+    contact_name: shortText,
+    contact_channel: mediumText,
+    source: z.enum(['huahuo', 'brand_direct', 'agency', 'mcn', 'other']),
+    deliverable_type: z.enum(['custom_video', 'dynamic', 'live', 'offline_activity', 'other']),
+    status: z.enum(['communicating', 'producing', 'delivered', 'archived']),
+    contract_status: z.enum(['not_started', 'drafting', 'signed']),
+    contract_summary: longText,
+    brief: longText,
+    requirements: longText,
+    restrictions: longText,
+    amount_cents: z.number().int().nonnegative().refine(Number.isSafeInteger, '商单金额必须是安全整数'),
+    payment_status: z.enum(['unpaid', 'paid']),
+    paid_at: optionalDateOnly,
+    delivery_due_date: optionalDateOnly,
+    publish_date: optionalDateOnly,
+    next_action: mediumText,
+    next_action_due_date: optionalDateOnly,
+    published_video_id: id.nullable().optional(),
+    created_at: timestamp,
+    updated_at: timestamp,
+  })
+  .passthrough();
 
-const commercialDealTopicSchema = z.object({
-  id,
-  deal_id: id,
-  topic_id: id,
-  relation_role: z.enum(['primary', 'related']),
-  created_at: timestamp,
-}).passthrough();
+const commercialDealTopicSchema = z
+  .object({
+    id,
+    deal_id: id,
+    topic_id: id,
+    relation_role: z.enum(['primary', 'related']),
+    created_at: timestamp,
+  })
+  .passthrough();
 
-const commercialDealActivitySchema = z.object({
-  id,
-  deal_id: id,
-  kind: z.enum(['note', 'status_change', 'payment']),
-  content: longText.trim().min(1),
-  created_at: timestamp,
-}).passthrough();
+const commercialDealActivitySchema = z
+  .object({
+    id,
+    deal_id: id,
+    kind: z.enum(['note', 'status_change', 'payment']),
+    content: longText.trim().min(1),
+    created_at: timestamp,
+  })
+  .passthrough();
 
 const publishChapterSchema = z.object({
   id,
@@ -246,27 +286,30 @@ const publishPackageContentSchema = z.object({
   included_source_ids: z.array(id).max(500),
 });
 
-const publishPackageSchema = z.object({
-  id,
-  topic_id: id,
-  version: z.number().int().min(1),
-  title_simplified: shortText,
-  title_traditional: shortText,
-  description_simplified: longText,
-  description_traditional: longText,
-  title_traditional_auto: z.boolean(),
-  description_traditional_auto: z.boolean(),
-  content_json: z.string().max(500_000),
-  updated_at: timestamp,
-}).superRefine((publishPackage, ctx) => {
-  try {
-    const content = JSON.parse(publishPackage.content_json) as unknown;
-    const result = publishPackageContentSchema.safeParse(content);
-    if (!result.success) ctx.addIssue({ code: 'custom', path: ['content_json'], message: '发布包公共内容格式不正确' });
-  } catch {
-    ctx.addIssue({ code: 'custom', path: ['content_json'], message: '发布包 content_json 不是合法 JSON' });
-  }
-});
+const publishPackageSchema = z
+  .object({
+    id,
+    topic_id: id,
+    version: z.number().int().min(1),
+    title_simplified: shortText,
+    title_traditional: shortText,
+    description_simplified: longText,
+    description_traditional: longText,
+    title_traditional_auto: z.boolean(),
+    description_traditional_auto: z.boolean(),
+    content_json: z.string().max(500_000),
+    updated_at: timestamp,
+  })
+  .superRefine((publishPackage, ctx) => {
+    try {
+      const content = JSON.parse(publishPackage.content_json) as unknown;
+      const result = publishPackageContentSchema.safeParse(content);
+      if (!result.success)
+        ctx.addIssue({ code: 'custom', path: ['content_json'], message: '发布包公共内容格式不正确' });
+    } catch {
+      ctx.addIssue({ code: 'custom', path: ['content_json'], message: '发布包 content_json 不是合法 JSON' });
+    }
+  });
 
 export const appSettingsSchema = z.object({
   reading_speed: z.number().positive().max(1_000),
@@ -275,159 +318,184 @@ export const appSettingsSchema = z.object({
   editor_line_height: z.enum(['normal', 'relaxed', 'loose']).optional(),
 });
 
-const backupSchema = z.object({
-  version: z.literal(CURRENT_BACKUP_VERSION),
-  export_at: timestamp,
-  topics: z.array(topicSchema),
-  sources: z.array(sourceSchema),
-  reports: z.array(reportSchema),
-  people: z.array(personSchema),
-  relationships: z.array(relationshipSchema),
-  drafts: z.array(draftSchema),
-  citations: z.array(citationSchema),
-  tags: z.array(tagSchema),
-  published: z.array(publishedSchema),
-  publish_packages: z.array(publishPackageSchema),
-  commercial_deals: z.array(commercialDealSchema),
-  commercial_deal_topics: z.array(commercialDealTopicSchema),
-  commercial_deal_activities: z.array(commercialDealActivitySchema),
-  todos: z.array(todoSchema),
-  settings: appSettingsSchema.optional(),
-}).strict().superRefine((data, ctx) => {
-  const addIssue = (path: Array<string | number>, message: string) => ctx.addIssue({ code: 'custom', path, message });
-  const requireUniqueIds = (items: Array<{ id: string }>, key: string) => {
-    const seen = new Set<string>();
-    items.forEach((item, index) => {
-      if (seen.has(item.id)) addIssue([key, index, 'id'], `重复 ID：${item.id}`);
-      seen.add(item.id);
+const backupSchema = z
+  .object({
+    version: z.literal(CURRENT_BACKUP_VERSION),
+    export_at: timestamp,
+    topics: z.array(topicSchema),
+    sources: z.array(sourceSchema),
+    reports: z.array(reportSchema),
+    people: z.array(personSchema),
+    relationships: z.array(relationshipSchema),
+    drafts: z.array(draftSchema),
+    citations: z.array(citationSchema),
+    tags: z.array(tagSchema),
+    published: z.array(publishedSchema),
+    publish_packages: z.array(publishPackageSchema),
+    commercial_deals: z.array(commercialDealSchema),
+    commercial_deal_topics: z.array(commercialDealTopicSchema),
+    commercial_deal_activities: z.array(commercialDealActivitySchema),
+    todos: z.array(todoSchema),
+    settings: appSettingsSchema.optional(),
+  })
+  .strict()
+  .superRefine((data, ctx) => {
+    const addIssue = (path: Array<string | number>, message: string) => ctx.addIssue({ code: 'custom', path, message });
+    const requireUniqueIds = (items: Array<{ id: string }>, key: string) => {
+      const seen = new Set<string>();
+      items.forEach((item, index) => {
+        if (seen.has(item.id)) addIssue([key, index, 'id'], `重复 ID：${item.id}`);
+        seen.add(item.id);
+      });
+    };
+
+    const collections: Array<[string, Array<{ id: string }>]> = [
+      ['topics', data.topics],
+      ['sources', data.sources],
+      ['reports', data.reports],
+      ['people', data.people],
+      ['relationships', data.relationships],
+      ['drafts', data.drafts],
+      ['citations', data.citations],
+      ['tags', data.tags],
+      ['published', data.published],
+      ['publish_packages', data.publish_packages || []],
+      ['commercial_deals', data.commercial_deals || []],
+      ['commercial_deal_topics', data.commercial_deal_topics || []],
+      ['commercial_deal_activities', data.commercial_deal_activities || []],
+      ['todos', data.todos || []],
+    ];
+    collections.forEach(([key, items]) => requireUniqueIds(items, key));
+
+    const topicIds = new Set(data.topics.map(item => item.id));
+    const personIds = new Set(data.people.map(item => item.id));
+    const tagIds = new Set(data.tags.map(item => item.id));
+    const requireTopic = (topicId: string, path: Array<string | number>) => {
+      if (!topicIds.has(topicId)) addIssue(path, `引用了不存在的选题：${topicId}`);
+    };
+
+    data.sources.forEach((item, index) => requireTopic(item.topic_id, ['sources', index, 'topic_id']));
+    data.reports.forEach((item, index) => requireTopic(item.topic_id, ['reports', index, 'topic_id']));
+    data.drafts.forEach((item, index) => requireTopic(item.topic_id, ['drafts', index, 'topic_id']));
+    data.citations.forEach((item, index) => {
+      requireTopic(item.topic_id, ['citations', index, 'topic_id']);
     });
-  };
-
-  const collections: Array<[string, Array<{ id: string }>]> = [
-    ['topics', data.topics], ['sources', data.sources], ['reports', data.reports],
-    ['people', data.people], ['relationships', data.relationships], ['drafts', data.drafts],
-    ['citations', data.citations], ['tags', data.tags], ['published', data.published],
-    ['publish_packages', data.publish_packages || []],
-    ['commercial_deals', data.commercial_deals || []],
-    ['commercial_deal_topics', data.commercial_deal_topics || []],
-    ['commercial_deal_activities', data.commercial_deal_activities || []],
-    ['todos', data.todos || []],
-  ];
-  collections.forEach(([key, items]) => requireUniqueIds(items, key));
-
-  const topicIds = new Set(data.topics.map((item) => item.id));
-  const personIds = new Set(data.people.map((item) => item.id));
-  const tagIds = new Set(data.tags.map((item) => item.id));
-  const requireTopic = (topicId: string, path: Array<string | number>) => {
-    if (!topicIds.has(topicId)) addIssue(path, `引用了不存在的选题：${topicId}`);
-  };
-
-  data.sources.forEach((item, index) => requireTopic(item.topic_id, ['sources', index, 'topic_id']));
-  data.reports.forEach((item, index) => requireTopic(item.topic_id, ['reports', index, 'topic_id']));
-  data.drafts.forEach((item, index) => requireTopic(item.topic_id, ['drafts', index, 'topic_id']));
-  data.citations.forEach((item, index) => {
-    requireTopic(item.topic_id, ['citations', index, 'topic_id']);
-  });
-  const currentTodoTopics = new Set<string>();
-  const inProgressTodosByTopic = new Map<string, TopicTodo[]>();
-  (data.todos || []).forEach((item, index) => {
-    requireTopic(item.topic_id, ['todos', index, 'topic_id']);
-    if ((item.status === 'completed') !== Boolean(item.completed_at)) {
-      addIssue(['todos', index, 'status'], 'Todo 状态与完成时间不一致');
-    }
-    if (item.is_current === 1 && item.status !== 'in_progress') {
-      addIssue(['todos', index, 'is_current'], '只有进行中的 Todo 可以是当前行动');
-    }
-    if ((item.is_current === 1) !== Boolean(item.current_started_at)) {
-      addIssue(['todos', index, 'current_started_at'], '当前行动开始时间必须且只能记录在当前行动上');
-    }
-    if (item.is_current === 1 && currentTodoTopics.has(item.topic_id)) {
-      addIssue(['todos', index, 'is_current'], `一个选题只能有一个当前 Todo：${item.topic_id}`);
-    }
-    if (item.is_current === 1) currentTodoTopics.add(item.topic_id);
-    if (item.status === 'in_progress') {
-      inProgressTodosByTopic.set(item.topic_id, [...(inProgressTodosByTopic.get(item.topic_id) || []), item]);
-    }
-  });
-  inProgressTodosByTopic.forEach((items, topicId) => {
-    const ordered = [...items].sort((a, b) => a.sort_order - b.sort_order || a.created_at.localeCompare(b.created_at));
-    if (ordered[0]?.is_current !== 1) {
-      addIssue(['todos'], `进行中首项必须是当前行动：${topicId}`);
-    }
-  });
-  const publishedTopicIds = new Set<string>();
-  data.published.forEach((item, index) => {
-    if (!item.topic_id) return;
-    requireTopic(item.topic_id, ['published', index, 'topic_id']);
-    if (publishedTopicIds.has(item.topic_id)) {
-      addIssue(['published', index, 'topic_id'], `一个选题只能关联一个已发布视频：${item.topic_id}`);
-    }
-    publishedTopicIds.add(item.topic_id);
-  });
-  const dealIds = new Set((data.commercial_deals || []).map((item) => item.id));
-  const publishedIds = new Set(data.published.map((item) => item.id));
-  (data.commercial_deals || []).forEach((item, index) => {
-    if (item.published_video_id && !publishedIds.has(item.published_video_id)) {
-      addIssue(['commercial_deals', index, 'published_video_id'], `引用了不存在的已发布视频：${item.published_video_id}`);
-    }
-  });
-  (data.commercial_deal_topics || []).forEach((item, index) => {
-    if (!dealIds.has(item.deal_id)) addIssue(['commercial_deal_topics', index, 'deal_id'], `引用了不存在的商单：${item.deal_id}`);
-    requireTopic(item.topic_id, ['commercial_deal_topics', index, 'topic_id']);
-  });
-  const relationPairs = new Set<string>();
-  const primaryDeals = new Set<string>();
-  (data.commercial_deal_topics || []).forEach((item, index) => {
-    const pair = `${item.deal_id}:${item.topic_id}`;
-    if (relationPairs.has(pair)) addIssue(['commercial_deal_topics', index], `商单与选题关联重复：${pair}`);
-    relationPairs.add(pair);
-    if (item.relation_role === 'primary') {
-      if (primaryDeals.has(item.deal_id)) addIssue(['commercial_deal_topics', index, 'relation_role'], `一个商单只能有一个主选题：${item.deal_id}`);
-      primaryDeals.add(item.deal_id);
-    }
-  });
-  (data.commercial_deal_activities || []).forEach((item, index) => {
-    if (!dealIds.has(item.deal_id)) addIssue(['commercial_deal_activities', index, 'deal_id'], `引用了不存在的商单：${item.deal_id}`);
-  });
-  (data.publish_packages || []).forEach((item, index) => requireTopic(item.topic_id, ['publish_packages', index, 'topic_id']));
-  data.relationships.forEach((item, index) => {
-    if (item.person_a_id === item.person_b_id) addIssue(['relationships', index], '人物不能与自己建立关系');
-    if (!personIds.has(item.person_a_id)) addIssue(['relationships', index, 'person_a_id'], `引用了不存在的人物：${item.person_a_id}`);
-    if (!personIds.has(item.person_b_id)) addIssue(['relationships', index, 'person_b_id'], `引用了不存在的人物：${item.person_b_id}`);
-  });
-  data.topics.forEach((topic, topicIndex) => {
-    topic.tags?.forEach((tag, tagIndex) => {
-      if (!tagIds.has(tag.id)) addIssue(['topics', topicIndex, 'tags', tagIndex, 'id'], `引用了不存在的标签：${tag.id}`);
+    const currentTodoTopics = new Set<string>();
+    const inProgressTodosByTopic = new Map<string, TopicTodo[]>();
+    (data.todos || []).forEach((item, index) => {
+      requireTopic(item.topic_id, ['todos', index, 'topic_id']);
+      if ((item.status === 'completed') !== Boolean(item.completed_at)) {
+        addIssue(['todos', index, 'status'], 'Todo 状态与完成时间不一致');
+      }
+      if (item.is_current === 1 && item.status !== 'in_progress') {
+        addIssue(['todos', index, 'is_current'], '只有进行中的 Todo 可以是当前行动');
+      }
+      if ((item.is_current === 1) !== Boolean(item.current_started_at)) {
+        addIssue(['todos', index, 'current_started_at'], '当前行动开始时间必须且只能记录在当前行动上');
+      }
+      if (item.is_current === 1 && currentTodoTopics.has(item.topic_id)) {
+        addIssue(['todos', index, 'is_current'], `一个选题只能有一个当前 Todo：${item.topic_id}`);
+      }
+      if (item.is_current === 1) currentTodoTopics.add(item.topic_id);
+      if (item.status === 'in_progress') {
+        inProgressTodosByTopic.set(item.topic_id, [...(inProgressTodosByTopic.get(item.topic_id) || []), item]);
+      }
     });
-    topic.people?.forEach((person, personIndex) => {
-      if (!personIds.has(person.id)) addIssue(['topics', topicIndex, 'people', personIndex, 'id'], `引用了不存在的人物：${person.id}`);
+    inProgressTodosByTopic.forEach((items, topicId) => {
+      const ordered = [...items].sort(
+        (a, b) => a.sort_order - b.sort_order || a.created_at.localeCompare(b.created_at),
+      );
+      if (ordered[0]?.is_current !== 1) {
+        addIssue(['todos'], `进行中首项必须是当前行动：${topicId}`);
+      }
+    });
+    const publishedTopicIds = new Set<string>();
+    data.published.forEach((item, index) => {
+      if (!item.topic_id) return;
+      requireTopic(item.topic_id, ['published', index, 'topic_id']);
+      if (publishedTopicIds.has(item.topic_id)) {
+        addIssue(['published', index, 'topic_id'], `一个选题只能关联一个已发布视频：${item.topic_id}`);
+      }
+      publishedTopicIds.add(item.topic_id);
+    });
+    const dealIds = new Set((data.commercial_deals || []).map(item => item.id));
+    const publishedIds = new Set(data.published.map(item => item.id));
+    (data.commercial_deals || []).forEach((item, index) => {
+      if (item.published_video_id && !publishedIds.has(item.published_video_id)) {
+        addIssue(
+          ['commercial_deals', index, 'published_video_id'],
+          `引用了不存在的已发布视频：${item.published_video_id}`,
+        );
+      }
+    });
+    (data.commercial_deal_topics || []).forEach((item, index) => {
+      if (!dealIds.has(item.deal_id))
+        addIssue(['commercial_deal_topics', index, 'deal_id'], `引用了不存在的商单：${item.deal_id}`);
+      requireTopic(item.topic_id, ['commercial_deal_topics', index, 'topic_id']);
+    });
+    const relationPairs = new Set<string>();
+    const primaryDeals = new Set<string>();
+    (data.commercial_deal_topics || []).forEach((item, index) => {
+      const pair = `${item.deal_id}:${item.topic_id}`;
+      if (relationPairs.has(pair)) addIssue(['commercial_deal_topics', index], `商单与选题关联重复：${pair}`);
+      relationPairs.add(pair);
+      if (item.relation_role === 'primary') {
+        if (primaryDeals.has(item.deal_id))
+          addIssue(['commercial_deal_topics', index, 'relation_role'], `一个商单只能有一个主选题：${item.deal_id}`);
+        primaryDeals.add(item.deal_id);
+      }
+    });
+    (data.commercial_deal_activities || []).forEach((item, index) => {
+      if (!dealIds.has(item.deal_id))
+        addIssue(['commercial_deal_activities', index, 'deal_id'], `引用了不存在的商单：${item.deal_id}`);
+    });
+    (data.publish_packages || []).forEach((item, index) =>
+      requireTopic(item.topic_id, ['publish_packages', index, 'topic_id']),
+    );
+    data.relationships.forEach((item, index) => {
+      if (item.person_a_id === item.person_b_id) addIssue(['relationships', index], '人物不能与自己建立关系');
+      if (!personIds.has(item.person_a_id))
+        addIssue(['relationships', index, 'person_a_id'], `引用了不存在的人物：${item.person_a_id}`);
+      if (!personIds.has(item.person_b_id))
+        addIssue(['relationships', index, 'person_b_id'], `引用了不存在的人物：${item.person_b_id}`);
+    });
+    data.topics.forEach((topic, topicIndex) => {
+      topic.tags?.forEach((tag, tagIndex) => {
+        if (!tagIds.has(tag.id))
+          addIssue(['topics', topicIndex, 'tags', tagIndex, 'id'], `引用了不存在的标签：${tag.id}`);
+      });
+      topic.people?.forEach((person, personIndex) => {
+        if (!personIds.has(person.id))
+          addIssue(['topics', topicIndex, 'people', personIndex, 'id'], `引用了不存在的人物：${person.id}`);
+      });
+    });
+
+    const draftTopicIds = new Set<string>();
+    data.drafts.forEach((draft, index) => {
+      if (draftTopicIds.has(draft.topic_id))
+        addIssue(['drafts', index, 'topic_id'], `选题存在多份草稿：${draft.topic_id}`);
+      draftTopicIds.add(draft.topic_id);
+    });
+    const tagNames = new Set<string>();
+    data.tags.forEach((tag, index) => {
+      const normalized = tag.name.trim().toLocaleLowerCase();
+      if (tagNames.has(normalized)) addIssue(['tags', index, 'name'], `标签名称重复：${tag.name}`);
+      tagNames.add(normalized);
     });
   });
 
-  const draftTopicIds = new Set<string>();
-  data.drafts.forEach((draft, index) => {
-    if (draftTopicIds.has(draft.topic_id)) addIssue(['drafts', index, 'topic_id'], `选题存在多份草稿：${draft.topic_id}`);
-    draftTopicIds.add(draft.topic_id);
-  });
-  const tagNames = new Set<string>();
-  data.tags.forEach((tag, index) => {
-    const normalized = tag.name.trim().toLocaleLowerCase();
-    if (tagNames.has(normalized)) addIssue(['tags', index, 'name'], `标签名称重复：${tag.name}`);
-    tagNames.add(normalized);
-  });
-});
-
-export type BackupValidationResult =
-  | { success: true; data: BackupData }
-  | { success: false; error: string };
+export type BackupValidationResult = { success: true; data: BackupData } | { success: false; error: string };
 
 export function validateBackupData(value: unknown): BackupValidationResult {
   const result = backupSchema.safeParse(value);
   if (result.success) return { success: true, data: result.data as BackupData };
-  const message = result.error.issues.slice(0, 5).map((issue) => {
-    const path = issue.path.length > 0 ? issue.path.join('.') : 'backup';
-    return `${path}: ${issue.message}`;
-  }).join('；');
+  const message = result.error.issues
+    .slice(0, 5)
+    .map(issue => {
+      const path = issue.path.length > 0 ? issue.path.join('.') : 'backup';
+      return `${path}: ${issue.message}`;
+    })
+    .join('；');
   return { success: false, error: message || '备份格式不正确' };
 }
 

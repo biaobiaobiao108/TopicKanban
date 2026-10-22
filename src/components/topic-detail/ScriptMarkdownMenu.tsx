@@ -5,17 +5,53 @@ import { ReactRenderer } from '@tiptap/react';
 import Suggestion from '@tiptap/suggestion';
 import type { SuggestionKeyDownProps, SuggestionMatch } from '@tiptap/suggestion';
 import {
-  Bold, Bookmark, Code, Code2, Heading1, Heading2, Heading3, Heading4, Heading5, Heading6,
-  Info, Italic, Lightbulb, Link2, List, ListOrdered, ListTodo, Minus, Pilcrow, Quote,
-  ShieldAlert, Strikethrough, Table2, TriangleAlert, Underline,
+  Bold,
+  Bookmark,
+  Code,
+  Code2,
+  Heading1,
+  Heading2,
+  Heading3,
+  Heading4,
+  Heading5,
+  Heading6,
+  Info,
+  Italic,
+  Lightbulb,
+  Link2,
+  List,
+  ListOrdered,
+  ListTodo,
+  Minus,
+  Pilcrow,
+  Quote,
+  ShieldAlert,
+  Strikethrough,
+  Table2,
+  TriangleAlert,
+  Underline,
 } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 import { FloatingScrollbar } from '../ui/FloatingScrollbar';
 import type { CalloutType } from './ScriptCalloutNode';
 
-type CommandAction = 'paragraph' | 'heading' | 'bulletList' | 'orderedList' | 'taskList'
-  | 'blockquote' | 'codeBlock' | 'horizontalRule' | 'callout' | 'table'
-  | 'bold' | 'italic' | 'strike' | 'underline' | 'inlineCode' | 'link';
+type CommandAction =
+  | 'paragraph'
+  | 'heading'
+  | 'bulletList'
+  | 'orderedList'
+  | 'taskList'
+  | 'blockquote'
+  | 'codeBlock'
+  | 'horizontalRule'
+  | 'callout'
+  | 'table'
+  | 'bold'
+  | 'italic'
+  | 'strike'
+  | 'underline'
+  | 'inlineCode'
+  | 'link';
 
 type ScriptMarkdownCommand = {
   id: string;
@@ -31,37 +67,218 @@ type ScriptMarkdownCommand = {
 const SCRIPT_MARKDOWN_COLUMN_COUNT = 3;
 
 const commandItems: ScriptMarkdownCommand[] = [
-  { id: 'heading-1', label: '一级标题', description: '切换为 H1', keywords: ['h1', '标题1'], icon: Heading1, action: 'heading', headingLevel: 1 },
-  { id: 'heading-2', label: '二级标题', description: '切换为 H2', keywords: ['h2', '标题2'], icon: Heading2, action: 'heading', headingLevel: 2 },
-  { id: 'heading-3', label: '三级标题', description: '切换为 H3', keywords: ['h3', '标题3'], icon: Heading3, action: 'heading', headingLevel: 3 },
-  { id: 'heading-4', label: '四级标题', description: '切换为 H4', keywords: ['h4', '标题4'], icon: Heading4, action: 'heading', headingLevel: 4 },
-  { id: 'heading-5', label: '五级标题', description: '切换为 H5', keywords: ['h5', '标题5'], icon: Heading5, action: 'heading', headingLevel: 5 },
-  { id: 'heading-6', label: '六级标题', description: '切换为 H6', keywords: ['h6', '标题6'], icon: Heading6, action: 'heading', headingLevel: 6 },
-  { id: 'paragraph', label: '正文段落', description: '切换为普通正文', keywords: ['paragraph', '正文'], icon: Pilcrow, action: 'paragraph' },
+  {
+    id: 'heading-1',
+    label: '一级标题',
+    description: '切换为 H1',
+    keywords: ['h1', '标题1'],
+    icon: Heading1,
+    action: 'heading',
+    headingLevel: 1,
+  },
+  {
+    id: 'heading-2',
+    label: '二级标题',
+    description: '切换为 H2',
+    keywords: ['h2', '标题2'],
+    icon: Heading2,
+    action: 'heading',
+    headingLevel: 2,
+  },
+  {
+    id: 'heading-3',
+    label: '三级标题',
+    description: '切换为 H3',
+    keywords: ['h3', '标题3'],
+    icon: Heading3,
+    action: 'heading',
+    headingLevel: 3,
+  },
+  {
+    id: 'heading-4',
+    label: '四级标题',
+    description: '切换为 H4',
+    keywords: ['h4', '标题4'],
+    icon: Heading4,
+    action: 'heading',
+    headingLevel: 4,
+  },
+  {
+    id: 'heading-5',
+    label: '五级标题',
+    description: '切换为 H5',
+    keywords: ['h5', '标题5'],
+    icon: Heading5,
+    action: 'heading',
+    headingLevel: 5,
+  },
+  {
+    id: 'heading-6',
+    label: '六级标题',
+    description: '切换为 H6',
+    keywords: ['h6', '标题6'],
+    icon: Heading6,
+    action: 'heading',
+    headingLevel: 6,
+  },
+  {
+    id: 'paragraph',
+    label: '正文段落',
+    description: '切换为普通正文',
+    keywords: ['paragraph', '正文'],
+    icon: Pilcrow,
+    action: 'paragraph',
+  },
   { id: 'bold', label: '加粗', description: '切换粗体标记', keywords: ['bold', 'strong'], icon: Bold, action: 'bold' },
-  { id: 'italic', label: '斜体', description: '切换斜体标记', keywords: ['italic', 'emphasis'], icon: Italic, action: 'italic' },
-  { id: 'strike', label: '删除线', description: '切换删除线标记', keywords: ['strike', 'strikethrough'], icon: Strikethrough, action: 'strike' },
-  { id: 'underline', label: '下划线', description: '切换下划线标记（++文本++）', keywords: ['underline'], icon: Underline, action: 'underline' },
-  { id: 'inline-code', label: '行内代码', description: '切换行内代码标记', keywords: ['inline code', 'code'], icon: Code, action: 'inlineCode' },
-  { id: 'link', label: '超链接', description: '插入可编辑的链接文字', keywords: ['link', '链接', '超链接'], icon: Link2, action: 'link' },
-  { id: 'blockquote', label: '引用', description: '插入引用块', keywords: ['quote', 'blockquote'], icon: Quote, action: 'blockquote' },
-  { id: 'code-block', label: '代码块', description: '插入代码围栏', keywords: ['code fence'], icon: Code2, action: 'codeBlock' },
-  { id: 'horizontal-rule', label: '分隔线', description: '插入水平分隔线', keywords: ['divider', 'hr'], icon: Minus, action: 'horizontalRule' },
-  { id: 'bullet-list', label: '无序列表', description: '插入项目符号列表', keywords: ['bullet', 'unordered list'], icon: List, action: 'bulletList' },
-  { id: 'ordered-list', label: '有序列表', description: '插入编号列表', keywords: ['ordered', 'numbered list'], icon: ListOrdered, action: 'orderedList' },
-  { id: 'task-list', label: '任务清单', description: '插入可勾选任务', keywords: ['task', 'todo', 'checkbox'], icon: ListTodo, action: 'taskList' },
-  { id: 'table', label: '表格', description: '插入 3 × 3 表格', keywords: ['table', 'grid'], icon: Table2, action: 'table' },
-  { id: 'callout-note', label: '提示块 · 说明', description: '插入 NOTE 提示块', keywords: ['callout', 'note'], icon: Info, action: 'callout', calloutType: 'NOTE' },
-  { id: 'callout-tip', label: '提示块 · 建议', description: '插入 TIP 提示块', keywords: ['callout', 'tip'], icon: Lightbulb, action: 'callout', calloutType: 'TIP' },
-  { id: 'callout-important', label: '提示块 · 重要', description: '插入 IMPORTANT 提示块', keywords: ['callout', 'important'], icon: Bookmark, action: 'callout', calloutType: 'IMPORTANT' },
-  { id: 'callout-warning', label: '提示块 · 警告', description: '插入 WARNING 提示块', keywords: ['callout', 'warning'], icon: TriangleAlert, action: 'callout', calloutType: 'WARNING' },
-  { id: 'callout-caution', label: '提示块 · 注意', description: '插入 CAUTION 提示块', keywords: ['callout', 'caution'], icon: ShieldAlert, action: 'callout', calloutType: 'CAUTION' },
+  {
+    id: 'italic',
+    label: '斜体',
+    description: '切换斜体标记',
+    keywords: ['italic', 'emphasis'],
+    icon: Italic,
+    action: 'italic',
+  },
+  {
+    id: 'strike',
+    label: '删除线',
+    description: '切换删除线标记',
+    keywords: ['strike', 'strikethrough'],
+    icon: Strikethrough,
+    action: 'strike',
+  },
+  {
+    id: 'underline',
+    label: '下划线',
+    description: '切换下划线标记（++文本++）',
+    keywords: ['underline'],
+    icon: Underline,
+    action: 'underline',
+  },
+  {
+    id: 'inline-code',
+    label: '行内代码',
+    description: '切换行内代码标记',
+    keywords: ['inline code', 'code'],
+    icon: Code,
+    action: 'inlineCode',
+  },
+  {
+    id: 'link',
+    label: '超链接',
+    description: '插入可编辑的链接文字',
+    keywords: ['link', '链接', '超链接'],
+    icon: Link2,
+    action: 'link',
+  },
+  {
+    id: 'blockquote',
+    label: '引用',
+    description: '插入引用块',
+    keywords: ['quote', 'blockquote'],
+    icon: Quote,
+    action: 'blockquote',
+  },
+  {
+    id: 'code-block',
+    label: '代码块',
+    description: '插入代码围栏',
+    keywords: ['code fence'],
+    icon: Code2,
+    action: 'codeBlock',
+  },
+  {
+    id: 'horizontal-rule',
+    label: '分隔线',
+    description: '插入水平分隔线',
+    keywords: ['divider', 'hr'],
+    icon: Minus,
+    action: 'horizontalRule',
+  },
+  {
+    id: 'bullet-list',
+    label: '无序列表',
+    description: '插入项目符号列表',
+    keywords: ['bullet', 'unordered list'],
+    icon: List,
+    action: 'bulletList',
+  },
+  {
+    id: 'ordered-list',
+    label: '有序列表',
+    description: '插入编号列表',
+    keywords: ['ordered', 'numbered list'],
+    icon: ListOrdered,
+    action: 'orderedList',
+  },
+  {
+    id: 'task-list',
+    label: '任务清单',
+    description: '插入可勾选任务',
+    keywords: ['task', 'todo', 'checkbox'],
+    icon: ListTodo,
+    action: 'taskList',
+  },
+  {
+    id: 'table',
+    label: '表格',
+    description: '插入 3 × 3 表格',
+    keywords: ['table', 'grid'],
+    icon: Table2,
+    action: 'table',
+  },
+  {
+    id: 'callout-note',
+    label: '提示块 · 说明',
+    description: '插入 NOTE 提示块',
+    keywords: ['callout', 'note'],
+    icon: Info,
+    action: 'callout',
+    calloutType: 'NOTE',
+  },
+  {
+    id: 'callout-tip',
+    label: '提示块 · 建议',
+    description: '插入 TIP 提示块',
+    keywords: ['callout', 'tip'],
+    icon: Lightbulb,
+    action: 'callout',
+    calloutType: 'TIP',
+  },
+  {
+    id: 'callout-important',
+    label: '提示块 · 重要',
+    description: '插入 IMPORTANT 提示块',
+    keywords: ['callout', 'important'],
+    icon: Bookmark,
+    action: 'callout',
+    calloutType: 'IMPORTANT',
+  },
+  {
+    id: 'callout-warning',
+    label: '提示块 · 警告',
+    description: '插入 WARNING 提示块',
+    keywords: ['callout', 'warning'],
+    icon: TriangleAlert,
+    action: 'callout',
+    calloutType: 'WARNING',
+  },
+  {
+    id: 'callout-caution',
+    label: '提示块 · 注意',
+    description: '插入 CAUTION 提示块',
+    keywords: ['callout', 'caution'],
+    icon: ShieldAlert,
+    action: 'callout',
+    calloutType: 'CAUTION',
+  },
 ];
 
 export function filterScriptMarkdownCommands(query: string) {
   const normalized = query.trim().toLocaleLowerCase();
   if (!normalized) return commandItems;
-  return commandItems.filter((item) => `${item.label} ${item.description} ${item.keywords.join(' ')}`.toLocaleLowerCase().includes(normalized));
+  return commandItems.filter(item =>
+    `${item.label} ${item.description} ${item.keywords.join(' ')}`.toLocaleLowerCase().includes(normalized),
+  );
 }
 
 export function groupScriptMarkdownCommands(items: ScriptMarkdownCommand[]) {
@@ -89,15 +306,15 @@ export function getNextGroupedScriptMarkdownCommandIndex(
   current: number,
   key: string,
   groups: ScriptMarkdownCommand[][],
-  columns = SCRIPT_MARKDOWN_COLUMN_COUNT
+  columns = SCRIPT_MARKDOWN_COLUMN_COUNT,
 ) {
-  const safeGroups = groups.filter((group) => group.length > 0);
+  const safeGroups = groups.filter(group => group.length > 0);
   const flatItems = safeGroups.flat();
   if (!flatItems.length) return 0;
 
   const currentIndex = Math.max(0, Math.min(current, flatItems.length - 1));
   let offset = 0;
-  const groupIndex = safeGroups.findIndex((group) => {
+  const groupIndex = safeGroups.findIndex(group => {
     const containsCurrent = currentIndex >= offset && currentIndex < offset + group.length;
     offset += group.length;
     return containsCurrent;
@@ -126,9 +343,8 @@ export function getNextGroupedScriptMarkdownCommandIndex(
   const groupColumn = groupIndex % columns;
   const rowStart = groupRow * columns;
   const rowSize = Math.min(columns, safeGroups.length - rowStart);
-  const targetGroupIndex = key === 'ArrowLeft'
-    ? rowStart + (groupColumn - 1 + rowSize) % rowSize
-    : rowStart + (groupColumn + 1) % rowSize;
+  const targetGroupIndex =
+    key === 'ArrowLeft' ? rowStart + ((groupColumn - 1 + rowSize) % rowSize) : rowStart + ((groupColumn + 1) % rowSize);
   const targetOffset = safeGroups.slice(0, targetGroupIndex).reduce((sum, itemGroup) => sum + itemGroup.length, 0);
   return targetOffset + Math.min(localIndex, safeGroups[targetGroupIndex].length - 1);
 }
@@ -150,10 +366,13 @@ export function findScriptMarkdownCommandMatch(config: {
   };
 }): SuggestionMatch {
   const { $position } = config;
-  const hasParentText = typeof $position.parent?.textBetween === 'function' && typeof $position.parentOffset === 'number';
+  const hasParentText =
+    typeof $position.parent?.textBetween === 'function' && typeof $position.parentOffset === 'number';
   const text = hasParentText
-    ? $position.parent?.textBetween?.(0, $position.parentOffset!) ?? ''
-    : $position.nodeBefore?.isText ? $position.nodeBefore.text ?? '' : '';
+    ? ($position.parent?.textBetween?.(0, $position.parentOffset!) ?? '')
+    : $position.nodeBefore?.isText
+      ? ($position.nodeBefore.text ?? '')
+      : '';
   if (!text) return null;
 
   const match = /(?:^|[ \t\u3000])\/([^\n]*)$/u.exec(text);
@@ -169,10 +388,15 @@ export function findScriptMarkdownCommandMatch(config: {
   return { range: { from, to }, query: match[1], text: match[0].slice(match[0].lastIndexOf('/')) };
 }
 
-export function insertScriptMarkdownCommand(editor: Editor, range: { from: number; to: number }, item: ScriptMarkdownCommand) {
+export function insertScriptMarkdownCommand(
+  editor: Editor,
+  range: { from: number; to: number },
+  item: ScriptMarkdownCommand,
+) {
   if (item.action === 'link') {
     const position = range.from;
-    editor.chain()
+    editor
+      .chain()
       .focus()
       .deleteRange(range)
       .insertContent({ type: 'text', text: '链接文字', marks: [{ type: 'link', attrs: { href: 'https://' } }] })
@@ -188,10 +412,15 @@ export function insertScriptMarkdownCommand(editor: Editor, range: { from: numbe
 
   if (item.action === 'callout') {
     const position = range.from;
-    editor.chain()
+    editor
+      .chain()
       .focus()
       .deleteRange(range)
-      .insertContentAt(position, { type: 'callout', attrs: { type: item.calloutType ?? 'NOTE' }, content: [{ type: 'paragraph' }] }, { updateSelection: false })
+      .insertContentAt(
+        position,
+        { type: 'callout', attrs: { type: item.calloutType ?? 'NOTE' }, content: [{ type: 'paragraph' }] },
+        { updateSelection: false },
+      )
       .setTextSelection(position + 2)
       .run();
     return;
@@ -199,19 +428,45 @@ export function insertScriptMarkdownCommand(editor: Editor, range: { from: numbe
 
   const chain = editor.chain().focus().deleteRange(range);
   switch (item.action) {
-    case 'paragraph': chain.setParagraph(); break;
-    case 'heading': chain.setHeading({ level: item.headingLevel ?? 1 }); break;
-    case 'bulletList': chain.toggleBulletList(); break;
-    case 'orderedList': chain.toggleOrderedList(); break;
-    case 'taskList': chain.toggleTaskList(); break;
-    case 'blockquote': chain.toggleBlockquote(); break;
-    case 'codeBlock': chain.toggleCodeBlock(); break;
-    case 'horizontalRule': chain.setHorizontalRule(); break;
-    case 'bold': chain.toggleBold(); break;
-    case 'italic': chain.toggleItalic(); break;
-    case 'strike': chain.toggleStrike(); break;
-    case 'underline': chain.toggleUnderline(); break;
-    case 'inlineCode': chain.toggleCode(); break;
+    case 'paragraph':
+      chain.setParagraph();
+      break;
+    case 'heading':
+      chain.setHeading({ level: item.headingLevel ?? 1 });
+      break;
+    case 'bulletList':
+      chain.toggleBulletList();
+      break;
+    case 'orderedList':
+      chain.toggleOrderedList();
+      break;
+    case 'taskList':
+      chain.toggleTaskList();
+      break;
+    case 'blockquote':
+      chain.toggleBlockquote();
+      break;
+    case 'codeBlock':
+      chain.toggleCodeBlock();
+      break;
+    case 'horizontalRule':
+      chain.setHorizontalRule();
+      break;
+    case 'bold':
+      chain.toggleBold();
+      break;
+    case 'italic':
+      chain.toggleItalic();
+      break;
+    case 'strike':
+      chain.toggleStrike();
+      break;
+    case 'underline':
+      chain.toggleUnderline();
+      break;
+    case 'inlineCode':
+      chain.toggleCode();
+      break;
   }
   chain.run();
 }
@@ -263,8 +518,10 @@ const CommandList = forwardRef<CommandListRef, CommandListProps>((props, ref) =>
     else editorElement.removeAttribute('aria-activedescendant');
 
     return () => {
-      if (editorElement.getAttribute('aria-activedescendant') === activeItemId) restore('aria-activedescendant', previous.activeDescendant);
-      if (editorElement.getAttribute('aria-autocomplete') === 'list') restore('aria-autocomplete', previous.autocomplete);
+      if (editorElement.getAttribute('aria-activedescendant') === activeItemId)
+        restore('aria-activedescendant', previous.activeDescendant);
+      if (editorElement.getAttribute('aria-autocomplete') === 'list')
+        restore('aria-autocomplete', previous.autocomplete);
       if (editorElement.getAttribute('aria-controls') === listId) restore('aria-controls', previous.controls);
       if (editorElement.getAttribute('aria-haspopup') === 'listbox') restore('aria-haspopup', previous.hasPopup);
     };
@@ -275,32 +532,36 @@ const CommandList = forwardRef<CommandListRef, CommandListProps>((props, ref) =>
     if (item) props.command(item);
   };
 
-  useImperativeHandle(ref, () => ({
-    onKeyDown: ({ event }: SuggestionKeyDownProps) => {
-      if (event.isComposing || event.keyCode === 229) return false;
-      if (['ArrowDown', 'ArrowUp', 'ArrowLeft', 'ArrowRight'].includes(event.key)) {
-        event.preventDefault();
-        if (!props.items.length) return true;
-        const next = isDirectory
-          ? getNextGroupedScriptMarkdownCommandIndex(
-            selectedIndexRef.current,
-            event.key,
-            groups.map((group) => group.items),
-            window.innerWidth <= 720 ? 2 : SCRIPT_MARKDOWN_COLUMN_COUNT
-          )
-          : getNextScriptMarkdownCommandIndex(selectedIndexRef.current, event.key, props.items.length);
-        selectedIndexRef.current = next;
-        setSelectedIndex(next);
-        return true;
-      }
-      if (event.key === 'Enter' && props.items.length) {
-        event.preventDefault();
-        select(Math.min(selectedIndexRef.current, props.items.length - 1));
-        return true;
-      }
-      return false;
-    },
-  }), [groups, isDirectory, props.items, props.command]);
+  useImperativeHandle(
+    ref,
+    () => ({
+      onKeyDown: ({ event }: SuggestionKeyDownProps) => {
+        if (event.isComposing || event.keyCode === 229) return false;
+        if (['ArrowDown', 'ArrowUp', 'ArrowLeft', 'ArrowRight'].includes(event.key)) {
+          event.preventDefault();
+          if (!props.items.length) return true;
+          const next = isDirectory
+            ? getNextGroupedScriptMarkdownCommandIndex(
+                selectedIndexRef.current,
+                event.key,
+                groups.map(group => group.items),
+                window.innerWidth <= 720 ? 2 : SCRIPT_MARKDOWN_COLUMN_COUNT,
+              )
+            : getNextScriptMarkdownCommandIndex(selectedIndexRef.current, event.key, props.items.length);
+          selectedIndexRef.current = next;
+          setSelectedIndex(next);
+          return true;
+        }
+        if (event.key === 'Enter' && props.items.length) {
+          event.preventDefault();
+          select(Math.min(selectedIndexRef.current, props.items.length - 1));
+          return true;
+        }
+        return false;
+      },
+    }),
+    [groups, isDirectory, props.items, props.command],
+  );
 
   const renderItem = (item: ScriptMarkdownCommand, index: number) => {
     const Icon = item.icon;
@@ -313,29 +574,46 @@ const CommandList = forwardRef<CommandListRef, CommandListProps>((props, ref) =>
         aria-label={`${item.label}，${item.description}`}
         className={`script-markdown-menu-item script-markdown-menu-item--${isDirectory ? 'directory' : 'suggestion'}${index === selectedIndex ? ' is-selected' : ''}`}
         key={item.id}
-        onMouseDown={(event) => event.preventDefault()}
+        onMouseDown={event => event.preventDefault()}
         onClick={() => select(index)}
       >
-        <span className="script-markdown-menu-icon"><Icon size={16} strokeWidth={1.8} aria-hidden="true" /></span>
+        <span className="script-markdown-menu-icon">
+          <Icon size={16} strokeWidth={1.8} aria-hidden="true" />
+        </span>
         <span className="script-markdown-menu-copy">{item.label}</span>
       </button>
     );
   };
 
   return (
-    <div className={`script-markdown-menu script-markdown-menu--${isDirectory ? 'directory' : 'suggestions'}`} role="listbox" id={listId} aria-label="Markdown 插入命令">
+    <div
+      className={`script-markdown-menu script-markdown-menu--${isDirectory ? 'directory' : 'suggestions'}`}
+      role="listbox"
+      id={listId}
+      aria-label="Markdown 插入命令"
+    >
       <FloatingScrollbar
         ref={listRef}
         className={`script-markdown-menu-list script-markdown-menu-list--${isDirectory ? 'directory' : 'suggestions'}`}
         wrapperClassName="script-markdown-menu-list-shell"
       >
-        {props.items.length ? isDirectory ? groups.map((group) => (
-          <section className="script-markdown-menu-group" role="group" aria-label={group.label} key={group.id}>
-            <div className="script-markdown-menu-group-items">
-              {group.items.map((item, localIndex) => renderItem(item, group.startIndex + localIndex))}
-            </div>
-          </section>
-        )) : props.items.map(renderItem) : <div className="script-markdown-menu-empty" role="status">没有匹配的命令</div>}
+        {props.items.length ? (
+          isDirectory ? (
+            groups.map(group => (
+              <section className="script-markdown-menu-group" role="group" aria-label={group.label} key={group.id}>
+                <div className="script-markdown-menu-group-items">
+                  {group.items.map((item, localIndex) => renderItem(item, group.startIndex + localIndex))}
+                </div>
+              </section>
+            ))
+          ) : (
+            props.items.map(renderItem)
+          )
+        ) : (
+          <div className="script-markdown-menu-empty" role="status">
+            没有匹配的命令
+          </div>
+        )}
       </FloatingScrollbar>
     </div>
   );
@@ -348,110 +626,117 @@ export const ScriptMarkdownMenu = Extension.create({
   name: scriptMarkdownSuggestionKey,
 
   addProseMirrorPlugins() {
-    return [Suggestion<ScriptMarkdownCommand>({
-      editor: this.editor,
-      char: '/',
-      allowSpaces: true,
-      allowedPrefixes: null,
-      findSuggestionMatch: findScriptMarkdownCommandMatch,
-      allow: ({ editor, state }) => {
-        // Tiptap Suggestion tracks ProseMirror composition itself. Blocking while
-        // composing prevents the final IME text from refreshing the menu until
-        // the next keypress (for example, Backspace).
-        if (!editor.isEditable || !state.selection.empty) return false;
-        const parentRole = state.selection.$from.node(-1)?.type.spec.tableRole;
-        if (parentRole === 'cell' || parentRole === 'header_cell') return false;
-        if (state.selection.$from.parent.type.spec.code || state.selection.$from.marks().some((mark) => mark.type.spec.code)) return false;
-        return true;
-      },
-      items: ({ query }) => filterScriptMarkdownCommands(query),
-      command: ({ editor, range, props }) => insertScriptMarkdownCommand(editor, range, props),
-      render: () => {
-        let component: ReactRenderer<CommandListRef> | null = null;
-        let popup: HTMLDivElement | null = null;
-        let activeClientRect: (() => DOMRect | null) | undefined;
-        let positionFrame: number | null = null;
-        let currentQuery = '';
+    return [
+      Suggestion<ScriptMarkdownCommand>({
+        editor: this.editor,
+        char: '/',
+        allowSpaces: true,
+        allowedPrefixes: null,
+        findSuggestionMatch: findScriptMarkdownCommandMatch,
+        allow: ({ editor, state }) => {
+          // Tiptap Suggestion tracks ProseMirror composition itself. Blocking while
+          // composing prevents the final IME text from refreshing the menu until
+          // the next keypress (for example, Backspace).
+          if (!editor.isEditable || !state.selection.empty) return false;
+          const parentRole = state.selection.$from.node(-1)?.type.spec.tableRole;
+          if (parentRole === 'cell' || parentRole === 'header_cell') return false;
+          if (
+            state.selection.$from.parent.type.spec.code ||
+            state.selection.$from.marks().some(mark => mark.type.spec.code)
+          )
+            return false;
+          return true;
+        },
+        items: ({ query }) => filterScriptMarkdownCommands(query),
+        command: ({ editor, range, props }) => insertScriptMarkdownCommand(editor, range, props),
+        render: () => {
+          let component: ReactRenderer<CommandListRef> | null = null;
+          let popup: HTMLDivElement | null = null;
+          let activeClientRect: (() => DOMRect | null) | undefined;
+          let positionFrame: number | null = null;
+          let currentQuery = '';
 
-        const updatePosition = () => {
-          if (!popup || !activeClientRect) return;
-          const rect = activeClientRect();
-          if (!rect) return;
-          const padding = 12;
-          const isDirectory = currentQuery.trim().length === 0;
-          const width = Math.min(isDirectory ? 660 : 400, window.innerWidth - padding * 2);
-          const maxHeight = Math.min(isDirectory ? 500 : 340, window.innerHeight - padding * 2);
-          popup.style.width = `${width}px`;
-          popup.style.maxHeight = `${maxHeight}px`;
-          const height = Math.min(popup.getBoundingClientRect().height || maxHeight, maxHeight);
-          const left = Math.max(padding, Math.min(rect.left, window.innerWidth - width - padding));
-          const below = rect.bottom + 6;
-          const above = rect.top - height - 6;
-          const top = below + height <= window.innerHeight - padding
-            ? below
-            : above >= padding
-              ? above
-              : Math.max(padding, Math.min(below, window.innerHeight - height - padding));
-          popup.style.left = `${Math.round(left)}px`;
-          popup.style.top = `${Math.round(Math.max(padding, top))}px`;
-        };
+          const updatePosition = () => {
+            if (!popup || !activeClientRect) return;
+            const rect = activeClientRect();
+            if (!rect) return;
+            const padding = 12;
+            const isDirectory = currentQuery.trim().length === 0;
+            const width = Math.min(isDirectory ? 660 : 400, window.innerWidth - padding * 2);
+            const maxHeight = Math.min(isDirectory ? 500 : 340, window.innerHeight - padding * 2);
+            popup.style.width = `${width}px`;
+            popup.style.maxHeight = `${maxHeight}px`;
+            const height = Math.min(popup.getBoundingClientRect().height || maxHeight, maxHeight);
+            const left = Math.max(padding, Math.min(rect.left, window.innerWidth - width - padding));
+            const below = rect.bottom + 6;
+            const above = rect.top - height - 6;
+            const top =
+              below + height <= window.innerHeight - padding
+                ? below
+                : above >= padding
+                  ? above
+                  : Math.max(padding, Math.min(below, window.innerHeight - height - padding));
+            popup.style.left = `${Math.round(left)}px`;
+            popup.style.top = `${Math.round(Math.max(padding, top))}px`;
+          };
 
-        const schedulePosition = () => {
-          if (positionFrame !== null) window.cancelAnimationFrame(positionFrame);
-          positionFrame = window.requestAnimationFrame(() => {
+          const schedulePosition = () => {
+            if (positionFrame !== null) window.cancelAnimationFrame(positionFrame);
+            positionFrame = window.requestAnimationFrame(() => {
+              positionFrame = null;
+              updatePosition();
+            });
+          };
+
+          const destroy = () => {
+            window.removeEventListener('resize', updatePosition);
+            window.removeEventListener('scroll', updatePosition, true);
+            if (positionFrame !== null) window.cancelAnimationFrame(positionFrame);
             positionFrame = null;
-            updatePosition();
-          });
-        };
+            activeClientRect = undefined;
+            currentQuery = '';
+            component?.destroy();
+            component = null;
+            popup?.remove();
+            popup = null;
+          };
 
-        const destroy = () => {
-          window.removeEventListener('resize', updatePosition);
-          window.removeEventListener('scroll', updatePosition, true);
-          if (positionFrame !== null) window.cancelAnimationFrame(positionFrame);
-          positionFrame = null;
-          activeClientRect = undefined;
-          currentQuery = '';
-          component?.destroy();
-          component = null;
-          popup?.remove();
-          popup = null;
-        };
-
-        return {
-          onStart: (props) => {
-            destroy();
-            popup = document.createElement('div');
-            popup.className = 'script-markdown-menu-container';
-            document.body.appendChild(popup);
-            component = new ReactRenderer(CommandList, { props, editor: props.editor });
-            popup.appendChild(component.element);
-            activeClientRect = props.clientRect as (() => DOMRect | null) | undefined;
-            currentQuery = props.query;
-            window.addEventListener('resize', updatePosition);
-            window.addEventListener('scroll', updatePosition, true);
-            updatePosition();
-            schedulePosition();
-          },
-          onUpdate: (props) => {
-            component?.updateProps(props);
-            activeClientRect = props.clientRect as (() => DOMRect | null) | undefined;
-            currentQuery = props.query;
-            updatePosition();
-            schedulePosition();
-          },
-          onKeyDown: (props) => {
-            if (props.event.isComposing || props.event.keyCode === 229) return false;
-            if (props.event.key === 'Escape') {
-              props.event.preventDefault();
-              props.event.stopPropagation();
+          return {
+            onStart: props => {
               destroy();
-              return true;
-            }
-            return component?.ref?.onKeyDown(props) ?? false;
-          },
-          onExit: destroy,
-        };
-      },
-    })];
+              popup = document.createElement('div');
+              popup.className = 'script-markdown-menu-container';
+              document.body.appendChild(popup);
+              component = new ReactRenderer(CommandList, { props, editor: props.editor });
+              popup.appendChild(component.element);
+              activeClientRect = props.clientRect as (() => DOMRect | null) | undefined;
+              currentQuery = props.query;
+              window.addEventListener('resize', updatePosition);
+              window.addEventListener('scroll', updatePosition, true);
+              updatePosition();
+              schedulePosition();
+            },
+            onUpdate: props => {
+              component?.updateProps(props);
+              activeClientRect = props.clientRect as (() => DOMRect | null) | undefined;
+              currentQuery = props.query;
+              updatePosition();
+              schedulePosition();
+            },
+            onKeyDown: props => {
+              if (props.event.isComposing || props.event.keyCode === 229) return false;
+              if (props.event.key === 'Escape') {
+                props.event.preventDefault();
+                props.event.stopPropagation();
+                destroy();
+                return true;
+              }
+              return component?.ref?.onKeyDown(props) ?? false;
+            },
+            onExit: destroy,
+          };
+        },
+      }),
+    ];
   },
 });

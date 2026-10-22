@@ -27,7 +27,12 @@ import { ACTIVE_COLUMNS } from './columns';
 import { CheckCircle2, KanbanSquare, Snowflake } from 'lucide-react';
 import { PageHeader } from '../layout/PageHeader';
 import { FloatingScrollbar } from '../ui/FloatingScrollbar';
-import { applyOptimisticKanbanPageUpdates, hasMoreKanbanPages, mergeKanbanTopic, rollbackFailedKanbanPage } from '../../lib/kanbanPagination';
+import {
+  applyOptimisticKanbanPageUpdates,
+  hasMoreKanbanPages,
+  mergeKanbanTopic,
+  rollbackFailedKanbanPage,
+} from '../../lib/kanbanPagination';
 import { matchesTopicSearch } from '../../lib/topicSearch';
 import { fetchTopicPage } from '../../lib/storageApi';
 
@@ -51,15 +56,15 @@ function isPointerInsideCornerFan(
   const horizontalDistance = corner === 'left' ? point.x - rect.left : rect.right - point.x;
   const verticalDistance = rect.bottom - point.y;
   const radius = Math.min(rect.width, rect.height);
-  return horizontalDistance >= 0
-    && verticalDistance >= 0
-    && horizontalDistance ** 2 + verticalDistance ** 2 <= radius ** 2;
+  return (
+    horizontalDistance >= 0 && verticalDistance >= 0 && horizontalDistance ** 2 + verticalDistance ** 2 <= radius ** 2
+  );
 }
 
-const kanbanCollisionDetection: CollisionDetection = (args) => {
+const kanbanCollisionDetection: CollisionDetection = args => {
   const pointerCollisions = pointerWithin(args);
-  const terminalDrop = pointerCollisions.find((collision) => {
-    const status = terminalStatuses.find((candidate) => terminalDropIds[candidate] === String(collision.id));
+  const terminalDrop = pointerCollisions.find(collision => {
+    const status = terminalStatuses.find(candidate => terminalDropIds[candidate] === String(collision.id));
     if (!status) return false;
     return isPointerInsideCornerFan(args, String(collision.id), status === 'icebox' ? 'left' : 'right');
   });
@@ -69,7 +74,7 @@ const kanbanCollisionDetection: CollisionDetection = (args) => {
   const terminalIds = new Set(Object.values(terminalDropIds));
   return closestCorners({
     ...args,
-    droppableContainers: args.droppableContainers.filter((container) => !terminalIds.has(String(container.id))),
+    droppableContainers: args.droppableContainers.filter(container => !terminalIds.has(String(container.id))),
     droppableRects: new Map([...args.droppableRects].filter(([id]) => !terminalIds.has(String(id)))),
   });
 };
@@ -95,16 +100,15 @@ const TopicFlowDropTarget: React.FC<{ status: 'icebox' | 'published' }> = ({ sta
         clipPath: `circle(144px at ${isLeft ? '0%' : '100%'} 100%)`,
       }}
     >
-      <div
-        className={`absolute inset-0 transition-colors ${isOver ? 'bg-line' : 'bg-line/75'}`}
-        aria-hidden="true"
-      />
+      <div className={`absolute inset-0 transition-colors ${isOver ? 'bg-line' : 'bg-line/75'}`} aria-hidden="true" />
       <div
         className={`absolute inset-[1px] transition-colors ${isOver ? 'bg-accent-soft text-accent-dark' : 'bg-surface/95'}`}
         style={{ clipPath: `circle(142px at ${isLeft ? '0%' : '100%'} 100%)` }}
         aria-hidden="true"
       />
-      <div className={`absolute bottom-5 z-10 flex max-w-[104px] flex-col gap-1 text-xs font-semibold leading-tight ${isLeft ? 'left-5 items-start text-left' : 'right-5 items-end text-right'}`}>
+      <div
+        className={`absolute bottom-5 z-10 flex max-w-[104px] flex-col gap-1 text-xs font-semibold leading-tight ${isLeft ? 'left-5 items-start text-left' : 'right-5 items-end text-right'}`}
+      >
         <Icon className={`h-4 w-4 ${isOver ? 'text-accent' : ''}`} aria-hidden="true" />
         <span>{isOver ? `松开以${label}` : label}</span>
       </div>
@@ -154,20 +158,20 @@ function createColumns(topics: Topic[]): BoardColumns {
   const seen = new Set<string>();
   return activeStatuses.reduce((result, status) => {
     result[status] = topics
-      .filter((topic) => {
+      .filter(topic => {
         if (topic.status !== status) return false;
         if (seen.has(topic.id)) return false;
         seen.add(topic.id);
         return true;
       })
       .sort((a, b) => (a.sort_order || 0) - (b.sort_order || 0))
-      .map((topic) => topic.id);
+      .map(topic => topic.id);
     return result;
   }, {} as BoardColumns);
 }
 
 function createTopicMap(topics: Topic[]): TopicMap {
-  return Object.fromEntries(topics.map((topic) => [topic.id, topic]));
+  return Object.fromEntries(topics.map(topic => [topic.id, topic]));
 }
 
 function topicSyncSignature(topic: Topic): string {
@@ -185,16 +189,16 @@ function topicSyncSignature(topic: Topic): string {
 }
 
 function findContainer(columns: BoardColumns, id: string): TopicStatus | undefined {
-  return activeStatuses.find((status) => status === id || (columns[status] && columns[status].includes(id)));
+  return activeStatuses.find(status => status === id || (columns[status] && columns[status].includes(id)));
 }
 
 function cloneColumns(columns: BoardColumns): BoardColumns {
-  return Object.fromEntries(activeStatuses.map((status) => [status, [...(columns[status] || [])]])) as BoardColumns;
+  return Object.fromEntries(activeStatuses.map(status => [status, [...(columns[status] || [])]])) as BoardColumns;
 }
 
 function cloneLoadedTopicsByStatus(loadedTopicsByStatus: LoadedTopicsByStatus): LoadedTopicsByStatus {
   return Object.fromEntries(
-    activeStatuses.map((status) => [status, [...(loadedTopicsByStatus[status] || [])]])
+    activeStatuses.map(status => [status, [...(loadedTopicsByStatus[status] || [])]]),
   ) as LoadedTopicsByStatus;
 }
 
@@ -225,13 +229,13 @@ function moveBetweenColumns(
   columns: BoardColumns,
   activeId: string,
   overId: string,
-  target: TopicStatus
+  target: TopicStatus,
 ): BoardColumns {
   const next = cloneColumns(columns);
   const source = findContainer(columns, activeId);
   if (!source) return columns;
 
-  next[source] = (next[source] || []).filter((id) => id !== activeId);
+  next[source] = (next[source] || []).filter(id => id !== activeId);
   if (!next[target]) next[target] = [];
   const overIndex = overId === target ? next[target].length : next[target].indexOf(overId);
   next[target].splice(overIndex < 0 ? next[target].length : overIndex, 0, activeId);
@@ -244,9 +248,9 @@ function reorderLoadedTopics(
   topics: TopicMap,
 ): LoadedTopicsByStatus {
   return activeStatuses.reduce((result, status) => {
-    const loadedById = new Map((loadedTopicsByStatus[status] || []).map((topic) => [topic.id, topic]));
+    const loadedById = new Map((loadedTopicsByStatus[status] || []).map(topic => [topic.id, topic]));
     result[status] = (columns[status] || [])
-      .map((id) => topics[id] || loadedById.get(id))
+      .map(id => topics[id] || loadedById.get(id))
       .filter((topic): topic is Topic => Boolean(topic));
     return result;
   }, {} as LoadedTopicsByStatus);
@@ -282,17 +286,17 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
   const queryClient = useQueryClient();
   const [searchParams, setSearchParams] = useSearchParams();
   const requestedStatus = searchParams.get('status');
-  const statusFilter = activeStatuses.find((status) => status === requestedStatus) || null;
-  const visibleColumns = ACTIVE_COLUMNS.filter((column) => !statusFilter || column.status === statusFilter);
+  const statusFilter = activeStatuses.find(status => status === requestedStatus) || null;
+  const visibleColumns = ACTIVE_COLUMNS.filter(column => !statusFilter || column.status === statusFilter);
   const isMobileViewport = useSyncExternalStore(subscribeToMobileViewport, getIsMobileViewport, () => false);
   const [topicsMap, setTopicsMap] = useState<TopicMap>(() => createTopicMap(topics));
   const [columns, setColumns] = useState<BoardColumns>(() => createColumns(topics));
-  const [columnPages, setColumnPages] = useState<Record<TopicStatus, number>>(() => (
-    Object.fromEntries(activeStatuses.map((status) => [status, 1])) as Record<TopicStatus, number>
-  ));
-  const [loadedTopicsByStatus, setLoadedTopicsByStatus] = useState<LoadedTopicsByStatus>(() => (
-    Object.fromEntries(activeStatuses.map((status) => [status, []])) as unknown as Record<TopicStatus, Topic[]>
-  ));
+  const [columnPages, setColumnPages] = useState<Record<TopicStatus, number>>(
+    () => Object.fromEntries(activeStatuses.map(status => [status, 1])) as Record<TopicStatus, number>,
+  );
+  const [loadedTopicsByStatus, setLoadedTopicsByStatus] = useState<LoadedTopicsByStatus>(
+    () => Object.fromEntries(activeStatuses.map(status => [status, []])) as unknown as Record<TopicStatus, Topic[]>,
+  );
   const [activeId, setActiveId] = useState<string | null>(null);
   const [activeCardWidth, setActiveCardWidth] = useState<number | null>(null);
   const [isReorderPending, setIsReorderPending] = useState(false);
@@ -315,36 +319,49 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
   const dragNoticeTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const columnQueries = useQueries({
-    queries: activeStatuses.map((status) => ({
-      queryKey: ['kanban-column-page', status, searchTerm, priorityFilter, selectedTagId, selectedPersonId, sortBy, columnPages[status]],
-      queryFn: () => fetchTopicPage({
-        scope: 'active',
-        include_metadata: false,
+    queries: activeStatuses.map(status => ({
+      queryKey: [
+        'kanban-column-page',
         status,
-        page: columnPages[status],
-        page_size: 30,
-        q: searchTerm,
-        priority: priorityFilter === 'all' ? undefined : priorityFilter,
-        tag_id: selectedTagId === 'all' ? undefined : selectedTagId,
-        person_id: selectedPersonId === 'all' ? undefined : selectedPersonId,
-        sort: sortBy,
-        direction: sortBy === 'sort_order' ? 'asc' : 'desc',
-      }),
+        searchTerm,
+        priorityFilter,
+        selectedTagId,
+        selectedPersonId,
+        sortBy,
+        columnPages[status],
+      ],
+      queryFn: () =>
+        fetchTopicPage({
+          scope: 'active',
+          include_metadata: false,
+          status,
+          page: columnPages[status],
+          page_size: 30,
+          q: searchTerm,
+          priority: priorityFilter === 'all' ? undefined : priorityFilter,
+          tag_id: selectedTagId === 'all' ? undefined : selectedTagId,
+          person_id: selectedPersonId === 'all' ? undefined : selectedPersonId,
+          sort: sortBy,
+          direction: sortBy === 'sort_order' ? 'asc' : 'desc',
+        }),
       enabled: !statusFilter || statusFilter === status,
       subscribed: !statusFilter || statusFilter === status,
       placeholderData: keepPreviousData,
     })),
   });
 
-  const columnQuerySignature = columnQueries.map((query) => (
-    `${query.dataUpdatedAt}:${query.isPlaceholderData ? 'placeholder' : 'ready'}`
-  )).join('|');
-  const columnLoadStateSignature = columnQueries.map((query) => (
-    `${query.isFetching ? 'fetching' : 'idle'}:${query.isPlaceholderData ? 'placeholder' : 'ready'}:${query.isError ? 'error' : 'ok'}`
-  )).join('|');
+  const columnQuerySignature = columnQueries
+    .map(query => `${query.dataUpdatedAt}:${query.isPlaceholderData ? 'placeholder' : 'ready'}`)
+    .join('|');
+  const columnLoadStateSignature = columnQueries
+    .map(
+      query =>
+        `${query.isFetching ? 'fetching' : 'idle'}:${query.isPlaceholderData ? 'placeholder' : 'ready'}:${query.isError ? 'error' : 'ok'}`,
+    )
+    .join('|');
 
   useEffect(() => {
-    setColumnPages(Object.fromEntries(activeStatuses.map((status) => [status, 1])) as Record<TopicStatus, number>);
+    setColumnPages(Object.fromEntries(activeStatuses.map(status => [status, 1])) as Record<TopicStatus, number>);
     setLoadingMorePage({});
     mobileStageAutoSelectedRef.current = false;
     setMobileActiveStage('inbox');
@@ -365,7 +382,7 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
     });
 
     if (failedPages.length > 0) {
-      setColumnPages((current) => {
+      setColumnPages(current => {
         let changed = false;
         const next = { ...current };
         failedPages.forEach(({ status, requestedPage }) => {
@@ -379,14 +396,18 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
       });
     }
 
-    setLoadingMorePage((current) => {
+    setLoadingMorePage(current => {
       let changed = false;
       const next = { ...current };
       activeStatuses.forEach((status, index) => {
         const requestedPage = next[status];
         if (requestedPage === undefined) return;
         const query = columnQueries[index];
-        if (columnPages[status] !== requestedPage || query?.isError || (query && !query.isFetching && !query.isPlaceholderData)) {
+        if (
+          columnPages[status] !== requestedPage ||
+          query?.isError ||
+          (query && !query.isFetching && !query.isPlaceholderData)
+        ) {
           delete next[status];
           changed = true;
         }
@@ -401,8 +422,8 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
     // an in-flight page response cannot temporarily erase the moved card.
     if (activeId || isReorderPending) return;
 
-    const parentTopicsById = new Map(topics.map((topic) => [topic.id, topic]));
-    setLoadedTopicsByStatus((current) => {
+    const parentTopicsById = new Map(topics.map(topic => [topic.id, topic]));
+    setLoadedTopicsByStatus(current => {
       let changed = false;
       const next = { ...current };
       activeStatuses.forEach((status, index) => {
@@ -410,7 +431,7 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
         const items = query?.isPlaceholderData ? undefined : query?.data?.items;
         if (!items) return;
 
-        const mergedItems = items.map((item) => {
+        const mergedItems = items.map(item => {
           const parentTopic = parentTopicsById.get(item.id);
           return mergeKanbanTopic(item, parentTopic);
         });
@@ -418,24 +439,26 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
         const currentPage = columnPages[status] || 1;
         if (currentPage === 1) {
           const currentList = current[status] || [];
-          const revealTopicFromCurrent = revealedTopic?.status === status
-            ? currentList.find((topic) => topic.id === revealedTopic.id)
-            : undefined;
-          const revealTopicFromParent = revealedTopic?.status === status
-            ? parentTopicsById.get(revealedTopic.id)
-            : undefined;
+          const revealTopicFromCurrent =
+            revealedTopic?.status === status ? currentList.find(topic => topic.id === revealedTopic.id) : undefined;
+          const revealTopicFromParent =
+            revealedTopic?.status === status ? parentTopicsById.get(revealedTopic.id) : undefined;
           const revealTopicSource = revealTopicFromCurrent || revealTopicFromParent;
           const retainedRevealTopic = revealTopicSource
             ? { ...mergeKanbanTopic(revealTopicSource, revealTopicFromParent), status }
             : undefined;
-          const revealMatchesFilters = retainedRevealTopic
-            && matchesTopicSearch(retainedRevealTopic, searchTerm)
-            && (priorityFilter === 'all' || retainedRevealTopic.priority === priorityFilter)
-            && (selectedTagId === 'all' || retainedRevealTopic.tags?.some((tag) => tag.id === selectedTagId))
-            && (selectedPersonId === 'all' || retainedRevealTopic.people?.some((person) => person.id === selectedPersonId));
-          const pageOneItems = retainedRevealTopic && revealMatchesFilters && !mergedItems.some((topic) => topic.id === retainedRevealTopic.id)
-            ? [...mergedItems, retainedRevealTopic].sort((a, b) => (a.sort_order || 0) - (b.sort_order || 0))
-            : mergedItems;
+          const revealMatchesFilters =
+            retainedRevealTopic &&
+            matchesTopicSearch(retainedRevealTopic, searchTerm) &&
+            (priorityFilter === 'all' || retainedRevealTopic.priority === priorityFilter) &&
+            (selectedTagId === 'all' || retainedRevealTopic.tags?.some(tag => tag.id === selectedTagId)) &&
+            (selectedPersonId === 'all' || retainedRevealTopic.people?.some(person => person.id === selectedPersonId));
+          const pageOneItems =
+            retainedRevealTopic &&
+            revealMatchesFilters &&
+            !mergedItems.some(topic => topic.id === retainedRevealTopic.id)
+              ? [...mergedItems, retainedRevealTopic].sort((a, b) => (a.sort_order || 0) - (b.sort_order || 0))
+              : mergedItems;
           const currentSig = currentList.map(topicSyncSignature).join(',');
           const newSig = pageOneItems.map(topicSyncSignature).join(',');
           if (currentSig !== newSig) {
@@ -443,8 +466,8 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
             changed = true;
           }
         } else {
-          const knownIds = new Set((current[status] || []).map((topic) => topic.id));
-          const additions = mergedItems.filter((topic) => !knownIds.has(topic.id));
+          const knownIds = new Set((current[status] || []).map(topic => topic.id));
+          const additions = mergedItems.filter(topic => !knownIds.has(topic.id));
           if (additions.length > 0) {
             next[status] = [...(current[status] || []), ...additions];
             changed = true;
@@ -455,8 +478,8 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
       if (changed) {
         // Enforce strict global uniqueness across all active columns
         const seen = new Set<string>();
-        activeStatuses.forEach((status) => {
-          next[status] = (next[status] || []).filter((topic) => {
+        activeStatuses.forEach(status => {
+          next[status] = (next[status] || []).filter(topic => {
             if (topic.status !== status) return false;
             if (seen.has(topic.id)) return false;
             seen.add(topic.id);
@@ -467,39 +490,64 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
 
       return changed ? next : current;
     });
-  }, [activeId, columnPages, columnQuerySignature, isReorderPending, priorityFilter, revealedTopic, searchTerm, selectedPersonId, selectedTagId, topics]);
+  }, [
+    activeId,
+    columnPages,
+    columnQuerySignature,
+    isReorderPending,
+    priorityFilter,
+    revealedTopic,
+    searchTerm,
+    selectedPersonId,
+    selectedTagId,
+    topics,
+  ]);
 
   const pagedTopics = useMemo(
-    () => activeStatuses.flatMap((status) => loadedTopicsByStatus[status] || []),
-    [loadedTopicsByStatus]
+    () => activeStatuses.flatMap(status => loadedTopicsByStatus[status] || []),
+    [loadedTopicsByStatus],
   );
-  const hasLoadedBoardData = activeStatuses.some((status) => loadedTopicsByStatus[status].length > 0)
-    || columnQueries.some((query) => Boolean(query.data));
-  const parentTopicsById = useMemo(() => new Map(topics.map((topic) => [topic.id, topic])), [topics]);
+  const hasLoadedBoardData =
+    activeStatuses.some(status => loadedTopicsByStatus[status].length > 0) ||
+    columnQueries.some(query => Boolean(query.data));
+  const parentTopicsById = useMemo(() => new Map(topics.map(topic => [topic.id, topic])), [topics]);
   const boardTopics = useMemo(
-    () => hasLoadedBoardData ? pagedTopics.map((topic) => mergeKanbanTopic(topic, parentTopicsById.get(topic.id))) : topics,
-    [hasLoadedBoardData, parentTopicsById, pagedTopics, topics]
+    () =>
+      hasLoadedBoardData ? pagedTopics.map(topic => mergeKanbanTopic(topic, parentTopicsById.get(topic.id))) : topics,
+    [hasLoadedBoardData, parentTopicsById, pagedTopics, topics],
   );
-  const columnTotalCounts = useMemo(() => Object.fromEntries(activeStatuses.map((status, index) => [
-    status,
-    columnQueries[index]?.data?.total ?? topics.filter((topic) => topic.status === status).length,
-  ])) as Record<TopicStatus, number>, [columnQueries, topics]);
+  const columnTotalCounts = useMemo(
+    () =>
+      Object.fromEntries(
+        activeStatuses.map((status, index) => [
+          status,
+          columnQueries[index]?.data?.total ?? topics.filter(topic => topic.status === status).length,
+        ]),
+      ) as Record<TopicStatus, number>,
+    [columnQueries, topics],
+  );
 
   useEffect(() => {
     if (statusFilter) return;
-    if (mobileStageAutoSelectedRef.current || columnQueries.some((query) => query.isPending || query.isPlaceholderData)) return;
+    if (mobileStageAutoSelectedRef.current || columnQueries.some(query => query.isPending || query.isPlaceholderData))
+      return;
     // Prefer the loaded items over totals: the latter can be stale while a
     // filtered query is settling, and selecting an empty stage makes the
     // mobile board look blank even though another stage has content.
-    const firstPopulatedStage = ACTIVE_COLUMNS.find((column) => (loadedTopicsByStatus[column.status] || []).length > 0)?.status;
+    const firstPopulatedStage = ACTIVE_COLUMNS.find(
+      column => (loadedTopicsByStatus[column.status] || []).length > 0,
+    )?.status;
     if (!firstPopulatedStage) return;
     setMobileActiveStage(firstPopulatedStage);
     mobileStageAutoSelectedRef.current = true;
   }, [columnQuerySignature, columnTotalCounts, loadedTopicsByStatus, statusFilter]);
 
-  useEffect(() => () => {
-    if (dragNoticeTimerRef.current) clearTimeout(dragNoticeTimerRef.current);
-  }, []);
+  useEffect(
+    () => () => {
+      if (dragNoticeTimerRef.current) clearTimeout(dragNoticeTimerRef.current);
+    },
+    [],
+  );
 
   // Sync external topics into local state when not dragging
   useEffect(() => {
@@ -523,19 +571,19 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
     }),
     useSensor(KeyboardSensor, {
       coordinateGetter: sortableKeyboardCoordinates,
-    })
+    }),
   );
 
   // Visible topics grouped by columns, with filtering and sorting applied
   const visibleColumnIds = useMemo(() => {
     return activeStatuses.reduce((result, status) => {
-      const ids = (columns[status] || []).filter((id) => {
+      const ids = (columns[status] || []).filter(id => {
         const topic = topicsMap[id];
         if (!topic) return false;
         if (!matchesTopicSearch(topic, searchTerm)) return false;
         if (priorityFilter !== 'all' && topic.priority !== priorityFilter) return false;
-        if (selectedTagId !== 'all' && !topic.tags?.some((t) => t.id === selectedTagId)) return false;
-        if (selectedPersonId !== 'all' && !topic.people?.some((p) => p.id === selectedPersonId)) return false;
+        if (selectedTagId !== 'all' && !topic.tags?.some(t => t.id === selectedTagId)) return false;
+        if (selectedPersonId !== 'all' && !topic.people?.some(p => p.id === selectedPersonId)) return false;
         return true;
       });
 
@@ -551,8 +599,18 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
             return pMap[tB.priority] - pMap[tA.priority];
           }
           if (sortBy === 'score') {
-            const sA = (tA.score_character || 0) + (tA.score_conflict || 0) + (tA.score_contrast || 0) + (tA.score_material || 0) + (tA.score_story || 0);
-            const sB = (tB.score_character || 0) + (tB.score_conflict || 0) + (tB.score_contrast || 0) + (tB.score_material || 0) + (tB.score_story || 0);
+            const sA =
+              (tA.score_character || 0) +
+              (tA.score_conflict || 0) +
+              (tA.score_contrast || 0) +
+              (tA.score_material || 0) +
+              (tA.score_story || 0);
+            const sB =
+              (tB.score_character || 0) +
+              (tB.score_conflict || 0) +
+              (tB.score_contrast || 0) +
+              (tB.score_material || 0) +
+              (tB.score_story || 0);
             return sB - sA;
           }
           return 0;
@@ -564,12 +622,16 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
     }, {} as BoardColumns);
   }, [columns, topicsMap, searchTerm, priorityFilter, selectedTagId, selectedPersonId, sortBy, activeId]);
 
-  const visibleColumnTopics = useMemo(() => Object.fromEntries(
-    activeStatuses.map((status) => [
-      status,
-      (visibleColumnIds[status] || []).map((id) => topicsMap[id]).filter(Boolean),
-    ]),
-  ) as Record<TopicStatus, Topic[]>, [topicsMap, visibleColumnIds]);
+  const visibleColumnTopics = useMemo(
+    () =>
+      Object.fromEntries(
+        activeStatuses.map(status => [
+          status,
+          (visibleColumnIds[status] || []).map(id => topicsMap[id]).filter(Boolean),
+        ]),
+      ) as Record<TopicStatus, Topic[]>,
+    [topicsMap, visibleColumnIds],
+  );
 
   const activeTopic = activeId ? topicsMap[activeId] : null;
 
@@ -592,26 +654,31 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
     setRevealedTopic(null);
   };
 
-  const optimisticUpdateQueryCache = useCallback((updates: Array<{ id: string; status: TopicStatus; sort_order: number }>) => {
-    const nowIso = new Date().toISOString();
+  const optimisticUpdateQueryCache = useCallback(
+    (updates: Array<{ id: string; status: TopicStatus; sort_order: number }>) => {
+      const nowIso = new Date().toISOString();
 
-    activeStatuses.forEach((queryStatus) => {
-      const cachedQueries = queryClient.getQueriesData<PaginatedTopics>({
-        queryKey: ['kanban-column-page', queryStatus],
+      activeStatuses.forEach(queryStatus => {
+        const cachedQueries = queryClient.getQueriesData<PaginatedTopics>({
+          queryKey: ['kanban-column-page', queryStatus],
+        });
+        cachedQueries.forEach(([queryKey, oldData]) => {
+          if (!oldData || !Array.isArray(oldData.items)) return;
+          const page = typeof queryKey[7] === 'number' ? queryKey[7] : 1;
+          queryClient.setQueryData<PaginatedTopics>(
+            queryKey,
+            applyOptimisticKanbanPageUpdates(oldData, page, queryStatus, updates, topicsMap, nowIso),
+          );
+        });
       });
-      cachedQueries.forEach(([queryKey, oldData]) => {
-        if (!oldData || !Array.isArray(oldData.items)) return;
-        const page = typeof queryKey[7] === 'number' ? queryKey[7] : 1;
-        queryClient.setQueryData<PaginatedTopics>(queryKey, applyOptimisticKanbanPageUpdates(
-          oldData, page, queryStatus, updates, topicsMap, nowIso,
-        ));
-      });
+    },
+    [queryClient, topicsMap],
+  );
+
+  const captureKanbanQueryCache = () =>
+    queryClient.getQueriesData<PaginatedTopics>({
+      queryKey: ['kanban-column-page'],
     });
-  }, [queryClient, topicsMap]);
-
-  const captureKanbanQueryCache = () => queryClient.getQueriesData<PaginatedTopics>({
-    queryKey: ['kanban-column-page'],
-  });
 
   const restoreKanbanQueryCache = (snapshot: Array<[readonly unknown[], PaginatedTopics | undefined]>) => {
     snapshot.forEach(([queryKey, data]) => {
@@ -676,13 +743,15 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
     }
 
     const nextColumns = cloneColumns(snapshot.columns);
-    activeStatuses.forEach((activeStatus) => {
-      nextColumns[activeStatus] = nextColumns[activeStatus].filter((id) => id !== topicId);
+    activeStatuses.forEach(activeStatus => {
+      nextColumns[activeStatus] = nextColumns[activeStatus].filter(id => id !== topicId);
     });
     const nextTopicsMap = { ...snapshot.topics, [topicId]: { ...topic, status } };
     const nextLoadedTopicsByStatus = cloneLoadedTopicsByStatus(snapshot.loadedTopicsByStatus);
-    activeStatuses.forEach((activeStatus) => {
-      nextLoadedTopicsByStatus[activeStatus] = nextLoadedTopicsByStatus[activeStatus].filter((item) => item.id !== topicId);
+    activeStatuses.forEach(activeStatus => {
+      nextLoadedTopicsByStatus[activeStatus] = nextLoadedTopicsByStatus[activeStatus].filter(
+        item => item.id !== topicId,
+      );
     });
     const queryCacheSnapshot = captureKanbanQueryCache();
 
@@ -822,56 +891,59 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
     restoreSnapshot();
   };
 
-  const handleKeyboardMove = useCallback(async (topic: Topic, direction: -1 | 1) => {
-    const currentIndex = activeStatuses.indexOf(topic.status);
-    if (currentIndex === -1) return;
-    const targetStatus = activeStatuses[currentIndex + direction];
-    if (!targetStatus) return;
+  const handleKeyboardMove = useCallback(
+    async (topic: Topic, direction: -1 | 1) => {
+      const currentIndex = activeStatuses.indexOf(topic.status);
+      if (currentIndex === -1) return;
+      const targetStatus = activeStatuses[currentIndex + direction];
+      if (!targetStatus) return;
 
-    const snapshot = cloneBoard(columns, topicsMap, loadedTopicsByStatus);
-    const nextColumns = moveBetweenColumns(columns, topic.id, targetStatus, targetStatus);
-    const nextTopicsMap = {
-      ...topicsMap,
-      [topic.id]: { ...topic, status: targetStatus },
-    };
+      const snapshot = cloneBoard(columns, topicsMap, loadedTopicsByStatus);
+      const nextColumns = moveBetweenColumns(columns, topic.id, targetStatus, targetStatus);
+      const nextTopicsMap = {
+        ...topicsMap,
+        [topic.id]: { ...topic, status: targetStatus },
+      };
 
-    const updates: Array<{ id: string; status: TopicStatus; sort_order: number }> = [];
-    nextColumns[targetStatus].forEach((id, idx) => {
-      updates.push({ id, status: targetStatus, sort_order: idx + 1 });
-    });
-    nextColumns[topic.status].forEach((id, idx) => {
-      updates.push({ id, status: topic.status, sort_order: idx + 1 });
-    });
+      const updates: Array<{ id: string; status: TopicStatus; sort_order: number }> = [];
+      nextColumns[targetStatus].forEach((id, idx) => {
+        updates.push({ id, status: targetStatus, sort_order: idx + 1 });
+      });
+      nextColumns[topic.status].forEach((id, idx) => {
+        updates.push({ id, status: topic.status, sort_order: idx + 1 });
+      });
 
-    const orderedTopicsMap = { ...nextTopicsMap };
-    updates.forEach(({ id, status, sort_order }) => {
-      const currentTopic = orderedTopicsMap[id];
-      if (currentTopic) orderedTopicsMap[id] = { ...currentTopic, status, sort_order };
-    });
-    const nextLoadedTopicsByStatus = reorderLoadedTopics(loadedTopicsByStatus, nextColumns, orderedTopicsMap);
+      const orderedTopicsMap = { ...nextTopicsMap };
+      updates.forEach(({ id, status, sort_order }) => {
+        const currentTopic = orderedTopicsMap[id];
+        if (currentTopic) orderedTopicsMap[id] = { ...currentTopic, status, sort_order };
+      });
+      const nextLoadedTopicsByStatus = reorderLoadedTopics(loadedTopicsByStatus, nextColumns, orderedTopicsMap);
 
-    setColumns(nextColumns);
-    setTopicsMap(orderedTopicsMap);
-    setLoadedTopicsByStatus(nextLoadedTopicsByStatus);
-    setRevealedTopic({ id: topic.id, status: targetStatus });
-    dragBoardRef.current = null;
-    setIsReorderPending(true);
+      setColumns(nextColumns);
+      setTopicsMap(orderedTopicsMap);
+      setLoadedTopicsByStatus(nextLoadedTopicsByStatus);
+      setRevealedTopic({ id: topic.id, status: targetStatus });
+      dragBoardRef.current = null;
+      setIsReorderPending(true);
 
-    const queryCacheSnapshot = captureKanbanQueryCache();
-    try {
-      await queryClient.cancelQueries({ queryKey: ['kanban-column-page'] });
-      optimisticUpdateQueryCache(updates);
-      await onReorderTopics(updates);
-      setIsReorderPending(false);
-    } catch {
-      restoreKanbanQueryCache(queryCacheSnapshot);
-      setColumns(snapshot.columns);
-      setTopicsMap(snapshot.topics);
-      setLoadedTopicsByStatus(snapshot.loadedTopicsByStatus);
-      setRevealedTopic(null);
-      setIsReorderPending(false);
-    }
-  }, [columns, loadedTopicsByStatus, onReorderTopics, optimisticUpdateQueryCache, queryClient, topicsMap]);
+      const queryCacheSnapshot = captureKanbanQueryCache();
+      try {
+        await queryClient.cancelQueries({ queryKey: ['kanban-column-page'] });
+        optimisticUpdateQueryCache(updates);
+        await onReorderTopics(updates);
+        setIsReorderPending(false);
+      } catch {
+        restoreKanbanQueryCache(queryCacheSnapshot);
+        setColumns(snapshot.columns);
+        setTopicsMap(snapshot.topics);
+        setLoadedTopicsByStatus(snapshot.loadedTopicsByStatus);
+        setRevealedTopic(null);
+        setIsReorderPending(false);
+      }
+    },
+    [columns, loadedTopicsByStatus, onReorderTopics, optimisticUpdateQueryCache, queryClient, topicsMap],
+  );
 
   const hasActiveFilters =
     Boolean(statusFilter) ||
@@ -879,237 +951,284 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
     selectedTagId !== 'all' ||
     selectedPersonId !== 'all' ||
     sortBy !== 'sort_order';
-  const isColumnDataSettling = columnQueries.some((query, index) => (!statusFilter || activeStatuses[index] === statusFilter) && (query.isPending || query.isPlaceholderData));
-  const isDragDisabled = isMobileViewport || isColumnDataSettling || isReorderPending || Boolean(searchTerm) || priorityFilter !== 'all' || selectedTagId !== 'all' || selectedPersonId !== 'all';
+  const isColumnDataSettling = columnQueries.some(
+    (query, index) =>
+      (!statusFilter || activeStatuses[index] === statusFilter) && (query.isPending || query.isPlaceholderData),
+  );
+  const isDragDisabled =
+    isMobileViewport ||
+    isColumnDataSettling ||
+    isReorderPending ||
+    Boolean(searchTerm) ||
+    priorityFilter !== 'all' ||
+    selectedTagId !== 'all' ||
+    selectedPersonId !== 'all';
 
   const handleResetFilters = useCallback(() => {
     setPriorityFilter('all');
     setSelectedTagId('all');
     setSelectedPersonId('all');
     setSortBy('sort_order');
-    setSearchParams((previous) => {
-      const next = new URLSearchParams(previous);
-      next.delete('status');
-      return next;
-    }, { replace: true });
+    setSearchParams(
+      previous => {
+        const next = new URLSearchParams(previous);
+        next.delete('status');
+        return next;
+      },
+      { replace: true },
+    );
     mobileStageAutoSelectedRef.current = false;
   }, [setSearchParams]);
 
-  const loadMoreColumn = useCallback((status: TopicStatus) => {
-    if (loadingMorePage[status] !== undefined) return;
-    if (!hasMoreKanbanPages(columnPages[status], columnQueries[activeStatuses.indexOf(status)]?.data?.total_pages)) return;
-    const nextPage = columnPages[status] + 1;
-    setLoadingMorePage((current) => ({ ...current, [status]: nextPage }));
-    setColumnPages((current) => ({ ...current, [status]: nextPage }));
-  }, [columnPages, columnQueries, loadingMorePage]);
-  const loadMoreHandlers = useMemo(() => Object.fromEntries(
-    activeStatuses.map((status) => [status, () => loadMoreColumn(status)]),
-  ) as Record<TopicStatus, () => void>, [loadMoreColumn]);
+  const loadMoreColumn = useCallback(
+    (status: TopicStatus) => {
+      if (loadingMorePage[status] !== undefined) return;
+      if (!hasMoreKanbanPages(columnPages[status], columnQueries[activeStatuses.indexOf(status)]?.data?.total_pages))
+        return;
+      const nextPage = columnPages[status] + 1;
+      setLoadingMorePage(current => ({ ...current, [status]: nextPage }));
+      setColumnPages(current => ({ ...current, [status]: nextPage }));
+    },
+    [columnPages, columnQueries, loadingMorePage],
+  );
+  const loadMoreHandlers = useMemo(
+    () =>
+      Object.fromEntries(activeStatuses.map(status => [status, () => loadMoreColumn(status)])) as Record<
+        TopicStatus,
+        () => void
+      >,
+    [loadMoreColumn],
+  );
 
-  const handleColumnDelete = useCallback(async (topicId: string) => {
-    const snapshot = cloneBoard(columns, topicsMap, loadedTopicsByStatus);
-    const previousColumnQueries = queryClient.getQueriesData<PaginatedTopics>({ queryKey: ['kanban-column-page'] });
-    setLoadedTopicsByStatus((current) => {
-      const next = { ...current };
-      activeStatuses.forEach((s) => {
-        next[s] = (current[s] || []).filter((t) => t.id !== topicId);
+  const handleColumnDelete = useCallback(
+    async (topicId: string) => {
+      const snapshot = cloneBoard(columns, topicsMap, loadedTopicsByStatus);
+      const previousColumnQueries = queryClient.getQueriesData<PaginatedTopics>({ queryKey: ['kanban-column-page'] });
+      setLoadedTopicsByStatus(current => {
+        const next = { ...current };
+        activeStatuses.forEach(s => {
+          next[s] = (current[s] || []).filter(t => t.id !== topicId);
+        });
+        return next;
       });
-      return next;
-    });
-    queryClient.setQueriesData<PaginatedTopics>(
-      { queryKey: ['kanban-column-page'] },
-      (old) => old ? {
-        ...old,
-        items: old.items.filter((t) => t.id !== topicId),
-        total: Math.max(0, old.total - (old.items.some((t) => t.id === topicId) ? 1 : 0)),
-      } : old
-    );
-    try {
-      await onDeleteTopic(topicId);
-    } catch (error) {
-      setColumns(snapshot.columns);
-      setTopicsMap(snapshot.topics);
-      setLoadedTopicsByStatus(snapshot.loadedTopicsByStatus);
-      previousColumnQueries.forEach(([queryKey, data]) => queryClient.setQueryData(queryKey, data));
-      throw error;
-    }
-  }, [columns, loadedTopicsByStatus, onDeleteTopic, queryClient, topicsMap]);
+      queryClient.setQueriesData<PaginatedTopics>({ queryKey: ['kanban-column-page'] }, old =>
+        old
+          ? {
+              ...old,
+              items: old.items.filter(t => t.id !== topicId),
+              total: Math.max(0, old.total - (old.items.some(t => t.id === topicId) ? 1 : 0)),
+            }
+          : old,
+      );
+      try {
+        await onDeleteTopic(topicId);
+      } catch (error) {
+        setColumns(snapshot.columns);
+        setTopicsMap(snapshot.topics);
+        setLoadedTopicsByStatus(snapshot.loadedTopicsByStatus);
+        previousColumnQueries.forEach(([queryKey, data]) => queryClient.setQueryData(queryKey, data));
+        throw error;
+      }
+    },
+    [columns, loadedTopicsByStatus, onDeleteTopic, queryClient, topicsMap],
+  );
 
   return (
-    <FloatingScrollbar data-testid="kanban-page" className="mobile-bottom-nav-content" wrapperClassName="h-full min-h-0 min-w-0 flex-1 w-full">
+    <FloatingScrollbar
+      data-testid="kanban-page"
+      className="mobile-bottom-nav-content"
+      wrapperClassName="h-full min-h-0 min-w-0 flex-1 w-full"
+    >
       <div className="mx-auto flex min-h-full w-full max-w-7xl flex-col gap-5 px-4 py-5 sm:px-6 sm:py-6 lg:px-8">
-      <PageHeader title="选题全景看板" icon={KanbanSquare} />
+        <PageHeader title="选题全景看板" icon={KanbanSquare} />
 
-      {statusFilter && (
-        <div className="flex items-center gap-3 text-xs text-ink-muted" role="status">
-          <span>当前阶段：{visibleColumns[0]?.label}</span>
-          <button type="button" onClick={() => setSearchParams((previous) => {
-            const next = new URLSearchParams(previous);
-            next.delete('status');
-            return next;
-          })} className="rounded-lg px-2 py-1 hover:bg-surface text-accent cursor-pointer">
-            显示全部阶段
-          </button>
-        </div>
-      )}
-
-      {/* Filters Bar & View Switcher */}
-      <div className="space-y-3">
-        <div className="flex items-center justify-between flex-wrap gap-3">
-          {/* Filter Dropdowns */}
-          <div className="flex-1 min-w-0">
-            <KanbanFilters
-              priorityFilter={priorityFilter}
-              onPriorityFilterChange={setPriorityFilter}
-              selectedTagId={selectedTagId}
-              onTagFilterChange={setSelectedTagId}
-              selectedPersonId={selectedPersonId}
-              onPersonFilterChange={setSelectedPersonId}
-              sortBy={sortBy}
-              onSortByChange={setSortBy}
-              availableTags={availableTags}
-              availablePeople={availablePeople}
-              onResetFilters={handleResetFilters}
-              hasActiveFilters={hasActiveFilters}
-            />
-          </div>
-        </div>
-
-        {dragSortNotice && (
-          <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-warning-soft border border-warning-soft text-warning text-xs">
-            <span>已切换到「看板自定义排序」，拖拽后的位置将按卡片顺序保存</span>
+        {statusFilter && (
+          <div className="flex items-center gap-3 text-xs text-ink-muted" role="status">
+            <span>当前阶段：{visibleColumns[0]?.label}</span>
             <button
-              onClick={() => setDragSortNotice(false)}
-              className="ml-auto shrink-0 font-semibold hover:text-warning cursor-pointer"
-              aria-label="关闭提示"
+              type="button"
+              onClick={() =>
+                setSearchParams(previous => {
+                  const next = new URLSearchParams(previous);
+                  next.delete('status');
+                  return next;
+                })
+              }
+              className="rounded-lg px-2 py-1 hover:bg-surface text-accent cursor-pointer"
             >
-              知道了
+              显示全部阶段
             </button>
           </div>
         )}
 
-      </div>
-
-      {/* Mobile Stage Selector Pill Bar (iPhone Safari optimized) */}
-      <div data-testid="kanban-mobile-stage-tabs" className="md:hidden flex min-h-9 shrink-0 items-center gap-1.5 overflow-x-auto no-scrollbar -mx-2 rounded-sm bg-canvas p-1 transition-colors">
-        {visibleColumns.map((col) => {
-          const count = columnTotalCounts[col.status] || 0;
-          const isActive = mobileActiveStage === col.status;
-          return (
-            <button
-              key={col.status}
-              onClick={() => setMobileActiveStage(col.status)}
-              className={`shrink-0 text-xs font-medium px-2.5 py-1 rounded-sm flex items-center gap-1.5 transition-colors cursor-pointer ${
-                isActive
-                  ? 'bg-accent text-white shadow-2xs'
-                  : 'text-ink-muted hover:text-ink hover:bg-surface'
-              }`}
-            >
-              <span>{col.label}</span>
-              <span className={`text-3xs px-1 py-0.2 rounded-sm tabular-nums ${
-                isActive ? 'bg-accent-dark text-white' : 'text-ink-muted opacity-75'
-              }`}>
-                {count}
-              </span>
-            </button>
-          );
-        })}
-      </div>
-
-      {/* DND Context & Board Grid (3 Active Columns) */}
-      <DndContext
-        key={isMobileViewport ? 'mobile' : 'desktop'}
-        collisionDetection={kanbanCollisionDetection}
-        onDragStart={handleDragStart}
-        onDragOver={handleDragOver}
-        onDragEnd={handleDragEnd}
-        onDragCancel={handleDragCancel}
-        sensors={isMobileViewport ? [] : sensors}
-      >
-        {isMobileViewport ? (
-          <div key={mobileActiveStage} data-testid="kanban-mobile-stage" className="mobile-stage-enter min-w-0">
-            {visibleColumns.filter((c) => c.status === (statusFilter || mobileActiveStage)).map((col) => {
-              const colTopics = visibleColumnTopics[col.status] || [];
-              return (
-                <KanbanColumn
-                  key={col.status}
-                  status={col.status}
-                  label={col.label}
-                  description={col.description}
-                  topics={colTopics}
-                  onOpenDetail={onOpenDetail}
-                  onOpenCurrentAction={onOpenCurrentAction}
-                  revealTopicId={revealedTopic?.status === col.status ? revealedTopic.id : null}
-                  totalCount={columnTotalCounts[col.status] || 0}
-                  hasMore={hasMoreKanbanPages(columnPages[col.status], columnQueries[activeStatuses.indexOf(col.status)]?.data?.total_pages)}
-                  isLoadingMore={loadingMorePage[col.status] === columnPages[col.status]}
-                  onLoadMore={loadMoreHandlers[col.status]}
-                  onDeleteTopic={handleColumnDelete}
-                  onTogglePin={onTogglePin}
-                  onQuickAddTopic={onQuickAddTopic}
-                  onKeyboardMove={handleKeyboardMove}
-                  sortableDisabled
-                  mobileMode
-                />
-              );
-            })}
+        {/* Filters Bar & View Switcher */}
+        <div className="space-y-3">
+          <div className="flex items-center justify-between flex-wrap gap-3">
+            {/* Filter Dropdowns */}
+            <div className="flex-1 min-w-0">
+              <KanbanFilters
+                priorityFilter={priorityFilter}
+                onPriorityFilterChange={setPriorityFilter}
+                selectedTagId={selectedTagId}
+                onTagFilterChange={setSelectedTagId}
+                selectedPersonId={selectedPersonId}
+                onPersonFilterChange={setSelectedPersonId}
+                sortBy={sortBy}
+                onSortByChange={setSortBy}
+                availableTags={availableTags}
+                availablePeople={availablePeople}
+                onResetFilters={handleResetFilters}
+                hasActiveFilters={hasActiveFilters}
+              />
+            </div>
           </div>
-        ) : (
-          /* Desktop three-column board; drag and drop remains available here. */
-          <div data-testid="kanban-desktop-board" className="min-w-0 grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
-            {visibleColumns.map((col) => {
-              const colTopics = visibleColumnTopics[col.status] || [];
-              return (
-                <div key={col.status} className="min-w-0">
-                  <KanbanColumn
-                    status={col.status}
-                    label={col.label}
-                    description={col.description}
-                    topics={colTopics}
-                    onOpenDetail={onOpenDetail}
-                    onOpenCurrentAction={onOpenCurrentAction}
-                    revealTopicId={revealedTopic?.status === col.status ? revealedTopic.id : null}
-                    totalCount={columnTotalCounts[col.status] || 0}
-                    hasMore={hasMoreKanbanPages(columnPages[col.status], columnQueries[activeStatuses.indexOf(col.status)]?.data?.total_pages)}
-                    isLoadingMore={loadingMorePage[col.status] === columnPages[col.status]}
-                    onLoadMore={loadMoreHandlers[col.status]}
-                    onDeleteTopic={handleColumnDelete}
-                    onTogglePin={onTogglePin}
-                    onQuickAddTopic={onQuickAddTopic}
-                    onKeyboardMove={handleKeyboardMove}
-                    sortableDisabled={isDragDisabled}
-                  />
-                </div>
-              );
-            })}
-          </div>
-        )}
 
-        {typeof document !== 'undefined' && createPortal(
-          <DragOverlay dropAnimation={null} zIndex={80}>
-            {activeTopic ? (
-              <div
-                style={{ width: activeCardWidth ? `${activeCardWidth}px` : undefined }}
-                data-testid="kanban-drag-overlay"
-                className="pointer-events-none"
+          {dragSortNotice && (
+            <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-warning-soft border border-warning-soft text-warning text-xs">
+              <span>已切换到「看板自定义排序」，拖拽后的位置将按卡片顺序保存</span>
+              <button
+                onClick={() => setDragSortNotice(false)}
+                className="ml-auto shrink-0 font-semibold hover:text-warning cursor-pointer"
+                aria-label="关闭提示"
               >
-                <KanbanCard
-                  topic={activeTopic}
-                  isOverlay
-                  onOpenDetail={() => {}}
-                  onDeleteTopic={() => {}}
-                  onTogglePin={() => {}}
-                />
-              </div>
-            ) : null}
-          </DragOverlay>,
-          document.body,
-        )}
-        {activeId && typeof document !== 'undefined' && createPortal(
-          <TopicFlowDropZone />,
-          document.body,
-        )}
-      </DndContext>
+                知道了
+              </button>
+            </div>
+          )}
+        </div>
+
+        {/* Mobile Stage Selector Pill Bar (iPhone Safari optimized) */}
+        <div
+          data-testid="kanban-mobile-stage-tabs"
+          className="md:hidden flex min-h-9 shrink-0 items-center gap-1.5 overflow-x-auto no-scrollbar -mx-2 rounded-sm bg-canvas p-1 transition-colors"
+        >
+          {visibleColumns.map(col => {
+            const count = columnTotalCounts[col.status] || 0;
+            const isActive = mobileActiveStage === col.status;
+            return (
+              <button
+                key={col.status}
+                onClick={() => setMobileActiveStage(col.status)}
+                className={`shrink-0 text-xs font-medium px-2.5 py-1 rounded-sm flex items-center gap-1.5 transition-colors cursor-pointer ${
+                  isActive ? 'bg-accent text-white shadow-2xs' : 'text-ink-muted hover:text-ink hover:bg-surface'
+                }`}
+              >
+                <span>{col.label}</span>
+                <span
+                  className={`text-3xs px-1 py-0.2 rounded-sm tabular-nums ${
+                    isActive ? 'bg-accent-dark text-white' : 'text-ink-muted opacity-75'
+                  }`}
+                >
+                  {count}
+                </span>
+              </button>
+            );
+          })}
+        </div>
+
+        {/* DND Context & Board Grid (3 Active Columns) */}
+        <DndContext
+          key={isMobileViewport ? 'mobile' : 'desktop'}
+          collisionDetection={kanbanCollisionDetection}
+          onDragStart={handleDragStart}
+          onDragOver={handleDragOver}
+          onDragEnd={handleDragEnd}
+          onDragCancel={handleDragCancel}
+          sensors={isMobileViewport ? [] : sensors}
+        >
+          {isMobileViewport ? (
+            <div key={mobileActiveStage} data-testid="kanban-mobile-stage" className="mobile-stage-enter min-w-0">
+              {visibleColumns
+                .filter(c => c.status === (statusFilter || mobileActiveStage))
+                .map(col => {
+                  const colTopics = visibleColumnTopics[col.status] || [];
+                  return (
+                    <KanbanColumn
+                      key={col.status}
+                      status={col.status}
+                      label={col.label}
+                      description={col.description}
+                      topics={colTopics}
+                      onOpenDetail={onOpenDetail}
+                      onOpenCurrentAction={onOpenCurrentAction}
+                      revealTopicId={revealedTopic?.status === col.status ? revealedTopic.id : null}
+                      totalCount={columnTotalCounts[col.status] || 0}
+                      hasMore={hasMoreKanbanPages(
+                        columnPages[col.status],
+                        columnQueries[activeStatuses.indexOf(col.status)]?.data?.total_pages,
+                      )}
+                      isLoadingMore={loadingMorePage[col.status] === columnPages[col.status]}
+                      onLoadMore={loadMoreHandlers[col.status]}
+                      onDeleteTopic={handleColumnDelete}
+                      onTogglePin={onTogglePin}
+                      onQuickAddTopic={onQuickAddTopic}
+                      onKeyboardMove={handleKeyboardMove}
+                      sortableDisabled
+                      mobileMode
+                    />
+                  );
+                })}
+            </div>
+          ) : (
+            /* Desktop three-column board; drag and drop remains available here. */
+            <div
+              data-testid="kanban-desktop-board"
+              className="min-w-0 grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3"
+            >
+              {visibleColumns.map(col => {
+                const colTopics = visibleColumnTopics[col.status] || [];
+                return (
+                  <div key={col.status} className="min-w-0">
+                    <KanbanColumn
+                      status={col.status}
+                      label={col.label}
+                      description={col.description}
+                      topics={colTopics}
+                      onOpenDetail={onOpenDetail}
+                      onOpenCurrentAction={onOpenCurrentAction}
+                      revealTopicId={revealedTopic?.status === col.status ? revealedTopic.id : null}
+                      totalCount={columnTotalCounts[col.status] || 0}
+                      hasMore={hasMoreKanbanPages(
+                        columnPages[col.status],
+                        columnQueries[activeStatuses.indexOf(col.status)]?.data?.total_pages,
+                      )}
+                      isLoadingMore={loadingMorePage[col.status] === columnPages[col.status]}
+                      onLoadMore={loadMoreHandlers[col.status]}
+                      onDeleteTopic={handleColumnDelete}
+                      onTogglePin={onTogglePin}
+                      onQuickAddTopic={onQuickAddTopic}
+                      onKeyboardMove={handleKeyboardMove}
+                      sortableDisabled={isDragDisabled}
+                    />
+                  </div>
+                );
+              })}
+            </div>
+          )}
+
+          {typeof document !== 'undefined' &&
+            createPortal(
+              <DragOverlay dropAnimation={null} zIndex={80}>
+                {activeTopic ? (
+                  <div
+                    style={{ width: activeCardWidth ? `${activeCardWidth}px` : undefined }}
+                    data-testid="kanban-drag-overlay"
+                    className="pointer-events-none"
+                  >
+                    <KanbanCard
+                      topic={activeTopic}
+                      isOverlay
+                      onOpenDetail={() => {}}
+                      onDeleteTopic={() => {}}
+                      onTogglePin={() => {}}
+                    />
+                  </div>
+                ) : null}
+              </DragOverlay>,
+              document.body,
+            )}
+          {activeId && typeof document !== 'undefined' && createPortal(<TopicFlowDropZone />, document.body)}
+        </DndContext>
       </div>
     </FloatingScrollbar>
   );

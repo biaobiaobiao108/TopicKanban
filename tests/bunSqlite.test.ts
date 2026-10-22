@@ -24,13 +24,14 @@ describe('Bun SQLite native API', () => {
     expect(insert.run('t-1', '测试选题 1', 1).changes).toBe(1);
     expect(insert.run('t-2', '测试选题 2', 2).changes).toBe(1);
 
-    const first = db.query('SELECT * FROM test_topics WHERE id = ?')
-      .get('t-1') as { id: string; title: string } | null;
-    const all = db.query('SELECT * FROM test_topics ORDER BY sort_order ASC')
-      .all() as Array<{ id: string; title: string }>;
+    const first = db.query('SELECT * FROM test_topics WHERE id = ?').get('t-1') as { id: string; title: string } | null;
+    const all = db.query('SELECT * FROM test_topics ORDER BY sort_order ASC').all() as Array<{
+      id: string;
+      title: string;
+    }>;
 
     expect(first?.title).toBe('测试选题 1');
-    expect(all.map((topic) => topic.id)).toEqual(['t-1', 't-2']);
+    expect(all.map(topic => topic.id)).toEqual(['t-1', 't-2']);
   });
 
   it('rolls back a native transaction when one statement fails', () => {
@@ -43,7 +44,6 @@ describe('Bun SQLite native API', () => {
     });
 
     expect(() => transaction()).toThrow();
-    expect(db.query("SELECT COUNT(*) AS count FROM test_topics WHERE id LIKE 'b-%'").get())
-      .toEqual({ count: 1 });
+    expect(db.query("SELECT COUNT(*) AS count FROM test_topics WHERE id LIKE 'b-%'").get()).toEqual({ count: 1 });
   });
 });

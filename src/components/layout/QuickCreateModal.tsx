@@ -85,7 +85,7 @@ export const QuickCreateModal: React.FC<QuickCreateModalProps> = ({
 
   // Unselected tags from available pool
   const unselectedAvailableTags = useMemo(() => {
-    return availableTags.filter((t) => !selectedTagNames.includes(t.name));
+    return availableTags.filter(t => !selectedTagNames.includes(t.name));
   }, [availableTags, selectedTagNames]);
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -94,8 +94,8 @@ export const QuickCreateModal: React.FC<QuickCreateModalProps> = ({
 
     setIsSubmitting(true);
     try {
-      const tags: Tag[] = selectedTagNames.map((name) => {
-        const found = availableTags.find((t) => t.name === name);
+      const tags: Tag[] = selectedTagNames.map(name => {
+        const found = availableTags.find(t => t.name === name);
         return found || { id: '', name };
       });
 
@@ -129,13 +129,13 @@ export const QuickCreateModal: React.FC<QuickCreateModalProps> = ({
   };
 
   const removeSelectedTag = (name: string) => {
-    setSelectedTagNames((prev) => prev.filter((t) => t !== name));
+    setSelectedTagNames(prev => prev.filter(t => t !== name));
   };
 
   const addTag = (name: string) => {
     const trimmed = name.trim().replace(/^#/, '');
     if (trimmed && !selectedTagNames.includes(trimmed)) {
-      setSelectedTagNames((prev) => [...prev, trimmed]);
+      setSelectedTagNames(prev => [...prev, trimmed]);
     }
   };
 
@@ -149,17 +149,15 @@ export const QuickCreateModal: React.FC<QuickCreateModalProps> = ({
   };
 
   return (
-    <Modal
-      isOpen={isOpen}
-      onClose={onClose}
-      title="新建选题"
-      maxWidth="md"
-    >
+    <Modal isOpen={isOpen} onClose={onClose} title="新建选题" maxWidth="md">
       <form onSubmit={handleSubmit} className="space-y-5">
         <fieldset className="space-y-4">
           <legend className="sr-only">核心信息</legend>
           <div>
-            <label htmlFor="quick-create-title" className="mb-1.5 flex items-center gap-2 text-sm font-semibold text-ink">
+            <label
+              htmlFor="quick-create-title"
+              className="mb-1.5 flex items-center gap-2 text-sm font-semibold text-ink"
+            >
               <span>选题标题</span>
               <span className="text-2xs font-medium text-ink-muted">必填</span>
             </label>
@@ -171,13 +169,16 @@ export const QuickCreateModal: React.FC<QuickCreateModalProps> = ({
               autoFocus
               autoComplete="off"
               value={title}
-              onChange={(e) => setTitle(e.target.value)}
+              onChange={e => setTitle(e.target.value)}
               className="min-h-12 w-full rounded-xl border border-line bg-control px-3.5 py-2.5 text-base text-ink transition-colors focus:border-accent focus:bg-surface focus:outline-none"
             />
           </div>
 
           <div>
-            <label htmlFor="quick-create-summary" className="mb-1.5 flex items-center gap-2 text-sm font-semibold text-ink">
+            <label
+              htmlFor="quick-create-summary"
+              className="mb-1.5 flex items-center gap-2 text-sm font-semibold text-ink"
+            >
               <span>一句话概述</span>
               <span className="text-2xs font-medium text-ink-muted">选填</span>
             </label>
@@ -187,7 +188,7 @@ export const QuickCreateModal: React.FC<QuickCreateModalProps> = ({
               autoComplete="off"
               rows={2}
               value={summary}
-              onChange={(e) => setSummary(e.target.value)}
+              onChange={e => setSummary(e.target.value)}
               className="min-h-[88px] w-full resize-none rounded-xl border border-line bg-control px-3.5 py-2.5 text-base text-ink transition-colors focus:border-accent focus:bg-surface focus:outline-none"
             />
           </div>
@@ -197,7 +198,7 @@ export const QuickCreateModal: React.FC<QuickCreateModalProps> = ({
           type="button"
           aria-expanded={isAdvancedOpen}
           aria-controls="quick-create-advanced-fields"
-          onClick={() => setIsAdvancedOpen((prev) => !prev)}
+          onClick={() => setIsAdvancedOpen(prev => !prev)}
           className="flex min-h-12 w-full items-center justify-between gap-3 rounded-xl border border-line bg-control px-3.5 py-2.5 text-left transition-colors hover:border-line hover:bg-canvas"
         >
           <span className="flex min-w-0 items-center gap-2">
@@ -206,7 +207,10 @@ export const QuickCreateModal: React.FC<QuickCreateModalProps> = ({
           </span>
           <span className="flex shrink-0 items-center gap-2 text-xs font-medium text-ink-muted">
             <span>{isAdvancedOpen ? '收起' : '按需补充'}</span>
-            <ChevronDown aria-hidden="true" className={`h-4 w-4 transition-transform ${isAdvancedOpen ? 'rotate-180' : ''}`} />
+            <ChevronDown
+              aria-hidden="true"
+              className={`h-4 w-4 transition-transform ${isAdvancedOpen ? 'rotate-180' : ''}`}
+            />
           </span>
         </button>
 
@@ -215,7 +219,10 @@ export const QuickCreateModal: React.FC<QuickCreateModalProps> = ({
             <fieldset className="space-y-3">
               <legend className="text-xs font-bold text-ink">执行安排</legend>
               <div>
-                <label htmlFor="quick-create-initial-todo" className="mb-1.5 flex items-center gap-2 text-xs font-semibold text-ink">
+                <label
+                  htmlFor="quick-create-initial-todo"
+                  className="mb-1.5 flex items-center gap-2 text-xs font-semibold text-ink"
+                >
                   <span>首个行动</span>
                   <span className="font-medium text-ink-muted">选填</span>
                 </label>
@@ -225,7 +232,7 @@ export const QuickCreateModal: React.FC<QuickCreateModalProps> = ({
                   type="text"
                   autoComplete="off"
                   value={initialTodo}
-                  onChange={(e) => setInitialTodo(e.target.value)}
+                  onChange={e => setInitialTodo(e.target.value)}
                   className="min-h-12 w-full rounded-xl border border-line bg-control px-3.5 py-2.5 text-base text-ink transition-colors focus:border-accent focus:bg-surface focus:outline-none"
                 />
               </div>
@@ -233,7 +240,7 @@ export const QuickCreateModal: React.FC<QuickCreateModalProps> = ({
               <fieldset className="space-y-2">
                 <legend className="text-xs font-semibold text-ink">优先级</legend>
                 <div role="radiogroup" aria-label="优先级" className="grid grid-cols-2 gap-2 sm:grid-cols-4">
-                  {priorityOptions.map((opt) => {
+                  {priorityOptions.map(opt => {
                     const isSelected = priority === opt.value;
                     return (
                       <button
@@ -262,7 +269,10 @@ export const QuickCreateModal: React.FC<QuickCreateModalProps> = ({
               </legend>
               <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
                 <div>
-                  <label htmlFor="quick-create-target-publish-date" className="mb-1.5 flex items-center gap-1 text-xs font-semibold text-ink">
+                  <label
+                    htmlFor="quick-create-target-publish-date"
+                    className="mb-1.5 flex items-center gap-1 text-xs font-semibold text-ink"
+                  >
                     <Calendar aria-hidden="true" className="h-3.5 w-3.5 text-accent" />
                     <span>计划发布日期</span>
                   </label>
@@ -271,13 +281,16 @@ export const QuickCreateModal: React.FC<QuickCreateModalProps> = ({
                     id="quick-create-target-publish-date"
                     name="target_publish_date"
                     placeholder="YYYYMMDD"
-                    onChange={(val) => setTargetPublishDate(val)}
+                    onChange={val => setTargetPublishDate(val)}
                     className="min-h-12 w-full rounded-xl border border-line bg-control px-3 py-2 text-base text-ink transition-colors focus:border-accent focus:bg-surface focus:outline-none"
                   />
                 </div>
 
                 <div>
-                  <label htmlFor="quick-create-deadline" className="mb-1.5 flex items-center gap-1 text-xs font-semibold text-ink">
+                  <label
+                    htmlFor="quick-create-deadline"
+                    className="mb-1.5 flex items-center gap-1 text-xs font-semibold text-ink"
+                  >
                     <Clock aria-hidden="true" className="h-3.5 w-3.5 text-warning" />
                     <span>制作截稿日</span>
                   </label>
@@ -286,7 +299,7 @@ export const QuickCreateModal: React.FC<QuickCreateModalProps> = ({
                     id="quick-create-deadline"
                     name="deadline"
                     placeholder="YYYYMMDD"
-                    onChange={(val) => setDeadline(val)}
+                    onChange={val => setDeadline(val)}
                     className="min-h-12 w-full rounded-xl border border-line bg-control px-3 py-2 text-base text-ink transition-colors focus:border-accent focus:bg-surface focus:outline-none"
                   />
                 </div>
@@ -302,7 +315,7 @@ export const QuickCreateModal: React.FC<QuickCreateModalProps> = ({
 
               <div className="flex min-h-[44px] flex-wrap items-center gap-1.5 rounded-xl border border-line bg-canvas/80 p-2.5">
                 {selectedTagNames.length > 0 ? (
-                  selectedTagNames.map((name) => (
+                  selectedTagNames.map(name => (
                     <span
                       key={name}
                       className="group inline-flex items-center gap-1 rounded-full bg-accent px-3 py-1 text-xs font-semibold text-white shadow-2xs"
@@ -326,7 +339,7 @@ export const QuickCreateModal: React.FC<QuickCreateModalProps> = ({
               {unselectedAvailableTags.length > 0 && (
                 <div className="flex flex-wrap items-center gap-1.5">
                   <span className="text-2xs font-medium text-ink-muted">可选标签：</span>
-                  {unselectedAvailableTags.map((t) => (
+                  {unselectedAvailableTags.map(t => (
                     <button
                       type="button"
                       key={t.id || t.name}
@@ -342,7 +355,10 @@ export const QuickCreateModal: React.FC<QuickCreateModalProps> = ({
 
               <div className="grid grid-cols-[minmax(0,1fr)_auto] items-end gap-2">
                 <div className="min-w-0">
-                  <label htmlFor="quick-create-custom-tag" className="mb-1.5 block text-2xs font-semibold text-ink-muted">
+                  <label
+                    htmlFor="quick-create-custom-tag"
+                    className="mb-1.5 block text-2xs font-semibold text-ink-muted"
+                  >
                     自定义标签
                   </label>
                   <input
@@ -351,8 +367,8 @@ export const QuickCreateModal: React.FC<QuickCreateModalProps> = ({
                     type="text"
                     autoComplete="off"
                     value={newTagInput}
-                    onChange={(e) => setNewTagInput(e.target.value)}
-                    onKeyDown={(e) => {
+                    onChange={e => setNewTagInput(e.target.value)}
+                    onKeyDown={e => {
                       if (e.key === 'Enter') {
                         e.preventDefault();
                         handleAddCustomTag();

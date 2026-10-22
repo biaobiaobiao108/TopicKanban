@@ -20,7 +20,13 @@ export function detectPlatformFromText(input: string): PlatformType {
   if (lower.includes('bilibili.com') || lower.includes('b23.tv') || /BV[a-zA-Z0-9]{10}/i.test(input)) return 'bilibili';
   if (lower.includes('douyin.com') || lower.includes('iesdouyin.com')) return 'douyin';
   if (lower.includes('kuaishou.com') || lower.includes('kwai.com')) return 'kuaishou';
-  if (lower.includes('weibo.com') || lower.includes('weibo.cn') || lower.includes('t.cn/') || /t\.cn\/[a-zA-Z0-9]+/i.test(input)) return 'weibo';
+  if (
+    lower.includes('weibo.com') ||
+    lower.includes('weibo.cn') ||
+    lower.includes('t.cn/') ||
+    /t\.cn\/[a-zA-Z0-9]+/i.test(input)
+  )
+    return 'weibo';
   if (lower.includes('xiaohongshu.com') || lower.includes('xhslink.com')) return 'xiaohongshu';
   if (lower.includes('weixin.qq.com') || lower.includes('mp.weixin')) return 'wechat';
   if (lower.includes('zhihu.com')) return 'zhihu';
@@ -71,7 +77,10 @@ export function extractUrlFromText(input: string): string {
 /**
  * Clean up mobile share texts and strip app-specific copy-paste tokens
  */
-export function cleanMobileShareText(rawText: string, extractedUrl: string): { title: string; author: string; content: string } {
+export function cleanMobileShareText(
+  rawText: string,
+  extractedUrl: string,
+): { title: string; author: string; content: string } {
   let textWithoutUrl = rawText.replace(extractedUrl, '').trim();
 
   // Strip common app share wrappers
@@ -121,7 +130,11 @@ export async function parseClientMetadata(rawInput: string): Promise<ParsedClien
   const trimmed = rawInput.trim();
   const extractedUrl = extractUrlFromText(trimmed);
   const platform = detectPlatformFromText(trimmed);
-  const { title: fallbackTitle, author: fallbackAuthor, content: fallbackContent } = cleanMobileShareText(trimmed, extractedUrl);
+  const {
+    title: fallbackTitle,
+    author: fallbackAuthor,
+    content: fallbackContent,
+  } = cleanMobileShareText(trimmed, extractedUrl);
 
   // 1. Bilibili: Direct client-side JSONP (Clean residential IP, zero blocking)
   const bvMatch = trimmed.match(/BV[a-zA-Z0-9]{10}/i);
@@ -131,9 +144,10 @@ export async function parseClientMetadata(rawInput: string): Promise<ParsedClien
       const biliMeta = await fetchBilibiliVideoData(bvid);
       if (biliMeta && biliMeta.title) {
         const cleanDesc = (biliMeta.desc || '').trim();
-        const structuredContent = cleanDesc && cleanDesc !== '-' && cleanDesc.length > 3
-          ? cleanDesc
-          : `【Bilibili 视频】${biliMeta.title}${biliMeta.author ? ` · UP主：${biliMeta.author}` : ''}${biliMeta.published_at ? ` · 发布于 ${biliMeta.published_at}` : ''}`;
+        const structuredContent =
+          cleanDesc && cleanDesc !== '-' && cleanDesc.length > 3
+            ? cleanDesc
+            : `【Bilibili 视频】${biliMeta.title}${biliMeta.author ? ` · UP主：${biliMeta.author}` : ''}${biliMeta.published_at ? ` · 发布于 ${biliMeta.published_at}` : ''}`;
 
         return {
           title: biliMeta.title,

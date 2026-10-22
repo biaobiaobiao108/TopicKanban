@@ -14,9 +14,9 @@ describe('NativeApp middleware paths', () => {
       hits.push(c.req.path);
       return next();
     });
-    app.get('/topics', (c) => c.json({ ok: true }));
-    app.get('/topics/:id', (c) => c.json({ id: c.req.param('id') }));
-    app.get('/people', (c) => c.json({ ok: true }));
+    app.get('/topics', c => c.json({ ok: true }));
+    app.get('/topics/:id', c => c.json({ id: c.req.param('id') }));
+    app.get('/people', c => c.json({ ok: true }));
 
     await app.request('/api/topics');
     await app.request('/api/people');
@@ -29,9 +29,15 @@ describe('NativeApp middleware paths', () => {
     const app = createApp();
     let bare = 0;
     let star = 0;
-    app.use(async (_c, next) => { bare += 1; return next(); });
-    app.use('*', async (_c, next) => { star += 1; return next(); });
-    app.get('/topics', (c) => c.json({ ok: true }));
+    app.use(async (_c, next) => {
+      bare += 1;
+      return next();
+    });
+    app.use('*', async (_c, next) => {
+      star += 1;
+      return next();
+    });
+    app.get('/topics', c => c.json({ ok: true }));
 
     await app.request('/api/topics');
     await app.request('/api/people');
@@ -44,8 +50,11 @@ describe('NativeApp middleware paths', () => {
   it('does not let a prefix scope leak into sibling paths', async () => {
     const app = createApp();
     let scoped = 0;
-    app.use('/api/topic', async (_c, next) => { scoped += 1; return next(); });
-    app.get('/topics', (c) => c.json({ ok: true }));
+    app.use('/api/topic', async (_c, next) => {
+      scoped += 1;
+      return next();
+    });
+    app.get('/topics', c => c.json({ ok: true }));
 
     await app.request('/api/topics');
 

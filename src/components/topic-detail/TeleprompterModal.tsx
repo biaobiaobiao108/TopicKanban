@@ -15,7 +15,7 @@ import {
   CheckCircle2,
   Maximize,
   Minimize,
-  Keyboard
+  Keyboard,
 } from 'lucide-react';
 import { ScriptOutline, OutlineItem } from '../../lib/outline';
 import { getVoiceoverCueSymbol, getVoiceoverCueTone } from '../../lib/voiceoverCues';
@@ -81,7 +81,9 @@ export const TeleprompterModal: React.FC<TeleprompterModalProps> = ({
 }) => {
   const [isPlaying, setIsPlaying] = useState(false);
   const [speedMultiplier, setSpeedMultiplier] = useState(() => getStoredNumber(PREF_SPEED_KEY, 1.0, 0.4, 3.0));
-  const [fontLevel, setFontLevel] = useState<1 | 2 | 3 | 4>(() => getStoredNumber(PREF_FONT_KEY, 2, 1, 4) as 1 | 2 | 3 | 4);
+  const [fontLevel, setFontLevel] = useState<1 | 2 | 3 | 4>(
+    () => getStoredNumber(PREF_FONT_KEY, 2, 1, 4) as 1 | 2 | 3 | 4,
+  );
   const [isMirror, setIsMirror] = useState(() => getStoredBool(PREF_MIRROR_KEY, false));
   const [isOutlineOpen, setIsOutlineOpen] = useState(false);
   const [showKeyboardHelp, setShowKeyboardHelp] = useState(false);
@@ -92,22 +94,28 @@ export const TeleprompterModal: React.FC<TeleprompterModalProps> = ({
   const positionStorageKey = `teleprompter-position:${topicTitle}`;
 
   const setSpeedMultiplierWithStorage = useCallback((valOrUpdater: number | ((prev: number) => number)) => {
-    setSpeedMultiplier((prev) => {
+    setSpeedMultiplier(prev => {
       const next = typeof valOrUpdater === 'function' ? valOrUpdater(prev) : valOrUpdater;
-      try { localStorage.setItem(PREF_SPEED_KEY, String(next)); } catch {}
+      try {
+        localStorage.setItem(PREF_SPEED_KEY, String(next));
+      } catch {}
       return next;
     });
   }, []);
 
   const setFontLevelWithStorage = useCallback((level: 1 | 2 | 3 | 4) => {
     setFontLevel(level);
-    try { localStorage.setItem(PREF_FONT_KEY, String(level)); } catch {}
+    try {
+      localStorage.setItem(PREF_FONT_KEY, String(level));
+    } catch {}
   }, []);
 
   const setIsMirrorWithStorage = useCallback((mirrorOrUpdater: boolean | ((prev: boolean) => boolean)) => {
-    setIsMirror((prev) => {
+    setIsMirror(prev => {
       const next = typeof mirrorOrUpdater === 'function' ? mirrorOrUpdater(prev) : mirrorOrUpdater;
-      try { localStorage.setItem(PREF_MIRROR_KEY, String(next)); } catch {}
+      try {
+        localStorage.setItem(PREF_MIRROR_KEY, String(next));
+      } catch {}
       return next;
     });
   }, []);
@@ -132,8 +140,15 @@ export const TeleprompterModal: React.FC<TeleprompterModalProps> = ({
     const doc = parser.parseFromString(contentHtml, 'text/html');
 
     // Normalize voiceover cue elements into canonical bracket format e.g. [停顿 1s]
-    doc.querySelectorAll('span[data-cue], span.inline-voiceover-cue').forEach((el) => {
-      const cue = el.getAttribute('data-cue') || el.querySelector('.voiceover-cue-label')?.textContent?.trim() || el.textContent?.replace(/^🎙️\s*/, '').replace(/^\[|\]$/g, '').trim() || '';
+    doc.querySelectorAll('span[data-cue], span.inline-voiceover-cue').forEach(el => {
+      const cue =
+        el.getAttribute('data-cue') ||
+        el.querySelector('.voiceover-cue-label')?.textContent?.trim() ||
+        el.textContent
+          ?.replace(/^🎙️\s*/, '')
+          .replace(/^\[|\]$/g, '')
+          .trim() ||
+        '';
       if (cue) {
         el.textContent = `[${cue}]`;
       }
@@ -206,7 +221,7 @@ export const TeleprompterModal: React.FC<TeleprompterModalProps> = ({
   useEffect(() => {
     if (isPlaying) {
       timerIntervalRef.current = setInterval(() => {
-        setElapsedSeconds((prev) => prev + 1);
+        setElapsedSeconds(prev => prev + 1);
       }, 1000);
 
       // Request Screen Wake Lock to prevent sleep during recording
@@ -306,9 +321,7 @@ export const TeleprompterModal: React.FC<TeleprompterModalProps> = ({
 
       // If the focus line falls in the spacing between blocks, choose the
       // nearest block edge so there is still exactly one active block.
-      const distance = focusLineY < blockRect.top
-        ? blockRect.top - focusLineY
-        : focusLineY - blockRect.bottom;
+      const distance = focusLineY < blockRect.top ? blockRect.top - focusLineY : focusLineY - blockRect.bottom;
       if (distance < minDistance) {
         minDistance = distance;
         closestIndex = idx;
@@ -346,9 +359,12 @@ export const TeleprompterModal: React.FC<TeleprompterModalProps> = ({
     positionSaveTimeoutRef.current = setTimeout(persistScrollPosition, 150);
   }, [isPlaying, persistScrollPosition, updateScrollProgress]);
 
-  useEffect(() => () => {
-    if (positionSaveTimeoutRef.current) clearTimeout(positionSaveTimeoutRef.current);
-  }, []);
+  useEffect(
+    () => () => {
+      if (positionSaveTimeoutRef.current) clearTimeout(positionSaveTimeoutRef.current);
+    },
+    [],
+  );
 
   const handleTogglePlayback = useCallback(() => {
     if (!isPlaying && scrollableRef.current) {
@@ -362,7 +378,7 @@ export const TeleprompterModal: React.FC<TeleprompterModalProps> = ({
       }
     }
 
-    setIsPlaying((current) => !current);
+    setIsPlaying(current => !current);
   }, [isPlaying]);
 
   useEffect(() => {
@@ -386,50 +402,53 @@ export const TeleprompterModal: React.FC<TeleprompterModalProps> = ({
   }, [isOpen, positionStorageKey, updateScrollProgress]);
 
   // Auto-scrolling pure physics engine via requestAnimationFrame (constant velocity)
-  const stepScroll = useCallback((timestamp: number) => {
-    if (!isPlaying) {
-      lastFrameTimeRef.current = null;
-      return;
-    }
+  const stepScroll = useCallback(
+    (timestamp: number) => {
+      if (!isPlaying) {
+        lastFrameTimeRef.current = null;
+        return;
+      }
 
-    const container = scrollableRef.current;
-    if (!container) return;
+      const container = scrollableRef.current;
+      if (!container) return;
 
-    if (lastFrameTimeRef.current == null) {
+      if (lastFrameTimeRef.current == null) {
+        lastFrameTimeRef.current = timestamp;
+        preciseScrollTopRef.current = container.scrollTop;
+      }
+
+      const deltaMs = Math.min(100, timestamp - lastFrameTimeRef.current);
       lastFrameTimeRef.current = timestamp;
-      preciseScrollTopRef.current = container.scrollTop;
-    }
 
-    const deltaMs = Math.min(100, timestamp - lastFrameTimeRef.current);
-    lastFrameTimeRef.current = timestamp;
+      const { scrollHeight, clientHeight } = container;
+      const maxScroll = scrollHeight - clientHeight;
 
-    const { scrollHeight, clientHeight } = container;
-    const maxScroll = scrollHeight - clientHeight;
+      if (container.scrollTop >= maxScroll - 2) {
+        persistScrollPosition();
+        setIsPlaying(false);
+        lastFrameTimeRef.current = null;
+        return;
+      }
 
-    if (container.scrollTop >= maxScroll - 2) {
-      persistScrollPosition();
-      setIsPlaying(false);
-      lastFrameTimeRef.current = null;
-      return;
-    }
+      // Standard constant speed: 48px/s at 280wpm, scaled linearly by speedMultiplier
+      const baseSpeed = 48 * ((readingSpeed || 280) / 280);
+      const scrollDelta = (baseSpeed * speedMultiplier * deltaMs) / 1000;
 
-    // Standard constant speed: 48px/s at 280wpm, scaled linearly by speedMultiplier
-    const baseSpeed = 48 * ((readingSpeed || 280) / 280);
-    const scrollDelta = (baseSpeed * speedMultiplier * deltaMs) / 1000;
+      preciseScrollTopRef.current += scrollDelta;
+      container.scrollTop = preciseScrollTopRef.current;
 
-    preciseScrollTopRef.current += scrollDelta;
-    container.scrollTop = preciseScrollTopRef.current;
+      // Throttle UI state updates to every 200ms to avoid re-render frame drops
+      if (timestamp - lastProgressUpdateRef.current > 200) {
+        lastProgressUpdateRef.current = timestamp;
+        updateScrollProgress();
+      }
 
-    // Throttle UI state updates to every 200ms to avoid re-render frame drops
-    if (timestamp - lastProgressUpdateRef.current > 200) {
-      lastProgressUpdateRef.current = timestamp;
-      updateScrollProgress();
-    }
+      if (timestamp - lastPositionSaveRef.current > 500) persistScrollPosition();
 
-    if (timestamp - lastPositionSaveRef.current > 500) persistScrollPosition();
-
-    animationFrameRef.current = requestAnimationFrame(stepScroll);
-  }, [isPlaying, readingSpeed, speedMultiplier, persistScrollPosition, updateScrollProgress]);
+      animationFrameRef.current = requestAnimationFrame(stepScroll);
+    },
+    [isPlaying, readingSpeed, speedMultiplier, persistScrollPosition, updateScrollProgress],
+  );
 
   useEffect(() => {
     if (isPlaying) {
@@ -467,7 +486,7 @@ export const TeleprompterModal: React.FC<TeleprompterModalProps> = ({
   const handleJumpToChapter = (item: OutlineItem) => {
     setIsOutlineOpen(false);
     const targetBlock = parsedBlocks.findIndex(
-      (b) => (b.type === 'h1' || b.type === 'h2' || b.type === 'h3') && b.text.includes(item.title)
+      b => (b.type === 'h1' || b.type === 'h2' || b.type === 'h3') && b.text.includes(item.title),
     );
     if (targetBlock >= 0 && blockElementsRef.current[targetBlock]) {
       const el = blockElementsRef.current[targetBlock];
@@ -522,12 +541,12 @@ export const TeleprompterModal: React.FC<TeleprompterModalProps> = ({
       }
       if (e.key === '+' || e.key === '=' || e.key === ']') {
         e.preventDefault();
-        setSpeedMultiplierWithStorage((prev) => Math.min(3.0, Math.round((prev + 0.2) * 10) / 10));
+        setSpeedMultiplierWithStorage(prev => Math.min(3.0, Math.round((prev + 0.2) * 10) / 10));
         return;
       }
       if (e.key === '-' || e.key === '_' || e.key === '[') {
         e.preventDefault();
-        setSpeedMultiplierWithStorage((prev) => Math.max(0.4, Math.round((prev - 0.2) * 10) / 10));
+        setSpeedMultiplierWithStorage(prev => Math.max(0.4, Math.round((prev - 0.2) * 10) / 10));
         return;
       }
       if (e.key === '1') {
@@ -553,12 +572,12 @@ export const TeleprompterModal: React.FC<TeleprompterModalProps> = ({
       }
       if (e.key === 'm' || e.key === 'M') {
         e.preventDefault();
-        setIsMirrorWithStorage((prev) => !prev);
+        setIsMirrorWithStorage(prev => !prev);
         return;
       }
       if (e.key === 'o' || e.key === 'O') {
         e.preventDefault();
-        setIsOutlineOpen((prev) => !prev);
+        setIsOutlineOpen(prev => !prev);
         return;
       }
       if (e.key === 'f' || e.key === 'F') {
@@ -568,42 +587,53 @@ export const TeleprompterModal: React.FC<TeleprompterModalProps> = ({
       }
       if (e.key === '?') {
         e.preventDefault();
-        setShowKeyboardHelp((prev) => !prev);
+        setShowKeyboardHelp(prev => !prev);
         return;
       }
     };
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [isOpen, isOutlineOpen, showKeyboardHelp, onClose, handleReset, handleTogglePlayback, toggleFullscreen, updateScrollProgress]);
+  }, [
+    isOpen,
+    isOutlineOpen,
+    showKeyboardHelp,
+    onClose,
+    handleReset,
+    handleTogglePlayback,
+    toggleFullscreen,
+    updateScrollProgress,
+  ]);
 
   if (!isOpen) return null;
 
-function renderScriptTextWithCues(text: string): React.ReactNode {
-  if (!text) return null;
-  // Match bracketed voiceover cues e.g. [停顿 1s], [重音], [反讽语气], [BGM 起]
-  const parts = text.split(/(\[[^\]\n]+\])/g);
-  if (parts.length === 1) return text;
+  function renderScriptTextWithCues(text: string): React.ReactNode {
+    if (!text) return null;
+    // Match bracketed voiceover cues e.g. [停顿 1s], [重音], [反讽语气], [BGM 起]
+    const parts = text.split(/(\[[^\]\n]+\])/g);
+    if (parts.length === 1) return text;
 
-  return parts.map((part, index) => {
-    if (part.startsWith('[') && part.endsWith(']')) {
-      const cueContent = part.slice(1, -1).trim();
-      return (
-        <span
-          key={`cue-${index}`}
-          data-cue-tone={getVoiceoverCueTone(cueContent)}
-          className="inline-voiceover-cue mx-1.5 px-2.5 py-0.5 tracking-wide align-middle"
-        >
-          <span aria-hidden="true" className="voiceover-cue-symbol">{getVoiceoverCueSymbol(cueContent)}</span>
-          <span className="voiceover-cue-label">{cueContent}</span>
-        </span>
-      );
-    }
-    return part;
-  });
-}
+    return parts.map((part, index) => {
+      if (part.startsWith('[') && part.endsWith(']')) {
+        const cueContent = part.slice(1, -1).trim();
+        return (
+          <span
+            key={`cue-${index}`}
+            data-cue-tone={getVoiceoverCueTone(cueContent)}
+            className="inline-voiceover-cue mx-1.5 px-2.5 py-0.5 tracking-wide align-middle"
+          >
+            <span aria-hidden="true" className="voiceover-cue-symbol">
+              {getVoiceoverCueSymbol(cueContent)}
+            </span>
+            <span className="voiceover-cue-label">{cueContent}</span>
+          </span>
+        );
+      }
+      return part;
+    });
+  }
 
-  const activeFont = FONT_SIZES.find((f) => f.level === fontLevel) || FONT_SIZES[1];
+  const activeFont = FONT_SIZES.find(f => f.level === fontLevel) || FONT_SIZES[1];
 
   const formatTimer = (seconds: number) => {
     const mins = Math.floor(seconds / 60);
@@ -631,7 +661,9 @@ function renderScriptTextWithCues(text: string): React.ReactNode {
               {isPlaying && (
                 <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-accent opacity-35"></span>
               )}
-              <span className={`relative inline-flex rounded-full h-2.5 w-2.5 ${isPlaying ? 'bg-accent' : 'bg-control'}`}></span>
+              <span
+                className={`relative inline-flex rounded-full h-2.5 w-2.5 ${isPlaying ? 'bg-accent' : 'bg-control'}`}
+              ></span>
             </span>
             <h2 className="text-sm sm:text-base font-bold truncate max-w-[200px] sm:max-w-[320px] text-ink">
               {topicTitle}
@@ -640,7 +672,7 @@ function renderScriptTextWithCues(text: string): React.ReactNode {
 
           {outline.flatItems.length > 0 && (
             <button
-              onClick={() => setIsOutlineOpen((prev) => !prev)}
+              onClick={() => setIsOutlineOpen(prev => !prev)}
               className={`flex items-center gap-1.5 text-xs font-semibold px-2.5 py-1 rounded-lg border transition-all cursor-pointer ${
                 isOutlineOpen
                   ? 'bg-accent border-accent text-white shadow-xs'
@@ -681,7 +713,7 @@ function renderScriptTextWithCues(text: string): React.ReactNode {
           <div className="flex items-center gap-1 rounded-lg border border-line bg-control px-1.5 py-0.5 text-xs font-mono text-ink transition-colors">
             <Gauge className="w-3.5 h-3.5 ml-0.5 text-ink-muted" />
             <button
-              onClick={() => setSpeedMultiplierWithStorage((prev) => Math.max(0.4, Math.round((prev - 0.2) * 10) / 10))}
+              onClick={() => setSpeedMultiplierWithStorage(prev => Math.max(0.4, Math.round((prev - 0.2) * 10) / 10))}
               className="px-1 font-bold cursor-pointer text-ink-muted hover:text-accent"
               aria-label="减速"
             >
@@ -689,7 +721,7 @@ function renderScriptTextWithCues(text: string): React.ReactNode {
             </button>
             <span className="font-bold text-accent px-0.5">{speedMultiplier.toFixed(1)}x</span>
             <button
-              onClick={() => setSpeedMultiplierWithStorage((prev) => Math.min(3.0, Math.round((prev + 0.2) * 10) / 10))}
+              onClick={() => setSpeedMultiplierWithStorage(prev => Math.min(3.0, Math.round((prev + 0.2) * 10) / 10))}
               className="px-1 font-bold cursor-pointer text-ink-muted hover:text-accent"
               aria-label="加速"
             >
@@ -700,7 +732,7 @@ function renderScriptTextWithCues(text: string): React.ReactNode {
           {/* Font Size Preset */}
           <div className="hidden sm:flex items-center gap-0.5 rounded-lg border border-line bg-control p-0.5 text-xs transition-colors">
             <Type className="w-3.5 h-3.5 mx-1 text-ink-muted" />
-            {FONT_SIZES.map((f) => (
+            {FONT_SIZES.map(f => (
               <button
                 key={f.level}
                 onClick={() => setFontLevelWithStorage(f.level)}
@@ -718,7 +750,7 @@ function renderScriptTextWithCues(text: string): React.ReactNode {
 
           {/* Mirror Flip Mode (For Teleprompter Glass) */}
           <button
-            onClick={() => setIsMirrorWithStorage((prev) => !prev)}
+            onClick={() => setIsMirrorWithStorage(prev => !prev)}
             className={`p-1.5 rounded-lg border transition-colors cursor-pointer ${
               isMirror
                 ? 'bg-warning border-warning-soft text-white shadow-xs'
@@ -740,7 +772,7 @@ function renderScriptTextWithCues(text: string): React.ReactNode {
 
           {/* Help Button */}
           <button
-            onClick={() => setShowKeyboardHelp((prev) => !prev)}
+            onClick={() => setShowKeyboardHelp(prev => !prev)}
             className={`p-1.5 rounded-lg border transition-colors cursor-pointer ${
               showKeyboardHelp
                 ? 'bg-accent border-accent text-white shadow-xs'
@@ -766,9 +798,7 @@ function renderScriptTextWithCues(text: string): React.ReactNode {
       <div className="relative flex flex-col flex-1 min-h-0 overflow-hidden">
         {/* Visual Focus Horizon Guide Line (Fixed in middle 38% of screen) */}
         <div
-          className={`pointer-events-none absolute left-0 right-0 top-[38%] h-0.5 border-t border-dashed z-10 opacity-40 transition-colors ${
-            'border-accent/60'
-          }`}
+          className={`pointer-events-none absolute left-0 right-0 top-[38%] h-0.5 border-t border-dashed z-10 opacity-40 transition-colors ${'border-accent/60'}`}
         >
           <div className="absolute right-4 -top-3 text-3xs font-sans tracking-wide text-accent font-bold">
             视线聚焦线
@@ -796,25 +826,19 @@ function renderScriptTextWithCues(text: string): React.ReactNode {
               return (
                 <div
                   key={block.id}
-                  ref={(el) => {
+                  ref={el => {
                     blockElementsRef.current[idx] = el;
                   }}
                   className={`transition-colors duration-150 ${
-                    isActive
-                      ? 'text-ink font-bold opacity-100'
-                      : 'text-ink-muted opacity-40 font-normal'
+                    isActive ? 'text-ink font-bold opacity-100' : 'text-ink-muted opacity-40 font-normal'
                   }`}
                 >
                   {isHeading ? (
                     <div className="pt-6 pb-2 border-b border-line">
-                      <span className="text-xs font-sans font-bold tracking-wide text-accent block mb-1">
-                        章节标记
-                      </span>
+                      <span className="text-xs font-sans font-bold tracking-wide text-accent block mb-1">章节标记</span>
                       <h3
                         className={`font-black tracking-tight ${
-                          block.type === 'h1'
-                            ? 'text-3xl sm:text-5xl text-h1-color'
-                            : 'text-2xl sm:text-4xl text-ink'
+                          block.type === 'h1' ? 'text-3xl sm:text-5xl text-h1-color' : 'text-2xl sm:text-4xl text-ink'
                         }`}
                       >
                         {renderScriptTextWithCues(block.text)}
@@ -825,9 +849,7 @@ function renderScriptTextWithCues(text: string): React.ReactNode {
                       <p className={activeFont.sizeClass}>{renderScriptTextWithCues(block.text)}</p>
                     </blockquote>
                   ) : (
-                    <p className={`${activeFont.sizeClass} tracking-normal`}>
-                      {renderScriptTextWithCues(block.text)}
-                    </p>
+                    <p className={`${activeFont.sizeClass} tracking-normal`}>{renderScriptTextWithCues(block.text)}</p>
                   )}
                 </div>
               );
@@ -869,7 +891,7 @@ function renderScriptTextWithCues(text: string): React.ReactNode {
             </div>
 
             <div className="space-y-1.5 text-xs">
-              {outline.flatItems.map((item) => (
+              {outline.flatItems.map(item => (
                 <button
                   key={item.id}
                   onClick={() => handleJumpToChapter(item)}
@@ -905,43 +927,63 @@ function renderScriptTextWithCues(text: string): React.ReactNode {
               <div className="grid grid-cols-2 gap-3 text-xs">
                 <div className="flex items-center justify-between p-2 rounded bg-control border border-line">
                   <span className="text-ink-muted">开始 / 暂停</span>
-                  <kbd className="px-2 py-0.5 rounded font-mono font-bold bg-surface text-accent border border-line">Space</kbd>
+                  <kbd className="px-2 py-0.5 rounded font-mono font-bold bg-surface text-accent border border-line">
+                    Space
+                  </kbd>
                 </div>
                 <div className="flex items-center justify-between p-2 rounded bg-control border border-line">
                   <span className="text-ink-muted">微调滚动</span>
-                  <kbd className="px-2 py-0.5 rounded font-mono font-bold bg-surface text-accent border border-line">↑ / ↓</kbd>
+                  <kbd className="px-2 py-0.5 rounded font-mono font-bold bg-surface text-accent border border-line">
+                    ↑ / ↓
+                  </kbd>
                 </div>
                 <div className="flex items-center justify-between p-2 rounded bg-control border border-line">
                   <span className="text-ink-muted">滚屏加/减速</span>
-                  <kbd className="px-2 py-0.5 rounded font-mono font-bold bg-surface text-accent border border-line">+ / -</kbd>
+                  <kbd className="px-2 py-0.5 rounded font-mono font-bold bg-surface text-accent border border-line">
+                    + / -
+                  </kbd>
                 </div>
                 <div className="flex items-center justify-between p-2 rounded bg-control border border-line">
                   <span className="text-ink-muted">切换字号</span>
-                  <kbd className="px-2 py-0.5 rounded font-mono font-bold bg-surface text-accent border border-line">1 ~ 4</kbd>
+                  <kbd className="px-2 py-0.5 rounded font-mono font-bold bg-surface text-accent border border-line">
+                    1 ~ 4
+                  </kbd>
                 </div>
                 <div className="flex items-center justify-between p-2 rounded bg-control border border-line">
                   <span className="text-ink-muted">重置回起点</span>
-                  <kbd className="px-2 py-0.5 rounded font-mono font-bold bg-surface text-accent border border-line">R</kbd>
+                  <kbd className="px-2 py-0.5 rounded font-mono font-bold bg-surface text-accent border border-line">
+                    R
+                  </kbd>
                 </div>
                 <div className="flex items-center justify-between p-2 rounded bg-control border border-line">
                   <span className="text-ink-muted">镜像翻转</span>
-                  <kbd className="px-2 py-0.5 rounded font-mono font-bold bg-surface text-accent border border-line">M</kbd>
+                  <kbd className="px-2 py-0.5 rounded font-mono font-bold bg-surface text-accent border border-line">
+                    M
+                  </kbd>
                 </div>
                 <div className="flex items-center justify-between p-2 rounded bg-control border border-line">
                   <span className="text-ink-muted">章节大纲</span>
-                  <kbd className="px-2 py-0.5 rounded font-mono font-bold bg-surface text-accent border border-line">O</kbd>
+                  <kbd className="px-2 py-0.5 rounded font-mono font-bold bg-surface text-accent border border-line">
+                    O
+                  </kbd>
                 </div>
                 <div className="flex items-center justify-between p-2 rounded bg-control border border-line">
                   <span className="text-ink-muted">切换全屏</span>
-                  <kbd className="px-2 py-0.5 rounded font-mono font-bold bg-surface text-accent border border-line">F</kbd>
+                  <kbd className="px-2 py-0.5 rounded font-mono font-bold bg-surface text-accent border border-line">
+                    F
+                  </kbd>
                 </div>
                 <div className="flex items-center justify-between p-2 rounded bg-control border border-line">
                   <span className="text-ink-muted">快捷键指南</span>
-                  <kbd className="px-2 py-0.5 rounded font-mono font-bold bg-surface text-accent border border-line">?</kbd>
+                  <kbd className="px-2 py-0.5 rounded font-mono font-bold bg-surface text-accent border border-line">
+                    ?
+                  </kbd>
                 </div>
                 <div className="flex items-center justify-between p-2 rounded bg-control border border-line">
                   <span className="text-ink-muted">退出提词器</span>
-                  <kbd className="px-2 py-0.5 rounded font-mono font-bold bg-surface text-accent border border-line">Esc</kbd>
+                  <kbd className="px-2 py-0.5 rounded font-mono font-bold bg-surface text-accent border border-line">
+                    Esc
+                  </kbd>
                 </div>
               </div>
 

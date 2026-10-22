@@ -84,17 +84,29 @@ async function loadAnalyticsTopics(
     values: (range === 'all' ? [] : [cutoff]) as unknown[],
   };
   const [topicRows, peopleRows, tagRows] = readTransaction(db, [
-    command(db, `SELECT t.id, t.score_character, t.score_conflict, t.score_contrast, t.score_material, t.score_story,
+    command(
+      db,
+      `SELECT t.id, t.score_character, t.score_conflict, t.score_contrast, t.score_material, t.score_story,
       COALESCE((SELECT word_count FROM drafts d WHERE d.topic_id = t.id LIMIT 1), 0) AS draft_word_count
-      FROM topics t WHERE ${eligibility.sql}`, eligibility.values),
-    command(db, `SELECT tp.topic_id, p.id, p.name
+      FROM topics t WHERE ${eligibility.sql}`,
+      eligibility.values,
+    ),
+    command(
+      db,
+      `SELECT tp.topic_id, p.id, p.name
       FROM topic_people tp INNER JOIN people p ON p.id = tp.person_id
       INNER JOIN topics t ON t.id = tp.topic_id
-      WHERE ${eligibility.sql}`, eligibility.values),
-    command(db, `SELECT tt.topic_id, tg.id, tg.name
+      WHERE ${eligibility.sql}`,
+      eligibility.values,
+    ),
+    command(
+      db,
+      `SELECT tt.topic_id, tg.id, tg.name
       FROM topic_tags tt INNER JOIN tags tg ON tg.id = tt.tag_id
       INNER JOIN topics t ON t.id = tt.topic_id
-      WHERE ${eligibility.sql}`, eligibility.values),
+      WHERE ${eligibility.sql}`,
+      eligibility.values,
+    ),
   ]);
   const peopleByTopic = new Map<string, Array<{ id: string; name: string }>>();
   const tagsByTopic = new Map<string, Array<{ id: string; name: string }>>();
@@ -108,7 +120,7 @@ async function loadAnalyticsTopics(
     tags.push({ id: row.id, name: row.name });
     tagsByTopic.set(row.topic_id, tags);
   }
-  return (topicRows as AnalyticsTopic[]).map((topic) => ({
+  return (topicRows as AnalyticsTopic[]).map(topic => ({
     ...topic,
     people: peopleByTopic.get(topic.id) || [],
     tags: tagsByTopic.get(topic.id) || [],
@@ -119,11 +131,15 @@ export async function loadPublishedPage(db: Database, options: PageOptions): Pro
   const offset = (options.page - 1) * options.pageSize;
   const [countRows, videoRows] = readTransaction(db, [
     command(db, 'SELECT COUNT(*) AS count FROM published_videos'),
-    command(db, `SELECT v.*, t.title AS topic_title
+    command(
+      db,
+      `SELECT v.*, t.title AS topic_title
       FROM published_videos v
       LEFT JOIN topics t ON t.id = v.topic_id
       ORDER BY v.published_at DESC, v.updated_at DESC, v.id DESC
-      LIMIT ? OFFSET ?`, [options.pageSize, offset]),
+      LIMIT ? OFFSET ?`,
+      [options.pageSize, offset],
+    ),
   ]);
   const total = Number((countRows[0] as { count?: number } | undefined)?.count || 0);
   return {
@@ -149,55 +165,77 @@ export async function loadPublishedAnalytics(
   const rangeDays = options.range === '90d' ? 90 : 365;
   const cutoff = options.range === 'all' ? null : subtractCalendarDays(today, rangeDays - 1);
   const videoFilter = cutoff ? `WHERE ${publishedBusinessDateSql('v')} >= ?` : '';
-  const queriedVideos = readAll<PublishedVideo>(db, `SELECT v.id, v.topic_id, v.title, v.published_at,
+  const queriedVideos = readAll<PublishedVideo>(
+    db,
+    `SELECT v.id, v.topic_id, v.title, v.published_at,
       v.views, v.likes, v.coins, v.favorites, v.comments
     FROM published_videos v
     ${videoFilter}
-    ORDER BY v.published_at DESC, v.updated_at DESC, v.id DESC`, cutoff ? [cutoff] : []);
+    ORDER BY v.published_at DESC, v.updated_at DESC, v.id DESC`,
+    cutoff ? [cutoff] : [],
+  );
   const allVideos = cutoff
-    ? queriedVideos.filter((video) => {
-      const businessDate = video.published_at ? publishedBusinessDate(video.published_at) : null;
-      return businessDate !== null && businessDate >= cutoff;
-    })
+    ? queriedVideos.filter(video => {
+        const businessDate = video.published_at ? publishedBusinessDate(video.published_at) : null;
+        return businessDate !== null && businessDate >= cutoff;
+      })
     : queriedVideos;
   const topics = await loadAnalyticsTopics(db, options.range, cutoff ?? undefined);
-  const topicMap = new Map(topics.map((topic) => [topic.id, topic]));
+  const topicMap = new Map(topics.map(topic => [topic.id, topic]));
   const ranking = allVideos
-    .map((video) => {
+    .map(video => {
       const topic = video.topic_id ? topicMap.get(video.topic_id) || null : null;
       return {
         video,
         topic,
         deepMetrics: calculateDeepMetrics(video, topic),
         storyModelTotal: topic
-          ? topic.score_character + topic.score_conflict + topic.score_contrast + topic.score_material + topic.score_story
+          ? topic.score_character +
+            topic.score_conflict +
+            topic.score_contrast +
+            topic.score_material +
+            topic.score_story
           : 0,
       };
     })
     .sort((a, b) => (b.video.views || 0) - (a.video.views || 0) || a.video.id.localeCompare(b.video.id));
   const offset = (options.page - 1) * options.pageSize;
   const pageRanking = ranking.slice(offset, offset + options.pageSize);
-  const fullTopicIds = Array.from(new Set(pageRanking.map((row) => row.topic?.id).filter((id): id is string => Boolean(id))));
+  const fullTopicIds = Array.from(
+    new Set(pageRanking.map(row => row.topic?.id).filter((id): id is string => Boolean(id))),
+  );
   const overview = calculateChannelOverview(allVideos, topics);
-  const fullVideoIds = Array.from(new Set([
-    ...pageRanking.map((row) => row.video.id),
-    overview.topViewedVideo?.id,
-    overview.topCoinedVideo?.id,
-  ].filter((id): id is string => Boolean(id))));
+  const fullVideoIds = Array.from(
+    new Set(
+      [...pageRanking.map(row => row.video.id), overview.topViewedVideo?.id, overview.topCoinedVideo?.id].filter(
+        (id): id is string => Boolean(id),
+      ),
+    ),
+  );
   const [fullTopics, fullVideos] = await Promise.all([
     loadTopicBatch(db, fullTopicIds),
     fullVideoIds.length > 0
-      ? Promise.resolve(readAll<PublishedVideo>(db, `SELECT v.*, t.title AS topic_title
+      ? Promise.resolve(
+          readAll<PublishedVideo>(
+            db,
+            `SELECT v.*, t.title AS topic_title
         FROM published_videos v LEFT JOIN topics t ON t.id = v.topic_id
-        WHERE v.id IN (${fullVideoIds.map(() => '?').join(',')})`, fullVideoIds))
+        WHERE v.id IN (${fullVideoIds.map(() => '?').join(',')})`,
+            fullVideoIds,
+          ),
+        )
       : Promise.resolve([] as PublishedVideo[]),
   ]);
-  const fullTopicMap = new Map(fullTopics.map((topic) => [topic.id, topic]));
-  const fullVideoMap = new Map(fullVideos.map((video) => [video.id, video]));
+  const fullTopicMap = new Map(fullTopics.map(topic => [topic.id, topic]));
+  const fullVideoMap = new Map(fullVideos.map(video => [video.id, video]));
   const completeOverview = {
     ...overview,
-    topViewedVideo: overview.topViewedVideo ? fullVideoMap.get(overview.topViewedVideo.id) || overview.topViewedVideo : null,
-    topCoinedVideo: overview.topCoinedVideo ? fullVideoMap.get(overview.topCoinedVideo.id) || overview.topCoinedVideo : null,
+    topViewedVideo: overview.topViewedVideo
+      ? fullVideoMap.get(overview.topViewedVideo.id) || overview.topViewedVideo
+      : null,
+    topCoinedVideo: overview.topCoinedVideo
+      ? fullVideoMap.get(overview.topCoinedVideo.id) || overview.topCoinedVideo
+      : null,
   };
 
   const payload: PublishedAnalyticsPayload = {
@@ -207,7 +245,7 @@ export async function loadPublishedAnalytics(
     people: analyzePeoplePerformance(allVideos, topics),
     tags: analyzeTagPerformance(allVideos, topics),
     insights: generateAnalyticsInsights(allVideos, topics),
-    ranking: pageRanking.map((row) => ({
+    ranking: pageRanking.map(row => ({
       ...row,
       video: fullVideoMap.get(row.video.id) || row.video,
       topic: row.topic ? fullTopicMap.get(row.topic.id) || null : null,
@@ -222,18 +260,35 @@ export async function loadPublishedAnalytics(
   return payload;
 }
 export function publishedStatement(db: Database, video: PublishedVideo): SqlCommand {
-  return command(db, `INSERT INTO published_videos (
+  return command(
+    db,
+    `INSERT INTO published_videos (
     id, topic_id, title, url, bvid, published_at, views, likes, coins, favorites, comments, notes, updated_at
-  ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`, [
-    video.id, video.topic_id, video.title, video.url, video.bvid, video.published_at,
-    video.views, video.likes, video.coins, video.favorites, video.comments, video.notes, video.updated_at,
-  ]);
+  ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+    [
+      video.id,
+      video.topic_id,
+      video.title,
+      video.url,
+      video.bvid,
+      video.published_at,
+      video.views,
+      video.likes,
+      video.coins,
+      video.favorites,
+      video.comments,
+      video.notes,
+      video.updated_at,
+    ],
+  );
 }
 
 export async function insertPublishedVideo(db: Database, video: PublishedVideo): Promise<void> {
   db.transaction(() => {
-    if (video.topic_id && readOne<{ id: string }>(db,
-      'SELECT id FROM published_videos WHERE topic_id = ? LIMIT 1', [video.topic_id])) {
+    if (
+      video.topic_id &&
+      readOne<{ id: string }>(db, 'SELECT id FROM published_videos WHERE topic_id = ? LIMIT 1', [video.topic_id])
+    ) {
       throw new PublishedTopicAlreadyLinkedError();
     }
     const insertion = publishedStatement(db, video);
@@ -252,19 +307,42 @@ export async function findPublishedVideo(db: Database, id: string): Promise<Publ
   return readOne<PublishedVideo>(db, 'SELECT * FROM published_videos WHERE id = ?', [id]);
 }
 
-export async function updatePublishedVideo(db: Database, id: string, body: Record<string, unknown>): Promise<PublishedVideo | null> {
-  const fields = ['topic_id', 'title', 'url', 'bvid', 'published_at', 'views', 'likes', 'coins', 'favorites', 'comments', 'notes']
-    .filter((field) => Object.prototype.hasOwnProperty.call(body, field));
+export async function updatePublishedVideo(
+  db: Database,
+  id: string,
+  body: Record<string, unknown>,
+): Promise<PublishedVideo | null> {
+  const fields = [
+    'topic_id',
+    'title',
+    'url',
+    'bvid',
+    'published_at',
+    'views',
+    'likes',
+    'coins',
+    'favorites',
+    'comments',
+    'notes',
+  ].filter(field => Object.prototype.hasOwnProperty.call(body, field));
   if (fields.length > 0) {
     db.transaction(() => {
       const topicId = body.topic_id;
-      if (typeof topicId === 'string' && topicId
-        && readOne<{ id: string }>(db,
-          'SELECT id FROM published_videos WHERE topic_id = ? AND id != ? LIMIT 1', [topicId, id])) {
+      if (
+        typeof topicId === 'string' &&
+        topicId &&
+        readOne<{ id: string }>(db, 'SELECT id FROM published_videos WHERE topic_id = ? AND id != ? LIMIT 1', [
+          topicId,
+          id,
+        ])
+      ) {
         throw new PublishedTopicAlreadyLinkedError();
       }
-      execute(db, `UPDATE published_videos SET ${fields.map((field) => `${field} = ?`).join(', ')}, updated_at = ? WHERE id = ?`,
-        [...fields.map((field) => body[field]), new Date().toISOString(), id]);
+      execute(
+        db,
+        `UPDATE published_videos SET ${fields.map(field => `${field} = ?`).join(', ')}, updated_at = ? WHERE id = ?`,
+        [...fields.map(field => body[field]), new Date().toISOString(), id],
+      );
     }).immediate();
   }
   return findPublishedVideo(db, id);

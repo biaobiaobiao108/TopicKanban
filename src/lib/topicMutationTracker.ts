@@ -29,7 +29,7 @@ export class TopicMutationTracker {
     const patch: Record<string, unknown> = {};
     for (const field of Object.keys(updates) as TopicField[]) {
       const state = fields?.get(field);
-      const index = state?.pending.findIndex((entry) => entry.sequence === sequence) ?? -1;
+      const index = state?.pending.findIndex(entry => entry.sequence === sequence) ?? -1;
       if (!state || index < 0) continue;
       state.pending.splice(index, 1);
       if (serverTopic && (!state.latestResolved || state.latestResolved.sequence < sequence)) {
@@ -39,7 +39,11 @@ export class TopicMutationTracker {
         };
       }
       const latestPending = state.pending[state.pending.length - 1];
-      patch[field] = latestPending ? latestPending.value : state.latestResolved ? state.latestResolved.value : state.baseValue;
+      patch[field] = latestPending
+        ? latestPending.value
+        : state.latestResolved
+          ? state.latestResolved.value
+          : state.baseValue;
       if (state.pending.length === 0) fields?.delete(field);
     }
     // These fields can be derived by the server even when absent from the edit.

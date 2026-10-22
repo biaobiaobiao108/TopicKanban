@@ -35,7 +35,10 @@ export const KanbanFilters: React.FC<KanbanFiltersProps> = ({
   hasActiveFilters,
 }) => {
   return (
-    <div data-testid="kanban-filters" className="flex items-center justify-between flex-wrap gap-3 pb-3 md:border-b border-line/50 transition-colors">
+    <div
+      data-testid="kanban-filters"
+      className="flex items-center justify-between flex-wrap gap-3 pb-3 md:border-b border-line/50 transition-colors"
+    >
       <div className="flex items-center gap-2.5 flex-wrap text-xs">
         <span className="font-medium text-ink-muted flex items-center gap-1">
           <Filter className="w-3.5 h-3.5" />
@@ -45,7 +48,7 @@ export const KanbanFilters: React.FC<KanbanFiltersProps> = ({
         {/* Priority Filter */}
         <CustomSelect
           value={priorityFilter}
-          onChange={(val) => onPriorityFilterChange(val as Priority | 'all')}
+          onChange={val => onPriorityFilterChange(val as Priority | 'all')}
           ariaLabel="优先级筛选"
           size="sm"
           options={[
@@ -60,12 +63,12 @@ export const KanbanFilters: React.FC<KanbanFiltersProps> = ({
         {/* Tag Filter */}
         <CustomSelect
           value={selectedTagId}
-          onChange={(val) => onTagFilterChange(val)}
+          onChange={val => onTagFilterChange(val)}
           ariaLabel="标签筛选"
           size="sm"
           options={[
             { value: 'all', label: '所有标签' },
-            ...availableTags.map((t) => ({ value: t.id, label: `#${t.name}` })),
+            ...availableTags.map(t => ({ value: t.id, label: `#${t.name}` })),
           ]}
         />
 
@@ -73,12 +76,12 @@ export const KanbanFilters: React.FC<KanbanFiltersProps> = ({
         {availablePeople.length > 0 && (
           <CustomSelect
             value={selectedPersonId}
-            onChange={(val) => onPersonFilterChange(val)}
+            onChange={val => onPersonFilterChange(val)}
             ariaLabel="关联人物筛选"
             size="sm"
             options={[
               { value: 'all', label: '所有关联人物' },
-              ...availablePeople.map((p) => ({ value: p.id, label: `👤 ${p.name}` })),
+              ...availablePeople.map(p => ({ value: p.id, label: `👤 ${p.name}` })),
             ]}
           />
         )}
@@ -102,7 +105,7 @@ export const KanbanFilters: React.FC<KanbanFiltersProps> = ({
         </span>
         <CustomSelect
           value={sortBy}
-          onChange={(val) => onSortByChange(val as SortField)}
+          onChange={val => onSortByChange(val as SortField)}
           ariaLabel="看板排序方式"
           size="sm"
           align="right"

@@ -18,7 +18,7 @@ export function countValidCharacters(text: string): number {
  */
 export function calculateEstimatedDuration(
   charCount: number,
-  readingSpeed = 280
+  readingSpeed = 280,
 ): {
   minutes: number;
   seconds: number;

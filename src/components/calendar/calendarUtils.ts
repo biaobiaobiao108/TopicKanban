@@ -33,7 +33,6 @@ function formatIsoDate(year: number, monthIndex: number, day: number): string {
  * Generates the 35 or 42 day cells for a calendar month grid (Monday is first day of week).
  */
 export function getMonthGridDays(year: number, monthIndex: number, todayStr = getBeijingDateString()): MonthDayCell[] {
-
   // First day of target month (using UTC to be completely immune to local timezone shift)
   const firstDayUtc = new Date(Date.UTC(year, monthIndex, 1));
   let firstDayOfWeek = firstDayUtc.getUTCDay();
@@ -103,13 +102,13 @@ export interface WeekDayCell {
 }
 
 export function resolveAgendaSelectedDate(days: WeekDayCell[], selectedDate: string): string {
-  if (days.some((day) => day.date === selectedDate)) return selectedDate;
+  if (days.some(day => day.date === selectedDate)) return selectedDate;
 
-  const today = days.find((day) => day.isToday);
+  const today = days.find(day => day.isToday);
   if (today) return today.date;
 
   const selectedWeekday = new Date(`${selectedDate}T00:00:00Z`).getUTCDay();
-  const sameWeekday = days.find((day) => new Date(`${day.date}T00:00:00Z`).getUTCDay() === selectedWeekday);
+  const sameWeekday = days.find(day => new Date(`${day.date}T00:00:00Z`).getUTCDay() === selectedWeekday);
   return sameWeekday?.date || days[0]?.date || '';
 }
 
@@ -119,10 +118,12 @@ const WEEKDAY_NAMES = ['周一', '周二', '周三', '周四', '周五', '周六
  * Generates the 7 days of the week containing the base date (Monday ~ Sunday).
  */
 export function getWeekDays(baseDate: Date, todayStr = getBeijingDateString()): WeekDayCell[] {
-  const baseIso = getBeijingDateString(baseDate) || formatIsoDate(baseDate.getUTCFullYear(), baseDate.getUTCMonth(), baseDate.getUTCDate());
+  const baseIso =
+    getBeijingDateString(baseDate) ||
+    formatIsoDate(baseDate.getUTCFullYear(), baseDate.getUTCMonth(), baseDate.getUTCDate());
   const [bYear, bMonth, bDay] = baseIso.split('-').map(Number);
   const baseUtc = new Date(Date.UTC(bYear, bMonth - 1, bDay));
-  
+
   let dayOfWeek = baseUtc.getUTCDay(); // 0 = Sun, 1 = Mon ...
   const diffToMonday = dayOfWeek === 0 ? -6 : 1 - dayOfWeek;
   const mondayUtcTime = baseUtc.getTime() + diffToMonday * 86400000;
@@ -150,7 +151,7 @@ export function extractCalendarEvents(
   topics: Topic[],
   deals: CommercialDeal[],
   publishedList: PublishedVideo[],
-  filters: CalendarLayerFilters
+  filters: CalendarLayerFilters,
 ): Map<string, CalendarEventItem[]> {
   const map = new Map<string, CalendarEventItem[]>();
 
@@ -163,7 +164,7 @@ export function extractCalendarEvents(
   };
 
   // 1. Topics
-  topics.forEach((topic) => {
+  topics.forEach(topic => {
     if (topic.deleted_at) return;
 
     // Layer 1: Planned Publish Date
@@ -193,20 +194,20 @@ export function extractCalendarEvents(
         rawTopic: topic,
       });
     }
-
   });
 
   // 2. Commercial Deals (Layer 3)
   if (filters.showDeals) {
-    deals.forEach((deal) => {
+    deals.forEach(deal => {
       if (deal.delivery_due_date) {
         addEvent(deal.delivery_due_date, {
           id: `deal:${deal.id}`,
           date: deal.delivery_due_date,
           type: 'commercial_deal',
-          title: deal.brand_name && !deal.title.startsWith(`${deal.brand_name} ·`)
-            ? `${deal.brand_name} · ${deal.title}`
-            : deal.title,
+          title:
+            deal.brand_name && !deal.title.startsWith(`${deal.brand_name} ·`)
+              ? `${deal.brand_name} · ${deal.title}`
+              : deal.title,
           subtitle: deal.next_action || undefined,
           status: deal.status,
           amount_cents: deal.amount_cents,
@@ -219,7 +220,7 @@ export function extractCalendarEvents(
 
   // 3. Published Videos (Layer 4)
   if (filters.showPublished) {
-    publishedList.forEach((pub) => {
+    publishedList.forEach(pub => {
       if (pub.published_at) {
         addEvent(pub.published_at, {
           id: `video:${pub.id}`,
@@ -246,7 +247,7 @@ export function calculateMonthStats(
   eventsMap: Map<string, CalendarEventItem[]>,
   year: number,
   monthIndex: number,
-  topics: Topic[]
+  topics: Topic[],
 ): MonthStats {
   const monthPrefix = `${year}-${String(monthIndex + 1).padStart(2, '0')}`;
   let plannedPublishCount = 0;
@@ -255,7 +256,7 @@ export function calculateMonthStats(
 
   eventsMap.forEach((events, date) => {
     if (date.startsWith(monthPrefix)) {
-      events.forEach((ev) => {
+      events.forEach(ev => {
         if (ev.type === 'planned_publish') plannedPublishCount++;
         else if (ev.type === 'commercial_deal') commercialDealCount++;
         else if (ev.type === 'published') publishedVideoCount++;
@@ -264,10 +265,7 @@ export function calculateMonthStats(
   });
 
   const unscheduledActiveCount = topics.filter(
-    (t) => !t.deleted_at &&
-      t.status !== 'published' &&
-      t.status !== 'icebox' &&
-      !t.target_publish_date
+    t => !t.deleted_at && t.status !== 'published' && t.status !== 'icebox' && !t.target_publish_date,
   ).length;
 
   return {

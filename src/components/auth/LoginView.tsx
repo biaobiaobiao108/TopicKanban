@@ -38,12 +38,16 @@ export const LoginView: React.FC<LoginViewProps> = ({ onLoginSuccess }) => {
         {/* Brand Header */}
         <div className="text-center space-y-2.5">
           <div className="w-14 h-14 rounded-2xl flex items-center justify-center overflow-hidden mx-auto shadow-2xs border border-line p-1 bg-surface">
-            <img src="/icon.png" alt="喵爪看板 Logo" width={56} height={56} className="w-full h-full object-cover rounded-xl" />
+            <img
+              src="/icon.png"
+              alt="喵爪看板 Logo"
+              width={56}
+              height={56}
+              className="w-full h-full object-cover rounded-xl"
+            />
           </div>
           <h1 className="font-serif text-[22px] font-bold text-ink tracking-[0.02em]">喵爪看板</h1>
-          <p className="text-xs text-ink-muted">
-            视频创作者专属工作台 • 访问鉴权保护
-          </p>
+          <p className="text-xs text-ink-muted">视频创作者专属工作台 • 访问鉴权保护</p>
         </div>
 
         {/* Form */}
@@ -62,7 +66,7 @@ export const LoginView: React.FC<LoginViewProps> = ({ onLoginSuccess }) => {
                 required
                 placeholder="请输入访问口令密码..."
                 value={password}
-                onChange={(e) => setPassword(e.target.value)}
+                onChange={e => setPassword(e.target.value)}
                 className="w-full pl-3.5 pr-10 py-2.5 bg-control border border-line rounded-xl text-ink text-sm focus:bg-surface focus:border-accent focus:outline-none transition-colors placeholder:text-ink-muted"
               />
               <button

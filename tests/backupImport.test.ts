@@ -39,24 +39,41 @@ describe('backup import limits', () => {
     const sqlite = new Database(':memory:');
     sqlite.exec(await Bun.file('database/schema.sql').text());
     const topic: Topic = {
-      id: 'topic-history', title: '历史选题', summary: '', hook: '', storyline: '', why_now: '',
-      status: 'scripting', priority: 'medium', score_character: 0, score_conflict: 0,
-      score_contrast: 0, score_material: 0, score_story: 0, is_pinned: 0, sort_order: 1,
-      created_at: '2025-01-02T03:04:05.000Z', updated_at: '2025-08-09T10:11:12.000Z',
+      id: 'topic-history',
+      title: '历史选题',
+      summary: '',
+      hook: '',
+      storyline: '',
+      why_now: '',
+      status: 'scripting',
+      priority: 'medium',
+      score_character: 0,
+      score_conflict: 0,
+      score_contrast: 0,
+      score_material: 0,
+      score_story: 0,
+      is_pinned: 0,
+      sort_order: 1,
+      created_at: '2025-01-02T03:04:05.000Z',
+      updated_at: '2025-08-09T10:11:12.000Z',
     };
 
     try {
       await replaceAllData(sqlite, createBackup({ topics: [topic] }));
       const exported = await exportAllData(sqlite);
       expect(exported.topics[0]).toMatchObject({
-        id: topic.id, created_at: topic.created_at, updated_at: topic.updated_at,
+        id: topic.id,
+        created_at: topic.created_at,
+        updated_at: topic.updated_at,
       });
 
       const beforeCreate = Date.now();
       await insertTopic(sqlite, { id: 'topic-new', title: '新建选题' });
-      const created = sqlite.query<{ created_at: string; updated_at: string }, []>(
-        'SELECT created_at, updated_at FROM topics WHERE id = \'topic-new\'',
-      ).get()!;
+      const created = sqlite
+        .query<{ created_at: string; updated_at: string }, []>(
+          "SELECT created_at, updated_at FROM topics WHERE id = 'topic-new'",
+        )
+        .get()!;
       expect(created.created_at).toBe(created.updated_at);
       expect(Date.parse(created.updated_at)).toBeGreaterThanOrEqual(beforeCreate);
       expect(Date.parse(created.updated_at)).toBeLessThanOrEqual(Date.now());
@@ -67,14 +84,43 @@ describe('backup import limits', () => {
 
   it('counts fixed writes and relation writes before importing', () => {
     const backup = createBackup({
-      topics: [{
-        id: 'topic-1', title: '选题', summary: '', hook: '', storyline: '', why_now: '',
-        status: 'inbox', priority: 'medium', score_character: 0,
-        score_conflict: 0, score_contrast: 0, score_material: 0, score_story: 0,
-        is_pinned: 0, sort_order: 1, created_at: '', updated_at: '',
-        tags: [{ id: 'tag-1', name: '标签' }],
-        people: [{ id: 'person-1', name: '人物', aliases: '', avatar_url: '', description: '', identity: '', platform_accounts: '', quotes: '', notes: '', created_at: '', updated_at: '' }],
-      }],
+      topics: [
+        {
+          id: 'topic-1',
+          title: '选题',
+          summary: '',
+          hook: '',
+          storyline: '',
+          why_now: '',
+          status: 'inbox',
+          priority: 'medium',
+          score_character: 0,
+          score_conflict: 0,
+          score_contrast: 0,
+          score_material: 0,
+          score_story: 0,
+          is_pinned: 0,
+          sort_order: 1,
+          created_at: '',
+          updated_at: '',
+          tags: [{ id: 'tag-1', name: '标签' }],
+          people: [
+            {
+              id: 'person-1',
+              name: '人物',
+              aliases: '',
+              avatar_url: '',
+              description: '',
+              identity: '',
+              platform_accounts: '',
+              quotes: '',
+              notes: '',
+              created_at: '',
+              updated_at: '',
+            },
+          ],
+        },
+      ],
     });
 
     expect(getBackupImportSummary(backup)).toMatchObject({ topics: 1, statements: 22 });
@@ -82,7 +128,10 @@ describe('backup import limits', () => {
 
   it('accepts a backup at the atomic statement limit', () => {
     const backup = createBackup({
-      tags: Array.from({ length: MAX_IMPORT_STATEMENTS - 19 }, (_, index) => ({ id: `tag-${index}`, name: `标签 ${index}` })),
+      tags: Array.from({ length: MAX_IMPORT_STATEMENTS - 19 }, (_, index) => ({
+        id: `tag-${index}`,
+        name: `标签 ${index}`,
+      })),
     });
 
     expect(assertBackupImportWithinLimits(backup).statements).toBe(MAX_IMPORT_STATEMENTS);
@@ -90,7 +139,10 @@ describe('backup import limits', () => {
 
   it('rejects a backup exceeding the atomic statement limit before writes begin', () => {
     const backup = createBackup({
-      tags: Array.from({ length: MAX_IMPORT_STATEMENTS - 18 }, (_, index) => ({ id: `tag-${index}`, name: `标签 ${index}` })),
+      tags: Array.from({ length: MAX_IMPORT_STATEMENTS - 18 }, (_, index) => ({
+        id: `tag-${index}`,
+        name: `标签 ${index}`,
+      })),
     });
 
     expect(() => assertBackupImportWithinLimits(backup)).toThrow('超过单次原子恢复上限');
@@ -101,17 +153,40 @@ describe('backup import limits', () => {
     sqlite.exec(await Bun.file('database/schema.sql').text());
     const now = '2026-09-01T00:00:00.000Z';
     const topic: Topic = {
-      id: 'topic-board', title: '看板备份', summary: '', hook: '', storyline: '', why_now: '',
-      status: 'scripting', priority: 'medium', score_character: 0, score_conflict: 0,
-      score_contrast: 0, score_material: 0, score_story: 0, is_pinned: 0, sort_order: 1,
-      created_at: now, updated_at: now,
+      id: 'topic-board',
+      title: '看板备份',
+      summary: '',
+      hook: '',
+      storyline: '',
+      why_now: '',
+      status: 'scripting',
+      priority: 'medium',
+      score_character: 0,
+      score_conflict: 0,
+      score_contrast: 0,
+      score_material: 0,
+      score_story: 0,
+      is_pinned: 0,
+      sort_order: 1,
+      created_at: now,
+      updated_at: now,
     };
-    const makeTodo = (id: string, status: TopicTodo['status'], sort_order: number, extra: Partial<TopicTodo> = {}): TopicTodo => ({
-      id, topic_id: topic.id, title: id, status,
+    const makeTodo = (
+      id: string,
+      status: TopicTodo['status'],
+      sort_order: number,
+      extra: Partial<TopicTodo> = {},
+    ): TopicTodo => ({
+      id,
+      topic_id: topic.id,
+      title: id,
+      status,
       is_current: extra.is_current ?? 0,
       current_started_at: extra.current_started_at ?? null,
       completed_at: extra.completed_at ?? null,
-      sort_order, created_at: now, updated_at: now,
+      sort_order,
+      created_at: now,
+      updated_at: now,
       ...extra,
     });
     const todos = [
@@ -128,10 +203,13 @@ describe('backup import limits', () => {
       await replaceAllData(sqlite, backup);
       const exported = await exportAllData(sqlite);
       expect(exported.version).toBe('5.0');
-      expect(exported.todos.map((todo) => [todo.id, todo.status, todo.sort_order])).toEqual([
-        ['todo-first', 'todo', 1], ['todo-later', 'todo', 2],
-        ['doing-current', 'in_progress', 1], ['doing-next', 'in_progress', 2],
-        ['done-first', 'completed', 1], ['done-later', 'completed', 2],
+      expect(exported.todos.map(todo => [todo.id, todo.status, todo.sort_order])).toEqual([
+        ['todo-first', 'todo', 1],
+        ['todo-later', 'todo', 2],
+        ['doing-current', 'in_progress', 1],
+        ['doing-next', 'in_progress', 2],
+        ['done-first', 'completed', 1],
+        ['done-later', 'completed', 2],
       ]);
       expect(exported.topics[0].current_todo).toMatchObject({ id: 'doing-current', current_started_at: now });
     } finally {
@@ -144,25 +222,57 @@ describe('backup import limits', () => {
     sqlite.exec(await Bun.file('database/schema.sql').text());
     const now = '2026-09-01T00:00:00.000Z';
     const topic: Topic = {
-      id: 'topic-current-backup', title: '当前格式备份', summary: '', hook: '', storyline: '', why_now: '',
-      status: 'scripting', priority: 'medium', score_character: 0, score_conflict: 0,
-      score_contrast: 0, score_material: 0, score_story: 0, is_pinned: 0, sort_order: 1,
-      created_at: now, updated_at: now,
+      id: 'topic-current-backup',
+      title: '当前格式备份',
+      summary: '',
+      hook: '',
+      storyline: '',
+      why_now: '',
+      status: 'scripting',
+      priority: 'medium',
+      score_character: 0,
+      score_conflict: 0,
+      score_contrast: 0,
+      score_material: 0,
+      score_story: 0,
+      is_pinned: 0,
+      sort_order: 1,
+      created_at: now,
+      updated_at: now,
     };
     const source = {
-      id: 'source-current-backup', topic_id: topic.id, title: '带日期的资料', content: '公开资料内容',
-      url: 'https://example.com/source', platform: 'news' as const, author: '', published_at: '',
-      verification_status: 'confirmed' as const, notes: '', event_date: '2026-08-20', date_precision: 'exact' as const,
-      sort_order: 1, created_at: now, updated_at: now,
+      id: 'source-current-backup',
+      topic_id: topic.id,
+      title: '带日期的资料',
+      content: '公开资料内容',
+      url: 'https://example.com/source',
+      platform: 'news' as const,
+      author: '',
+      published_at: '',
+      verification_status: 'confirmed' as const,
+      notes: '',
+      event_date: '2026-08-20',
+      date_precision: 'exact' as const,
+      sort_order: 1,
+      created_at: now,
+      updated_at: now,
     };
     const backup = createBackup({
       topics: [topic],
       sources: [source],
-      citations: [{
-        id: 'citation-current-backup', topic_id: topic.id, reference_type: 'source', reference_id: source.id,
-        reference_title: source.title, reference_snapshot: source.content, quoted_text: source.content,
-        verification_status: 'confirmed', created_at: now,
-      }],
+      citations: [
+        {
+          id: 'citation-current-backup',
+          topic_id: topic.id,
+          reference_type: 'source',
+          reference_id: source.id,
+          reference_title: source.title,
+          reference_snapshot: source.content,
+          quoted_text: source.content,
+          verification_status: 'confirmed',
+          created_at: now,
+        },
+      ],
     });
 
     try {
@@ -176,10 +286,14 @@ describe('backup import limits', () => {
       expect(exported.reports).toEqual([]);
       expect(exported).not.toHaveProperty('timeline');
       expect(exported.sources[0]).toMatchObject({
-        id: source.id, event_date: source.event_date, date_precision: source.date_precision,
+        id: source.id,
+        event_date: source.event_date,
+        date_precision: source.date_precision,
       });
       expect(exported.citations[0]).toMatchObject({
-        reference_type: 'source', reference_id: source.id, reference_snapshot: source.content,
+        reference_type: 'source',
+        reference_id: source.id,
+        reference_snapshot: source.content,
       });
     } finally {
       sqlite.close();
@@ -189,10 +303,14 @@ describe('backup import limits', () => {
   it('rolls back the complete restore when a later write violates a constraint', async () => {
     const sqlite = new Database(':memory:');
     sqlite.exec(await Bun.file('database/schema.sql').text());
-    sqlite.query(`INSERT INTO quick_drops (id, content, source, created_at, expires_at)
-      VALUES (?, ?, ?, ?, ?)`)
+    sqlite
+      .query(
+        `INSERT INTO quick_drops (id, content, source, created_at, expires_at)
+      VALUES (?, ?, ?, ?, ?)`,
+      )
       .run('keep-drop', '保留快投', 'test', '2026-01-01T00:00:00.000Z', Date.now() + 60_000);
-    sqlite.query(`INSERT INTO topics (id, title, created_at, updated_at) VALUES (?, ?, ?, ?)`)
+    sqlite
+      .query(`INSERT INTO topics (id, title, created_at, updated_at) VALUES (?, ?, ?, ?)`)
       .run('old-topic', '旧数据', '2026-01-01T00:00:00.000Z', '2026-01-01T00:00:00.000Z');
 
     const backup = createBackup({
@@ -204,9 +322,15 @@ describe('backup import limits', () => {
 
     try {
       await expect(replaceAllData(sqlite, backup)).rejects.toThrow();
-      expect(sqlite.query('SELECT id, title FROM topics WHERE id = ?').get('old-topic')).toEqual({ id: 'old-topic', title: '旧数据' });
+      expect(sqlite.query('SELECT id, title FROM topics WHERE id = ?').get('old-topic')).toEqual({
+        id: 'old-topic',
+        title: '旧数据',
+      });
       expect(sqlite.query('SELECT COUNT(*) AS count FROM tags').get()).toEqual({ count: 0 });
-      expect(sqlite.query('SELECT id, content FROM quick_drops WHERE id = ?').get('keep-drop')).toEqual({ id: 'keep-drop', content: '保留快投' });
+      expect(sqlite.query('SELECT id, content FROM quick_drops WHERE id = ?').get('keep-drop')).toEqual({
+        id: 'keep-drop',
+        content: '保留快投',
+      });
     } finally {
       sqlite.close();
     }

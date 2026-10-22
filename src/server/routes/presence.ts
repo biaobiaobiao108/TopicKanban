@@ -3,7 +3,7 @@ import { jsonError } from '../apiShared';
 import { acquirePresenceLease, releasePresenceLease } from '../presenceLeases';
 
 export function registerPresenceRoutes(app: NativeApp): void {
-  app.post('/topics/:id/presence', async (c) => {
+  app.post('/topics/:id/presence', async c => {
     try {
       const topicId = c.req.param('id');
       const body = await c.req.json<{ client_id?: unknown; device_name?: unknown }>();
@@ -14,9 +14,8 @@ export function registerPresenceRoutes(app: NativeApp): void {
         return c.json({ error: 'device_name must be <= 100 characters' }, 400);
       }
       const clientId = body.client_id.trim();
-      const deviceName = typeof body.device_name === 'string' && body.device_name.trim()
-        ? body.device_name.trim()
-        : '其他设备';
+      const deviceName =
+        typeof body.device_name === 'string' && body.device_name.trim() ? body.device_name.trim() : '其他设备';
       const now = new Date().toISOString();
       const lease = acquirePresenceLease(
         `lock:${topicId}`,
@@ -30,7 +29,7 @@ export function registerPresenceRoutes(app: NativeApp): void {
     }
   });
 
-  app.delete('/topics/:id/presence', async (c) => {
+  app.delete('/topics/:id/presence', async c => {
     try {
       const topicId = c.req.param('id');
       const clientId = c.req.query('client_id');

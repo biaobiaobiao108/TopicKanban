@@ -11,13 +11,7 @@ interface ModalProps {
   maxWidth?: 'sm' | 'md' | 'lg' | 'xl' | '2xl' | '3xl' | '4xl';
 }
 
-export const Modal: React.FC<ModalProps> = ({
-  isOpen,
-  onClose,
-  title,
-  children,
-  maxWidth = 'lg',
-}) => {
+export const Modal: React.FC<ModalProps> = ({ isOpen, onClose, title, children, maxWidth = 'lg' }) => {
   const titleId = useId();
   const dialogRef = useRef<HTMLDialogElement>(null);
   const previousFocusRef = useRef<HTMLElement | null>(null);
@@ -48,9 +42,11 @@ export const Modal: React.FC<ModalProps> = ({
     document.body.style.overflow = 'hidden';
     const handleTabBoundary = (event: KeyboardEvent) => {
       if (event.key !== 'Tab') return;
-      const focusable = Array.from(dialog.querySelectorAll<HTMLElement>(
-        'button:not([disabled]), [href], input:not([disabled]), textarea:not([disabled]), [contenteditable="true"], [tabindex]:not([tabindex="-1"])'
-      )).filter((element) => !element.closest('[aria-hidden="true"]'));
+      const focusable = Array.from(
+        dialog.querySelectorAll<HTMLElement>(
+          'button:not([disabled]), [href], input:not([disabled]), textarea:not([disabled]), [contenteditable="true"], [tabindex]:not([tabindex="-1"])',
+        ),
+      ).filter(element => !element.closest('[aria-hidden="true"]'));
       if (focusable.length === 0) {
         event.preventDefault();
         dialog.focus({ preventScroll: true });
@@ -69,7 +65,7 @@ export const Modal: React.FC<ModalProps> = ({
     dialog.addEventListener('keydown', handleTabBoundary);
     requestAnimationFrame(() => {
       const firstFocusable = dialog.querySelector<HTMLElement>(
-        'button:not([disabled]), [href], input:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])'
+        'button:not([disabled]), [href], input:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])',
       );
       (firstFocusable || dialog)?.focus({ preventScroll: true });
     });
@@ -101,7 +97,7 @@ export const Modal: React.FC<ModalProps> = ({
       aria-labelledby={titleId}
       tabIndex={-1}
       className="fixed inset-0 m-0 h-[100dvh] max-h-none w-screen max-w-none overflow-hidden border-0 bg-transparent p-0 backdrop:bg-transparent"
-      onCancel={(event) => {
+      onCancel={event => {
         event.preventDefault();
         handleClose();
       }}
@@ -117,11 +113,13 @@ export const Modal: React.FC<ModalProps> = ({
         {/* Modal Container */}
         <div
           className={`relative min-w-0 w-full ${maxWidthClasses[maxWidth]} bg-surface rounded-lg shadow-modal border border-line overflow-hidden flex flex-col max-h-[90dvh] z-10 modal-dialog-modern animate-in fade-in zoom-in-95 duration-200 ease-editorial-out transition-colors`}
-          onClick={(event) => event.stopPropagation()}
+          onClick={event => event.stopPropagation()}
         >
           {/* Header */}
           <div className="flex min-w-0 items-center justify-between gap-3 px-6 py-4 border-b border-line bg-surface">
-            <h3 id={titleId} className="min-w-0 flex-1 break-words text-base font-semibold text-ink leading-snug">{title}</h3>
+            <h3 id={titleId} className="min-w-0 flex-1 break-words text-base font-semibold text-ink leading-snug">
+              {title}
+            </h3>
             <button
               type="button"
               aria-label="关闭弹窗"
@@ -133,9 +131,7 @@ export const Modal: React.FC<ModalProps> = ({
           </div>
 
           {/* Content with FloatingScrollbar */}
-          <FloatingScrollbar className="min-w-0 p-6 overscroll-contain">
-            {children}
-          </FloatingScrollbar>
+          <FloatingScrollbar className="min-w-0 p-6 overscroll-contain">{children}</FloatingScrollbar>
         </div>
       </div>
     </dialog>

@@ -5,7 +5,12 @@ import { DateInput } from '../ui/DateInput';
 import { useToast } from '../ui/Toast';
 import { TopicDetailHeader } from './TopicDetailHeader';
 import { getCurrentActionAgeDays, getCurrentActionWarning } from '../../lib/topicMetrics';
-import { addBeijingCalendarDays, getBeijingDateString, getBeijingWeekday, useActionDateDisplay } from '../../lib/actionDate';
+import {
+  addBeijingCalendarDays,
+  getBeijingDateString,
+  getBeijingWeekday,
+  useActionDateDisplay,
+} from '../../lib/actionDate';
 import { ActionDateText } from '../ui/ActionDate';
 import { FloatingScrollbar } from '../ui/FloatingScrollbar';
 import {
@@ -58,11 +63,14 @@ interface OverviewTabProps {
   onConvertStorylineToTimeline?: (steps: Array<{ title: string; desc: string }>) => Promise<boolean>;
 }
 
-const STORY_STRUCTURE_CARD_STYLES: Record<StoryStructureKey, {
-  header: string;
-  badge: string;
-  focus: string;
-}> = {
+const STORY_STRUCTURE_CARD_STYLES: Record<
+  StoryStructureKey,
+  {
+    header: string;
+    badge: string;
+    focus: string;
+  }
+> = {
   qi: {
     header: 'text-accent-dark',
     badge: 'bg-accent-soft text-accent-dark border border-line',
@@ -109,7 +117,7 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({
   const [targetPublishDate, setTargetPublishDate] = useState(topic.target_publish_date || '');
   const [deadline, setDeadline] = useState(topic.deadline || '');
   const [personLibrarySearch, setPersonLibrarySearch] = useState('');
-  
+
   const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle');
   const [storylineMode, setStorylineMode] = useState<'acts' | 'raw'>('acts');
   const [isWhyNowExpanded, setIsWhyNowExpanded] = useState(Boolean(topic.why_now));
@@ -133,10 +141,13 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({
   const debounceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const statusTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  useEffect(() => () => {
-    if (debounceTimerRef.current) clearTimeout(debounceTimerRef.current);
-    if (statusTimerRef.current) clearTimeout(statusTimerRef.current);
-  }, []);
+  useEffect(
+    () => () => {
+      if (debounceTimerRef.current) clearTimeout(debounceTimerRef.current);
+      if (statusTimerRef.current) clearTimeout(statusTimerRef.current);
+    },
+    [],
+  );
 
   const actionDays = getCurrentActionAgeDays(topic);
   const actionWarning = getCurrentActionWarning(topic);
@@ -211,15 +222,7 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({
       target_publish_date: topic.target_publish_date || '',
       deadline: topic.deadline || '',
     };
-  }, [
-    topic.id,
-    topic.summary,
-    topic.hook,
-    topic.why_now,
-    topic.storyline,
-    topic.target_publish_date,
-    topic.deadline,
-  ]);
+  }, [topic.id, topic.summary, topic.hook, topic.why_now, topic.storyline, topic.target_publish_date, topic.deadline]);
 
   // Debounced auto-save function
   const triggerAutoSave = (updates: Partial<Topic>) => {
@@ -301,10 +304,8 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({
   // Tag & Person pickers
   const togglePerson = async (person: Person) => {
     const currentPeople = topic.people || [];
-    const exists = currentPeople.some((p) => p.id === person.id);
-    const updatedPeople = exists
-      ? currentPeople.filter((p) => p.id !== person.id)
-      : [...currentPeople, person];
+    const exists = currentPeople.some(p => p.id === person.id);
+    const updatedPeople = exists ? currentPeople.filter(p => p.id !== person.id) : [...currentPeople, person];
     await onUpdateTopic({ people: updatedPeople });
   };
 
@@ -312,9 +313,10 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({
     const query = personLibrarySearch.trim().toLocaleLowerCase();
     if (!query) return { people: [] as Person[], total: 0 };
 
-    const matchedPeople = allPeople.filter((person) =>
-      [person.name, person.aliases, person.identity, person.platform_accounts]
-        .some((value) => value?.toLocaleLowerCase().includes(query)),
+    const matchedPeople = allPeople.filter(person =>
+      [person.name, person.aliases, person.identity, person.platform_accounts].some(value =>
+        value?.toLocaleLowerCase().includes(query),
+      ),
     );
     return {
       people: matchedPeople.slice(0, QUICK_PERSON_RESULT_LIMIT),
@@ -335,7 +337,7 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({
         description: newPersonDesc.trim(),
       });
       const currentPeople = topic.people || [];
-      if (!currentPeople.some((p) => p.id === created.id)) {
+      if (!currentPeople.some(p => p.id === created.id)) {
         await onUpdateTopic({ people: [...currentPeople, created] });
       }
     }
@@ -350,10 +352,8 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({
 
   const toggleTag = async (tag: Tag) => {
     const currentTags = topic.tags || [];
-    const exists = currentTags.some((t) => t.id === tag.id);
-    const updatedTags = exists
-      ? currentTags.filter((t) => t.id !== tag.id)
-      : [...currentTags, tag];
+    const exists = currentTags.some(t => t.id === tag.id);
+    const updatedTags = exists ? currentTags.filter(t => t.id !== tag.id) : [...currentTags, tag];
     await onUpdateTopic({ tags: updatedTags });
   };
 
@@ -362,14 +362,14 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({
     const trimmed = newTagName.trim().replace(/^#/, '');
     if (!trimmed) return;
 
-    let matchedTag = allTags.find((t) => t.name.toLowerCase() === trimmed.toLowerCase());
+    let matchedTag = allTags.find(t => t.name.toLowerCase() === trimmed.toLowerCase());
     if (!matchedTag && onSaveTag) {
       matchedTag = await onSaveTag(trimmed);
     }
 
     if (matchedTag) {
       const currentTags = topic.tags || [];
-      if (!currentTags.some((t) => t.id === matchedTag!.id)) {
+      if (!currentTags.some(t => t.id === matchedTag!.id)) {
         await onUpdateTopic({ tags: [...currentTags, matchedTag] });
       }
     }
@@ -399,7 +399,7 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({
     if (!onConvertStorylineToTimeline || isConvertingToTimeline) return;
     const steps = buildStoryStructureTimelineSteps(acts);
 
-    if (!Object.values(acts).some((value) => value.trim())) {
+    if (!Object.values(acts).some(value => value.trim())) {
       showToast({ message: '请先在故事结构中填写至少一个阶段的内容！', tone: 'info' });
       return;
     }
@@ -454,12 +454,8 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({
                   <span>已自动同步</span>
                 </span>
               )}
-              {saveStatus === 'idle' && (
-                <span className="text-ink-muted">自动保存已就绪</span>
-              )}
-              {saveStatus === 'error' && (
-                <span className="text-danger">保存失败，请重试</span>
-              )}
+              {saveStatus === 'idle' && <span className="text-ink-muted">自动保存已就绪</span>}
+              {saveStatus === 'error' && <span className="text-danger">保存失败，请重试</span>}
             </div>
           </div>
 
@@ -475,7 +471,7 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({
               autoComplete="off"
               rows={2}
               value={summary}
-              onChange={(e) => {
+              onChange={e => {
                 setSummary(e.target.value);
                 triggerAutoSave({ summary: e.target.value, hook, why_now: whyNow, storyline });
               }}
@@ -497,7 +493,7 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({
               autoComplete="off"
               rows={3}
               value={hook}
-              onChange={(e) => {
+              onChange={e => {
                 setHook(e.target.value);
                 triggerAutoSave({ hook: e.target.value, summary, why_now: whyNow, storyline });
               }}
@@ -531,7 +527,7 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({
                   autoComplete="off"
                   rows={2}
                   value={whyNow}
-                  onChange={(e) => {
+                  onChange={e => {
                     setWhyNow(e.target.value);
                     triggerAutoSave({ why_now: e.target.value, summary, hook, storyline });
                   }}
@@ -562,9 +558,7 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({
                 type="button"
                 onClick={() => setStorylineMode('acts')}
                 className={`px-3 py-1 rounded-lg transition-all cursor-pointer flex items-center gap-1 ${
-                  storylineMode === 'acts'
-                    ? 'bg-surface text-ink shadow-subtle'
-                    : 'text-ink-muted hover:text-ink'
+                  storylineMode === 'acts' ? 'bg-surface text-ink shadow-subtle' : 'text-ink-muted hover:text-ink'
                 }`}
               >
                 <Layers className="w-3.5 h-3.5" />
@@ -574,9 +568,7 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({
                 type="button"
                 onClick={() => setStorylineMode('raw')}
                 className={`px-3 py-1 rounded-lg transition-all cursor-pointer flex items-center gap-1 ${
-                  storylineMode === 'raw'
-                    ? 'bg-surface text-ink shadow-subtle'
-                    : 'text-ink-muted hover:text-ink'
+                  storylineMode === 'raw' ? 'bg-surface text-ink shadow-subtle' : 'text-ink-muted hover:text-ink'
                 }`}
               >
                 <Edit3 className="w-3.5 h-3.5" />
@@ -588,13 +580,15 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({
           {/* Story Structure Cards */}
           {storylineMode === 'acts' ? (
             <div className="space-y-3">
-              {STORY_STRUCTURE_STEPS.map((step) => {
+              {STORY_STRUCTURE_STEPS.map(step => {
                 const styles = STORY_STRUCTURE_CARD_STYLES[step.key];
                 return (
                   <div key={step.key} className="rounded-lg bg-control p-3.5 space-y-1.5">
                     <div className={`flex items-start justify-between gap-2 text-xs font-bold ${styles.header}`}>
                       <div className="flex items-center gap-2 min-w-0">
-                        <span className={`w-5 h-5 shrink-0 rounded-md flex items-center justify-center font-mono text-2xs ${styles.badge}`}>
+                        <span
+                          className={`w-5 h-5 shrink-0 rounded-md flex items-center justify-center font-mono text-2xs ${styles.badge}`}
+                        >
                           {step.number}
                         </span>
                         <span>{`第 ${step.number} 段 · ${step.label}`}</span>
@@ -606,7 +600,7 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({
                       name={`storyline_${step.key}`}
                       rows={2}
                       value={acts[step.key]}
-                      onChange={(e) => handleActChange(step.key, e.target.value)}
+                      onChange={e => handleActChange(step.key, e.target.value)}
                       onBlur={handleImmediateSave}
                       placeholder={step.placeholder}
                       className={`w-full text-xs text-ink bg-surface border border-line rounded-lg p-2.5 placeholder:text-ink-muted focus:outline-none ${styles.focus}`}
@@ -622,13 +616,14 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({
                 name="storyline"
                 rows={6}
                 value={storyline}
-                onChange={(e) => handleRawStorylineChange(e.target.value)}
+                onChange={e => handleRawStorylineChange(e.target.value)}
                 onBlur={handleImmediateSave}
                 placeholder="【开始】背景与问题 → 【发展】过程与变化 → 【转折】改变走向的节点 → 【收束】结果与影响"
                 className="w-full text-xs text-ink bg-control border border-line rounded-xl p-3.5 placeholder:text-ink-muted focus:bg-surface focus:border-accent focus:outline-none transition-colors"
               />
               <p className="text-2xs text-ink-muted">
-                提示：支持使用 <code>【开始...】</code>、<code>【发展...】</code> 等标签，也可以用换行或 <code>→</code> 连接各段。
+                提示：支持使用 <code>【开始...】</code>、<code>【发展...】</code> 等标签，也可以用换行或 <code>→</code>{' '}
+                连接各段。
               </p>
             </div>
           )}
@@ -662,9 +657,7 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({
             </div>
 
             {bridgeStatus && (
-              <span className="text-xs text-success font-semibold animate-in fade-in duration-150">
-                {bridgeStatus}
-              </span>
+              <span className="text-xs text-success font-semibold animate-in fade-in duration-150">{bridgeStatus}</span>
             )}
           </div>
         </div>
@@ -736,7 +729,10 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({
             {/* Target Publish Date */}
             <div className="space-y-1.5">
               <div className="flex items-center justify-between">
-                <label htmlFor="overview-target-publish-date" className="text-xs font-bold text-ink flex items-center gap-1">
+                <label
+                  htmlFor="overview-target-publish-date"
+                  className="text-xs font-bold text-ink flex items-center gap-1"
+                >
                   <Calendar aria-hidden="true" className="w-3.5 h-3.5 text-accent" />
                   <span>计划发布日期</span>
                 </label>
@@ -758,7 +754,7 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({
                 name="target_publish_date"
                 value={targetPublishDate}
                 placeholder="YYYYMMDD，如 20260831"
-                onChange={async (val) => {
+                onChange={async val => {
                   setTargetPublishDate(val);
                   await onUpdateTopic({ target_publish_date: val || null });
                 }}
@@ -767,10 +763,33 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({
               {/* Quick date presets */}
               <div className="flex items-center gap-1 flex-wrap pt-0.5">
                 {[
-                  { label: '本周五', val: (() => { const today = getBeijingDateString(); const weekday = getBeijingWeekday(today); const dayIndexFromMonday = (weekday + 6) % 7; return addBeijingCalendarDays(today, 4 - dayIndexFromMonday); })() },
-                  { label: '本周末', val: (() => { const today = getBeijingDateString(); const weekday = getBeijingWeekday(today); return addBeijingCalendarDays(today, weekday === 0 ? 0 : 7 - weekday); })() },
-                  { label: '下周五', val: (() => { const today = getBeijingDateString(); const weekday = getBeijingWeekday(today); const dayIndexFromMonday = (weekday + 6) % 7; return addBeijingCalendarDays(today, 11 - dayIndexFromMonday); })() },
-                ].map((preset) => (
+                  {
+                    label: '本周五',
+                    val: (() => {
+                      const today = getBeijingDateString();
+                      const weekday = getBeijingWeekday(today);
+                      const dayIndexFromMonday = (weekday + 6) % 7;
+                      return addBeijingCalendarDays(today, 4 - dayIndexFromMonday);
+                    })(),
+                  },
+                  {
+                    label: '本周末',
+                    val: (() => {
+                      const today = getBeijingDateString();
+                      const weekday = getBeijingWeekday(today);
+                      return addBeijingCalendarDays(today, weekday === 0 ? 0 : 7 - weekday);
+                    })(),
+                  },
+                  {
+                    label: '下周五',
+                    val: (() => {
+                      const today = getBeijingDateString();
+                      const weekday = getBeijingWeekday(today);
+                      const dayIndexFromMonday = (weekday + 6) % 7;
+                      return addBeijingCalendarDays(today, 11 - dayIndexFromMonday);
+                    })(),
+                  },
+                ].map(preset => (
                   <button
                     key={preset.label}
                     type="button"
@@ -815,7 +834,7 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({
                 name="deadline"
                 value={deadline}
                 placeholder="YYYYMMDD，如 20260828"
-                onChange={async (val) => {
+                onChange={async val => {
                   setDeadline(val);
                   await onUpdateTopic({ deadline: val || null });
                 }}
@@ -823,7 +842,13 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({
               />
               <div className="pt-0.5">
                 <span className="text-3xs text-ink-muted">
-                  {deadline ? <>定稿目标日: <ActionDateText display={deadlineDisplay} /></> : '用于内部写稿与剪辑交付倒计时'}
+                  {deadline ? (
+                    <>
+                      定稿目标日: <ActionDateText display={deadlineDisplay} />
+                    </>
+                  ) : (
+                    '用于内部写稿与剪辑交付倒计时'
+                  )}
                 </span>
               </div>
             </div>
@@ -857,7 +882,7 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({
             <div className="text-2xs font-semibold text-ink-muted">本选题关联人物：</div>
             <div className="flex flex-wrap gap-1.5 min-h-[32px]">
               {topic.people && topic.people.length > 0 ? (
-                topic.people.map((p) => (
+                topic.people.map(p => (
                   <span
                     key={p.id}
                     className="inline-flex items-center gap-1.5 px-3 py-1 bg-accent text-white rounded-xl text-xs font-semibold shadow-2xs"
@@ -889,15 +914,20 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({
           <div className="pt-3 border-t border-line space-y-2">
             <div className="flex items-center justify-between">
               <span className="text-2xs font-semibold text-ink-muted">搜索全局人物库：</span>
-              <span className="text-2xs text-ink-muted">共 <span className="font-mono tabular-nums">{allPeople.length}</span> 人</span>
+              <span className="text-2xs text-ink-muted">
+                共 <span className="font-mono tabular-nums">{allPeople.length}</span> 人
+              </span>
             </div>
 
             <label className="relative block">
-              <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-ink-muted" aria-hidden="true" />
+              <Search
+                className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-ink-muted"
+                aria-hidden="true"
+              />
               <input
                 type="search"
                 value={personLibrarySearch}
-                onChange={(event) => setPersonLibrarySearch(event.target.value)}
+                onChange={event => setPersonLibrarySearch(event.target.value)}
                 aria-label="搜索全局人物库"
                 autoComplete="off"
                 placeholder="输入姓名、别名或身份..."
@@ -908,34 +938,40 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({
             {personLibrarySearch.trim() ? (
               personLibraryResults.people.length > 0 ? (
                 <div className="flex flex-wrap gap-1.5" aria-live="polite">
-              {personLibraryResults.people.map((p) => {
-                const isSelected = topic.people?.some((tp) => tp.id === p.id);
-                return (
-                  <button
-                    key={p.id}
-                    type="button"
-                    onClick={() => togglePerson(p)}
-                    aria-pressed={isSelected}
-                    className={`px-2.5 py-1 rounded-lg text-xs font-medium transition-all flex items-center gap-1.5 cursor-pointer ${
-                      isSelected
-                        ? 'bg-accent-soft text-accent-dark font-semibold shadow-2xs'
-                        : 'bg-control text-ink-muted hover:bg-control hover:text-ink'
-                    }`}
-                  >
-                    {isSelected ? <Check className="h-3 w-3" aria-hidden="true" /> : <Plus className="h-3 w-3" aria-hidden="true" />}
-                    <span>{p.name}</span>
-                    {p.identity && (
-                      <span className="text-3xs opacity-70">({p.identity})</span>
-                    )}
-                  </button>
-                );
-              })}
+                  {personLibraryResults.people.map(p => {
+                    const isSelected = topic.people?.some(tp => tp.id === p.id);
+                    return (
+                      <button
+                        key={p.id}
+                        type="button"
+                        onClick={() => togglePerson(p)}
+                        aria-pressed={isSelected}
+                        className={`px-2.5 py-1 rounded-lg text-xs font-medium transition-all flex items-center gap-1.5 cursor-pointer ${
+                          isSelected
+                            ? 'bg-accent-soft text-accent-dark font-semibold shadow-2xs'
+                            : 'bg-control text-ink-muted hover:bg-control hover:text-ink'
+                        }`}
+                      >
+                        {isSelected ? (
+                          <Check className="h-3 w-3" aria-hidden="true" />
+                        ) : (
+                          <Plus className="h-3 w-3" aria-hidden="true" />
+                        )}
+                        <span>{p.name}</span>
+                        {p.identity && <span className="text-3xs opacity-70">({p.identity})</span>}
+                      </button>
+                    );
+                  })}
                 </div>
               ) : (
-                <p className="rounded-xl bg-canvas px-3 py-3 text-center text-xs text-ink-muted" role="status">没有找到匹配的人物。</p>
+                <p className="rounded-xl bg-canvas px-3 py-3 text-center text-xs text-ink-muted" role="status">
+                  没有找到匹配的人物。
+                </p>
               )
             ) : (
-              <p className="rounded-xl bg-canvas px-3 py-3 text-center text-xs text-ink-muted">输入关键词后显示匹配人物。</p>
+              <p className="rounded-xl bg-canvas px-3 py-3 text-center text-xs text-ink-muted">
+                输入关键词后显示匹配人物。
+              </p>
             )}
             {personLibraryResults.total > QUICK_PERSON_RESULT_LIMIT && (
               <p className="text-2xs text-ink-muted" role="status">
@@ -958,7 +994,7 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({
               </span>
             </h4>
             <button
-              onClick={() => setIsAddingTag((prev) => !prev)}
+              onClick={() => setIsAddingTag(prev => !prev)}
               className="flex items-center gap-1 text-xs text-ink-muted hover:text-ink font-semibold bg-control hover:bg-control px-2.5 py-1 rounded-lg transition-colors cursor-pointer"
             >
               <Plus className="w-3.5 h-3.5" />
@@ -973,7 +1009,7 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({
                 autoFocus
                 placeholder="输入新标签 (如: 吃播/打假)..."
                 value={newTagName}
-                onChange={(e) => setNewTagName(e.target.value)}
+                onChange={e => setNewTagName(e.target.value)}
                 className="flex-1 bg-control border border-line rounded-lg px-3 py-1.5 text-xs text-ink focus:outline-none focus:border-accent focus:bg-surface"
               />
               <button
@@ -991,7 +1027,7 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({
             <div className="text-2xs font-semibold text-ink-muted">已应用标签：</div>
             <div className="flex flex-wrap gap-1.5 min-h-[30px]">
               {topic.tags && topic.tags.length > 0 ? (
-                topic.tags.map((tag) => (
+                topic.tags.map(tag => (
                   <span
                     key={tag.id}
                     className="inline-flex items-center gap-1 px-2.5 py-1 bg-accent text-white rounded-lg text-xs font-medium shadow-2xs"
@@ -1018,12 +1054,14 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({
           <div className="pt-3 border-t border-line space-y-2">
             <div className="flex items-center justify-between">
               <span className="text-2xs font-semibold text-ink-muted">标签库：</span>
-              <span className="text-2xs text-ink-muted">共 <span className="font-mono tabular-nums">{allTags.length}</span> 个</span>
+              <span className="text-2xs text-ink-muted">
+                共 <span className="font-mono tabular-nums">{allTags.length}</span> 个
+              </span>
             </div>
 
             <FloatingScrollbar className="flex flex-wrap gap-1.5 pr-1" wrapperClassName="max-h-32 flex-none">
-              {allTags.map((tag) => {
-                const isSelected = topic.tags?.some((t) => t.id === tag.id);
+              {allTags.map(tag => {
+                const isSelected = topic.tags?.some(t => t.id === tag.id);
                 return (
                   <button
                     key={tag.id}
@@ -1064,14 +1102,16 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({
               autoFocus
               placeholder="例如：大胃袋良子"
               value={newPersonName}
-              onChange={(e) => setNewPersonName(e.target.value)}
+              onChange={e => setNewPersonName(e.target.value)}
               className="w-full px-3 py-2 bg-control border border-line rounded-lg text-sm text-ink focus:bg-surface focus:outline-none focus:border-accent"
             />
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div className="space-y-1.5">
-              <label htmlFor="overview-person-identity" className="block text-xs font-bold text-ink">核心身份 / 标签</label>
+              <label htmlFor="overview-person-identity" className="block text-xs font-bold text-ink">
+                核心身份 / 标签
+              </label>
               <input
                 id="overview-person-identity"
                 name="person_identity"
@@ -1079,13 +1119,15 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({
                 autoComplete="off"
                 placeholder="例如：吃播网红 / 探店主播"
                 value={newPersonIdentity}
-                onChange={(e) => setNewPersonIdentity(e.target.value)}
+                onChange={e => setNewPersonIdentity(e.target.value)}
                 className="w-full px-3 py-2 bg-control border border-line rounded-lg text-sm text-ink focus:bg-surface focus:outline-none focus:border-accent"
               />
             </div>
 
             <div className="space-y-1.5">
-              <label htmlFor="overview-person-aliases" className="block text-xs font-bold text-ink">别名 / 外号 / 曾用名</label>
+              <label htmlFor="overview-person-aliases" className="block text-xs font-bold text-ink">
+                别名 / 外号 / 曾用名
+              </label>
               <input
                 id="overview-person-aliases"
                 name="person_aliases"
@@ -1093,14 +1135,16 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({
                 autoComplete="off"
                 placeholder="例如：良子、峨眉山战神"
                 value={newPersonAliases}
-                onChange={(e) => setNewPersonAliases(e.target.value)}
+                onChange={e => setNewPersonAliases(e.target.value)}
                 className="w-full px-3 py-2 bg-control border border-line rounded-lg text-sm text-ink focus:bg-surface focus:outline-none focus:border-accent"
               />
             </div>
           </div>
 
           <div className="space-y-1.5">
-            <label htmlFor="overview-person-accounts" className="block text-xs font-bold text-ink">主要平台账号 / 粉丝量</label>
+            <label htmlFor="overview-person-accounts" className="block text-xs font-bold text-ink">
+              主要平台账号 / 粉丝量
+            </label>
             <input
               id="overview-person-accounts"
               name="person_accounts"
@@ -1108,13 +1152,15 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({
               autoComplete="off"
               placeholder="例如：抖音 @大胃袋良子 (120w)、B站同名"
               value={newPersonAccounts}
-              onChange={(e) => setNewPersonAccounts(e.target.value)}
+              onChange={e => setNewPersonAccounts(e.target.value)}
               className="w-full px-3 py-2 bg-control border border-line rounded-lg text-sm text-ink focus:bg-surface focus:outline-none focus:border-accent"
             />
           </div>
 
           <div className="space-y-1.5">
-            <label htmlFor="overview-person-description" className="block text-xs font-bold text-ink">人物背景简介 / 核心特质</label>
+            <label htmlFor="overview-person-description" className="block text-xs font-bold text-ink">
+              人物背景简介 / 核心特质
+            </label>
             <textarea
               id="overview-person-description"
               name="person_description"
@@ -1122,7 +1168,7 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({
               rows={3}
               placeholder="简要描述该人物的背景经历、公众形象、性格特质..."
               value={newPersonDesc}
-              onChange={(e) => setNewPersonDesc(e.target.value)}
+              onChange={e => setNewPersonDesc(e.target.value)}
               className="w-full px-3 py-2 bg-control border border-line rounded-lg text-sm text-ink focus:bg-surface focus:outline-none focus:border-accent"
             />
           </div>
@@ -1145,7 +1191,6 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({
           </div>
         </form>
       </Modal>
-
     </div>
   );
 };

@@ -23,7 +23,7 @@ export async function fetchYoutubeVideoData(urlStr: string): Promise<YoutubeVide
 
     const res = await fetch(oembedUrl, {
       headers: {
-        'Accept': 'application/json',
+        Accept: 'application/json',
       },
       signal: controller.signal,
     });

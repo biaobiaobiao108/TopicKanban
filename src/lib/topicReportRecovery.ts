@@ -17,12 +17,16 @@ function getRecoveryKey(topicId: string): string {
 function isRecoveryDraft(value: unknown): value is TopicReportRecoveryDraft {
   if (!value || typeof value !== 'object') return false;
   const draft = value as Partial<TopicReportRecoveryDraft>;
-  return typeof draft.markdown === 'string'
-    && typeof draft.html === 'string'
-    && typeof draft.json === 'string'
-    && Number.isInteger(draft.wordCount) && (draft.wordCount ?? -1) >= 0
-    && Number.isInteger(draft.baseVersion) && (draft.baseVersion ?? -1) >= 0
-    && typeof draft.savedAt === 'string';
+  return (
+    typeof draft.markdown === 'string' &&
+    typeof draft.html === 'string' &&
+    typeof draft.json === 'string' &&
+    Number.isInteger(draft.wordCount) &&
+    (draft.wordCount ?? -1) >= 0 &&
+    Number.isInteger(draft.baseVersion) &&
+    (draft.baseVersion ?? -1) >= 0 &&
+    typeof draft.savedAt === 'string'
+  );
 }
 
 function pruneExpiredRecoveries(storage: Storage, now: number): void {
@@ -38,7 +42,7 @@ function pruneExpiredRecoveries(storage: Storage, now: number): void {
       expiredKeys.push(key);
     }
   }
-  expiredKeys.forEach((key) => storage.removeItem(key));
+  expiredKeys.forEach(key => storage.removeItem(key));
 }
 
 export function readTopicReportRecovery(topicId: string): TopicReportRecoveryDraft | null {
@@ -64,10 +68,7 @@ export function readTopicReportRecovery(topicId: string): TopicReportRecoveryDra
   }
 }
 
-export function writeTopicReportRecovery(
-  topicId: string,
-  draft: Omit<TopicReportRecoveryDraft, 'savedAt'>,
-): boolean {
+export function writeTopicReportRecovery(topicId: string, draft: Omit<TopicReportRecoveryDraft, 'savedAt'>): boolean {
   try {
     if (typeof localStorage === 'undefined') return false;
     const storage = localStorage;
@@ -93,11 +94,13 @@ export function clearTopicReportRecoveryIfMatches(
   saved: Pick<TopicReportRecoveryDraft, 'markdown' | 'html' | 'json' | 'baseVersion'>,
 ): void {
   const current = readTopicReportRecovery(topicId);
-  if (current
-    && current.markdown === saved.markdown
-    && current.html === saved.html
-    && current.json === saved.json
-    && current.baseVersion === saved.baseVersion) {
+  if (
+    current &&
+    current.markdown === saved.markdown &&
+    current.html === saved.html &&
+    current.json === saved.json &&
+    current.baseVersion === saved.baseVersion
+  ) {
     clearTopicReportRecovery(topicId);
   }
 }

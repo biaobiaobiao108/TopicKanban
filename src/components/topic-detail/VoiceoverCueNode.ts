@@ -21,12 +21,15 @@ export const VoiceoverCueNode = Node.create({
     return {
       cue: {
         default: '',
-        parseHTML: (element) =>
+        parseHTML: element =>
           element.getAttribute('data-cue') ||
           element.querySelector('.voiceover-cue-label')?.textContent?.trim() ||
-          element.textContent?.replace(/^🎙️\s*/, '').replace(/^\[|\]$/g, '').trim() ||
+          element.textContent
+            ?.replace(/^🎙️\s*/, '')
+            .replace(/^\[|\]$/g, '')
+            .trim() ||
           '',
-        renderHTML: (attributes) => ({
+        renderHTML: attributes => ({
           'data-cue': attributes.cue,
         }),
       },
@@ -51,8 +54,8 @@ export const VoiceoverCueNode = Node.create({
       mergeAttributes(HTMLAttributes, {
         'data-cue': cue,
         'data-cue-tone': getVoiceoverCueTone(cue),
-        'class': 'inline-voiceover-cue select-none align-baseline cursor-default',
-        'contenteditable': 'false',
+        class: 'inline-voiceover-cue select-none align-baseline cursor-default',
+        contenteditable: 'false',
       }),
       ['span', { class: 'voiceover-cue-symbol', 'aria-hidden': 'true' }, getVoiceoverCueSymbol(cue)],
       ['span', { class: 'voiceover-cue-label' }, cue],

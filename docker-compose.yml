@@ -8,10 +8,10 @@ services:
     restart: unless-stopped
     stop_grace_period: 10s
     ports:
-      - "127.0.0.1:3030:3030"
+      - '127.0.0.1:3030:3030'
     environment:
       NODE_ENV: production
-      PORT: "3030"
+      PORT: '3030'
       APP_PASSWORD: ${APP_PASSWORD:?APP_PASSWORD is required}
       QUICK_DROP_TOKEN: ${QUICK_DROP_TOKEN:-}
       PUBLIC_BASE_URL: ${PUBLIC_BASE_URL:-}

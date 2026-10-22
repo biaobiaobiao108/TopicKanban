@@ -1,10 +1,6 @@
 import { CommercialDeal, Priority, PublishedVideo, Topic, TopicStatus, CommercialDealStatus } from '../../types';
 
-export type CalendarEventType =
-  | 'planned_publish'
-  | 'deadline'
-  | 'commercial_deal'
-  | 'published';
+export type CalendarEventType = 'planned_publish' | 'deadline' | 'commercial_deal' | 'published';
 
 export interface CalendarEventItem {
   id: string;

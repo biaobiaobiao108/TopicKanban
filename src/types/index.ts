@@ -1,12 +1,6 @@
-export const TOPIC_STATUSES = [
-  'inbox',
-  'scripting',
-  'production',
-  'published',
-  'icebox',
-] as const;
+export const TOPIC_STATUSES = ['inbox', 'scripting', 'production', 'published', 'icebox'] as const;
 
-export type TopicStatus = typeof TOPIC_STATUSES[number];
+export type TopicStatus = (typeof TOPIC_STATUSES)[number];
 
 export function isTopicStatus(value: unknown): value is TopicStatus {
   return typeof value === 'string' && TOPIC_STATUSES.includes(value as TopicStatus);
@@ -69,7 +63,7 @@ export interface Topic {
   updated_at: string;
   published_at?: string | null;
   deleted_at?: string | null;
-  
+
   // Relations / joined
   tags?: Tag[];
   people?: Person[];
@@ -295,17 +289,12 @@ export interface PublishedVideo {
   topic_title?: string | null;
 }
 
-export const COMMERCIAL_DEAL_STATUSES = [
-  'communicating',
-  'producing',
-  'delivered',
-  'archived',
-] as const;
+export const COMMERCIAL_DEAL_STATUSES = ['communicating', 'producing', 'delivered', 'archived'] as const;
 
-export type CommercialDealStatus = typeof COMMERCIAL_DEAL_STATUSES[number];
+export type CommercialDealStatus = (typeof COMMERCIAL_DEAL_STATUSES)[number];
 
 export const COMMERCIAL_DEAL_PAYMENT_STATUSES = ['unpaid', 'paid'] as const;
-export type CommercialDealPaymentStatus = typeof COMMERCIAL_DEAL_PAYMENT_STATUSES[number];
+export type CommercialDealPaymentStatus = (typeof COMMERCIAL_DEAL_PAYMENT_STATUSES)[number];
 
 export const COMMERCIAL_DEAL_DELIVERABLE_TYPES = [
   'custom_video',
@@ -314,13 +303,13 @@ export const COMMERCIAL_DEAL_DELIVERABLE_TYPES = [
   'offline_activity',
   'other',
 ] as const;
-export type CommercialDealDeliverableType = typeof COMMERCIAL_DEAL_DELIVERABLE_TYPES[number];
+export type CommercialDealDeliverableType = (typeof COMMERCIAL_DEAL_DELIVERABLE_TYPES)[number];
 
 export const COMMERCIAL_DEAL_SOURCES = ['huahuo', 'brand_direct', 'agency', 'mcn', 'other'] as const;
-export type CommercialDealSource = typeof COMMERCIAL_DEAL_SOURCES[number];
+export type CommercialDealSource = (typeof COMMERCIAL_DEAL_SOURCES)[number];
 
 export const COMMERCIAL_DEAL_CONTRACT_STATUSES = ['not_started', 'drafting', 'signed'] as const;
-export type CommercialDealContractStatus = typeof COMMERCIAL_DEAL_CONTRACT_STATUSES[number];
+export type CommercialDealContractStatus = (typeof COMMERCIAL_DEAL_CONTRACT_STATUSES)[number];
 
 export type CommercialDealTopicRole = 'primary' | 'related';
 export type CommercialDealActivityKind = 'note' | 'status_change' | 'payment';
@@ -399,14 +388,9 @@ export interface DealFocusData {
   total_active: number;
 }
 
-export const APP_THEMES = [
-  'warm_paper',
-  'light',
-  'dark',
-  'system',
-] as const;
+export const APP_THEMES = ['warm_paper', 'light', 'dark', 'system'] as const;
 
-export type AppTheme = typeof APP_THEMES[number];
+export type AppTheme = (typeof APP_THEMES)[number];
 export type EditorFontSize = 'compact' | 'standard' | 'large';
 export type EditorLineHeight = 'normal' | 'relaxed' | 'loose';
 

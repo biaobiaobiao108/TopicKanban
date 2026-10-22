@@ -40,11 +40,11 @@ export const CalendarDateActionModal: React.FC<CalendarDateActionModalProps> = (
   const { showToast } = useToast();
   const today = useBeijingToday();
   const [tab, setTab] = useState<'schedule_existing' | 'create_new'>(
-    activeTopic ? 'schedule_existing' : (unscheduledTopics.length > 0 ? 'schedule_existing' : 'create_new')
+    activeTopic ? 'schedule_existing' : unscheduledTopics.length > 0 ? 'schedule_existing' : 'create_new',
   );
 
   // Existing topic scheduling state
-  const [selectedTopicId, setSelectedTopicId] = useState<string>(activeTopic?.id || (unscheduledTopics[0]?.id || ''));
+  const [selectedTopicId, setSelectedTopicId] = useState<string>(activeTopic?.id || unscheduledTopics[0]?.id || '');
   const [publishDate, setPublishDate] = useState<string>(targetDate);
   const [deadlineDate, setDeadlineDate] = useState<string>(activeTopic?.deadline || '');
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -67,7 +67,10 @@ export const CalendarDateActionModal: React.FC<CalendarDateActionModalProps> = (
       onClose();
     } catch (err) {
       showToast({
-        message: err instanceof Error && err.message.trim() ? `排期保存失败：${err.message}` : '排期保存失败，请检查网络后重试',
+        message:
+          err instanceof Error && err.message.trim()
+            ? `排期保存失败：${err.message}`
+            : '排期保存失败，请检查网络后重试',
         tone: 'error',
       });
     } finally {
@@ -91,7 +94,10 @@ export const CalendarDateActionModal: React.FC<CalendarDateActionModalProps> = (
       onClose();
     } catch (err) {
       showToast({
-        message: err instanceof Error && err.message.trim() ? `创建选题失败：${err.message}` : '创建选题失败，请检查网络后重试',
+        message:
+          err instanceof Error && err.message.trim()
+            ? `创建选题失败：${err.message}`
+            : '创建选题失败，请检查网络后重试',
         tone: 'error',
       });
     } finally {
@@ -109,7 +115,10 @@ export const CalendarDateActionModal: React.FC<CalendarDateActionModalProps> = (
       onClose();
     } catch (err) {
       showToast({
-        message: err instanceof Error && err.message.trim() ? `清除排期失败：${err.message}` : '清除排期失败，请检查网络后重试',
+        message:
+          err instanceof Error && err.message.trim()
+            ? `清除排期失败：${err.message}`
+            : '清除排期失败，请检查网络后重试',
         tone: 'error',
       });
     } finally {
@@ -143,9 +152,7 @@ export const CalendarDateActionModal: React.FC<CalendarDateActionModalProps> = (
               type="button"
               onClick={() => setTab('create_new')}
               className={`flex-1 py-2.5 text-xs font-bold border-b-2 text-center transition-colors cursor-pointer ${
-                tab === 'create_new'
-                  ? 'border-accent text-accent'
-                  : 'border-transparent text-ink-muted hover:text-ink'
+                tab === 'create_new' ? 'border-accent text-accent' : 'border-transparent text-ink-muted hover:text-ink'
               }`}
             >
               + 快速新建并定档
@@ -160,7 +167,7 @@ export const CalendarDateActionModal: React.FC<CalendarDateActionModalProps> = (
                 选择要定档的选题 <span className="text-ink-muted">*</span>
               </label>
               <FloatingScrollbar className="space-y-1.5 pr-1" wrapperClassName="max-h-48 flex-none">
-                {unscheduledTopics.map((topic) => {
+                {unscheduledTopics.map(topic => {
                   const isSelected = selectedTopicId === topic.id;
                   return (
                     <div
@@ -169,7 +176,7 @@ export const CalendarDateActionModal: React.FC<CalendarDateActionModalProps> = (
                         setSelectedTopicId(topic.id);
                         setDeadlineDate(topic.deadline || '');
                       }}
-                      onKeyDown={(event) => {
+                      onKeyDown={event => {
                         if (event.key === 'Enter' || event.key === ' ') {
                           event.preventDefault();
                           setSelectedTopicId(topic.id);
@@ -181,9 +188,7 @@ export const CalendarDateActionModal: React.FC<CalendarDateActionModalProps> = (
                       aria-pressed={isSelected}
                       aria-label={`选择选题：${topic.title}`}
                       className={`p-2.5 rounded-xl border transition-all cursor-pointer flex items-center justify-between gap-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus-ring ${
-                        isSelected
-                          ? 'border-accent/45 bg-accent-soft'
-                          : 'border-line hover:border-line'
+                        isSelected ? 'border-accent/45 bg-accent-soft' : 'border-line hover:border-line'
                       }`}
                     >
                       <div className="min-w-0 flex-1">
@@ -191,13 +196,9 @@ export const CalendarDateActionModal: React.FC<CalendarDateActionModalProps> = (
                           <StatusBadge status={topic.status} />
                           <PriorityBadge priority={topic.priority} />
                         </div>
-                        <div className="text-xs font-bold text-ink truncate">
-                          {topic.title}
-                        </div>
+                        <div className="text-xs font-bold text-ink truncate">{topic.title}</div>
                       </div>
-                      {isSelected && (
-                        <Check className="w-4 h-4 text-accent shrink-0" />
-                      )}
+                      {isSelected && <Check className="w-4 h-4 text-accent shrink-0" />}
                     </div>
                   );
                 })}
@@ -212,25 +213,21 @@ export const CalendarDateActionModal: React.FC<CalendarDateActionModalProps> = (
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2 border-t border-line">
               <div>
-                <label className="block min-h-4 text-xs font-semibold text-ink mb-1">
-                  计划发布日期
-                </label>
+                <label className="block min-h-4 text-xs font-semibold text-ink mb-1">计划发布日期</label>
                 <DateInput
                   value={publishDate}
                   placeholder="YYYYMMDD，例如 20260831"
-                  onChange={(val) => setPublishDate(val)}
+                  onChange={val => setPublishDate(val)}
                   className="min-h-10 w-full px-3 py-2 rounded-xl text-xs bg-control border border-line text-ink focus:outline-none focus:border-accent"
                 />
               </div>
 
               <div>
-                <label className="block min-h-4 text-xs font-semibold text-ink mb-1">
-                  内部制作截止日 (选填)
-                </label>
+                <label className="block min-h-4 text-xs font-semibold text-ink mb-1">内部制作截止日 (选填)</label>
                 <DateInput
                   value={deadlineDate}
                   placeholder="YYYYMMDD，例如 20260828"
-                  onChange={(val) => setDeadlineDate(val)}
+                  onChange={val => setDeadlineDate(val)}
                   className="min-h-10 w-full px-3 py-2 rounded-xl text-xs bg-control border border-line text-ink focus:outline-none focus:border-accent"
                 />
               </div>
@@ -281,39 +278,33 @@ export const CalendarDateActionModal: React.FC<CalendarDateActionModalProps> = (
                 autoFocus
                 placeholder="例如：网红老饕打假实录..."
                 value={newTitle}
-                onChange={(e) => setNewTitle(e.target.value)}
+                onChange={e => setNewTitle(e.target.value)}
                 className="w-full px-3 py-2 rounded-xl text-xs bg-control border border-line text-ink focus:outline-none focus:border-accent"
               />
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-ink mb-1">
-                看点概述 (选填)
-              </label>
+              <label className="block text-xs font-semibold text-ink mb-1">看点概述 (选填)</label>
               <textarea
                 rows={2}
                 placeholder="核心反差与故事梗概..."
                 value={newSummary}
-                onChange={(e) => setNewSummary(e.target.value)}
+                onChange={e => setNewSummary(e.target.value)}
                 className="w-full px-3 py-2 rounded-xl text-xs bg-control border border-line text-ink focus:outline-none focus:border-accent"
               />
             </div>
 
             <div className="grid grid-cols-2 gap-3">
               <div>
-                <label className="block text-xs font-semibold text-ink mb-1">
-                  初始阶段
-                </label>
+                <label className="block text-xs font-semibold text-ink mb-1">初始阶段</label>
                 <div className="flex gap-1">
-                  {(['inbox', 'scripting', 'production'] as TopicStatus[]).map((s) => (
+                  {(['inbox', 'scripting', 'production'] as TopicStatus[]).map(s => (
                     <button
                       key={s}
                       type="button"
                       onClick={() => setNewStatus(s)}
                       className={`flex-1 py-1.5 rounded-lg text-2xs font-semibold transition-colors cursor-pointer ${
-                        newStatus === s
-                          ? 'bg-accent text-white'
-                          : 'bg-control text-ink-muted'
+                        newStatus === s ? 'bg-accent text-white' : 'bg-control text-ink-muted'
                       }`}
                     >
                       {s === 'inbox' ? '收集箱' : s === 'scripting' ? '写稿中' : '待制作'}
@@ -323,19 +314,15 @@ export const CalendarDateActionModal: React.FC<CalendarDateActionModalProps> = (
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-ink mb-1">
-                  优先级
-                </label>
+                <label className="block text-xs font-semibold text-ink mb-1">优先级</label>
                 <div className="flex gap-1">
-                  {(['high', 'medium', 'low'] as Priority[]).map((p) => (
+                  {(['high', 'medium', 'low'] as Priority[]).map(p => (
                     <button
                       key={p}
                       type="button"
                       onClick={() => setNewPriority(p)}
                       className={`flex-1 py-1.5 rounded-lg text-2xs font-semibold transition-colors cursor-pointer ${
-                        newPriority === p
-                          ? 'bg-accent text-white'
-                          : 'bg-control text-ink-muted'
+                        newPriority === p ? 'bg-accent text-white' : 'bg-control text-ink-muted'
                       }`}
                     >
                       {p === 'high' ? '高优' : p === 'medium' ? '中优' : '低优'}

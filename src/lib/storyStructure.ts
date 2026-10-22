@@ -80,17 +80,20 @@ const STORYLINE_MARKER_PATTERNS: Record<StoryStructureKey, RegExp> = {
 export function parseStorylineToActs(storyline: string): StoryStructureActs {
   if (!storyline.trim()) return { ...EMPTY_STORY_STRUCTURE };
 
-  const parsed = STORY_STRUCTURE_STEPS.reduce<StoryStructureActs>((result, step) => {
-    const match = storyline.match(STORYLINE_MARKER_PATTERNS[step.key]);
-    result[step.key] = match ? match[1].trim() : '';
-    return result;
-  }, { ...EMPTY_STORY_STRUCTURE });
+  const parsed = STORY_STRUCTURE_STEPS.reduce<StoryStructureActs>(
+    (result, step) => {
+      const match = storyline.match(STORYLINE_MARKER_PATTERNS[step.key]);
+      result[step.key] = match ? match[1].trim() : '';
+      return result;
+    },
+    { ...EMPTY_STORY_STRUCTURE },
+  );
 
-  if (STORY_STRUCTURE_STEPS.some((step) => parsed[step.key])) return parsed;
+  if (STORY_STRUCTURE_STEPS.some(step => parsed[step.key])) return parsed;
 
   const parts = storyline
     .split(/(?:→|->|\n)/g)
-    .map((part) => part.replace(/^第\s*[一二三四1-4]\s*段[:：]\s*/, '').trim())
+    .map(part => part.replace(/^第\s*[一二三四1-4]\s*段[:：]\s*/, '').trim())
     .filter(Boolean);
 
   return {
@@ -102,8 +105,7 @@ export function parseStorylineToActs(storyline: string): StoryStructureActs {
 }
 
 export function serializeActsToStoryline(acts: StoryStructureActs): string {
-  return STORY_STRUCTURE_STEPS
-    .map((step) => ({ step, value: acts[step.key].trim() }))
+  return STORY_STRUCTURE_STEPS.map(step => ({ step, value: acts[step.key].trim() }))
     .filter(({ value }) => Boolean(value))
     .map(({ step, value }) => `【${STORYLINE_MARKERS[step.key]}】${value}`)
     .join('\n');
@@ -119,13 +121,13 @@ function escapeHtml(text: string): string {
 }
 
 export function buildStoryStructureSectionsHtml(acts: StoryStructureActs): string {
-  return STORY_STRUCTURE_STEPS
-    .map((step) => `<h2>${escapeHtml(step.sectionTitle)}</h2><p>${escapeHtml(acts[step.key].trim() || step.defaultText)}</p>`)
-    .join('');
+  return STORY_STRUCTURE_STEPS.map(
+    step => `<h2>${escapeHtml(step.sectionTitle)}</h2><p>${escapeHtml(acts[step.key].trim() || step.defaultText)}</p>`,
+  ).join('');
 }
 
 export function buildStoryStructureTimelineSteps(acts: StoryStructureActs): Array<{ title: string; desc: string }> {
-  return STORY_STRUCTURE_STEPS.map((step) => ({
+  return STORY_STRUCTURE_STEPS.map(step => ({
     title: step.sectionTitle,
     desc: acts[step.key].trim() || step.defaultText,
   }));

@@ -121,13 +121,25 @@ export const CalendarEventPill: React.FC<CalendarEventPillProps> = ({
               <span className={compactTitleClass}>{event.title}</span>
               {!monthCell && event.status && event.status !== 'inbox' && (
                 <span className="hidden shrink-0 text-3xs text-ink-muted xl:inline">
-                  {event.status === 'scripting' ? '写稿' : event.status === 'production' ? '制作' : event.status === 'published' ? '已发布' : '搁置'}
+                  {event.status === 'scripting'
+                    ? '写稿'
+                    : event.status === 'production'
+                      ? '制作'
+                      : event.status === 'published'
+                        ? '已发布'
+                        : '搁置'}
                 </span>
               )}
             </span>
             {monthCell && event.status && event.status !== 'inbox' && (
               <span className="mt-0.5 block truncate pl-3.5 text-3xs leading-3 text-ink-muted">
-                {event.status === 'scripting' ? '写稿中' : event.status === 'production' ? '制作中' : event.status === 'published' ? '已发布' : '搁置'}
+                {event.status === 'scripting'
+                  ? '写稿中'
+                  : event.status === 'production'
+                    ? '制作中'
+                    : event.status === 'published'
+                      ? '已发布'
+                      : '搁置'}
               </span>
             )}
           </button>
@@ -174,7 +186,9 @@ export const CalendarEventPill: React.FC<CalendarEventPillProps> = ({
           >
             <span className="flex min-w-0 items-start gap-1.5">
               <span className="mt-1 h-1.5 w-1.5 shrink-0 rounded-full bg-info" />
-              <span data-testid="calendar-event-title" className={compactTitleClass}>{event.title}</span>
+              <span data-testid="calendar-event-title" className={compactTitleClass}>
+                {event.title}
+              </span>
               {!monthCell && typeof event.amount_cents === 'number' && event.amount_cents > 0 && (
                 <span className="max-w-[4.5rem] shrink-0 truncate font-mono text-3xs text-ink-muted">
                   ¥{(event.amount_cents / 100).toLocaleString()}
@@ -182,7 +196,9 @@ export const CalendarEventPill: React.FC<CalendarEventPillProps> = ({
               )}
             </span>
             {(event.status || (monthCell && typeof event.amount_cents === 'number' && event.amount_cents > 0)) && (
-              <span className={`mt-0.5 flex min-w-0 items-center gap-1 text-3xs leading-3 text-ink-muted ${monthCell ? 'pl-3.5' : 'pl-3'}`}>
+              <span
+                className={`mt-0.5 flex min-w-0 items-center gap-1 text-3xs leading-3 text-ink-muted ${monthCell ? 'pl-3.5' : 'pl-3'}`}
+              >
                 {event.status && (
                   <span className="min-w-0 truncate">
                     {DEAL_STATUS_LABELS[event.status as CommercialDealStatus] || event.status}
@@ -212,18 +228,23 @@ export const CalendarEventPill: React.FC<CalendarEventPillProps> = ({
               <span className={compactTitleClass}>{event.title}</span>
               {!monthCell && typeof event.views === 'number' && event.views > 0 && (
                 <span className="shrink-0 text-3xs text-ink-muted">
-                  <span className="font-mono tabular-nums">{event.views >= 10000 ? `${(event.views / 10000).toFixed(1)}w` : event.views}</span>播
+                  <span className="font-mono tabular-nums">
+                    {event.views >= 10000 ? `${(event.views / 10000).toFixed(1)}w` : event.views}
+                  </span>
+                  播
                 </span>
               )}
             </span>
             {monthCell && typeof event.views === 'number' && event.views > 0 && (
               <span className="mt-0.5 block pl-3.5 text-3xs leading-3 text-ink-muted">
-                <span className="font-mono tabular-nums">{event.views >= 10000 ? `${(event.views / 10000).toFixed(1)}w` : event.views}</span> 播放
+                <span className="font-mono tabular-nums">
+                  {event.views >= 10000 ? `${(event.views / 10000).toFixed(1)}w` : event.views}
+                </span>{' '}
+                播放
               </span>
             )}
           </button>
         );
-
     }
   }
 
@@ -270,16 +291,20 @@ export const CalendarEventPill: React.FC<CalendarEventPillProps> = ({
         {event.title}
       </div>
 
-      {event.subtitle && (
-        <p className="text-xs text-ink-muted mt-1 line-clamp-1">
-          {event.subtitle}
-        </p>
-      )}
+      {event.subtitle && <p className="text-xs text-ink-muted mt-1 line-clamp-1">{event.subtitle}</p>}
 
       {event.type === 'published' && (typeof event.views === 'number' || typeof event.likes === 'number') && (
         <div className="flex items-center gap-3 mt-2 text-xs text-ink-muted">
-          {typeof event.views === 'number' && <span><span className="font-mono tabular-nums">{event.views.toLocaleString()}</span> 播放</span>}
-          {typeof event.likes === 'number' && <span><span className="font-mono tabular-nums">{event.likes.toLocaleString()}</span> 点赞</span>}
+          {typeof event.views === 'number' && (
+            <span>
+              <span className="font-mono tabular-nums">{event.views.toLocaleString()}</span> 播放
+            </span>
+          )}
+          {typeof event.likes === 'number' && (
+            <span>
+              <span className="font-mono tabular-nums">{event.likes.toLocaleString()}</span> 点赞
+            </span>
+          )}
         </div>
       )}
 

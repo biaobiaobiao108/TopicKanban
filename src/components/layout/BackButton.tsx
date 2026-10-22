@@ -7,11 +7,7 @@ interface BackButtonProps {
   title?: string;
 }
 
-export const BackButton: React.FC<BackButtonProps> = ({
-  onBack,
-  label = '返回上一页',
-  title = '返回上一页',
-}) => (
+export const BackButton: React.FC<BackButtonProps> = ({ onBack, label = '返回上一页', title = '返回上一页' }) => (
   <button
     type="button"
     onClick={onBack}

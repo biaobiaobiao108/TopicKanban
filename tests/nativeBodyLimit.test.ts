@@ -18,15 +18,22 @@ describe('native request body limits', () => {
       },
     });
 
-    app.use('*', bodyLimit({
-      maxSize: 1024,
-      preflightOnly: true,
-      onError: (context) => context.text('global limit', 413),
-    }));
-    app.post('/echo', bodyLimit({
-      maxSize: 5,
-      onError: (context) => context.text('route limit', 413),
-    }), async (context) => context.text(await context.req.text()));
+    app.use(
+      '*',
+      bodyLimit({
+        maxSize: 1024,
+        preflightOnly: true,
+        onError: context => context.text('global limit', 413),
+      }),
+    );
+    app.post(
+      '/echo',
+      bodyLimit({
+        maxSize: 5,
+        onError: context => context.text('route limit', 413),
+      }),
+      async context => context.text(await context.req.text()),
+    );
 
     const request = new Request('http://localhost/api/echo', {
       method: 'POST',
@@ -52,12 +59,15 @@ describe('native request body limits', () => {
       },
     });
 
-    app.use('*', bodyLimit({
-      maxSize: 5,
-      preflightOnly: true,
-      onError: (context) => context.json({ error: 'Request body is too large' }, 413),
-    }));
-    app.post('/parse', async (context) => {
+    app.use(
+      '*',
+      bodyLimit({
+        maxSize: 5,
+        preflightOnly: true,
+        onError: context => context.json({ error: 'Request body is too large' }, 413),
+      }),
+    );
+    app.post('/parse', async context => {
       try {
         return context.json(await context.req.json());
       } catch (error) {
@@ -65,9 +75,13 @@ describe('native request body limits', () => {
       }
     });
 
-    const response = await app.fetch(new Request('http://localhost/api/parse', {
-      method: 'POST', body, duplex: 'half',
-    } as RequestInit));
+    const response = await app.fetch(
+      new Request('http://localhost/api/parse', {
+        method: 'POST',
+        body,
+        duplex: 'half',
+      } as RequestInit),
+    );
 
     expect(response.status).toBe(413);
     expect(await response.json()).toEqual({ error: 'Request body is too large' });

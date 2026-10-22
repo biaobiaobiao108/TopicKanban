@@ -9,19 +9,16 @@ interface PageHeaderProps {
   className?: string;
 }
 
-export const PageHeader: React.FC<PageHeaderProps> = ({
-  title,
-  icon: Icon,
-  badge,
-  actions,
-  className = '',
-}) => (
+export const PageHeader: React.FC<PageHeaderProps> = ({ title, icon: Icon, badge, actions, className = '' }) => (
   <header
     data-page-header
     className={`page-header shrink-0 flex flex-col justify-center gap-3 border-b border-line/60 pb-3 sm:h-16 sm:min-h-16 sm:flex-row sm:items-center sm:justify-between sm:gap-4 sm:pb-0 transition-colors ${className}`}
   >
     <div className="flex min-w-0 items-center gap-3">
-      <span className="grid h-6 w-6 shrink-0 place-items-center bg-h1-color text-canvas rounded-sm font-serif text-[13px] font-bold leading-none" aria-hidden="true">
+      <span
+        className="grid h-6 w-6 shrink-0 place-items-center bg-h1-color text-canvas rounded-sm font-serif text-[13px] font-bold leading-none"
+        aria-hidden="true"
+      >
         <Icon className="h-[15px] w-[15px] text-canvas" />
       </span>
       <div className="flex min-w-0 flex-wrap items-center gap-2.5">

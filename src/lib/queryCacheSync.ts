@@ -32,20 +32,19 @@ type TagListItem = Tag & {
   };
 };
 
-const topicListKeys = [
-  ['kanban-column-page'],
-  ['topics-page'],
-  ['tag-topics-page'],
-  ['command-topic-search'],
-] as const;
+const topicListKeys = [['kanban-column-page'], ['topics-page'], ['tag-topics-page'], ['command-topic-search']] as const;
 
-function mapItems<T extends { id: string }>(items: T[] | undefined, id: string, updater: (item: T) => T): T[] | undefined {
+function mapItems<T extends { id: string }>(
+  items: T[] | undefined,
+  id: string,
+  updater: (item: T) => T,
+): T[] | undefined {
   if (!items) return items;
-  return items.map((item) => (item.id === id ? updater(item) : item));
+  return items.map(item => (item.id === id ? updater(item) : item));
 }
 
 function removeItems<T extends { id: string }>(items: T[] | undefined, id: string): T[] | undefined {
-  return items?.filter((item) => item.id !== id);
+  return items?.filter(item => item.id !== id);
 }
 
 function patchPaginatedItems<T extends { id: string }>(
@@ -54,7 +53,7 @@ function patchPaginatedItems<T extends { id: string }>(
   id: string,
   updater: (item: T) => T,
 ) {
-  queryClient.setQueriesData<{ items: T[] }>({ queryKey }, (current) => {
+  queryClient.setQueriesData<{ items: T[] }>({ queryKey }, current => {
     if (!current || !Array.isArray(current.items)) return current;
     return { ...current, items: mapItems(current.items, id, updater) || [] };
   });
@@ -65,28 +64,32 @@ function removePaginatedItem<T extends { id: string }>(
   queryKey: readonly unknown[],
   id: string,
 ) {
-  queryClient.setQueriesData<{ items: T[]; total?: number; page_size?: number; total_pages?: number }>({ queryKey }, (current) => {
-    if (!current || !Array.isArray(current.items)) return current;
-    if (!current.items.some((item) => item.id === id)) return current;
-    const items = removeItems(current.items, id) || [];
-    const total = typeof current.total === 'number' ? Math.max(0, current.total - 1) : current.total;
-    const totalPages = typeof total === 'number' && typeof current.page_size === 'number' && current.page_size > 0
-      ? Math.ceil(total / current.page_size)
-      : current.total_pages;
-    return { ...current, items, total, total_pages: totalPages };
-  });
+  queryClient.setQueriesData<{ items: T[]; total?: number; page_size?: number; total_pages?: number }>(
+    { queryKey },
+    current => {
+      if (!current || !Array.isArray(current.items)) return current;
+      if (!current.items.some(item => item.id === id)) return current;
+      const items = removeItems(current.items, id) || [];
+      const total = typeof current.total === 'number' ? Math.max(0, current.total - 1) : current.total;
+      const totalPages =
+        typeof total === 'number' && typeof current.page_size === 'number' && current.page_size > 0
+          ? Math.ceil(total / current.page_size)
+          : current.total_pages;
+      return { ...current, items, total, total_pages: totalPages };
+    },
+  );
 }
 
 function updateTopicLists(queryClient: QueryClient, topicId: string, updater: (topic: Topic) => Topic) {
-  topicListKeys.forEach((queryKey) => {
+  topicListKeys.forEach(queryKey => {
     patchPaginatedItems<Topic>(queryClient, queryKey, topicId, updater);
   });
 }
 
 function updateTodayFocusCollections(queryClient: QueryClient, updater: (current: TodayFocusData) => TodayFocusData) {
-  queryClient.setQueriesData<TodayFocusData>({ queryKey: ['today-focus'] }, (current) => (
-    current ? updater(current) : current
-  ));
+  queryClient.setQueriesData<TodayFocusData>({ queryKey: ['today-focus'] }, current =>
+    current ? updater(current) : current,
+  );
 }
 
 function topicMatchesKanbanQuery(topic: Topic, queryKey: readonly unknown[]): boolean {
@@ -97,8 +100,8 @@ function topicMatchesKanbanQuery(topic: Topic, queryKey: readonly unknown[]): bo
   const personId = queryKey[5];
   if (status && topic.status !== status) return false;
   if (priority && priority !== 'all' && topic.priority !== priority) return false;
-  if (tagId && tagId !== 'all' && !topic.tags?.some((tag) => tag.id === tagId)) return false;
-  if (personId && personId !== 'all' && !topic.people?.some((person) => person.id === personId)) return false;
+  if (tagId && tagId !== 'all' && !topic.tags?.some(tag => tag.id === tagId)) return false;
+  if (personId && personId !== 'all' && !topic.people?.some(person => person.id === personId)) return false;
   return matchesTopicSearch(topic, searchTerm);
 }
 
@@ -110,11 +113,12 @@ function compareTopicsForKanbanSort(a: Topic, b: Topic, sortBy: unknown): number
     return priorityOrder[b.priority] - priorityOrder[a.priority];
   }
   if (sortBy === 'score') {
-    const score = (topic: Topic) => (topic.score_character || 0)
-      + (topic.score_conflict || 0)
-      + (topic.score_contrast || 0)
-      + (topic.score_material || 0)
-      + (topic.score_story || 0);
+    const score = (topic: Topic) =>
+      (topic.score_character || 0) +
+      (topic.score_conflict || 0) +
+      (topic.score_contrast || 0) +
+      (topic.score_material || 0) +
+      (topic.score_story || 0);
     return score(b) - score(a);
   }
   return (a.sort_order || 0) - (b.sort_order || 0);
@@ -126,11 +130,11 @@ function updateKanbanTopicCaches(queryClient: QueryClient, previousTopic: Topic,
   const updatedTopic = { ...previousTopic, ...updates };
   cachedQueries.forEach(([queryKey, current]) => {
     if (!current || !Array.isArray(current.items)) return;
-    const hasItem = current.items.some((topic) => topic.id === topicId);
+    const hasItem = current.items.some(topic => topic.id === topicId);
     const previouslyIncluded = topicMatchesKanbanQuery(previousTopic, queryKey);
     const shouldInclude = topicMatchesKanbanQuery(updatedTopic, queryKey);
     const page = typeof queryKey[7] === 'number' ? queryKey[7] : 1;
-    let items = current.items.filter((topic) => topic.id !== topicId);
+    let items = current.items.filter(topic => topic.id !== topicId);
     // Only a complete first page has enough ordering information to insert a
     // newly matching topic. Other pages are corrected by the query refresh.
     const canInsert = !previouslyIncluded && page === 1 && current.items.length === current.total;
@@ -148,15 +152,15 @@ function updateKanbanTopicCaches(queryClient: QueryClient, previousTopic: Topic,
 }
 
 function mapTopicLists(queryClient: QueryClient, updater: (topic: Topic) => Topic) {
-  topicListKeys.forEach((queryKey) => {
-    queryClient.setQueriesData<TopicList>({ queryKey }, (current) => current
-      ? { ...current, items: current.items.map(updater) }
-      : current);
+  topicListKeys.forEach(queryKey => {
+    queryClient.setQueriesData<TopicList>({ queryKey }, current =>
+      current ? { ...current, items: current.items.map(updater) } : current,
+    );
   });
 }
 
 function removeTopicFromLists(queryClient: QueryClient, topicId: string) {
-  topicListKeys.forEach((queryKey) => {
+  topicListKeys.forEach(queryKey => {
     removePaginatedItem<Topic>(queryClient, queryKey, topicId);
   });
 }
@@ -174,31 +178,30 @@ export function findTopicInCaches(queryClient: QueryClient, topicId: string): To
     const listTopic = queryClient
       .getQueriesData<{ items?: Topic[] }>({ queryKey })
       .flatMap(([, data]) => data?.items || [])
-      .find((topic) => topic.id === topicId);
+      .find(topic => topic.id === topicId);
     if (listTopic) return listTopic;
   }
 
   const todayTopic = queryClient
     .getQueriesData<TodayFocusData>({ queryKey: ['today-focus'] })
     .flatMap(([, data]) => data?.topics || [])
-    .find((topic) => topic.id === topicId);
+    .find(topic => topic.id === topicId);
   if (todayTopic) return todayTopic;
 
   const workspaceTopic = queryClient
     .getQueryData<BootstrapData>(['workspace'])
-    ?.topics
-    .find((topic) => topic.id === topicId);
+    ?.topics.find(topic => topic.id === topicId);
   if (workspaceTopic) return workspaceTopic;
 
   return undefined;
 }
 
 function updateTopicCollections(queryClient: QueryClient, topicId: string, updater: (topic: Topic) => Topic) {
-  queryClient.setQueryData<Topic>(['topic', topicId], (current) => current ? updater(current) : current);
-  queryClient.setQueryData<BootstrapData>(['workspace'], (current) => current
-    ? { ...current, topics: mapItems(current.topics, topicId, updater) || [] }
-    : current);
-  updateTodayFocusCollections(queryClient, (current) => ({
+  queryClient.setQueryData<Topic>(['topic', topicId], current => (current ? updater(current) : current));
+  queryClient.setQueryData<BootstrapData>(['workspace'], current =>
+    current ? { ...current, topics: mapItems(current.topics, topicId, updater) || [] } : current,
+  );
+  updateTodayFocusCollections(queryClient, current => ({
     ...current,
     topics: mapItems(current.topics, topicId, updater) || [],
     attention_topics: mapItems(current.attention_topics, topicId, updater),
@@ -207,11 +210,11 @@ function updateTopicCollections(queryClient: QueryClient, topicId: string, updat
 }
 
 function mapTopicCollections(queryClient: QueryClient, updater: (topic: Topic) => Topic) {
-  queryClient.setQueriesData<Topic>({ queryKey: ['topic'] }, (current) => current ? updater(current) : current);
-  queryClient.setQueryData<BootstrapData>(['workspace'], (current) => current
-    ? { ...current, topics: current.topics.map(updater) }
-    : current);
-  updateTodayFocusCollections(queryClient, (current) => ({
+  queryClient.setQueriesData<Topic>({ queryKey: ['topic'] }, current => (current ? updater(current) : current));
+  queryClient.setQueryData<BootstrapData>(['workspace'], current =>
+    current ? { ...current, topics: current.topics.map(updater) } : current,
+  );
+  updateTodayFocusCollections(queryClient, current => ({
     ...current,
     topics: current.topics.map(updater),
     attention_topics: current.attention_topics?.map(updater),
@@ -221,7 +224,7 @@ function mapTopicCollections(queryClient: QueryClient, updater: (topic: Topic) =
 
 export function updateTopicCaches(queryClient: QueryClient, topicId: string, updates: Partial<Topic>) {
   const previousTopic = findTopicInCaches(queryClient, topicId);
-  updateTopicCollections(queryClient, topicId, (topic) => ({ ...topic, ...updates }));
+  updateTopicCollections(queryClient, topicId, topic => ({ ...topic, ...updates }));
   // Search, filter and relation edits can change whether a cached Kanban page
   // should contain the topic, not just stage changes.
   if (previousTopic) updateKanbanTopicCaches(queryClient, previousTopic, updates);
@@ -238,7 +241,7 @@ export function replaceTopicTodoCaches(queryClient: QueryClient, result: TopicTo
 
 export function replaceTopicPinCaches(queryClient: QueryClient, result: TopicPinMutationResult) {
   replaceTopicCaches(queryClient, result.topic);
-  result.cleared_topic_ids.forEach((topicId) => {
+  result.cleared_topic_ids.forEach(topicId => {
     updateTopicCaches(queryClient, topicId, { is_pinned: 0 });
   });
 }
@@ -253,11 +256,11 @@ export function removeTopicCaches(queryClient: QueryClient, topicId: string) {
     ['topic-workspace', topicId],
     ['topic-deals', topicId],
     ['topic-todos', topicId],
-  ].forEach((queryKey) => queryClient.removeQueries({ queryKey, exact: true }));
-  queryClient.setQueryData<BootstrapData>(['workspace'], (current) => current
-    ? { ...current, topics: removeItems(current.topics, topicId) || [] }
-    : current);
-  updateTodayFocusCollections(queryClient, (current) => ({
+  ].forEach(queryKey => queryClient.removeQueries({ queryKey, exact: true }));
+  queryClient.setQueryData<BootstrapData>(['workspace'], current =>
+    current ? { ...current, topics: removeItems(current.topics, topicId) || [] } : current,
+  );
+  updateTodayFocusCollections(queryClient, current => ({
     ...current,
     topics: removeItems(current.topics, topicId) || [],
     attention_topics: removeItems(current.attention_topics, topicId),
@@ -266,98 +269,130 @@ export function removeTopicCaches(queryClient: QueryClient, topicId: string) {
 }
 
 export function updatePersonCaches(queryClient: QueryClient, person: Person) {
-  queryClient.setQueryData<BootstrapData>(['workspace'], (current) => current
-    ? { ...current, people: mapItems(current.people, person.id, (item) => ({ ...item, ...person })) || [] }
-    : current);
-  queryClient.setQueryData<Person[]>(['people'], (current) => mapItems(current, person.id, (item) => ({ ...item, ...person })) || current);
-  queryClient.setQueriesData<PaginatedPeople>({ queryKey: ['people-page'] }, (current) => current
-    ? { ...current, items: mapItems(current.items, person.id, (item) => ({ ...item, ...person })) || [] }
-    : current);
-  queryClient.setQueryData<PersonOption[]>(['people-options'], (current) => current
-    ? current.map((item) => item.id === person.id ? { ...item, name: person.name } : item)
-    : current);
-  queryClient.setQueryData<PersonRelationship[]>(['relationships'], (current) => current
-    ? current.map((relationship) => ({
-      ...relationship,
-      ...(relationship.person_a_id === person.id ? { person_a_name: person.name } : {}),
-      ...(relationship.person_b_id === person.id ? { person_b_name: person.name } : {}),
-    }))
-    : current);
-  mapTopicCollections(queryClient, (topic) => topic.people?.some((item) => item.id === person.id)
-    ? { ...topic, people: topic.people?.map((item) => item.id === person.id ? { ...item, ...person } : item) }
-    : topic);
+  queryClient.setQueryData<BootstrapData>(['workspace'], current =>
+    current
+      ? { ...current, people: mapItems(current.people, person.id, item => ({ ...item, ...person })) || [] }
+      : current,
+  );
+  queryClient.setQueryData<Person[]>(
+    ['people'],
+    current => mapItems(current, person.id, item => ({ ...item, ...person })) || current,
+  );
+  queryClient.setQueriesData<PaginatedPeople>({ queryKey: ['people-page'] }, current =>
+    current
+      ? { ...current, items: mapItems(current.items, person.id, item => ({ ...item, ...person })) || [] }
+      : current,
+  );
+  queryClient.setQueryData<PersonOption[]>(['people-options'], current =>
+    current ? current.map(item => (item.id === person.id ? { ...item, name: person.name } : item)) : current,
+  );
+  queryClient.setQueryData<PersonRelationship[]>(['relationships'], current =>
+    current
+      ? current.map(relationship => ({
+          ...relationship,
+          ...(relationship.person_a_id === person.id ? { person_a_name: person.name } : {}),
+          ...(relationship.person_b_id === person.id ? { person_b_name: person.name } : {}),
+        }))
+      : current,
+  );
+  mapTopicCollections(queryClient, topic =>
+    topic.people?.some(item => item.id === person.id)
+      ? { ...topic, people: topic.people?.map(item => (item.id === person.id ? { ...item, ...person } : item)) }
+      : topic,
+  );
 }
 
 export function removePersonCaches(queryClient: QueryClient, personId: string) {
-  queryClient.setQueryData<BootstrapData>(['workspace'], (current) => current
-    ? { ...current, people: removeItems(current.people, personId) || [] }
-    : current);
-  queryClient.setQueryData<Person[]>(['people'], (current) => removeItems(current, personId) || current);
+  queryClient.setQueryData<BootstrapData>(['workspace'], current =>
+    current ? { ...current, people: removeItems(current.people, personId) || [] } : current,
+  );
+  queryClient.setQueryData<Person[]>(['people'], current => removeItems(current, personId) || current);
   removePaginatedItem(queryClient, ['people-page'], personId);
-  queryClient.setQueryData<PersonOption[]>(['people-options'], (current) => current?.filter((item) => item.id !== personId));
-  queryClient.setQueryData<PersonRelationship[]>(['relationships'], (current) => current?.filter((relationship) => (
-    relationship.person_a_id !== personId && relationship.person_b_id !== personId
-  )));
-  mapTopicCollections(queryClient, (topic) => topic.people?.some((item) => item.id === personId)
-    ? { ...topic, people: topic.people?.filter((item) => item.id !== personId) }
-    : topic);
+  queryClient.setQueryData<PersonOption[]>(['people-options'], current =>
+    current?.filter(item => item.id !== personId),
+  );
+  queryClient.setQueryData<PersonRelationship[]>(['relationships'], current =>
+    current?.filter(relationship => relationship.person_a_id !== personId && relationship.person_b_id !== personId),
+  );
+  mapTopicCollections(queryClient, topic =>
+    topic.people?.some(item => item.id === personId)
+      ? { ...topic, people: topic.people?.filter(item => item.id !== personId) }
+      : topic,
+  );
 }
 
 function updateTopicTags(queryClient: QueryClient, tagId: string, updater: (tag: Tag) => Tag) {
-  mapTopicCollections(queryClient, (topic) => topic.tags?.some((tag) => tag.id === tagId)
-    ? { ...topic, tags: topic.tags?.map((tag) => tag.id === tagId ? updater(tag) : tag) }
-    : topic);
+  mapTopicCollections(queryClient, topic =>
+    topic.tags?.some(tag => tag.id === tagId)
+      ? { ...topic, tags: topic.tags?.map(tag => (tag.id === tagId ? updater(tag) : tag)) }
+      : topic,
+  );
 }
 
 function removeTopicTagCollections(queryClient: QueryClient, tagId: string) {
-  mapTopicCollections(queryClient, (topic) => topic.tags?.some((tag) => tag.id === tagId)
-    ? { ...topic, tags: topic.tags?.filter((tag) => tag.id !== tagId) }
-    : topic);
+  mapTopicCollections(queryClient, topic =>
+    topic.tags?.some(tag => tag.id === tagId) ? { ...topic, tags: topic.tags?.filter(tag => tag.id !== tagId) } : topic,
+  );
 }
 
 export function updateTagCaches(queryClient: QueryClient, tag: Tag) {
-  queryClient.setQueryData<BootstrapData>(['workspace'], (current) => current
-    ? { ...current, tags: mapItems(current.tags, tag.id, (item) => ({ ...item, ...tag })) || [] }
-    : current);
-  queryClient.setQueryData<Tag[]>(['tags'], (current) => mapItems(current, tag.id, (item) => ({ ...item, ...tag })) || current);
-  queryClient.setQueryData<Tag[]>(['tags-options'], (current) => mapItems(current, tag.id, (item) => ({ ...item, ...tag })) || current);
-  queryClient.setQueriesData<PaginatedTags>({ queryKey: ['tags-page'] }, (current) => current
-    ? { ...current, items: mapItems<TagListItem>(current.items, tag.id, (item) => ({ ...item, ...tag })) || [] }
-    : current);
-  updateTopicTags(queryClient, tag.id, (item) => ({ ...item, ...tag }));
+  queryClient.setQueryData<BootstrapData>(['workspace'], current =>
+    current ? { ...current, tags: mapItems(current.tags, tag.id, item => ({ ...item, ...tag })) || [] } : current,
+  );
+  queryClient.setQueryData<Tag[]>(
+    ['tags'],
+    current => mapItems(current, tag.id, item => ({ ...item, ...tag })) || current,
+  );
+  queryClient.setQueryData<Tag[]>(
+    ['tags-options'],
+    current => mapItems(current, tag.id, item => ({ ...item, ...tag })) || current,
+  );
+  queryClient.setQueriesData<PaginatedTags>({ queryKey: ['tags-page'] }, current =>
+    current
+      ? { ...current, items: mapItems<TagListItem>(current.items, tag.id, item => ({ ...item, ...tag })) || [] }
+      : current,
+  );
+  updateTopicTags(queryClient, tag.id, item => ({ ...item, ...tag }));
 }
 
 export function removeTagCaches(queryClient: QueryClient, tagId: string) {
-  queryClient.setQueryData<BootstrapData>(['workspace'], (current) => current
-    ? { ...current, tags: removeItems(current.tags, tagId) || [] }
-    : current);
-  queryClient.setQueryData<Tag[]>(['tags'], (current) => removeItems(current, tagId) || current);
-  queryClient.setQueryData<Tag[]>(['tags-options'], (current) => removeItems(current, tagId));
+  queryClient.setQueryData<BootstrapData>(['workspace'], current =>
+    current ? { ...current, tags: removeItems(current.tags, tagId) || [] } : current,
+  );
+  queryClient.setQueryData<Tag[]>(['tags'], current => removeItems(current, tagId) || current);
+  queryClient.setQueryData<Tag[]>(['tags-options'], current => removeItems(current, tagId));
   removePaginatedItem(queryClient, ['tags-page'], tagId);
   removeTopicTagCollections(queryClient, tagId);
 }
 
 export function updatePublishedCaches(queryClient: QueryClient, video: PublishedVideo) {
-  queryClient.setQueryData<BootstrapData>(['workspace'], (current) => current
-    ? { ...current, published: mapItems(current.published, video.id, (item) => ({ ...item, ...video })) || [] }
-    : current);
-  queryClient.setQueryData<PublishedVideo[]>(['published'], (current) => mapItems(current, video.id, (item) => ({ ...item, ...video })) || current);
-  queryClient.setQueriesData<PaginatedPublishedVideos>({ queryKey: ['published-page'] }, (current) => current
-    ? { ...current, items: mapItems(current.items, video.id, (item) => ({ ...item, ...video })) || [] }
-    : current);
-  queryClient.setQueriesData<PublishedVideo[]>({ queryKey: ['published-for-deal'] }, (current) => current
-    ? mapItems(current, video.id, (item) => ({ ...item, ...video })) || []
-    : current);
+  queryClient.setQueryData<BootstrapData>(['workspace'], current =>
+    current
+      ? { ...current, published: mapItems(current.published, video.id, item => ({ ...item, ...video })) || [] }
+      : current,
+  );
+  queryClient.setQueryData<PublishedVideo[]>(
+    ['published'],
+    current => mapItems(current, video.id, item => ({ ...item, ...video })) || current,
+  );
+  queryClient.setQueriesData<PaginatedPublishedVideos>({ queryKey: ['published-page'] }, current =>
+    current ? { ...current, items: mapItems(current.items, video.id, item => ({ ...item, ...video })) || [] } : current,
+  );
+  queryClient.setQueriesData<PublishedVideo[]>({ queryKey: ['published-for-deal'] }, current =>
+    current ? mapItems(current, video.id, item => ({ ...item, ...video })) || [] : current,
+  );
   syncPublishedVideoReferences(queryClient, video.id, video);
 }
 
 export function removePublishedCaches(queryClient: QueryClient, videoId: string) {
-  queryClient.setQueryData<BootstrapData>(['workspace'], (current) => current
-    ? { ...current, published: removeItems(current.published, videoId) || [] }
-    : current);
-  queryClient.setQueryData<PublishedVideo[]>(['published'], (current) => removeItems(current, videoId) || current);
+  queryClient.setQueryData<BootstrapData>(['workspace'], current =>
+    current ? { ...current, published: removeItems(current.published, videoId) || [] } : current,
+  );
+  queryClient.setQueryData<PublishedVideo[]>(['published'], current => removeItems(current, videoId) || current);
   removePaginatedItem(queryClient, ['published-page'], videoId);
-  queryClient.setQueriesData<PublishedVideo[]>({ queryKey: ['published-for-deal'] }, (current) => current?.filter((item) => item.id !== videoId));
+  queryClient.setQueriesData<PublishedVideo[]>({ queryKey: ['published-for-deal'] }, current =>
+    current?.filter(item => item.id !== videoId),
+  );
   syncPublishedVideoReferences(queryClient, videoId, null);
 }
 
@@ -375,12 +410,8 @@ function patchDealForPublishedVideo(
 }
 
 /** Keep denormalized published-video references coherent in every cached deal view. */
-function syncPublishedVideoReferences(
-  queryClient: QueryClient,
-  videoId: string,
-  video: PublishedVideo | null,
-) {
-  queryClient.setQueriesData<CommercialDealDetail>({ queryKey: ['commercial-deal'] }, (current) => {
+function syncPublishedVideoReferences(queryClient: QueryClient, videoId: string, video: PublishedVideo | null) {
+  queryClient.setQueriesData<CommercialDealDetail>({ queryKey: ['commercial-deal'] }, current => {
     if (!current || (current.published_video_id !== videoId && current.published_video?.id !== videoId)) return current;
     return {
       ...current,
@@ -390,58 +421,76 @@ function syncPublishedVideoReferences(
     };
   });
 
-  queryClient.setQueriesData<PaginatedCommercialDeals>({ queryKey: ['commercial-deal-page'] }, (current) => current
-    ? { ...current, items: current.items.map((deal) => patchDealForPublishedVideo(deal, videoId, video)) }
-    : current);
+  queryClient.setQueriesData<PaginatedCommercialDeals>({ queryKey: ['commercial-deal-page'] }, current =>
+    current
+      ? { ...current, items: current.items.map(deal => patchDealForPublishedVideo(deal, videoId, video)) }
+      : current,
+  );
 
-  queryClient.setQueriesData<DealFocusData>({ queryKey: ['deal-focus'] }, (current) => current
-    ? {
-      ...current,
-      due_items: current.due_items.map((deal) => patchDealForPublishedVideo(deal, videoId, video)),
-      unpaid_items: current.unpaid_items.map((deal) => patchDealForPublishedVideo(deal, videoId, video)),
-    }
-    : current);
+  queryClient.setQueriesData<DealFocusData>({ queryKey: ['deal-focus'] }, current =>
+    current
+      ? {
+          ...current,
+          due_items: current.due_items.map(deal => patchDealForPublishedVideo(deal, videoId, video)),
+          unpaid_items: current.unpaid_items.map(deal => patchDealForPublishedVideo(deal, videoId, video)),
+        }
+      : current,
+  );
 
-  queryClient.setQueriesData<CommercialDeal[]>({ queryKey: ['commercial-deals-calendar'] }, (current) => current
-    ? current.map((deal) => patchDealForPublishedVideo(deal, videoId, video))
-    : current);
-  queryClient.setQueriesData<CommercialDeal[]>({ queryKey: ['topic-deals'] }, (current) => current
-    ? current.map((deal) => patchDealForPublishedVideo(deal, videoId, video))
-    : current);
+  queryClient.setQueriesData<CommercialDeal[]>({ queryKey: ['commercial-deals-calendar'] }, current =>
+    current ? current.map(deal => patchDealForPublishedVideo(deal, videoId, video)) : current,
+  );
+  queryClient.setQueriesData<CommercialDeal[]>({ queryKey: ['topic-deals'] }, current =>
+    current ? current.map(deal => patchDealForPublishedVideo(deal, videoId, video)) : current,
+  );
 }
 
 function updateDealArray(current: CommercialDeal[] | undefined, deal: CommercialDeal): CommercialDeal[] | undefined {
-  return mapItems(current, deal.id, (item) => ({ ...item, ...deal }));
+  return mapItems(current, deal.id, item => ({ ...item, ...deal }));
 }
 
 export function updateCommercialDealCaches(queryClient: QueryClient, deal: CommercialDeal | CommercialDealDetail) {
-  queryClient.setQueryData<CommercialDealDetail>(['commercial-deal', deal.id], (current) => current
-    ? { ...current, ...deal }
-    : deal as CommercialDealDetail);
-  queryClient.setQueriesData<PaginatedCommercialDeals>({ queryKey: ['commercial-deal-page'] }, (current) => current
-    ? { ...current, items: updateDealArray(current.items, deal) || [] }
-    : current);
-  queryClient.setQueryData<DealFocusData>(['deal-focus'], (current) => current
-    ? {
-      ...current,
-      due_items: updateDealArray(current.due_items, deal) || [],
-      unpaid_items: updateDealArray(current.unpaid_items, deal) || [],
-    }
-    : current);
-  queryClient.setQueryData<CommercialDeal[]>(['commercial-deals-calendar'], (current) => updateDealArray(current, deal) || current);
-  queryClient.setQueriesData<CommercialDeal[]>({ queryKey: ['topic-deals'] }, (current) => updateDealArray(current, deal) || current);
+  queryClient.setQueryData<CommercialDealDetail>(['commercial-deal', deal.id], current =>
+    current ? { ...current, ...deal } : (deal as CommercialDealDetail),
+  );
+  queryClient.setQueriesData<PaginatedCommercialDeals>({ queryKey: ['commercial-deal-page'] }, current =>
+    current ? { ...current, items: updateDealArray(current.items, deal) || [] } : current,
+  );
+  queryClient.setQueryData<DealFocusData>(['deal-focus'], current =>
+    current
+      ? {
+          ...current,
+          due_items: updateDealArray(current.due_items, deal) || [],
+          unpaid_items: updateDealArray(current.unpaid_items, deal) || [],
+        }
+      : current,
+  );
+  queryClient.setQueryData<CommercialDeal[]>(
+    ['commercial-deals-calendar'],
+    current => updateDealArray(current, deal) || current,
+  );
+  queryClient.setQueriesData<CommercialDeal[]>(
+    { queryKey: ['topic-deals'] },
+    current => updateDealArray(current, deal) || current,
+  );
 }
 
 export function removeCommercialDealCaches(queryClient: QueryClient, dealId: string) {
   queryClient.removeQueries({ queryKey: ['commercial-deal', dealId] });
   removePaginatedItem(queryClient, ['commercial-deal-page'], dealId);
-  queryClient.setQueryData<DealFocusData>(['deal-focus'], (current) => current
-    ? {
-      ...current,
-      due_items: removeItems(current.due_items, dealId) || [],
-      unpaid_items: removeItems(current.unpaid_items, dealId) || [],
-    }
-    : current);
-  queryClient.setQueryData<CommercialDeal[]>(['commercial-deals-calendar'], (current) => current?.filter((deal) => deal.id !== dealId));
-  queryClient.setQueriesData<CommercialDeal[]>({ queryKey: ['topic-deals'] }, (current) => current?.filter((deal) => deal.id !== dealId));
+  queryClient.setQueryData<DealFocusData>(['deal-focus'], current =>
+    current
+      ? {
+          ...current,
+          due_items: removeItems(current.due_items, dealId) || [],
+          unpaid_items: removeItems(current.unpaid_items, dealId) || [],
+        }
+      : current,
+  );
+  queryClient.setQueryData<CommercialDeal[]>(['commercial-deals-calendar'], current =>
+    current?.filter(deal => deal.id !== dealId),
+  );
+  queryClient.setQueriesData<CommercialDeal[]>({ queryKey: ['topic-deals'] }, current =>
+    current?.filter(deal => deal.id !== dealId),
+  );
 }

@@ -64,7 +64,7 @@ function getTargetBlockInfo($from: ResolvedPos) {
 export function detectAndCleanImeLeak(
   text: string,
   isWithinWindow = false,
-  expectedLeak: string | null = null
+  expectedLeak: string | null = null,
 ): { cleaned: string; leaked: string | null } {
   if (!isWithinWindow || !expectedLeak) {
     return { cleaned: text, leaked: null };
@@ -99,7 +99,7 @@ export function createImeMarkdownSafePlugin(): Plugin<ImeSafePluginState> {
         tr: Transaction,
         prevState: ImeSafePluginState,
         oldState: EditorState,
-        newState: EditorState
+        newState: EditorState,
       ): ImeSafePluginState {
         const meta = tr.getMeta(ImeMarkdownSafePluginKey);
         let state = meta ? { ...prevState, ...meta } : prevState;
@@ -170,24 +170,20 @@ export function createImeMarkdownSafePlugin(): Plugin<ImeSafePluginState> {
 
     props: {
       handleDOMEvents: {
-        compositionstart: (view) => {
-          view.dispatch(
-            view.state.tr.setMeta(ImeMarkdownSafePluginKey, { isComposing: true })
-          );
+        compositionstart: view => {
+          view.dispatch(view.state.tr.setMeta(ImeMarkdownSafePluginKey, { isComposing: true }));
           return false;
         },
-        compositionend: (view) => {
-          view.dispatch(
-            view.state.tr.setMeta(ImeMarkdownSafePluginKey, { isComposing: false })
-          );
+        compositionend: view => {
+          view.dispatch(view.state.tr.setMeta(ImeMarkdownSafePluginKey, { isComposing: false }));
           return false;
         },
       },
     },
 
     appendTransaction(transactions, _oldState, newState) {
-      const docChanged = transactions.some((tr) => tr.docChanged);
-      const compositionEnded = transactions.some((tr) => {
+      const docChanged = transactions.some(tr => tr.docChanged);
+      const compositionEnded = transactions.some(tr => {
         const meta = tr.getMeta(ImeMarkdownSafePluginKey) as { isComposing?: boolean } | undefined;
         return meta?.isComposing === false;
       });
@@ -206,8 +202,7 @@ export function createImeMarkdownSafePlugin(): Plugin<ImeSafePluginState> {
       const now = Date.now();
       const expectedLeak = pluginState.pendingLeakedChar;
       const isWithinConvertedWindow =
-        pluginState.convertedBlockPos !== null &&
-        now - pluginState.convertedBlockTime < 8000;
+        pluginState.convertedBlockPos !== null && now - pluginState.convertedBlockTime < 8000;
 
       const { cleaned, leaked } = detectAndCleanImeLeak(blockText, isWithinConvertedWindow, expectedLeak);
 
@@ -242,11 +237,11 @@ export const ImeMarkdownSafeExtension = Extension.create({
         textblockTypeInputRule({
           find: /^[#＃]{1,6}[\s\u3000]$/,
           type: this.editor.schema.nodes.heading,
-          getAttributes: (match) => {
+          getAttributes: match => {
             const hashCount = match[0].replace(/[\s\u3000]/g, '').length;
-          return { level: Math.min(Math.max(hashCount, 1), 6) };
+            return { level: Math.min(Math.max(hashCount, 1), 6) };
           },
-        })
+        }),
       );
     }
 
@@ -255,7 +250,7 @@ export const ImeMarkdownSafeExtension = Extension.create({
         wrappingInputRule({
           find: /^\s*[>＞》〉][\s\u3000]$/,
           type: this.editor.schema.nodes.blockquote,
-        })
+        }),
       );
     }
 
@@ -264,7 +259,7 @@ export const ImeMarkdownSafeExtension = Extension.create({
         wrappingInputRule({
           find: /^\s*([-－+＋*＊·•])[\s\u3000]$/,
           type: this.editor.schema.nodes.bulletList,
-        })
+        }),
       );
     }
 
@@ -273,9 +268,9 @@ export const ImeMarkdownSafeExtension = Extension.create({
         wrappingInputRule({
           find: /^(\d+)[.、．][\s\u3000]$/,
           type: this.editor.schema.nodes.orderedList,
-          getAttributes: (match) => ({ start: +match[1] }),
+          getAttributes: match => ({ start: +match[1] }),
           joinPredicate: (match, node) => node.childCount + node.attrs.start === +match[1],
-        })
+        }),
       );
     }
 
@@ -285,10 +280,10 @@ export const ImeMarkdownSafeExtension = Extension.create({
         wrappingInputRule({
           find: /^\s*(?:[-－+＋*＊·•]\s+)?(?:\[([ xX])\]|【([ xX])】)[\s\u3000]$/,
           type: targetTaskItemType,
-          getAttributes: (match) => ({
+          getAttributes: match => ({
             checked: /x/i.test(match[1] || match[2] || ''),
           }),
-        })
+        }),
       );
     }
 

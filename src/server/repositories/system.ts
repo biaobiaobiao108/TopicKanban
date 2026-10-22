@@ -5,8 +5,10 @@ import { readAll, readOne } from './shared';
 
 /** One-time browser handoff for preferences stored before v6 moved them local. */
 export function loadLegacyAppSettings(db: Database): unknown | null {
-  const kvStore = readOne<{ name: string }>(db,
-    "SELECT name FROM sqlite_master WHERE type = 'table' AND name = '_kv_store' LIMIT 1");
+  const kvStore = readOne<{ name: string }>(
+    db,
+    "SELECT name FROM sqlite_master WHERE type = 'table' AND name = '_kv_store' LIMIT 1",
+  );
   if (!kvStore) return null;
 
   const row = readOne<{ value: string }>(db, 'SELECT value FROM _kv_store WHERE key = ?', ['app_settings']);
@@ -56,7 +58,10 @@ export function getStorageStatsSync(db: Database): StorageStats {
     }
   }
 
-  const trashedRow = readOne<{ count?: number }>(db, 'SELECT COUNT(*) AS count FROM topics WHERE deleted_at IS NOT NULL');
+  const trashedRow = readOne<{ count?: number }>(
+    db,
+    'SELECT COUNT(*) AS count FROM topics WHERE deleted_at IS NOT NULL',
+  );
   const activeRow = readOne<{ count?: number }>(db, 'SELECT COUNT(*) AS count FROM topics WHERE deleted_at IS NULL');
 
   return {
@@ -92,9 +97,10 @@ export async function vacuumDatabase(db: Database): Promise<StorageOptimizeResul
     before,
     after,
     reclaimed_bytes: reclaimedBytes,
-    message: reclaimedBytes > 0
-      ? `已成功整理数据库，释放 ${formatBytes(reclaimedBytes)} 磁盘空间`
-      : '数据库已处于最佳紧凑状态，无多余空闲页需要回收',
+    message:
+      reclaimedBytes > 0
+        ? `已成功整理数据库，释放 ${formatBytes(reclaimedBytes)} 磁盘空间`
+        : '数据库已处于最佳紧凑状态，无多余空闲页需要回收',
   };
 }
 
@@ -104,17 +110,15 @@ export async function listExpiredTrashTopicIds(db: Database, retentionDays: numb
   }
 
   const cutoff = new Date(Date.now() - retentionDays * 86400 * 1000).toISOString();
-  const rows = readAll<{ id?: string }>(
-    db,
-    'SELECT id FROM topics WHERE deleted_at IS NOT NULL AND deleted_at <= ?',
-    [cutoff],
-  );
-  return rows.map((row) => String(row.id || '')).filter(Boolean);
+  const rows = readAll<{ id?: string }>(db, 'SELECT id FROM topics WHERE deleted_at IS NOT NULL AND deleted_at <= ?', [
+    cutoff,
+  ]);
+  return rows.map(row => String(row.id || '')).filter(Boolean);
 }
 
 export async function purgeExpiredTrashTopics(
   db: Database,
-  retentionDays: number
+  retentionDays: number,
 ): Promise<{ purged_count: number; purged_ids: string[] }> {
   if (retentionDays <= 0) {
     return { purged_count: 0, purged_ids: [] };
@@ -126,7 +130,7 @@ export async function purgeExpiredTrashTopics(
       db,
       'SELECT id FROM topics WHERE deleted_at IS NOT NULL AND deleted_at <= ?',
       [cutoff],
-    ).map((row) => row.id);
+    ).map(row => row.id);
     if (expiredIds.length === 0) return expiredIds;
 
     const trashedTopic = 'SELECT id FROM topics WHERE id = ? AND deleted_at IS NOT NULL';
@@ -143,7 +147,7 @@ export async function purgeExpiredTrashTopics(
     ];
     const deleteTopic = db.query('DELETE FROM topics WHERE id = ? AND deleted_at IS NOT NULL');
     for (const id of expiredIds) {
-      dependentDeletes.forEach((statement) => statement.run(id));
+      dependentDeletes.forEach(statement => statement.run(id));
       deleteTopic.run(id);
     }
     return expiredIds;

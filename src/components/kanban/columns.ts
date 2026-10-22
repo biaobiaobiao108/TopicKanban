@@ -8,4 +8,4 @@ export const COLUMNS: { status: TopicStatus; label: string; description: string;
   { status: 'icebox', label: '搁置', description: '暂缓或条件不成熟', isArchive: true },
 ];
 
-export const ACTIVE_COLUMNS = COLUMNS.filter((column) => !column.isArchive);
+export const ACTIVE_COLUMNS = COLUMNS.filter(column => !column.isArchive);

@@ -1,7 +1,12 @@
 import { afterEach, beforeEach, describe, expect, it } from 'bun:test';
 import {
-  cacheDraftLocally, clearStorageMemoryCaches, DraftConflictError,
-  fetchDraftByTopicId, resolveDraftRecovery, saveDraft, saveDraftImmediatelyWithStatus,
+  cacheDraftLocally,
+  clearStorageMemoryCaches,
+  DraftConflictError,
+  fetchDraftByTopicId,
+  resolveDraftRecovery,
+  saveDraft,
+  saveDraftImmediatelyWithStatus,
 } from '../src/lib/storageApi';
 import type { Draft } from '../src/types';
 
@@ -14,21 +19,33 @@ let puts: Array<{ base_version: number; content_markdown: string }>;
 
 beforeEach(() => {
   store = new Map();
-  Object.defineProperty(globalThis, 'localStorage', { configurable: true, value: {
-    getItem: (key: string) => store.get(key) ?? null,
-    setItem: (key: string, value: string) => store.set(key, value),
-    removeItem: (key: string) => store.delete(key),
-  } });
+  Object.defineProperty(globalThis, 'localStorage', {
+    configurable: true,
+    value: {
+      getItem: (key: string) => store.get(key) ?? null,
+      setItem: (key: string, value: string) => store.set(key, value),
+      removeItem: (key: string) => store.delete(key),
+    },
+  });
   clearStorageMemoryCaches();
   puts = [];
-  cloud = { id: 'draft-1', topic_id: 'topic-1', title: '云端标题', content_markdown: '云端正文',
-    content_html: '<p>云端正文</p>', content_json: '{}', word_count: 4, version: 1,
-    updated_at: new Date().toISOString() };
+  cloud = {
+    id: 'draft-1',
+    topic_id: 'topic-1',
+    title: '云端标题',
+    content_markdown: '云端正文',
+    content_html: '<p>云端正文</p>',
+    content_json: '{}',
+    word_count: 4,
+    version: 1,
+    updated_at: new Date().toISOString(),
+  };
   globalThis.fetch = (async (_input: RequestInfo | URL, init?: RequestInit) => {
     if (init?.method !== 'PUT') return Response.json(cloud);
     const body = JSON.parse(init.body as string);
     puts.push(body);
-    if (body.base_version !== cloud.version) return Response.json({ error: 'DRAFT_CONFLICT', current: cloud }, { status: 409 });
+    if (body.base_version !== cloud.version)
+      return Response.json({ error: 'DRAFT_CONFLICT', current: cloud }, { status: 409 });
     cloud = { ...cloud, ...body, version: cloud.version + 1 };
     return Response.json(cloud);
   }) as typeof fetch;
@@ -57,7 +74,9 @@ describe('草稿冲突防覆盖与恢复', () => {
     await fetchDraftByTopicId('topic-1');
     const request = globalThis.fetch;
     let release!: () => void;
-    const gate = new Promise<void>((resolve) => { release = resolve; });
+    const gate = new Promise<void>(resolve => {
+      release = resolve;
+    });
     globalThis.fetch = (async (input: RequestInfo | URL, init?: RequestInit) => {
       if (init?.method === 'PUT') await gate;
       return request(input, init);
@@ -68,7 +87,10 @@ describe('草稿冲突防覆盖与恢复', () => {
     release();
     await uploading;
 
-    expect(pending()).toMatchObject({ base_version: 2, draft: { version: 2, content_markdown: '较新本地稿', title: '新标题' } });
+    expect(pending()).toMatchObject({
+      base_version: 2,
+      draft: { version: 2, content_markdown: '较新本地稿', title: '新标题' },
+    });
     clearStorageMemoryCaches();
     const recovered = await fetchDraftByTopicId('topic-1');
     expect(recovered.conflict).toBeNull();

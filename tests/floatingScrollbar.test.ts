@@ -9,8 +9,8 @@ describe('FloatingScrollbar 组件服务端渲染与结构契约', () => {
       React.createElement(
         FloatingScrollbar,
         { className: 'test-scroll-area' },
-        React.createElement('div', { id: 'child-content' }, '测试文本')
-      )
+        React.createElement('div', { id: 'child-content' }, '测试文本'),
+      ),
     );
 
     expect(html).toContain('no-scrollbar');

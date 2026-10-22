@@ -3,7 +3,7 @@ import { lazy, type ComponentType, type LazyExoticComponent } from 'react';
 const RELOAD_ATTEMPT_KEY = 'topic_kanban_lazy_reload_attempted_v1';
 
 export function lazyWithReload<T extends ComponentType<any>>(
-  loader: () => Promise<{ default: T }>
+  loader: () => Promise<{ default: T }>,
 ): LazyExoticComponent<T> {
   return lazy(async () => {
     try {

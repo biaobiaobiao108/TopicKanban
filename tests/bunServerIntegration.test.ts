@@ -36,7 +36,7 @@ describe('Bun Server Integration (Local SQLite & API)', () => {
     // 1. Health check (Bun container)
     const healthRes = await app.request('/api/health');
     expect(healthRes.status).toBe(200);
-    const healthData = await healthRes.json() as {
+    const healthData = (await healthRes.json()) as {
       status: string;
       runtime: string;
       public_base_url: string;
@@ -55,7 +55,7 @@ describe('Bun Server Integration (Local SQLite & API)', () => {
       body: JSON.stringify({ password: testPassword }),
     });
     expect(loginRes.status).toBe(200);
-    const loginData = await loginRes.json() as { success: boolean; token: string };
+    const loginData = (await loginRes.json()) as { success: boolean; token: string };
     expect(loginData.success).toBe(true);
     expect(loginData.token).toMatch(/^v1\./);
     const authToken = loginData.token;
@@ -77,7 +77,7 @@ describe('Bun Server Integration (Local SQLite & API)', () => {
       }),
     });
     expect(createRes.status).toBe(201);
-    const topic = await createRes.json() as { id: string; title: string; current_todo?: { title: string } };
+    const topic = (await createRes.json()) as { id: string; title: string; current_todo?: { title: string } };
     expect(topic.title).toBe('测试爆款人物解说');
     expect(topic.current_todo).toMatchObject({ title: '核对核心争议原片' });
 
@@ -102,7 +102,7 @@ describe('Bun Server Integration (Local SQLite & API)', () => {
       headers: { Authorization: `Bearer ${authToken}` },
     });
     expect(workspaceRes.status).toBe(200);
-    const initialWorkspace = await workspaceRes.json() as {
+    const initialWorkspace = (await workspaceRes.json()) as {
       draft: { title: string; content_markdown: string } | null;
       publish_package: unknown;
     };
@@ -133,7 +133,11 @@ describe('Bun Server Integration (Local SQLite & API)', () => {
       body: JSON.stringify(publishPackagePayload),
     });
     expect(publishPackageRes.status).toBe(200);
-    const savedPublishPackage = await publishPackageRes.json() as typeof publishPackagePayload & { id: string; version: number; updated_at: string };
+    const savedPublishPackage = (await publishPackageRes.json()) as typeof publishPackagePayload & {
+      id: string;
+      version: number;
+      updated_at: string;
+    };
     expect(savedPublishPackage.version).toBe(1);
     expect(savedPublishPackage.title_simplified).toBe('简体发布标题');
     expect(savedPublishPackage.title_traditional_auto).toBe(true);
@@ -144,12 +148,14 @@ describe('Bun Server Integration (Local SQLite & API)', () => {
       body: JSON.stringify({ ...publishPackagePayload, title_simplified: '过期版本' }),
     });
     expect(packageConflictRes.status).toBe(409);
-    expect((await packageConflictRes.json() as { error: string }).error).toBe('PUBLISH_PACKAGE_CONFLICT');
+    expect(((await packageConflictRes.json()) as { error: string }).error).toBe('PUBLISH_PACKAGE_CONFLICT');
 
     const persistedWorkspaceRes = await app.request(`/api/topics/${topic.id}/workspace`, {
       headers: { Authorization: `Bearer ${authToken}` },
     });
-    const persistedWorkspace = await persistedWorkspaceRes.json() as { publish_package: { version: number; title_simplified: string } };
+    const persistedWorkspace = (await persistedWorkspaceRes.json()) as {
+      publish_package: { version: number; title_simplified: string };
+    };
     expect(persistedWorkspace.publish_package.version).toBe(1);
     expect(persistedWorkspace.publish_package.title_simplified).toBe('简体发布标题');
 
@@ -157,7 +163,7 @@ describe('Bun Server Integration (Local SQLite & API)', () => {
       headers: { Authorization: `Bearer ${authToken}` },
     });
     expect(topicPageRes.status).toBe(200);
-    const topicPage = await topicPageRes.json() as {
+    const topicPage = (await topicPageRes.json()) as {
       total: number;
       summary: { total_words: number; in_scripting_count: number };
       scope_counts: { active: number; archived: number; trash: number };
@@ -178,7 +184,7 @@ describe('Bun Server Integration (Local SQLite & API)', () => {
     const scriptingPageRes = await app.request('/api/topics?scope=all&q=测试爆款', {
       headers: { Authorization: `Bearer ${authToken}` },
     });
-    const scriptingPage = await scriptingPageRes.json() as { summary: { in_scripting_count: number } };
+    const scriptingPage = (await scriptingPageRes.json()) as { summary: { in_scripting_count: number } };
     expect(scriptingPage.summary.in_scripting_count).toBe(1);
 
     const invalidSourceRes = await app.request('/api/sources', {
@@ -208,7 +214,7 @@ describe('Bun Server Integration (Local SQLite & API)', () => {
       body: JSON.stringify({ name: '安全头像人物', avatar_url: 'https://images.example.com/avatar.png' }),
     });
     expect(personRes.status).toBe(201);
-    const person = await personRes.json() as { id: string };
+    const person = (await personRes.json()) as { id: string };
     const invalidPersonPatchRes = await app.request(`/api/people/${person.id}`, {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${authToken}` },
@@ -251,7 +257,7 @@ describe('Bun Server Integration (Local SQLite & API)', () => {
       headers: { Authorization: `Bearer ${authToken}` },
     });
     expect(listDropsRes.status).toBe(200);
-    const dropList = await listDropsRes.json() as { items: Array<{ content: string }> };
+    const dropList = (await listDropsRes.json()) as { items: Array<{ content: string }> };
     expect(dropList.items.length).toBe(1);
     expect(dropList.items[0].content).toBe('某网红停播后续新料');
     const dropCountRes = await app.request('/api/inbox/quick-drops/count', {
@@ -272,7 +278,7 @@ describe('Bun Server Integration (Local SQLite & API)', () => {
       }),
     });
     expect(duplicateUrlDropRes.status).toBe(201);
-    const duplicateUrlDrop = await duplicateUrlDropRes.json() as { item: { content: string; url?: string } };
+    const duplicateUrlDrop = (await duplicateUrlDropRes.json()) as { item: { content: string; url?: string } };
     expect(duplicateUrlDrop.item.content).toBe('\n值得回看 https://x.com/home https://x.com/home\n');
     expect(duplicateUrlDrop.item.url).toBe('https://x.com/home');
 
@@ -285,7 +291,7 @@ describe('Bun Server Integration (Local SQLite & API)', () => {
       body: JSON.stringify({ url: 'https://example.com/a https://example.com/a' }),
     });
     expect(urlOnlyDropRes.status).toBe(201);
-    const urlOnlyDrop = await urlOnlyDropRes.json() as { item: { content: string; url?: string } };
+    const urlOnlyDrop = (await urlOnlyDropRes.json()) as { item: { content: string; url?: string } };
     expect(urlOnlyDrop.item.content).toBe('');
     expect(urlOnlyDrop.item.url).toBe('https://example.com/a');
 
@@ -298,15 +304,11 @@ describe('Bun Server Integration (Local SQLite & API)', () => {
       body: JSON.stringify({ content: 'https://example.com/from-content' }),
     });
     expect(contentOnlyUrlRes.status).toBe(201);
-    const contentOnlyUrl = await contentOnlyUrlRes.json() as { item: { content: string; url?: string } };
+    const contentOnlyUrl = (await contentOnlyUrlRes.json()) as { item: { content: string; url?: string } };
     expect(contentOnlyUrl.item.content).toBe('https://example.com/from-content');
     expect(contentOnlyUrl.item.url).toBeUndefined();
 
-    const invalidQuickDropUrls = [
-      'file:///etc/passwd',
-      'http://127.0.0.1:8787/',
-      'this is not a URL',
-    ];
+    const invalidQuickDropUrls = ['file:///etc/passwd', 'http://127.0.0.1:8787/', 'this is not a URL'];
     for (const url of invalidQuickDropUrls) {
       const invalidUrlRes = await app.request('/api/inbox/quick-drop', {
         method: 'POST',
@@ -330,25 +332,32 @@ describe('Bun Server Integration (Local SQLite & API)', () => {
       headers: { Authorization: `Bearer ${authToken}` },
     });
     expect(backupRes.status).toBe(200);
-    const backupPayload = await backupRes.json() as { data: Record<string, unknown> };
+    const backupPayload = (await backupRes.json()) as { data: Record<string, unknown> };
     expect(backupPayload.data).not.toHaveProperty('settings');
     const backupDownload = await app.request('/api/backup?format=download', {
       headers: { Authorization: `Bearer ${authToken}` },
     });
     expect(backupDownload.status).toBe(200);
     expect(backupDownload.headers.get('content-type')).toContain('application/json');
-    expect((await backupDownload.json() as { topics?: unknown[] }).topics).toBeDefined();
-    const fullBackupPayload = await (await app.request('/api/backup', {
-      headers: { Authorization: `Bearer ${authToken}` },
-    })).json() as { data: { publish_packages: Array<{ topic_id: string; title_simplified: string; title_traditional_auto: boolean }>; todos: Array<{ topic_id: string; title: string }> } };
+    expect(((await backupDownload.json()) as { topics?: unknown[] }).topics).toBeDefined();
+    const fullBackupPayload = (await (
+      await app.request('/api/backup', {
+        headers: { Authorization: `Bearer ${authToken}` },
+      })
+    ).json()) as {
+      data: {
+        publish_packages: Array<{ topic_id: string; title_simplified: string; title_traditional_auto: boolean }>;
+        todos: Array<{ topic_id: string; title: string }>;
+      };
+    };
     expect(fullBackupPayload.data.publish_packages[0]).toMatchObject({
       topic_id: topic.id,
       title_simplified: '简体发布标题',
       title_traditional_auto: true,
     });
-    expect(fullBackupPayload.data.todos).toEqual(expect.arrayContaining([
-      expect.objectContaining({ topic_id: topic.id, title: '核对核心争议原片' }),
-    ]));
+    expect(fullBackupPayload.data.todos).toEqual(
+      expect.arrayContaining([expect.objectContaining({ topic_id: topic.id, title: '核对核心争议原片' })]),
+    );
     const restoreRes = await app.request('/api/backup', {
       method: 'PUT',
       headers: { Authorization: `Bearer ${authToken}`, 'Content-Type': 'application/json' },
@@ -360,23 +369,31 @@ describe('Bun Server Integration (Local SQLite & API)', () => {
       }),
     });
     expect(restoreRes.status).toBe(200);
-    expect(sqlite.query('SELECT title_simplified FROM publish_packages WHERE topic_id = ?').get(topic.id)).toEqual({ title_simplified: '简体发布标题' });
+    expect(sqlite.query('SELECT title_simplified FROM publish_packages WHERE topic_id = ?').get(topic.id)).toEqual({
+      title_simplified: '简体发布标题',
+    });
     expect(sqlite.query("SELECT name FROM sqlite_master WHERE type = 'table' AND name = 'settings'").get()).toBeNull();
   });
 
   it('preserves a tag color when PATCH only changes the name', async () => {
     const loginRes = await app.request('/api/auth/login', {
-      method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ password: testPassword }),
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ password: testPassword }),
     });
-    const { token } = await loginRes.json() as { token: string };
+    const { token } = (await loginRes.json()) as { token: string };
     const headers = { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' };
     const createRes = await app.request('/api/tags', {
-      method: 'POST', headers, body: JSON.stringify({ name: '原色标签', color: 'rose' }),
+      method: 'POST',
+      headers,
+      body: JSON.stringify({ name: '原色标签', color: 'rose' }),
     });
-    const tag = await createRes.json() as { id: string; color: string };
+    const tag = (await createRes.json()) as { id: string; color: string };
 
     const updateRes = await app.request(`/api/tags/${tag.id}`, {
-      method: 'PATCH', headers, body: JSON.stringify({ name: '改名标签' }),
+      method: 'PATCH',
+      headers,
+      body: JSON.stringify({ name: '改名标签' }),
     });
 
     expect(updateRes.status).toBe(200);
@@ -389,54 +406,70 @@ describe('Bun Server Integration (Local SQLite & API)', () => {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ password: testPassword }),
     });
-    const { token } = await loginRes.json() as { token: string };
+    const { token } = (await loginRes.json()) as { token: string };
     const headers = { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' };
 
     const topicResponse = await app.request('/api/topics', {
-      method: 'POST', headers,
+      method: 'POST',
+      headers,
       body: JSON.stringify({ title: '商单主选题', summary: '主选题摘要', status: 'inbox' }),
     });
-    const topic = await topicResponse.json() as { id: string; status: string };
+    const topic = (await topicResponse.json()) as { id: string; status: string };
     const relatedTopicResponse = await app.request('/api/topics', {
-      method: 'POST', headers,
+      method: 'POST',
+      headers,
       body: JSON.stringify({ title: '商单系列选题', status: 'scripting' }),
     });
-    const relatedTopic = await relatedTopicResponse.json() as { id: string };
+    const relatedTopic = (await relatedTopicResponse.json()) as { id: string };
 
     const invalidDealResponse = await app.request('/api/deals', {
-      method: 'POST', headers,
+      method: 'POST',
+      headers,
       body: JSON.stringify({ title: '非法金额商单', amount_cents: -1 }),
     });
     expect(invalidDealResponse.status).toBe(400);
 
     const invalidStatusResponse = await app.request('/api/deals', {
-      method: 'POST', headers,
+      method: 'POST',
+      headers,
       body: JSON.stringify({ title: '旧阶段商单', status: 'reviewing' }),
     });
     expect(invalidStatusResponse.status).toBe(400);
 
     const createDealResponse = await app.request('/api/deals', {
-      method: 'POST', headers,
+      method: 'POST',
+      headers,
       body: JSON.stringify({
-        title: '春季品牌定制视频', brand_name: '测试品牌', contact_name: '小林',
-        source: 'brand_direct', deliverable_type: 'custom_video',
-        brief: '围绕主选题做一条定制视频', amount_cents: 125000,
-        delivery_due_date: '2026-01-01', next_action: '',
+        title: '春季品牌定制视频',
+        brand_name: '测试品牌',
+        contact_name: '小林',
+        source: 'brand_direct',
+        deliverable_type: 'custom_video',
+        brief: '围绕主选题做一条定制视频',
+        amount_cents: 125000,
+        delivery_due_date: '2026-01-01',
+        next_action: '',
       }),
     });
     expect(createDealResponse.status).toBe(201);
-    const deal = await createDealResponse.json() as { id: string; amount_cents: number; status: string; topics: unknown[] };
+    const deal = (await createDealResponse.json()) as {
+      id: string;
+      amount_cents: number;
+      status: string;
+      topics: unknown[];
+    };
     expect(deal.amount_cents).toBe(125000);
     expect(deal.status).toBe('communicating');
     expect(deal.topics).toHaveLength(0);
 
     const createAuxiliaryDeal = async (title: string, status: string) => {
       const response = await app.request('/api/deals', {
-        method: 'POST', headers,
+        method: 'POST',
+        headers,
         body: JSON.stringify({ title, status, source: 'other', deliverable_type: 'other' }),
       });
       expect(response.status).toBe(201);
-      return await response.json() as { id: string };
+      return (await response.json()) as { id: string };
     };
     await createAuxiliaryDeal('分页制作商单', 'producing');
     await createAuxiliaryDeal('分页归档商单', 'archived');
@@ -448,108 +481,143 @@ describe('Bun Server Integration (Local SQLite & API)', () => {
     expect(await allDealsPage.json()).toMatchObject({ page: 2, page_size: 2, total: 3, total_pages: 2 });
 
     const bindResponse = await app.request(`/api/deals/${deal.id}/topics`, {
-      method: 'PUT', headers,
+      method: 'PUT',
+      headers,
       body: JSON.stringify({ primary_topic_id: topic.id, related_topic_ids: [relatedTopic.id] }),
     });
     expect(bindResponse.status).toBe(200);
-    expect((await bindResponse.json() as { topics: Array<{ topic_id: string; relation_role: string }> }).topics).toEqual(expect.arrayContaining([
-      expect.objectContaining({ topic_id: topic.id, relation_role: 'primary' }),
-      expect.objectContaining({ topic_id: relatedTopic.id, relation_role: 'related' }),
-    ]));
+    expect(
+      ((await bindResponse.json()) as { topics: Array<{ topic_id: string; relation_role: string }> }).topics,
+    ).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ topic_id: topic.id, relation_role: 'primary' }),
+        expect.objectContaining({ topic_id: relatedTopic.id, relation_role: 'related' }),
+      ]),
+    );
 
     const topicDealsResponse = await app.request(`/api/topics/${topic.id}/deals`, { headers });
     expect(topicDealsResponse.status).toBe(200);
-    expect(await topicDealsResponse.json()).toEqual([expect.objectContaining({ id: deal.id, relation_role: 'primary' })]);
+    expect(await topicDealsResponse.json()).toEqual([
+      expect.objectContaining({ id: deal.id, relation_role: 'primary' }),
+    ]);
 
     const statusResponse = await app.request(`/api/deals/${deal.id}`, {
-      method: 'PATCH', headers,
+      method: 'PATCH',
+      headers,
       body: JSON.stringify({ status: 'producing' }),
     });
     expect(statusResponse.status).toBe(200);
     const invalidUpdateStatusResponse = await app.request(`/api/deals/${deal.id}`, {
-      method: 'PATCH', headers,
+      method: 'PATCH',
+      headers,
       body: JSON.stringify({ status: 'scheduled' }),
     });
     const unchangedTopic = await app.request(`/api/topics/${topic.id}`, { headers });
-    const topicData = await unchangedTopic.json() as { status: string; commercial_deals_count?: number };
+    const topicData = (await unchangedTopic.json()) as { status: string; commercial_deals_count?: number };
     expect(topicData.status).toBe('inbox');
     expect(topicData.commercial_deals_count).toBe(1);
 
     const focusResponse = await app.request('/api/deals/focus', { headers });
     expect(focusResponse.status).toBe(200);
-    expect((await focusResponse.json() as { due_items: Array<{ id: string }> }).due_items).toEqual(expect.arrayContaining([expect.objectContaining({ id: deal.id })]));
+    expect(((await focusResponse.json()) as { due_items: Array<{ id: string }> }).due_items).toEqual(
+      expect.arrayContaining([expect.objectContaining({ id: deal.id })]),
+    );
 
     const activityResponse = await app.request(`/api/deals/${deal.id}/activities`, {
-      method: 'POST', headers,
+      method: 'POST',
+      headers,
       body: JSON.stringify({ kind: 'note', content: '客户确认脚本方向，等待交付。' }),
     });
     expect(activityResponse.status).toBe(201);
 
-    sqlite.query(`INSERT INTO published_videos (id, title, published_at, updated_at) VALUES (?, ?, ?, ?)`)
+    sqlite
+      .query(`INSERT INTO published_videos (id, title, published_at, updated_at) VALUES (?, ?, ?, ?)`)
       .run('deal-published-video', '商单成片', '2026-01-02', '2026-01-02T00:00:00.000Z');
     const linkResponse = await app.request(`/api/deals/${deal.id}/link-published`, {
-      method: 'POST', headers,
+      method: 'POST',
+      headers,
       body: JSON.stringify({ published_video_id: 'deal-published-video' }),
     });
     expect(linkResponse.status).toBe(200);
 
     await app.request(`/api/deals/${deal.id}`, {
-      method: 'PATCH', headers,
+      method: 'PATCH',
+      headers,
       body: JSON.stringify({ status: 'delivered' }),
     });
     const unpaidFocusResponse = await app.request('/api/deals/focus', { headers });
-    expect((await unpaidFocusResponse.json() as { unpaid_items: Array<{ id: string }> }).unpaid_items).toEqual([expect.objectContaining({ id: deal.id })]);
+    expect(((await unpaidFocusResponse.json()) as { unpaid_items: Array<{ id: string }> }).unpaid_items).toEqual([
+      expect.objectContaining({ id: deal.id }),
+    ]);
 
     const replaceResponse = await app.request(`/api/deals/${deal.id}/topics`, {
-      method: 'PUT', headers,
+      method: 'PUT',
+      headers,
       body: JSON.stringify({ primary_topic_id: relatedTopic.id, related_topic_ids: [topic.id] }),
     });
     expect(replaceResponse.status).toBe(200);
-    expect((await replaceResponse.json() as { topics: Array<{ topic_id: string; relation_role: string }> }).topics).toEqual(expect.arrayContaining([
-      expect.objectContaining({ topic_id: relatedTopic.id, relation_role: 'primary' }),
-      expect.objectContaining({ topic_id: topic.id, relation_role: 'related' }),
-    ]));
+    expect(
+      ((await replaceResponse.json()) as { topics: Array<{ topic_id: string; relation_role: string }> }).topics,
+    ).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ topic_id: relatedTopic.id, relation_role: 'primary' }),
+        expect.objectContaining({ topic_id: topic.id, relation_role: 'related' }),
+      ]),
+    );
 
     const unlinkResponse = await app.request(`/api/deals/${deal.id}/topics`, {
-      method: 'PUT', headers,
+      method: 'PUT',
+      headers,
       body: JSON.stringify({ primary_topic_id: null, related_topic_ids: [] }),
     });
     expect(unlinkResponse.status).toBe(200);
-    expect((await unlinkResponse.json() as { topics: unknown[] }).topics).toHaveLength(0);
+    expect(((await unlinkResponse.json()) as { topics: unknown[] }).topics).toHaveLength(0);
 
     const paidResponse = await app.request(`/api/deals/${deal.id}`, {
-      method: 'PATCH', headers,
+      method: 'PATCH',
+      headers,
       body: JSON.stringify({ payment_status: 'paid', paid_at: '2026-01-03' }),
     });
     expect(paidResponse.status).toBe(200);
-    expect((await paidResponse.json() as { payment_status: string }).payment_status).toBe('paid');
+    expect(((await paidResponse.json()) as { payment_status: string }).payment_status).toBe('paid');
 
     const deleteTargetResponse = await app.request('/api/deals', {
-      method: 'POST', headers,
+      method: 'POST',
+      headers,
       body: JSON.stringify({ title: '待删除商单', status: 'communicating' }),
     });
-    const deleteTarget = await deleteTargetResponse.json() as { id: string };
+    const deleteTarget = (await deleteTargetResponse.json()) as { id: string };
     await app.request(`/api/deals/${deleteTarget.id}/topics`, {
-      method: 'PUT', headers,
+      method: 'PUT',
+      headers,
       body: JSON.stringify({ primary_topic_id: topic.id, related_topic_ids: [] }),
     });
     await app.request(`/api/deals/${deleteTarget.id}/activities`, {
-      method: 'POST', headers,
+      method: 'POST',
+      headers,
       body: JSON.stringify({ content: '删除前保留的活动记录' }),
     });
-    sqlite.query(`INSERT INTO published_videos (id, title, published_at, updated_at) VALUES (?, ?, ?, ?)`)
+    sqlite
+      .query(`INSERT INTO published_videos (id, title, published_at, updated_at) VALUES (?, ?, ?, ?)`)
       .run('delete-target-video', '不应被删除的视频', '2026-01-04', '2026-01-04T00:00:00.000Z');
     await app.request(`/api/deals/${deleteTarget.id}/link-published`, {
-      method: 'POST', headers,
+      method: 'POST',
+      headers,
       body: JSON.stringify({ published_video_id: 'delete-target-video' }),
     });
     const deleteResponse = await app.request(`/api/deals/${deleteTarget.id}`, { method: 'DELETE', headers });
     expect(deleteResponse.status).toBe(204);
     expect(await app.request(`/api/deals/${deleteTarget.id}`, { headers })).toHaveProperty('status', 404);
-    expect(sqlite.query('SELECT COUNT(*) AS count FROM commercial_deal_topics WHERE deal_id = ?').get(deleteTarget.id)).toEqual({ count: 0 });
-    expect(sqlite.query('SELECT COUNT(*) AS count FROM commercial_deal_activities WHERE deal_id = ?').get(deleteTarget.id)).toEqual({ count: 0 });
+    expect(
+      sqlite.query('SELECT COUNT(*) AS count FROM commercial_deal_topics WHERE deal_id = ?').get(deleteTarget.id),
+    ).toEqual({ count: 0 });
+    expect(
+      sqlite.query('SELECT COUNT(*) AS count FROM commercial_deal_activities WHERE deal_id = ?').get(deleteTarget.id),
+    ).toEqual({ count: 0 });
     expect(sqlite.query('SELECT id FROM topics WHERE id = ?').get(topic.id)).toEqual({ id: topic.id });
-    expect(sqlite.query('SELECT id FROM published_videos WHERE id = ?').get('delete-target-video')).toEqual({ id: 'delete-target-video' });
+    expect(sqlite.query('SELECT id FROM published_videos WHERE id = ?').get('delete-target-video')).toEqual({
+      id: 'delete-target-video',
+    });
   });
 
   it('rejects oversized unauthenticated login and quick-drop requests', async () => {
@@ -574,14 +642,17 @@ describe('Bun Server Integration (Local SQLite & API)', () => {
   it('uses the socket address for login rate limiting unless proxy headers are trusted', async () => {
     const results: number[] = [];
     for (let index = 0; index < 11; index += 1) {
-      const response = await app.fetch(new Request('http://localhost/api/auth/login', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'X-Forwarded-For': `198.51.100.${index + 1}`,
-        },
-        body: JSON.stringify({ password: 'wrong-password' }),
-      }), '127.0.0.1');
+      const response = await app.fetch(
+        new Request('http://localhost/api/auth/login', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'X-Forwarded-For': `198.51.100.${index + 1}`,
+          },
+          body: JSON.stringify({ password: 'wrong-password' }),
+        }),
+        '127.0.0.1',
+      );
       results.push(response.status);
     }
     expect(results.slice(0, 10)).toEqual(Array(10).fill(401));
@@ -598,15 +669,18 @@ describe('Bun Server Integration (Local SQLite & API)', () => {
     });
     const results: number[] = [];
     for (let index = 0; index < 11; index += 1) {
-      const response = await trustedApp.fetch(new Request('http://localhost/api/auth/login', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'X-Real-IP': '203.0.113.88',
-          'X-Forwarded-For': `203.0.113.${100 + index}`,
-        },
-        body: JSON.stringify({ password: 'wrong-password' }),
-      }), `198.51.100.${index + 1}`);
+      const response = await trustedApp.fetch(
+        new Request('http://localhost/api/auth/login', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'X-Real-IP': '203.0.113.88',
+            'X-Forwarded-For': `203.0.113.${100 + index}`,
+          },
+          body: JSON.stringify({ password: 'wrong-password' }),
+        }),
+        `198.51.100.${index + 1}`,
+      );
       results.push(response.status);
     }
     expect(results.slice(0, 10)).toEqual(Array(10).fill(401));
@@ -615,15 +689,19 @@ describe('Bun Server Integration (Local SQLite & API)', () => {
 
   it('saves and retrieves topic reports with conflict protection', async () => {
     const now = new Date().toISOString();
-    sqlite.query(`INSERT INTO topics (id, title, created_at, updated_at)
-      VALUES (?, ?, ?, ?)`).run('report-test-topic', '选题报告测试', now, now);
+    sqlite
+      .query(
+        `INSERT INTO topics (id, title, created_at, updated_at)
+      VALUES (?, ?, ?, ?)`,
+      )
+      .run('report-test-topic', '选题报告测试', now, now);
 
     const loginRes = await app.request('/api/auth/login', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ password: testPassword }),
     });
-    const { token } = await loginRes.json() as { token: string };
+    const { token } = (await loginRes.json()) as { token: string };
     const headers = { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' };
 
     const getInitial = await app.request('/api/topics/report-test-topic/report', { headers });
@@ -640,7 +718,7 @@ describe('Bun Server Integration (Local SQLite & API)', () => {
       }),
     });
     expect(putRes.status).toBe(200);
-    const createdReport = await putRes.json() as { content_markdown: string; version: number };
+    const createdReport = (await putRes.json()) as { content_markdown: string; version: number };
     expect(createdReport.content_markdown).toContain('选题调查报告');
     expect(createdReport.version).toBe(1);
 
@@ -661,7 +739,7 @@ describe('Bun Server Integration (Local SQLite & API)', () => {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ password: testPassword }),
     });
-    const { token } = await loginRes.json() as { token: string };
+    const { token } = (await loginRes.json()) as { token: string };
     const headers = { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' };
 
     const firstCreateRes = await app.request('/api/topics', {
@@ -677,8 +755,10 @@ describe('Bun Server Integration (Local SQLite & API)', () => {
       body: JSON.stringify({ id: 'topic-create-integrity', title: '不应覆盖原始选题' }),
     });
     expect(duplicateCreateRes.status).toBe(409);
-    expect(sqlite.query('SELECT title, deleted_at FROM topics WHERE id = ?').get('topic-create-integrity'))
-      .toEqual({ title: '原始选题', deleted_at: null });
+    expect(sqlite.query('SELECT title, deleted_at FROM topics WHERE id = ?').get('topic-create-integrity')).toEqual({
+      title: '原始选题',
+      deleted_at: null,
+    });
 
     const createWithLifecycleFieldRes = await app.request('/api/topics', {
       method: 'POST',
@@ -693,21 +773,26 @@ describe('Bun Server Integration (Local SQLite & API)', () => {
       body: JSON.stringify({ deleted_at: '2026-09-18T00:00:00.000Z' }),
     });
     expect(patchWithLifecycleFieldRes.status).toBe(400);
-    expect(sqlite.query('SELECT deleted_at FROM topics WHERE id = ?').get('topic-create-integrity'))
-      .toEqual({ deleted_at: null });
+    expect(sqlite.query('SELECT deleted_at FROM topics WHERE id = ?').get('topic-create-integrity')).toEqual({
+      deleted_at: null,
+    });
   });
 
   it('creates and updates sources with timeline dates and sort orders', async () => {
     const now = new Date().toISOString();
-    sqlite.query(`INSERT INTO topics (id, title, created_at, updated_at)
-      VALUES (?, ?, ?, ?)`).run('source-timeline-topic', '素材时间线测试', now, now);
+    sqlite
+      .query(
+        `INSERT INTO topics (id, title, created_at, updated_at)
+      VALUES (?, ?, ?, ?)`,
+      )
+      .run('source-timeline-topic', '素材时间线测试', now, now);
 
     const loginRes = await app.request('/api/auth/login', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ password: testPassword }),
     });
-    const { token } = await loginRes.json() as { token: string };
+    const { token } = (await loginRes.json()) as { token: string };
     const headers = { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' };
 
     const createRes = await app.request('/api/sources', {
@@ -722,7 +807,7 @@ describe('Bun Server Integration (Local SQLite & API)', () => {
       }),
     });
     expect(createRes.status).toBe(201);
-    const created = await createRes.json() as { id: string; event_date: string; sort_order: number };
+    const created = (await createRes.json()) as { id: string; event_date: string; sort_order: number };
     expect(created.event_date).toBe('2026-08-15');
     expect(created.sort_order).toBe(1);
 
@@ -735,18 +820,24 @@ describe('Bun Server Integration (Local SQLite & API)', () => {
       }),
     });
     expect(patchRes.status).toBe(200);
-    const updated = await patchRes.json() as { event_date: string; sort_order: number };
+    const updated = (await patchRes.json()) as { event_date: string; sort_order: number };
     expect(updated.event_date).toBe('2026-08-20');
     expect(updated.sort_order).toBe(2);
 
     const invalidDateRes = await app.request(`/api/sources/${created.id}`, {
-      method: 'PATCH', headers, body: JSON.stringify({ event_date: '2026-02-30' }),
+      method: 'PATCH',
+      headers,
+      body: JSON.stringify({ event_date: '2026-02-30' }),
     });
     const invalidPrecisionRes = await app.request(`/api/sources/${created.id}`, {
-      method: 'PATCH', headers, body: JSON.stringify({ date_precision: 'decade' }),
+      method: 'PATCH',
+      headers,
+      body: JSON.stringify({ date_precision: 'decade' }),
     });
     const invalidOrderRes = await app.request(`/api/sources/${created.id}`, {
-      method: 'PATCH', headers, body: JSON.stringify({ sort_order: 1.5 }),
+      method: 'PATCH',
+      headers,
+      body: JSON.stringify({ sort_order: 1.5 }),
     });
     expect(invalidDateRes.status).toBe(400);
     expect(invalidPrecisionRes.status).toBe(400);
@@ -766,47 +857,69 @@ describe('Bun Server Integration (Local SQLite & API)', () => {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ password: testPassword }),
     });
-    const { token } = await loginRes.json() as { token: string };
+    const { token } = (await loginRes.json()) as { token: string };
     const headers = { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' };
 
     const a = await app.request('/api/topics/topic-1/presence', {
-      method: 'POST', headers, body: JSON.stringify({ client_id: 'client-a', device_name: 'A' }),
+      method: 'POST',
+      headers,
+      body: JSON.stringify({ client_id: 'client-a', device_name: 'A' }),
     });
-    expect((await a.json() as { is_locked: boolean }).is_locked).toBe(false);
+    expect(((await a.json()) as { is_locked: boolean }).is_locked).toBe(false);
 
     const b = await app.request('/api/topics/topic-1/presence', {
-      method: 'POST', headers, body: JSON.stringify({ client_id: 'client-b', device_name: 'B' }),
+      method: 'POST',
+      headers,
+      body: JSON.stringify({ client_id: 'client-b', device_name: 'B' }),
     });
-    const bData = await b.json() as { is_locked: boolean; active_editor?: { client_id: string } };
+    const bData = (await b.json()) as { is_locked: boolean; active_editor?: { client_id: string } };
     expect(bData.is_locked).toBe(true);
     expect(bData.active_editor?.client_id).toBe('client-a');
 
     const aAgain = await app.request('/api/topics/topic-1/presence', {
-      method: 'POST', headers, body: JSON.stringify({ client_id: 'client-a', device_name: 'A' }),
+      method: 'POST',
+      headers,
+      body: JSON.stringify({ client_id: 'client-a', device_name: 'A' }),
     });
-    const aData = await aAgain.json() as { is_locked: boolean };
+    const aData = (await aAgain.json()) as { is_locked: boolean };
     expect(aData.is_locked).toBe(false);
 
     const missingClientRelease = await app.request('/api/topics/topic-1/presence', { method: 'DELETE', headers });
     expect(missingClientRelease.status).toBe(400);
-    const wrongClientRelease = await app.request('/api/topics/topic-1/presence?client_id=client-b', { method: 'DELETE', headers });
+    const wrongClientRelease = await app.request('/api/topics/topic-1/presence?client_id=client-b', {
+      method: 'DELETE',
+      headers,
+    });
     expect(wrongClientRelease.status).toBe(409);
-    const ownerRelease = await app.request('/api/topics/topic-1/presence?client_id=client-a', { method: 'DELETE', headers });
+    const ownerRelease = await app.request('/api/topics/topic-1/presence?client_id=client-a', {
+      method: 'DELETE',
+      headers,
+    });
     expect(ownerRelease.status).toBe(200);
 
-    const concurrent = await Promise.all(['client-c', 'client-d'].map((clientId) => app.request('/api/topics/topic-1/presence', {
-      method: 'POST', headers, body: JSON.stringify({ client_id: clientId, device_name: clientId }),
-    })));
-    const concurrentResults = await Promise.all(concurrent.map((response) => response.json() as Promise<{ is_locked: boolean }>));
-    expect(concurrentResults.filter((result) => !result.is_locked)).toHaveLength(1);
-    expect(concurrentResults.filter((result) => result.is_locked)).toHaveLength(1);
+    const concurrent = await Promise.all(
+      ['client-c', 'client-d'].map(clientId =>
+        app.request('/api/topics/topic-1/presence', {
+          method: 'POST',
+          headers,
+          body: JSON.stringify({ client_id: clientId, device_name: clientId }),
+        }),
+      ),
+    );
+    const concurrentResults = await Promise.all(
+      concurrent.map(response => response.json() as Promise<{ is_locked: boolean }>),
+    );
+    expect(concurrentResults.filter(result => !result.is_locked)).toHaveLength(1);
+    expect(concurrentResults.filter(result => result.is_locked)).toHaveLength(1);
   });
 
   it('returns every commercial deal in a bounded calendar range', async () => {
     const loginRes = await app.request('/api/auth/login', {
-      method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ password: testPassword }),
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ password: testPassword }),
     });
-    const { token } = await loginRes.json() as { token: string };
+    const { token } = (await loginRes.json()) as { token: string };
     const headers = { Authorization: `Bearer ${token}` };
     const now = new Date().toISOString();
     const insert = sqlite.query(`INSERT INTO commercial_deals (
@@ -819,73 +932,89 @@ describe('Bun Server Integration (Local SQLite & API)', () => {
 
     const response = await app.request('/api/deals/calendar?start=2026-09-01&end=2026-10-12', { headers });
     expect(response.status).toBe(200);
-    const items = await response.json() as Array<{ id: string }>;
+    const items = (await response.json()) as Array<{ id: string }>;
     expect(items).toHaveLength(105);
-    expect(items.some((item) => item.id === 'calendar-outside')).toBe(false);
+    expect(items.some(item => item.id === 'calendar-outside')).toBe(false);
     expect((await app.request('/api/deals/calendar?start=2026-01-01&end=2026-12-31', { headers })).status).toBe(400);
   });
 
   it('searches published-video topic options beyond the first page and excludes linked topics', async () => {
     const loginRes = await app.request('/api/auth/login', {
-      method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ password: testPassword }),
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ password: testPassword }),
     });
-    const { token } = await loginRes.json() as { token: string };
+    const { token } = (await loginRes.json()) as { token: string };
     const headers = { Authorization: `Bearer ${token}` };
     const now = new Date().toISOString();
     for (let index = 0; index < 101; index += 1) {
       const topicId = `published-option-topic-${index}`;
-      sqlite.query(`INSERT INTO topics (id, title, created_at, updated_at) VALUES (?, ?, ?, ?)`)
+      sqlite
+        .query(`INSERT INTO topics (id, title, created_at, updated_at) VALUES (?, ?, ?, ?)`)
         .run(topicId, index === 100 ? '唯一可用的深分页选题' : `已占用选题 ${index}`, now, now);
       if (index < 100) {
-        sqlite.query(`INSERT INTO published_videos (id, topic_id, title, updated_at) VALUES (?, ?, ?, ?)`)
+        sqlite
+          .query(`INSERT INTO published_videos (id, topic_id, title, updated_at) VALUES (?, ?, ?, ?)`)
           .run(`published-option-video-${index}`, topicId, `已发布视频 ${index}`, now);
       }
     }
 
-    const response = await app.request('/api/topics?scope=all&page=1&page_size=10&q=深分页&available_for_published=true', { headers });
+    const response = await app.request(
+      '/api/topics?scope=all&page=1&page_size=10&q=深分页&available_for_published=true',
+      { headers },
+    );
     expect(response.status).toBe(200);
-    const data = await response.json() as { items: Array<{ id: string }>; total: number };
+    const data = (await response.json()) as { items: Array<{ id: string }>; total: number };
     expect(data.total).toBe(1);
-    expect(data.items.map((topic) => topic.id)).toEqual(['published-option-topic-100']);
+    expect(data.items.map(topic => topic.id)).toEqual(['published-option-topic-100']);
   });
 
   it('rejects duplicate published-video topic associations through the API', async () => {
     const loginRes = await app.request('/api/auth/login', {
-      method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ password: testPassword }),
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ password: testPassword }),
     });
-    const { token } = await loginRes.json() as { token: string };
+    const { token } = (await loginRes.json()) as { token: string };
     const headers = { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` };
     const now = new Date().toISOString();
-    sqlite.query('INSERT INTO topics (id, title, created_at, updated_at) VALUES (?, ?, ?, ?)')
+    sqlite
+      .query('INSERT INTO topics (id, title, created_at, updated_at) VALUES (?, ?, ?, ?)')
       .run('published-unique-topic-a', '已关联选题 A', now, now);
-    sqlite.query('INSERT INTO topics (id, title, created_at, updated_at) VALUES (?, ?, ?, ?)')
+    sqlite
+      .query('INSERT INTO topics (id, title, created_at, updated_at) VALUES (?, ?, ?, ?)')
       .run('published-unique-topic-b', '已关联选题 B', now, now);
 
     const first = await app.request('/api/published', {
-      method: 'POST', headers,
+      method: 'POST',
+      headers,
       body: JSON.stringify({ topic_id: 'published-unique-topic-a', title: '首个发布视频' }),
     });
     expect(first.status).toBe(201);
 
     const duplicate = await app.request('/api/published', {
-      method: 'POST', headers,
+      method: 'POST',
+      headers,
       body: JSON.stringify({ topic_id: 'published-unique-topic-a', title: '重复发布视频' }),
     });
     expect(duplicate.status).toBe(409);
 
     const second = await app.request('/api/published', {
-      method: 'POST', headers,
+      method: 'POST',
+      headers,
       body: JSON.stringify({ topic_id: 'published-unique-topic-b', title: '第二个发布视频' }),
     });
     expect(second.status).toBe(201);
-    const secondVideo = await second.json() as { id: string };
+    const secondVideo = (await second.json()) as { id: string };
     const conflictingUpdate = await app.request(`/api/published/${secondVideo.id}`, {
-      method: 'PATCH', headers,
+      method: 'PATCH',
+      headers,
       body: JSON.stringify({ topic_id: 'published-unique-topic-a' }),
     });
     expect(conflictingUpdate.status).toBe(409);
-    expect(sqlite.query('SELECT topic_id FROM published_videos WHERE id = ?').get(secondVideo.id))
-      .toEqual({ topic_id: 'published-unique-topic-b' });
+    expect(sqlite.query('SELECT topic_id FROM published_videos WHERE id = ?').get(secondVideo.id)).toEqual({
+      topic_id: 'published-unique-topic-b',
+    });
   });
 
   it('handles batch permanent deletion across multiple topics correctly', async () => {
@@ -894,7 +1023,7 @@ describe('Bun Server Integration (Local SQLite & API)', () => {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ password: testPassword }),
     });
-    const { token } = await loginRes.json() as { token: string };
+    const { token } = (await loginRes.json()) as { token: string };
     const headers = { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' };
 
     // Create 30 topics to verify the whole batch remains transactional.
@@ -905,7 +1034,7 @@ describe('Bun Server Integration (Local SQLite & API)', () => {
         headers,
         body: JSON.stringify({ title: `批量删除测试主题 ${i + 1}` }),
       });
-      const topic = await createRes.json() as { id: string };
+      const topic = (await createRes.json()) as { id: string };
       topicIds.push(topic.id);
       // Soft delete it
       await app.request(`/api/topics/${topic.id}`, { method: 'DELETE', headers });
@@ -918,13 +1047,13 @@ describe('Bun Server Integration (Local SQLite & API)', () => {
       body: JSON.stringify({ ids: topicIds }),
     });
     expect(batchDeleteRes.status).toBe(200);
-    const batchData = await batchDeleteRes.json() as { success: boolean; count: number };
+    const batchData = (await batchDeleteRes.json()) as { success: boolean; count: number };
     expect(batchData.success).toBe(true);
     expect(batchData.count).toBe(30);
 
     // Verify trash is now empty
     const trashRes = await app.request('/api/topics/trash', { headers });
-    const trashList = await trashRes.json() as unknown[];
+    const trashList = (await trashRes.json()) as unknown[];
     expect(trashList.length).toBe(0);
   });
 
@@ -932,11 +1061,19 @@ describe('Bun Server Integration (Local SQLite & API)', () => {
     const now = new Date().toISOString();
     const topicIds = Array.from({ length: 26 }, (_, index) => `rollback-trash-${index}`);
     for (const [index, id] of topicIds.entries()) {
-      sqlite.query(`INSERT INTO topics (id, title, created_at, updated_at, deleted_at)
-        VALUES (?, ?, ?, ?, ?)`).run(id, `回滚删除测试 ${index}`, now, now, now);
+      sqlite
+        .query(
+          `INSERT INTO topics (id, title, created_at, updated_at, deleted_at)
+        VALUES (?, ?, ?, ?, ?)`,
+        )
+        .run(id, `回滚删除测试 ${index}`, now, now, now);
     }
-    sqlite.query(`INSERT INTO sources (id, topic_id, title, created_at, updated_at)
-      VALUES (?, ?, ?, ?, ?)`).run('rollback-trash-source', topicIds[0], '应保留的关联资料', now, now);
+    sqlite
+      .query(
+        `INSERT INTO sources (id, topic_id, title, created_at, updated_at)
+      VALUES (?, ?, ?, ?, ?)`,
+      )
+      .run('rollback-trash-source', topicIds[0], '应保留的关联资料', now, now);
     sqlite.exec(`
       CREATE TRIGGER fail_permanent_topic_delete
       BEFORE DELETE ON topics
@@ -951,7 +1088,7 @@ describe('Bun Server Integration (Local SQLite & API)', () => {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ password: testPassword }),
     });
-    const { token } = await loginRes.json() as { token: string };
+    const { token } = (await loginRes.json()) as { token: string };
     const deleteRes = await app.request('/api/topics/batch/permanent', {
       method: 'POST',
       headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
@@ -959,10 +1096,12 @@ describe('Bun Server Integration (Local SQLite & API)', () => {
     });
 
     expect(deleteRes.status).toBe(500);
-    expect(sqlite.query('SELECT COUNT(*) AS count FROM topics WHERE id LIKE ?').get('rollback-trash-%'))
-      .toEqual({ count: 26 });
-    expect(sqlite.query('SELECT id FROM sources WHERE id = ?').get('rollback-trash-source'))
-      .toEqual({ id: 'rollback-trash-source' });
+    expect(sqlite.query('SELECT COUNT(*) AS count FROM topics WHERE id LIKE ?').get('rollback-trash-%')).toEqual({
+      count: 26,
+    });
+    expect(sqlite.query('SELECT id FROM sources WHERE id = ?').get('rollback-trash-source')).toEqual({
+      id: 'rollback-trash-source',
+    });
   });
 
   it('handles source deletes idempotently and leaves retired timeline APIs removed', async () => {
@@ -971,7 +1110,7 @@ describe('Bun Server Integration (Local SQLite & API)', () => {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ password: testPassword }),
     });
-    const { token } = await loginRes.json() as { token: string };
+    const { token } = (await loginRes.json()) as { token: string };
     const headers = { Authorization: `Bearer ${token}` };
 
     const deleteNonExistentSource = await app.request('/api/sources/non-existent-src-id', {
@@ -992,8 +1131,9 @@ describe('Bun Server Integration (Local SQLite & API)', () => {
       body: JSON.stringify({ topic_id: 'topic-1', title: '不应静默丢弃的旧接口写入' }),
     });
     expect(createRetiredTimeline.status).toBe(404);
-    expect(sqlite.query("SELECT COUNT(*) AS count FROM sources WHERE title = '不应静默丢弃的旧接口写入'").get())
-      .toEqual({ count: 0 });
+    expect(
+      sqlite.query("SELECT COUNT(*) AS count FROM sources WHERE title = '不应静默丢弃的旧接口写入'").get(),
+    ).toEqual({ count: 0 });
   });
 
   it('returns stable paginated published, people, tag and today-focus data', async () => {
@@ -1002,22 +1142,36 @@ describe('Bun Server Integration (Local SQLite & API)', () => {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ password: testPassword }),
     });
-    const { token } = await loginRes.json() as { token: string };
+    const { token } = (await loginRes.json()) as { token: string };
     const headers = { Authorization: `Bearer ${token}` };
     const now = new Date().toISOString();
 
     for (let index = 0; index < 31; index += 1) {
-      sqlite.query(`INSERT INTO published_videos (id, title, published_at, updated_at)
-        VALUES (?, ?, ?, ?)`).run(`published-${index}`, `归档视频 ${index}`, now, now);
-      sqlite.query(`INSERT INTO people (id, name, created_at, updated_at)
-        VALUES (?, ?, ?, ?)`).run(`person-${index}`, `人物 ${index}`, now, now);
-      sqlite.query(`INSERT INTO topics (id, title, status, created_at, updated_at)
-        VALUES (?, ?, 'scripting', ?, ?)`).run(`topic-${index}`, `分页选题 ${index}`, now, now);
+      sqlite
+        .query(
+          `INSERT INTO published_videos (id, title, published_at, updated_at)
+        VALUES (?, ?, ?, ?)`,
+        )
+        .run(`published-${index}`, `归档视频 ${index}`, now, now);
+      sqlite
+        .query(
+          `INSERT INTO people (id, name, created_at, updated_at)
+        VALUES (?, ?, ?, ?)`,
+        )
+        .run(`person-${index}`, `人物 ${index}`, now, now);
+      sqlite
+        .query(
+          `INSERT INTO topics (id, title, status, created_at, updated_at)
+        VALUES (?, ?, 'scripting', ?, ?)`,
+        )
+        .run(`topic-${index}`, `分页选题 ${index}`, now, now);
     }
-    sqlite.query(`INSERT INTO tags (id, name, color, created_at) VALUES (?, ?, ?, ?)`)
+    sqlite
+      .query(`INSERT INTO tags (id, name, color, created_at) VALUES (?, ?, ?, ?)`)
       .run('tag-pagination', '分页赛道', 'rose', now);
     for (let index = 0; index < 31; index += 1) {
-      sqlite.query(`INSERT INTO topic_tags (id, topic_id, tag_id) VALUES (?, ?, ?)`)
+      sqlite
+        .query(`INSERT INTO topic_tags (id, topic_id, tag_id) VALUES (?, ?, ?)`)
         .run(`topic-tag-${index}`, `topic-${index}`, 'tag-pagination');
     }
 
@@ -1025,21 +1179,23 @@ describe('Bun Server Integration (Local SQLite & API)', () => {
     const publishedPageTwo = await app.request('/api/published/page?page=2&page_size=30', { headers });
     expect(publishedPageOne.status).toBe(200);
     expect(publishedPageTwo.status).toBe(200);
-    expect((await publishedPageOne.json() as { items: unknown[]; total: number; total_pages: number }).items).toHaveLength(30);
+    expect(
+      ((await publishedPageOne.json()) as { items: unknown[]; total: number; total_pages: number }).items,
+    ).toHaveLength(30);
     expect(await publishedPageTwo.json()).toMatchObject({ page: 2, total: 31, total_pages: 2 });
 
     const analyticsPageOne = await app.request('/api/published/analytics?page=1&page_size=30&range=all', { headers });
     const analyticsPageTwo = await app.request('/api/published/analytics?page=2&page_size=30&range=all', { headers });
     expect(analyticsPageOne.status).toBe(200);
     expect(analyticsPageTwo.status).toBe(200);
-    const analyticsDataOne = await analyticsPageOne.json() as {
+    const analyticsDataOne = (await analyticsPageOne.json()) as {
       totalVideos: number;
       ranking_total: number;
       ranking_page: number;
       ranking_page_size: number;
       ranking: unknown[];
     };
-    const analyticsDataTwo = await analyticsPageTwo.json() as { ranking: unknown[]; ranking_page: number };
+    const analyticsDataTwo = (await analyticsPageTwo.json()) as { ranking: unknown[]; ranking_page: number };
     expect(analyticsDataOne).toMatchObject({
       totalVideos: 31,
       ranking_total: 31,
@@ -1054,7 +1210,7 @@ describe('Bun Server Integration (Local SQLite & API)', () => {
     expect(await peopleSearch.json()).toMatchObject({ total: 2, total_pages: 1 });
 
     const tagsPage = await app.request('/api/tags/page?page=1&page_size=1', { headers });
-    const tagsData = await tagsPage.json() as {
+    const tagsData = (await tagsPage.json()) as {
       items: Array<{ stats: { count: number } }>;
       total: number;
       summary: { tagged_topics: number; total_topics: number };
@@ -1064,7 +1220,7 @@ describe('Bun Server Integration (Local SQLite & API)', () => {
     expect(tagsData.summary).toEqual({ tagged_topics: 31, total_topics: 31 });
 
     const todayFocus = await app.request('/api/today/focus', { headers });
-    const todayData = await todayFocus.json() as {
+    const todayData = (await todayFocus.json()) as {
       topics: unknown[];
       total_active: number;
       action_progress?: { active_count: number; covered_count: number };
@@ -1074,7 +1230,7 @@ describe('Bun Server Integration (Local SQLite & API)', () => {
     expect(todayData.action_progress).toMatchObject({ active_count: 31 });
 
     const topicSummary = await app.request('/api/topics/summary', { headers });
-    const summaryData = await topicSummary.json() as { active_count: number };
+    const summaryData = (await topicSummary.json()) as { active_count: number };
     expect(topicSummary.status).toBe(200);
     expect(summaryData).toEqual({ active_count: 31 });
   });

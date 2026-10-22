@@ -16,7 +16,7 @@ import {
   Link2,
   Sparkles,
   Quote,
-  Layers
+  Layers,
 } from 'lucide-react';
 import { CustomSelect } from '../ui/CustomSelect';
 import { ConfirmDialog } from '../ui/ConfirmDialog';
@@ -31,7 +31,12 @@ interface PeopleViewProps {
   topics: Topic[];
   onSavePerson: (person: Partial<Person> & { name: string }) => Promise<Person | void>;
   onDeletePerson: (personId: string) => Promise<void>;
-  onSaveRelationship: (rel: { person_a_id: string; person_b_id: string; relationship: string; description?: string }) => Promise<void>;
+  onSaveRelationship: (rel: {
+    person_a_id: string;
+    person_b_id: string;
+    relationship: string;
+    description?: string;
+  }) => Promise<void>;
   onDeleteRelationship: (relId: string) => Promise<void>;
   onSelectTopic: (topicId: string) => void;
 }
@@ -156,7 +161,7 @@ export const PeopleView: React.FC<PeopleViewProps> = ({
     queryKey: ['people-options'],
     queryFn: fetchPeopleOptions,
   });
-  const peopleOptions = peopleOptionsQuery.data || people.map((person) => ({ id: person.id, name: person.name }));
+  const peopleOptions = peopleOptionsQuery.data || people.map(person => ({ id: person.id, name: person.name }));
 
   return (
     <div className="min-h-0 min-w-0 flex-1 w-full h-full overflow-y-auto overscroll-contain mobile-bottom-nav-content">
@@ -164,37 +169,37 @@ export const PeopleView: React.FC<PeopleViewProps> = ({
         <PageHeader
           title="互联网人物档案与关系库"
           icon={Users}
-          actions={(
+          actions={
             <>
-            <button
-              type="button"
-              onClick={() => {
-                if (peopleOptions.length < 2) {
-                  showToast({ message: '请先创建至少2位人物以建立关系', tone: 'info' });
-                  return;
-                }
-                setRelPersonA(peopleOptions[0]?.id || '');
-                setRelPersonB(peopleOptions[1]?.id || '');
-                setRelName('');
-                setRelDesc('');
-                setIsRelModalOpen(true);
-              }}
-              className="inline-flex h-10 items-center gap-1.5 rounded-xl bg-control px-3.5 text-xs font-medium text-ink transition-colors hover:bg-control-hover sm:text-sm cursor-pointer"
-            >
-              <Link2 className="h-4 w-4 text-ink-muted" aria-hidden="true" />
-              <span>+ 记录人物关系</span>
-            </button>
+              <button
+                type="button"
+                onClick={() => {
+                  if (peopleOptions.length < 2) {
+                    showToast({ message: '请先创建至少2位人物以建立关系', tone: 'info' });
+                    return;
+                  }
+                  setRelPersonA(peopleOptions[0]?.id || '');
+                  setRelPersonB(peopleOptions[1]?.id || '');
+                  setRelName('');
+                  setRelDesc('');
+                  setIsRelModalOpen(true);
+                }}
+                className="inline-flex h-10 items-center gap-1.5 rounded-xl bg-control px-3.5 text-xs font-medium text-ink transition-colors hover:bg-control-hover sm:text-sm cursor-pointer"
+              >
+                <Link2 className="h-4 w-4 text-ink-muted" aria-hidden="true" />
+                <span>+ 记录人物关系</span>
+              </button>
 
-            <button
-              type="button"
-              onClick={openAddPersonModal}
-              className="inline-flex h-10 items-center gap-1.5 rounded-xl bg-accent px-4 text-xs font-semibold text-white shadow-2xs transition-all hover:bg-accent-dark active:scale-[0.98] sm:text-sm cursor-pointer"
-            >
-              <Plus className="h-4 w-4 stroke-[2.5]" aria-hidden="true" />
-              <span>新建人物档案</span>
-            </button>
+              <button
+                type="button"
+                onClick={openAddPersonModal}
+                className="inline-flex h-10 items-center gap-1.5 rounded-xl bg-accent px-4 text-xs font-semibold text-white shadow-2xs transition-all hover:bg-accent-dark active:scale-[0.98] sm:text-sm cursor-pointer"
+              >
+                <Plus className="h-4 w-4 stroke-[2.5]" aria-hidden="true" />
+                <span>新建人物档案</span>
+              </button>
             </>
-          )}
+          }
         />
 
         {/* Search Bar */}
@@ -208,20 +213,18 @@ export const PeopleView: React.FC<PeopleViewProps> = ({
             autoComplete="off"
             placeholder="搜索人物姓名、身份、别名或语录..."
             value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
+            onChange={e => setSearchTerm(e.target.value)}
             className="w-full pl-10 pr-3.5 py-2.5 bg-surface border border-line rounded-xl text-xs sm:text-sm text-ink placeholder:text-ink-muted focus:outline-none focus:border-accent shadow-2xs transition-colors"
           />
         </div>
 
         {/* People Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
-          {filteredPeople.map((person) => {
+          {filteredPeople.map(person => {
             const relatedTopics = person.related_topic_previews || [];
             const safeAvatarUrl = sanitizeExternalHttpUrl(person.avatar_url);
 
-            const personRels = relationships.filter(
-              (r) => r.person_a_id === person.id || r.person_b_id === person.id
-            );
+            const personRels = relationships.filter(r => r.person_a_id === person.id || r.person_b_id === person.id);
 
             return (
               <div
@@ -303,19 +306,22 @@ export const PeopleView: React.FC<PeopleViewProps> = ({
                     <div className="space-y-1.5 pt-1">
                       <div className="text-2xs font-semibold text-ink-muted">已知关系网：</div>
                       <div className="flex flex-wrap gap-1.5">
-                        {personRels.map((r) => {
-                          const targetName =
-                            r.person_a_id === person.id ? r.person_b_name : r.person_a_name;
+                        {personRels.map(r => {
+                          const targetName = r.person_a_id === person.id ? r.person_b_name : r.person_a_name;
                           return (
                             <span
                               key={r.id}
                               className="group inline-flex items-center gap-1 text-xs bg-control text-ink pl-2.5 pr-1.5 py-0.5 rounded-lg"
                             >
-                              <span>与 {targetName}: {r.relationship}</span>
+                              <span>
+                                与 {targetName}: {r.relationship}
+                              </span>
                               <button
                                 type="button"
                                 aria-label={`解除与 ${targetName} 的关系`}
-                                onClick={() => setDeletingRel({ id: r.id, label: `与 ${targetName} 的「${r.relationship}」关系` })}
+                                onClick={() =>
+                                  setDeletingRel({ id: r.id, label: `与 ${targetName} 的「${r.relationship}」关系` })
+                                }
                                 className="text-ink-muted hover:text-danger p-0.5 rounded transition-colors cursor-pointer"
                               >
                                 <span className="text-xs leading-none">×</span>
@@ -336,7 +342,7 @@ export const PeopleView: React.FC<PeopleViewProps> = ({
                   </div>
                   {relatedTopics.length > 0 && (
                     <div className="space-y-1">
-                      {relatedTopics.slice(0, 2).map((t) => (
+                      {relatedTopics.slice(0, 2).map(t => (
                         <button
                           key={t.id}
                           onClick={() => onSelectTopic(t.id)}
@@ -361,9 +367,28 @@ export const PeopleView: React.FC<PeopleViewProps> = ({
 
         {totalPeople > 0 && (
           <div className="flex items-center justify-center gap-3 text-xs text-ink-muted">
-            <button type="button" disabled={page <= 1 || peoplePageQuery.isFetching} onClick={() => setPage((current) => Math.max(1, current - 1))} className="rounded-lg border border-line bg-surface text-ink px-3 py-2 font-semibold disabled:cursor-not-allowed disabled:opacity-40">上一页</button>
-            <span><span className="font-mono tabular-nums">{page} / {Math.max(1, peoplePageQuery.data?.total_pages || 1)}</span> · 共 <span className="font-mono tabular-nums">{totalPeople}</span> 人</span>
-            <button type="button" disabled={page >= (peoplePageQuery.data?.total_pages || 1) || peoplePageQuery.isFetching} onClick={() => setPage((current) => current + 1)} className="rounded-lg border border-line bg-surface text-ink px-3 py-2 font-semibold disabled:cursor-not-allowed disabled:opacity-40">下一页</button>
+            <button
+              type="button"
+              disabled={page <= 1 || peoplePageQuery.isFetching}
+              onClick={() => setPage(current => Math.max(1, current - 1))}
+              className="rounded-lg border border-line bg-surface text-ink px-3 py-2 font-semibold disabled:cursor-not-allowed disabled:opacity-40"
+            >
+              上一页
+            </button>
+            <span>
+              <span className="font-mono tabular-nums">
+                {page} / {Math.max(1, peoplePageQuery.data?.total_pages || 1)}
+              </span>{' '}
+              · 共 <span className="font-mono tabular-nums">{totalPeople}</span> 人
+            </span>
+            <button
+              type="button"
+              disabled={page >= (peoplePageQuery.data?.total_pages || 1) || peoplePageQuery.isFetching}
+              onClick={() => setPage(current => current + 1)}
+              className="rounded-lg border border-line bg-surface text-ink px-3 py-2 font-semibold disabled:cursor-not-allowed disabled:opacity-40"
+            >
+              下一页
+            </button>
           </div>
         )}
 
@@ -387,14 +412,16 @@ export const PeopleView: React.FC<PeopleViewProps> = ({
                 autoComplete="name"
                 placeholder="例如：大胃袋良子"
                 value={name}
-                onChange={(e) => setName(e.target.value)}
+                onChange={e => setName(e.target.value)}
                 className="w-full px-3.5 py-2.5 bg-control border border-line rounded-xl text-sm text-ink placeholder:text-ink-muted focus:bg-surface focus:border-accent focus:outline-none"
               />
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div>
-                <label htmlFor="person-aliases" className="block text-xs font-bold text-ink mb-1">常用昵称 / 别名</label>
+                <label htmlFor="person-aliases" className="block text-xs font-bold text-ink mb-1">
+                  常用昵称 / 别名
+                </label>
                 <input
                   id="person-aliases"
                   name="aliases"
@@ -402,12 +429,14 @@ export const PeopleView: React.FC<PeopleViewProps> = ({
                   autoComplete="off"
                   placeholder="良子, 峨眉山战神"
                   value={aliases}
-                  onChange={(e) => setAliases(e.target.value)}
+                  onChange={e => setAliases(e.target.value)}
                   className="w-full px-3.5 py-2.5 bg-control border border-line rounded-xl text-sm text-ink placeholder:text-ink-muted focus:bg-surface focus:border-accent focus:outline-none"
                 />
               </div>
               <div>
-                <label htmlFor="person-identity" className="block text-xs font-bold text-ink mb-1">身份标签</label>
+                <label htmlFor="person-identity" className="block text-xs font-bold text-ink mb-1">
+                  身份标签
+                </label>
                 <input
                   id="person-identity"
                   name="identity"
@@ -415,14 +444,16 @@ export const PeopleView: React.FC<PeopleViewProps> = ({
                   autoComplete="off"
                   placeholder="吃播博主 / 健身教练"
                   value={identity}
-                  onChange={(e) => setIdentity(e.target.value)}
+                  onChange={e => setIdentity(e.target.value)}
                   className="w-full px-3.5 py-2.5 bg-control border border-line rounded-xl text-sm text-ink placeholder:text-ink-muted focus:bg-surface focus:border-accent focus:outline-none"
                 />
               </div>
             </div>
 
             <div>
-              <label htmlFor="person-avatar-url" className="block text-xs font-bold text-ink mb-1">头像图片 URL</label>
+              <label htmlFor="person-avatar-url" className="block text-xs font-bold text-ink mb-1">
+                头像图片 URL
+              </label>
               <input
                 id="person-avatar-url"
                 name="avatar_url"
@@ -430,13 +461,15 @@ export const PeopleView: React.FC<PeopleViewProps> = ({
                 autoComplete="url"
                 placeholder="https://..."
                 value={avatarUrl}
-                onChange={(e) => setAvatarUrl(e.target.value)}
+                onChange={e => setAvatarUrl(e.target.value)}
                 className="w-full px-3.5 py-2.5 bg-control border border-line rounded-xl text-sm text-ink placeholder:text-ink-muted focus:bg-surface focus:border-accent focus:outline-none"
               />
             </div>
 
             <div>
-              <label htmlFor="person-platform-accounts" className="block text-xs font-bold text-ink mb-1">主要平台与账号</label>
+              <label htmlFor="person-platform-accounts" className="block text-xs font-bold text-ink mb-1">
+                主要平台与账号
+              </label>
               <input
                 id="person-platform-accounts"
                 name="platform_accounts"
@@ -444,13 +477,15 @@ export const PeopleView: React.FC<PeopleViewProps> = ({
                 autoComplete="off"
                 placeholder="抖音: @良子大胃袋 (280w), B站: @良子吃不饱"
                 value={platformAccounts}
-                onChange={(e) => setPlatformAccounts(e.target.value)}
+                onChange={e => setPlatformAccounts(e.target.value)}
                 className="w-full px-3.5 py-2.5 bg-control border border-line rounded-xl text-sm text-ink placeholder:text-ink-muted focus:bg-surface focus:border-accent focus:outline-none"
               />
             </div>
 
             <div>
-              <label htmlFor="person-quotes" className="block text-xs font-bold text-ink mb-1">经典名言 / 代表语录</label>
+              <label htmlFor="person-quotes" className="block text-xs font-bold text-ink mb-1">
+                经典名言 / 代表语录
+              </label>
               <input
                 id="person-quotes"
                 name="quotes"
@@ -458,13 +493,15 @@ export const PeopleView: React.FC<PeopleViewProps> = ({
                 autoComplete="off"
                 placeholder="“这次上峨眉山，我不是来旅游的...”"
                 value={quotes}
-                onChange={(e) => setQuotes(e.target.value)}
+                onChange={e => setQuotes(e.target.value)}
                 className="w-full px-3.5 py-2.5 bg-control border border-line rounded-xl text-sm text-ink placeholder:text-ink-muted focus:bg-surface focus:border-accent focus:outline-none"
               />
             </div>
 
             <div>
-              <label htmlFor="person-description" className="block text-xs font-bold text-ink mb-1">一句话人物生平与人设简介</label>
+              <label htmlFor="person-description" className="block text-xs font-bold text-ink mb-1">
+                一句话人物生平与人设简介
+              </label>
               <textarea
                 id="person-description"
                 name="description"
@@ -472,7 +509,7 @@ export const PeopleView: React.FC<PeopleViewProps> = ({
                 rows={3}
                 placeholder="记录该人物的行为特征、性格反差与过往核心黑历史..."
                 value={description}
-                onChange={(e) => setDescription(e.target.value)}
+                onChange={e => setDescription(e.target.value)}
                 className="w-full px-3.5 py-2.5 bg-control border border-line rounded-xl text-sm text-ink placeholder:text-ink-muted focus:bg-surface focus:border-accent focus:outline-none resize-none"
               />
             </div>
@@ -496,36 +533,35 @@ export const PeopleView: React.FC<PeopleViewProps> = ({
         </Modal>
 
         {/* Modal: Add Relationship */}
-        <Modal
-          isOpen={isRelModalOpen}
-          onClose={() => setIsRelModalOpen(false)}
-          title="记录人物对应关系"
-          maxWidth="md"
-        >
+        <Modal isOpen={isRelModalOpen} onClose={() => setIsRelModalOpen(false)} title="记录人物对应关系" maxWidth="md">
           <form onSubmit={handleRelSubmit} className="space-y-4">
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div>
-                <label id="relationship-person-a-label" className="block text-xs font-bold text-ink mb-1">人物 A</label>
+                <label id="relationship-person-a-label" className="block text-xs font-bold text-ink mb-1">
+                  人物 A
+                </label>
                 <CustomSelect
                   value={relPersonA}
-                  onChange={(val) => setRelPersonA(val)}
+                  onChange={val => setRelPersonA(val)}
                   ariaLabel="人物 A"
                   ariaLabelledBy="relationship-person-a-label"
                   className="w-full"
                   buttonClassName="w-full justify-between py-2 text-sm bg-control border-line rounded-xl"
-                  options={peopleOptions.map((p) => ({ value: p.id, label: p.name }))}
+                  options={peopleOptions.map(p => ({ value: p.id, label: p.name }))}
                 />
               </div>
               <div>
-                <label id="relationship-person-b-label" className="block text-xs font-bold text-ink mb-1">人物 B</label>
+                <label id="relationship-person-b-label" className="block text-xs font-bold text-ink mb-1">
+                  人物 B
+                </label>
                 <CustomSelect
                   value={relPersonB}
-                  onChange={(val) => setRelPersonB(val)}
+                  onChange={val => setRelPersonB(val)}
                   ariaLabel="人物 B"
                   ariaLabelledBy="relationship-person-b-label"
                   className="w-full"
                   buttonClassName="w-full justify-between py-2 text-sm bg-control border-line rounded-xl"
-                  options={peopleOptions.map((p) => ({ value: p.id, label: p.name }))}
+                  options={peopleOptions.map(p => ({ value: p.id, label: p.name }))}
                 />
               </div>
             </div>
@@ -542,13 +578,15 @@ export const PeopleView: React.FC<PeopleViewProps> = ({
                 autoComplete="off"
                 placeholder="例如：师徒反目 / 商业对手 / 前合伙人"
                 value={relName}
-                onChange={(e) => setRelName(e.target.value)}
+                onChange={e => setRelName(e.target.value)}
                 className="w-full px-3.5 py-2.5 bg-control border border-line rounded-xl text-sm text-ink placeholder:text-ink-muted focus:bg-surface focus:border-accent focus:outline-none"
               />
             </div>
 
             <div>
-              <label htmlFor="relationship-description" className="block text-xs font-bold text-ink mb-1">关系背景补充说明</label>
+              <label htmlFor="relationship-description" className="block text-xs font-bold text-ink mb-1">
+                关系背景补充说明
+              </label>
               <textarea
                 id="relationship-description"
                 name="relationship_description"
@@ -556,7 +594,7 @@ export const PeopleView: React.FC<PeopleViewProps> = ({
                 rows={2}
                 placeholder="简要说明双方爆发冲突或合作的关键时间点与事件..."
                 value={relDesc}
-                onChange={(e) => setRelDesc(e.target.value)}
+                onChange={e => setRelDesc(e.target.value)}
                 className="w-full px-3.5 py-2.5 bg-control border border-line rounded-xl text-sm text-ink placeholder:text-ink-muted focus:bg-surface focus:border-accent focus:outline-none resize-none"
               />
             </div>
@@ -585,13 +623,23 @@ export const PeopleView: React.FC<PeopleViewProps> = ({
           onConfirm={async () => {
             if (!deletingPerson) return;
             await onDeletePerson(deletingPerson.id);
-            if (filteredPeople.length === 1 && page > 1) setPage((current) => current - 1);
-            await invalidateQueryGroups(queryClient, [['people-page'], ['people-options'], ['people'], ['relationships'], ['workspace']]);
+            if (filteredPeople.length === 1 && page > 1) setPage(current => current - 1);
+            await invalidateQueryGroups(queryClient, [
+              ['people-page'],
+              ['people-options'],
+              ['people'],
+              ['relationships'],
+              ['workspace'],
+            ]);
             setDeletingPerson(null);
             showToast({ message: `已删除人物档案「${deletingPerson.name}」`, tone: 'info' });
           }}
           title="删除人物档案"
-          description={deletingPerson ? `确定要删除人物档案「${deletingPerson.name}」吗？\n\n人物关联关系网将一并解除，但不会影响已写文案内容。` : ''}
+          description={
+            deletingPerson
+              ? `确定要删除人物档案「${deletingPerson.name}」吗？\n\n人物关联关系网将一并解除，但不会影响已写文案内容。`
+              : ''
+          }
           confirmText="删除档案"
           tone="danger"
         />

@@ -43,9 +43,7 @@ function DraggableTopicCard({
       data-testid="unscheduled-topic-card"
       data-topic-id={topic.id}
       className={`group flex flex-col gap-2 rounded-xl border border-line bg-surface p-3 shadow-subtle transition-all hover:border-accent/40 hover:shadow-card ${
-        isDragging
-          ? 'transition-none will-change-transform ring-1 ring-accent/70 shadow-card'
-          : 'duration-200'
+        isDragging ? 'transition-none will-change-transform ring-1 ring-accent/70 shadow-card' : 'duration-200'
       }`}
     >
       <div className="flex items-center justify-between gap-1.5">
@@ -60,7 +58,7 @@ function DraggableTopicCard({
           {...attributes}
           {...listeners}
           aria-label={`拖拽「${topic.title}」至日历定档；按 Enter 或空格打开定档操作`}
-          onKeyDown={(event) => {
+          onKeyDown={event => {
             if (event.key === 'Enter' || event.key === ' ') {
               event.preventDefault();
               onScheduleTopic(topic);
@@ -88,7 +86,13 @@ function DraggableTopicCard({
 
       <div className="flex items-center justify-between border-t border-line pt-1 text-3xs text-ink-muted">
         <span>
-          {(topic.draft_word_count || 0) > 0 ? <><span className="font-mono tabular-nums">{topic.draft_word_count}</span>字</> : '未动笔'}
+          {(topic.draft_word_count || 0) > 0 ? (
+            <>
+              <span className="font-mono tabular-nums">{topic.draft_word_count}</span>字
+            </>
+          ) : (
+            '未动笔'
+          )}
         </span>
 
         <button
@@ -144,9 +148,11 @@ export const UnscheduledTopicPool: React.FC<UnscheduledTopicPoolProps> = ({
       if (event.key !== 'Tab') return;
       const drawer = closeButtonRef.current?.closest('aside');
       if (!drawer) return;
-      const focusable = Array.from(drawer.querySelectorAll<HTMLElement>(
-        'button:not([disabled]), input:not([disabled]), [href], textarea:not([disabled]), select:not([disabled]), [tabindex]:not([tabindex="-1"])'
-      ));
+      const focusable = Array.from(
+        drawer.querySelectorAll<HTMLElement>(
+          'button:not([disabled]), input:not([disabled]), [href], textarea:not([disabled]), select:not([disabled]), [tabindex]:not([tabindex="-1"])',
+        ),
+      );
       if (focusable.length === 0) return;
       const first = focusable[0];
       const last = focusable[focusable.length - 1];
@@ -171,7 +177,7 @@ export const UnscheduledTopicPool: React.FC<UnscheduledTopicPoolProps> = ({
 
   // Filter unscheduled topics
   const unscheduledTopics = useMemo(() => {
-    return topics.filter((topic) => {
+    return topics.filter(topic => {
       if (topic.deleted_at || topic.status === 'published' || topic.status === 'icebox') return false;
       if (topic.target_publish_date) return false;
       if (statusFilter !== 'all' && topic.status !== statusFilter) return false;
@@ -198,7 +204,9 @@ export const UnscheduledTopicPool: React.FC<UnscheduledTopicPoolProps> = ({
       {/* Header */}
       <div className="flex items-center justify-between border-b border-line p-4">
         <div className="flex items-center gap-2">
-          <h2 id="unscheduled-topic-pool-title" className="text-sm font-bold text-ink">待排期选题池</h2>
+          <h2 id="unscheduled-topic-pool-title" className="text-sm font-bold text-ink">
+            待排期选题池
+          </h2>
           <span className="rounded-full bg-accent-soft px-2 py-0.5 font-mono text-xs font-bold text-accent">
             {unscheduledTopics.length}
           </span>
@@ -225,7 +233,7 @@ export const UnscheduledTopicPool: React.FC<UnscheduledTopicPoolProps> = ({
             autoComplete="off"
             placeholder="搜索待排期选题..."
             value={search}
-            onChange={(e) => setSearch(e.target.value)}
+            onChange={e => setSearch(e.target.value)}
             className="min-h-10 w-full rounded-xl border border-line bg-canvas px-3 pl-8 text-xs text-ink focus:border-accent focus:outline-none"
           />
         </div>
@@ -237,7 +245,7 @@ export const UnscheduledTopicPool: React.FC<UnscheduledTopicPoolProps> = ({
             { id: 'scripting', label: '写稿中' },
             { id: 'production', label: '待制作' },
             { id: 'inbox', label: '收集箱' },
-          ].map((item) => (
+          ].map(item => (
             <button
               key={item.id}
               type="button"
@@ -257,11 +265,9 @@ export const UnscheduledTopicPool: React.FC<UnscheduledTopicPoolProps> = ({
 
       {/* Topics Stream */}
       <FloatingScrollbar className="space-y-2.5 p-3" wrapperClassName="min-h-0 flex-1">
-        <div className="px-1 text-2xs text-ink-muted">
-          💡 提示：按住卡片右侧把手可直接拖拽至左侧日历日期定档
-        </div>
+        <div className="px-1 text-2xs text-ink-muted">💡 提示：按住卡片右侧把手可直接拖拽至左侧日历日期定档</div>
 
-        {unscheduledTopics.map((topic) => (
+        {unscheduledTopics.map(topic => (
           <DraggableTopicCard
             key={topic.id}
             topic={topic}

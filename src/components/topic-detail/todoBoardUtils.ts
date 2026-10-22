@@ -7,10 +7,11 @@ export const TODO_BOARD_COLUMNS: Array<{ status: TopicTodoStatus; label: string;
 ];
 
 export function getTodoBoardLayout(todos: TopicTodo[]): TopicTodoBoardLayout {
-  const idsFor = (status: TopicTodoStatus) => todos
-    .filter((todo) => todo.status === status)
-    .sort((a, b) => a.sort_order - b.sort_order || a.created_at.localeCompare(b.created_at))
-    .map((todo) => todo.id);
+  const idsFor = (status: TopicTodoStatus) =>
+    todos
+      .filter(todo => todo.status === status)
+      .sort((a, b) => a.sort_order - b.sort_order || a.created_at.localeCompare(b.created_at))
+      .map(todo => todo.id);
   return {
     todo_ids: idsFor('todo'),
     in_progress_ids: idsFor('in_progress'),

@@ -17,10 +17,11 @@ describe('Topic pin API', () => {
     db = sqlite;
     app = createApp({ DB: db, APP_PASSWORD: 'pin-test-password' } satisfies ApiBindings);
     const response = await app.request('/api/auth/login', {
-      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ password: 'pin-test-password' }),
     });
-    const { token } = await response.json() as { token: string };
+    const { token } = (await response.json()) as { token: string };
     headers = { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' };
   });
 
@@ -29,70 +30,92 @@ describe('Topic pin API', () => {
   it('allows only one active pinned topic and returns the cleared topic IDs', async () => {
     const create = async (title: string, status = 'production') => {
       const response = await app.request('/api/topics', {
-        method: 'POST', headers, body: JSON.stringify({ title, status }),
+        method: 'POST',
+        headers,
+        body: JSON.stringify({ title, status }),
       });
       expect(response.status).toBe(201);
-      return await response.json() as { id: string };
+      return (await response.json()) as { id: string };
     };
     const first = await create('第一个主推');
     const second = await create('第二个主推');
 
     const firstPin = await app.request(`/api/topics/${first.id}/pin`, {
-      method: 'POST', headers, body: JSON.stringify({ is_pinned: 1 }),
+      method: 'POST',
+      headers,
+      body: JSON.stringify({ is_pinned: 1 }),
     });
     expect(firstPin.status).toBe(200);
-    expect((await firstPin.json() as { cleared_topic_ids: string[] }).cleared_topic_ids).toEqual([]);
+    expect(((await firstPin.json()) as { cleared_topic_ids: string[] }).cleared_topic_ids).toEqual([]);
 
     const secondPin = await app.request(`/api/topics/${second.id}/pin`, {
-      method: 'POST', headers, body: JSON.stringify({ is_pinned: 1 }),
+      method: 'POST',
+      headers,
+      body: JSON.stringify({ is_pinned: 1 }),
     });
     expect(secondPin.status).toBe(200);
-    expect((await secondPin.json() as { cleared_topic_ids: string[] }).cleared_topic_ids).toEqual([first.id]);
+    expect(((await secondPin.json()) as { cleared_topic_ids: string[] }).cleared_topic_ids).toEqual([first.id]);
 
     const page = await app.request('/api/topics?scope=active&page_size=20', { headers });
-    const items = await page.json() as { items: Array<{ id: string; is_pinned: number }> };
-    expect(items.items.find((item) => item.id === first.id)?.is_pinned).toBe(0);
-    expect(items.items.find((item) => item.id === second.id)?.is_pinned).toBe(1);
+    const items = (await page.json()) as { items: Array<{ id: string; is_pinned: number }> };
+    expect(items.items.find(item => item.id === first.id)?.is_pinned).toBe(0);
+    expect(items.items.find(item => item.id === second.id)?.is_pinned).toBe(1);
   });
 
   it('rejects archived topics as the main topic and clears pin when archiving', async () => {
     const createResponse = await app.request('/api/topics', {
-      method: 'POST', headers, body: JSON.stringify({ title: '活跃主推' }),
+      method: 'POST',
+      headers,
+      body: JSON.stringify({ title: '活跃主推' }),
     });
-    const active = await createResponse.json() as { id: string };
+    const active = (await createResponse.json()) as { id: string };
     const pinResponse = await app.request(`/api/topics/${active.id}/pin`, {
-      method: 'POST', headers, body: JSON.stringify({ is_pinned: 1 }),
+      method: 'POST',
+      headers,
+      body: JSON.stringify({ is_pinned: 1 }),
     });
     expect(pinResponse.status).toBe(200);
 
     const archiveResponse = await app.request(`/api/topics/${active.id}`, {
-      method: 'PATCH', headers, body: JSON.stringify({ status: 'published' }),
+      method: 'PATCH',
+      headers,
+      body: JSON.stringify({ status: 'published' }),
     });
     expect(archiveResponse.status).toBe(200);
-    expect((await archiveResponse.json() as { is_pinned: number }).is_pinned).toBe(0);
+    expect(((await archiveResponse.json()) as { is_pinned: number }).is_pinned).toBe(0);
 
     const archivedCreate = await app.request('/api/topics', {
-      method: 'POST', headers, body: JSON.stringify({ title: '已发布选题', status: 'published' }),
+      method: 'POST',
+      headers,
+      body: JSON.stringify({ title: '已发布选题', status: 'published' }),
     });
-    const archived = await archivedCreate.json() as { id: string };
+    const archived = (await archivedCreate.json()) as { id: string };
     const rejected = await app.request(`/api/topics/${archived.id}/pin`, {
-      method: 'POST', headers, body: JSON.stringify({ is_pinned: 1 }),
+      method: 'POST',
+      headers,
+      body: JSON.stringify({ is_pinned: 1 }),
     });
     expect(rejected.status).toBe(409);
   });
 
   it('does not clear the current pin when pinning a missing topic through topic update', async () => {
     const createResponse = await app.request('/api/topics', {
-      method: 'POST', headers, body: JSON.stringify({ title: '仍应保持置顶的选题' }),
+      method: 'POST',
+      headers,
+      body: JSON.stringify({ title: '仍应保持置顶的选题' }),
     });
-    const topic = await createResponse.json() as { id: string };
+    const topic = (await createResponse.json()) as { id: string };
     const pinResponse = await app.request(`/api/topics/${topic.id}/pin`, {
-      method: 'POST', headers, body: JSON.stringify({ is_pinned: 1 }),
+      method: 'POST',
+      headers,
+      body: JSON.stringify({ is_pinned: 1 }),
     });
     expect(pinResponse.status).toBe(200);
 
     const missingUpdate = await app.request('/api/topics/topic-does-not-exist', {
-      method: 'PATCH', headers, body: JSON.stringify({ is_pinned: 1 }),
+      method: 'PATCH',
+      headers,
+      body: JSON.stringify({ is_pinned: 1 }),
     });
     expect(missingUpdate.status).toBe(404);
     const stored = sqlite.query('SELECT is_pinned FROM topics WHERE id = ?').get(topic.id) as { is_pinned: number };
@@ -101,17 +124,18 @@ describe('Topic pin API', () => {
 
   it('serializes a pin against archiving so an archived topic cannot remain pinned', async () => {
     const createResponse = await app.request('/api/topics', {
-      method: 'POST', headers, body: JSON.stringify({ title: '并发归档与置顶' }),
+      method: 'POST',
+      headers,
+      body: JSON.stringify({ title: '并发归档与置顶' }),
     });
-    const topic = await createResponse.json() as { id: string };
+    const topic = (await createResponse.json()) as { id: string };
 
-    await Promise.all([
-      setTopicPinned(db, topic.id, 1),
-      updateTopic(db, topic.id, { status: 'published' }),
-    ]);
+    await Promise.all([setTopicPinned(db, topic.id, 1), updateTopic(db, topic.id, { status: 'published' })]);
 
-    const stored = sqlite.query('SELECT status, is_pinned FROM topics WHERE id = ?').get(topic.id) as
-      { status: string; is_pinned: number };
+    const stored = sqlite.query('SELECT status, is_pinned FROM topics WHERE id = ?').get(topic.id) as {
+      status: string;
+      is_pinned: number;
+    };
     expect(stored).toEqual({ status: 'published', is_pinned: 0 });
   });
 });

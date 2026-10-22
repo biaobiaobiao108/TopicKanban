@@ -1,9 +1,9 @@
-import type { Editor } from "@tiptap/core";
-import { Fragment, type Node as ProseMirrorNode } from "@tiptap/pm/model";
-import { closeHistory } from "@tiptap/pm/history";
-import { TextSelection } from "@tiptap/pm/state";
+import type { Editor } from '@tiptap/core';
+import { Fragment, type Node as ProseMirrorNode } from '@tiptap/pm/model';
+import { closeHistory } from '@tiptap/pm/history';
+import { TextSelection } from '@tiptap/pm/state';
 
-export type TableEdgeAxis = "columns" | "rows";
+export type TableEdgeAxis = 'columns' | 'rows';
 
 export type ActiveTableContext = {
   node: ProseMirrorNode;
@@ -13,7 +13,7 @@ export type ActiveTableContext = {
   lastCellTextPosition: number;
 };
 
-export type TableEdgeSnapshot = Pick<ActiveTableContext, "node" | "position" | "lastCellTextPosition">;
+export type TableEdgeSnapshot = Pick<ActiveTableContext, 'node' | 'position' | 'lastCellTextPosition'>;
 
 export type TableEdgeTransactionOptions = {
   addToHistory?: boolean;
@@ -36,7 +36,7 @@ export function snapTableEdgeDrag(distance: number, currentSize: number, step = 
 }
 
 function createTableContext(node: ProseMirrorNode, position: number): ActiveTableContext | null {
-  if (node.type.name !== "table" || node.childCount === 0) return null;
+  if (node.type.name !== 'table' || node.childCount === 0) return null;
   const lastRowIndex = node.childCount - 1;
   let lastCellTextPosition = position + node.nodeSize - 2;
   node.forEach((row, rowOffset, rowIndex) => {
@@ -65,7 +65,7 @@ export function getActiveTableContext(editor: Editor, tablePosition?: number): A
 
   const { $from } = editor.state.selection;
   for (let depth = $from.depth; depth > 0; depth -= 1) {
-    if ($from.node(depth).type.name === "table") {
+    if ($from.node(depth).type.name === 'table') {
       return createTableContext($from.node(depth), $from.before(depth));
     }
   }
@@ -82,48 +82,69 @@ export function getActiveTableSnapshot(editor: Editor, tablePosition?: number): 
   };
 }
 
-export function restoreActiveTableSnapshot(editor: Editor, snapshot: TableEdgeSnapshot, options: TableEdgeTransactionOptions = {}) {
+export function restoreActiveTableSnapshot(
+  editor: Editor,
+  snapshot: TableEdgeSnapshot,
+  options: TableEdgeTransactionOptions = {},
+) {
   const context = getActiveTableContext(editor, snapshot.position);
   if (!context) return false;
 
-  return editor.chain().command(({ tr }) => {
-    tr.replaceWith(context.position, context.position + context.node.nodeSize, snapshot.node);
-    tr.setSelection(TextSelection.near(tr.doc.resolve(snapshot.lastCellTextPosition), 1));
-    if (options.addToHistory === false) tr.setMeta("addToHistory", false);
-    if (options.emitUpdate === false) tr.setMeta("preventUpdate", true);
-    if (options.closeHistory) closeHistory(tr);
-    return true;
-  }).run();
+  return editor
+    .chain()
+    .command(({ tr }) => {
+      tr.replaceWith(context.position, context.position + context.node.nodeSize, snapshot.node);
+      tr.setSelection(TextSelection.near(tr.doc.resolve(snapshot.lastCellTextPosition), 1));
+      if (options.addToHistory === false) tr.setMeta('addToHistory', false);
+      if (options.emitUpdate === false) tr.setMeta('preventUpdate', true);
+      if (options.closeHistory) closeHistory(tr);
+      return true;
+    })
+    .run();
 }
 
-export function adjustActiveTableSize(editor: Editor, axis: TableEdgeAxis, delta: number, options: TableEdgeTransactionOptions = {}, tablePosition?: number) {
+export function adjustActiveTableSize(
+  editor: Editor,
+  axis: TableEdgeAxis,
+  delta: number,
+  options: TableEdgeTransactionOptions = {},
+  tablePosition?: number,
+) {
   const context = getActiveTableContext(editor, tablePosition);
   const amount = Math.trunc(delta);
   if (!context || !amount) return false;
 
-  const currentSize = axis === "columns" ? context.columns : context.rows;
+  const currentSize = axis === 'columns' ? context.columns : context.rows;
   const operationCount = amount > 0 ? amount : Math.min(currentSize - 1, Math.abs(amount));
   if (operationCount < 1) return false;
 
   const schema = editor.state.schema;
   let nextTable = context.node;
   for (let index = 0; index < operationCount; index += 1) {
-    const next = axis === "columns"
-      ? amount > 0 ? addTrailingColumn(nextTable, schema) : removeTrailingColumn(nextTable)
-      : amount > 0 ? addTrailingRow(nextTable, schema) : removeTrailingRow(nextTable);
+    const next =
+      axis === 'columns'
+        ? amount > 0
+          ? addTrailingColumn(nextTable, schema)
+          : removeTrailingColumn(nextTable)
+        : amount > 0
+          ? addTrailingRow(nextTable, schema)
+          : removeTrailingRow(nextTable);
     if (!next) return false;
     nextTable = next;
   }
 
   const lastCellPosition = getLastCellTextPosition(context.position, nextTable);
-  return editor.chain().command(({ tr }) => {
-    tr.replaceWith(context.position, context.position + context.node.nodeSize, nextTable);
-    tr.setSelection(TextSelection.near(tr.doc.resolve(lastCellPosition), 1));
-    if (options.addToHistory === false) tr.setMeta("addToHistory", false);
-    if (options.emitUpdate === false) tr.setMeta("preventUpdate", true);
-    if (options.closeHistory) closeHistory(tr);
-    return true;
-  }).run();
+  return editor
+    .chain()
+    .command(({ tr }) => {
+      tr.replaceWith(context.position, context.position + context.node.nodeSize, nextTable);
+      tr.setSelection(TextSelection.near(tr.doc.resolve(lastCellPosition), 1));
+      if (options.addToHistory === false) tr.setMeta('addToHistory', false);
+      if (options.emitUpdate === false) tr.setMeta('preventUpdate', true);
+      if (options.closeHistory) closeHistory(tr);
+      return true;
+    })
+    .run();
 }
 
 function getLastCellTextPosition(tablePosition: number, table: ProseMirrorNode) {
@@ -134,15 +155,15 @@ function getLastCellTextPosition(tablePosition: number, table: ProseMirrorNode) 
   return tablePosition + 4 + lastRowOffset + lastCellOffset;
 }
 
-function addTrailingColumn(table: ProseMirrorNode, schema: Editor["state"]["schema"]) {
+function addTrailingColumn(table: ProseMirrorNode, schema: Editor['state']['schema']) {
   const rows: ProseMirrorNode[] = [];
   let valid = true;
-  table.forEach((row) => {
+  table.forEach(row => {
     const cells: ProseMirrorNode[] = [];
-    row.forEach((cell) => cells.push(cell));
+    row.forEach(cell => cells.push(cell));
     const lastCell = cells[cells.length - 1];
-    const isHeader = lastCell?.type.spec.tableRole === "header_cell";
-    const cellType = schema.nodes[isHeader ? "tableHeader" : "tableCell"];
+    const isHeader = lastCell?.type.spec.tableRole === 'header_cell';
+    const cellType = schema.nodes[isHeader ? 'tableHeader' : 'tableCell'];
     const newCell = cellType?.createAndFill({ ...lastCell?.attrs, colwidth: null });
     if (!newCell) valid = false;
     else cells.push(newCell);
@@ -153,7 +174,7 @@ function addTrailingColumn(table: ProseMirrorNode, schema: Editor["state"]["sche
 
 function removeTrailingColumn(table: ProseMirrorNode) {
   const rows: ProseMirrorNode[] = [];
-  table.forEach((row) => {
+  table.forEach(row => {
     const cells: ProseMirrorNode[] = [];
     row.forEach((cell, _offset, index) => {
       if (index < row.childCount - 1) cells.push(cell);
@@ -163,7 +184,7 @@ function removeTrailingColumn(table: ProseMirrorNode) {
   return table.copy(Fragment.fromArray(rows));
 }
 
-function addTrailingRow(table: ProseMirrorNode, schema: Editor["state"]["schema"]) {
+function addTrailingRow(table: ProseMirrorNode, schema: Editor['state']['schema']) {
   const lastRow = table.lastChild;
   const rowType = schema.nodes.tableRow;
   const cellType = schema.nodes.tableCell;

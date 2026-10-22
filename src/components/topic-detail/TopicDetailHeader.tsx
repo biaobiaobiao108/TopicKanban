@@ -1,17 +1,7 @@
 import React, { useId, useState, useEffect, useRef } from 'react';
 import { Topic, TopicStatus, Priority } from '../../types';
 import { COLUMNS } from '../kanban/columns';
-import {
-  Check,
-  Pin,
-  Trash2,
-  Edit2,
-  ChevronDown,
-  FileDown,
-  FileText,
-  MoreHorizontal,
-  Archive,
-} from 'lucide-react';
+import { Check, Pin, Trash2, Edit2, ChevronDown, FileDown, FileText, MoreHorizontal, Archive } from 'lucide-react';
 import { FloatingMenu } from '../ui/FloatingMenu';
 import { ConfirmDialog } from '../ui/ConfirmDialog';
 import { FloatingScrollbar } from '../ui/FloatingScrollbar';
@@ -63,7 +53,7 @@ export const TopicDetailHeader: React.FC<TopicDetailHeaderProps> = ({
     setTitle(topic.title);
   }, [topic.title]);
 
-  const statusLabel = COLUMNS.find((column) => column.status === topic.status)?.label || topic.status;
+  const statusLabel = COLUMNS.find(column => column.status === topic.status)?.label || topic.status;
 
   const handleSaveTitle = async () => {
     if (title.trim() && title !== topic.title) {
@@ -73,7 +63,11 @@ export const TopicDetailHeader: React.FC<TopicDetailHeaderProps> = ({
   };
 
   return (
-    <div data-testid="topic-detail-header" data-page-header className="col-span-full min-w-0 border-b border-line pb-4 transition-colors">
+    <div
+      data-testid="topic-detail-header"
+      data-page-header
+      className="col-span-full min-w-0 border-b border-line pb-4 transition-colors"
+    >
       <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-x-3 gap-y-3 sm:grid-cols-[minmax(0,1fr)_auto] sm:gap-y-0">
         <div className="col-span-2 flex min-w-0 items-center gap-3 sm:col-span-1">
           <FileText className="h-5 w-5 shrink-0 text-accent" aria-hidden="true" />
@@ -88,8 +82,8 @@ export const TopicDetailHeader: React.FC<TopicDetailHeaderProps> = ({
                   aria-label="编辑选题标题"
                   autoComplete="off"
                   value={title}
-                  onChange={(e) => setTitle(e.target.value)}
-                  onKeyDown={(e) => {
+                  onChange={e => setTitle(e.target.value)}
+                  onKeyDown={e => {
                     if (e.key === 'Enter') handleSaveTitle();
                     if (e.key === 'Escape') {
                       setTitle(topic.title);
@@ -157,10 +151,8 @@ export const TopicDetailHeader: React.FC<TopicDetailHeaderProps> = ({
               className="animate-in fade-in zoom-in-95 duration-100"
             >
               <FloatingScrollbar className="p-1.5 space-y-0.5" wrapperClassName="min-h-0 flex-none">
-                <div className="px-2.5 py-1 text-3xs font-bold uppercase tracking-wider text-ink-muted">
-                  活跃阶段
-                </div>
-                {COLUMNS.map((column) => {
+                <div className="px-2.5 py-1 text-3xs font-bold uppercase tracking-wider text-ink-muted">活跃阶段</div>
+                {COLUMNS.map(column => {
                   const isSelected = topic.status === column.status;
                   return (
                     <button
@@ -186,9 +178,7 @@ export const TopicDetailHeader: React.FC<TopicDetailHeaderProps> = ({
                 })}
 
                 <div className="my-1 border-t border-line" />
-                <div className="px-2.5 py-1 text-3xs font-bold uppercase tracking-wider text-ink-muted">
-                  归档状态
-                </div>
+                <div className="px-2.5 py-1 text-3xs font-bold uppercase tracking-wider text-ink-muted">归档状态</div>
 
                 <button
                   type="button"
@@ -261,10 +251,8 @@ export const TopicDetailHeader: React.FC<TopicDetailHeaderProps> = ({
               className="animate-in fade-in zoom-in-95 duration-100"
             >
               <FloatingScrollbar className="p-1.5 space-y-0.5" wrapperClassName="min-h-0 flex-none">
-                <div className="px-2.5 py-1 text-3xs font-bold uppercase tracking-wider text-ink-muted">
-                  优先级设定
-                </div>
-                {(['high', 'medium', 'low', 'none'] as Priority[]).map((p) => {
+                <div className="px-2.5 py-1 text-3xs font-bold uppercase tracking-wider text-ink-muted">优先级设定</div>
+                {(['high', 'medium', 'low', 'none'] as Priority[]).map(p => {
                   const cfg = priorityConfig[p];
                   const isSelected = topic.priority === p;
                   return (
@@ -303,7 +291,7 @@ export const TopicDetailHeader: React.FC<TopicDetailHeaderProps> = ({
               aria-controls={isMoreMenuOpen ? moreMenuId : undefined}
               aria-label="选题操作"
               onClick={() => {
-                setIsMoreMenuOpen((current) => !current);
+                setIsMoreMenuOpen(current => !current);
                 setIsStatusMenuOpen(false);
                 setIsPriorityMenuOpen(false);
               }}
@@ -330,9 +318,7 @@ export const TopicDetailHeader: React.FC<TopicDetailHeaderProps> = ({
               className="animate-in fade-in zoom-in-95 duration-100"
             >
               <FloatingScrollbar className="space-y-0.5 p-1.5" wrapperClassName="min-h-0 flex-none">
-                <div className="px-2.5 py-1 text-3xs font-bold uppercase tracking-wider text-ink-muted">
-                  选题操作
-                </div>
+                <div className="px-2.5 py-1 text-3xs font-bold uppercase tracking-wider text-ink-muted">选题操作</div>
 
                 {topic.status === 'published' || topic.status === 'icebox' ? (
                   <button
@@ -343,7 +329,9 @@ export const TopicDetailHeader: React.FC<TopicDetailHeaderProps> = ({
                     }}
                     className="flex min-h-9 w-full items-center gap-2 rounded-xl px-2.5 py-1.5 text-left text-xs font-medium text-accent transition-colors hover:bg-accent-soft cursor-pointer"
                   >
-                    <span className="grid h-4 w-4 place-items-center text-sm" aria-hidden="true">↩</span>
+                    <span className="grid h-4 w-4 place-items-center text-sm" aria-hidden="true">
+                      ↩
+                    </span>
                     <span>恢复至收集箱</span>
                   </button>
                 ) : (
@@ -381,12 +369,13 @@ export const TopicDetailHeader: React.FC<TopicDetailHeaderProps> = ({
                     void onUpdateTopic({ is_pinned: topic.is_pinned ? 0 : 1 });
                   }}
                   className={`flex min-h-9 w-full items-center gap-2 rounded-xl px-2.5 py-1.5 text-left text-xs font-medium transition-colors cursor-pointer ${
-                    topic.is_pinned
-                      ? 'bg-accent-soft text-accent-dark'
-                      : 'text-ink hover:bg-canvas'
+                    topic.is_pinned ? 'bg-accent-soft text-accent-dark' : 'text-ink hover:bg-canvas'
                   }`}
                 >
-                  <Pin className={`h-3.5 w-3.5 ${topic.is_pinned ? 'fill-current' : 'text-ink-muted'}`} aria-hidden="true" />
+                  <Pin
+                    className={`h-3.5 w-3.5 ${topic.is_pinned ? 'fill-current' : 'text-ink-muted'}`}
+                    aria-hidden="true"
+                  />
                   <span>{topic.is_pinned ? '取消置顶' : '置顶选题'}</span>
                 </button>
 

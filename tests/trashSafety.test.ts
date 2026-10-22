@@ -22,13 +22,20 @@ describe('trash safety', () => {
   }
 
   function insertTopic(id: string, deletedAt: string | null): void {
-    db.query('INSERT INTO topics (id, title, created_at, updated_at, deleted_at) VALUES (?, ?, ?, ?, ?)')
-      .run(id, id, '2026-01-01T00:00:00.000Z', '2026-01-01T00:00:00.000Z', deletedAt);
+    db.query('INSERT INTO topics (id, title, created_at, updated_at, deleted_at) VALUES (?, ?, ?, ?, ?)').run(
+      id,
+      id,
+      '2026-01-01T00:00:00.000Z',
+      '2026-01-01T00:00:00.000Z',
+      deletedAt,
+    );
   }
 
   it('loads every trashed topic instead of truncating at 100', async () => {
     await createDatabase();
-    const insert = db.query('INSERT INTO topics (id, title, created_at, updated_at, deleted_at) VALUES (?, ?, ?, ?, ?)');
+    const insert = db.query(
+      'INSERT INTO topics (id, title, created_at, updated_at, deleted_at) VALUES (?, ?, ?, ?, ?)',
+    );
     const now = '2026-01-01T00:00:00.000Z';
     const insertAll = db.transaction(() => {
       for (let index = 0; index < 101; index += 1) {
@@ -48,8 +55,9 @@ describe('trash safety', () => {
     insertTopic('trash-1', '2026-01-01T00:00:00.000Z');
     insertTopic('active-1', null);
 
-    await expect(permanentlyDeleteTrashedTopics(db, ['trash-1', 'active-1']))
-      .rejects.toBeInstanceOf(TopicNotInTrashError);
+    await expect(permanentlyDeleteTrashedTopics(db, ['trash-1', 'active-1'])).rejects.toBeInstanceOf(
+      TopicNotInTrashError,
+    );
     expect(db.query('SELECT COUNT(*) AS count FROM topics').get()).toEqual({ count: 2 });
   });
 
@@ -57,10 +65,16 @@ describe('trash safety', () => {
     await createDatabase();
     insertTopic('trash-1', '2026-01-01T00:00:00.000Z');
     insertTopic('active-1', null);
-    db.query('INSERT INTO drafts (id, topic_id, updated_at) VALUES (?, ?, ?)')
-      .run('trash-draft', 'trash-1', '2026-01-01T00:00:00.000Z');
-    db.query('INSERT INTO drafts (id, topic_id, updated_at) VALUES (?, ?, ?)')
-      .run('active-draft', 'active-1', '2026-01-01T00:00:00.000Z');
+    db.query('INSERT INTO drafts (id, topic_id, updated_at) VALUES (?, ?, ?)').run(
+      'trash-draft',
+      'trash-1',
+      '2026-01-01T00:00:00.000Z',
+    );
+    db.query('INSERT INTO drafts (id, topic_id, updated_at) VALUES (?, ?, ?)').run(
+      'active-draft',
+      'active-1',
+      '2026-01-01T00:00:00.000Z',
+    );
 
     await permanentlyDeleteTrashedTopics(db, ['trash-1']);
 

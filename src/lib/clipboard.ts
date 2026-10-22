@@ -3,9 +3,8 @@ function copyWithLegacyCommand(text: string): boolean {
     return false;
   }
 
-  const previousFocus = typeof HTMLElement !== 'undefined' && document.activeElement instanceof HTMLElement
-    ? document.activeElement
-    : null;
+  const previousFocus =
+    typeof HTMLElement !== 'undefined' && document.activeElement instanceof HTMLElement ? document.activeElement : null;
   const textarea = document.createElement('textarea');
   textarea.value = text;
   textarea.readOnly = true;
@@ -43,7 +42,10 @@ export function copyTextToClipboard(text: string): Promise<boolean> {
     try {
       const clipboard = navigator.clipboard;
       if (clipboard && typeof clipboard.writeText === 'function') {
-        return clipboard.writeText(text).then(() => true, () => false);
+        return clipboard.writeText(text).then(
+          () => true,
+          () => false,
+        );
       }
     } catch {
       return Promise.resolve(false);

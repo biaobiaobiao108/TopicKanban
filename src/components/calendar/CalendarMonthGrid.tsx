@@ -66,11 +66,10 @@ function MonthCellDroppable({
       };
 
       const fittingCount = countThatFits(availableHeight);
-      const nextVisibleCount = fittingCount === events.length
-        ? events.length
-        : Math.max(1, countThatFits(Math.max(0, availableHeight - 18)));
+      const nextVisibleCount =
+        fittingCount === events.length ? events.length : Math.max(1, countThatFits(Math.max(0, availableHeight - 18)));
 
-      setVisibleEventCount((current) => current === nextVisibleCount ? current : nextVisibleCount);
+      setVisibleEventCount(current => (current === nextVisibleCount ? current : nextVisibleCount));
     };
 
     updateVisibleEvents();
@@ -87,19 +86,9 @@ function MonthCellDroppable({
       data-testid="calendar-month-cell"
       data-date={cell.date}
       className={`relative group flex h-full min-h-0 select-none flex-col overflow-hidden border-b border-r border-line/35 p-1.5 transition-colors sm:p-2 ${
-        cell.isCurrentMonth
-          ? cell.isWeekend
-            ? 'bg-canvas/45'
-            : 'bg-surface'
-          : 'bg-control text-ink-muted opacity-60'
-      } ${
-        cell.isToday
-          ? 'bg-accent-soft/20'
-          : 'hover:bg-control'
-      } ${
-        isOver
-          ? 'bg-accent-soft/60 ring-1 ring-inset ring-accent/50'
-          : ''
+        cell.isCurrentMonth ? (cell.isWeekend ? 'bg-canvas/45' : 'bg-surface') : 'bg-control text-ink-muted opacity-60'
+      } ${cell.isToday ? 'bg-accent-soft/20' : 'hover:bg-control'} ${
+        isOver ? 'bg-accent-soft/60 ring-1 ring-inset ring-accent/50' : ''
       }`}
     >
       {/* Date header in cell */}
@@ -107,7 +96,7 @@ function MonthCellDroppable({
         <div className="flex min-w-0 items-center gap-1.5">
           <button
             type="button"
-            onClick={(event) => {
+            onClick={event => {
               event.stopPropagation();
               onDateClick(cell.date);
             }}
@@ -119,18 +108,17 @@ function MonthCellDroppable({
                   ? cell.isWeekend
                     ? 'text-ink-muted'
                     : 'text-ink'
-                : 'text-ink-muted opacity-50'
+                  : 'text-ink-muted opacity-50'
             }`}
           >
             {cell.dayNumber}
           </button>
-
         </div>
 
         {/* Hover Quick Schedule Button */}
         <button
           type="button"
-          onClick={(e) => {
+          onClick={e => {
             e.stopPropagation();
             onDateClick(cell.date);
           }}
@@ -167,7 +155,7 @@ function MonthCellDroppable({
           type="button"
           data-testid="calendar-month-count"
           aria-label={`${cell.date} 有 ${events.length} 项事项，查看全部`}
-          onClick={(event) => {
+          onClick={event => {
             event.stopPropagation();
             onShowAllEvents(cell.date, events);
           }}
@@ -183,7 +171,7 @@ function MonthCellDroppable({
           type="button"
           data-testid="calendar-month-overflow"
           aria-label={`${cell.date} 还有 ${hiddenCount} 项事项，查看全部`}
-          onClick={(event) => {
+          onClick={event => {
             event.stopPropagation();
             onShowAllEvents(cell.date, events);
           }}
@@ -215,9 +203,7 @@ export const CalendarMonthGrid: React.FC<CalendarMonthGridProps> = ({
         {WEEK_HEADERS.map((name, i) => (
           <div
             key={name}
-            className={`py-2 text-center text-xs font-bold ${
-              i >= 5 ? 'text-ink-muted' : 'text-ink-muted'
-            }`}
+            className={`py-2 text-center text-xs font-bold ${i >= 5 ? 'text-ink-muted' : 'text-ink-muted'}`}
           >
             {name}
           </div>
@@ -231,7 +217,7 @@ export const CalendarMonthGrid: React.FC<CalendarMonthGridProps> = ({
         wrapperClassName="flex-1 min-h-0"
         style={{ gridTemplateRows: `repeat(${weekCount}, minmax(0, 1fr))` }}
       >
-        {days.map((cell) => {
+        {days.map(cell => {
           const events = eventsMap.get(cell.date) || [];
           return (
             <MonthCellDroppable
@@ -257,16 +243,16 @@ export const CalendarMonthGrid: React.FC<CalendarMonthGridProps> = ({
           maxWidth="md"
         >
           <FloatingScrollbar className="space-y-2.5 pr-1" wrapperClassName="max-h-[60vh] flex-none">
-            {activeDateModal.events.map((ev) => (
+            {activeDateModal.events.map(ev => (
               <CalendarEventPill
                 key={ev.id}
                 event={ev}
                 compact={false}
-                onOpenTopic={(id) => {
+                onOpenTopic={id => {
                   setActiveDateModal(null);
                   onOpenTopic(id);
                 }}
-                onOpenDeal={(id) => {
+                onOpenDeal={id => {
                   setActiveDateModal(null);
                   onOpenDeal(id);
                 }}

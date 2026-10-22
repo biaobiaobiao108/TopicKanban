@@ -21,7 +21,7 @@ function parseTopicUpdateError(body: Record<string, unknown>): string | null {
 
 function externalUrlError(value: string): string | null {
   const result = externalUrlSchema('avatar_url').safeParse(value);
-  return result.success ? null : result.error.issues[0]?.message ?? 'invalid';
+  return result.success ? null : (result.error.issues[0]?.message ?? 'invalid');
 }
 
 describe('API validation boundaries', () => {
@@ -81,8 +81,13 @@ describe('API validation boundaries', () => {
     expect(externalUrlError('http://127.0.0.1/avatar.png')).toContain('http(s) URL');
   });
 
-  it('rejects malformed commercial calendar dates', () => {    expect(validateCommercialDealFields({ delivery_due_date: '202608-02-07' })).toBe('delivery_due_date must be YYYY-MM-DD or null');
-    expect(validateCommercialDealFields({ delivery_due_date: '2026-02-30' })).toBe('delivery_due_date must be YYYY-MM-DD or null');
+  it('rejects malformed commercial calendar dates', () => {
+    expect(validateCommercialDealFields({ delivery_due_date: '202608-02-07' })).toBe(
+      'delivery_due_date must be YYYY-MM-DD or null',
+    );
+    expect(validateCommercialDealFields({ delivery_due_date: '2026-02-30' })).toBe(
+      'delivery_due_date must be YYYY-MM-DD or null',
+    );
     expect(validateCommercialDealFields({ delivery_due_date: '2026-08-27' })).toBeNull();
   });
 
@@ -102,12 +107,15 @@ describe('API validation boundaries', () => {
       const db = sqlite;
       const app = createApp({ DB: db, APP_PASSWORD: 'title-test-password' });
       const login = await app.request('/api/auth/login', {
-        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ password: 'title-test-password' }),
       });
-      const { token } = await login.json() as { token: string };
+      const { token } = (await login.json()) as { token: string };
       const response = await app.request('/api/deals', {
-        method: 'POST', headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' }, body: '{}',
+        method: 'POST',
+        headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+        body: '{}',
       });
       expect(response.status).toBe(400);
       expect(await response.json()).toEqual({ error: 'title is required' });

@@ -57,7 +57,10 @@ const draftUploadQueues = new Map<string, Promise<Draft>>();
 class BoundedMemoryCache<K, V> {
   private readonly entries = new Map<K, { value: V; expiresAt: number }>();
 
-  constructor(private readonly maxEntries: number, private readonly ttlMs: number) {}
+  constructor(
+    private readonly maxEntries: number,
+    private readonly ttlMs: number,
+  ) {}
 
   private prune(now = Date.now()): void {
     for (const [key, entry] of this.entries) {
@@ -100,9 +103,18 @@ class BoundedMemoryCache<K, V> {
 
 const KNOWN_STATE_CACHE_MAX_ENTRIES = 256;
 const KNOWN_STATE_CACHE_TTL_MS = 30 * 60 * 1000;
-const knownDraftVersions = new BoundedMemoryCache<string, number>(KNOWN_STATE_CACHE_MAX_ENTRIES, KNOWN_STATE_CACHE_TTL_MS);
-const draftConflicts = new BoundedMemoryCache<string, Draft | null>(KNOWN_STATE_CACHE_MAX_ENTRIES, KNOWN_STATE_CACHE_TTL_MS);
-const draftUploadEpochs = new BoundedMemoryCache<string, number>(KNOWN_STATE_CACHE_MAX_ENTRIES, KNOWN_STATE_CACHE_TTL_MS);
+const knownDraftVersions = new BoundedMemoryCache<string, number>(
+  KNOWN_STATE_CACHE_MAX_ENTRIES,
+  KNOWN_STATE_CACHE_TTL_MS,
+);
+const draftConflicts = new BoundedMemoryCache<string, Draft | null>(
+  KNOWN_STATE_CACHE_MAX_ENTRIES,
+  KNOWN_STATE_CACHE_TTL_MS,
+);
+const draftUploadEpochs = new BoundedMemoryCache<string, number>(
+  KNOWN_STATE_CACHE_MAX_ENTRIES,
+  KNOWN_STATE_CACHE_TTL_MS,
+);
 let storageMemoryGeneration = 0;
 
 export interface BackupImportResult {
@@ -148,11 +160,15 @@ export class TopicTrashExpiredError extends Error {
   }
 }
 
-const knownReportVersions = new BoundedMemoryCache<string, number>(KNOWN_STATE_CACHE_MAX_ENTRIES, KNOWN_STATE_CACHE_TTL_MS);
+const knownReportVersions = new BoundedMemoryCache<string, number>(
+  KNOWN_STATE_CACHE_MAX_ENTRIES,
+  KNOWN_STATE_CACHE_TTL_MS,
+);
 
 async function apiRequest<T>(path: string, init: RequestInit = {}): Promise<T> {
   const response = await authenticatedFetch(path, init);
-  const data = await response.json().catch(() => null) as (T & { code?: string; error?: string; current?: Draft | PublishPackageRecord | TopicReport | null }) | null;
+  const data = (await response.json().catch(() => null)) as
+    (T & { code?: string; error?: string; current?: Draft | PublishPackageRecord | TopicReport | null }) | null;
   if (response.status === 410 && data?.code === 'TOPIC_TRASH_EXPIRED') {
     throw new TopicTrashExpiredError(data.error);
   }
@@ -210,8 +226,12 @@ export function fetchBootstrap(scope: 'full' | 'core' = 'full'): Promise<Bootstr
     const request = apiRequest<BootstrapData>(scope === 'core' ? '/api/bootstrap?scope=core' : '/api/bootstrap');
     bootstrapPromise = request;
     void request.then(
-      () => { if (bootstrapPromise === request) bootstrapPromise = null; },
-      () => { if (bootstrapPromise === request) bootstrapPromise = null; },
+      () => {
+        if (bootstrapPromise === request) bootstrapPromise = null;
+      },
+      () => {
+        if (bootstrapPromise === request) bootstrapPromise = null;
+      },
     );
   }
   return bootstrapPromise;
@@ -291,7 +311,9 @@ export function fetchCommercialDealsByTopicId(topicId: string): Promise<Commerci
   return apiRequest<CommercialDeal[]>(`/api/topics/${encodeURIComponent(topicId)}/deals`);
 }
 
-export async function saveCommercialDeal(data: Partial<CommercialDeal> & { title: string }): Promise<CommercialDealDetail> {
+export async function saveCommercialDeal(
+  data: Partial<CommercialDeal> & { title: string },
+): Promise<CommercialDealDetail> {
   const deal = data.id
     ? await apiRequest<CommercialDealDetail>(`/api/deals/${encodeURIComponent(data.id)}`, jsonRequest('PATCH', data))
     : await apiRequest<CommercialDealDetail>('/api/deals', jsonRequest('POST', data));
@@ -307,12 +329,15 @@ export async function deleteCommercialDeal(id: string): Promise<void> {
 export async function replaceCommercialDealTopics(
   dealId: string,
   primaryTopicId: string | null,
-  relatedTopicIds: string[] = []
+  relatedTopicIds: string[] = [],
 ): Promise<CommercialDealDetail> {
-  const deal = await apiRequest<CommercialDealDetail>(`/api/deals/${encodeURIComponent(dealId)}/topics`, jsonRequest('PUT', {
-    primary_topic_id: primaryTopicId,
-    related_topic_ids: relatedTopicIds,
-  }));
+  const deal = await apiRequest<CommercialDealDetail>(
+    `/api/deals/${encodeURIComponent(dealId)}/topics`,
+    jsonRequest('PUT', {
+      primary_topic_id: primaryTopicId,
+      related_topic_ids: relatedTopicIds,
+    }),
+  );
   invalidateBootstrap();
   return deal;
 }
@@ -320,20 +345,26 @@ export async function replaceCommercialDealTopics(
 export async function addCommercialDealActivity(
   dealId: string,
   content: string,
-  kind: 'note' | 'payment' = 'note'
+  kind: 'note' | 'payment' = 'note',
 ): Promise<CommercialDealActivity> {
-  const activity = await apiRequest<CommercialDealActivity>(`/api/deals/${encodeURIComponent(dealId)}/activities`, jsonRequest('POST', { content, kind }));
+  const activity = await apiRequest<CommercialDealActivity>(
+    `/api/deals/${encodeURIComponent(dealId)}/activities`,
+    jsonRequest('POST', { content, kind }),
+  );
   invalidateBootstrap();
   return activity;
 }
 
 export async function linkPublishedVideoToCommercialDeal(
   dealId: string,
-  publishedVideoId: string | null
+  publishedVideoId: string | null,
 ): Promise<CommercialDealDetail> {
-  const deal = await apiRequest<CommercialDealDetail>(`/api/deals/${encodeURIComponent(dealId)}/link-published`, jsonRequest('POST', {
-    published_video_id: publishedVideoId,
-  }));
+  const deal = await apiRequest<CommercialDealDetail>(
+    `/api/deals/${encodeURIComponent(dealId)}/link-published`,
+    jsonRequest('POST', {
+      published_video_id: publishedVideoId,
+    }),
+  );
   invalidateBootstrap();
   return deal;
 }
@@ -409,15 +440,18 @@ export function updateTopicTodoBoard(topicId: string, layout: TopicTodoBoardLayo
 }
 
 export async function updateTopicStatus(id: string, status: TopicStatus, sortOrder?: number): Promise<void> {
-  await apiRequest(`/api/topics/${encodeURIComponent(id)}`, jsonRequest('PATCH', {
-    status,
-    ...(typeof sortOrder === 'number' ? { sort_order: sortOrder } : {}),
-  }));
+  await apiRequest(
+    `/api/topics/${encodeURIComponent(id)}`,
+    jsonRequest('PATCH', {
+      status,
+      ...(typeof sortOrder === 'number' ? { sort_order: sortOrder } : {}),
+    }),
+  );
   invalidateBootstrap();
 }
 
 export async function reorderTopics(
-  updates: Array<{ id: string; status: TopicStatus; sort_order: number }>
+  updates: Array<{ id: string; status: TopicStatus; sort_order: number }>,
 ): Promise<void> {
   await apiRequest('/api/topics/reorder/batch', jsonRequest('PATCH', { updates }));
   invalidateBootstrap();
@@ -517,13 +551,13 @@ export async function fetchTopicReport(topicId: string): Promise<TopicReport | n
 
 export async function saveTopicReport(
   topicId: string,
-  data: Partial<TopicReport> & { base_version?: number }
+  data: Partial<TopicReport> & { base_version?: number },
 ): Promise<TopicReport> {
   const baseVersion = data.base_version ?? knownReportVersions.get(topicId) ?? 0;
   try {
     const report = await apiRequest<TopicReport>(
       `/api/topics/${encodeURIComponent(topicId)}/report`,
-      jsonRequest('PUT', { ...data, base_version: baseVersion })
+      jsonRequest('PUT', { ...data, base_version: baseVersion }),
     );
     knownReportVersions.set(topicId, report.version);
     invalidateBootstrap();
@@ -551,7 +585,7 @@ export function fetchPeopleOptions(): Promise<PersonOption[]> {
 }
 
 export async function fetchPersonById(id: string): Promise<Person | null> {
-  return (await fetchPeople()).find((person) => person.id === id) || null;
+  return (await fetchPeople()).find(person => person.id === id) || null;
 }
 
 export async function savePerson(data: Partial<Person> & { name: string }): Promise<Person> {
@@ -576,12 +610,13 @@ export async function saveRelationship(
     person_a_id: string;
     person_b_id: string;
     relationship: string;
-  }
+  },
 ): Promise<PersonRelationship> {
   const relationship = data.id
     ? await apiRequest<PersonRelationship>(
-      `/api/relationships/${encodeURIComponent(data.id)}`, jsonRequest('PATCH', data)
-    )
+        `/api/relationships/${encodeURIComponent(data.id)}`,
+        jsonRequest('PATCH', data),
+      )
     : await apiRequest<PersonRelationship>('/api/relationships', jsonRequest('POST', data));
   invalidateBootstrap();
   return relationship;
@@ -607,7 +642,7 @@ interface PendingDraftMemoryCache {
 let pendingDraftMemoryCache: PendingDraftMemoryCache | null = null;
 
 if (typeof window !== 'undefined') {
-  window.addEventListener('storage', (event) => {
+  window.addEventListener('storage', event => {
     if (event.key === PENDING_DRAFTS_KEY) {
       pendingDraftMemoryCache = null;
     }
@@ -617,11 +652,13 @@ if (typeof window !== 'undefined') {
 function isPendingDraftRecord(value: unknown): value is PendingDraftRecord {
   if (!value || typeof value !== 'object') return false;
   const candidate = value as Partial<PendingDraftRecord>;
-  return Boolean(candidate.draft && typeof candidate.draft === 'object')
-    && typeof candidate.base_version === 'number'
-    && Number.isSafeInteger(candidate.base_version)
-    && typeof candidate.cached_at === 'string'
-    && Number.isFinite(Date.parse(candidate.cached_at));
+  return (
+    Boolean(candidate.draft && typeof candidate.draft === 'object') &&
+    typeof candidate.base_version === 'number' &&
+    Number.isSafeInteger(candidate.base_version) &&
+    typeof candidate.cached_at === 'string' &&
+    Number.isFinite(Date.parse(candidate.cached_at))
+  );
 }
 
 function pendingDraftStorageSize(value: string): number {
@@ -641,9 +678,7 @@ function boundPendingDrafts(
     })
     .sort(([, left], [, right]) => Date.parse(right.cached_at) - Date.parse(left.cached_at));
   const bounded: Record<string, PendingDraftRecord> = {};
-  const preferred = preferredTopicId
-    ? sorted.find(([topicId]) => topicId === preferredTopicId)
-    : sorted[0];
+  const preferred = preferredTopicId ? sorted.find(([topicId]) => topicId === preferredTopicId) : sorted[0];
   if (preferred) {
     const preferredCandidate = { [preferred[0]]: preferred[1] };
     if (pendingDraftStorageSize(JSON.stringify(preferredCandidate)) <= PENDING_DRAFT_MAX_BYTES) {
@@ -670,7 +705,7 @@ function readPendingDrafts(): Record<string, PendingDraftRecord> {
 
     const current = JSON.parse(currentStorageValue || '{}') as Record<string, unknown>;
     const records = Object.fromEntries(
-      Object.entries(current).filter(([, record]) => isPendingDraftRecord(record))
+      Object.entries(current).filter(([, record]) => isPendingDraftRecord(record)),
     ) as Record<string, PendingDraftRecord>;
     const boundedRecords = boundPendingDrafts(records);
     pendingDraftMemoryCache = { currentStorageValue, records: boundedRecords };
@@ -713,14 +748,21 @@ function writePendingDraft(record: PendingDraftRecord | null, topicId: string): 
 
 function clearPendingDraftIfCurrent(draft: Draft): void {
   const pending = readPendingDrafts()[draft.topic_id]?.draft;
-  if (pending?.updated_at === draft.updated_at
-    && pending.content_markdown === draft.content_markdown
-    && pending.content_json === draft.content_json) {
+  if (
+    pending?.updated_at === draft.updated_at &&
+    pending.content_markdown === draft.content_markdown &&
+    pending.content_json === draft.content_json
+  ) {
     writePendingDraft(null, draft.topic_id);
   }
 }
 
-async function uploadDraft(draft: Draft, keepalive = false, generation = storageMemoryGeneration, epoch = draftUploadEpochs.get(draft.topic_id) ?? 0): Promise<Draft> {
+async function uploadDraft(
+  draft: Draft,
+  keepalive = false,
+  generation = storageMemoryGeneration,
+  epoch = draftUploadEpochs.get(draft.topic_id) ?? 0,
+): Promise<Draft> {
   if (epoch !== (draftUploadEpochs.get(draft.topic_id) ?? 0)) throw new Error('草稿保存已被版本选择取代');
   if (draftConflicts.get(draft.topic_id) !== undefined || readPendingDrafts()[draft.topic_id]?.requires_resolution) {
     throw new DraftConflictError(draftConflicts.get(draft.topic_id) ?? null);
@@ -729,10 +771,14 @@ async function uploadDraft(draft: Draft, keepalive = false, generation = storage
   try {
     const saved = await apiRequest<Draft>(
       `/api/topics/${encodeURIComponent(draft.topic_id)}/draft`,
-      jsonRequest('PUT', {
-        ...draft,
-        base_version: baseVersion,
-      }, keepalive)
+      jsonRequest(
+        'PUT',
+        {
+          ...draft,
+          base_version: baseVersion,
+        },
+        keepalive,
+      ),
     );
     if (generation === storageMemoryGeneration && epoch === (draftUploadEpochs.get(draft.topic_id) ?? 0)) {
       knownDraftVersions.set(draft.topic_id, saved.version);
@@ -741,11 +787,14 @@ async function uploadDraft(draft: Draft, keepalive = false, generation = storage
       // A newer local edit descends from this upload. Preserve its content,
       // but advance its base so reloading does not invent a remote conflict.
       if (pending && !pending.requires_resolution && pending.base_version === baseVersion) {
-        writePendingDraft({
-          ...pending,
-          base_version: saved.version,
-          draft: { ...pending.draft, version: saved.version },
-        }, draft.topic_id);
+        writePendingDraft(
+          {
+            ...pending,
+            base_version: saved.version,
+            draft: { ...pending.draft, version: saved.version },
+          },
+          draft.topic_id,
+        );
       }
     }
     invalidateBootstrap();
@@ -770,15 +819,21 @@ function enqueueDraftUpload(draft: Draft, keepalive = false): Promise<Draft> {
     ? previous.catch(() => undefined).then(() => uploadDraft(draft, keepalive, generation, epoch))
     : uploadDraft(draft, keepalive, generation, epoch);
   draftUploadQueues.set(draft.topic_id, upload);
-  void upload.finally(() => {
-    if (draftUploadQueues.get(draft.topic_id) === upload) {
-      draftUploadQueues.delete(draft.topic_id);
-    }
-  }).catch(() => undefined);
+  void upload
+    .finally(() => {
+      if (draftUploadQueues.get(draft.topic_id) === upload) {
+        draftUploadQueues.delete(draft.topic_id);
+      }
+    })
+    .catch(() => undefined);
   return upload;
 }
 
-function mergePendingDraft(topicId: string, serverDraft: Draft | null, generation = storageMemoryGeneration): DraftLoadResult {
+function mergePendingDraft(
+  topicId: string,
+  serverDraft: Draft | null,
+  generation = storageMemoryGeneration,
+): DraftLoadResult {
   const pending = readPendingDrafts()[topicId];
   if (generation === storageMemoryGeneration) {
     knownDraftVersions.set(topicId, pending?.base_version ?? serverDraft?.version ?? 0);
@@ -814,20 +869,17 @@ export async function fetchTopicWorkspace(topicId: string): Promise<TopicWorkspa
   return { ...data, draft: mergePendingDraft(topicId, data.draft, generation) };
 }
 
-export function savePublishPackage(
-  topicId: string,
-  input: PublishPackageSaveInput
-): Promise<PublishPackageRecord> {
+export function savePublishPackage(topicId: string, input: PublishPackageSaveInput): Promise<PublishPackageRecord> {
   return apiRequest<PublishPackageRecord>(
     `/api/topics/${encodeURIComponent(topicId)}/publish-package`,
-    jsonRequest('PUT', input)
+    jsonRequest('PUT', input),
   );
 }
 
 export async function resolveDraftRecovery(
   topicId: string,
   conflict: DraftRecoveryConflict,
-  choice: 'local' | 'remote'
+  choice: 'local' | 'remote',
 ): Promise<Draft | null> {
   draftUploadEpochs.set(topicId, (draftUploadEpochs.get(topicId) ?? 0) + 1);
   draftConflicts.delete(topicId);
@@ -838,11 +890,14 @@ export async function resolveDraftRecovery(
   }
   const baseVersion = conflict.remote?.version || 0;
   knownDraftVersions.set(topicId, baseVersion);
-  writePendingDraft({
-    draft: { ...conflict.local, version: baseVersion },
-    base_version: baseVersion,
-    cached_at: new Date().toISOString(),
-  }, topicId);
+  writePendingDraft(
+    {
+      draft: { ...conflict.local, version: baseVersion },
+      base_version: baseVersion,
+      cached_at: new Date().toISOString(),
+    },
+    topicId,
+  );
   return enqueueDraftUpload({ ...conflict.local, version: baseVersion });
 }
 
@@ -885,7 +940,7 @@ export function cacheDraftLocallyWithStatus(
   const previous = readPendingDrafts()[topicId];
   const baseVersion = previous?.requires_resolution
     ? previous.base_version
-    : knownDraftVersions.get(topicId) ?? previous?.base_version ?? 0;
+    : (knownDraftVersions.get(topicId) ?? previous?.base_version ?? 0);
   const draft: Draft = {
     id: previous?.draft.id || `pending-${topicId}`,
     topic_id: topicId,
@@ -897,7 +952,15 @@ export function cacheDraftLocallyWithStatus(
     version: baseVersion,
     updated_at: new Date().toISOString(),
   };
-  const persisted = writePendingDraft({ draft, base_version: baseVersion, cached_at: draft.updated_at, requires_resolution: previous?.requires_resolution }, topicId);
+  const persisted = writePendingDraft(
+    {
+      draft,
+      base_version: baseVersion,
+      cached_at: draft.updated_at,
+      requires_resolution: previous?.requires_resolution,
+    },
+    topicId,
+  );
   return { draft, persisted };
 }
 
@@ -933,7 +996,9 @@ export function saveDraftImmediatelyWithStatus(
 ): DraftCacheWriteResult {
   const result = cacheDraftLocallyWithStatus(topicId, contentHtml, contentJson, wordCount, title, contentMarkdown);
   const { draft } = result;
-  const draftBytes = new TextEncoder().encode(`${draft.content_markdown || ''}${draft.content_json || ''}${draft.content_html || ''}`).byteLength;
+  const draftBytes = new TextEncoder().encode(
+    `${draft.content_markdown || ''}${draft.content_json || ''}${draft.content_html || ''}`,
+  ).byteLength;
   // 浏览器对 fetch({ keepalive: true }) 限制 payload 通常为 64KB (65536 bytes)
   const useKeepalive = draftBytes < 60000;
   void enqueueDraftUpload(draft, useKeepalive).catch(() => undefined);
@@ -982,7 +1047,7 @@ export function fetchPublishedAnalytics(
 }
 
 export async function savePublishedVideo(
-  data: Partial<PublishedVideo> & { title: string; topic_id?: string | null }
+  data: Partial<PublishedVideo> & { title: string; topic_id?: string | null },
 ): Promise<PublishedVideo> {
   const video = data.id
     ? await apiRequest<PublishedVideo>(`/api/published/${encodeURIComponent(data.id)}`, jsonRequest('PATCH', data))
@@ -1018,9 +1083,12 @@ export async function optimizeStorage(): Promise<StorageOptimizeResult> {
 }
 
 export async function exportBackupData(): Promise<Blob> {
-  const response = await authenticatedFetch('/api/backup/export', jsonRequest('POST', { settings: loadLocalSettings() }));
+  const response = await authenticatedFetch(
+    '/api/backup/export',
+    jsonRequest('POST', { settings: loadLocalSettings() }),
+  );
   if (!response.ok) {
-    const data = await response.json().catch(() => null) as { error?: string } | null;
+    const data = (await response.json().catch(() => null)) as { error?: string } | null;
     throw new Error(data?.error || `请求失败 (${response.status})`);
   }
   return response.blob();
@@ -1049,20 +1117,26 @@ export function htmlToCleanMarkdown(html: string): string {
 export async function exportScriptsMarkdown(): Promise<string> {
   const { topics, drafts } = await apiRequest<{
     topics: Array<Pick<Topic, 'id' | 'title' | 'status' | 'priority' | 'hook' | 'summary'>>;
-    drafts: Array<Pick<Draft, 'topic_id' | 'title' | 'word_count' | 'content_markdown' | 'content_html' | 'updated_at'> & { has_content_json: boolean }>;
+    drafts: Array<
+      Pick<Draft, 'topic_id' | 'title' | 'word_count' | 'content_markdown' | 'content_html' | 'updated_at'> & {
+        has_content_json: boolean;
+      }
+    >;
   }>('/api/backup/scripts');
-  const topicMap = new Map(topics.map((t) => [t.id, t]));
+  const topicMap = new Map(topics.map(t => [t.id, t]));
   const readingSpeed = loadLocalSettings().reading_speed;
 
   const lines: string[] = [];
   lines.push(`# 选题文案全量归档合辑 (Markdown Archive)`);
-  lines.push(`> 导出时间：${formatBeijingDateTime(new Date())} | 语速基准：${readingSpeed} 字/分钟 | 总选题数：${topics.length}`);
+  lines.push(
+    `> 导出时间：${formatBeijingDateTime(new Date())} | 语速基准：${readingSpeed} 字/分钟 | 总选题数：${topics.length}`,
+  );
   lines.push(``);
   lines.push(`---`);
   lines.push(``);
 
   // Filter drafts with meaningful content or topics with drafts
-  const draftsWithTopic = drafts.filter((d) => d.content_markdown || d.content_html || d.has_content_json);
+  const draftsWithTopic = drafts.filter(d => d.content_markdown || d.content_html || d.has_content_json);
 
   if (draftsWithTopic.length === 0) {
     lines.push(`*暂无已撰写的文案草稿记录。*`);
@@ -1103,7 +1177,7 @@ export function exportSingleTopicMarkdown(
     draft?: Draft | null;
     report?: TopicReport | null;
   },
-  readingSpeed = 280
+  readingSpeed = 280,
 ): string {
   const lines: string[] = [];
   const now = formatBeijingDateTime(new Date());
@@ -1112,7 +1186,9 @@ export function exportSingleTopicMarkdown(
   const estMinutes = (wordCount / readingSpeed).toFixed(1);
 
   lines.push(`# 🎬 【选题档案】${topic.title}`);
-  lines.push(`> 导出时间：${now} | 阶段状态：${topic.status} | 优先级：${topic.priority || 'none'} | 语速基准：${readingSpeed} 字/分`);
+  lines.push(
+    `> 导出时间：${now} | 阶段状态：${topic.status} | 优先级：${topic.priority || 'none'} | 语速基准：${readingSpeed} 字/分`,
+  );
   lines.push(``);
 
   // 1. 核心定位与反差设定
@@ -1126,10 +1202,10 @@ export function exportSingleTopicMarkdown(
     lines.push('- **当前行动**：未设置当前行动');
   }
   if (topic.tags && topic.tags.length > 0) {
-    lines.push(`- **创作赛道 / 标签**：${topic.tags.map((t) => `#${t.name}`).join(' ')}`);
+    lines.push(`- **创作赛道 / 标签**：${topic.tags.map(t => `#${t.name}`).join(' ')}`);
   }
   if (topic.people && topic.people.length > 0) {
-    lines.push(`- **核心关联人物**：${topic.people.map((p) => p.name).join('、')}`);
+    lines.push(`- **核心关联人物**：${topic.people.map(p => p.name).join('、')}`);
   }
   lines.push(``);
 
@@ -1152,12 +1228,13 @@ export function exportSingleTopicMarkdown(
 
   const sources = workspaceData.sources || [];
   const timelineSources = sources
-    .filter((source) => source.event_date)
+    .filter(source => source.event_date)
     .sort((a, b) => (a.event_date || '').localeCompare(b.event_date || '', undefined, { numeric: true }));
   if (timelineSources.length > 0) {
     lines.push(`## 三、故事时间线 (${timelineSources.length} 个关键节点)`);
     timelineSources.forEach((source, index) => {
-      const statusIcon = source.verification_status === 'confirmed' ? '✅' : source.verification_status === 'rejected' ? '❌' : '⏳';
+      const statusIcon =
+        source.verification_status === 'confirmed' ? '✅' : source.verification_status === 'rejected' ? '❌' : '⏳';
       lines.push(`${index + 1}. ${statusIcon} **【${source.event_date}】${source.title}**`);
       if (source.content) lines.push(`   > ${source.content}`);
     });
@@ -1168,7 +1245,12 @@ export function exportSingleTopicMarkdown(
   if (sources.length > 0) {
     lines.push(`## 四、资料证据链 (${sources.length} 条资料)`);
     sources.forEach((src, index) => {
-      const statusStr = src.verification_status === 'confirmed' ? '已核实' : src.verification_status === 'rejected' ? '存疑/被推翻' : '待考证';
+      const statusStr =
+        src.verification_status === 'confirmed'
+          ? '已核实'
+          : src.verification_status === 'rejected'
+            ? '存疑/被推翻'
+            : '待考证';
       lines.push(`### ${index + 1}. ${src.title} (${statusStr})`);
       if (src.platform || src.author) {
         lines.push(`- **来源平台/作者**：${src.platform} ${src.author ? `@${src.author}` : ''}`);
@@ -1220,7 +1302,7 @@ export async function importBackupData(input: string | File): Promise<BackupImpo
   try {
     const jsonString = typeof input === 'string' ? input : await input.text();
     const data = JSON.parse(jsonString) as unknown;
-    const backup = data && typeof data === 'object' ? data as Record<string, unknown> : {};
+    const backup = data && typeof data === 'object' ? (data as Record<string, unknown>) : {};
     const { settings, ...businessData } = backup;
     hasSettings = Object.prototype.hasOwnProperty.call(backup, 'settings');
     localSettings = settings;
@@ -1254,18 +1336,18 @@ export async function importBackupData(input: string | File): Promise<BackupImpo
 export async function reportPresenceHeartbeat(
   topicId: string,
   clientId: string,
-  deviceName?: string
+  deviceName?: string,
 ): Promise<PresenceState> {
-  return apiRequest(`/api/topics/${encodeURIComponent(topicId)}/presence`, jsonRequest('POST', {
-    client_id: clientId,
-    device_name: deviceName,
-  }));
+  return apiRequest(
+    `/api/topics/${encodeURIComponent(topicId)}/presence`,
+    jsonRequest('POST', {
+      client_id: clientId,
+      device_name: deviceName,
+    }),
+  );
 }
 
-export async function releasePresenceHeartbeat(
-  topicId: string,
-  clientId: string
-): Promise<void> {
+export async function releasePresenceHeartbeat(topicId: string, clientId: string): Promise<void> {
   await apiRequest(`/api/topics/${encodeURIComponent(topicId)}/presence?client_id=${encodeURIComponent(clientId)}`, {
     method: 'DELETE',
   }).catch(() => {});
@@ -1294,11 +1376,14 @@ export async function deleteQuickDrop(id: string): Promise<void> {
 export async function submitQuickDrop(
   content: string,
   url?: string,
-  source?: string
+  source?: string,
 ): Promise<{ success: boolean; item: QuickDropItem }> {
-  return apiRequest('/api/inbox/quick-drop', jsonRequest('POST', {
-    content,
-    url,
-    source,
-  }));
+  return apiRequest(
+    '/api/inbox/quick-drop',
+    jsonRequest('POST', {
+      content,
+      url,
+      source,
+    }),
+  );
 }

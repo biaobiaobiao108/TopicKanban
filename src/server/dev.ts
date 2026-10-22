@@ -39,17 +39,14 @@ const stopTailwindWatcher = () => {
 process.once('SIGINT', stopTailwindWatcher);
 process.once('SIGTERM', stopTailwindWatcher);
 process.once('exit', stopTailwindWatcher);
-void tailwindWatcher.exited.then((exitCode) => {
+void tailwindWatcher.exited.then(exitCode => {
   if (shuttingDown) return;
   console.error(`Tailwind CSS watcher exited unexpectedly with code ${exitCode}.`);
   process.kill(process.pid, 'SIGTERM');
 });
 
 try {
-  const [{ default: homepage }, { startServer }] = await Promise.all([
-    import('../../index.html'),
-    import('./server'),
-  ]);
+  const [{ default: homepage }, { startServer }] = await Promise.all([import('../../index.html'), import('./server')]);
 
   await startServer({
     development: true,

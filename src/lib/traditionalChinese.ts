@@ -5,7 +5,7 @@ let converterPromise: Promise<ConverterFn> | null = null;
 export async function getTraditionalConverter(): Promise<ConverterFn> {
   if (converterInstance) return converterInstance;
   if (!converterPromise) {
-    converterPromise = import('opencc-js/cn2t').then((mod) => {
+    converterPromise = import('opencc-js/cn2t').then(mod => {
       const OpenCC = mod.default || mod;
       const converter = OpenCC.Converter({ from: 'cn', to: 'tw' });
       converterInstance = converter;

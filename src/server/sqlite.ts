@@ -64,18 +64,14 @@ const REQUIRED_INDEXES = [
   'idx_topic_todos_current_age',
   'idx_quick_drops_expiry_order',
 ] as const;
-const REQUIRED_TRIGGERS = [
-  'topic_search_ai',
-  'topic_search_au',
-  'topic_search_ad',
-] as const;
+const REQUIRED_TRIGGERS = ['topic_search_ai', 'topic_search_au', 'topic_search_ad'] as const;
 
 function schemaObjectExists(database: Database, type: 'table' | 'index', name: string): boolean {
   return Boolean(database.query('SELECT 1 FROM sqlite_master WHERE type = ? AND name = ? LIMIT 1').get(type, name));
 }
 
 function schemaTriggerExists(database: Database, name: string): boolean {
-  return Boolean(database.query('SELECT 1 FROM sqlite_master WHERE type = \'trigger\' AND name = ? LIMIT 1').get(name));
+  return Boolean(database.query("SELECT 1 FROM sqlite_master WHERE type = 'trigger' AND name = ? LIMIT 1").get(name));
 }
 
 function readSchemaVersion(database: Database): number {
@@ -85,8 +81,8 @@ function readSchemaVersion(database: Database): number {
 
 function schemaVersionMismatch(actualVersion: number): Error {
   return new Error(
-    `SQLite schema version mismatch: expected baseline v${CURRENT_SCHEMA_VERSION}, found v${actualVersion}. `
-    + 'Only the v5 to v6 migration is supported; older or newer databases must be upgraded from a compatible release.',
+    `SQLite schema version mismatch: expected baseline v${CURRENT_SCHEMA_VERSION}, found v${actualVersion}. ` +
+      'Only the v5 to v6 migration is supported; older or newer databases must be upgraded from a compatible release.',
   );
 }
 
@@ -96,27 +92,27 @@ function assertSchemaObjects(
   requiredIndexes: readonly string[],
   requiredTriggers: readonly string[],
 ): void {
-  const missingTables = requiredTables.filter((name) => !schemaObjectExists(database, 'table', name));
+  const missingTables = requiredTables.filter(name => !schemaObjectExists(database, 'table', name));
   if (missingTables.length > 0) {
     throw new Error(
-      `SQLite schema is incomplete: missing ${missingTables.join(', ')}. `
-      + 'The existing database was left untouched; recover it from a compatible backup or release.',
+      `SQLite schema is incomplete: missing ${missingTables.join(', ')}. ` +
+        'The existing database was left untouched; recover it from a compatible backup or release.',
     );
   }
 
-  const missingIndexes = requiredIndexes.filter((name) => !schemaObjectExists(database, 'index', name));
+  const missingIndexes = requiredIndexes.filter(name => !schemaObjectExists(database, 'index', name));
   if (missingIndexes.length > 0) {
     throw new Error(
-      `SQLite schema is incomplete: missing indexes ${missingIndexes.join(', ')}. `
-      + 'The existing database was left untouched; recover it from a compatible backup or release.',
+      `SQLite schema is incomplete: missing indexes ${missingIndexes.join(', ')}. ` +
+        'The existing database was left untouched; recover it from a compatible backup or release.',
     );
   }
 
-  const missingTriggers = requiredTriggers.filter((name) => !schemaTriggerExists(database, name));
+  const missingTriggers = requiredTriggers.filter(name => !schemaTriggerExists(database, name));
   if (missingTriggers.length > 0) {
     throw new Error(
-      `SQLite schema is incomplete: missing triggers ${missingTriggers.join(', ')}. `
-      + 'The existing database was left untouched; recover it from a compatible backup or release.',
+      `SQLite schema is incomplete: missing triggers ${missingTriggers.join(', ')}. ` +
+        'The existing database was left untouched; recover it from a compatible backup or release.',
     );
   }
 }
@@ -148,8 +144,12 @@ type MigratedQuickDrop = {
 function migrateLegacyQuickDrops(database: Database, now: number): void {
   if (!schemaObjectExists(database, 'table', '_kv_store')) return;
 
-  const legacyRows = database.query(`SELECT key, value, expires_at FROM _kv_store
-    WHERE key LIKE 'drop:%'`).all() as LegacyKvDropRow[];
+  const legacyRows = database
+    .query(
+      `SELECT key, value, expires_at FROM _kv_store
+    WHERE key LIKE 'drop:%'`,
+    )
+    .all() as LegacyKvDropRow[];
   const migrated = legacyRows.flatMap((row): MigratedQuickDrop[] => {
     const id = row.key.slice('drop:'.length);
     if (!id || (row.expires_at !== null && row.expires_at <= now)) return [];
@@ -162,45 +162,47 @@ function migrateLegacyQuickDrops(database: Database, now: number): void {
       parsed = row.value;
     }
 
-    const item = parsed && typeof parsed === 'object' && !Array.isArray(parsed)
-      ? parsed as Record<string, unknown>
-      : null;
-    const content = typeof item?.content === 'string'
-      ? item.content
-      : typeof item?.text === 'string'
-        ? item.text
-        : typeof parsed === 'string'
-          ? parsed
-          : row.value;
+    const item =
+      parsed && typeof parsed === 'object' && !Array.isArray(parsed) ? (parsed as Record<string, unknown>) : null;
+    const content =
+      typeof item?.content === 'string'
+        ? item.content
+        : typeof item?.text === 'string'
+          ? item.text
+          : typeof parsed === 'string'
+            ? parsed
+            : row.value;
     const parsedCreatedAt = typeof item?.created_at === 'string' ? Date.parse(item.created_at) : Number.NaN;
     const createdAt = Number.isFinite(parsedCreatedAt)
       ? new Date(parsedCreatedAt).toISOString()
       : new Date(now).toISOString();
 
-    return [{
-      id,
-      content,
-      url: typeof item?.url === 'string' && item.url.length > 0 ? item.url : null,
-      source: typeof item?.source === 'string' ? item.source : '手机快捷投递',
-      created_at: createdAt,
-      // All old quick drops were written with a seven-day TTL. A null expiry
-      // was technically allowed by AppKV, so give those recoverable records a
-      // fresh seven-day lifetime when moving them into the typed table.
-      expires_at: row.expires_at ?? now + QUICK_DROP_TTL_MS,
-    }];
+    return [
+      {
+        id,
+        content,
+        url: typeof item?.url === 'string' && item.url.length > 0 ? item.url : null,
+        source: typeof item?.source === 'string' ? item.source : '手机快捷投递',
+        created_at: createdAt,
+        // All old quick drops were written with a seven-day TTL. A null expiry
+        // was technically allowed by AppKV, so give those recoverable records a
+        // fresh seven-day lifetime when moving them into the typed table.
+        expires_at: row.expires_at ?? now + QUICK_DROP_TTL_MS,
+      },
+    ];
   });
 
   migrated.sort((a, b) => b.created_at.localeCompare(a.created_at) || b.id.localeCompare(a.id));
   if (migrated.length > QUICK_DROP_MAX_ITEMS) {
     throw new Error(
-      `Cannot migrate ${migrated.length} unexpired quick drops: the supported maximum is ${QUICK_DROP_MAX_ITEMS}. `
-      + 'Legacy KV data has been left unchanged.',
+      `Cannot migrate ${migrated.length} unexpired quick drops: the supported maximum is ${QUICK_DROP_MAX_ITEMS}. ` +
+        'Legacy KV data has been left unchanged.',
     );
   }
 
   const insert = database.query(`INSERT INTO quick_drops (id, content, url, source, created_at, expires_at)
     VALUES (?, ?, ?, ?, ?, ?)`);
-  migrated.forEach((item) => {
+  migrated.forEach(item => {
     insert.run(item.id, item.content, item.url, item.source, item.created_at, item.expires_at);
   });
 
@@ -210,8 +212,8 @@ function migrateLegacyQuickDrops(database: Database, now: number): void {
 }
 
 function migrateV5ToV6(database: Database): void {
-  const v5Tables = REQUIRED_TABLES.filter((name) => name !== 'quick_drops');
-  const v5Indexes = REQUIRED_INDEXES.filter((name) => name !== 'idx_quick_drops_expiry_order');
+  const v5Tables = REQUIRED_TABLES.filter(name => name !== 'quick_drops');
+  const v5Indexes = REQUIRED_INDEXES.filter(name => name !== 'idx_quick_drops_expiry_order');
 
   const migration = database.transaction(() => {
     // A second server process may have completed this step while this process
@@ -249,16 +251,14 @@ type SchemaMigration = {
   migrate: (database: Database) => void;
 };
 
-const SCHEMA_MIGRATIONS: readonly SchemaMigration[] = [
-  { sourceVersion: 5, targetVersion: 6, migrate: migrateV5ToV6 },
-];
+const SCHEMA_MIGRATIONS: readonly SchemaMigration[] = [{ sourceVersion: 5, targetVersion: 6, migrate: migrateV5ToV6 }];
 
 function migrateSchema(database: Database): void {
   let version = readSchemaVersion(database);
   if (version > CURRENT_SCHEMA_VERSION) throw schemaVersionMismatch(version);
 
   while (version < CURRENT_SCHEMA_VERSION) {
-    const migration = SCHEMA_MIGRATIONS.find((step) => step.sourceVersion === version);
+    const migration = SCHEMA_MIGRATIONS.find(step => step.sourceVersion === version);
     if (!migration || migration.targetVersion !== version + 1) throw schemaVersionMismatch(version);
 
     migration.migrate(database);
@@ -283,7 +283,9 @@ export async function initializeSqliteDatabase(dbFilePath: string, schemaPath?: 
       PRAGMA synchronous = NORMAL;
     `);
 
-    const tableCheck = database.query("SELECT count(*) as count FROM sqlite_master WHERE type = 'table' AND name NOT LIKE 'sqlite_%'").get() as { count: number };
+    const tableCheck = database
+      .query("SELECT count(*) as count FROM sqlite_master WHERE type = 'table' AND name NOT LIKE 'sqlite_%'")
+      .get() as { count: number };
     const actualVersion = readSchemaVersion(database);
     const resolvedSchemaPath = schemaPath || resolvePath(process.cwd(), 'database/schema.sql');
     if (tableCheck.count === 0 && actualVersion === 0) {

@@ -1,6 +1,10 @@
 import { describe, expect, it } from 'bun:test';
 import type { PaginatedTopics, Topic } from '../src/types';
-import { applyOptimisticKanbanPageUpdates, hasMoreKanbanPages, rollbackFailedKanbanPage } from '../src/lib/kanbanPagination';
+import {
+  applyOptimisticKanbanPageUpdates,
+  hasMoreKanbanPages,
+  rollbackFailedKanbanPage,
+} from '../src/lib/kanbanPagination';
 
 describe('看板分页失败恢复', () => {
   it('当前页卡片数不足时不会凭数量差异请求不存在的下一页', () => {
@@ -36,8 +40,8 @@ describe('看板分页失败恢复', () => {
     const nextPageOne = applyOptimisticKanbanPageUpdates(pageOne, 1, 'inbox', updates, currentTopics, 'now');
     const nextPageTwo = applyOptimisticKanbanPageUpdates(pageTwo, 2, 'inbox', updates, currentTopics, 'now');
 
-    expect(nextPageOne.items.map((topic) => topic.id)).toEqual(['topic-a']);
-    expect(nextPageTwo.items.map((topic) => topic.id)).toEqual(['topic-b']);
+    expect(nextPageOne.items.map(topic => topic.id)).toEqual(['topic-a']);
+    expect(nextPageTwo.items.map(topic => topic.id)).toEqual(['topic-b']);
     expect(nextPageOne.total).toBe(31);
     expect(nextPageTwo.total).toBe(31);
   });
@@ -48,9 +52,11 @@ describe('看板分页失败恢复', () => {
     const pageTwo: PaginatedTopics = { items: [], page: 2, page_size: 30, total: 5, total_pages: 1 };
     const updates = [{ id: moved.id, status: 'inbox' as const, sort_order: 1 }];
 
-    expect(applyOptimisticKanbanPageUpdates(pageOne, 1, 'inbox', updates, { [moved.id]: moved }, 'now').items)
-      .toHaveLength(1);
-    expect(applyOptimisticKanbanPageUpdates(pageTwo, 2, 'inbox', updates, { [moved.id]: moved }, 'now').items)
-      .toHaveLength(0);
+    expect(
+      applyOptimisticKanbanPageUpdates(pageOne, 1, 'inbox', updates, { [moved.id]: moved }, 'now').items,
+    ).toHaveLength(1);
+    expect(
+      applyOptimisticKanbanPageUpdates(pageTwo, 2, 'inbox', updates, { [moved.id]: moved }, 'now').items,
+    ).toHaveLength(0);
   });
 });

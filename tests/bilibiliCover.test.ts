@@ -18,13 +18,13 @@ describe('Bilibili cover utilities and caching', () => {
 
   it('normalizes cover URLs correctly across different protocols', () => {
     expect(normalizeCoverUrl('http://i0.hdslb.com/bfs/archive/test.jpg')).toBe(
-      'https://i0.hdslb.com/bfs/archive/test.jpg'
+      'https://i0.hdslb.com/bfs/archive/test.jpg',
     );
     expect(normalizeCoverUrl('//i1.hdslb.com/bfs/archive/test2.jpg')).toBe(
-      'https://i1.hdslb.com/bfs/archive/test2.jpg'
+      'https://i1.hdslb.com/bfs/archive/test2.jpg',
     );
     expect(normalizeCoverUrl('https://i2.hdslb.com/bfs/archive/test3.jpg')).toBe(
-      'https://i2.hdslb.com/bfs/archive/test3.jpg'
+      'https://i2.hdslb.com/bfs/archive/test3.jpg',
     );
     expect(normalizeCoverUrl('')).toBe('');
     expect(normalizeCoverUrl(undefined)).toBe('');
@@ -34,7 +34,9 @@ describe('Bilibili cover utilities and caching', () => {
     expect(extractBvid('BV1xx411c7mD')).toBe('BV1xx411c7mD');
     expect(extractBvid('https://www.bilibili.com/video/BV1xx411c7mD/?spm_id_from=333.999')).toBe('BV1xx411c7mD');
     expect(extractBvid('https://b23.tv/BV1xx411c7mD')).toBe('BV1xx411c7mD');
-    expect(extractBvid('【【良子】峨眉山名场面】https://www.bilibili.com/video/BV17x411c7AA?vd_source=123')).toBe('BV17x411c7AA');
+    expect(extractBvid('【【良子】峨眉山名场面】https://www.bilibili.com/video/BV17x411c7AA?vd_source=123')).toBe(
+      'BV17x411c7AA',
+    );
     expect(extractBvid('')).toBeNull();
     expect(extractBvid('invalid-string')).toBeNull();
   });

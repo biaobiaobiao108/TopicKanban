@@ -86,9 +86,7 @@ describe('跨视图实体缓存同步', () => {
   it('优先从当前视图的分页缓存解析选题，避免工作区旧快照覆盖当前卡片', () => {
     const queryClient = new QueryClient();
     const current = topic('topic-from-kanban', { title: '当前看板版本' });
-    queryClient.setQueryData<BootstrapData>(['workspace'], baseWorkspace([
-      { ...current, title: '旧工作区版本' },
-    ]));
+    queryClient.setQueryData<BootstrapData>(['workspace'], baseWorkspace([{ ...current, title: '旧工作区版本' }]));
     queryClient.setQueryData<PaginatedTopics>(
       ['kanban-column-page', 'production', '', 'all', 'all', 'all', 'sort_order', 1],
       page([current]),
@@ -114,7 +112,9 @@ describe('跨视图实体缓存同步', () => {
       { ...nextPinned, is_pinned: 1 },
     ]);
     expect(queryClient.getQueryData<TodayFocusData>(['today-focus'])?.topics[0].is_pinned).toBe(0);
-    expect(queryClient.getQueryData<PaginatedTopics>(key)?.items.find((item) => item.id === nextPinned.id)?.is_pinned).toBe(1);
+    expect(
+      queryClient.getQueryData<PaginatedTopics>(key)?.items.find(item => item.id === nextPinned.id)?.is_pinned,
+    ).toBe(1);
   });
 
   it('同步选题到工作区、今日聚焦和所有分页选题缓存', () => {
@@ -132,11 +132,19 @@ describe('跨视图实体缓存同步', () => {
 
     expect(queryClient.getQueryData<BootstrapData>(['workspace'])?.topics[0].deadline).toBe('2026-09-05');
     expect(queryClient.getQueryData<TodayFocusData>(['today-focus'])?.topics[0].draft_word_count).toBe(1200);
-    expect(queryClient.getQueryData<PaginatedTopics>(['kanban-column-page', 'production'])?.items[0].deadline).toBe('2026-09-05');
+    expect(queryClient.getQueryData<PaginatedTopics>(['kanban-column-page', 'production'])?.items[0].deadline).toBe(
+      '2026-09-05',
+    );
     expect(queryClient.getQueryData<PaginatedTopics>(['topics-page', 'active'])?.items[0].draft_word_count).toBe(1200);
-    expect(queryClient.getQueryData<PaginatedTopics>(['tag-topics-page', 'tag-1'])?.items[0].deadline).toBe('2026-09-05');
-    expect(queryClient.getQueryData<PaginatedTopics>(['kanban-column-page', 'production'])?.items[0].target_publish_date).toBe('2026-09-01');
-    expect(queryClient.getQueryData<PaginatedTopics>(['command-topic-search', '选题'])?.items[0].deadline).toBe('2026-09-05');
+    expect(queryClient.getQueryData<PaginatedTopics>(['tag-topics-page', 'tag-1'])?.items[0].deadline).toBe(
+      '2026-09-05',
+    );
+    expect(
+      queryClient.getQueryData<PaginatedTopics>(['kanban-column-page', 'production'])?.items[0].target_publish_date,
+    ).toBe('2026-09-01');
+    expect(queryClient.getQueryData<PaginatedTopics>(['command-topic-search', '选题'])?.items[0].deadline).toBe(
+      '2026-09-05',
+    );
   });
 
   it('阶段或看板筛选相关字段变化时同步调整已缓存看板页', () => {
@@ -157,41 +165,101 @@ describe('跨视图实体缓存同步', () => {
   it('连续编辑第二页选题不插入第一页，也不增加任何分页总数', () => {
     const queryClient = new QueryClient();
     const current = topic('second');
-    const key = (pageNumber: number) => ['kanban-column-page', 'production', '', 'all', 'all', 'all', 'sort_order', pageNumber];
+    const key = (pageNumber: number) => [
+      'kanban-column-page',
+      'production',
+      '',
+      'all',
+      'all',
+      'all',
+      'sort_order',
+      pageNumber,
+    ];
     queryClient.setQueryData(key(1), { ...page([topic('first')]), page_size: 1, total: 2, total_pages: 2 });
     queryClient.setQueryData(key(2), { ...page([current]), page: 2, page_size: 1, total: 2, total_pages: 2 });
 
     updateTopicCaches(queryClient, current.id, { title: '修改标题' });
     updateTopicCaches(queryClient, current.id, { summary: '继续修改摘要' });
 
-    expect(queryClient.getQueryData<PaginatedTopics>(key(1))?.items.map((item) => item.id)).toEqual(['first']);
-    expect(queryClient.getQueryData<PaginatedTopics>(key(2))?.items[0]).toMatchObject({ title: '修改标题', summary: '继续修改摘要' });
+    expect(queryClient.getQueryData<PaginatedTopics>(key(1))?.items.map(item => item.id)).toEqual(['first']);
+    expect(queryClient.getQueryData<PaginatedTopics>(key(2))?.items[0]).toMatchObject({
+      title: '修改标题',
+      summary: '继续修改摘要',
+    });
     for (const pageNumber of [1, 2]) {
       expect(queryClient.getQueryData<PaginatedTopics>(key(pageNumber))).toMatchObject({ total: 2, total_pages: 2 });
     }
   });
 
-  const membershipChanges: { name: string; previous: Partial<Topic>; updates: Partial<Topic>; before: unknown[]; after: unknown[] }[] = [
-    { name: '阶段', previous: { status: 'production' }, updates: { status: 'scripting' }, before: ['production', '', 'all', 'all', 'all'], after: ['scripting', '', 'all', 'all', 'all'] },
-    { name: '搜索', previous: { title: '旧标题' }, updates: { title: '新标题' }, before: ['production', '旧标题', 'all', 'all', 'all'], after: ['production', '新标题', 'all', 'all', 'all'] },
-    { name: '优先级', previous: { priority: 'medium' }, updates: { priority: 'high' }, before: ['production', '', 'medium', 'all', 'all'], after: ['production', '', 'high', 'all', 'all'] },
-    { name: '标签', previous: { tags: [{ id: 'old-tag' } as Tag] }, updates: { tags: [{ id: 'new-tag' } as Tag] }, before: ['production', '', 'all', 'old-tag', 'all'], after: ['production', '', 'all', 'new-tag', 'all'] },
-    { name: '人物', previous: { people: [{ id: 'old-person' } as Person] }, updates: { people: [{ id: 'new-person' } as Person] }, before: ['production', '', 'all', 'all', 'old-person'], after: ['production', '', 'all', 'all', 'new-person'] },
+  const membershipChanges: {
+    name: string;
+    previous: Partial<Topic>;
+    updates: Partial<Topic>;
+    before: unknown[];
+    after: unknown[];
+  }[] = [
+    {
+      name: '阶段',
+      previous: { status: 'production' },
+      updates: { status: 'scripting' },
+      before: ['production', '', 'all', 'all', 'all'],
+      after: ['scripting', '', 'all', 'all', 'all'],
+    },
+    {
+      name: '搜索',
+      previous: { title: '旧标题' },
+      updates: { title: '新标题' },
+      before: ['production', '旧标题', 'all', 'all', 'all'],
+      after: ['production', '新标题', 'all', 'all', 'all'],
+    },
+    {
+      name: '优先级',
+      previous: { priority: 'medium' },
+      updates: { priority: 'high' },
+      before: ['production', '', 'medium', 'all', 'all'],
+      after: ['production', '', 'high', 'all', 'all'],
+    },
+    {
+      name: '标签',
+      previous: { tags: [{ id: 'old-tag' } as Tag] },
+      updates: { tags: [{ id: 'new-tag' } as Tag] },
+      before: ['production', '', 'all', 'old-tag', 'all'],
+      after: ['production', '', 'all', 'new-tag', 'all'],
+    },
+    {
+      name: '人物',
+      previous: { people: [{ id: 'old-person' } as Person] },
+      updates: { people: [{ id: 'new-person' } as Person] },
+      before: ['production', '', 'all', 'all', 'old-person'],
+      after: ['production', '', 'all', 'all', 'new-person'],
+    },
   ];
 
   for (const change of membershipChanges) {
     it(`${change.name}筛选进出使用编辑前的成员资格，所有缓存页总数一致且不猜测插入位置`, () => {
       const queryClient = new QueryClient();
       const current = topic('moving-topic', change.previous);
-      const key = (filters: unknown[], pageNumber: number) => ['kanban-column-page', ...filters, 'sort_order', pageNumber];
+      const key = (filters: unknown[], pageNumber: number) => [
+        'kanban-column-page',
+        ...filters,
+        'sort_order',
+        pageNumber,
+      ];
       // Only page two owns the edited topic; page one must still lose a member.
       for (const pageNumber of [1, 2]) {
         queryClient.setQueryData(key(change.before, pageNumber), {
           ...page([pageNumber === 2 ? current : topic('before-first')]),
-          page: pageNumber, page_size: 1, total: 2, total_pages: 2,
+          page: pageNumber,
+          page_size: 1,
+          total: 2,
+          total_pages: 2,
         });
         queryClient.setQueryData(key(change.after, pageNumber), {
-          ...page([topic(`after-${pageNumber}`)]), page: pageNumber, page_size: 1, total: 2, total_pages: 2,
+          ...page([topic(`after-${pageNumber}`)]),
+          page: pageNumber,
+          page_size: 1,
+          total: 2,
+          total_pages: 2,
         });
       }
       queryClient.setQueryData(['topic', current.id], current);
@@ -201,10 +269,13 @@ describe('跨视图实体缓存同步', () => {
       updateTopicCaches(queryClient, current.id, change.updates);
 
       for (const pageNumber of [1, 2]) {
-        expect(queryClient.getQueryData<PaginatedTopics>(key(change.before, pageNumber))).toMatchObject({ total: 1, total_pages: 1 });
+        expect(queryClient.getQueryData<PaginatedTopics>(key(change.before, pageNumber))).toMatchObject({
+          total: 1,
+          total_pages: 1,
+        });
         const destination = queryClient.getQueryData<PaginatedTopics>(key(change.after, pageNumber));
         expect(destination).toMatchObject({ total: 3, total_pages: 3 });
-        expect(destination?.items.map((item) => item.id)).toEqual([`after-${pageNumber}`]);
+        expect(destination?.items.map(item => item.id)).toEqual([`after-${pageNumber}`]);
       }
       expect(queryClient.getQueryData<PaginatedTopics>(key(change.before, 2))?.items).toEqual([]);
     });
@@ -219,16 +290,19 @@ describe('跨视图实体缓存同步', () => {
 
     updateTopicCaches(queryClient, staleWorkspaceTopic.id, { status: 'scripting', sort_order: 1 });
     const targetPage = queryClient.getQueryData<PaginatedTopics>(key('scripting'))!;
-    const visible = targetPage.items.map((item) => mergeKanbanTopic(item, staleWorkspaceTopic))
-      .filter((item) => item.status === 'scripting');
-    expect(visible.map((item) => item.id)).toEqual([staleWorkspaceTopic.id]);
+    const visible = targetPage.items
+      .map(item => mergeKanbanTopic(item, staleWorkspaceTopic))
+      .filter(item => item.status === 'scripting');
+    expect(visible.map(item => item.id)).toEqual([staleWorkspaceTopic.id]);
     expect(visible[0].sort_order).toBe(1);
     expect(targetPage.total).toBe(visible.length);
     expect(targetPage.total_pages).toBe(1);
     expect(queryClient.getQueryData<PaginatedTopics>(key('inbox'))?.items).toEqual([]);
 
     updateTopicCaches(queryClient, staleWorkspaceTopic.id, { status: 'inbox', sort_order: 1 });
-    expect(queryClient.getQueryData<PaginatedTopics>(key('inbox'))?.items.map((item) => item.id)).toEqual([staleWorkspaceTopic.id]);
+    expect(queryClient.getQueryData<PaginatedTopics>(key('inbox'))?.items.map(item => item.id)).toEqual([
+      staleWorkspaceTopic.id,
+    ]);
     expect(queryClient.getQueryData<PaginatedTopics>(key('scripting'))?.items).toEqual([]);
     expect(queryClient.getQueryData<PaginatedTopics>(key('scripting'))?.total).toBe(0);
   });
@@ -243,10 +317,16 @@ describe('跨视图实体缓存同步', () => {
     const queryClient = new QueryClient();
     const current = topic('topic-1');
     const todo = {
-      id: 'todo-1', topic_id: current.id, title: '核对原始资料',
+      id: 'todo-1',
+      topic_id: current.id,
+      title: '核对原始资料',
       status: 'in_progress',
-      is_current: 1, current_started_at: '2026-08-25T00:00:00.000Z', completed_at: null,
-      sort_order: 1, created_at: '2026-08-25T00:00:00.000Z', updated_at: '2026-08-25T00:00:00.000Z',
+      is_current: 1,
+      current_started_at: '2026-08-25T00:00:00.000Z',
+      completed_at: null,
+      sort_order: 1,
+      created_at: '2026-08-25T00:00:00.000Z',
+      updated_at: '2026-08-25T00:00:00.000Z',
     } satisfies TopicTodo;
     const result: TopicTodoMutationResult = {
       topic: { ...current, current_todo: todo },
@@ -268,9 +348,16 @@ describe('跨视图实体缓存同步', () => {
     const person = { id: 'person-1', name: '旧人物' } as Person;
     const tag = { id: 'tag-1', name: '旧标签', color: 'stone' } as Tag;
     const current = topic('topic-1', { people: [person], tags: [tag] });
-    queryClient.setQueryData<BootstrapData>(['workspace'], { ...baseWorkspace([current]), people: [person], tags: [tag] });
+    queryClient.setQueryData<BootstrapData>(['workspace'], {
+      ...baseWorkspace([current]),
+      people: [person],
+      tags: [tag],
+    });
     queryClient.setQueryData<PaginatedPeople>(['people-page', 1, ''], page([person]));
-    queryClient.setQueryData<PaginatedTags>(['tags-page', 1, ''], { ...page([tag]), summary: { tagged_topics: 1, total_topics: 1 } });
+    queryClient.setQueryData<PaginatedTags>(['tags-page', 1, ''], {
+      ...page([tag]),
+      summary: { tagged_topics: 1, total_topics: 1 },
+    });
     queryClient.setQueryData<PaginatedTopics>(['kanban-column-page', 'production'], page([current]));
 
     updatePersonCaches(queryClient, { ...person, name: '新人物' });
@@ -290,8 +377,15 @@ describe('跨视图实体缓存同步', () => {
     queryClient.setQueryData<PublishedVideo[]>(['published'], [video]);
     queryClient.setQueryData<PaginatedPublishedVideos>(['published-page', 1], page([video]));
     queryClient.setQueryData<CommercialDeal[]>(['commercial-deals-calendar'], [deal]);
-    queryClient.setQueryData<PaginatedCommercialDeals>(['commercial-deal-page', { page: 1 }], { ...page([deal]), summary: { active_count: 1, due_soon_count: 0, needs_action_count: 0, unpaid_amount_cents: 100, unpaid_count: 1 } });
-    queryClient.setQueryData<DealFocusData>(['deal-focus'], { due_items: [deal], unpaid_items: [deal], total_active: 1 });
+    queryClient.setQueryData<PaginatedCommercialDeals>(['commercial-deal-page', { page: 1 }], {
+      ...page([deal]),
+      summary: { active_count: 1, due_soon_count: 0, needs_action_count: 0, unpaid_amount_cents: 100, unpaid_count: 1 },
+    });
+    queryClient.setQueryData<DealFocusData>(['deal-focus'], {
+      due_items: [deal],
+      unpaid_items: [deal],
+      total_active: 1,
+    });
 
     updatePublishedCaches(queryClient, { ...video, title: '新标题' });
     updateCommercialDealCaches(queryClient, { ...deal, title: '新商单', amount_cents: 200 });
@@ -299,7 +393,9 @@ describe('跨视图实体缓存同步', () => {
     expect(queryClient.getQueryData<PublishedVideo[]>(['published'])?.[0].title).toBe('新标题');
     expect(queryClient.getQueryData<PaginatedPublishedVideos>(['published-page', 1])?.items[0].title).toBe('新标题');
     expect(queryClient.getQueryData<CommercialDeal[]>(['commercial-deals-calendar'])?.[0].title).toBe('新商单');
-    expect(queryClient.getQueryData<PaginatedCommercialDeals>(['commercial-deal-page', { page: 1 }])?.items[0].amount_cents).toBe(200);
+    expect(
+      queryClient.getQueryData<PaginatedCommercialDeals>(['commercial-deal-page', { page: 1 }])?.items[0].amount_cents,
+    ).toBe(200);
     expect(queryClient.getQueryData<DealFocusData>(['deal-focus'])?.due_items[0].title).toBe('新商单');
   });
 
@@ -310,13 +406,24 @@ describe('跨视图实体缓存同步', () => {
     const tag = { id: 'tag-1', name: '标签' } as Tag;
     const video = { id: 'video-1', title: '视频' } as PublishedVideo;
     const deal = { id: 'deal-1', title: '商单' } as CommercialDeal;
-    queryClient.setQueryData<BootstrapData>(['workspace'], { ...baseWorkspace([current]), people: [person], tags: [tag], published: [video] });
+    queryClient.setQueryData<BootstrapData>(['workspace'], {
+      ...baseWorkspace([current]),
+      people: [person],
+      tags: [tag],
+      published: [video],
+    });
     queryClient.setQueryData<TodayFocusData>(['today-focus'], { topics: [current], total_active: 1 });
     queryClient.setQueryData<PaginatedTopics>(['kanban-column-page', 'production'], page([current]));
     queryClient.setQueryData<PaginatedPeople>(['people-page', 1, ''], page([person]));
-    queryClient.setQueryData<PaginatedTags>(['tags-page', 1, ''], { ...page([tag]), summary: { tagged_topics: 0, total_topics: 0 } });
+    queryClient.setQueryData<PaginatedTags>(['tags-page', 1, ''], {
+      ...page([tag]),
+      summary: { tagged_topics: 0, total_topics: 0 },
+    });
     queryClient.setQueryData<PaginatedPublishedVideos>(['published-page', 1], page([video]));
-    queryClient.setQueryData<PaginatedCommercialDeals>(['commercial-deal-page', { page: 1 }], { ...page([deal]), summary: { active_count: 0, due_soon_count: 0, needs_action_count: 0, unpaid_amount_cents: 0, unpaid_count: 0 } });
+    queryClient.setQueryData<PaginatedCommercialDeals>(['commercial-deal-page', { page: 1 }], {
+      ...page([deal]),
+      summary: { active_count: 0, due_soon_count: 0, needs_action_count: 0, unpaid_amount_cents: 0, unpaid_count: 0 },
+    });
     queryClient.setQueryData<CommercialDeal[]>(['commercial-deals-calendar'], [deal]);
 
     removeTopicCaches(queryClient, current.id);
@@ -334,7 +441,9 @@ describe('跨视图实体缓存同步', () => {
     expect(queryClient.getQueryData<PaginatedTags>(['tags-page', 1, ''])?.total).toBe(0);
     expect(queryClient.getQueryData<PaginatedPublishedVideos>(['published-page', 1])?.items).toEqual([]);
     expect(queryClient.getQueryData<PaginatedPublishedVideos>(['published-page', 1])?.total).toBe(0);
-    expect(queryClient.getQueryData<PaginatedCommercialDeals>(['commercial-deal-page', { page: 1 }])?.items).toEqual([]);
+    expect(queryClient.getQueryData<PaginatedCommercialDeals>(['commercial-deal-page', { page: 1 }])?.items).toEqual(
+      [],
+    );
     expect(queryClient.getQueryData<PaginatedCommercialDeals>(['commercial-deal-page', { page: 1 }])?.total).toBe(0);
     expect(queryClient.getQueryData<CommercialDeal[]>(['commercial-deals-calendar'])).toEqual([]);
   });

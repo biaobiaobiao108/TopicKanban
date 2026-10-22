@@ -12,18 +12,22 @@ interface CurrentReference {
 
 function resolveCurrentReference(citation: DraftCitation, context: CitationContext): CurrentReference | null {
   if (citation.reference_type === 'source') {
-    const source = context.sources.find((item) => item.id === citation.reference_id);
-    return source ? {
-      snapshot: source.content || source.title,
-      verificationStatus: source.verification_status,
-    } : null;
+    const source = context.sources.find(item => item.id === citation.reference_id);
+    return source
+      ? {
+          snapshot: source.content || source.title,
+          verificationStatus: source.verification_status,
+        }
+      : null;
   }
   if (citation.reference_type === 'person') {
-    const person = context.topic.people?.find((item) => item.id === citation.reference_id);
-    return person ? {
-      snapshot: `“${person.quotes}” —— ${person.name}`,
-      verificationStatus: 'confirmed',
-    } : null;
+    const person = context.topic.people?.find(item => item.id === citation.reference_id);
+    return person
+      ? {
+          snapshot: `“${person.quotes}” —— ${person.name}`,
+          verificationStatus: 'confirmed',
+        }
+      : null;
   }
   if (citation.reference_type === 'report') {
     // Report citations preserve the selected quote as their own immutable snapshot.
@@ -43,7 +47,7 @@ function resolveCurrentReference(citation: DraftCitation, context: CitationConte
 }
 
 export function getCitationHealth(citations: DraftCitation[], context: CitationContext) {
-  const states = citations.map((citation) => {
+  const states = citations.map(citation => {
     const current = resolveCurrentReference(citation, context);
     return {
       citation,
@@ -54,7 +58,7 @@ export function getCitationHealth(citations: DraftCitation[], context: CitationC
   });
   return {
     states,
-    staleCount: states.filter((state) => state.stale).length,
-    unverifiedCount: states.filter((state) => state.unverified).length,
+    staleCount: states.filter(state => state.stale).length,
+    unverifiedCount: states.filter(state => state.unverified).length,
   };
 }

@@ -10,11 +10,9 @@ export const QUERY_GC_TIMES = {
 } as const;
 
 export function configureQueryCache(queryClient: QueryClient): void {
-  [
-    ['settings'],
-    ['deal-focus'],
-    ['active-topic-count'],
-  ].forEach((queryKey) => queryClient.setQueryDefaults(queryKey, { gcTime: QUERY_GC_TIMES.stable }));
+  [['settings'], ['deal-focus'], ['active-topic-count']].forEach(queryKey =>
+    queryClient.setQueryDefaults(queryKey, { gcTime: QUERY_GC_TIMES.stable }),
+  );
 
   [
     ['kanban-column-page'],
@@ -32,7 +30,7 @@ export function configureQueryCache(queryClient: QueryClient): void {
     ['published-analytics'],
     ['commercial-deal-page'],
     ['published-for-deal'],
-  ].forEach((queryKey) => queryClient.setQueryDefaults(queryKey, { gcTime: QUERY_GC_TIMES.list }));
+  ].forEach(queryKey => queryClient.setQueryDefaults(queryKey, { gcTime: QUERY_GC_TIMES.list }));
 
   [
     ['topic-sources'],
@@ -44,7 +42,7 @@ export function configureQueryCache(queryClient: QueryClient): void {
     ['topic-deals'],
     ['topic-todos'],
     ['commercial-deal'],
-  ].forEach((queryKey) => queryClient.setQueryDefaults(queryKey, { gcTime: QUERY_GC_TIMES.detail }));
+  ].forEach(queryKey => queryClient.setQueryDefaults(queryKey, { gcTime: QUERY_GC_TIMES.detail }));
 
   queryClient.setQueryDefaults(['command-topic-search'], { gcTime: QUERY_GC_TIMES.search });
 }

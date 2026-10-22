@@ -16,14 +16,25 @@ import {
   type DragEndEvent,
   type DragStartEvent,
 } from '@dnd-kit/core';
-import { SortableContext, sortableKeyboardCoordinates, useSortable, verticalListSortingStrategy } from '@dnd-kit/sortable';
+import {
+  SortableContext,
+  sortableKeyboardCoordinates,
+  useSortable,
+  verticalListSortingStrategy,
+} from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import { Check, KanbanSquare, Plus, Trash2, Zap } from 'lucide-react';
 import type { Topic, TopicTodo, TopicTodoBoardLayout, TopicTodoStatus } from '../../types';
 import { ConfirmDialog } from '../ui/ConfirmDialog';
 import { useToast } from '../ui/Toast';
 import type { TopicTodoActions } from './todoTypes';
-import { findTodoStatus, getTodoBoardLayout, moveTodoOnBoard, reorderTodoInColumn, TODO_BOARD_COLUMNS } from './todoBoardUtils';
+import {
+  findTodoStatus,
+  getTodoBoardLayout,
+  moveTodoOnBoard,
+  reorderTodoInColumn,
+  TODO_BOARD_COLUMNS,
+} from './todoBoardUtils';
 
 interface TodoBoardProps {
   topic: Topic;
@@ -32,14 +43,18 @@ interface TodoBoardProps {
   isLoading?: boolean;
 }
 
-const laneKey = (status: TopicTodoStatus): 'todo_ids' | 'in_progress_ids' | 'completed_ids' => `${status}_ids` as 'todo_ids' | 'in_progress_ids' | 'completed_ids';
+const laneKey = (status: TopicTodoStatus): 'todo_ids' | 'in_progress_ids' | 'completed_ids' =>
+  `${status}_ids` as 'todo_ids' | 'in_progress_ids' | 'completed_ids';
 const TODO_DELETE_ZONE_ID = 'todo-delete-zone';
 
 class NonTouchPointerSensor extends PointerSensor {
-  static activators = [{
-    eventName: 'onPointerDown' as const,
-    handler: ({ nativeEvent }: { nativeEvent: PointerEvent }) => nativeEvent.isPrimary && nativeEvent.button === 0 && nativeEvent.pointerType !== 'touch',
-  }];
+  static activators = [
+    {
+      eventName: 'onPointerDown' as const,
+      handler: ({ nativeEvent }: { nativeEvent: PointerEvent }) =>
+        nativeEvent.isPrimary && nativeEvent.button === 0 && nativeEvent.pointerType !== 'touch',
+    },
+  ];
 }
 
 type TodoCreateStatus = Extract<TopicTodoStatus, 'todo' | 'in_progress'>;
@@ -75,21 +90,33 @@ const ColumnTodoComposer: React.FC<{
   };
 
   return (
-    <form onSubmit={(event) => void submit(event)} noValidate className="todo-board-composer rounded-lg border border-line bg-surface p-2.5 shadow-subtle">
-      <label htmlFor={id} className="sr-only">添加待办事项</label>
+    <form
+      onSubmit={event => void submit(event)}
+      noValidate
+      className="todo-board-composer rounded-lg border border-line bg-surface p-2.5 shadow-subtle"
+    >
+      <label htmlFor={id} className="sr-only">
+        添加待办事项
+      </label>
       <div className="flex min-w-0 items-center gap-2">
         <input
           ref={inputRef}
           id={id}
           autoFocus
           value={title}
-          onChange={(event) => { setTitle(event.target.value); setError(''); }}
-          onKeyDown={(event) => {
-            event.stopPropagation();
-            if (event.key === 'Escape') { event.preventDefault(); onCancel(); }
+          onChange={event => {
+            setTitle(event.target.value);
+            setError('');
           }}
-          onPointerDown={(event) => event.stopPropagation()}
-          onTouchStart={(event) => event.stopPropagation()}
+          onKeyDown={event => {
+            event.stopPropagation();
+            if (event.key === 'Escape') {
+              event.preventDefault();
+              onCancel();
+            }
+          }}
+          onPointerDown={event => event.stopPropagation()}
+          onTouchStart={event => event.stopPropagation()}
           disabled={isSubmitting}
           maxLength={200}
           enterKeyHint="done"
@@ -100,10 +127,21 @@ const ColumnTodoComposer: React.FC<{
           aria-invalid={Boolean(error)}
         />
         <div className="flex shrink-0 items-center gap-1">
-          <button type="submit" disabled={isSubmitting || !title.trim()} className="min-h-9 rounded-sm bg-accent px-3 text-xs font-semibold text-white transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-40 cursor-pointer">
+          <button
+            type="submit"
+            disabled={isSubmitting || !title.trim()}
+            className="min-h-9 rounded-sm bg-accent px-3 text-xs font-semibold text-white transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-40 cursor-pointer"
+          >
             {isSubmitting ? '添加中…' : '添加'}
           </button>
-          <button type="button" onClick={onCancel} disabled={isSubmitting} className="min-h-9 rounded-sm px-2 text-xs text-ink-muted transition hover:bg-canvas hover:text-ink disabled:opacity-40 cursor-pointer">取消</button>
+          <button
+            type="button"
+            onClick={onCancel}
+            disabled={isSubmitting}
+            className="min-h-9 rounded-sm px-2 text-xs text-ink-muted transition hover:bg-canvas hover:text-ink disabled:opacity-40 cursor-pointer"
+          >
+            取消
+          </button>
         </div>
       </div>
       {error && (
@@ -125,13 +163,24 @@ const InlineTitleEditor: React.FC<{
   const inputRef = useRef<HTMLInputElement>(null);
   const savingRef = useRef(false);
   const cancelledRef = useRef(false);
-  useEffect(() => { setValue(initialValue); setError(''); cancelledRef.current = false; }, [initialValue]);
+  useEffect(() => {
+    setValue(initialValue);
+    setError('');
+    cancelledRef.current = false;
+  }, [initialValue]);
 
   const commit = async () => {
     if (savingRef.current) return;
     const title = value.trim();
-    if (!title) { setError('待办标题不能为空'); inputRef.current?.focus(); return; }
-    if (title === initialValue) { onCancel(); return; }
+    if (!title) {
+      setError('待办标题不能为空');
+      inputRef.current?.focus();
+      return;
+    }
+    if (title === initialValue) {
+      onCancel();
+      return;
+    }
     savingRef.current = true;
     const saved = await onSave(title);
     savingRef.current = false;
@@ -149,21 +198,36 @@ const InlineTitleEditor: React.FC<{
         ref={inputRef}
         autoFocus
         value={value}
-        onChange={(event) => { setValue(event.target.value); setError(''); }}
-        onKeyDown={(event) => {
-          event.stopPropagation();
-          if (event.key === 'Enter') { event.preventDefault(); void commit(); }
-          if (event.key === 'Escape') { event.preventDefault(); cancel(); }
+        onChange={event => {
+          setValue(event.target.value);
+          setError('');
         }}
-        onBlur={() => { if (!cancelledRef.current && value.trim()) void commit(); }}
-        onPointerDown={(event) => event.stopPropagation()}
-        onTouchStart={(event) => event.stopPropagation()}
+        onKeyDown={event => {
+          event.stopPropagation();
+          if (event.key === 'Enter') {
+            event.preventDefault();
+            void commit();
+          }
+          if (event.key === 'Escape') {
+            event.preventDefault();
+            cancel();
+          }
+        }}
+        onBlur={() => {
+          if (!cancelledRef.current && value.trim()) void commit();
+        }}
+        onPointerDown={event => event.stopPropagation()}
+        onTouchStart={event => event.stopPropagation()}
         maxLength={200}
         aria-label="编辑待办标题"
         aria-invalid={Boolean(error)}
         className="todo-inline-editor-input min-h-8 w-full bg-transparent text-sm font-semibold text-ink outline-none"
       />
-      {error && <span role="alert" className="text-2xs text-danger">{error}</span>}
+      {error && (
+        <span role="alert" className="text-2xs text-danger">
+          {error}
+        </span>
+      )}
     </>
   );
 };
@@ -179,7 +243,16 @@ interface SortableTodoCardProps {
   onCancelEdit: () => void;
 }
 
-const SortableTodoCard: React.FC<SortableTodoCardProps> = ({ todo, status, isCurrent, isEditing, isBusy, onEdit, onSave, onCancelEdit }) => {
+const SortableTodoCard: React.FC<SortableTodoCardProps> = ({
+  todo,
+  status,
+  isCurrent,
+  isEditing,
+  isBusy,
+  onEdit,
+  onSave,
+  onCancelEdit,
+}) => {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
     id: todo.id,
     data: { type: 'todo', status },
@@ -193,13 +266,13 @@ const SortableTodoCard: React.FC<SortableTodoCardProps> = ({ todo, status, isCur
       style={{ transform: CSS.Transform.toString(transform), transition }}
       {...attributes}
       {...listeners}
-      onDoubleClick={(event) => {
+      onDoubleClick={event => {
         if (isEditing || isBusy) return;
         event.preventDefault();
         event.stopPropagation();
         onEdit();
       }}
-      onKeyDown={(event) => {
+      onKeyDown={event => {
         if (event.key === 'Enter' && !isEditing && !isBusy && !isDragging) {
           event.preventDefault();
           event.stopPropagation();
@@ -210,7 +283,7 @@ const SortableTodoCard: React.FC<SortableTodoCardProps> = ({ todo, status, isCur
       }}
       tabIndex={isBusy ? -1 : attributes.tabIndex}
       role={isEditing ? 'group' : attributes.role}
-      aria-label={`${todo.title}，${TODO_BOARD_COLUMNS.find((column) => column.status === status)?.label || ''}${isEditing ? '' : '，按 Enter 编辑，按空格拖动'}`}
+      aria-label={`${todo.title}，${TODO_BOARD_COLUMNS.find(column => column.status === status)?.label || ''}${isEditing ? '' : '，按 Enter 编辑，按空格拖动'}`}
       data-testid="todo-board-card"
       data-todo-id={todo.id}
       data-current={isCurrent ? 'true' : undefined}
@@ -229,9 +302,7 @@ const SortableTodoCard: React.FC<SortableTodoCardProps> = ({ todo, status, isCur
             <div className="flex min-h-6 min-w-0 flex-wrap items-center justify-between gap-x-2 gap-y-1">
               <span
                 className={`min-w-0 flex-1 break-words text-sm leading-5 font-medium ${
-                  isCompleted
-                    ? 'text-ink-muted line-through decoration-ink-faint/60'
-                    : 'text-ink'
+                  isCompleted ? 'text-ink-muted line-through decoration-ink-faint/60' : 'text-ink'
                 }`}
               >
                 {todo.title}
@@ -266,7 +337,7 @@ const TodoBoardColumn: React.FC<{
   onCancelAdd: () => void;
   onCreate: (title: string, status: TodoCreateStatus) => Promise<boolean>;
 }> = ({ status, ids, children, isComposerOpen, onQuickAdd, onCancelAdd, onCreate }) => {
-  const column = TODO_BOARD_COLUMNS.find((item) => item.status === status)!;
+  const column = TODO_BOARD_COLUMNS.find(item => item.status === status)!;
   const { setNodeRef, isOver } = useDroppable({ id: `column:${status}`, data: { type: 'column', status } });
   return (
     <section
@@ -278,7 +349,9 @@ const TodoBoardColumn: React.FC<{
     >
       <header className="mb-2.5 flex items-center justify-between gap-2 px-1.5 py-1">
         <div className="flex min-w-0 items-center gap-2">
-          <span className={`h-2 w-2 shrink-0 rounded-full ${status === 'todo' ? 'bg-ink-faint' : status === 'in_progress' ? 'bg-accent' : 'bg-success'}`} />
+          <span
+            className={`h-2 w-2 shrink-0 rounded-full ${status === 'todo' ? 'bg-ink-faint' : status === 'in_progress' ? 'bg-accent' : 'bg-success'}`}
+          />
           <h3 className="text-sm font-semibold tracking-tight text-ink">{column.label}</h3>
           <span className="kanban-column-count ml-0.5 text-xs tabular-nums text-ink-muted">{ids.length}</span>
         </div>
@@ -297,8 +370,19 @@ const TodoBoardColumn: React.FC<{
       <SortableContext items={ids} strategy={verticalListSortingStrategy}>
         <div className="mobile-scroll-reveal min-h-[140px] min-w-0 flex-1 space-y-2.5">
           {children}
-          {ids.length === 0 && <div className={`flex h-24 flex-col items-center justify-center rounded-sm border border-dashed p-3 text-center text-xs transition-colors duration-150 ${isOver ? 'border-accent bg-accent-soft text-accent' : 'border-line bg-surface/50 text-ink-muted'}`}><span className="font-medium">{isOver ? '松开以移入此列' : '暂无待办'}</span><span className="mt-0.5 text-2xs opacity-75">{isOver ? `将事项归入「${column.label}」` : '拖动事项至此可调整进度'}</span></div>}
-          {isComposerOpen && status === 'todo' && <ColumnTodoComposer status={status} onCreate={onCreate} onCancel={onCancelAdd} />}
+          {ids.length === 0 && (
+            <div
+              className={`flex h-24 flex-col items-center justify-center rounded-sm border border-dashed p-3 text-center text-xs transition-colors duration-150 ${isOver ? 'border-accent bg-accent-soft text-accent' : 'border-line bg-surface/50 text-ink-muted'}`}
+            >
+              <span className="font-medium">{isOver ? '松开以移入此列' : '暂无待办'}</span>
+              <span className="mt-0.5 text-2xs opacity-75">
+                {isOver ? `将事项归入「${column.label}」` : '拖动事项至此可调整进度'}
+              </span>
+            </div>
+          )}
+          {isComposerOpen && status === 'todo' && (
+            <ColumnTodoComposer status={status} onCreate={onCreate} onCancel={onCancelAdd} />
+          )}
         </div>
       </SortableContext>
     </section>
@@ -313,7 +397,7 @@ const TodoBoardStageTab: React.FC<{
   isDesktop: boolean;
   onSelect: () => void;
 }> = ({ status, count, isActive, isDragging, isDesktop, onSelect }) => {
-  const column = TODO_BOARD_COLUMNS.find((item) => item.status === status)!;
+  const column = TODO_BOARD_COLUMNS.find(item => item.status === status)!;
   const { setNodeRef, isOver } = useDroppable({
     id: `stage-tab:${status}`,
     data: { type: 'column', status },
@@ -338,7 +422,9 @@ const TodoBoardStageTab: React.FC<{
       }`}
     >
       <span>{column.label}</span>
-      <span className={`rounded-sm px-1 text-3xs tabular-nums ${isActive ? 'bg-accent-dark text-white' : 'text-ink-muted opacity-75'}`}>
+      <span
+        className={`rounded-sm px-1 text-3xs tabular-nums ${isActive ? 'bg-accent-dark text-white' : 'text-ink-muted opacity-75'}`}
+      >
         {count}
       </span>
     </button>
@@ -379,16 +465,20 @@ const TodoDeleteDropZone: React.FC = () => {
   );
 };
 
-const todoBoardCollisionDetection: CollisionDetection = (args) => {
+const todoBoardCollisionDetection: CollisionDetection = args => {
   const pointerCollisions = pointerWithin(args);
-  const deleteZoneCollision = pointerCollisions.find((collision) => String(collision.id) === TODO_DELETE_ZONE_ID);
+  const deleteZoneCollision = pointerCollisions.find(collision => String(collision.id) === TODO_DELETE_ZONE_ID);
   const point = args.pointerCoordinates;
   const rect = args.droppableRects.get(TODO_DELETE_ZONE_ID);
   if (deleteZoneCollision && point && rect) {
     const horizontalDistance = rect.right - point.x;
     const verticalDistance = rect.bottom - point.y;
     const radius = Math.min(rect.width, rect.height);
-    if (horizontalDistance >= 0 && verticalDistance >= 0 && horizontalDistance ** 2 + verticalDistance ** 2 <= radius ** 2) {
+    if (
+      horizontalDistance >= 0 &&
+      verticalDistance >= 0 &&
+      horizontalDistance ** 2 + verticalDistance ** 2 <= radius ** 2
+    ) {
       return [deleteZoneCollision];
     }
   }
@@ -396,12 +486,15 @@ const todoBoardCollisionDetection: CollisionDetection = (args) => {
   if (!point) return closestCorners(args);
   return closestCorners({
     ...args,
-    droppableContainers: args.droppableContainers.filter((container) => String(container.id) !== TODO_DELETE_ZONE_ID),
+    droppableContainers: args.droppableContainers.filter(container => String(container.id) !== TODO_DELETE_ZONE_ID),
     droppableRects: new Map([...args.droppableRects].filter(([id]) => String(id) !== TODO_DELETE_ZONE_ID)),
   });
 };
 
-function layoutFromDragEvent(event: Pick<DragEndEvent, 'active' | 'over'> | Pick<DragOverEvent, 'active' | 'over'>, current: TopicTodoBoardLayout): TopicTodoBoardLayout | null {
+function layoutFromDragEvent(
+  event: Pick<DragEndEvent, 'active' | 'over'> | Pick<DragOverEvent, 'active' | 'over'>,
+  current: TopicTodoBoardLayout,
+): TopicTodoBoardLayout | null {
   const { active, over } = event;
   if (!over || active.id === over.id) return null;
   const todoId = String(active.id);
@@ -409,8 +502,12 @@ function layoutFromDragEvent(event: Pick<DragEndEvent, 'active' | 'over'> | Pick
   const sourceStatus = findTodoStatus(current, todoId);
   if (!sourceStatus) return null;
   const data = over.data.current as { type?: string; status?: TopicTodoStatus } | undefined;
-  const targetStatus = data?.status || (overId.startsWith('column:') ? overId.slice('column:'.length) as TopicTodoStatus : findTodoStatus(current, overId));
-  if (!targetStatus || !TODO_BOARD_COLUMNS.some((column) => column.status === targetStatus)) return null;
+  const targetStatus =
+    data?.status ||
+    (overId.startsWith('column:')
+      ? (overId.slice('column:'.length) as TopicTodoStatus)
+      : findTodoStatus(current, overId));
+  if (!targetStatus || !TODO_BOARD_COLUMNS.some(column => column.status === targetStatus)) return null;
   if (sourceStatus === targetStatus) {
     if (overId.startsWith('column:')) return null;
     return reorderTodoInColumn(current, todoId, overId);
@@ -440,7 +537,7 @@ export const TodoBoard: React.FC<TodoBoardProps> = ({ topic, todos, actions, isL
   const lastDragOverIdRef = useRef<string | null>(null);
   const sourceLayout = useMemo(() => getTodoBoardLayout(todos), [todos]);
   const layout = localLayout || sourceLayout;
-  const todoById = useMemo(() => new Map(todos.map((todo) => [todo.id, todo])), [todos]);
+  const todoById = useMemo(() => new Map(todos.map(todo => [todo.id, todo])), [todos]);
   const laneCounts = {
     todo: layout.todo_ids.length,
     in_progress: layout.in_progress_ids.length,
@@ -468,7 +565,7 @@ export const TodoBoard: React.FC<TodoBoardProps> = ({ topic, todos, actions, isL
   const withTodoLock = async (todoId: string, operation: () => Promise<unknown>): Promise<boolean> => {
     if (operationIdsRef.current.has(todoId)) return false;
     operationIdsRef.current.add(todoId);
-    setBusyTodoIds((previous) => new Set(previous).add(todoId));
+    setBusyTodoIds(previous => new Set(previous).add(todoId));
     try {
       await operation();
       return true;
@@ -477,7 +574,11 @@ export const TodoBoard: React.FC<TodoBoardProps> = ({ topic, todos, actions, isL
       return false;
     } finally {
       operationIdsRef.current.delete(todoId);
-      setBusyTodoIds((previous) => { const next = new Set(previous); next.delete(todoId); return next; });
+      setBusyTodoIds(previous => {
+        const next = new Set(previous);
+        next.delete(todoId);
+        return next;
+      });
     }
   };
 
@@ -487,28 +588,33 @@ export const TodoBoard: React.FC<TodoBoardProps> = ({ topic, todos, actions, isL
     pendingBoardCountRef.current += 1;
     pendingBoardTodoCountsRef.current.set(todoId, (pendingBoardTodoCountsRef.current.get(todoId) || 0) + 1);
     setBusyBoardCount(pendingBoardCountRef.current);
-    setBusyTodoIds((previous) => new Set(previous).add(todoId));
-    const operation = boardQueueRef.current.then(async () => { await actions.updateBoard(topic.id, next); });
-    boardQueueRef.current = operation.catch(() => undefined);
-    return operation.then(() => true).catch((error: unknown) => {
-      showToast({ tone: 'error', message: error instanceof Error ? error.message : '保存看板失败，请稍后重试' });
-      if (revision === localRevisionRef.current) setLocalLayout(null);
-      return false;
-    }).finally(() => {
-      pendingBoardCountRef.current -= 1;
-      setBusyBoardCount(pendingBoardCountRef.current);
-      const pendingForTodo = pendingBoardTodoCountsRef.current.get(todoId) || 0;
-      if (pendingForTodo <= 1) pendingBoardTodoCountsRef.current.delete(todoId);
-      else pendingBoardTodoCountsRef.current.set(todoId, pendingForTodo - 1);
-      setBusyTodoIds((previous) => {
-        const nextIds = new Set(previous);
-        if (!pendingBoardTodoCountsRef.current.has(todoId)) nextIds.delete(todoId);
-        return nextIds;
-      });
-      if (pendingBoardCountRef.current === 0) {
-        if (revision === localRevisionRef.current) setLocalLayout(null);
-      }
+    setBusyTodoIds(previous => new Set(previous).add(todoId));
+    const operation = boardQueueRef.current.then(async () => {
+      await actions.updateBoard(topic.id, next);
     });
+    boardQueueRef.current = operation.catch(() => undefined);
+    return operation
+      .then(() => true)
+      .catch((error: unknown) => {
+        showToast({ tone: 'error', message: error instanceof Error ? error.message : '保存看板失败，请稍后重试' });
+        if (revision === localRevisionRef.current) setLocalLayout(null);
+        return false;
+      })
+      .finally(() => {
+        pendingBoardCountRef.current -= 1;
+        setBusyBoardCount(pendingBoardCountRef.current);
+        const pendingForTodo = pendingBoardTodoCountsRef.current.get(todoId) || 0;
+        if (pendingForTodo <= 1) pendingBoardTodoCountsRef.current.delete(todoId);
+        else pendingBoardTodoCountsRef.current.set(todoId, pendingForTodo - 1);
+        setBusyTodoIds(previous => {
+          const nextIds = new Set(previous);
+          if (!pendingBoardTodoCountsRef.current.has(todoId)) nextIds.delete(todoId);
+          return nextIds;
+        });
+        if (pendingBoardCountRef.current === 0) {
+          if (revision === localRevisionRef.current) setLocalLayout(null);
+        }
+      });
   };
 
   const handleDragStart = (event: DragStartEvent) => {
@@ -516,8 +622,9 @@ export const TodoBoard: React.FC<TodoBoardProps> = ({ topic, todos, actions, isL
     dragLayoutRef.current = layout;
     lastDragOverIdRef.current = null;
     const activeId = String(event.active.id);
-    const cardElement = Array.from(document.querySelectorAll<HTMLElement>('[data-todo-id]'))
-      .find((element) => element.dataset.todoId === activeId);
+    const cardElement = Array.from(document.querySelectorAll<HTMLElement>('[data-todo-id]')).find(
+      element => element.dataset.todoId === activeId,
+    );
     setActiveCardWidth(cardElement?.getBoundingClientRect().width || null);
     setActiveTodoId(activeId);
   };
@@ -592,13 +699,15 @@ export const TodoBoard: React.FC<TodoBoardProps> = ({ topic, todos, actions, isL
   };
 
   const beginEdit = (todoId: string) => setEditingTodoId(todoId);
-  const saveTitle = (todo: TopicTodo, title: string) => withTodoLock(todo.id, () => actions.updateTodo(todo.id, { title })).then((success) => {
-    if (success) setEditingTodoId((current) => current === todo.id ? null : current);
-    return success;
-  });
+  const saveTitle = (todo: TopicTodo, title: string) =>
+    withTodoLock(todo.id, () => actions.updateTodo(todo.id, { title })).then(success => {
+      if (success) setEditingTodoId(current => (current === todo.id ? null : current));
+      return success;
+    });
 
-  const createTodo = (title: string, status: TodoCreateStatus) => withTodoLock('__new_todo__', () => actions.createTodo(topic.id, { title, status }));
-  const statusesToDisplay = isDesktop ? TODO_BOARD_COLUMNS.map((column) => column.status) : [mobileStatus];
+  const createTodo = (title: string, status: TodoCreateStatus) =>
+    withTodoLock('__new_todo__', () => actions.createTodo(topic.id, { title, status }));
+  const statusesToDisplay = isDesktop ? TODO_BOARD_COLUMNS.map(column => column.status) : [mobileStatus];
   const showCard = (todoId: string, status: TopicTodoStatus, currentTodoId: string | null) => {
     const todo = todoById.get(todoId);
     if (!todo) return null;
@@ -611,7 +720,7 @@ export const TodoBoard: React.FC<TodoBoardProps> = ({ topic, todos, actions, isL
         isEditing={editingTodoId === todo.id}
         isBusy={busyTodoIds.has(todo.id)}
         onEdit={() => beginEdit(todo.id)}
-        onSave={(title) => saveTitle(todo, title)}
+        onSave={title => saveTitle(todo, title)}
         onCancelEdit={() => setEditingTodoId(null)}
       />
     );
@@ -621,9 +730,14 @@ export const TodoBoard: React.FC<TodoBoardProps> = ({ topic, todos, actions, isL
     <div className="mx-auto w-full max-w-[1440px] space-y-5 px-4 py-5 sm:px-6 sm:py-7">
       <header className="flex flex-wrap items-end justify-between gap-3">
         <div>
-          <div className="flex items-center gap-2"><KanbanSquare className="h-5 w-5 text-accent" aria-hidden="true" /><h2 className="font-serif text-lg font-bold text-ink">执行看板</h2></div>
+          <div className="flex items-center gap-2">
+            <KanbanSquare className="h-5 w-5 text-accent" aria-hidden="true" />
+            <h2 className="font-serif text-lg font-bold text-ink">执行看板</h2>
+          </div>
         </div>
-        <span className="text-xs tabular-nums text-ink-muted">共 {todos.length} 项{busyBoardCount > 0 ? ' · 顺序保存中' : ''}</span>
+        <span className="text-xs tabular-nums text-ink-muted">
+          共 {todos.length} 项{busyBoardCount > 0 ? ' · 顺序保存中' : ''}
+        </span>
       </header>
 
       {isLoading ? (
@@ -638,8 +752,11 @@ export const TodoBoard: React.FC<TodoBoardProps> = ({ topic, todos, actions, isL
             onDragEnd={handleDragEnd}
             onDragCancel={handleDragCancel}
           >
-            <div data-testid="todo-board-mobile-stage-tabs" className="flex min-h-9 items-center gap-1.5 overflow-x-auto rounded-sm bg-canvas p-1 lg:hidden">
-              {TODO_BOARD_COLUMNS.map((column) => (
+            <div
+              data-testid="todo-board-mobile-stage-tabs"
+              className="flex min-h-9 items-center gap-1.5 overflow-x-auto rounded-sm bg-canvas p-1 lg:hidden"
+            >
+              {TODO_BOARD_COLUMNS.map(column => (
                 <TodoBoardStageTab
                   key={column.status}
                   status={column.status}
@@ -653,7 +770,7 @@ export const TodoBoard: React.FC<TodoBoardProps> = ({ topic, todos, actions, isL
             </div>
 
             <div className="grid min-w-0 grid-cols-1 gap-3 lg:grid-cols-3 lg:gap-4" data-testid="todo-board-grid">
-              {TODO_BOARD_COLUMNS.filter((column) => statusesToDisplay.includes(column.status)).map((column) => {
+              {TODO_BOARD_COLUMNS.filter(column => statusesToDisplay.includes(column.status)).map(column => {
                 const ids = layout[laneKey(column.status)];
                 const currentId = column.status === 'in_progress' ? ids[0] || null : null;
                 return (
@@ -662,31 +779,41 @@ export const TodoBoard: React.FC<TodoBoardProps> = ({ topic, todos, actions, isL
                       status={column.status}
                       ids={ids}
                       isComposerOpen={composerStatus === column.status}
-                      onQuickAdd={() => setComposerStatus((current) => current === column.status ? null : column.status as TodoCreateStatus)}
+                      onQuickAdd={() =>
+                        setComposerStatus(current =>
+                          current === column.status ? null : (column.status as TodoCreateStatus),
+                        )
+                      }
                       onCancelAdd={() => setComposerStatus(null)}
                       onCreate={createTodo}
                     >
-                      {ids.map((id) => showCard(id, column.status, currentId))}
+                      {ids.map(id => showCard(id, column.status, currentId))}
                     </TodoBoardColumn>
                   </div>
                 );
               })}
             </div>
-            {activeTodoId && typeof document !== 'undefined' && createPortal(
-              <TodoDeleteDropZone />,
-              document.body,
-            )}
-            {typeof document !== 'undefined' && createPortal(
-              <DragOverlay dropAnimation={null}>
-                {activeTodo ? (
-                  <div style={activeCardWidth ? { width: activeCardWidth } : undefined} className="pointer-events-none rotate-[1deg] rounded-lg border border-accent/40 bg-surface p-3.5 shadow-modal">
-                    <div className="text-sm font-semibold text-ink">{activeTodo.title}</div>
-                    {activeTodoId === layout.in_progress_ids[0] && <span className="mt-1 inline-flex items-center gap-1 text-3xs font-semibold text-accent"><Zap className="h-3 w-3" />当前行动</span>}
-                  </div>
-                ) : null}
-              </DragOverlay>,
-              document.body,
-            )}
+            {activeTodoId && typeof document !== 'undefined' && createPortal(<TodoDeleteDropZone />, document.body)}
+            {typeof document !== 'undefined' &&
+              createPortal(
+                <DragOverlay dropAnimation={null}>
+                  {activeTodo ? (
+                    <div
+                      style={activeCardWidth ? { width: activeCardWidth } : undefined}
+                      className="pointer-events-none rotate-[1deg] rounded-lg border border-accent/40 bg-surface p-3.5 shadow-modal"
+                    >
+                      <div className="text-sm font-semibold text-ink">{activeTodo.title}</div>
+                      {activeTodoId === layout.in_progress_ids[0] && (
+                        <span className="mt-1 inline-flex items-center gap-1 text-3xs font-semibold text-accent">
+                          <Zap className="h-3 w-3" />
+                          当前行动
+                        </span>
+                      )}
+                    </div>
+                  ) : null}
+                </DragOverlay>,
+                document.body,
+              )}
           </DndContext>
         </>
       )}

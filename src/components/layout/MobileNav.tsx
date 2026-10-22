@@ -34,7 +34,12 @@ export const MobileBottomNav: React.FC<MobileBottomNavProps> = ({
   onOpenMobileDrawer,
   topicCount,
 }) => {
-  const items: { id: NavView; label: string; icon: React.ComponentType<{ className?: string }>; badge?: number | null }[] = [
+  const items: {
+    id: NavView;
+    label: string;
+    icon: React.ComponentType<{ className?: string }>;
+    badge?: number | null;
+  }[] = [
     { id: 'today', label: '今日', icon: Calendar, badge: null },
     { id: 'kanban', label: '看板', icon: KanbanSquare, badge: topicCount > 0 ? topicCount : null },
     { id: 'deals', label: '商单', icon: Handshake, badge: null },
@@ -47,7 +52,7 @@ export const MobileBottomNav: React.FC<MobileBottomNavProps> = ({
       aria-label="移动端主导航"
       className="mobile-nav-container md:hidden fixed bottom-0 left-0 right-0 z-40 grid grid-cols-6 items-center bg-nav-surface px-2 pt-1.5 pb-[max(0.5rem,env(safe-area-inset-bottom))] backdrop-blur-lg border-t border-line shadow-nav-ambient transition-colors"
     >
-      {items.map((item) => {
+      {items.map(item => {
         const Icon = item.icon;
         const isActive = currentView === item.id;
         return (
@@ -55,11 +60,11 @@ export const MobileBottomNav: React.FC<MobileBottomNavProps> = ({
             key={item.id}
             onClick={() => onNavigate(item.id)}
             aria-current={isActive ? 'page' : undefined}
-            aria-label={typeof item.badge === 'number' && item.badge > 0 ? `${item.label}，${item.badge}个选题` : item.label}
+            aria-label={
+              typeof item.badge === 'number' && item.badge > 0 ? `${item.label}，${item.badge}个选题` : item.label
+            }
             className={`mobile-nav-item relative flex min-h-11 w-full min-w-0 touch-manipulation flex-col items-center justify-center rounded-lg px-0.5 py-1 transition-colors ${
-              isActive
-                ? 'text-accent font-bold'
-                : 'text-ink-muted hover:text-ink'
+              isActive ? 'text-accent font-bold' : 'text-ink-muted hover:text-ink'
             }`}
           >
             <Icon className={`w-5 h-5 ${isActive ? 'stroke-[2.5]' : 'stroke-2'}`} />
@@ -139,9 +144,11 @@ export const MobileDrawer: React.FC<MobileDrawerProps> = ({
         return;
       }
       if (event.key !== 'Tab' || !drawerRef.current) return;
-      const focusable = Array.from(drawerRef.current.querySelectorAll<HTMLElement>(
-        'button:not([disabled]), a[href], input:not([disabled]), [tabindex]:not([tabindex="-1"])'
-      ));
+      const focusable = Array.from(
+        drawerRef.current.querySelectorAll<HTMLElement>(
+          'button:not([disabled]), a[href], input:not([disabled]), [tabindex]:not([tabindex="-1"])',
+        ),
+      );
       if (focusable.length === 0) return;
       const first = focusable[0];
       const last = focusable[focusable.length - 1];
@@ -182,19 +189,36 @@ export const MobileDrawer: React.FC<MobileDrawerProps> = ({
       <div className="mobile-drawer-backdrop fixed inset-0 bg-overlay backdrop-blur-xs" onClick={onClose} />
 
       {/* Drawer */}
-      <div ref={drawerRef} role="dialog" aria-modal="true" aria-label="移动端导航菜单" className="mobile-drawer-container mobile-drawer-panel pwa-mobile-drawer relative w-4/5 max-w-xs glass-sidebar h-full shadow-2xl flex flex-col justify-between p-5 z-10 border-r border-line transition-colors">
+      <div
+        ref={drawerRef}
+        role="dialog"
+        aria-modal="true"
+        aria-label="移动端导航菜单"
+        className="mobile-drawer-container mobile-drawer-panel pwa-mobile-drawer relative w-4/5 max-w-xs glass-sidebar h-full shadow-2xl flex flex-col justify-between p-5 z-10 border-r border-line transition-colors"
+      >
         <div className="space-y-5">
           {/* Header */}
           <div className="flex items-center justify-between pb-3.5 border-b border-line">
             <div className="flex items-center gap-2.5">
               <div className="sidebar-brand-logo w-8 h-8 rounded-xl flex items-center justify-center overflow-hidden shadow-2xs shrink-0 ring-1 ring-black/5">
-                <img src="/icon.png" alt="喵爪看板 Logo" width={32} height={32} className="w-full h-full object-cover rounded-xl" />
+                <img
+                  src="/icon.png"
+                  alt="喵爪看板 Logo"
+                  width={32}
+                  height={32}
+                  className="w-full h-full object-cover rounded-xl"
+                />
               </div>
               <div>
                 <h2 className="font-bold text-ink text-sm tracking-tight leading-tight">喵爪看板</h2>
               </div>
             </div>
-            <button ref={closeButtonRef} onClick={onClose} aria-label="关闭导航菜单" className="flex min-h-11 min-w-11 items-center justify-center rounded-lg text-ink-muted hover:text-ink hover:bg-control transition-colors cursor-pointer">
+            <button
+              ref={closeButtonRef}
+              onClick={onClose}
+              aria-label="关闭导航菜单"
+              className="flex min-h-11 min-w-11 items-center justify-center rounded-lg text-ink-muted hover:text-ink hover:bg-control transition-colors cursor-pointer"
+            >
               <X className="w-5 h-5" />
             </button>
           </div>
@@ -224,7 +248,10 @@ export const MobileDrawer: React.FC<MobileDrawerProps> = ({
                 aria-label="全局搜索与指令"
                 className={`group flex min-h-11 min-w-0 items-center gap-1.5 rounded-xl border border-transparent bg-surface/60 px-3 py-2 text-xs font-medium text-ink transition-colors hover:bg-surface hover:text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/40 cursor-pointer ${onOpenQuickDrops ? '' : 'col-span-2'}`}
               >
-                <Search className="h-3.5 w-3.5 shrink-0 text-ink-muted transition-colors group-hover:text-ink" aria-hidden="true" />
+                <Search
+                  className="h-3.5 w-3.5 shrink-0 text-ink-muted transition-colors group-hover:text-ink"
+                  aria-hidden="true"
+                />
                 <span className="truncate">搜索</span>
               </button>
 
@@ -235,7 +262,9 @@ export const MobileDrawer: React.FC<MobileDrawerProps> = ({
                     onClose();
                     onOpenQuickDrops();
                   }}
-                  aria-label={quickDropCount > 0 ? `手机快投箱中有 ${quickDropCount} 条未处理灵感` : '打开手机快投灵感箱'}
+                  aria-label={
+                    quickDropCount > 0 ? `手机快投箱中有 ${quickDropCount} 条未处理灵感` : '打开手机快投灵感箱'
+                  }
                   className={`group flex min-h-11 min-w-0 items-center justify-between gap-1.5 rounded-xl border px-3 py-2 text-xs font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/40 cursor-pointer ${
                     quickDropCount > 0
                       ? 'border-accent/15 bg-accent-soft text-accent-dark shadow-2xs'
@@ -243,7 +272,10 @@ export const MobileDrawer: React.FC<MobileDrawerProps> = ({
                   }`}
                 >
                   <span className="flex min-w-0 items-center gap-1.5">
-                    <Smartphone className={`h-3.5 w-3.5 shrink-0 ${quickDropCount > 0 ? 'text-accent' : 'text-ink-muted'}`} aria-hidden="true" />
+                    <Smartphone
+                      className={`h-3.5 w-3.5 shrink-0 ${quickDropCount > 0 ? 'text-accent' : 'text-ink-muted'}`}
+                      aria-hidden="true"
+                    />
                     <span className="truncate">快投箱</span>
                   </span>
                   {quickDropCount > 0 ? (
@@ -262,7 +294,7 @@ export const MobileDrawer: React.FC<MobileDrawerProps> = ({
 
           {/* Navigation Links */}
           <nav className="space-y-1">
-            {navItems.map((item) => {
+            {navItems.map(item => {
               const Icon = item.icon;
               const isActive = currentView === item.id;
               return (
@@ -280,15 +312,17 @@ export const MobileDrawer: React.FC<MobileDrawerProps> = ({
                   }`}
                 >
                   <div className="flex items-center gap-3">
-                    <Icon className={`w-[18px] h-[18px] transition-colors shrink-0 ${isActive ? 'text-accent' : 'text-ink-muted'}`} />
+                    <Icon
+                      className={`w-[18px] h-[18px] transition-colors shrink-0 ${isActive ? 'text-accent' : 'text-ink-muted'}`}
+                    />
                     <span>{item.label}</span>
                   </div>
                   {typeof item.badge === 'number' && item.badge > 0 && (
-                    <span className={`text-xs px-2 py-0.5 rounded-full font-mono font-bold transition-colors ${
-                      isActive
-                        ? 'bg-accent text-white shadow-2xs'
-                        : 'bg-control text-ink'
-                    }`}>
+                    <span
+                      className={`text-xs px-2 py-0.5 rounded-full font-mono font-bold transition-colors ${
+                        isActive ? 'bg-accent text-white shadow-2xs' : 'bg-control text-ink'
+                      }`}
+                    >
                       {item.badge}
                     </span>
                   )}

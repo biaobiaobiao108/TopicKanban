@@ -2,17 +2,16 @@ import React, { useMemo, useState } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { ArrowRight, Handshake, Link2Off, Loader2, Star } from 'lucide-react';
 import type { CommercialDeal, Topic } from '../../types';
-import {
-  fetchCommercialDeal,
-  fetchCommercialDealsByTopicId,
-  replaceCommercialDealTopics,
-} from '../../lib/storageApi';
+import { fetchCommercialDeal, fetchCommercialDealsByTopicId, replaceCommercialDealTopics } from '../../lib/storageApi';
 import { updateCommercialDealCaches } from '../../lib/queryCacheSync';
 import { invalidateQueryGroups } from '../../lib/topicQueryCache';
 import { ActionDate } from '../ui/ActionDate';
 
 const STATUS_LABELS: Record<CommercialDeal['status'], string> = {
-  communicating: '沟通中', producing: '制作中', delivered: '已交付', archived: '归档',
+  communicating: '沟通中',
+  producing: '制作中',
+  delivered: '已交付',
+  archived: '归档',
 };
 
 const PAYMENT_LABELS = { unpaid: '未回款', paid: '已回款' } as const;
@@ -24,7 +23,12 @@ interface CommercialDealsTabProps {
   onTopicMetricsChange?: (topicId: string, metrics: Partial<Topic>) => void;
 }
 
-export const CommercialDealsTab: React.FC<CommercialDealsTabProps> = ({ topic, onOpenDeal, onCreateTopicFromDeal, onTopicMetricsChange }) => {
+export const CommercialDealsTab: React.FC<CommercialDealsTabProps> = ({
+  topic,
+  onOpenDeal,
+  onCreateTopicFromDeal,
+  onTopicMetricsChange,
+}) => {
   const queryClient = useQueryClient();
   const [busyId, setBusyId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -40,17 +44,24 @@ export const CommercialDealsTab: React.FC<CommercialDealsTabProps> = ({ topic, o
     setError(null);
     try {
       const deal = await fetchCommercialDeal(dealId);
-      const remaining = deal.topics.filter((relation) => relation.topic_id !== topic.id);
-      const currentPrimary = deal.topics.find((relation) => relation.relation_role === 'primary');
-      const primaryTopicId = mode === 'primary'
-        ? topic.id
-        : currentPrimary?.topic_id === topic.id ? null : currentPrimary?.topic_id || null;
-      const relatedTopicIds = mode === 'primary'
-        ? remaining.map((relation) => relation.topic_id)
-        : remaining.filter((relation) => relation.topic_id !== primaryTopicId).map((relation) => relation.topic_id);
+      const remaining = deal.topics.filter(relation => relation.topic_id !== topic.id);
+      const currentPrimary = deal.topics.find(relation => relation.relation_role === 'primary');
+      const primaryTopicId =
+        mode === 'primary' ? topic.id : currentPrimary?.topic_id === topic.id ? null : currentPrimary?.topic_id || null;
+      const relatedTopicIds =
+        mode === 'primary'
+          ? remaining.map(relation => relation.topic_id)
+          : remaining.filter(relation => relation.topic_id !== primaryTopicId).map(relation => relation.topic_id);
       const saved = await replaceCommercialDealTopics(dealId, primaryTopicId, relatedTopicIds);
       updateCommercialDealCaches(queryClient, saved);
-      await invalidateQueryGroups(queryClient, [['topic-deals'], ['commercial-deal', dealId], ['commercial-deal-page'], ['deal-focus'], ['commercial-deals-calendar'], ['workspace']]);
+      await invalidateQueryGroups(queryClient, [
+        ['topic-deals'],
+        ['commercial-deal', dealId],
+        ['commercial-deal-page'],
+        ['deal-focus'],
+        ['commercial-deals-calendar'],
+        ['workspace'],
+      ]);
       onTopicMetricsChange?.(topic.id, {
         commercial_deals_count: queryClient.getQueryData<CommercialDeal[]>(['topic-deals', topic.id])?.length || 0,
       });
@@ -71,9 +82,23 @@ export const CommercialDealsTab: React.FC<CommercialDealsTabProps> = ({ topic, o
         summary: deal.brief || deal.requirements || `商单「${deal.title}」的选题草稿`,
       });
       const detail = await fetchCommercialDeal(deal.id);
-      const saved = await replaceCommercialDealTopics(deal.id, detail.primary_topic_id || created.id, detail.topics.filter((relation) => relation.topic_id !== detail.primary_topic_id).map((relation) => relation.topic_id).concat(detail.primary_topic_id && detail.primary_topic_id !== created.id ? [detail.primary_topic_id] : []));
+      const saved = await replaceCommercialDealTopics(
+        deal.id,
+        detail.primary_topic_id || created.id,
+        detail.topics
+          .filter(relation => relation.topic_id !== detail.primary_topic_id)
+          .map(relation => relation.topic_id)
+          .concat(detail.primary_topic_id && detail.primary_topic_id !== created.id ? [detail.primary_topic_id] : []),
+      );
       updateCommercialDealCaches(queryClient, saved);
-      await invalidateQueryGroups(queryClient, [['topic-deals'], ['commercial-deal', deal.id], ['commercial-deal-page'], ['deal-focus'], ['commercial-deals-calendar'], ['workspace']]);
+      await invalidateQueryGroups(queryClient, [
+        ['topic-deals'],
+        ['commercial-deal', deal.id],
+        ['commercial-deal-page'],
+        ['deal-focus'],
+        ['commercial-deals-calendar'],
+        ['workspace'],
+      ]);
       onTopicMetricsChange?.(topic.id, {
         commercial_deals_count: queryClient.getQueryData<CommercialDeal[]>(['topic-deals', topic.id])?.length || 0,
       });
@@ -96,18 +121,30 @@ export const CommercialDealsTab: React.FC<CommercialDealsTabProps> = ({ topic, o
           <div className="flex items-center gap-2">
             <Handshake className="h-5 w-5 text-accent" />
             <h3 className="text-lg font-bold text-ink">关联商单</h3>
-            <span className="rounded-full bg-accent-soft px-2 py-0.5 text-xs font-bold text-accent">{deals.length}</span>
+            <span className="rounded-full bg-accent-soft px-2 py-0.5 text-xs font-bold text-accent">
+              {deals.length}
+            </span>
           </div>
         </div>
       </div>
 
-      {error && <div role="alert" aria-live="polite" className="rounded-xl border border-danger-line bg-danger-soft px-3 py-2 text-sm text-danger">{error}</div>}
+      {error && (
+        <div
+          role="alert"
+          aria-live="polite"
+          className="rounded-xl border border-danger-line bg-danger-soft px-3 py-2 text-sm text-danger"
+        >
+          {error}
+        </div>
+      )}
 
       {activeDeals.length === 0 ? (
-        <div className="rounded-2xl border border-dashed border-line bg-surface p-10 text-center text-sm text-ink-muted">这个选题暂未关联商单。</div>
+        <div className="rounded-2xl border border-dashed border-line bg-surface p-10 text-center text-sm text-ink-muted">
+          这个选题暂未关联商单。
+        </div>
       ) : (
         <div className="grid gap-3">
-          {activeDeals.map((deal) => {
+          {activeDeals.map(deal => {
             const isBusy = busyId === deal.id;
             return (
               <article key={deal.id} className="rounded-2xl border border-line bg-surface p-4 shadow-subtle sm:p-5">
@@ -115,29 +152,71 @@ export const CommercialDealsTab: React.FC<CommercialDealsTabProps> = ({ topic, o
                   <button type="button" onClick={() => onOpenDeal(deal.id)} className="min-w-0 text-left">
                     <div className="flex flex-wrap items-center gap-2 text-xs font-semibold text-ink-muted">
                       <span>{deal.brand_name || '未命名品牌'}</span>
-                      <span className="rounded-full bg-accent-soft px-2 py-0.5 text-accent">{STATUS_LABELS[deal.status]}</span>
-                      <span className={`rounded-full px-2 py-0.5 ${deal.payment_status === 'paid' ? 'bg-success-soft text-success' : 'bg-warning-soft text-warning'}`}>{PAYMENT_LABELS[deal.payment_status]}</span>
+                      <span className="rounded-full bg-accent-soft px-2 py-0.5 text-accent">
+                        {STATUS_LABELS[deal.status]}
+                      </span>
+                      <span
+                        className={`rounded-full px-2 py-0.5 ${deal.payment_status === 'paid' ? 'bg-success-soft text-success' : 'bg-warning-soft text-warning'}`}
+                      >
+                        {PAYMENT_LABELS[deal.payment_status]}
+                      </span>
                     </div>
-                    <h4 className="mt-2 text-base font-bold text-ink transition-colors hover:text-accent">{deal.title}</h4>
+                    <h4 className="mt-2 text-base font-bold text-ink transition-colors hover:text-accent">
+                      {deal.title}
+                    </h4>
                     <div className="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-xs text-ink-muted">
                       <span>{deal.relation_role === 'primary' ? '主选题' : '系列关联'}</span>
                       <span>
-                        交付截止：{deal.delivery_due_date ? (
-                          <ActionDate value={deal.delivery_due_date} active={!['delivered', 'archived'].includes(deal.status)} />
-                        ) : '未设截止日期'}
+                        交付截止：
+                        {deal.delivery_due_date ? (
+                          <ActionDate
+                            value={deal.delivery_due_date}
+                            active={!['delivered', 'archived'].includes(deal.status)}
+                          />
+                        ) : (
+                          '未设截止日期'
+                        )}
                       </span>
                       {deal.next_action && <span className="max-w-full truncate">下一步：{deal.next_action}</span>}
                     </div>
                   </button>
 
                   <div className="flex flex-wrap gap-2 lg:justify-end">
-                    <button type="button" disabled={isBusy || deal.relation_role === 'primary'} onClick={() => void changeRelation(deal.id, 'primary')} className="inline-flex min-h-11 items-center gap-1.5 rounded-xl border border-line px-3 text-xs font-semibold text-ink transition-colors hover:border-accent hover:text-accent disabled:cursor-not-allowed disabled:opacity-50"><Star className="h-3.5 w-3.5" />设为主选题</button>
-                    <button type="button" disabled={isBusy} onClick={() => void changeRelation(deal.id, 'unlink')} className="inline-flex min-h-11 items-center gap-1.5 rounded-xl border border-line px-3 text-xs font-semibold text-ink transition-colors hover:border-danger-line hover:text-danger disabled:cursor-not-allowed disabled:opacity-50"><Link2Off className="h-3.5 w-3.5" />解除关联</button>
-                    <button type="button" onClick={() => onOpenDeal(deal.id)} className="inline-flex min-h-11 items-center gap-1.5 rounded-xl bg-accent px-3 text-xs font-bold text-white transition-colors hover:bg-accent-dark"><span>打开商单</span><ArrowRight className="h-3.5 w-3.5" /></button>
+                    <button
+                      type="button"
+                      disabled={isBusy || deal.relation_role === 'primary'}
+                      onClick={() => void changeRelation(deal.id, 'primary')}
+                      className="inline-flex min-h-11 items-center gap-1.5 rounded-xl border border-line px-3 text-xs font-semibold text-ink transition-colors hover:border-accent hover:text-accent disabled:cursor-not-allowed disabled:opacity-50"
+                    >
+                      <Star className="h-3.5 w-3.5" />
+                      设为主选题
+                    </button>
+                    <button
+                      type="button"
+                      disabled={isBusy}
+                      onClick={() => void changeRelation(deal.id, 'unlink')}
+                      className="inline-flex min-h-11 items-center gap-1.5 rounded-xl border border-line px-3 text-xs font-semibold text-ink transition-colors hover:border-danger-line hover:text-danger disabled:cursor-not-allowed disabled:opacity-50"
+                    >
+                      <Link2Off className="h-3.5 w-3.5" />
+                      解除关联
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => onOpenDeal(deal.id)}
+                      className="inline-flex min-h-11 items-center gap-1.5 rounded-xl bg-accent px-3 text-xs font-bold text-white transition-colors hover:bg-accent-dark"
+                    >
+                      <span>打开商单</span>
+                      <ArrowRight className="h-3.5 w-3.5" />
+                    </button>
                   </div>
                 </div>
                 {onCreateTopicFromDeal && !deal.primary_topic_id && (
-                  <button type="button" disabled={isBusy} onClick={() => void createTopicFromDeal(deal)} className="mt-4 inline-flex min-h-11 items-center gap-2 rounded-xl border border-dashed border-accent/40 px-3 text-xs font-semibold text-accent transition-colors hover:bg-accent-soft disabled:opacity-50">
+                  <button
+                    type="button"
+                    disabled={isBusy}
+                    onClick={() => void createTopicFromDeal(deal)}
+                    className="mt-4 inline-flex min-h-11 items-center gap-2 rounded-xl border border-dashed border-accent/40 px-3 text-xs font-semibold text-accent transition-colors hover:bg-accent-soft disabled:opacity-50"
+                  >
                     {isBusy ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Handshake className="h-3.5 w-3.5" />}
                     从商单简介创建选题
                   </button>

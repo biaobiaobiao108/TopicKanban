@@ -30,16 +30,7 @@ import { useToast } from '../ui/Toast';
 import { copyTextToClipboard } from '../../lib/clipboard';
 import { countValidCharacters } from '../../lib/textMetrics';
 import { formatBeijingDateTime } from '../../lib/actionDate';
-import {
-  FileText,
-  Cloud,
-  CheckCircle2,
-  Save,
-  AlertTriangle,
-  Copy,
-  Check,
-  Trash2,
-} from 'lucide-react';
+import { FileText, Cloud, CheckCircle2, Save, AlertTriangle, Copy, Check, Trash2 } from 'lucide-react';
 
 const REPORT_MARKDOWN_EXTENSIONS = [
   ScriptStarterKit.configure({
@@ -81,18 +72,15 @@ interface TopicReportTabProps {
   }) => Promise<TopicReport>;
 }
 
-export const TopicReportTab: React.FC<TopicReportTabProps> = ({
-  topicId,
-  topicTitle,
-  report,
-  onSaveReport,
-}) => {
+export const TopicReportTab: React.FC<TopicReportTabProps> = ({ topicId, topicTitle, report, onSaveReport }) => {
   const { showToast } = useToast();
   const [saveStatus, setSaveStatus] = useState<'saved' | 'saving' | 'unsaved' | 'conflict' | 'error'>('saved');
   const [conflictReport, setConflictReport] = useState<TopicReport | null>(null);
   const [hasConflictSnapshot, setHasConflictSnapshot] = useState(false);
   const [lastSavedTime, setLastSavedTime] = useState<string>(
-    report?.updated_at ? formatBeijingDateTime(report.updated_at, 'zh-CN', { hour: '2-digit', minute: '2-digit', second: '2-digit' }) : ''
+    report?.updated_at
+      ? formatBeijingDateTime(report.updated_at, 'zh-CN', { hour: '2-digit', minute: '2-digit', second: '2-digit' })
+      : '',
   );
   const [copied, setCopied] = useState(false);
   const [isConfirmClearOpen, setIsConfirmClearOpen] = useState(false);
@@ -147,7 +135,7 @@ export const TopicReportTab: React.FC<TopicReportTabProps> = ({
     });
     isSavingRef.current = true;
     let finishSave!: () => void;
-    const saveDone = new Promise<void>((resolve) => {
+    const saveDone = new Promise<void>(resolve => {
       finishSave = resolve;
     });
     activeSaveDoneRef.current = saveDone;
@@ -184,7 +172,9 @@ export const TopicReportTab: React.FC<TopicReportTabProps> = ({
       if (isMountedRef.current) {
         if (noNewEdits) {
           setSaveStatus('saved');
-          setLastSavedTime(formatBeijingDateTime(new Date(), 'zh-CN', { hour: '2-digit', minute: '2-digit', second: '2-digit' }));
+          setLastSavedTime(
+            formatBeijingDateTime(new Date(), 'zh-CN', { hour: '2-digit', minute: '2-digit', second: '2-digit' }),
+          );
         } else {
           // The request saved an older editor snapshot. Keep newer input dirty and save it
           // against the version returned by this successful request.
@@ -194,8 +184,13 @@ export const TopicReportTab: React.FC<TopicReportTabProps> = ({
       }
     } catch (err: unknown) {
       console.error('Failed to save topic report:', err);
-      const isConflict = err instanceof TopicReportConflictError
-        || (err instanceof Error && (err.name === 'TopicReportConflictError' || err.message.includes('409') || err.message.includes('REPORT_CONFLICT') || err.message.includes('版本冲突')));
+      const isConflict =
+        err instanceof TopicReportConflictError ||
+        (err instanceof Error &&
+          (err.name === 'TopicReportConflictError' ||
+            err.message.includes('409') ||
+            err.message.includes('REPORT_CONFLICT') ||
+            err.message.includes('版本冲突')));
       if (isConflict) {
         if (retryTimeoutRef.current) {
           clearTimeout(retryTimeoutRef.current);
@@ -262,7 +257,8 @@ export const TopicReportTab: React.FC<TopicReportTabProps> = ({
     contentType: 'markdown',
     editorProps: {
       attributes: {
-        class: 'script-editor-font-stack prose prose-stone max-w-none focus:outline-none min-h-[500px] text-ink font-normal',
+        class:
+          'script-editor-font-stack prose prose-stone max-w-none focus:outline-none min-h-[500px] text-ink font-normal',
       },
       handlePaste: (view, event) => {
         const text = event.clipboardData?.getData('text/plain') || '';
@@ -362,9 +358,11 @@ export const TopicReportTab: React.FC<TopicReportTabProps> = ({
     setConflictReport(null);
     setHasConflictSnapshot(false);
     setSaveStatus('saved');
-    setLastSavedTime(remote?.updated_at
-      ? formatBeijingDateTime(remote.updated_at, 'zh-CN', { hour: '2-digit', minute: '2-digit', second: '2-digit' })
-      : '');
+    setLastSavedTime(
+      remote?.updated_at
+        ? formatBeijingDateTime(remote.updated_at, 'zh-CN', { hour: '2-digit', minute: '2-digit', second: '2-digit' })
+        : '',
+    );
     setIsConfirmUseRemoteOpen(false);
     showToast({ message: '已采用云端选题报告版本', tone: 'info' });
   };
@@ -378,7 +376,13 @@ export const TopicReportTab: React.FC<TopicReportTabProps> = ({
         editor.commands.setContent(report.content_markdown || '', { contentType: 'markdown', emitUpdate: false });
         currentBaseVersionRef.current = report.version;
         if (report.updated_at) {
-          setLastSavedTime(formatBeijingDateTime(report.updated_at, 'zh-CN', { hour: '2-digit', minute: '2-digit', second: '2-digit' }));
+          setLastSavedTime(
+            formatBeijingDateTime(report.updated_at, 'zh-CN', {
+              hour: '2-digit',
+              minute: '2-digit',
+              second: '2-digit',
+            }),
+          );
         }
       }
     }
@@ -393,9 +397,7 @@ export const TopicReportTab: React.FC<TopicReportTabProps> = ({
     const remoteMarkdown = report?.content_markdown || '';
     const remoteHtml = report?.content_html || '';
     const remoteJson = report?.content_json || '';
-    if (recovery.markdown === remoteMarkdown
-      && recovery.html === remoteHtml
-      && recovery.json === remoteJson) {
+    if (recovery.markdown === remoteMarkdown && recovery.html === remoteHtml && recovery.json === remoteJson) {
       clearTopicReportRecovery(topicId);
       return;
     }
@@ -618,11 +620,7 @@ export const TopicReportTab: React.FC<TopicReportTabProps> = ({
             aria-label="复制报告全文"
             className="flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-medium text-ink-muted hover:text-ink hover:bg-control transition-all cursor-pointer"
           >
-            {copied ? (
-              <Check className="h-3.5 w-3.5 text-success" />
-            ) : (
-              <Copy className="h-3.5 w-3.5" />
-            )}
+            {copied ? <Check className="h-3.5 w-3.5 text-success" /> : <Copy className="h-3.5 w-3.5" />}
             <span className="hidden sm:inline">{copied ? '已复制' : '复制全文'}</span>
           </button>
 
@@ -643,7 +641,8 @@ export const TopicReportTab: React.FC<TopicReportTabProps> = ({
             <div>
               <p className="text-sm font-semibold text-ink">本机与云端报告都已保留</p>
               <p className="mt-1 text-xs leading-relaxed text-ink-muted">
-                下方编辑器保留本机内容。{hasConflictSnapshot
+                下方编辑器保留本机内容。
+                {hasConflictSnapshot
                   ? `云端版本${conflictReport ? `为 v${conflictReport.version}` : '目前没有报告'}。检查两个版本后，明确选择保留哪一份；选择本机版本会覆盖云端全文。`
                   : '本次响应没有提供云端快照，自动保存已暂停。请先复制本机内容，再重新加载云端版本并手动合并。'}
               </p>
@@ -690,10 +689,7 @@ export const TopicReportTab: React.FC<TopicReportTabProps> = ({
             </h1>
           </div>
 
-          <EditorContent
-            editor={editor}
-            className="min-h-[500px]"
-          />
+          <EditorContent editor={editor} className="min-h-[500px]" />
           {editor && <TableEdgeControls editor={editor} deferredLoading={false} />}
         </div>
       </FloatingScrollbar>

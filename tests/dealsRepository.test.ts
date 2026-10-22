@@ -49,13 +49,19 @@ describe('commercial deal repository', () => {
       updateCommercialDeal(db, deal.id, { status: 'delivered', payment_status: 'paid' }),
     ]);
 
-    const activities = sqlite.query(`SELECT kind, content FROM commercial_deal_activities
-      WHERE deal_id = ? ORDER BY kind, content`).all(deal.id) as Array<{ kind: string; content: string }>;
+    const activities = sqlite
+      .query(
+        `SELECT kind, content FROM commercial_deal_activities
+      WHERE deal_id = ? ORDER BY kind, content`,
+      )
+      .all(deal.id) as Array<{ kind: string; content: string }>;
     expect(activities).toEqual([
       { kind: 'payment', content: '回款状态：unpaid → paid' },
       { kind: 'status_change', content: '阶段变更：communicating → delivered' },
     ]);
-    expect(sqlite.query('SELECT status, payment_status FROM commercial_deals WHERE id = ?').get(deal.id))
-      .toEqual({ status: 'delivered', payment_status: 'paid' });
+    expect(sqlite.query('SELECT status, payment_status FROM commercial_deals WHERE id = ?').get(deal.id)).toEqual({
+      status: 'delivered',
+      payment_status: 'paid',
+    });
   });
 });

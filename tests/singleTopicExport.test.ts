@@ -14,10 +14,16 @@ describe('exportSingleTopicMarkdown utility', () => {
     status: 'scripting',
     priority: 'high',
     current_todo: {
-      id: 'todo-demo', topic_id: 'topic-demo', title: '撰写第三幕反转文案',
+      id: 'todo-demo',
+      topic_id: 'topic-demo',
+      title: '撰写第三幕反转文案',
       status: 'in_progress',
-      is_current: 1, current_started_at: '2026-08-20T10:00:00.000Z', completed_at: null,
-      sort_order: 1, created_at: '2026-08-20T10:00:00.000Z', updated_at: '2026-08-20T10:00:00.000Z',
+      is_current: 1,
+      current_started_at: '2026-08-20T10:00:00.000Z',
+      completed_at: null,
+      sort_order: 1,
+      created_at: '2026-08-20T10:00:00.000Z',
+      updated_at: '2026-08-20T10:00:00.000Z',
     },
     score_character: 2,
     score_conflict: 2,
@@ -29,7 +35,21 @@ describe('exportSingleTopicMarkdown utility', () => {
     created_at: '2026-08-20T10:00:00.000Z',
     updated_at: '2026-08-22T10:00:00.000Z',
     tags: [{ id: 'tag-1', name: '网红深度' }],
-    people: [{ id: 'p-1', name: '张三', aliases: '阿张', avatar_url: '', description: '', identity: '', platform_accounts: '', quotes: '', notes: '', created_at: '', updated_at: '' }],
+    people: [
+      {
+        id: 'p-1',
+        name: '张三',
+        aliases: '阿张',
+        avatar_url: '',
+        description: '',
+        identity: '',
+        platform_accounts: '',
+        quotes: '',
+        notes: '',
+        created_at: '',
+        updated_at: '',
+      },
+    ],
   };
 
   const sampleSources: Source[] = [
@@ -56,7 +76,8 @@ describe('exportSingleTopicMarkdown utility', () => {
     topic_id: 'topic-demo',
     title: '文案初稿',
     content_markdown: '# 开场\n\n这是一个**荒诞**的故事。\n\n> 真实比小说更离奇。',
-    content_html: '<h1>开场</h1><p>这是一个<strong>荒诞</strong>的故事。</p><blockquote>真实比小说更离奇。</blockquote>',
+    content_html:
+      '<h1>开场</h1><p>这是一个<strong>荒诞</strong>的故事。</p><blockquote>真实比小说更离奇。</blockquote>',
     content_json: '{}',
     word_count: 560,
     version: 1,
@@ -72,11 +93,7 @@ describe('exportSingleTopicMarkdown utility', () => {
   });
 
   it('should export full structured markdown document for a topic', () => {
-    const exported = exportSingleTopicMarkdown(
-      sampleTopic,
-      { sources: sampleSources, draft: sampleDraft },
-      280
-    );
+    const exported = exportSingleTopicMarkdown(sampleTopic, { sources: sampleSources, draft: sampleDraft }, 280);
 
     expect(exported).toContain('# 🎬 【选题档案】荒诞事件调查：网红塌房全记录');
     expect(exported).toContain('## 一、核心定位与故事脉络');
@@ -108,7 +125,7 @@ describe('exportSingleTopicMarkdown utility', () => {
     const exported = exportSingleTopicMarkdown(
       sampleTopic,
       { sources: sampleSources, draft: sampleDraft, report: sampleReport },
-      280
+      280,
     );
 
     expect(exported).toContain('## 选题报告');
@@ -127,7 +144,8 @@ describe('exportSingleTopicMarkdown utility', () => {
         sources: sampleSources,
         report: { content_markdown: '导出报告冷缓存内容', word_count: 10 },
         draft: sampleDraft,
-        citations: [], publish_package: null,
+        citations: [],
+        publish_package: null,
       });
     }) as typeof fetch;
     try {

@@ -58,13 +58,14 @@ const KanbanColumnComponent: React.FC<KanbanColumnProps> = ({
 
   useEffect(() => {
     if (!revealTopicId) return;
-    const topicIndex = topics.findIndex((topic) => topic.id === revealTopicId);
+    const topicIndex = topics.findIndex(topic => topic.id === revealTopicId);
     if (topicIndex < DEFAULT_LIMIT) return;
 
     setIsExpanded(true);
     const frame = window.requestAnimationFrame(() => {
-      const topicCard = Array.from(document.querySelectorAll<HTMLElement>('[data-topic-id]'))
-        .find((card) => card.dataset.topicId === revealTopicId);
+      const topicCard = Array.from(document.querySelectorAll<HTMLElement>('[data-topic-id]')).find(
+        card => card.dataset.topicId === revealTopicId,
+      );
       topicCard?.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
     });
     return () => window.cancelAnimationFrame(frame);
@@ -99,9 +100,7 @@ const KanbanColumnComponent: React.FC<KanbanColumnProps> = ({
         <div className="flex items-center gap-2">
           <span className={`w-2 h-2 rounded-full ${c.dot}`} />
           <h2 className="text-sm font-semibold text-ink tracking-tight">{label}</h2>
-          <span className="kanban-column-count text-xs text-ink-muted tabular-nums ml-0.5">
-            {totalCount}
-          </span>
+          <span className="kanban-column-count text-xs text-ink-muted tabular-nums ml-0.5">{totalCount}</span>
         </div>
 
         <button
@@ -116,8 +115,8 @@ const KanbanColumnComponent: React.FC<KanbanColumnProps> = ({
 
       {/* Cards Area */}
       <div className="mobile-scroll-reveal min-w-0 space-y-2.5 min-h-[140px] flex-1">
-        <SortableContext items={visibleTopics.map((t) => t.id)} strategy={verticalListSortingStrategy}>
-          {visibleTopics.map((topic) => (
+        <SortableContext items={visibleTopics.map(t => t.id)} strategy={verticalListSortingStrategy}>
+          {visibleTopics.map(topic => (
             <KanbanCard
               key={topic.id}
               topic={topic}
@@ -135,9 +134,7 @@ const KanbanColumnComponent: React.FC<KanbanColumnProps> = ({
         {topics.length === 0 && (
           <div
             className={`h-24 flex flex-col items-center justify-center border border-dashed rounded-sm text-xs p-3 text-center transition-colors duration-150 ${
-              isOver
-                ? 'border-accent bg-accent-soft text-accent'
-                : 'border-line bg-surface/50 text-ink-muted'
+              isOver ? 'border-accent bg-accent-soft text-accent' : 'border-line bg-surface/50 text-ink-muted'
             }`}
           >
             <span className="font-medium">{isOver ? '松开以移入此阶段' : '暂无选题'}</span>

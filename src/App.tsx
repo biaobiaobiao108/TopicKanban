@@ -116,15 +116,33 @@ function getBackLabel(path: string | undefined, fallback: string): string {
   return '返回上一页';
 }
 
-const CalendarView = lazyWithReload(() => import('./components/calendar/CalendarView').then((module) => ({ default: module.CalendarView })));
-const KanbanBoard = lazyWithReload(() => import('./components/kanban/KanbanBoard').then((module) => ({ default: module.KanbanBoard })));
-const TopicDetailView = lazyWithReload(() => import('./components/topic-detail/TopicDetailView').then((module) => ({ default: module.TopicDetailView })));
-const PeopleView = lazyWithReload(() => import('./components/people/PeopleView').then((module) => ({ default: module.PeopleView })));
-const TagsView = lazyWithReload(() => import('./components/tags/TagsView').then((module) => ({ default: module.TagsView })));
-const PublishedView = lazyWithReload(() => import('./components/published/PublishedView').then((module) => ({ default: module.PublishedView })));
-const DealsView = lazyWithReload(() => import('./components/deals/DealsView').then((module) => ({ default: module.DealsView })));
-const TopicTableView = lazyWithReload(() => import('./components/kanban/TopicTableView').then((module) => ({ default: module.TopicTableView })));
-const SettingsView = lazyWithReload(() => import('./components/settings/SettingsView').then((module) => ({ default: module.SettingsView })));
+const CalendarView = lazyWithReload(() =>
+  import('./components/calendar/CalendarView').then(module => ({ default: module.CalendarView })),
+);
+const KanbanBoard = lazyWithReload(() =>
+  import('./components/kanban/KanbanBoard').then(module => ({ default: module.KanbanBoard })),
+);
+const TopicDetailView = lazyWithReload(() =>
+  import('./components/topic-detail/TopicDetailView').then(module => ({ default: module.TopicDetailView })),
+);
+const PeopleView = lazyWithReload(() =>
+  import('./components/people/PeopleView').then(module => ({ default: module.PeopleView })),
+);
+const TagsView = lazyWithReload(() =>
+  import('./components/tags/TagsView').then(module => ({ default: module.TagsView })),
+);
+const PublishedView = lazyWithReload(() =>
+  import('./components/published/PublishedView').then(module => ({ default: module.PublishedView })),
+);
+const DealsView = lazyWithReload(() =>
+  import('./components/deals/DealsView').then(module => ({ default: module.DealsView })),
+);
+const TopicTableView = lazyWithReload(() =>
+  import('./components/kanban/TopicTableView').then(module => ({ default: module.TopicTableView })),
+);
+const SettingsView = lazyWithReload(() =>
+  import('./components/settings/SettingsView').then(module => ({ default: module.SettingsView })),
+);
 export function App() {
   const [isAuth, setIsAuth] = useState(isAuthenticated());
   const location = useLocation();
@@ -154,7 +172,10 @@ function WorkspaceApp({ isAuth, setIsAuth }: WorkspaceAppProps) {
     const queues = topicWriteQueuesRef.current;
     const previous = queues.get(topicId) || Promise.resolve();
     const request = previous.catch(() => undefined).then(write);
-    const queueTail = request.then(() => undefined, () => undefined);
+    const queueTail = request.then(
+      () => undefined,
+      () => undefined,
+    );
     queues.set(topicId, queueTail);
     void queueTail.then(() => {
       if (queues.get(topicId) === queueTail) queues.delete(topicId);
@@ -165,12 +186,15 @@ function WorkspaceApp({ isAuth, setIsAuth }: WorkspaceAppProps) {
   const runTopicWriteBatch = useCallback(<T,>(topicIds: string[], write: () => Promise<T>): Promise<T> => {
     const queues = topicWriteQueuesRef.current;
     const uniqueIds = [...new Set(topicIds)].sort();
-    const previous = uniqueIds.map((topicId) => queues.get(topicId) || Promise.resolve());
-    const request = Promise.all(previous.map((queue) => queue.catch(() => undefined))).then(write);
-    const queueTail = request.then(() => undefined, () => undefined);
-    uniqueIds.forEach((topicId) => queues.set(topicId, queueTail));
+    const previous = uniqueIds.map(topicId => queues.get(topicId) || Promise.resolve());
+    const request = Promise.all(previous.map(queue => queue.catch(() => undefined))).then(write);
+    const queueTail = request.then(
+      () => undefined,
+      () => undefined,
+    );
+    uniqueIds.forEach(topicId => queues.set(topicId, queueTail));
     void queueTail.then(() => {
-      uniqueIds.forEach((topicId) => {
+      uniqueIds.forEach(topicId => {
         if (queues.get(topicId) === queueTail) queues.delete(topicId);
       });
     });
@@ -234,10 +258,8 @@ function WorkspaceApp({ isAuth, setIsAuth }: WorkspaceAppProps) {
       document.title = '登录 - 喵爪看板';
       return;
     }
-    const activeTopic = topics.find((topic) => topic.id === activeTopicId);
-    document.title = activeTopic
-      ? `${activeTopic.title} - 喵爪看板`
-      : `${VIEW_TITLES[currentView]} - 喵爪看板`;
+    const activeTopic = topics.find(topic => topic.id === activeTopicId);
+    document.title = activeTopic ? `${activeTopic.title} - 喵爪看板` : `${VIEW_TITLES[currentView]} - 喵爪看板`;
   }, [activeTopicId, currentView, isAuth, topics]);
 
   // Poll only the count; load full quick-drop records when the drawer opens.
@@ -262,20 +284,24 @@ function WorkspaceApp({ isAuth, setIsAuth }: WorkspaceAppProps) {
     };
   }, [isAuth]);
   useEffect(() => {
-    const knownPath = location.pathname === '/'
-      || Boolean(matchPath('/topics/:topicId', location.pathname))
-      || Boolean(matchPath('/deals/:dealId', location.pathname))
-      || Object.values(VIEW_PATHS).includes(location.pathname);
+    const knownPath =
+      location.pathname === '/' ||
+      Boolean(matchPath('/topics/:topicId', location.pathname)) ||
+      Boolean(matchPath('/deals/:dealId', location.pathname)) ||
+      Object.values(VIEW_PATHS).includes(location.pathname);
     if (location.pathname === '/' || !knownPath) {
       navigate('/today', { replace: true });
     }
   }, [location.pathname, navigate]);
 
-  const safeNavigate = useCallback((to: string, options?: { state?: any; replace?: boolean; viewTransition?: boolean }) => {
-    const reducedMotion = typeof window !== 'undefined'
-      && window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
-    navigate(to, { ...options, viewTransition: options?.viewTransition ?? !reducedMotion });
-  }, [navigate]);
+  const safeNavigate = useCallback(
+    (to: string, options?: { state?: any; replace?: boolean; viewTransition?: boolean }) => {
+      const reducedMotion =
+        typeof window !== 'undefined' && window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
+      navigate(to, { ...options, viewTransition: options?.viewTransition ?? !reducedMotion });
+    },
+    [navigate],
+  );
 
   const navigateToView = (view: NavView) => {
     if (view === 'topic-detail') return;
@@ -284,18 +310,18 @@ function WorkspaceApp({ isAuth, setIsAuth }: WorkspaceAppProps) {
 
   const currentLocation = `${location.pathname}${location.search}${location.hash}`;
 
-  const beginTopicMutation = (topicId: string, updates: Partial<Topic>) => (
-    topicMutationsRef.current.begin(topicId, updates,
-      findTopicInCaches(queryClient, topicId) || topics.find((topic) => topic.id === topicId))
-  );
+  const beginTopicMutation = (topicId: string, updates: Partial<Topic>) =>
+    topicMutationsRef.current.begin(
+      topicId,
+      updates,
+      findTopicInCaches(queryClient, topicId) || topics.find(topic => topic.id === topicId),
+    );
 
-  const reconcileTopicMutation = (topicId: string, updates: Partial<Topic>, serverTopic: Topic, sequence: number) => (
-    topicMutationsRef.current.settle(topicId, updates, sequence, serverTopic)
-  );
+  const reconcileTopicMutation = (topicId: string, updates: Partial<Topic>, serverTopic: Topic, sequence: number) =>
+    topicMutationsRef.current.settle(topicId, updates, sequence, serverTopic);
 
-  const rollbackTopicMutation = (topicId: string, updates: Partial<Topic>, sequence: number) => (
-    topicMutationsRef.current.settle(topicId, updates, sequence)
-  );
+  const rollbackTopicMutation = (topicId: string, updates: Partial<Topic>, sequence: number) =>
+    topicMutationsRef.current.settle(topicId, updates, sequence);
 
   const handleOpenDeal = (dealId: string) => {
     safeNavigate(`/deals/${encodeURIComponent(dealId)}`, {
@@ -351,16 +377,12 @@ function WorkspaceApp({ isAuth, setIsAuth }: WorkspaceAppProps) {
   };
 
   const handleDraftWordCountChange = (topicId: string, wordCount: number) => {
-    setTopics((prev) => prev.map((topic) => (
-      topic.id === topicId ? { ...topic, draft_word_count: wordCount } : topic
-    )));
+    setTopics(prev => prev.map(topic => (topic.id === topicId ? { ...topic, draft_word_count: wordCount } : topic)));
     updateTopicCaches(queryClient, topicId, { draft_word_count: wordCount });
   };
 
   const handleTopicMetricsChange = (topicId: string, metrics: Partial<Topic>) => {
-    setTopics((prev) => prev.map((topic) => (
-      topic.id === topicId ? { ...topic, ...metrics } : topic
-    )));
+    setTopics(prev => prev.map(topic => (topic.id === topicId ? { ...topic, ...metrics } : topic)));
     updateTopicCaches(queryClient, topicId, metrics);
   };
 
@@ -375,13 +397,15 @@ function WorkspaceApp({ isAuth, setIsAuth }: WorkspaceAppProps) {
     tags?: Tag[];
     status?: TopicStatus;
   }) => {
-    const resolvedTags = await Promise.all((topicData.tags || []).map(async (tag) => {
-      const existing = tags.find((item) => item.id === tag.id || item.name === tag.name);
-      if (existing) return existing;
-      return saveTag({ name: tag.name, color: tag.color });
-    }));
-    if (resolvedTags.some((tag) => !tags.some((item) => item.id === tag.id))) {
-      setTags((prev) => [...prev, ...resolvedTags.filter((tag) => !prev.some((item) => item.id === tag.id))]);
+    const resolvedTags = await Promise.all(
+      (topicData.tags || []).map(async tag => {
+        const existing = tags.find(item => item.id === tag.id || item.name === tag.name);
+        if (existing) return existing;
+        return saveTag({ name: tag.name, color: tag.color });
+      }),
+    );
+    if (resolvedTags.some(tag => !tags.some(item => item.id === tag.id))) {
+      setTags(prev => [...prev, ...resolvedTags.filter(tag => !prev.some(item => item.id === tag.id))]);
     }
     const newTopic = await saveTopic({
       title: topicData.title,
@@ -394,7 +418,7 @@ function WorkspaceApp({ isAuth, setIsAuth }: WorkspaceAppProps) {
       status: topicData.status || 'inbox',
       tags: resolvedTags,
     });
-    setTopics((prev) => [newTopic, ...prev]);
+    setTopics(prev => [newTopic, ...prev]);
     await refreshTopics({ includeLists: true });
   };
 
@@ -407,40 +431,43 @@ function WorkspaceApp({ isAuth, setIsAuth }: WorkspaceAppProps) {
       priority: 'high',
       status: 'inbox',
     });
-    setTopics((prev) => [newTopic, ...prev]);
+    setTopics(prev => [newTopic, ...prev]);
     await refreshTopics({ includeLists: true });
     return newTopic;
   };
 
-  const handleTopicTodoMutation = useCallback((result: TopicTodoMutationResult) => {
-    setTopics((prev) => prev.map((topic) => (topic.id === result.topic.id ? result.topic : topic)));
-    replaceTopicTodoCaches(queryClient, result);
-    void refreshTopics();
-  }, [queryClient, refreshTopics, setTopics]);
+  const handleTopicTodoMutation = useCallback(
+    (result: TopicTodoMutationResult) => {
+      setTopics(prev => prev.map(topic => (topic.id === result.topic.id ? result.topic : topic)));
+      replaceTopicTodoCaches(queryClient, result);
+      void refreshTopics();
+    },
+    [queryClient, refreshTopics, setTopics],
+  );
 
   const topicTodoActions = useTopicTodoActions(handleTopicTodoMutation);
   const quickActionTopic = quickActionTopicId
-    ? topics.find((topic) => topic.id === quickActionTopicId)
-      || findTopicInCaches(queryClient, quickActionTopicId)
-      || null
+    ? topics.find(topic => topic.id === quickActionTopicId) ||
+      findTopicInCaches(queryClient, quickActionTopicId) ||
+      null
     : null;
 
   const handleUpdateTopic = async (updates: Partial<Topic>) => {
     if (!activeTopicId) return;
     const sequence = beginTopicMutation(activeTopicId, updates);
     updateTopicCaches(queryClient, activeTopicId, updates);
-    setTopics((prev) => prev.map((topic) => (topic.id === activeTopicId ? { ...topic, ...updates } : topic)));
+    setTopics(prev => prev.map(topic => (topic.id === activeTopicId ? { ...topic, ...updates } : topic)));
     let updated: Topic;
     try {
       updated = await runTopicWrite(activeTopicId, () => saveTopic({ id: activeTopicId, ...updates }));
     } catch (error) {
       const rollback = rollbackTopicMutation(activeTopicId, updates, sequence);
-      setTopics((prev) => prev.map((topic) => (topic.id === activeTopicId ? { ...topic, ...rollback } : topic)));
+      setTopics(prev => prev.map(topic => (topic.id === activeTopicId ? { ...topic, ...rollback } : topic)));
       updateTopicCaches(queryClient, activeTopicId, rollback);
       throw error;
     }
     const resolved = reconcileTopicMutation(activeTopicId, updates, updated, sequence);
-    setTopics((prev) => prev.map((topic) => (topic.id === updated.id ? { ...topic, ...resolved } : topic)));
+    setTopics(prev => prev.map(topic => (topic.id === updated.id ? { ...topic, ...resolved } : topic)));
     updateTopicCaches(queryClient, updated.id, resolved);
     await refreshTopics({ includeLists: true, includeTopicDetails: false });
   };
@@ -448,33 +475,32 @@ function WorkspaceApp({ isAuth, setIsAuth }: WorkspaceAppProps) {
   const handleUpdateTopicById = async (topicId: string, updates: Partial<Topic>) => {
     const sequence = beginTopicMutation(topicId, updates);
     updateTopicCaches(queryClient, topicId, updates);
-    setTopics((prev) => prev.map((topic) => (topic.id === topicId ? { ...topic, ...updates } : topic)));
+    setTopics(prev => prev.map(topic => (topic.id === topicId ? { ...topic, ...updates } : topic)));
     let updated: Topic;
     try {
       updated = await runTopicWrite(topicId, () => saveTopic({ id: topicId, ...updates }));
     } catch (error) {
       const rollback = rollbackTopicMutation(topicId, updates, sequence);
-      setTopics((prev) => prev.map((topic) => (topic.id === topicId ? { ...topic, ...rollback } : topic)));
+      setTopics(prev => prev.map(topic => (topic.id === topicId ? { ...topic, ...rollback } : topic)));
       updateTopicCaches(queryClient, topicId, rollback);
       throw error;
     }
     const resolved = reconcileTopicMutation(topicId, updates, updated, sequence);
-    setTopics((prev) => prev.map((topic) => (topic.id === updated.id ? { ...topic, ...resolved } : topic)));
+    setTopics(prev => prev.map(topic => (topic.id === updated.id ? { ...topic, ...resolved } : topic)));
     updateTopicCaches(queryClient, updated.id, resolved);
     await refreshTopics({ includeLists: true, includeTopicDetails: false });
   };
 
   const handleDeleteTopic = async (topicId: string) => {
-    const deleted = topics.find((topic) => topic.id === topicId)
-      || findTopicInCaches(queryClient, topicId);
+    const deleted = topics.find(topic => topic.id === topicId) || findTopicInCaches(queryClient, topicId);
     await deleteTopic(topicId);
-    setTopics((prev) => {
-      const trashedTopicItem = prev.find((topic) => topic.id === topicId);
+    setTopics(prev => {
+      const trashedTopicItem = prev.find(topic => topic.id === topicId);
       const trashedTopic = trashedTopicItem || deleted;
       if (trashedTopic) {
-        setTrashedTopics((trash) => [{ ...trashedTopic, deleted_at: new Date().toISOString() }, ...trash]);
+        setTrashedTopics(trash => [{ ...trashedTopic, deleted_at: new Date().toISOString() }, ...trash]);
       }
-      return prev.filter((t) => t.id !== topicId);
+      return prev.filter(t => t.id !== topicId);
     });
     removeTopicCaches(queryClient, topicId);
     await refreshTopics({ includeLists: true });
@@ -488,8 +514,8 @@ function WorkspaceApp({ isAuth, setIsAuth }: WorkspaceAppProps) {
         duration: 7000,
         onAction: async () => {
           const restored = await restoreTopic(topicId);
-          setTrashedTopics((prev) => prev.filter((topic) => topic.id !== topicId));
-          setTopics((prev) => [restored, ...prev]);
+          setTrashedTopics(prev => prev.filter(topic => topic.id !== topicId));
+          setTopics(prev => [restored, ...prev]);
           replaceTopicCaches(queryClient, restored);
           await refreshTopics({ includeLists: true });
         },
@@ -500,8 +526,8 @@ function WorkspaceApp({ isAuth, setIsAuth }: WorkspaceAppProps) {
   const handleRestoreTopic = async (topicId: string) => {
     try {
       const restored = await restoreTopic(topicId);
-      setTrashedTopics((prev) => prev.filter((topic) => topic.id !== topicId));
-      setTopics((prev) => [restored, ...prev]);
+      setTrashedTopics(prev => prev.filter(topic => topic.id !== topicId));
+      setTopics(prev => [restored, ...prev]);
       replaceTopicCaches(queryClient, restored);
       await refreshTopics({ includeLists: true });
     } catch (error) {
@@ -515,7 +541,7 @@ function WorkspaceApp({ isAuth, setIsAuth }: WorkspaceAppProps) {
 
   const handlePermanentlyDeleteTopic = async (topicId: string) => {
     await permanentlyDeleteTopic(topicId);
-    setTrashedTopics((prev) => prev.filter((topic) => topic.id !== topicId));
+    setTrashedTopics(prev => prev.filter(topic => topic.id !== topicId));
     removeTopicCaches(queryClient, topicId);
     await refreshTopics({ includeLists: true });
   };
@@ -523,21 +549,20 @@ function WorkspaceApp({ isAuth, setIsAuth }: WorkspaceAppProps) {
   const handlePermanentlyDeleteTopicsBatch = async (ids: string[]) => {
     await permanentlyDeleteTopicsBatch(ids);
     const idSet = new Set(ids);
-    setTrashedTopics((prev) => prev.filter((topic) => !idSet.has(topic.id)));
-    ids.forEach((topicId) => removeTopicCaches(queryClient, topicId));
+    setTrashedTopics(prev => prev.filter(topic => !idSet.has(topic.id)));
+    ids.forEach(topicId => removeTopicCaches(queryClient, topicId));
     await refreshTopics({ includeLists: true });
   };
 
   const handleEmptyTrash = async () => {
     const deletedIds = await emptyTrash();
     setTrashedTopics([]);
-    deletedIds.forEach((topicId) => removeTopicCaches(queryClient, topicId));
+    deletedIds.forEach(topicId => removeTopicCaches(queryClient, topicId));
     await refreshTopics({ includeLists: true });
   };
 
   const handleTogglePin = async (topicId: string) => {
-    const topic = topics.find((t) => t.id === topicId)
-      || findTopicInCaches(queryClient, topicId);
+    const topic = topics.find(t => t.id === topicId) || findTopicInCaches(queryClient, topicId);
     if (!topic) return;
     const nextPin: 0 | 1 = topic.is_pinned === 1 ? 0 : 1;
     if (nextPin === 1 && ['published', 'icebox'].includes(topic.status)) {
@@ -547,46 +572,66 @@ function WorkspaceApp({ isAuth, setIsAuth }: WorkspaceAppProps) {
 
     // Pinning is exclusive across every cached active topic, including pages
     // outside the workspace. Track only pin fields; unrelated edits stay intact.
-    const cachedTopics = new Map(topics.map((item) => [item.id, item]));
+    const cachedTopics = new Map(topics.map(item => [item.id, item]));
     for (const query of queryClient.getQueryCache().getAll()) {
       const key = query.queryKey[0];
-      if (!['topic', 'workspace', 'today-focus', 'kanban-column-page', 'topics-page', 'tag-topics-page', 'command-topic-search'].includes(String(key))) continue;
+      if (
+        ![
+          'topic',
+          'workspace',
+          'today-focus',
+          'kanban-column-page',
+          'topics-page',
+          'tag-topics-page',
+          'command-topic-search',
+        ].includes(String(key))
+      )
+        continue;
       const data = query.state.data as { topics?: Topic[]; attention_topics?: Topic[]; items?: Topic[] } | undefined;
-      const items = key === 'topic' ? [query.state.data as Topic | undefined]
-        : [...(data?.topics || []), ...(data?.attention_topics || []), ...(data?.items || [])];
-      items.forEach((item) => { if (item) cachedTopics.set(item.id, item); });
+      const items =
+        key === 'topic'
+          ? [query.state.data as Topic | undefined]
+          : [...(data?.topics || []), ...(data?.attention_topics || []), ...(data?.items || [])];
+      items.forEach(item => {
+        if (item) cachedTopics.set(item.id, item);
+      });
     }
     cachedTopics.set(topic.id, topic);
     const mutations = [...cachedTopics.values()]
-      .filter((item) => item.id === topic.id || (nextPin === 1 && !item.deleted_at && !['published', 'icebox'].includes(item.status)))
-      .map((item) => {
+      .filter(
+        item =>
+          item.id === topic.id || (nextPin === 1 && !item.deleted_at && !['published', 'icebox'].includes(item.status)),
+      )
+      .map(item => {
         const updates: Partial<Topic> = { is_pinned: item.id === topic.id ? nextPin : 0 };
         return { id: item.id, updates, sequence: beginTopicMutation(item.id, updates) };
       });
     const applyPatch = (id: string, patch: Partial<Topic>) => {
-      setTopics((current) => current.map((item) => item.id === id ? { ...item, ...patch } : item));
+      setTopics(current => current.map(item => (item.id === id ? { ...item, ...patch } : item)));
       updateTopicCaches(queryClient, id, patch);
     };
-    mutations.forEach((mutation) => applyPatch(mutation.id, mutation.updates));
+    mutations.forEach(mutation => applyPatch(mutation.id, mutation.updates));
     try {
       // Serialize exclusive pin writes and normal writes on affected topics.
       const result: TopicPinMutationResult = await runTopicWriteBatch(
-        ['topic-pin-operation', ...mutations.map((mutation) => mutation.id)],
+        ['topic-pin-operation', ...mutations.map(mutation => mutation.id)],
         () => setTopicPinned(topic.id, nextPin),
       );
-      mutations.forEach((mutation) => {
-        const serverFields = mutation.id === result.topic.id
-          ? { is_pinned: result.topic.is_pinned, updated_at: result.topic.updated_at }
-          : { is_pinned: 0 as const };
+      mutations.forEach(mutation => {
+        const serverFields =
+          mutation.id === result.topic.id
+            ? { is_pinned: result.topic.is_pinned, updated_at: result.topic.updated_at }
+            : { is_pinned: 0 as const };
         const patch = topicMutationsRef.current.settle(mutation.id, mutation.updates, mutation.sequence, serverFields);
         applyPatch(mutation.id, patch);
       });
-      result.cleared_topic_ids.forEach((id) => {
-        if (!mutations.some((mutation) => mutation.id === id)) applyPatch(id, { is_pinned: 0 });
+      result.cleared_topic_ids.forEach(id => {
+        if (!mutations.some(mutation => mutation.id === id)) applyPatch(id, { is_pinned: 0 });
       });
     } catch (error) {
-      mutations.forEach((mutation) => applyPatch(mutation.id,
-        rollbackTopicMutation(mutation.id, mutation.updates, mutation.sequence)));
+      mutations.forEach(mutation =>
+        applyPatch(mutation.id, rollbackTopicMutation(mutation.id, mutation.updates, mutation.sequence)),
+      );
       showToast({ tone: 'error', message: error instanceof Error ? error.message : '主推设置失败，请稍后重试' });
     }
     // Revalidate after queued edits finish so a failed pin cannot refetch an
@@ -595,21 +640,20 @@ function WorkspaceApp({ isAuth, setIsAuth }: WorkspaceAppProps) {
     await refreshTopics({ includeLists: true, includeTopicDetails: false });
   };
 
-  const handleUpdateTopicStatus = async (
-    topicId: string,
-    status: TopicStatus,
-    sortOrder?: number
-  ) => {
+  const handleUpdateTopicStatus = async (topicId: string, status: TopicStatus, sortOrder?: number) => {
     const previousTopics = topics;
-    const previousTopic = topics.find((topic) => topic.id === topicId)
-      || findTopicInCaches(queryClient, topicId);
+    const previousTopic = topics.find(topic => topic.id === topicId) || findTopicInCaches(queryClient, topicId);
     const topicUpdate: Partial<Topic> = {
       status,
       ...(typeof sortOrder === 'number' ? { sort_order: sortOrder } : {}),
     };
     updateTopicCaches(queryClient, topicId, topicUpdate);
-    setTopics((prev) =>
-      prev.map((t) => (t.id === topicId ? { ...t, status, sort_order: sortOrder ?? t.sort_order, updated_at: new Date().toISOString() } : t))
+    setTopics(prev =>
+      prev.map(t =>
+        t.id === topicId
+          ? { ...t, status, sort_order: sortOrder ?? t.sort_order, updated_at: new Date().toISOString() }
+          : t,
+      ),
     );
     try {
       await runTopicWrite(topicId, () => updateTopicStatus(topicId, status, sortOrder));
@@ -622,22 +666,25 @@ function WorkspaceApp({ isAuth, setIsAuth }: WorkspaceAppProps) {
     await refreshTopics({ includeLists: true });
   };
 
-  const handleReorderTopics = async (
-    updates: Array<{ id: string; status: TopicStatus; sort_order: number }>
-  ) => {
+  const handleReorderTopics = async (updates: Array<{ id: string; status: TopicStatus; sort_order: number }>) => {
     const previousTopics = topics;
-    const updateMap = new Map(updates.map((update) => [update.id, update]));
+    const updateMap = new Map(updates.map(update => [update.id, update]));
     const nowIso = new Date().toISOString();
-    setTopics((prev) => prev.map((topic) => {
-      const update = updateMap.get(topic.id);
-      return update ? { ...topic, ...update, updated_at: nowIso } : topic;
-    }));
-    updates.forEach((update) => updateTopicCaches(queryClient, update.id, update));
+    setTopics(prev =>
+      prev.map(topic => {
+        const update = updateMap.get(topic.id);
+        return update ? { ...topic, ...update, updated_at: nowIso } : topic;
+      }),
+    );
+    updates.forEach(update => updateTopicCaches(queryClient, update.id, update));
     try {
-      await runTopicWriteBatch(updates.map((update) => update.id), () => reorderTopics(updates));
+      await runTopicWriteBatch(
+        updates.map(update => update.id),
+        () => reorderTopics(updates),
+      );
     } catch (err) {
       setTopics(previousTopics);
-      previousTopics.forEach((topic) => replaceTopicCaches(queryClient, topic));
+      previousTopics.forEach(topic => replaceTopicCaches(queryClient, topic));
       throw err;
     }
     await refreshTopics({ includeLists: true });
@@ -660,9 +707,9 @@ function WorkspaceApp({ isAuth, setIsAuth }: WorkspaceAppProps) {
   // Handlers for People
   const handleSavePerson = async (personData: Partial<Person> & { name: string }): Promise<Person> => {
     const saved = await savePerson(personData);
-    setPeople((prev) => {
-      const exists = prev.some((p) => p.id === saved.id);
-      if (exists) return prev.map((p) => (p.id === saved.id ? saved : p));
+    setPeople(prev => {
+      const exists = prev.some(p => p.id === saved.id);
+      if (exists) return prev.map(p => (p.id === saved.id ? saved : p));
       return [saved, ...prev];
     });
     updatePersonCaches(queryClient, saved);
@@ -672,63 +719,85 @@ function WorkspaceApp({ isAuth, setIsAuth }: WorkspaceAppProps) {
 
   const handleDeletePerson = async (personId: string) => {
     await deletePerson(personId);
-    setPeople((prev) => prev.filter((p) => p.id !== personId));
-    setRelationships((prev) => prev.filter((relationship) => (
-      relationship.person_a_id !== personId && relationship.person_b_id !== personId
-    )));
-    setTopics((prev) => prev.map((topic) => ({
-      ...topic,
-      people: topic.people?.filter((person) => person.id !== personId),
-    })));
+    setPeople(prev => prev.filter(p => p.id !== personId));
+    setRelationships(prev =>
+      prev.filter(relationship => relationship.person_a_id !== personId && relationship.person_b_id !== personId),
+    );
+    setTopics(prev =>
+      prev.map(topic => ({
+        ...topic,
+        people: topic.people?.filter(person => person.id !== personId),
+      })),
+    );
     removePersonCaches(queryClient, personId);
-    await invalidateQueryGroups(queryClient, [['people'], ['people-options'], ['people-page'], ['relationships'], ['workspace']]);
+    await invalidateQueryGroups(queryClient, [
+      ['people'],
+      ['people-options'],
+      ['people-page'],
+      ['relationships'],
+      ['workspace'],
+    ]);
   };
 
   // Handlers for Tags
   const handleSaveTag = async (tagName: string, color?: string, tagId?: string): Promise<Tag> => {
     const newTag = await saveTag({ id: tagId, name: tagName.trim(), color: color || 'stone' });
-    setTags((prev) => {
-      const exists = prev.some((t) => t.id === newTag.id);
-      if (exists) return prev.map((t) => (t.id === newTag.id ? newTag : t));
+    setTags(prev => {
+      const exists = prev.some(t => t.id === newTag.id);
+      if (exists) return prev.map(t => (t.id === newTag.id ? newTag : t));
       return [...prev, newTag];
     });
 
     // If tag was updated/renamed, sync into topics in memory
     if (tagId) {
-      setTopics((prev) =>
-        prev.map((t) => ({
+      setTopics(prev =>
+        prev.map(t => ({
           ...t,
-          tags: t.tags?.map((tg) => (tg.id === tagId ? newTag : tg)),
-        }))
+          tags: t.tags?.map(tg => (tg.id === tagId ? newTag : tg)),
+        })),
       );
     }
     updateTagCaches(queryClient, newTag);
-    await invalidateQueryGroups(queryClient, [['tags'], ['tags-page'], ['tags-options'], ['tag-topics-page'], ['workspace']]);
+    await invalidateQueryGroups(queryClient, [
+      ['tags'],
+      ['tags-page'],
+      ['tags-options'],
+      ['tag-topics-page'],
+      ['workspace'],
+    ]);
     return newTag;
   };
 
   const handleDeleteTag = async (tagId: string) => {
     await deleteTag(tagId);
-    setTags((prev) => prev.filter((t) => t.id !== tagId));
-    setTopics((prev) =>
-      prev.map((t) => ({
+    setTags(prev => prev.filter(t => t.id !== tagId));
+    setTopics(prev =>
+      prev.map(t => ({
         ...t,
-        tags: t.tags?.filter((tg) => tg.id !== tagId),
-      }))
+        tags: t.tags?.filter(tg => tg.id !== tagId),
+      })),
     );
     removeTagCaches(queryClient, tagId);
-    await invalidateQueryGroups(queryClient, [['tags'], ['tags-page'], ['tags-options'], ['tag-topics-page'], ['workspace']]);
+    await invalidateQueryGroups(queryClient, [
+      ['tags'],
+      ['tags-page'],
+      ['tags-options'],
+      ['tag-topics-page'],
+      ['workspace'],
+    ]);
   };
 
-  const handleSaveRelationship = async (relData: Partial<PersonRelationship> & {
-    person_a_id: string;
-    person_b_id: string;
-    relationship: string;
-  }) => {
+  const handleSaveRelationship = async (
+    relData: Partial<PersonRelationship> & {
+      person_a_id: string;
+      person_b_id: string;
+      relationship: string;
+    },
+  ) => {
     const saved = await saveRelationship(relData);
-    setRelationships((prev) => {
-      const exists = prev.some((r) => r.id === saved.id);
-      if (exists) return prev.map((r) => (r.id === saved.id ? saved : r));
+    setRelationships(prev => {
+      const exists = prev.some(r => r.id === saved.id);
+      if (exists) return prev.map(r => (r.id === saved.id ? saved : r));
       return [saved, ...prev];
     });
     await invalidateQueryGroups(queryClient, [['relationships'], ['people-page'], ['workspace']]);
@@ -736,16 +805,18 @@ function WorkspaceApp({ isAuth, setIsAuth }: WorkspaceAppProps) {
 
   const handleDeleteRelationship = async (relId: string) => {
     await deleteRelationship(relId);
-    setRelationships((prev) => prev.filter((r) => r.id !== relId));
+    setRelationships(prev => prev.filter(r => r.id !== relId));
     await invalidateQueryGroups(queryClient, [['relationships'], ['people-page'], ['workspace']]);
   };
 
   // Handlers for Published
-  const handleSavePublished = async (pubData: Partial<PublishedVideo> & { title: string; topic_id?: string | null }) => {
+  const handleSavePublished = async (
+    pubData: Partial<PublishedVideo> & { title: string; topic_id?: string | null },
+  ) => {
     const saved = await savePublishedVideo(pubData);
-    setPublishedList((prev) => {
-      const exists = prev.some((p) => p.id === saved.id);
-      if (exists) return prev.map((p) => (p.id === saved.id ? saved : p));
+    setPublishedList(prev => {
+      const exists = prev.some(p => p.id === saved.id);
+      if (exists) return prev.map(p => (p.id === saved.id ? saved : p));
       return [saved, ...prev];
     });
     updatePublishedCaches(queryClient, saved);
@@ -754,7 +825,7 @@ function WorkspaceApp({ isAuth, setIsAuth }: WorkspaceAppProps) {
 
   const handleDeletePublished = async (pubId: string) => {
     await deletePublishedVideo(pubId);
-    setPublishedList((prev) => prev.filter((p) => p.id !== pubId));
+    setPublishedList(prev => prev.filter(p => p.id !== pubId));
     removePublishedCaches(queryClient, pubId);
     await invalidateQueryGroups(queryClient, [['published'], ['published-page'], ['published-analytics']]);
   };
@@ -807,11 +878,13 @@ function WorkspaceApp({ isAuth, setIsAuth }: WorkspaceAppProps) {
   }
 
   const topicCount = workspaceTopicCount;
-  const activeTopic = topics.find((t) => t.id === activeTopicId);
+  const activeTopic = topics.find(t => t.id === activeTopicId);
 
   return (
     <div className="pwa-app-shell pwa-app-shell-enter flex h-dvh w-full bg-canvas text-ink overflow-hidden font-sans transition-colors">
-      <a href="#main-content" className="skip-link">跳到主要内容</a>
+      <a href="#main-content" className="skip-link">
+        跳到主要内容
+      </a>
       {/* Desktop Sidebar (Hidden on mobile) */}
       <Sidebar
         currentView={currentView}
@@ -831,11 +904,19 @@ function WorkspaceApp({ isAuth, setIsAuth }: WorkspaceAppProps) {
         <PwaInstallPromptBanner />
 
         {/* View Router */}
-        <main id="main-content" tabIndex={-1} className="view-transition-page-content flex min-h-0 flex-1 flex-col overflow-hidden min-w-0">
+        <main
+          id="main-content"
+          tabIndex={-1}
+          className="view-transition-page-content flex min-h-0 flex-1 flex-col overflow-hidden min-w-0"
+        >
           {loadError && (
             <div className="m-4 flex items-center justify-between gap-3 rounded-xl border border-danger-line bg-danger-soft px-4 py-3 text-sm text-danger">
               <span>{loadError}</span>
-              <button type="button" onClick={() => void loadAllData()} className="shrink-0 rounded-lg border border-danger-line bg-surface px-3 py-1.5 text-xs font-semibold hover:bg-danger-soft">
+              <button
+                type="button"
+                onClick={() => void loadAllData()}
+                className="shrink-0 rounded-lg border border-danger-line bg-surface px-3 py-1.5 text-xs font-semibold hover:bg-danger-soft"
+              >
                 重新加载
               </button>
             </div>
@@ -843,181 +924,185 @@ function WorkspaceApp({ isAuth, setIsAuth }: WorkspaceAppProps) {
           {isLoadingData && topics.length === 0 ? (
             <div className="flex-1 grid place-items-center text-sm text-ink-muted">正在加载工作区...</div>
           ) : (
-          <ViewErrorBoundary key={location.pathname}>
-          <Suspense fallback={<div className="flex-1 grid place-items-center text-sm text-ink-muted">正在加载工作区...</div>}>
-          {currentView === 'today' && (
-            <TodayView
-              topics={topics}
-              attentionTopics={todayAttentionTopics}
-              todayActionProgress={todayActionProgress}
-              todoActions={topicTodoActions}
-              dealFocus={dealFocus}
-              onOpenDetail={handleOpenDetail}
-              onOpenDeal={handleOpenDeal}
-              onOpenQuickCreate={openInboxQuickCreate}
-              onTogglePin={handleTogglePin}
-              onUpdateTopic={handleUpdateTopicById}
-            />
-          )}
+            <ViewErrorBoundary key={location.pathname}>
+              <Suspense
+                fallback={
+                  <div className="flex-1 grid place-items-center text-sm text-ink-muted">正在加载工作区...</div>
+                }
+              >
+                {currentView === 'today' && (
+                  <TodayView
+                    topics={topics}
+                    attentionTopics={todayAttentionTopics}
+                    todayActionProgress={todayActionProgress}
+                    todoActions={topicTodoActions}
+                    dealFocus={dealFocus}
+                    onOpenDetail={handleOpenDetail}
+                    onOpenDeal={handleOpenDeal}
+                    onOpenQuickCreate={openInboxQuickCreate}
+                    onTogglePin={handleTogglePin}
+                    onUpdateTopic={handleUpdateTopicById}
+                  />
+                )}
 
-          {currentView === 'calendar' && (
-            <CalendarView
-              topics={topics}
-              deals={dealFocus ? [...dealFocus.due_items, ...dealFocus.unpaid_items] : []}
-              publishedList={publishedList}
-              availableTags={tags}
-              onOpenDetail={handleOpenDetail}
-              onOpenDeal={handleOpenDeal}
-              onOpenPublished={handleOpenPublished}
-              onUpdateTopic={handleUpdateTopicById}
-              onCreateTopic={async (data) => {
-                await handleSaveQuickTopic(data);
-              }}
-            />
-          )}
+                {currentView === 'calendar' && (
+                  <CalendarView
+                    topics={topics}
+                    deals={dealFocus ? [...dealFocus.due_items, ...dealFocus.unpaid_items] : []}
+                    publishedList={publishedList}
+                    availableTags={tags}
+                    onOpenDetail={handleOpenDetail}
+                    onOpenDeal={handleOpenDeal}
+                    onOpenPublished={handleOpenPublished}
+                    onUpdateTopic={handleUpdateTopicById}
+                    onCreateTopic={async data => {
+                      await handleSaveQuickTopic(data);
+                    }}
+                  />
+                )}
 
-          {currentView === 'deals' && (
-            <DealsView
-              dealId={activeDealId}
-              topics={topics}
-              onBack={handleBackFromDeal}
-              backLabel={dealBackLabel}
-              onCreateTopicFromDeal={handleCreateTopicFromDeal}
-            />
-          )}
+                {currentView === 'deals' && (
+                  <DealsView
+                    dealId={activeDealId}
+                    topics={topics}
+                    onBack={handleBackFromDeal}
+                    backLabel={dealBackLabel}
+                    onCreateTopicFromDeal={handleCreateTopicFromDeal}
+                  />
+                )}
 
-          {currentView === 'kanban' && (
-            <KanbanBoard
-              topics={topics}
-              onOpenDetail={handleOpenDetail}
-              onOpenCurrentAction={(topicId) => setQuickActionTopicId(topicId)}
-              onDeleteTopic={handleDeleteTopic}
-              onTogglePin={handleTogglePin}
-              onUpdateTopicStatus={handleUpdateTopicStatus}
-              onReorderTopics={handleReorderTopics}
-              onQuickAddTopic={handleQuickAddInStatus}
-              availableTags={tags}
-              availablePeople={people}
-              searchTerm={searchTerm}
-            />
-          )}
+                {currentView === 'kanban' && (
+                  <KanbanBoard
+                    topics={topics}
+                    onOpenDetail={handleOpenDetail}
+                    onOpenCurrentAction={topicId => setQuickActionTopicId(topicId)}
+                    onDeleteTopic={handleDeleteTopic}
+                    onTogglePin={handleTogglePin}
+                    onUpdateTopicStatus={handleUpdateTopicStatus}
+                    onReorderTopics={handleReorderTopics}
+                    onQuickAddTopic={handleQuickAddInStatus}
+                    availableTags={tags}
+                    availablePeople={people}
+                    searchTerm={searchTerm}
+                  />
+                )}
 
-          {currentView === 'topic-detail' && activeTopic && (
-            <TopicDetailView
-              key={activeTopic.id}
-              topic={activeTopic}
-              onBack={handleBackFromDetail}
-              onUpdateTopic={handleUpdateTopic}
-              onDeleteTopic={handleDeleteTopic}
-              allPeople={people}
-              allTags={tags}
-              relationships={relationships}
-              readingSpeed={settings.reading_speed || 280}
-              settings={settings}
-              onNavigateToPeople={() => {
-                navigate('/people');
-              }}
-              onSavePerson={handleSavePerson}
-              onSaveTag={handleSaveTag}
-              onDraftWordCountChange={handleDraftWordCountChange}
-              onTopicMetricsChange={handleTopicMetricsChange}
-              onOpenDeal={handleOpenDeal}
-              onCreateTopicFromDeal={handleCreateTopicFromDeal}
-              todoActions={topicTodoActions}
-            />
-          )}
+                {currentView === 'topic-detail' && activeTopic && (
+                  <TopicDetailView
+                    key={activeTopic.id}
+                    topic={activeTopic}
+                    onBack={handleBackFromDetail}
+                    onUpdateTopic={handleUpdateTopic}
+                    onDeleteTopic={handleDeleteTopic}
+                    allPeople={people}
+                    allTags={tags}
+                    relationships={relationships}
+                    readingSpeed={settings.reading_speed || 280}
+                    settings={settings}
+                    onNavigateToPeople={() => {
+                      navigate('/people');
+                    }}
+                    onSavePerson={handleSavePerson}
+                    onSaveTag={handleSaveTag}
+                    onDraftWordCountChange={handleDraftWordCountChange}
+                    onTopicMetricsChange={handleTopicMetricsChange}
+                    onOpenDeal={handleOpenDeal}
+                    onCreateTopicFromDeal={handleCreateTopicFromDeal}
+                    todoActions={topicTodoActions}
+                  />
+                )}
 
-          {currentView === 'people' && (
-            <PeopleView
-              people={people}
-              relationships={relationships}
-              topics={topics}
-              onSavePerson={handleSavePerson}
-              onDeletePerson={handleDeletePerson}
-              onSaveRelationship={handleSaveRelationship}
-              onDeleteRelationship={handleDeleteRelationship}
-              onSelectTopic={handleOpenDetail}
-            />
-          )}
+                {currentView === 'people' && (
+                  <PeopleView
+                    people={people}
+                    relationships={relationships}
+                    topics={topics}
+                    onSavePerson={handleSavePerson}
+                    onDeletePerson={handleDeletePerson}
+                    onSaveRelationship={handleSaveRelationship}
+                    onDeleteRelationship={handleDeleteRelationship}
+                    onSelectTopic={handleOpenDetail}
+                  />
+                )}
 
-          {currentView === 'topic-detail' && !isLoadingData && !activeTopic && (
-            <div className="flex-1 grid place-items-center text-sm text-ink-muted">
-              选题不存在或已进入回收站
-            </div>
-          )}
+                {currentView === 'topic-detail' && !isLoadingData && !activeTopic && (
+                  <div className="flex-1 grid place-items-center text-sm text-ink-muted">选题不存在或已进入回收站</div>
+                )}
 
-          {currentView === 'tags' && (
-            <TagsView
-              tags={tags}
-              topics={topics}
-              onSaveTag={handleSaveTag}
-              onDeleteTag={handleDeleteTag}
-              onSelectTopic={handleOpenDetail}
-              onQuickCreateTopicInTag={(tagName) => {
-                setQuickCreateInitialTitle('');
-                setQuickCreateInitialTags([tagName]);
-                setQuickCreateStatus('inbox');
-                setIsQuickCreateOpen(true);
-              }}
-            />
-          )}
+                {currentView === 'tags' && (
+                  <TagsView
+                    tags={tags}
+                    topics={topics}
+                    onSaveTag={handleSaveTag}
+                    onDeleteTag={handleDeleteTag}
+                    onSelectTopic={handleOpenDetail}
+                    onQuickCreateTopicInTag={tagName => {
+                      setQuickCreateInitialTitle('');
+                      setQuickCreateInitialTags([tagName]);
+                      setQuickCreateStatus('inbox');
+                      setIsQuickCreateOpen(true);
+                    }}
+                  />
+                )}
 
-          {currentView === 'published' && (
-            <PublishedView
-              topics={topics}
-              onSavePublished={handleSavePublished}
-              onDeletePublished={handleDeletePublished}
-              onSelectTopic={handleOpenDetail}
-              onBack={hasPublishedBack ? handleBackFromPublished : undefined}
-              backLabel={publishedBackLabel}
-            />
-          )}
+                {currentView === 'published' && (
+                  <PublishedView
+                    topics={topics}
+                    onSavePublished={handleSavePublished}
+                    onDeletePublished={handleDeletePublished}
+                    onSelectTopic={handleOpenDetail}
+                    onBack={hasPublishedBack ? handleBackFromPublished : undefined}
+                    backLabel={publishedBackLabel}
+                  />
+                )}
 
-          {currentView === 'database' && (
-            <div className="mx-auto flex h-full min-h-0 w-full max-w-7xl min-w-0 flex-1 flex-col gap-5 overflow-hidden px-4 sm:px-6 lg:px-8 py-5 sm:py-6 mobile-bottom-nav-content">
-              <PageHeader title="选题库" icon={Database} className="shrink-0" />
-              <div className="min-h-0 flex-1 flex flex-col h-full">
-                <TopicTableView
-                  topics={topics}
-                  onOpenDetail={handleOpenDetail}
-                  onOpenCurrentAction={(topicId) => setQuickActionTopicId(topicId)}
-                  onTogglePin={handleTogglePin}
-                  onUpdateTopicStatus={handleUpdateTopicStatus}
-                  onDeleteTopic={handleDeleteTopic}
-                  trashedTopics={trashedTopics}
-                  onRestoreTopic={handleRestoreTopic}
-                  onPermanentlyDeleteTopic={handlePermanentlyDeleteTopic}
-                  onPermanentlyDeleteTopicsBatch={handlePermanentlyDeleteTopicsBatch}
-                  onEmptyTrash={handleEmptyTrash}
-                  readingSpeed={settings.reading_speed || 280}
-                  searchTerm={searchTerm}
-                />
-              </div>
-            </div>
-          )}
+                {currentView === 'database' && (
+                  <div className="mx-auto flex h-full min-h-0 w-full max-w-7xl min-w-0 flex-1 flex-col gap-5 overflow-hidden px-4 sm:px-6 lg:px-8 py-5 sm:py-6 mobile-bottom-nav-content">
+                    <PageHeader title="选题库" icon={Database} className="shrink-0" />
+                    <div className="min-h-0 flex-1 flex flex-col h-full">
+                      <TopicTableView
+                        topics={topics}
+                        onOpenDetail={handleOpenDetail}
+                        onOpenCurrentAction={topicId => setQuickActionTopicId(topicId)}
+                        onTogglePin={handleTogglePin}
+                        onUpdateTopicStatus={handleUpdateTopicStatus}
+                        onDeleteTopic={handleDeleteTopic}
+                        trashedTopics={trashedTopics}
+                        onRestoreTopic={handleRestoreTopic}
+                        onPermanentlyDeleteTopic={handlePermanentlyDeleteTopic}
+                        onPermanentlyDeleteTopicsBatch={handlePermanentlyDeleteTopicsBatch}
+                        onEmptyTrash={handleEmptyTrash}
+                        readingSpeed={settings.reading_speed || 280}
+                        searchTerm={searchTerm}
+                      />
+                    </div>
+                  </div>
+                )}
 
-          {currentView === 'settings' && (
-            <SettingsView
-              settings={settings}
-              onSaveSettings={handleSaveSettings}
-              onReloadAllData={loadAllData}
-              onLogout={handleLogout}
-            />
-          )}
-          </Suspense>
-          </ViewErrorBoundary>
+                {currentView === 'settings' && (
+                  <SettingsView
+                    settings={settings}
+                    onSaveSettings={handleSaveSettings}
+                    onReloadAllData={loadAllData}
+                    onLogout={handleLogout}
+                  />
+                )}
+              </Suspense>
+            </ViewErrorBoundary>
           )}
         </main>
       </div>
 
       {/* Mobile Bottom Navigation (Visible on mobile screens) */}
-      {currentView !== 'topic-detail' && <MobileBottomNav
-        currentView={currentView}
-        onNavigate={navigateToView}
-        onOpenQuickCreate={openInboxQuickCreate}
-        onOpenMobileDrawer={() => setIsMobileDrawerOpen(true)}
-        topicCount={topicCount}
-      />}
+      {currentView !== 'topic-detail' && (
+        <MobileBottomNav
+          currentView={currentView}
+          onNavigate={navigateToView}
+          onOpenQuickCreate={openInboxQuickCreate}
+          onOpenMobileDrawer={() => setIsMobileDrawerOpen(true)}
+          topicCount={topicCount}
+        />
+      )}
 
       {/* Mobile Slide-Out Drawer */}
       <MobileDrawer
@@ -1067,25 +1152,25 @@ function WorkspaceApp({ isAuth, setIsAuth }: WorkspaceAppProps) {
         tags={tags}
         currentTheme={settings.theme}
         onSelectTopic={handleOpenDetail}
-        onSelectPerson={(_personId) => {
+        onSelectPerson={_personId => {
           navigate('/people');
         }}
-        onSelectTag={(tagName) => {
+        onSelectTag={tagName => {
           setSearchTerm(tagName);
           navigate('/kanban');
         }}
         onNavigate={navigateToView}
-        onOpenQuickCreate={(initialTitle) => {
+        onOpenQuickCreate={initialTitle => {
           setQuickCreateInitialTitle(initialTitle);
           setQuickCreateInitialTags([]);
           setQuickCreateStatus('inbox');
           setIsQuickCreateOpen(true);
         }}
         onOpenQuickDrops={() => setIsQuickDropDrawerOpen(true)}
-        onSelectTheme={(theme) => void handleSaveSettings({ ...settings, theme })}
+        onSelectTheme={theme => void handleSaveSettings({ ...settings, theme })}
         onExportBackup={handleExportBackup}
         onExportMarkdown={handleExportMarkdown}
-        onFilterStatus={(status) => {
+        onFilterStatus={status => {
           navigate(`/kanban?status=${encodeURIComponent(status)}`);
         }}
       />
@@ -1095,7 +1180,7 @@ function WorkspaceApp({ isAuth, setIsAuth }: WorkspaceAppProps) {
         isOpen={isQuickDropDrawerOpen}
         onClose={() => setIsQuickDropDrawerOpen(false)}
         onDropCountChange={setQuickDropCount}
-        onConvertToTopic={(item) => {
+        onConvertToTopic={item => {
           setIsQuickDropDrawerOpen(false);
           setQuickCreateInitialTitle(item.content.slice(0, 50));
           setQuickCreateInitialTags([]);

@@ -16,17 +16,19 @@ const acts: StoryStructureActs = {
 
 describe('storyStructure', () => {
   it('parses the modern marker format', () => {
-    expect(parseStorylineToActs(
-      '【开始】人物和环境已经明确。\n【发展】事情沿着时间线逐步发展。\n【转折】一条新信息改变了原来的判断。\n【收束】结果和后续影响已经落定。'
-    )).toEqual(acts);
+    expect(
+      parseStorylineToActs(
+        '【开始】人物和环境已经明确。\n【发展】事情沿着时间线逐步发展。\n【转折】一条新信息改变了原来的判断。\n【收束】结果和后续影响已经落定。',
+      ),
+    ).toEqual(acts);
   });
 
   it('serializes only filled sections with modern markers', () => {
     expect(serializeActsToStoryline(acts)).toBe(
-      '【开始】人物和环境已经明确。\n【发展】事情沿着时间线逐步发展。\n【转折】一条新信息改变了原来的判断。\n【收束】结果和后续影响已经落定。'
+      '【开始】人物和环境已经明确。\n【发展】事情沿着时间线逐步发展。\n【转折】一条新信息改变了原来的判断。\n【收束】结果和后续影响已经落定。',
     );
     expect(serializeActsToStoryline({ ...acts, cheng: '', he: '结果已明确。' })).toBe(
-      '【开始】人物和环境已经明确。\n【转折】一条新信息改变了原来的判断。\n【收束】结果已明确。'
+      '【开始】人物和环境已经明确。\n【转折】一条新信息改变了原来的判断。\n【收束】结果已明确。',
     );
   });
 
@@ -51,14 +53,14 @@ describe('storyStructure', () => {
 
     expect(sectionsHtml).toContain('<h2>第一段：开始</h2>');
     expect(sectionsHtml).toContain('<h2>第四段：收束</h2>');
-    expect(timelineSteps.map((step) => step.title)).toEqual([
+    expect(timelineSteps.map(step => step.title)).toEqual([
       '第一段：开始',
       '第二段：发展',
       '第三段：转折',
       '第四段：收束',
     ]);
 
-    const generatedCopy = `${sectionsHtml}${timelineSteps.map((step) => step.desc).join('')}`;
+    const generatedCopy = `${sectionsHtml}${timelineSteps.map(step => step.desc).join('')}`;
     expect(generatedCopy).not.toMatch(/荒诞|人设崩塌|名场面|流量讽刺|滑竿/);
   });
 });

@@ -25,7 +25,13 @@ export interface ActionDateOptions {
 export function formatBeijingDateTime(
   value: Date | string | null | undefined,
   locales: Intl.LocalesArgument = 'zh-CN',
-  options: Intl.DateTimeFormatOptions = { year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' },
+  options: Intl.DateTimeFormatOptions = {
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit',
+  },
 ): string {
   if (value === null || value === undefined || value === '') return '';
   const date = value instanceof Date ? value : new Date(value);
@@ -46,9 +52,10 @@ export function getBeijingWeekday(value?: Date | string | null): number {
 }
 
 export function createBeijingCalendarDate(value?: Date | string | null): Date {
-  const dateString = typeof value === 'string' && ISO_DATE_PATTERN.test(value) && isValidIsoDate(value)
-    ? value
-    : getBeijingDateString(value);
+  const dateString =
+    typeof value === 'string' && ISO_DATE_PATTERN.test(value) && isValidIsoDate(value)
+      ? value
+      : getBeijingDateString(value);
   const match = ISO_DATE_PATTERN.exec(dateString);
   if (!match || !isValidIsoDate(dateString)) return new Date(Number.NaN);
   return new Date(Date.UTC(Number(match[1]), Number(match[2]) - 1, Number(match[3]), 12));
@@ -81,7 +88,7 @@ function createEmptyDisplay(): ActionDateDisplay {
 
 export function getActionDateDisplay(
   value?: string | null,
-  { today = getBeijingDateString(), active = true }: ActionDateOptions = {}
+  { today = getBeijingDateString(), active = true }: ActionDateOptions = {},
 ): ActionDateDisplay {
   const normalized = value?.slice(0, 10) || '';
   if (!normalized) return createEmptyDisplay();
@@ -138,15 +145,13 @@ function stopRolloverTimer() {
 function scheduleRollover() {
   stopRolloverTimer();
   const current = getDateOrdinal(todaySnapshot);
-  const nextMidnight = current === null
-    ? Date.now() + DAY_MS
-    : (current + 1) * DAY_MS - 8 * 60 * 60 * 1000 + 100;
+  const nextMidnight = current === null ? Date.now() + DAY_MS : (current + 1) * DAY_MS - 8 * 60 * 60 * 1000 + 100;
   const delay = Math.max(1000, nextMidnight - Date.now());
   rolloverTimer = setTimeout(() => {
     const nextSnapshot = getBeijingDateString();
     if (nextSnapshot !== todaySnapshot) {
       todaySnapshot = nextSnapshot;
-      todayListeners.forEach((listener) => listener());
+      todayListeners.forEach(listener => listener());
     }
     scheduleRollover();
   }, delay);

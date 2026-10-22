@@ -1,11 +1,6 @@
 import { createHash, timingSafeEqual } from 'node:crypto';
 import type { Database } from 'bun:sqlite';
-import {
-  commercialDealSchema,
-  parseWithZod,
-  topicCreateSchema,
-  topicUpdateSchema,
-} from './schemas';
+import { commercialDealSchema, parseWithZod, topicCreateSchema, topicUpdateSchema } from './schemas';
 
 export type ApiBindings = {
   DB: Database;
@@ -70,7 +65,7 @@ export type QuickDropCredentialResult = 'valid' | 'missing_config' | 'invalid';
 
 export function verifyQuickDropCredential(
   providedToken: string | undefined,
-  configuredToken: string | undefined
+  configuredToken: string | undefined,
 ): QuickDropCredentialResult {
   if (!configuredToken) return 'missing_config';
   return timingSafeEqualString(providedToken, configuredToken) ? 'valid' : 'invalid';
@@ -95,7 +90,7 @@ export function validateCommercialDealFields(body: Record<string, unknown>, requ
 
 export function validateTextFields(
   body: Record<string, unknown>,
-  fields: Record<string, [maxLength: number, required?: boolean]>
+  fields: Record<string, [maxLength: number, required?: boolean]>,
 ): string | null {
   for (const [field, [maxLength, required]] of Object.entries(fields)) {
     if (!Object.prototype.hasOwnProperty.call(body, field)) continue;
@@ -109,26 +104,36 @@ export function validateTextFields(
 
 function toBase64Url(bytes: Uint8Array): string {
   let binary = '';
-  bytes.forEach((byte) => { binary += String.fromCharCode(byte); });
+  bytes.forEach(byte => {
+    binary += String.fromCharCode(byte);
+  });
   return btoa(binary).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/g, '');
 }
 
 function fromBase64Url(value: string): ArrayBuffer {
-  const padded = value.replace(/-/g, '+').replace(/_/g, '/').padEnd(Math.ceil(value.length / 4) * 4, '=');
+  const padded = value
+    .replace(/-/g, '+')
+    .replace(/_/g, '/')
+    .padEnd(Math.ceil(value.length / 4) * 4, '=');
   const binary = atob(padded);
-  return Uint8Array.from(binary, (char) => char.charCodeAt(0)).buffer as ArrayBuffer;
+  return Uint8Array.from(binary, char => char.charCodeAt(0)).buffer as ArrayBuffer;
 }
 
 async function getSigningKey(password: string): Promise<CryptoKey> {
-  return crypto.subtle.importKey(
-    'raw', new TextEncoder().encode(password), { name: 'HMAC', hash: 'SHA-256' }, false, ['sign', 'verify']
-  );
+  return crypto.subtle.importKey('raw', new TextEncoder().encode(password), { name: 'HMAC', hash: 'SHA-256' }, false, [
+    'sign',
+    'verify',
+  ]);
 }
 
 export async function createToken(password: string): Promise<string> {
-  const payload = toBase64Url(new TextEncoder().encode(JSON.stringify({
-    exp: Math.floor(Date.now() / 1000) + TOKEN_TTL_SECONDS,
-  })));
+  const payload = toBase64Url(
+    new TextEncoder().encode(
+      JSON.stringify({
+        exp: Math.floor(Date.now() / 1000) + TOKEN_TTL_SECONDS,
+      }),
+    ),
+  );
   const signature = await crypto.subtle.sign('HMAC', await getSigningKey(password), new TextEncoder().encode(payload));
   return `v1.${payload}.${toBase64Url(new Uint8Array(signature))}`;
 }
@@ -140,7 +145,10 @@ export async function verifyToken(token: string, password: string): Promise<bool
     const decoded = JSON.parse(new TextDecoder().decode(fromBase64Url(payload))) as { exp?: number };
     if (!decoded.exp || decoded.exp < Math.floor(Date.now() / 1000)) return false;
     return crypto.subtle.verify(
-      'HMAC', await getSigningKey(password), fromBase64Url(signature), new TextEncoder().encode(payload)
+      'HMAC',
+      await getSigningKey(password),
+      fromBase64Url(signature),
+      new TextEncoder().encode(payload),
     );
   } catch {
     return false;
@@ -166,10 +174,13 @@ export function jsonError(c: any, error: unknown) {
 }
 
 export function jsonValidationError(c: any, errorMsg: string, issues?: unknown[]) {
-  return c.json({
-    error: errorMsg,
-    ...(issues && issues.length > 0 ? { details: issues } : {}),
-  }, 400);
+  return c.json(
+    {
+      error: errorMsg,
+      ...(issues && issues.length > 0 ? { details: issues } : {}),
+    },
+    400,
+  );
 }
 
 export function createId(prefix: string): string {

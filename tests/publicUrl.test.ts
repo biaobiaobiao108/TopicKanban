@@ -10,8 +10,12 @@ describe('Public Base URL & Reverse Proxy Resolution', () => {
   });
 
   it('resolves public URL using configured base URL when provided', () => {
-    expect(resolvePublicUrl('/api/inbox/quick-drop', 'https://kanban.mydomain.com/')).toBe('https://kanban.mydomain.com/api/inbox/quick-drop');
-    expect(resolvePublicUrl('api/inbox/quick-drop', 'https://kanban.mydomain.com')).toBe('https://kanban.mydomain.com/api/inbox/quick-drop');
+    expect(resolvePublicUrl('/api/inbox/quick-drop', 'https://kanban.mydomain.com/')).toBe(
+      'https://kanban.mydomain.com/api/inbox/quick-drop',
+    );
+    expect(resolvePublicUrl('api/inbox/quick-drop', 'https://kanban.mydomain.com')).toBe(
+      'https://kanban.mydomain.com/api/inbox/quick-drop',
+    );
   });
 
   it('resolves server public URL prioritizing configured URL over forwarded headers', () => {
@@ -43,17 +47,21 @@ describe('Public Base URL & Reverse Proxy Resolution', () => {
   });
 
   it('ignores forwarded headers unless proxy trust is explicitly enabled', () => {
-    expect(resolveServerPublicUrl('/api/inbox/quick-drop', {
-      forwardedProto: 'https',
-      forwardedHost: 'attacker.example.com',
-    })).toBe('/api/inbox/quick-drop');
+    expect(
+      resolveServerPublicUrl('/api/inbox/quick-drop', {
+        forwardedProto: 'https',
+        forwardedHost: 'attacker.example.com',
+      }),
+    ).toBe('/api/inbox/quick-drop');
   });
 
   it('rejects forwarded host values that could alter the generated path', () => {
-    expect(resolveServerPublicUrl('/api/inbox/quick-drop', {
-      trustProxyHeaders: true,
-      forwardedProto: 'https',
-      forwardedHost: 'attacker.example.com?redirect=https://evil.example.com',
-    })).toBe('/api/inbox/quick-drop');
+    expect(
+      resolveServerPublicUrl('/api/inbox/quick-drop', {
+        trustProxyHeaders: true,
+        forwardedProto: 'https',
+        forwardedHost: 'attacker.example.com?redirect=https://evil.example.com',
+      }),
+    ).toBe('/api/inbox/quick-drop');
   });
 });
