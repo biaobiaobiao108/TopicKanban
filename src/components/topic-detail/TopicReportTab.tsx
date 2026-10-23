@@ -11,7 +11,9 @@ import { TopicReportConflictError } from '../../lib/storageApi';
 import {
   clearTopicReportRecovery,
   clearTopicReportRecoveryIfMatches,
+  resolveTopicReportRecovery,
   readTopicReportRecovery,
+  topicReportRecoveryConflicts,
   writeTopicReportRecovery,
 } from '../../lib/topicReportRecovery';
 import { ScriptStarterKit } from './ScriptStarterKit';
@@ -319,6 +321,7 @@ export const TopicReportTab: React.FC<TopicReportTabProps> = ({ topicId, topicTi
       saveTimeoutRef.current = null;
     }
     currentBaseVersionRef.current = conflictReport?.version ?? 0;
+    resolveTopicReportRecovery(topicId);
     conflictPendingRef.current = false;
     setConflictReport(null);
     setHasConflictSnapshot(false);
@@ -413,12 +416,12 @@ export const TopicReportTab: React.FC<TopicReportTabProps> = ({ topicId, topicTi
     currentBaseVersionRef.current = recovery.baseVersion;
     editor.commands.setContent(recovery.markdown, { contentType: 'markdown', emitUpdate: false });
 
-    if (recovery.baseVersion !== (report?.version ?? 0)) {
+    if (topicReportRecoveryConflicts(recovery, report?.version ?? 0)) {
       conflictPendingRef.current = true;
       setConflictReport(report);
       setHasConflictSnapshot(true);
       setSaveStatus('conflict');
-      showToast({ message: '已恢复未同步的本机选题报告；云端版本已变化，请比较后选择要采用的版本', tone: 'error' });
+      showToast({ message: '已恢复未同步的本机选题报告；云端版本可能已变化，请比较后选择要采用的版本', tone: 'error' });
       return;
     }
 

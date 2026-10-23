@@ -117,10 +117,7 @@ export const QuickDropDrawer: React.FC<QuickDropDrawerProps> = ({
     }
   };
 
-  const handleConvert = (item: QuickDropItem) => {
-    onConvertToTopic(item);
-    void handleDelete(item.id);
-  };
+  const handleConvert = (item: QuickDropItem) => onConvertToTopic(item);
 
   if (!isOpen) return null;
 

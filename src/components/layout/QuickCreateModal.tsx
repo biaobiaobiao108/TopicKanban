@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { Modal } from '../ui/Modal';
 import { DateInput } from '../ui/DateInput';
+import { useToast } from '../ui/Toast';
 import { Priority, Tag, TopicStatus } from '../../types';
 import { Plus, X, Tag as TagIcon, Calendar, Clock, ChevronDown, SlidersHorizontal } from 'lucide-react';
 
@@ -20,6 +21,7 @@ interface QuickCreateModalProps {
   availableTags: Tag[];
   defaultStatus: TopicStatus;
   initialTitle: string;
+  initialSummary?: string;
   initialTagNames: string[];
 }
 
@@ -57,8 +59,10 @@ export const QuickCreateModal: React.FC<QuickCreateModalProps> = ({
   availableTags,
   defaultStatus,
   initialTitle,
+  initialSummary = '',
   initialTagNames,
 }) => {
+  const { showToast } = useToast();
   const [title, setTitle] = useState('');
   const [summary, setSummary] = useState('');
   const [priority, setPriority] = useState<Priority>('medium');
@@ -73,7 +77,7 @@ export const QuickCreateModal: React.FC<QuickCreateModalProps> = ({
   useEffect(() => {
     if (!isOpen) return;
     setTitle(initialTitle);
-    setSummary('');
+    setSummary(initialSummary);
     setPriority('medium');
     setInitialTodo('');
     setSelectedTagNames(initialTagNames);
@@ -81,7 +85,7 @@ export const QuickCreateModal: React.FC<QuickCreateModalProps> = ({
     setDeadline('');
     setNewTagInput('');
     setIsAdvancedOpen(initialTagNames.length > 0);
-  }, [initialTagNames, initialTitle, isOpen]);
+  }, [initialTagNames, initialSummary, initialTitle, isOpen]);
 
   // Unselected tags from available pool
   const unselectedAvailableTags = useMemo(() => {
@@ -123,6 +127,11 @@ export const QuickCreateModal: React.FC<QuickCreateModalProps> = ({
       onClose();
     } catch (err) {
       console.error(err);
+      showToast({
+        tone: 'error',
+        duration: 7000,
+        message: err instanceof Error ? `创建选题失败：${err.message}` : '创建选题失败，请稍后重试',
+      });
     } finally {
       setIsSubmitting(false);
     }

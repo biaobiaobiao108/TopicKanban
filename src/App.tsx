@@ -44,7 +44,8 @@ import { TodayView } from './components/today/TodayView';
 import { TodoQuickActionDialog } from './components/topic-detail/TodoQuickActionDialog';
 import { ViewErrorBoundary } from './components/ui/ViewErrorBoundary';
 import { QuickDropDrawer } from './components/inbox/QuickDropDrawer';
-import { fetchQuickDropCount } from './lib/storageApi';
+import { deleteQuickDrop, fetchQuickDropCount } from './lib/storageApi';
+import type { QuickDropItem } from './types';
 import { applyTheme } from './lib/theme';
 import { matchPath, useLocation, useNavigate } from 'react-router-dom';
 import { useWorkspace } from './hooks/useWorkspace';
@@ -68,6 +69,7 @@ import { PwaInstallPromptBanner } from './components/ui/PwaInstall';
 import { Database } from 'lucide-react';
 import { invalidateQueryGroups } from './lib/topicQueryCache';
 import { getBeijingDateString } from './lib/actionDate';
+import { quickDropToTopicDraft } from './lib/quickDrop';
 import { useTopicTodoActions } from './hooks/useTopicTodoActions';
 import { TopicMutationTracker } from './lib/topicMutationTracker';
 import { useGlobalShortcuts } from './hooks/useGlobalShortcuts';
@@ -237,7 +239,9 @@ function WorkspaceApp({ isAuth, setIsAuth }: WorkspaceAppProps) {
   const [isQuickCreateOpen, setIsQuickCreateOpen] = useState(false);
   const [quickCreateStatus, setQuickCreateStatus] = useState<TopicStatus>('inbox');
   const [quickCreateInitialTitle, setQuickCreateInitialTitle] = useState('');
+  const [quickCreateInitialSummary, setQuickCreateInitialSummary] = useState('');
   const [quickCreateInitialTags, setQuickCreateInitialTags] = useState<string[]>([]);
+  const [quickDropConversion, setQuickDropConversion] = useState<QuickDropItem | null>(null);
   const [isCommandPaletteOpen, setIsCommandPaletteOpen] = useState(false);
   const [isMobileDrawerOpen, setIsMobileDrawerOpen] = useState(false);
   const [isQuickDropDrawerOpen, setIsQuickDropDrawerOpen] = useState(false);
@@ -419,7 +423,27 @@ function WorkspaceApp({ isAuth, setIsAuth }: WorkspaceAppProps) {
       tags: resolvedTags,
     });
     setTopics(prev => [newTopic, ...prev]);
-    await refreshTopics({ includeLists: true });
+
+    const convertedDrop = quickDropConversion;
+    if (convertedDrop) {
+      setQuickDropConversion(null);
+      try {
+        await deleteQuickDrop(convertedDrop.id);
+        setQuickDropCount(count => Math.max(0, count - 1));
+      } catch {
+        showToast({
+          tone: 'error',
+          duration: 8000,
+          message: `选题「${newTopic.title}」已创建，但原快投未能删除。请在快投箱中手动删除，避免重复转换。`,
+        });
+      }
+    }
+    try {
+      await refreshTopics({ includeLists: true });
+    } catch (error) {
+      if (!convertedDrop) throw error;
+      showToast({ tone: 'error', message: '选题已创建，但列表刷新失败，请稍后重新加载。' });
+    }
   };
 
   const handleCreateTopicFromDeal = async (topicData: { title: string; summary: string }): Promise<Topic> => {
@@ -692,6 +716,7 @@ function WorkspaceApp({ isAuth, setIsAuth }: WorkspaceAppProps) {
 
   const handleQuickAddInStatus = (status: TopicStatus) => {
     setQuickCreateInitialTitle('');
+    setQuickCreateInitialSummary('');
     setQuickCreateInitialTags([]);
     setQuickCreateStatus(status);
     setIsQuickCreateOpen(true);
@@ -699,6 +724,7 @@ function WorkspaceApp({ isAuth, setIsAuth }: WorkspaceAppProps) {
 
   const openInboxQuickCreate = () => {
     setQuickCreateInitialTitle('');
+    setQuickCreateInitialSummary('');
     setQuickCreateInitialTags([]);
     setQuickCreateStatus('inbox');
     setIsQuickCreateOpen(true);
@@ -1038,6 +1064,7 @@ function WorkspaceApp({ isAuth, setIsAuth }: WorkspaceAppProps) {
                     onSelectTopic={handleOpenDetail}
                     onQuickCreateTopicInTag={tagName => {
                       setQuickCreateInitialTitle('');
+                      setQuickCreateInitialSummary('');
                       setQuickCreateInitialTags([tagName]);
                       setQuickCreateStatus('inbox');
                       setIsQuickCreateOpen(true);
@@ -1121,11 +1148,16 @@ function WorkspaceApp({ isAuth, setIsAuth }: WorkspaceAppProps) {
       {/* Global Quick Create Modal (Hotkey N) */}
       <QuickCreateModal
         isOpen={isQuickCreateOpen}
-        onClose={() => setIsQuickCreateOpen(false)}
+        onClose={() => {
+          setIsQuickCreateOpen(false);
+          setQuickDropConversion(null);
+          setQuickCreateInitialSummary('');
+        }}
         onSave={handleSaveQuickTopic}
         availableTags={tags}
         defaultStatus={quickCreateStatus}
         initialTitle={quickCreateInitialTitle}
+        initialSummary={quickCreateInitialSummary}
         initialTagNames={quickCreateInitialTags}
       />
 
@@ -1162,6 +1194,7 @@ function WorkspaceApp({ isAuth, setIsAuth }: WorkspaceAppProps) {
         onNavigate={navigateToView}
         onOpenQuickCreate={initialTitle => {
           setQuickCreateInitialTitle(initialTitle);
+          setQuickCreateInitialSummary('');
           setQuickCreateInitialTags([]);
           setQuickCreateStatus('inbox');
           setIsQuickCreateOpen(true);
@@ -1182,9 +1215,12 @@ function WorkspaceApp({ isAuth, setIsAuth }: WorkspaceAppProps) {
         onDropCountChange={setQuickDropCount}
         onConvertToTopic={item => {
           setIsQuickDropDrawerOpen(false);
-          setQuickCreateInitialTitle(item.content.slice(0, 50));
+          const draft = quickDropToTopicDraft(item);
+          setQuickCreateInitialTitle(draft.title);
+          setQuickCreateInitialSummary(draft.summary);
           setQuickCreateInitialTags([]);
           setQuickCreateStatus('inbox');
+          setQuickDropConversion(item);
           setIsQuickCreateOpen(true);
         }}
       />

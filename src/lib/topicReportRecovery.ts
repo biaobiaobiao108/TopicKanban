@@ -5,6 +5,11 @@ export interface TopicReportRecoveryDraft {
   wordCount: number;
   baseVersion: number;
   savedAt: string;
+  requiresResolution?: boolean;
+}
+
+export function topicReportRecoveryConflicts(recovery: TopicReportRecoveryDraft, serverVersion: number): boolean {
+  return recovery.requiresResolution === true || recovery.baseVersion !== serverVersion;
 }
 
 const RECOVERY_KEY_PREFIX = 'topic_report_recovery_v1:';
@@ -25,7 +30,8 @@ function isRecoveryDraft(value: unknown): value is TopicReportRecoveryDraft {
     (draft.wordCount ?? -1) >= 0 &&
     Number.isInteger(draft.baseVersion) &&
     (draft.baseVersion ?? -1) >= 0 &&
-    typeof draft.savedAt === 'string'
+    typeof draft.savedAt === 'string' &&
+    (draft.requiresResolution === undefined || typeof draft.requiresResolution === 'boolean')
   );
 }
 
@@ -73,11 +79,70 @@ export function writeTopicReportRecovery(topicId: string, draft: Omit<TopicRepor
     if (typeof localStorage === 'undefined') return false;
     const storage = localStorage;
     pruneExpiredRecoveries(storage, Date.now());
-    storage.setItem(getRecoveryKey(topicId), JSON.stringify({ ...draft, savedAt: new Date().toISOString() }));
+    const previous = readTopicReportRecovery(topicId);
+    storage.setItem(
+      getRecoveryKey(topicId),
+      JSON.stringify({
+        ...draft,
+        requiresResolution: draft.requiresResolution ?? previous?.requiresResolution,
+        savedAt: new Date().toISOString(),
+      }),
+    );
     return true;
   } catch {
     // Storage may be unavailable or full. Keep editing and cloud autosave active.
     return false;
+  }
+}
+
+/** Keep pre-restore report edits available, but require an explicit choice before they can sync. */
+export function markTopicReportRecoveriesForResolution(): void {
+  let storage: Storage;
+  try {
+    if (typeof localStorage === 'undefined') return;
+    storage = localStorage;
+  } catch (error) {
+    throw new Error('无法读取本地报告恢复稿，请检查浏览器存储权限后重试', { cause: error });
+  }
+  const keys: string[] = [];
+  try {
+    for (let index = 0; index < storage.length; index += 1) {
+      const key = storage.key(index);
+      if (key?.startsWith(RECOVERY_KEY_PREFIX)) keys.push(key);
+    }
+  } catch (error) {
+    throw new Error('无法读取本地报告恢复稿，请检查浏览器存储权限后重试', { cause: error });
+  }
+  for (const key of keys) {
+    let raw: string | null;
+    try {
+      raw = storage.getItem(key);
+    } catch (error) {
+      throw new Error('无法读取本地报告恢复稿，请检查浏览器存储权限后重试', { cause: error });
+    }
+    let parsed: unknown;
+    try {
+      parsed = JSON.parse(raw || 'null');
+    } catch {
+      continue;
+    }
+    if (!isRecoveryDraft(parsed)) continue;
+    try {
+      storage.setItem(key, JSON.stringify({ ...parsed, requiresResolution: true }));
+    } catch (error) {
+      throw new Error('无法隔离导入前的本地报告，请检查浏览器存储权限或空间后重试', { cause: error });
+    }
+  }
+}
+
+/** Called only after the user explicitly chooses to keep the local report. */
+export function resolveTopicReportRecovery(topicId: string): void {
+  const recovery = readTopicReportRecovery(topicId);
+  if (!recovery) return;
+  try {
+    localStorage.setItem(getRecoveryKey(topicId), JSON.stringify({ ...recovery, requiresResolution: false }));
+  } catch {
+    // The caller still has the report in memory and cloud persistence can proceed.
   }
 }
 

@@ -44,6 +44,7 @@ import { authenticatedFetch, getAuthToken } from './auth';
 import type { PublishedAnalyticsPayload } from './videoAnalytics';
 import { formatBeijingDateTime } from './actionDate';
 import { loadLocalSettings, saveLocalSettings } from './localSettings';
+import { markTopicReportRecoveriesForResolution } from './topicReportRecovery';
 
 const PENDING_DRAFTS_KEY = 'topic_kanban_pending_drafts_v3';
 const PENDING_DRAFT_MAX_ENTRIES = 8;
@@ -763,6 +764,7 @@ async function uploadDraft(
   generation = storageMemoryGeneration,
   epoch = draftUploadEpochs.get(draft.topic_id) ?? 0,
 ): Promise<Draft> {
+  if (generation !== storageMemoryGeneration) throw new Error('草稿保存所属会话已失效');
   if (epoch !== (draftUploadEpochs.get(draft.topic_id) ?? 0)) throw new Error('草稿保存已被版本选择取代');
   if (draftConflicts.get(draft.topic_id) !== undefined || readPendingDrafts()[draft.topic_id]?.requires_resolution) {
     throw new DraftConflictError(draftConflicts.get(draft.topic_id) ?? null);
@@ -1295,6 +1297,30 @@ export async function importBackupData(input: string | File): Promise<BackupImpo
     const { settings, ...businessData } = backup;
     hasSettings = Object.prototype.hasOwnProperty.call(backup, 'settings');
     localSettings = settings;
+    // Finish already-sent writes before replacing the database, and cancel
+    // queued uploads so an older save cannot land after the restore.
+    clearStorageMemoryCaches();
+    await Promise.allSettled([...draftUploadQueues.values()]);
+    // Read failures must stop the restore as well: an unreadable recovery
+    // record could become available again later without the conflict marker.
+    try {
+      localStorage.getItem(PENDING_DRAFTS_KEY);
+    } catch {
+      throw new Error('无法读取本地草稿，请检查浏览器存储权限后重试');
+    }
+    const pendingDrafts = readPendingDrafts();
+    if (Object.keys(pendingDrafts).length > 0) {
+      const isolatedDrafts = Object.fromEntries(
+        Object.entries(pendingDrafts).map(([topicId, record]) => [topicId, { ...record, requires_resolution: true }]),
+      );
+      try {
+        localStorage.setItem(PENDING_DRAFTS_KEY, JSON.stringify(isolatedDrafts));
+        pendingDraftMemoryCache = null;
+      } catch {
+        throw new Error('无法隔离导入前的本地草稿，请检查浏览器存储权限或空间后重试');
+      }
+    }
+    markTopicReportRecoveriesForResolution();
     await apiRequest('/api/backup', jsonRequest('PUT', { data: businessData }));
   } catch (error) {
     console.error('Backup import failed', error);

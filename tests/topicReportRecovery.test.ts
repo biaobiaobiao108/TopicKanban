@@ -1,7 +1,9 @@
 import { afterEach, beforeEach, describe, expect, it } from 'bun:test';
 import {
   clearTopicReportRecoveryIfMatches,
+  markTopicReportRecoveriesForResolution,
   readTopicReportRecovery,
+  topicReportRecoveryConflicts,
   writeTopicReportRecovery,
 } from '../src/lib/topicReportRecovery';
 
@@ -61,6 +63,54 @@ describe('topic report local recovery', () => {
     });
 
     expect(readTopicReportRecovery('topic-2')?.markdown).toBe('# 新稿');
+  });
+
+  it('marks existing reports for an explicit choice and preserves that marker on later edits', () => {
+    writeTopicReportRecovery('topic-restore', {
+      markdown: '# 本机报告',
+      html: '<h1>本机报告</h1>',
+      json: '{}',
+      wordCount: 4,
+      baseVersion: 3,
+    });
+
+    markTopicReportRecoveriesForResolution();
+    expect(readTopicReportRecovery('topic-restore')).toMatchObject({
+      markdown: '# 本机报告',
+      baseVersion: 3,
+      requiresResolution: true,
+    });
+    expect(topicReportRecoveryConflicts(readTopicReportRecovery('topic-restore')!, 3)).toBe(true);
+
+    writeTopicReportRecovery('topic-restore', {
+      markdown: '# 修改后的本机报告',
+      html: '<h1>修改后的本机报告</h1>',
+      json: '{}',
+      wordCount: 8,
+      baseVersion: 3,
+    });
+    expect(readTopicReportRecovery('topic-restore')).toMatchObject({
+      markdown: '# 修改后的本机报告',
+      requiresResolution: true,
+    });
+  });
+
+  it('throws when a recovery snapshot cannot be marked before backup replacement', () => {
+    writeTopicReportRecovery('topic-storage-failure', {
+      markdown: '# 本机报告',
+      html: '<h1>本机报告</h1>',
+      json: '{}',
+      wordCount: 4,
+      baseVersion: 3,
+    });
+    const originalSetItem = localStorage.setItem.bind(localStorage);
+    localStorage.setItem = (key: string, value: string) => {
+      if (key === 'topic_report_recovery_v1:topic-storage-failure') throw new Error('quota exceeded');
+      originalSetItem(key, value);
+    };
+
+    expect(() => markTopicReportRecoveriesForResolution()).toThrow();
+    localStorage.setItem = originalSetItem;
   });
 
   it('expires and removes recovery snapshots older than 90 days', () => {
