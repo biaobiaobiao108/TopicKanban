@@ -182,6 +182,26 @@ export async function loadActiveTopicCount(db: Database): Promise<number> {
   );
   return Number(result?.count || 0);
 }
+
+export interface IntegrationTopicSummary {
+  id: string;
+  title: string;
+  status: TopicStatus;
+  priority: Topic['priority'];
+  updated_at: string;
+}
+
+export async function loadLatestActiveTopicSummaries(db: Database, limit: number): Promise<IntegrationTopicSummary[]> {
+  return readAll<IntegrationTopicSummary>(
+    db,
+    `SELECT id, title, status, priority, updated_at
+    FROM topics
+    WHERE deleted_at IS NULL AND status NOT IN ('published', 'icebox')
+    ORDER BY updated_at DESC, id ASC
+    LIMIT ?`,
+    [limit],
+  );
+}
 export class TopicNotInTrashError extends Error {}
 export class TopicPinInvalidStateError extends Error {}
 export class TopicReorderInvalidStateError extends Error {}

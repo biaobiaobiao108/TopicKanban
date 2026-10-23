@@ -35,6 +35,10 @@ class NativeRequest {
     return this.url.pathname;
   }
 
+  get method(): string {
+    return this.request.method;
+  }
+
   query(name: string): string {
     return this.url.searchParams.get(name) ?? '';
   }

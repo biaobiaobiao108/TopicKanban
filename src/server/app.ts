@@ -29,6 +29,13 @@ export function createApp(bindings: ApiBindings): NativeApp {
     const path = c.req.path;
     if (path === '/api/auth/login' || path === '/auth/login') return next();
     if (path === '/api/health' || path === '/health') return next();
+    if (path === '/api/v1/topics' && c.req.method === 'GET') {
+      const dropToken = c.req.header('X-Quick-Drop-Token');
+      const credential = verifyQuickDropCredential(dropToken, c.env.QUICK_DROP_TOKEN);
+      if (credential === 'missing_config') return c.json({ error: 'QUICK_DROP_TOKEN is not configured' }, 503);
+      if (credential === 'invalid') return c.json({ error: 'Unauthorized' }, 401);
+      return next();
+    }
     if (path === '/api/inbox/quick-drop' || path === '/inbox/quick-drop') {
       const dropToken = c.req.header('X-Quick-Drop-Token');
       if (dropToken) {

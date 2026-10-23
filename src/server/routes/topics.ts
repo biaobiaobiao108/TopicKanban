@@ -14,10 +14,11 @@ import {
 import {
   insertTopic,
   listTrashedTopicIds,
-  loadTodayFocus,
   loadActiveTopicCount,
+  loadLatestActiveTopicSummaries,
   loadTopic,
   loadTopicPage,
+  loadTodayFocus,
   loadTrashedTopics,
   permanentlyDeleteTrashedTopics,
   reorderTopics,
@@ -35,6 +36,20 @@ import {
 } from '../repositories';
 
 export function registerTopicRoutes(app: NativeApp): void {
+  app.get('/v1/topics', async c => {
+    try {
+      const limitValue = c.req.query('limit') || '5';
+      const limit = Number(limitValue);
+      if (!Number.isInteger(limit) || limit < 1 || limit > 100) {
+        return c.json({ error: 'limit must be an integer from 1 to 100' }, 400);
+      }
+      const items = await loadLatestActiveTopicSummaries(requireDb(c), limit);
+      return c.json({ items });
+    } catch (error) {
+      return jsonError(c, error);
+    }
+  });
+
   app.get('/topics', async c => {
     try {
       const page = Math.max(1, Number.parseInt(c.req.query('page') || '1', 10) || 1);
