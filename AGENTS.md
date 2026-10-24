@@ -12,10 +12,16 @@
 
 ## 验证与提交
 
-- 完成代码修改后，以一个完整任务为单位自动创建中文本地 Git 提交，不按文件或中间步骤零碎提交。
-- 提交前，先对本次修改的文件执行 `bun fmt`，再运行全量 `bun test --check` 和 `git diff --check`；全部通过后才能提交。检查后若又修改了代码，须重新执行相应检查，确保验证的是最终提交的内容。
-- 涉及应用源码、依赖或构建配置的修改，额外运行 `bun run build`。
-- 纯文档修改只需格式化与差异检查，无需测试和构建。
+- 每次提交包含应用代码、服务端代码、脚本、测试、依赖或构建配置改动时，提交前按顺序完成以下步骤：
+
+  1. 运行 `bun run format`，格式化范围以 `package.json` 中的脚本为准。
+  2. 检查格式化产生的 diff，确认没有无关改动，并运行 `git diff --check`。
+  3. 依次运行 `bun run typecheck`、`bun run test` 和 `bun run build`；测试脚本使用 `bun test --check`。
+
+- 上述检查全部通过后才能提交；代码再次改动后，从格式化开始重新执行完整流程，任一检查失败须先修复。
+- 每个完成的代码改动集都必须自动创建中文本地 Git 提交，包括重构、维护和小修复；以完整任务为单位，不按文件或中间步骤零碎提交。提交标题使用 `feat:`、`fix:`、`docs:`、`test:`、`chore:` 或 `ci:` 前缀，并用中文描述。
+- 纯文档修改可跳过上述代码检查，仍须检查 diff 并运行 `git diff --check`。
+- 本地无需构建 Docker 镜像，由 CI 负责。
 - 只提交本次任务的改动，不混入已有的无关修改；未经明确要求，不自动推送或发布。
 
 ## 项目边界
@@ -40,6 +46,6 @@
 
 ## 常用命令
 
-- 开发：`bun run dev`；类型检查：`bun check`；构建：`bun run build`；测试：`bun test --check`。
+- 开发：`bun run dev`；格式化：`bun run format`；格式检查：`bun run format:check`；类型检查：`bun run typecheck`；测试：`bun run test`；构建：`bun run build`。
 - 单机生产运行：`bun run start`；容器按仓库现有 Podman / Docker 配置运行。
 - `docs/index.html` 是独立静态展示页，保持零构建；主应用入口仍是根目录 `index.html`。

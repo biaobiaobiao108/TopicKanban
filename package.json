@@ -9,8 +9,8 @@
     "build:server": "NODE_ENV=production bun run --bun scripts/build.ts",
     "start": "NODE_ENV=production bun dist/server.js",
     "check:bundle": "bun scripts/checkBundleSize.ts",
-    "format": "bun fmt",
-    "format:check": "bun fmt --check",
+    "format": "bun fmt \"src/**/*.ts\" \"src/**/*.tsx\" \"src/**/*.css\" \"scripts/**/*.ts\" \"tests/**/*.ts\" \"public/**/*.js\" index.html tailwind.config.js package.json tsconfig.json",
+    "format:check": "bun fmt --check \"src/**/*.ts\" \"src/**/*.tsx\" \"src/**/*.css\" \"scripts/**/*.ts\" \"tests/**/*.ts\" \"public/**/*.js\" index.html tailwind.config.js package.json tsconfig.json",
     "test": "bun test --check",
     "typecheck": "bun check"
   },
