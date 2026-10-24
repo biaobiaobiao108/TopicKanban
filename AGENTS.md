@@ -10,6 +10,13 @@
 - JavaScript / TypeScript 的依赖、脚本、构建和测试使用 Bun。
 - 未经用户确认，不执行删除关键数据、重置数据库或其他不可逆操作。
 
+## 代码地图
+
+- 前端入口为 `src/main.tsx`、`src/App.tsx`；组件、hooks 和通用逻辑分别位于 `src/components/`、`src/hooks/`、`src/lib/`。
+- 领域类型位于 `src/types/`；服务端入口与装配位于 `src/server/app.ts`，请求校验、路由和 SQL 仓储分别位于 `src/server/schemas.ts`、`src/server/routes/`、`src/server/repositories/`。
+- `database/schema.sql` 是数据库基线；`tests/` 存放测试；`docs/API.md` 是 API 说明。
+- 根目录 `index.html` 是主应用入口；`docs/index.html` 是独立静态展示页。
+
 ## 验证与提交
 
 - 每次提交包含应用代码、服务端代码、脚本、测试、依赖或构建配置改动时，提交前按顺序完成以下步骤：
