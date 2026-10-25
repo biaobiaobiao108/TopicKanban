@@ -56,6 +56,23 @@
   justify-content: flex-start;
 }
 
+.script-report-split-backdrop {
+  position: absolute;
+  inset: 0;
+  z-index: 30;
+  border: 0;
+  padding: 0;
+  background: color-mix(in srgb, var(--ink) 22%, transparent);
+}
+
+.script-report-split-overlay {
+  position: absolute;
+  inset: 0 auto 0 0;
+  z-index: 40;
+  width: min(100%, calc(100vw - 1rem));
+  box-shadow: 0 12px 36px color-mix(in srgb, var(--ink) 18%, transparent);
+}
+
 .script-editor-document {
   flex: none;
   min-width: 0;
@@ -364,11 +381,6 @@ html.dark .tiptap h2 {
 
 html.dark .tiptap h3 {
   color: var(--ink);
-}
-
-.tiptap p {
-  margin-top: 0.625rem;
-  margin-bottom: 0.625rem;
 }
 
 .tiptap blockquote {
@@ -1546,10 +1558,12 @@ html.theme-kyoto-zen .tiptap hr {
 
 .topic-report-reader table {
   width: 100%;
+  max-width: 100%;
   margin: 1rem 0;
   border-collapse: separate;
   border-spacing: 0;
   border-radius: var(--radius-md, 12px);
+  table-layout: fixed;
   font-size: 0.9em;
   background: var(--surface);
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
@@ -1560,6 +1574,7 @@ html.theme-kyoto-zen .tiptap hr {
   padding: 0.5rem 0.75rem;
   border-inline-end: 1px solid color-mix(in srgb, var(--line) 50%, transparent);
   border-block-end: 1px solid color-mix(in srgb, var(--line) 50%, transparent);
+  overflow-wrap: anywhere;
   text-align: left;
 }
 

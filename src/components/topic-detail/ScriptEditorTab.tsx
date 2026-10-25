@@ -151,6 +151,8 @@ export const LINE_HEIGHT_MAP: Record<EditorLineHeight, string> = {
 // Backoff for retrying a failed cloud draft upload. The last entry repeats, so
 // an editor left open through a long outage keeps converging on its own.
 const SAVE_RETRY_DELAY_MS = [5000, 15000, 60000];
+// Keep the report pane and editor at their minimum widths, including the resizer.
+const REPORT_SPLIT_OVERLAY_BREAKPOINT = 752;
 
 // Zero-delay native ProseMirror decoration extension for active focus paragraph
 const FocusParagraphExtension = Extension.create({
@@ -318,6 +320,7 @@ export const ScriptEditorTab: React.FC<ScriptEditorTabProps> = ({
 
   const [isReferenceOpen, setIsReferenceOpen] = useState(false);
   const [isReportSplitOpen, setIsReportSplitOpen] = useState(false);
+  const [isReportSplitOverlay, setIsReportSplitOverlay] = useState(false);
   const [reportSplitWidth, setReportSplitWidth] = useState<number>(() => {
     if (typeof window !== 'undefined') {
       const saved = localStorage.getItem('topic_report_split_width');
@@ -348,7 +351,7 @@ export const ScriptEditorTab: React.FC<ScriptEditorTabProps> = ({
 
   const getSplitWidthBounds = useCallback(() => {
     const availableWidth = splitAreaRef.current?.clientWidth || window.innerWidth;
-    const max = Math.min(1200, Math.max(0, availableWidth - 426));
+    const max = Math.min(1200, Math.max(0, availableWidth - 432));
     return { min: Math.min(320, max), max };
   }, []);
 
@@ -361,18 +364,22 @@ export const ScriptEditorTab: React.FC<ScriptEditorTabProps> = ({
   useEffect(() => {
     if (!isReportSplitOpen || !splitAreaRef.current) return;
     const area = splitAreaRef.current;
-    const clampToAvailableWidth = () => {
+    const updateSplitLayout = () => {
+      const useOverlay = area.clientWidth < REPORT_SPLIT_OVERLAY_BREAKPOINT;
+      setIsReportSplitOverlay(useOverlay);
+      if (useOverlay) return;
+
       const { min, max } = getSplitWidthBounds();
       setReportSplitWidth(current => Math.min(max, Math.max(min, current)));
     };
-    clampToAvailableWidth();
+    updateSplitLayout();
     if (typeof ResizeObserver !== 'undefined') {
-      const observer = new ResizeObserver(clampToAvailableWidth);
+      const observer = new ResizeObserver(updateSplitLayout);
       observer.observe(area);
       return () => observer.disconnect();
     }
-    window.addEventListener('resize', clampToAvailableWidth);
-    return () => window.removeEventListener('resize', clampToAvailableWidth);
+    window.addEventListener('resize', updateSplitLayout);
+    return () => window.removeEventListener('resize', updateSplitLayout);
   }, [getSplitWidthBounds, isReportSplitOpen]);
 
   const handleSplitResizeStart = (e: React.PointerEvent) => {
@@ -1334,9 +1341,9 @@ export const ScriptEditorTab: React.FC<ScriptEditorTabProps> = ({
       {/* Top Floating / Fixed Toolbar (左右空间对称排布) */}
       {/* Top Floating / Fixed Toolbar (配合顶栏设计语言，通透精致、左右对称) */}
       {!isZenMode && (
-        <div className="script-editor-toolbar relative z-30 flex h-12 w-full shrink-0 items-center justify-between border-b border-line/60 bg-surface/80 backdrop-blur-md px-3 sm:px-6 transition-colors">
+        <div className="script-editor-toolbar relative z-30 flex min-h-12 w-full shrink-0 flex-col items-stretch gap-1 border-b border-line/60 bg-surface/80 px-3 py-1 backdrop-blur-md sm:h-12 sm:min-h-0 sm:flex-row sm:items-center sm:justify-between sm:gap-0 sm:px-6 sm:py-0">
           {/* Left: Outline trigger & Reference panel & Auto-save badge */}
-          <div className="flex items-center gap-1.5 sm:gap-2">
+          <div className="flex w-full items-center justify-between gap-1.5 sm:w-auto sm:justify-start sm:gap-2">
             {/* Outline Toggle */}
             <button
               type="button"
@@ -1401,31 +1408,31 @@ export const ScriptEditorTab: React.FC<ScriptEditorTabProps> = ({
               {saveStatus === 'saving' && (
                 <>
                   <Cloud className="h-3 w-3 animate-pulse text-accent" aria-hidden="true" />
-                  <span className="hidden sm:inline">同步中…</span>
+                  <span>同步中…</span>
                 </>
               )}
               {saveStatus === 'saved' && (
                 <>
                   <CheckCircle2 className="h-3 w-3 text-success/90" aria-hidden="true" />
-                  <span className="hidden sm:inline">已同步</span>
+                  <span>已同步</span>
                 </>
               )}
               {saveStatus === 'local' && (
                 <>
                   <Save className="h-3 w-3 text-ink-muted" aria-hidden="true" />
-                  <span className="hidden sm:inline">本地已暂存</span>
+                  <span>本地已暂存</span>
                 </>
               )}
               {saveStatus === 'unsaved' && (
                 <>
                   <Save className="h-3 w-3 text-ink-muted" aria-hidden="true" />
-                  <span className="hidden sm:inline">未保存</span>
+                  <span>未保存</span>
                 </>
               )}
               {saveStatus === 'pending' && (
                 <>
                   <Save className="h-3 w-3 text-warning" aria-hidden="true" />
-                  <span className="hidden sm:inline">待同步</span>
+                  <span>待同步</span>
                 </>
               )}
               {saveStatus === 'cache-error' && (
@@ -1437,7 +1444,7 @@ export const ScriptEditorTab: React.FC<ScriptEditorTabProps> = ({
               {saveStatus === 'conflict' && (
                 <>
                   <AlertTriangle className="h-3 w-3 text-danger" aria-hidden="true" />
-                  <span className="hidden sm:inline text-danger font-semibold">冲突</span>
+                  <span className="text-danger font-semibold">冲突</span>
                 </>
               )}
             </div>
@@ -1457,7 +1464,7 @@ export const ScriptEditorTab: React.FC<ScriptEditorTabProps> = ({
           </div>
 
           {/* Right: Tools & Actions */}
-          <div className="flex items-center gap-1 sm:gap-1.5">
+          <div className="flex w-full items-center justify-end gap-1 sm:w-auto sm:gap-1.5">
             {/* Mobile-only word count */}
             <div className="flex md:hidden items-center text-2xs text-ink-muted font-mono tabular-nums pr-1">
               <span>{charCount}字</span>
@@ -1603,19 +1610,32 @@ export const ScriptEditorTab: React.FC<ScriptEditorTabProps> = ({
         {/* Topic Report Split-Screen Panel */}
         {!isZenMode && isReportSplitOpen && (
           <>
+            {isReportSplitOverlay && (
+              <button
+                type="button"
+                className="script-report-split-backdrop"
+                onClick={() => setIsReportSplitOpen(false)}
+                aria-label="关闭选题报告分屏"
+              />
+            )}
             <aside
-              style={{ width: `${Math.min(reportSplitWidth, getSplitWidthBounds().max)}px` }}
-              className="min-w-0 shrink-0 h-full border-r border-line bg-surface/70 flex flex-col z-10 transition-all duration-75 relative select-text"
+              style={
+                isReportSplitOverlay
+                  ? undefined
+                  : { width: `${Math.min(reportSplitWidth, getSplitWidthBounds().max)}px` }
+              }
+              className={`min-w-0 shrink-0 h-full border-r border-line bg-surface/70 flex flex-col transition-all duration-75 select-text ${isReportSplitOverlay ? 'script-report-split-overlay' : 'relative z-10'}`}
             >
               {/* Split Panel Header */}
-              <div className="flex h-11 items-center justify-between border-b border-line/60 px-4 bg-surface select-none shrink-0">
-                <div className="flex items-center gap-2 min-w-0">
+              <div className="flex min-h-11 flex-wrap items-center justify-between gap-x-3 gap-y-1 border-b border-line/60 bg-surface px-3 py-2 select-none shrink-0 sm:px-4 sm:py-0">
+                <div className="flex items-center gap-2 min-w-0 shrink-0">
                   <div
                     className="flex h-6 w-6 items-center justify-center rounded-md bg-accent-soft text-accent-dark shrink-0"
-                    aria-label="选题报告"
+                    aria-hidden="true"
                   >
                     <FileText className="h-3.5 w-3.5" />
                   </div>
+                  <span className="text-xs font-medium text-ink">选题报告</span>
                   {report?.word_count ? (
                     <span className="rounded-full bg-control px-2 py-0.5 text-3xs font-mono text-ink-muted tabular-nums shrink-0">
                       {report.word_count.toLocaleString()} 字
@@ -1623,7 +1643,7 @@ export const ScriptEditorTab: React.FC<ScriptEditorTabProps> = ({
                   ) : null}
                 </div>
 
-                <div className="flex items-center gap-1.5 shrink-0">
+                <div className="flex min-w-0 max-w-full flex-wrap items-center justify-end gap-1.5">
                   {report?.content_markdown?.trim() && (
                     <>
                       <button
@@ -1748,21 +1768,23 @@ export const ScriptEditorTab: React.FC<ScriptEditorTabProps> = ({
             </aside>
 
             {/* Split Resizer Divider */}
-            <div
-              onPointerDown={handleSplitResizeStart}
-              onPointerMove={handleSplitResizeMove}
-              onPointerUp={handleSplitResizeEnd}
-              onPointerCancel={handleSplitResizeEnd}
-              className="group relative w-1.5 shrink-0 cursor-col-resize hover:bg-accent/30 active:bg-accent/50 transition-colors select-none z-20 flex items-center justify-center"
-              aria-label="拖拽调整分屏宽度，双击重置"
-              onDoubleClick={() => {
-                const defaultW = getDefaultReportSplitWidth();
-                setReportSplitWidth(defaultW);
-                localStorage.setItem('topic_report_split_width', String(defaultW));
-              }}
-            >
-              <div className="w-0.5 h-8 rounded-full bg-ink-faint/50 group-hover:bg-accent transition-colors" />
-            </div>
+            {!isReportSplitOverlay && (
+              <div
+                onPointerDown={handleSplitResizeStart}
+                onPointerMove={handleSplitResizeMove}
+                onPointerUp={handleSplitResizeEnd}
+                onPointerCancel={handleSplitResizeEnd}
+                className="group relative w-1.5 shrink-0 cursor-col-resize hover:bg-accent/30 active:bg-accent/50 transition-colors select-none z-20 flex items-center justify-center"
+                aria-label="拖拽调整分屏宽度，双击重置"
+                onDoubleClick={() => {
+                  const defaultW = getDefaultReportSplitWidth();
+                  setReportSplitWidth(defaultW);
+                  localStorage.setItem('topic_report_split_width', String(defaultW));
+                }}
+              >
+                <div className="w-0.5 h-8 rounded-full bg-ink-faint/50 group-hover:bg-accent transition-colors" />
+              </div>
+            )}
           </>
         )}
 
